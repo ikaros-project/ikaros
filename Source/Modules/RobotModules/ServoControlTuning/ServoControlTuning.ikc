@@ -38,25 +38,41 @@
 
             
   
-        
+    <parameter name="ParametersToTune" type="string"
+	description="The names of the control parameters include in the tuning" 
+	data="P, I, D, Goal Current, Profile Acceleration, Profile Velocity, Goal Position" 
+	control="textedit" 
+	default="P, I , D, Goal Current, Profile Acceleration, Profile Velocity, Goal Position" 
+	/>
 
-	<parameter name="ServoParameters" type="matrix" 
-	description="The control parameters in the dynamixel. Parameters: Goal Position, Goal Current, P, I, D, Profile Acceleration, Profile Velocity"
-	control="slider"
-	default="180,200,180,0,1000,0,0"
-	data="180,200,180,0,1000,0,0"
+	<parameter name="ParametersToRead" type="string"
+	description="The names of the control parameters to read values from" 
+	data="Present Current, Present Position" 
+	control="textedit" 
+	default="Present Current, Present Position" 
 	/>
-	<parameter name="MinLimitPosition" type="matrix" description="The minimum limit of the position of the servos. Not including pupils"
+
+	<parameter name="ParameterValues" type="matrix" 
+	description="The values of the control parameters in the dynamixel"
 	control="slider"
-	default="1300, 1750, 1830, 1780, 600, 800, 1000, 600, 800, 0, 600, 900, 1000, 1800, 800, 0, 100"
-	data="1300, 1750, 1830, 1780, 600, 800, 1000, 600, 800, 0, 600, 900, 1000, 1800, 800, 0, 100"
+	default="100,0,1000,500, 0,0, 180"
+
 	/>
-	<parameter name="MaxLimitPosition" type="matrix" description="The maximum limit of the position of the servos. Not including pupils "
+	
+	<parameter name="MinLimitPosition" type="matrix" description="The minimum limit of the position in degrees of the servos. Not including pupils"
 	control="slider"
-	default="2700, 2500, 2300, 2200, 3200, 3200, 3000, 2300, 3900, 4095, 3200, 3300, 3000, 3600, 3900, 4095, 3900"
-	data="2700, 2500, 2300, 2200, 3200, 3200, 3000, 2300, 3900, 4095, 3200, 3300, 3000, 3600, 3900, 4095, 3900"
+	default="122, 142, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"
+	data="122, 142, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"
 	/>
-	<parameter name="Servo" type="string" description="The servo to tune" control="menu" options="NeckTilt, NeckPan, LeftEye, RightEye, PupilLeft, PupilRight, ArmJoint1, ArmJoint2, ArmJoint3, ArmJoint4, ArmJoint5, Hand, Body" default="NeckTilt"/>
+	<parameter name="MaxLimitPosition" type="matrix" description="The maximum limit of the position of the servos in degrees. Not including pupils "
+	control="slider"
+	default="237, 240, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"
+	data="237, 240, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"
+	/>
+	<parameter name="Servo" type="string" description="The servo to tune" control="menu" 
+	options="NeckTilt, NeckPan, LeftEye, RightEye, LeftPupil, RightPupil, LeftArmJoint1, LeftArmJoint2, LeftArmJoint3, LeftArmJoint4, LeftArmJoint5, LeftHand, RightArmJoint1, RightArmJoint2, LeftArmJoint3, RightArmJoint4, RightArmJoint5, RightHand, Body" 
+	default="NeckTilt"
+	/>
 
 	<parameter name="robot" type="string" description="The robot to tune" control="menu" options= "EpiGray, EpiBlack, EpiWhite, EpiBlue, EpiYellow, EpiRed, EpiOrange, EpiGreen" />
 

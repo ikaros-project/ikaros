@@ -11,6 +11,7 @@ class ForceCheck: public Module
     matrix present_position;// assumes degrees
     matrix goal_position_in;
     matrix goal_position_out;
+    matrix previous_position;
     
     parameter gain_constant;
     parameter smooth_factor;
@@ -23,9 +24,12 @@ class ForceCheck: public Module
     int current_margin;
     int minimum_current;
    
-    bool firstTick = true;
-    bool obstacle = false;
-    long obstacle_time =0;
+    bool firstTick;
+    bool obstacle;
+    long obstacle_time;
+    bool goal_reached;
+    long start_time;
+    int goal_time_out;
 
     double Tapering(double error, double threshold)
     {
@@ -35,7 +39,7 @@ class ForceCheck: public Module
             return 1;
     }
     
-    matrix SetCurrent(matrix currents, matrix limits, matrix positions, matrix goal_position_in, int gain, int error_threshold, double smooth_factor)
+    matrix SetCurrent(matrix currents, matrix limits, matrix positions, matrix goal_position, int gain, int error_threshold, double smooth_factor)
     {
         for (int i = 0; i < currents.size(); i++) {
             int position = positions[i];
@@ -44,14 +48,12 @@ class ForceCheck: public Module
                 int current_value = abs(currents[i]);
                 int limit_value = limits[i];
                 int position = positions[i];
-                int goal = goal_position_in[i];
+                int goal = goal_position[i];
                 double error = abs(goal - position);
                 double error_tapered = Tapering(error, error_threshold);
                 int suggested_current = smooth_factor * current_value + (gain* error * error_tapered);
-                current_output[i] = std::min(suggested_current , limit_value); // Cap at limit_value 
-                
-            }
-                           
+                current_output[i] = std::min(suggested_current , limit_value); // Cap at limit_value                 
+            }        
              
         }
         
@@ -59,16 +61,16 @@ class ForceCheck: public Module
 }
 
     
-    void ObstacleCheck(matrix positions,  matrix current_limits, matrix goal_position_in, matrix goal_position_out )
+    void ObstacleCheck(matrix positions,  matrix current_limits, matrix goal_position_in, matrix goal_position_out, bool goal_reached)
     {   
         for (int i = 0; i < positions.size(); i++) {
-            float current_position = abs(positions(i));
+            float current_position = abs(positions[i]);
             float goal = goal_position_in[i];
             float current_value = abs(current_output[i]);
             float limit_value = current_limit[i];
             if (current_position >0){
 
-                if (!obstacle && abs(goal - current_position) > position_margin && current_value > limit_value*0.8)
+                if (!obstacle && !goal_reached && current_value > limit_value*0.8 && std::time(nullptr)-start_time > goal_time_out)
                 {   
                     
                     obstacle = true;
@@ -79,15 +81,43 @@ class ForceCheck: public Module
                 }
                 
             }
-            else if(abs(obstacle_time - std::time(nullptr)) > 3)
+            else if(obstacle && abs(std::time(nullptr)- obstacle_time) > 3)
             {
                 obstacle = false;
+                std::cout << "Obstacle time: " << std::time(nullptr)-obstacle_time << std::endl;
             }
 
 
         }
     }
 
+    bool GoalReached(matrix present_position, matrix goal_position, int margin)
+    {
+    
+        for (int i = 0; i < present_position.size(); i++) {
+            int position = present_position[i];
+            int goal = goal_position[i];
+
+            if (abs(position - goal) > margin)
+                return false;
+        }
+        return true;
+    }
+
+    bool ApproximatingGoal(matrix present_position, matrix previous_position, matrix goal_position){
+        for (int i =0; i < present_position.size(); i++){
+            //Checking if distance to goal is decreasing
+            if (abs(goal_position(i) - present_position(i)) < 0.97*abs(goal_position(i)-previous_position(i))){
+                Notify(msg_debug, "Approximating Goal");
+                return true;
+            }
+            else{
+                Notify(msg_debug, "Not Approximating Goal");
+                return false;
+            }
+        }
+        return false;
+    } 
     void Init()
     {
         Bind(present_current, "PresentCurrent");
@@ -106,7 +136,14 @@ class ForceCheck: public Module
         current_margin = 10;
         position_margin = 5;
         minimum_current = 15;
-    
+        start_time = std::time(nullptr);
+        goal_time_out = 5;
+        firstTick = true;
+        obstacle = false;
+        obstacle_time =0;
+        goal_reached = false;
+        previous_position.copy(present_position);
+        previous_position.set_name("PreviousPosition");
 
     }
 
@@ -118,16 +155,25 @@ class ForceCheck: public Module
         }
 
         if (present_position.connected() && present_current.connected() && goal_position_in.connected()) {
-            ObstacleCheck(present_position, current_limit, goal_position_in, goal_position_out);
+            if(ApproximatingGoal(present_position, previous_position, goal_position_in)){
+                start_time = std::time(nullptr);
+            }
+            goal_reached = GoalReached(present_position, goal_position_in, position_margin);
+            ObstacleCheck(present_position, current_limit, goal_position_in, goal_position_out, goal_reached);
             current_output = SetCurrent(present_current, current_limit, present_position, goal_position_in, gain_constant, error_threshold, smooth_factor);
+        }
+        else
+        {
+            Notify(msg_fatal_error, "Present position, present current and goal position must be connected");
+            return;
         }
 
        
-        
        
         firstTick=false;
-        std::cout << "Obstacle time: " << obstacle_time -std::time(nullptr) << std::endl;
-            
+        
+        
+        previous_position.copy(present_position);       
     }
 };
 
