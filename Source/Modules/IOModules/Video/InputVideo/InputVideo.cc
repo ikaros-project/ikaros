@@ -35,13 +35,13 @@ class InputVideo : public Module
     // FFmpeg related
     AVFormatContext *input_format_context;
     int videoStreamId;
-    // AVCodec         *input_codec;
     AVCodecContext *avctx;
     AVFrame *inputFrame;
     AVFrame *outputFrame;
     AVPacket packet;
     SwsContext *img_convert_ctx;
     AVDictionary *options = NULL;
+
 
 
     void 
@@ -159,6 +159,7 @@ class InputVideo : public Module
     }
 
 
+
     void 
     Tick()
     {
@@ -194,6 +195,11 @@ class InputVideo : public Module
                 float * r = output[0].data();
                 float * g = output[1].data();
                 float * b = output[2].data();
+
+                float * r_ = red.data();
+                float * g_ = green.data();
+                float * b_ = blue.data();
+
                 float * intens = intensity.data();
                 int p = 0;
                 int row_start = 0;
@@ -206,9 +212,9 @@ class InputVideo : public Module
                         int xy = col + y1;                              // xy = x + y1;
                         int x3 = col * 3;                               // x3 = x * 3;
 
-                        intens[p] = r[p] = c1_255 * data[row_start + x3 + 0];
-                        intens[p] += g[p] = c1_255 * data[row_start + x3 + 1];
-                        intens[p] += b[p] = c1_255 * data[row_start + x3 + 2];
+                        intens[p] =  r[p] = r_[p] = c1_255 * data[row_start + x3 + 0];
+                        intens[p] += g[p] = g_[p] = c1_255 * data[row_start + x3 + 1];
+                        intens[p] += b[p] = b_[p] = c1_255 * data[row_start + x3 + 2];
                         intens[p] *= c1_3;
 
                         p++;
