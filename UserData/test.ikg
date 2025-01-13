@@ -1,0 +1,4 @@
+<group filename="" name="Untitled" stop="-1" webui_port="8000">
+   <module _x="100" _y="100" class="Constant" data="1, 2; -3, 4" log_level="5" name="C"/>
+   <widget _index_="0" _x="264" _y="96" blue="" class="grid" color="" colorTable="" command="" fill="spectrum" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" frame-style="" green="" height="200" labelWidth="100" label_parameter="" labels="" lineWidth="1" max="5" max_x="1" max_y="1" min="-2" min_x="0" min_y="0" name="Widget_1" parameter="" red="" scales="no" select="" shape="rectangle" show_frame="false" show_title="false" size="1" source="C.OUTPUT" style="" title="Widget_1" valueHigh="1" valueLow="0" width="200"/>
+</group>

@@ -10,8 +10,8 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name':'red', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'green', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'blue', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'min', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'max', 'default':2, 'type':'float', 'control': 'textedit'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'label_parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'labelWidth', 'default':100, 'type':'int', 'control': 'textedit'},
@@ -153,7 +153,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                 {
                     if(ln)
                     {
-                        this.canvas.fillStyle = "black";    // FIXME: Should really use the default color form the stylesheet
+                        this.canvas.fillStyle = "black";    // FIXME: Should really use the default color from the stylesheet
                         this.canvas.fillText(labels[i % (ln+1)].trim(), 0, dy*i+dy/2);
                     }
 
