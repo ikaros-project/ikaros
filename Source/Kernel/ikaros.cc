@@ -304,6 +304,8 @@ namespace ikaros
         throw exception("Type conversion error for  parameter");
     }
 
+    std::string  parameter::as_int_string() { return std::to_string(as_int()); }
+
 
     const char* 
     parameter::c_str() const noexcept
