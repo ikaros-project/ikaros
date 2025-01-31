@@ -305,6 +305,14 @@ namespace ikaros
     }
 
 
+
+    std::string
+    parameter::as_int_string()
+    {
+        return std::to_string(as_int());    
+    }
+
+
     const char* 
     parameter::c_str() const noexcept
     {
@@ -423,7 +431,7 @@ namespace ikaros
                     return false;
                 }
 
-                SetParameter(name, p.info_["default"]);
+                SetParameter(name, p.info_["default"]); // FIXME: SHOULD EVALUATE DEFAULT VALUE - MAYBE
                 return true;
             }
 
@@ -438,7 +446,7 @@ namespace ikaros
             // Lookup normal value in current component-context
 
             value = GetValue(name);
-            if(value.empty())  // ****************** this does not work for string that are allowed to be empty
+            if(value.empty())  // ****************** this does not work for string that are allowed to be empty // FIXME: USE EXCEPTIONS *****
             {
                 SetParameter(name, p.info_["default"]);
                 return true;
@@ -470,6 +478,7 @@ namespace ikaros
         else
             return false;
     }
+
 
 
     std::string 
@@ -508,6 +517,38 @@ namespace ikaros
     }
 
 
+
+//
+// GetComponent
+//
+// sensitive to variables and indirection
+// does local substitution of vaiables unlike GetValue() / FIXME: is this correct?
+//
+ 
+    Component * 
+    Component::GetComponent(const std::string & s) 
+    {
+        std::string path = SubstituteVariables(s);
+        try
+        {
+            if(path.empty()) // this
+                return this;
+            if(path[0]=='.') // global
+                return kernel().components.at(path.substr(1));
+            if(kernel().components.count(path_+"."+peek_head(path,"."))) // inside
+                return kernel().components[path_+"."+peek_head(path,".")]->GetComponent(peek_tail(path,"."));
+            if(peek_rtail(peek_rhead(path_,"."),".") == peek_head(path,".") && parent_) // parent
+                return parent_->GetComponent(peek_tail(path,"."));
+            throw exception("Component does not exist.");
+        }
+        catch(const std::exception& e)
+        {
+            throw exception("Component \""+path+"\" does not exist.");
+        }
+    }
+
+
+
 //
 // GetValue
 //
@@ -515,17 +556,51 @@ namespace ikaros
 // Throws and exception if value cannot be found
 // Does not handle default values - this is done by parameters
 
+/*
+    std::string 
+    Component::GetValue(const std::string & path) 
+    {
+
+        std::cout << "GetValue: " + path << std::endl;
+
+      if(path.empty())
+            throw exception("Name not found");
+
+        if(path[0]=='.') // global
+            return kernel().components.at(path.substr(1));
+
+        if(path.find('.') != std::string::npos)
+            return GetComponent(rhead(path, ".")->GetValue(rtail(path, "."));
+
+  
+        if(path[0]=='@')
+
+
+
+
+        if(value_name.empty())
+            return ""; // throw exception("Name not found"); // throw not_found_exception instead
+
+
+        return "";
+    }
+
+*/
+
+
 
     std::string 
     Component::GetValue(const std::string & path) 
     {     
+        //std::cout << "GetValue: " << path << std::endl;
         if(path.empty())
             return ""; // throw exception("Name not found"); // throw not_found_exception instead
 
         if(path[0]=='@')
         {
             if(path.find('.') == std::string::npos)
-                return  LookupKey(path.substr(1));
+                // return  LookupKey(path.substr(1));
+                return GetValue(path.substr(1));
             else
                 return GetValue(exchange_before_dot(path, LookupKey( before_dot(path).substr(1))));
         }
@@ -695,34 +770,6 @@ namespace ikaros
             return false;
     }
 
-//
-// GetComponent
-//
-// sensitive to variables and indirection
-// does local substitution of vaiables unlike GetValue() / FIXME: is this correct?
-//
- 
-    Component * 
-    Component::GetComponent(const std::string & s) 
-    {
-        std::string path = SubstituteVariables(s);
-        try
-        {
-            if(path.empty()) // this
-                return this;
-            if(path[0]=='.') // global
-                return kernel().components.at(path.substr(1));
-            if(kernel().components.count(path_+"."+peek_head(path,"."))) // inside
-                return kernel().components[path_+"."+peek_head(path,".")]->GetComponent(peek_tail(path,"."));
-            if(peek_rtail(peek_rhead(path_,"."),".") == peek_head(path,".") && parent_) // parent
-                return parent_->GetComponent(peek_tail(path,"."));
-            throw exception("Component does not exist.");
-        }
-        catch(const std::exception& e)
-        {
-            throw exception("Component \""+path+"\" does not exist.");
-        }
-    }
 
 
 
@@ -1866,6 +1913,9 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::ListCircularBuffers()
     {
+        if(circular_buffers.empty())
+            return;
+
         std::cout << "\nCircularBuffers:" << std::endl;
         for(auto & i : circular_buffers)
             std::cout << "\t" << i.first <<  " " << i.second.buffer_.size() << " " << i.second.buffer_[0].rank() << i.second.buffer_[0].shape() <<  std::endl;
@@ -3028,6 +3078,7 @@ if(classes[classname].path.empty())
         try
         {
         
+            std::cout << request.body.size() << std::endl;
              d = parse_json(request.body);
         }
         catch(const std::exception& e)
