@@ -542,6 +542,8 @@ public:
     void DoPlay(Request & request);
     void DoRealtime(Request & request);
     
+    void DoData(Request & request);
+
     void DoCommand(Request & request);
     void DoControl(Request & request);
     

@@ -304,9 +304,6 @@ namespace ikaros
         throw exception("Type conversion error for  parameter");
     }
 
-    std::string  parameter::as_int_string() { return std::to_string(as_int()); }
-
-
 
     std::string
     parameter::as_int_string()
@@ -1293,14 +1290,7 @@ namespace ikaros
     {
         try
         {
-            std::string size ;
-            
-            if(d.contains("size"))
-                size = std::string(d["size"]);  // FIXME: Get string
-
-            if(size.empty())
-             size = LookupKey("size");
-
+            std::string size = GetValue("size");
             if(size.empty())
                 throw setup_error("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".");
             std::vector<int> shape = EvaluateSizeList(size);
@@ -3196,7 +3186,6 @@ if(classes[classname].path.empty())
 
 
 
-
     void
     Kernel::DoRealtime(Request & request)
     {
@@ -3215,6 +3204,41 @@ if(classes[classname].path.empty())
         Play();
         DoSendData(request);
     }
+
+
+
+    void
+    Kernel::DoData(Request & request)
+    {
+         if(!buffers.count(request.component_path))
+            {
+                Notify(msg_warning, "Component '"+request.component_path+"' could not be found.");
+                DoSendData(request);
+                return;
+            }
+
+        if(buffers[request.component_path].rank() > 2)
+        {
+            Dictionary header;
+            header.Set("Content-Type", "text/plain");
+            header.Set("Cache-Control", "no-cache");
+            header.Set("Cache-Control", "no-store");
+            header.Set("Pragma", "no-cache");
+            socket->SendHTTPHeader(&header);
+
+            socket->Send("Rank of matrix != 2. Cannot be displayed as CSV");
+        }
+
+        Dictionary header;
+        header.Set("Content-Type", "text/plain");
+        header.Set("Cache-Control", "no-cache");
+        header.Set("Cache-Control", "no-store");
+        header.Set("Pragma", "no-cache");
+        socket->SendHTTPHeader(&header);
+
+        socket->Send(buffers[request.component_path].csv());
+    }
+
 
 
     void
@@ -3626,6 +3650,9 @@ if(classes[classname].path.empty())
             DoSendFileList(request);
         else if(request == "")
             DoSendFile("index.html");
+
+        else if(request == "data")
+            DoData(request);
 
         // Control commands
 
