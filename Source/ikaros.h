@@ -262,7 +262,6 @@ public:
 
     std::vector<int> EvaluateSizeList(std::string & s);
     //std::vector<int> EvaluateSize(std::string & s);
-
    // double EvaluateNumber(std::string v);
     bool EvaluateBool(std::string v);
     std::string EvaluateString(std::string v);

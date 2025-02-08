@@ -547,47 +547,6 @@ namespace ikaros
     }
 
 
-
-//
-// GetValue
-//
-// Get value of a key/variable in the context of this component from dictionary (ignores current parameter values)
-// Throws and exception if value cannot be found
-// Does not handle default values - this is done by parameters
-
-/*
-    std::string 
-    Component::GetValue(const std::string & path) 
-    {
-
-        std::cout << "GetValue: " + path << std::endl;
-
-      if(path.empty())
-            throw exception("Name not found");
-
-        if(path[0]=='.') // global
-            return kernel().components.at(path.substr(1));
-
-        if(path.find('.') != std::string::npos)
-            return GetComponent(rhead(path, ".")->GetValue(rtail(path, "."));
-
-  
-        if(path[0]=='@')
-
-
-
-
-        if(value_name.empty())
-            return ""; // throw exception("Name not found"); // throw not_found_exception instead
-
-
-        return "";
-    }
-
-*/
-
-
-
     std::string 
     Component::GetValue(const std::string & path) 
     {     
@@ -629,6 +588,14 @@ namespace ikaros
         }
 
         std::string value = LookupKey(path);
+
+        if(value.empty())
+        {
+            // Check if we have a resolved paramater for this value and use that in that case
+            if(kernel().parameters.count(path_+'.'+path) && kernel().parameters[path_+'.'+path].resolved)
+            return kernel().parameters[path_+'.'+path];
+        }
+
         if(value.find('@') != std::string::npos && value.find('.') != std::string::npos) // A new indirect 'path' - start over
             return GetValue(value);
         else if(value.find('@') != std::string::npos) // A new indirect 'key' - start over
@@ -1290,7 +1257,16 @@ namespace ikaros
     {
         try
         {
-            std::string size = GetValue("size");
+            std::string size;
+            if(d.contains("size"))
+                size = std::string(d.at("size"));
+            else
+                throw setup_error("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".");
+
+            // FIX: special indirection
+            while(!size.empty() && size[0]=='@' && size.find(',')==std::string::npos)
+                size = GetValue(size.substr(1));
+            
             if(size.empty())
                 throw setup_error("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".");
             std::vector<int> shape = EvaluateSizeList(size);
