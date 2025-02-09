@@ -516,7 +516,6 @@ namespace ikaros
     }
 
 
-
 //
 // GetComponent
 //
@@ -1068,7 +1067,6 @@ namespace ikaros
     int 
     Component::SetInputSize_Index(dictionary d, input_map ingoing_connections)
     {
-
        Trace("\t\t\tComponent::SetInputSize_Index ", path_ + "." + std::string(d["name"]));
 
         range input_size;
@@ -1077,6 +1075,23 @@ namespace ikaros
 
         if(!ingoing_connections.count(full_name)) // Not connected
             return 1;
+
+        // Handle single connection without inidices - do not collapse dimensions
+
+        if(ingoing_connections.size() == 1 && ingoing_connections.begin()->second[0]->source_range.empty() && ingoing_connections.begin()->second[0]->target_range.empty())
+        {        
+            std::cout << "Simple connection" << std::endl;
+
+            range output_matrix = kernel().buffers[ingoing_connections.begin()->second[0]->source].get_range();
+            if(output_matrix.empty())
+                return 0;
+    
+            kernel().buffers[full_name].realloc(output_matrix.extent());
+
+            Trace("\t\t\tComponent::SetInputSize Simple Alloc" + std::string(input_size), full_name);
+
+            return 1;
+        }
 
         for(auto c : ingoing_connections.at(full_name))
         {
@@ -1099,8 +1114,8 @@ namespace ikaros
 
         return 1;
 
-/*
 
+/*
             SetSourceRanges(name, ingoing_connections);
             int max_delay = 0;
             bool first_ingoing_connection = true;
