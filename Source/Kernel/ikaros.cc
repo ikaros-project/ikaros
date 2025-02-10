@@ -549,7 +549,7 @@ namespace ikaros
     std::string 
     Component::GetValue(const std::string & path) 
     {     
-        //std::cout << "GetValue: " << path << std::endl;
+        std::cout << "GetValue: " << path << std::endl;
         if(path.empty())
             return ""; // throw exception("Name not found"); // throw not_found_exception instead
 
@@ -559,7 +559,7 @@ namespace ikaros
                 // return  LookupKey(path.substr(1));
                 return GetValue(path.substr(1));
             else
-                return GetValue(exchange_before_dot(path, LookupKey( before_dot(path).substr(1))));
+                return GetValue(exchange_before_dot(path, GetValue( before_dot(path).substr(1))));
         }
 
         if(path[0]=='.')
