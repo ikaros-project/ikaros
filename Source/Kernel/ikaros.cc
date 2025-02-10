@@ -3203,8 +3203,14 @@ if(classes[classname].path.empty())
     {
          if(!buffers.count(request.component_path))
             {
-                Notify(msg_warning, "Component '"+request.component_path+"' could not be found.");
-                DoSendData(request);
+                Dictionary header;
+                header.Set("Content-Type", "text/plain");
+                header.Set("Cache-Control", "no-cache");
+                header.Set("Cache-Control", "no-store");
+                header.Set("Pragma", "no-cache");
+                socket->SendHTTPHeader(&header);
+        
+                socket->Send("Buffer \""+request.component_path+"\" can not be found");
                 return;
             }
 

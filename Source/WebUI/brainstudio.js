@@ -2982,7 +2982,11 @@ const main =
 
             // Add handlerer to outputs
             for(let o of main.view.querySelectorAll(".o_spot"))
-                    o.addEventListener('dblclick', function (evt) { window.open("http://localhost:8000/data?path="+this.id, "_blank", "width=800,height=600");}, false);
+                    o.addEventListener('dblclick', function (evt) 
+                        {
+
+                            window.open("http://localhost:8000/data/"+this.id.replace(/:out$/, ''), "_blank", "width=800,height=600");
+                        }, false);
 
                     // Set selection class if selected
                     if(selectionList.includes(e.dataset.name))

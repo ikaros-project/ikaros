@@ -500,37 +500,54 @@ namespace ikaros
 
         std::string csv(std::string separator=",") // Generate CSV representation of matrix // FIXME: Add resolution for floats
         {
-            if(rank() != 2)
-                throw exception("Matrix must have two dimensions for conversion to csv.");
-
             std::string sep;
             std::string s;
 
-            // Add header row std::to_string(data_->at(info_->offset_));
-
-            if( info_->labels_.size()>1)
+            if(rank() == 1)
             {
-                for(auto & header: info_->labels_[1])
-                {
-                    s+= sep+header;
-                    sep = separator; 
-                }
-                s+="\n";
-            }
+                // Add data row
 
-            // Add data rows         
-
-            for(auto row : *this) // Iterate over rows
-            {
-                std::string sep;
-                for(auto value : row)
+                for(auto value : *this)
                 {
                     s += sep + std::to_string(value);
                     sep = separator;
                 }
                 s += "\n";
+
+                return s;
             }
-            return s;
+
+            if(rank() == 2)
+            {
+                // Add header row std::to_string(data_->at(info_->offset_));
+
+                if( info_->labels_.size()>1)
+                {
+                    for(auto & header: info_->labels_[1])
+                    {
+                        s+= sep+header;
+                        sep = separator; 
+                    }
+                    s+="\n";
+                }
+
+                // Add data rows         
+
+                for(auto row : *this) // Iterate over rows
+                {
+                    std::string sep;
+                    for(auto value : row)
+                    {
+                        s += sep + std::to_string(value);
+                        sep = separator;
+                    }
+                    s += "\n";
+                }
+                return s;
+            }
+
+            else
+                throw exception("Matrix must have one or two dimensions for conversion to csv.");
         }
 
 
