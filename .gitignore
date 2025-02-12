@@ -61,3 +61,4 @@ Thumbs.db
 .vscode
 .venv
 .cursorrules
+.tensorflow_venv/

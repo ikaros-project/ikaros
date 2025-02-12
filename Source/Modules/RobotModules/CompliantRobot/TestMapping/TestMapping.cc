@@ -13,37 +13,43 @@ using namespace ikaros;
 
 class TestMapping: public Module
 {
-  
+    //pipe
+    FILE* ann_pipe;
+    // Inputs
     matrix present_position;
     matrix present_current;
+    matrix ann_input;
+    matrix gyro;
+    matrix accel;
+    matrix eulerAngles;
 
-    
+    // Outputs
     matrix goal_current;
     matrix goal_position_out;
+    matrix ann_output;
+
+    // Internal
     matrix current_controlled_servos;
     matrix max_present_current;
     matrix min_moving_current;
     matrix min_torque_current;
     matrix overshot_goal;
     matrix overshot_goal_temp;
-    matrix gyro;
-    matrix accel;
-    matrix eulerAngles;
     matrix position_transitions;
     std::vector<std::shared_ptr<std::vector<float>>> moving_trajectory;
-  
     matrix approximating_goal;
     matrix reached_goal;
-   
     dictionary current_coefficients;
     matrix coeffcient_matrix;
 
+    // Parameters
     parameter num_transitions;
     parameter min_limits;
     parameter max_limits;
     parameter robotType;
-    parameter current_function;
+    parameter prediction_model;
 
+    // Internal
     std::random_device rd;
     
     int number_transitions; //Will be used to add starting and ending position
@@ -61,6 +67,7 @@ class TestMapping: public Module
     matrix transition_start_time;
     matrix transition_duration;
     double time_prev_position;
+    
 
     std::vector<std::string> servo_names;
 
@@ -275,64 +282,71 @@ class TestMapping: public Module
 
     matrix SetGoalCurrent(matrix present_current, int increment, int limit, matrix position, matrix goal_position, int margin, matrix coefficients, std::string model_name)
     {
-        Debug("Inside SetGoalCurrent()");
         matrix current_output(present_current.size());
         current_output.copy(present_current);
 
+        // Early validation
         if (present_current.size() != current_output.size())
         {
             Error("Present current and Goal current must be the same size");
             return current_output;
         }
 
+        // Only process servos that are current-controlled
         for (int i = 0; i < current_controlled_servos.size(); i++)
         {
-            int servo_indx = current_controlled_servos(i);
+            int servo_idx = current_controlled_servos(i);
 
-            if (goal_current(servo_indx) < limit && abs(goal_position(servo_indx) - position(servo_indx)) > margin)
+            // Skip processing if servo has reached its goal
+            if (abs(goal_position(servo_idx) - position(servo_idx)) <= margin)
             {
-                double estimated_current = 0.0;
+                continue;
+            }
 
-                if (model_name == "Linear" || model_name == "Quadratic")
+            // Calculate estimated current based on model type
+            double estimated_current = 0.0;
+
+            if (model_name == "ANN")
+            {
+                // Use existing ANN output for this servo
+                estimated_current = ann_output[servo_idx];
+            }
+            else if (model_name == "Linear" || model_name == "Quadratic")
+            {
+                // Get standardization parameters
+                double current_mean = coefficients(i, 0);
+                double current_std = coefficients(i, 1);
+
+                // Calculate standardized inputs
+                double distance_to_goal = goal_position(servo_idx) - position(servo_idx);
+                double std_position = (position(servo_idx) - current_mean) / current_std;
+                double std_distance = (distance_to_goal - current_mean) / current_std;
+
+                // Calculate linear terms
+                estimated_current = coefficients(i, 6) + // intercept
+                                    coefficients(i, 2) * std_distance +
+                                    coefficients(i, 3) * std_position;
+
+                // Add quadratic terms if applicable
+                if (model_name == "Quadratic")
                 {
-                    // Get standardization parameters
-                    double current_mean = coefficients(i, 0);
-                    double current_std = coefficients(i, 1);
-
-                    // Calculate and standardize inputs
-                    double distance_to_goal = goal_position(servo_indx) - position(servo_indx);
-                    double std_position = (position(servo_indx) - current_mean) / current_std;
-                    double std_distance = (distance_to_goal - current_mean) / current_std;
-
-                    // Calculate base linear terms
-                    estimated_current = coefficients(i, 6) + // intercept
-                                        coefficients(i, 2) * std_distance +
-                                        coefficients(i, 3) * std_position;
-
-                    // Add quadratic terms if using quadratic model
-                    if (model_name == "Quadratic")
-                    {
-                        estimated_current += coefficients(i, 4) * std::pow(std_distance, 2) +
-                                             coefficients(i, 5) * std::pow(std_position, 2);
-                    }
-
-                    // Unstandardize the result
-                    estimated_current = estimated_current * current_std + current_mean;
-                }
-                // Add other model types here
-                else
-                {
-                    Error("Unsupported model type: %s", model_name.c_str());
-                    return current_output;
+                    estimated_current += coefficients(i, 4) * std::pow(std_distance, 2) +
+                                         coefficients(i, 5) * std::pow(std_position, 2);
                 }
 
-                current_output(servo_indx) = estimated_current;
+                // Unstandardize the result
+                estimated_current = estimated_current * current_std + current_mean;
             }
             else
             {
-                current_output(servo_indx) = min(current_output(servo_indx), limit);
+                Warning("Unsupported model type: %s - using default current", model_name.c_str());
+                estimated_current = present_current(servo_idx);
             }
+
+            // Apply current limits and set output
+            current_output(servo_idx) = std::min(std::max(estimated_current, 0.0), static_cast<double>(limit));
         }
+
         return current_output;
     }
     void Init()
@@ -346,12 +360,14 @@ class TestMapping: public Module
         Bind(goal_current, "GoalCurrent");
         Bind(num_transitions, "NumberTransitions");
         Bind(goal_position_out, "GoalPositionOut");
+        Bind(ann_input, "ANN_input");
+        Bind(ann_output, "ANN_output");
       
         //parameters
         Bind(min_limits, "MinLimits");
         Bind(max_limits, "MaxLimits");
         Bind(robotType, "RobotType");
-        Bind(current_function, "CurrentFunction");
+        Bind(prediction_model, "CurrentPrediction");
 
         std::string scriptPath = __FILE__;
         
@@ -407,7 +423,7 @@ class TestMapping: public Module
         else{
             Error("Robot type not recognized");
         }
-        coeffcient_matrix = CreateCoefficientsMatrix(current_coefficients, current_controlled_servos, current_function, servo_names);
+        coeffcient_matrix = CreateCoefficientsMatrix(current_coefficients, current_controlled_servos, prediction_model, servo_names);
         reached_goal.set_name("ReachedGoal");
 
         overshot_goal.set_name("OvershotGoal");
@@ -420,12 +436,54 @@ class TestMapping: public Module
         current_differences = matrix(current_controlled_servos.size(), number_transitions);
         initial_currents.set(0);
         current_differences.set(0);
+
+        
+
+        // Open the pipe for reading
+        // using interpreter from .tensorflow_venv, same directory as the script
+        std::string directory = scriptPath.substr(0, scriptPath.find_last_of("/"));
+        // pythonscript path same directory as current file
+        std::string pythonPath = directory + "/ANN_prediction.py";
+        std::string venvPath = directory + "/.tensorflow_venv/bin/python3";
+        std::string command = venvPath + " " + pythonPath;
+        std::cout << command << std::endl;
+        
+        ann_pipe = popen(command.c_str(), "r");
+        
+        if (!ann_pipe) {
+            Error("Failed to open pipe to ANN_prediction.py");
+            return;
+        }
     }
 
     
     void Tick()
     {   
-        if (present_current.connected() && present_position.connected() ){
+        if (std::string(prediction_model) == "ANN"){
+
+            // Read the pipe
+            char buffer[1024];
+            fgets(buffer, sizeof(buffer), ann_pipe);
+            ann_output = atof(buffer);
+
+            // Send the following to the ANN:
+            // TiltPosition	PanPosition	GyroX	GyroY	GyroZ	AccelX	AccelY	AccelZ	tilt_distance	pan_distance
+            // concatenate the matrix present_position, gyro, accel, goal_position_out and use .json to send it to the ANN
+            std::string data = present_position.json() + gyro.json() + accel.json() + goal_position_out.json();
+            std::cout << data << std::endl;
+            fputs(data.c_str(), ann_pipe);
+            
+        }
+      
+
+        if (present_current.connected() && present_position.connected())
+        {
+            // Ensure matrices are properly sized before operations
+            if (goal_position_out.size() != position_transitions.cols())
+            {
+                goal_position_out.resize(position_transitions.cols());
+            }
+            
             ReachedGoal(present_position, goal_position_out, reached_goal, position_margin);
             approximating_goal = ApproximatingGoal(present_position, goal_position_out, position_margin);
 
@@ -469,7 +527,7 @@ class TestMapping: public Module
                         {
                             goal_current.copy(SetGoalCurrent(present_current, current_increment, current_limit,
                                                              present_position, goal_position_out, position_margin,
-                                                             coeffcient_matrix, current_function));
+                                                             coeffcient_matrix, std::string(prediction_model)));
                             if (initial_currents(i, transition) == 0)
                             {
                                 initial_currents(i, transition) = goal_current[servo_idx];
@@ -547,6 +605,14 @@ class TestMapping: public Module
         catch (const std::exception &e)
         {
             Error("Failed to save current data: " + std::string(e.what()));
+        }
+    }
+
+    ~TestMapping()
+    {
+        if (ann_pipe) {
+            pclose(ann_pipe);
+            ann_pipe = nullptr;
         }
     }
 };
