@@ -6,6 +6,8 @@
 #ifndef MATRIX
 #define MATRIX
 
+#undef USE_BLAS
+
 #include <iostream>
 #include <cstddef>
 #include <stdexcept>
@@ -19,10 +21,26 @@
 
 //#include <cblas.h>
 
+#define USE_BLAS
 #define ACCELERATE_NEW_LAPACK
+
 #include <Accelerate/Accelerate.h>
 
-// #define NO_MATRIX_CHECKS   // Define to remove checks of matrix size and index ranges
+
+#ifndef LAPACK_ROW_MAJOR
+#define LAPACK_ROW_MAJOR 101
+#endif
+
+#ifndef LAPACK_COL_MAJOR
+#define LAPACK_COL_MAJOR 102
+#endif
+
+
+        
+        extern "C" void sgesvd_(const char* jobu, const char* jobvt, const int* m, const int* n, float* a, const int* lda, float* s, float* u, const int* ldu, float* vt, const int* ldvt, float* work, const int* lwork, int* info);
+
+
+
 
 #include "exceptions.h"
 #include "utilities.h"
@@ -55,11 +73,12 @@ namespace ikaros
         std::vector<int> stride_;                       // stride for jumping to the next row - necessary for submatrices
         std::vector<int> max_size_;                     // shape of allocated memory; same as stride for main matrix
         int size_;                                      // the size of the data, is different from data_.size() for submatrices
+        bool continuous;                                // the data is continous in memory
         std::string name_;                              // name of the matrix, used when printing and possibly for access in the future
         std::vector<std::vector<std::string>> labels_;  // label for each 'column' in each dimension; will be used for tables in the future
 
 
-        int calculate_size() // Calculate the number of elements in the matrix; this can be different from its size in memory
+        size_t calculate_size() // Calculate the number of elements in the matrix; this can be different from its size in memory
         {
             if(shape_.empty())
                 return 0;
@@ -70,7 +89,7 @@ namespace ikaros
         matrix_info() {}
 
         matrix_info(std::vector<int> shape):
-            offset_(0), shape_(shape), stride_(shape), max_size_(shape), size_(calculate_size()), labels_(shape.size()) // NOTE: Actual initialization order depends on order in class definition
+            offset_(0), shape_(shape), stride_(shape), max_size_(shape), size_(calculate_size()), labels_(shape.size()), continuous(true) // NOTE: Actual initialization order depends on order in class definition
         {}
 
         void
@@ -132,10 +151,21 @@ namespace ikaros
 
         // Initialization
         
-            matrix(std::vector<int> shape): 
-            info_(std::make_shared<matrix_info>(shape)),
-            data_(std::make_shared<std::vector<float>>(info_->calculate_size()))
-            {}
+            matrix(std::vector<int> shape)
+            {
+                try
+                {
+                    {
+                        info_ = std::make_shared<matrix_info>(shape);
+                        data_ = std::make_shared<std::vector<float>>(info_->calculate_size());
+                    }
+                }
+
+                catch(const std::exception& e)
+                {
+                    throw out_of_memory_matrix_error("Could not allocate memory for matrix");
+                }
+            }
 
 
         template <typename... Args> // Main creator function from matrix sizes as arguments
@@ -470,37 +500,54 @@ namespace ikaros
 
         std::string csv(std::string separator=",") // Generate CSV representation of matrix // FIXME: Add resolution for floats
         {
-            if(rank() != 2)
-                throw exception("Matrix must have two dimensions for conversion to csv.");
-
             std::string sep;
             std::string s;
 
-            // Add header row std::to_string(data_->at(info_->offset_));
-
-            if( info_->labels_.size()>1)
+            if(rank() == 1)
             {
-                for(auto & header: info_->labels_[1])
-                {
-                    s+= sep+header;
-                    sep = separator; 
-                }
-                s+="\n";
-            }
+                // Add data row
 
-            // Add data rows         
-
-            for(auto row : *this) // Iterate over rows
-            {
-                std::string sep;
-                for(auto value : row)
+                for(auto value : *this)
                 {
                     s += sep + std::to_string(value);
                     sep = separator;
                 }
                 s += "\n";
+
+                return s;
             }
-            return s;
+
+            if(rank() == 2)
+            {
+                // Add header row std::to_string(data_->at(info_->offset_));
+
+                if( info_->labels_.size()>1)
+                {
+                    for(auto & header: info_->labels_[1])
+                    {
+                        s+= sep+header;
+                        sep = separator; 
+                    }
+                    s+="\n";
+                }
+
+                // Add data rows         
+
+                for(auto row : *this) // Iterate over rows
+                {
+                    std::string sep;
+                    for(auto value : row)
+                    {
+                        s += sep + std::to_string(value);
+                        sep = separator;
+                    }
+                    s += "\n";
+                }
+                return s;
+            }
+
+            else
+                throw exception("Matrix must have one or two dimensions for conversion to csv.");
         }
 
 
@@ -602,29 +649,46 @@ namespace ikaros
         matrix & 
         set(float v) // Set all element of the matrix to a value
         {
-            return apply([=](float x)->float {return v;});
+            if(info_->continuous)
+            {
+                std::fill(data_->begin()+info_->offset_, data_->begin()+info_->offset_+info_->offset_+info_->size_, 0);
+                return *this;
+            }
+            else
+                return apply([=](float x)->float {return v;});
         }
 
         matrix & 
         copy(matrix m)  // asign matrix or submatrix - copy data
         {
-            if(rank()==0)   // Allow copy to empty matrix after reallocation - //TODO: Check if this is always appropriate
+            if(rank()==0)   // Allow copy to empty matrix after reallocation
                 realloc(m.shape());
 
-            #ifndef NO_MATRIX_CHECKS
-                if(info_->shape_ != m.info_->shape_)
-                    throw std::out_of_range("Assignment requires matrices of the same size");
-            #endif 
-            //std::copy_n(m.data_->begin()+offset_, m.size_, data_->begin()+offset_);
-            for(int i=0; i<m.info_->size_; i++)
-                data_->at(info_->offset_+i) = m.data_->at(m.info_->offset_+i);
+            if(info_->shape_ != m.info_->shape_)
+                throw std::out_of_range("Assignment requires matrices of the same size");
+
+            std::copy_n(
+                    m.data_->begin()+m.info_->offset_, 
+                    m.info_->size_, 
+                    data_->begin()+info_->offset_);
+
+            //for(int i=0; i<m.info_->size_; i++)
+            //    data_->at(info_->offset_+i) = m.data_->at(m.info_->offset_+i);
+
             // TODO: must be updated for proper submatices
             return *this;
         }
-    
+
         matrix &
         copy(matrix & m, range & target, range & source)
         {
+            // Use fast copy if possible
+
+            if(info_->continuous && m.info_->continuous && source == target && m.info_->shape_ == info_->shape_)
+                return copy(m);
+
+    // Handle the general case // TODO: optimize common variants
+
             source.reset();
             target.reset();
 
@@ -634,13 +698,13 @@ namespace ikaros
                 //target.print_index();
                 //std::cout << std::endl;
 
-                m.check_bounds(source.index()); // FIXME: Do this once before starting instead e.g. matrix.check_bounds(range)
-                check_bounds(target.index());
+                // m.check_bounds(source.index()); // FIXME: Do this once before starting instead e.g. matrix.check_bounds(range)
+                // check_bounds(target.index());
 
                 int source_index = m.compute_index(source.index());
                 int target_index = compute_index(target.index());
 
-                (*data_)[target_index] = (*m.data_)[source_index];
+                (*data_).at(target_index) = (*m.data_)[source_index];
                         }
             return *this;
         }
@@ -724,9 +788,11 @@ namespace ikaros
                 throw std::invalid_argument(get_name()+A.get_name()+"Matrix sizes must match.");
         }
 
+
         template <typename... Args>
         float& operator()(Args... indices)
         {
+
             #ifndef NO_MATRIX_CHECKS
             if (sizeof...(indices) != info_->shape_.size())
             throw std::invalid_argument(get_name()+"Number of indices must match matrix rank.");
@@ -742,13 +808,101 @@ namespace ikaros
         {
             #ifndef NO_MATRIX_CHECKS
             if (sizeof...(indices) != info_->shape_.size())
-                throw std::invalid_argument(get_name()+"Number of indices must match matrix rank."); // TODO nove to check bounds
+                throw std::invalid_argument(get_name()+"Number of indices must match matrix rank."); // TODO move to check bounds
                 check_bounds(indices...);
             #endif
 
             int index = compute_index(indices...);
             return (*data_)[index];
         }
+
+
+        float & 
+        operator()(int a)
+        {
+            #ifdef MATRIX_FULL_BOUNDS_CHECK
+            auto & shape = info_->shape_;
+            if(shape.size() != 1)
+                throw exception("wrong number of indices");
+            if(a < 0 || a > shape[0])
+                    throw exception("out of bounds");
+            #endif
+
+            int index = info_->offset_ + a;
+
+            #ifdef MATRIX_NO_BOUNDS_CHECK
+                return (*data_)[index];
+            #else
+                return (*data_).at(index);
+            #endif
+        }
+
+
+        float & 
+        operator()(int a, int b)
+        {
+            #ifdef MATRIX_FULL_BOUNDS_CHECK
+            auto & shape = info_->shape_;
+            if(shape.size() != 2)
+                throw exception("wrong number of indices");
+            if(a < 0 || b < 0 || a > shape[0] || b > shape[1])
+                    throw exception("out of bounds");
+            #endif
+
+            int * s = info_->stride_.data();
+            int index = info_->offset_ + a * s[1] + b;
+
+            #ifdef MATRIX_NO_BOUNDS_CHECK
+                return (*data_)[index];
+            #else
+                return (*data_).at(index);
+            #endif
+        }
+
+
+        float & 
+        operator()(int a, int b, int c)
+        {
+            #ifdef MATRIX_FULL_BOUNDS_CHECK
+            auto & shape = info_->shape_;
+            if(shape.size() != 3)
+                throw exception("wrong number of indices");
+            if(a < 0 || b < 0 || c < 0 || a > shape[0] || b > shape[1] || c > shape[2])
+                    throw exception("out of bounds");
+            #endif
+
+            int * s = info_->stride_.data();
+            int index = info_->offset_ + (a * s[1] + b) * s[2] + c;
+
+            #ifdef MATRIX_NO_BOUNDS_CHECK
+                return (*data_)[index];
+            #else
+                return (*data_).at(index);
+            #endif
+        }
+
+
+        float & 
+        operator()(int a, int b, int c, int d)
+        {
+            #ifdef MATRIX_FULL_BOUNDS_CHECK
+            auto & shape = info_->shape_;
+            if(shape.size() != 4)
+                throw exception("wrong number of indices");
+            if(a < 0 || b < 0 || c < 0 || a > shape[0] || b > shape[1] || c > shape[2] || d > shape[3])
+                    throw exception("out of bounds");
+            #endif
+
+            int * s = info_->stride_.data();
+            int index = info_->offset_ + ((a * s[1] + b) * s[2] + c) * s[3] + d;
+
+            #ifdef MATRIX_NO_BOUNDS_CHECK
+                return (*data_)[index];
+            #else
+                return (*data_).at(index);
+            #endif
+        }
+
 
         const std::vector<int>& shape() const
         { 
@@ -760,15 +914,18 @@ namespace ikaros
             return info_->size_;
         }
 
-        int size(int dim)
+        int size(int dim) // Size of one dimension; negative indices means from the back
         {
-            if(dim  < 0)
-                return  size(info_->shape_.size()+dim);
+            if(info_->shape_.size() == 0)
+                return 0; // range error
 
-            if(dim < info_->shape_.size()) 
-                return info_->shape_.at(dim); 
-            else
+            if(dim  < 0)
+                dim = info_->shape_.size()+dim;
+
+            if(dim < 0 || dim > info_->shape_.size()-1) // range error - remove condition to throw exception instead
                 return 0;
+
+            return info_->shape_.at(dim); 
         }
 
         int rows() { return size(-2); }
@@ -974,7 +1131,6 @@ namespace ikaros
             
             // blas version
 
-            #define USE_BLAS
             #ifdef USE_BLAS
 
             cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
@@ -994,6 +1150,40 @@ namespace ikaros
                         (*this)(j, i) += A(j,k) *B(k,i);
 
             #endif
+
+            return *this;
+        }
+
+
+        matrix & inv() // Invert matrix in place
+        {
+            if (rank() != 2) 
+                throw std::invalid_argument("Matrix must be two-dimensional.");
+
+            if (size_x() != size_y())
+                throw std::invalid_argument("Matrix must be square for inversion.");
+            
+            int n = size_x(); // Size of the square matrix
+            int lda = size_y();        // Leading dimension of the matrix // TODO: Check if this should involve strides
+            int info;
+
+            std::vector<int> ipiv(n); // Pivot indices
+
+            // Allocate workspace
+            int lwork = n * 64; // Can be optimized
+            std::vector<float> work(lwork);
+
+            // Perform LU decomposition
+            sgetrf_(&n, &n, data(), &lda, ipiv.data(), &info);
+
+            if (info != 0)
+                throw std::runtime_error("LU decomposition failed with info = " + std::to_string(info));
+
+            // Compute the inverse
+            sgetri_(&n, data(), &lda, ipiv.data(), work.data(), &lwork, &info);
+            if (info != 0) {
+                throw std::runtime_error("Matrix inversion failed with info = " + std::to_string(info));
+            }
 
             return *this;
         }
@@ -1096,7 +1286,7 @@ namespace ikaros
         float matrank() { throw std::logic_error("matrank(). Not implemented."); return 0; }
         float trace() { throw std::logic_error("Not implemented."); return 0; }
         float det() { throw std::logic_error("trace(). Not implemented."); return 0; }
-        matrix & inv(const matrix & m) { throw std::logic_error("det(). Not implemented."); return *this; }
+        matrix & inv(const matrix & m) { return copy(m); return inv(); }
         matrix & pinv(const matrix & m) { throw std::logic_error("pinv(). Not implemented."); return *this; }
 
         matrix & transpose(matrix &ret) 
@@ -1125,7 +1315,73 @@ namespace ikaros
         // operator<
         // operator>
         // operator<=
-        // operator  
+        // operator 
+
+
+
+    void 
+    singular_value_decomposition(matrix& inputMatrix, matrix& U, matrix& S, matrix& Vt) 
+    {
+        // Retrieve dimensions
+        int m = inputMatrix.size_y();
+        int n = inputMatrix.size_x();
+
+        // Prepare data and dimensions
+        std::vector<float> a(inputMatrix.data(), inputMatrix.data() + m * n);
+        int min_mn = std::min(m, n);
+
+    /*
+        std::vector<float> singularValues(min_mn);
+        std::vector<float> u(m * m);
+        std::vector<float> vt(n * n);
+    */
+
+        matrix singularValues(min_mn);
+        matrix u(m, m);
+        matrix vt(n, n);
+
+        int lda = m;
+        int ldu = m;
+        int ldvt = n;
+        int info;
+
+        // Workspace query
+        int lwork = -1;
+        float work_size;
+        sgesvd_("A", "A", &m, &n, a.data(), &lda, singularValues.data(), u.data(), &ldu, vt.data(), &ldvt, &work_size, &lwork, &info);
+
+        // Allocate workspace and compute SVD
+        lwork = static_cast<int>(work_size);
+        std::vector<float> work(lwork);
+        sgesvd_("A", "A", &m, &n, a.data(), &lda, singularValues.data(),
+                u.data(), &ldu, vt.data(), &ldvt, work.data(), &lwork, &info);
+
+        if (info > 0)
+            throw std::runtime_error("SVD did not converge.");
+
+        // Assign outputs
+
+    /*
+        U = matrix(u.data(), m, m);
+        Vt = matrix(vt.data(), n, n);
+    */
+        U.copy(U);
+        Vt.copy(vt);
+
+        // Construct diagonal matrix S
+        std::vector<float> s(m * n, 0.0f);
+
+        for (size_t i = 0; i < min_mn; ++i) {
+            s[i * n + i] = singularValues[i];
+        }
+        
+        //S = matrix(s.data(), m, n);
+
+        S.resize(m,n);
+
+        // COPY DATA HERE
+    }
+
     };
 }
 

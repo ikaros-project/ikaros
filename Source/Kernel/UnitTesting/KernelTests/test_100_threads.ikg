@@ -1,4 +1,4 @@
-<group name="Test_Threads"  _check_sum = "93" description="Test paralelle threads" >
+<group name="Test_Threads"  _check_sum = "93" description="Test paralell threads" >
 
     <module name="A" class="Constant" data="1" />
     <module name="B" class="Constant" data="2" />

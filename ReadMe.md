@@ -36,8 +36,7 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
 | API               |<div style="color:green">🟢 OK | |
 | BrainStudio       |<div style="color:green">🟢 OK | brain template missing |
 | Message queue     |<div style="color:green">🟢 OK |  |
-| Log               |<div style="color:green">🟢 OK |Log level not handled |  |
-| Encryption        |<div style="color:#e00">🔴 Pending |  |
+| Log               |<div style="color:green">🟢 OK |Log level not handled |
 | Editing           |<div style="color:green">🟢 OK  | |
 | Sockets           |<div style="color:green">🟢 OK |  |
 | UtilityModules    |<div style="color:#c60">🟡 Partial | 16 modules |

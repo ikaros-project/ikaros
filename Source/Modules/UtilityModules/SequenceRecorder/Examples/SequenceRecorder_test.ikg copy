@@ -1,19 +1,31 @@
 <?xml version="1.0"?>
 
-<group name="SequenceRecorder_Test">
+<group name="SequenceRecorder">
 
         <module
             class = "Constant"
             name = "Joints"
-            data = "0.5 0.5 0.5 0.5"
+            data = "0.5 0.5"
         />
 
         <module
             class = "FunctionGenerator"
-            name = "J"
-            frequency = " 1 2 3 4"
+            name = "J0"
         />
         
+        <module
+            class = "FunctionGenerator"
+            name = "J1"
+        />
+        
+        <module
+            class = "Gate"
+            name = "J"
+        />
+        
+        <connection  source = "J0.OUTPUT"  target = "J.INPUT" />
+        <connection  source = "J1.OUTPUT"  target = "J.INPUT" />
+
 		<module
 			class = "SequenceRecorder"
 			name = "SequenceRecorder"
@@ -25,10 +37,10 @@
             max_motions="20"
             _auto_save="yes"
             _record_on_trig = "true"
-            channels = "4"
+            output_size = "4"
 		/>
 
-        <connection  source = "J.OUTPUT"  target = "SequenceRecorder.INPUT" />
+        <connection  source = "Joints.OUTPUT"  target = "SequenceRecorder.INPUT" />
 
     <!--
 		<view name="Old View">
@@ -64,7 +76,7 @@
 
 			<plot module="Joints" source="OUTPUT" color="green" select="0, 1" x="130" y="10" width="800" height="301" />
 
-			<key-points module="SequenceRecorder" color="red" x="130" y="10" min="-180" max="180" width="800" height="301" />
+			<!-- key-points module="SequenceRecorder" color="red" x="130" y="10" min="-180" max="180" width="800" height="301" / -->
             
             <plot source="SequenceRecorder.OUTPUT" min="-360" max="360" color="red, green" select="0, 1" x="130" y="0" width="800" height="301" />
 

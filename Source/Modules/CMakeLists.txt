@@ -4,6 +4,7 @@ add_subdirectory(UtilityModules)
 add_subdirectory(BrainModels)
 add_subdirectory(RobotModules)
 add_subdirectory(IOModules)
+add_subdirectory(ImageProcessing)
 
 add_subdirectory(EpiVoice)
 add_subdirectory(EpiSpeech)

@@ -97,7 +97,7 @@ class ServerSocket
 
 		
 		bool				Poll(bool block=false);                 // Poll for connection; return >=0 if accepted connection (or > 0 CHECK!!!)
-		long				Read(char * buffer, int maxSize);		// Read
+		size_t				Read(char * buffer, int maxSize, bool fill=false);	// Read, fill means fill with maxSize, return read size
 
 	};
 

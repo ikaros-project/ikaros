@@ -150,6 +150,8 @@ public:
     void info();
 
     int as_int();
+    std::string as_int_string(); // as_int() converted to string
+
     const char* c_str() const noexcept;
 
     std::string json();    
@@ -243,10 +245,13 @@ public:
 
     bool KeyExists(const std::string & key);  // Check if a key exist here or in any parent; this means that LookupKey will succeed
     std::string LookupKey(const std::string & key); // Look up value in dictionary with inheritance
+
+    Component * GetComponent(const std::string & s); // Get component; sensitive to variables and indirection
     std::string GetValue(const std::string & name);    // Get value of a attribute/variable in the context of this component
+
     std::string GetBind(const std::string & name);
     std::string SubstituteVariables(const std::string & s);
-    Component * GetComponent(const std::string & s); // Get component; sensitive to variables and indirection
+
     matrix & GetBuffer(const std::string & s);
 
     std::string Evaluate(const std::string & s, bool is_string=false);     // Evaluate an expression in the current context
@@ -257,7 +262,6 @@ public:
 
     std::vector<int> EvaluateSizeList(std::string & s);
     //std::vector<int> EvaluateSize(std::string & s);
-
    // double EvaluateNumber(std::string v);
     bool EvaluateBool(std::string v);
     std::string EvaluateString(std::string v);
@@ -537,6 +541,8 @@ public:
     void DoPlay(Request & request);
     void DoRealtime(Request & request);
     
+    void DoData(Request & request);
+
     void DoCommand(Request & request);
     void DoControl(Request & request);
     

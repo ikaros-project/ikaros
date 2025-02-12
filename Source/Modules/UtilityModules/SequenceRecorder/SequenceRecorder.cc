@@ -399,7 +399,7 @@ void
 SequenceRecorder::New()
 {
     filename = "untitled"+std::to_string(untitled_count++)+".json";
-    sequence_data = json(); // in case it is not empty
+    sequence_data = dictionary(); // in case it is not empty
     sequence_data["type"] = "Ikaros Sequence Data";
     sequence_data["channels"] = channels.as_int();
     sequence_data["ranges"] = list();
@@ -496,19 +496,18 @@ SequenceRecorder::Init()
 
     Bind(positions, "positions"); // parameter size will be set by the value channels
 
-    int ranges;
+
     Bind(range_min, "range_min");
-    if(ranges != channels)
+    if(range_min.size_x() != channels)
         Notify(msg_fatal_error, "Min range not set for correct number of channels.");
 
 
     Bind(range_max, "range_max");
-    if(ranges != channels)
+    if(range_max.size_x() != channels)
         Notify(msg_fatal_error, "Max range not set for correct number of channels.");
 
-    int ints;
     Bind(interpolation, "interpolation");
-    if(ints != channels)
+    if(interpolation.size_x() != channels)
         Notify(msg_fatal_error, "Interpolation not set for correct number of channels.");
 
 
@@ -536,10 +535,9 @@ SequenceRecorder::Init()
     Bind(current_sequence, "current_sequence");
     Bind(internal_control, "internal_control");
 
-    int do_size = 0;
-    Bind(default_output, "default_output");
 
-    if(do_size !=channels)
+    Bind(default_output, "default_output");
+    if(default_output.size_x() !=channels)
         Notify(msg_fatal_error,"Incorrect size for default_output; does not match number of channels.");
 
     left_output.copy(default_output);
@@ -549,8 +547,8 @@ SequenceRecorder::Init()
         if(internal_control(c))
             positions(c) = default_output(c);
 
-     directory = GetValue("directory");
-     filename = GetValue("filename");
+     Bind(directory, "directory");
+     Bind(filename, "filename");
      untitled_count = 1;
 
     fs::create_directory(std::string(directory)); // Only works if not a path // FIXME: make recursive later
@@ -567,9 +565,16 @@ SequenceRecorder::Init()
     Bind(active, "ACTIVE");
     Bind(smoothing_start,"SMOOTHING_START");
 
+
+/* TEMPORARY
     for(int c=0; c<channels; c++)
-        set_one_row(channel_mode, 3, c, 4, channels);
- 
+    {
+        //set_one_row(channel_mode, 3, c, 4, channels); //  ************ FIXME: default size for matrix parameter **************
+        channel_mode[c].reset();
+        channel_mode[c](3) = 1;
+    }
+*/
+
     left_time = matrix(channels.as_int());
     right_time = matrix(channels.as_int());
     left_position = matrix(channels.as_int());

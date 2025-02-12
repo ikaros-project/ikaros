@@ -115,6 +115,10 @@ class WebUIWidgetTable extends WebUIWidget {
     updateAll() {
         this.updateFrame();
         if (this.data = this.getSource('source')) {
+
+            if(this.getMatrixRank(this.data) == 1) // TEMPORARY
+                this.data = [this.data];
+
             this.loaded = true;
             let size_y = this.data.length;
             let size_x = this.data[0].length;
@@ -133,8 +137,11 @@ class WebUIWidgetTable extends WebUIWidget {
             this.updateAll()
 
         else {
-            if (this.data = this.getSource('source')) {
+            if (this.data = this.getSource('source')){
 
+                if(this.getMatrixRank(this.data) == 1) // TEMPORARY
+                    this.data = [this.data];
+/*
                 if(!Array.isArray(this.data))
                 {
                     this.tData[0][0].innerHTML = "Not a 2D matrix";
@@ -152,6 +159,7 @@ class WebUIWidgetTable extends WebUIWidget {
                     this.tData[0][0].innerHTML = "Not a 2D matrix";
                     return;
                 }
+*/
 
                 let size_y = this.data.length;
                 let size_x = this.data[0].length;

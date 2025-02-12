@@ -1,4 +1,4 @@
-<group name="Test_External_Group"  check_sum = "93" description="Test that external groups can be imported" >
+<group name="Test_External_Group"  _check_sum = "93" description="Test that external groups can be imported" >
 
     <group name="NewNameForImportedGroup" external="/Users/cba/ikaros-3/Source/Kernel/UnitTesting/KernelTests/imported_external_group.ikg" addtitional_attribute="42" />
 

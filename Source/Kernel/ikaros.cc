@@ -40,8 +40,8 @@ namespace ikaros
     {
         for(int i=0; i<size;i++)
         {
-            buffer_[i].copy(m);
-            buffer_[i].reset(); // FIXME: use other function
+            buffer_[i].realloc(m.shape()); // copy(m);
+            buffer_[i].reset(); 
         }
     }
 
@@ -93,7 +93,15 @@ namespace ikaros
                 break;
 
             case matrix_type: 
-                matrix_value = std::make_shared<matrix>(); 
+                {
+                    if(info_.contains("size"))
+                    {
+                        std::cout << "HAS SIZE" << std::endl;
+                        matrix_value = std::make_shared<matrix>();
+                    }
+                    else
+                        matrix_value = std::make_shared<matrix>();
+                }
                 break;
 
             default: 
@@ -297,6 +305,13 @@ namespace ikaros
     }
 
 
+    std::string
+    parameter::as_int_string()
+    {
+        return std::to_string(as_int());    
+    }
+
+
     const char* 
     parameter::c_str() const noexcept
     {
@@ -322,6 +337,7 @@ namespace ikaros
     void 
     parameter::info()
     {
+        std::cout << "name: " << info_["name"] << std::endl;
         std::cout << "type: " << type << std::endl;
         std::cout << "default: " << info_["default"] << std::endl;
         std::cout << "has_options: " << has_options << std::endl;
@@ -408,7 +424,13 @@ namespace ikaros
             std::string value = LookupKey(name);
             if(value.empty())
             {
-                SetParameter(name, p.info_["default"]);
+                if(!p.info_.contains("default"))
+                {
+                    Error("Parameter \""+name+"\" has no default value in the ikc file.");   
+                    return false;
+                }
+
+                SetParameter(name, p.info_["default"]); // FIXME: SHOULD EVALUATE DEFAULT VALUE - MAYBE
                 return true;
             }
 
@@ -416,14 +438,14 @@ namespace ikaros
 
             if(p.type==number_type && !p.has_options)
             {
-                    SetParameter(name, std::to_string(EvaluateNumericalExpression(value))); //FIXME: HANDLE DEFAULTVALUES ALSO
-                    return true;
+                SetParameter(name, std::to_string(EvaluateNumericalExpression(value))); //FIXME: HANDLE DEFAULTVALUES ALSO
+                return true;
             }
 
             // Lookup normal value in current component-context
 
             value = GetValue(name);
-            if(value.empty())  // ****************** this does not work for string that are allowed to be empty
+            if(value.empty())  // ****************** this does not work for string that are allowed to be empty // FIXME: USE EXCEPTIONS *****
             {
                 SetParameter(name, p.info_["default"]);
                 return true;
@@ -455,6 +477,7 @@ namespace ikaros
         else
             return false;
     }
+
 
 
     std::string 
@@ -494,23 +517,56 @@ namespace ikaros
 
 
 //
-// GetValue
+// GetComponent
 //
-// Get value of a key/variable in the context of this component (ignores current parameter values)
-// Throws and exception if value cannot be found
-// Does not handle default values - this is done by parameters
+// sensitive to variables and indirection
+// does local substitution of vaiables unlike GetValue() / FIXME: is this correct?
+//
+ 
+    Component * 
+    Component::GetComponent(const std::string & s) 
+    {
+        std::string path = SubstituteVariables(s);
+        try
+        {
+            if(path.empty()) // this
+                return this;
+            if(path[0]=='.') // global
+                return kernel().components.at(path.substr(1));
+            if(kernel().components.count(path_+"."+peek_head(path,"."))) // inside
+                return kernel().components[path_+"."+peek_head(path,".")]->GetComponent(peek_tail(path,"."));
+            if(peek_rtail(peek_rhead(path_,"."),".") == peek_head(path,".") && parent_) // parent
+                return parent_->GetComponent(peek_tail(path,"."));
+            throw exception("Component does not exist.");
+        }
+        catch(const std::exception& e)
+        {
+            throw exception("Component \""+path+"\" does not exist.");
+        }
+    }
+
 
     std::string 
     Component::GetValue(const std::string & path) 
     {     
+        //std::cout << "GetValue: " << path << std::endl;
         if(path.empty())
             return ""; // throw exception("Name not found"); // throw not_found_exception instead
 
         if(path[0]=='@')
-            return GetValue(exchange_before_dot(path, LookupKey( before_dot(path).substr(1))));
-        
+        {
+            if(path.find('.') == std::string::npos)
+                // return  LookupKey(path.substr(1));
+                return GetValue(path.substr(1));
+            else
+                return GetValue(exchange_before_dot(path, GetValue( before_dot(path).substr(1))));
+        }
+
         if(path[0]=='.')
+        {
+            auto c = kernel().components.begin()->second;
             return kernel().components.begin()->second->GetValue(path.substr(1)); // Absolute path // FIXME: Scary - main_group -
+        }
 
         size_t pos = path.find('.');
         if(pos != std::string::npos)
@@ -531,6 +587,14 @@ namespace ikaros
         }
 
         std::string value = LookupKey(path);
+
+        if(value.empty())
+        {
+            // Check if we have a resolved paramater for this value and use that in that case
+            if(kernel().parameters.count(path_+'.'+path) && kernel().parameters[path_+'.'+path].resolved)
+            return kernel().parameters[path_+'.'+path];
+        }
+
         if(value.find('@') != std::string::npos && value.find('.') != std::string::npos) // A new indirect 'path' - start over
             return GetValue(value);
         else if(value.find('@') != std::string::npos) // A new indirect 'key' - start over
@@ -671,34 +735,6 @@ namespace ikaros
             return false;
     }
 
-//
-// GetComponent
-//
-// sensitive to variables and indirection
-// does local substitution of vaiables unlike GetValue() / FIXME: is this correct?
-//
- 
-    Component * 
-    Component::GetComponent(const std::string & s) 
-    {
-        std::string path = SubstituteVariables(s);
-        try
-        {
-            if(path.empty()) // this
-                return this;
-            if(path[0]=='.') // global
-                return kernel().components.at(path.substr(1));
-            if(kernel().components.count(path_+"."+peek_head(path,"."))) // inside
-                return kernel().components[path_+"."+peek_head(path,".")]->GetComponent(peek_tail(path,"."));
-            if(peek_rtail(peek_rhead(path_,"."),".") == peek_head(path,".") && parent_) // parent
-                return parent_->GetComponent(peek_tail(path,"."));
-            throw exception("Component does not exist.");
-        }
-        catch(const std::exception& e)
-        {
-            throw exception("Component \""+path+"\" does not exist.");
-        }
-    }
 
 
 
@@ -757,7 +793,7 @@ namespace ikaros
         // Check functions
 
         if(ends_with(s, ".size_x"))
-            return std::to_string(GetBuffer(rhead(ss,".")).size_x()); // RIXME: ADd nondestructuve rhead with string instead of string &
+            return std::to_string(GetBuffer(rhead(ss,".")).size_x()); // RIXME: Add nondestructive rhead with string instead of string &
 
         if(ends_with(s, ".size_y"))
             return std::to_string(GetBuffer(rhead(ss,".")).size_y());
@@ -771,7 +807,7 @@ namespace ikaros
         if(ends_with(s, ".cols"))
             return std::to_string(GetBuffer(rhead(ss,".")).cols());
             
-        // Get or evaluate bariables
+        // Get or evaluate variables
 
         parameter p;
         if(LookupParameter(p, s.substr(1))) // CHECK @ sign
@@ -812,8 +848,8 @@ namespace ikaros
                 int d = EvaluateNumericalExpression(e);
                 if(d>0)
                     shape.push_back(d);
-                else
-                    throw std::invalid_argument("Value of "+e+" is non-positive or not found.");
+                // else
+                //     throw std::invalid_argument("Value of "+e+" is non-positive or not found."); // Does not work since function can be called multiple times duing SetSizes
             }
         }
         return shape;
@@ -1031,7 +1067,6 @@ namespace ikaros
     int 
     Component::SetInputSize_Index(dictionary d, input_map ingoing_connections)
     {
-
        Trace("\t\t\tComponent::SetInputSize_Index ", path_ + "." + std::string(d["name"]));
 
         range input_size;
@@ -1040,6 +1075,23 @@ namespace ikaros
 
         if(!ingoing_connections.count(full_name)) // Not connected
             return 1;
+
+        // Handle single connection without inidices - do not collapse dimensions
+
+        if(ingoing_connections.size() == 1 && ingoing_connections.begin()->second[0]->source_range.empty() && ingoing_connections.begin()->second[0]->target_range.empty())
+        {        
+            std::cout << "Simple connection" << std::endl;
+
+            range output_matrix = kernel().buffers[ingoing_connections.begin()->second[0]->source].get_range();
+            if(output_matrix.empty())
+                return 0;
+    
+            kernel().buffers[full_name].realloc(output_matrix.extent());
+
+            Trace("\t\t\tComponent::SetInputSize Simple Alloc" + std::string(input_size), full_name);
+
+            return 1;
+        }
 
         for(auto c : ingoing_connections.at(full_name))
         {
@@ -1062,8 +1114,8 @@ namespace ikaros
 
         return 1;
 
-/*
 
+/*
             SetSourceRanges(name, ingoing_connections);
             int max_delay = 0;
             bool first_ingoing_connection = true;
@@ -1131,7 +1183,7 @@ namespace ikaros
     int 
     Component::SetInputSize(dictionary d, input_map ingoing_connections)
     {
-        Trace("\t\t\tComponent::SetInputSize", path_ + " "+ std::string(d["name"]));
+        Trace("\t\t\tComponent::SetInputSize ", path_ + "."+ std::string(d["name"]));
 
         if(d.is_set("flatten"))
             SetInputSize_Flat(d, ingoing_connections);
@@ -1162,10 +1214,10 @@ namespace ikaros
     int 
     Component::SetOutputSize(dictionary d, input_map ingoing_connections)
     {
-       Trace("\t\t\tComponent::SetOutputSize " + std::string(d["name"]), path_);
+       Trace("\t\t\tComponent::SetOutputSize " , path_ + "." + std::string(d["name"]));
 
         if(d.contains("size"))
-            throw setup_error("Output in group can not have size attribute.");
+            throw setup_error(u8"Output \""+std::string(d["name"])+"\"+in group \""+path_+"\" can not have size attribute.");
 
         range output_size; // FIXME: rename output_range
         std::string name = d.at("name");
@@ -1205,7 +1257,7 @@ namespace ikaros
     Component::SetSizes(input_map ingoing_connections)
     {
         
-        Trace("\t\t\tComponent::SetSizes",path_);
+        Trace("\tComponent::SetSizes",path_);
         SetInputSizes(ingoing_connections);
         SetOutputSizes(ingoing_connections);
 
@@ -1220,14 +1272,16 @@ namespace ikaros
     {
         try
         {
-            std::string size ;
-            
+            std::string size;
             if(d.contains("size"))
-                size = std::string(d["size"]);  // FIXME: Get string
+                size = std::string(d.at("size"));
+            else
+                throw setup_error("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".");
 
-            if(size.empty())
-             size = LookupKey("size");
-
+            // FIX: special indirection
+            while(!size.empty() && size[0]=='@' && size.find(',')==std::string::npos)
+                size = GetValue(size.substr(1));
+            
             if(size.empty())
                 throw setup_error("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".");
             std::vector<int> shape = EvaluateSizeList(size);
@@ -1265,8 +1319,10 @@ namespace ikaros
     int 
     Module::SetSizes(input_map ingoing_connections)
     {
-            Trace("\tModule::SetSizes", path_);
+            //Trace("\tModule::SetSizes", path_);
+            //Trace("\tModule::SetInputSizes", path_);
             SetInputSizes(ingoing_connections);
+            //Trace("\t", path_);
             SetOutputSizes(ingoing_connections);
             return 0;
     }   
@@ -1377,7 +1433,8 @@ namespace ikaros
             int delay_size = delay_range_.trim().b_[0];
             if(delay_size > 1)
                 target_range.push_front(0, delay_size);
-
+        // Debugging
+        // std::cout  << "Resolve debug size "<<  this->source << " " <<delay_size*source_range.size() << ":" <<  this->target << " " << target_range.size() << std::endl;
         if(delay_size*source_range.size() != target_range.size())
             throw exception("Connection could not be resolved");
 
@@ -1723,6 +1780,7 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::CalculateSizes()    
     {
+        //Trace("Kernel::CalculateSizes");
         try 
         {
         // Build input table
@@ -1777,7 +1835,7 @@ bool operator==(Request & r, const std::string s)
             if(it.second <= 1)
                 continue;
           if(buffers.count(it.first))
-                circular_buffers.emplace(it.first, CircularBuffer(buffers[it.first], it.second)); // FIXME: Change to initialization list in C++20
+                circular_buffers.emplace(it.first, CircularBuffer(buffers[it.first], it.second));
         }
     }
 
@@ -1838,9 +1896,12 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::ListCircularBuffers()
     {
+        if(circular_buffers.empty())
+            return;
+
         std::cout << "\nCircularBuffers:" << std::endl;
         for(auto & i : circular_buffers)
-            std::cout << "\t" << i.first <<  " " << i.second.buffer_.size() << std::endl;
+            std::cout << "\t" << i.first <<  " " << i.second.buffer_.size() << " " << i.second.buffer_[0].rank() << i.second.buffer_[0].shape() <<  std::endl;
     }
 
 
@@ -1994,6 +2055,9 @@ if(classes[classname].path.empty())
     void 
     Kernel::BuildGroup(dictionary d, std::string path) // Traverse dictionary and build all items at each level, FIXME: rename AddGroup later
     {
+        if(std::string(d["_tag"]) != "group")
+            throw setup_error("Main element is <"+std::string(d["_tag"])+"> but must be <group> for ikg-file.");
+
         if(!d.contains("name"))
             throw setup_error("Groups must have a name.");
 
@@ -2502,13 +2566,21 @@ if(classes[classname].path.empty())
     {
         try
         {
+
+
             SortTasks();
             ResolveParameters();
+            //ListParameters();
             PruneConnections();
             CalculateDelays();
             CalculateSizes();
+            //ListConnections();
+            //ListInputs();
+            //ListOutputs();
             InitCircularBuffers();
             InitComponents();
+
+
 
             if(info_.is_set("info"))
             {
@@ -2611,14 +2683,17 @@ if(classes[classname].path.empty())
             std::lock_guard<std::mutex> lock(mtx); // Lock the mutex
 
             log.push_back(Message(msg, message, path));
-            std::cout << "ikaros: " << message << "("<<path << ")"<< std::endl;
+
+            std::cout << "ikaros: " << message;
+            if(!path.empty())
+                std::cout  << " ("<<path << ")";
+            std::cout << std::endl;
+
             if(msg <= msg_fatal_error)
             {
                     global_terminate = true;
 
                     //run_mode = run_mode_quit;
-
-                    
             }
             return true;
         }
@@ -2986,6 +3061,7 @@ if(classes[classname].path.empty())
         try
         {
         
+            std::cout << request.body.size() << std::endl;
              d = parse_json(request.body);
         }
         catch(const std::exception& e)
@@ -3101,7 +3177,6 @@ if(classes[classname].path.empty())
 
 
 
-
     void
     Kernel::DoRealtime(Request & request)
     {
@@ -3120,6 +3195,47 @@ if(classes[classname].path.empty())
         Play();
         DoSendData(request);
     }
+
+
+
+    void
+    Kernel::DoData(Request & request)
+    {
+         if(!buffers.count(request.component_path))
+            {
+                Dictionary header;
+                header.Set("Content-Type", "text/plain");
+                header.Set("Cache-Control", "no-cache");
+                header.Set("Cache-Control", "no-store");
+                header.Set("Pragma", "no-cache");
+                socket->SendHTTPHeader(&header);
+        
+                socket->Send("Buffer \""+request.component_path+"\" can not be found");
+                return;
+            }
+
+        if(buffers[request.component_path].rank() > 2)
+        {
+            Dictionary header;
+            header.Set("Content-Type", "text/plain");
+            header.Set("Cache-Control", "no-cache");
+            header.Set("Cache-Control", "no-store");
+            header.Set("Pragma", "no-cache");
+            socket->SendHTTPHeader(&header);
+
+            socket->Send("Rank of matrix != 2. Cannot be displayed as CSV");
+        }
+
+        Dictionary header;
+        header.Set("Content-Type", "text/plain");
+        header.Set("Cache-Control", "no-cache");
+        header.Set("Cache-Control", "no-store");
+        header.Set("Pragma", "no-cache");
+        socket->SendHTTPHeader(&header);
+
+        socket->Send(buffers[request.component_path].csv());
+    }
+
 
 
     void
@@ -3531,6 +3647,9 @@ if(classes[classname].path.empty())
             DoSendFileList(request);
         else if(request == "")
             DoSendFile("index.html");
+
+        else if(request == "data")
+            DoData(request);
 
         // Control commands
 

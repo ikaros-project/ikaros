@@ -43,10 +43,22 @@ namespace ikaros {
         init_error(std::string msg) : exception(msg) {}
     };
 
-    class empty_matrix_error : public exception 
+    class matrix_error : public exception 
     {
     public:
-        empty_matrix_error(std::string msg) : exception(msg) {}
+        matrix_error(std::string msg) : exception(msg) {}
+    };
+
+    class empty_matrix_error : public matrix_error 
+    {
+    public:
+        empty_matrix_error(std::string msg) : matrix_error(msg) {}
+    };
+
+    class out_of_memory_matrix_error : public matrix_error 
+    {
+    public:
+        out_of_memory_matrix_error(std::string msg) : matrix_error(msg) {}
     };
 };
 
@@ -62,5 +74,5 @@ PLANNED EXCEPTIONS
     fatal_runtime_error: cannot continue running "simulation", run-time error
     fatal_error: cabbot cannot at all: try do deallocate and quit
 
-
 */
+

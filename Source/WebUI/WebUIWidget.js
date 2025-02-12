@@ -176,6 +176,18 @@ class WebUIWidget extends HTMLElement
         }
     }
 
+    getMatrixRank(matrix) 
+    {
+        let rank = 0;
+
+        while (Array.isArray(matrix)) {
+            rank++;
+            matrix = matrix[0];
+        }
+        return rank;
+    }
+
+    
     getInt(attribute, index)
     {
         try

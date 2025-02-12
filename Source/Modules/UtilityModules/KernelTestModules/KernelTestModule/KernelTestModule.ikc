@@ -18,8 +18,8 @@
 	<parameter name="x" type="number" default="7" description="parameter x" />
 	<parameter name="y" type="number" default="9" description="parameter y" />
 
-	<parameter name="codeparam_1" type="number" default="9" description="parameter that is set in code" />
-	<parameter name="codeparam_2" type="number" default="999999" description="parameter  that is set in code and redefined in ikg file" />
+	<parameter name="codeparam_1" type="number" default="888" description="parameter that is set in code" />
+	<parameter name="codeparam_2" type="number" default="999" description="parameter  that is set in code and redefined in ikg file" />
 
 	<input name="INPUT" />
 

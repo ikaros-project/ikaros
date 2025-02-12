@@ -45,12 +45,14 @@ class KernelTestModule: public Module
         Bind(codeparam_1, "codeparam_1");
         Bind(codeparam_2, "codeparam_2");
 
-        codeparam_2 = 987;
+        codeparam_1 = 111;
+        codeparam_2 = 999;
     }
 
 
     void Init()
     {
+
         Bind(a, "a");
         Bind(b, "b");
         Bind(c, "c");
@@ -83,12 +85,20 @@ class KernelTestModule: public Module
 
         codeparam_1.print("codeparam_1");
         codeparam_2.print("codeparam_2");
+
+        Bind(input, "INPUT");
+        Bind(output, "OUTPUT");
     }
 
 
     void Tick()
     {
         output.copy(input);
+
+        double x = input;
+        double y = input.last();
+
+        std::cout << "DIFF: " << x << " " << y << std::endl;
 
         if(GetTick() >= 100)
              Notify(msg_terminate, "Terminating after 100 ticks.");
@@ -98,7 +108,6 @@ class KernelTestModule: public Module
     {
         std::cout << "KernelTestModule: destructor called" << std::endl;
     }
-
 };
 
 INSTALL_CLASS(KernelTestModule)
