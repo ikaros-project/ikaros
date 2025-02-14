@@ -22,7 +22,7 @@
       <output description="Processed Gyro data (XYZ)" name="ProcessedGyro" size="3"/>
       <output description="Processed accelerometer data (XYZ)" name="ProcessedAccel" size="3"/>
       <output description="Euler angles (XYZ)" name="EulerAngles" size="3"/>
-      <parameter control="textedit" default="/dev/cu.usbserial-AU04OEIL" description="Serial port" name="port" type="string" value="/dev/cu.usbserial-AU04OIL4"/>
+      <parameter control="textedit" default="/dev/cu.usbserial-AU04OIL4" description="Serial port" name="port" type="string" value="/dev/cu.usbserial-AU04OIL4"/>
    </module>
    <widget _index_="0" _x="48" _y="48" buffer_size="50" class="plot" color="blue, green, red" direction="vertical" frame-style="" height="313" max="100" min="0" name="Accelplot" select="" show_frame="false" show_title="true" source="UM7.ProcessedGyro" style="--decimals:0" title="Gyro" width="385"/>
    <widget _index_="2" _x="432" _y="48" buffer_size="50" class="plot" color="blue, green, red" direction="vertical" frame-style="" height="313" max="1" min="-1" name="Gyroplot" select="" show_frame="false" show_title="true" source="UM7.ProcessedAccel" style="--decimals:0" title="Accelerometer" width="385"/>

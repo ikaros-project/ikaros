@@ -7,32 +7,14 @@
 #include <string>
 #include <algorithm>
 #include <chrono>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <unistd.h>
-#include <cstring>
-#include <thread>
-#include <sys/wait.h>
 
 using namespace ikaros;
 
 
-
-#define SHM_NAME "/ikaros_ann_shm"
-#define FLOAT_COUNT 12  // 10 inputs + 2 predictions (tilt and pan)
-#define MEM_SIZE ((FLOAT_COUNT * sizeof(float)) + sizeof(bool))  // Add explicit size calculation
-
-// Structure for shared memory between Python and C++
-struct SharedData
-{
-    float data[FLOAT_COUNT]; 
-    bool new_data;           // Flag for synchronization
-};
-
 class TestMapping: public Module
 {
- 
-
+    //pipe
+    FILE* ann_pipe;
     // Inputs
     matrix present_position;
     matrix present_current;
@@ -93,12 +75,6 @@ class TestMapping: public Module
     matrix initial_currents;
     matrix current_differences;
 
-    // Shared memory variables
-    int shm_fd;
-    SharedData* shared_data;
-
-    std::string shm_name;
-    
     matrix RandomisePositions(int num_transitions, matrix min_limits, matrix max_limits, std::string robotType)
     {
         // Initialize the random number generator with the seed
@@ -305,7 +281,7 @@ class TestMapping: public Module
         return coefficients_matrix;
     }
 
-    matrix SetGoalCurrent(matrix present_current, int increment, int limit, matrix position, matrix goal_position, int margin, matrix coefficients, std::string model_name, matrix ann_output)
+    matrix SetGoalCurrent(matrix present_current, int increment, int limit, matrix position, matrix goal_position, int margin, matrix coefficients, std::string model_name)
     {
         matrix current_output(present_current.size());
         current_output.copy(present_current);
@@ -369,16 +345,11 @@ class TestMapping: public Module
             }
 
             // Apply current limits and set output
-            current_output(servo_idx) = std::min(abs(estimated_current), static_cast<double>(limit));
+            current_output(servo_idx) = std::min(std::max(estimated_current, 0.0), static_cast<double>(limit));
         }
 
         return current_output;
     }
-
-
-    
-  
-
     void Init()
     {
         //IO
@@ -475,58 +446,22 @@ class TestMapping: public Module
         ann_output.set(0);
         
 
-        if (std::string(prediction_model) == "ANN") {
-            Debug("Attempting to create shared memory at %s\n", SHM_NAME);
-            
-            // First, ensure any existing shared memory is removed
-            shm_unlink(SHM_NAME);
-            
-            // Create shared memory
-            shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
-            if (shm_fd == -1) {
-                Error("Failed to create shared memory: " + std::string(strerror(errno)) + " (errno: " + std::to_string(errno) + ")");
-                return;
-            }
-            Debug("Successfully created shared memory. File descriptor: " + std::to_string(shm_fd));
-
-            // Calculate size
-            size_t required_size = sizeof(SharedData);
-            Debug("Attempting to set shared memory size to " + std::to_string(required_size) + " bytes\n");
-            
-            // Set the size of shared memory
-            if (ftruncate(shm_fd, required_size) == -1) {
-                Error("Failed to set shared memory size (" + std::to_string(required_size) + " bytes): " + strerror(errno) + " (errno: " + std::to_string(errno) + ")");
-                close(shm_fd);
-                shm_unlink(SHM_NAME);
-                return;
-            }
-
-            // Map the shared memory
-            void* ptr = mmap(nullptr, required_size, PROT_READ | PROT_WRITE, 
-                           MAP_SHARED, shm_fd, 0);
-            if (ptr == MAP_FAILED) {
-                Error("Failed to map shared memory: " + std::string(strerror(errno)));
-                close(shm_fd);
-                shm_unlink(SHM_NAME);
-                return;
-            }
-
-            // Initialize the shared memory
-            shared_data = static_cast<SharedData*>(ptr);
-            memset(shared_data, 0, required_size);
-            shared_data->new_data = false;
-
-            // Print debug information
-            Debug("Shared memory initialized:\n");
-            Debug("- Required size: " + std::to_string(required_size) + " bytes\n");
-            Debug("- SharedData size: " + std::to_string(sizeof(SharedData)) + " bytes\n");
-
-            // Start Python process
+        if (std::string(prediction_model) == "ANN"){
+            // Open the pipe for reading
+            // using interpreter from .tensorflow_venv, same directory as the script
             std::string directory = scriptPath.substr(0, scriptPath.find_last_of("/"));
-            std::string envPath = directory + "/.tensorflow_venv/bin/python3";
+            // pythonscript path same directory as current file
             std::string pythonPath = directory + "/ANN_prediction.py";
-            std::string command = envPath + " " + pythonPath + " &";
-            system(command.c_str());
+            std::string venvPath = directory + "/.tensorflow_venv/bin/python3";
+            std::string command = venvPath + " " + pythonPath;
+           
+
+            ann_pipe = popen(command.c_str(), "r");
+            if (!ann_pipe) {
+                Error("Failed to open pipe to ANN_prediction.py");
+                return;
+            }
+              
         }
     }
 
@@ -551,44 +486,74 @@ class TestMapping: public Module
             {
                 if (std::string(prediction_model) == "ANN" && gyro.connected() && accel.connected())
                 {
-                    // Write input data
-                    int idx = 0;
-                    shared_data->data[idx] = present_position[0];  // Tilt
-                    idx++;
-                    shared_data->data[idx] = present_position[1];  // Pan
-                    idx++;
-                    for (int i = 0; i < gyro.size(); i++) {
-                        shared_data->data[idx++] = gyro[i];
-                    }
-                    for (int i = 0; i < accel.size(); i++) {
-                        shared_data->data[idx++] = accel[i];
-                    }
+
+                    
+
+                    // Send the following to the ANN:
+                    // TiltPosition	PanPosition	GyroX	GyroY	GyroZ	AccelX	AccelY	AccelZ	tilt_distance	pan_distance
+                    // concatenate the matrix present_position, gyro, accel, goal_position_out and use .json to send it to the ANN
+                    matrix goal_distance = goal_position_out;
+                    goal_distance.subtract(present_position);
+
+                    // Create a single string with all values in correct order
+                    std::string pipe_data = "";
+                    
+                    // Add positions
                     for (int i = 0; i < current_controlled_servos.size(); i++) {
-                        shared_data->data[idx++] = abs((float)goal_position_out[i] - (float)present_position[i]);
+                        int idx = current_controlled_servos(i);
+                        pipe_data += std::to_string(present_position[idx]);
+                        pipe_data += ",";
                     }
                     
-                    shared_data->new_data = true;
+                    if (gyro.size() > 0){
                     
-                    // Wait for Python to process (with timeout)
-                    int timeout_ms = 10;  // 5ms timeout
-                    auto start = std::chrono::steady_clock::now();
-                    
-                    while (shared_data->new_data) {
-                        auto now = std::chrono::steady_clock::now();
-                        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>
-                                     (now - start).count();
-                        
-                        if (elapsed > timeout_ms) {
-                            Warning("Timeout waiting for ANN prediction");
-                            break;
-                        }
-                        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                        // Add gyro values
+                        pipe_data += std::to_string(gyro[0]) + ","; // GyroX
+                        pipe_data += std::to_string(gyro[1]) + ","; // GyroY 
+                        pipe_data += std::to_string(gyro[2]) + ","; // GyroZ
                     }
                     
-                    if (!shared_data->new_data) {
-                        for (int i = 0; i < current_controlled_servos.size(); i++) {
-                            ann_output[i] = shared_data->data[FLOAT_COUNT - current_controlled_servos.size() + i];
+                    if (accel.size() > 0){
+                        // Add accel values
+                        pipe_data += std::to_string(accel[0]) + ","; // AccelX
+                        pipe_data += std::to_string(accel[1]) + ","; // AccelY
+                        pipe_data += std::to_string(accel[2]) + ","; // AccelZ
+                    }
+                    
+                    // Add distances
+                    for (int i = 0; i < current_controlled_servos.size(); i++) {
+                        int idx = current_controlled_servos(i);
+                        pipe_data += std::to_string(abs(goal_distance[idx]));
+                        if (i < current_controlled_servos.size() - 1) {
+                            pipe_data += ",";
                         }
+                    }
+                    pipe_data += "\n";
+                    
+
+           
+                    fputs(pipe_data.c_str(), ann_pipe);
+                    fflush(ann_pipe);
+
+                    // Add timeout for reading from pipe
+                    fd_set fds;
+                    struct timeval tv;
+                    int fd = fileno(ann_pipe);
+
+                    FD_ZERO(&fds);
+                    FD_SET(fd, &fds);
+                    tv.tv_sec = 1;  // 0.1 second timeout
+                    tv.tv_usec = 0;
+
+                    if (select(fd + 1, &fds, NULL, NULL, &tv) > 0) {
+                        char buffer[1024];
+                        if (fgets(buffer, sizeof(buffer), ann_pipe) != NULL) {
+                            ann_output = atof(buffer);
+                        } else {
+                            Warning("Failed to read from ANN pipe");
+                        }
+                    } else {
+                        Warning("Timeout waiting for ANN response");
                     }
                 }
 
@@ -630,7 +595,7 @@ class TestMapping: public Module
                         {
                             goal_current.copy(SetGoalCurrent(present_current, current_increment, current_limit,
                                                              present_position, goal_position_out, position_margin,
-                                                             coeffcient_matrix, std::string(prediction_model), ann_output));
+                                                             coeffcient_matrix, std::string(prediction_model)));
                             if (initial_currents(i, transition) == 0)
                             {
                                 initial_currents(i, transition) = goal_current[servo_idx];
@@ -661,7 +626,7 @@ class TestMapping: public Module
         {
             std::string scriptPath = __FILE__;
             std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
-            std::string filepath = scriptDirectory + "/results/"+ std::string(prediction_model) + "/current_data_" + std::to_string(unique_id) + ".json";
+            std::string filepath = scriptDirectory + "/results/current_data_" + std::to_string(unique_id) + ".json";
             std::ofstream file(filepath);
             file << "{\n";
             file << "  \"transitions\": [\n";
@@ -713,14 +678,9 @@ class TestMapping: public Module
 
     ~TestMapping()
     {
-        if (std::string(prediction_model) == "ANN") {
-            if (shared_data != nullptr) {
-                munmap(shared_data, sizeof(SharedData));
-            }
-            if (shm_fd != -1) {
-                close(shm_fd);
-            }
-            shm_unlink(SHM_NAME);
+        if (ann_pipe) {
+            pclose(ann_pipe);
+            ann_pipe = nullptr;
         }
     }
 };

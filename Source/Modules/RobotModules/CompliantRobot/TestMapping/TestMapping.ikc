@@ -11,10 +11,9 @@
 	<input name ="GyroData" description="Gyro data (XYZ) degrees/s" />
 	<input name="AccelData" description="Accelerometer data (XYZ) m/s^2" />
 	<input name="EulerAngles" description="Euler angles (XYZ) degrees" />
-	<input name="ANN_input" description="Input to the ANN" />
 	<output name="GoalCurrent" description="" size="19"/>
 	<output name="GoalPositionOut" description="" size="19"/>
-	<output name="ANN_output" description="Output from the ANN" size="2"/>
+	
 	<author>
 		<name>Pierre Klintefors</name>
 		<email>Pierre.Klintefors@lucs.lu.se</email>
