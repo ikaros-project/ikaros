@@ -18,7 +18,7 @@ from keras.optimizers import Adam
 # Update the shared memory path for macOS - remove /private/tmp/
 SHM_NAME = "/ikaros_ann_shm"  # Changed this back
 FLOAT_COUNT = 12  # 10 inputs + 2 predictions (tilt and pan)
-MEM_SIZE = (FLOAT_COUNT * 4) + 1  # 4 bytes per float + 1 byte for bool
+MEM_SIZE = (FLOAT_COUNT * 4) + 2  # 4 bytes per float + 2 byte for  2 bool
 
 class SharedMemory:
     def __init__(self):
@@ -67,13 +67,20 @@ class SharedMemory:
         # Write predictions starting at the correct offset
         self.shared_data.seek(10 * 4)  # Skip past input data
         self.shared_data.write(np.array(predictions, dtype=np.float32).tobytes())
-        # Clear new_data flag
-        self.shared_data.seek(12 * 4)  # Position for flag
-        self.shared_data.write(bytes([0]))
+        # Don't clear new_data flag here anymore - let C++ do it after reading
     
     def get_new_data_flag(self):
-        self.shared_data.seek(12 * 4)  # Position for flag
-        return bool(ord(self.shared_data.read(1)))
+        # New data flag is stored at offset FLOAT_COUNT * 4
+        self.shared_data.seek(FLOAT_COUNT * 4)
+        flag_byte = self.shared_data.read(1)
+        return bool(flag_byte[0])
+    
+    def get_shutdown_flag(self):
+        # Shutdown flag is stored at offset (FLOAT_COUNT * 4) + 1
+        self.shared_data.seek((FLOAT_COUNT * 4) + 1)
+        flag_byte = self.shared_data.read(1)
+        return bool(flag_byte[0])
+
 
 def normalise_input(x, means_stds):
     # Input x should be a numpy array with shape (1, 10)
@@ -123,6 +130,10 @@ def main():
         print("Successfully connected to shared memory", file=sys.stderr)
         
         while True:
+            if shm.get_shutdown_flag():
+                print("Shutdown flag received. Exiting ANN prediction loop.", file=sys.stderr)
+                break
+
             if shm.get_new_data_flag():
                 # Read all input data
                 input_data = shm.read_data()
@@ -134,7 +145,7 @@ def main():
                     input_data['accel'],
                     input_data['distances']
                 ]).reshape(1, -1)
-                print(f"Model inputs: {model_inputs}", file=sys.stderr) 
+           
                 # Normalize inputs
                 normalized = normalise_input(model_inputs[0], means_stds)
                 
@@ -146,11 +157,11 @@ def main():
                 tilt_pred = tilt_pred * means_stds['TiltCurrent']['std'] + means_stds['TiltCurrent']['mean']
                 pan_pred = pan_pred * means_stds['PanCurrent']['std'] + means_stds['PanCurrent']['mean']
                 
-                # Write predictions
+                # Write predictions without clearing the flag
                 predictions = [float(tilt_pred[0]), float(pan_pred[0])]
                 shm.write_prediction(predictions)
-                print(f"Predictions: {predictions}", file=sys.stderr)
-            sleep(0.001)
+                
+         
             
     except Exception as e:
         print(f"Error in main: {e}", file=sys.stderr)

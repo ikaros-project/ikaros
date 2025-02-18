@@ -13,6 +13,7 @@
 	<input name="EulerAngles" description="Euler angles (XYZ) degrees" />
 	<output name="GoalCurrent" description="" size="19"/>
 	<output name="GoalPositionOut" description="" size="19"/>
+	<output name="ANN_output" description="" size="19"/>
 	
 	<author>
 		<name>Pierre Klintefors</name>
