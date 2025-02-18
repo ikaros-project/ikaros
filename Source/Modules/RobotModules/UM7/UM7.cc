@@ -145,7 +145,7 @@ class UM7 : public Module
 
     void Tick()
     {
-        rx_length = s->ReceiveBytes(rx_data, 255, 0);
+        rx_length = s->ReceiveBytes(rx_data, 255, 1);
         if (rx_length <= 0)
         {
             Notify(msg_warning, "No data received from UM7.");
