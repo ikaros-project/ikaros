@@ -2047,7 +2047,7 @@ if(classes[classname].path.empty())
         dictionary external(path);
         external["name"] = d["name"]; // FIXME: Just in case - check for errors later
         d.merge(external);
-        
+        d.erase("external");
     }
 
 
