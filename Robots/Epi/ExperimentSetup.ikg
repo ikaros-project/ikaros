@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+
+<!-- This is the starting point of the experiment -->
+
+<!--
+Vision input mode:
+The vision input can also be simulated by instead of the camera stream read a local image from file (NoCamera.jpg).
+From video stream:
+VisionInputLeft = "InputVideoStream"
+VisionInputRight = "InputVideoStream"
+
+From local image:
+VisionInputLeft = "InputJPEG"
+VisionInputRight = "InputJPEG"
+-->
+
+<!-- import frame and id for epi robots> -->
+<group name="ExperimentalSetup"
+
+servosIndexHead = "0"
+servosIndexPupil = "4"
+servosIndexPupilLeft = "4"
+servosIndexPupilRight = "5"
+servosIndexLeftArm = "6"
+servosIndexRightArm = "12"
+servosIndexBody = "18"
+servosIndexEyesRGB = "19"
+servosIndexEyesIntensity = "22"
+servosIndexMouthRGB = "23"
+servosIndexMouthIntensity = "26"
+servosIndexSound = "27"
+nrServosTotal = "19"
+>
+
+
+	<group name = "Epi" 
+    external="/Users/birger/Code/ikaros/Robots/Epi/EpiMinimal.ikg"
+
+	VisionInputLeft = "InputJPEG"
+	VisionInputRight = "InputJPEG"
+
+	_simulateRobot ="true"
+	_EpiName = "EpiRed" 
+	/>
+
+	<!-- Channel 0-19 Joint of Epi, 20-22 RGB Left eye, 23 Left eye itensity, 24-25 RGB Right eye, 26 Right eye itensity, 27 sound-->
+	<module
+			class 				= "SequenceRecorder"
+			name 				= "SR"
+			channels 			= "28"
+            filename       		= "untitled.json"
+            smoothing_time 		= "0"
+			default_output 		= "0, 0, 0, 0, 12, 12,  0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  1, 1, 0, 0.5,   1, 1, 0,   0.6,   -1"
+			positions			= "0, 0, 0, 0, 12, 12,  0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  1, 1, 0, 0.5,   1, 1, 0,   0.6,   -1"
+			internal_control 	= "0, 0, 0, 0, 1, 1,    0, 0, 0, 0, 0, 1,   0, 0, 0, 0, 0, 1,  0,  1, 1, 1, 1,     1, 1, 1,   1,      1"
+			state			 	= "0, 2, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1,  1,  1, 1, 1, 1,     1, 1, 1,   1,      1" 
+			interpolation		= "1, 1, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1,  1,  1, 1, 1, 1,     1, 1, 1,   1,      0"
+			range_min 			= "-180, -180, -180, -180, 5, 5,     -180, -180, -180, -180, -180, -180,   -180, -180, -180, -180, -180, -180,   -180,  0, 0, 0, 0,  0, 0, 0, 0,  -1"
+			range_max 			= " 180,  180,  180,  180, 20, 20,    180,  180,  180,  180,  180,  180,    180,  180,  180,  180,  180,  180,    180,  1, 1, 1, 1,  1, 1, 1, 1,  35"
+			channel_mode		= "0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  0, 0, 0, 0,     0, 0, 0,  0,      0"
+		/>
+
+	<!-- All servos should be forwared to INPUT-->
+	<connection  source = "Epi.PRESENT_POSITION" target = "SR.INPUT[0:19]"/>
+
+	<!-- To Servo-->
+	<connection  source = "SR.ACTIVE[0:19]"  	target = "Epi.TORQUE_ENABLE" />
+	<connection  source = "SR.OUTPUT[0:19]"  	target = "Epi.GOAL_POSITION" />
+	<!-- Sending Eye color, mounth color and instensity. FEL INDEX-->
+	<connection  source = "SR.OUTPUT[19:21]"  	target = "Epi.LED.EYE_COLOR[0:2]"/>
+	<connection  source = "SR.OUTPUT[22:22]"  	target = "Epi.LED.EYE_INTENSITY[0]"/>
+	<connection  source = "SR.OUTPUT[23:25]"  	target = "Epi.LED.MOUTH_COLOR[0:2]"/>
+	<connection  source = "SR.OUTPUT[26:26]"  	target = "Epi.LED.MOUTH_INTENSITY[0]"/>
+	<!-- Sound -->
+	<connection  source = "SR.OUTPUT[27]"  		target = "OneHotVector.INPUT"/>
+	<!-- Sound Trigger -->
+	<module class = "OneHotVector" name = "OneHotVector" output_size = "34" />
+		<connection  source = "OneHotVector.OUTPUT"  target = "Epi.SoundOutput.TRIG"/>
+
+
+
+</group>

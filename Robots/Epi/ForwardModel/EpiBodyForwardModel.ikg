@@ -1,0 +1,82 @@
+<?xml version = "1.0"?>
+<group>
+
+    <description>
+        The total delay for this forward model is 2 tick (JOINT_ANGLES -> L1R2Rot, * -> PointJoin).
+	 </description>
+
+    <input name = "JOINT_ANGLES" />
+
+        <_module class = "Print" name = "Print"  />
+            <_connection source = "JOINT_ANGLES"          target = "Print.INPUT" />
+
+    <!-- Ego -->
+    <output name = "EGO_POINTS"/>             
+    <_connection source = "L1_R1.OUTPUT"         target = "EGO_POINTS[0:1][0:15]"  /> 
+    <_connection source = "M_L1_R2.OUTPUT"       target = "EGO_POINTS[1:2][0:15]"  />
+    <_connection source = "M_L2_T1.OUTPUT"       target = "EGO_POINTS[2:3][0:15]"  />
+
+    <connection source = "L1_R1.OUTPUT"         target = "EGO_POINTS[0][]"  /> 
+    <connection source = "M_L1_R2.OUTPUT"       target = "EGO_POINTS[1][]"  />
+    <connection source = "M_L2_T1.OUTPUT"       target = "EGO_POINTS[2][]"  />
+
+
+    <!-- Used to filll xyz intputs of rotationConverter -->
+    <module class = "Constant" name = "ZERO" outputsize = "1" data = "0" />
+	
+
+    <!-- Body -->
+    <!-- LINK 1: JOINT 1: (Non existing servo) Rotation -90 dgrees in Y to have X in the path of the chain  --> 
+    <module class = "Constant"    name = "L1_R1Rot"  data = "0, -90, 0" />
+    <module class = "RotationConverter" name = "L1_R1_C" input_format = "axayaz" output_format = "matrix" />
+        <connection source = "L1_R1Rot.OUTPUT"  target = "L1_R1_C.INPUT" delay = "0"/>
+
+    <!-- LINK 1: TRANS 1: Translation to Joint 2  --> 
+    <_module class = "Constant" name = "L1_T1" data = "Body.ForwardModel.Epi.Settings.@EpiName.@Body_L1_T1_data"/>
+    <_module class = "Constant" name = "L1_T1" data = ".Epi.Settings.@type.@Body_L1_T1_data"/>
+    <_module class = "Constant" name = "L1_T1" data = ".Epi.Settings.Full.@Body_L1_T1_data"/>
+    <_module class = "Constant" name = "L1_T1" data = "Body.ForwardModel.Epi.Settings.@type.@Body_L1_T1_data"/>
+
+<!-- This is not working Must set the data manually.-->
+    <module class = "Constant" name = "L1_T1" data = "
+		1, 0, 0, 0;
+		0, 1, 0, 0;
+		0, 0, 1, 0;
+		0, 0, 0, 1
+		" />
+
+        
+    <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L1_R1" />
+        <connection source = "L1_R1_C.OUTPUT" target = "M_L1_R1.INPUT1" delay = "0"/>
+        <connection source = "L1_T1.OUTPUT"   target = "M_L1_R1.INPUT2" delay = "0"/>
+
+    <!-- LINK1: Rotation JOINT 2 -->
+    <module class = "RotationConverter" name = "L1_R2_C" input_format = "axayaz" output_format = "matrix" />
+        <connection source = "JOINT_ANGLES[0]"  target = "L1_R2_C.INPUT[0]" />
+        <connection source = "ZERO.OUTPUT"      target = "L1_R2_C.INPUT[1]"/>
+        <connection source = "ZERO.OUTPUT"      target = "L1_R2_C.INPUT[2]"/>
+        
+
+    <module class = "MatrixMultiply"   name = "M_L1_R2" />
+        <connection source = "M_L1_R1.OUTPUT"     target = "M_L1_R2.INPUT1" delay = "0"/>
+        <connection source = "L1_R2_C.OUTPUT"     target = "M_L1_R2.INPUT2" delay = "0"/>
+
+     <!-- LINK 2: Translation to point between arms -->
+    <_module class = "Constant" name = "L2_T1" data = ".Epi.Settings.@type.@Body_L2_T1_data"/>
+    <!-- OVErRIDE PROBLEM WITH @-->
+    <module class = "Constant" name = "L2_T1" data = "
+		1, 0, 0, 0.044;
+		0, 1, 0, 0;
+		0, 0, 1, 0;
+		0, 0, 0, 1"/>
+    <!-- TORSO base to tile joint 103.825 mm -->
+
+    <!-- 3 mm is missing -->
+
+    <!-- Multiply -->
+    <module class = "MatrixMultiply"   name = "M_L2_T1" />
+        <connection source = "M_L1_R2.OUTPUT"   target = "M_L2_T1.INPUT1" delay = "0"/>
+        <connection source = "L2_T1.OUTPUT"     target = "M_L2_T1.INPUT2" delay = "0"/>
+
+</group>

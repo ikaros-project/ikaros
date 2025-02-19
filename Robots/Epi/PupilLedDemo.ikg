@@ -1,0 +1,273 @@
+<?xml version="1.0"?>
+
+<!-- This is the starting point of the experiment -->
+
+<!--
+Vision input mode:
+The vision input can also be simulated by instead of the camera stream read a local image from file (NoCamera.jpg).
+From video stream:
+VisionInputLeft = "InputVideoStream"
+VisionInputRight = "InputVideoStream"
+
+From local image:
+VisionInputLeft = "InputJPEG"
+VisionInputRight = "InputJPEG"
+-->
+
+<group name="Pupil demo for HT-dagarna 2022">
+
+	<module class = "EpiMinimal" name = "Epi" 
+
+	VisionInputRight = "InputVideoStream"
+	VisionInputLeft = "InputJPEG"
+	simulateRobot ="false"
+
+	EpiName = "EpiRed" 
+	L1_T1_data = "
+	1 0 0 0;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	"
+	L2_T1_data = "
+	1 0 0 0;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" 
+
+	
+	_EpiName = "EpiBlue" 
+	_L1_T1_data = "
+	1 0 0 0.200;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	"
+	_L2_T1_data = "
+	1 0 0 0.55824;
+	0 1 0 0;
+	0 0 1 0;
+	0 0 0 1;
+	" 
+	/>
+
+
+	 <_module class   = "InputVideo" name = "CAMERA"	 size_x  = "640" size_y  =  "480" />
+
+
+	<!-- Downsample image and send the brighest pixel values to the pupil model -->
+	<!-- -->
+	<module class = "Downsample" name = "D1" />
+		<connection  source = "Epi.RightEye.LOW_RES_INTENSITY"  target = "D1.INPUT" />
+		<_connection  source = "CAMERA.INTENSITY"  target = "D1.INPUT" />
+	<module class = "Downsample" name = "D2" />
+		<connection  source = "D1.OUTPUT"  target = "D2.INPUT" />
+	<module class = "Downsample" name = "D3" />
+		<connection  source = "D2.OUTPUT"  target = "D3.INPUT" />
+	<module class = "GaussianFilter" name = "GaussianRight" kernel_size = "5" sigma ="10" />
+		<connection  source = "D3.OUTPUT"  target = "GaussianRight.INPUT" />
+
+	<module class = "Downsample" name = "D_R1" />
+		<connection  source = "Epi.RightEye.LOW_RES_INTENSITY"  target = "D_R1.INPUT" />
+		<_connection  source = "Epi.LeftEye.LOW_RES_INTENSITY"  target = "D_R1.INPUT" />
+				<_connection  source = "CAMERA.INTENSITY"  target = "D_R1.INPUT" />
+	<module class = "Downsample" name = "D_R2" />
+		<connection  source = "D_R1.OUTPUT"  target = "D_R2.INPUT" />
+	<module class = "Downsample" name = "D_R3" />
+		<connection  source = "D_R2.OUTPUT"  target = "D_R3.INPUT" />
+	<module class = "GaussianFilter" name = "GaussianLeft" kernel_size = "5" sigma ="10" />
+		<connection  source = "D_R3.OUTPUT"  target = "GaussianLeft.INPUT" />
+
+	<module class = "ArgMax" name = "ArgMaxCombine"/>
+		<connection  source = "GaussianRight.OUTPUT"  target = "ArgMaxCombine.INPUT" />
+		<connection  source = "GaussianLeft.OUTPUT"  target = "ArgMaxCombine.INPUT" />
+
+	<!-- only for marker in webUI-->
+	<module class = "ArgMax" name = "ArgMaxLeft"/>
+		<connection  source = "GaussianLeft.OUTPUT"  target = "ArgMaxLeft.INPUT" />
+	<!-- only for marker in webUI-->
+	<module class = "ArgMax" name = "ArgMaxRight"/>
+		<connection  source = "GaussianRight.OUTPUT"  target = "ArgMaxRight.INPUT" />
+
+	<!-- Pupil model -->
+	
+	<!-- Amygdala LC-->
+	 <!-- ********************************* LOCUS COERULEUS *********************************   -->
+
+    <module
+        class="Nucleus"
+        name="LCa"
+        beta="0.5"
+        alpha="0.8"
+    />
+
+    <module
+        class="Nucleus"
+        name="LCb"
+        beta="0.5"
+    />
+
+    <!-- LC => IML -->
+    
+    <connection  source = "LCa.OUTPUT"  target = "PupilControl.IML_EXCITATION" />
+    <connection  source = "LCb.OUTPUT"  target = "PupilControl.EW_SHUNTING" />
+
+    <!-- ********************************* AMYGDALA ********************************* -->
+    
+    <_connection  source = "VisionBlackBock.OBJECT"  target = "Amygdala.CS" delay="105" />
+    <_connection  source = "VisionBlackBock.EMOTION_NEG"  target = "Amygdala.US" />
+
+    <connection  source = "MTPupilDemo.OUTPUT"  		target = "Amygdala.CS" />
+    <connection  source = "MarkerTracker.OBJECT_ID"  	target = "Amygdala.US" />
+
+    <module
+        class="Amygdala"
+        name="Amygdala"
+        alpha = "0.05"
+    />
+
+    <connection  source = "Amygdala.CR"  target = "LCa.EXCITATION" />    <!-- CR OUTPUT -->
+    <connection  source = "Amygdala.CR"  target = "LCb.EXCITATION" />    <!-- CR OUTPUT -->
+
+
+	<!-- Light reflex etc -->
+	<module class="PupilControl" name="PupilControl"/>
+	<connection  source = "ArgMaxCombine.VALUE"  				target = "PupilControl.PTA" />
+	<_connection  source = "IML_EXCITATION.OUTPUT"  			target = "PupilControl.IML_EXCITATION" />
+
+	<_module class = "Constant" name = "IML_EXCITATION" data = "0.5" />
+
+	<module class="EyeModel" name="Eyes"
+        speed = "0.2"
+		pupil_min = "4.7"
+		pupil_max = "19.7"
+		amplifier = "14" 
+		m3 = "1.5"
+		alpha1a = "0.8"
+		/>
+
+	<connection  source = "PupilControl.CG_OUTPUT"  	target = "Eyes.PUPIL_SPHINCTER" />
+	<connection  source = "PupilControl.SCG_OUTPUT"  	target = "Eyes.PUPIL_DILATOR" />
+
+	<connection  source = "Eyes.PUPIL_DIAMETER"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "4" size = "1"/>
+	<connection  source = "Eyes.PUPIL_DIAMETER"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "5" size = "1"/>
+
+	<!-- Marker tracker part (Stimuli) -->
+	<!-- Only uses right eye -->
+
+    <module
+			class   = "MarkerTracker" name = "MarkerTracker"
+			description = "The calibration parameters are set to no camera distortion to produce vertices in image coodinates."
+			_calibrationForKinect = "640 480 317.584948 260.888465 522.573778 522.756999 0.161722 -0.285527 0.004218 0.001601  0.00000 0 10"
+			calibration = "640 480 317.584948 260.888465 522.573778 522.756999 0.161722 -0.285527 0.004218 0.001601  0.00000 0 10"
+			sort    = "yes"
+			_marker_size = "0 57 60; 1000 9000 25"
+			marker_size = "0 57 60; 60 9000 40"
+			use_history = "no"
+			threshold = "auto" 
+			max_markers = "1"
+	/>
+
+		<connection  source = "Epi.RightEye.LOW_RES_INTENSITY"  		target = "MarkerTracker.INPUT" />
+		<_connection  source = "CAMERA.INTENSITY"  				target = "MarkerTracker.INPUT" />
+
+	<module class = "MTPupilDemo" name = "MTPupilDemo" />
+        <connection  source = "MarkerTracker.OBJECT_ID"  		target = "MTPupilDemo.ID" delay="0"/>
+	    <_connection  source = "MarkerTracker.IMAGE_POSITION"  	target = "MTPupilDemo.IMAGE_POS" delay="0" />
+
+
+	<module class = "Constant" name = "MarkerOffset" data ="0.2 -0.3"/>
+	
+	<module class = "Add" name = "AddMarkerOffset" />
+	<connection  source = "MarkerOffset.OUTPUT"  target = "AddMarkerOffset.INPUT1"/>
+	<connection  source = "MarkerTracker.IMAGE_POSITION"  target = "AddMarkerOffset.INPUT2"/>
+	<connection  source = "AddMarkerOffset.OUTPUT"  target = "AverageTarget.INPUT"/>
+
+	<module class = "Average" name = "AverageTarget" type = "EMA" window_size = "40"/>
+
+	<connection  source = "AverageTarget.OUTPUT"  target = "MTPupilDemo.IMAGE_POS" />
+
+
+
+	<module class="LinearSplines" name="RightImgToRelAngle" points = "
+	    	0	    -22.5		0		-21.5; 
+            0.5		0		0.5		0;
+            1		22.5		1		21.5"
+	/>
+    <connection  source = "MTPupilDemo.ROBOT_OUTPUT"  target = "RightImgToRelAngle.INPUT" delay="0" />
+	
+	<!-- Override head joints -->
+	<connection  source = "RightImgToRelAngle.OUTPUT"  target = "Epi.Servos.SCPosition.INPUT" sourceoffset = "0" targetoffset = "0" size = "4"/>
+
+
+	<!-- Override LEDs -->
+	<connection  source = "MTPupilDemo.ROBOT_EYE_LED_OUTPUT"  target = "Epi.LED.EYE_COLOR" sourceoffset = "0" targetoffset = "0" size = "3"/>
+	<connection  source = "MTPupilDemo.ROBOT_EYE_LED_OUTPUT"  target = "AverageEyeIntensity.INPUT" sourceoffset = "3" targetoffset = "0" size = "1"/>
+	<!-- Avarage intensity-->
+	<module name = "AverageEyeIntensity" class = "Average" type = "SMA" window_size = "10"/>
+		<connection  source = "AverageEyeIntensity.OUTPUT"  target = "Epi.LED.EYE_INTENSITY"/>
+
+
+	<_connection  source = "SR.OUTPUT"  target = "LED.EYE_INTENSITY" 	sourceoffset = "@servosIndexEyesIntensity" 	targetoffset = "0" size = "1"/>
+
+	<module name = "MouthRGBI" class ="Constant" data = "0.4 0.3 0.2 0.6" />
+	<connection  source = "MouthRGBI.OUTPUT"  target = "Epi.LED.MOUTH_COLOR" sourceoffset = "0" targetoffset = "0" size = "3"/>
+	<connection  source = "MouthRGBI.OUTPUT"  target = "Epi.LED.MOUTH_INTENSITY" sourceoffset = "3" targetoffset = "0" size = "1"/>
+
+
+
+
+<view name="Pupil Control" >
+	<rectangle  y = "560" height = "321" show_frame = "false" x = "400" label = "" background = "" frame_color = "" frame_width = "1" title = "Pupil regulation" width = "601" frame-style = "" show_title = "true" style = ""/>
+	<rectangle  y = "20" height = "261" show_frame = "false" x = "60" label = "" background = "" frame_color = "" frame_width = "1" title = "Constriction" width = "1161" frame-style = "" show_title = "true" style = ""/>
+	<rectangle  y = "280" height = "261" show_frame = "false" x = "60" label = "" background = "" frame_color = "" frame_width = "1" title = "Dilation" width = "1161" frame-style = "" show_title = "true" style = ""/>
+	<image  index = "" file = "" module = "" min_x = "0" style = "" flipYCanvas = "no" height = "241" show_frame = "false" max_y = "1" title = "Left" scale = "both" source = "GaussianLeft.OUTPUT" flipXAxis = "no" max_x = "1" format = "fire" y = "40" frame-style = "" opacity = "1" min_y = "0" flipXCanvas = "no" h = "4" width = "321" flipYAxis = "no" x = "60" command = "" show_title = "true" scales = "no" w = "4"/>
+	<plot  frame-style = "" show_title = "true" width = "261" color = "" title = "CG_OUTPUT" y = "40" x = "960" show_frame = "false" height = "241" buffer_size = "50" max = "1" style = "" labels = "B" select = "" source = "PupilControl.CG_OUTPUT" direction = "vertical" module = "CG_OUTPUT" min = "0"/>
+	<plot  frame-style = "" show_title = "true" width = "261" color = "" title = "SCG_OUTPUT" y = "300" x = "960" show_frame = "false" height = "241" buffer_size = "50" max = "1" style = "" labels = "B" select = "" source = "PupilControl.SCG_OUTPUT" direction = "vertical" module = "SCG_OUTPUT" min = "0"/>
+	<epi-head  x = "740" title = "Epi Head" color = "black" gazeSource = "Epi.Servos.PRESENT_EYE_POSITION" mouthIntensity = "" mouthColor = "#000000" width = "221" earColor = "#0088ff" vergence = "0" frame-style = "" y = "580" headPosition = "Epi.Servos.PRESENT_HEAD_POSITION" motionRecorderInput = "" irisLeftRGB = "Epi.LED.EYE_COLOR_F" irisRightRGB = "Epi.LED.EYE_COLOR_F" visibleFaceParameter = "" mouthRGB = "Epi.LED.MOUTH_COLOR_F" gaze = "0" irisRightIntensity = "" pupilLeftSource = "Epi.Servos.PRESENT_PUPIL_POSITION" visibleFace = "true" visibleSource = "" show_frame = "false" height = "261" irisLeftIntensity = "" fill = "white" show_title = "false" irisColor = "#88aaff" pupilInMM = "11" pupilRightSource = "Epi.Servos.PRESENT_PUPIL_POSITION" style = ""/>
+	<plot  buffer_size = "50" style = "" show_title = "true" frame-style = "" max = "20" min = "0" direction = "vertical" select = "" source = "Eyes.PUPIL_DIAMETER" show_frame = "false" height = "241" title = "Pupil diameter (mm)" color = "" width = "321" x = "400" y = "600"/>
+	<slider-horizontal  y = "840" title = "Eyes amplifier (used to increase pupil response)" width = "601" height = "61" show_frame = "false" x = "400" parameter = "Eyes.amplifier" count = "1" select = "0" style = "" labels = "" min = "0" step = "1" show_values = "true" max = "20" show_title = "true" frame-style = ""/>
+	<image  index = "" file = "" module = "" min_x = "0" style = "" flipYCanvas = "no" height = "241" show_frame = "false" max_y = "1" title = "Right" scale = "both" source = "GaussianRight.OUTPUT" flipXAxis = "no" max_x = "1" format = "fire" y = "40" frame-style = "" opacity = "1" min_y = "0" flipXCanvas = "no" h = "4" width = "321" flipYAxis = "no" x = "380" command = "" show_title = "true" scales = "no" w = "4"/>
+	<marker  order = "col" color = "" frame-style = "" y = "60" markerType = "circle" width = "321" flipYAxis = "no" height = "221" flipYCanvas = "no" labelPrefix = "" x = "60" lineWidth = "1" labelBaseline = "middle" max_y = "40" title = "" source = "ArgMaxLeft.OUTPUT" selectValue = "" lineJoin = "miter" labelType = "none" min_y = "0" labelOffsetX = "0" count = "0" flipXCanvas = "no" size = "0.02" fill = "gray" labels = "" flipXAxis = "no" labelDecimals = "2" select = "0" labelPostfix = "" labelAlign = "center" scale_x = "0.025" lineCap = "butt" labelOffsetY = "0" show_title = "false" scales = "no" min_x = "0" scale_y = "0.025" labelFont = "18px sans-serif" style = "" max_x = "40" show_frame = "false"/>
+	<marker  order = "col" color = "" frame-style = "" y = "60" markerType = "circle" width = "321" flipYAxis = "no" height = "221" flipYCanvas = "no" labelPrefix = "" x = "380" lineWidth = "1" labelBaseline = "middle" max_y = "40" title = "" source = "ArgMaxRight.OUTPUT" selectValue = "" lineJoin = "miter" labelType = "none" min_y = "0" labelOffsetX = "0" count = "0" flipXCanvas = "no" size = "0.02" fill = "gray" labels = "" flipXAxis = "no" labelDecimals = "2" select = "0" labelPostfix = "" labelAlign = "center" scale_x = "0.025" lineCap = "butt" labelOffsetY = "0" show_title = "false" scales = "no" min_x = "0" scale_y = "0.025" labelFont = "18px sans-serif" style = "" max_x = "40" show_frame = "false"/>
+	<plot  buffer_size = "50" style = "" show_title = "true" frame-style = "" max = "1" min = "0" direction = "vertical" select = "" source = "ArgMaxCombine.VALUE" show_frame = "false" height = "241" title = "Brigtest pixel value" color = "" width = "261" x = "700" y = "40"/>
+	<image  index = "" file = "" module = "" min_x = "0" style = "" flipYCanvas = "no" height = "241" show_frame = "false" max_y = "1" title = "Left eye" scale = "both" source = "Epi.RightEye.LOW_RES_INTENSITY" flipXAxis = "no" max_x = "1" format = "gray" y = "300" frame-style = "" opacity = "1" min_y = "0" flipXCanvas = "no" h = "4" width = "321" flipYAxis = "no" x = "60" command = "" show_title = "true" scales = "no" w = "4"/>
+	<marker  show_frame = "false" max_x = "1" style = "" labelFont = "18px sans-serif" scale_y = "1" min_x = "0" scales = "no" show_title = "false" labelOffsetY = "0" lineCap = "butt" scale_x = "1" labelAlign = "center" labelPostfix = "" select = "0" labelDecimals = "2" flipXAxis = "no" labels = "" fill = "gray" size = "0.02" flipXCanvas = "no" min_y = "0" count = "0" labelOffsetX = "0" labelType = "value" lineJoin = "miter" selectValue = "" source = "MarkerTracker.IMAGE_POSITION" title = "" max_y = "1" labelBaseline = "middle" lineWidth = "1" x = "60" labelPrefix = "" flipYCanvas = "no" height = "221" flipYAxis = "no" width = "321" markerType = "circle" y = "320" frame-style = "" color = "" order = "col"/>
+	<table  style = "" show_title = "true" frame-style = "" title = "Marker ID" colorize = "true" direction = "normal" scrollable = "false" decimals = "4" y = "340" label_y = "" source = "MarkerTracker.OBJECT_ID" x = "280" height = "61" show_frame = "false" label_x = "" width = "81"/>
+	<plot  buffer_size = "50" style = "" show_title = "true" frame-style = "" max = "1" min = "-1" direction = "vertical" select = "" source = "MTPupilDemo.OUTPUT" show_frame = "false" height = "241" title = "Emotional value of stimulus" color = "" width = "321" x = "380" y = "300"/>
+	<plot  buffer_size = "50" style = "" show_title = "true" frame-style = "" max = "60" min = "0" direction = "vertical" select = "" source = "Amygdala.CR" show_frame = "false" height = "241" title = "Amygdala output" color = "" width = "261" x = "700" y = "300"/>
+	<plot  y = "320" width = "341" title = "Marker Average" color = "" show_frame = "false" height = "421" x = "1500" source = "AverageTarget.OUTPUT" select = "" direction = "vertical" min = "-1" max = "1" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<slider-horizontal  y = "900" title = "Eyes m3" width = "601" height = "61" show_frame = "false" x = "400" parameter = "Eyes.m3" count = "1" select = "0" style = "" labels = "" min = "0" step = "0.1" show_values = "true" max = "2" show_title = "true" frame-style = ""/>
+	<slider-horizontal  y = "960" title = "Eyes alpha1a" width = "601" height = "61" show_frame = "false" x = "400" parameter = "Eyes.alpha1a" count = "1" select = "0" style = "" labels = "" min = "0" step = "0.1" show_values = "false" max = "2" show_title = "true" frame-style = ""/>
+	<plot  x = "1580" y = "320" height = "321" show_frame = "false" width = "381" source = "MTPupilDemo.ROBOT_OUTPUT" select = "" direction = "vertical" min = "0" max = "1" title = "ROBOT OUTPUT" color = "" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<plot  x = "1480" y = "700" height = "321" show_frame = "false" width = "381" source = "RightImgToRelAngle.OUTPUT" select = "" direction = "vertical" min = "-25" max = "25" title = "SPLINE OUTPUT" color = "" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<slider-horizontal  frame-style = "" show_title = "false" show_values = "true" step = "0.1" max = "1" min = "-1" style = "" labels = "" select = "0" count = "2" parameter = "MarkerOffset.data" title = "Marker offset" width = "200" show_frame = "false" height = "200" y = "900" x = "1660"/>
+	<plot  y = "660" width = "341" title = "Marker Average" color = "" show_frame = "false" height = "421" x = "1580" source = "MarkerTracker.IMAGE_POSITION" select = "" direction = "vertical" min = "-1" max = "1" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<plot  y = "-20" width = "341" title = "Marker Average" color = "" show_frame = "false" height = "421" x = "1660" source = "AddMarkerOffset.OUTPUT" select = "" direction = "vertical" min = "-1" max = "1" frame-style = "" show_title = "true" style = "" buffer_size = "50"/>
+	<table  frame-style = "" style = "" show_title = "false" colorize = "true" decimals = "4" scrollable = "false" direction = "normal" y = "900" label_y = "" source = "MarkerTracker.IMAGE_POSITION" title = "Default Title" label_x = "" width = "200" show_frame = "false" height = "200" x = "1720"/>
+	<table  frame-style = "" style = "" show_title = "false" colorize = "true" decimals = "4" scrollable = "false" direction = "normal" y = "1020" label_y = "" source = "AddMarkerOffset.OUTPUT" title = "Default Title" label_x = "" width = "200" show_frame = "false" height = "200" x = "1780"/>
+	<table  frame-style = "" style = "" show_title = "false" colorize = "true" decimals = "4" scrollable = "false" direction = "normal" y = "1020" label_y = "" source = "AddMarkerOffset.OUTPUT" title = "Default Title" label_x = "" width = "200" show_frame = "false" height = "200" x = "1580"/>
+	<table  frame-style = "" style = "" show_title = "false" colorize = "true" decimals = "4" scrollable = "false" direction = "normal" y = "1020" label_y = "" source = "AverageTarget.OUTPUT" title = "Default Title" label_x = "" width = "200" show_frame = "false" height = "200" x = "1760"/>
+</view>
+
+
+<view name="Brain Activation" >
+	<image  command = "" file = "BrainLayers/amygdala.png" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "Amygdala.CR" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" title = "amygdala" width = "960" x = "40" y = "40"/>
+	<image  command = "" file = "BrainLayers/cerebellum.png" title = "cerebellum" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "Cerebellum.OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = ""  width = "960" x = "40" y = "40"/>
+	<image  command = "" file = "BrainLayers/visual_cortex.png"  title = "visual_cortex" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "VisualCortex.OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" width = "960" x = "40" y = "40"/>
+	<image  command = "" file = "BrainLayers/LC.png"  title = "LC" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "LCa.OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" width = "960" x = "40" y = "40"/>
+	<image  command = "" file = "BrainLayers/LC.png"  title = "LC" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "LCb.OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" width = "960" x = "40" y = "40"/>
+	<image  command = "" file = "BrainLayers/PTA.png"  title = "PTA" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "PupilControl.PTA_OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" width = "960" x = "40" y = "40"/>
+	<image  command = "" file = "BrainLayers/EW.png"  title = "EW" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "PupilControl.EdingerWestphal_pg.OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" width = "960" x = "40" y = "40"/>
+	<image  command = "" file = "BrainLayers/LGN.png"  title = "LGN" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "LGN.OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" width = "960" x = "40" y = "40"/>
+	<image  command = "" file = "BrainLayers/PVN.png"  title = "PVN" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "PVN.OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" width = "960" x = "40" y = "40"/>
+	<image  command = "" file = "BrainLayers/CG.png"  title = "CG" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "CG.PupilControl.CG_OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" width = "960" x = "40" y = "40"/>
+	<image  command = "" file = "BrainLayers/CSG.png"  title = "CSG" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "PupilControl.SCG_OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" width = "960" x = "40" y = "40"/>
+	<image  command = "" file = "BrainLayers/IML.png"  title = "IML" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "PupilControl.IML.OUTPUT" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" width = "960" x = "40" y = "40"/>
+	<image  command = "" file = "BrainLayers/brain.png"  title = "brain" flipXAxis = "no" flipXCanvas = "no" flipYAxis = "no" flipYCanvas = "no" format = "gray" frame-style = "" height = "922" index = "" max_x = "1" max_y = "1" min_x = "0" min_y = "0" module = "" opacity = "0.94" opacity_source = "" scale = "both" scales = "no" show_frame = "false" show_title = "false" source = "" style = "" width = "960" x = "40" y = "40"/>
+</view>
+
+
+
+</group>
