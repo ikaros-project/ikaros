@@ -234,19 +234,7 @@
             <connection delay="3" source="S2_T1.OUTPUT" target="M_S2.INPUT2"/>
             <description/>
             <input _x="24" _y="264" name="JOINT_ANGLES"/>
-            <input name="PUPIL_JOINT_ANGLES" target="NotAvailable.INPUT"/>
-            <input _x="72" _y="48" name="PUPIL_JOINT_ANGLES" target="NotAvailable.INPUT"/>
-            <module _x="120" _y="72" class="Sink" name="NotAvailable">
-               <example description="Example">
-                  <module class="Sink" name="Sink"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="Sink"/>
-            </module>
+            
             <module _x="72" _y="192" class="Constant" data="0" name="ZERO" outputsize="1"/>
             <module _x="216" _y="264" class="Constant" data="  1, 0, 0, 0.021;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="L1_T1"/>
             <module _x="168" _y="336" class="RotationConverter" input_format="axayaz" name="L1_R1_C" output_format="matrix">

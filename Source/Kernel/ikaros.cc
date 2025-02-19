@@ -2128,7 +2128,6 @@ if(classes[classname].path.empty())
     {
         if(components.size() > 0)
             Clear();
-
         if(!std::filesystem::exists(options_.full_path()))
             throw load_failed(u8"File \""+options_.full_path()+"\" does not exist.");
 
