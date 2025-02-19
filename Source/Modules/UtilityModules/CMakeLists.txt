@@ -16,9 +16,7 @@ add_subdirectory(Print)
 add_subdirectory(OutputFile)
 add_subdirectory(RotationConverter)
 add_subdirectory(Transform)
-add_subdirectory(Gate)
 add_subdirectory(MatrixMultiply)
-add_subdirectory(Sink)
 add_subdirectory(OneHotVector)
 
 
