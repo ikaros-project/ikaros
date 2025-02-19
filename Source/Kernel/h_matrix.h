@@ -15,11 +15,35 @@ namespace ikaros
     {
     public:
 
-        h_matrix() : matrix(4,4) {};
+        //h_matrix() : matrix(4,4) {};
+        h_matrix() : matrix(4,4) {eye();}; 
 
         h_matrix & reset() { return reset(); }
         
-        bool is_valid() { float * r = data(); return (r[15] > 0.1); } // Matrix is valid if bottom right element is 1 (but we do not want to make an exact match)
+        h_matrix & copy(h_matrix m) 
+        {
+        
+            matrix BaseMatrix;
+            matrix HMatrix_BaseMatrix;
+            HMatrix_BaseMatrix = m;
+            BaseMatrix.copy(HMatrix_BaseMatrix);
+            copy(BaseMatrix);
+            return *this;
+        }
+
+    
+        h_matrix & copy(matrix mat) 
+        {
+            matrix *p = this;
+            p->copy(mat);
+          return *this;
+        }
+
+
+        bool is_valid() { 
+            float * r = data(); 
+            return (r[15] > 0.1); 
+            } // Matrix is valid if bottom right element is 1 (but we do not want to make an exact match)
 
         h_matrix & 
         eye()
