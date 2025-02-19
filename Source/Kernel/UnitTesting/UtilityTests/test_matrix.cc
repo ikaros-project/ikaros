@@ -19,6 +19,9 @@ main()
     C.matmul(A,B);
 
     C.print("C");
+
+
+
 /*
     matrix m = "1, 2; 3, 4";
 
@@ -50,6 +53,7 @@ matrix x;
     std::cout << m << std::endl;
 
     std::cout << m.size() << std::endl;
-    */
+*/
+
 }
 

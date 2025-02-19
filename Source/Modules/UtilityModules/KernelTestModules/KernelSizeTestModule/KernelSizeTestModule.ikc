@@ -1,4 +1,5 @@
 <class name="KernelSizeTestModule" description="used internally to test the ikaros kernel.">
+	<input name="OUTPUT" />
 	<output name="OUTPUT" description="The output"  />	<!-- size is omitted and set in module instead for testing -->
 </class>
 

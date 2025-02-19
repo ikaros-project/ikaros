@@ -9,6 +9,9 @@
     y = "@c"
 >
 
+	<group name="P1" ppp="111" />
+	<group name="P2" ppp="222"/>
+
 	<module class = "KernelSizeTestModule" name = "M1" size="1" />
 	<module class = "KernelSizeTestModule" name = "M2" size="2,3" />
 	<module class = "KernelSizeTestModule" name = "M3" size="3, 4, 5" />
@@ -19,6 +22,7 @@
 	<module class = "KernelSizeTestModule" name = "M7" size="5*@a+1,2+@b*3" />
 	<module class = "KernelSizeTestModule" name = "M8" size="5*@a+1,2+@b*30" />
 	<module class = "KernelSizeTestModule" name = "M9" size="@x" />
+
 	<module class = "KernelSizeTestModule" name = "M10" size="1" />
 </group>
 

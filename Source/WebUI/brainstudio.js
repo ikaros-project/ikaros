@@ -239,7 +239,7 @@ function eraseCookie(name)
 
 function resetCookies()
 {
-    setCookie('current_view', "");
+    setCookie('selected_background', "");
 }
 
 
@@ -949,8 +949,12 @@ let controller =
             network.init(response);
             nav.populate();
             let top = network.network.name;
-            selector.selectItems([], top);
-            let v = getCookie('current_view');
+
+            let v = getCookie('selected_background');
+            if(v && network.dict[v])
+                selector.selectItems([], v);
+            else
+                selector.selectItems([], top);
 
             if(response.filename=="")
                 network.tainted = true;
@@ -2117,6 +2121,8 @@ const selector =
         if(background != null)
             selector.selected_background = background;
 
+            setCookie("selected_background", selector.selected_background);
+
         // Toggle foreground
 
         if(toggle)
@@ -2973,7 +2979,15 @@ const main =
                         e.ondblclick = function (evt) { selector.selectItems([], this.dataset.name); } // Jump into group
                     else 
                         e.ondblclick = function (evt) { selector.selectItems([this.dataset.name]); inspector.toggleComponent(); } // Select item and toggle inspector
-        
+
+            // Add handlerer to outputs
+            for(let o of main.view.querySelectorAll(".o_spot"))
+                    o.addEventListener('dblclick', function (evt) 
+                        {
+
+                            window.open("http://localhost:8000/data/"+this.id.replace(/:out$/, ''), "_blank", "width=800,height=600");
+                        }, false);
+
                     // Set selection class if selected
                     if(selectionList.includes(e.dataset.name))
                         e.classList.add("selected")
@@ -2987,7 +3001,7 @@ const main =
                 o.addEventListener('mousedown', main.startTrackConnection, false);
          */
         }
-/*
+        /*
          for(let e of main.view.querySelectorAll(".gi"))
         {
             e.addEventListener('mousedown', main.startDragComponents, false);

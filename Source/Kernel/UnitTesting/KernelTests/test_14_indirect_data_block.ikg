@@ -1,0 +1,40 @@
+<group name="Test_14" description="Test access to data block using variables" block="DataBlock_C"  zz="@z" z="123" check_sum="4312" >
+		<group 
+			name = "DataBlock_A"
+			x = "1"
+			y = "11"
+		/>
+
+		<group 
+			name = "DataBlock_B"
+			x = "2"
+			y = "22"
+		/>
+
+		<group 
+			name = "DataBlock_C"
+			x = "3"
+			y = "33"
+			i ="444"
+			var="@y"
+		/>
+
+		<module name="L7" class="Constant" data="5, 4, 3" />
+
+		<module name="L1" class="Constant" data=".DataBlock_A.@x" />
+		<module name="L2" class="Constant" data="Test_14.DataBlock_B.@x" />
+		<module name="L3" class="Constant" data="Test_14.@block.@x" />
+		<module name="L4" class="Constant" data="@zz" />
+		<module name="L5" class="Constant" data="Test_14.@block.@var"/>
+		<module name="L6" class="Constant" data="7, 8, 9" />
+
+
+		<module name="M" class="Constant" data=".@block.x" />
+		<module name="N" class="Constant" data=".@block.i" />
+		<module name="O" class="Constant" data=".@block.x" />
+		<module name="P" class="Constant" data=".@block.x" />
+
+		<module name="K" class="Constant" data=".@block.@x" />
+
+</group>
+

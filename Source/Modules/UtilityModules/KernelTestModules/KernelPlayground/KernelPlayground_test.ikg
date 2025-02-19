@@ -1,0 +1,3 @@
+<group name="Playground_Test">
+   <module class="KernelPlayground" name="Playground" />
+</group>
