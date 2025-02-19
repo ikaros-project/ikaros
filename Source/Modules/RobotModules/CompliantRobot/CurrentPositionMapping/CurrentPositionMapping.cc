@@ -3,12 +3,12 @@
 #include <fstream>
 #include <vector>
 #include <memory>
-#include "json.hpp"
 #include <string>
 #include <algorithm>
 #include <chrono>
+#include <sstream>
+#include <iomanip>
 
-using json = nlohmann::json;
 using namespace ikaros;
 using Clock = std::chrono::steady_clock;
 using TimePoint = std::chrono::time_point<Clock>;
@@ -47,15 +47,16 @@ class CurrentPositionMapping: public Module
     parameter min_limits;
     parameter max_limits;
     parameter robotType;
-
+    parameter ConsistencyTest;
+    parameter MinimumTorqueCurrentSearch;
 
     std::random_device rd;
     
     int number_transitions; //Will be used to add starting and ending position
     int position_margin = 3;
     int transition = 0;
-    int current_increment = 2;
-    int starting_current = 30;
+    int current_increment = 50;
+    int starting_current = 50;
     int current_limit = 1700;
     bool find_minimum_torque_current = false;
     matrix minimum_torque_current_found;
@@ -157,226 +158,164 @@ class CurrentPositionMapping: public Module
         }
         return approximating_goal;
     }   
-    //saving starting position, goal position and current in json file
+
+    // Helper function to check if ID exists in file
+    bool checkIdExists(const std::string& filePath, int id) {
+        std::ifstream file(filePath);
+        std::string line;
+        while (std::getline(file, line)) {
+            if (line.find("\"UniqueID\":" + std::to_string(id)) != std::string::npos) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void SaveMetricsToJson(matrix goal_positions, matrix start_position, matrix max_current, matrix min_current, matrix min_torque, matrix overshot, matrix time, matrix ticks, std::string robotType, int transition, int unique_id)
     {
-        Notify(msg_debug, "Inside SaveMetricsToJson()");
-        std:: cout << "Saving positions in json file" << std::endl;
-        std::ofstream file;
         std::string scriptPath = __FILE__;
         std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
-        std::string filePath = scriptDirectory + "/data/CurrentPositionMapping" + robotType + ".json";
+        std::string filePath = scriptDirectory + "/data/CurrentPositionMapping" + robotType + "ConsistencyTest.json";
         
-        // Check if file exists
-        std::ifstream checkFile(filePath);
-        bool fileExists = checkFile.good();
-        checkFile.close();
+        // Use stringstream for efficient string building
+        std::stringstream json;
         
-        file.open(filePath, std::ios::app);
-    
-        if (transition==0 && !fileExists){
-            file << "{\n";
-            file << "\"Mapping\": [\n";
+        if (transition == 0) {
+            // Check if file exists and is non-empty
+            std::ifstream checkFile(filePath);
+            bool fileEmpty = checkFile.peek() == std::ifstream::traits_type::eof();
+            checkFile.close();
+            
+            if (fileEmpty) {
+                json << "{\n\"Mapping\": [\n";
+            } else {
+                // Truncate the file to remove last "]\n}" and add a comma
+                std::fstream file(filePath, std::ios::in | std::ios::out);
+                file.seekp(-3, std::ios::end);
+                file << ",\n";
+                file.close();
+                return;
+            }
         }
-       // If the file exists, remove the last "\n]\n}" and replace it with ","
-        else if (fileExists && transition==0){ 
-                std::ifstream inFile(filePath);
-                std::string fileContent((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
-                inFile.close();
-    
-                // Check if unique_id is already in the file
-                while (fileContent.find(std::to_string(unique_id)) != std::string::npos) {
-                    unique_id++;
-                }
 
-                size_t pos = fileContent.rfind("\n]\n}");
-                if (pos != std::string::npos) {
-                    fileContent.replace(pos, 4, ",");
-                    std::ofstream outFile(filePath);
-                    outFile << fileContent;
-                    outFile.close();
-                }
+        // Build JSON string efficiently
+        json << "\n{\"UniqueID\":" << unique_id << ",";
+
+        // Helper lambda for array serialization
+        auto writeArray = [&json](const std::string& name, matrix& mat, matrix& servos) {
+            json << "\"" << name << "\":[";
+            for (int i = 0; i < servos.size(); i++) {
+                json << int(mat(servos(i)));
+                if (i < servos.size() - 1) json << ",";
             }
-    
-        //Check if unique_id is already in the file
-        file << "{\"UniqueID\": [" << unique_id << "], ";
-        file << "\"StartingPosition\": [";
-        for (int i = 0; i < current_controlled_servos.size(); i++){
-            file << int(start_position(current_controlled_servos(i)));
-            if (i < current_controlled_servos.size()-1){
-                file << ", ";
-            }     
-        }
-        file << "],";
-        file << "\"GoalPosition\": [";
-        for (int i = 0; i < current_controlled_servos.size(); i++){
-            file << int(goal_positions(current_controlled_servos(i)));
-            if (i < current_controlled_servos.size()-1){
-                file << ", ";
-            }
-        }
-        file << "],";
-        file << "\"OvershotGoal\": [";
-        for (int i = 0; i < current_controlled_servos.size(); i++){
-            file << overshot(current_controlled_servos(i));
-            if (i < current_controlled_servos.size()-1){
-                file << ", ";
-            }
+            json << "]";
+        };
+        
+        writeArray("StartingPosition", start_position, current_controlled_servos);
+        json << ",";
+        writeArray("GoalPosition", goal_positions, current_controlled_servos);
+        json << ",";
+        writeArray("OvershotGoal", overshot, current_controlled_servos);
+        json << ",";
+        writeArray("MaxCurrent", max_current, current_controlled_servos);
+        json << ",";
+        writeArray("MinCurrentToMoveFromStart", min_current, current_controlled_servos);
+        json << ",";
+        writeArray("MinCurrentForTorqueAtGoal", min_torque, current_controlled_servos);
+        json << ",";
+        writeArray("Time(ms)", time, current_controlled_servos);
+        json << ",";
+        writeArray("Number of Ticks", ticks, current_controlled_servos);
+        json << "}";
+        
+        if (transition == number_transitions - 1) {
+            json << "\n]\n}";
+        } else {
+            json << ",";
         }
         
-        file << "],";
-        file << "\"MaxCurrent\": ["; 
-        for (int i = 0; i < current_controlled_servos.size(); i++){
-            file << int(max_current(current_controlled_servos(i)));
-            if (i < current_controlled_servos.size()-1){
-                file << ", ";
-            }
-        }
-        
-        file << "],";
-        file << "\"MinCurrentToMoveFromStart\": ["; 
-        for (int i = 0; i < current_controlled_servos.size(); i++){
-            file << int(abs(min_current(current_controlled_servos(i))));
-            if (i < current_controlled_servos.size()-1){
-                file << ", ";
-            }
-        }
-        file << "],";
-        file << "\"MinCurrentForTorqueAtGoal\": ["; 
-        for (int i = 0; i < current_controlled_servos.size(); i++){
-            file << int(abs(min_torque(current_controlled_servos(i))));
-            if (i < current_controlled_servos.size()-1){
-                file << ", ";
-            }
-        }
-        file << "],";
-        file << "\"Time(ms)\": [";
-        for (int i = 0; i < current_controlled_servos.size(); i++)
-        {
-            file << int(abs(time(current_controlled_servos(i))));
-            if (i < current_controlled_servos.size() - 1)
-            {
-                file << ", ";
-            }
-        }
-        file << "],";
-        file << "\"Number of Ticks\": [";
-        for (int i = 0; i < current_controlled_servos.size(); i++)
-        {
-            file << int(abs(ticks(current_controlled_servos(i))));
-            if (i < current_controlled_servos.size() - 1)
-            {
-                file << ", ";
-            }
-        }
-        //if transiiton is not the last one, add a comma
-        if (transition < number_transitions-1){
-            file << "]},";
-        }
-        else{
-            file << "]}\n]\n}";
-        }
-        
-        file << std::endl;
-    
+        // Single file write operation
+        std::ofstream file(filePath, std::ios::app);
+        file << json.str();
         file.close();
     }
 
-    void SaveTrajectory(std::vector<std::shared_ptr<std::vector<float>>> trajectory,
-                        std::vector<std::shared_ptr<std::vector<float>>> current,
-                        std::vector<std::shared_ptr<std::vector<float>>> gyro,
-                        std::vector<std::shared_ptr<std::vector<float>>> accel,
-                        std::vector<std::shared_ptr<std::vector<float>>> angles, std::string robotType, int id)
+    void SaveTrajectory(std::vector<std::shared_ptr<std::vector<float>>>& trajectory,
+                        std::vector<std::shared_ptr<std::vector<float>>>& current,
+                        std::vector<std::shared_ptr<std::vector<float>>>& gyro,
+                        std::vector<std::shared_ptr<std::vector<float>>>& accel,
+                        std::vector<std::shared_ptr<std::vector<float>>>& angles,
+                        std::string robotType, int id)
     {
         std::string scriptPath = __FILE__;
         std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
-        std::string filePath = scriptDirectory + "/data/Trajectories" + robotType + ".json";
-
-        // Read existing file content
-        nlohmann::json root;
-        std::ifstream inFile(filePath);
-        if (inFile.good()) {
-            inFile >> root;
-        }
-        inFile.close();
-
-        // Ensure id is unique
-        for (const auto& traj : root["Trajectories"]) {
-            if (traj["UniqueID"] == id) {
-                id++;
-            }
-        }
-
-        // Create a vector of indices from current_controlled_servos
-        std::vector<int> controlled_indices;
-        for (int i = 0; i < current_controlled_servos.size(); ++i)
-        {
-            controlled_indices.push_back(static_cast<int>(current_controlled_servos(i)));
-        }
-
-        // Create new trajectory entry
-        nlohmann::json newTrajectory;
-
-        for (const auto &g : gyro)
-        {
-            nlohmann::json jsonPoint3 = nlohmann::json::array();
-            for (const auto &value : *g)
-            {
-                jsonPoint3.push_back(std::round(value * 100.0) / 100.0); // Round to 2 decimal places
-            }
-            newTrajectory["Gyro"].push_back(jsonPoint3);
-        }
-
-        for (const auto &a : accel)
-        {
-            nlohmann::json jsonPoint4 = nlohmann::json::array();
-            for (const auto &value : *a)
-            {
-                jsonPoint4.push_back(std::round(value * 100.0) / 100.0); // Round to 2 decimal places
-            }
-            newTrajectory["Accel"].push_back(jsonPoint4);
-        }
-
-        for (const auto &ang : angles)
-        {
-            nlohmann::json jsonPoint5 = nlohmann::json::array();
-            for (const auto &value : *ang)
-            {
-                jsonPoint5.push_back(std::round(value * 100.0) / 100.0); // Round to 2 decimal places
-            }
-            newTrajectory["Angles"].push_back(jsonPoint5);
-        }
-
-        for (const auto &pos : trajectory) {
-            nlohmann::json jsonPoint = nlohmann::json::array();
-            for (const auto &index : controlled_indices) {
-                if (index < pos->size()){                                                                   // Ensure index is within bounds
-                    jsonPoint.push_back(std::round((*pos)[index] * 100.0) / 100.0); // Round to 2 decimal places
-                }
-            }
-            newTrajectory["Trajectory"].push_back(jsonPoint);
-        }
-
-        for(const auto& c : current){
-            nlohmann::json jsonPoint2 = nlohmann::json::array();
-            for (const auto &index : controlled_indices) {
-                if (index < c->size()){                                                                   // Ensure index is within bounds
-                    jsonPoint2.push_back(std::round((*c)[index] * 100.0) / 100.0); // Round to 2 decimal places
-                }
-            }
-            newTrajectory["Current"].push_back(jsonPoint2);
-        }
-
+        std::string filePath = scriptDirectory + "/data/Trajectories" + robotType + "ConsistencyTest_Increment_" + std::to_string(current_increment) + ".json";
         
+        // Ensure ID is unique
+        while (checkIdExists(filePath, id)) {
+            id++;
+        }
+
+        // Use stringstream for efficient string building
+        std::stringstream json;
         
-        newTrajectory["UniqueID"] = id;
+        // Check if file exists and is non-empty
+        std::ifstream checkFile(filePath);
+        bool fileExists = checkFile.good();
+        bool fileEmpty = checkFile.peek() == std::ifstream::traits_type::eof();
+        checkFile.close();
+        
+        if (!fileExists || fileEmpty) {
+            json << "{\n\"Trajectories\": [\n";
+        } else {
+            // Remove the closing brackets and add a comma
+            std::fstream file(filePath, std::ios::in | std::ios::out);
+            file.seekp(-3, std::ios::end);
+            file << ",";
+            file.close();
+        }
 
-        // Add new trajectory to root
-        root["Trajectories"].push_back(newTrajectory);
+        // Write trajectory data
+        json << "{\n\"UniqueID\":" << id << ",\n";
+        
+        // Helper lambda for writing arrays
+        auto writeArray = [&json](const std::string& name, const std::vector<std::shared_ptr<std::vector<float>>>& data) {
+            json << "\"" << name << "\":[";
+            for (size_t i = 0; i < data.size(); i++) {
+                json << "[";
+                for (size_t j = 0; j < data[i]->size(); j++) {
+                    json << std::fixed << std::setprecision(2) << (*data[i])[j];
+                    if (j < data[i]->size() - 1) json << ",";
+                }
+                json << "]";
+                if (i < data.size() - 1) json << ",";
+            }
+            json << "]";
+        };
 
-        // Write updated content to file
-        std::ofstream outFile(filePath);
-        outFile << root.dump(-1); // -1 to compact the JSON
+        writeArray("Trajectory", trajectory);
+        json << ",\n";
+        writeArray("Current", current);
+        json << ",\n";
+        writeArray("Gyro", gyro);
+        json << ",\n";
+        writeArray("Accel", accel);
+        json << ",\n";
+        writeArray("Angles", angles);
+        json << "\n}";
+
+        if(transition == number_transitions - 1){
+            json << "\n]\n}";
+        }
+        else{
+            json << "},\n";
+        }
+
+        // Single file write operation
+        std::ofstream file(filePath, std::ios::app);
+        file << json.str();
+        file.close();
+
         unique_id = id;
     }
 
@@ -448,6 +387,23 @@ class CurrentPositionMapping: public Module
         std::cout << "] " << int(progress * 100.0) << " %\r" << std::endl;
         std::cout.flush();
     }
+
+    matrix DeterministicPositionTransitions(matrix present_position, int number_transitions, std::string robotType){
+        matrix position_transitions(number_transitions, present_position.size());
+
+        //Only first servo is moved, 3 and 4 are pupils and fixed
+        for (int i = 0; i < number_transitions; i++){
+            position_transitions(i, 0) = (i % 2 == 0) ? 180 : 237;
+            position_transitions(i, 1) = 188;
+            position_transitions(i, 2) = 180;
+            position_transitions(i, 3) = 180;
+            position_transitions(i, 4) = 12;
+            position_transitions(i, 5) = 12;
+
+   
+        }
+        return position_transitions;
+    }
     
     void Init()
     {
@@ -464,13 +420,18 @@ class CurrentPositionMapping: public Module
         Bind(min_limits, "MinLimits");
         Bind(max_limits, "MaxLimits");
         Bind(robotType, "RobotType");
-        
-
+        Bind(ConsistencyTest, "ConsistencyTest");
+        Bind(MinimumTorqueCurrentSearch, "MinimumTorqueCurrentSearch");
 
         number_transitions = num_transitions.as_int()+1; // Add one to the number of transitions to include the ending position
        
         position_transitions.set_name("PositionTransitions");
-        position_transitions = RandomisePositions(present_position, number_transitions, min_limits, max_limits, robotType);
+        if (ConsistencyTest){
+            position_transitions = DeterministicPositionTransitions(present_position, number_transitions, robotType);
+        }
+        else{
+            position_transitions = RandomisePositions(present_position, number_transitions, min_limits, max_limits, robotType);
+        }
         goal_position_out.copy(position_transitions[0]);
         previous_position.set_name("PreviousPosition");
         previous_position.copy(present_position);
@@ -574,24 +535,32 @@ class CurrentPositionMapping: public Module
                     max_present_current(current_controlled_servos(i)) = abs(present_current(current_controlled_servos(i)));
                     }
                 }
-         
-                
+          
             }
+
             
             else if (find_minimum_torque_current)
             {
-                std::pair<matrix, matrix> result = FindMinimumTorqueCurrent(present_current, present_position, previous_position, 1);
-                goal_current.copy(result.first);
-                minimum_torque_current_found.copy(result.second);
-                if(minimum_torque_current_found.sum() == current_controlled_servos.size()){
+                if (MinimumTorqueCurrentSearch)
+                {
+                    std::pair<matrix, matrix> result = FindMinimumTorqueCurrent(present_current, present_position, previous_position, 1);
+                    goal_current.copy(result.first);
+                    minimum_torque_current_found.copy(result.second);
+                    if (minimum_torque_current_found.sum() == current_controlled_servos.size())
+                    {
+                        find_minimum_torque_current = false;
+                        min_torque_current.copy(present_current);
+                        goal_current.add(10);
+                        Notify(msg_debug, "Minimum torque current found");
+
+                        // save starting position, goal position and current in json file
+
+                        SaveMetricsToJson(goal_position_out,start_position, max_present_current, min_moving_current, min_torque_current, overshot_goal, transition_duration, number_ticks, robotType, transition, unique_id);
+                    }
+                }
+                else
+                {
                     find_minimum_torque_current = false;
-                    min_torque_current.copy(present_current);
-                    goal_current.add(10);
-                    Notify(msg_debug, "Minimum torque current found");
-                    
-                    
-                    //save starting position, goal position and current in json file
-                    SaveMetricsToJson(goal_position_out,start_position, max_present_current, min_moving_current, min_torque_current, overshot_goal, transition_duration, number_ticks, robotType, transition, unique_id);
                     transition++;
                     auto now = Clock::now();
                     float current_time_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
@@ -645,7 +614,7 @@ class CurrentPositionMapping: public Module
                 reached_goal.set(0);
 
                 // New start time for the next transition
-                //  Save the duration and reset start times for next transition
+                // Save the duration and reset start times for next transition
                 auto now = Clock::now();
                 float current_time_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
                 
