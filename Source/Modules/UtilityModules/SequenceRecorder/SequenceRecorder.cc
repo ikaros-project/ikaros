@@ -1220,109 +1220,109 @@ SequenceRecorder::GetJSONData(const std::string & name, const std::string & tab)
 void
 SequenceRecorder::Tick()
 {
-    long tl = GetTickDuration();
-    playing.reset();
-    completed.reset();
+//     long tl = GetTickDuration();
+//     playing.reset();
+//     completed.reset();
 
-    // Check trig input
+//     // Check trig input
 
-    for(int s=0; s<trig.size(); s++)
-        if(trig[s] > 0 && trig_last[s] == 0) // Trig on rising edge
-            Trig(s);
-        trig_last.copy(trig);
+//     for(int s=0; s<trig.size(); s++)
+//         if(trig[s] > 0 && trig_last[s] == 0) // Trig on rising edge
+//             Trig(s);
+//         trig_last.copy(trig);
 
-    float t = timer.GetTime();
-
-
-    if(start_record) // timer start at tick to increase probability of overlapping keypoint when starting at a keypoint
-    {                // FIXME: May want to jump to closest keypoint if dense recording is used
-        timer.Continue();
-        start_record = false;
-    }
+//     float t = timer.GetTime();
 
 
+//     if(start_record) // timer start at tick to increase probability of overlapping keypoint when starting at a keypoint
+//     {                // FIXME: May want to jump to closest keypoint if dense recording is used
+//         timer.Continue();
+//         start_record = false;
+//     }
 
-    // Set initial position if not set already - this is used as output when no data is available
 
-    // Check if position has been changed from WebUI - should use command in the future
 
-    if(position != last_position) 
-    {
-            Pause();
-            float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-            timer.SetTime(position*end_time);
-            last_position = position;
-    }
+//     // Set initial position if not set already - this is used as output when no data is available
 
-    // Set position
+//     // Check if position has been changed from WebUI - should use command in the future
 
-    float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-    position = end_time? t/end_time : 0;
-    last_position = position;
+//     if(position != last_position) 
+//     {
+//             Pause();
+//             float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
+//             timer.SetTime(position*end_time);
+//             last_position = position;
+//     }
 
-    // Set inputs from parameters for internal channels
+//     // Set position
 
-    for(int c=0; c<channels; c++)
-        if(internal_control[c])
-            input[c] = positions[c];
+//     float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
+//     position = end_time? t/end_time : 0;
+//     last_position = position;
 
-    if(state[1]) // handle play mode
-    {
-        set_one(playing, current_sequence, max_sequences);
-        if(loop && t >= float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])) // loop
-        {
-            timer.SetTime(float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]));
-        }
-        else if(position >= 1 || end_time == 0)
-        {   
-            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
-            set_one(completed, current_sequence, max_sequences);
-            Pause();
-    }   }
+//     // Set inputs from parameters for internal channels
 
-    else if(state[2]) // handle record mode
-    {
-        if(position >= 1 || end_time == 0) // extend recoding if at end
-            sequence_data["sequences"][current_sequence.as_int()]["end_time"] = t;
-    }
+//     for(int c=0; c<channels; c++)
+//         if(internal_control[c])
+//             input[c] = positions[c];
 
-    // Set outputs
+//     if(state[1]) // handle play mode
+//     {
+//         set_one(playing, current_sequence, max_sequences);
+//         if(loop && t >= float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])) // loop
+//         {
+//             timer.SetTime(float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]));
+//         }
+//         else if(position >= 1 || end_time == 0)
+//         {   
+//             timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
+//             set_one(completed, current_sequence, max_sequences);
+//             Pause();
+//     }   }
 
-    GoToTime(t);
+//     else if(state[2]) // handle record mode
+//     {
+//         if(position >= 1 || end_time == 0) // extend recoding if at end
+//             sequence_data["sequences"][current_sequence.as_int()]["end_time"] = t;
+//     }
 
-    // FIXME: Add smoothing here
+//     // Set outputs
 
-    for(int c=0; c<channels; c++)
-        SetOutputForChannel(c);
+//     GoToTime(t);
 
-    // AddPoints if in recording mode
+//     // FIXME: Add smoothing here
 
-    if(state[2] == 1) // record mode
-    {
-        DeleteKeypointsInRange(quantize(last_record_position, tl), quantize(t, tl));
-        last_record_position = t;
-        AddKeypoint(t);
-    }
+//     for(int c=0; c<channels; c++)
+//         SetOutputForChannel(c);
 
-// Set position again
+//     // AddPoints if in recording mode
 
-    end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-    position = end_time? t/end_time : 0;
-    last_position = position;
+//     if(state[2] == 1) // record mode
+//     {
+//         DeleteKeypointsInRange(quantize(last_record_position, tl), quantize(t, tl));
+//         last_record_position = t;
+//         AddKeypoint(t);
+//     }
 
-    time_string = make_timestamp(t); // timer.GetTime()
-    end_time_string  = make_timestamp(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
+// // Set position again
 
-    if(float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]) != 0)
-    {
-        mark_start = float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
-        mark_end = float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]);}
+//     end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
+//     position = end_time? t/end_time : 0;
+//     last_position = position;
 
-    // Set positions parameter for externally controlled channels
+//     time_string = make_timestamp(t); // timer.GetTime()
+//     end_time_string  = make_timestamp(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
 
-    for(int c=0; c<channels; c++)
-            if(internal_control[c] == 0)
-                positions[c] = output[c];
+//     if(float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]) != 0)
+//     {
+//         mark_start = float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
+//         mark_end = float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]);}
+
+//     // Set positions parameter for externally controlled channels
+
+//     for(int c=0; c<channels; c++)
+//             if(internal_control[c] == 0)
+//                 positions[c] = output[c];
 }
 
 INSTALL_CLASS(SequenceRecorder)
