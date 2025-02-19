@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<class name="OneHotVector" description="generate a one hot vector from input value">
+    <description type="text">
+		Module generate a one hot vector from input value. The value of the output can be modify using value parameter. If input is -1 the output is an array of zeros.
+	</description>
+    <example description="A simple example">
+        <module
+			class="OneHotVector"
+			name="OneHotVector"
+		/>
+    </example>
+    <parameter name="value" type="number" default="1" description="value" />
+    <parameter name="output_size" type="number" default="10" description="Size of output array" />
+
+    <input name="INPUT" description="" />
+    <output name="OUTPUT" description="One hot vector array" size = "@output_size" />
+
+    
+    <view name="View" >
+        <table  style = "" show_title = "true" frame-style = "" title = "Output" colorize = "true" direction = "normal" scrollable = "false" decimals = "1" y = "40" label_y = "" source = ".OUTPUT" width = "761" label_x = "" x = "60" show_frame = "false" height = "61"/>
+        <bar-graph  x = "60" y = "100" height = "261" width = "761" title = "Output" source = ".OUTPUT" direction = "vertical" transpose = "false" labels = "" color = "" fill = "" lineWidth = "1" lineCap = "" lineJoin = "" min = "0" max = "1" auto = "false" show_title = "true" show_frame = "false" style = "" frame-style = ""/>
+    </view>
+    <link class="OneHotVector" />
+    <author>
+        <name>Birger Johansson</name>
+        <email>birger.johansson@lucs.lu.se</email>
+        <affiliation>Lund University Cognitive Science</affiliation>
+    </author>
+    <files>
+        <file>OneHotVector.h</file>
+        <file>OneHotVector.cc</file>
+        <file>OneHotVector.ikc</file>
+    </files>
+</class>

@@ -1,0 +1,17 @@
+<class name="Transform" description="transforms a set of matrices">
+    <parameter name="invert_1" type="bool" default="no" description="Should the transformation matrix in MATRIX_1 be inverted before use?"/>
+    <parameter name="invert_2" type="bool" default="no" description="Should the transformation matrix in MATRIX_2 be inverted before use?"/>
+	<parameter name="input_length" type="number" default="1" description="Number of rows in the output. This should be the idetical to the input with the most rows"/>
+ 
+	<input name="MATRIX_1" description="A matrix where each row represents a 4x4 transformation matrix as 16 consecutive elements" />
+	<input name="OBJECT_ID_1" description="The object id for each of the rows in MATRIX_1" />
+	<input name="FRAME_ID_1" description="The id of the reference frame for each of the rows in MATRIX_1" />
+
+	<input name="MATRIX_2" description="A matrix where each row represents a 4x4 transformation matrix as 16 consecutive elements" />
+	<input name="OBJECT_ID_2" description="The object id for each of the rows in MATRIX_2" />
+	<input name="FRAME_ID_2" description="The id of the reference frame for each of the rows in MATRIX_2" />
+
+	<output name="MATRIX" description="A copy of the INPUT with all matrices transformed" _size="16, @input_length" size="@input_length,4,4" />
+	<output name="OBJECT_ID" description="The id of the object for each of the rows in MATRIX" size="@input_length,1"/>
+	<output name="FRAME_ID" description="The id of the reference frame for each of the rows in MATRIX" size="@input_length, 1"/>
+</class>

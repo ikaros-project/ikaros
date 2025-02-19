@@ -1,0 +1,8 @@
+<class name="RotationConverter" description="converts between rotation notations">
+	<parameter name="input_format" type="number" options="xyz,xyzaxayaz,axayaz,matrix,quaternion" default="xyz" description="Format of the input" />
+	<parameter name="output_format" type="number" options="xyz,xyzaxayaz,axayaz,matrix,quaternion" default="xyz" description="Format of the output" />
+	<parameter name="size_x" type="number"  default="4"  description="Size of the output" />
+	<parameter name="size_y" type="number"  default="4"  description="Size of the output" />
+	<input name="INPUT" description="Input" />
+    <output name="OUTPUT" description="Output" size="@size_y,@size_x"/>
+</class>
