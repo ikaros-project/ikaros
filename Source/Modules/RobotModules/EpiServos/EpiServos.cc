@@ -126,8 +126,8 @@ class EpiServos : public Module
 
     dynamixel::PortHandler *portHandlerPupil;
     dynamixel::PacketHandler *packetHandlerPupil;
-    //dynamixel::GroupSyncRead *groupSyncReadPupil;
-    //dynamixel::GroupSyncWrite *groupSyncWritePupil;
+    // dynamixel::GroupSyncRead *groupSyncReadPupil;
+    // dynamixel::GroupSyncWrite *groupSyncWritePupil;
 
     dynamixel::PortHandler *portHandlerLeftArm;
     dynamixel::PacketHandler *packetHandlerLeftArm;
@@ -282,22 +282,18 @@ class EpiServos : public Module
                 groupSyncRead->clearParam();
                 return false;
             }
-
-            // Vad är det som gör att det inte funkar när jag sätter goalCurrent?
-
-                if (goalCurrent.connected())
-                {
-                    int value = goalCurrent[index] / 3.36;
-                    param_sync_write[5] = DXL_LOBYTE(DXL_HIWORD(value));
-                    param_sync_write[6] = DXL_HIBYTE(DXL_HIWORD(value));
-                }
-                else
-                {
-                    int value = 2047.0 / 3.36;
-                    param_sync_write[5] = DXL_LOBYTE(DXL_HIWORD(value));
-                    param_sync_write[6] = DXL_HIBYTE(DXL_HIWORD(value));
-                }
-            
+            if (goalCurrent.connected())
+            {
+                int value = goalCurrent[index] / 3.36;
+                param_sync_write[5] = DXL_LOBYTE(DXL_HIWORD(value));
+                param_sync_write[6] = DXL_HIBYTE(DXL_HIWORD(value));
+            }
+            else
+            {
+                int value = 2047.0 / 3.36;
+                param_sync_write[5] = DXL_LOBYTE(DXL_HIWORD(value));
+                param_sync_write[6] = DXL_HIBYTE(DXL_HIWORD(value));
+            }
 
             dxl_addparam_result = groupSyncWrite->addParam(i, param_sync_write, 7);
             if (!dxl_addparam_result)
@@ -657,13 +653,13 @@ class EpiServos : public Module
             groupSyncReadRightArm = new dynamixel::GroupSyncRead(portHandlerRightArm, packetHandlerRightArm, 634, 4 + 2 + 1 + 2);
             groupSyncWriteBody = new dynamixel::GroupSyncWrite(portHandlerBody, packetHandlerBody, 224, 1 + 4 + 2);
             groupSyncReadBody = new dynamixel::GroupSyncRead(portHandlerBody, packetHandlerBody, 634, 4 + 2 + 1 + 2);
-            //groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2); // no read.. Not used?
+            // groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2); // no read.. Not used?
         }
 
         Notify(msg_debug, "Autocalibrating pupil");
         if (!AutoCalibratePupil())
             Notify(msg_fatal_error, "Unable to autocalibrate pupil");
-        
+
         Notify(msg_debug, "torque down servos and prepering servos for write defualt settings");
         if (!PowerOffRobot())
             Notify(msg_fatal_error, "Unable torque down servos");
@@ -732,7 +728,7 @@ class EpiServos : public Module
         // Set defualt output. This will be overwritten later but will give default values for full epi outputs with running in EpiTorso mode. Will alsp give body angly = 0 in EpiTorso mode.
         presentPosition.set(180);
 
-        //dictionary d; // is this even used. Did not exist with I started this module. Perhaps I should make use of the dictionary now.
+        // dictionary d; // is this even used. Did not exist with I started this module. Perhaps I should make use of the dictionary now.
 
         // Special case for pupil uses mm instead of degrees. Also clip the angles if it outside the calibrated range.
         goalPosition[PUPIL_INDEX_IO] = PupilMMToDynamixel(goalPosition[PUPIL_INDEX_IO], AngleMinLimitPupil[0], AngleMaxLimitPupil[0]);
@@ -1516,7 +1512,7 @@ class EpiServos : public Module
 
         return (true);
     }
-    // XL320 is using 2.0 but with a very limited controltable. 
+    // XL320 is using 2.0 but with a very limited controltable.
     bool AutoCalibratePupil()
     {
         int dxl_comm_result = COMM_TX_FAIL; // Communication result
@@ -1632,7 +1628,7 @@ class EpiServos : public Module
         delete groupSyncReadRightArm;
         delete groupSyncWriteBody;
         delete groupSyncReadBody;
-        //delete groupSyncWritePupil;
+        // delete groupSyncWritePupil;
     }
 };
 
