@@ -49,14 +49,14 @@ class CurrentPositionMapping: public Module
     parameter robotType;
     parameter ConsistencyTest;
     parameter MinimumTorqueCurrentSearch;
+    parameter current_increment;
 
     std::random_device rd;
     
     int number_transitions; //Will be used to add starting and ending position
-    int position_margin = 3;
+    int position_margin = 6;
     int transition = 0;
-    int current_increment = 50;
-    int starting_current = 50;
+    int starting_current = 150;
     int current_limit = 1700;
     bool find_minimum_torque_current = false;
     matrix minimum_torque_current_found;
@@ -80,14 +80,15 @@ class CurrentPositionMapping: public Module
             return -1;
         }
         for (int i = 0; i < current_controlled_servos.size(); i++) {
-            if ( goal_current(current_controlled_servos(i)) < limit && abs(goal_position(current_controlled_servos(i))- position(current_controlled_servos(i)))> margin){
+            int servo_idx = current_controlled_servos(i);
+            if ( goal_current(servo_idx) < limit && abs(goal_position(servo_idx)- position(servo_idx))> margin){
                 Notify(msg_debug, "Increasing current");
-                current_output(current_controlled_servos(i)) = goal_current(current_controlled_servos(i))+ increment;
+                current_output(servo_idx) = abs(goal_current(servo_idx))+ increment;
                           
             }
             else
             {
-                current_output(i) = goal_current(i);
+                current_output(servo_idx) = current_output(servo_idx);
             }
         }    
         return current_output;
@@ -175,8 +176,15 @@ class CurrentPositionMapping: public Module
     {
         std::string scriptPath = __FILE__;
         std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
-        std::string filePath = scriptDirectory + "/data/CurrentPositionMapping" + robotType + "ConsistencyTest.json";
-        
+        std::string filePath = scriptDirectory + "/data/CurrentPositionMapping" + robotType;
+        std::string suffix;
+        if (ConsistencyTest) {
+            suffix += "_ConsistencyTest_Increment_" + std::to_string((int)current_increment);
+        }
+        if (MinimumTorqueCurrentSearch) {
+            suffix += "_TorqueSearch";
+        }
+        filePath += suffix + ".json";
         // Use stringstream for efficient string building
         std::stringstream json;
         
@@ -247,9 +255,23 @@ class CurrentPositionMapping: public Module
                         std::vector<std::shared_ptr<std::vector<float>>>& angles,
                         std::string robotType, int id)
     {
+        // Check if there's data to save
+        if (trajectory.empty() || current.empty() || gyro.empty() || accel.empty() || angles.empty()) {
+            Notify(msg_warning, "No trajectory data to save");
+            return;
+        }
+
         std::string scriptPath = __FILE__;
         std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
-        std::string filePath = scriptDirectory + "/data/Trajectories" + robotType + "ConsistencyTest_Increment_" + std::to_string(current_increment) + ".json";
+        std::string filePath = scriptDirectory + "/data/Trajectories" + robotType;
+        std::string suffix;
+        if (ConsistencyTest) {
+            suffix += "_ConsistencyTest_Increment_" + std::to_string((int)current_increment);
+        }
+        if (MinimumTorqueCurrentSearch) {
+            suffix += "_TorqueSearch";
+        }
+        filePath += suffix + ".json";
         
         // Ensure ID is unique
         while (checkIdExists(filePath, id)) {
@@ -267,25 +289,36 @@ class CurrentPositionMapping: public Module
         
         if (!fileExists || fileEmpty) {
             json << "{\n\"Trajectories\": [\n";
+            json << "{\n\"UniqueID\":" << id << ",\n";
         } else {
             // Remove the closing brackets and add a comma
             std::fstream file(filePath, std::ios::in | std::ios::out);
             file.seekp(-3, std::ios::end);
-            file << ",";
+            file << ",{\n\"UniqueID\":" << id << ",\n";
             file.close();
         }
 
         // Write trajectory data
-        json << "{\n\"UniqueID\":" << id << ",\n";
+        
         
         // Helper lambda for writing arrays
-        auto writeArray = [&json](const std::string& name, const std::vector<std::shared_ptr<std::vector<float>>>& data) {
+        auto writeArray = [&json](const std::string& name, const std::vector<std::shared_ptr<std::vector<float>>>& data, matrix servos) {
             json << "\"" << name << "\":[";
             for (size_t i = 0; i < data.size(); i++) {
                 json << "[";
-                for (size_t j = 0; j < data[i]->size(); j++) {
-                    json << std::fixed << std::setprecision(2) << (*data[i])[j];
-                    if (j < data[i]->size() - 1) json << ",";
+                if (name == "Trajectory" || name == "Current") {
+                    // For trajectory and current, only include controlled servos
+                    for (size_t j = 0; j < servos.size(); j++) {
+                        int servo_idx = servos[j];
+                        json << std::fixed << std::setprecision(2) << (*data[i])[servo_idx];
+                        if (j < servos.size() - 1) json << ",";
+                    }
+                } else {
+                    // For gyro, accel, and angles, include all values
+                    for (size_t j = 0; j < (*data[i]).size(); j++) {
+                        json << std::fixed << std::setprecision(2) << (*data[i])[j];
+                        if (j < (*data[i]).size() - 1) json << ",";
+                    }
                 }
                 json << "]";
                 if (i < data.size() - 1) json << ",";
@@ -293,18 +326,18 @@ class CurrentPositionMapping: public Module
             json << "]";
         };
 
-        writeArray("Trajectory", trajectory);
+        writeArray("Trajectory", trajectory, current_controlled_servos);
         json << ",\n";
-        writeArray("Current", current);
+        writeArray("Current", current, current_controlled_servos);
         json << ",\n";
-        writeArray("Gyro", gyro);
+        writeArray("Gyro", gyro, current_controlled_servos);
         json << ",\n";
-        writeArray("Accel", accel);
+        writeArray("Accel", accel, current_controlled_servos);
         json << ",\n";
-        writeArray("Angles", angles);
+        writeArray("Angles", angles, current_controlled_servos);
         json << "\n}";
 
-        if(transition == number_transitions - 1){
+        if(transition == number_transitions -1){
             json << "\n]\n}";
         }
         else{
@@ -324,28 +357,37 @@ class CurrentPositionMapping: public Module
         matrix current_output(present_current.size());
         matrix torque_found_temp;
         torque_found_temp.copy(minimum_torque_current_found);
+        
 
         for (int i = 0; i < current_controlled_servos.size(); i++) {       
+            int servo_idx = current_controlled_servos(i);
             
-            if (torque_found_temp(current_controlled_servos(i)) == 0) {
-              
-            
-                if (int(present_position(current_controlled_servos(i))) == int(previous_position(current_controlled_servos(i))))  {
-                    current_output(current_controlled_servos(i)) = abs(present_current(current_controlled_servos(i)))- decreasing_step;
+            if (torque_found_temp[servo_idx] == 0) {
+
+                // If servo is at goal position and not moving, it may not need current
+                if (abs(present_position[servo_idx]) - goal_position_out[servo_idx] < 2 &&
+                    abs(present_current[servo_idx]) < 10)
+                {
+                    current_output[servo_idx] = 0;
+                    std::cout << "Servo " << servo_idx << " at goal and stable without current" << std::endl;
+                    torque_found_temp[servo_idx] = 1;
+                }
+                else if (int(present_position[servo_idx]) == int(previous_position[servo_idx]))  
+                {
+                    current_output[servo_idx] = abs(present_current[servo_idx])- decreasing_step;
+
                     //std::cout << "Decreasing goal current to: " << (float)current_output(current_controlled_servos(i)) << " of servo: " << current_controlled_servos(i)+2 << std::endl;
 
-                    if (current_output(current_controlled_servos(i)) < 0) {
-                        current_output(current_controlled_servos(i)) = 0;
-                        torque_found_temp(current_controlled_servos(i)) = 1;
+                    if (current_output[servo_idx] < 0) {
+                        current_output[servo_idx] = 0;
+                        torque_found_temp[servo_idx] = 1;
                         
                     }
                 
                 } 
-                else {
-                    current_output(current_controlled_servos(i)) = abs(present_current(current_controlled_servos(i))) + decreasing_step;
-                    std::cout << "Minimum Current for torque at goal: " << current_output(i) << std::endl;
-                    torque_found_temp(current_controlled_servos(i)) = 1;
-                }
+                
+                    
+                
             }
         }
 
@@ -422,6 +464,7 @@ class CurrentPositionMapping: public Module
         Bind(robotType, "RobotType");
         Bind(ConsistencyTest, "ConsistencyTest");
         Bind(MinimumTorqueCurrentSearch, "MinimumTorqueCurrentSearch");
+        Bind(current_increment, "CurrentIncrement");
 
         number_transitions = num_transitions.as_int()+1; // Add one to the number of transitions to include the ending position
        
@@ -553,14 +596,54 @@ class CurrentPositionMapping: public Module
                         goal_current.add(10);
                         Notify(msg_debug, "Minimum torque current found");
 
-                        // save starting position, goal position and current in json file
+                        SaveMetricsToJson(goal_position_out, start_position, max_present_current, min_moving_current, min_torque_current, overshot_goal, transition_duration, number_ticks, robotType, transition, unique_id);
+        
+                        // Move to next transition after finding minimum torque
+                        transition++;
+                        auto now = Clock::now();
+                        float current_time_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
+                        transition_start_time.set(current_time_ms);
+                        transition_duration.set(0);
+                        
+                        PrintProgressBar(transition, number_transitions);
 
-                        SaveMetricsToJson(goal_position_out,start_position, max_present_current, min_moving_current, min_torque_current, overshot_goal, transition_duration, number_ticks, robotType, transition, unique_id);
+                        if (transition < number_transitions) {
+                            goal_position_out.copy(position_transitions[transition]);
+                            std::cout << "New goal position" << std::endl;
+                            goal_current.set(starting_current);
+                            min_moving_current.copy(present_current);
+                            max_present_current.reset();
+                            overshot_goal_temp.reset();
+                            min_torque_current.reset();
+                            moving_trajectory.clear();
+                            current_history.clear();
+                            gyro_history.clear();
+                            accel_history.clear();
+                            angles_history.clear();
+                            reached_goal.reset();
+                            number_ticks.set(0);
+                        } else {
+                            Notify(msg_end_of_file, "All transitions completed");
+                            Sleep(1);
+                            Notify(msg_terminate, "Shutting down");
+                        }
                     }
                 }
-                else
-                {
+                else {
                     find_minimum_torque_current = false;
+                }
+            }
+            
+            else if (reached_goal.sum() == current_controlled_servos.size()){
+                // Save trajectory data before any other operations
+                if (!moving_trajectory.empty()) {
+                    SaveTrajectory(moving_trajectory, current_history, gyro_history, accel_history, angles_history, robotType, unique_id);
+                }
+
+                if (MinimumTorqueCurrentSearch) {
+                    find_minimum_torque_current = true;
+                } else {
+                    // Move to next transition
                     transition++;
                     auto now = Clock::now();
                     float current_time_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
@@ -569,42 +652,32 @@ class CurrentPositionMapping: public Module
                     
                     PrintProgressBar(transition, number_transitions);
 
-                    if (transition < number_transitions){
+                    if (transition < number_transitions) {
                         goal_position_out.copy(position_transitions[transition]);
                         std::cout << "New goal position" << std::endl;
-                        goal_current.copy(min_torque_current);
+                        goal_current.set(starting_current);
                         min_moving_current.copy(present_current);
                         max_present_current.reset();
                         overshot_goal_temp.reset();
                         min_torque_current.reset();
-                        moving_trajectory.push_back(std::make_shared<std::vector<float>>(present_position.data_->begin(), present_position.data_->end()));
-                        current_history.push_back(std::make_shared<std::vector<float>>(present_current.data_->begin(), present_current.data_->end()));
-                        gyro_history.push_back(std::make_shared<std::vector<float>>(gyro.data_->begin(), gyro.data_->end()));
-                        accel_history.push_back(std::make_shared<std::vector<float>>(accel.data_->begin(), accel.data_->end()));
-                        angles_history.push_back(std::make_shared<std::vector<float>>(eulerAngles.data_->begin(), eulerAngles.data_->end()));
+                        moving_trajectory.clear();
+                        current_history.clear();
+                        gyro_history.clear();
+                        accel_history.clear();
+                        angles_history.clear();
                         reached_goal.reset();
                         number_ticks.set(0);
-  
-                        
-                    }
-                    else{
+                    } else {
                         Notify(msg_end_of_file, "All transitions completed");
                         Sleep(1);
                         Notify(msg_terminate, "Shutting down");
                     }
                 }
-            }
-            
-            else if (reached_goal.sum() == current_controlled_servos.size()){
-
-                find_minimum_torque_current = true;
-                SaveTrajectory(moving_trajectory, current_history, gyro_history, accel_history, angles_history, robotType, unique_id);
                 
                 // first row of the trajectory matrix is the starting position
                 if (!moving_trajectory.empty()) {
                     std::copy(moving_trajectory.front()->begin(), moving_trajectory.front()->end(), start_position.begin());
                 }
-                
 
                 moving_trajectory.clear();
                 current_history.clear();
@@ -612,15 +685,15 @@ class CurrentPositionMapping: public Module
                 accel_history.clear();
                 angles_history.clear();
                 reached_goal.set(0);
-
-                // New start time for the next transition
-                // Save the duration and reset start times for next transition
-                auto now = Clock::now();
-                float current_time_ms = std::chrono::duration<float, std::milli>(now.time_since_epoch()).count();
-                
             }
             else{
                 goal_current.copy(SetGoalCurrent(present_current, current_increment, current_limit, present_position, goal_position_out, position_margin));
+                //temporary, remove later
+                //if(MinimumTorqueCurrentSearch){
+                //    goal_current[0] = max(goal_current[0], 500);
+                //}
+               
+
                 overshot_goal.copy(OvershotGoal(present_position, goal_position_out, start_position, overshot_goal_temp));
                 overshot_goal_temp.copy(overshot_goal);
                 ReachedGoal(present_position, goal_position_out, reached_goal, position_margin);
