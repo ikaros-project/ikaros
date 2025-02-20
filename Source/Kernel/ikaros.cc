@@ -10,9 +10,6 @@ bool global_terminate = false;
 
 namespace ikaros
 {
-    // int main_counter = 0;
-    // int inner_counter = 0;
-
     std::string  validate_identifier(std::string s)
     {
         static std::string legal = "_0123456789aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ";
@@ -409,8 +406,6 @@ namespace ikaros
     {
         if(*(p.resolved))
             return true; // Already set from SetParameters
-
-        //std::cout << "ResolveParameter: " << name << std::endl;
         try
         {
             // Look for binding
@@ -549,14 +544,12 @@ namespace ikaros
     std::string 
     Component::GetValue(const std::string & path) 
     {     
-        //std::cout << "GetValue: " << path << std::endl;
         if(path.empty())
             return ""; // throw exception("Name not found"); // throw not_found_exception instead
 
         if(path[0]=='@')
         {
             if(path.find('.') == std::string::npos)
-                // return  LookupKey(path.substr(1));
                 return GetValue(path.substr(1));
             else
                 return GetValue(exchange_before_dot(path, GetValue( before_dot(path).substr(1))));
@@ -565,7 +558,7 @@ namespace ikaros
         if(path[0]=='.')
         {
             auto c = kernel().components.begin()->second;
-            return kernel().components.begin()->second->GetValue(path.substr(1)); // Absolute path // FIXME: Scary - main_group -
+            return kernel().components.begin()->second->GetValue(path.substr(1)); // Absolute path
         }
 
         size_t pos = path.find('.');
@@ -763,7 +756,7 @@ namespace ikaros
 
     if(!expression::is_expression(s) || is_string)
     {
-        if(s[0]=='@') // Handle indirection (unless expresson)
+        if(s[0]=='@') // Handle indirection (unless expression)
         {
             if(s.find('.')==std::string::npos)
                 return GetValue(s.substr(1));
@@ -803,7 +796,7 @@ namespace ikaros
         // Check functions
 
         if(ends_with(s, ".size_x"))
-            return std::to_string(GetBuffer(rhead(ss,".")).size_x()); // RIXME: Add nondestructive rhead with string instead of string &
+            return std::to_string(GetBuffer(rhead(ss,".")).size_x()); // FIXME: Add nondestructive rhead with string instead of string &
 
         if(ends_with(s, ".size_y"))
             return std::to_string(GetBuffer(rhead(ss,".")).size_y());
@@ -841,7 +834,6 @@ namespace ikaros
     std::vector<int> 
     Component::EvaluateSizeList(std::string & s) // return list of size from size list in string
     {
-        //s = Evaluate(s, true); // FIXME: evaluate as string for s should probably be used in more places
         std::vector<int> shape;
         for(std::string e : split(s, ","))
         {
@@ -865,17 +857,7 @@ namespace ikaros
         return shape;
     }
 
-
-
-// NEW EVALUATION FUNCTIONS
-/*
-    double 
-    Component::EvaluateNumber(std::string v)
-    {
-        return stod(v); // FIXME: Add full parsing of expressions and variables *************
-    }
-*/
-
+    
     bool 
     Component::EvaluateBool(std::string v)
     {
@@ -1028,8 +1010,6 @@ namespace ikaros
         if(!ingoing_connections.count(full_name)) // Not connected
             return 1;
 
-        //SetSourceRanges(d.at("name"), ingoing_connections.at(full_name));
-
         int begin_index = 0;
         int end_index = 0;
         int flattened_input_size = 0;
@@ -1046,9 +1026,6 @@ namespace ikaros
             begin_index += s;
             flattened_input_size += s;
 
-            //int delay_size = c->delay_range_.trim().b_[0];  // FIXME: extent/size function
-           // if(delay_size > 1)
-            //    flattened_input_size *= delay_size;
                 std::cout << flattened_input_size << std::endl;
         }
     
@@ -1123,67 +1100,6 @@ namespace ikaros
         }
 
         return 1;
-
-
-/*
-            SetSourceRanges(name, ingoing_connections);
-            int max_delay = 0;
-            bool first_ingoing_connection = true;
-            for(auto & c : ingoing_connections) // STEP 0b: copy source_range to target_range if not set
-            {
-                if(!c->delay_range_.empty() && c->delay_range_.trim().b_[0] > max_delay)
-                    max_delay = c->delay_range_.trim().b_[0];
-
-                if(c->target_range.empty())
-                {
-                    if(!first_ingoing_connection)
-                        throw exception("Target ranges must be set explicitly for multiple connections to \""+name+"\".");
-                    c->target_range = c->source_range;
-                }
-                else
-                {
-                    int si = c->source_range.rank()-1;
-                
-                    for(int ti = c->target_range.rank()-1; ti>=0; ti--, si--)
-                        if(c->target_range.b_[ti] == 0)
-                        {
-                            c->target_range.inc_[ti] = c->source_range.inc_[si]; // FIXME: Is this correct? Or should it shrink?
-                            c->target_range.a_[ti] = c->source_range.a_[si];
-                            c->target_range.b_[ti] = c->source_range.b_[si];
-                            c->target_range.index_[ti] = c->target_range.a_[si]; // FIXME: Check if this is necesary
-                        }
-                }
-
-                if(c->delay_range_.size() > 1) // Add extra dimension to input if connection is a delay range with more than one delay
-                    c->target_range.push_front(0, c->delay_range_.trim().b_[0]);
-
-                first_ingoing_connection = false;
-            }
-
-        range r;
-
-        for(auto & c : ingoing_connections)  // STEP 1: Calculate range extent
-            r |= c->target_range;
-
-        kernel().buffers[name].realloc(r.extent());  // STEP 2: Set input size // FIXME: Check empty input
-          Trace("\t\t\t\t\t\tComponent:: Alloc "+std::string(r));
-
-        // Set alias
-
-        if(!use_alias)
-            return 0;
-
-        if(ingoing_connections.size() == 1 && !ingoing_connections[0]->alias_.empty())
-        {
-            kernel().buffers[name].set_name(ingoing_connections[0]->alias_);
-        }
-        else
-        {
-            // Handle multiple dimensions
-        }
-        return 0;
-
-        */
     }
 
 
@@ -1329,21 +1245,16 @@ namespace ikaros
     int 
     Module::SetSizes(input_map ingoing_connections)
     {
-            //Trace("\tModule::SetSizes", path_);
-            //Trace("\tModule::SetInputSizes", path_);
-            SetInputSizes(ingoing_connections);
-            //Trace("\t", path_);
-            SetOutputSizes(ingoing_connections);
-            return 0;
+        SetInputSizes(ingoing_connections);
+        SetOutputSizes(ingoing_connections);
+        return 0;
     }   
 
 
     void
     Component::CalculateCheckSum(long & check_sum, prime & prime_number) // Calculates a value that depends on all parameters and output sizes; used for integrity testing of kernel and module
     {
-
         // Iterate over all outputs
-
         for(auto & d : info_["outputs"])
         {
             matrix output;
@@ -1379,7 +1290,6 @@ namespace ikaros
             else
                 check_sum += prime_number.next() *  p.as_int(); // FIXME: convert to long later 
         }
-
         // std::cout << "Check sum: " << check_sum << std::endl;
     }
 
@@ -1440,11 +1350,9 @@ namespace ikaros
                 target_range.inc_[target_range.rank()-1] = 1;
             }
         }
-            int delay_size = delay_range_.trim().b_[0];
-            if(delay_size > 1)
-                target_range.push_front(0, delay_size);
-        // Debugging
-        // std::cout  << "Resolve debug size "<<  this->source << " " <<delay_size*source_range.size() << ":" <<  this->target << " " << target_range.size() << std::endl;
+        int delay_size = delay_range_.trim().b_[0];
+        if(delay_size > 1)
+            target_range.push_front(0, delay_size);
         if(delay_size*source_range.size() != target_range.size())
             throw exception("Connection could not be resolved");
 
@@ -1508,6 +1416,7 @@ namespace ikaros
         }
     };
 
+
     void
     Connection::Print()
     {
@@ -1531,12 +1440,10 @@ Connection::Info()
 
     Class::Class(std::string n, std::string p) : module_creator(nullptr), name(n), path(p),info_(p)
     {
-        //   info_ = dictionary(path);
     }
 
     Class::Class(std::string n, ModuleCreator mc) : module_creator(mc), name(n)
     {
-        //   info_ = dictionary(path);
     }
 
 
@@ -1571,10 +1478,8 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::Clear()
     {
-        // std::cout << "Kernel::Clear" << std::endl;
         // FIXME: retain persistent components
 
-    
         for(auto [_,c] : components) // components contains pointers so nee need to be explcitly deleted
             // if(NOT PERSISTENT)
                 delete c;
@@ -1596,11 +1501,6 @@ bool operator==(Request & r, const std::string s)
         idle_time = 0;
         stop_after = -1;
         shutdown = false;
-        //info_ = dictionary();
-        //info_["filename"] = ""; //EMPTY FILENAME
-
-        // needs_reload = true; // FIXME: WEHERE SHOULD THIS BE SET ***********
-        //session_id = new_session_id();
     }
 
 
@@ -1623,7 +1523,6 @@ bool operator==(Request & r, const std::string s)
         d["outputs"] = list();            
         d["parameters"] = list();           
         d["stop"] = "-1";
-        // d["webui_port"] = "8000";
 
         SetCommandLineParameters(d);
         d["filename"] = ""; // Ignore filename at command line 
@@ -1644,34 +1543,6 @@ bool operator==(Request & r, const std::string s)
 
         RunTasks();
 
-    /*
-        for(auto & task_group : tasks)
-            for(auto & task: task_group)
-                task->Tick();
-    */
-
-/*
-        }
-        else
-        {
-
-            for(auto & m : components)
-                try
-                {
-                    //std::cout <<" Tick: " << m.second->info_["name"] << std::endl;
-                    if(m.second != nullptr)  // Allow classes without code
-                        m.second->Tick();   
-                }
-                catch(const empty_matrix_error& e)
-                {
-                    throw std::out_of_range(m.first+"."+e.message+" (Possibly an empty matrix or an input that is not connected).");  
-                }
-                catch(const std::exception& e)
-                {
-                    throw exception(m.first+". "+std::string(e.what()));
-                }
-        }
-*/
         save_matrix_states();
         RotateBuffers();
         Propagate();
@@ -1790,7 +1661,6 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::CalculateSizes()    
     {
-        //Trace("Kernel::CalculateSizes");
         try 
         {
         // Build input table
@@ -2109,7 +1979,6 @@ if(classes[classname].path.empty())
     void 
     Kernel::InitComponents()
     {
-        //std::cout << "Running Kernel::InitComponents()" << std::endl;
         // Call Init for all modules (after CalcalateSizes and Allocate)
         for(auto & c : components)
             try
@@ -2269,54 +2138,6 @@ if(classes[classname].path.empty())
                 continue;
             else
                 c.Tick();
-
-   /*
-         for(auto & c : connections)
-        {
-            if(c.delay_range_.empty() || c.delay_range_.is_delay_0())
-            {
-                // Do not handle here. Handled in Connection.Tick()
-            }
-
-            else if(c.delay_range_.empty() || c.delay_range_.is_delay_1())
-                buffers[c.target].copy(buffers[c.source], c.target_range, c.source_range);
-
-            else if(c.flatten_) // Copy flattened delayed values
-            {
-                matrix target = buffers[c.target];
-                int target_offset = c.target_range.a_[0];
-                for(int i=c.delay_range_.a_[0]; i<c.delay_range_.b_[0]; i++)  // FIXME: assuming continous range (inc==1)
-                {   
-                    matrix s = circular_buffers[c.source].get(i);
-
-                    for(auto ix=c.source_range; ix.more(); ix++)
-                    {
-                        int source_index = s.compute_index(ix.index());
-                        target[target_offset++] = (*(s.data_))[source_index];
-                    }
-                }
-            }
-
-            else if(c.delay_range_.a_[0]+1 == c.delay_range_.b_[0]) // Copy indexed delayed value with single delay
-            {
-                matrix s = circular_buffers[c.source].get(c.delay_range_.a_[0]);
-                buffers[c.target].copy(s, c.target_range, c.source_range);
-            }
-
-            else // Copy indexed delayed values with more than one element
-            {
-                for(int i=c.delay_range_.a_[0]; i<c.delay_range_.b_[0]; i++)  // FIXME: assuming continous range (inc==1)
-                {   
-                    matrix s = circular_buffers[c.source].get(i);
-                    int target_ix = i - c.delay_range_.a_[0]; // trim!
-                    range tr = c.target_range.tail();
-                    matrix t = buffers[c.target][target_ix];
-                    t.copy(s, tr, c.source_range);
-
-                }
-            }
-        }
-    */
     }
 
 
@@ -2616,8 +2437,6 @@ if(classes[classname].path.empty())
             InitCircularBuffers();
             InitComponents();
 
-
-
             if(info_.is_set("info"))
             {
                 ListParameters();
@@ -2645,29 +2464,6 @@ if(classes[classname].path.empty())
     void
     Kernel::Run() // START-UP + RUN MAIN LOOP => Two functions?? *************
     {
-           /*
-        if(options_.filename.empty())
-            New();
-
-
-
-        else
-        {
-            // Check start-up arguments //FIXME: ADD NEW MECHANISM *********************
-
-
-            timer.Restart();
-            tick = -1; // To make first tick 0 after increment
-
-            if(run_mode == run_mode_restart_realtime)
-                Realtime();
-            else if(run_mode == run_mode_restart_play)
-                Play();
-            else
-                Pause();   
-        }
-        */
-    
         // Main loop
         while(run_mode > run_mode_quit && !global_terminate)  // Not quit
         {
@@ -2805,7 +2601,6 @@ if(classes[classname].path.empty())
     void
     Kernel::Stop()
     {
-        // std::cout << "Kernel::Stop" << std::endl;
         while(tick_is_running)
             {}
 
@@ -2830,7 +2625,6 @@ if(classes[classname].path.empty())
 
         if(needs_reload)
         {
-            // Clear(); // FIXME: Check that clear is already called
             LoadFile();
             run_mode = run_mode_pause;
         }
@@ -2934,7 +2728,7 @@ if(classes[classname].path.empty())
         double uptime = uptime_timer.GetTime();
         double total_time = GetTime();
 
-        socket->Send("\t\"timestamp\": %ld,\n", GetTimeStamp()); // duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count()
+        socket->Send("\t\"timestamp\": %ld,\n", GetTimeStamp());
         socket->Send("\t\"uptime\": %.2f,\n", uptime);
         socket->Send("\t\"tick_duration\": %f,\n", tick_duration);
         socket->Send("\t\"cpu_cores\": %d,\n", cpu_cores);
@@ -2994,7 +2788,6 @@ if(classes[classname].path.empty())
     void
     Kernel::DoSendData(Request & request)
     {    
-        //std::cout << "DoSendData: state = " << run_mode << std::endl;
         sending_ui_data = true; // must be set while main thread is still running
         while(tick_is_running)
             {}
@@ -3027,11 +2820,10 @@ if(classes[classname].path.empty())
             {
                 Component * c = components[root]; // FIXME: Handle exceptions
                 source = c->GetValue(source);
-                //std::cout << "\t\t" << source << std::endl;
             }
 
             std::string format = rtail(source, ":");
-            std::string source_with_root = root +"."+source; // request.component_path
+            std::string source_with_root = root +"."+source;
 
 
 
@@ -3163,8 +2955,6 @@ if(classes[classname].path.empty())
     void
     Kernel::DoSendFile(std::string file)
     {
-        //std::this_thread::sleep_for(milliseconds(200));
-
         if(file[0] == '/')
             file = file.erase(0,1); // Remove initial slash
 
@@ -3189,7 +2979,6 @@ if(classes[classname].path.empty())
     void
     Kernel::DoSendNetwork(Request & request)
     {
-            // std::cout << "Kernel::DoSendNetwork " << session_id <<std::endl;
         std::string s = json(); 
         Dictionary rtheader;
         rtheader.Set("Session-Id", std::to_string(session_id).c_str());
@@ -3204,7 +2993,6 @@ if(classes[classname].path.empty())
     void
     Kernel::DoPause(Request & request)
     {
-        // std::cout <<  "Kernel::DoPause" << std::endl;
         Notify(msg_print, "pause");
         Pause();
         DoSendData(request);
@@ -3214,7 +3002,6 @@ if(classes[classname].path.empty())
     void
     Kernel::DoStep(Request & request)
     {
-        // std::cout <<  "Kernel::DoStep" << std::endl;
         Notify(msg_print, "step");
         Pause();
         run_mode = run_mode_pause; // FIXME: Probably not necessary
@@ -3228,7 +3015,6 @@ if(classes[classname].path.empty())
     void
     Kernel::DoRealtime(Request & request)
     {
-        // std::cout <<  "Kernel::DoRealtime" << std::endl;
         Notify(msg_print, "realtime");
         Realtime();
         DoSendData(request);
@@ -3238,7 +3024,6 @@ if(classes[classname].path.empty())
     void
     Kernel::DoPlay(Request & request)
     {
-        // std::cout <<  "Kernel::DoPlay" << std::endl;
         Notify(msg_print, "play");
         Play();
         DoSendData(request);
@@ -3371,7 +3156,7 @@ if(classes[classname].path.empty())
     void
     Kernel::DoUpdate(Request & request)
     {
-        if(request.session_id != session_id) // request.parameters.empty() ||  ( WAS not a data request - send network)
+        if(request.session_id != session_id)
             DoSendNetwork(request);
         else 
             DoSendData(request);
@@ -3381,7 +3166,6 @@ if(classes[classname].path.empty())
     void
     Kernel::DoNetwork(Request & request)
     {
-    // td::cout << "Kernel::DoNetwork" << std::endl;
         DoSendNetwork(request);
     }
 
@@ -3492,9 +3276,6 @@ if(classes[classname].path.empty())
             sid = atol(sids);
 
         Request request(socket->header.Get("URI"), sid, socket->body);
-
-        //if(request.url != "/update/?data=")
-        //std::cout << request.url << std::endl;
 
         if(request == "network")
             DoNetwork(request);

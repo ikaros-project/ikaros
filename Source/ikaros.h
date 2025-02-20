@@ -41,10 +41,6 @@ using namespace std::literals;
 
 namespace ikaros 
 {
-
-//const int run_mode_restart_pause = -2;
-//const int run_mode_restart_play = -3;
-//const int run_mode_restart_realtime = -4;
 const int run_mode_quit = 0;
 const int run_mode_stop = 1;        // Kernel does not run and accepts open/save/save_as/pause/realtime
 const int run_mode_pause = 2;       // Kernel is paused and accepts stop/step/realtime
@@ -65,11 +61,9 @@ const int    msg_print			=    7;
 const int    msg_debug          =    8;
 const int    msg_trace          =    9;
 
-
 using tick_count = long long int;
 
 std::string  validate_identifier(std::string s);
-
 
 class Component;
 class Module;
@@ -81,7 +75,7 @@ using input_map = const std::map<std::string,std::vector<Connection *>> &;
 Kernel& kernel();
 
 //
-// CIRCULAR BUFFER__
+// CIRCULAR BUFFER
 //
 
 class CircularBuffer
@@ -262,8 +256,6 @@ public:
     double EvaluateNumericalExpression(std::string & s);
 
     std::vector<int> EvaluateSizeList(std::string & s);
-    //std::vector<int> EvaluateSize(std::string & s);
-   // double EvaluateNumber(std::string v);
     bool EvaluateBool(std::string v);
     std::string EvaluateString(std::string v);
     std::string EvaluateMatrix(std::string v);
@@ -305,13 +297,9 @@ public:
     Module();
     ~Module() {}
 
-    //int SetInputSize(std::string name, input_map ingoing_connections);
     int SetOutputSize(dictionary d, input_map ingoing_connections);
-
-    //int SetInputSizes(input_map ingoing_connections);
     int SetOutputSizes(input_map ingoing_connections); // Uses the size attribute
     int SetSizes(input_map  ingoing_connections); // Sets input and output if possible
-
 
     tick_count GetTick();
     double GetTickDuration();
@@ -503,7 +491,7 @@ public:
     void SetParameter(std::string name, std::string value);
     void AddGroup(dictionary info, std::string path);
     void AddModule(dictionary info, std::string path);
-    void AddConnection(dictionary info, std::string path); // std::string souce, std::string target, std::string delay_range, std::string alias
+    void AddConnection(dictionary info, std::string path);
     void LoadExternalGroup(dictionary d);
     void BuildGroup(dictionary d, std::string path="");
 
