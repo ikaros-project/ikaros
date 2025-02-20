@@ -1,4 +1,4 @@
-<group EpiName="EpiGreen" filename="" info="true" log_level="5" name="ExperimentalSetup" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27" simulateRobot="false" start="true" stop="-1" tick_duration="1" webui_port="8000">
+<group EpiName="EpiGreen" filename="" info="false" log_level="10" name="ExperimentalSetup" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27" simulateRobot="true" start="true" stop="-1" tick_duration="1" webui_port="8000">
    <_connection source="SR.OUTPUT[0:19]" target="Epi.GOAL_POSITION"/>
    <connection source="Epi.PRESENT_POSITION" target="SR.INPUT[0:19]"/>
    <connection source="SR.ACTIVE[0:19]" target="Epi.TORQUE_ENABLE"/>
@@ -9,10 +9,10 @@
    <connection source="SR.OUTPUT[27]" target="OneHotVector.INPUT"/>
    <connection source="OneHotVector.OUTPUT" target="Epi.SoundOutput.TRIG"/>
    <connection delay="1" source="ManualGoalPosition.OUTPUT" target="Epi.GOAL_POSITION"/>
-   <group VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG" _EpiName="EpiRed" _name="Epi" _simulateRobot="true" _x="480" _y="144" external="/Users/birger/Code/ikaros/Robots/Epi/EpiMinimal.ikg" name="Epi" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27">
+   <group VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG" _EpiName="EpiRed" _name="Epi" _simulateRobot="true" _x="264" _y="144" name="Epi" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27">
       <_connection source="Speek.OUTPUT" target="LED.SPEEKING"/>
       <_connection delay="3" source="EpiPositionExo.OBJECT_ID" target="ForwardModel.OBJECT_ID"/>
-      <_group external="/Users/birger/Code/ikaros/Robots/Epi/EpiLed.ikg" name="LED"/>
+      <_group name="LED"/>
       <_module class="SoundOutput" command="/usr/bin/afplay" name="SoundOutput" sounds="Sounds/OK.mp3, Sounds/ok2.mp3, Sounds/agree_1.wav, Sounds/agree_2.wav, Sounds/agree_3.wav, Sounds/agree_4.wav, Sounds/agree_5.wav, Sounds/confused_1.wav, Sounds/confused_2.wav, Sounds/confused_3.wav, Sounds/confused_4.wav, Sounds/confused_5.wav, Sounds/disagree_1.wav, Sounds/disagree_2.wav, Sounds/disagree_3.wav, Sounds/disagree_4.wav, Sounds/disagree_5.wav, Sounds/disgusted_1.wav, Sounds/disgusted_2.wav, Sounds/disgusted_3.wav, Sounds/disgusted_4.wav, Sounds/disgusted_5.wav, Sounds/pleased_1.wav, Sounds/pleased_2.wav, Sounds/pleased_3.wav, Sounds/pleased_4_med_2.wav, Sounds/pleased_5.wav,Sounds/Jokes/WhyDidTheRobotSneeze.wav,Sounds/Jokes/WhyDidTheRobotSneezeB.wav,Sounds/Jokes/HowDidTheRobotGetAcrossTheRiver.wav,Sounds/Jokes/HowDidTheRobotGetAcrossTheRiverB.wav,Sounds/Jokes/WhyDidTheRobotGoOnVacation.wav,Sounds/Jokes/WhyDidTheRobotGoOnVacationB.wav,HiIAmARobot.HowOldAmI_low.wav,HiIAmARobot.HowOldAmI_high.wav"/>
       <_module amplitude="0" class="FunctionGenerator" frequency="10" name="Speek" offset="0.5" shift="0.1" size="2" type="0"/>
       <connection delay="3" source="ManualPosition.OUTPUT" target="PositionExo.INPUT"/>
@@ -32,7 +32,7 @@
       <connection delay="1" source="TORQUE_ENABLE" target="Servos.TORQUE_ENABLE"/>
       <connection delay="1" source="RightEye.FULL_RES_OUTPUT" target="LEFT_EYE_OUTPUT"/>
       <connection delay="1" source="LeftEye.FULL_RES_OUTPUT" target="RIGHT_EYE_OUTPUT"/>
-      <group _x="696" _y="432" external="/Users/birger/Code/ikaros/Robots/Epi/ForwardModel/EpiForwardModel.ikg" name="ForwardModel" title="ForwardModel">
+      <group _x="696" _y="432" name="ForwardModel" title="ForwardModel">
          <_module class="Constant" data="         0,-1, 0, 0.85;         1, 0, 0, 0.15;         0, 0, 1, 0.847;         0, 0, 0, 1" name="Epi_pos"/>
          <connection source="JOINT_ANGLES[18]" target="Body.JOINT_ANGLES"/>
          <connection source="JOINT_ANGLES[0:4]" target="Head.JOINT_ANGLES[0:4]"/>
@@ -72,7 +72,7 @@
          <connection delay="3" source="RightArmID.OUTPUT" target="BodyRightArm.OBJECT_ID_2"/>
          <connection delay="3" source="RightArmFrame.OUTPUT" target="BodyRightArm.FRAME_ID_2"/>
          <description/>
-         <group _x="120" _y="216" external="/Users/birger/Code/ikaros/Robots/Epi/ForwardModel/EpiBodyForwardModel.ikg" name="Body">
+         <group _x="120" _y="216" name="Body">
             <_connection source="JOINT_ANGLES" target="Print.INPUT"/>
             <_connection source="L1_R1.OUTPUT" target="EGO_POINTS[0:1][0:15]"/>
             <_connection source="M_L1_R2.OUTPUT" target="EGO_POINTS[1:2][0:15]"/>
@@ -174,7 +174,7 @@
             <widget _index_="14" _x="552" _y="480" class="table" colorize="true" decimals="1" direction="normal" frame-style="" height="145" label_x="" label_y="" max="1" min="0" name="Widget_8" scrollable="false" select="" show_frame="false" show_title="true" source="M_L2_T1.OUTPUT" style="" title="M_L2_T1" width="361"/>
             <widget _index_="16" _x="552" _y="768" class="table" colorize="true" decimals="1" direction="normal" frame-style="" height="145" label_x="" label_y="" max="1" min="0" name="Widget_9" scrollable="false" select="" show_frame="false" show_title="true" source="L1_R1_C.OUTPUT" style="" title="L1_R1_C" width="361"/>
          </group>
-         <group _x="264" _y="576" external="/Users/birger/Code/ikaros/Robots/Epi/ForwardModel/EpiHeadForwardModel.ikg" name="Head">
+         <group _x="264" _y="576" name="Head">
             <_connection source="JOINT_ANGLES[0][0]" target="L1_R1Rot.INPUT"/>
             <_connection source="JOINT_ANGLES[0][1]" target="L2_R1Rot.INPUT"/>
             <_connection source="JOINT_ANGLES[0][2]" target="L3A_R1Rot.INPUT"/>
@@ -234,7 +234,6 @@
             <connection delay="3" source="S2_T1.OUTPUT" target="M_S2.INPUT2"/>
             <description/>
             <input _x="24" _y="264" name="JOINT_ANGLES"/>
-            
             <module _x="72" _y="192" class="Constant" data="0" name="ZERO" outputsize="1"/>
             <module _x="216" _y="264" class="Constant" data="  1, 0, 0, 0.021;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="L1_T1"/>
             <module _x="168" _y="336" class="RotationConverter" input_format="axayaz" name="L1_R1_C" output_format="matrix">
@@ -468,7 +467,7 @@
             <widget _index_="8" _x="648" _y="768" class="table" colorize="true" decimals="1" direction="normal" frame-style="" height="697" label_x="" label_y="" max="1" min="0" name="Widget_5" scrollable="false" select="" show_frame="false" show_title="true" source="EGO_POINTS" style="" title="EGO_POINTS" width="433"/>
             <widget _index_="10" _x="1392" _y="480" class="table" colorize="true" decimals="1" direction="normal" frame-style="" height="121" label_x="" label_y="" max="1" min="0" name="Widget_6" scrollable="false" select="" show_frame="false" show_title="true" source="M_L3B_R1.OUTPUT" style="" title="M_L3B_R1" width="265"/>
          </group>
-         <group L1_R1RotData="0, 0, 90" L6_T1Data="  1, 0, 0, 0.202;  0, 1, 0, 0.005;  0, 0, 1, 0.018;  0, 0, 0, 1  " P1_T1Data="     1, 0, 0, 0.187379;  0, 1, 0, -0.013035;  0, 0, 1, -0.02169;  0, 0, 0, 1" _x="312" _y="384" external="/Users/birger/Code/ikaros/Robots/Epi/ForwardModel/EpiArmForwardModel.ikg" name="LeftArm">
+         <group L1_R1RotData="0, 0, 90" L6_T1Data="  1, 0, 0, 0.202;  0, 1, 0, 0.005;  0, 0, 1, 0.018;  0, 0, 0, 1  " P1_T1Data="     1, 0, 0, 0.187379;  0, 1, 0, -0.013035;  0, 0, 1, -0.02169;  0, 0, 0, 1" _x="312" _y="384" name="LeftArm">
             <_connection source="JOINT_ANGLES[0][0]" target="L1_R3Rot.INPUT"/>
             <_connection source="JOINT_ANGLES[0][1]" target="L2_R1Rot.INPUT"/>
             <_connection source="JOINT_ANGLES[0][2]" target="L3_R1Rot.INPUT"/>
@@ -847,7 +846,7 @@
             <output _x="1464" _y="240" name="EGO_POINTS"/>
             <widget _index_="0" _x="1176" _y="24" class="table" colorize="true" decimals="2" direction="normal" frame-style="" height="97" label_x="" label_y="" max="1" min="0" name="Widget_1" scrollable="false" select="" show_frame="false" show_title="true" source="EGO_POINTS" style="" title="Ego points" width="457"/>
          </group>
-         <group L1_R1RotData="0, 0, -90" L6_T1Data="  1, 0, 0, 0.202;  0, 1, 0, 0.005;  0, 0, 1, -0.018;  0, 0, 0, 1  " P1_T1Data="     1, 0, 0, 0.187379;  0, 1, 0, -0.013035;  0, 0, 1, 0.02169;  0, 0, 0, 1" _x="312" _y="480" external="/Users/birger/Code/ikaros/Robots/Epi/ForwardModel/EpiArmForwardModel.ikg" name="RightArm">
+         <group L1_R1RotData="0, 0, -90" L6_T1Data="  1, 0, 0, 0.202;  0, 1, 0, 0.005;  0, 0, 1, -0.018;  0, 0, 0, 1  " P1_T1Data="     1, 0, 0, 0.187379;  0, 1, 0, -0.013035;  0, 0, 1, 0.02169;  0, 0, 0, 1" _x="312" _y="480" name="RightArm">
             <_connection source="JOINT_ANGLES[0][0]" target="L1_R3Rot.INPUT"/>
             <_connection source="JOINT_ANGLES[0][1]" target="L2_R1Rot.INPUT"/>
             <_connection source="JOINT_ANGLES[0][2]" target="L3_R1Rot.INPUT"/>
@@ -1291,7 +1290,7 @@
          <widget _index_="0" _x="960" _y="48" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="73" label_x="" label_y="" max="1" min="0" name="Widget_1" scrollable="false" select="" show_frame="false" show_title="true" source="PosBody.MATRIX" style="" title="PosBody" width="457"/>
          <widget _index_="2" _x="888" _y="192" class="table" colorize="true" decimals="2" direction="normal" frame-style="" height="625" label_x="" label_y="" max="1" min="0" name="Widget_2" scrollable="false" select="" show_frame="false" show_title="true" source="EXO_POINTS" style="" title="EXO_POINTS" width="649"/>
       </group>
-      <group _x="336" _y="48" external="/Users/birger/Code/ikaros/Robots/Epi/EpiMotor.ikg" name="Servos">
+      <group _x="336" _y="48" name="Servos">
          <_connectionmodule class="Gate" name="HeadPosition"/>
          <_connection size="1" source="SCFeedbackPosition.OUTPUT" sourceoffset="1" target="HeadPosition.INPUT"/>
          <_connection size="2" source="SCFeedbackPosition.OUTPUT" sourceoffset="2" target="EyePosition.INPUT"/>
@@ -1321,7 +1320,7 @@
             </files>
             <link class="ServoConnector"/>
          </module>
-         <module _log_level="8" _robot="EpiRed" _simulate="true" _x="336" _y="120" class="EpiServos" name="EpiServos" robot="@EpiName" simulate="@simulateRobot">
+         <module _robot="EpiRed" _simulate="true" _x="336" _y="120" class="EpiServos" name="EpiServos" robot="@EpiName" simulate="@simulateRobot">
             <example description="A simple example">
                <module class="EpiServo" name="EpiServo" robot="EpiWhite" simulate="true"/>
             </example>
@@ -1364,7 +1363,7 @@
          <widget _index_="2" _x="0" _y="384" class="table" colorize="true" decimals="1" direction="flip x/y" frame-style="" height="553" label_x="Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body" label_y="" max="1" min="0" name="Widget_2" scrollable="false" select="" show_frame="false" show_title="true" source="SCPosition.OUTPUT" style="" title="SC" width="289"/>
          <widget _index_="4" _x="456" _y="384" class="table" colorize="true" decimals="1" direction="flip x/y" frame-style="" height="553" label_x="" label_y="" max="1" min="0" name="Widget_3" scrollable="false" select="" show_frame="false" show_title="true" source="SCFeedbackPosition.OUTPUT" style="" title="SC" width="169"/>
       </group>
-      <group VisionInput="@VisionInputLeft" VisionStream="http://lefteye.local:8080/stream/video.h264" _VisionInput="InputJPEG" _x="696" _y="288" external="/Users/birger/Code/ikaros/Robots/Epi/EpiVision.ikg" filename="NoCamera.jpg" name="LeftEye">
+      <group VisionInput="@VisionInputLeft" VisionStream="http://lefteye.local:8080/stream/video.h264" _VisionInput="InputJPEG" _x="696" _y="288" filename="NoCamera.jpg" name="LeftEye">
          <connection source="EYE.RED" target="FULL_RES_RED"/>
          <connection source="EYE.GREEN" target="FULL_RES_GREEN"/>
          <connection source="EYE.BLUE" target="FULL_RES_OUTPUT"/>
@@ -1378,14 +1377,14 @@
          <output _x="384" _y="240" name="FULL_RES_INTENSITY" source="EYE.INTENSITY"/>
          <widget _index_="0" _x="552" _y="72" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="rgb" frame-style="" height="385" index="" max="1" max_x="1" max_y="1" min="" min_x="0" min_y="0" module="" name="Widget_2" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="false" show_title="false" source="EYE.OUTPUT" style="" title="EYE" width="553"/>
       </group>
-      <group VisionInput="@VisionInputRight" VisionStream="http://Righteye.local:8080/stream/video.h264" _VisionInput="InputJPEG" _x="696" _y="120" external="/Users/birger/Code/ikaros/Robots/Epi/EpiVision.ikg" filename="NoCamera.jpg" name="RightEye">
+      <group VisionInput="@VisionInputRight" VisionStream="http://Righteye.local:8080/stream/video.h264" _VisionInput="InputJPEG" _x="696" _y="120" filename="NoCamera.jpg" name="RightEye">
          <connection source="EYE.RED" target="FULL_RES_OUTPUT"/>
          <connection source="EYE.GREEN" target="FULL_RES_GREEN"/>
          <connection source="EYE.BLUE" target="FULL_RES_BLUE"/>
          <connection source="EYE.INTENSITY" target="FULL_RES_INTENSITY"/>
          <connection delay="1" source="EYE.OUTPUT" target="FULL_RES_OUTPUT"/>
          <description/>
-         <module _class="@VisionInput" _size_x="640" _size_y="640" _x="96" _y="120" active="yes" class="InputJPEG" filename="NoCamera.jpg" info="false" list_devices="true" log_level="0" name="EYE" size_x="1280" size_y="720" syncronized_tick="false" url="@VisionStream" uv4l="true">
+         <module _class="@VisionInput" _size_x="640" _size_y="640" _x="96" _y="120" active="yes" class="InputJPEG" filename="NoCamera.jpg" info="false" list_devices="true" name="EYE" size_x="1280" size_y="720" syncronized_tick="false" url="@VisionStream" uv4l="true">
             <limitation/>
          </module>
          <output _x="288" _y="192" name="FULL_RES_OUTPUT"/>
@@ -1403,8 +1402,8 @@
       <group _x="312" _y="648" name="EpiOrange" robotType="Torso"/>
       <group _x="768" _y="648" name="EpiPink" robotType="Torso"/>
       <group _x="768" _y="648" name="Settings" type=".Epi.@EpiName.@robotType">
-         <group Body_L1_T1_data="   1, 0, 0, 0.697;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1   " Body_L2_T1_data="   1, 0, 0, 0.244;   0, 1, 0, 0;   0, 0, 1, 0.023;   0, 0, 0, 1" models_robot_view="" name="Full"/>
-         <group Body_L1_T1_data="   1, 0, 0, 0;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1   " Body_L2_T1_data="   1, 0, 0, 0.044;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1" models_robot_view="" name="Torso"/>
+         <group Body_L1_T1_data="   1, 0, 0, 0.697;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1   " Body_L2_T1_data="   1, 0, 0, 0.244;   0, 1, 0, 0;   0, 0, 1, 0.023;   0, 0, 0, 1" models_robot_view="Axis,Base,Torso,Axis,Head1,Head2,Eye,Eye,Pupil,Pupil,Axis,Axis,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftHand,LeftFingers,Axis,Axis,Axis,RightArm1,RightArm2,RightArm3,RightArm4,RightHand,RightFingers,Axis,Axis,Axis,Axis" name="Full"/>
+         <group Body_L1_T1_data="   1, 0, 0, 0;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1   " Body_L2_T1_data="   1, 0, 0, 0.044;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1" models_robot_view="Axis,TorsoHead,None,None,Head1,Head2,Eye,Eye,Axis,LaserBeam,LaserBeam,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis" name="Torso"/>
       </group>
       <input _x="24" _y="72" name="GOAL_POSITION"/>
       <input _x="24" _y="120" name="TORQUE_ENABLE"/>
@@ -1463,8 +1462,8 @@
       <widget _index_="2" _x="72" _y="96" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="193" label_x="" label_y="" max="1" min="" name="Widget_2" scrollable="false" select="" show_frame="false" show_title="false" source="PositionExo.OUTPUT" style="" title="Widget_1" width="241"/>
       <widget _index_="4" _x="912" _y="408" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="200" label_x="" label_y="" max="1" min="" name="Widget_3" scrollable="false" select="" show_frame="false" show_title="false" source="EpiPositionExo.MATRIX" style="" title="Epi position" width="200"/>
    </group>
-   <module _x="168" _y="144" channel_mode="0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  0, 0, 0, 0,     0, 0, 0,  0,      0" channels="28" class="SequenceRecorder" default_output="0, 0, 0, 0, 12, 12,  0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  1, 1, 0, 0.5,   1, 1, 0,   0.6,   -1" filename="untitled.json" internal_control="0, 0, 0, 0, 1, 1,    0, 0, 0, 0, 0, 1,   0, 0, 0, 0, 0, 1,  0,  1, 1, 1, 1,     1, 1, 1,   1,      1" interpolation="1, 1, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1,  1,  1, 1, 1, 1,     1, 1, 1,   1,      0" name="SR" positions="0, 0, 0, 0, 12, 12,  0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  1, 1, 0, 0.5,   1, 1, 0,   0.6,   -1" range_max=" 180,  180,  180,  180, 20, 20,    180,  180,  180,  180,  180,  180,    180,  180,  180,  180,  180,  180,    180,  1, 1, 1, 1,  1, 1, 1, 1,  35" range_min="-180, -180, -180, -180, 5, 5,     -180, -180, -180, -180, -180, -180,   -180, -180, -180, -180, -180, -180,   -180,  0, 0, 0, 0,  0, 0, 0, 0,  -1" smoothing_time="0" state="0, 2, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1,  1,  1, 1, 1, 1,     1, 1, 1,   1,      1"/>
-   <module _x="480" _y="360" class="OneHotVector" name="OneHotVector" output_size="34">
+   <module _x="24" _y="72" channel_mode="0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  0, 0, 0, 0,     0, 0, 0,  0,      0" channels="28" class="SequenceRecorder" default_output="0, 0, 0, 0, 12, 12,  0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  1, 1, 0, 0.5,   1, 1, 0,   0.6,   -1" filename="untitled.json" internal_control="0, 0, 0, 0, 1, 1,    0, 0, 0, 0, 0, 1,   0, 0, 0, 0, 0, 1,  0,  1, 1, 1, 1,     1, 1, 1,   1,      1" interpolation="1, 1, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1,  1,  1, 1, 1, 1,     1, 1, 1,   1,      0" name="SR" positions="0, 0, 0, 0, 12, 12,  0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  1, 1, 0, 0.5,   1, 1, 0,   0.6,   -1" range_max=" 180,  180,  180,  180, 20, 20,    180,  180,  180,  180,  180,  180,    180,  180,  180,  180,  180,  180,    180,  1, 1, 1, 1,  1, 1, 1, 1,  35" range_min="-180, -180, -180, -180, 5, 5,     -180, -180, -180, -180, -180, -180,   -180, -180, -180, -180, -180, -180,   -180,  0, 0, 0, 0,  0, 0, 0, 0,  -1" smoothing_time="0" state="0, 2, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1,  1,  1, 1, 1, 1,     1, 1, 1,   1,      1"/>
+   <module _x="288" _y="48" class="OneHotVector" name="OneHotVector" output_size="34">
       <example description="A simple example">
          <module class="OneHotVector" name="OneHotVector"/>
       </example>
@@ -1479,12 +1478,10 @@
          <table colorize="true" decimals="1" direction="normal" frame-style="" height="61" label_x="" label_y="" scrollable="false" show_frame="false" show_title="true" source=".OUTPUT" style="" title="Output" width="761" x="60" y="40"/>
       </view>
    </module>
-   <module _x="720" _y="336" class="Constant" data="0,0,0,0,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0" log_level="5" name="ManualGoalPosition"/>
-   <widget _index_="0" _x="744" _y="48" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="rgb" frame-style="" height="200" index="" max="1" max_x="1" max_y="1" min="" min_x="0" min_y="0" module="" name="Widget_2" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="false" show_title="true" source="Epi.LEFT_EYE_OUTPUT" style="" title="Left eye" width="200"/>
-   <widget _index_="2" _x="936" _y="48" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="rgb" frame-style="" height="200" index="" max="1" max_x="1" max_y="1" min="" min_x="0" min_y="0" module="" name="Widget_3" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="false" show_title="true" source="Epi.RIGHT_EYE_OUTPUT" style="" title="Right eye" width="200"/>
-   <widget _index_="4" _x="696" _y="600" auto="false" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200" labels="" lineCap="" lineJoin="" lineWidth="1" max="1" min="0" name="Widget_1" select="" show_frame="false" show_title="true" source="OneHotVector.OUTPUT" style="" title="Sound output" transpose="false" width="200"/>
-   <widget _index_="6" _models="Axis,Base,Torso,Axis,Head1,Head2,Eye,Eye,Pupil,Pupil,Axis,Axis,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftHand,LeftFingers,Axis,Axis,Axis,RightArm1,RightArm2,RightArm3,RightArm4,RightHand,RightFingers,Axis,Axis,Axis,Axis" _x="24" _y="408" camera_pos="2,2,2.4" camera_target="0,0,0" class="canvas3d" frame-style="" height="361" line="0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26" line_color="blue" look_at_X="0" look_at_Y="0.8" look_at_Z="0" matrix="Epi.ForwardModel.EXO_POINTS" models="Axis,TorsoHead,None,None,Head1,Head2,Eye,Eye,Axis,LaserBeam,LaserBeam,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis" name="Widget_233" point_color="black" point_size="0.1" robot="EpiBlack" robot_data="" show_axis="true" show_frame="false" show_ground_grid="true" show_lines="false" show_models="true" show_points="false" show_stats="false" show_title="false" style="" title="Epi" views="Home" width="409" x="20" y="0"/>
-   <widget _index_="8" _x="672" _y="360" class="epi-head" color="black" earColor="#0088ff" fill="white" frame-style="" gaze="-2.22" gazeSource="Epi.PRESENT_EYE_POSITION" headPosition="Epi.PRESENT_HEAD_POSITION" height="217" irisColor="#88aaff" irisLeftIntensity="" irisLeftRGB="LED.EYE_COLOR_F" irisRightIntensity="" irisRightRGB="LED.EYE_COLOR_F" motionRecorderInput="" mouthColor="#000000" mouthIntensity="" mouthRGB="LED.MOUTH_COLOR_F" name="Widget_222" pupil="0.5" pupilInMM="11.46" pupilLeftSource="Epi.PRESENT_PUPIL_POSITION" pupilRightSource="Epi.PRESENT_PUPIL_POSITION" show_frame="false" show_title="false" style="" title="Epi Head" vergence="-0.05" visibleFace="true" visibleFaceParameter="" visibleSource="" width="193" x="1380" y="20"/>
-   <widget _index_="10" _x="480" _y="456" class="table" colorize="true" decimals="4" direction="flip x/y" frame-style="" height="337" label_x="" label_y="" max="1" min="0" name="Widget_4" scrollable="true" select="" show_frame="false" show_title="true" source="Epi.PRESENT_POSITION" style="" title="Epi position" width="169"/>
-   <widget _index_="12" _x="912" _y="360" class="slider-horizontal" count="19" frame-style="" height="385" labels="Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body" max="90" min="-90" name="Widget_5" parameter="ManualGoalPosition.data" select="0" show_frame="false" show_title="false" show_values="true" source="ManualGoalPosition.OUTPUT" step="5" style="" title="ManualGoalPosition" width="361"/>
+   <module _x="456" _y="72" class="Constant" data="0,0,0,0,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0" name="ManualGoalPosition"/>
+   <widget _index_="0" _x="648" _y="48" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="rgb" frame-style="" height="289" index="" max="1" max_x="1" max_y="1" min="" min_x="0" min_y="0" module="" name="Widget_2" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="false" show_title="true" source="Epi.LEFT_EYE_OUTPUT" style="" title="Left eye" width="265"/>
+   <widget _index_="2" _x="912" _y="48" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="rgb" frame-style="" height="289" index="" max="1" max_x="1" max_y="1" min="" min_x="0" min_y="0" module="" name="Widget_3" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="false" show_title="true" source="Epi.RIGHT_EYE_OUTPUT" style="" title="Right eye" width="265"/>
+   <widget _index_="4" _models=".Epi.Settings.@type.@models_robot_view" _x="24" _y="408" camera_pos="2,2,2.4" camera_target="0,0,0" class="canvas3d" frame-style="" height="361" line="0,2,2,3,3,4,4,5,5,6,6,8,5,7,7,9,3,12,12,13,13,14,14,15,15,16,16,17,3,21,21,22,22,23,23,24,24,25,25,26" line_color="blue" look_at_X="0" look_at_Y="0.8" look_at_Z="0" matrix="Epi.ForwardModel.EXO_POINTS" models="Axis,TorsoHead,None,None,Head1,Head2,Eye,Eye,Axis,LaserBeam,LaserBeam,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis" name="Widget_233" point_color="black" point_size="0.1" robot="EpiBlack" robot_data="" show_axis="true" show_frame="false" show_ground_grid="true" show_lines="false" show_models="true" show_points="false" show_stats="false" show_title="false" style="" title="Epi" views="Home" width="409" x="20" y="0"/>
+   <widget _index_="6" _x="456" _y="408" class="epi-head" color="black" earColor="#0088ff" fill="white" frame-style="" gaze="-2.22" gazeSource="Epi.PRESENT_POSITION" headPosition="Epi.PRESENT_HEAD_POSITION" height="361" irisColor="#88aaff" irisLeftIntensity="" irisLeftRGB="LED.EYE_COLOR_F" irisRightIntensity="" irisRightRGB="LED.EYE_COLOR_F" motionRecorderInput="" mouthColor="#000000" mouthIntensity="" mouthRGB="LED.MOUTH_COLOR_F" name="Widget_222" pupil="0.5" pupilInMM="11.46" pupilLeftSource="Epi.PRESENT_PUPIL_POSITION" pupilRightSource="Epi.PRESENT_PUPIL_POSITION" show_frame="false" show_title="false" style="" title="Epi Head" vergence="-0.05" visibleFace="true" visibleFaceParameter="" visibleSource="" width="337" x="1380" y="20"/>
+   <widget _index_="8" _x="816" _y="384" class="slider-horizontal" count="19" frame-style="" height="385" labels="Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body" max="90" min="-90" name="Widget_5" parameter="ManualGoalPosition.data" select="0" show_frame="false" show_title="true" show_values="true" source="ManualGoalPosition.OUTPUT" step="5" style="" title="ManualGoalPosition DEBUG" width="361"/>
 </group>
