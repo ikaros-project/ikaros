@@ -58,7 +58,6 @@ public:
         FILE *infile;
         char fn[256];
         snprintf(fn, 256, std::string(filename).c_str(), cur_image);
-        std::cout << "fn: " << fn << std::endl;
 
         if ((infile = fopen(fn, "rb")) == NULL)
         {
@@ -101,9 +100,9 @@ public:
 
         filename = GetValue("filename");
 
-        std::cout << "size_x: " << size_x << std::endl;
-        std::cout << "size_y: " << size_y << std::endl;
-        std::cout << "Filename: " << filename << std::endl;
+        // std::cout << "size_x: " << size_x << std::endl;
+        // std::cout << "size_y: " << size_y << std::endl;
+        // std::cout << "Filename: " << filename << std::endl;
 
         int sx, sy;
         if (!GetImageSize(sx, sy) || sx * sy < 1)
@@ -113,9 +112,9 @@ public:
         }
         size_x = sx;
         size_y = sy;
-        std::cout << "size_x: " << size_x << std::endl;
-        std::cout << "size_y: " << size_y << std::endl;
-        std::cout << "Filename: " << filename << std::endl;
+        // std::cout << "size_x: " << size_x << std::endl;
+        // std::cout << "size_y: " << size_y << std::endl;
+        // std::cout << "Filename: " << filename << std::endl;
     }
 
     void
