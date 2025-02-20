@@ -1,7 +1,6 @@
 <class name="Transform" description="transforms a set of matrices">
     <parameter name="invert_1" type="bool" default="no" description="Should the transformation matrix in MATRIX_1 be inverted before use?"/>
     <parameter name="invert_2" type="bool" default="no" description="Should the transformation matrix in MATRIX_2 be inverted before use?"/>
-	<parameter name="input_length" type="number" default="1" description="Number of rows in the output. This should be the idetical to the input with the most rows"/>
  
 	<input name="MATRIX_1" description="A matrix where each row represents a 4x4 transformation matrix as 16 consecutive elements" />
 	<input name="OBJECT_ID_1" description="The object id for each of the rows in MATRIX_1" />
