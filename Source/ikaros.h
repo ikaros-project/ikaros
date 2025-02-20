@@ -54,15 +54,16 @@ const int run_mode_restart = 5;     // Kernel is restarting
 
 // Messages to use with Notify
 
-const int    msg_quiet		    =    0;
-const int    msg_exception		=    1;
-const int    msg_end_of_file	=    2;
-const int    msg_terminate		=    3;
-const int    msg_fatal_error	=    4;
-const int    msg_warning		=    5;
-const int    msg_print			=    6;
-const int    msg_debug          =    7;
-const int    msg_trace          =    8;
+const int    msg_inherit		=    0;     // Inherit message level from parent; same as if no level is set
+const int    msg_quiet		    =    1;
+const int    msg_exception		=    2;
+const int    msg_end_of_file	=    3;
+const int    msg_terminate		=    4;
+const int    msg_fatal_error	=    5;
+const int    msg_warning		=    6;
+const int    msg_print			=    7;
+const int    msg_debug          =    8;
+const int    msg_trace          =    9;
 
 
 using tick_count = long long int;
@@ -285,7 +286,7 @@ public:
 
     virtual int SetSizes(input_map ingoing_connections); // Sets input and output if possible
 
-    void CalculateCheckSum(long & check_sum, prime & prime_number); // Calculates a value that depends on all parameters and buffer sizes
+    void CalculateCheckSum(long & check_sum, prime & prime_number); // Calculates a value that depends on all parameters and buffer size
 
 };
 
@@ -492,6 +493,7 @@ public:
     void ListBuffers();
     void ListCircularBuffers();
     void ListParameters();
+    void ListTasks();
     void PrintLog();
 
     // Functions for creating the network
@@ -515,6 +517,9 @@ public:
     void SetCommandLineParameters(dictionary & d);
     void LoadFile();
     void Save();
+
+    void LogStart();
+    void LogStop();
 
     std::string json();
     std::string xml();
