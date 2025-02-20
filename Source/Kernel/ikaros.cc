@@ -605,6 +605,16 @@ namespace ikaros
 
 
 
+    int 
+    Component::GetIntValue(const std::string & name, int d)
+    {
+        std::string value = GetValue(name);
+        if(value.empty())
+            return d;
+        return std::stoi(value);
+    }
+
+
     std::string 
     Component::GetBind(const std::string & name)
     {
@@ -927,9 +937,6 @@ namespace ikaros
         for(auto output: info_["outputs"])
             AddOutput(output);
 
-        //if(!info_.contains("log_level"))
-        //    info_["log_level"] = "5";
-
     // Set parent
 
         auto p = path_.rfind('.');
@@ -941,14 +948,8 @@ namespace ikaros
     bool
     Component::Notify(int msg, std::string message, std::string path)
     {
-        int ll = msg_warning;
-        if(info_.contains("log_level"))
-            ll = info_["log_level"];
-
-        if(msg <= ll)
-        {
-             return kernel().Notify(msg, message, path);
-        }
+        if(msg <= GetIntValue("log_level", msg_warning))
+            return kernel().Notify(msg, message, path);
         return true;
     }
 
@@ -2690,11 +2691,7 @@ if(classes[classname].path.empty())
             std::cout << std::endl;
 
             if(msg <= msg_fatal_error)
-            {
-                    global_terminate = true;
-
-                    //run_mode = run_mode_quit;
-            }
+                global_terminate = true;
             return true;
         }
 
