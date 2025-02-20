@@ -248,6 +248,7 @@ public:
 
     Component * GetComponent(const std::string & s); // Get component; sensitive to variables and indirection
     std::string GetValue(const std::string & name);    // Get value of a attribute/variable in the context of this component
+    int GetIntValue(const std::string & name, int d=0);    // Get value of a key in the context of this component; return deflt if not found
 
     std::string GetBind(const std::string & name);
     std::string SubstituteVariables(const std::string & s);

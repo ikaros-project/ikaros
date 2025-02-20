@@ -195,6 +195,14 @@ namespace ikaros
                     (*dict_)[p.first] = p.second;
         }
         
+
+        void dictionary::erase(std::string key)
+        {
+            dict_->erase(key);
+        }
+
+
+
         int dictionary::get_index(std::string key) // Returns the index of the key in the dictionary
         {
             int index = 0;
