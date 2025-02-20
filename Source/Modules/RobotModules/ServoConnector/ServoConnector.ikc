@@ -1,46 +1,9 @@
-<?xml version="1.0"?>
-
 <class name="ServoConnector" description="organize servos">
-
-	<description type="text">
-
-	</description>
-
-	<example description="A simple example">
-		<module
-			class="ServoConnector"
-			name="ServoConnector"
-			connector   =   "1 2 2 3 3 4 5 8 8 10"
-			pre_inverted    =   "0 1 0 0 1 0 0 1 0 0 "
-			post_inverted    =   "0 1 0 0 1 0 0 1 0 0 "
-		/>
-	</example>
-
 	<parameter name="connector" type="matrix" default="" description="input to output connector" />
     <parameter name="pre_inverted"  type="matrix" default="" description="should the output be inverted?" />
     <parameter name="post_inverted"  type="matrix" default="" description="should the output be inverted?" />
 	<parameter name="offset"	type="matrix" default="" description="what is the origo" />
 	<parameter name="output_size" type="number" default="10" description="Number of output node" />
-
 	<input name="INPUT" description="Input" />
 	<output name="OUTPUT" description="Output" size="INPUT.size" />
-
-	
-
-
-	<link class="ServoConnector" />
-
-	<author>
-		<name>Birger Johansson</name>
-		<email>birger.johansson@lucs.lu.se</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage>http://www.birgerjohansson.com</homepage>
-	</author>
-
-   <files>
-   		<file>ServoConnector.h</file>
-   		<file>ServoConnector.cc</file>
-   		<file>ServoConnector.ikc</file>
-   </files>
-
 </class>

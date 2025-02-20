@@ -1,6 +1,5 @@
 <class name="MatrixMultiply" description="multiplies two matrices">
 	<input name="INPUT1" description="The first input" />
 	<input name="INPUT2" description="The second input" />
-	<_output name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x" description="The output" />	
-	<output name="OUTPUT" size="4,4" description="The output" flatten="true" />	
+	<output name="OUTPUT" size="4,4" description="The output" flatten="false" />	
 </class>
