@@ -619,8 +619,20 @@ namespace ikaros
             return value;
     }
 
-    std::string
-    Component::GetBind(const std::string &name)
+
+
+    int 
+    Component::GetIntValue(const std::string & name, int d)
+    {
+        std::string value = GetValue(name);
+        if(value.empty())
+            return d;
+        return std::stoi(value);
+    }
+
+
+    std::string 
+    Component::GetBind(const std::string & name)
     {
         if (info_.contains(name))
             return ""; // Value set in attribute - do not bind
@@ -916,10 +928,7 @@ namespace ikaros
         for (auto output : info_["outputs"])
             AddOutput(output);
 
-        // if(!info_.contains("log_level"))
-        //     info_["log_level"] = "5";
-
-        // Set parent
+    // Set parent
 
         auto p = path_.rfind('.');
         if (p != std::string::npos)
@@ -929,14 +938,8 @@ namespace ikaros
     bool
     Component::Notify(int msg, std::string message, std::string path)
     {
-        int ll = msg_warning;
-        if (info_.contains("log_level"))
-            ll = info_["log_level"];
-
-        if (msg <= ll)
-        {
+        if(msg <= GetIntValue("log_level", msg_warning))
             return kernel().Notify(msg, message, path);
-        }
         return true;
     }
 
@@ -1975,6 +1978,7 @@ namespace ikaros
         dictionary external(path);
         external["name"] = d["name"]; // FIXME: Just in case - check for errors later
         d.merge(external);
+        d.erase("external");
     }
 
     void
@@ -2591,7 +2595,19 @@ namespace ikaros
         {
             global_terminate = true;
 
-            // run_mode = run_mode_quit;
+            static std::mutex mtx;
+            std::lock_guard<std::mutex> lock(mtx); // Lock the mutex
+
+            log.push_back(Message(msg, message, path));
+
+            std::cout << "ikaros: " << message;
+            if(!path.empty())
+                std::cout  << " ("<<path << ")";
+            std::cout << std::endl;
+
+            if(msg <= msg_fatal_error)
+                global_terminate = true;
+            return true;
         }
         return true;
     }
@@ -2867,32 +2883,46 @@ namespace ikaros
         std::string sep = "";
         bool sent = false;
 
-        while (!data.empty())
+        //std::cout << "\nDoSendData: " << std::endl;
+        while(!data.empty())
         {
             std::string source = head(data, ",");
+            std::string key = source;
+
+
+            //std::cout << "\tsource: " << source << std::endl;
+            if(source.find("@") != std::string::npos && components.count(root) > 0)
+            {
+                Component * c = components[root]; // FIXME: Handle exceptions
+                source = c->GetValue(source);
+                //std::cout << "\t\t" << source << std::endl;
+            }
+
             std::string format = rtail(source, ":");
             std::string source_with_root = root + "." + source; // request.component_path
 
-            if (buffers.count(source_with_root))
+
+
+            if(buffers.count(source_with_root))
             {
                 if (format.empty())
                 {
-                    sent = socket->Send(sep + "\t\t\"" + source + "\": " + buffers[source_with_root].json());
+                    sent = socket->Send(sep + "\t\t\"" + key + "\": "+buffers[source_with_root].json());
                 }
-                else if (format == "rgb")
-                {
-                    sent = socket->Send(sep + "\t\t\"" + source + ":" + format + "\": ");
-                    SendImage(buffers[source_with_root], format);
+                else if(format=="rgb")
+                { 
+                        sent = socket->Send(sep + "\t\t\"" + key + ":"+format+"\": ");
+                        SendImage(buffers[source_with_root], format);
                 }
-                else if (format == "gray" || format == "red" || format == "green" || format == "blue" || format == "spectrum" || format == "fire")
-                {
-                    sent = socket->Send(sep + "\t\t\"" + source + ":" + format + "\": ");
-                    SendImage(buffers[source_with_root], format);
+                else if(format=="gray" || format=="red" || format=="green" || format=="blue" || format=="spectrum" || format=="fire")
+                { 
+                        sent = socket->Send(sep + "\t\t\"" + key + ":"+format+"\": ");
+                        SendImage(buffers[source_with_root], format);
                 }
             }
             else if (parameters.count(source_with_root))
             {
-                sent = socket->Send(sep + "\t\t\"" + source + "\": " + parameters[source_with_root].json());
+                sent = socket->Send(sep + "\t\t\"" + key + "\": "+parameters[source_with_root].json());
             }
             if (sent)
                 sep = ",\n";
@@ -3184,175 +3214,16 @@ namespace ikaros
         {
             std::cerr << e.what() << '\n';
         }
-        DoSendData(request);
+    DoSendData(request);
     }
 
-    /*
-        void
-        Kernel::AddWidget(Request & request) // FIXME: Local exception handling
-        {
-            std::cout << "AddWidget: " << std::endl;
-            auto view = GetView(request);
-            if(view["widgets"].is_null())
-                view["widgets"] = list();
-
-            list u = list(view["widgets"]);
-            u.push_back(request.parameters);
-
-
-            DoSendData(request);
-        }
-
-
-        void
-        Kernel::DeleteWidget(Request & request)
-        {
-            //std::cout << "DeleteWidget: "  << std::endl;
-
-            int index = std::stoi(request.parameters["index"]);
-            list view = list(GetView(request)["widgets"]);
-            view.erase(index);
-
-            int i=0;
-            for(auto & w : view)
-                w["_index_"] = i++;
-
-            DoSendData(request);
-        }
-
-
-        void
-        Kernel::SetWidgetParameters(Request & request)
-        {
-            //std::cout << "SetWidgetParameters: " << std::endl;
-
-            int index = request.parameters.get_int("_index_");
-            //list u = list(GetView(request)["widgets"]);
-            //u[index] = request.parameters;
-
-            DoSendData(request);
-        }
-
-
-        void
-        Kernel::WidgetToFront(Request & request)
-        {
-            //std::cout << "SetWidgetToFront: " << std::endl;
-
-            int index = request.parameters.get_int("index");
-
-            //list u = list(GetView(request)["widgets"]);
-
-            dictionary d = u[index];
-            u.erase(index);
-            u.push_back(d);
-
-            int i=0;
-            for(auto & item : u)
-                item["_index_"] = i++;
-
-
-            DoSendData(request);
-         }
-
-
-
-        void
-        Kernel::WidgetToBack(Request & request)
-        {
-            //std::cout << "SetWidgetToBack: " << std::endl;
-
-            int index = request.parameters.get_int("index");
-
-            list u = list(GetView(request)["widgets"]);
-
-            dictionary d = u[index];
-            u.erase(index);
-            u.insert_front(d);
-
-            int i=0;
-            for(auto & item : u)
-                item["_index_"] = i++;
-
-            DoSendData(request);
-        }
-        void
-        Kernel::RenameView(Request & request)
-        {
-            std::cout << "RenameView: " << std::endl;
-
-            dictionary u = GetView(request);
-            u["name"] = request.parameters["name"];
-
-            DoSendData(request);
-        }
-    */
-
-    /*
-        void
-        Kernel::DoAddGroup(Request & request)
-        {
-            //std::cout << "DoAddGroup: *** " << std::endl;
-
-            DoSendData(request);
-        }
-
-
-        void
-        Kernel::DoAddModule(Request & request)
-        {
-           // std::cout << "DoAddModule: *** " << std::endl;
-
-            DoSendData(request);
-        }
-
-
-
-
-        void
-        Kernel::DoSetAttribute(Request & request)
-        {
-           // std::cout << "DoSetAttribute: " << std::endl;
-
-            DoSendData(request);
-        }
-
-
-        void
-        Kernel::DoAddConnection(Request & request)
-        {
-            //std::cout << "DoAddConnection: " << std::endl;
-
-            DoSendData(request);
-        }
-
-
-        void
-        Kernel::DoSetRange(Request & request)
-        {
-            //std::cout << "DoSetRange: " << std::endl;
-
-            DoSendData(request);
-        }
-    */
 
     void
-    Kernel::DoUpdate(Request &request)
+    Kernel::DoUpdate(Request & request)
     {
-        if (request.session_id != session_id) // request.parameters.empty() ||  ( WAS not a data request - send network)
-        {
-            // std::cout << request.session_id << " " << session_id << std::endl;
+        if(request.session_id != session_id) // request.parameters.empty() ||  ( WAS not a data request - send network)
             DoSendNetwork(request);
-        }
-        /*
-        else if(run_mode == run_mode_play && session_id == request.session_id)
-        {
-            Pause();
-            Tick();
-            DoSendData(request);
-        }
-        */
-        else
+        else 
             DoSendData(request);
     }
 

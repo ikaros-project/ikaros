@@ -73,6 +73,8 @@ namespace ikaros
         bool empty() { return dict_->empty(); }
         void merge(const dictionary & source, bool overwrite=false); // shallow merge: copy from source to this
 
+        void erase(std::string key);
+
         operator std::string () const;
         
         int get_int(std::string s);
