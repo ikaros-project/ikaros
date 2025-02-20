@@ -279,7 +279,7 @@ let dialog =
         fetch('/files', {method: 'GET', headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id}})
         .then(response => {
             if (!response.ok) {
-                alert("ould not get file list from server.");
+                alert("Could not get file list from server.");
                 throw new Error("HTTP error " + response.status);
             }
             return response.json();
@@ -292,7 +292,7 @@ let dialog =
             this.window.showModal();
         })
         .catch(function () {
-            alert("ould not get file list from server.");
+            alert("Could not get file list from server.");
             console.log("Could not get file list from server.");
         })
     },
