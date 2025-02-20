@@ -1,4 +1,4 @@
-<group EpiName="EpiGreen" filename="" info="true" log_level="5" name="ExperimentalSetup" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27" simulateRobot="true" start="true" stop="-1" tick_duration="1" webui_port="8000">
+<group name="ExperimentalSetup" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27" simulateRobot="true" start="true" stop="-1" tick_duration="1" webui_port="8000">
    <_connection source="SR.OUTPUT[0:19]" target="Epi.GOAL_POSITION"/>
    <connection source="Epi.PRESENT_POSITION" target="SR.INPUT[0:19]"/>
    <connection source="SR.ACTIVE[0:19]" target="Epi.TORQUE_ENABLE"/>
@@ -71,7 +71,6 @@
          <connection delay="3" source="RightArm.EGO_POINTS" target="BodyRightArm.MATRIX_2"/>
          <connection delay="3" source="RightArmID.OUTPUT" target="BodyRightArm.OBJECT_ID_2"/>
          <connection delay="3" source="RightArmFrame.OUTPUT" target="BodyRightArm.FRAME_ID_2"/>
-         <description/>
          <group _x="120" _y="216" name="Body">
             <_connection source="JOINT_ANGLES" target="Print.INPUT"/>
             <_connection source="L1_R1.OUTPUT" target="EGO_POINTS[0:1][0:15]"/>
@@ -97,71 +96,21 @@
             <connection delay="3" source="L1_R2_C.OUTPUT" target="M_L1_R2.INPUT2"/>
             <connection delay="3" source="M_L1_R2.OUTPUT" target="M_L2_T1.INPUT1"/>
             <connection delay="3" source="L2_T1.OUTPUT" target="M_L2_T1.INPUT2"/>
-            <description/>
             <input _x="48" _y="528" name="JOINT_ANGLES"/>
             <module _x="192" _y="456" class="Constant" data=".Epi.Settings.@type.@Body_L1_T1_data" name="L1_T1"/>
             <module _x="432" _y="648" class="Constant" data=".Epi.Settings.@type.@Body_L2_T1_data" name="L2_T1"/>
             <module _x="96" _y="576" class="Constant" data="0" name="ZERO" outputsize="1"/>
             <module _x="72" _y="192" class="Constant" data="0, -90, 0" name="L1_R1Rot"/>
-            <module _x="216" _y="192" class="RotationConverter" input_format="axayaz" name="L1_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="216" _y="192" class="RotationConverter" input_format="axayaz" name="L1_R1_C" output_format="matrix"/>
             <module _x="336" _y="408" class="MatrixMultiply" name="M_L1_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module _x="336" _y="528" class="RotationConverter" input_format="axayaz" name="L1_R2_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="336" _y="528" class="RotationConverter" input_format="axayaz" name="L1_R2_C" output_format="matrix"/>
             <module _x="480" _y="480" class="MatrixMultiply" name="M_L1_R2">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="600" _y="624" class="MatrixMultiply" name="M_L2_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <output _x="816" _y="648" name="EGO_POINTS"/>
          </group>
@@ -223,223 +172,59 @@
             <connection delay="3" source="S1_T1.OUTPUT" target="M_S1.INPUT2"/>
             <connection delay="3" source="M_L4B_R1.OUTPUT" target="M_S2.INPUT1"/>
             <connection delay="3" source="S2_T1.OUTPUT" target="M_S2.INPUT2"/>
-            <description/>
             <input _x="24" _y="264" name="JOINT_ANGLES"/>
             <module _x="72" _y="192" class="Constant" data="0" name="ZERO" outputsize="1"/>
             <module _x="216" _y="264" class="Constant" data="  1, 0, 0, 0.021;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="L1_T1"/>
-            <module _x="168" _y="336" class="RotationConverter" input_format="axayaz" name="L1_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="168" _y="336" class="RotationConverter" input_format="axayaz" name="L1_R1_C" output_format="matrix"/>
             <module _x="312" _y="312" class="MatrixMultiply" name="M_L1_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
             </module>
             <module _x="360" _y="456" class="Constant" data="  1, 0, 0, 0.04;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="L2_T1"/>
             <module _x="432" _y="336" class="MatrixMultiply" name="M_L2_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module _x="456" _y="240" class="RotationConverter" input_format="axayaz" name="L2_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="456" _y="240" class="RotationConverter" input_format="axayaz" name="L2_R1_C" output_format="matrix"/>
             <module _x="600" _y="336" class="MatrixMultiply" name="M_L2_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="456" _y="96" class="Constant" data="     1, 0, 0, 0.052265;  0, 1, 0, 0.029071;  0, 0, 1, -0.065731;  0, 0, 0, 1  " name="L3A_T1"/>
             <module _x="576" _y="96" class="MatrixMultiply" name="M_L3A_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module _x="552" _y="0" class="RotationConverter" input_format="axayaz" name="L3A_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="552" _y="0" class="RotationConverter" input_format="axayaz" name="L3A_R1_C" output_format="matrix"/>
             <module _x="720" _y="96" class="MatrixMultiply" name="M_L3A_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="456" _y="576" class="Constant" data="  1, 0, 0, 0.052265;  0, 1, 0, -0.029071;  0, 0, 1, -0.065731;  0, 0, 0, 1  " name="L3B_T1"/>
             <module _x="576" _y="576" class="MatrixMultiply" name="M_L3B_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module _x="528" _y="696" class="RotationConverter" input_format="axayaz" name="L3B_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="528" _y="696" class="RotationConverter" input_format="axayaz" name="L3B_R1_C" output_format="matrix"/>
             <module _x="720" _y="576" class="MatrixMultiply" name="M_L3B_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="816" _y="336" class="Constant" data="  1, 0, 0, 0.024;  0, 1, 0, 0;  0, 0, 1, -0.025;  0, 0, 0, 1  " name="L4_T1"/>
             <module _x="864" _y="96" class="MatrixMultiply" name="M_L4A_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="864" _y="576" class="MatrixMultiply" name="M_L4B_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="744" _y="0" class="Constant" data="90" name="L4_R1Rot"/>
-            <module _x="864" _y="0" class="RotationConverter" input_format="axayaz" name="L4_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="864" _y="0" class="RotationConverter" input_format="axayaz" name="L4_R1_C" output_format="matrix"/>
             <module _x="1008" _y="96" class="MatrixMultiply" name="M_L4A_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="1008" _y="576" class="MatrixMultiply" name="M_L4B_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="1008" _y="0" class="Constant" data="  1, 0, 0, -0.005;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="S1_T1"/>
             <module _x="1152" _y="96" class="MatrixMultiply" name="M_S1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="1056" _y="696" class="Constant" data="  1, 0, 0, -0.005;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="S2_T1"/>
             <module _x="1152" _y="576" class="MatrixMultiply" name="M_S2">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <output _x="1224" _y="384" name="EGO_POINTS"/>
          </group>
@@ -517,307 +302,74 @@
             <connection delay="3" source="P2_T1.OUTPUT" target="M_P2_T1.INPUT2"/>
             <connection delay="3" source="M_L6_R1.OUTPUT" target="M_P3_T1.INPUT1"/>
             <connection delay="3" source="P3_T1.OUTPUT" target="M_P3_T1.INPUT2"/>
-            <description/>
             <input _x="0" _y="264" name="JOINT_ANGLES" target="L1_R3Rot.INPUT"/>
             <module _x="0" _y="312" class="Constant" data="0" name="ZERO" outputsize="1"/>
             <module _x="264" _y="120" class="Constant" data="@L1_R1RotData" name="L1_R1Rot"/>
-            <module _x="384" _y="120" class="RotationConverter" input_format="axayaz" name="L1_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="384" _y="120" class="RotationConverter" input_format="axayaz" name="L1_R1_C" output_format="matrix"/>
             <module _x="264" _y="216" class="Constant" data="90, 0, 0" name="L1_R2Rot"/>
-            <module _x="384" _y="216" class="RotationConverter" input_format="axayaz" name="L1_R2_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="384" _y="216" class="RotationConverter" input_format="axayaz" name="L1_R2_C" output_format="matrix"/>
             <module _x="528" _y="168" class="MatrixMultiply" name="M_L1_R2">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="552" _y="288" class="Constant" data="  1, 0, 0, 0.076;  0, 1, 0, -0.012;  0, 0, 1, 0;  0, 0, 0, 1  " name="L1_T1"/>
             <module _x="672" _y="168" class="MatrixMultiply" name="M_L1_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module _x="696" _y="288" class="RotationConverter" input_format="axayaz" name="L1_R3_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="696" _y="288" class="RotationConverter" input_format="axayaz" name="L1_R3_C" output_format="matrix"/>
             <module _x="816" _y="168" class="MatrixMultiply" name="M_L1_T_R3">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="144" _y="408" class="Constant" data="  1, 0, 0, 0.055;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="L2_T1"/>
             <module _x="264" _y="408" class="MatrixMultiply" name="M_L2_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module _x="288" _y="528" class="RotationConverter" input_format="axayaz" name="L2_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="288" _y="528" class="RotationConverter" input_format="axayaz" name="L2_R1_C" output_format="matrix"/>
             <module _x="408" _y="408" class="MatrixMultiply" name="M_L2_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="456" _y="528" class="Constant" data="  1, 0, 0, 0.089;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="L3_T1"/>
             <module _x="552" _y="408" class="MatrixMultiply" name="M_L3_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module _x="576" _y="528" class="RotationConverter" input_format="axayaz" name="L3_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="576" _y="528" class="RotationConverter" input_format="axayaz" name="L3_R1_C" output_format="matrix"/>
             <module _x="696" _y="408" class="MatrixMultiply" name="M_L3_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="720" _y="528" class="Constant" data="  1, 0, 0, 0.065;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="L4_T1"/>
             <module _x="840" _y="408" class="MatrixMultiply" name="M_L4_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module _x="864" _y="528" class="RotationConverter" input_format="axayaz" name="L4_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="864" _y="528" class="RotationConverter" input_format="axayaz" name="L4_R1_C" output_format="matrix"/>
             <module _x="984" _y="408" class="MatrixMultiply" name="M_L4_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="1056" _y="552" class="Constant" data="  1, 0, 0, 0.077;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="L5_T1"/>
             <module _x="1128" _y="408" class="MatrixMultiply" name="M_L5_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module _x="1152" _y="312" class="RotationConverter" input_format="axayaz" name="L5_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="1152" _y="312" class="RotationConverter" input_format="axayaz" name="L5_R1_C" output_format="matrix"/>
             <module _x="1272" _y="408" class="MatrixMultiply" name="M_L5_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="1104" _y="168" class="Constant" data="@L6_T1Data" name="L6_T1"/>
             <module _x="1272" _y="528" class="MatrixMultiply" name="M_L6_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module _x="1128" _y="720" class="RotationConverter" input_format="axayaz" name="L6_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="1128" _y="720" class="RotationConverter" input_format="axayaz" name="L6_R1_C" output_format="matrix"/>
             <module _x="1272" _y="648" class="MatrixMultiply" name="M_L6_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="96" _y="720" class="Constant" data="@P1_T1Data" name="P1_T1"/>
             <module _x="240" _y="672" class="MatrixMultiply" name="M_P1_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="672" _y="96" class="Constant" data="1, 0, 0, 0.055; 0, 1, 0, -0.04; 0, 0, 1, 0; 0, 0, 0, 1" name="P2_T1"/>
             <module _x="816" _y="48" class="MatrixMultiply" name="M_P2_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="432" _y="720" class="Constant" data="  1, 0, 0, 0.055;  0, 1, 0, 0.04;  0, 0, 1, 0;  0, 0, 0, 1  " name="P3_T1"/>
             <module _x="552" _y="672" class="MatrixMultiply" name="M_P3_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <output _x="1464" _y="240" name="EGO_POINTS"/>
             <widget _index_="0" _x="1176" _y="24" class="table" colorize="true" decimals="2" direction="normal" frame-style="" height="97" label_x="" label_y="" max="1" min="0" name="Widget_1" scrollable="false" select="" show_frame="false" show_title="true" source="EGO_POINTS" style="" title="Ego points" width="457"/>
@@ -896,307 +448,74 @@
             <connection delay="3" source="P2_T1.OUTPUT" target="M_P2_T1.INPUT2"/>
             <connection delay="3" source="M_L6_R1.OUTPUT" target="M_P3_T1.INPUT1"/>
             <connection delay="3" source="P3_T1.OUTPUT" target="M_P3_T1.INPUT2"/>
-            <description/>
             <input name="JOINT_ANGLES" target="L1_R3Rot.INPUT"/>
             <module class="Constant" data="0" name="ZERO" outputsize="1"/>
             <module class="Constant" data="@L1_R1RotData" name="L1_R1Rot"/>
-            <module class="RotationConverter" input_format="axayaz" name="L1_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module class="RotationConverter" input_format="axayaz" name="L1_R1_C" output_format="matrix"/>
             <module class="Constant" data="90, 0, 0" name="L1_R2Rot"/>
-            <module class="RotationConverter" input_format="axayaz" name="L1_R2_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module class="RotationConverter" input_format="axayaz" name="L1_R2_C" output_format="matrix"/>
             <module class="MatrixMultiply" name="M_L1_R2">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module class="Constant" data="  1, 0, 0, 0.076;  0, 1, 0, -0.012;  0, 0, 1, 0;  0, 0, 0, 1  " name="L1_T1"/>
             <module class="MatrixMultiply" name="M_L1_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module class="RotationConverter" input_format="axayaz" name="L1_R3_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module class="RotationConverter" input_format="axayaz" name="L1_R3_C" output_format="matrix"/>
             <module class="MatrixMultiply" name="M_L1_T_R3">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module class="Constant" data="  1, 0, 0, 0.055;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="L2_T1"/>
             <module class="MatrixMultiply" name="M_L2_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module class="RotationConverter" input_format="axayaz" name="L2_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module class="RotationConverter" input_format="axayaz" name="L2_R1_C" output_format="matrix"/>
             <module class="MatrixMultiply" name="M_L2_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module class="Constant" data="  1, 0, 0, 0.089;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="L3_T1"/>
             <module class="MatrixMultiply" name="M_L3_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module class="RotationConverter" input_format="axayaz" name="L3_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module class="RotationConverter" input_format="axayaz" name="L3_R1_C" output_format="matrix"/>
             <module class="MatrixMultiply" name="M_L3_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module class="Constant" data="  1, 0, 0, 0.065;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="L4_T1"/>
             <module class="MatrixMultiply" name="M_L4_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module class="RotationConverter" input_format="axayaz" name="L4_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module class="RotationConverter" input_format="axayaz" name="L4_R1_C" output_format="matrix"/>
             <module class="MatrixMultiply" name="M_L4_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module class="Constant" data="  1, 0, 0, 0.077;  0, 1, 0, 0;  0, 0, 1, 0;  0, 0, 0, 1  " name="L5_T1"/>
             <module class="MatrixMultiply" name="M_L5_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module _x="456" _y="336" class="RotationConverter" input_format="axayaz" name="L5_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="456" _y="336" class="RotationConverter" input_format="axayaz" name="L5_R1_C" output_format="matrix"/>
             <module _x="768" _y="192" class="MatrixMultiply" name="M_L5_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="576" _y="168" class="Constant" data="@L6_T1Data" name="L6_T1"/>
             <module _x="600" _y="624" class="MatrixMultiply" name="M_L6_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
-            <module _x="456" _y="240" class="RotationConverter" input_format="axayaz" name="L6_R1_C" output_format="matrix">
-               <example description="A simple example">
-                  <module class="RotationConverter" input_format="xyz" name="RotationConverter" output_format="matrix"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <limitation/>
-               <link class="RotationConverter"/>
-            </module>
+            <module _x="456" _y="240" class="RotationConverter" input_format="axayaz" name="L6_R1_C" output_format="matrix"/>
             <module _x="168" _y="480" class="MatrixMultiply" name="M_L6_R1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="96" _y="528" class="Constant" data="@P1_T1Data" name="P1_T1"/>
             <module _x="312" _y="480" class="MatrixMultiply" name="M_P1_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="360" _y="408" class="Constant" data="  1, 0, 0, 0.055;  0, 1, 0, -0.04;  0, 0, 1, 0;  0, 0, 0, 1  " name="P2_T1"/>
             <module _x="744" _y="432" class="MatrixMultiply" name="M_P2_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <module _x="552" _y="312" class="Constant" data="  1, 0, 0, 0.055;  0, 1, 0, 0.04;  0, 0, 1, 0;  0, 0, 0, 1  " name="P3_T1"/>
             <module _x="384" _y="240" class="MatrixMultiply" name="M_P3_T1">
                <_output description="The output" name="OUTPUT" size="INPUT1.size_y,INPUT2.size_x"/>
-               <example description="A simple example">
-                  <module class="MatrixMultiply" name="MatrixMultiply"/>
-               </example>
-               <files>
-                  <file/>
-                  <file/>
-                  <file/>
-               </files>
-               <link class="MatrixMultiply"/>
             </module>
             <output name="EGO_POINTS"/>
          </group>
@@ -1216,50 +535,10 @@
          <module _x="504" _y="192" class="Constant" data=" 3,  3,  3,  3,  3,  3,  3,  3,  3" name="LeftArmFrame"/>
          <module _x="504" _y="408" class="Constant" data="30, 31, 32, 33, 34, 35, 36, 37, 38" name="RightArmID"/>
          <module _x="504" _y="456" class="Constant" data=" 3,  3,  3,  3,  3,  3,  3,  3,  3" name="RightArmFrame"/>
-         <module _x="336" _y="120" class="Transform" input_length="3" name="PosBody">
-            <example description="A simple example">
-               <module class="Transform" name="Transform"/>
-            </example>
-            <files>
-               <file/>
-               <file/>
-               <file/>
-            </files>
-            <link class="Transform"/>
-         </module>
-         <module _x="648" _y="576" class="Transform" input_length="8" name="BodyHead">
-            <example description="A simple example">
-               <module class="Transform" name="Transform"/>
-            </example>
-            <files>
-               <file/>
-               <file/>
-               <file/>
-            </files>
-            <link class="Transform"/>
-         </module>
-         <module _x="648" _y="48" class="Transform" input_length="9" name="BodyLeftArm">
-            <example description="A simple example">
-               <module class="Transform" name="Transform"/>
-            </example>
-            <files>
-               <file/>
-               <file/>
-               <file/>
-            </files>
-            <link class="Transform"/>
-         </module>
-         <module _x="648" _y="312" class="Transform" input_length="9" name="BodyRightArm">
-            <example description="A simple example">
-               <module class="Transform" name="Transform"/>
-            </example>
-            <files>
-               <file/>
-               <file/>
-               <file/>
-            </files>
-            <link class="Transform"/>
-         </module>
+         <module _x="336" _y="120" class="Transform" input_length="3" name="PosBody"/>
+         <module _x="648" _y="576" class="Transform" input_length="8" name="BodyHead"/>
+         <module _x="648" _y="48" class="Transform" input_length="9" name="BodyLeftArm"/>
+         <module _x="648" _y="312" class="Transform" input_length="9" name="BodyRightArm"/>
          <output _x="1008" _y="120" name="EXO_POINTS"/>
          <output _x="192" _y="768" name="OBJECT_ID"/>
          <output _x="192" _y="720" name="FRAME_ID" source="ForwardModelFrameID.OUTPUT"/>
@@ -1345,7 +624,6 @@
          <connection source="EYE.BLUE" target="FULL_RES_OUTPUT"/>
          <connection source="EYE.INTENSITY" target="FULL_RES_INTENSITY"/>
          <connection delay="1" source="EYE.OUTPUT" target="FULL_RES_OUTPUT"/>
-         <description/>
          <module _class="@VisionInput" _size_x="640" _size_y="640" _x="72" _y="96" active="yes" class="InputJPEG" filename="NoCamera.jpg" info="false" list_devices="true" name="EYE" size_x="1280" size_y="720" syncronized_tick="false" url="@VisionStream" uv4l="true">
             <limitation/>
          </module>
@@ -1359,7 +637,6 @@
          <connection source="EYE.BLUE" target="FULL_RES_BLUE"/>
          <connection source="EYE.INTENSITY" target="FULL_RES_INTENSITY"/>
          <connection delay="1" source="EYE.OUTPUT" target="FULL_RES_OUTPUT"/>
-         <description/>
          <module _class="@VisionInput" _size_x="640" _size_y="640" _x="96" _y="120" active="yes" class="InputJPEG" filename="NoCamera.jpg" info="false" list_devices="true" name="EYE" size_x="1280" size_y="720" syncronized_tick="false" url="@VisionStream" uv4l="true">
             <limitation/>
          </module>
@@ -1404,7 +681,21 @@
       <output _x="912" _y="312" name="RIGHT_EYE_OUTPUT"/>
    </group>
    <module _x="24" _y="72" channel_mode="0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  0, 0, 0, 0,     0, 0, 0,  0,      0" channels="28" class="SequenceRecorder" default_output="0, 0, 0, 0, 12, 12,  0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  1, 1, 0, 0.5,   1, 1, 0,   0.6,   -1" filename="untitled.json" internal_control="0, 0, 0, 0, 1, 1,    0, 0, 0, 0, 0, 1,   0, 0, 0, 0, 0, 1,  0,  1, 1, 1, 1,     1, 1, 1,   1,      1" interpolation="1, 1, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1,  1,  1, 1, 1, 1,     1, 1, 1,   1,      0" name="SR" positions="0, 0, 0, 0, 12, 12,  0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  1, 1, 0, 0.5,   1, 1, 0,   0.6,   -1" range_max=" 180,  180,  180,  180, 20, 20,    180,  180,  180,  180,  180,  180,    180,  180,  180,  180,  180,  180,    180,  1, 1, 1, 1,  1, 1, 1, 1,  35" range_min="-180, -180, -180, -180, 5, 5,     -180, -180, -180, -180, -180, -180,   -180, -180, -180, -180, -180, -180,   -180,  0, 0, 0, 0,  0, 0, 0, 0,  -1" smoothing_time="0" state="0, 2, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1,  1,  1, 1, 1, 1,     1, 1, 1,   1,      1"/>
-   <module _x="288" _y="48" class="OneHotVector" name="OneHotVector" output_size="34"/>
+   <module _x="288" _y="48" class="OneHotVector" name="OneHotVector" output_size="34">
+      <example description="A simple example">
+         <module class="OneHotVector" name="OneHotVector"/>
+      </example>
+      <files>
+         <file/>
+         <file/>
+         <file/>
+      </files>
+      <link class="OneHotVector"/>
+      <view name="View">
+         <bar-graph auto="false" color="" direction="vertical" fill="" frame-style="" height="261" labels="" lineCap="" lineJoin="" lineWidth="1" max="1" min="0" show_frame="false" show_title="true" source=".OUTPUT" style="" title="Output" transpose="false" width="761" x="60" y="100"/>
+         <table colorize="true" decimals="1" direction="normal" frame-style="" height="61" label_x="" label_y="" scrollable="false" show_frame="false" show_title="true" source=".OUTPUT" style="" title="Output" width="761" x="60" y="40"/>
+      </view>
+   </module>
    <module _x="456" _y="72" class="Constant" data="0,0,0,0,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0" name="ManualGoalPosition"/>
    <widget _index_="0" _x="648" _y="48" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="rgb" frame-style="" height="289" index="" max="1" max_x="1" max_y="1" min="" min_x="0" min_y="0" module="" name="Widget_2" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="false" show_title="true" source="Epi.LEFT_EYE_OUTPUT" style="" title="Left eye" width="265"/>
    <widget _index_="2" _x="912" _y="48" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="rgb" frame-style="" height="289" index="" max="1" max_x="1" max_y="1" min="" min_x="0" min_y="0" module="" name="Widget_3" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="false" show_title="true" source="Epi.RIGHT_EYE_OUTPUT" style="" title="Right eye" width="265"/>
