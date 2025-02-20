@@ -165,7 +165,6 @@ public:
     }
 };
 
-
 //
 // MESSAGE
 //
@@ -211,7 +210,6 @@ public:
 
     // Shortcut function for messages and logging
 
-
     bool Print(std::string message, std::string path="") { return Notify(msg_print, message, path); }
     bool Error(std::string message, std::string path="") { return Notify(msg_fatal_error, message, path); }
     bool Warning(std::string message, std::string path="") { return Notify(msg_warning, message, path); }
@@ -233,7 +231,8 @@ public:
     virtual void Tick() {}
     virtual void Init() {}
 
-    virtual void Command(std::string command_name, dictionary & parameters) {
+    virtual void Command(std::string command_name, dictionary & parameters)
+    {
         std::cout << "Received command: \n";
         parameters.print();
 

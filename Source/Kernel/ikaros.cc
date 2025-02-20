@@ -2177,7 +2177,6 @@ if(classes[classname].path.empty())
     }
 
 
-
     void 
     Kernel::CalculateCheckSum()
     {
@@ -2525,7 +2524,7 @@ if(classes[classname].path.empty())
             task_map[s] = c; // Save in task map
         }
 
-        for(auto & c : connections) // ONLY ZERO CONNECTIONS
+        for(auto & c : connections) // Only zero-delay connections are sorted into tasks
         if(c.delay_range_.is_delay_0())
             {
                 std::string s = peek_rhead(c.source,".");
@@ -2600,18 +2599,15 @@ if(classes[classname].path.empty())
     }
 
 
-
     void
     Kernel::SetUp()
     {
         try
         {
-
-
+            PruneConnections();
             SortTasks();
             ResolveParameters();
             //ListParameters();
-            PruneConnections();
             CalculateDelays();
             CalculateSizes();
             //ListConnections();
