@@ -67,9 +67,7 @@ class Transform : public Module
 
     void Tick()
     {
-        std::cout << path_ << std::endl;
-        std::cout << "TICK" << std::endl;
-
+       
         // Reset input
         matrix_out.reset();
         object_id.reset();
