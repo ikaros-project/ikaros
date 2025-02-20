@@ -1974,7 +1974,7 @@ const inspector =
                     inspector.addAttributeValue("name", item.name);
                     inspector.addAttributeValue("class", item.class);
                 }
-                const alternatives = ["inherent", "quiet","exception","end_of_file","terminate","fatal_error","warning","print","debug","trace"];
+                const alternatives = ["inherit", "quiet","exception","end_of_file","terminate","fatal_error","warning","print","debug","trace"];
                 inspector.addMenu("log_level", alternatives[item.log_level], alternatives).addEventListener('change', function () { item.log_level=alternatives.indexOf(this.value); selector.setLogLevel(alternatives.indexOf(this.value)) });
 
                 break;

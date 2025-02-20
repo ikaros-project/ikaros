@@ -928,6 +928,15 @@ namespace ikaros
         if(info_["modules"].is_null())
             info_["modules"] = list();
 
+        // Add log_level parameter to all components
+
+            dictionary log_param;
+            log_param["_tag"] = "parameter";
+            log_param["name"] = "log_level";
+            log_param["type"] = "int";
+            log_param["default"] = 0;
+            info_["parameters"].push_back(log_param); // FIXME: Do we need to copy the dict?
+
         for(auto p: info_["parameters"])
             AddParameter(p);
 
@@ -1906,6 +1915,17 @@ bool operator==(Request & r, const std::string s)
     }
 
 
+    void
+    Kernel::ListTasks()
+    {
+        for(auto & task_group : tasks)
+        {
+            std::cout << "\nTasks:" << std::endl;
+            for(auto & task: task_group)
+                std::cout << "\t" << task->Info() << std::endl;
+        }
+    }
+
    void 
    Kernel::ListParameters()
     {
@@ -2221,6 +2241,25 @@ if(classes[classname].path.empty())
     }
 
 
+    void
+    Kernel::LogStart()
+    {
+        Socket socket;
+        char b[2048];
+        socket.Get("www.ikaros-project.org", 80, "GET /start3/ HTTP/1.1\r\nHost: www.ikaros-project.org\r\nConnection: close\r\n\r\n", b, 1024);
+        socket.Close();
+    }
+
+
+
+    void
+    Kernel::LogStop()
+    {
+        Socket socket;
+        char b[2048];
+        socket.Get("www.ikaros-project.org", 80, "GET /stop3/ HTTP/1.1\r\nHost: www.ikaros-project.org\r\nConnection: close\r\n\r\n", b, 1024);
+        socket.Close();
+    }
 
     void 
     Kernel::Propagate()
@@ -2592,8 +2631,10 @@ if(classes[classname].path.empty())
                 //ListOutputs();
                 ListBuffers();
                 ListCircularBuffers();
+                ListTasks();
             }
 
+            LogStart();
             //PrintLog();
         }
         catch(exception & e)
@@ -2776,11 +2817,11 @@ if(classes[classname].path.empty())
         tick = -1;
         timer.Pause();
         timer.SetPauseTime(0);
-
-        // FIXME: CLEAR AND MARK FOR RELOAD ********************
-
+        LogStop();
         Clear(); // Delete all modules
         needs_reload = true;
+
+
     }
 
 
