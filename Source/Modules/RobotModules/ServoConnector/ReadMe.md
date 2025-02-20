@@ -32,7 +32,6 @@ Organize servos
 |pre_inverted|Should the output be inverted?|array||
 |post_inverted|Should the output be inverted?|array||
 |offset|What is the origo|array||
-|output_size|Number of output node|int|10|
 
 <br><br>
 ## Long description

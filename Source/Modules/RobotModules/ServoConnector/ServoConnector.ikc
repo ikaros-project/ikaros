@@ -3,7 +3,6 @@
     <parameter name="pre_inverted"  type="matrix" default="" description="should the output be inverted?" />
     <parameter name="post_inverted"  type="matrix" default="" description="should the output be inverted?" />
 	<parameter name="offset"	type="matrix" default="" description="what is the origo" />
-	<parameter name="output_size" type="number" default="10" description="Number of output node" />
 	<input name="INPUT" description="Input" />
 	<output name="OUTPUT" description="Output" size="INPUT.size" />
 </class>
