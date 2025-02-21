@@ -1,3 +1,0 @@
-<group name="Test" >
-   <module class="Randomizer" description="outputs a random value" name="R" size="3,4,5" />
-</group>

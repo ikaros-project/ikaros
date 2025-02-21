@@ -2,10 +2,16 @@
 	<parameter name="NumberTransitions" description="Number of transitions to make" type="int" default="4"/>
 	<parameter name="MinLimits" default="114,153 " description="Minimum limits for the servos in degrees" type="matrix" />
 	<parameter name = "MaxLimits" default="237,219" description="Maximum limits for the servos in degrees" type="matrix" />
-	<parameter name="RobotType" default="Torso" description="Type of the robot" type="string" />
+	<parameter name="RobotType" default="Torso" description="Type of the robot" options="Torso, FullBody" type="string" control="meny" />
+	<parameter name ="ConsistencyTest" default="False" description="If true, the module will test the consistency of current for same transition" type="bool" />
+	<parameter name ="MinimumTorqueCurrentSearch" default="True" description="If true, the module will search for the minimum torque current" type="bool" />
+	<parameter name ="CurrentIncrement" default="2" description="Current increment for the transitions" type="int" />
  
-	<input name="PresentPosition" description=""/>
-	<input name="PresentCurrent" description="" />
+	<input name="PresentPosition" description="Present position of the robot" />
+	<input name="PresentCurrent" description="Present current of the robot" />
+	<input name ="GyroData" description="Gyro data (XYZ) degrees/s" />
+	<input name="AccelData" description="Accelerometer data (XYZ) m/s^2" />
+	<input name="EulerAngles" description="Euler angles (XYZ) degrees" />
 	<output name="GoalPosition" description="" size="PresentPosition.size"/>
 	<output name="GoalCurrent" description="" size="PresentCurrent.size"/>
 	<author>

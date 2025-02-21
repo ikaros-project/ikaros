@@ -1,5 +1,0 @@
-<class name="EnergyMeter" description="outputs a constant value">
-	<parameter name="address" type="string" default="192.168.33.1/status" description="address of smart plug" />
-	<output name="MEASURED_POWER" description="Current power consumption" size="1"/>
-	<output name="ENERGY" description="Accumulated power consumption" size="1"/>
-</class>

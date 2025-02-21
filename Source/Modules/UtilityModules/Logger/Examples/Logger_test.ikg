@@ -1,4 +1,0 @@
-<group name="Logger_Test">
-	<module class = "Logger" name = "Logger" />	
-</group>
-
