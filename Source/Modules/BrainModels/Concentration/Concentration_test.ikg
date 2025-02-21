@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<group name="Test">
+	<module
+		class = "Concentration"
+		name = "Concentration"
+	/>
+</group>
+ 
