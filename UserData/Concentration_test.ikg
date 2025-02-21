@@ -1,0 +1,23 @@
+<group filename="" info="true" name="Test" stop="-1" webui_port="8000">
+   <connection delay="1" source="Input.OUTPUT" target="Concentration.INPUT"/>
+   <module _x="168" _y="48" alpha="0.025" beta="0.001" class="Concentration" gamma="0.1" log_level="0" name="Concentration"/>
+   <module _x="24" _y="48" class="Constant" data="0" log_level="0" name="Input"/>
+   <parameter default="0" name="log_level" type="int" value="0"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <parameter default="0" name="log_level" type="int"/>
+   <widget _index_="0" _x="24" _y="144" buffer_size="500" class="plot" color="" direction="vertical" frame-style="" height="193" max="5" min="0" name="Widget_1" select="" show_frame="true" show_title="true" source="Concentration.OUTPUT" style="" title="Concentration" width="553"/>
+   <widget _index_="2" _x="24" _y="360" background="" class="button" color="" command="" commandUp="" enableSource="" file_names="" frame-style="" height="49" icon="" label="Increase" max="1" min="0" multiGroup="" name="Widget_2" parameter="Input.data" radioGroup="" select="" show_frame="false" show_title="false" source="" style="" title="Increase" type="push" value="1" valueUp="0" width="97" xindex="0" yindex="0"/>
+</group>

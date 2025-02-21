@@ -612,6 +612,7 @@ let controller =
     reconnect_timer: null,
     request_timer: null,
     open_mode: false,
+    data_package: {},   // for debugging
 
     reconnect()
     {
@@ -975,6 +976,7 @@ let controller =
 
         else if(package_type == "data")
         {
+            controller.data_package = response
             controller.setSystemInfo(response);
             controller.tick_duration = response.tick_duration || 0;
             if(response.has_data)
@@ -1137,7 +1139,13 @@ let controller =
             {
                 console.log("updateWidgets failed: "+controller.client_id);
             }
-    }
+    },
+
+    debug_data()
+    {
+        var w = window.open("about:blank", "", "_blank");
+        w.document.write('<html><body><pre>'+JSON.stringify(controller.data_package,null,2)+ '</pre></body></html>');
+    },
 }
 
 /*
@@ -1966,8 +1974,8 @@ const inspector =
                     inspector.addAttributeValue("name", item.name);
                     inspector.addAttributeValue("class", item.class);
                 }
-                const alternatives = ["quiet","exception","end_of_file","terminate","fatal_error","warning","print","debug","trace"];
-                inspector.addMenu("log_level", alternatives[item.log_level], alternatives).addEventListener('change', function () { item.log_level=alternatives.indexOf(this.value) });
+                const alternatives = ["inherit", "quiet","exception","end_of_file","terminate","fatal_error","warning","print","debug","trace"];
+                inspector.addMenu("log_level", alternatives[item.log_level], alternatives).addEventListener('change', function () { item.log_level=alternatives.indexOf(this.value); selector.setLogLevel(alternatives.indexOf(this.value)) });
 
                 break;
             
@@ -2264,7 +2272,7 @@ const main =
         {
             name:name,
             class:"Module",
-            log_level: 5,
+            log_level: 0,
             _tag:"module",
             _x:main.new_position_x,
             _y:main.new_position_y,

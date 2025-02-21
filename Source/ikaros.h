@@ -41,10 +41,6 @@ using namespace std::literals;
 
 namespace ikaros 
 {
-
-//const int run_mode_restart_pause = -2;
-//const int run_mode_restart_play = -3;
-//const int run_mode_restart_realtime = -4;
 const int run_mode_quit = 0;
 const int run_mode_stop = 1;        // Kernel does not run and accepts open/save/save_as/pause/realtime
 const int run_mode_pause = 2;       // Kernel is paused and accepts stop/step/realtime
@@ -54,21 +50,20 @@ const int run_mode_restart = 5;     // Kernel is restarting
 
 // Messages to use with Notify
 
-const int    msg_quiet		    =    0;
-const int    msg_exception		=    1;
-const int    msg_end_of_file	=    2;
-const int    msg_terminate		=    3;
-const int    msg_fatal_error	=    4;
-const int    msg_warning		=    5;
-const int    msg_print			=    6;
-const int    msg_debug          =    7;
-const int    msg_trace          =    8;
-
+const int    msg_inherit		=    0;     // Inherit message level from parent; same as if no level is set
+const int    msg_quiet		    =    1;
+const int    msg_exception		=    2;
+const int    msg_end_of_file	=    3;
+const int    msg_terminate		=    4;
+const int    msg_fatal_error	=    5;
+const int    msg_warning		=    6;
+const int    msg_print			=    7;
+const int    msg_debug          =    8;
+const int    msg_trace          =    9;
 
 using tick_count = long long int;
 
 std::string  validate_identifier(std::string s);
-
 
 class Component;
 class Module;
@@ -80,7 +75,7 @@ using input_map = const std::map<std::string,std::vector<Connection *>> &;
 Kernel& kernel();
 
 //
-// CIRCULAR BUFFER__
+// CIRCULAR BUFFER
 //
 
 class CircularBuffer
@@ -164,7 +159,6 @@ public:
     }
 };
 
-
 //
 // MESSAGE
 //
@@ -210,7 +204,6 @@ public:
 
     // Shortcut function for messages and logging
 
-
     bool Print(std::string message, std::string path="") { return Notify(msg_print, message, path); }
     bool Error(std::string message, std::string path="") { return Notify(msg_fatal_error, message, path); }
     bool Warning(std::string message, std::string path="") { return Notify(msg_warning, message, path); }
@@ -232,7 +225,8 @@ public:
     virtual void Tick() {}
     virtual void Init() {}
 
-    virtual void Command(std::string command_name, dictionary & parameters) {
+    virtual void Command(std::string command_name, dictionary & parameters)
+    {
         std::cout << "Received command: \n";
         parameters.print();
 
@@ -262,8 +256,6 @@ public:
     double EvaluateNumericalExpression(std::string & s);
 
     std::vector<int> EvaluateSizeList(std::string & s);
-    //std::vector<int> EvaluateSize(std::string & s);
-   // double EvaluateNumber(std::string v);
     bool EvaluateBool(std::string v);
     std::string EvaluateString(std::string v);
     std::string EvaluateMatrix(std::string v);
@@ -285,7 +277,7 @@ public:
 
     virtual int SetSizes(input_map ingoing_connections); // Sets input and output if possible
 
-    void CalculateCheckSum(long & check_sum, prime & prime_number); // Calculates a value that depends on all parameters and buffer sizes
+    void CalculateCheckSum(long & check_sum, prime & prime_number); // Calculates a value that depends on all parameters and buffer size
 
 };
 
@@ -305,13 +297,9 @@ public:
     Module();
     ~Module() {}
 
-    //int SetInputSize(std::string name, input_map ingoing_connections);
     int SetOutputSize(dictionary d, input_map ingoing_connections);
-
-    //int SetInputSizes(input_map ingoing_connections);
     int SetOutputSizes(input_map ingoing_connections); // Uses the size attribute
     int SetSizes(input_map  ingoing_connections); // Sets input and output if possible
-
 
     tick_count GetTick();
     double GetTickDuration();
@@ -492,6 +480,7 @@ public:
     void ListBuffers();
     void ListCircularBuffers();
     void ListParameters();
+    void ListTasks();
     void PrintLog();
 
     // Functions for creating the network
@@ -502,7 +491,7 @@ public:
     void SetParameter(std::string name, std::string value);
     void AddGroup(dictionary info, std::string path);
     void AddModule(dictionary info, std::string path);
-    void AddConnection(dictionary info, std::string path); // std::string souce, std::string target, std::string delay_range, std::string alias
+    void AddConnection(dictionary info, std::string path);
     void LoadExternalGroup(dictionary d);
     void BuildGroup(dictionary d, std::string path="");
 
@@ -515,6 +504,9 @@ public:
     void SetCommandLineParameters(dictionary & d);
     void LoadFile();
     void Save();
+
+    void LogStart();
+    void LogStop();
 
     std::string json();
     std::string xml();
