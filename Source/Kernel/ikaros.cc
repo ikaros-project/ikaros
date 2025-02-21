@@ -917,7 +917,7 @@ namespace ikaros
             log_param["name"] = "log_level";
             log_param["type"] = "number";
             log_param["control"] = "menu";
-            log_param["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
+            //log_param["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
             log_param["default"] = 0;
 
             info_["parameters"].push_back(log_param); // FIXME: Do we need to copy the dict?
