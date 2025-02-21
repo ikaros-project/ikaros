@@ -1,5 +1,0 @@
-<class name="OutputAudio" description="Plays audio received as input">
-    <input name="INPUT" description="Audio buffer to play"/>
-    <parameter name="sample_rate" type="int" default="44100" description="Sample rate of the audio" />
-    <parameter name="buffer_size" type="int" default="4096" description="Size of the audio buffer" />
-</class>
