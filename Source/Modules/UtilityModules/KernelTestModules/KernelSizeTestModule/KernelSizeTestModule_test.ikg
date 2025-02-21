@@ -1,7 +1,0 @@
-<group filename="" log_level="0" name="Test" stop="-1" webui_port="8000">
-   <module _x="144" _y="144" class="KernelSizeTestModule" description="used internally to test the ikaros kernel." log_level="6" name="KernelSizeTestModule" size="2">
-      <output description="The output" name="OUTPUT"/>
-   </module>
-</group>
-
-
