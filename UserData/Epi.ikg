@@ -1,4 +1,4 @@
-<group EpiName="EpiGreen" filename="" info="true" log_level="5" name="ExperimentalSetup" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27" simulateRobot="true" start="true" stop="-1" tick_duration="1" webui_port="8000">
+<group name="ExperimentalSetup" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27" epi_run_mode="robot" start="true" stop="-1" tick_duration="1" webui_port="8000">
    <_connection source="SR.OUTPUT[0:19]" target="Epi.GOAL_POSITION"/>
    <_connection source="SR.OUTPUT[19:21]" target="Epi.LED.EYE_COLOR[0:2]"/>
    <_connection source="SR.OUTPUT[22:22]" target="Epi.LED.EYE_INTENSITY[0]"/>
@@ -9,7 +9,7 @@
    <connection source="SR.ACTIVE[0:19]" target="Epi.TORQUE_ENABLE"/>
    <connection source="SR.OUTPUT[27]" target="OneHotVector.INPUT"/>
    <connection delay="1" source="ManualGoalPosition.OUTPUT" target="Epi.GOAL_POSITION"/>
-   <group VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG" _EpiName="EpiRed" _name="Epi" _simulateRobot="true" _x="264" _y="144" name="Epi" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27">
+   <group VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG" _x="264" _y="144" name="Epi" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27">
       <_connection source="Speek.OUTPUT" target="LED.SPEEKING"/>
       <_connection delay="3" source="EpiPositionExo.OBJECT_ID" target="ForwardModel.OBJECT_ID"/>
       <_group name="LED"/>
@@ -425,18 +425,7 @@
          <input _x="24" _y="120" name="GOAL_POSITION"/>
          <input _x="24" _y="192" name="TORQUE_ENABLE"/>
          <module _x="192" _y="96" class="ServoConnector" connector="  1,    2,    3,    4,    5,    6,       7,    8,    9,   10,   11,   12,      13,   14,   15,   16,   17,   18,       19" name="SCPosition" offset="180,  180,  180,  180,    0,    0,     180,  180,  180,  180,  225,  180,     180,  180,  180,  180,  135,  180,      180" output_size="@nrServosTotal" post_inverted="  0,    0,    0,    0,    0,    0,       0,    0,    0,    0,    0,    0,       0,    0,    0,    0,    0,    0,        0" pre_inverted="  0,    0,    0,    0,    0,    0,       0,    0,    0,    0,    0,    1,       0,    1,    0,    0,    0,    0,        1"/>
-         <module _robot="EpiRed" _simulate="true" _x="336" _y="120" class="EpiServos" name="EpiServos" robot="@EpiName" simulate="@simulateRobot">
-            <example description="A simple example">
-               <module class="EpiServo" name="EpiServo" robot="EpiWhite" simulate="true"/>
-            </example>
-            <files>
-               <file/>
-               <file/>
-               <file/>
-            </files>
-            <limitations/>
-            <link class="EpiServo"/>
-         </module>
+         <module _robot="EpiRed" _simulate="true" _x="336" _y="120" class="EpiServos" name="EpiServos" robot="@epi_name" simulate=".Epi.Settings.@epi_run_mode.@simulate_servo"/>
          <module _x="576" _y="96" class="ServoConnector" connector="   1,    2,    3,    4,    5,    6,      7,    8,    9,   10,   11,   12,      13,   14,   15,   16,   17,   18,      19" name="SCFeedbackPosition" offset="-180, -180, -180, -180,    0,    0,   -180, -180, -180, -180, -225, -180,    -180, -180, -180, -180, -135, -180,    -180" output_size="@nrServosTotal" post_inverted="   0,    0,    0,    0,    0,    0,      0,    0,    0,    0,    0,    1,       0,    1,    0,    0,    0,    0,       1" pre_inverted="   0,    0,    0,    0,    0,    0,      0,    0,    0,    0,    0,    0,       0,    0,    0,    0,    0,    0,       0"/>
          <module _x="576" _y="192" class="ServoConnector" connector="   1,    2,    3,    4,    5,    6,      7,    8,    9,   10,   11,   12,      13,   14,   15,   16,   17,   18,   19" name="SCFeedbackCurrent" offset="   0,    0,    0,    0,    0,    0,      0,    0,    0,    0,    0,    0,       0,    0,    0,    0,    0,    0,    0" output_size="@nrServosTotal" post_inverted="   0,    0,    0,    0,    0,    0,      0,    0,    0,    0,    0,    1,       0,    1,    0,    0,    0,    0,    1" pre_inverted="   0,    0,    0,    0,    0,    0,      0,    0,    0,    0,    0,    0,       0,    0,    0,    0,    0,    0,    0"/>
          <output _x="816" _y="192" name="PRESENT_POSITION"/>
@@ -498,15 +487,25 @@
       <group _x="768" _y="648" name="EpiPink" robotType="Torso">
          <parameter default="0" name="log_level" type="int" value="5.000000"/>
       </group>
-      <group _x="768" _y="648" name="Settings" type=".Epi.@EpiName.@robotType">
+      
+      <group _x="768" _y="648" name="Settings" type=".Epi.@epi_name.@robotType"  simulate_servo="false" VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG" >
          <group Body_L1_T1_data="   1, 0, 0, 0.697;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1   " Body_L2_T1_data="   1, 0, 0, 0.244;   0, 1, 0, 0;   0, 0, 1, 0.023;   0, 0, 0, 1" models_robot_view="Axis,Base,Torso,Axis,Head1,Head2,Eye,Eye,Pupil,Pupil,Axis,Axis,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftHand,LeftFingers,Axis,Axis,Axis,RightArm1,RightArm2,RightArm3,RightArm4,RightHand,RightFingers,Axis,Axis,Axis,Axis" name="Full">
-            <parameter default="0" name="log_level" type="int" value="5.000000"/>
          </group>
          <group Body_L1_T1_data="   1, 0, 0, 0;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1   " Body_L2_T1_data="   1, 0, 0, 0.044;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1" models_robot_view="Axis,TorsoHead,None,None,Head1,Head2,Eye,Eye,Axis,LaserBeam,LaserBeam,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis" name="Torso">
-            <parameter default="0" name="log_level" type="int" value="5.000000"/>
          </group>
-         <parameter default="0" name="log_level" type="int" value="5.000000"/>
+        
+        <!-- Different run moded of the robot -->
+        <group  name="simulate" simulate_servo="true" VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG"/>
+        <group  name="simulate_servo" simulate_servo="true" VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG"/>
+        <group  name="simulate_servos_and_vision_right" simulate_servo="false" VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG"/>
+        <group  name="simulate_servos_and_vision_left" simulate_servo="false" VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG"/>
+        <group  name="simulate_vision" simulate_servo="false" VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG"/>
+        <group  name="simulate_vision_right" simulate_servo="false" VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG"/>
+        <group  name="simulate_vision_left"  simulate_servo="false" VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG"/>
+        <group  name="robot" simulate_servo="false" VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG"/>
+
       </group>
+
       <input _x="24" _y="72" name="GOAL_POSITION"/>
       <input _x="24" _y="120" name="TORQUE_ENABLE"/>
       <module _x="216" _y="408" class="Constant" data="100" name="ExoID"/>
