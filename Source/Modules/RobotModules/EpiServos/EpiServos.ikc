@@ -49,11 +49,20 @@
 
 
     <!--<parameter name="robot" type="list" values="EpiWhite/EpiGreen/EpiBlue/EpiBlack" default="EpiWhite" descrition="Robot to connect to." />-->
-    <parameter name="robot" type="options" options="EpiWhite,EpiGreen,EpiBlue,EpiBlack,EpiRed" default="EpiWhite" descrition="Robot to connect to." />
+    <parameter name="robot" type="string" options="EpiWhite,EpiGreen,EpiBlue,EpiBlack,EpiRed" default="EpiWhite" descrition="Robot to connect to." />
 
 
 	<parameter name="simulate" type="bool" default="False" description="Simulation mode. No connecting is made to servos. The PRESENT POSITION output is calculated using previous position, goal position, maximum velocoty (no acceleration) and the time base of the simulation." />
-
+	<parameter name="MinLimitPosition" type="matrix" description="The minimum limit of the position in degrees of the servos. Not including pupils"
+	control="textedit"
+	default="122,142, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"
+	data="122,142, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"
+	/>
+	<parameter name="MaxLimitPosition" type="matrix" description="The maximum limit of the position of the servos in degrees. Not including pupils "
+	control="textedit"
+	default="237, 240, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"
+	data="237, 240, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"
+	/>
 	<input name="GOAL_POSITION" description="Goal position of the joints in degrees." />
 	<input name="GOAL_CURRENT" description="Goal current in mA. This is an optinal input and only used if the servo uses current-based position control mode" />
 	<input name="TORQUE_ENABLE" description="Enable servos. This is an optinal and not recomended input" />

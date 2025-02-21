@@ -1,8 +1,0 @@
-<class name="SCN" description="basic model of the suprachiasmatic nucleus">
-	<_parameter name="type" type="options" options="sin, square" default="sin" />
-	<parameter name="frequency" type="float" default="0.00001111111111" description="frequency in Hz (default=1/(25*60*60)" />
-	<input name="INPUT" description="The entrainment input" flatten="true" />
-	<output name="OUTPUT" description="The output" size="1"/>
-	<output name="DIFF" description="The difference to zeitgeber" size="1"/>
-</class>
-

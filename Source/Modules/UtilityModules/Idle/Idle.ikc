@@ -1,4 +1,0 @@
-<class name="Logger" description="does nothing for the specified time">
-    <parameter name="duration" type="float" description="idle time in seconds" />
-</class>
-

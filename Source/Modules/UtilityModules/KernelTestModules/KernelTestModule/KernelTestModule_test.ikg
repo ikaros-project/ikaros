@@ -1,7 +1,0 @@
-<group  name="G" z="3" title="ABC" >
-   <module class = "Constant" data="1, 2, 3; 3, 4, 5; 5, 6, 7" description="outputs a constant value" name="Constant" />
-   <module class = "Constant" data="1, 2; 3, 4" description="outputs a constant value" name="Constant2" />
-   <module class = "KernelTestModule" name="KT" />
-   <module class = "Print" description="prints its input to the console each tick; alias is used as label if set on connetion" name="Print" />
-   <connection source="Constant.OUTPUT" target="KT.INPUT"/>
-</group>
