@@ -1,4 +1,4 @@
-<group name="ExperimentalSetup" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27" epi_run_mode="robot" start="true" stop="-1" tick_duration="1" webui_port="8000">
+<group epi_name="EpiGreen" name="ExperimentalSetup" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27" epi_run_mode="robot" start="true" stop="-1" tick_duration="1" webui_port="8000">
    <_connection source="SR.OUTPUT[0:19]" target="Epi.GOAL_POSITION"/>
    <_connection source="SR.OUTPUT[19:21]" target="Epi.LED.EYE_COLOR[0:2]"/>
    <_connection source="SR.OUTPUT[22:22]" target="Epi.LED.EYE_INTENSITY[0]"/>
