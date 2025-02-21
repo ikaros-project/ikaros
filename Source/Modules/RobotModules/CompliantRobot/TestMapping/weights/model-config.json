@@ -1,0 +1,64 @@
+{
+    "model": {
+        "architecture": {
+            "type": "sequential",
+            "layers": [
+                {
+                    "type": "dense",
+                    "units": 256,
+                    "activation": "relu",
+                    "input_shape": [10],
+                    "kernel_regularizer": {
+                        "l2": 0.001
+                    }
+                },
+                {
+                    "type": "batch_normalization"
+                },
+                {
+                    "type": "dropout",
+                    "rate": 0.3
+                },
+                {
+                    "type": "dense",
+                    "units": 128,
+                    "activation": "relu",
+                    "kernel_regularizer": {
+                        "l2": 0.001
+                    }
+                },
+                {
+                    "type": "batch_normalization"
+                },
+                {
+                    "type": "dropout",
+                    "rate": 0.3
+                },
+                {
+                    "type": "dense",
+                    "units": 1,
+                    "activation": "linear"
+                }
+            ]
+        }
+    },
+    "training": {
+        "optimizer": {
+            "type": "adam",
+            "learning_rate": 0.001
+        },
+        "loss": "mean_squared_error",
+        "metrics": ["mae"],
+        "batch_size": 32,
+        "epochs": 100,
+        "validation_split": 0.2,
+        "early_stopping": {
+            "patience": 10,
+            "restore_best_weights": true
+        }
+    },
+    
+    "files": {
+        "weights": "best_model.weights.h5"
+    }
+}

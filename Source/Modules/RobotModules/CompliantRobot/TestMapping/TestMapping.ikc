@@ -1,0 +1,28 @@
+<class name="TestMapping" description="Randomises postions and decides on goal current based on function">
+	<parameter name="NumberTransitions" description="Number of transitions to make" type="int" default="4"/>
+	<parameter name="MinLimits" default="122,142" description="Minimum limits for the servos in degrees" type="matrix" />
+	<parameter name = "MaxLimits" default="237,240" description="Maximum limits for the servos in degrees" type="matrix" />
+	<parameter name="RobotType" default="Torso" description="Type of the robot" options="Torso, FullBody" type="string" control="menu" />
+	<parameter name="CurrentPrediction" default="Quadratic" description="Function to use for calculating current" type="string" control="menu" options="Linear, Quadratic, ANN" />
+	
+
+	<input name="PresentPosition" description=""/>
+	<input name="PresentCurrent" description="" />
+	<input name ="GyroData" description="Gyro data (XYZ) degrees/s" />
+	<input name="AccelData" description="Accelerometer data (XYZ) m/s^2" />
+	<input name="EulerAngles" description="Euler angles (XYZ) degrees" />
+	<output name="GoalCurrent" description="" size="19"/>
+	<output name="GoalPositionOut" description="" size="19"/>
+	<output name="ANN_output" description="" size="19"/>
+	
+	<author>
+		<name>Pierre Klintefors</name>
+		<email>Pierre.Klintefors@lucs.lu.se</email>
+		<affiliation>Lund University Cognitive Science</affiliation>
+	</author>
+	<files>
+   		<file>TestMapping.cc</file>
+   		<file>TestMapping.ikc</file>
+   </files>
+</class>
+
