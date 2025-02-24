@@ -83,7 +83,7 @@ class SoundOutput : public Module
     matrix rms;
     matrix volume;
     parameter command;
-    matrix sounds;
+    parameter sounds;
     matrix last_trig;
 
     parameter   scale_volume;
@@ -98,9 +98,6 @@ class SoundOutput : public Module
     void Init()
     {
         Bind(trig, "TRIG");
-
-
-        //last_trig = create_array(trig.size());
         queued_sound = -1;
         current_sound = -1;
         last_sound = -1;
@@ -115,14 +112,18 @@ class SoundOutput : public Module
         Bind(lag, "lag");
         Bind(sounds, "sounds");
 
-        // for (auto sound_name : split(GetValue("sounds"), ","))
-        //           sound.push_back(CreateSound(this->kernel->ikc_dir + trim(sound_name)));
+        sounds.print();
+        for (auto sound_name : split(sounds, ","))
+                   sound.push_back(CreateSound(trim(sound_name)));
     }
 
     void Tick()
     {
         // Check for trig and queue sound
 
+        auto last_trig = trig.last();
+
+        last_trig.print();
         for (int i = 0; i < trig.size(); i++)
             if (trig[i] == 1 && last_trig[i] == 0 && i < sound.size())
             {
@@ -131,7 +132,7 @@ class SoundOutput : public Module
 
         // Start play if sound in queue and no inhibition
 
-        if (current_sound == -1 && queued_sound != -1 && (!inhibition || inhibition(0) == 0))
+        if (current_sound == -1 && queued_sound != -1 && (!inhibition.connected() || inhibition(0) == 0))
         {
             current_sound = queued_sound;
             queued_sound = -1;
@@ -176,8 +177,8 @@ class SoundOutput : public Module
 
         // Store last trig and sound
 
-        copy_array(last_trig, trig, trig.size());
-        last_sound = current_sound;
+        //copy_array(last_trig, trig, trig.size());
+        //last_sound = current_sound;
     }
    
     Sound CreateSound(std::string sound_path)
@@ -192,7 +193,7 @@ class SoundOutput : public Module
         FILE *fp = popen(command_line, "r");
         if (fp != NULL)
         {
-            while (fscanf(fp, "%f,%f,%f\n", &t, &l, &r) == 3)
+            while (fscanf(fp, "%f,%f,%f\n", &t, &l, &r) == 3) // Reads output from ffprobe
             {
                 sound.time.push_back(t);
                 sound.left.push_back(l);
