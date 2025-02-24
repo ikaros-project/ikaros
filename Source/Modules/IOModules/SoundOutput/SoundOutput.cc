@@ -25,25 +25,24 @@
 
 using namespace ikaros;
 
-
 class Sound
 {
-    public:
-        Sound(const std::string & s) : sound_path(s) { timer = new Timer(); };
+public:
+    Sound(const std::string &s) : sound_path(s) { timer = new Timer(); };
 
-        //void    Play(const char * command);
-        //bool    UpdateVolume(float * rms, float lag=0);  // returns true if still playing
+    // void    Play(const char * command);
+    // bool    UpdateVolume(float * rms, float lag=0);  // returns true if still playing
 
-        std::string sound_path;
-        std::vector<float> time;
-        std::vector<float> left;
-        std::vector<float> right;
+    std::string sound_path;
+    std::vector<float> time;
+    std::vector<float> left;
+    std::vector<float> right;
 
-        int pid;
+    int pid;
 
-        int frame;
-        Timer * timer;
-     void Play(const char *command)
+    int frame;
+    Timer *timer;
+    void Play(const char *command)
     {
         timer->Restart();
         frame = 0;
@@ -71,10 +70,9 @@ class Sound
     }
 };
 
-
 class SoundOutput : public Module
 {
-    
+
     matrix trig;
     matrix inhibition;
     matrix playing;
@@ -86,15 +84,14 @@ class SoundOutput : public Module
     parameter sounds;
     matrix last_trig;
 
-    parameter   scale_volume;
-    parameter   lag;
+    parameter scale_volume;
+    parameter lag;
 
     std::vector<Sound> sound;
     int queued_sound;
     int current_sound;
     int last_sound;
 
-    
     void Init()
     {
         Bind(trig, "TRIG");
@@ -112,18 +109,14 @@ class SoundOutput : public Module
         Bind(lag, "lag");
         Bind(sounds, "sounds");
 
-        sounds.print();
         for (auto sound_name : split(sounds, ","))
-                   sound.push_back(CreateSound(trim(sound_name)));
+            sound.push_back(CreateSound(trim(sound_name)));
     }
 
     void Tick()
     {
         // Check for trig and queue sound
-
         auto last_trig = trig.last();
-
-        last_trig.print();
         for (int i = 0; i < trig.size(); i++)
             if (trig[i] == 1 && last_trig[i] == 0 && i < sound.size())
             {
@@ -174,13 +167,8 @@ class SoundOutput : public Module
         {
             reset_array(completed, trig.size());
         }
-
-        // Store last trig and sound
-
-        //copy_array(last_trig, trig, trig.size());
-        //last_sound = current_sound;
     }
-   
+
     Sound CreateSound(std::string sound_path)
     {
         Sound sound(sound_path);
