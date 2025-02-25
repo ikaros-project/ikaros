@@ -544,6 +544,9 @@ namespace ikaros
     std::string 
     Component::GetValue(const std::string & path) 
     {     
+        if(path != "log_level")   
+            std::cout << "GetValue: " << path << std::endl;
+
         if(path.empty())
             return ""; // throw exception("Name not found"); // throw not_found_exception instead
 
@@ -2442,13 +2445,13 @@ if(classes[classname].path.empty())
             if(info_.is_set("info"))
             {
                 ListParameters();
-                ListComponents();
-                ListConnections();
+                //ListComponents();
+                //ListConnections();
                 //ListInputs();
                 //ListOutputs();
-                ListBuffers();
-                ListCircularBuffers();
-                ListTasks();
+                //ListBuffers();
+                //ListCircularBuffers();
+                //ListTasks();
             }
 
             LogStart();
@@ -2817,7 +2820,6 @@ if(classes[classname].path.empty())
             std::string key = source;
 
 
-            //std::cout << "\tsource: " << source << std::endl;
             if(source.find("@") != std::string::npos && components.count(root) > 0)
             {
                 Component * c = components[root]; // FIXME: Handle exceptions
@@ -2826,8 +2828,6 @@ if(classes[classname].path.empty())
 
             std::string format = rtail(source, ":");
             std::string source_with_root = root +"."+source;
-
-
 
             if(buffers.count(source_with_root))
             {
@@ -2850,6 +2850,12 @@ if(classes[classname].path.empty())
             {
                 sent = socket->Send(sep + "\t\t\"" + key + "\": "+parameters[source_with_root].json());
             }
+
+            else
+            {
+                sent = socket->Send(sep + "\t\t\"" + key + "\": \""+source+"\"");
+            }
+
             if(sent)
                 sep = ",\n";
         }
@@ -2962,6 +2968,8 @@ if(classes[classname].path.empty())
 
         // if(socket->SendFile(file, ikc_dir))  // Check IKC-directory first to allow files to be overriden
         //    return;
+
+        std::cout << "Sending file: " << file << std::endl;
 
         if(socket->SendFile(file, webui_dir))   // Now look in WebUI directory
             return;

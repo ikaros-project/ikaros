@@ -1030,7 +1030,9 @@ let controller =
                 w[i].children[1].requestData(data_set);
             }
             catch(err)
-            {}
+            {
+                console.log("requestData failed");
+            }
 
         group_path = selector.selected_background;
         data_string = ""; // should be added to names to support multiple clients

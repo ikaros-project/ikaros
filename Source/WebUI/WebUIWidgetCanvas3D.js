@@ -6,7 +6,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 			{ 'name': "CONTROL", 'control': 'header' },
 			{ 'name': 'show_models', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-			{ 'name': 'models', 'default': "", 'type': 'string', 'control': 'textedit' },
+			{ 'name': 'models', 'default': "", 'type': 'source', 'control': 'textedit' },
 			{ 'name': 'show_lines', 'default': false, 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'line_color', 'default': "blue", 'type': 'string', 'control': 'textedit' },
 
@@ -59,9 +59,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
         `;
 	}
 
-	updateAll() {
+	updateAll() 
+	{
 		this.FixedView = true;
-
 	}
 
 	init() {
@@ -210,13 +210,18 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 	}
 
-	update() {
-
+	update()
+	{
 		this.updateFrame();
-		if (!(this.data = this.getSource('matrix'))) {
+		if (!(this.data = this.getSource('matrix'))) 
+		{
 			console.log("No 3D data from ikaros")
 			return;
 		}
+
+		if(this.parameters.models.includes("@"))	// Minimal fix to load models list from Ikaros
+			this.parameters.models = this.getSource("models");
+
 		//console.log("Formating data")
 		this.mat = []
 		this.vertices = []
