@@ -2969,7 +2969,7 @@ if(classes[classname].path.empty())
         // if(socket->SendFile(file, ikc_dir))  // Check IKC-directory first to allow files to be overriden
         //    return;
 
-        std::cout << "Sending file: " << file << std::endl;
+        //std::cout << "Sending file: " << file << std::endl;
 
         if(socket->SendFile(file, webui_dir))   // Now look in WebUI directory
             return;
