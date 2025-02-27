@@ -55,6 +55,7 @@ FadecandyDriver::FadecandyDriver()
 
 FadecandyDriver::~FadecandyDriver()
 {
+  releaseInterface();
   libusb_exit(context_);
 }
 
