@@ -1026,7 +1026,7 @@ let controller =
         for(let i=0; i<w.length; i++)
             try
             {
-                if(w[i].children[1] != null)
+                if(w[i].children[1] && 'requestData' in w[i].children[1])
                     w[i].children[1].requestData(data_set);
             }
             catch(err)
