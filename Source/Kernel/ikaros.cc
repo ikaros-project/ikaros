@@ -544,9 +544,6 @@ namespace ikaros
     std::string 
     Component::GetValue(const std::string & path) 
     {     
-        if(path != "log_level")   
-            std::cout << "GetValue: " << path << std::endl;
-
         if(path.empty())
             return ""; // throw exception("Name not found"); // throw not_found_exception instead
 
