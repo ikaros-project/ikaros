@@ -33,7 +33,7 @@ class FadeCandy : public Module
 {
     matrix RightEye, LeftEye, MouthLow, MouthHigh;
     fadecandy_driver::FadecandyDriver fd_driver;
-
+    
     // Initialize the led array colors
     std::vector<std::vector<Color>> led_array_colors = {
         std::vector<Color>(8, Color(0, 0, 0)),  // (Mouth high)
@@ -109,12 +109,6 @@ class FadeCandy : public Module
         {
             Notify(msg_debug, "Could not set colors of the eyes");
         }
-    }
-
-    // Figer out how to handle the destructor 
-    ~FadeCandy()
-    {
-       // fd_driver.~FadecandyDriver();
     }
 };
 INSTALL_CLASS(FadeCandy)
