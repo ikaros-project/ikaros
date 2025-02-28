@@ -1,4 +1,7 @@
-<class name="FadeCandy" description="Allows control of NeoPixels hardware through FadeCandy server">
+<class name="FadeCandy" description="Allows control of fadecandy hardware">
+
+	<parameter name="simulate" type="bool" default="False" description="Simulation mode. Module is not trying to connect to any fadecandy board" />
+
 	<input name="LEFT_EYE" description="" />
 	<input name="RIGHT_EYE" description="" />
 	<input name="MOUTH_HIGH" description="" />

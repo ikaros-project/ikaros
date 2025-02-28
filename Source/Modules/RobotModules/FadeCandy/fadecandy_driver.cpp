@@ -55,7 +55,7 @@ FadecandyDriver::FadecandyDriver()
 
 FadecandyDriver::~FadecandyDriver()
 {
-  releaseInterface();
+  releaseInterface(); // Releasing interface before running libusb_exit. Added by Birger Johansson 2025. 
   libusb_exit(context_);
 }
 

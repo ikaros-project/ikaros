@@ -33,7 +33,8 @@ class FadeCandy : public Module
 {
     matrix RightEye, LeftEye, MouthLow, MouthHigh;
     fadecandy_driver::FadecandyDriver fd_driver;
-    
+    parameter simulate;
+
     // Initialize the led array colors
     std::vector<std::vector<Color>> led_array_colors = {
         std::vector<Color>(8, Color(0, 0, 0)),  // (Mouth high)
@@ -50,6 +51,13 @@ class FadeCandy : public Module
         Bind(MouthHigh, "MOUTH_HIGH");
         Bind(MouthLow, "MOUTH_LOW");
 
+        Bind(simulate, "simulate");
+
+        if (simulate)
+        {
+            Notify(msg_warning, "Simulate fadecandy");
+            return;
+        }
         if ((LeftEye.size_x() <= 12 && LeftEye.size_y() != 3))
             Notify(msg_warning, "Input LEFT_EYE size is not 3x12");
         if ((RightEye.size() <= 12 && RightEye.size_y() != 3))
@@ -74,6 +82,9 @@ class FadeCandy : public Module
     void
     Tick()
     {
+        if (simulate)
+            return;
+
         if (!fd_driver.isConnected())
         {
             try
