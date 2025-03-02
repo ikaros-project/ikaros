@@ -1896,6 +1896,14 @@ bool operator==(Request & r, const std::string s)
             throw exception("Module or group with this name already exists. \""+std::string(info["name"])+"\".");
 
         std::string classname = info["class"];
+
+        if(!classname.empty() && classname[0] == '@')
+        {
+            Component * c = components.at(path);
+            classname = c->GetValue(classname.substr(1));
+            info["class"] = classname;
+        }
+
         if(!classes.count(classname))
             throw exception("Class \""+classname+"\" does not exist.");
 

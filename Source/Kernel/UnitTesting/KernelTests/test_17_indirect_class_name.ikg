@@ -1,0 +1,7 @@
+<group name="Top" description="Test indirect class name" included_module="Constant" empty_module="Module"  check_sum="51" >
+
+	<module name="Module_A" class="@included_module" data="1" />
+	<module name="Module_B" class="@empty_module" data="1" />
+
+</group>
+
