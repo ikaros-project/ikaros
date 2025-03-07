@@ -4,8 +4,7 @@
 //    Copyright (C) 2009-2023  Christian Balkenius
 //
 
-#ifndef IKAROS_COLORTABLES
-#define IKAROS_COLORTABLES
+#pragma once
 
 #include <string>
 #include <map>
@@ -1325,4 +1324,3 @@ std::map<std::string, LUT> color_table =
     {"fire", LUT_fire}
 };
 
-#endif
