@@ -942,7 +942,11 @@ namespace ikaros
     bool
     Component::Notify(int msg, std::string message, std::string path)
     {
-        if(msg <= GetIntValue("log_level", msg_warning))
+        int log_level = GetIntValue("log_level", 0);
+        if(kernel().parameters.count(path_+".log_level")==1)
+            log_level = kernel().parameters.at(path_+".log_level").as_int();
+
+        if(msg <= log_level)
             return kernel().Notify(msg, message, path);
         return true;
     }

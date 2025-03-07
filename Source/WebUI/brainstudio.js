@@ -2184,6 +2184,15 @@ const selector =
     getLocalPath(s) // Remove outer path and range
     {
         return removeStringFromStart(getStringUpToBracket(s), selector.selected_background+'.');
+    },
+
+    setLogLevel(level)
+    {
+        var component = "";
+        if(selector.selected_foreground.length == 1)
+            component = selector.selected_foreground[0];
+
+        controller.queueCommand("control", selector.getLocalPath(component)+".log_level", {"x":0, "y":0, "value":level});
     }
 }
 
@@ -3148,7 +3157,8 @@ const main =
         else if (evt.key=="d")
         {
             evt.preventDefault();
-            alert("Duplicate selected items and possibly connections. (NOT IMPLEMENTED YET)");
+            //alert("Duplicate selected items and possibly connections. (NOT IMPLEMENTED YET)");
+            alert(selector.selected_foreground);
         }
         else if (evt.key=="i")
         { 
