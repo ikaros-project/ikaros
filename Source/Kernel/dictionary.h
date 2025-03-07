@@ -1,8 +1,7 @@
 // dictionary.h (c) Christian Balkenius 2023-2024
 // Recursive JSON-like dictionary
 
-#ifndef DICTIONARY
-#define DICTIONARY
+#pragma once
 
 
 #include <string>
@@ -52,12 +51,13 @@ namespace ikaros
         using iterator = std::map<std::string, value>::iterator;
         using const_iterator = std::map<std::string, value>::const_iterator;
 
-        iterator begin() { return dict_->begin(); }
-        iterator end() { return dict_->end(); }
-        const_iterator begin() const { return dict_->begin(); }
-        const_iterator end() const { return dict_->end(); }
-        const_iterator cbegin() const { return dict_->cbegin(); }
-        const_iterator cend() const { return dict_->cend(); }
+
+        iterator begin() noexcept { return dict_->begin(); }
+        iterator end() noexcept { return dict_->end(); }
+        const_iterator begin() const noexcept { return dict_->begin(); }
+        const_iterator end() const noexcept { return dict_->end(); }
+        const_iterator cbegin() const noexcept { return dict_->cbegin(); }
+        const_iterator cend() const noexcept { return dict_->cend(); }
 
         dictionary();
         dictionary(XMLElement * xml);
@@ -106,12 +106,12 @@ namespace ikaros
         using iterator = std::vector<value>::iterator;
         using const_iterator = std::vector<value>::const_iterator;
 
-        iterator begin() { return list_->begin(); }
-        iterator end() { return list_->end(); }
-        const_iterator begin() const { return list_->begin(); }
-        const_iterator end() const { return list_->end(); }
-        const_iterator cbegin() const { return list_->cbegin(); }
-        const_iterator cend() const { return list_->cend(); }
+        iterator begin() noexcept { return list_->begin(); }
+        iterator end() noexcept { return list_->end(); }
+        const_iterator begin() const noexcept { return list_->begin(); }
+        const_iterator end() const noexcept { return list_->end(); }
+        const_iterator cbegin() const noexcept { return list_->cbegin(); }
+        const_iterator cend() const noexcept { return list_->cend(); }
 
         iterator erase(const_iterator pos) const { return list_->erase(pos); }
         iterator insert(const_iterator pos, const value & v) { return list_->insert(pos, v); }
@@ -193,7 +193,4 @@ namespace ikaros
     value parse_json(const std::string& json_str);
 };
 
-
-
-#endif
 

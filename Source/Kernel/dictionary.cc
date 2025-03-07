@@ -11,12 +11,49 @@ using namespace ikaros;
 namespace ikaros 
 {
 
+    /*
         static std::string escape_json_string(std::string str) // FIXME: Do this correctly later
         {
             std::replace(str.begin(), str.end(), '\n', ' ');
             std::replace(str.begin(), str.end(), '\t', ' ');
             return str;
         }
+*/
+
+
+    static std::string to_hex(char c)
+    {
+        const char* hex_digits = "0123456789ABCDEF";
+        std::string hex_str;
+        hex_str += hex_digits[(c >> 4) & 0xF];
+        hex_str += hex_digits[c & 0xF];
+        return hex_str;
+    }
+
+
+    static std::string escape_json_string(const std::string& str)
+    {
+        std::string escaped;
+        for (char c : str)
+        {
+            switch (c)
+            {
+                case '"': escaped += "\\\""; break;
+                case '\\': escaped += "\\\\"; break;
+                case '\b': escaped += "\\b"; break;
+                case '\f': escaped += "\\f"; break;
+                case '\n': escaped += "\\n"; break;
+                case '\r': escaped += "\\r"; break;
+                case '\t': escaped += "\\t"; break;
+                default:
+                    if (c < 0x20 || c > 0x7E)
+                        escaped += "\\u" + to_hex(c);
+                    else
+                        escaped += c;
+            }
+        }
+        return escaped;
+    }
 
 
         static void skip_whitespace(const std::string& s, size_t& pos)
@@ -541,6 +578,7 @@ namespace ikaros
         return value();
     }
 
+    
     std::string parse_string(const std::string& s, size_t& pos)
     {
         if(s[pos] != '"')
@@ -655,6 +693,7 @@ namespace ikaros
         throw std::runtime_error("Unexpected end of object");
     }
 
+
     value parse_value(const std::string& s, size_t& pos)
     {
         skip_whitespace(s, pos);
@@ -709,7 +748,7 @@ namespace ikaros
             return num_value;
         }
 
-        throw std::runtime_error("Invalid JSON value");
+       throw std::runtime_error("Invalid JSON value at position " + std::to_string(pos));
     }
 
 
