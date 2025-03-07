@@ -1,12 +1,14 @@
 
-//    socket_bsd.cc		Socket utilities for the IKAROS project
+//    socket.cc		Socket utilities for the IKAROS project
 
 #include "socket.h"
+#include "exceptions.h"
 
 #include <unistd.h>
 #include <cstring>  // For bzero
 #include <errno.h>
 #include <algorithm> // For std::min
+
 
 #define BACKLOG		10 		// how many pending connections queue will hold
 
@@ -26,7 +28,7 @@ static char *
 
 Socket::~Socket()
 {
-    if (sd != -1) 
+    if(sd != -1) 
         close(sd);
 }
 
@@ -44,17 +46,17 @@ Socket::SendRequest(const char * hostname, int port, const char * request, const
     hints.ai_family = AF_INET; // use AF_INET6 to force IPv6
     hints.ai_socktype = SOCK_STREAM;
 
-    if ((rv = getaddrinfo(hostname, std::to_string(port).c_str(), &hints, &servinfo)) != 0)
+    if((rv = getaddrinfo(hostname, std::to_string(port).c_str(), &hints, &servinfo)) != 0)
         return false; //  gai_strerror(rv));
 
     // loop through all the results and connect to the first we can
-    for(p = servinfo; p != NULL; p = p->ai_next) {
-        if ((sd = socket(p->ai_family, p->ai_socktype,
+    for(p = servinfo; p != nullptr; p = p->ai_next) {
+        if((sd = socket(p->ai_family, p->ai_socktype,
                 p->ai_protocol)) == -1) {
             continue;
         }
 
-        if (connect(sd, p->ai_addr, p->ai_addrlen) == -1) 
+        if(connect(sd, p->ai_addr, p->ai_addrlen) == -1) 
         {
             close(sd);
             continue;
@@ -63,21 +65,21 @@ Socket::SendRequest(const char * hostname, int port, const char * request, const
         break; // if we get here, we must have connected successfully
     }
 
-    if (p == NULL) 
+    if(p == nullptr) 
     {
-
+        freeaddrinfo(servinfo);
         return false;
     }
     freeaddrinfo(servinfo); // all done with this structure
 
     if(size == -1) // default to use size of string
     {
-        if (write(sd, request, strlen(request)) <0)
+        if(write(sd, request, strlen(request)) <0)
             return false; // cannot send data
     }
     else
     {
-        if (write(sd, request, size) <0)
+        if(write(sd, request, size) <0)
             return false; // cannot send data
     }
 
@@ -97,9 +99,14 @@ Socket::Poll()
     FD_ZERO(&readfds);
     FD_SET(sd, &readfds);
 	
-    select(sd+1, &readfds, NULL, NULL, &tv);
+    int result = select(sd+1, &readfds, nullptr, nullptr, &tv);
+    if(result == -1)
+    {
+        perror("select"); // FIXME: throw exception
+        return false;
+    }
 	
-    if (FD_ISSET(sd, &readfds))
+    if(FD_ISSET(sd, &readfds))
         return true;
     else
         return false;
@@ -110,11 +117,11 @@ Socket::Poll()
 int
 Socket::ReadData(char * result, int maxlen, bool fill)
 {
-    if (sd == -1)
+    if(sd == -1)
         return 0;
 	
     const int BUFFER_SIZE = 1024;
-    static char buffer[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE];
 	
     int dst=0;
     ssize_t rc = 0;
@@ -122,6 +129,17 @@ Socket::ReadData(char * result, int maxlen, bool fill)
     {
         ssize_t read_size = (maxlen-dst < BUFFER_SIZE ? maxlen-dst : BUFFER_SIZE);
         rc = read(sd, buffer, read_size);
+
+        rc = read(sd, buffer, read_size);
+        if(rc == -1)
+        {
+            perror("read");
+            return -1;
+        }
+    
+        if(rc == 0 && fill)
+            break; // End of file
+
         for (int i=0; i<rc && dst<maxlen; i++)
             result[dst++] = buffer[i];
 		
@@ -137,7 +155,7 @@ int
 Socket::Get(const char * hostname, int port, const char * request, char * result, int maxlen)
 {
     int rc = 0;
-    if (SendRequest(hostname, port, request))
+    if(SendRequest(hostname, port, request))
         rc = ReadData(result, maxlen);
     Close();
 	
@@ -149,7 +167,7 @@ Socket::Get(const char * hostname, int port, const char * request, char * result
 void
 Socket::Close()
 {
-    if (sd == -1)
+    if(sd == -1)
         return;
     close(sd);
     sd = -1;
@@ -184,7 +202,7 @@ ServerSocket::ServerSocket(int port)
     int yes = 1;
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd == -1)
+    if(sockfd == -1)
         throw std::system_error(errno, std::system_category(), "Failed to create socket");
 
     // Set address properties
@@ -194,19 +212,19 @@ ServerSocket::ServerSocket(int port)
     memset(&(my_addr.sin_zero), '\0', 8);             // zero the rest of the struct
 
     // Set SO_REUSEADDR to prevent "socket already in use" errors
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+    if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
         throw std::system_error(errno, std::system_category(), "Failed to set SO_REUSEADDR");
 
     // Handle SIGPIPE errors on macOS
-    if (setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(int)) == -1)
+    if(setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(int)) == -1)
         throw std::system_error(errno, std::system_category(), "Failed to set SO_NOSIGPIPE");
 
     // Bind the socket
-    if (bind(sockfd, (struct sockaddr *)&(my_addr), sizeof(struct sockaddr)) == -1) 
+    if(bind(sockfd, (struct sockaddr *)&(my_addr), sizeof(struct sockaddr)) == -1) 
         throw std::system_error(errno, std::system_category(), "Failed to bind socket");
 
     // Listen for incoming connections
-    if (listen(sockfd, BACKLOG) == -1)
+    if(listen(sockfd, BACKLOG) == -1)
         throw std::system_error(errno, std::system_category(), "Failed to listen on socket");
 
     // Ignore SIGPIPE so the program does not exit unexpectedly
@@ -237,56 +255,69 @@ ServerSocket::Poll(bool block)
 
 
 
-size_t ServerSocket::Read(char *buffer, int maxSize, bool fill) 
+size_t 
+ServerSocket::Read(char *buffer, int maxSize, bool fill) 
 {
-    if (new_fd == -1) {
+    if(new_fd == -1) {
         return 0; // Invalid socket
     }
 
     size_t total_read = 0;  // Total bytes read
     ssize_t n = 0;          // Bytes read in a single recv() call
 
-    if (fill) {
+    if(fill) {
         // Fill the buffer completely if requested
         while (total_read < maxSize) {
             n = recv(new_fd, buffer + total_read, maxSize - total_read, 0);
 
-            if (n > 0) {
+            if(n > 0) {
                 total_read += n;
-            } else if (n == 0) {
-                // Connection closed by the client
-                break;
-            } else if (n == -1) {
-                if (errno == EINTR) {
-                    // Interrupted system call, retry
-                    continue;
-                } else if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                    // No data available, break out of the loop
-                    break;
-                } else {
-                    // Fatal error
+            } else if(n == 0) 
+            {
+                
+                break; // Connection closed by the client
+            } 
+            else if(n == -1) 
+            {
+                if(errno == EINTR) 
+                {
+                    
+                    continue; // Interrupted system call, retry
+                } 
+                else if(errno == EAGAIN || errno == EWOULDBLOCK) 
+                {
+                    break;  // No data available, break out of the loop
+                } 
+                else 
+                {
+                   
+                    perror("recv");  // FIXME: throw exception; Fatal error
                     return -1;
                 }
             }
         }
-    } else {
-        // Single call to recv, do not enforce filling the buffer
-        n = recv(new_fd, buffer, maxSize, 0);
+    } 
+    else 
+    {
+        n = recv(new_fd, buffer, maxSize, 0);   // Single call to recv, do not enforce filling the buffer
 
-        if (n > 0) {
+        if(n > 0) 
+        {
             total_read = n;
-        } else if (n == -1) {
-            if (errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK) {
+        } 
+        else if(n == -1) 
+        {
+            if(errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK) 
+            {
                 // Fatal error
+                perror("recv");
                 return -1;
             }
         }
     }
 
-    return 
-    total_read;
+    return total_read;
 }
-
 
 
 
@@ -350,10 +381,10 @@ static std::string UriDecode(const std::string & sSrc)
  
    while (pSrc < SRC_LAST_DEC)
    {
-      if (*pSrc == '%')
+      if(*pSrc == '%')
       {
          char dec1, dec2;
-         if (-1 != (dec1 = HEX2DEC[*(pSrc + 1)])
+         if(-1 != (dec1 = HEX2DEC[*(pSrc + 1)])
             && -1 != (dec2 = HEX2DEC[*(pSrc + 2)]))
          {
             *pEnd++ = (dec1 << 4) + dec2;
@@ -379,24 +410,32 @@ static std::string UriDecode(const std::string & sSrc)
 bool
 ServerSocket::GetRequest(bool block)
 {
-    if (!Poll(block))
+    if(!Poll(block))
         return false;
 	
 	// Loop until CRLF CRLF is found which marks the end of the HTTP request
 	
     request[0] = '\0';
-	int read_count = 0;
-	while(!strstr(request, "\r\n\r\n")) // check border condition ***
-	{
-		long rr = Read(&(request[read_count]), request_allocated_size-read_count);
+    int read_count = 0;
+    while(!strstr(request, "\r\n\r\n")) // check border condition ***
+    {
+        long rr = Read(&(request[read_count]), request_allocated_size-read_count);
         if(rr == 0)         // the connections has been closed since the beginning of the request
             return false;   // this can occur when a view is changed; return and ignore the request
         read_count += rr;
         request[read_count] = '\0';
-		if(read_count >= request_allocated_size-1)
-			request = (char *)realloc(request, request_allocated_size += 1024);
-	}
-	
+        if(read_count >= request_allocated_size-1) {
+            char *new_request = (char *)realloc(request, request_allocated_size + 1024);
+            if(new_request == nullptr) 
+            {
+                throw ikaros::exception("Failed to allocate memory");
+                return false;
+            }
+            request = new_request;
+            request_allocated_size += 1024;
+        }
+    }
+    	
 	// Parse request and header [TODO: handle that arguments in theory can span several lines accoding to the HTTP specification; although it never happens]
 	
 	char * p = request;	
@@ -424,13 +463,13 @@ ServerSocket::GetRequest(bool block)
     if(*p=='\n')
         p++;
 	
-    if (equal_strings(header.Get("Method"), "PUT"))
+    if(equal_strings(header.Get("Method"), "PUT"))
     {
         const char* content_length_str = header.Get("Content-Length");
-        if (content_length_str)
+        if(content_length_str)
         {
             size_t content_length = std::stoull(content_length_str);
-            if (content_length > 0)
+            if(content_length > 0)
             {   
                 char buffer[content_length];
                 size_t n = strlen(p);
@@ -482,7 +521,7 @@ ServerSocket::SendHTTPHeader(Dictionary * d, const char * response) // Content l
 bool
 ServerSocket::SendData(const char * buffer, long size)
 {
-    if (new_fd == -1)
+    if(new_fd == -1)
         return false;	// Connection closed - ignore send
     
     long total = 0;
@@ -492,7 +531,7 @@ ServerSocket::SendData(const char * buffer, long size)
      while (total < size)
     {
         n = send(new_fd, buffer+total, bytesleft, MSG_NOSIGNAL);  // Write "handle SIGPIPE nostop print pass" in gdb to avoid break during debugging
-        if (n == -1)
+        if(n == -1)
         {
             break;
         }
@@ -500,7 +539,7 @@ ServerSocket::SendData(const char * buffer, long size)
         bytesleft -= n;
     }
 	
-    if (n == -1 || bytesleft > 0) // We failed to send all data
+    if(n == -1 || bytesleft > 0) // We failed to send all data
     {
         Close();	// Close the socket and ignore further data
         return false;
@@ -522,14 +561,14 @@ ServerSocket::Send(std::string data)
 bool
 ServerSocket::Send(const char * format, ...)
 {
-    if (new_fd == -1)
+    if(new_fd == -1)
         return false;	// Connection closed - ignore send
     
     char buffer[1024];
     va_list 	args;
     va_start(args, format);
 	
-    if (vsnprintf(buffer, 1024, format, args) == -1)
+    if(vsnprintf(buffer, 1024, format, args) == -1)
     {
         va_end(args);
         return false;
@@ -544,13 +583,13 @@ ServerSocket::Send(const char * format, ...)
 bool
 ServerSocket::SendFile(const char * filename, const char * path, Dictionary * hdr)
 {
-    if (filename == NULL) return false;
+    if(filename == nullptr) return false;
 	
     copy_string(filepath, path, PATH_MAX);
     append_string(filepath, filename, PATH_MAX);
     FILE * f = fopen(filepath, "r+b");
 	
-    if (f == NULL) return false;
+    if(f == nullptr) return false;
 	
     fseek(f, 0, SEEK_END);
     size_t len  = ftell(f);
@@ -559,8 +598,9 @@ ServerSocket::SendFile(const char * filename, const char * path, Dictionary * hd
     Dictionary * h = (hdr ? hdr : new Dictionary());
 	
     h->Set("Connection",  "Close"); // TODO: check if socket uses persistent connections
-    char length[256];
-    h->Set("Content-Length", int_to_string(length, (int)len, 256));
+
+    std::string length = std::to_string((size_t)len);
+    h->Set("Content-Length", length.c_str());
     h->Set("Server", "Ikaros/3.0");
 	
     if(strend(filename, ".html"))
@@ -601,7 +641,7 @@ ServerSocket::SendFile(const char * filename, const char * path, Dictionary * hd
 
 
 bool
-ServerSocket::SendFile(const std::string & filename, const std::string & path)
+ServerSocket::SendFile(const std::filesystem::path & filename, const std::string & path)
 {
     return SendFile(filename.c_str(), path.c_str());
 }
@@ -611,9 +651,9 @@ ServerSocket::SendFile(const std::string & filename, const std::string & path)
 bool
 ServerSocket::Close()
 {
-    if (new_fd == -1) return true;	// Connection already closed
+    if(new_fd == -1) return true;	// Connection already closed
 	
-    if (close(new_fd) == -1)
+    if(close(new_fd) == -1)
     {
         errcode = errno;
         return false;
@@ -637,7 +677,7 @@ const char *
 ServerSocket::Host()
 {
     static char hostname[256];
-    if (gethostname(hostname, 256) == 0)	// everything ok
+    if(gethostname(hostname, 256) == 0)	// everything ok
         return hostname;
     else
         return "unkown-host";

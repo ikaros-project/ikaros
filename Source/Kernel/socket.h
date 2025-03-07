@@ -1,7 +1,6 @@
 //	socket.h		Socket utilities for the IKAROS project
 
-#ifndef SOCKET
-#define SOCKET
+#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,22 +11,19 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <time.h>
-
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/wait.h>
 #include <netdb.h>
-
+#include <stddef.h>
 
 #include <string>
-
 #include <system_error>
 #include <cstring>
 #include <csignal>
-
-#include <stddef.h>
+#include <filesystem>
 
 #include "utilities.h"
 #include "deprecated.h"
@@ -37,6 +33,7 @@
 //
 //	Socket used to request data from a HTTP server in a simple way
 //
+
 class Socket
 	{
 	public:
@@ -68,12 +65,12 @@ class ServerSocket
 		Dictionary			header;									// The current HTTP request header
 		bool				GetRequest(bool block=false);           // Check for request and read if available
 		
-		bool				SendHTTPHeader(Dictionary * d = NULL, const char * response=NULL);
+		bool				SendHTTPHeader(Dictionary * d = nullptr, const char * response=nullptr);
 		bool				SendData(const char * buffer, long size);
 		bool				Send(const char * format, ...); // Maximum 1023 characters
 		bool				Send(std::string data);
-		bool				SendFile(const char * filename, const char * path="", Dictionary * header = NULL); // FIXME: add header automatically based on file type
-		bool				SendFile(const std::string & filename, const std::string & path="");
+		bool				SendFile(const char * filename, const char * path="", Dictionary * header = nullptr); // FIXME: add header automatically based on file type
+		bool				SendFile(const std::filesystem::path & filename, const std::string & path="");
 		bool				SendBuffer();
 
 		bool				Close();								// Close reply socket
@@ -98,5 +95,5 @@ class ServerSocket
 		size_t				Read(char * buffer, int maxSize, bool fill=false);	// Read, fill means fill with maxSize, return read size
 	};
 
-#endif
+
 
