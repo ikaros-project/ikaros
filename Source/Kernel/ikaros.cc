@@ -2163,10 +2163,11 @@ if(classes[classname].path.empty())
         {
             socket =  new ServerSocket(port);
         }
-        catch (const SocketException& e)
+        catch (const exception& e)
         {
             throw fatal_error("Ikaros is unable to start a webserver on port "+std::to_string(port)+". Make sure no other ikaros process is running and try again.");
         }
+
         httpThread = new std::thread(Kernel::StartHTTPThread, this);
     }
 

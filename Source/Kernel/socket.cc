@@ -3,25 +3,10 @@
 
 #include "socket.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
+#include <cstring>  // For bzero
 #include <errno.h>
-#include <string.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <limits.h>
-#include <time.h>
-
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/wait.h>
-#include <netdb.h>
-
-#include <string>
+#include <algorithm> // For std::min
 
 #define BACKLOG		10 		// how many pending connections queue will hold
 
@@ -36,47 +21,24 @@ static char *
 	}
     
 //
-//	SocketData
-//
-
-class SocketData
-	{
-	public:
-		int		sd;
-		
-		SocketData() : sd(-1)
-		{};
-	};
-
-
-
-//
 //	Socket - functions that gets data from a HTTP server
 //
 
-Socket::Socket()
-{
-    data = new SocketData();
-}
-
-
-
 Socket::~Socket()
 {
-    if (data->sd != -1) close(data->sd);
-    delete data;
+    if (sd != -1) 
+        close(sd);
 }
+
 
 
 bool
 Socket::SendRequest(const char * hostname, int port, const char * request, const long size)
 {
-    // Freely after https://beej.us/guide/bgnet/html/multi/getaddrinfoman.html
-    
     struct addrinfo hints, *servinfo, *p;
     int rv;
 
-    data->sd = -1;
+    sd = -1;
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET; // use AF_INET6 to force IPv6
@@ -87,41 +49,39 @@ Socket::SendRequest(const char * hostname, int port, const char * request, const
 
     // loop through all the results and connect to the first we can
     for(p = servinfo; p != NULL; p = p->ai_next) {
-        if ((data->sd = socket(p->ai_family, p->ai_socktype,
+        if ((sd = socket(p->ai_family, p->ai_socktype,
                 p->ai_protocol)) == -1) {
-            // perror("socket");
             continue;
         }
 
-        if (connect(data->sd, p->ai_addr, p->ai_addrlen) == -1) {
-            // perror("connect");
-            close(data->sd);
+        if (connect(sd, p->ai_addr, p->ai_addrlen) == -1) 
+        {
+            close(sd);
             continue;
         }
 
         break; // if we get here, we must have connected successfully
     }
 
-    if (p == NULL) {
-        // looped off the end of the list with no connection
-        // fprintf(stderr, "failed to connect\n");
+    if (p == NULL) 
+    {
+
         return false;
     }
-
     freeaddrinfo(servinfo); // all done with this structure
 
     if(size == -1) // default to use size of string
     {
-        if (write(data->sd, request, strlen(request)) <0)
+        if (write(sd, request, strlen(request)) <0)
             return false; // cannot send data
     }
     else
     {
-        if (write(data->sd, request, size) <0)
+        if (write(sd, request, size) <0)
             return false; // cannot send data
     }
 
-    return data->sd != -1;
+    return sd != -1;
 }
 
 
@@ -135,11 +95,11 @@ Socket::Poll()
     tv.tv_usec = 0;
 	
     FD_ZERO(&readfds);
-    FD_SET(data->sd, &readfds);
+    FD_SET(sd, &readfds);
 	
-    select(data->sd+1, &readfds, NULL, NULL, &tv);
+    select(sd+1, &readfds, NULL, NULL, &tv);
 	
-    if (FD_ISSET(data->sd, &readfds))
+    if (FD_ISSET(sd, &readfds))
         return true;
     else
         return false;
@@ -150,7 +110,7 @@ Socket::Poll()
 int
 Socket::ReadData(char * result, int maxlen, bool fill)
 {
-    if (data->sd == -1)
+    if (sd == -1)
         return 0;
 	
     const int BUFFER_SIZE = 1024;
@@ -161,7 +121,7 @@ Socket::ReadData(char * result, int maxlen, bool fill)
     do
     {
         ssize_t read_size = (maxlen-dst < BUFFER_SIZE ? maxlen-dst : BUFFER_SIZE);
-        rc = read(data->sd, buffer, read_size);
+        rc = read(sd, buffer, read_size);
         for (int i=0; i<rc && dst<maxlen; i++)
             result[dst++] = buffer[i];
 		
@@ -189,10 +149,10 @@ Socket::Get(const char * hostname, int port, const char * request, char * result
 void
 Socket::Close()
 {
-    if (data->sd == -1)
+    if (sd == -1)
         return;
-    close(data->sd);
-    data->sd = -1;
+    close(sd);
+    sd = -1;
 }
 
 
@@ -215,77 +175,49 @@ Socket::HTTPGet(const std::string & url) // Very temporary implementation that o
 }
 
 
-//
-//	ServerSocketData
-//
 
-class ServerSocketData
-	{
-	public:
-		int				portno;
-		int 			sockfd;						// Listen on sock_fd,
-		int				new_fd;						// New connection on new_fd
-		int				block_flags;				// Original flags for blocking I/O
-		int             request_allocated_size;
-		char *		 	request;
-//		char			argument[10][256];
-//		int				argcnt;
-		
-		char			filepath[PATH_MAX];
-		
-		struct sockaddr_in	my_addr; 					// My address information
-		struct sockaddr_in	their_addr;					// Connector's address information
-		
-		ServerSocketData() { request_allocated_size = 1024; request = (char *)malloc(sizeof(char)*request_allocated_size); }
-	};
-
-
-//
 //	ServerSocket
 //
-
-ServerSocket::ServerSocket(int port)
+ServerSocket::ServerSocket(int port) 
 {
-    data = new ServerSocketData();
-	
-    data->portno = port;
+    portno = port;
     int yes = 1;
-//    data->argcnt = 0;
 
-    //int xxx = data->sockfd;
-    if ((data->sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-        throw SocketException(strerror(errno), 1);
-	
-    data->my_addr.sin_family = AF_INET;                     // host byte order
-    data->my_addr.sin_port = htons(port);					// short, network byte order
-    data->my_addr.sin_addr.s_addr = htonl(INADDR_ANY);		// automatically fill with my IP
-    memset(&(data->my_addr.sin_zero), '\0', 8);				// zero the rest of the struct
-	
-    if (setsockopt(data->sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)	// To avoid (most) socket already in use errors
-        throw SocketException(strerror(errno), 2);
-	
-    // Call to avoid SIGPIPEs on OS X
-    // May not work on other platforms like Linux. In that case #ifdefs should be added around it
-#ifdef MAC_OS_X
-    if(setsockopt(data->sockfd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(int)) == -1)  
-        throw SocketException(strerror(errno), 3);
-#endif
-    
-    if (bind(data->sockfd, (struct sockaddr *)&(data->my_addr), sizeof(struct sockaddr)) == -1)
-        throw SocketException(strerror(errno), 4);			// Socket already used
-	
-    if (listen(data->sockfd, BACKLOG) == -1)
-        throw SocketException(strerror(errno), 5);
-    
-    signal(SIGPIPE, SIG_IGN);							// ignore SIGPIPE so that the program does not exit; catch errors when send() returns -1 instead
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd == -1)
+        throw std::system_error(errno, std::system_category(), "Failed to create socket");
+
+    // Set address properties
+    my_addr.sin_family = AF_INET;                     // host byte order
+    my_addr.sin_port = htons(port);                   // short, network byte order
+    my_addr.sin_addr.s_addr = htonl(INADDR_ANY);       // automatically fill with my IP
+    memset(&(my_addr.sin_zero), '\0', 8);             // zero the rest of the struct
+
+    // Set SO_REUSEADDR to prevent "socket already in use" errors
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+        throw std::system_error(errno, std::system_category(), "Failed to set SO_REUSEADDR");
+
+    // Handle SIGPIPE errors on macOS
+    if (setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(int)) == -1)
+        throw std::system_error(errno, std::system_category(), "Failed to set SO_NOSIGPIPE");
+
+    // Bind the socket
+    if (bind(sockfd, (struct sockaddr *)&(my_addr), sizeof(struct sockaddr)) == -1) 
+        throw std::system_error(errno, std::system_category(), "Failed to bind socket");
+
+    // Listen for incoming connections
+    if (listen(sockfd, BACKLOG) == -1)
+        throw std::system_error(errno, std::system_category(), "Failed to listen on socket");
+
+    // Ignore SIGPIPE so the program does not exit unexpectedly
+    signal(SIGPIPE, SIG_IGN);
 }
 
 
 
 ServerSocket::~ServerSocket()
 {
-    close(data->sockfd);
-    delete data;
+    close(sockfd);
 }
 
 
@@ -295,25 +227,19 @@ ServerSocket::Poll(bool block)
 {
     int sin_size = sizeof(struct sockaddr_in);
     if(!block)
-        fcntl(data->sockfd, F_SETFL, O_NONBLOCK);				// temporariliy make the socket non-blocking
-    data->new_fd = accept(data->sockfd, (struct sockaddr *)&(data->their_addr), (socklen_t*) &sin_size);
+        fcntl(sockfd, F_SETFL, O_NONBLOCK);				// temporariliy make the socket non-blocking
+    new_fd = accept(sockfd, (struct sockaddr *)&(their_addr), (socklen_t*) &sin_size);
     if(!block)
-        fcntl(data->sockfd, F_SETFL, 0);						// make the socket blocking again
-    return (data->new_fd != -1);
+        fcntl(sockfd, F_SETFL, 0);						// make the socket blocking again
+    return (new_fd != -1);
 }
 
 
 
 
-
-#include <unistd.h>
-#include <cstring>  // For bzero
-#include <errno.h>
-#include <algorithm> // For std::min
-
 size_t ServerSocket::Read(char *buffer, int maxSize, bool fill) 
 {
-    if (data->new_fd == -1) {
+    if (new_fd == -1) {
         return 0; // Invalid socket
     }
 
@@ -323,11 +249,10 @@ size_t ServerSocket::Read(char *buffer, int maxSize, bool fill)
     if (fill) {
         // Fill the buffer completely if requested
         while (total_read < maxSize) {
-            n = recv(data->new_fd, buffer + total_read, maxSize - total_read, 0);
+            n = recv(new_fd, buffer + total_read, maxSize - total_read, 0);
 
             if (n > 0) {
                 total_read += n;
-                //std::cout << "Total read: " << total_read << std::endl;
             } else if (n == 0) {
                 // Connection closed by the client
                 break;
@@ -346,7 +271,7 @@ size_t ServerSocket::Read(char *buffer, int maxSize, bool fill)
         }
     } else {
         // Single call to recv, do not enforce filling the buffer
-        n = recv(data->new_fd, buffer, maxSize, 0);
+        n = recv(new_fd, buffer, maxSize, 0);
 
         if (n > 0) {
             total_read = n;
@@ -379,22 +304,6 @@ strip(char * s)
 	return s;
 }
 
-/*
-static char *
-recode(char * s)	    // Replace %20 and others with a space - no longer used - replaced with UriDecode
-{
-    int j = 0;
-    for (int i=0; s[i]; i++)
-        if (s[j] != '%')
-            s[i] = s[j++];
-        else
-        {
-            s[i] = ' ';
-            j+=3;
-        }
-    return s;
-}
-*/
 
 
 // https://www.codeguru.com/cpp/cpp/algorithms/strings/article.php/c12759/URI-Encoding-and-Decoding.htm
@@ -475,22 +384,22 @@ ServerSocket::GetRequest(bool block)
 	
 	// Loop until CRLF CRLF is found which marks the end of the HTTP request
 	
-    data->request[0] = '\0';
+    request[0] = '\0';
 	int read_count = 0;
-	while(!strstr(data->request, "\r\n\r\n")) // check border condition ***
+	while(!strstr(request, "\r\n\r\n")) // check border condition ***
 	{
-		long rr = Read(&(data->request[read_count]), data->request_allocated_size-read_count);
+		long rr = Read(&(request[read_count]), request_allocated_size-read_count);
         if(rr == 0)         // the connections has been closed since the beginning of the request
             return false;   // this can occur when a view is changed; return and ignore the request
         read_count += rr;
-        data->request[read_count] = '\0';
-		if(read_count >= data->request_allocated_size-1)
-			data->request = (char *)realloc(data->request, data->request_allocated_size += 1024);
+        request[read_count] = '\0';
+		if(read_count >= request_allocated_size-1)
+			request = (char *)realloc(request, request_allocated_size += 1024);
 	}
 	
 	// Parse request and header [TODO: handle that arguments in theory can span several lines accoding to the HTTP specification; although it never happens]
 	
-	char * p = data->request;	
+	char * p = request;	
 	if(!p)
 	{
 		printf("ERROR: Empty HTTP request.");
@@ -521,8 +430,6 @@ ServerSocket::GetRequest(bool block)
         if (content_length_str)
         {
             size_t content_length = std::stoull(content_length_str);
-            //std::cout << "Socket: Content length " << content_length << std::endl;
-
             if (content_length > 0)
             {   
                 char buffer[content_length];
@@ -575,10 +482,8 @@ ServerSocket::SendHTTPHeader(Dictionary * d, const char * response) // Content l
 bool
 ServerSocket::SendData(const char * buffer, long size)
 {
-    if (data->new_fd == -1)
-    {   
+    if (new_fd == -1)
         return false;	// Connection closed - ignore send
-    }
     
     long total = 0;
     long bytesleft = size;
@@ -586,7 +491,7 @@ ServerSocket::SendData(const char * buffer, long size)
 
      while (total < size)
     {
-        n = send(data->new_fd, buffer+total, bytesleft, MSG_NOSIGNAL);  // Write "handle SIGPIPE nostop print pass" in gdb to avoid break during debugging
+        n = send(new_fd, buffer+total, bytesleft, MSG_NOSIGNAL);  // Write "handle SIGPIPE nostop print pass" in gdb to avoid break during debugging
         if (n == -1)
         {
             break;
@@ -617,7 +522,7 @@ ServerSocket::Send(std::string data)
 bool
 ServerSocket::Send(const char * format, ...)
 {
-    if (data->new_fd == -1)
+    if (new_fd == -1)
         return false;	// Connection closed - ignore send
     
     char buffer[1024];
@@ -634,43 +539,6 @@ ServerSocket::Send(const char * format, ...)
     return SendData(buffer, strlen(buffer));
 }
 
-/*
-void ServerSocket::fillBuffer(std::string s)
-{
-    buffer.append(s);
-}
-
-bool ServerSocket::SendBuffer()
-{
-    return SendData(buffer.c_str(),buffer.length());
-}
-
-void ServerSocket::clearBuffer() // FIXME: what is this?
-{
-    buffer.clear();
-    if (buffer.empty())
-        buffer.reserve(5000000); // 5Mb
-}
-*/
-
-bool
-ServerSocket::Send(const float * d, int sizex, int sizey)
-{
-    float sx = float(sizex);
-    float sy = float(sizey);
-	
-    if (!SendData((char *)(&sx), sizeof(float)))
-        return false;
-	
-    if (!SendData((char *)(&sy), sizeof(float)))
-        return false;
-	
-    if (!SendData((char *)d, sizex*sizey*sizeof(float)))
-        return false;
-	
-    return true;
-}
-
 
 
 bool
@@ -678,9 +546,9 @@ ServerSocket::SendFile(const char * filename, const char * path, Dictionary * hd
 {
     if (filename == NULL) return false;
 	
-    copy_string(data->filepath, path, PATH_MAX);
-    append_string(data->filepath, filename, PATH_MAX);
-    FILE * f = fopen(data->filepath, "r+b");
+    copy_string(filepath, path, PATH_MAX);
+    append_string(filepath, filename, PATH_MAX);
+    FILE * f = fopen(filepath, "r+b");
 	
     if (f == NULL) return false;
 	
@@ -743,14 +611,14 @@ ServerSocket::SendFile(const std::string & filename, const std::string & path)
 bool
 ServerSocket::Close()
 {
-    if (data->new_fd == -1) return true;	// Connection already closed
+    if (new_fd == -1) return true;	// Connection already closed
 	
-    if (close(data->new_fd) == -1)
+    if (close(new_fd) == -1)
     {
         errcode = errno;
         return false;
     }
-    data->new_fd = -1;
+    new_fd = -1;
 	
     return true;
 }
@@ -760,7 +628,7 @@ ServerSocket::Close()
 int
 ServerSocket::Port()
 {
-    return data->portno;
+    return portno;
 }
 
 
