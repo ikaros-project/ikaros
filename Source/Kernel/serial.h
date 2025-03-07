@@ -32,8 +32,11 @@
 #include <cstdlib>
 #include <cstdio>
 
+#include "exceptions.h"
 #include "timing.h"
 
+
+/*
 class SerialException
 {
 public:
@@ -43,7 +46,7 @@ public:
 
 	SerialException(const char * d, const char * s, int ref = 0) : device(d), string(s), internal_reference(ref) {};
 };
-
+*/
 
 
 class SerialData;

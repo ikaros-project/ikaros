@@ -1,6 +1,9 @@
 #ifndef EXCEPTIONS
 #define EXCEPTIONS
 
+#include <stdexcept>
+#include <string>
+
 namespace ikaros {
 
     class exception : public std::exception
@@ -59,6 +62,12 @@ namespace ikaros {
     {
     public:
         out_of_memory_matrix_error(std::string msg) : matrix_error(msg) {}
+    };
+
+    class serial_error : public exception 
+    {
+    public:
+        serial_error(std::string msg) : exception(msg) {}
     };
 };
 
