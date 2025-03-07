@@ -1,28 +1,5 @@
-//
-//    IKAROS_Socket.cc		Socket utilities for the IKAROS project
-//
-//    Copyright (C) 2001-2024  Christian Balkenius
-//
-//    This program is free software; you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation; either version 2 of the License, or
-//    (at your option) any later version.
-//
-//    This program is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
-//
-//    You should have received a copy of the GNU General Public License
-//    along with this program; if not, write to the Free Software
-//    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-//    See http://www.ikaros-project.org/ for more information.
-//
 
-//#include "IKAROS_System.h"
-
-//#ifdef USE_BSD_SOCKET
+//    socket_bsd.cc		Socket utilities for the IKAROS project
 
 #include "socket.h"
 
@@ -47,8 +24,6 @@
 #include <string>
 
 #define BACKLOG		10 		// how many pending connections queue will hold
-#define TIMEOUT		1000	// number of attempts to read
-#define TIMEOUTDEL	1000	// number of usec to sleep before each read
 
 using namespace ikaros;
 
@@ -328,27 +303,6 @@ ServerSocket::Poll(bool block)
 }
 
 
-/*
-size_t
-ServerSocket::Read(char * buffer, int maxSize, bool fill)
-{
-    if (data->new_fd == -1)
-        return 0;
-	
-    ssize_t n = 0;
-    bzero(buffer, maxSize);
-	
-    for (int t = 0; t < TIMEOUT; t++)
-    {
-        if ((n = recv(data->new_fd, buffer, maxSize-1, 0)) >= 0)
-            return n;
-		
-        usleep(TIMEOUTDEL);
-    }
-	
-    return n;
-}
-*/
 
 
 
@@ -556,12 +510,14 @@ ServerSocket::GetRequest(bool block)
 		header.Set(k, v);
 		strsep(&p, "\n");
 	}
-
-//	if(char * x = strpbrk(header.Get("URI"), "?#")) *x = '\0';	// Remove timestamp in request // TODO: keep this later
+    if(*p=='\r')
+        p++;
+    if(*p=='\n')
+        p++;
 	
     if (equal_strings(header.Get("Method"), "PUT"))
     {
-                const char* content_length_str = header.Get("Content-Length");
+        const char* content_length_str = header.Get("Content-Length");
         if (content_length_str)
         {
             size_t content_length = std::stoull(content_length_str);
@@ -569,9 +525,12 @@ ServerSocket::GetRequest(bool block)
 
             if (content_length > 0)
             {   
-                char buffer[content_length+4];
-                long rr = Read(buffer, content_length, true); // +4 removed
-               // std::cout << "Socket: Data read " << rr << std::endl;
+                char buffer[content_length];
+                size_t n = strlen(p);
+                strncpy(buffer, p, sizeof(buffer) - 1);
+                buffer[sizeof(buffer) - 1] = '\0';
+
+                long rr = n+Read(buffer+n, content_length-n, true);
                 body = std::string(buffer);
             }
         }
@@ -816,4 +775,3 @@ ServerSocket::Host()
         return "unkown-host";
 }
 
-//#endif
