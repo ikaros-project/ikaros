@@ -69,7 +69,7 @@ public:
     ThreadPool(size_t numThreads);
     ~ThreadPool();
 
-    void submit(TaskSequence * task_seqauence); // Submit a task to be executed by the thread pool
+    void submit(TaskSequence * task_sequence); // Submit a task to be executed by the thread pool
     bool working(); /// True if at least one worker is running
 
 private:
