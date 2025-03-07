@@ -3,8 +3,7 @@
 // (c) Christian Balkenius 2023-02-05
 //
 
-#ifndef MATRIX
-#define MATRIX
+#pragma once
 
 #undef USE_BLAS
 
@@ -1384,6 +1383,4 @@ namespace ikaros
 
     };
 }
-
-#endif
 

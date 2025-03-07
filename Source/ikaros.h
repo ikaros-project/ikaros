@@ -1,7 +1,6 @@
 // Ikaros 3.0
 
-#ifndef IKAROS
-#define IKAROS
+#pragma once
 
 #include <stdexcept>
 #include <string>
@@ -588,4 +587,4 @@ public:
 };
 
 }; // namespace ikaros
-#endif
+

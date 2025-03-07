@@ -20,8 +20,7 @@
 //    See http://www.ikaros-project.org/ for more information.
 //
 
-#ifndef IKAROS_TIMER
-#define IKAROS_TIMER
+#pragma once
 
 #include <chrono>
 #include <thread>
@@ -73,5 +72,5 @@ public:
     double  accumulated_time = 0;           // Total time used (in seconds)
 };
 
-#endif
+
 

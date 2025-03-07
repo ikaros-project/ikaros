@@ -25,8 +25,7 @@
 //	Created 2006-03-05.
 //
 
-#ifndef XMLPARSER
-#define XMLPARSER
+#pragma once
 
 #define XML_DEBUG   false
 
@@ -226,4 +225,3 @@ public:
 };
 
 
-#endif

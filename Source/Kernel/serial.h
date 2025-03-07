@@ -19,8 +19,7 @@
 //
 //    Edited by Birger
 
-#ifndef IKAROS_SERIAL
-#define IKAROS_SERIAL
+#pragma once
 
 
 #define DEFAULT_MAX_FAILED_READS 100
@@ -82,8 +81,4 @@ protected:
 private:
     SerialData *    data;
 };
-
-
-#endif
-
 

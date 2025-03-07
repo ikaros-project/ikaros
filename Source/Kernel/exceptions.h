@@ -1,5 +1,4 @@
-#ifndef EXCEPTIONS
-#define EXCEPTIONS
+#pragma once
 
 #include <stdexcept>
 #include <string>
@@ -71,7 +70,7 @@ namespace ikaros {
     };
 };
 
-#endif
+
 
 /*
 

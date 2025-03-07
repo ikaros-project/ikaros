@@ -3,6 +3,8 @@
 // (c) Christian Balkenius 2024-09-13
 //
 
+#pragma once
+
     #include "maths.h"
     #include "matrix.h"
 

@@ -1,7 +1,6 @@
 // math.h - scalar math operations for iteration (c) Christian Balkenius 2024
 
-#ifndef MATHS
-#define MATHS
+#pragma once
 
 #include <cmath>
 
@@ -21,7 +20,4 @@ namespace ikaros
    	double short_angle(double a1, double a2); // in radians
 };
 
-
-
-#endif
 

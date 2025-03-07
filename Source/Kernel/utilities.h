@@ -1,7 +1,6 @@
 // utilities.h
 
-#ifndef UTILITIES
-#define UTILITIES
+#pragma once
 
 #include <string>
 #include <vector>
@@ -70,5 +69,4 @@ namespace ikaros
     long character_sum(std::string s); // sums the character codes interpreded as numbers
 };  
 
-#endif
 
