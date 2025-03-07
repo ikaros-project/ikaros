@@ -1,8 +1,7 @@
 // image_file_format.h
 // Copyright (C) 2023  Christian Balkenius
 
-#ifndef IMAGE_FILE_FORMAT
-#define IMAGE_FILE_FORMAT
+#pragma once
 
 namespace ikaros
 {    
@@ -20,4 +19,3 @@ namespace ikaros
     //void        jpeg_decode(float ** red_matrix, float ** green_matrix, float ** blue_matrix, float ** intensity_matrix, int sizex, int sizey, char * data, long int size);
 };
 
-#endif
