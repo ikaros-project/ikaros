@@ -102,7 +102,7 @@ Socket::Poll()
     int result = select(sd+1, &readfds, nullptr, nullptr, &tv);
     if(result == -1)
     {
-        perror("select"); // FIXME: throw exception
+        //perror("select"); // FIXME: throw exception?
         return false;
     }
 	
@@ -133,7 +133,7 @@ Socket::ReadData(char * result, int maxlen, bool fill)
         rc = read(sd, buffer, read_size);
         if(rc == -1)
         {
-            perror("read");
+            //perror("read");
             return -1;
         }
     
@@ -270,9 +270,11 @@ ServerSocket::Read(char *buffer, int maxSize, bool fill)
         while (total_read < maxSize) {
             n = recv(new_fd, buffer + total_read, maxSize - total_read, 0);
 
-            if(n > 0) {
+            if(n > 0) 
+            {
                 total_read += n;
-            } else if(n == 0) 
+            } 
+            else if(n == 0) 
             {
                 
                 break; // Connection closed by the client
@@ -288,12 +290,8 @@ ServerSocket::Read(char *buffer, int maxSize, bool fill)
                 {
                     break;  // No data available, break out of the loop
                 } 
-                else 
-                {
-                   
-                    perror("recv");  // FIXME: throw exception; Fatal error
-                    return -1;
-                }
+                else
+                     throw std::system_error(errno, std::system_category(), "recv failed");
             }
         }
     } 
@@ -310,8 +308,8 @@ ServerSocket::Read(char *buffer, int maxSize, bool fill)
             if(errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK) 
             {
                 // Fatal error
-                perror("recv");
-                return -1;
+                throw std::system_error(errno, std::system_category(), "recv failed");
+                // return -1;
             }
         }
     }
@@ -427,10 +425,8 @@ ServerSocket::GetRequest(bool block)
         if(read_count >= request_allocated_size-1) {
             char *new_request = (char *)realloc(request, request_allocated_size + 1024);
             if(new_request == nullptr) 
-            {
-                throw ikaros::exception("Failed to allocate memory");
-                return false;
-            }
+                throw std::system_error(errno, std::system_category(), "Failed to allocate memory");
+
             request = new_request;
             request_allocated_size += 1024;
         }
@@ -530,7 +526,7 @@ ServerSocket::SendData(const char * buffer, long size)
 
      while (total < size)
     {
-        n = send(new_fd, buffer+total, bytesleft, MSG_NOSIGNAL);  // Write "handle SIGPIPE nostop print pass" in gdb to avoid break during debugging
+        n = send(new_fd, buffer+total, bytesleft, MSG_NOSIGNAL);
         if(n == -1)
         {
             break;
