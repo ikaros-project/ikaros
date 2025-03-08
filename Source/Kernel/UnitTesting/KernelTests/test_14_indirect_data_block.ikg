@@ -1,4 +1,4 @@
-<group name="Test_14" description="Test access to data block using variables" block="DataBlock_C"  zz="@z" z="123" check_sum="4312" >
+<group name="Test_14" description="Test access to data block using variables" block="DataBlock_C"  zz="@z" z="123" check_sum="5986" >
 		<group 
 			name = "DataBlock_A"
 			x = "1"

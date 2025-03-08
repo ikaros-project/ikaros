@@ -1,4 +1,4 @@
-<group name="Test" description="Test of group with inputs and outputs that encapsulates an Add-module" check_sum="2825" >
+<group name="Test" description="Test of group with inputs and outputs that encapsulates an Add-module" check_sum="3429" >
 
 	<module class = "Constant" name = "Constant1" data="1,2;3,4" />
 	<module class = "Constant" name = "Constant2" data="8,9;-8,-9" />

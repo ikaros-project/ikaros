@@ -1,4 +1,4 @@
-<group name="Test_1" description="Test indexed conection ranges" check_sum="2301" >
+<group name="Test_1" description="Test indexed conection ranges" check_sum="3029" >
 	<module class = "Constant" name = "Constant" data="1,2;3,4" />
 
     <module class = "Print" name = "P1" />

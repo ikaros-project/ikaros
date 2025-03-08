@@ -1,4 +1,4 @@
-<group name="Test" description="Test of simple looped size calculations" check_sum="1222" >
+<group name="Test" description="Test of simple looped size calculations" check_sum="1472" >
 
 	<module class = "Constant" name = "Constant" data="0, 1,2;0, 3,4" />
 

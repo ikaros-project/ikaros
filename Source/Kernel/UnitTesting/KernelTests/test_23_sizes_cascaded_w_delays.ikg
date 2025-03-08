@@ -1,4 +1,4 @@
-<group name="Test" description="Test of cascaded size calculations with delays" check_sum="2106985" >
+<group name="Test" description="Test of cascaded size calculations with delays" check_sum="2558201" >
 
 	<module class = "Constant" name = "Constant" data="0, 1,2;0, 3,4" />
 	<module class = "Scale" name = "S1" />

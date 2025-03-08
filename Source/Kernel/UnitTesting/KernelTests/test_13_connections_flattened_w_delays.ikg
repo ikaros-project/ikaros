@@ -1,4 +1,4 @@
-<group name="Test_4" description="Test flattened conection ranges with delays" check_sum="5915" >
+<group name="Test_4" description="Test flattened conection ranges with delays" check_sum="8183" >
 
 	<module class = "Constant" name = "Constant1" data="1,2;3,4" />
 	<module class = "Constant" name = "Constant2" data="8,9;-8,-9" />
