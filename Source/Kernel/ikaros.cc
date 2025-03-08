@@ -3077,6 +3077,7 @@ if(classes[classname].path.empty())
             socket->SendHTTPHeader(&header);
 
             socket->Send("Rank of matrix != 2. Cannot be displayed as CSV");
+            return;
         }
 
         Dictionary header;
@@ -3427,7 +3428,9 @@ Kernel::~Kernel()
         while(handling_request)
             {}
         Sleep(0.1);
-        delete socket; 
+        delete socket;
+        delete thread_pool;
+        delete httpThread;
     }
 }
 

@@ -32,7 +32,6 @@ using namespace std::literals;
 #include "Kernel/h_matrix.h"
 #include "Kernel/socket.h"
 #include "Kernel/timing.h"
-#include "Kernel/socket.h"
 #include "Kernel/deprecated.h"
 #include "Kernel/image_file_formats.h"
 #include "Kernel/serial.h"
@@ -396,7 +395,7 @@ public:
     std::map<std::string, parameter>        parameters;
 
     std::vector<std::vector<Task *>>        tasks;                  // Sorted tasks in groups
-    ThreadPool *                            thread_pool;
+    ThreadPool *                            thread_pool = nullptr;
 
     long                                    session_id;
     bool                                    needs_reload;
@@ -410,10 +409,10 @@ public:
     dictionary                              current_component_info; // Implivit parameters to create Component
     std::string                             current_component_path;
 
-    double                                  idle_time;         
-    int                                     cpu_cores;
-    double                                  cpu_usage;
-    double                                  last_cpu;
+    double                                  idle_time = 0;         
+    int                                     cpu_cores = 1;
+    double                                  cpu_usage = 0;
+    double                                  last_cpu = 0;
 
     Timer                                   uptime_timer;   // Measues kernel uptime
     Timer                                   timer;          // Main timer
@@ -431,9 +430,9 @@ public:
     double                                  lag_max;        // Largest positive lag
     double                                  lag_sum;        // Sum |lag|
 
-    ServerSocket *                          socket;
+    ServerSocket *                          socket = nullptr;
     std::vector<Message>                    log;
-    std::thread *                           httpThread;
+    std::thread *                           httpThread = nullptr;
 
     Kernel();
     ~Kernel();
