@@ -498,6 +498,7 @@ public:
     void PruneConnections();
     void SortTasks();
     void RunTasks();
+    void RunTasksInSingleThread();
     void SetUp();
     void SetCommandLineParameters(dictionary & d);
     void LoadFile();

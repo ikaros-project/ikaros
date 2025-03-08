@@ -451,7 +451,7 @@ namespace ikaros
         }
         catch(exception & e)
         {
-            Notify(msg_fatal_error, e.message);
+            Notify(msg_fatal_error, e.message());
         }
         catch(std::exception & e)
         {
@@ -669,7 +669,7 @@ namespace ikaros
         }
         catch(exception e)
         {
-            throw exception("Bind:\""+name+"\" failed. "+e.message);
+            throw exception("Bind:\""+name+"\" failed. "+e.message());
         }
     }
 
@@ -1682,13 +1682,13 @@ bool operator==(Request & r, const std::string s)
         }
         catch(fatal_error & e)
         {
-            Notify(msg_fatal_error, e.message);
+            Notify(msg_fatal_error, e.message());
             throw setup_error("Could not calculate input and output sizes.");
         }
 
         catch(setup_error & e)
         {
-            Notify(msg_fatal_error, e.message);
+            Notify(msg_fatal_error, e.message());
             throw setup_error("Could not calculate input and output sizes.");
         }
 
@@ -1961,33 +1961,41 @@ if(classes[classname].path.empty())
     void 
     Kernel::BuildGroup(dictionary d, std::string path) // Traverse dictionary and build all items at each level, FIXME: rename AddGroup later
     {
-        if(std::string(d["_tag"]) != "group")
-            throw setup_error("Main element is <"+std::string(d["_tag"])+"> but must be <group> for ikg-file.");
+        try
+        {
+            if(std::string(d["_tag"]) != "group")
+                throw setup_error("Main element is <"+std::string(d["_tag"])+"> but must be <group> for ikg-file.");
 
-        if(!d.contains("name"))
-            throw setup_error("Groups must have a name.");
+            if(!d.contains("name"))
+                throw setup_error("Groups must have a name.");
 
-        std::string name = validate_identifier(d["name"]);
-        if(!path.empty())
-            name = path+"."+name;
+            std::string name = validate_identifier(d["name"]);
+            if(!path.empty())
+                name = path+"."+name;
 
-        if(d.contains("external"))
-            LoadExternalGroup(d);
+            if(d.contains("external"))
+                LoadExternalGroup(d);
 
+            AddGroup(d, name);
 
-        AddGroup(d, name);
+            for(auto g : d["groups"])
+                BuildGroup(g, name);
+            for(auto m : d["modules"])
+                AddModule(m, name);
+            for(auto c : d["connections"])
+                AddConnection(c, name);
 
-        for(auto g : d["groups"])
-            BuildGroup(g, name);
-        for(auto m : d["modules"])
-            AddModule(m, name);
-        for(auto c : d["connections"])
-            AddConnection(c, name);
-
-        if(d["widgets"].is_null())
-            d["widgets"] = list();
-
-        // FIX OTHER THINGS HERE
+            if(d["widgets"].is_null())
+                d["widgets"] = list();
+        }
+        catch(const exception& e)
+        {
+            throw setup_error("Build group failed for "+path+": "+e.message());
+        }
+        catch(const std::exception& e)
+        {
+            throw setup_error("Build group failed for "+path+": "+std::string(e.what()));
+        }
     }
 
 
@@ -2053,9 +2061,14 @@ if(classes[classname].path.empty())
             }
             catch(const exception& e)
             {
-                Notify(msg_fatal_error, e.message);
-                Notify(msg_fatal_error, u8"Load file failed for "s+options_.full_path());
-                throw load_failed("Load failed");
+                //Notify(msg_fatal_error, e.message());
+                //Notify(msg_fatal_error, u8"Load file failed for "s+options_.full_path());
+                throw load_failed(u8"Load file failed for "s+options_.full_path());
+            }
+            catch(const std::exception& e)
+            {
+                //Notify(msg_fatal_error, u8"Load file failed for "s+options_.full_path()+". "+e.what());
+                throw load_failed(u8"Load file failed for "s+options_.full_path()+". "+e.what());
             }
     }
 
@@ -2401,38 +2414,39 @@ if(classes[classname].path.empty())
     void
     Kernel::RunTasks()
     {
-        if(options_.is_set("experimental"))
+        std::vector<TaskSequence *> sequences;
+
+        for(auto & task_sequence : tasks)
         {
-            std::vector<TaskSequence *> sequences;
+            auto ts = new TaskSequence(task_sequence);
+            sequences.push_back(ts);
+            thread_pool->submit(ts);
+        }
+        // WAIT FOR COMPLETION
 
-            for(auto & task_sequence : tasks)
-            {
-                auto ts = new TaskSequence(task_sequence);
-                sequences.push_back(ts);
-                thread_pool->submit(ts);
-            }
-            // WAIT FOR COMPLETION
-
-            bool working = true;
-            while(working)
-            {
-                working =false;
-                for(auto ts: sequences)
-                    if(!ts->isCompleted())
-                        working = true;     
-            }
-
+        bool working = true;
+        while(working)
+        {
+            working =false;
             for(auto ts: sequences)
-                delete ts;
+                if(!ts->isCompleted())
+                    working = true;     
         }
 
-        else
-        {
-            for(auto & task_group : tasks)
-                for(auto & task: task_group)
-                    task->Tick();
-        }
+        for(auto ts: sequences)
+            delete ts;
     }
+
+
+
+    void
+    Kernel::RunTasksInSingleThread()
+    {
+        for(auto & task_group : tasks)
+            for(auto & task: task_group)
+                task->Tick();
+    }
+
 
 
     void
@@ -2469,9 +2483,9 @@ if(classes[classname].path.empty())
         }
         catch(exception & e)
         {
-            Notify(msg_fatal_error, e.message);
-            Notify(msg_fatal_error, "SetUp Failed");
-            throw setup_error("SetUp Failed");
+            //Notify(msg_fatal_error, e.message());
+            //Notify(msg_fatal_error, "SetUp Failed");
+            throw setup_error("SetUp Failed. "+e.message());
         }
     }
 
@@ -2513,7 +2527,7 @@ if(classes[classname].path.empty())
                     {
                         //std::cout << e.what() << std::endl;
                         Notify(msg_fatal_error, (e.what()));
-                        return;
+                        return;                 // FIXME: THROW INSTEAD
                     }
                     tick_time_usage = intra_tick_timer.GetTime();
                     idle_time = tick_duration - tick_time_usage;
