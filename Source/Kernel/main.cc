@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 
          catch(load_failed & e)
             {
-                std::cout << "Load failed. "+e.message << std::endl;
+                std::cout << "Load failed. "+e.message() << std::endl;
                 k.options_.path_.clear();
             }
 
