@@ -1,7 +1,6 @@
 // range.h - ranges for iteration (c) Christian Balkenius 2023
 
-#ifndef RANGE
-#define RANGE
+#pragma once
 
 #include <string>
 #include <vector>
@@ -77,6 +76,4 @@ namespace ikaros
         friend std::ostream& operator<<(std::ostream& os, const range & x);
     };
 }; // namespace ikaros
-
-#endif
 
