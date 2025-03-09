@@ -853,15 +853,30 @@ footer p {
     padding-left:5px;
     font-size: 10px;
 }
+p.inherit     { color: lightgray; }
+p.quiet     { color: lightgray; }
+p.exception { color: black; }
+p.end_of_file { color: blue; }
+p.terminate { color: blue; }
+p.fatal_error { color: red; }
+p.warning { color: red; }
+p.print { color: darkgray; }
+p.debug { color: darkgray; }
+p.trace { color: darkgray; }
 
-p.warning {
-    color: orange;
+
+a {
+    color: black;
+    text-decoration: none;
 }
 
 
-p.error {
-    color: red;
+a:hover {
+    text-decoration: underline;
+    cursor: pointer;
 }
+
+
 
 /* VIEW */
 
