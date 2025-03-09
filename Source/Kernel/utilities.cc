@@ -585,4 +585,39 @@ base64_encode(const unsigned char * data,
             sum += c;
         return sum;
     }
+
+        std::string to_hex(char c)
+    {
+        const char* hex_digits = "0123456789ABCDEF";
+        std::string hex_str;
+        hex_str += hex_digits[(c >> 4) & 0xF];
+        hex_str += hex_digits[c & 0xF];
+        return hex_str;
+    }
+
+    std::string escape_json_string(const std::string& str)
+    {
+        std::string escaped;
+        for (char c : str)
+        {
+            switch (c)
+            {
+                case '"': escaped += "\\\""; break;
+                case '\\': escaped += "\\\\"; break;
+                case '\b': escaped += "\\b"; break;
+                case '\f': escaped += "\\f"; break;
+                case '\n': escaped += "\\n"; break;
+                case '\r': escaped += "\\r"; break;
+                case '\t': escaped += "\\t"; break;
+                default:
+                    if (c < 0x20 || c > 0x7E)
+                        escaped += "\\u" + to_hex(c);
+                    else
+                        escaped += c;
+            }
+        }
+        return escaped;
+    }
+
+
 };
