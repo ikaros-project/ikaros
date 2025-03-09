@@ -177,7 +177,7 @@ class Message
 
         std::string json()
         {
-            return "[\""+std::to_string(level_)+"\",\""+message_+"\",\""+path_+"\"]";
+            return "[\""+std::to_string(level_)+"\",\""+escape_json_string(message_)+"\",\""+escape_json_string(path_)+"\"]";
         }
 };
 

@@ -67,6 +67,10 @@ namespace ikaros
     };
 
     long character_sum(std::string s); // sums the character codes interpreded as numbers
+
+    std::string to_hex(char c);
+    std::string escape_json_string(const std::string& str);
+
 };  
 
 

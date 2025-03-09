@@ -11,51 +11,6 @@ using namespace ikaros;
 namespace ikaros 
 {
 
-    /*
-        static std::string escape_json_string(std::string str) // FIXME: Do this correctly later
-        {
-            std::replace(str.begin(), str.end(), '\n', ' ');
-            std::replace(str.begin(), str.end(), '\t', ' ');
-            return str;
-        }
-*/
-
-
-    static std::string to_hex(char c)
-    {
-        const char* hex_digits = "0123456789ABCDEF";
-        std::string hex_str;
-        hex_str += hex_digits[(c >> 4) & 0xF];
-        hex_str += hex_digits[c & 0xF];
-        return hex_str;
-    }
-
-
-    static std::string escape_json_string(const std::string& str)
-    {
-        std::string escaped;
-        for (char c : str)
-        {
-            switch (c)
-            {
-                case '"': escaped += "\\\""; break;
-                case '\\': escaped += "\\\\"; break;
-                case '\b': escaped += "\\b"; break;
-                case '\f': escaped += "\\f"; break;
-                case '\n': escaped += "\\n"; break;
-                case '\r': escaped += "\\r"; break;
-                case '\t': escaped += "\\t"; break;
-                default:
-                    if (c < 0x20 || c > 0x7E)
-                        escaped += "\\u" + to_hex(c);
-                    else
-                        escaped += c;
-            }
-        }
-        return escaped;
-    }
-
-
         static void skip_whitespace(const std::string& s, size_t& pos)
         {
             while (pos<s.length() && std::isspace(s[pos]))
@@ -757,5 +712,40 @@ value parse_json(const std::string& json_str)
     size_t pos = 0;
     return parse_value(json_str, pos);
 }
+
+std::string to_hex(char c)
+{
+    const char* hex_digits = "0123456789ABCDEF";
+    std::string hex_str;
+    hex_str += hex_digits[(c >> 4) & 0xF];
+    hex_str += hex_digits[c & 0xF];
+    return hex_str;
+}
+
+std::string escape_json_string(const std::string& str)
+{
+    std::string escaped;
+    for (char c : str)
+    {
+        switch (c)
+        {
+            case '"': escaped += "\\\""; break;
+            case '\\': escaped += "\\\\"; break;
+            case '\b': escaped += "\\b"; break;
+            case '\f': escaped += "\\f"; break;
+            case '\n': escaped += "\\n"; break;
+            case '\r': escaped += "\\r"; break;
+            case '\t': escaped += "\\t"; break;
+            default:
+                if (c < 0x20 || c > 0x7E)
+                    escaped += "\\u" + to_hex(c);
+                else
+                    escaped += c;
+        }
+    }
+    return escaped;
+}
+
+
 
 };

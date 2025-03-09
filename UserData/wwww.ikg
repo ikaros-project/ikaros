@@ -1,0 +1,8 @@
+<group filename="" info="true" name="Downsample_Example" stop="-1" webui_port="8000">
+   <connection _delay="1" source="InputVideo.OUTPUT" target="Downsample.INPUT"/>
+   <module _frame_rate="30" _size_x="1280" _size_y="720" _x="96" _y="168" class="InputVideo" list_devices="yes" name="InputVideo" size_x="640" size_y="XXX"/>
+   <module _x="288" _y="216" class="Downsample" name="Downsample"/>
+   <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+</group>
