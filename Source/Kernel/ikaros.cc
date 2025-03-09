@@ -978,7 +978,7 @@ namespace ikaros
 
 
     bool
-    Component::InputsReady(dictionary d,  input_map ingoing_connections) // FIXME: Handle optional buffers
+    Component::InputsReady(dictionary d,  input_map ingoing_connections) // FIXME: Handle optional inputs
     {
 
         Trace("\t\t\tComponent::InputReady", path_  + "." +  std::string(d["name"]));
@@ -986,7 +986,7 @@ namespace ikaros
 
         std::string n = d["name"];   // ["attributes"]
         if(ingoing_connections.count(path_))
-            for(auto & c : ingoing_connections.at(path_)) // +'.'+n
+            for(auto & c : ingoing_connections.at(path_))
                 if(k.buffers.at(c->source).rank()==0)
                     return false;
         return true;
@@ -1196,6 +1196,17 @@ namespace ikaros
 
         return 0;
     }
+
+
+    void
+    Component::CheckRequiredInputs()
+    {
+        Kernel & k = kernel();
+        for(dictionary d : info_["inputs"])
+        if(!d.is_set("optional") && k.buffers[path_+"."+d["name"].as_string()].empty())
+            throw setup_error("Component \""+info_["name"].as_string()+"\" has required input \""+d["name"].as_string()+"\" that is not connected.", path_);
+    }
+
 
 
 // ****************************** MODULE Sizes ******************************
@@ -1684,10 +1695,13 @@ bool operator==(Request & r, const std::string s)
         for(int i=0; i<components.size(); i++)
             for(auto & [n, c] : components)
                 c->SetSizes(ingoing_connections);
+
+            for(auto & [n, c] : components)
+                c->CheckRequiredInputs();
         }
         catch(fatal_error & e)
         {
-            Notify(msg_fatal_error, e.message()); // FIXME: Remove
+            //Notify(msg_fatal_error, e.message()); // FIXME: Remove
             throw setup_error("Could not calculate input and output sizes. "+e.message(), e.path());
         }
 
@@ -2479,7 +2493,8 @@ if(classes[classname].path.empty())
             CalculateSizes();
             //ListConnections();
             //ListInputs();
-            //ListOutputs();
+            ListOutputs();
+
             InitCircularBuffers();
             InitComponents();
 

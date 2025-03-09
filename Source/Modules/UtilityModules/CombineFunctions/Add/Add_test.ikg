@@ -3,11 +3,9 @@
    <module class="Constant" data="8, 9; 10, 11" name="Constant2" />
    <module class="Add" description="adds two inputs" name="Add" />
    <module class="Print" name="Print"/>
-   <module class="Logger" description="logs start to Ikaros site" name="Logger" />
 
    <connection source="Constant1.OUTPUT" target="Add.INPUT1" delay="0" />
    <connection source="Constant2.OUTPUT" target="Add.INPUT2" delay="2" />
    <connection source="Add.OUTPUT" target="Print.INPUT" delay="0" />
-
 
 </group>
