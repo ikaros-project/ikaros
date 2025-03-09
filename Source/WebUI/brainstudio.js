@@ -94,6 +94,20 @@ function replaceProperties(target, source)
 }
 
 
+
+function splitAtLastDot(str) {
+    const lastDotIndex = str.lastIndexOf('.');
+    if (lastDotIndex === -1) {
+        return [str, ""]; // No dot found, return original string and empty string
+    }
+    
+    const beforeDot = str.substring(0, lastDotIndex);
+    const afterDot = str.substring(lastDotIndex + 1); // +1 to skip the dot
+    return [beforeDot, afterDot];
+}
+
+
+
 function toURLParams(params) {
     return Object.keys(params).map((key) => {
         //console.log(key);
@@ -682,7 +696,7 @@ let controller =
         
         xhr.ontimeout = function() 
         {
-            log.print("Request timed out.");
+            //log.print("Request timed out.");
             controller.open_mode = false;
             controller.requestUpdate();
 
@@ -985,22 +999,25 @@ let controller =
         if(response.log)
         {
             let logElement = document.querySelector('.log');
-            if(response.log.length > 0)    
-                console.log(response.log);
-            response.log.forEach((element) => {
-                if(element[0] > 5)
-                logElement.innerHTML += "<p class='message'>"+element[1]+"</p>\n";
-                else if(element[0] == 5)
-                    logElement.innerHTML += "<p class='warning'>"+element[1]+"</p>\n";
-                else
+            //if(response.log.length > 0)    
+            //    console.log(response.log);
+
+            response.log.forEach((element) => 
+            {
+                let message_class = ["inherit", "quiet","exception","end_of_file","terminate","fatal_error","warning","print","debug","trace"][element[0]];
+                let s = "<p class='"+message_class+"'>"+element[1];
+                if(element[2])
+                    s += "<a onclick='selector.selectError("+ '"'+element[2]+'"' +")'> &raquo; "+element[2]+"</a>";
+                s += "</p>\n";
+                logElement.innerHTML += s;
+                if(element[0]<=6)
                 {
-                    logElement.innerHTML += "<p class='error'>"+element[1]+"</p>\n";
                     log.showView();
+                    logElement.scrollTop = logElement.scrollHeight; // FIXME: Only when needed
                 }
-        });
- 
-            logElement.scrollTop = logElement.scrollHeight;
+            });
         }
+
     },
 
     requestUpdate()
@@ -1343,6 +1360,12 @@ const inspector =
             inspector.system.style.display = "none";
             inspector.component.style.display = "none";
         }
+    },
+
+    showComponent()
+    {
+        inspector.component.style.display = "block";
+        inspector.system.style.display = "none";
     },
 
     hideSubviews()
@@ -2179,6 +2202,18 @@ const selector =
         main.deselectConnection(selector.selected_connection);
         main.selectConnection(connection);
         inspector.showInspectorForSelection();
+    },
+
+    selectError(error)
+    {
+        let c = splitAtLastDot(error);
+        let d = splitAtLastDot(c[0]);
+        selector.selectItems([c[0]], d[0]);
+        inspector.showSingleSelection(selector.selected_foreground[0]);
+        inspector.showComponent();
+        //breadcrums.selectItem(d[0]);    // FIXME: not working
+        //nav.selectItem(d[0]);    // FIXME: not working
+        main.setEditMode();
     },
 
     getLocalPath(s) // Remove outer path and range
