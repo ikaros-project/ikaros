@@ -196,12 +196,11 @@ class InputVideoStream : public Module
 		}
 
 		// Fill output
-	
-		output[0]=red;
-		output[1]=green;
-		output[2]=blue;
-
 		
+		output[0].copy(red);
+		output[1].copy(green);
+		output[2].copy(blue);
+
 		//		const int nrOfCores = 3;//thread::hardware_concurrency();
 		//		// Create some threads pointers
 		//		thread tConv[nrOfCores];

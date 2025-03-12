@@ -6,6 +6,8 @@
         url = "http://lefteye.local:8080/stream/video.h264"
         uv4l = "true"
 		info = "true"
+		size_x = "320"
+		size_y = "160"
 	/>
 		<_module
 		class = "InputVideoStream"
@@ -15,51 +17,9 @@
 		info = "true"
 	/>
 
+   <widget _index_="0" _x="360" _y="96" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="gray" frame-style="" height="313" index="" max="1" max_x="1" max_y="1" min="0" min_x="0" min_y="0" module="" name="Widget_1" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="true" show_title="true" source="InputVideoStream.INTENSITY" style="" title="Gray" width="361"/>
+   <widget _index_="2" _x="360" _y="408" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="rgb" frame-style="" height="313" index="" max="1" max_x="1" max_y="1" min="0" min_x="0" min_y="0" module="" name="Widget_2" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="true" show_title="true" source="InputVideoStream.OUTPUT" style="" title="Color" width="361"/>
 
-	<view name="View">
-		<image
-		max_x = "1"
-		title = "Output"
-		width = "381"
-		flipYCanvas = "no"
-		x = "60"
-		source = "InputVideoStream.RED+GREEN+BLUE"
-		format = "rgb"
-		flipYAxis = "no"
-		flipXCanvas = "no"
-		h = "4"
-		height = "321"
-		max_y = "1"
-		y = "60"
-		flipXAxis = "no"
-		scale = "both"
-		class = "image"
-		scales = "no"
-		w = "4"
-		/>	
-				<image
-		max_x = "1"
-		title = "Output"
-		width = "381"
-		flipYCanvas = "no"
-		x = "60"
-		source = "InputVideoStream2.RED+GREEN+BLUE"
-		format = "rgb"
-		flipYAxis = "no"
-		flipXCanvas = "no"
-		h = "4"
-		height = "321"
-		max_y = "1"
-		y = "60"
-		flipXAxis = "no"
-		scale = "both"
-		class = "image"
-		scales = "no"
-		w = "4"
-		/>	
-		
-		</view>
-    <module class = "Logger" name = "Logger" />
 </group>
  
 '
