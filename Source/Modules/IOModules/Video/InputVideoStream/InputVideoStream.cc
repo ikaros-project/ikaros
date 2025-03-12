@@ -27,8 +27,7 @@
 // https://blogs.gentoo.org/lu_zero/2016/03/29/new-avcodec-api/
 // And enormous amount of googleing...
 
-//#define DEBUGTIMER
-
+// #define DEBUGTIMER
 
 #define __STDC_CONSTANT_MACROS
 extern "C"
@@ -48,7 +47,7 @@ using namespace ikaros;
 
 class InputVideoStream : public Module
 {
-	//parameter frameRate;
+	// parameter frameRate;
 	parameter id;
 	parameter size_x;
 	parameter size_y;
@@ -105,11 +104,10 @@ class InputVideoStream : public Module
 		{
 			framegrabber = new FFMpegGrab();
 		}
-		catch(const std::exception& e)
+		catch (const std::exception &e)
 		{
 			Notify(msg_fatal_error, "Can not create frame grabber");
 		}
-		
 
 		// Set paramters
 		framegrabber->uv4l = uv4l;
@@ -190,10 +188,10 @@ class InputVideoStream : public Module
 			*g = convertIntToFloat[*data++];
 			*b = convertIntToFloat[*data++];
 			*inte++ = (*r++ + *g++ + *b++) * c13;
+			
 		}
 
 		// Fill output
-		
 		output[0].copy(red);
 		output[1].copy(green);
 		output[2].copy(blue);

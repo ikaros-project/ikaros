@@ -7,13 +7,6 @@
         uv4l = "true"
 		info = "false"
 	/>
-		<_module
-		class = "InputVideoStream"
-		name = "InputVideoStream2"
-        url = "http://righteye.local:8080/stream/video.h264"
-        uv4l = "true"
-		info = "true"
-	/>
 
    <widget _index_="0" _x="360" _y="96" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="gray" frame-style="" height="313" index="" max="1" max_x="1" max_y="1" min="0" min_x="0" min_y="0" module="" name="Widget_1" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="true" show_title="true" source="InputVideoStream.INTENSITY" style="" title="Gray" width="361"/>
    <widget _index_="2" _x="360" _y="408" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="rgb" frame-style="" height="313" index="" max="1" max_x="1" max_y="1" min="0" min_x="0" min_y="0" module="" name="Widget_2" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="true" show_title="true" source="InputVideoStream.OUTPUT" style="" title="Color" width="361"/>
