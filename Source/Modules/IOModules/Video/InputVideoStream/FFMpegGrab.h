@@ -23,10 +23,10 @@
 #ifndef FFMpegGrab_h
 #define FFMpegGrab_h
 
-//#define FFMPEGLOG
-//#define FFMPEGTIMER
+//#define FFMPEG_FPS	// FPS for debugging
+//#define FFMPEG_TIMER // Timer for debugging
 
-#include "IKAROS.h"
+#include "ikaros.h"
 
 
 #include <stdio.h>
@@ -66,8 +66,7 @@ class FFMpegGrab
 	int 			outputSizeY;
     SwsContext      *img_convert_ctx;
 	
-	uint8_t			*ikarosFrame;
-	int 			ikarosFrameSize;
+	uint8_t			*frame;
 
 	int decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt);
 	
