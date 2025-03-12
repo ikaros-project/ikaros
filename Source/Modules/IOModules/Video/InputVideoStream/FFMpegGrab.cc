@@ -37,7 +37,7 @@ FFMpegGrab::FFMpegGrab()
 
 	//av_register_all();
 	avformat_network_init();
-	av_log_set_level(AV_LOG_INFO);
+	av_log_set_level(AV_LOG_DEBUG);
 }
 
 bool FFMpegGrab::Init()

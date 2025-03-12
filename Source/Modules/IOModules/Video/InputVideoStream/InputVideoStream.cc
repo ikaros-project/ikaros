@@ -27,233 +27,274 @@
 // https://blogs.gentoo.org/lu_zero/2016/03/29/new-avcodec-api/
 // And enormous amount of googleing...
 
-#include "InputVideoStream.h"
+#define DEBUGTIMER
 
-#include <unistd.h>
-#include <thread>
 
-using namespace std;
+#define __STDC_CONSTANT_MACROS
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+#include <libavdevice/avdevice.h>
+#include <libavutil/imgutils.h>
+}
+
+#include "FFMpegGrab.h"
+
+#include "ikaros.h"
+
 using namespace ikaros;
 
-InputVideoStream::InputVideoStream(Parameter * p):
-Module(p)
+class InputVideoStream : public Module
 {
-	url = GetValue("url");
-	if (url == NULL)
+	//parameter frameRate;
+	parameter id;
+	parameter size_x;
+	parameter size_y;
+	parameter listDevices;
+	parameter printInfo;
+	parameter url;
+	parameter uv4l;
+	parameter syncronized_framegrabber;
+	parameter syncronized_tick;
+
+	matrix intensity;
+	matrix red;
+	matrix green;
+	matrix blue;
+	matrix output;
+
+	// FFmpeg related
+	AVFormatContext *input_format_context;
+	int videoStreamId;
+	AVCodecContext *avctx;
+	AVFrame *inputFrame;
+	AVFrame *outputFrame;
+	AVPacket packet;
+	SwsContext *img_convert_ctx;
+	AVDictionary *options = NULL;
+
+	FFMpegGrab *framegrabber;
+	uint8_t *newFrame;
+	float convertIntToFloat[256];
+
+	void
+	Init()
 	{
-		Notify(msg_fatal_error, "No input file parameter supplied.\n");
-		return;
+		Bind(intensity, "INTENSITY");
+		Bind(red, "RED");
+		Bind(green, "GREEN");
+		Bind(blue, "BLUE");
+		Bind(output, "OUTPUT");
+
+		//Bind(frameRate, "frame_rate");
+		//Bind(id, "id");
+		Bind(size_x, "size_x");
+		Bind(size_y, "size_y");
+		//Bind(listDevices, "list_devices");
+		Bind(url, "url");
+		Bind(printInfo, "info");
+		Bind(uv4l, "uv4l");
+		Bind(syncronized_framegrabber, "syncronized_framegrabber");
+		Bind(syncronized_tick, "syncronized_tick");
+
+		
+		// if (!url)
+		// {
+		// 	Notify(msg_fatal_error, "No input stream supplied.\n");
+		// 	return;
+		// }
+
+		// Create a int to float table to speed up int to float cast.
+		for (int i = 0; i <= 255; i++)
+			convertIntToFloat[i] = 1.0 / 255.0 * i;
+
+		// Create a grabber
+		framegrabber = new FFMpegGrab();
+
+		// Set paramters.
+		framegrabber->uv4l = uv4l;
+		framegrabber->url = url.c_str(); // copy string?
+		framegrabber->printInfo = printInfo;
+		framegrabber->outputSizeX = size_x;
+		framegrabber->outputSizeY = size_y;
+		framegrabber->syncronized = syncronized_framegrabber;
+
+		// Init grabber
+		if (!framegrabber->Init())
+			Notify(msg_fatal_error, "Can not start frame grabber.");
+
+		// Create memory
+		newFrame = new uint8_t[size_x * size_y * 3 * sizeof(uint8_t)];
 	}
-	
-	size_x = GetIntValue("size_x");
-	size_y = GetIntValue("size_y");
-	
-	printInfo = GetBoolValue("info");
-	
-	uv4l = GetBoolValue("uv4l"); // Tune code fore uv4l server
-	
-	syncGrab = GetBoolValue("syncronized_framegrabber");
-	syncTick = GetBoolValue("syncronized_tick");
-	
-	// Create a int to float table to speed up int to float cast.
-	for (int i = 0;i <= 255; i++)
-		convertIntToFloat[i] = 1.0/255.0 * i;
-	
-	// Create a grabber
-	framegrabber = new FFMpegGrab();
-	
-	// Set paramters.
-	framegrabber->uv4l = uv4l;
-	framegrabber->url = url; // copy string?
-	framegrabber->printInfo = printInfo;
-	framegrabber->outputSizeX = size_x;
-	framegrabber->outputSizeY = size_y;
-	framegrabber->syncronized = syncGrab;
-	
-	// Init grabber
-	if (!framegrabber->Init())
-		Notify(msg_fatal_error, "Can not start frame grabber.");
-	
-	// Create memory
-	newFrame = new uint8_t[size_x*size_y*3*sizeof(uint8_t)];
-	
-	AddOutput("INTENSITY", false, size_x, size_y);
-	AddOutput("RED", false, size_x, size_y);
-	AddOutput("GREEN", false, size_x, size_y);
-	AddOutput("BLUE", false, size_x, size_y);
-}
-void
-InputVideoStream::Init()
-{
-	intensity	= GetOutputArray("INTENSITY");
-	red			= GetOutputArray("RED");
-	green		= GetOutputArray("GREEN");
-	blue		= GetOutputArray("BLUE");
-}
 
-void
-InputVideoStream::Tick()
-{
-	std::mutex mtx;           // mutex for critical section
-	Timer timer;
+	void
+	Tick()
+	{
+		std::mutex mtx; // mutex for critical section
+		Timer timer;
 
-	// Modes
-	// Get all frames (waitForNewData + syncronized)
-	// Get latest frame	(waitForNewData + !syncronized)
-	// Get a frame every tick (could be the same as last tick) 	(!waitForNewData + !syncronized)
-	
-	bool waitForNewData = syncTick;
-	bool gotNewData = false;
+		// Modes
+		// Get all frames (waitForNewData + syncronized)
+		// Get latest frame	(waitForNewData + !syncronized)
+		// Get a frame every tick (could be the same as last tick) 	(!waitForNewData + !syncronized)
 
-	mtx.lock();
-	gotNewData = framegrabber->freshData;
-	mtx.unlock();
-	
-	if (!gotNewData and waitForNewData) // No new data
-		while (!gotNewData) // wait until new data
-		{
-			mtx.lock();
-			gotNewData = framegrabber->freshData;
-			mtx.unlock();
-			usleep(1000);
-		}
-	
+		bool waitForNewData = syncronized_tick;
+		bool gotNewData = false;
+
+		mtx.lock();
+		gotNewData = framegrabber->freshData;
+		mtx.unlock();
+
+		if (!gotNewData and waitForNewData) // No new data
+			while (!gotNewData)				// wait until new data
+			{
+				mtx.lock();
+				gotNewData = framegrabber->freshData;
+				mtx.unlock();
+				usleep(1000);
+			}
+
 #ifdef DEBUGTIMER
-	if (gotNewData)
-	{
-		printf("InputVideoStream:We got an new image Time %f\n", timer.GetTime());
-		timer.Restart();
-	}
+		if (gotNewData)
+		{
+			printf("InputVideoStream:We got an new image Time %f\n", timer.GetTime());
+			timer.Restart();
+		}
 #endif
 
-	if (!gotNewData) // No need to int->float convert again. Use last output.
-		return;
-	//printf("InputVideoStream:We got an new image Time %f\n", timer.GetTime());
+		if (!gotNewData) // No need to int->float convert again. Use last output.
+			return;
+		// printf("InputVideoStream:We got an new image Time %f\n", timer.GetTime());
 
-	mtx.lock();
-	memcpy(newFrame, framegrabber->ikarosFrame, size_x*size_y*3*sizeof(uint8_t));
-	framegrabber->freshData = 0;
-	mtx.unlock();
+		mtx.lock();
+		memcpy(newFrame, framegrabber->ikarosFrame, size_x * size_y * 3 * sizeof(uint8_t));
+		framegrabber->freshData = 0;
+		mtx.unlock();
 #ifdef DEBUGTIMER
 		printf("InputVideoStream: memcpy %f\n", timer.GetTime());
 		timer.Restart();
 #endif
-	unsigned char * data = newFrame;
-	
-	float * r = red;
-	float * g = green;
-	float * b = blue;
-	float * inte = intensity;
-	int t = 0;
-	
-	const float c13 = 1.0/3.0;
+		unsigned char *data = newFrame;
 
-	// Singel core
-	while(t++ < size_x*size_y)
-	{
-		*r       = convertIntToFloat[*data++];
-		*g       = convertIntToFloat[*data++];
-		*b       = convertIntToFloat[*data++];
-		*inte++ = (*r++ + *g++ + *b++)*c13;
+		float *r = red;
+		float *g = green;
+		float *b = blue;
+		float *inte = intensity;
+		int t = 0;
 
+		const float c13 = 1.0 / 3.0;
+
+		// Singel core
+		while (t++ < size_x * size_y)
+		{
+			*r = convertIntToFloat[*data++];
+			*g = convertIntToFloat[*data++];
+			*b = convertIntToFloat[*data++];
+			*inte++ = (*r++ + *g++ + *b++) * c13;
+		}
+
+		// Fill output
+	
+		output[0]=red;
+		output[1]=green;
+		output[2]=blue;
+
+		
+		//		const int nrOfCores = 3;//thread::hardware_concurrency();
+		//		// Create some threads pointers
+		//		thread tConv[nrOfCores];
+		//		for(int j=0; j<nrOfCores; j++)
+		//		{
+		//			tConv[j] = thread([&,j]()
+		//							  {
+		//								  int l = 0;
+		//								  unsigned char * d = data;
+		//								  float * p = NULL;
+		//								  switch (j) {
+		//									  case 0:
+		//										  p = r;
+		//										  break;
+		//									  case 1:
+		//										  p = g;
+		//										  d++;
+		//										  break;
+		//									  case 2:
+		//										  p = b;
+		//										  d++;
+		//										  d++;
+		//										  break;
+		//									  default:
+		//
+		//										  break;
+		//								  };
+		//
+		//								  while(l++ < size_x*size_y){
+		//									  *p++  = convertIntToFloat[*d];
+		//									  d++;
+		//									  d++;
+		//									  d++;
+		//								  }
+		//							  });
+		//		}
+		//
+		//		for(int j=0; j<nrOfCores; j++)
+		//			tConv[j].join();
+
+		//		// Multi core 2
+		//		const int nrOfCores = 4;
+		//		// Create some threads pointers
+		//		thread tConv[nrOfCores];
+		//		//printf("Number of threads %i\n",thread::hardware_concurrency());
+		//		int span = size_x*size_y/nrOfCores;
+		//
+		//		for(int j=0; j<nrOfCores; j++)
+		//		{
+		//			tConv[j] = thread([&,j]()
+		//							  {
+		//								  float * r = red;
+		//								  float * g = green;
+		//								  float * b = blue;
+		//								  float * inte = intensity;
+		//								  int t = 0;
+		//
+		//								  unsigned char * d = data;
+		//
+		//								  for (int i = 0; i < j*span; i++)
+		//								  {
+		//									  d++;
+		//									  d++;
+		//									  d++;
+		//									  r++;
+		//									  g++;
+		//									  b++;
+		//									  inte++;
+		//								  }
+		//								  while(t++ < span)
+		//								  {
+		//									  *r       = convertIntToFloat[*d++];
+		//									  *g       = convertIntToFloat[*d++];
+		//									  *b       = convertIntToFloat[*d++];
+		//									  *inte++ = *r++ + *g++ + *b++;
+		//								  }
+		//							  });
+		//
+		//		}
+		//		for(int j=0; j<nrOfCores; j++)
+		//			tConv[j].join();
+
+#ifdef DEBUGTIMER
+		printf("InputVideoStream: float convert %f\n", timer.GetTime());
+		timer.Restart();
+#endif
 	}
 
-//		const int nrOfCores = 3;//thread::hardware_concurrency();
-//		// Create some threads pointers
-//		thread tConv[nrOfCores];
-//		for(int j=0; j<nrOfCores; j++)
-//		{
-//			tConv[j] = thread([&,j]()
-//							  {
-//								  int l = 0;
-//								  unsigned char * d = data;
-//								  float * p = NULL;
-//								  switch (j) {
-//									  case 0:
-//										  p = r;
-//										  break;
-//									  case 1:
-//										  p = g;
-//										  d++;
-//										  break;
-//									  case 2:
-//										  p = b;
-//										  d++;
-//										  d++;
-//										  break;
-//									  default:
-//
-//										  break;
-//								  };
-//
-//								  while(l++ < size_x*size_y){
-//									  *p++  = convertIntToFloat[*d];
-//									  d++;
-//									  d++;
-//									  d++;
-//								  }
-//							  });
-//		}
-//
-//		for(int j=0; j<nrOfCores; j++)
-//			tConv[j].join();
+	~InputVideoStream()
+	{
+		delete newFrame;
+		delete framegrabber;
+	}
+};
 
-	
-//		// Multi core 2
-//		const int nrOfCores = 4;
-//		// Create some threads pointers
-//		thread tConv[nrOfCores];
-//		//printf("Number of threads %i\n",thread::hardware_concurrency());
-//		int span = size_x*size_y/nrOfCores;
-//
-//		for(int j=0; j<nrOfCores; j++)
-//		{
-//			tConv[j] = thread([&,j]()
-//							  {
-//								  float * r = red;
-//								  float * g = green;
-//								  float * b = blue;
-//								  float * inte = intensity;
-//								  int t = 0;
-//
-//								  unsigned char * d = data;
-//
-//								  for (int i = 0; i < j*span; i++)
-//								  {
-//									  d++;
-//									  d++;
-//									  d++;
-//									  r++;
-//									  g++;
-//									  b++;
-//									  inte++;
-//								  }
-//								  while(t++ < span)
-//								  {
-//									  *r       = convertIntToFloat[*d++];
-//									  *g       = convertIntToFloat[*d++];
-//									  *b       = convertIntToFloat[*d++];
-//									  *inte++ = *r++ + *g++ + *b++;
-//								  }
-//							  });
-//
-//		}
-//		for(int j=0; j<nrOfCores; j++)
-//			tConv[j].join();
-	
-#ifdef DEBUGTIMER
-	printf("InputVideoStream: float convert %f\n", timer.GetTime());
-	timer.Restart();
-#endif
-	
-}
-
-InputVideoStream::~InputVideoStream()
-{
-	delete newFrame;
-	
-	delete framegrabber;
-}
-
-
-static InitClass init("InputVideoStream", &InputVideoStream::Create, "Source/Modules/IOModules/Video/InputVideoStream/");
+INSTALL_CLASS(InputVideoStream)

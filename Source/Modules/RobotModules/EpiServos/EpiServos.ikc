@@ -2,7 +2,7 @@
     <parameter name="robot" type="string" options="EpiWhite,EpiGreen,EpiBlue,EpiBlack,EpiRed" default="EpiWhite" descrition="Robot to connect to." />
 	<parameter name="simulate" type="bool" default="False" description="Simulation mode. No connecting is made to servos. The PRESENT POSITION output is calculated using previous position, goal position, maximum velocoty (no acceleration) and the time base of the simulation." />
 	<input name="GOAL_POSITION" description="Goal position of the joints in degrees." />
-	<input name="GOAL_CURRENT" description="Goal current in mA. This is an optinal input and only used if the servo uses current-based position control mode" />
+	<input name="GOAL_CURRENT" optional ="true" description="Goal current in mA. This is an optinal input and only used if the servo uses current-based position control mode" />
 	<input name="TORQUE_ENABLE" description="Enable servos. This is an optinal and not recomended input" />
 	<output name="PRESENT_POSITION" description="Present angle of the joints in degrees." size="19" />
 	<output name="PRESENT_CURRENT" description="Present current (if supported by the servo) in mA." size="19" />

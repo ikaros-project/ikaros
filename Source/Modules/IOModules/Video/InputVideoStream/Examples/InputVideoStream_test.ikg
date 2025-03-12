@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<group title="InputVideoStream Example">
+<group name="InputVideoStreamExample">
 	<module
 		class = "InputVideoStream"
 		name = "InputVideoStream"
@@ -7,7 +7,7 @@
         uv4l = "true"
 		info = "true"
 	/>
-		<module
+		<_module
 		class = "InputVideoStream"
 		name = "InputVideoStream2"
         url = "http://righteye.local:8080/stream/video.h264"
