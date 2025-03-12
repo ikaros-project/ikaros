@@ -94,7 +94,7 @@ bool FFMpegGrab::Init()
 	// Prepare decoder
 	if (uv4l)
 	{
-		input_codec = avcodec_find_decoder_by_name("h264_mmal");
+		input_codec = avcodec_find_decoder_by_name("h264_mmal"); // Using mmal for uv4l for raspberry pi
 		if (input_codec)
 			kernel().Notify(msg_debug, "FFMpegGrab:Using HW decoding (mmal)\n");
 		else
@@ -272,9 +272,11 @@ void FFMpegGrab::loop()
 					gotFrame = 0;
 					if (printInfo)
 					{
-						FPS = FPS + (1.0 / timer.GetTime() * 1000.0 - FPS) * 0.02; // Moving avarage mean FPS
+						FPS = FPS + (1.0 / timer.GetTime() - FPS) * 0.02; // Moving avarage mean FPS
 						timer.Restart();
-						// kernel().Notify(msg_print, "FFMpegGrab %s: FPS %.0f\n",url, FPS);
+						//kernel().Notify(msg_print, "FFMpegGrab %s: FPS %.0f\n",url, FPS);
+						//printf("FFMpegGrab %s: FPS %.0f\n",url, FPS);
+
 					}
 					if (shutdown)
 					{
