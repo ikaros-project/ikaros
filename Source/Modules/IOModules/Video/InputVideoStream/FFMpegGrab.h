@@ -24,7 +24,7 @@
 #define FFMpegGrab_h
 
 //#define FFMPEG_FPS	// FPS for debugging
-//#define FFMPEG_TIMER // Timer for debugging
+//#define FFMPEG_TIMER  // Timer for debugging
 
 #include "ikaros.h"
 
@@ -58,15 +58,11 @@ class FFMpegGrab
 	AVFrame         *inputFrame;
 	AVFrame         *outputFrame;
 	AVPacket        packet;
-	int             numBytes;
-	uint8_t         *buffer;
-	int 			inputSizeX;
-	int 			inputSizeY;
 	int 			outputSizeX;
 	int 			outputSizeY;
     SwsContext      *img_convert_ctx;
 	
-	uint8_t			*frame;
+	uint8_t			*frame; // the framed used to store the image. Used by ikaros to grab data.
 
 	int decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt);
 	

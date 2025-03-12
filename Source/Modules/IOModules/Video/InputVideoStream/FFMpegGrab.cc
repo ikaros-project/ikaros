@@ -143,13 +143,6 @@ bool FFMpegGrab::Init()
 		return false;
 	}
 
-	inputSizeX = int(avctx->width);
-	inputSizeY = int(avctx->height);
-
-	// The uv4l stream does not have any size.
-	if (inputSizeX == 0 and inputSizeY == 0)
-		std::cout << "FFMpegGrab: Could not figure out resolution of stream. Will use the size_x size_y parameters and hope for the best." << std::endl;
-
 	// Outputframe
 	outputFrame = av_frame_alloc(); // Output (after resize and convertions)
 	outputFrame->format = AV_PIX_FMT_RGB24;
@@ -185,7 +178,6 @@ FFMpegGrab::~FFMpegGrab()
 	av_free(inputFrame);
 	av_freep(&outputFrame->data[0]);
 	av_free(outputFrame);
-	av_free(buffer);
 	avcodec_free_context(&avctx);
 	avformat_close_input(&input_format_context);
 }

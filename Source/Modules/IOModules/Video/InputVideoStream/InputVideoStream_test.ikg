@@ -5,9 +5,7 @@
 		name = "InputVideoStream"
         url = "http://lefteye.local:8080/stream/video.h264"
         uv4l = "true"
-		info = "true"
-		_size_x = "320"
-		_size_y = "160"
+		info = "false"
 	/>
 		<_module
 		class = "InputVideoStream"
