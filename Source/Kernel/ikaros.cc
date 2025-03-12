@@ -2896,12 +2896,13 @@ if(classes[classname].path.empty())
                 }
                 else if(format=="rgb")
                 { 
-                        sent = socket->Send(sep + "\t\t\"" + key + ":"+format+"\": ");
+                        // sent = socket->Send(sep + "\t\t\"" + key + ":"+format+"\": ");
+                        sent = socket->Send(sep + "\t\t\"" + key + "\": ");
                         SendImage(buffers[source_with_root], format);
                 }
                 else if(format=="gray" || format=="red" || format=="green" || format=="blue" || format=="spectrum" || format=="fire")
                 { 
-                        sent = socket->Send(sep + "\t\t\"" + key + ":"+format+"\": ");
+                    sent = socket->Send(sep + "\t\t\"" + key + "\": ");
                         SendImage(buffers[source_with_root], format);
                 }
             }
