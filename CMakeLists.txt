@@ -1,7 +1,7 @@
 # CMake script for the ikaros project. www.ikaros-project.org
 
 # Set cmake version
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10)
 
 # To use elseif
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)

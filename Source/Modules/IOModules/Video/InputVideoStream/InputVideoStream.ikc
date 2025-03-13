@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
 
-<class name="InputVideoStream" description="grabs video using FFmpeg">
-	<parameter name="size_x" type="int" default="1280" description="Size of the image" />
-	<parameter name="size_y" type="int" default="720" description="Size of the image" />
-	<parameter name="url" type="string" description="Stream adress" />
-	<parameter name="info" type="bool" description="Print info about stream" />
+<class name="InputVideoStream" description="grabing a video stream using FFmpeg">
+	<parameter name="size_x" type="number" default="1280" description="Size of the output image. The video stream size will be converted to this size." />
+	<parameter name="size_y" type="number" default="720" description="Size of the output image. The video stream size will be converted to this size." />
+	<parameter name="url" type="string" default="" description="Stream adress" />
+	<parameter name="info" type="bool" default="false" description="Print info about stream" />
 	<parameter name="syncronized_framegrabber" default="false" type="bool" description="The framegrabber (grabs and decodes frame) is either syncronized with the tick or run as fast/slow as it can. This is usefull when grabbing live streams where the last frame is more important than get all frames." />
 	<parameter name="syncronized_tick" default="true" type="bool" description="Ikaros wait until a new frame is given by the framegrabber. If set to false ikaros does not care of the input is new or not. This can give the module a faster tick time but could potentially feed unnecessarily data into ikaros (false is not recomended)."/>
-
 	<parameter name="uv4l" type="bool" default="false" description="Forces system to decode stream as h264. This is usefull when receiving raw h264 stream from vu4l server on a raspberry." />
-	<output name="RED" description="The red channel." size="@size_y,@size_x" _size="720,1280"/>
-	<output name="GREEN" description="The green channel." size="@size_y,@size_x"  _size="720,1280"/>
-	<output name="BLUE" description="The blue channel." size="@size_y,@size_x"  _size="720,1280"/>
+	
+	<output name="RED" description="The red channel." size="@size_y,@size_x"/>
+	<output name="GREEN" description="The green channel." size="@size_y,@size_x"/>
+	<output name="BLUE" description="The blue channel." size="@size_y,@size_x"/>
 
-	<output name="INTENSITY" description="The intensity channel." size="@size_y,@size_x"  _size="720,1280"/>
-	<output name="OUTPUT" description="RGB image." size="3,@size_y,@size_x"  _size="3,720,1280"/>
+	<output name="INTENSITY" description="The intensity channel." size="@size_y,@size_x"/>
+	<output name="OUTPUT" description="RGB image." size="3,@size_y,@size_x"/>
 </class>
