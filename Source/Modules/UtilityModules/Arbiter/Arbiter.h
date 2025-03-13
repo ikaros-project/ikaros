@@ -25,7 +25,7 @@
 #ifndef ARBITER
 #define ARBITER
 
-#include "IKAROS.h"
+#include "ikaros.h"
 
 class Arbiter: public Module
 {

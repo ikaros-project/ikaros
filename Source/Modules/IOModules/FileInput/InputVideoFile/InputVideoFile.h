@@ -31,7 +31,7 @@ extern "C" {
 #include <libavutil/imgutils.h>
 }
 
-#include "IKAROS.h"
+#include "ikaros.h"
 
 class InputVideoFile: public Module
 {

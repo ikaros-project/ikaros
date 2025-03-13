@@ -24,7 +24,7 @@
 #ifndef EpiSpeech_
 #define EpiSpeech_
 
-#include "IKAROS.h"
+#include "ikaros.h"
 
 #include <vector>
 #include <string>

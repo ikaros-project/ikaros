@@ -23,7 +23,7 @@
 #ifndef FadeCandy_
 #define FadeCandy_
 
-#include "IKAROS.h"
+#include "ikaros.h"
 
 
 class FadeCandy: public Module

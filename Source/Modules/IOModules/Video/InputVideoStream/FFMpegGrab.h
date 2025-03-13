@@ -26,7 +26,7 @@
 //#define FFMPEGLOG
 //#define FFMPEGTIMER
 
-#include "IKAROS.h"
+#include "ikaros.h"
 
 
 #include <stdio.h>

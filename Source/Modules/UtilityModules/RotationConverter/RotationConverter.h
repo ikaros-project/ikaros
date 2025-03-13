@@ -23,7 +23,7 @@
 #ifndef RotationConverter_
 #define RotationConverter_
 
-#include "IKAROS.h"
+#include "ikaros.h"
 
 using namespace ikaros;
 

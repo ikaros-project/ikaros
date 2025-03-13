@@ -28,7 +28,7 @@
 // And enormous amount of googleing...
 
 #include "FFMpegGrab.h"
-#include "IKAROS.h"
+#include "ikaros.h"
 using namespace ikaros;
 
 FFMpegGrab::FFMpegGrab()

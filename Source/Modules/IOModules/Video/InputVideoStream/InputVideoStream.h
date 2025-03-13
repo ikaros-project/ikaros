@@ -33,7 +33,7 @@ extern "C" {
 #include <libavutil/imgutils.h>
 }
 
-#include "IKAROS.h"
+#include "ikaros.h"
 #include "FFMpegGrab.h"
 
 class InputVideoStream: public Module

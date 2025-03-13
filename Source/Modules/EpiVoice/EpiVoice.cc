@@ -24,7 +24,7 @@
 #ifndef EpiVoice_
 #define EpiVoice_
 
-#include "IKAROS.h"
+#include "ikaros.h"
 
 #include <vector>
 #include <string>
