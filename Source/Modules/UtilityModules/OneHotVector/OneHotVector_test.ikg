@@ -1,0 +1,14 @@
+<group filename="" name="Example" stop="-1" webui_port="8000">
+   <connection source="Signal.OUTPUT" target="OneHotVector.INPUT"/>
+   <module _x="432" _y="168" class="Constant" data="1" name="Signal"/>
+   <module _x="648" _y="168" class="OneHotVector" name="OneHotVector"/>
+   <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <widget _index_="0" _x="792" _y="96" auto="false" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200" labels="" lineCap="" lineJoin="" lineWidth="1" max="1" min="0" name="Widget_1" show_frame="false" show_title="false" source="OneHotVector.OUTPUT" style="" title="Widget_1" transpose="false" width="200"/>
+   <widget _index_="2" _x="168" _y="168" class="slider-horizontal" count="1" frame-style="" height="49" labels="" max="8" min="0" name="Widget_2" parameter="Signal.data" select="0" show_frame="false" show_title="false" show_values="true" source="" step="1" style="" title="Widget_2" width="217"/>
+   <widget _index_="4" _x="552" _y="168" class="table" colorize="true" decimals="1" direction="normal" frame-style="" height="49" label_x="" label_y="" max="1" min="0" name="Widget_3" scrollable="false" select="" show_frame="false" show_title="false" source="Signal.OUTPUT" style="" title="Widget_3" width="73"/>
+   <widget _index_="6" _x="24" _y="72" class="text" frame-style="" height="200" max="1" min="0" name="Widget_4" parameter="" postfix="" prefix="" select="" select_source="" separator="" show_frame="false" show_title="false" source="" strings="" style="" text="Example of how OneHotVector module receive a number and outputs a vector with the value one of the number element." title="Widget_4" width="200"/>
+</group>
