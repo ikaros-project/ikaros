@@ -144,6 +144,7 @@ public:
 
     int as_int();
     std::string as_int_string(); // as_int() converted to string
+    std::string as_string();
 
     const char* c_str() const noexcept;
 
