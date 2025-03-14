@@ -135,6 +135,12 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
             return;
          try {
             let d = this.getSource("parameter");
+
+            // Hack if we have an array. We should have a better way to handle this.
+            if (Array.isArray(d) && !Array.isArray(d[0])) {
+                d = [d];
+            }
+
             if(d)
             {
                 let size_y = d.length;
