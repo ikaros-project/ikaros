@@ -79,8 +79,9 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
         for(let i=0; i<n; i++)
         {
-            let h = (this.data[y][i]-min)/(max-min);
+            let h = (this.data[y][i])/(max-min);
             this.canvas.save();
+            this.canvas.translate(-min/(max-min)*width,0 );
             this.drawBarVertical(h*width, bar_height, i);
             this.canvas.restore();
             this.canvas.translate(0, bar_spacing);
@@ -98,9 +99,9 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
         for(let i=0; i<n; i++)
         {
-            let h = (this.data[y][i]-min)/(max-min);
+            let h = (this.data[y][i])/(max-min);
             this.canvas.save();
-            this.canvas.translate(0, (1-h)*height);
+            this.canvas.translate(0, (1-h)*height + min/(max-min)*height); // Translate to origo
             this.drawBarVertical(bar_width, h*height, i);
             this.canvas.restore();
             this.canvas.translate(bar_spacing, 0);
@@ -127,7 +128,13 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             res = Math.max(res, Math.max(...r));
         return res;
     }
-
+    min(m)
+    {
+        let res = 0;
+        for(const r of m)
+            res = Math.min(res, Math.min(...r));
+        return res;
+    }
     update()
     {
         if(this.data = this.getSource('source'))
@@ -137,6 +144,9 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
             if(this.parameters.auto)
                 this.parameters.max = this.max(this.data) || 1;
+
+            if(this.parameters.auto)
+                this.parameters.min = this.min(this.data) || 0;
 
             if(this.parameters.transpose)
                 this.data = this.transpose(this.data); // TODO: should be changed in drawing instead
