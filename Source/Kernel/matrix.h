@@ -432,6 +432,11 @@ namespace ikaros
             return rank() == 0 && (info_->size_  == 0);
         }
 
+        const bool unfilled() const
+        {
+            return std::accumulate(info_->shape_.begin(), info_->shape_.end(), 0)  == 0;
+        }
+
         const bool is_scalar() const
         {
             return rank() == 0 && (info_->size_  == 1);
@@ -1020,6 +1025,21 @@ namespace ikaros
                 return (*this)[info_->shape_.front()++].copy(m);
             else
                 return *this;
+        }
+
+        matrix &
+        push(float v) // push a scalar to the end of the matrix // FIXME: Should use max size ************ add extend flag? ************
+        {
+            if(rank() != 1)
+                throw std::out_of_range(get_name()+"Matrix must be one-dimensional.");
+            if(info_->shape_.front() >= info_->max_size_.front())
+                throw std::out_of_range(get_name()+"No room for additional element");
+
+                info_->shape_.front()++;
+            (*this)[info_->shape_.front()-1] = v;
+
+
+            return *this;
         }
 
         matrix &

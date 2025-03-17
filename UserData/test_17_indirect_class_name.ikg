@@ -1,0 +1,5 @@
+<group check_sum="51" description="Test indirect class name" empty_module="Module" filename="" included_module="Constant" info="true" name="Top" stop="-1" webui_port="8000">
+   <module _x="168" _y="312" class="Constant" data="1" log_level="7" name="Module_A"/>
+   <module _x="168" _y="264" class="Module" data="1" name="Module_B"/>
+   <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+</group>
