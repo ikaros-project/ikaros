@@ -1,6 +1,7 @@
 <class name="Scale" description="scale the input with a factor">
 	<parameter name="factor" type="float" default="1" />
 	<input name="INPUT" description="The  input" />
+	<input name="SCALE" description="The scaling value. Used in addition to factor if connected." optional="yes" size="1" />
 	<output name="OUTPUT" description="The output" size="INPUT.size" />
 </class>
 
