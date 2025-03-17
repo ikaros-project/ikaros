@@ -1,0 +1,6 @@
+<group filename="" info="true" name="Untitled" stop="-1" webui_port="8000">
+   <module _x="72" _y="120" class="InputFile" filename="/Users/cba/ikaros/Source/Modules/IOModules/FileInput/InputFile/tst.dat" iterations="2" name="InputFile" repetitions="2"/>
+   <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+   <widget _index_="0" _x="216" _y="72" auto="false" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200" labels="" lineCap="" lineJoin="" lineWidth="1" max="1" min="0" name="Widget_1" show_frame="false" show_title="true" source="InputFile.A" style="" title="Widget_1" transpose="false" width="200"/>
+   <widget _index_="2" _x="216" _y="288" auto="false" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200" labels="" lineCap="" lineJoin="" lineWidth="1" max="1" min="0" name="Widget_2" show_frame="false" show_title="true" source="InputFile.B" style="" title="Widget_2" transpose="false" width="200"/>
+</group>

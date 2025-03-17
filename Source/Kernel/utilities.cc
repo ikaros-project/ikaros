@@ -619,5 +619,37 @@ base64_encode(const unsigned char * data,
         return escaped;
     }
 
-
+    std::string 
+    replace_characters(const std::string& str) // Removes , ; and non-breaking space
+    {
+        std::string result;
+        for (size_t i = 0; i < str.size(); ++i) 
+        {
+            unsigned char c = static_cast<unsigned char>(str[i]);
+            if(c == 0xC2 && i + 1 < str.size() && static_cast<unsigned char>(str[i + 1]) == 0xA0) 
+            {
+                result += ' ';
+                ++i; // Skip next byte
+            }
+            else if(str[i] == ',' || str[i] == ';')
+                result += " ";
+            else
+                result += str[i];
+        }
+        return result;
+    }
+    
+    
+    std::string 
+    remove_comment(const std::string& input) 
+    {
+        std::string result = input;
+        size_t pos = result.find('#'); 
+        if(pos != std::string::npos) 
+            result.erase(pos);
+    
+        return result;
+    }
+    
 };
+

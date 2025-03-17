@@ -70,7 +70,8 @@ namespace ikaros
 
     std::string to_hex(char c);
     std::string escape_json_string(const std::string& str);
-
+    std::string replace_characters(const std::string& str); // replace ',' and ';' and non-breaking space with space
+    std::string remove_comment(const std::string& input);
 };  
 
 
