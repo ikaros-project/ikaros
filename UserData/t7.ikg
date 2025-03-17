@@ -1,6 +1,0 @@
-<group filename="" info="true" name="Untitled" stop="-1" webui_port="8000">
-   <module _x="192" _y="408" class="Nucleus" log_level="0" name="Untitled_1"/>
-   <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <widget _index_="0" _x="528" _y="408" auto="false" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200" labels="" lineCap="" lineJoin="" lineWidth="1" max="1" min="0" name="Widget_1" show_frame="false" show_title="true" source="Untitled_1.OUTPUT" style="" title="Widget_1" transpose="false" width="200"/>
-</group>
