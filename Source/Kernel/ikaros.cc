@@ -2092,13 +2092,10 @@ if(classes[classname].path.empty())
                 }
                 catch(const exception& e)
                 {
-                    //Notify(msg_fatal_error, e.message());
-                    //Notify(msg_fatal_error, u8"Load file failed for "s+options_.full_path());
                     throw load_failed(u8"Load file failed for "s+options_.full_path()+". "+e.message(), e.path());
                 }
                 catch(const std::exception& e)
                 {
-                    //Notify(msg_fatal_error, u8"Load file failed for "s+options_.full_path()+". "+e.what());
                     throw load_failed(u8"Load file failed for "s+options_.full_path()+". "+e.what());
                 }
 
@@ -2521,8 +2518,6 @@ if(classes[classname].path.empty())
         }
         catch(exception & e)
         {
-            //Notify(msg_fatal_error, e.message());
-            //Notify(msg_fatal_error, "SetUp Failed");
             throw setup_error("SetUp Failed. "+e.message(), e.path());
         }
         catch(std::exception & e)
