@@ -15,6 +15,7 @@ public:
    // parameter repetitions;
     //parameter extend;
     parameter send_end_of_file;
+    bool has_sent_end_of_file = false;
     int column_count = 0;
     int current_row = 0;
     int current_repetition = 0;
@@ -51,7 +52,7 @@ public:
                     output.push_back(matrix());
                 }
             }
-            data.realloc(100, column_count);
+            data.realloc(1, column_count);
             data.resize(0, column_count);
         }
     }
@@ -66,7 +67,6 @@ public:
     //    Bind(repetitions, "repetitions");
     //    Bind(extend, "extend");
         Bind(send_end_of_file, "send_end_of_file");
-
 
         int c = 0;
         for(std::string name : column_name)
@@ -103,7 +103,7 @@ public:
                 if(row.size_x() < column_count)
                     throw fatal_error("Row has too few columns");
                 else
-                    data.push(row);
+                    data.push(row, true);
             }
             data.print();
         }
@@ -146,17 +146,15 @@ public:
         else if(current_row == data.size_y())
         {
             ResetOutput();
-            if(send_end_of_file)
+            if(send_end_of_file && !has_sent_end_of_file)
             {
-                send_end_of_file = false; // Only send once
+                has_sent_end_of_file = true; // Only send once
                 Notify(msg_end_of_file, filename.as_string());
-
             }
         }
         current_row++;
     }
 };
-
 
 
 INSTALL_CLASS(InputFile)
