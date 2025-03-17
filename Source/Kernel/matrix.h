@@ -1009,11 +1009,17 @@ namespace ikaros
         // Push & pop
 
         matrix & 
-        push(const matrix & m)
+        push(const matrix & m, bool extend=false)
         {
             #ifndef NO_MATRIX_CHECKS
             if(rank() != m.rank()+1)
             throw std::out_of_range(get_name()+"Incompatible matrix sizes");
+            if(extend)
+            {
+                info_->shape_.front()++;
+                realloc(info_->shape_);
+                info_->shape_.front()--;
+            }
             for(int i=0; i<m.info_->shape_.size(); i++)
                 if(info_->shape_[i+1] != m.info_->shape_[i])
                     throw std::out_of_range(get_name()+"Pushed matrix has wrong shape.");
@@ -1028,7 +1034,7 @@ namespace ikaros
         }
 
         matrix &
-        push(float v) // push a scalar to the end of the matrix // FIXME: Should use max size ************ add extend flag? ************
+        push(float v) // push a scalar to the end of the matrix
         {
             if(rank() != 1)
                 throw std::out_of_range(get_name()+"Matrix must be one-dimensional.");
