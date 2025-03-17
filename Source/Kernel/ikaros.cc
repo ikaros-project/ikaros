@@ -1055,9 +1055,9 @@ namespace ikaros
             {
                 int s = c->source_range.size() * c->delay_range_.trim().b_[0];
                 if(c->alias_.empty())
-                    kernel().buffers[d.at(full_name)].push_label(0, c->source, s);
+                    kernel().buffers[full_name].push_label(0, c->source, s); // WAS: kernel().buffers[d.at(full_name)].push_label(0, c->source, s);
                 else
-                    kernel().buffers[d.at(full_name)].push_label(0, c->alias_, s);
+                    kernel().buffers[full_name].push_label(0, c->alias_, s); // WAS: kernel().buffers[d.at(full_name)].push_label(0, c->alias_, s);
             }
         }
         return 0;
