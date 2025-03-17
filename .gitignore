@@ -44,9 +44,7 @@
 Icon?
 ehthumbs.db
 Thumbs.db
-/Debug/
-/Release/
-/Build/
+
 
 # Windows #
 ######################
@@ -58,3 +56,6 @@ Thumbs.db
 
 # Other
 .vscode
+/Debug/
+/Release/
+/Build/
