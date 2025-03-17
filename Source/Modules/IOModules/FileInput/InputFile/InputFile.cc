@@ -1,390 +1,162 @@
+
 #include "ikaros.h"
+
+#include <iostream>
+#include <fstream>
+#include <string>
 
 using namespace ikaros;
 
-static void
-skip_comment_lines(FILE * file)
-{
-    char c = fgetc(file);
-
-    while (c=='#' || c==' ' || c=='\t' || c=='\n' || c=='\r')
-    {
-        if (c=='#')
-        {
-            fscanf(file, "%*[^\n\r]");
-            fscanf(file, " \r");
-            fscanf(file, " \n");
-        }
-        else if (c==' ' || c=='\t')
-        {
-            fscanf(file, " \r");
-            fscanf(file, " \n");
-        }
-        else if (c=='\n')
-        {
-            fscanf(file, " \n");
-        }
-        else if (c=='\r')
-        {
-            fscanf(file, " \r");
-            fscanf(file, " \n");
-        }
-        c = fgetc(file);
-    }
-    ungetc(c, file);
-}
-
 class InputFile: public Module
 {
-    FILE	*	file;
 public:
     parameter filename;
-    //parameter type;
-    int type;
-    parameter iterations;
-    parameter repetitions;
-    parameter extend;
+    //parameter iterations;
+   // parameter repetitions;
+    //parameter extend;
     parameter send_end_of_file;
-    parameter print_iteration;
+    int column_count = 0;
+    int current_row = 0;
+    int current_repetition = 0;
 
-    int repetition;
-    int iteration;
-    int cur_extension;
-    bool extending;
-    int                 no_of_columns;
-    int                 no_of_rows;
+    std::vector<std::string> column_name;
+    std::vector<int> column_size;
+    bool has_header = false;
+    matrix data;
+    std::vector<matrix> output;
 
-    std::vector<std::string>             column_name;
-    std::vector<int>				column_size;
-    std::vector<matrix> 			column_data;
-    std::vector<matrix> static_column_data;
-
-
-// Initialization must be done in creator
-
-    InputFile()
+    InputFile() : Module()
     {
-        std::string fname = GetValue("filename");
-        // Bind(filename, "filename");
-        std::cout << "Initfile loading fname: " << fname << "\n";
-        if(fname.empty()){
-             Notify(msg_fatal_error, "No input file parameter supplied.\n");
-             return;
-        }
-        //Bind(type, "type");
-        type = 0;
-        
+        std::ifstream file(info_["filename"]);  // FIXME: Does not inherit value or process @; Enhance GetValue to make this work
+        std::string line, word;
 
-        file = fopen(fname.c_str(), "rb");
-        if (file == NULL)
+        if(!file.is_open())
+            throw exception("Could not open file: "+filename.as_string());
+    
+        if(std::getline(file, line))
         {
-            Notify(msg_fatal_error, "Could not open input file\n" );
-            return;
-        }
-
-        no_of_columns = 0;
-        char col_label[64];
-        int	col_size;
-        int col_ix;
-
-        ClearOutputs();
-
-
-        // Count number of columns in input file
-        skip_comment_lines(file);
-        int tst = fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
-
-        // old format:
-        while (fscanf(file, "%[^/\n\r]/%d", col_label, &col_size) == 2)
-        {
-            no_of_columns++;
-            fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
-    #ifdef DEBUG_INPUTFILE
-            printf("  Counting column \"%s\" with width %d in file \"%s\".\n", col_label, col_size, filename);
-    #endif
-        }
-        
-        // new format: label:0 label:1 label2:0 label2:1
-        // or          label:0:0 label:0:1 label2:0 label2:1
-        while (fscanf(file, "%[^/\n\r]:%d", col_label, &col_ix) == 2)
-        {
-            no_of_columns++;
-            fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
-    #ifdef DEBUG_INPUTFILE
-            printf("  Counting column \"%s\" with width %d in file \"%s\".\n", col_label, col_size, filename);
-    #endif
-        }
-        
-        if(type == 0) // dynamic
-        {
-           
-            column_name.resize(no_of_columns);
-            column_size.resize(no_of_columns);
-            column_data.resize(no_of_columns);
-            // static_column_data = NULL;
-
-            // for (int i=0; i<no_of_columns; i++)
-            // {
-            //     column_name[i] = NULL;
-            //     column_data[i] = NULL;
-            // }
-
-            // Read the names and sizes of each column
-
-            int col = 0;
-
-            fseek(file, 0, SEEK_SET);
-
-            skip_comment_lines(file);
-            fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
-
-            while (fscanf(file, "%[^/\n\r]/%d", col_label, &col_size) == 2)
+            std::istringstream iss(line);
+            while (iss >> word)
             {
-        #ifdef DEBUG_INPUTFILE
-                printf("  Finding column \"%s\" with width %d in file \"%s\".\n", col_label, col_size, filename);
-        #endif
-                column_name[col] = create_string(col_label);		// Allocate memory for the column name
-                column_size[col] = col_size;
-                // AddOutput(column_name[col], false, col_size);
-                
-                AddOutput(column_name[col], col_size, "programatically added output for column");
-                col++;
-                fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
-            }
-        }
-        else // static
-        {        
-            // Allocate memory
-            
-            column_name.resize(no_of_columns);
-            column_size.resize(no_of_columns);
-            // column_data = NULL;
-            static_column_data.resize(no_of_columns);
-            
-            // for (int i=0; i<no_of_columns; i++)
-            // {
-            //     column_name[i] = NULL;
-            //     static_column_data[i] = NULL;
-            // }
-            
-            // Read the names and sizes of each column
-            
-            int col = 0;
-            
-            fseek(file, 0, SEEK_SET);
-            
-            skip_comment_lines(file);
-            fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
-            
-            while (fscanf(file, "%[^/\n\r]/%d", col_label, &col_size) == 2)
-            {
-    #ifdef DEBUG_INPUTFILE
-                //	printf("  Finding column \"%s\" with width %d in file \"%s\".\n", col_label, col_size, filename);
-    #endif
-                column_name[col] = create_string(col_label);		// Allocate memory for the column name
-                column_size[col] = col_size;
-                col++;
-                fscanf(file, "%*[^A-Za-z\n\r]");		// Skip until letter or end of line
-            }
-            
-            // Count number of lines in data file
-            
-            int line_count = CountLines(file);
-            
-    #ifdef DEBUG_INPUTFILE
-            printf("line_count = %d\n", line_count);
-    #endif
-            
-            // Allocate outputs
-            
-            for(int j=0; j<col; j++)
-                AddOutput(column_name[j], column_size[j] * line_count, "programmatically added output");
-
-            no_of_rows = line_count;
-            
-            fclose(file);
-        }
-
-
-
-        // AddOutput("MYOUTPUT", 10, "my programatically added output");
-    }
-
-    virtual ~InputFile()
-    {
-        fclose (file);
-        // delete [] column_name;
-    }
-
-    void Init()
-    {
-        //std::cout << "InputFile::Init" << std::endl;
-        
-        Bind(iterations, "iterations");
-        Bind(repetitions, "repetitions");
-        Bind(extend, "extend");
-        Bind(send_end_of_file, "send_end_of_file");
-        Bind(print_iteration, "print_iteration");
-        // TODO error if filename empty
-        iteration = 1;
-        repetition  = repetitions;
-        cur_extension = 0;
-        extending = false;
-
-        if(type == 1) // static
-        {
-            file = fopen(filename.string_value->c_str(), "rb");
-
-            // Get outputs
-            
-            for(int j=0; j < no_of_columns; j++)
-                Bind(static_column_data[j], column_name[j]);
-            
-            // Read data
-            
-            skip_comment_lines(file);
-            
-            fscanf(file, "%*[^\n\r]");	// Skip format line
-            fscanf(file, "\r");
-            fscanf(file, "\n");
-
-            for(int j=0; j<no_of_rows; j++)
-            {
-                skip_comment_lines(file);
-                
-                for (int col=0; col < no_of_columns; col++)
+                size_t pos = word.find('/');
+                if(pos != std::string::npos) 
                 {
-                    for (int i=0; i<column_size[col]; i++){
-                        float n;
-                        fscanf(file, "%f", &n);
-                        static_column_data[col][j][i] = n;
-                    }
+                    std::string name = word.substr(0, pos);
+                    std::string size = word.substr(pos + 1);
+                    int width = std::stoi(size);
+                    AddOutput(name, width);
+                    column_count += width;
+                    column_name.push_back(name);
+                    column_size.push_back(std::stoi(size));
+                    output.push_back(matrix());
                 }
-                
-                fscanf(file, "%*[^\n\r]");	// Skip until end-of-line
-                fscanf(file, "\r");			// Read new-line token(s)
-                fscanf(file, "\n");			// Read new-line token(s)
             }
-            
-            fclose(file);
-            
-            return;
+            data.realloc(100, column_count);
+            data.resize(0, column_count);
         }
-        
-        for (int col = 0; col < no_of_columns; col++)
-            Bind(column_data[col], column_name[col]);
-        
     }
 
 
-    void Tick()
+
+    void 
+    Init()
     {
-       // std::cout << "InputFile::Tick" << std::endl;
+        Bind(filename, "filename");
+    //    Bind(iterations, "iterations");
+    //    Bind(repetitions, "repetitions");
+    //    Bind(extend, "extend");
+        Bind(send_end_of_file, "send_end_of_file");
 
-        if(type == 1)
-            return;
 
-        if (extending)
+        int c = 0;
+        for(std::string name : column_name)
+            Bind(output[c++], name);
+
+        std::ifstream file(filename);
+        std::string line, word;
+        int line_number = 1;
+
+        if(!file.is_open())
+            throw fatal_error("Could not open file: "+filename.as_string());
+
+        std::getline(file, line); // Skip header line
+        try 
         {
-            if (cur_extension >= extend-1 && send_end_of_file)
-                Notify(msg_end_of_file, filename.string_value->c_str());
-
-            else if (cur_extension == 0)
+            while(std::getline(file, line))
             {
-                for (int col=0; col < no_of_columns; col++)
-                    for (int i=0; i<column_size[col]; i++)
-                        column_data[col][i] = 0.0;
-            }
+                matrix row(column_count);
+                row.resize(0);
 
-            cur_extension++;
-            return;
+                line_number++;
+                line = replace_characters(remove_comment(line));
+
+                if(std::all_of(line.begin(), line.end(), [](unsigned char c) { return std::isspace(c);})) // Only whitespace, skip line
+                    continue;
+
+                std::istringstream iss(line);
+                while (iss >> word)
+                    if(row.size_x() < column_count)
+                        row.push(std::stof(word));
+                    else
+                        throw fatal_error("Row has too many columns");
+
+                if(row.size_x() < column_count)
+                    throw fatal_error("Row has too few columns");
+                else
+                    data.push(row);
+            }
+            data.print();
         }
-
-        if(repetition++ < repetitions)
-            return;
-        else
-            repetition = 1;
-        
-        skip_comment_lines(file);
-        ReadData();
-
-        if (feof(file))
+        catch(std::exception & e)
         {
-            if (print_iteration){
-                std::stringstream s;
-                s << "End of iteration " << iteration << "/" << iterations << "\n";
-                Notify(msg_debug, s.str());
-            }
+            throw fatal_error("Could not read file "+filename.as_string()+". Error on line: "+std::to_string(line_number)+". "+e.what());
+        }
+    }
 
-            if (iteration++ < iterations)
+
+
+    void
+    CopyToOutput(int row)
+    {
+        int i=0;
+        for(matrix & m : output)
+            for(int j=0; j<column_size[i]; j++)
+                m(j) = data(row,i++);
+            i++;
+    }
+
+
+
+    void
+    ResetOutput()
+    {
+        for(matrix & m : output)
+            m.reset();
+    }
+
+
+
+    void
+    Tick()
+    {
+        if(current_row < data.size_y())
+        {
+            CopyToOutput(current_row);
+        }
+        else if(current_row == data.size_y())
+        {
+            ResetOutput();
+            if(send_end_of_file)
             {
-                rewind(file);
-                skip_comment_lines(file);
-                fscanf(file, "%*[^\n\r]");	// Skip format line
-                fscanf(file, "\r");
-                fscanf(file, "\n");
-            }
+                send_end_of_file = false; // Only send once
+                Notify(msg_end_of_file, filename.as_string());
 
-            else if (extend == 0 && send_end_of_file){
-                std::stringstream s;
-                s <<  "Reached in \"" << filename << "\".\n" ;
-                Notify(msg_end_of_file,s.str());
-            }
-
-            else
-                extending = true;
-        }
-}
- 
-
-    void ReadData()
-    {
-        for (int col=0; col < no_of_columns; col++)
-        {
-            for (int i=0; i<column_size[col]; i++){
-                float n;
-                fscanf(file, "%f", &n);
-                column_data[col][i] = n;
             }
         }
-        fscanf(file, "%*[^\n\r]");	// Skip until end-of-line
-        fscanf(file, "\r");			// Read new-line token(s)
-        fscanf(file, "\n");			// Read new-line token(s)
-    }
-
-    void CountData()
-    {
-        for (int col=0; col < no_of_columns; col++)
-        {
-            for (int i=0; i<column_size[col]; i++)
-                fscanf(file, "%*f");
-        }
-        fscanf(file, "%*[^\n\r]");	// Skip until end-of-line
-        fscanf(file, "\r");			// Read new-line token(s)
-        fscanf(file, "\n");			// Read new-line token(s)
-    }
-
-    int CountLines(FILE * file)
-    {
-        fseek(file, 0, SEEK_SET);
-        
-        // Skip first line
-        
-        skip_comment_lines(file);
-        fscanf(file, "%*s\n");
-        
-        int line_count = 0; //-1;
-        
-        while(!feof(file))
-        {
-            skip_comment_lines(file);
-            CountData();
-            line_count++;
-        }
-        
-        return line_count;
+        current_row++;
     }
 };
+
 
 
 INSTALL_CLASS(InputFile)
