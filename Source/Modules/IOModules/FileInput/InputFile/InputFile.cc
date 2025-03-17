@@ -36,21 +36,25 @@ public:
     
         if(std::getline(file, line))
         {
+            line = replace_characters(remove_comment(line));
             std::istringstream iss(line);
             while (iss >> word)
             {
+                std::string name = word;
+                std::string size = "1";
                 size_t pos = word.find('/');
                 if(pos != std::string::npos) 
                 {
-                    std::string name = word.substr(0, pos);
-                    std::string size = word.substr(pos + 1);
-                    int width = std::stoi(size);
-                    AddOutput(name, width);
-                    column_count += width;
-                    column_name.push_back(name);
-                    column_size.push_back(std::stoi(size));
-                    output.push_back(matrix());
+                    name = word.substr(0, pos);
+                    size = word.substr(pos + 1);
                 }
+
+                int width = std::stoi(size);
+                AddOutput(name, width);
+                column_count += width;
+                column_name.push_back(name);
+                column_size.push_back(std::stoi(size));
+                output.push_back(matrix());
             }
             data.realloc(1, column_count);
             data.resize(0, column_count);
