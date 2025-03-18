@@ -45,6 +45,15 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
     {
         this.is_active = true;
         this.send_control_change(this.parameters.parameter, value, this.parameters.select + index);
+
+        if (this.sync) {
+            console.log("SYNC")
+            var newValue = this.value;
+            for (let i = 0; i < this.parameters.count; i++) {
+                this.send_control_change(this.parameters.parameter, newValue, this.parameters.select + i);
+            }
+
+        }
     }
 
     updateAll()
@@ -113,6 +122,16 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
         }
         
         // set-up event handlers
+        document.addEventListener('keydown', (e) => {
+            if (e.shiftKey) {
+                this.sync = true;
+            }
+        });
+        document.addEventListener('keyup', (e) => {
+            if (!e.shiftKey) {
+                this.sync = false;
+            }
+        });
 
         let i = 0;
         for(let slider of this.querySelectorAll("input"))
@@ -123,6 +142,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl
             };
             slider.onmouseup = function() { this.is_active = false ;};
         }
+        
     }
 
     update()
