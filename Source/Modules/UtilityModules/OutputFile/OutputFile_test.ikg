@@ -1,27 +1,6 @@
-<group name="Test" stop="-1" webui_port="8000">
-   <connection alias="X" source="Oscillator_1.OUTPUT" target="Output.INPUT"/>
-   <connection alias="Y" source="Oscillator_2.OUTPUT" target="Output.INPUT"/>
-   <module _x="120.000000" _y="240.000000" class="Oscillator" description="basic sin oscillator; one output per frequency value" frequency="1, 2, 3, 4" name="Oscillator_1" type="square">
-      <output description="The output" name="OUTPUT" size="frequency.size"/>
-      <parameter control="textedit" default="sin" name="type" options="sin, square" type="options" value="square"/>
-      <parameter control="textedit" default="1" description="frequency in Hz" name="frequency" type="matrix" value="1, 2, 3, 4"/>
-   </module>
-   <module _x="120.000000" _y="312.000000" class="Oscillator" description="basic sin oscillator; one output per frequency value" frequency="5, 6" name="Oscillator_2" type="square">
-      <output description="The output" name="OUTPUT" size="frequency.size"/>
-      <parameter control="textedit" default="sin" name="type" options="sin, square" type="options" value="square"/>
-      <parameter control="textedit" default="1" description="frequency in Hz" name="frequency" type="matrix" value="5, 6"/>
-   </module>
-   <module _x="312.000000" _y="288.000000" class="OutputFile" description="writes its input to a file each tick" filename="test.tsv" format="tsv" name="Output">
-      <input description="The input to be written to file" flatten="true" name="INPUT" use_alias="yes"/>
-      <input description="The input to be written to file" name="WRITE" optional="yes"/>
-      <input description="If connected, a 1 on the input will close the current file, increase the file number (if %d is in the name) and open a new file." name="NEWFILE" optional="yes"/>
-      <parameter control="textedit" name="columns" type="string" value="null"/>
-      <parameter control="textedit" default="output.csv" description="File to write the data to. The name may include a %d to automatcially enumerate sequences of files." name="filename" type="string" value="test.tsv"/>
-      <parameter control="textedit" default="csv" description="File format: csv or tsv." name="format" type="string" value="tsv"/>
-      <parameter control="textedit" default="4" description="Number of decimals for all columns" name="decimals" type="int" value="4"/>
-      <parameter control="textedit" default="yes" description="Include time stamp column (T) in file" name="timestamp" type="bool" value="yes"/>
-      <parameter control="textedit" default="" description="Create a new directory for the files each time Ikaros is started using this directory name with a number is added." name="directory" type="string" value=""/>
-   </module>
-   <module _x="144.000000" _y="528.000000" class="Logger" description="logs start to Ikaros site" name="Logger">
-   </module>
+<group name="OutputTest">
+   <module _x="480" _y="168" name="Output" class="OutputFile" decimals="2" filename="data.csv" format="csv" />
+   <module _x="130" _y="130" name="Data" class="Constant" data="1,2,3,4,5" />
+      <connection delay="1" source="Data.OUTPUT" target="Output.INPUT" alias="ABC"/>
+
 </group>

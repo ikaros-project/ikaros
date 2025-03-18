@@ -27,12 +27,12 @@ class OutputFile: public Module
             column_separator = ", ";
         else
             column_separator = "\t";
-    
-	file.open(filename, std::ios::out);
-	if (!file)
-	    throw std::runtime_error("File could not be opened: "+std::string(filename));
+        
+        file.open(filename, std::ios::out);
+        if (!file)
+            throw std::runtime_error("File could not be opened: "+std::string(filename));
 
-    WriteHeader();
+        WriteHeader();
     }
 
 
