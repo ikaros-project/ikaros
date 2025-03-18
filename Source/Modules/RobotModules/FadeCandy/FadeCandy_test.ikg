@@ -1,36 +1,31 @@
-<group name="FadecandyTest">
-   <connection source="LeftEyeRed.OUTPUT" target="FadeCandy.LEFT_EYE[0][]"/>
-   <connection source="RightEyeRed.OUTPUT" target="FadeCandy.RIGHT_EYE[0][]"/>
-   <connection source="MouthHighRed.OUTPUT" target="FadeCandy.MOUTH_HIGH[0][]"/>
-   <connection source="MouthLowRed.OUTPUT" target="FadeCandy.MOUTH_LOW[0][]"/>
-   <connection source="LeftEyeGreen.OUTPUT" target="FadeCandy.LEFT_EYE[1][]"/>
-   <connection source="RightEyeGreen.OUTPUT" target="FadeCandy.RIGHT_EYE[1][]"/>
-   <connection source="MouthHighGreen.OUTPUT" target="FadeCandy.MOUTH_HIGH[1][]"/>
-   <connection source="MouthLowGreen.OUTPUT" target="FadeCandy.MOUTH_LOW[1][]"/>
-   <connection source="LeftEyeBlue.OUTPUT" target="FadeCandy.LEFT_EYE[2][]"/>
-   <connection source="RightEyeBlue.OUTPUT" target="FadeCandy.RIGHT_EYE[2][]"/>
-   <connection source="MouthHighBlue.OUTPUT" target="FadeCandy.MOUTH_HIGH[2][]"/>
-   <connection source="MouthLowBlue.OUTPUT" target="FadeCandy.MOUTH_LOW[2][]"/>
-   <module _x="504" _y="360" class="FadeCandy" name="FadeCandy" simulate="true"/>
-   <module _x="216" _y="72" class="Constant" data="0,0,0,0,0,0,0,0,0,0,0,0" name="LeftEyeRed"/>
-   <module _x="216" _y="240" class="Constant" data="0,0,0,0,0,0,0,0,0,0,0,0" name="RightEyeRed"/>
-   <module _x="216" _y="408" class="Constant" data="0,0,0,0,0,0,0,0" name="MouthHighRed"/>
-   <module _x="216" _y="576" class="Constant" data="0,0,0,0,0,0,0,0" name="MouthLowRed"/>
-   <module _x="216" _y="120" class="Constant" data="0,0,0,0,0,0,0,0,0,0,0,0" name="LeftEyeGreen"/>
-   <module _x="216" _y="288" class="Constant" data="0,0,0,0,0,0,0,0,0,0,0,0" name="RightEyeGreen"/>
-   <module _x="216" _y="456" class="Constant" data="0,0,0,0,0,0,0,0" name="MouthHighGreen"/>
-   <module _x="216" _y="624" class="Constant" data="0,0,0,0,0,0,0,0" name="MouthLowGreen"/>
-   <module _x="216" _y="168" class="Constant" data="0,0,0,0,0,0,0,0,0,0,0,0" name="LeftEyeBlue"/>
-   <module _x="216" _y="336" class="Constant" data="0,0,0,0,0,0,0,0,0,0,0,0" name="RightEyeBlue"/>
-   <module _x="216" _y="504" class="Constant" data="0,0,0,0,0,0,0,0" name="MouthHighBlue"/>
-   <module _x="216" _y="672" class="Constant" data="0,0,0,0,0,0,0,0" name="MouthLowBlue"/>
+<group epi_name="EpiRed" epi_run_mode="simulate" filename="" name="FadecandyTest" stop="-1" webui_port="8000">
+   <connection source="LeftEyeRGB.OUTPUT" target="FadeCandy.LEFT_EYE"/>
+   <connection source="RightEyeRGB.OUTPUT" target="FadeCandy.RIGHT_EYE"/>
+   <connection source="MouthHighRGB.OUTPUT" target="FadeCandy.MOUTH_HIGH"/>
+   <connection source="MouthLowRGB.OUTPUT" target="FadeCandy.MOUTH_LOW"/>
+   <module _x="456" _y="216" class="FadeCandy" name="FadeCandy" simulate="true"/>
+   <module _x="216" _y="168" class="Constant" data="1,1,1,1,1,1,1,1,1,1,1,1; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3" name="LeftEyeRGB"/>
+   <module _x="216" _y="240" class="Constant" data="0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3; 1,1,1,1,1,1,1,1,1,1,1,1; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3" name="RightEyeRGB"/>
+   <module _x="216" _y="312" class="Constant" data="1,1,1,1,1,1,1,1,1,1,1,1; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3" name="MouthHighRGB"/>
+   <module _x="216" _y="384" class="Constant" data="0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3; 1,1,1,1,1,1,1,1,1,1,1,1; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3" name="MouthLowRGB"/>
+   <module _x="144" _y="552" class="Constant" data="0,0" log_level="0" name="EyeDirection"/>
    <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
    <parameter control="menu" default="0" name="log_level" type="number"/>
    <parameter control="menu" default="0" name="log_level" type="number"/>
    <parameter control="menu" default="0" name="log_level" type="number"/>
-   <widget _index_="0" _x="696" _y="72" class="slider-horizontal" count="12" frame-style="" height="265" labels="" max="1" min="0" name="Widget_1" parameter="LeftEyeRed.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Left eye red" width="217"/>
-   <widget _index_="2" _x="1128" _y="72" class="slider-horizontal" count="12" frame-style="" height="265" labels="" max="1" min="0" name="Widget_2" parameter="LeftEyeBlue.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Left eye blue" width="217"/>
-   <widget _index_="4" _x="912" _y="72" class="slider-horizontal" count="12" frame-style="" height="265" labels="" max="1" min="0" name="Widget_3" parameter="LeftEyeGreen.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Left eye green" width="217"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <widget _index_="0" _x="696" _y="72" class="slider-horizontal" count="3" frame-style="" height="265" labels="" max="1" min="0" name="Widget_1" parameter="LeftEyeRGB.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Left eye red" width="217"/>
+   <widget _index_="2" _x="1128" _y="72" class="slider-horizontal" count="12" frame-style="" height="265" labels="" max="1" min="0" name="Widget_2" parameter="LeftEyeRGB.data" select="2" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Left eye blue" width="217"/>
+   <widget _index_="4" _x="912" _y="72" class="slider-horizontal" count="12" frame-style="" height="265" labels="" max="1" min="0" name="Widget_3" parameter="LeftEyeRGB.data" select="1" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Left eye green" width="217"/>
    <widget _index_="6" _x="696" _y="336" class="slider-horizontal" count="12" frame-style="" height="265" labels="" max="1" min="0" name="Widget_4" parameter="RightEyeRed.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Right eye red" width="217"/>
    <widget _index_="8" _x="1128" _y="336" class="slider-horizontal" count="12" frame-style="" height="265" labels="" max="1" min="0" name="Widget_5" parameter="RightEyeBlue.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Right eye blue" width="217"/>
    <widget _index_="10" _x="912" _y="336" class="slider-horizontal" count="12" frame-style="" height="265" labels="" max="1" min="0" name="Widget_6" parameter="RightEyeGreen.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Right eye green" width="217"/>
@@ -40,5 +35,6 @@
    <widget _index_="18" _x="696" _y="792" class="slider-horizontal" count="8" frame-style="" height="193" labels="" max="1" min="0" name="Widget_10" parameter="MouthLowRed.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Mouth low red" width="217"/>
    <widget _index_="20" _x="1128" _y="792" class="slider-horizontal" count="8" frame-style="" height="193" labels="" max="1" min="0" name="Widget_11" parameter="MouthLowBlue.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Mouth low blue" width="217"/>
    <widget _index_="22" _x="912" _y="792" class="slider-horizontal" count="8" frame-style="" height="193" labels="" max="1" min="0" name="Widget_12" parameter="MouthLowGreen.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Mouth low green" width="217"/>
-   <widget _index_="24" _x="1464" _y="312" class="epi-head" color="black" earColor="#0088ff" fill="white" frame-style="" gaze="0" gazeSource="" headPosition="" height="361" irisColor="#88aaff" irisLeftIntensity="" irisLeftRGB="" irisRightIntensity="" irisRightRGB="" max="1" min="0" motionRecorderInput="" mouthColor="#000000" mouthIntensity="" mouthRGB="" name="Widget_13" pupilInMM="11" pupilLeftSource="" pupilRightSource="" select="" show_frame="false" show_title="false" source="" style="" title="Widget_13" vergence="0" visibleFace="true" visibleFaceParameter="" visibleSource="" width="361"/>
+   <widget EpiName="EpiPink" EyeDirection="EyeDirection.OUTPUT" LeftEyeColor="LeftEyeRGB.OUTPUT" LowMouthColor="MouthLowRGB.OUTPUT" RightEyeColor="RightEyeRGB.OUTPUT" TopMouthColor="MouthHighRGB.OUTPUT" _index_="24" _x="1464" _y="312" class="epi-head" color="black" earColor="#0088ff" eyeColor="Eyes.OUTPUT" fill="white" frame-style="" gaze="0" gazeSource="EyeDirection.OUTPUT" headPosition="" height="361" irisColor="Eyes.OUTPUT" irisLeftIntensity="" irisLeftRGB="" irisRightIntensity="" irisRightRGB="" max="1" min="0" motionRecorderInput="" mouthColor="Mouth.OUTPUT" mouthIntensity="" mouthRGB="Mouth.OUTPUT" name="Widget_13" pupilInMM="11" pupilLeftSource="" pupilRightSource="" select="" show_frame="false" show_title="false" source="LeftEyeRGB.OUTPUT" style="" title="Widget_13" vergence="0" visibleFace="true" visibleFaceParameter="" visibleSource="" width="361"/>
+   <widget _index_="26" _x="144" _y="600" class="slider-horizontal" count="2" frame-style="" height="73" labels="" max="45" min="-45" name="Widget_14" parameter="EyeDirection.data" select="0" show_frame="false" show_title="false" show_values="true" source="EyeDirection.OUTPUT" step="5" style="" title="Widget_14" width="121"/>
 </group>
