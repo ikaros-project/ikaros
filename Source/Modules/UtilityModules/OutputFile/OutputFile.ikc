@@ -1,5 +1,5 @@
 <class name="OutputFile" description="writes its input to a file each tick">
-	<parameter name="columns" type="string" />
+
 	<parameter name="filename" type="string" default="output.csv" description="File to write the data to. The name may include a %d to automatcially enumerate sequences of files." />
 	<parameter name="format" type="string" default="csv" description="File format: csv or tsv." />
 	<parameter name="decimals" type="int" default="4" description="Number of decimals for all columns" />
