@@ -11,55 +11,6 @@
    <module _x="72" _y="504" class="Constant" data="0,0" log_level="0" name="EyeDirection"/>
    <module _x="72" _y="576" class="Constant" data="11,11" log_level="0" name="PupilSize"/>
    <module _x="72" _y="648" class="Constant" data="0,0" log_level="0" name="Position"/>
-   <parameter control="menu" default="0" name="log_level" type="number" value="5.000000"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <widget _index_="0" _x="1104" _y="48" class="slider-horizontal" count="3" frame-style="" height="217" labels="" max="1" min="0" name="Widget_1" parameter="LeftEyeRGB.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Left eye red" width="121"/>
-   <widget _index_="2" _x="1224" _y="48" class="slider-horizontal" count="12" frame-style="" height="217" labels="" max="1" min="0" name="Widget_2" parameter="LeftEyeRGB.data" select="2" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Left eye blue" width="121"/>
-   <widget _index_="4" _x="1344" _y="48" class="slider-horizontal" count="12" frame-style="" height="265" labels="" max="1" min="0" name="Widget_3" parameter="LeftEyeRGB.data" select="1" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Left eye green" width="217"/>
-   <widget _index_="6" _x="1104" _y="336" class="slider-horizontal" count="12" frame-style="" height="265" labels="" max="1" min="0" name="Widget_4" parameter="RightEyeRed.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Right eye red" width="217"/>
-   <widget _index_="8" _x="1392" _y="336" class="slider-horizontal" count="12" frame-style="" height="265" labels="" max="1" min="0" name="Widget_5" parameter="RightEyeBlue.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Right eye blue" width="217"/>
-   <widget _index_="10" _x="1152" _y="264" class="slider-horizontal" count="12" frame-style="" height="265" labels="" max="1" min="0" name="Widget_6" parameter="RightEyeGreen.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Right eye green" width="217"/>
-   <widget _index_="12" _x="1032" _y="624" class="slider-horizontal" count="8" frame-style="" height="193" labels="" max="1" min="0" name="Widget_7" parameter="MouthHighRed.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Mouth high red" width="217"/>
-   <widget _index_="14" _x="1368" _y="600" class="slider-horizontal" count="8" frame-style="" height="193" labels="" max="1" min="0" name="Widget_8" parameter="MouthHighBlue.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Mouth high  blue" width="217"/>
-   <widget _index_="16" _x="1152" _y="600" class="slider-horizontal" count="8" frame-style="" height="193" labels="" max="1" min="0" name="Widget_9" parameter="MouthHighGreen.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Mouth high  green" width="217"/>
-   <widget _index_="18" _x="696" _y="792" class="slider-horizontal" count="8" frame-style="" height="193" labels="" max="1" min="0" name="Widget_10" parameter="MouthLowRed.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Mouth low red" width="217"/>
-   <widget _index_="20" _x="1128" _y="792" class="slider-horizontal" count="8" frame-style="" height="193" labels="" max="1" min="0" name="Widget_11" parameter="MouthLowBlue.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Mouth low blue" width="217"/>
-   <widget _index_="22" _x="912" _y="792" class="slider-horizontal" count="8" frame-style="" height="193" labels="" max="1" min="0" name="Widget_12" parameter="MouthLowGreen.data" select="0" show_frame="true" show_title="true" show_values="true" source="" step="0.01" style="" title="Mouth low green" width="217"/>
    <widget EpiName="EpiPink" EyeColor="" EyeDirection="EyeDirection.OUTPUT" Gaze="0" HeadPosition="Position.OUTPUT" LeftEyeColor="LeftEyeRGB.OUTPUT" LowMouthColor="MouthLowRGB.OUTPUT" MouthColor="" PupilInMM="11" PupilSize="PupilSize.OUTPUT" RightEyeColor="RightEyeRGB.OUTPUT" TopMouthColor="MouthHighRGB.OUTPUT" Vergence="0" _index_="24" _x="456" _y="72" class="epi-head" color="black" earColor="#0088ff" eyeColor="Eyes.OUTPUT" fill="white" frame-style="" gaze="0" gazeSource="EyeDirection.OUTPUT" headPosition="Position.OUTPUT" height="673" irisColor="Eyes.OUTPUT" irisLeftIntensity="" irisLeftRGB="" irisRightIntensity="" irisRightRGB="" max="1" min="0" motionRecorderInput="" mouthColor="Mouth.OUTPUT" mouthIntensity="" mouthRGB="Mouth.OUTPUT" name="Widget_13" pupilInMM="11" pupilLeftSource="" pupilRightSource="" pupilSize="PupilSize.OUTPUT" select="" show_frame="false" show_title="false" source="LeftEyeRGB.OUTPUT" style="" title="Widget_13" vergence="0" visibleFace="true" visibleFaceParameter="" visibleSource="" width="601"/>
    <widget _index_="26" _x="216" _y="504" class="slider-horizontal" count="2" frame-style="" height="49" labels="" max="45" min="-45" name="Widget_14" parameter="EyeDirection.data" select="0" show_frame="false" show_title="false" show_values="true" source="EyeDirection.OUTPUT" step="5" style="" title="Widget_14" width="217"/>
    <widget _index_="28" _x="216" _y="576" class="slider-horizontal" count="2" frame-style="" height="49" labels="" max="15" min="8" name="Widget_15" parameter="PupilSize.data" select="0" show_frame="false" show_title="false" show_values="true" source="" step="0.1" style="" title="Widget_15" width="217"/>
