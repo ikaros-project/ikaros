@@ -3,13 +3,13 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
     return [
       { name: "SOURCE", control: "header" },
       { name: "title", default: "Epi Head", type: "string", control: "textedit" },
-      { name: "EyeDirection", default: "", type: "source", control: "textedit" },
-      { name: "PupilSize", default: "", type: "source", control: "textedit" },
-      { name: "LeftEyeColor", default: "", type: "source", control: "textedit" },
-      { name: "RightEyeColor", default: "", type: "source", control: "textedit" },
-      { name: "TopMouthColor", default: "", type: "source", control: "textedit" },
-      { name: "LowMouthColor", default: "", type: "source", control: "textedit" },
-      { name: "HeadPosition", default: "", type: "source", control: "textedit" },
+      { name: "eyeDirection", default: "", type: "source", control: "textedit" },
+      { name: "pupilSize", default: "", type: "source", control: "textedit" },
+      { name: "leftEyeColor", default: "", type: "source", control: "textedit" },
+      { name: "rightEyeColor", default: "", type: "source", control: "textedit" },
+      { name: "topMouthColor", default: "", type: "source", control: "textedit" },
+      { name: "lowMouthColor", default: "", type: "source", control: "textedit" },
+      { name: "headPosition", default: "", type: "source", control: "textedit" },
       { name: "PARAMETERS", control: "header" },
       { name: "EyeColor", default: "#ffdd88", type: "string", control: "textedit" },
       { name: "MouthColor", default: "#ffdd88", type: "string", control: "textedit" },
@@ -245,8 +245,8 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
     else
         this.EyeColors = [Array(12).fill(defaultEyeColor[0]), Array(12).fill(defaultEyeColor[0])];
     
-    let l_eye = this.getSource("LeftEyeColor", defaultEyeColor);
-    let r_eye = this.getSource("RightEyeColor", defaultEyeColor);
+    let l_eye = this.getSource("leftEyeColor", defaultEyeColor);
+    let r_eye = this.getSource("rightEyeColor", defaultEyeColor);
     // Convert the input to a hex representation of color 
     if (l_eye && l_eye.length === 3 && l_eye[0].length === 12 && l_eye[1].length === 12 && l_eye[2].length === 12 )
       this.EyeColors[0] = l_eye[0].map((_, i) => rgbToHex(Math.round(l_eye[0][i] * 255), Math.round(l_eye[1][i] * 255), Math.round(l_eye[2][i] * 255)));
@@ -262,8 +262,8 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
          this.MouthColors = [defaultMouthColor, defaultMouthColor];
     else
         this.MouthColors = [Array(8).fill(defaultMouthColor[0]), Array(8).fill(defaultMouthColor[0])];
-    let t_mouth = this.getSource("TopMouthColor", defaultMouthColor);
-    let l_mouth = this.getSource("LowMouthColor", defaultMouthColor);
+    let t_mouth = this.getSource("topMouthColor", defaultMouthColor);
+    let l_mouth = this.getSource("lowMouthColor", defaultMouthColor);
     // Convert the input to a hex representation of color
     if (t_mouth && t_mouth.length === 3 && t_mouth[0].length === 8 && t_mouth[1].length === 8 && t_mouth[2].length === 8 )
       this.MouthColors[0] = t_mouth[0].map((_, i) => rgbToHex(Math.round(t_mouth[0][i] * 255), Math.round(t_mouth[1][i] * 255), Math.round(t_mouth[2][i] * 255)));
@@ -275,12 +275,12 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
       parseFloat(this.parameters.Gaze) - parseFloat(this.parameters.Vergence),
       parseFloat(this.parameters.Gaze) + parseFloat(this.parameters.Vergence),
     ];
-    this.gaze = this.getSource("EyeDirection", defaultGaze);
+    this.gaze = this.getSource("eyeDirection", defaultGaze);
     if (this.gaze.length < 2) this.gaze = [this.gaze[0], this.gaze[0]];
     
     // Gaze. Only x wise and setting Gaze in webUI will controll both eyes. // What happens if source input is only one element?
     let defaultPupil = [parseFloat(this.parameters.PupilInMM),parseFloat(this.parameters.PupilInMM)];
-    this.pupil = this.getSource("PupilSize", defaultPupil);
+    this.pupil = this.getSource("pupilSize", defaultPupil);
     if (this.pupil.length < 2) 
       this.pupil = [this.pupil[0], this.pupil[0]];
 
