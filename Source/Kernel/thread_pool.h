@@ -8,81 +8,78 @@
 #include <condition_variable>
 #include <functional>
 #include <future>
-#include <atomic>
 #include <chrono>
 
-
-
-class Task         // Component or Connection
-{
+class Task {
 public:
     virtual void Tick() = 0;
     virtual std::string Info() = 0;
     virtual bool Priority() { return false; }
 };
 
-
-
-class TaskSequence // Holds a list of tasks to be run sequentially within a single thread
-{
+class TaskSequence {
 public:
-    TaskSequence(std::vector<Task *> & tasks): 
-        tasks_(tasks),
-        running(false), 
-        completed(false)
-    {}
+    TaskSequence(std::vector<Task *> &tasks)
+        : tasks_(tasks), running(false), completed(false) {}
 
     virtual ~TaskSequence() = default;
 
     void execute() {
-        running = true;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            running = true;
+        }
         Tick();
-        completed = true;
-        running = false;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            completed = true;
+        }
+        condition_.notify_all();
     }
 
     bool isRunning() const {
+        std::lock_guard<std::mutex> lock(mutex_);
         return running;
     }
 
     bool isCompleted() const {
+        std::lock_guard<std::mutex> lock(mutex_);
         return completed;
     }
 
+    void waitForCompletion() {
+        std::unique_lock<std::mutex> lock(mutex_);
+        condition_.wait(lock, [this]() { return completed; });
+    }
+
 protected:
-    virtual void Tick()
-    {
-        for(auto & task : tasks_)
+    virtual void Tick() {
+        for (auto &task : tasks_)
             task->Tick();
     }
 
 private:
-    std::atomic<bool> running;
-    std::atomic<bool> completed;
-
-    std::vector<Task *> & tasks_;
+    std::vector<Task *> &tasks_;
+    mutable std::mutex mutex_;
+    std::condition_variable condition_;
+    bool running;
+    bool completed;
 };
 
-
-
-class ThreadPool 
-{
+class ThreadPool {
 public:
     ThreadPool(size_t numThreads);
     ~ThreadPool();
 
-    void submit(TaskSequence * task_sequence); // Submit a task to be executed by the thread pool
-    bool working(); /// True if at least one worker is running
+    void submit(TaskSequence *task_sequence);
+    bool working();
 
 private:
-    void worker(); // Worker threads function
+    void worker();
 
-    std::vector<std::thread> workers; // Vector of worker threads
-    std::queue<TaskSequence *> task_sequences;   // TaskSequence queue
-    std::mutex queueMutex; // Synchronization
+    std::vector<std::thread> workers;
+    std::queue<TaskSequence *> task_sequences;
+    std::mutex queueMutex;
     std::condition_variable condition;
-    std::atomic<bool> stop;
+    bool stop = false;
 };
-
-
-

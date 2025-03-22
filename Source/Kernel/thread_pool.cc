@@ -11,31 +11,38 @@ ThreadPool::ThreadPool(size_t numThreads) :
     }
 }
 
-ThreadPool::~ThreadPool() 
-{
-    stop = true;
-    condition.notify_all();
-    for (std::thread &worker : workers) 
+ThreadPool::~ThreadPool() {
     {
-        worker.join();
+        std::lock_guard<std::mutex> lock(queueMutex);
+        stop = true;
+    }
+    condition.notify_all();
+    for (std::thread &worker : workers) {
+        if (worker.joinable()) {
+            worker.join();
+        }
     }
 }
-
-void ThreadPool::worker() 
-{
-    while (!stop) 
-    {
-        TaskSequence * task_sequence;
+void ThreadPool::worker() {
+    while (true) {
+        TaskSequence *task_sequence;
         {
             std::unique_lock<std::mutex> lock(queueMutex);
             condition.wait(lock, [this] { return stop || !task_sequences.empty(); });
             if (stop && task_sequences.empty()) return;
-            task_sequence = std::move(task_sequences.front());
+            task_sequence = task_sequences.front();
             task_sequences.pop();
         }
-        task_sequence->execute();
+        try {
+            task_sequence->execute();
+        } catch (const std::exception &e) {
+            std::cerr << "Task execution error: " << e.what() << std::endl;
+        } catch (...) {
+            std::cerr << "Unknown error during task execution." << std::endl;
+        }
     }
 }
+
 
 void ThreadPool::submit(TaskSequence * task_sequence) 
 {
@@ -46,8 +53,7 @@ void ThreadPool::submit(TaskSequence * task_sequence)
     condition.notify_one();
 }
 
-bool ThreadPool::working()
-{
-    return false;
+bool ThreadPool::working() {
+    std::lock_guard<std::mutex> lock(queueMutex);
+    return !task_sequences.empty();
 }
-
