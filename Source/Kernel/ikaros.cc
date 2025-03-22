@@ -2445,6 +2445,31 @@ if(classes[classname].path.empty())
 
 
 
+void Kernel::RunTasks()
+{
+    std::vector<std::unique_ptr<TaskSequence>> sequences;
+
+    try {
+        // Create and submit tasks
+        for (auto &task_sequence : tasks) {
+            auto ts = std::make_unique<TaskSequence>(task_sequence);
+            thread_pool->submit(ts.get());
+            sequences.push_back(std::move(ts));
+        }
+
+        // Wait for completion using a condition variable or similar mechanism
+        for (auto &ts : sequences) 
+        {
+            while(!ts->isCompleted()) ; // Suboptimal busy-waiting
+            // ts->waitForCompletion(); // Assume TaskSequence has a blocking wait method
+        }
+    } catch (const std::exception &e) {
+        Notify(msg_fatal_error, "Error during task execution: " + std::string(e.what()));
+    }
+}
+
+
+    /*
     void
     Kernel::RunTasks()
     {
@@ -2470,7 +2495,7 @@ if(classes[classname].path.empty())
         for(auto ts: sequences)
             delete ts;
     }
-
+*/
 
 
     void
