@@ -17,14 +17,16 @@ public:
     virtual bool Priority() { return false; }
 };
 
-class TaskSequence {
+class TaskSequence 
+{
 public:
     TaskSequence(std::vector<Task *> &tasks)
         : tasks_(tasks), running(false), completed(false) {}
 
     virtual ~TaskSequence() = default;
 
-    void execute() {
+    void execute() 
+    {
         {
             std::lock_guard<std::mutex> lock(mutex_);
             running = true;
@@ -37,23 +39,27 @@ public:
         condition_.notify_all();
     }
 
-    bool isRunning() const {
+    bool isRunning() const 
+    {
         std::lock_guard<std::mutex> lock(mutex_);
         return running;
     }
 
-    bool isCompleted() const {
+    bool isCompleted() const 
+    {
         std::lock_guard<std::mutex> lock(mutex_);
         return completed;
     }
 
-    void waitForCompletion() {
+    void waitForCompletion() 
+    {
         std::unique_lock<std::mutex> lock(mutex_);
         condition_.wait(lock, [this]() { return completed; });
     }
 
 protected:
-    virtual void Tick() {
+    virtual void Tick() 
+    {
         for (auto &task : tasks_)
             task->Tick();
     }
@@ -66,7 +72,8 @@ private:
     bool completed;
 };
 
-class ThreadPool {
+class ThreadPool 
+{
 public:
     ThreadPool(size_t numThreads);
     ~ThreadPool();
@@ -81,5 +88,5 @@ private:
     std::queue<TaskSequence *> task_sequences;
     std::mutex queueMutex;
     std::condition_variable condition;
-    bool stop = false;
+    std::atomic<bool> stop;
 };

@@ -1,30 +1,38 @@
 #include "thread_pool.h"
 
 
-
-
-ThreadPool::ThreadPool(size_t numThreads) : 
+ThreadPool::ThreadPool(size_t numThreads): 
     stop(false) 
 {
-    for (size_t i = 0; i < numThreads; ++i) {
+    for (size_t i = 0; i < numThreads; ++i) 
         workers.emplace_back(&ThreadPool::worker, this);
-    }
 }
 
-ThreadPool::~ThreadPool() {
+ThreadPool::~ThreadPool()
+{
     {
         std::lock_guard<std::mutex> lock(queueMutex);
         stop = true;
     }
-    condition.notify_all();
-    for (std::thread &worker : workers) {
-        if (worker.joinable()) {
-            worker.join();
-        }
+    condition.notify_all(); // Notify all threads to wake up and exit
+    for (std::thread &worker : workers) 
+    {
+        if (worker.joinable()) 
+            worker.join(); // Wait for all threads to finish
+    }
+
+    // Ensure all tasks are completed
+    if (!task_sequences.empty()) 
+    {
+        std::cerr << "Warning: Tasks remaining in the queue during shutdown." << std::endl;
     }
 }
-void ThreadPool::worker() {
-    while (true) {
+
+
+void ThreadPool::worker() 
+{
+    while (true) 
+    {
         TaskSequence *task_sequence;
         {
             std::unique_lock<std::mutex> lock(queueMutex);
@@ -33,11 +41,16 @@ void ThreadPool::worker() {
             task_sequence = task_sequences.front();
             task_sequences.pop();
         }
-        try {
+        try 
+        {
             task_sequence->execute();
-        } catch (const std::exception &e) {
+        } 
+        catch (const std::exception &e) 
+        {
             std::cerr << "Task execution error: " << e.what() << std::endl;
-        } catch (...) {
+        } 
+        catch (...) 
+        {
             std::cerr << "Unknown error during task execution." << std::endl;
         }
     }
@@ -47,13 +60,14 @@ void ThreadPool::worker() {
 void ThreadPool::submit(TaskSequence * task_sequence) 
 {
     {
-        std::unique_lock<std::mutex> lock(queueMutex);
+        std::lock_guard<std::mutex> lock(queueMutex);
         task_sequences.emplace(task_sequence);
     }
     condition.notify_one();
 }
 
-bool ThreadPool::working() {
+bool ThreadPool::working() 
+{
     std::lock_guard<std::mutex> lock(queueMutex);
     return !task_sequences.empty();
 }
