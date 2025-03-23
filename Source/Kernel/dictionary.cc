@@ -1,3 +1,4 @@
+
 // dictionary.h  (c) Christian Balkenius 2023-2024
 
 #include "dictionary.h"
@@ -64,14 +65,11 @@ namespace ikaros
     }
 
 
-    list & 
-    list::erase(int index)  
-    {
-        if(index < 0 || index >= list_->size())
-            throw std::out_of_range("Index out of bounds in list::erase");
-        list_->erase(list_->begin() + index);
-        return *this;
-    }
+        list & 
+        list::erase(int index)  
+        {
+                list_->erase(list_->begin()+index); return *this;
+        }
 
     std::string 
     list::json() const
@@ -92,8 +90,6 @@ namespace ikaros
        value & 
        list::operator[] (int i)
         {
-            if(i < 0)
-                throw std::out_of_range("Negative index in list::operator[]");
             if( list_->size() < i+1)
                  list_->resize(i+1);
             return  list_->at(i);
@@ -157,7 +153,7 @@ namespace ikaros
     bool 
     dictionary::contains(std::string s)
         {
-            return dict_->find(s) != dict_->end();
+            return dict_->count(s);
         }
 
 
@@ -192,19 +188,6 @@ namespace ikaros
         }
         
 
-        /* DEEP MERGE */
-        /*
-        void dictionary::merge(const dictionary &source, bool overwrite)
-{
-    for (const auto &p : *(source.dict_))
-    {
-        if(!dict_->count(p.first) || overwrite)
-            (*dict_)[p.first] = p.second.copy(); // Deep copy
-    }
-}
-        */
-
-
         void dictionary::erase(std::string key)
         {
             dict_->erase(key);
@@ -217,7 +200,7 @@ namespace ikaros
             int index = 0;
             for (const auto& [k, v] : *dict_)
             {
-                if(k == key)
+                if (k == key)
                 {
                     return index;
                 }
@@ -390,9 +373,9 @@ namespace ikaros
         value::push_back(const value & v)
         {
             if(!std::holds_alternative<list>(value_))
-                throw std::runtime_error("Cannot push_back to a non-list value");
-            std::get<list>(value_).list_->push_back(v);
-            return *this;
+                value_ = list();
+                std::get<list>(value_). list_->push_back(v);
+                return *this;
         }
 
         int  
@@ -505,26 +488,18 @@ namespace ikaros
         }
 
           
-        value::operator double()
+        value::operator double ()
         { 
             if(std::holds_alternative<double>(value_))
                 return std::get<double>(value_);
             if(std::holds_alternative<std::string>(value_))
-            {
-                try
-                {
-                    return std::stod(std::get<std::string>(value_));
-                }
-                catch (const std::invalid_argument &)
-                {
-                    throw std::runtime_error("Cannot convert string to double");
-                }
-            }
-            if(std::holds_alternative<null>(value_))
+                return std::stod(std::get<std::string>(value_));
+            else  if(std::holds_alternative<null>(value_))
                 return 0;
-        
+
             throw std::runtime_error("Cannot convert to double");
         }
+
           
         value::operator list ()
         {
@@ -573,7 +548,6 @@ namespace ikaros
                 ++pos; // Skip the escape character
                 if(pos >= s.length())
                     throw std::runtime_error("Unexpected end of string");
-
                 switch (s[pos])
                 {
                     case '"': result += '"'; break;
@@ -584,24 +558,6 @@ namespace ikaros
                     case 'n': result += '\n'; break;
                     case 'r': result += '\r'; break;
                     case 't': result += '\t'; break;
-                    case 'u': // Handle Unicode escape sequence
-                    {
-                        if(pos + 4 >= s.length())
-                            throw std::runtime_error("Incomplete Unicode escape sequence");
-
-                        std::string hex = s.substr(pos + 1, 4);
-                        for (char c : hex)
-                        {
-                            if(!std::isxdigit(c))
-                                throw std::runtime_error("Invalid Unicode escape sequence");
-                        }
-
-                        // Convert hex to Unicode character
-                        char16_t unicode_char = static_cast<char16_t>(std::stoi(hex, nullptr, 16));
-                        result += static_cast<char>(unicode_char); // Assuming ASCII-compatible encoding
-                        pos += 4; // Skip the 4 hex digits
-                        break;
-                    }
                     default:
                         throw std::runtime_error("Invalid escape sequence");
                 }
@@ -612,7 +568,6 @@ namespace ikaros
             }
             ++pos;
         }
-
         if(pos >= s.length() || s[pos] != '"')
             throw std::runtime_error("Expected '\"' at the end of string");
 
@@ -620,8 +575,6 @@ namespace ikaros
         return result;
     }
 
-
-    
     value parse_value(const std::string& s, size_t& pos);
 
     list parse_array(const std::string& s, size_t& pos)
@@ -656,8 +609,6 @@ namespace ikaros
         throw std::runtime_error("Unexpected end of array");
     }
 
-
-    
     dictionary parse_object(const std::string& s, size_t& pos)
     {
         if(s[pos] != '{')
