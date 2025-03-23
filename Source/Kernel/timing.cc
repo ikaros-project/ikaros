@@ -1,24 +1,5 @@
 // timing.cc		Timing utilities for the IKAROS project
-//
-//    Copyright (C) 2006-2023  Christian Balkenius
-//
-//    This program is free software; you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation; either version 2 of the License, or
-//    (at your option) any later version.
-//
-//    This program is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
-//
-//    You should have received a copy of the GNU General Public License
-//    along with this program; if not, write to the Free Software
-//    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-//    See http://www.ikaros-project.org/ for more information.
-//
-//	This file implements a timer class using the POSIX timing functions
+
 //  TODO: Use only chrono functions
 //  std::this_thread::sleep_for(std::chrono::milliseconds(x));
 
@@ -55,7 +36,7 @@ void
 Sleep(double time)
 {
     Timer t;
-    t.WaitUntil(t.GetTime()+time);
+    t.WaitUntil(t.GetTime()+time); // OR: std::this_thread::sleep_for(duration<double>(time));
 }
 
 
@@ -80,9 +61,7 @@ std::string GetClockTimeString()
 void
 Timer::Pause()
 {
-    while(locked)
-        {
-        }
+    std::lock_guard<std::mutex> lock(mtx);
 
     if(!paused)
     {
@@ -95,8 +74,7 @@ Timer::Pause()
 void
 Timer::Continue()
 {
-    while(locked)
-        {}
+    std::lock_guard<std::mutex> lock(mtx);
 
     if(paused)
     {
@@ -110,8 +88,7 @@ Timer::Continue()
 void
 Timer::SetPauseTime(double t)
 {
-    while(locked)
-        {}
+    std::lock_guard<std::mutex> lock(mtx);
 
     if(paused)
     {
@@ -124,8 +101,7 @@ Timer::SetPauseTime(double t)
 void
 Timer::Restart()
 {
-    while(locked)
-        {}
+    std::lock_guard<std::mutex> lock(mtx);
 
     start_time = steady_clock::now();
     pause_time = start_time;
@@ -144,10 +120,9 @@ Timer::GetTime()
 
 
 void 
-Timer::SetTime(double t) // FIXME: WRONG
+Timer::SetTime(double t)
 {
-    while(locked)
-        {}
+    std::lock_guard<std::mutex> lock(mtx);
 
     auto d = duration<double>(t);
     start_time = steady_clock::time_point(duration_cast<steady_clock::duration>(d));
@@ -158,14 +133,16 @@ Timer::SetTime(double t) // FIXME: WRONG
 double
 Timer::WaitUntil(double time)
 {
-    locked = true; // prevent changes while waiting
+    // locked = true; // prevent changes while waiting
+    Lock();
     float dt;
 	while ((dt = GetTime()-time) < -0.128){ std::this_thread::sleep_for(microseconds(127000)); };
 	while ((dt = GetTime()-time) < -0.004){ std::this_thread::sleep_for(microseconds(3000)); };
 	while ((dt = GetTime()-time) < -0.001){ std::this_thread::sleep_for(microseconds(100)); };
     while(GetTime() < time)
-        {} // burn some cycles to get this as accurate as possible
-        locked = false;
+        std::this_thread::sleep_for(microseconds(1)); // minimal sleep to avoid busy-waiting
+    //locked = false;
+    Unlock();
     return GetTime() - time;
 }
 
