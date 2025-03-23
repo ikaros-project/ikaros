@@ -209,6 +209,7 @@ public:
     bool Debug(std::string message, std::string path="") { return Notify(msg_debug, message, path); }
     bool Trace(std::string message, std::string path="") { return Notify(msg_trace, message, path); }
 
+    void AddLogLevel();
     void AddInput(dictionary parameters);
     void AddOutput(dictionary parameters);
     void AddOutput(std::string name, int size, std::string description=""); // Must be called from creator function and not from Init
