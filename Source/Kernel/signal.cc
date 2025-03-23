@@ -1,4 +1,4 @@
-// signal.cc		Signal utilities for ikaros -(c) Christian Balkenius 2006-2024
+// signal.cc		Signal utilities for ikaros (c) Christian Balkenius 2006-2024
 
 #include <stdio.h>
 #include <signal.h>
