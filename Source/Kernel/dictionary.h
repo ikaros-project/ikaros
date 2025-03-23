@@ -116,7 +116,7 @@ namespace ikaros
         iterator erase(const_iterator pos) const { return list_->erase(pos); }
         iterator insert(const_iterator pos, const value & v) { return list_->insert(pos, v); }
 
-        value & operator[] (int i);
+        value & operator[] (int i); // expands list if becessary
         int size() { return list_->size(); };
         list & push_back(const value & v) { list_->push_back(v); return *this; };
         list & insert_front(const value & v) { list_->insert(list_->begin(), v);  return *this; }
