@@ -4,11 +4,6 @@
    <module _x="696" _y="168" class="ServoConnector" connector="1,2,3,4" name="ServoConnector" offset="180,180,180,180" post_inverted="0,0,1,0" pre_inverted="0,1,0,0"/>
    <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
    <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
    <widget _index_="0" _x="288" _y="264" auto="false" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200" labels="" lineCap="" lineJoin="" lineWidth="1" max="180" min="-180" name="Widget_1" show_frame="false" show_title="false" source="DATA.OUTPUT" style="" title="Widget_1" transpose="false" width="200"/>
    <widget _index_="2" _x="672" _y="264" auto="false" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200" labels="" lineCap="" lineJoin="" lineWidth="1" max="180" min="-180" name="Widget_2" show_frame="false" show_title="false" source="ServoConnector.OUTPUT" style="" title="Widget_2" transpose="false" width="200"/>
    <widget _index_="4" _x="48" _y="96" class="slider-horizontal" count="4" frame-style="" height="200" labels="" max="45" min="-45" name="Widget_3" parameter="DATA.data" select="0" show_frame="false" show_title="false" show_values="true" source="Data.data" step="0.01" style="" title="Widget_3" width="200"/>

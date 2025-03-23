@@ -11,16 +11,6 @@
    <module _x="768" _y="288" class="RotationConverter" input_format="matrix" log_level="0" name="rot_mat_to_xyzaxayaz" output_format="xyzaxayaz"/>
    <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
    <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
    <widget _index_="0" _x="264" _y="144" class="table" colorize="true" decimals="1" direction="normal" frame-style="" height="25" label_x="" label_y="" max="1" min="0" name="Widget_1" scrollable="false" select="" show_frame="false" show_title="false" source="XYZ.OUTPUT" style="" title="XYZ" width="169"/>
    <widget _index_="2" _x="168" _y="384" class="table" colorize="true" decimals="1" direction="normal" frame-style="" height="25" label_x="" label_y="" max="1" min="0" name="Widget_2" scrollable="false" select="" show_frame="false" show_title="false" source="XYZAXAYAZ.OUTPUT" style="" title="Widget_2" width="265"/>
    <widget _index_="4" _x="480" _y="384" class="table" colorize="true" decimals="1" direction="normal" frame-style="" height="200" label_x="" label_y="" max="1" min="0" name="Widget_3" scrollable="false" select="" show_frame="false" show_title="false" source="rot_xyzaxayaz_to_mat.OUTPUT" style="" title="Widget_3" width="200"/>
