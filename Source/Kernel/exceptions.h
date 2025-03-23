@@ -13,7 +13,7 @@ namespace ikaros {
         std::string message() const { return message_; }
         std::string path() const { return path_; }
 
-        const char * what () const throw () { return message_.c_str(); }
+        const char * what () const noexcept override { return message_.c_str(); }
     private:
         std::string message_;
         std::string path_;
@@ -75,17 +75,4 @@ namespace ikaros {
     };
 };
 
-
-
-/*
-
-PLANNED EXCEPTIONS
-
-    load_failed: connot continue, call new
-    setup_error: cannot set up network, run server oinly
-    init_error: modules could not be initialized
-    fatal_runtime_error: cannot continue running "simulation", run-time error
-    fatal_error: cabbot cannot at all: try do deallocate and quit
-
-*/
 
