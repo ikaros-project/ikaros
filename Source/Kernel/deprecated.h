@@ -232,6 +232,7 @@ char *  base64_encode(const unsigned char * data, size_t size_in, size_t *size_o
 // Options
 // FIXME: do not use fixed sizes anywhere
 
+/*
 class Options
 {
 public:
@@ -267,7 +268,7 @@ public:
     char *  file_dir;
     char *  file_name;
 };
-
+*/
 
 // Dictionary
 // FIXME: don't use lists
