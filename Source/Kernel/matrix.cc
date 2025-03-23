@@ -102,5 +102,13 @@ matrix::average()
             }
             return *last_;
         }
+
+        bool 
+        matrix::changed()
+        {
+            if(last_==nullptr)
+                return false;
+            return !(*last_ == *this);
+        }
 }
 

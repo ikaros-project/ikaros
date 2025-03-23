@@ -913,7 +913,7 @@ namespace ikaros
             return info_->shape_; 
         }
 
-        int size() // Size of full data
+        int size() const // Size of full data
         {
             return info_->size_;
         }
@@ -1294,7 +1294,8 @@ namespace ikaros
 
         void save();
 
-        matrix & last();
+        matrix & last();    // Matrix value from last saved state
+        bool changed();     // Has matrix changed since last save
 
         // Math Functions
 
@@ -1335,13 +1336,58 @@ namespace ikaros
         // svd
         // pca
 
-        // operator==
-        // operator!=
+        bool operator==(float v) const
+        {
+            if(!is_scalar())
+                throw std::invalid_argument("Matrix must be scalar.");
+            return ((*data_)[info_->offset_] == v);
+        }
+
+        bool operator==(int v) const
+        {
+            if(!is_scalar())
+            throw std::invalid_argument("Matrix must be scalar.");
+            return ((*data_)[info_->offset_] == v);
+        }
+
+    bool operator==(const matrix& other) const
+    {
+        // Check if shapes are the same
+        if (this->shape() != other.shape())
+            return false;
+
+        // Check if data values are the same
+        for (int i = 0; i < this->size(); ++i) 
+            if ((*this->data_)[this->info_->offset_ + i] != (*other.data_)[other.info_->offset_ + i]) // FIXME: May not work for complex matrix shapes
+                return false;
+
+        return true;
+    }
+
+
+     bool operator!=(const matrix& other) const
+    {
+        return !(*this == other);
+    }
+
+    bool operator!=(float v) const
+    {
+        if(!is_scalar())
+            throw std::invalid_argument("Matrix must be scalar.");
+        return ((*data_)[info_->offset_] != v);
+    }
+
+    bool operator!=(int v) const
+    {
+        if(!is_scalar())
+            throw std::invalid_argument("Matrix must be scalar.");
+        return ((*data_)[info_->offset_] != v);
+    }
+
         // operator<
         // operator>
         // operator<=
-        // operator 
-
+        // operator>=
 
 
     void 
