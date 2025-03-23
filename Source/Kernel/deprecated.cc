@@ -1031,7 +1031,7 @@ copy_matrix(float *** r, float *** a, int sizex, int sizey, int sizez)
     return r;
 }
 
-
+/*
 char *
 base64_encode(const unsigned char * data,
               size_t size_in,
@@ -1063,6 +1063,7 @@ base64_encode(const unsigned char * data,
     
     return encoded_data;
 }
+*/
 
 // mark - TAT additions
 // void        set_submatrix(float *A, int ncols, float *S, int mrows, int mcols, int row, int col);
