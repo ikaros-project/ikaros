@@ -22,7 +22,6 @@ class Timer
 private:
     std::chrono::time_point<std::chrono::steady_clock> start_time;
     std::chrono::time_point<std::chrono::steady_clock> pause_time;  
-    std::atomic<bool>                                  locked;
     bool paused;
     std::mutex mtx;
 public: 

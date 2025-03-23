@@ -12,6 +12,8 @@
 
 using namespace std::chrono;
 
+
+/*
 std::string TimeString(double time)
 {
     int days = time / 86400;
@@ -29,14 +31,41 @@ std::string TimeString(double time)
         return std::to_string(hours) + ":" + std::to_string(minutes) + ":" + std::to_string(seconds);
 
 }
+*/
 
+
+std::string TimeString(double time)
+{
+    int days = time / 86400;
+    time -= (double(days) * 86400.0);
+
+    int hours = time / 3600;
+    time -= (double(hours) * 3600.0);
+
+    int minutes = time / 60;
+    double seconds = time - (double(minutes) * 60.0);
+
+    std::ostringstream oss;
+    if (days > 0)
+        oss << days << " " << std::setw(2) << std::setfill('0') << hours << ":"
+            << std::setw(2) << std::setfill('0') << minutes << ":"
+            << std::fixed << std::setprecision(3) << seconds;
+    else
+        oss << std::setw(2) << std::setfill('0') << hours << ":"
+            << std::setw(2) << std::setfill('0') << minutes << ":"
+            << std::fixed << std::setprecision(3) << seconds;
+
+    return oss.str();
+}
 
 
 void
 Sleep(double time)
 {
-    Timer t;
-    t.WaitUntil(t.GetTime()+time); // OR: std::this_thread::sleep_for(duration<double>(time));
+    std::this_thread::sleep_for(duration<double>(time));
+
+    //Timer t;
+    //t.WaitUntil(t.GetTime()+time); // OR: 
 }
 
 
@@ -76,10 +105,10 @@ Timer::Continue()
 {
     std::lock_guard<std::mutex> lock(mtx);
 
-    if(paused)
+    if (paused)
     {
-        auto offset = pause_time-steady_clock::now();
-        start_time -= offset;
+        auto offset = steady_clock::now() - pause_time;
+        start_time += offset;
         paused = false;
     }
 }
@@ -149,7 +178,6 @@ Timer::WaitUntil(double time)
 
 
 Timer::Timer():
-    locked(false),
     paused(false)
 {
 
@@ -212,4 +240,4 @@ Timer::GetTimeString()
     }
 
 
-  
+
