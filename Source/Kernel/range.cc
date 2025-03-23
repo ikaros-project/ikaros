@@ -164,11 +164,12 @@ namespace ikaros
     range & 
     range::reset(int d)
     {
-        if(d>=index_.size())
+        if (d < 0 || d >= index_.size()) {
+            throw std::out_of_range("Index out of bounds in reset.");
+        }
+        if (inc_[d] == 0)
             return *this;
-        if(inc_[d] == 0)
-            return *this;
-        index_[d] = inc_[d]>0 ? a_[d] : a_[d]+inc_[d]*((b_[d]-a_[d]-1)/inc_[d]);
+        index_[d] = inc_[d] > 0 ? a_[d] : a_[d] + inc_[d] * ((b_[d] - a_[d] - 1) / inc_[d]);
         return *this;
     }
 
@@ -232,13 +233,13 @@ namespace ikaros
 
     bool range::is_delay_0()
     {
-        return a_.size() == 1 && a_[0] == 0 and b_[0] == 1;
+        return a_.size() == 1 && a_[0] == 0 && b_[0] == 1;
     }
 
 
     bool range::is_delay_1()
     {
-        return a_.size() == 1 && a_[0] == 1 and b_[0] == 2;
+        return a_.size() == 1 && a_[0] == 1 && b_[0] == 2;
     }
 
 
@@ -252,6 +253,9 @@ namespace ikaros
 
     bool range::empty(int d) const
     {
+        if (d < 0 || d >= a_.size()) {
+            throw std::out_of_range("Index out of bounds in empty.");
+        }
         return a_[d] == b_[d] || inc_[d] == 0;
     }
 
@@ -259,10 +263,13 @@ namespace ikaros
 
     range & range::set(int d, int a, int b, int inc)
     {
+        if (d < 0 || d >= a_.size()) {
+            throw std::out_of_range("Index out of bounds in set.");
+        }
         a_.at(d) = a;
         b_.at(d) = b;
         inc_.at(d) = inc;
-        index_.at(d) = inc_[d]>0 ? a_[d] : a_[d]+inc_[d]*((b_[d]-a_[d]-1)/inc_[d]);
+        index_.at(d) = inc_[d] > 0 ? a_[d] : a_[d] + inc_[d] * ((b_[d] - a_[d] - 1) / inc_[d]);
         return *this;
     }
 
