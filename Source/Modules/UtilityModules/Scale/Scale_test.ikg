@@ -8,19 +8,6 @@
    <module _x="96" _y="480" class="Constant" data="0.75" log_level="0" name="Scaler"/>
    <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
    <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
-   <parameter control="menu" default="0" name="log_level" type="number"/>
    <widget _index_="0" _x="552" _y="192" buffer_size="50" class="plot" color="" direction="vertical" frame-style="" height="673" max="5" min="0" name="Widget_1" select="" show_frame="false" show_title="true" source="Scale.OUTPUT" style="" title="OUTPUT" width="505"/>
    <widget _index_="2" _x="48" _y="552" class="slider-horizontal" count="1" frame-style="" height="49" labels="" max="1" min="0" name="Widget_2" parameter="Scaler.data" select="0" show_frame="false" show_title="true" show_values="true" source="" step="0.01" style="" title="Scale input" width="217"/>
    <widget _index_="4" _x="288" _y="168" class="slider-horizontal" count="1" frame-style="" height="49" labels="" max="1" min="0" name="Widget_3" parameter="Scale.factor" select="0" show_frame="false" show_title="true" show_values="true" source="" step="0.01" style="" title="Factor parameter" width="241"/>
