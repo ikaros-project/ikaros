@@ -1,4 +1,4 @@
-<group epi_name="EpiWhite" epi_run_mode="simulate" filename="" name="ExperimentalSetup" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27" start="true" stop="-1" tick_duration="1" webui_port="8000">
+<group epi_name="EpiWhite" epi_run_mode="simulate" filename="" name="ExperimentalSetup" nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19" servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26" servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5" servosIndexRightArm="12" servosIndexSound="27" simulate_robot_light="true" start="true" stop="-1" tick_duration="1" webui_port="8000">
    <_connection source="SR.OUTPUT[0:19]" target="Epi.GOAL_POSITION"/>
    <_connection source="SR.OUTPUT[19:21]" target="Epi.LED.EYE_COLOR[0:2]"/>
    <_connection source="SR.OUTPUT[22:22]" target="Epi.LED.EYE_INTENSITY[0]"/>
@@ -39,7 +39,7 @@
       <connection delay="1" source="TORQUE_ENABLE" target="Servos.TORQUE_ENABLE"/>
       <connection delay="1" source="RightEye.FULL_RES_OUTPUT" target="LEFT_EYE_OUTPUT"/>
       <connection delay="1" source="LeftEye.FULL_RES_OUTPUT" target="RIGHT_EYE_OUTPUT"/>
-      <group _x="672" _y="888" name="LED">
+      <group _x="576" _y="816" name="LED">
          <_connection size="1" source="MouthIntensity.OUTPUT[0][0][0]" target="FadeCandy.MOUTH_HIGH[0][0]"/>
          <_connection size="1" source="MouthIntensity.OUTPUT[0][0][7]" target="FadeCandy.MOUTH_HIGH[0][7]"/>
          <_connection size="1" source="MouthIntensity.OUTPUT[0][1][0]" target="FadeCandy.MOUTH_HIGH[1][0]"/>
@@ -182,20 +182,20 @@
          <connection delay="1" source="EyeIntensity.OUTPUT[1]" source_range="[1]" target="EYE_COLOR_RIGHT_F"/>
          <connection delay="1" source="MouthIntensity.OUTPUT" target="MOUTH_COLOR_HIGH_F"/>
          <connection delay="1" source="MouthIntensity.OUTPUT" target="MOUTH_COLOR_LOW_F"/>
-         <input _x="144" _y="216" name="EYE_COLOR"/>
-         <input _x="120" _y="264" name="EYE_INTENSITY"/>
-         <input _x="144" _y="312" name="MOUTH_COLOR"/>
-         <input _x="120" _y="384" name="MOUTH_INTENSITY"/>
-         <module _x="1032" _y="480" class="FadeCandy" name="FadeCandy"/>
-         <module _x="792" _y="216" class="Scale" name="EyeIntensity"/>
-         <module _x="576" _y="312" class="Scale" name="MouthIntensity"/>
-         <module _x="384" _y="408" class="Constant" data="0" name="LedOff"/>
-         <output _x="1392" _y="240" name="EYE_COLOR_F"/>
-         <output _x="1392" _y="360" name="MOUTH_COLOR_F"/>
-         <output _x="1392" _y="408" name="EYE_COLOR_LEFT_F"/>
-         <output _x="1392" _y="456" name="EYE_COLOR_RIGHT_F"/>
-         <output _x="1392" _y="504" name="MOUTH_COLOR_HIGH_F"/>
-         <output _x="1392" _y="552" name="MOUTH_COLOR_LOW_F"/>
+         <input _x="48" _y="72" name="EYE_COLOR"/>
+         <input _x="48" _y="96" name="EYE_INTENSITY"/>
+         <input _x="48" _y="192" name="MOUTH_COLOR"/>
+         <input _x="48" _y="216" name="MOUTH_INTENSITY"/>
+         <module _x="576" _y="168" class="FadeCandy" name="FadeCandy" simulate="@simulate_robot_light"/>
+         <module _x="288" _y="72" class="Scale" name="EyeIntensity"/>
+         <module _x="288" _y="192" class="Scale" name="MouthIntensity"/>
+         <module _x="312" _y="312" class="Constant" data="0" name="LedOff"/>
+         <output _x="744" _y="48" name="EYE_COLOR_F"/>
+         <output _x="744" _y="336" name="MOUTH_COLOR_F"/>
+         <output _x="744" _y="72" name="EYE_COLOR_LEFT_F"/>
+         <output _x="744" _y="96" name="EYE_COLOR_RIGHT_F"/>
+         <output _x="744" _y="360" name="MOUTH_COLOR_HIGH_F"/>
+         <output _x="744" _y="384" name="MOUTH_COLOR_LOW_F"/>
          <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -208,7 +208,13 @@
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
-         <widget EpiName="EpiRed" EyeColor="#ffdd88" Gaze="0" MouthColor="#ffdd88" PupilInMM="11" Vergence="0" _index_="0" _x="1152" _y="600" class="epi-head" color="black" eyeDirection="" fill="white" frame-style="" headPosition="" height="200" leftEyeColor="EYE_COLOR_LEFT_F" lowMouthColor="MOUTH_COLOR_LOW_F" max="1" min="0" name="Widget_1" pupilSize="" rightEyeColor="EYE_COLOR_RIGHT_F" select="" show_frame="false" show_title="false" source="EyeIntensity.OUTPUT" style="" title="Widget_1" topMouthColor="MOUTH_COLOR_HIGH_F" width="200"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <widget EpiName="EpiRed" EyeColor="#ffdd88" Gaze="0" MouthColor="#ffdd88" PupilInMM="11" Vergence="0" _index_="0" _x="96" _y="384" class="epi-head" color="black" eyeDirection="" fill="white" frame-style="" headPosition="" height="409" leftEyeColor="EYE_COLOR_LEFT_F" lowMouthColor="MOUTH_COLOR_LOW_F" max="1" min="0" name="Widget_1" pupilSize="" rightEyeColor="EYE_COLOR_RIGHT_F" select="" show_frame="false" show_title="false" source="EyeIntensity.OUTPUT" style="" title="Widget_1" topMouthColor="MOUTH_COLOR_HIGH_F" width="409"/>
       </group>
       <group _x="696" _y="432" name="ForwardModel" title="ForwardModel">
          <_module class="Constant" data="         0,-1, 0, 0.85;         1, 0, 0, 0.15;         0, 0, 1, 0.847;         0, 0, 0, 1" name="Epi_pos"/>
@@ -275,6 +281,12 @@
             <module _x="600" _y="624" class="MatrixMultiply" name="M_L2_T1"/>
             <output _x="816" _y="648" name="EGO_POINTS"/>
             <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -367,6 +379,12 @@
             <module _x="1152" _y="576" class="MatrixMultiply" name="M_S2"/>
             <output _x="1224" _y="384" name="EGO_POINTS"/>
             <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -480,6 +498,12 @@
             <module _x="552" _y="672" class="MatrixMultiply" name="M_P3_T1"/>
             <output _x="1464" _y="240" name="EGO_POINTS"/>
             <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -605,6 +629,12 @@
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
          </group>
          <input _x="0" _y="432" name="JOINT_ANGLES"/>
          <input _x="24" _y="72" name="EPI_POSITION"/>
@@ -630,6 +660,12 @@
          <output _x="192" _y="768" name="OBJECT_ID"/>
          <output _x="192" _y="720" name="FRAME_ID" source="ForwardModelFrameID.OUTPUT"/>
          <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -678,6 +714,12 @@
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
          <widget _index_="0" _x="360" _y="288" class="table" colorize="true" decimals="1" direction="flip x/y" frame-style="" height="481" label_x="" label_y="" max="1" min="" name="Widget_1" scrollable="false" select="" show_frame="false" show_title="true" source="EpiServos.PRESENT_POSITION" style="" title="Present position" width="169"/>
          <widget _index_="2" _x="24" _y="288" class="table" colorize="true" decimals="1" direction="flip x/y" frame-style="" height="481" label_x="Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body" label_y="" max="1" min="0" name="Widget_2" scrollable="false" select="" show_frame="false" show_title="true" source="SCPosition.OUTPUT" style="" title="SC Position" width="289"/>
          <widget _index_="4" _x="576" _y="288" class="table" colorize="true" decimals="1" direction="flip x/y" frame-style="" height="481" label_x="" label_y="" max="1" min="0" name="Widget_3" scrollable="false" select="" show_frame="false" show_title="true" source="SCFeedbackPosition.OUTPUT" style="" title="SC Feedback" width="169"/>
@@ -691,6 +733,12 @@
          <output _x="432" _y="312" name="FULL_RES_OUTPUT" source="EYE.BLUE"/>
          <output _x="432" _y="72" name="FULL_RES_INTENSITY" source="EYE.INTENSITY"/>
          <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -725,10 +773,22 @@
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
          <widget _index_="0" _x="552" _y="72" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="rgb" frame-style="" height="385" index="" max="1" max_x="1" max_y="1" min="" min_x="0" min_y="0" module="" name="Widget_2" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="false" show_title="false" source="EYE.OUTPUT" style="" title="EYE" width="553"/>
       </group>
       <group _x="120" _y="648" name="EpiBlue" robotType="Full">
          <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -754,9 +814,21 @@
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
       </group>
       <group _x="24" _y="672" name="EpiWhite" robotType="Torso">
          <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -782,9 +854,21 @@
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
       </group>
       <group _x="624" _y="696" name="EpiGray" robotType="Torso">
          <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -810,9 +894,21 @@
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
       </group>
       <group _x="120" _y="576" name="EpiGreen" robotType="Torso">
          <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -838,6 +934,12 @@
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
       </group>
       <group _x="312" _y="648" name="EpiOrange" robotType="Torso">
          <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
@@ -852,9 +954,21 @@
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
       </group>
       <group _x="768" _y="648" name="EpiPink" robotType="Torso">
          <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -881,9 +995,21 @@
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
          </group>
          <group Body_L1_T1_data="   1, 0, 0, 0;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1   " Body_L2_T1_data="   1, 0, 0, 0.044;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1" models_robot_view="Axis,TorsoHead,None,None,Head1,Head2,Eye,Eye,Axis,LaserBeam,LaserBeam,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis" name="Torso">
             <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -909,9 +1035,21 @@
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
          </group>
          <group VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG" name="simulate_servo" simulate_servo="true">
             <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -937,9 +1075,21 @@
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
          </group>
          <group VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG" name="simulate_servos_and_vision_left" simulate_servo="false">
             <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -965,9 +1115,21 @@
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
          </group>
          <group VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG" name="simulate_vision_right" simulate_servo="false">
             <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -993,9 +1155,21 @@
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
          </group>
          <group VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG" name="robot" simulate_servo="false">
             <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
+            <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
             <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -1020,18 +1194,29 @@
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
          <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+      </group>
+      <group _x="144" _y="192" name="EpiOverview">
+         <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+         <parameter control="menu" default="0" name="log_level" type="number"/>
+         <widget EpiName="EpiRed" EyeColor="#ffdd88" Gaze="0" MouthColor="#ffdd88" PupilInMM="11" Vergence="0" _index_="0" _x="72" _y="72" class="epi-head" color="black" eyeDirection="" fill="white" frame-style="" headPosition="" height="385" leftEyeColor=".EyeColorLeft.OUTPUT" lowMouthColor="" max="1" min="0" name="Widget_1" pupilSize="" rightEyeColor="" select="" show_frame="false" show_title="false" source="" style="" title="Widget_1" topMouthColor="" width="385"/>
       </group>
       <input _x="24" _y="72" name="GOAL_POSITION"/>
       <input _x="24" _y="120" name="TORQUE_ENABLE"/>
-      <module _x="840" _y="624" class="Constant" data="1,1,1,1,1,1,1,1,1,1,1,1; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3" name="LeftEyeRGB"/>
-      <module _x="840" _y="360" class="Constant" data="0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3; 1,1,1,1,1,1,1,1,1,1,1,1; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3" name="RightEyeRGB"/>
-      <module _x="72" _y="336" class="Constant" data="1,1,1,1,1,1,1,1; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3" name="MouthHighRGB"/>
-      <module _x="72" _y="408" class="Constant" data="0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3; 1,1,1,1,1,1,1,1; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3" name="MouthLowRGB"/>
-      <module _x="864" _y="720" class="Constant" data="1,1,1,1,1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1,1,1,1,1" name="LeftEyeINT"/>
-      <module _x="696" _y="576" class="Constant" data="1,1,1,1,1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1,1,1,1,1" name="RightEyeINT"/>
-      <module _x="72" _y="336" class="Constant" data="1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1" name="MouthHighINT"/>
-      <module _x="72" _y="408" class="Constant" data="1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1" name="MouthLowINT"/>
-      <module _x="384" _y="768" class="SoundOutput" command="/usr/bin/afplay" name="SoundOutput" sounds="Sounds/OK.mp3, Sounds/ok2.mp3, Sounds/agree_1.wav, Sounds/agree_2.wav, Sounds/agree_3.wav, Sounds/agree_4.wav, Sounds/agree_5.wav, Sounds/confused_1.wav, Sounds/confused_2.wav, Sounds/confused_3.wav, Sounds/confused_4.wav, Sounds/confused_5.wav, Sounds/disagree_1.wav, Sounds/disagree_2.wav, Sounds/disagree_3.wav, Sounds/disagree_4.wav, Sounds/disagree_5.wav, Sounds/disgusted_1.wav, Sounds/disgusted_2.wav, Sounds/disgusted_3.wav, Sounds/disgusted_4.wav, Sounds/disgusted_5.wav, Sounds/pleased_1.wav, Sounds/pleased_2.wav, Sounds/pleased_3.wav, Sounds/pleased_4_med_2.wav, Sounds/pleased_5.wav,Sounds/Jokes/WhyDidTheRobotSneeze.wav,Sounds/Jokes/WhyDidTheRobotSneezeB.wav,Sounds/Jokes/HowDidTheRobotGetAcrossTheRiver.wav,Sounds/Jokes/HowDidTheRobotGetAcrossTheRiverB.wav,Sounds/Jokes/WhyDidTheRobotGoOnVacation.wav,Sounds/Jokes/WhyDidTheRobotGoOnVacationB.wav,HiIAmARobot.HowOldAmI_low.wav,HiIAmARobot.HowOldAmI_high.wav"/>
+      <module _x="384" _y="744" class="Constant" data="1,1,1,1,1,1,1,1,1,1,1,1; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3" name="LeftEyeRGB"/>
+      <module _x="384" _y="792" class="Constant" data="0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3; 1,1,1,1,1,1,1,1,1,1,1,1; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3" name="RightEyeRGB"/>
+      <module _x="384" _y="936" class="Constant" data="1,1,1,1,1,1,1,1; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3" name="MouthHighRGB"/>
+      <module _x="384" _y="984" class="Constant" data="0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3; 1,1,1,1,1,1,1,1; 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3" name="MouthLowRGB"/>
+      <module _x="384" _y="840" class="Constant" data="1,1,1,1,1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1,1,1,1,1" name="LeftEyeINT"/>
+      <module _x="384" _y="888" class="Constant" data="1,1,1,1,1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1,1,1,1,1" name="RightEyeINT"/>
+      <module _x="384" _y="1032" class="Constant" data="1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1" name="MouthHighINT"/>
+      <module _x="384" _y="1080" class="Constant" data="1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1" name="MouthLowINT"/>
+      <module _x="144" _y="744" class="SoundOutput" command="/usr/bin/afplay" name="SoundOutput" sounds="Sounds/OK.mp3, Sounds/ok2.mp3, Sounds/agree_1.wav, Sounds/agree_2.wav, Sounds/agree_3.wav, Sounds/agree_4.wav, Sounds/agree_5.wav, Sounds/confused_1.wav, Sounds/confused_2.wav, Sounds/confused_3.wav, Sounds/confused_4.wav, Sounds/confused_5.wav, Sounds/disagree_1.wav, Sounds/disagree_2.wav, Sounds/disagree_3.wav, Sounds/disagree_4.wav, Sounds/disagree_5.wav, Sounds/disgusted_1.wav, Sounds/disgusted_2.wav, Sounds/disgusted_3.wav, Sounds/disgusted_4.wav, Sounds/disgusted_5.wav, Sounds/pleased_1.wav, Sounds/pleased_2.wav, Sounds/pleased_3.wav, Sounds/pleased_4_med_2.wav, Sounds/pleased_5.wav,Sounds/Jokes/WhyDidTheRobotSneeze.wav,Sounds/Jokes/WhyDidTheRobotSneezeB.wav,Sounds/Jokes/HowDidTheRobotGetAcrossTheRiver.wav,Sounds/Jokes/HowDidTheRobotGetAcrossTheRiverB.wav,Sounds/Jokes/WhyDidTheRobotGoOnVacation.wav,Sounds/Jokes/WhyDidTheRobotGoOnVacationB.wav,HiIAmARobot.HowOldAmI_low.wav,HiIAmARobot.HowOldAmI_high.wav"/>
       <module _x="216" _y="408" class="Constant" data="100" name="ExoID"/>
       <module _x="432" _y="648" class="Constant" data="100" name="ExoFrameID"/>
       <module _x="552" _y="624" class="Constant" data="200" name="EgoID"/>
@@ -1039,11 +1224,11 @@
       <module _x="24" _y="624" class="Constant" data="500" name="ChangeID"/>
       <module _x="48" _y="312" class="Constant" data="0.0, 0.0, 0.0" name="ManualPosition"/>
       <module _x="72" _y="480" class="Constant" data="0, 0, 0" name="ManualRotation"/>
-      <module _x="192" _y="312" angle_unit="degrees" class="RotationConverter" input_format="xyz" name="PositionExo" output_format="matrix"/>
+      <module _x="264" _y="312" angle_unit="degrees" class="RotationConverter" input_format="xyz" name="PositionExo" output_format="matrix"/>
       <module _x="216" _y="480" angle_unit="degrees" class="RotationConverter" input_format="axayaz" name="RotationExo" output_format="matrix"/>
       <module _x="432" _y="336" class="Transform" input_length="1" name="EpiPositionExo"/>
       <module _x="192" _y="648" class="Constant" data="0.8, 0.7, 0.1" name="EyesColorRGB"/>
-      <module _x="624" _y="648" class="Constant" data="0.8, 0.7, 0.1" name="MouthColorRGB"/>
+      <module _x="792" _y="744" class="Constant" data="0.8, 0.7, 0.1" name="MouthColorRGB"/>
       <module _x="168" _y="600" class="Constant" data="0.6" name="EyesIntensity"/>
       <module _x="384" _y="672" class="Constant" data="0.6" name="MouthIntensity"/>
       <output _x="912" _y="24" name="PRESENT_POSITION"/>
@@ -1051,7 +1236,21 @@
       <output _x="912" _y="144" name="LEFT_EYE_OUTPUT"/>
       <output _x="912" _y="336" name="RIGHT_EYE_INTENSITY"/>
       <output _x="912" _y="312" name="RIGHT_EYE_OUTPUT"/>
+      <parameter default="False" description="Simulation mode. Will not connect to servos" name="simulate_servos" type="bool" value="False"/>
+      <parameter default="false" description="Choose" name="left_eye_robot_strem" type="string" value="false"/>
+      <parameter default="false" description="Choose" name="left_eye_webcam" type="string" value="false"/>
+      <parameter default="false" description="Choose" name="left_eye_image" type="string" value="false"/>
+      <parameter default="false" description="Choose" name="right_eye_robot_strem" type="string" value="false"/>
+      <parameter default="false" description="Choose" name="right_eye_webcam" type="string" value="false"/>
+      <parameter default="false" description="Choose" name="right_eye_image" type="string" value="false"/>
+      <parameter default="false" description="Choose" name="simulate_robot_light" type="string" value="true"/>
       <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
       <parameter control="menu" default="0" name="log_level" type="number"/>
       <parameter control="menu" default="0" name="log_level" type="number"/>
       <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -1077,10 +1276,22 @@
       <parameter control="menu" default="0" name="log_level" type="number"/>
       <parameter control="menu" default="0" name="log_level" type="number"/>
       <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
       <widget _index_="0" _x="96" _y="120" class="text" frame-style="" height="200" max="1" min="0" name="Widget_1" parameter="Here is SR" postfix="" prefix="" select="" select_source="" separator="" show_frame="false" show_title="false" source="" strings="" style="" text="" title="Info" width="200"/>
    </group>
    <group _x="160" _y="160" name="Playback">
       <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
       <parameter control="menu" default="0" name="log_level" type="number"/>
       <parameter control="menu" default="0" name="log_level" type="number"/>
       <parameter control="menu" default="0" name="log_level" type="number"/>
@@ -1109,6 +1320,12 @@
       <parameter control="menu" default="0" name="log_level" type="number"/>
       <parameter control="menu" default="0" name="log_level" type="number"/>
       <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
+      <parameter control="menu" default="0" name="log_level" type="number"/>
       <widget _index_="0" _x="48" _y="144" class="slider-horizontal" count="1" frame-style="" height="49" labels="" max="1" min="0" name="Widget_1" parameter="BlinkingGain.data" select="0" show_frame="false" show_title="true" show_values="false" source="" step="1" style="" title="Blinking" width="97"/>
       <widget _index_="2" _x="48" _y="72" class="text" frame-style="" height="49" max="1" min="0" name="Widget_2" parameter="" postfix="" prefix="" select="" select_source="" separator="" show_frame="false" show_title="false" source="" strings="" style="" text="Here is where you can turn on/off behaviors of Epi" title="Widget_2" width="241"/>
    </group>
@@ -1117,6 +1334,12 @@
    <module _x="288" _y="48" class="OneHotVector" name="OneHotVector" output_size="34"/>
    <module _x="456" _y="72" class="Constant" data="0,0,0,0,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0" name="ManualGoalPosition"/>
    <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
+   <parameter control="menu" default="0" name="log_level" type="number"/>
    <parameter control="menu" default="0" name="log_level" type="number"/>
    <parameter control="menu" default="0" name="log_level" type="number"/>
    <parameter control="menu" default="0" name="log_level" type="number"/>
