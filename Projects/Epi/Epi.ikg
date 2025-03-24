@@ -186,7 +186,7 @@
          <input _x="120" _y="264" name="EYE_INTENSITY"/>
          <input _x="144" _y="312" name="MOUTH_COLOR"/>
          <input _x="120" _y="384" name="MOUTH_INTENSITY"/>
-         <module _x="1032" _y="480" class="FadeCandy" name="FadeCandy"/>
+         <module _x="1032" _y="480" class="FadeCandy" name="FadeCandy" simulate="true"/>
          <module _x="792" _y="216" class="Scale" name="EyeIntensity"/>
          <module _x="576" _y="312" class="Scale" name="MouthIntensity"/>
          <module _x="384" _y="408" class="Constant" data="0" name="LedOff"/>
