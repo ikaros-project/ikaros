@@ -60,6 +60,7 @@ namespace ikaros
     class matrix;
 
     void save_matrix_states();
+    void clear_matrix_states();
 
 
     // Matrix info class

@@ -982,7 +982,7 @@ namespace ikaros
 
     Module::Module()
     {
-  
+
     }
 
     INSTALL_CLASS(Module)
@@ -1528,6 +1528,8 @@ bool operator==(Request & r, const std::string s)
         circular_buffers.clear();
         parameters.clear();
         tasks.clear();
+
+        clear_matrix_states();  // if(NOT PERSISTENT)
 
         tick = -1;
         //run_mode = run_mode_pause;

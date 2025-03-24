@@ -81,8 +81,17 @@ matrix::average()
     save_matrix_states()
     {
         for(auto m : saving_matrices)
-        m->save();
+            m->save();
     }
+
+
+    void
+    clear_matrix_states()
+    {
+        saving_matrices.clear();
+    }
+
+
 
         void 
         matrix::save()
