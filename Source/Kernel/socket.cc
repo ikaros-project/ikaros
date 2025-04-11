@@ -1,11 +1,9 @@
-
 //    socket.cc		Socket utilities for the IKAROS project
 
 #include "socket.h"
 #include "exceptions.h"
 
 #include <unistd.h>
-#include <cstring>  // For bzero
 #include <errno.h>
 #include <algorithm> // For std::min
 
@@ -14,14 +12,6 @@
 
 using namespace ikaros;
 
-
-static char *
-	int_to_string(char * s, int i, int n)
-	{
-		snprintf(s, n, "%d", i);
-		return s;
-	}
-    
 //
 //	Socket - functions that gets data from a HTTP server
 //
@@ -193,7 +183,7 @@ Socket::HTTPGet(const std::string & url) // Very temporary implementation that o
 }
 
 
-
+//
 //	ServerSocket
 //
 ServerSocket::ServerSocket(int port) 
@@ -361,6 +351,33 @@ const signed char HEX2DEC[256] =
     /* F */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1
 };
 
+static std::string UriDecode(const std::string &sSrc)
+{
+    const unsigned char *pSrc = (const unsigned char *)sSrc.c_str();
+    const size_t SRC_LEN = sSrc.length();
+    std::string result;
+    result.reserve(SRC_LEN);
+
+    for (size_t i = 0; i < SRC_LEN; ++i)
+    {
+        if (pSrc[i] == '%' && i + 2 < SRC_LEN)
+        {
+            char dec1 = HEX2DEC[pSrc[i + 1]];
+            char dec2 = HEX2DEC[pSrc[i + 2]];
+            if (dec1 != -1 && dec2 != -1)
+            {
+                result += (dec1 << 4) + dec2;
+                i += 2;
+                continue;
+            }
+        }
+        result += pSrc[i];
+    }
+    return result;
+}
+
+
+/* OLD VERSION
 
 static std::string UriDecode(const std::string & sSrc)
 {
@@ -402,6 +419,7 @@ static std::string UriDecode(const std::string & sSrc)
    delete [] pStart;
    return sResult;
 }
+*/
 
 
 
@@ -442,14 +460,13 @@ ServerSocket::GetRequest(bool block)
 	}
 	
 	header.Clear();
-    
 	header.Set("Method", strsep(&p, " "));
 	header.Set("URI", UriDecode(strsep(&p, " ")).c_str());
 	header.Set("HTTP-Version", strsep(&p, "\r"));
 	strsep(&p, "\n");
 	while(p && *p != '\r')
 	{
-        char * k = strip(strsep(&p, ":")); // Order is important!
+        char * k = strip(strsep(&p, ":"));
         char * v = strip(strsep(&p, "\r"));
 		header.Set(k, v);
 		strsep(&p, "\n");
@@ -462,18 +479,16 @@ ServerSocket::GetRequest(bool block)
     if(equal_strings(header.Get("Method"), "PUT"))
     {
         const char* content_length_str = header.Get("Content-Length");
-        if(content_length_str)
-        {
-            size_t content_length = std::stoull(content_length_str);
-            if(content_length > 0)
-            {   
-                char buffer[content_length];
+        if (content_length_str) {
+            const size_t content_length = std::stoull(content_length_str);
+            if (content_length > 0) {
+                std::vector<char> buffer(content_length);
                 size_t n = strlen(p);
-                strncpy(buffer, p, sizeof(buffer) - 1);
-                buffer[sizeof(buffer) - 1] = '\0';
+                strncpy(buffer.data(), p, buffer.size() - 1);
+                buffer[buffer.size() - 1] = '\0';
 
-                long rr = n+Read(buffer+n, content_length-n, true);
-                body = std::string(buffer);
+                long rr = n + Read(buffer.data() + n, content_length - n, true);
+                body = std::string(buffer.data());
             }
         }
     }
