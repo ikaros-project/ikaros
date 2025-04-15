@@ -887,6 +887,7 @@ class ServoControlTuning : public Module
         int default_value = 0;
     
         std::vector<int> maxMinPositionLimitIndex;
+        std::vector<int> expected_address_value(dynamixelParameters.cols());
       
 
         int dxl_comm_result = COMM_TX_FAIL;
@@ -1232,7 +1233,7 @@ class ServoControlTuning : public Module
         uint32_t read_indir_address_value_4bytes;
         uint8_t dxl_error = 0;
         int dxl_comm_result;
-        int expected_address_value[dynamixelParameters.cols()];
+        std::vector<int> expected_address_value(dynamixelParameters.cols());
         int indirect_address = INDIRECTDATA_FOR_WRITE +1;
 
         for (int p = 0; p < portHandlers.size(); p++) {
@@ -1683,7 +1684,7 @@ class ServoControlTuning : public Module
         AngleMinLimitPupil[1] = present_postition_value[1] + 10;
 
         AngleMaxLimitPupil[0] = AngleMinLimitPupil[0] + 280;
-        AngleMaxLimitPupil[1] = AngleMinLimitPupil[1] + 280;
+        AngleMaxLimitPupil[1] = AngleMaxLimitPupil[1] + 280;
 
        // Not implemented.
        //Notify(msg_debug, "Position limits pupil servos (auto calibrate): min %i %i max %i %i \n", AngleMinLimitPupil[0], AngleMinLimitPupil[1], AngleMaxLimitPupil[0], AngleMaxLimitPupil[1]);
