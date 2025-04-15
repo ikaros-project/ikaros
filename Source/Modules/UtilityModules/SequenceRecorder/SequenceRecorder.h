@@ -1,3 +1,7 @@
+// NO LONGER USED. SHOULD BE DELETED.
+
+
+
 //
 //	SequenceRecorder.h		This file is a part of the IKAROS project
 //

@@ -1,7 +1,7 @@
 //
 //	SequenceRecorder.cc		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2015-2024 Christian Balkenius
+//    Copyright (C) 2015-2025 Christian Balkenius
 //
 #include "ikaros.h"
 
@@ -14,7 +14,6 @@
 namespace fs = std::filesystem;
 
 using namespace ikaros;
-
 
 class SequenceRecorder: public Module
 {
@@ -34,7 +33,7 @@ public:
     void        SetEndMark();
     void        GoToPreviousKeypoint();
     void        GoToNextKeypoint();
-    void        GoToTime(float time);   // set up current target and left and right interpolation sources
+    void        GoToTime(double time);   // set up current target and left and right interpolation sources
     void        Trig(int id);
 
     void        ExtendTime();
@@ -47,8 +46,8 @@ public:
     void        StoreChannelMode();
     void        LoadChannelMode();
 
-    void        AddKeypoint(float time); // add keypoint at time t
-    void        DeleteKeypoint(float time); // delete a single keypoint at time t (or close to it)
+    void        AddKeypoint(double time); // add keypoint at time t
+    void        DeleteKeypoint(double time); // delete a single keypoint at time t (or close to it)
 
 
     void        Crop(); // Remove points outside the selected area, and let the sequence start at t=0
@@ -167,7 +166,7 @@ make_timestamp(float t)
 
 
 static inline float
-quantize(float time, long q)
+quantize(double time, long q)
 {
     return q*(int(time+q/2)/q);
 }
@@ -262,8 +261,8 @@ SequenceRecorder::SetTargetForTime(float t)
         // Process left point
 
         auto & kp_left = keypoints[i-1];
-        float time_left = keypoints[i-1]["time"];
-        float point_left = left_output[c];
+        double time_left = keypoints[i-1]["time"];
+        double point_left = left_output[c];
     
 
         if(!kp_left["point"][c].is_null()) //keypoint has data
@@ -281,8 +280,8 @@ SequenceRecorder::SetTargetForTime(float t)
         }
 
         auto & kp_right = keypoints[i];
-        float time_right = keypoints[i]["time"];
-        float point_right = right_output[c];
+        double time_right = keypoints[i]["time"];
+        double point_right = right_output[c];
     
 
         if(!kp_right["point"][c].is_null()) //keypoint has data
@@ -749,7 +748,7 @@ SequenceRecorder::GoToNextKeypoint()
 
 
 void
-SequenceRecorder::GoToTime(float time)
+SequenceRecorder::GoToTime(double time)
 {
     SetTargetForTime(time);
 
@@ -797,14 +796,8 @@ SequenceRecorder::LinkKeypoints()
     auto & keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
     int n = keypoints.size();
 
-    int left_link[channels.as_int()];
-    int right_link[channels.as_int()];
-
-    for(int c=0; c<channels; c++)
-    {
-        left_link[c] = -1;
-        right_link[c] = -1;
-    }
+    std::vector<int> left_link(channels.as_int(), -1);
+    std::vector<int> right_link(channels.as_int(), -1);
 
     // left to right sweep
 
@@ -896,7 +889,7 @@ SequenceRecorder::LoadChannelMode()
 
 
 void
-SequenceRecorder::AddKeypoint(float time)
+SequenceRecorder::AddKeypoint(double time)
 {   
 
     list keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
@@ -1024,7 +1017,7 @@ SequenceRecorder::Crop()
 
 
 void
-SequenceRecorder::DeleteKeypoint(float time)
+SequenceRecorder::DeleteKeypoint(double time)
 {
     auto & keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
     int n = keypoints.size();
@@ -1133,6 +1126,8 @@ SequenceRecorder::Trig(int id)
 void
 SequenceRecorder::Command(std::string s, float x, float y, std::string value)
 {
+    std::cout << "COMMAND: " << s << std::endl;
+    
     if(s == "stop")
         Stop();
     else if (s == "play")
