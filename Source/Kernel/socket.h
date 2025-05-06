@@ -45,7 +45,7 @@ class Socket
 		void			Close();
 
 		bool			SendRequest(const char * hostname, int port, const char * request, const long size=-1);
-		int				ReadData(char * result, int maxlen, bool fill=false);
+		int				ReadData(char * result, ssize_t maxlen, bool fill=false);
 		int				Get(const char * hostname, int port, const char * request, char * result, int maxlen);
 			
 	private:
