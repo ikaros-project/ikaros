@@ -18,6 +18,7 @@
 #include <numeric>
 #include <limits>
 
+
 //#include <cblas.h>
 
 #define USE_BLAS
@@ -47,6 +48,15 @@
 
 namespace ikaros
 {
+    inline int reflect101(int p, int len) {
+        if (p < 0)
+            return -p;  // -1 → 1
+        if (p >= len)
+            return 2 * len - p - 2; // len → len-2
+        return p;
+    }
+
+    
     // Recursive initalizer_list
 
     struct InitList
@@ -748,6 +758,13 @@ namespace ikaros
                 return &data_->data()[info_->offset_];
         }     
 
+        const float * 
+        data()  const // Get pointer to the underlying data. Works for all sizes and for submatrices
+        {
+                return &data_->data()[info_->offset_];
+        }     
+
+
         matrix &
         reset() // reset the matrix 
         {
@@ -919,7 +936,7 @@ namespace ikaros
             return info_->size_;
         }
 
-        int size(int dim) // Size of one dimension; negative indices means from the back
+        int size(int dim) const // Size of one dimension; negative indices means from the back
         {
             if(info_->shape_.size() == 0)
                 return 0; // range error
@@ -933,11 +950,11 @@ namespace ikaros
             return info_->shape_.at(dim); 
         }
 
-        int rows() { return size(-2); }
-        int cols() { return size(-1); }
-        int size_x() { return cols(); }
-        int size_y() { return rows(); }
-        int size_z() { return size(-3); }
+        int rows() const { return size(-2); }
+        int cols() const { return size(-1); }
+        int size_x()  const{ return cols(); }
+        int size_y() const { return rows(); }
+        int size_z() const { return size(-3); }
 
         template <typename... Args>
         matrix & 
@@ -1095,6 +1112,7 @@ namespace ikaros
         // Element-wise functions
 
         matrix & add(float c) { return apply([c](float x)->float {return x+c;}); }
+        
         matrix & subtract(float c) { return add(-c); }
         matrix & scale(float c) { return apply([c](float x)->float {return x*c;});  }
         matrix & divide(float c) { return scale(1/c); }
@@ -1104,11 +1122,87 @@ namespace ikaros
         matrix & multiply(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return x*x;}); }
         matrix & divide(matrix A)   { check_same_size(A); return apply(A, [](float x, float y)->float {return x/y;}); }
 
-        matrix & add(matrix A, matrix B)      { check_same_size(A); check_same_size(B); return apply(A, B, [](float x, float y)->float {return x+y;}); }
-        matrix & subtract(matrix A, matrix B) { check_same_size(A); check_same_size(B); return apply(A, B, [](float x, float y)->float {return x-y;}); }
-        matrix & multiply(matrix A, matrix B) { check_same_size(A); check_same_size(B); return apply(A, B, [](float x, float y)->float {return x*y;}); }
-        matrix & divide(matrix A, matrix B)   { check_same_size(A); check_same_size(B); return apply(A, B, [](float x, float y)->float {return x/y;}); }
+        matrix & add(matrix A, matrix B)
+        { 
+            check_same_size(A); 
+            check_same_size(B); 
+            
+            if(info_->continuous && A.info_->continuous && B.info_->continuous)
+            {
+                // vDSP version
+                float *a = A.data();
+                float *b = B.data();
+                float *r = this->data();
 
+                vDSP_vadd(b, 1, a, 1, r, 1, this->data_->size()); 
+                return *this;
+            }
+            else
+                return apply(A, B, [](float x, float y)->float {return x+y;}); 
+        }
+
+
+        matrix & subtract(matrix A, matrix B)
+        { 
+            check_same_size(A); 
+            check_same_size(B); 
+            
+            if(info_->continuous && A.info_->continuous && B.info_->continuous)
+            {
+                // vDSP version
+                float *a = A.data();
+                float *b = B.data();
+                float *r = this->data();
+
+                vDSP_vsub(b, 1, a, 1, r, 1, this->data_->size());  // result[i] = a[i] - b[i]
+                return *this;
+            }
+            else
+                return apply(A, B, [](float x, float y)->float {return x-y;}); 
+        }
+
+
+        matrix & multiply(matrix A, matrix B) 
+        { 
+            check_same_size(A); 
+            check_same_size(B); 
+            
+            if(info_->continuous && A.info_->continuous && B.info_->continuous)
+            {
+                // vDSP version
+                float *a = A.data();
+                float *b = B.data();
+                float *r = this->data();
+
+                vDSP_vmul(b, 1, a, 1, r, 1, this->data_->size()); 
+                return *this;
+            }
+            else
+                return apply(A, B, [](float x, float y)->float {return x*y;}); 
+        }
+
+
+        matrix & divide(matrix A, matrix B) 
+        { 
+            check_same_size(A); 
+            check_same_size(B); 
+            
+            if(info_->continuous && A.info_->continuous && B.info_->continuous)
+            {
+                // vDSP version
+                float *a = A.data();
+                float *b = B.data();
+                float *r = this->data();
+
+                vDSP_vdiv(b, 1, a, 1, r, 1, this->data_->size()); 
+                return *this;
+            }
+            else
+                return apply(A, B, [](float x, float y)->float {return x/y;}); 
+        }
+
+
+    
         int
         compute_index(std::vector<int> & v)
         {
@@ -1219,7 +1313,7 @@ namespace ikaros
         {
                 #ifndef NO_MATRIX_CHECKS
                 if(rank() != 2 || I.rank() !=2 || K.rank() != 2)
-                    throw std::invalid_argument("Convolution requires two-dimensional matrices.");
+                    throw std::invalid_argument("Correlation requires two-dimensional matrices.");
 
                 if(I.cols() < K.cols() || I.rows() < K.rows())
                     throw std::invalid_argument("K must fit in I");
@@ -1243,8 +1337,113 @@ namespace ikaros
             return *this;   
         }
 
+
+/*
+// corr2 function that uses im2row ans sgemm - not as efficient as conv 
+matrix &
+corr2(matrix &I, matrix &K) {
+    if (empty()) {
+        realloc(I.rows() - K.rows() + 1, I.cols() - K.cols() + 1);
+    }
+
+    #ifndef NO_MATRIX_CHECKS
+    if (rank() != 2 || I.rank() != 2 || K.rank() != 2) {
+        throw std::invalid_argument("Correlation requires two-dimensional matrices.");
+    }
+
+    if (I.cols() < K.cols() || I.rows() < K.rows()) {
+        throw std::invalid_argument("K must fit in I");
+    }
+    #endif
+
+    int rr = I.rows() - K.rows() + 1;
+    int rc = I.cols() - K.cols() + 1;
+
+    if (rows() != rr || cols() != rc) {
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(rr) + "x" + std::to_string(rc) + ".");
+    }
+
+    if (this == &I || this == &K) {
+        throw std::invalid_argument("Result cannot be assigned to I or K.");
+    }
+
+    reset();
+
+    // Flatten the kernel matrix K into a 1D array
+    std::vector<float> kernel_flat = flattenKernel(K);
+
+    // Use the im2row function to prepare submatrices
+    std::vector<float> submatrices_flat = im2row(I, K);
+
+    // Use cblas_sgemm to perform the matrix multiplication directly into this->data()
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                rr * rc, 1, K.rows() * K.cols(), // Dimensions: M, N, K
+                1.0f,                            // Alpha
+                submatrices_flat.data(), K.rows() * K.cols(), // A: submatrices_flat
+                kernel_flat.data(), 1,                       // B: kernel_flat
+                0.0f,                            // Beta
+                this->data(), 1);                // C: this->data()
+
+    return *this;
+}
+
+*/
+
+matrix &
+corr3(matrix &I, matrix &K, const std::vector<float> &kernel_flat, const std::vector<float> &submatrices_flat) 
+{
+    if (empty()) {
+        realloc(I.rows() - K.rows() + 1, I.cols() - K.cols() + 1);
+    }
+
+    #ifndef NO_MATRIX_CHECKS
+    if (rank() != 2 || I.rank() != 2 || K.rank() != 2) {
+        throw std::invalid_argument("Correlation requires two-dimensional matrices.");
+    }
+
+    if (I.cols() < K.cols() || I.rows() < K.rows()) {
+        throw std::invalid_argument("K must fit in I");
+    }
+    #endif
+
+    int rr = I.rows() - K.rows() + 1;
+    int rc = I.cols() - K.cols() + 1;
+
+    if (rows() != rr || cols() != rc) {
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(rr) + "x" + std::to_string(rc) + ".");
+    }
+
+    if (this == &I || this == &K) {
+        throw std::invalid_argument("Result cannot be assigned to I or K.");
+    }
+
+    reset();
+
+    // Use cblas_sgemm to perform the matrix multiplication directly into this->data()
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                rr * rc, 1, K.rows() * K.cols(), // Dimensions: M, N, K
+                1.0f,                            // Alpha
+                submatrices_flat.data(), K.rows() * K.cols(), // A: submatrices_flat
+                kernel_flat.data(), 1,                       // B: kernel_flat
+                0.0f,                            // Beta
+                this->data(), 1);                // C: this->data()
+
+    return *this;
+}
+
+
+
+/*
+
+std::vector<float> kernel_flat = flattenKernel(K);
+std::vector<float> submatrices_flat = im2row(I, K, rr, rc);
+result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
+
+*/
+
+
         matrix &
-        conv(matrix & I, matrix & K) // Convolution of I and K
+        conv_slow(matrix & I, matrix & K) // Convolution of I and K; no border; result smaller than input image
         {
                 #ifndef NO_MATRIX_CHECKS
                 if(rank() != 2 || I.rank() !=2 || K.rank() != 2)
@@ -1275,6 +1474,113 @@ namespace ikaros
                         (*this)(j,i) += I(j+k,i+l) * K(Kr-k-1,Kc-l-1);   
             return *this;   
         }
+
+
+
+    matrix &conv(matrix &I, matrix &K) // Convolution of I and K; border; result same size as input image
+    {
+    #ifndef NO_MATRIX_CHECKS
+    if (rank() != 2 || I.rank() != 2 || K.rank() != 2) {
+        throw std::invalid_argument("Convolution requires two-dimensional matrices.");
+    }
+
+    if (I.cols() < K.cols() || I.rows() < K.rows()) {
+        throw std::invalid_argument("K must fit in I");
+    }
+    #endif
+
+    int Ir = I.rows();
+    int Ic = I.cols();
+    int Kr = K.rows();
+    int Kc = K.cols();
+    int r = Ir - Kr + 1;
+    int c = Ic - Kc + 1;
+
+    //if (rows() != r || cols() != c) {
+    //    throw std::invalid_argument("Result matrix does not have size " + std::to_string(r) + "x" + std::to_string(c) + ".");
+    //}
+
+    if (this == &I || this == &K) {
+        throw std::invalid_argument("Result cannot be assigned to I or K.");
+    }
+
+    reset();
+
+    // Prepare input and kernel data
+    const float *input = I.data();
+    const float *kernel = K.data();
+    float *output = this->data();
+
+    // Perform the convolution using vDSP_imgfir
+    vDSP_imgfir(
+        input,               // Input image
+        Ir,                  // Number of image rows
+        Ic,                  // Number of image columns
+        kernel,              // Filter kernel
+        output,              // Output image
+        Kr,                  // Number of filter rows
+        Kc                   // Number of filter columns
+    );
+
+    return *this;
+}
+
+
+    matrix &
+    fillReflect101Border(int wx, int wy)
+    {
+        float * image = data();
+
+        int width = size_x();
+        int height = size_y();
+
+        int inner_w = width - 2 * wx;
+        int inner_h = height - 2 * wy;
+
+        for (int y = 0; y < height; ++y) {
+            int src_y = reflect101(y - wy, inner_h);
+            for (int x = 0; x < width; ++x) {
+                int src_x = reflect101(x - wx, inner_w);
+
+                int dst_idx = y * width + x;
+                int src_idx = (src_y + wy) * width + (src_x + wx); // shift to center region
+                image[dst_idx] = image[src_idx];
+            }
+        }
+
+        return *this;
+    }
+
+
+
+    matrix &
+    fillExtendBorder(int wx, int wy) 
+    {
+        float *image = data();
+    
+        int width = size_x();
+        int height = size_y();
+    
+        int inner_w = width - 2 * wx;
+        int inner_h = height - 2 * wy;
+    
+        for (int y = 0; y < height; ++y) {
+            // Clamp the source row to the nearest valid row in the inner region
+            int src_y = std::clamp(y - wy, 0, inner_h - 1);
+            for (int x = 0; x < width; ++x) {
+                // Clamp the source column to the nearest valid column in the inner region
+                int src_x = std::clamp(x - wx, 0, inner_w - 1);
+    
+                int dst_idx = y * width + x;
+                int src_idx = (src_y + wy) * width + (src_x + wx); // Shift to center region
+                image[dst_idx] = image[src_idx];
+            }
+        }
+    
+        return *this;
+    }
+
+
 
         friend std::ostream& operator<<(std::ostream& os, matrix & m)
         {
@@ -1454,6 +1760,54 @@ namespace ikaros
         // COPY DATA HERE
     }
 
+
+                // Helper function to flatten the kernel matrix
+
+        friend 
+        std::vector<float> 
+        flattenKernel(const matrix &K) 
+        {
+            std::vector<float> kernel_flat(K.rows() * K.cols());
+            for (int k = 0; k < K.rows(); ++k) {
+                for (int l = 0; l < K.cols(); ++l)
+                {
+                    kernel_flat[k * K.cols() + l] = K(k, l);
+                }
+            }
+        return kernel_flat;
+    }
+
+
+
+friend void im2row(std::vector<float> &submatrices_flat, const matrix &I, const matrix &K) {
+    int rr = I.rows() - K.rows() + 1;
+    int rc = I.cols() - K.cols() + 1;
+
+    int submatrix_size = K.rows() * K.cols();
+
+    const float* I_data = I.data(); // Cache pointer to I's data
+    int I_cols = I.cols();
+    int K_cols = K.cols();
+    int K_rows = K.rows();
+
+    // Flatten submatrices
+    size_t offset = 0;
+    for (int j = 0; j < rr; ++j) {
+        for (int i = 0; i < rc; ++i) {
+            for (int k = 0; k < K_rows; ++k) {
+                const float* input_row_start = I_data + (j + k) * I_cols + i;
+                float* output_row_start = submatrices_flat.data() + offset;
+
+                // Replace std::copy with a manual loop
+                for (int l = 0; l < K_cols; ++l) {
+                    output_row_start[l] = input_row_start[l];
+                }
+
+                offset += K_cols;
+            }
+        }
+    }
+}
     };
 }
 
