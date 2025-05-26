@@ -666,7 +666,7 @@ namespace ikaros
         {
             if(info_->continuous)
             {
-                std::fill(data_->begin()+info_->offset_, data_->begin()+info_->offset_+info_->offset_+info_->size_, 0);
+                std::fill(data_->begin()+info_->offset_, data_->begin()+info_->offset_+info_->offset_+info_->size_, v);
                 return *this;
             }
             else
@@ -1114,7 +1114,22 @@ namespace ikaros
         matrix & add(float c) { return apply([c](float x)->float {return x+c;}); }
         
         matrix & subtract(float c) { return add(-c); }
-        matrix & scale(float c) { return apply([c](float x)->float {return x*c;});  }
+        
+        
+        //matrix & scale(float c) { return apply([c](float x)->float {return x*c;});  }
+
+        matrix & scale(float c)
+        { 
+            if(info_->continuous)
+            {
+                vDSP_vsmul(data_->data(), 1, &c, data_->data(), 1, info_->size_);
+                return *this;
+            }
+            else
+                return apply([c](float x)->float {return x*c;});
+        }
+
+
         matrix & divide(float c) { return scale(1/c); }
 
         matrix & add(matrix A)      { check_same_size(A); return apply(A, [](float x, float y)->float {return x+y;}); }
