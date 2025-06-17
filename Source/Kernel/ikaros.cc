@@ -3387,6 +3387,8 @@ if(classes[classname].path.empty())
 
         Request request(socket->header.Get("URI"), sid, socket->body);
 
+        //std::cout << "Request: " << request.url << std::endl;
+
         if(request == "network")
             DoNetwork(request);
 
