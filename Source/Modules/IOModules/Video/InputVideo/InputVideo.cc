@@ -1,22 +1,77 @@
 //
 //	  InputVideo.cc		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2016 Birger Johansson
+//    Copyright (C) 2016 Birger Johansson, 2025 Christian Balkenius
 //
 
 #define __STDC_CONSTANT_MACROS
 extern "C"
 {
 #include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 #include <libavdevice/avdevice.h>
 #include <libavutil/imgutils.h>
 }
 
+#include <regex>
+
 #include "ikaros.h"
 
 using namespace ikaros;
+
+static std::vector<std::string> 
+get_avfoundation_devices() 
+{
+    std::vector<std::string> devices;
+    char buffer[512];
+    std::string result;
+    std::string cmd = "ffmpeg -f avfoundation -list_devices true -i dummy 2>&1";
+
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+    if (!pipe) 
+        throw std::runtime_error("popen() failed");
+
+    while (fgets(buffer, sizeof(buffer), pipe.get()) != nullptr) 
+        result += buffer;
+
+    // Parse lines that look like: "[0] FaceTime HD Camera"
+    std::istringstream stream(result);
+    std::string line;
+    std::regex device_regex(R"(\[\d+\]\s+(.+))");
+    std::smatch match;
+
+    bool in_video_section = false;
+
+    while (std::getline(stream, line)) 
+    {
+        if (line.find("AVFoundation video devices") != std::string::npos) 
+            in_video_section = true;
+        else if (line.find("AVFoundation audio devices") != std::string::npos) 
+            in_video_section = false;  // stop parsing after video section
+        else if (in_video_section && std::regex_search(line, match, device_regex))
+            devices.push_back(match[1]);
+    }
+    return devices;
+}
+
+
+static int
+map_device_name_to_index(const std::vector<std::string> &devices, const std::string &device_name, int device_index)
+{
+    int ix= 0;
+    for (size_t i = 0; i < devices.size(); ++i) 
+    {
+        if (devices[i] == device_name) 
+        {
+            if(ix ==device_index)
+                return static_cast<int>(i);
+            else
+                ix++;   
+        }
+    }
+    return -1; // Not found
+}   
+
 
 class InputVideo : public Module
 {
@@ -25,6 +80,9 @@ class InputVideo : public Module
     parameter size_x;
     parameter size_y;
     parameter listDevices;
+
+    parameter device_name;
+    parameter device_index;
 
     matrix intensity;
     matrix red;
@@ -42,8 +100,6 @@ class InputVideo : public Module
     SwsContext *img_convert_ctx;
     AVDictionary *options = NULL;
 
-
-
     void 
     Init()
     {
@@ -59,6 +115,28 @@ class InputVideo : public Module
         Bind(size_y, "size_y");
         Bind(listDevices, "list_devices");
 
+        Bind(device_name, "device_name");
+        Bind(device_index, "device_index");
+
+        // Remapping id
+
+        auto dev_list = get_avfoundation_devices(); // Get the list of devices
+        int new_index = map_device_name_to_index(dev_list, device_name.as_string(), device_index.as_int());
+
+        if(listDevices)
+        {
+                for(int i = 0; i < dev_list.size(); i++)
+                std::cout << "Device " << std::to_string(i) << ": " << dev_list[i] << std::endl;
+        }
+
+        if(new_index == -1)
+            throw  fatal_error("Device \"" + device_name.as_string() + "\" with index " + device_index.as_int_string()+" not found.");
+        else
+        {
+            id = std::to_string(new_index); // Set the id to the new index
+            std::cout << "Using device: " <<  id.as_int_string() << "  = " << dev_list[new_index] << std::endl;
+        }
+
         // Setting options
         std::string sizeString = size_x.as_int_string() + "x" + size_y.as_int_string();
         std::string frameRateString = frameRate.as_int_string();
@@ -66,15 +144,7 @@ class InputVideo : public Module
 
         input_format_context = avformat_alloc_context();
         avdevice_register_all();
-        if(listDevices)
-        {
-            AVFormatContext *input_format_context = avformat_alloc_context();
-            AVDictionary *options = NULL;
-            av_dict_set(&options, "list_devices", "true", 0);
-            const AVInputFormat *iformat = av_find_input_format("avfoundation");
-            avformat_open_input(&input_format_context, "", iformat, &options); 
-        }
-
+  
         const AVInputFormat *ifmt = av_find_input_format("avfoundation");
         
         av_dict_set(&options, "video_size", sizeString.c_str(), 0);
@@ -131,10 +201,16 @@ class InputVideo : public Module
         outputFrame->format = AV_PIX_FMT_RGB24;
         outputFrame->width = size_x;
         outputFrame->height = size_y;
-        av_image_alloc(outputFrame->data, outputFrame->linesize, size_x, size_y, AV_PIX_FMT_RGB24, 32);
 
-        if(outputFrame == NULL)
-            throw fatal_error("Could not allocate AVFrame");
+    int image_alloc_ret = av_image_alloc(outputFrame->data, outputFrame->linesize, size_x, size_y, AV_PIX_FMT_RGB24, 32);
+    if (image_alloc_ret < 0)
+    {
+        av_frame_free(&outputFrame);
+        throw fatal_error("Could not allocate image buffer for outputFrame");
+    }
+
+    if(outputFrame == NULL)
+        throw fatal_error("Could not allocate AVFrame");
     }
 
 
@@ -142,6 +218,7 @@ class InputVideo : public Module
     int
     decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt)
     {
+
         int ret;
         *got_frame = 0;
         if(pkt)
@@ -166,65 +243,85 @@ class InputVideo : public Module
         constexpr float c1_3 = 1.0 / 3.0;
         constexpr float c1_255 = 1.0 / 255.0;
 
+        static int fail_count = 0;
+
         int sx = size_x;
         int sy = size_y;
 
         int gotFrame = 0;
-        while (!gotFrame) // Keep reading from source until we get a video packet
+
+        while (!gotFrame)
         {
-            int ret = 0;
-            while (ret < 0)
+            // Try to read frames and skip older ones
+            while (av_read_frame(input_format_context, &packet) >= 0)
             {
-                ret = av_read_frame(input_format_context, &packet);
-                av_packet_unref(&packet);
-            }
-
-            if(av_read_frame(input_format_context, &packet) >= 0 && packet.stream_index == videoStreamId) // Read packet from source. Waiting until data is there! And packet from the video stream?
-                decode(avctx, inputFrame, &gotFrame, &packet);
-            else
-                decode(avctx, inputFrame, &gotFrame, NULL); // No more input but decoder may have more frames
-
-            if(gotFrame) // Decode gave us a frame
-            {
-                img_convert_ctx = sws_getCachedContext(img_convert_ctx, avctx->width, avctx->height, avctx->pix_fmt, sx, sy, AV_PIX_FMT_RGB24, SWS_BICUBIC, NULL, NULL, NULL); // Convert the frame to AV_PIX_FMT_RGB24 format
-                sws_scale(img_convert_ctx, (const uint8_t *const *)inputFrame->data, inputFrame->linesize, 0, avctx->height, outputFrame->data, outputFrame->linesize);  // Scale the image
-
-                // Copy and convert data to ikaros outputs
-
-                unsigned char *data = outputFrame->data[0];
-                float * r = output[0].data();
-                float * g = output[1].data();
-                float * b = output[2].data();
-
-                float * r_ = red.data();
-                float * g_ = green.data();
-                float * b_ = blue.data();
-
-                float * intens = intensity.data();
-                int p = 0;
-                int row_start = 0;
-
-                for (int row = 0; row < sy; row++)
+                if (packet.stream_index != videoStreamId)
                 {
-                    for (int col = 0; col < sx; col++)
-                    {
-                        int y1 = row * sx;                              // y1 = y * size_x;
-                        int xy = col + y1;                              // xy = x + y1;
-                        int x3 = col * 3;                               // x3 = x * 3;
-
-                        intens[p] =  r[p] = r_[p] = c1_255 * data[row_start + x3 + 0];
-                        intens[p] += g[p] = g_[p] = c1_255 * data[row_start + x3 + 1];
-                        intens[p] += b[p] = b_[p] = c1_255 * data[row_start + x3 + 2];
-                        intens[p] *= c1_3;
-
-                        p++;
-                    }
-                    row_start += outputFrame->linesize[0]; 
+                    av_packet_unref(&packet);
+                    continue; // Skip non-video packets
                 }
+
+                // Decode and check if we got a frame
+                decode(avctx, inputFrame, &gotFrame, &packet);
                 av_packet_unref(&packet);
+                if (gotFrame) // If we got a frame, break to process it
+                    break;
+                // No frame? Loop continues, and newer packets will overwrite
             }
+
+            // No packet left? Flush decoder (may give remaining buffered frames)
+            if (!gotFrame)
+                decode(avctx, inputFrame, &gotFrame, NULL);
+        }
+
+        if(gotFrame) // Decode gave us a frame
+        {
+            img_convert_ctx = sws_getCachedContext(img_convert_ctx, avctx->width, avctx->height, avctx->pix_fmt, sx, sy, AV_PIX_FMT_RGB24, SWS_BICUBIC, NULL, NULL, NULL); // Convert the frame to AV_PIX_FMT_RGB24 format
+        
+            if (!img_convert_ctx)
+            {
+                std::cerr << "sws_getCachedContext failed!" << std::endl;
+                return;
+         }
+        
+            sws_scale(img_convert_ctx, (const uint8_t *const *)inputFrame->data, inputFrame->linesize, 0, avctx->height, outputFrame->data, outputFrame->linesize);  // Scale the image
+
+            // Copy and convert data to ikaros outputs
+
+            unsigned char *data = outputFrame->data[0];
+            float * r = output[0].data();
+            float * g = output[1].data();
+            float * b = output[2].data();
+
+            float * r_ = red.data();
+            float * g_ = green.data();
+            float * b_ = blue.data();
+
+            float * intens = intensity.data();
+            int p = 0;
+            int row_start = 0;
+
+            for (int row = 0; row < sy; row++)
+            {
+                for (int col = 0; col < sx; col++)
+                {
+                    int y1 = row * sx;                              // y1 = y * size_x;
+                    int xy = col + y1;                              // xy = x + y1;
+                    int x3 = col * 3;                               // x3 = x * 3;
+
+                    intens[p] =  r[p] = r_[p] = c1_255 * data[row_start + x3 + 0];
+                    intens[p] += g[p] = g_[p] = c1_255 * data[row_start + x3 + 1];
+                    intens[p] += b[p] = b_[p] = c1_255 * data[row_start + x3 + 2];
+                    intens[p] *= c1_3;
+
+                    p++;
+                }
+                row_start += outputFrame->linesize[0]; 
+            }
+            av_packet_unref(&packet);
         }
     }
+
 
 
 
@@ -246,6 +343,9 @@ class InputVideo : public Module
 
         if (options)
             av_dict_free(&options);
+
+if (img_convert_ctx)
+        sws_freeContext(img_convert_ctx);
     }
 };
 
