@@ -1587,7 +1587,8 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::Tick()
     {
-        tick_is_running = true; // Flag that state changes are not allowed
+        //std::lock_guard<std::mutex> lock(kernelLock);
+        tick_is_running = true;
         tick++;
 
         RunTasks();
@@ -1597,7 +1598,8 @@ bool operator==(Request & r, const std::string s)
         Propagate();
 
         CalculateCPUUsage();
-        tick_is_running = false; // Flag that state changes are allowed again
+
+        tick_is_running = false; 
     }
 
 
@@ -2093,6 +2095,7 @@ if(classes[classname].path.empty())
     void 
     Kernel::LoadFile()
     {
+        std::lock_guard<std::mutex> lock(kernelLock); // FICME: Does this prevent open?
         try
         {
             if(components.size() > 0)
@@ -2583,10 +2586,12 @@ if(classes[classname].path.empty())
         {
             while (!Terminate() && run_mode > run_mode_quit)
             {
+                /*
                 while(sending_ui_data)
                     {}
                 while(handling_request)
                     {}
+                */
 
                 if(run_mode == run_mode_realtime)
                     lag = timer.WaitUntil(double(tick+1)*tick_duration);
@@ -2606,6 +2611,7 @@ if(classes[classname].path.empty())
                     intra_tick_timer.Restart();
                     try
                     {
+                        std::lock_guard<std::mutex> lock(kernelLock);
                         Tick();
                     }
                     catch(std::exception & e)
@@ -2715,8 +2721,7 @@ if(classes[classname].path.empty())
     void
     Kernel::Stop()
     {
-        while(tick_is_running)
-            {}
+       // while(tick_is_running) {}
 
         run_mode = std::min(run_mode_stop, run_mode);
         tick = -1;
@@ -2734,8 +2739,7 @@ if(classes[classname].path.empty())
     void
     Kernel::Pause()
     {
-        while(tick_is_running)
-            {}
+       //  while(tick_is_running)   {}
 
         if(needs_reload)
         {
@@ -2755,8 +2759,7 @@ if(classes[classname].path.empty())
     void
     Kernel::Realtime()
     {
-        while(tick_is_running)
-            {}
+        // while(tick_is_running)  {}
 
 
         if(needs_reload)
@@ -2779,8 +2782,7 @@ if(classes[classname].path.empty())
     void
     Kernel::Play()
     {
-        while(tick_is_running)
-            {}
+        //while(tick_is_running)  {}
 
         if(needs_reload)
         {
@@ -2903,8 +2905,7 @@ if(classes[classname].path.empty())
     Kernel::DoSendData(Request & request)
     {    
         sending_ui_data = true; // must be set while main thread is still running
-        while(tick_is_running)
-            {}
+        // while(tick_is_running) {}
 
         DoSendDataHeader();
 
@@ -2922,7 +2923,7 @@ if(classes[classname].path.empty())
         std::string sep = "";
         bool sent = false;
 
-        while(!data.empty())
+        while(!data.empty()) // FIXME: CHeck the we do not run out of time here and break if next tick is about to start.
         {
             std::string source = head(data, ",");
             std::string key = source;
@@ -3398,7 +3399,6 @@ if(classes[classname].path.empty())
         Request request(socket->header.Get("URI"), sid, socket->body);
 
         //std::cout << "Request: " << request.url << std::endl;
-
         if(request == "network")
             DoNetwork(request);
 
@@ -3488,23 +3488,23 @@ Kernel::CalculateCPUUsage() // In percent
         {
             if(socket != nullptr && socket->GetRequest(true))
             {
+                std::lock_guard<std::mutex> lock(kernelLock); // Lock the mutex to ensure thread safety
+
                 if(equal_strings(socket->header.Get("Method"), "GET"))
                 {
-                    while(tick_is_running)
-                        {}
+                    // while(tick_is_running) {}
                     handling_request = true;
                     HandleHTTPRequest();
-                    handling_request = false;
-                }
-                else if(equal_strings(socket->header.Get("Method"), "PUT")) // JSON Data
-                {
-                    while(tick_is_running)
-                        {}
-                    handling_request = true;
-                    HandleHTTPRequest();
-                    handling_request = false;
-                }
-                socket->Close();
+                        handling_request = false;
+                    }
+                    else if(equal_strings(socket->header.Get("Method"), "PUT")) // JSON Data
+                    {
+                        // while(tick_is_running)  {}
+                        handling_request = true;
+                        HandleHTTPRequest();
+                        handling_request = false;
+                    }
+                    socket->Close();
             }
         }
     }
@@ -3526,8 +3526,7 @@ Kernel::~Kernel()
     if(socket)
     {
         shutdown=true;
-        while(handling_request)
-            {}
+        // while(handling_request)  {}
         Sleep(0.1);
         delete socket;
         delete thread_pool;
