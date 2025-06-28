@@ -63,9 +63,6 @@ void
 Sleep(double time)
 {
     std::this_thread::sleep_for(duration<double>(time));
-
-    //Timer t;
-    //t.WaitUntil(t.GetTime()+time); // OR: 
 }
 
 

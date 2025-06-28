@@ -77,7 +77,7 @@ main(int argc, char *argv[])
                 k.Run();
             }
 
-         catch(load_failed & e)
+            catch(load_failed & e)
             {
                 std::cout << "Load failed. "+e.message() << std::endl;
                 k.options_.path_.clear();
@@ -103,13 +103,11 @@ main(int argc, char *argv[])
     }
     catch(...)
     {
-        // This should not happen since only fatal_exceptions should make it this far
         std::cout << "Ikaros: Internal Error" << std::endl;
         exit(1);
     }
 
-        std::cout << "\nIkaros 3.0 Ended" << std::endl;
-
+    std::cout << "\nIkaros 3.0 Ended" << std::endl;
     return 0;
 }
 

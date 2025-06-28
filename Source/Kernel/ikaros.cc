@@ -1587,7 +1587,7 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::Tick()
     {
-        //std::lock_guard<std::mutex> lock(kernelLock);
+
         tick_is_running = true;
         tick++;
 
@@ -1887,7 +1887,9 @@ bool operator==(Request & r, const std::string s)
         needs_reload(true)
     {
         cpu_cores = std::thread::hardware_concurrency();
-        thread_pool = new ThreadPool(cpu_cores > 1 ? cpu_cores-1 : 1); // FIXME: optionally use ikg parameters
+        //thread_pool = new ThreadPool(cpu_cores > 1 ? cpu_cores-1 : 1); // FIXME: optionally use ikg parameters
+        thread_pool = new ThreadPool(1); // FIXME: optionally use ikg parameters
+
     }
 
     // Functions for creating the network
@@ -2095,7 +2097,7 @@ if(classes[classname].path.empty())
     void 
     Kernel::LoadFile()
     {
-        std::lock_guard<std::mutex> lock(kernelLock); // FICME: Does this prevent open?
+        std::lock_guard<std::recursive_mutex> lock(kernelLock);
         try
         {
             if(components.size() > 0)
@@ -2586,13 +2588,6 @@ if(classes[classname].path.empty())
         {
             while (!Terminate() && run_mode > run_mode_quit)
             {
-                /*
-                while(sending_ui_data)
-                    {}
-                while(handling_request)
-                    {}
-                */
-
                 if(run_mode == run_mode_realtime)
                     lag = timer.WaitUntil(double(tick+1)*tick_duration);
                 else if(run_mode == run_mode_play)
@@ -2611,7 +2606,7 @@ if(classes[classname].path.empty())
                     intra_tick_timer.Restart();
                     try
                     {
-                        std::lock_guard<std::mutex> lock(kernelLock);
+                        std::lock_guard<std::recursive_mutex> lock(kernelLock);
                         Tick();
                     }
                     catch(std::exception & e)
@@ -2632,7 +2627,6 @@ if(classes[classname].path.empty())
         bool
         Kernel::Notify(int msg, std::string message, std::string path)
         {
-
             static std::mutex mtx;
             std::lock_guard<std::mutex> lock(mtx); // Lock the mutex
 
@@ -2721,8 +2715,6 @@ if(classes[classname].path.empty())
     void
     Kernel::Stop()
     {
-       // while(tick_is_running) {}
-
         run_mode = std::min(run_mode_stop, run_mode);
         tick = -1;
         timer.Pause();
@@ -2739,8 +2731,6 @@ if(classes[classname].path.empty())
     void
     Kernel::Pause()
     {
-       //  while(tick_is_running)   {}
-
         if(needs_reload)
         {
             LoadFile();
@@ -2759,20 +2749,11 @@ if(classes[classname].path.empty())
     void
     Kernel::Realtime()
     {
-        // while(tick_is_running)  {}
-
-
-        if(needs_reload)
-        {
-            //Clear();
-            LoadFile();
-            run_mode = run_mode_realtime;
-        }
-        else
-        {
+            if(needs_reload)
+                LoadFile();
      
             Pause();
-            timer.Continue();
+            timer.Continue(); 
             run_mode = run_mode_realtime;
         }
     }
@@ -2782,19 +2763,11 @@ if(classes[classname].path.empty())
     void
     Kernel::Play()
     {
-        //while(tick_is_running)  {}
-
         if(needs_reload)
-        {
-            //Clear();
             LoadFile();
-            run_mode = run_mode_play;
-        }
-        else
-        {
-            run_mode = run_mode_play;
-            timer.Continue();
-        }
+  
+        run_mode = run_mode_play;
+        timer.Continue();
     }
 
 
@@ -2905,7 +2878,7 @@ if(classes[classname].path.empty())
     Kernel::DoSendData(Request & request)
     {    
         sending_ui_data = true; // must be set while main thread is still running
-        // while(tick_is_running) {}
+
 
         DoSendDataHeader();
 
@@ -2972,7 +2945,7 @@ if(classes[classname].path.empty())
 
         socket->Send("\n\t}");
         DoSendLog(request);
-        socket->Send(",\n\t\"has_data\": "+std::to_string(!tick_is_running)+"\n"); // new tick has started during sending; there may be data but it cannot be trusted
+        socket->Send(",\n\t\"has_data\": "+std::to_string(!tick_is_running)+"\n"); // new tick has started during sending; there may be data but it cannot be trusted // FIXME: Never happens
         socket->Send("}\n");
 
         sending_ui_data = false;
@@ -3488,23 +3461,24 @@ Kernel::CalculateCPUUsage() // In percent
         {
             if(socket != nullptr && socket->GetRequest(true))
             {
-                std::lock_guard<std::mutex> lock(kernelLock); // Lock the mutex to ensure thread safety
+
+                std::lock_guard<std::recursive_mutex> lock(kernelLock); // Lock the mutex to ensure thread safety
+
 
                 if(equal_strings(socket->header.Get("Method"), "GET"))
                 {
-                    // while(tick_is_running) {}
-                    handling_request = true;
+                     handling_request = true;
                     HandleHTTPRequest();
                         handling_request = false;
                     }
                     else if(equal_strings(socket->header.Get("Method"), "PUT")) // JSON Data
                     {
-                        // while(tick_is_running)  {}
                         handling_request = true;
                         HandleHTTPRequest();
                         handling_request = false;
                     }
                     socket->Close();
+    
             }
         }
     }
@@ -3526,7 +3500,6 @@ Kernel::~Kernel()
     if(socket)
     {
         shutdown=true;
-        // while(handling_request)  {}
         Sleep(0.1);
         delete socket;
         delete thread_pool;

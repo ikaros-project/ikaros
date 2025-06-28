@@ -92,10 +92,7 @@ Socket::Poll()
 	
     int result = select(sd+1, &readfds, nullptr, nullptr, &tv);
     if(result == -1)
-    {
-        //perror("select"); // FIXME: throw exception?
         return false;
-    }
 	
     if(FD_ISSET(sd, &readfds))
         return true;
@@ -123,10 +120,7 @@ Socket::ReadData(char * result, ssize_t maxlen, bool fill)
 
         rc = read(sd, buffer, read_size);
         if(rc == -1)
-        {
-            //perror("read");
             return -1;
-        }
     
         if(rc == 0 && fill)
             break; // End of file
@@ -240,6 +234,15 @@ ServerSocket::Poll(bool block)
     new_fd = accept(sockfd, (struct sockaddr *)&(their_addr), (socklen_t*) &sin_size);
     if(!block)
         fcntl(sockfd, F_SETFL, 0);						// make the socket blocking again
+/*
+    // --- Add this block to set a 5 second receive timeout ---
+    if (new_fd != -1) {
+        struct timeval timeout;
+        timeout.tv_sec = 5;   // 5 seconds timeout
+        timeout.tv_usec = 0;
+        setsockopt(new_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
+    }
+*/
     return (new_fd != -1);
 }
 
@@ -430,7 +433,7 @@ ServerSocket::GetRequest(bool block)
     if(!Poll(block))
         return false;
 	
-	// Loop until CRLF CRLF is found which marks the end of the HTTP request
+ 	// Loop until CRLF CRLF is found which marks the end of the HTTP request
 	
     request[0] = '\0';
     int read_count = 0;
@@ -439,6 +442,7 @@ ServerSocket::GetRequest(bool block)
         long rr = Read(&(request[read_count]), request_allocated_size-read_count);
         if(rr == 0)         // the connections has been closed since the beginning of the request
             return false;   // this can occur when a view is changed; return and ignore the request
+        
         read_count += rr;
         request[read_count] = '\0';
         if(read_count >= request_allocated_size-1) {
@@ -493,7 +497,6 @@ ServerSocket::GetRequest(bool block)
             }
         }
     }
-
     return true;
 }
 
