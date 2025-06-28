@@ -1887,8 +1887,8 @@ bool operator==(Request & r, const std::string s)
         needs_reload(true)
     {
         cpu_cores = std::thread::hardware_concurrency();
-        //thread_pool = new ThreadPool(cpu_cores > 1 ? cpu_cores-1 : 1); // FIXME: optionally use ikg parameters
-        thread_pool = new ThreadPool(1); // FIXME: optionally use ikg parameters
+        thread_pool = new ThreadPool(cpu_cores > 1 ? cpu_cores-1 : 1); // FIXME: optionally use ikg parameters
+        //thread_pool = new ThreadPool(1); // FIXME: optionally use ikg parameters
 
     }
 
@@ -2749,13 +2749,12 @@ if(classes[classname].path.empty())
     void
     Kernel::Realtime()
     {
-            if(needs_reload)
-                LoadFile();
+        if(needs_reload)
+            LoadFile();
      
-            Pause();
-            timer.Continue(); 
-            run_mode = run_mode_realtime;
-        }
+        Pause();
+        timer.Continue(); 
+        run_mode = run_mode_realtime;
     }
 
 
