@@ -2935,7 +2935,7 @@ if(classes[classname].path.empty())
 
             else
             {
-                sent = socket->Send(sep + "\t\t\"" + key + "\": \""+source+"\"");
+                // sent = socket->Send(sep + "\t\t\"" + key + "\": \""+source+"\""); // ERROR: Does not exist, do not send
             }
 
             if(sent)
