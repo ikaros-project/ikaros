@@ -2018,7 +2018,7 @@ if(classes[classname].path.empty())
         try
         {
             if(std::string(d["_tag"]) != "group")
-                throw setup_error("Main element is <"+std::string(d["_tag"])+"> but must be <group> for ikg-file.");
+                throw setup_error("Main element is '"+std::string(d["_tag"])+"' but must be 'group' for ikg-file.");
 
             if(!d.contains("name"))
                 throw setup_error("Groups must have a name.", path);
@@ -2116,7 +2116,7 @@ if(classes[classname].path.empty())
                     Notify(msg_print, u8"Loaded "s+options_.full_path());
 
                     CalculateCheckSum();
-                    //ListBuffers();
+                    //ListBuffers();  // FIXME: remove
                     //ListConnections();
                     needs_reload = false;
                 }
@@ -2547,7 +2547,7 @@ if(classes[classname].path.empty())
             //ListParameters();
             CalculateDelays();
             CalculateSizes();
-            //ListConnections();
+            //ListConnections(); // FIXME: Add flags for this
             //ListInputs();
             ListOutputs();
 
@@ -2558,9 +2558,9 @@ if(classes[classname].path.empty())
             {
                 ListParameters();
                 //ListComponents();
-                //ListConnections();
-                //ListInputs();
-                //ListOutputs();
+                ListConnections();
+                ListInputs();
+                ListOutputs();
                 //ListBuffers();
                 //ListCircularBuffers();
                 //ListTasks();
