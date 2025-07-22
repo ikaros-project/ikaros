@@ -280,7 +280,6 @@ namespace ikaros
         matrix
         operator[](int i) // submatrix operator; returns a submatrix with rank()-1
         {
-            //std::cout << "op[" << i << "]" << std::endl;
             #ifndef NO_MATRIX_CHECKS
             if(i<0 || i>= info_->shape_.front())
                 throw std::out_of_range("Index out of range");
@@ -962,7 +961,7 @@ namespace ikaros
         {
             #ifndef NO_MATRIX_CHECKS
             if (sizeof...(new_shape) != info_->shape_.size())
-                throw std::invalid_argument("Number of indices must match matrix rank (resize).");
+                throw std::invalid_argument("Number of indices must match matrix rank (in call to resize).");
 
             std::vector<int> v{static_cast<int>(new_shape)...};
 
@@ -1130,12 +1129,12 @@ namespace ikaros
         }
 
 
-        matrix & divide(float c) { return scale(1/c); }
+        matrix & divide(float c) { return scale(1/c); } // Fixme: use vDSP for continuous matrices
 
-        matrix & add(matrix A)      { check_same_size(A); return apply(A, [](float x, float y)->float {return x+y;}); }
-        matrix & subtract(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return x-y;}); }
-        matrix & multiply(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return x*x;}); }
-        matrix & divide(matrix A)   { check_same_size(A); return apply(A, [](float x, float y)->float {return x/y;}); }
+        matrix & add(matrix A)      { check_same_size(A); return apply(A, [](float x, float y)->float {return x+y;}); } // Fixme: use vDSP for continuous matrices
+        matrix & subtract(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return x-y;}); }// Fixme: use vDSP for continuous matrices
+        matrix & multiply(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return x*y;}); }// Fixme: use vDSP for continuous matrices
+        matrix & divide(matrix A)   { check_same_size(A); return apply(A, [](float x, float y)->float {return x/y;}); }// Fixme: use vDSP for continuous matrices
 
         matrix & add(matrix A, matrix B)
         { 
@@ -1242,8 +1241,102 @@ namespace ikaros
                 index += v[i] * stride;
                 stride *= info_->stride_[i];
             }
-            return index;
+            return info_->offset_ + index;  // FIXME: TEST ALL USES **********************
         }
+
+        matrix &
+        gaussian(float sigma) // TOD: Handle already allocated matrix as well
+        {
+            if(rank() != 0)
+                throw std::invalid_argument("Gaussian function requires an empty matrix.");
+
+            int kernel_size = ceil(6 * sigma);
+            if (kernel_size % 2 == 0) kernel_size++; // Ensure odd size
+                realloc(kernel_size, kernel_size);
+
+            int size = rows(); // Assuming square kernel
+            int half_size = size / 2;
+            float sum = 0;
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    int x = i - half_size;
+                    int y = j - half_size;
+                    (*this)(i, j) = exp(-(x * x + y * y) / (2 * sigma * sigma));
+                    sum += (*this)(i, j);
+                }
+            }
+            // Normalize the kernel
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++)
+                    (*this)(i, j) /= sum;
+
+            return *this;
+        }
+
+
+
+        matrix &
+        hypot(matrix & x, matrix & y) // Compute element-wise hypotenuse sqrt(x^2 + y^2)
+        {
+            // FIXME: Handle non-continous matrices as well
+
+            if(empty())
+                realloc(x.shape());
+
+            check_same_size(x);
+            check_same_size(y);
+            
+            if(this == &x || this == &y)
+                throw std::invalid_argument("Result cannot be assigned to x or y.");
+
+            #if __APPLE__
+                vDSP_vdist(x.data(), 1, y.data(), 1, data(), 1, size());
+
+            #elif defined(USE_BLAS)
+                reset();
+                cblas_saxpy(x.size(), 1.0, x.data(), 1, data(), 1);
+                cblas_saxpy(y.size(), 1.0, y.data(), 1, data(), 1);
+                vDSP_vsqrt(data(), 1, data(), 1, size());
+
+            #else
+            // discrete version
+            for(int j=0; size(); j++)
+                    (*this)(j) = sqrt(x(j)*x(j) + y(j)*y(j));
+            #endif
+
+            return *this;
+        }
+
+
+
+        matrix &
+        atan2(matrix & y, matrix & x) // Compute element-wise atan2
+        {
+            // FIXME: Handle non-continous matrices as well
+
+            if(empty())
+                realloc(x.shape());
+
+            check_same_size(x);
+            check_same_size(y);
+            
+            if(this == &x || this == &y)
+                throw std::invalid_argument("Result cannot be assigned to x or y.");
+
+            #if __APPLE__
+                int n = size();
+                vvatan2f(data(), y.data(), x.data(), &n);
+
+            #else   
+            // discrete version
+            for(int j=0; size(); j++)
+                    (*this)(j) = atan2(y(j), x(j));
+            #endif
+
+            return *this;
+        }
+
+
 
         matrix &
         matmul(matrix & A, matrix & B) // Compute matrix multiplication A*B and put result in current matrix // FIXME: realloc() if this.rank() = 0
@@ -1823,6 +1916,8 @@ friend void im2row(std::vector<float> &submatrices_flat, const matrix &I, const 
         }
     }
 }
+    matrix & downsample(const matrix &source); // Downsample an image matrix by averaging over a 2x2 block
+    matrix & upsample(const matrix &source); // Upsample an image matrix by repeating each pixel 2x2 times
     };
 }
 
