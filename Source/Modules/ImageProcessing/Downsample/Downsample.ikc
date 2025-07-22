@@ -1,12 +1,6 @@
-<?xml version="1.0"?>
-
-<class name="Downsample" description="reduce an image to half size">
-
-    <description type="text">
-        Downsamples an image to half size.
-    </description>
-
-    <input name="INPUT" description="The input image" />
-    <output name="OUTPUT" size="INPUT.size_z,INPUT.size_y/2,INPUT.size_x/2" description="The downsampled image" /> 
-
+<class name="Downsample" description="Downsamples an image by 2x using averaging">
+    <input name="INPUT" description="2D input image" />
+    <output name="OUTPUT" description="Downsampled image (1/2x)" size="INPUT.size_z,INPUT.rows/2, INPUT.cols/2" />
 </class>
+
+

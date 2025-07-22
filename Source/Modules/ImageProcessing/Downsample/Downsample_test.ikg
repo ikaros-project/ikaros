@@ -1,31 +1,6 @@
-<?xml version="1.0"?>
+<group name="Downsample__Test">
+    <module class="Constant" name="LargeImage" data="1, 2, 3, 4; 5, 6, 7, 8; 9, 10, 11, 12; 13, 14, 15, 16" />
+    <module class="Downsample" name="Downsampler" />
 
-<group name="Downsample_Example">
-
-
-	<module
-		class="InputVideo" 
-		name="InputVideo" 
-		_frame_rate="30" 
-		list_devices = "yes"
-		size_x = "640"
-		size_y = "480"
-		_size_x = "1280"
-		_size_y = "720"
-	/>
-
-
-
-
-
-	<module
-			class = "Downsample"
-			name = "Downsample"
-	/>
-
-
-	<connection  source = "InputVideo.OUTPUT"  target = "Downsample.INPUT" _delay="1" />
-
-
+    <connection source="LargeImage.OUTPUT" target="Downsampler.INPUT" />
 </group>
- 

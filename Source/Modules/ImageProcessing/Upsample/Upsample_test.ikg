@@ -1,0 +1,6 @@
+<group name="Upsample__Test">
+    <module class="Constant" name="SmallImage" data="1, 2; 3, 4" />
+    <module class="Upsample" name="Upscaler" />
+
+    <connection source="SmallImage.OUTPUT" target="Upscaler.INPUT" />
+</group>

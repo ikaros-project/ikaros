@@ -2,70 +2,25 @@
 
 using namespace ikaros;
 
-
-class Downsample: public Module
+class Downsample : public Module 
 {
-public:
+    matrix input;
+    matrix output;
 
-    void 		
-    Init()
+    void Init() 
     {
         Bind(input, "INPUT");
         Bind(output, "OUTPUT");
     }
 
-
-
-    void 		
-    Tick()
+    void Tick()
     {
-        if(input.rank() == 2)
-        {
-            size_t originalWidth = input.size_x();
-            size_t originalHeight = input.size_y();
-            size_t newWidth = originalWidth / 2;
-            size_t newHeight = originalHeight / 2;
-
-            const float* originalPtr = input.data();
-            float* downsampledPtr = output.data();
-
-            const float* rowEnd = originalPtr + originalHeight * originalWidth;
-            for (const float* rowPtr = originalPtr; rowPtr < rowEnd; rowPtr += 2 * originalWidth) 
-            {
-                const float* colEnd = rowPtr + originalWidth;
-                for (const float* colPtr = rowPtr; colPtr < colEnd; colPtr += 2)
-                    *downsampledPtr++ = (*colPtr + *(colPtr + 1) + *(colPtr + originalWidth) + *(colPtr + originalWidth + 1)) / 4.0f;
-            }
-        }
-        else if(input.rank() == 3)
-        {
-            for(int z=0; z<input.size_z(); z++)
-            {
-                size_t originalWidth = input.size_x();
-                size_t originalHeight = input.size_y();
-                size_t newWidth = originalWidth / 2;
-                size_t newHeight = originalHeight / 2;
-
-                const float* originalPtr = input[z];
-                float* downsampledPtr = output[z];
-
-                const float* rowEnd = originalPtr + originalHeight * originalWidth;
-                for (const float* rowPtr = originalPtr; rowPtr < rowEnd; rowPtr += 2 * originalWidth) 
-                {
-                    const float* colEnd = rowPtr + originalWidth;
-                    for (const float* colPtr = rowPtr; colPtr < colEnd; colPtr += 2)
-                        *downsampledPtr++ = (*colPtr + *(colPtr + 1) + *(colPtr + originalWidth) + *(colPtr + originalWidth + 1)) / 4.0f;
-                } 
-            }
-        }
-
+        if (input.rank() == 2) 
+            output.downsample(input);
+        else
+            for (int i = 0; i < input.size_z(); i++)
+                output[i].downsample(input[i]);
     }
-
-
-private:
-
-    matrix input;
-    matrix output;
 };
 
 INSTALL_CLASS(Downsample)

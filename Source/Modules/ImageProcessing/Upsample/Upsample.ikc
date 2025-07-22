@@ -1,0 +1,4 @@
+<class name="Upsample" description="Upscales an image 2x using nearest neighbor">
+    <input name="INPUT" description="2D input image" />
+    <output name="OUTPUT" description="Upscaled image (2x)" size="INPUT.size_z,INPUT.rows*2, INPUT.cols*2" />
+</class>
