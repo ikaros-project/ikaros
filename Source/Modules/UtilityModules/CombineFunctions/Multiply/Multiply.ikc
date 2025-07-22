@@ -1,4 +1,4 @@
-<class name="Multiply" description="Multiplys two inputs">
+<class name="Multiply" description="Multiplies two inputs">
 	<input name="INPUT1" description="The first input" />
 	<input name="INPUT2" description="The second input" />
 	<output name="OUTPUT" description="The output" 
