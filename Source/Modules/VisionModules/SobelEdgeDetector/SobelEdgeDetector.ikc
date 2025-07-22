@@ -1,0 +1,5 @@
+<class name="SobelEdgeDetector" description="Canny edge detector for grayscale images">
+    <input name="INPUT" description="Grayscale input image (2D matrix)" />
+    <output name="OUTPUT" description="Binary edge map (2D matrix)" size="INPUT.size" />
+    <parameter name="sigma" type="float" default="1.0" description="Standard deviation for Gaussian blur" />
+</class>
