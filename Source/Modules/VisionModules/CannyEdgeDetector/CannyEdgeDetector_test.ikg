@@ -1,0 +1,9 @@
+<group name="CannyEdge_Test">
+    <module class="Constant" name="ImageSource" data="0.1, 0.1, 0.1, 0.1; 0.1, 0.9, 0.9, 0.1; 0.1, 0.9, 0.9, 0.1; 0.1, 0.1, 0.1, 0.1" />
+    <module class="CannyEdgeDetector" name="EdgeDetector" sigma="1.0" low_threshold="0.1" high_threshold="0.3" />
+    <connection source="ImageSource.OUTPUT" target="EdgeDetector.INPUT" />
+
+
+
+</group>
+
