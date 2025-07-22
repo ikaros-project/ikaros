@@ -809,7 +809,7 @@ let controller =
         controller.queueCommand('play');
     },
     
-    realtime()// ********************* HERE
+    realtime()
     {
         if(network.tainted) // Should never happen
             return;
