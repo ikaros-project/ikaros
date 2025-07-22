@@ -277,10 +277,8 @@ class InputVideo : public Module
     if (av_image_alloc(outputFrame->data, outputFrame->linesize, size_x, size_y, AV_PIX_FMT_RGB24, 32) < 0)
         throw fatal_error("Could not allocate image buffer for outputFrame");
 
-
         StartCaptureThread();
     }
-
 
 
 
