@@ -281,7 +281,7 @@ namespace ikaros
         else if(matrix_value)
             return 0;// FIXME check 1x1 matrix ************
         else
-            throw exception("Type conversion error. Parameter does not have a type. Bind?");
+            throw exception("Type conversion error. Parameter does not have a type.Check spellingin IKC and cc file.");
     }
 
 
