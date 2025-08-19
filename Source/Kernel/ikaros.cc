@@ -281,7 +281,7 @@ namespace ikaros
         else if(matrix_value)
             return 0;// FIXME check 1x1 matrix ************
         else
-            throw exception("Type conversion error. Parameter does not have a type.Check spellingin IKC and cc file.");
+            throw exception("Type conversion error. Parameter does not have a type Check spelling IKC and cc file.");
     }
 
 
@@ -525,7 +525,6 @@ namespace ikaros
      else 
             return original.substr(0,pos);
     }
-
 
 //
 // GetComponent
@@ -1288,7 +1287,6 @@ namespace ikaros
     }
 
 
-
     int 
     Module::SetSizes(input_map ingoing_connections)
     {
@@ -1592,6 +1590,7 @@ bool operator==(Request & r, const std::string s)
         tick++;
 
         RunTasks();
+        //RunTasksInSingleThread();
 
         save_matrix_states();
         RotateBuffers();
@@ -2477,17 +2476,18 @@ if(classes[classname].path.empty())
 
     void Kernel::RunTasks()
     {
-        std::vector<std::unique_ptr<TaskSequence>> sequences;
+        std::vector<std::shared_ptr<TaskSequence>> sequences;
     
         try {
-            // Create and submit tasks
-            for (auto &task_sequence : tasks) {
-                auto ts = std::make_unique<TaskSequence>(task_sequence);
-                thread_pool->submit(ts.get());
-                sequences.push_back(std::move(ts));
+            // Create and submit tasks using shared_ptr
+            for (auto &task_sequence : tasks) 
+            {
+                auto ts = std::make_shared<TaskSequence>(task_sequence);
+                thread_pool->submit(ts);  // Pass shared_ptr
+                sequences.push_back(ts);
             }
     
-            // Wait for completion using the blocking wait method
+            // Wait for completion
             for (auto &ts : sequences) {
                 ts->waitForCompletion();
             }

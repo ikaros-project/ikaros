@@ -10,6 +10,8 @@ ThreadPool::ThreadPool(size_t numThreads):
 
 ThreadPool::~ThreadPool()
 {
+    std::cout << "Shutting down ThreadPool..." << std::endl;
+
     {
         std::lock_guard<std::mutex> lock(queueMutex);
         stop = true;
@@ -33,7 +35,7 @@ void ThreadPool::worker()
 {
     while (true) 
     {
-        TaskSequence *task_sequence;
+        std::shared_ptr<TaskSequence> task_sequence;
         {
             std::unique_lock<std::mutex> lock(queueMutex);
             condition.wait(lock, [this] { return stop || !task_sequences.empty(); });
@@ -41,23 +43,21 @@ void ThreadPool::worker()
             task_sequence = task_sequences.front();
             task_sequences.pop();
         }
-        try 
-        {
-            task_sequence->execute();
-        } 
-        catch (const std::exception &e) 
-        {
-            std::cerr << "Task execution error: " << e.what() << std::endl;
-        } 
-        catch (...) 
-        {
-            std::cerr << "Unknown error during task execution." << std::endl;
+        
+        if (task_sequence) {
+            try {
+                task_sequence->execute();
+            } catch (const std::exception &e) {
+                std::cerr << "Task execution error: " << e.what() << std::endl;
+            } catch (...) {
+                std::cerr << "Unknown error during task execution." << std::endl;
+            }
         }
     }
 }
 
 
-void ThreadPool::submit(TaskSequence * task_sequence) 
+void ThreadPool::submit(std::shared_ptr<TaskSequence> task_sequence) 
 {
     {
         std::lock_guard<std::mutex> lock(queueMutex);

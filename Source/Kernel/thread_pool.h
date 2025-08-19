@@ -23,7 +23,7 @@ public:
     TaskSequence(std::vector<Task *> &tasks)
         : tasks_(tasks), running(false), completed(false) {}
 
-    virtual ~TaskSequence() = default;
+    virtual ~TaskSequence()  = default;
 
     void execute() 
     {
@@ -78,14 +78,14 @@ public:
     ThreadPool(size_t numThreads);
     ~ThreadPool();
 
-    void submit(TaskSequence *task_sequence);
+    void submit(std::shared_ptr<TaskSequence> task_sequence);
     bool working();
 
 private:
     void worker();
 
     std::vector<std::thread> workers;
-    std::queue<TaskSequence *> task_sequences;
+    std::queue<std::shared_ptr<TaskSequence>> task_sequences;
     std::mutex queueMutex;
     std::condition_variable condition;
     std::atomic<bool> stop;
