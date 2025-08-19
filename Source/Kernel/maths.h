@@ -18,6 +18,8 @@ namespace ikaros
 
 	double angle_to_angle(double angle, int from_angle_unit, int to_angle_unit);
    	double short_angle(double a1, double a2); // in radians
+
+	float sample_normal_distribution(float mean, float stddev);
 };
 
 

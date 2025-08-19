@@ -2,6 +2,8 @@
 
 #include "maths.h"
 
+#include <random>
+
 namespace ikaros
 {
 
@@ -69,5 +71,12 @@ namespace ikaros
     }
 
 
+
+	float sample_normal_distribution(float mean, float stddev)
+	{
+		thread_local std::mt19937 gen(std::random_device{}());
+		std::normal_distribution<float> dist(mean, stddev);
+		return dist(gen);
+	}
 };
 
