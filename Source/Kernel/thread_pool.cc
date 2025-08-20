@@ -10,8 +10,6 @@ ThreadPool::ThreadPool(size_t numThreads):
 
 ThreadPool::~ThreadPool()
 {
-    std::cout << "Shutting down ThreadPool..." << std::endl;
-
     {
         std::lock_guard<std::mutex> lock(queueMutex);
         stop = true;
