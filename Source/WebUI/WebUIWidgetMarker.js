@@ -89,12 +89,16 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
     {
         let s = this.parameters.size*(width+height)/2
         let d = this.data;
-        let rows = this.data.length;
+
+              if (Array.isArray(d) && (d.length === 0 || !Array.isArray(d[0])))
+            d = [d];
+
+        let rows = d.length;
         this.canvas.lineWidth = this.format.lineWidth;
         this.canvas.lineCap = this.format.lineCap;
         this.canvas.lineJoin = this.format.lineJoin;
 
-        let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
+        //let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
         
         for(var i=0; i<rows; i++)
         {
@@ -106,7 +110,8 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             let x = (d[i][this.parameters.select+0]-this.parameters.min_x)*this.parameters.scale_x * width;
             let y = (d[i][this.parameters.select+1]-this.parameters.min_y)*this.parameters.scale_y * height;
             
-            for(var j=this.parameters.select+2; j<xx;)
+            //for(var j=this.parameters.select+2; j<xx;)
+            for(var j=0; j<2;)
             {
                 lx = x;
                 ly = y;
