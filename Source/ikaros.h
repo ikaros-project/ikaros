@@ -404,11 +404,7 @@ public:
     long                                    session_id;
     bool                                    needs_reload;
 
-    std::recursive_mutex                    kernelLock; // TODO: Consider: std::recursive_mutex 
-
-    std::atomic<bool>                       tick_is_running;
-    std::atomic<bool>                       sending_ui_data;
-    std::atomic<bool>                       handling_request;
+    std::recursive_mutex                    kernelLock;  
     std::atomic<bool>                       shutdown;
     int                                     run_mode;
 

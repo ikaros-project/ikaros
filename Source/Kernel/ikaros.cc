@@ -1000,8 +1000,9 @@ namespace ikaros
 
     Kernel& kernel()
     {
-        static Kernel * kernelInstance = new Kernel();
-        return *kernelInstance;
+        //static Kernel * kernelInstance = new Kernel();
+        static Kernel kernelInstance;  // Guaranteed to be thread-safe in C++11 and later
+        return kernelInstance;
     }
 
 
@@ -1541,7 +1542,7 @@ bool operator==(Request & r, const std::string s)
 
         tick = -1;
         //run_mode = run_mode_pause;
-        tick_is_running = false;
+        //tick_is_running = false;
         tick_time_usage = 0;
         tick_duration = 1; // default value
         actual_tick_duration = tick_duration;
@@ -1585,8 +1586,6 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::Tick()
     {
-
-        tick_is_running = true;
         tick++;
 
         RunTasks();
@@ -1597,8 +1596,6 @@ bool operator==(Request & r, const std::string s)
         Propagate();
 
         CalculateCPUUsage();
-
-        tick_is_running = false; 
     }
 
 
@@ -1875,7 +1872,7 @@ bool operator==(Request & r, const std::string s)
     Kernel::Kernel():
         tick(0),
         run_mode(run_mode_pause),
-        tick_is_running(false),
+        //(false),
         tick_time_usage(0),
         actual_tick_duration(0), // FIME: Use desired tick duration here
         idle_time(0),
@@ -2478,20 +2475,22 @@ if(classes[classname].path.empty())
     {
         std::vector<std::shared_ptr<TaskSequence>> sequences;
     
-        try {
+        try 
+        {
             // Create and submit tasks using shared_ptr
             for (auto &task_sequence : tasks) 
             {
                 auto ts = std::make_shared<TaskSequence>(task_sequence);
-                thread_pool->submit(ts);  // Pass shared_ptr
+                thread_pool->submit(ts);
                 sequences.push_back(ts);
             }
     
             // Wait for completion
-            for (auto &ts : sequences) {
-                ts->waitForCompletion();
-            }
-        } catch (const std::exception &e) {
+            for (auto &ts : sequences) 
+                if(!ts->waitForCompletion(5)) // Timeout after 5 seconds
+                    Notify(msg_fatal_error, "Task sequence did not complete successfully during the timeout period."); 
+        } 
+        catch (const std::exception &e) {
             Notify(msg_fatal_error, "Error during task execution: " + std::string(e.what()));
         }
     }
@@ -2876,7 +2875,7 @@ if(classes[classname].path.empty())
     void
     Kernel::DoSendData(Request & request)
     {    
-        sending_ui_data = true; // must be set while main thread is still running
+        //sending_ui_data = true; // must be set while main thread is still running
 
 
         DoSendDataHeader();
@@ -2944,10 +2943,10 @@ if(classes[classname].path.empty())
 
         socket->Send("\n\t}");
         DoSendLog(request);
-        socket->Send(",\n\t\"has_data\": "+std::to_string(!tick_is_running)+"\n"); // new tick has started during sending; there may be data but it cannot be trusted // FIXME: Never happens
+        socket->Send(",\n\t\"has_data\": 1\n"); // "+std::to_string(!tick_is_running)+" new tick has started during sending; there may be data but it cannot be trusted // FIXME: Never happens
         socket->Send("}\n");
 
-        sending_ui_data = false;
+        //sending_ui_data = false;
     }
 
 
@@ -3460,24 +3459,16 @@ Kernel::CalculateCPUUsage() // In percent
         {
             if(socket != nullptr && socket->GetRequest(true))
             {
-
                 std::lock_guard<std::recursive_mutex> lock(kernelLock); // Lock the mutex to ensure thread safety
-
-
                 if(equal_strings(socket->header.Get("Method"), "GET"))
                 {
-                     handling_request = true;
                     HandleHTTPRequest();
-                        handling_request = false;
                     }
                     else if(equal_strings(socket->header.Get("Method"), "PUT")) // JSON Data
                     {
-                        handling_request = true;
                         HandleHTTPRequest();
-                        handling_request = false;
                     }
                     socket->Close();
-    
             }
         }
     }
@@ -3490,19 +3481,24 @@ Kernel::CalculateCPUUsage() // In percent
     return nullptr;
     }
 
+    Kernel::~Kernel()
+{
+    if(socket && httpThread)
+    {
+        shutdown.store(true, std::memory_order_release);
+        httpThread->join();
+        delete httpThread;
+        delete socket;
+        delete thread_pool;
+        
+        httpThread = nullptr;
+        socket = nullptr;
+        thread_pool = nullptr;
+    }
+}
+
 }; // namespace ikaros
 
 
 
-Kernel::~Kernel()
-{
-    if(socket)
-    {
-        shutdown=true;
-        Sleep(0.1);
-        delete socket;
-        delete thread_pool;
-        delete httpThread;
-    }
-}
 
