@@ -2112,9 +2112,8 @@ if(classes[classname].path.empty())
                     Notify(msg_print, u8"Loaded "s+options_.full_path());
 
                     CalculateCheckSum();
-                    //ListBuffers();  // FIXME: remove
-                    //ListConnections();
                     needs_reload = false;
+                    Pause(); // Rest clocks
                 }
                 catch(const exception& e)
                 {
@@ -2596,6 +2595,10 @@ if(classes[classname].path.empty())
                 }
                 else
                     Sleep(0.01); // Wait 10 ms to avoid wasting cycles if there are no requests
+
+
+                if(lag > 0.001)
+                    std::cout  << "Ikaros is lagging " << lag << " seconds behind real time." << std::endl ;
 
                 // Run_mode may have changed during the delay - needs to be checked again
 
