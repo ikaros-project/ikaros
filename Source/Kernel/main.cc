@@ -70,9 +70,11 @@ main(int argc, char *argv[])
                 if(k.info_.is_set("start"))
                 {
                     if(k.info_.is_set("real_time"))
-                        k.run_mode = run_mode_realtime;
+                        k.Realtime();
+                        //k.run_mode = run_mode_realtime;
                     else
-                        k.run_mode = run_mode_play;
+                        k.Play();
+                       // k.run_mode = run_mode_play;
                 }
                 k.Run();
             }
