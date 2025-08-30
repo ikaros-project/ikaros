@@ -1,4 +1,5 @@
 <class name="Logger" description="does nothing for the specified time">
     <parameter name="duration" type="float" description="idle time in seconds" />
+    <parameter name="init" type="float" description="start-up (init) time in seconds" />
 </class>
 
