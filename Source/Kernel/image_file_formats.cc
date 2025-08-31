@@ -1,5 +1,5 @@
 // image_file_format.cc
-// Copyright (C) 2023  Christian Balkenius
+// Copyright (C) 2023-2025  Christian Balkenius
 
 #include "matrix.h"
 #include "image_file_formats.h"
@@ -9,6 +9,10 @@ extern "C"
 {
 #include "jpeglib.h"
 #include <setjmp.h>
+#include <png.h>
+#include <png.h>
+
+
 }
 namespace ikaros
 {
@@ -600,4 +604,171 @@ namespace ikaros
         return dst.buffer;
     }
     
+    //
+    // PNG Images
+    //
+
+        void    
+        png_get_size(int & sizex, int & sizey, std::filesystem::path filename)
+        {
+            FILE *fp = fopen(filename.c_str(), "rb");
+            if (!fp) {
+                throw std::runtime_error("Cannot open file: " + filename.string());
+            }
+
+            unsigned char header[8];
+            fread(header, 1, 8, fp);
+            if (png_sig_cmp(header, 0, 8)) {
+                fclose(fp);
+                throw std::runtime_error("Not a PNG file: " + filename.string());
+            }
+
+            png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+            if (!png) {
+                fclose(fp);
+                throw std::runtime_error("Failed to create PNG read struct");
+            }
+
+            png_infop info = png_create_info_struct(png);
+            if (!info) {
+                png_destroy_read_struct(&png, nullptr, nullptr);
+                fclose(fp);
+                throw std::runtime_error("Failed to create PNG info struct");
+            }
+
+            if (setjmp(png_jmpbuf(png))) {
+                png_destroy_read_struct(&png, &info, nullptr);
+                fclose(fp);
+                throw std::runtime_error("Error during PNG read");
+            }
+
+            png_init_io(png, fp);
+            png_set_sig_bytes(png, 8);
+            png_read_info(png, info);
+
+            sizex = png_get_image_width(png, info);
+            sizey = png_get_image_height(png, info);
+
+            png_destroy_read_struct(&png, &info, nullptr);
+            fclose(fp);
+        }
+
+
+        int     
+        png_get_channels(std::filesystem::path filename)
+        {
+            FILE *fp = fopen(filename.c_str(), "rb");
+            if (!fp) {
+                throw std::runtime_error("Cannot open file: " + filename.string());
+            }
+
+            unsigned char header[8];
+            fread(header, 1, 8, fp);
+            if (png_sig_cmp(header, 0, 8)) {
+                fclose(fp);
+                throw std::runtime_error("Not a PNG file: " + filename.string());
+            }
+
+            png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+            png_infop info = png_create_info_struct(png);
+
+            if (setjmp(png_jmpbuf(png))) {
+                png_destroy_read_struct(&png, &info, nullptr);
+                fclose(fp);
+                throw std::runtime_error("Error during PNG read");
+            }
+
+            png_init_io(png, fp);
+            png_set_sig_bytes(png, 8);
+            png_read_info(png, info);
+
+            int channels = png_get_channels(png, info);
+
+            png_destroy_read_struct(&png, &info, nullptr);
+            fclose(fp);
+
+            return channels;
+        }
+
+
+
+         void   
+         png_get_image(matrix & red, matrix & green, matrix & blue, std::filesystem::path filename)
+         {
+ FILE *fp = fopen(filename.c_str(), "rb");
+    if (!fp) {
+        throw std::runtime_error("Cannot open file: " + filename.string());
+    }
+
+    unsigned char header[8];
+    fread(header, 1, 8, fp);
+    if (png_sig_cmp(header, 0, 8)) {
+        fclose(fp);
+        throw std::runtime_error("Not a PNG file: " + filename.string());
+    }
+
+    png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    png_infop info = png_create_info_struct(png);
+
+    if (setjmp(png_jmpbuf(png))) {
+        png_destroy_read_struct(&png, &info, nullptr);
+        fclose(fp);
+        throw std::runtime_error("Error during PNG read");
+    }
+
+    png_init_io(png, fp);
+    png_set_sig_bytes(png, 8);
+    png_read_info(png, info);
+
+    int width = png_get_image_width(png, info);
+    int height = png_get_image_height(png, info);
+    int color_type = png_get_color_type(png, info);
+    int bit_depth = png_get_bit_depth(png, info);
+
+    // Convert to RGB if needed
+    if (color_type == PNG_COLOR_TYPE_PALETTE)
+        png_set_palette_to_rgb(png);
+    if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
+        png_set_expand_gray_1_2_4_to_8(png);
+    if (png_get_valid(png, info, PNG_INFO_tRNS))
+        png_set_tRNS_to_alpha(png);
+    if (bit_depth == 16)
+        png_set_strip_16(png);
+
+    png_read_update_info(png, info);
+
+    // Allocate memory for the row pointers
+    png_bytep *row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
+    for(int y = 0; y < height; y++) {
+        row_pointers[y] = (png_byte*)malloc(png_get_rowbytes(png, info));
+    }
+
+    png_read_image(png, row_pointers);
+
+    // Resize matrices if needed
+    red.resize(height, width);
+    green.resize(height, width);
+    blue.resize(height, width);
+
+    // Copy data to matrices
+    for(int y = 0; y < height; y++) {
+        png_bytep row = row_pointers[y];
+        for(int x = 0; x < width; x++) {
+            png_bytep px = &(row[x * 3]);
+            red[y][x] = px[0] / 255.0f;
+            green[y][x] = px[1] / 255.0f;
+            blue[y][x] = px[2] / 255.0f;
+        }
+    }
+
+    // Cleanup
+    for(int y = 0; y < height; y++) {
+        free(row_pointers[y]);
+    }
+    free(row_pointers);
+
+    png_destroy_read_struct(&png, &info, nullptr);
+    fclose(fp);
+         }
+
 };
