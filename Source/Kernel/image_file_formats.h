@@ -1,7 +1,9 @@
 // image_file_format.h
-// Copyright (C) 2023  Christian Balkenius
+// Copyright (C) 2023-2025  Christian Balkenius
 
 #pragma once
+
+#include <filesystem>
 
 namespace ikaros
 {    
@@ -17,5 +19,11 @@ namespace ikaros
 
     //bool        jpeg_get_info(int & sizex, int & sizey, int & planes, char * data, long int size);
     //void        jpeg_decode(float ** red_matrix, float ** green_matrix, float ** blue_matrix, float ** intensity_matrix, int sizex, int sizey, char * data, long int size);
+
+
+        void    png_get_size(int & sizex, int & sizey, std::filesystem::path filename);
+        int     png_get_channels(std::filesystem::path filename);
+         void   png_get_image(matrix & red, matrix & green, matrix & blue, std::filesystem::path filename);
 };
+
 
