@@ -603,7 +603,101 @@ namespace ikaros
         size = dst.used;
         return dst.buffer;
     }
-    
+
+
+  void 
+    jpeg_get_size(int & sizex, int & sizey, std::filesystem::path filename)
+    {
+        FILE * infile;
+        if ((infile = fopen(filename.c_str(), "rb")) == NULL) {
+            throw std::runtime_error("Can't open " + filename.string());
+        }
+
+        struct jpeg_decompress_struct cinfo;
+        struct jpeg_error_mgr jerr;
+
+        cinfo.err = jpeg_std_error(&jerr);
+        jpeg_create_decompress(&cinfo);
+        jpeg_stdio_src(&cinfo, infile);
+        jpeg_read_header(&cinfo, TRUE);
+
+        sizex = cinfo.image_width;
+        sizey = cinfo.image_height;
+
+        jpeg_destroy_decompress(&cinfo);
+        fclose(infile);
+    }
+
+    int 
+    jpeg_get_channels(std::filesystem::path filename)
+    {
+        FILE * infile;
+        if ((infile = fopen(filename.c_str(), "rb")) == NULL) {
+            throw std::runtime_error("Can't open " + filename.string());
+        }
+
+        struct jpeg_decompress_struct cinfo;
+        struct jpeg_error_mgr jerr;
+
+        cinfo.err = jpeg_std_error(&jerr);
+        jpeg_create_decompress(&cinfo);
+        jpeg_stdio_src(&cinfo, infile);
+        jpeg_read_header(&cinfo, TRUE);
+
+        int channels = cinfo.num_components;
+
+        jpeg_destroy_decompress(&cinfo);
+        fclose(infile);
+
+        return channels;
+    }
+
+    void
+    jpeg_get_image(matrix & red, matrix & green, matrix & blue, std::filesystem::path filename)
+    {
+        FILE * infile;
+        if ((infile = fopen(filename.c_str(), "rb")) == NULL) {
+            throw std::runtime_error("Can't open " + filename.string());
+        }
+
+        struct jpeg_decompress_struct cinfo;
+        struct jpeg_error_mgr jerr;
+
+        cinfo.err = jpeg_std_error(&jerr);
+        jpeg_create_decompress(&cinfo);
+        jpeg_stdio_src(&cinfo, infile);
+        jpeg_read_header(&cinfo, TRUE);
+        jpeg_start_decompress(&cinfo);
+
+        int width = cinfo.output_width;
+        int height = cinfo.output_height;
+        int row_stride = width * cinfo.output_components;
+
+        // Resize matrices
+        red.resize(height, width);
+        green.resize(height, width);
+        blue.resize(height, width);
+
+        JSAMPARRAY buffer = (*cinfo.mem->alloc_sarray)
+            ((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
+
+        int row = 0;
+        while (cinfo.output_scanline < cinfo.output_height) {
+            jpeg_read_scanlines(&cinfo, buffer, 1);
+            
+            for (int x = 0; x < width; x++) {
+                red[row][x] = buffer[0][x*3] / 255.0f;
+                green[row][x] = buffer[0][x*3+1] / 255.0f;
+                blue[row][x] = buffer[0][x*3+2] / 255.0f;
+            }
+            row++;
+        }
+
+        jpeg_finish_decompress(&cinfo);
+        jpeg_destroy_decompress(&cinfo);
+        fclose(infile);
+    }
+
     //
     // PNG Images
     //

@@ -21,9 +21,14 @@ namespace ikaros
     //void        jpeg_decode(float ** red_matrix, float ** green_matrix, float ** blue_matrix, float ** intensity_matrix, int sizex, int sizey, char * data, long int size);
 
 
-        void    png_get_size(int & sizex, int & sizey, std::filesystem::path filename);
-        int     png_get_channels(std::filesystem::path filename);
-         void   png_get_image(matrix & red, matrix & green, matrix & blue, std::filesystem::path filename);
+    void jpeg_get_size(int & sizex, int & sizey, std::filesystem::path filename);
+    int jpeg_get_channels(std::filesystem::path filename);
+    void jpeg_get_image(matrix & red, matrix & green, matrix & blue, std::filesystem::path filename);
+
+
+    void png_get_size(int & sizex, int & sizey, std::filesystem::path filename);
+    int  png_get_channels(std::filesystem::path filename);
+    void png_get_image(matrix & red, matrix & green, matrix & blue, std::filesystem::path filename);
 };
 
 
