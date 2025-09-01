@@ -1,26 +1,33 @@
 <class name="Nucleus" description="implements a nucleus">
 
 	<description type="text">
-		Module that implements a generic brain nucleus. output = alpha + beta * [1/(1+delta*ShuntingInhibition)] *SUM(Excitation) - gamma*SUM/Inhibition).
+		Module that implements a generic brain nucleus. output = alpha + beta * [1/(1+psi*ShuntingInhibition)] *SUM(Excitation) - gamma*SUM/Inhibition).
         
         If not set, beta and gamma are set to 1/N, where N are the number of connected inputs.
 	</description>
 
-    <parameter name="alpha" type="float" default="0" description="bias term / offset level" />
-    <parameter name="beta" type="float" default="1" description="activity scaling" />
+    <parameter name="alpha" type="number" default="0" description="resting level" />
+    <parameter name="beta" type="number" default="1" description="excitation gain" />
+    <parameter name="gamma" type="number" default="1" description="inhibition gain" />
+    <parameter name="delta" type="number" default="1" description="decay rate" />
+    <parameter name="psi" type="number" default="1.0" description="shunting weight" />
+    <parameter name="sigma" type="number" default="0" description="gaussian noise standard deviation" />
+    <parameter name="theta" type="number" default="0" description="threshold" />
+    <parameter name="epsilon" type="rate" default="1" description="time constant (1/s)" />
+ 
 
-    <parameter name="phi" type="float" default="1.0" description="excitation weight" />
-    <parameter name="chi" type="float" default="1.0" description="inhibition weight" />
-    <parameter name="psi" type="float" default="1.0" description="shunting weight" />
-
-    <parameter name="scale" type="bool" default="yes" description="scale by number of inputs" />
-
-    <parameter name="epsilon" type="float" default="0.1" description="time constant" />
+    <parameter name="scale_inputs" type="bool" default="yes" description="scale by number of inputs" />
+    <parameter name="output_offset" type="number" default="0" description="offset of output" />
+    <parameter name="output_scale" type="number" default="1" description="scaling of output" />
+    <parameter name="activation_function" type="number" default="atan" options="atan,threshold,ReLU,tanh,sigmoid,linear" description="function used to calculate the output" />
+    <parameter name="burst_time" type="number" default="0" description="burst time in s for threshold function: 0 means a single tick" />
 
 	<input name="EXCITATION" description="The excitatory input" optional="yes" flatten="yes" />
 	<input name="INHIBITION" description="The inhibitory input" optional="yes" flatten="yes" />
 	<input name="SHUNTING_INHIBITION" description="The shunting inhibitory input" optional="yes" flatten="yes" />
 
+
+	<output name="X" description="Internal state of the nucleus" size="1" />
 	<output name="OUTPUT" description="The output from the nucleus" size="1" />
 </class>
 
