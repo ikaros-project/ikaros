@@ -170,9 +170,9 @@ function formatTime(d)
         if(d < 0)
             return "-";
         else if(d < 0.001)
-            return 1000000*d + " &#181;s";
+            return Math,round(1000000*d) + " &#181;s";
         else if(d < 5)
-            return 1000*d + " ms";
+            return Math.round(1000*d) + " ms";
         else
             return secondsToHMS(d);
     }
