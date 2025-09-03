@@ -2,6 +2,7 @@
 
 #include "matrix.h"
 
+#include <Accelerate/Accelerate.h>
 
 namespace ikaros {
 
@@ -194,6 +195,116 @@ matrix::downsample(const matrix &source)
         return *this;
     }
 
+
+    // Copy a submatrix to a flat vector
+    static inline void 
+    extract_flat_submatrix(const matrix& src, int y, int x, int h, int w, std::vector<float>& out) 
+    {
+        float * v = out.data();
+        const float * s = src.data();
+        int cols = src.cols();
+        for (int j = 0; j < h; ++j)
+        {
+            const float * row = s + (y + j) * cols + x;
+            for (int i = 0; i < w; ++i)
+                *v++ = *row++;
+        }
+    }
+
+
+    // Computes  cross-correlation between kernel and normalized submatrix; kernel is not normalized
+
+    static float half_normalized_correlation(const float* kernel, const float* submatrix, float * buffer, size_t len) 
+    {
+        if (len == 0) 
+            return 0.0f;
+
+        float submatrix_mean = 0.0f;
+        vDSP_meanv(submatrix, 1, &submatrix_mean, len);
+
+        float neg_submatrix_mean = -submatrix_mean;
+        vDSP_vsadd(submatrix, 1, &neg_submatrix_mean, buffer, 1, len);
+
+        float submatrix_norm2 = 0.0f;
+        vDSP_svesq(buffer, 1, &submatrix_norm2, len);
+        if(submatrix_norm2 < 0.001)
+            return 0;
+
+        float dot = 0.0f;
+        vDSP_dotpr(kernel, 1, buffer, 1, &dot, len);
+
+        float denom = std::sqrt(submatrix_norm2);
+
+        return denom > 0.0f ? dot / denom : 0.0f;
+    }
+
+
+    // Search for a kernel in this matrix
+    // Returns the best matching point in the search rectangle together with its matching score
+    // TODO: Add non-Apple implementation for other platforms
+    
+    match
+    matrix::search(const matrix & target, const rect & search_rectangle) const
+    {
+        #ifndef NO_MATRIX_CHECKS
+        if (target.rank() != 2)
+            throw std::invalid_argument("Search requires a 2D target matrix.");
+        if (target.rows() == 0 || target.cols() == 0)
+            throw std::invalid_argument("Kernel cannot be empty.");
+        if (search_rectangle.width <= 0 || search_rectangle.height <= 0)
+            throw std::invalid_argument("Search rectangle must have positive dimensions.");
+        if (search_rectangle.x < 0 || search_rectangle.y < 0 ||
+            search_rectangle.x + search_rectangle.width > cols() ||
+            search_rectangle.y + search_rectangle.height > rows())
+            throw std::out_of_range("Search rectangle is out of bounds of the matrix.");
+         #endif
+
+        match best_match = {0, 0, 0}; // -std::numeric_limits<float>::max()
+        int search_top = search_rectangle.y;
+        int search_bottom = search_rectangle.y + search_rectangle.height;
+        int search_left = search_rectangle.x;
+        int search_right = search_rectangle.x + search_rectangle.width;
+
+        int target_rows = target.rows();
+        int target_cols = target.cols();
+        int target_size = target.size();
+
+        // Prepare target data
+       float target_mean = 0.0f;
+        vDSP_meanv(target.data(), 1, &target_mean, target_size);
+        std::vector<float> target_zero_mean(target_size);
+        std::vector<float> buffer(target_size);
+        float neg_target_mean = -target_mean;
+        vDSP_vsadd(target.data(), 1, &neg_target_mean, target_zero_mean.data(), 1, target_size);
+
+        // Compute target norm
+        float target_norm2 = 0.0f;
+        vDSP_svesq(target_zero_mean.data(), 1, &target_norm2, target_size);
+        float norm_k = sqrt(target_norm2);
+        if (norm_k < 0.001) 
+            return match{0, 0, 0}; // If target has almost zero norm, return zero match
+
+            std::vector<float> flat_submatrix(target_rows*target_cols);
+
+        // Iterate over the search rectangle
+        for (int y = search_top; y <= search_bottom - target_rows; ++y) {
+            for (int x = search_left; x <= search_right - target_cols; ++x) 
+            {                     
+                extract_flat_submatrix(*this, y, x, target_rows, target_cols, flat_submatrix); // Extract the submatrix at the current position
+                float score = half_normalized_correlation(target.data(), flat_submatrix.data(), buffer.data(), flat_submatrix.size());
+
+                if (score > best_match.score) 
+                {
+                    best_match.x = x;
+                    best_match.y = y;
+                    best_match.score = score;
+                }
+            }
+        }
+
+        best_match.score /= norm_k; // Normalize the score by the target norm
+        return best_match;
+    }
 
 
     // Matrix saving list

@@ -48,7 +48,31 @@
 
 namespace ikaros
 {
-    inline int reflect101(int p, int len) {
+    struct point
+    {
+        float x;
+        float y;
+    };
+
+    struct rect
+    {
+        int x;
+        int y;
+        int width;
+        int height;
+    };
+
+
+    struct match
+    {
+        float x;
+        float y;
+        float score;
+    };
+
+    
+    inline int reflect101(int p, int len) 
+    {
         if (p < 0)
             return -p;  // -1 → 1
         if (p >= len)
@@ -673,7 +697,7 @@ namespace ikaros
         }
 
         matrix & 
-        copy(matrix m)  // asign matrix or submatrix - copy data
+        copy(matrix m)  // asign to matrix or submatrix - copy data 
         {
             if(rank()==0)   // Allow copy to empty matrix after reallocation
                 realloc(m.shape());
@@ -694,7 +718,7 @@ namespace ikaros
         }
 
         matrix &
-        copy(matrix & m, range & target, range & source)
+        copy(matrix & m, range & target, range & source) 
         {
             // Use fast copy if possible
 
@@ -722,6 +746,30 @@ namespace ikaros
                         }
             return *this;
         }
+
+
+        matrix &
+        submatrix(matrix & m, const rect & region) // Copy a submatrix from m to this matrix; only works for two dimensional matrices
+        {
+            int height = region.height;
+            int width = region.width;
+
+            if(rank() == 0)
+                realloc(height, width); // Reallocate if empty matrix
+
+           
+            if(rank() != 2 || m.rank() != 2)
+                throw std::invalid_argument(get_name()+" Matrix must be two-dimensional.");
+
+            float * t = this->data(); // Get pointer to data. // FIXME: Use fast copy with  vDSP_mmov();
+            for(int j=0; j<height; j++)
+                for(int i=0; i<width; i++)              
+                    *t++ = m(region.y+j, region.x+i);
+
+            return *this;
+        }
+
+
 
         operator float & ()
         {
@@ -1916,8 +1964,12 @@ friend void im2row(std::vector<float> &submatrices_flat, const matrix &I, const 
         }
     }
 }
-    matrix & downsample(const matrix &source); // Downsample an image matrix by averaging over a 2x2 block
-    matrix & upsample(const matrix &source); // Upsample an image matrix by repeating each pixel 2x2 times
+
+//Image processing
+
+    matrix &    downsample(const matrix &source); // Downsample an image matrix by averaging over a 2x2 block
+    matrix &    upsample(const matrix &source); // Upsample an image matrix by repeating each pixel 2x2 times
+    match       search(const matrix & target,const rect & search_ractangle) const;
     };
 }
 
