@@ -2487,7 +2487,7 @@ if(classes[classname].path.empty())
             // Wait for completion
             for (auto &ts : sequences) 
                 if(!ts->waitForCompletion(5)) // Timeout after 5 seconds
-                    Notify(msg_fatal_error, "Task sequence did not complete successfully during the timeout period."); 
+                    Notify(msg_fatal_error, "Task sequence did not complete successfully within the 5 second timeout period."); 
         } 
         catch (const std::exception &e) {
             Notify(msg_fatal_error, "Error during task execution: " + std::string(e.what()));
