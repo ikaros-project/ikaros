@@ -96,6 +96,7 @@ class Nucleus: public Module
                     if(x > theta)
                     {
                         o = 1;
+                        x = 0; // reset
                         burst_end_time = GetTime() + burst_time;
                     }
 
