@@ -78,5 +78,30 @@ namespace ikaros
 		std::normal_distribution<float> dist(mean, stddev);
 		return dist(gen);
 	}
+
+
+	// Ex-Gaussian PDF (exponnorm parameterization)
+	// K = tau / sigma, mu = mean of Gaussian, sigma = std of Gaussian
+	// Optional A scales the output (default = 1.0 for a proper PDF).
+	double
+	exgaussian(double x, double K, double mu, double sigma, double A) 
+	{
+		if (sigma <= 0.0 || K <= 0.0)
+			throw std::invalid_argument("sigma and K must be > 0");
+
+		const double z = (x - mu) / sigma;
+		const double invK = 1.0 / K;
+
+		// Standard normal CDF Φ(z) = 0.5 * erfc(-z / sqrt(2))
+		auto Phi = [](double val) 
+		{
+			return 0.5 * std::erfc(-val / std::sqrt(2.0));
+		};
+
+		// f(x) = (1/(Kσ)) * exp( 1/(2K²) - (x-μ)/(Kσ) ) * Φ( (x-μ)/σ - 1/K )
+		const double expo = std::exp(0.5 * invK * invK - z * invK);
+		const double phi_arg = z - invK;
+		return A * (expo / (K * sigma)) * Phi(phi_arg);
+	}
 };
 

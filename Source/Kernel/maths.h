@@ -20,6 +20,8 @@ namespace ikaros
    	double short_angle(double a1, double a2); // in radians
 
 	float sample_normal_distribution(float mean, float stddev);
+
+	double exgaussian(double x, double K, double mu, double sigma, double A = 1.0); // Ex-Gaussian PDF (exponnorm parameterization) / K = tau / sigma, mu = mean of Gaussian, sigma = std of Gaussian
 };
 
 
