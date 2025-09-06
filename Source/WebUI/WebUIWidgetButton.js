@@ -61,6 +61,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
     button_down(evt)
     {
+        evt.stopPropagation();
         let thisbutton = this;
         let p = this.parentElement.parameters;
 
@@ -155,12 +156,15 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
     button_up(evt)
     {
+        evt.stopPropagation();
         let p = this.parentElement.parameters;
 
         if(p.type == "push")
         {
             if(p.parameter)
+            {
                 this.parentElement.send_control_change(p.parameter, p.valueUp, p.xindex, p.yindex);
+            }
             if(p.commandUp)
                 this.parentElement.send_command(p.commandUp, p.value, p.xindex, p.yindex);
         }
@@ -181,6 +185,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
         super.init();
         this.firstChild.addEventListener("mousedown", this.button_down, true);
         this.firstChild.addEventListener("mouseup", this.button_up, true);
+        this.firstChild.addEventListener('click', e => e.stopPropagation());
     }
 
     update(d)
