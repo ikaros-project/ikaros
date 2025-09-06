@@ -339,6 +339,9 @@ let dialog =
                 let opt = document.createElement('option');
                 opt.value = file;
                 opt.text = file;
+                opt.ondblclick = function() {
+                    dialog.confirmOpen();
+                };
                 sel.appendChild(opt);
             });
         }
@@ -353,8 +356,6 @@ let dialog =
 
     showSystemFileList() 
     {
-        system_file_button
-
         document.getElementById('system_file_button').classList.add("selected");
         document.getElementById('user_file_button').classList.remove("selected");
         document.getElementById('open_dialog_system_items').style.display='block';
@@ -953,6 +954,7 @@ let controller =
 
         if(package_type == "network")
         {
+            //console.log("Loading network");
             controller.open_mode = false;
             controller.clearQueue();
             controller.session_id = session_id;
