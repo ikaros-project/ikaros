@@ -126,7 +126,9 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
             slider.oninput = function () {
                 this.parentElement.parentElement.parentElement.slider_moved(this.value, this.index);
             };
-            slider.onmouseup = function () { this.is_active = false; };
+            slider.onmousedown = function (e) { this.is_active = false; e.stopPropagation(); console.log("slider down");};  
+            slider.onmouseup = function (e) { this.is_active = false; e.stopPropagation(); console.log("slider up");};
+            slider.onclick = function (e) { this.is_active = false; e.stopPropagation(); console.log("slider click");};
         }
 
     }
