@@ -2655,6 +2655,7 @@ const main =
 
     startDragComponents(evt)
     {
+        console.log("startDragComponents");
         if(evt.detail == 2) // handle double clicks elsewhere
         {
                 evt.stopPropagation();
@@ -2964,31 +2965,11 @@ const main =
         s.innerHTML += main.connections;
     },
 
-    addComponents(group, selectionList, path)
+    updateComponentStates()
     {
-        if(group == undefined)
-            return;
+    // Add object handlers for all visible elements in main view depending on mode and tyep
 
-        main.view.innerHTML = "";
-
-        for(let i of group.inputs || [])
-            main.addInput(i,path);
-
-        for(let o of group.outputs || [])
-            main.addOutput(o,path);
-
-        for(let g of group.groups || [])
-            main.addGroup(g,path);
-
-        for(let m of group.modules || [])
-            main.addModule(m,path);
-
-        for(let w of group.widgets || [])
-            main.addWidget(w,path);
-
-        main.addConnections();
-
-        // Add object handlers for all visible elements in main view depending on mode and tyep
+    selectionList = selector.selected_foreground;
 
         if(main.edit_mode)
         {
@@ -3058,48 +3039,33 @@ const main =
                     else
                         e.classList.remove("selected"); // FIXME: is this ever necessary?
                 }
-
-            // Add handlerer to outputs - pssoibly some form of inspection function hete
-                /*
-            for(let o of main.view.querySelectorAll(".o_spot"))
-                o.addEventListener('mousedown', main.startTrackConnection, false);
-         */
         }
-        /*
-         for(let e of main.view.querySelectorAll(".gi"))
-        {
-            e.addEventListener('mousedown', main.startDragComponents, false);
-            if(e.classList.contains("group"))
-                e.ondblclick = function(evt) {  
-                selector.selectItems([], this.dataset.name); // Jump into group
-            }
-            else
-                e.ondblclick = function(evt)
-            {  
-                selector.selectItems([this.dataset.name]);
-                inspector.toggleComponent();
-            }
+    },
 
-            if(selectionList.includes(e.dataset.name))
-                e.classList.add("selected")
-            else
-                e.classList.remove("selected");
-        }
-        for(let o of main.view.querySelectorAll(".o_spot"))
-            o.addEventListener('mousedown', main.startTrackConnection, false);
+    addComponents(group, selectionList, path)
+    {
+        if(group == undefined)
+            return;
 
-        for(let i of main.view.querySelectorAll(".i_spot"))
-        {
-            i.addEventListener('mouseover', main.setConnectectionTarget, true);
-            i.addEventListener('mouseleave', main.resetConnectectionTarget, true);
-        }
+        main.view.innerHTML = "";
 
-        for(let i of main.view.querySelectorAll(".widget"))
-        {
-            i.addEventListener('mouseover', main.setConnectectionTarget, true);
-            i.addEventListener('mouseleave', main.resetConnectectionTarget, true);
-        }
-        */
+        for(let i of group.inputs || [])
+            main.addInput(i,path);
+
+        for(let o of group.outputs || [])
+            main.addOutput(o,path);
+
+        for(let g of group.groups || [])
+            main.addGroup(g,path);
+
+        for(let m of group.modules || [])
+            main.addModule(m,path);
+
+        for(let w of group.widgets || [])
+            main.addWidget(w,path);
+
+        main.addConnections();
+        main.updateComponentStates();
     },
 
     cancelEditMode()
@@ -3115,6 +3081,7 @@ const main =
         main.edit_mode = true;
         controller.run_mode = 'stop';
         controller.get("stop", controller.update);
+        main.updateComponentStates();
         inspector.showInspectorForSelection();
     },
 
@@ -3123,6 +3090,7 @@ const main =
         main.main.classList.add("view_mode");
         main.main.classList.remove("edit_mode");
         main.edit_mode = false;
+        main.updateComponentStates();
         inspector.showInspectorForSelection();
     },
 

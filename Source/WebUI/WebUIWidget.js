@@ -479,6 +479,8 @@ class WebUIWidget extends HTMLElement
 
     send_control_change(parameter, value=0, index_x=0, index_y=0)
     {
+        if(main.edit_mode)
+            return;
         controller.queueCommand("control", parameter, {"x":index_x, "y":index_y, "value":value});     
     }
 
