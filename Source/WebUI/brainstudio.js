@@ -2206,6 +2206,13 @@ const selector =
         inspector.showInspectorForSelection();
     },
 
+
+    selectBackground()
+    {
+        selector.selectItems([], selector.selected_background);
+    },
+   
+   
     selectError(error)
     {
         let c = splitAtLastDot(error);
@@ -2253,6 +2260,8 @@ const main =
         main.grid = document.querySelector("#main_grid");
         main.grid_canvas = document.querySelector("#main_grid_canvas");
         main.drawGrid();
+
+        main.view.addEventListener("mousedown", (e) => {console.log('main mouse down'); e.stopPropagation(); selector.selectBackground();}, false);
     },
 
     drawGrid()
@@ -2656,6 +2665,7 @@ const main =
     startDragComponents(evt)
     {
         console.log("startDragComponents");
+        evt.stopPropagation();
         if(evt.detail == 2) // handle double clicks elsewhere
         {
                 evt.stopPropagation();
