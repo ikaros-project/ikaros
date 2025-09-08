@@ -1,0 +1,11 @@
+<group name="ImageMatching_Test" >
+
+   <module _x="48" _y="288" class="InputVideo" device_index="0" device_name="HD Webcam eMeet C950" id="2" list_devices="true" log_level="0" name="LeftEye"/>
+   <module _x="72" _y="456" class="InputVideo" device_index="1" device_name="HD Webcam eMeet C950" id="2" list_devices="true" log_level="0" name="RightEye"/>
+   <module _x="288" _y="480" class="ImageMatching" log_level="0" name="Disparity"/>
+
+   <connection source="LeftEye.INTENSITY" target="Disparity.LEFT" />
+   <connection source="RightEye.INTENSITY" target="Disparity.RIGHT" />
+
+
+</group>

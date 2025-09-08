@@ -1,0 +1,13 @@
+<class name="ImageMatching" description="claculates disaprity between two camera inputs, using a focus region in the left input to seach in the right">
+	<input name="LEFT" description="The left input" />
+	<input name="RIGHT" description="The right input" />
+	<output name="OUTPUT" description="The calculated disparity output in the range [-0.5, 0.5]" size="2" />
+
+		<output name="FOCUS" description="The focus area in the left image" size="4,4" />
+		<output name="TARGET" description="The found target area in the right image" size="4,4" />
+
+		<output name="PROFILE" description="The calculated disparity output" size="LEFT.size_x" />
+		<parameter name="focus_size" type="number" default="0.01" description="Size of focus region for disparity matching in fraction of the total (left) image height; used for both height and width." />
+		<parameter name="search_size" type="number" default="0.4" description="Heaigh of the search region in the right image as a fraction of the (right) image height." />
+</class>
+
