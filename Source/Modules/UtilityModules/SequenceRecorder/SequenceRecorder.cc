@@ -429,7 +429,7 @@ SequenceRecorder::Open(const std::string & name)
     filename = name;
     auto path = std::string(directory)+"/"+std::string(filename);
 
-    if(!check_file_exists(path.c_str()))
+    if(!check_file_exists(path.c_str())) // Remove call t check_file_exists(path.c_str())
     {
         Notify(msg_warning, "File does not exist."); // FIXME: path.c_str()
         return false;
@@ -587,7 +587,7 @@ SequenceRecorder::Init()
         right_index[c] = INT_MAX;
     }
 
-    if(!std::string(filename).empty() && check_file_exists((std::string(directory)+"/"+std::string(filename)).c_str()))
+    if(!std::string(filename).empty() && check_file_exists((std::string(directory)+"/"+std::string(filename)).c_str())) // TODO: Remove call to check_file_exists
     {
          if(!Open(std::string(filename)))
             New();
