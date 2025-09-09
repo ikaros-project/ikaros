@@ -889,7 +889,7 @@ let controller =
             }
 
             if(response.debug)
-                document.querySelector("#debug_row").style.display="block";
+                document.querySelector("#debug_row").style.display="table-row";
             else
                 document.querySelector("#debug_row").style.display="none";
 
@@ -2832,6 +2832,8 @@ const main =
          s += `<table>`;
          s += `<tr><td class='title' colspan='3'>${m.name}</td></tr>`;
 
+             s += `<tr><td  colspan='3' class='class_line'>${m.class}</td></tr>`;
+  
         for(let i of m.inputs || [])
             s += `<tr><td class='input'><div class='i_spot' id='${path}.${m.name}.${i.name}:in' onclick='alert(this.id)'></div></td ><td>${i.name}</td><td class='output'></td></tr>`;
   

@@ -81,15 +81,14 @@
             <div class="button" onclick="inspector.toggleComponent()">&#9432;</divb></div>
             <div class="button large" onclick="inspector.toggleSystem()">&#x2699;</div>
         </div>
+
     </header>
 
 	<section>
-
-
-
-
         <main id="main" class="view_mode">
+
             <div id="main_grid" >
+
 
               
 
@@ -574,12 +573,18 @@
                             <button class="transport_button" onmousedown="controller.realtime()">Realtime</button>
                         </td>
                     </tr>
+
+
                     <tr id="debug_row">
-                        <td style="color:red">DEBUG</td>
-                        <td><button   onclick="network.debug_json()" style="border:1px solid red; color:red;display:inline-bock;">JSON</button>
-                            <button style="border:1px solid red; color:red;" onclick="network.debug_dict()">dict</button>
-                            <button style="border:1px solid red; color:red;" onclick="controller.debug_data()">data</button></td>
+                        <td colspan="2"  style="text-align: center;color:red;background-color: rgb(99, 56, 56);">
+                            DEBUG
+                            <button onclick="network.debug_json()" style="display:inline;border:1px solid red; color:red;">JSON</button>
+                            <button  onclick="network.debug_dict()"style="display:inline;border:1px solid red; color:red;">dict</button>
+                            <button onclick="controller.debug_data()" style="display:inline;border:1px solid red; color:red;">data</button>
+                        </td>
                     </tr>
+
+                    
                     <tr>
                         <td>file</td><td id="file">-</td>
                     </tr>

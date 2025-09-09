@@ -146,6 +146,11 @@ header > button:first-child {
 }
 
 
+.buttonbar {
+    background-color: yellow;
+}
+
+
 .breadcrumbs {
 
 	display: flex;
@@ -687,11 +692,15 @@ div.visible.selected {
     display: block;
 }
 
-/*
+
 div.group {
 
 }
 */
+
+
+
+
 div.input {
     padding: 3px 20px 3px 0px;
     text-align: left;
@@ -1070,4 +1079,16 @@ svg *{
 .gi {
 
     border: 1px solid rgba(0, 0, 0, 0);
+}
+
+
+div.module td.class_line {
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap; 
+    width: 100%;
+    font-size:10px;
+    font-style: italic;
+    background-color: #404040;
+
 }
