@@ -1,0 +1,7 @@
+<group filename="" name="Jpeg" stop="-1" webui_port="8000">
+   <module _x="168" _y="216" class="InputJPEG" filename="../Examples/Media/grayrobot.jpg" iterations="1000" name="IN">
+      <limitation/>
+   </module>
+   <widget _index_="0" _x="360" _y="168" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="gray" frame-style="" height="433" index="" max="1" max_x="1" max_y="1" min="" min_x="0" min_y="0" module="" name="Widget_1" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="false" show_title="false" source="IN.INTENSITY" style="" title="Gray image" width="457"/>
+   <widget _index_="2" _x="144" _y="120" class="text" frame-style="" height="73" max="1" min="" name="Widget_2" parameter="" postfix="" prefix="" select="" select_source="" separator="" show_frame="false" show_title="false" source="" strings="" style="" text="Simple example file that reads an gray scaled jpeg file." title="Info" width="217"/>
+</group>
