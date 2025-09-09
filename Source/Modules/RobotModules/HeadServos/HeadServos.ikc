@@ -1,0 +1,8 @@
+<class name="HeadServos" description="Robot head ">
+ 	<parameter name="port" type="string" default="cu.usbserial-A40129WB" description="Name of usb-port used for serial communication." />
+
+	<input name="GOAL_POSITION" description="Goal position of the joints in degrees." />
+	<input name="TORQUE_ENABLE" description="Enable servos. This is an optinal input"  />
+	<output name="PRESENT_POSITION" description="Present angle of the joints in degrees." size="2" />
+</class>
+

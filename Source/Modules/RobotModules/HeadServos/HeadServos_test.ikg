@@ -1,0 +1,9 @@
+<group name="HeadTest">
+	<module name="Pos" class="Constant"  data="0, 0" />
+	<module name="Enable" class="Constant" data="1, 1" />
+	<module name="HeadServos" class="HeadServos" />
+
+	<connection source="Enable.OUTPUT" target="HeadServos.TORQUE_ENABLE" />
+	<connection source="Pos.OUTPUT" target="HeadServos.GOAL_POSITION" />
+</group>
+

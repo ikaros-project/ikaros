@@ -7,6 +7,7 @@ add_subdirectory(FadeCandy)
 add_subdirectory(ServoControlTuning)
 add_subdirectory(ServoConnector)
 
+add_subdirectory(HeadServos)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)
