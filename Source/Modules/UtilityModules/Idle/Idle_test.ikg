@@ -1,4 +1,4 @@
 <group name="IdleTest" filename="/Users/cba/ikaros-3/Source/Modules/UtilityModules/Idle/Idle_test.ikg" real_time="true" start="true" tick_duration="1">
-   <module class="Idle" description="does nothing for the specified time" duration="1"  init="20" name="Idle" />
+   <module class="Idle" description="does nothing for the specified time" duration="1"  init="5" name="Idle" />
 </group>
 
