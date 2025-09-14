@@ -36,6 +36,9 @@ using namespace std::literals;
 #include "Kernel/image_file_formats.h"
 #include "Kernel/serial.h"
 #include "Kernel/thread_pool.h"
+#include "Kernel/statistics.h"
+#include "Kernel/profiler.h"
+
 
 namespace ikaros 
 {

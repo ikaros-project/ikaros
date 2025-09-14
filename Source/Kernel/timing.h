@@ -42,7 +42,7 @@ public:
 };
 
 
-
+/*
 class Profiler : public Timer
 {
 public:
@@ -56,6 +56,7 @@ public:
     long    number_of_samples = 0;          // The number of samples
     double  accumulated_time = 0;           // Total time used (in seconds)
 };
+*/
 
 
 

@@ -190,6 +190,8 @@ Timer::GetTimeString()
 }
 
 
+
+/*
     Profiler &      
     Profiler::Reset()
     {
@@ -237,4 +239,4 @@ Timer::GetTimeString()
     }
 
 
-
+*/
