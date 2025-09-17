@@ -11,6 +11,12 @@
 class statistics 
 {
 public:
+
+    statistics()
+    {
+        std::cout << "statistics ctor" << std::endl;
+    }
+
     void reset() noexcept 
     { 
         data_.clear(); 
@@ -25,6 +31,12 @@ public:
     { 
         return data_.size(); 
     }
+
+    bool no_data() const noexcept 
+    { 
+        return data_.empty(); 
+    }
+
 
     double mean() const noexcept 
     {

@@ -283,7 +283,6 @@ public:
     void CheckRequiredInputs();
 
     void CalculateCheckSum(long & check_sum, prime & prime_number); // Calculates a value that depends on all parameters and buffer size
-
 };
 
 typedef std::function<Module *()> ModuleCreator;
@@ -314,6 +313,8 @@ public:
     double GetTimeOfDay();      // seconds since midnight
     double GetLag();
 
+    void ProfilingBegin() { profiler_.begin(); }
+    void ProfilingEnd()  { profiler_.end();  }
 };
 
 //
@@ -485,6 +486,7 @@ public:
     void ListParameters();
     void ListTasks();
     void PrintLog();
+    void PrintProfiling();
 
     // Functions for creating the network
 

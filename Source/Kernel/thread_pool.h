@@ -10,12 +10,20 @@
 #include <future>
 #include <chrono>
 
+#include "profiler.h"
+
 class Task {
 public:
     virtual void Tick() = 0;
     virtual std::string Info() = 0;
     virtual bool Priority() { return false; }
+    virtual void ProfilingBegin() {};
+    virtual void ProfilingEnd()  {};
+
+    Profiler profiler_;
 };
+
+
 
 class TaskSequence 
 {
@@ -86,7 +94,11 @@ protected:
     virtual void Tick() 
     {
         for (auto &task : tasks_)
+        {
+            task->ProfilingBegin();
             task->Tick();
+            task->ProfilingEnd();
+        }
     }
 
 private:
