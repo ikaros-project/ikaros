@@ -42,13 +42,13 @@ class KernelPlayground: public Module
 
         matrix result(image.rows()-kernel.rows()+1, image.cols()-kernel.cols()+1);
 
-        Profiler p;
+        //Profiler p;
 
         for(int i=0; i< 1; i++)
         {
-        p.Reset().Start();
+       // p.Reset().Start();
         result.corr(image, kernel);
-        p.Stop().Print("corr: ");
+        //p.Stop().Print("corr: ");
         }
         //result.print("result");
 
@@ -62,10 +62,10 @@ class KernelPlayground: public Module
         
         for(int i=0; i< 10; i++)
         {
-            p.Reset().Start();
+            //p.Reset().Start();
             im2row(submatrices_flat, image, kernel);
             result.corr3(image, kernel, kernel_flat, submatrices_flat);
-            p.Stop().Print("corr3:");
+           // p.Stop().Print("corr3:");
      }
 
 
@@ -73,19 +73,19 @@ class KernelPlayground: public Module
 
      for(int i=0; i< 10; i++)
      {
-         p.Reset().Start();
+         //p.Reset().Start();
          result2.conv(image, kernel);
          result2.fillReflect101Border(4,4);
-         p.Stop().Print("corrF:");
+         //p.Stop().Print("corrF:");
     }
 
 
     for(int i=0; i< 10; i++)
     {
-        p.Reset().Start();
+        //p.Reset().Start();
         result2.conv(image, kernel);
         //result2.fillReflect101Border(4,4);
-        p.Stop().Print("corrF:");
+       // p.Stop().Print("corrF:");
    }
 
 
