@@ -29,9 +29,6 @@ public:
     void 		
     Init()
     {
-        Profiler p;
-        p.Start();
-
         Bind(input, "INPUT");
         Bind(output, "OUTPUT");
 
@@ -55,7 +52,7 @@ public:
                             means(c, j, i, g) = input(c,i);      // Initialize mean with the current pixel value
                             variances(c, j, i, g) = initial_variance;     // Initialize variance
                         }
-        p.Stop().Print();
+
     }
 
 
