@@ -62,6 +62,8 @@ class WebUIWidgetButton extends WebUIWidgetControl
     button_down(evt)
     {
         console.log("button down");
+        if(!main.edit_mode)
+            evt.stopPropagation();
         let thisbutton = this;
         let p = this.parentElement.parameters;
 
