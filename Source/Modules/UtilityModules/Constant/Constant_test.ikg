@@ -3,7 +3,6 @@
 	<module class = "Constant" name = "Constant2" data="1, 2; 3, 4" />
 
 	<module class = "Print" name = "Print" />
-	<module class = "Logger" name = "Logger" />	
 
 	<connection  source = "Constant.OUTPUT[2][1:3]" target = "Print.INPUT" />
 </group>
