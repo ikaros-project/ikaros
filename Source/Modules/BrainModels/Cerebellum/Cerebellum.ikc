@@ -1,0 +1,14 @@
+<class name="Delta" description="A neuron model with delta function response">
+
+	<parameter name="learning_rate" type="rate" default="0.1" description="learning rate" />
+	
+	<parameter name="ISI_mean" type="number" default="0" description="optimal inter-stimulus interval (in seconds)" />
+	<parameter name="ISI_sigma" type="number" default="0" description="standard deviation of the curve (in seconds)" />
+	<parameter name="ISI_tau" type="number" default="0" description="exponential decay of the curve (in seconds)" />
+
+	<input name="INPUT" description="The  input" flatten="true" />
+	<output name="W" description="The weights" size="1"/>
+	<output name="OUTPUT" description="The output" size="1"/>
+
+</class>
+

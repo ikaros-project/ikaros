@@ -1,0 +1,4 @@
+<group name="Test">
+	<module class = "Cerebellum" name = "Cerebellum" />
+</group>
+
