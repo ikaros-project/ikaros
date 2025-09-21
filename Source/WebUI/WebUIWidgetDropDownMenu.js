@@ -27,12 +27,14 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
          return "<label></label><select></select>";
     }
 
+    /*
     requestData(data_set)   // TODO: Remove - is automatic now
     {
         data_set.add(this.parameters.parameter);
         if(this.parameters.list_parameter)
             data_set.add(this.parameters.list_parameter);
     }
+*/
 
     option_selected(index, value, text)
     {
@@ -42,6 +44,7 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             else
                 this.send_control_change(this.parameters.parameter, value);
     }
+
 
     changeOptions(options)
     {
@@ -62,20 +65,24 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
         }
     }
     
-    updateAll()
-    {
-        super.updateAll();
+updateAll() {
+    super.updateAll();
  
-        let selector = this.querySelector("select")
-        selector.onchange = function (e) {
-            this.parentElement.option_selected(this.parentElement.parameters.index, e.target.value, e.target.selectedOptions[0].innerText);
-        };
+    let selector = this.querySelector("select");
+    selector.addEventListener('change', (e) => {
+        e.preventDefault();  // Prevent default action
+        e.stopPropagation(); // Stop event bubbling
+        this.option_selected(this.parameters.index, e.target.value, e.target.selectedOptions[0].innerText);
+    }, true);  // Use capture phase
 
-         this.changeOptions(this.parameters.list);
-        
-         this.querySelector("label").innerText = this.parameters.label;
-    }
+    selector.addEventListener('mousedown', (e) => {
+        //e.preventDefault();  // Prevent default action
+        e.stopPropagation(); // Stop event bubbling
+    }, true);  // Use capture phase
 
+    this.changeOptions(this.parameters.list);
+    this.querySelector("label").innerText = this.parameters.label;
+}
     update()
     {
          try
@@ -94,7 +101,7 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
 
                 if(this.parameters.parameter_type=='number')
             {
-                selectElement.value= d[this.parameters.index][0];
+                selectElement.value= d[this.parameters.index];
                 return;
             }
 

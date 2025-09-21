@@ -2261,7 +2261,12 @@ const main =
         main.grid_canvas = document.querySelector("#main_grid_canvas");
         main.drawGrid();
 
-        main.view.addEventListener("mousedown", (e) => {console.log('main mouse down'); e.stopPropagation(); selector.selectBackground();}, false);
+        main.view.addEventListener("mousedown", (e) => {
+            console.log('main mouse down'); 
+            //e.stopPropagation(); 
+            //selector.selectBackground();
+        }, false);
+
     },
 
     drawGrid()
