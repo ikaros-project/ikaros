@@ -89,7 +89,7 @@ function replaceProperties(target, source)
 
 
     String.prototype.rsplit = function(sep, maxsplit) {
-    var split = this.split(sep || /\s+/);
+    let split = this.split(sep || /\s+/);
     return maxsplit ? [ split.slice(0, -maxsplit).join(sep) ].concat(split.slice(-maxsplit)) : split;
 }
 
@@ -228,15 +228,15 @@ function getStringAfterBracket(str)
 
 function setCookie(name,value,days=100)
 {
-    var date = new Date();
+    let date = new Date();
     date.setTime(date.getTime()+(days?days:1)*86400000);
-    var expires = "; expires="+date.toGMTString();
+    let expires = "; expires="+date.toGMTString();
     document.cookie = name+"="+value+expires+"; path=/";
 }
 
 function getCookie(name)
 {
-    var nameEQ = name + "=";
+    let nameEQ = name + "=";
     const ca = document.cookie.split(';');
     for(let i=0;i < ca.length;i++) {
         const c = ca[i];
@@ -583,13 +583,13 @@ const network =
 
     debug_json()
     {
-        var w = window.open("about:blank", "", "_blank");
+        let w = window.open("about:blank", "", "_blank");
         w.document.write('<html><body><pre>'+JSON.stringify(network.network,null,2)+ '</pre></body></html>');
     },
 
     debug_dict()
     {
-        var w = window.open("about:blank", "", "_blank");
+        let w = window.open("about:blank", "", "_blank");
         w.document.write('<html><body><h1>All components (in network.dict)</h1><pre>');
         w.document.write('<html><body><pre>');
         for(let k of Object.keys(network.dict))
@@ -684,7 +684,7 @@ let controller =
     get (url, callback)
     {
         controller.send_stamp = Date.now();
-        var last_request = url;
+        let last_request = url;
         let xhr = new XMLHttpRequest();
         //console.log("<<< controller.get: \""+url+"\"");
         xhr.open("GET", url, true);
@@ -1164,7 +1164,7 @@ let controller =
 
     debug_data()
     {
-        var w = window.open("about:blank", "", "_blank");
+        let w = window.open("about:blank", "", "_blank");
         w.document.write('<html><body><pre>'+JSON.stringify(controller.data_package,null,2)+ '</pre></body></html>');
     },
 }
@@ -1403,7 +1403,7 @@ const inspector =
 
     addMenu(name, value, opts, attribute) // SET ALSO VARIABLE AND LINK GROUP for EDITABLE
     {
-        var s = '<select name="'+name+'" oninput="this">';
+        let s = '<select name="'+name+'" oninput="this">';
         for(let j in opts)
         {
             const val= opts[j];
@@ -1510,10 +1510,10 @@ const inspector =
 
         cell1.innerText = p.name;
 
-        var opts = p.options.split(',').map(o=>o.trim());
+        let opts = p.options.split(',').map(o=>o.trim());
                         
-        var s = '<select name="'+p.name+'">';
-        for(var j in opts)
+        let s = '<select name="'+p.name+'">';
+        for(let j in opts)
         {
             let value = p.type == 'int' ? j : opts[j];
             if(opts[j] == item[p.name])
@@ -1657,10 +1657,10 @@ const inspector =
                             break;
                         
                         case 'menu':
-                            var opts = p.values.split(',').map(o=>o.trim());
+                            let opts = p.values.split(',').map(o=>o.trim());
                             
-                            var s = '<select name="'+p.name+'">';
-                            for(var j in opts)
+                            let s = '<select name="'+p.name+'">';
+                            for(let j in opts)
                             {
                                 let value = p.type == 'int' ? j : opts[j];
                                 if(opts[j] == item[p.name])
@@ -1818,10 +1818,10 @@ const inspector =
                         break;
                     
                     case 'menu':
-                        var opts = p.values.split(',').map(o=>o.trim());
+                        let opts = p.values.split(',').map(o=>o.trim());
                         
-                        var s = '<select name="'+p.name+'">';
-                        for(var j in opts)
+                        let s = '<select name="'+p.name+'">';
+                        for(let j in opts)
                         {
                             let value = p.type == 'int' ? j : opts[j];
                             if(opts[j] == item[p.name])
@@ -2196,8 +2196,6 @@ const selector =
 
     selectConnection(connection)
     {
-
-
         selector.selected_foreground = [];
         selector.selected_connection = connection;
         main.selectItem(selector.selected_foreground, selector.selected_background);
@@ -2232,7 +2230,7 @@ const selector =
 
     setLogLevel(level)
     {
-        var component = "";
+        let component = "";
         if(selector.selected_foreground.length == 1)
             component = selector.selected_foreground[0];
 
@@ -2260,13 +2258,7 @@ const main =
         main.grid = document.querySelector("#main_grid");
         main.grid_canvas = document.querySelector("#main_grid_canvas");
         main.drawGrid();
-
-        main.view.addEventListener("mousedown", (e) => {
-            console.log('main mouse down'); 
-            //e.stopPropagation(); 
-            //selector.selectBackground();
-        }, false);
-
+        main.view.addEventListener("mousedown", (e) => { console.log('main mouse down'); selector.selectBackground();}, false);
     },
 
     drawGrid()
@@ -2775,6 +2767,9 @@ const main =
             main.tracked_connection = null;
             selector.selectConnection(`${selector.selected_background}.${cleanSource}*${selector.selected_background}.${cleanTarget}`);
         }
+
+        main.view.removeEventListener('mousemove',main.moveTrackedConnection, true);
+        main.view.removeEventListener('mouseup',main.releaseTrackedConnection,true);
     },
 
     
