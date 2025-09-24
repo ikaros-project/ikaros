@@ -68,24 +68,25 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
 
         // This should only be done on change
 
-        for (let slider of this.querySelectorAll("input")) {
-            slider.min = this.parameters.min;
-            slider.max = this.parameters.max;
-            slider.step = this.parameters.step;
+        for (let slider of this.querySelectorAll("input")) 
+        {
+            slider.min = Number(this.parameters.min);
+            slider.max = Number(this.parameters.max);
+            slider.step = Number(this.parameters.step);
         }
 
         let mode = this.parameters.labels.trim() == "" ? 'none' : 'block';
         for (let label of this.querySelectorAll(".slider_label"))
             label.style.display = mode;
-
+/*
         for (let label of this.querySelectorAll(".slider_label"))
             try {
-                label.innerText = l[i++].trim();
+                label.innerText = l[i++].trim(); // FIXME: l and i are not defined
             }
             catch (err) {
                 label.innerText = "";
             }
-
+*/
         if (this.parameters.labels.trim() == "")
             for (let label of this.querySelectorAll(".slider_label")) {
                 label.style.display = 'none';
@@ -99,7 +100,8 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
                 try {
                     label.innerText = l[i++].trim();
                 }
-                catch (err) {
+                catch (err) 
+                {
                 }
             }
         }
@@ -121,15 +123,16 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
         });
 
         let i = 0;
-        for (let slider of this.querySelectorAll("input")) {
-            slider.index = i++;
-            slider.oninput = function () {
-                this.parentElement.parentElement.parentElement.slider_moved(this.value, this.index);
+        for (let slider of this.querySelectorAll("input")) 
+            {
+                slider.index = i++;
+                slider.oninput = function () {
+                    this.parentElement.parentElement.parentElement.slider_moved(this.value, this.index);
             };
             slider.onmousedown = function (e) { this.parentElement.parentElement.parentElement.is_active = false; e.stopPropagation(); console.log("slider down");};  
             slider.onmouseup = function (e) { this.parentElement.parentElement.parentElement.is_active = false; e.stopPropagation(); console.log("slider up");};
             slider.onclick = function (e) { 
-                    this.is_active = false; 
+                    this.parentElement.parentElement.parentElement.is_active = false; 
                     e.stopPropagation(); 
                     console.log("slider click");}
                 ;
