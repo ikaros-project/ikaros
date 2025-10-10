@@ -16,7 +16,7 @@
 	<parameter name="method" type="number" options="DSR,OnOff" description="method used to calculate the ambient light" default="DSR" />
 
 
-	<parameter name="use_system_time" type="bool" description="use system time instead of ikaros time (not implemented yet)" />
+	<parameter name="use_system_time" type="bool" default="fals" description="use system time instead of ikaros time (not implemented yet)" />
 
 	<parameter name="year" type="number" default="2024" description="the initial year" />
 	<parameter name="month" type="number" default="1" description="the initial month" />
