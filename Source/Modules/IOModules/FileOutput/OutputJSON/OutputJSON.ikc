@@ -1,0 +1,7 @@
+<class name="OutputJSON" description="Streams input matrix data to a JSON or JSONL file.">
+    <input name="INPUT" description="Input data matrix to be streamed." />
+    <parameter name="filename"   type="string" default="output.json"  description="Output filename." />
+    <parameter name="clear_file" type="bool"   default="true"         description="Delete existing file at startup if true." />
+    <parameter name="JSONL"      type="bool"   default="false"        description="Write JSON Lines if true; otherwise maintain a JSON array." />
+</class>
+

@@ -1,0 +1,11 @@
+<group name="OutputJSON_Test">
+    <module class="Constant" name="Constant1" data="1, 2, 3; 4, 5, 6" />
+    <module class="OutputJSON" name="JSONStream1"
+             filename="test_output"
+             clear_file="true"
+             JSONL="true" 
+    />
+
+    <connection source="Constant1.OUTPUT" target="JSONStream1.INPUT" />
+</group>
+
