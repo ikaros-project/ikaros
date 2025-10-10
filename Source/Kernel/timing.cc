@@ -74,7 +74,8 @@ GetTimeStamp()
 
 
 
-std::string GetClockTimeString()
+std::string 
+GetClockTimeString()
 {
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);
