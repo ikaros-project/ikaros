@@ -1,6 +1,0 @@
-<group name="OutputTest">
-   <module _x="480" _y="168" name="Output" class="OutputFile" decimals="2" filename="data.csv" format="csv" />
-   <module _x="130" _y="130" name="Data" class="Constant" data="1,2,3,4,5" />
-      <connection delay="1" source="Data.OUTPUT" target="Output.INPUT" alias="ABC"/>
-
-</group>
