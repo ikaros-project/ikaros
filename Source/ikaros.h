@@ -231,7 +231,7 @@ public:
 
     virtual void Command(std::string command_name, dictionary & parameters)
     {
-        std::cout << "Received command: \n";
+        std::cout << "Received command: " << command_name << "\n";
         parameters.print();
 
     } // Used to send commands and arbitrary data structures to modules
