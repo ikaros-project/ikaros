@@ -433,6 +433,8 @@ ServerSocket::GetRequest(bool block)
     if(!Poll(block))
         return false;
 	
+    body.clear();
+
  	// Loop until CRLF CRLF is found which marks the end of the HTTP request
 	
     request[0] = '\0';
