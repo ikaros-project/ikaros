@@ -14,7 +14,7 @@ public:
 
     statistics()
     {
-        std::cout << "statistics ctor" << std::endl;
+        //std::cout << "statistics ctor" << std::endl;
     }
 
     void reset() noexcept 
