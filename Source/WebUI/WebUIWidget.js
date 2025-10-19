@@ -484,8 +484,9 @@ class WebUIWidget extends HTMLElement
 
     send_command(command, value=0, index_x=0, index_y=0)
     {
-           //  this.get("/command/"+command+"/"+index_x+"/"+index_y+"/"+value);
-        controller.queueCommand("command", "", {"command":command, "x":index_x, "y":index_y, "value":value}); 
+        let path = command.substring(0, command.lastIndexOf('.'));
+        let name = command.substring(command.lastIndexOf('.') + 1);
+        controller.queueCommand("command", path, {"command":name, "x":index_x, "y":index_y, "value":value}); 
     }
 
     widget_loading(state)

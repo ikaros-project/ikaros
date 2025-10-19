@@ -3200,11 +3200,11 @@ if(classes[classname].path.empty())
     {
         try
         {
-            std::string root;
+/*            std::string root;
          
             if(request.parameters.contains("root"))
                 root= std::string(request.parameters["root"]);
-
+*/
             if(!parameters.count(request.component_path))
             {
                 Notify(msg_warning, "Parameter '"+request.component_path+"' could not be found.");
