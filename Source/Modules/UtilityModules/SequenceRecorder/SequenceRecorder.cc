@@ -681,8 +681,21 @@ public:
 
 
     void
-    Command(std::string s, float x, float y, std::string value)
+   // Command(std::string s, float x, float y, std::string value)
+    Command(std::string command_name, dictionary & parameters)
     {
+        std::string s = command_name;
+        std::string value = parameters["value"];
+
+        float x = 0;
+        float y = 0;
+
+        if(parameters.contains("x"))
+            x = parameters["x"];
+
+        if(parameters.contains("y"))
+            y = parameters["y"];
+
         std::cout << "COMMAND: " << s << std::endl;
         
         if(s == "stop")
