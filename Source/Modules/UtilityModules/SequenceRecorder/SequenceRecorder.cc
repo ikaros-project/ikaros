@@ -7,8 +7,6 @@
 
 #include <iostream>
 #include <fstream>
-
-#include <fstream>
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -361,13 +359,13 @@ public:
 
         for(int i=0; i<n; i++)
         {
-            for(int c=0; c<channels; c++)
+            for(int c=0; c<channels.as_int(); c++)
                 if(!keypoints[i]["point"][c].is_null()) // channel has data from this keypoint
                 {
                     left_link[c] = i;
                     right_output[c] = keypoints[i]["point"][c].as_float(); // candidate rightmost output
                 }
-            for(int c=0; c<channels; c++)
+            for(int c=0; c<channels.as_int(); c++)
                 keypoints[i]["link_left"][c] = left_link[c];
         }
 
@@ -375,13 +373,13 @@ public:
 
         for(int i=n-1; i>0; i--)
         {
-            for(int c=0; c<channels; c++)
+            for(int c=0; c<channels.as_int(); c++)
                 if(!keypoints[i]["point"][c].is_null()) // channel has data from this keypoint
                 {
                     right_link[c] = i;
                     left_output[c] = keypoints[i]["point"][c].as_float(); //candidate leftmost output
                 }
-            for(int c=0; c<channels; c++)
+            for(int c=0; c<channels.as_int(); c++)
                 keypoints[i]["link_right"][c] = right_link[c];
         }
     }
@@ -396,7 +394,7 @@ public:
         while(it != keypoints.end()) 
         {
             int e=0;
-            for(int c=0; c<channels; c++)
+            for(int c=0; c<channels.as_int(); c++)
                 if(!(*it)["point"][c].is_null())
                     e++;
 
@@ -417,7 +415,7 @@ public:
     StoreChannelMode()
     {
         list cm =  list();
-        for(int c=0; c<channels; c++)
+        for(int c=0; c<channels.as_int(); c++)
         {
             list modes = list();
             for(int m=0; m<4; m++)
@@ -434,7 +432,7 @@ public:
     {
         try
         {
-            for(int c=0; c<channels; c++)
+            for(int c=0; c<channels.as_int(); c++)
                 for(int m=0; m<4; m++)
                     channel_mode(c,m) = sequence_data["channel_mode"][c][m];
         }
@@ -458,7 +456,7 @@ public:
         // Create the point data array
 
         list points = list();
-        for(int c=0; c<channels; c++)
+        for(int c=0; c<channels.as_int(); c++)
             if(channel_mode[c](0) == 1) //locked
                 points.push_back(nullptr); // Do not record locked channel???
             else if(channel_mode(c,1) == 1) //play - use null to indicate nodata
@@ -489,7 +487,7 @@ public:
             float t = keypoints[i-1]["time"];
             if(qtime == t) // merge
             {
-                for(int c=0; c<channels; c++)
+                for(int c=0; c<channels.as_int(); c++)
                 if(!points[c].is_null())
                     keypoints[i-1]["point"][c] = points[c];
                 ///printf("MERGED AT %d\n", i-1);
@@ -510,7 +508,7 @@ public:
 
         if(n>0 && i==n && keypoints[n-1]["time"] == qtime)
         {
-                for(int c=0; c<channels; c++)
+                for(int c=0; c<channels.as_int(); c++)
                 if(!points[c].is_null())
                     keypoints[n-1]["point"][c] = points[c];
                 //printf("MERGED AT LAST\n");
@@ -599,9 +597,9 @@ public:
             if(start_mark_time <= t && t<=end_mark_time)
             {
                 int number_of_deleted_points = 0;
-                for(int c=0; c<channels; c++)
+                for(int c=0; c<channels.as_int(); c++)
                 {
-                    if(channel_mode[c][2] == 1) // record mode
+                    if(channel_mode(c,2) == 1) // record mode
                     {
                         sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i]["point"][c] = nullptr;
                         number_of_deleted_points++;
@@ -627,9 +625,9 @@ public:
         if(i <0 || i>=n)
             return;
 
-        for(int c=0; c<channels; c++)
+        for(int c=0; c<channels.as_int(); c++)
         {
-            if(channel_mode[c][2] == 1 || all) // record mode or all-flag set
+            if(channel_mode(c,2) == 1 || all) // record mode or all-flag set
                 keypoints[i]["point"][c] = nullptr;
         }
     }
@@ -795,7 +793,7 @@ public:
 
     if(n==0)
     {
-        for(int c=0; c<channels; c++)
+        for(int c=0; c<channels.as_int(); c++)
             target[c] = default_output[c];
         return;
     }
@@ -804,7 +802,7 @@ public:
 
     if(i == 0 || n==1)
     {
-        for(int c=0; c<channels; c++)
+        for(int c=0; c<channels.as_int(); c++)
         if(keypoints[0]["point"][c].is_null())
             target[c] = left_output[c];
         else
@@ -817,7 +815,7 @@ public:
 
     if(i > n-1)
     {
-        for(int c=0; c<channels; c++)
+        for(int c=0; c<channels.as_int(); c++)
         if(keypoints[n-1]["point"][c].is_null())
             target[c] = right_output[c];
         else
@@ -828,7 +826,7 @@ public:
 
     // Do normal interpolation
 
-    for(int c=0; c<channels; c++)
+    for(int c=0; c<channels.as_int(); c++)
     {
 
         // Process left point
@@ -883,20 +881,20 @@ public:
     void
     SetOutputForChannel(int c)
     {
-    if(channel_mode[c][0] == 1) //locked
+    if(channel_mode(c,0) == 1) //locked
     {
         // Do not change output
         active[c] = 1;
     }
 
-    else if(channel_mode[c][1] == 1) //play
+    else if(channel_mode(c,1) == 1) //play
         {
         output[c] = target[c]; // SMOOTH HERE AS WELL
         positions[c] = target[c];
         active[c] = 1;
         }   
 
-    else if(channel_mode[c][2] == 1) //record
+    else if(channel_mode(c,2) == 1) //record
         {
         output[c] = input[c];
         active[c] = 0;
@@ -904,7 +902,7 @@ public:
             active[c] = 1;
         }   
 
-    else if(channel_mode[c][3] == 1) //copy
+    else if(channel_mode(c,3) == 1) //copy
         {
             output[c] = input[c];
             active[c] = 0;
@@ -966,7 +964,7 @@ public:
     sequence_data["type"] = "Ikaros Sequence Data";
     sequence_data["channels"] = channels.as_int();
     sequence_data["ranges"] = list();
-    for(int c=0; c<channels; c++)
+    for(int c=0; c<channels.as_int(); c++)
     {
         list range = list();
         range.push_back(range_min(c));
@@ -1098,7 +1096,6 @@ public:
     Bind(current_sequence, "current_sequence");
     Bind(internal_control, "internal_control");
 
-
     Bind(default_output, "default_output");
     if(default_output.size_x() !=channels)
         Notify(msg_fatal_error,"Incorrect size for default_output; does not match number of channels.");
@@ -1106,7 +1103,7 @@ public:
     left_output.copy(default_output);
     right_output.copy(default_output);
 
-    for(int c=0; c<channels; c++)
+    for(int c=0; c<channels.as_int(); c++) // FIXME: Rremove as int where not necessary
         if(internal_control(c))
             positions(c) = default_output(c);
 
@@ -1117,7 +1114,7 @@ public:
     fs::create_directory(std::string(directory)); // Only works if not a path // FIXME: make recursive later
 
     Bind(trig, "TRIG");
-    trig_last = matrix(trig.size());
+    //trig_last = matrix(trig.size()); // Set in first assignment
 
     Bind(playing, "PLAYING");
     Bind(completed, "COMPLETED");
@@ -1130,7 +1127,7 @@ public:
 
 
     /* TEMPORARY
-    for(int c=0; c<channels; c++)
+    for(int c=0; c<channels.as_int(); c++)
     {
         //set_one_row(channel_mode, 3, c, 4, channels); //  ************ FIXME: default size for matrix parameter **************
         channel_mode[c].reset();
@@ -1189,25 +1186,25 @@ public:
     void
     Tick()
     {
-    //     long tl = GetTickDuration();
-    //     playing.reset();
-    //     completed.reset();
+         long tl = GetTickDuration();
+         playing.reset();
+         completed.reset();
 
-    //     // Check trig input
+         // Check trig input
 
-    //     for(int s=0; s<trig.size(); s++)
-    //         if(trig[s] > 0 && trig_last[s] == 0) // Trig on rising edge
-    //             Trig(s);
-    //         trig_last.copy(trig);
+         for(int s=0; s<trig.size(); s++)
+             if(trig[s] > 0 && trig_last[s] == 0) // Trig on rising edge
+                 Trig(s);
+             trig_last.copy(trig);
 
-    //     float t = timer.GetTime();
+         float t = timer.GetTime();
 
 
-    //     if(start_record) // timer start at tick to increase probability of overlapping keypoint when starting at a keypoint
-    //     {                // FIXME: May want to jump to closest keypoint if dense recording is used
-    //         timer.Continue();
-    //         start_record = false;
-    //     }
+         if(start_record) // timer start at tick to increase probability of overlapping keypoint when starting at a keypoint
+         {                // FIXME: May want to jump to closest keypoint if dense recording is used
+             timer.Continue();
+             start_record = false;
+         }
 
 
 
@@ -1215,39 +1212,39 @@ public:
 
     //     // Check if position has been changed from WebUI - should use command in the future
 
-    //     if(position != last_position) 
-    //     {
-    //             Pause();
-    //             float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-    //             timer.SetTime(position*end_time);
-    //             last_position = position;
-    //     }
+         if(position != last_position) 
+         {
+                 Pause();
+                 float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
+                 timer.SetTime(position*end_time);
+                last_position = position;
+    }
 
     //     // Set position
 
-    //     float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-    //     position = end_time? t/end_time : 0;
-    //     last_position = position;
+         float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
+         position = end_time? t/end_time : 0;
+         last_position = position;
 
     //     // Set inputs from parameters for internal channels
 
-    //     for(int c=0; c<channels; c++)
-    //         if(internal_control[c])
-    //             input[c] = positions[c];
+         for(int c=0; c<channels.as_int(); c++)
+             if(internal_control[c])
+                 input[c] = positions[c];
 
-    //     if(state[1]) // handle play mode
-    //     {
-    //         set_one(playing, current_sequence, max_sequences);
-    //         if(loop && t >= float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])) // loop
-    //         {
-    //             timer.SetTime(float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]));
-    //         }
-    //         else if(position >= 1 || end_time == 0)
-    //         {   
-    //             timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
-    //             set_one(completed, current_sequence, max_sequences);
-    //             Pause();
-    //     }   }
+         if(state[1]) // handle play mode
+         {
+             set_one(playing, current_sequence, max_sequences);
+             if(loop && t >= float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])) // loop
+             {
+                 timer.SetTime(float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]));
+             }
+             else if(position >= 1 || end_time == 0)
+             {   
+                 timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
+                 set_one(completed, current_sequence, max_sequences);
+                 Pause();
+         }   }
 
     //     else if(state[2]) // handle record mode
     //     {
@@ -1255,14 +1252,14 @@ public:
     //             sequence_data["sequences"][current_sequence.as_int()]["end_time"] = t;
     //     }
 
-    //     // Set outputs
+         // Set outputs
 
-    //     GoToTime(t);
+         GoToTime(t);
 
     //     // FIXME: Add smoothing here
 
-    //     for(int c=0; c<channels; c++)
-    //         SetOutputForChannel(c);
+         for(int c=0; c<channels.as_int(); c++)
+             SetOutputForChannel(c);
 
     //     // AddPoints if in recording mode
 
@@ -1273,25 +1270,25 @@ public:
     //         AddKeypoint(t);
     //     }
 
-    // // Set position again
+    // Set position again
 
-    //     end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-    //     position = end_time? t/end_time : 0;
-    //     last_position = position;
+         end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
+         position = end_time? t/end_time : 0;
+         last_position = position;
 
-    //     time_string = make_timestamp(t); // timer.GetTime()
-    //     end_time_string  = make_timestamp(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
+         time_string = make_timestamp(t); // timer.GetTime()
+         end_time_string  = make_timestamp(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
 
-    //     if(float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]) != 0)
-    //     {
-    //         mark_start = float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
-    //         mark_end = float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]);}
+         if(float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]) != 0)
+         {
+             mark_start = float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
+             mark_end = float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])/float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]);}
 
     //     // Set positions parameter for externally controlled channels
 
-    //     for(int c=0; c<channels; c++)
-    //             if(internal_control[c] == 0)
-    //                 positions[c] = output[c];
+         for(int c=0; c<channels.as_int(); c++)
+                 if(internal_control[c] == 0)
+                     positions[c] = output[c];
     }
 
 
@@ -1328,7 +1325,7 @@ public:
     matrix          output;
     matrix          active;
 
-    parameter       start_record;
+    bool            start_record;
     parameter       current_sequence;
     parameter       sequence_names;
     parameter       file_names;
