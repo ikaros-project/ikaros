@@ -458,15 +458,15 @@ public:
         list points = list();
         for(int c=0; c<channels.as_int(); c++)
             if(channel_mode[c](0) == 1) //locked
-                points.push_back(nullptr); // Do not record locked channel???
+                points.push_back(null()); // Do not record locked channel???
             else if(channel_mode(c,1) == 1) //play - use null to indicate nodata
-                points.push_back(nullptr); // was target[c]
+                points.push_back(null()); // was target[c]
             else if(channel_mode(c,2) == 1) //record - store current input (or sliders)
                 points.push_back(input(c));
             else if(channel_mode(c,3) == 1) //copy - do not record this channel but use null
-                points.push_back(nullptr);
+                points.push_back(null());
             else // default
-                points.push_back(nullptr);
+                points.push_back(null());
 
         int i = find_index_for_time(keypoints, qtime);
         if(n>0 && i<n)
@@ -601,7 +601,7 @@ public:
                 {
                     if(channel_mode(c,2) == 1) // record mode
                     {
-                        sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i]["point"][c] = nullptr;
+                        sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i]["point"][c] = null();
                         number_of_deleted_points++;
                     }
                 }
@@ -628,7 +628,7 @@ public:
         for(int c=0; c<channels.as_int(); c++)
         {
             if(channel_mode(c,2) == 1 || all) // record mode or all-flag set
-                keypoints[i]["point"][c] = nullptr;
+                keypoints[i]["point"][c] = null();
         }
     }
 
@@ -1040,7 +1040,14 @@ public:
     StoreChannelMode();
 
     std::ofstream file(path);
-    file << std::setw(4) << sequence_data << std::endl;  
+
+        if (!file.is_open())
+        {
+            Notify(msg_warning, "Could not open file for writing: " + path);
+            return;
+        }
+
+    file << sequence_data.json() << std::endl;  
 
     if(std::string(file_names).find(std::string(filename)) == std::string::npos) // ***************** CONTAINS
         file_names = std::string(file_names) + ","+std::string(filename);
@@ -1182,7 +1189,6 @@ public:
 
 
 
-
     void
     Tick()
     {
@@ -1246,11 +1252,11 @@ public:
                  Pause();
          }   }
 
-    //     else if(state[2]) // handle record mode
-    //     {
-    //         if(position >= 1 || end_time == 0) // extend recoding if at end
-    //             sequence_data["sequences"][current_sequence.as_int()]["end_time"] = t;
-    //     }
+         else if(state[2]) // handle record mode
+         {
+             if(position >= 1 || end_time == 0) // extend recoding if at end
+                 sequence_data["sequences"][current_sequence.as_int()]["end_time"] = t;
+         }
 
          // Set outputs
 
@@ -1263,12 +1269,12 @@ public:
 
     //     // AddPoints if in recording mode
 
-    //     if(state[2] == 1) // record mode
-    //     {
-    //         DeleteKeypointsInRange(quantize(last_record_position, tl), quantize(t, tl));
-    //         last_record_position = t;
-    //         AddKeypoint(t);
-    //     }
+         if(state[2] == 1) // record mode
+         {
+             DeleteKeypointsInRange(quantize(last_record_position, tl), quantize(t, tl));
+             last_record_position = t;
+             AddKeypoint(t);
+         }
 
     // Set position again
 
