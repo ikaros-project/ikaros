@@ -1066,19 +1066,19 @@
       <widget class="rectangle" frame_width="1" height="231" show_frame="true" show_title="false"
          style="background-color:#ddd;" title="Head" width="501" _x="0" _y="420" _index_="8"
          name="Head" />
-      <widget class="button" command="SR.stop" height="31" icon="stop.png" label="Button"
+      <widget class="button" command="SR.stop" height="31" icon="images/stop.png" label="Button"
          parameter="SR.state" radioGroup="control" show_frame="false" show_title="false"
          title="Title" type="radio" value="1" valueUp="0" width="81" _x="240" xindex="0" _y="55"
          yindex="0" _index_="9" name="btn_stop" />
-      <widget class="button" command="SR.play" height="31" icon="play.png" label="Button"
+      <widget class="button" command="SR.play" height="31" icon="images/play.png" label="Button"
          parameter="SR.state" radioGroup="control" show_frame="false" show_title="false"
          title="Title" type="radio" value="1" valueUp="0" width="71" _x="320" xindex="1" _y="55"
          yindex="0" _index_="10" name="btn_play" />
-      <widget class="button" command="SR.record" height="31" icon="record.png" label="Button"
+      <widget class="button" command="SR.record" height="31" icon="images/record.png" label="Button"
          parameter="SR.state" radioGroup="control" show_frame="false" show_title="false"
          title="Title" type="radio" value="1" valueUp="0" width="61" _x="450" xindex="2" _y="55"
          yindex="0" _index_="11" name="btn_record" />
-      <widget class="button" command="SR.pause" height="31" icon="pause.png" label="Button"
+      <widget class="button" command="SR.pause" height="31" icon="images/pause.png" label="Button"
          parameter="SR.state" radioGroup="control" show_frame="false" show_title="false"
          title="Title" type="radio" value="1" valueUp="0" width="61" _x="390" xindex="3" _y="55"
          yindex="0" _index_="12" name="btn_pause" />
@@ -1089,24 +1089,24 @@
          parameter="SR.position" select="0" show_frame="false" show_title="false"
          show_values="false" step="0.00001" title="Sliders" width="531" _x="510" _y="700"
          _index_="14" name="slider_position" />
-      <widget class="button" command="SR.skip_start" height="31" icon="skip_start.png"
+      <widget class="button" command="SR.skip_start" height="31" icon="images/skip_start.png"
          label="Button" radioGroup="control" show_frame="false" show_title="false" title="Title"
          type="push" value="1" valueUp="0" width="61" _x="120" xindex="4" _y="55" yindex="0"
          _index_="15" name="btn_skip_start" />
-      <widget class="button" command="SR.skip_end" height="31" icon="skip_end.png" label="Button"
+      <widget class="button" command="SR.skip_end" height="31" icon="images/skip_end.png" label="Button"
          radioGroup="control" show_frame="false" show_title="false" title="Title" type="push"
          value="1" valueUp="0" width="51" _x="570" xindex="5" _y="55" yindex="0" _index_="16"
          name="btn_skip_end" />
-      <widget class="button" command="SR.step_forward" height="31" icon="step_forward.png"
+      <widget class="button" command="SR.step_forward" height="31" icon="images/step_forward.png"
          label="Button" radioGroup="control" show_frame="false" show_title="false" title="Title"
          type="push" value="1" valueUp="0" width="61" _x="510" xindex="7" _y="55" yindex="0"
          _index_="17" name="btn_step_forward" />
       <widget class="button" parameter="SR.loop" height="31" show_frame="false" show_title="false"
          title="Title" type="toggle" value="1" valueUp="0" width="51" _x="615" xindex="0" _y="55"
          yindex="0" _index_="19" name="btn_loop" />
-      <widget class="button" command="SR.set_end_mark" height="31" label="]" show_frame="false"
-         show_title="false" title="Title" type="push" value="1" valueUp="0" width="51" _x="1110"
-         xindex="0" _y="55" yindex="0" _index_="21" name="btn_set_end_mark" />
+
+    <widget class="button" command="SR.set_start_mark" height="31" label="[" show_frame="false" show_title="false" title="Title" type="push" value="1" valueUp="0" width="51" _x="1060" xindex="0" _y="55" yindex="0" _index_="21" name="btn_set_start_mark"/>
+    <widget class="button" command="SR.set_end_mark" height="31" label="]" show_frame="false" show_title="false" title="Title" type="push" value="1" valueUp="0" width="51" _x="1110" xindex="0" _y="55" yindex="0"  name="btn_set_end_mark"/>
       <widget class="button" command="SR.crop" height="31" label="crop" playhead="SR.playhead"
          show_frame="false" show_title="false" title="Title" type="push" value="1" valueUp="0"
          width="51" _x="1175" xindex="0" _y="55" yindex="0" _index_="22" name="btn_crop" />
@@ -1569,7 +1569,7 @@
          list_parameter="SR.sequence_names" parameter="SR.current_sequence" show_frame="false"
          show_title="false" title="Menu" width="311" _x="1010" _y="15" _index_="124"
          name="menu_sequence" />
-      <widget class="button" background="blue" color="red" height="31" label="__LOCK__"
+      <widget class="button" height="31" label="__LOCK__"
          multiGroup="multi_group_head" show_frame="false" show_title="false" title="Hold Mode"
          type="multi" value="1" valueUp="0" width="31" _x="10" xindex="0" _y="425" yindex="0"
          _index_="125" name="btn_multi_head_hold" />
@@ -1665,10 +1665,7 @@
          name="Full Epi parameters" />
       <widget class="text" _x="405" _y="20" height="26" width="601" title="Default Title"
          parameter="SR.filename" _index_="152" name="text_filename" />
-      <widget class="button" height="31" label="__LOCK__" multiGroup="multi_group_left_arm"
-         show_frame="false" show_title="false" title="Hold Mode" type="multi" value="1" valueUp="0"
-         width="31" _x="720" xindex="0" _y="730" yindex="0" _index_="126"
-         name="btn_multi_left_arm_hold" />
+
 
 
       <widget class="slider-horizontal" count="1" frame-style="" height="31" labels="Eyes (r)"
