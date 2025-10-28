@@ -139,6 +139,7 @@ namespace ikaros
         value(bool v)               { value_ = v; }
         value(double v)             { value_ = v; }
         value(null n=null())        { value_ = null(); }
+        //value(std::nullptr_t n)     { value_ = null(); } // FIXME: This messses with the thread pool for some reason
         value(const char * s)       { value_ = s; }
         value(const std::string & s){ value_ = s; }
         value(const list & v)       { value_ = v; }
