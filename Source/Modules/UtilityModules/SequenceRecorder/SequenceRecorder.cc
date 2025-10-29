@@ -215,12 +215,12 @@ public:
     {
         timer.Pause(); // FIXME: Possible error
         set_one(state, 3, states);// Pause
-        if(timer.GetTime() <= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
-            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["start_time"]);
-        else if(timer.GetTime() <= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
-            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]);
+        if((1000*timer.GetTime()) <= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
+            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["start_time"]/1000.0);
+        else if((1000*timer.GetTime()) <= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
+            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]/1000.0);
         else
-            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]);
+            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]/1000.0);
     }
 
 
@@ -230,12 +230,12 @@ public:
     {
         timer.Pause();
         set_one(state, 3, states);
-        if(timer.GetTime() >= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
-            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
-        else if(timer.GetTime() >= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
-            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]);
+        if((1000*timer.GetTime()) >= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
+            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]/1000.0);
+        else if((1000*timer.GetTime()) >= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
+            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]/1000.0);
         else
-            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]);
+            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]/1000.0);
     }
 
 
@@ -243,7 +243,7 @@ public:
     void
     SetStartMark()
     {
-        sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = timer.GetTime();
+        sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = (1000*timer.GetTime());
     }
 
 
@@ -251,7 +251,7 @@ public:
     void
     SetEndMark()
     {
-        sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = timer.GetTime();
+        sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = (1000*timer.GetTime());
 
     }
 
@@ -260,7 +260,7 @@ public:
     void
     GoToPreviousKeypoint()
     {
-        float t = timer.GetTime();
+        float t = (1000*timer.GetTime());
         auto & keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
         int i = find_index_for_time(keypoints, t);
         if(i > 0)
@@ -279,14 +279,14 @@ public:
     void
     GoToNextKeypoint()
     {
-        float t = timer.GetTime();
+        float t = (1000*timer.GetTime());
         auto & keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
         int n = keypoints.size();
         int i = find_index_for_time(keypoints, t);
         if(i < n)
         {
             float kpt = sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i]["time"];
-            timer.SetTime(kpt);
+            timer.SetTime(kpt/1000.0);
             float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
             position = end_time? kpt/end_time : 0; //Fix me: use set time function
         }
@@ -437,8 +437,8 @@ public:
         list keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
         int n = keypoints.size();
 
-        float qtime = quantize(time, GetTickDuration());
-        ///printf(">>> add: %f => %f\n", time, qtime);
+        float qtime = quantize(time, 1000*GetTickDuration()); // Scaled to ms; FIXME: use seconds and nominal time if possible later
+        printf(">>> add: %f => %f\n", time, qtime);
 
         // Create the point data array
 
@@ -702,12 +702,12 @@ public:
             ReduceTime();
         else if (s == "add_keypoint")
         {
-            AddKeypoint(timer.GetTime());
+            AddKeypoint((1000*timer.GetTime()));
             LinkKeypoints();
         }
         else if(s == "delete_keypoint")
         {
-            DeleteKeypoint(timer.GetTime());
+            DeleteKeypoint((1000*timer.GetTime()));
             DeleteEmptyKeypoints();
             LinkKeypoints();
             // Cleanup
@@ -998,16 +998,16 @@ public:
     void        
     Save(const std::string &  name)
     {   
-    if(ends_with(name, ".json"))
-        filename = name;
-    else    
-        filename = name + ".json";
-    auto path = std::string(directory)+"/"+std::string(filename);
+        if(ends_with(name, ".json"))
+            filename = name;
+        else    
+            filename = name + ".json";
+        auto path = std::string(directory)+"/"+std::string(filename);
 
-    LinkKeypoints(); // FIXME: maybe not necessary here
-    StoreChannelMode();
+        LinkKeypoints(); // FIXME: maybe not necessary here
+        StoreChannelMode();
 
-    std::ofstream file(path);
+        std::ofstream file(path);
 
         if (!file.is_open())
         {
@@ -1158,24 +1158,24 @@ public:
     void
     Tick()
     {
-         long tl = GetTickDuration();
-         playing.reset();
-         completed.reset();
+        long tl = GetTickDuration();
+        playing.reset();
+        completed.reset();
 
-         // Check trig input
+        // Check trig input
 
-         for(int s=0; s<trig.size(); s++)
-             if(trig[s] > 0 && trig_last[s] == 0) // Trig on rising edge
-                 Trig(s);
+        for(int s=0; s<trig.size(); s++)
+            if(trig[s] > 0 && trig_last[s] == 0) // Trig on rising edge
+                Trig(s);
 
         trig_last.copy(trig);
-         float t = timer.GetTime();
+        float t = (1000*timer.GetTime());
 
-         if(start_record) // timer start at tick to increase probability of overlapping keypoint when starting at a keypoint
-         {                // FIXME: May want to jump to closest keypoint if dense recording is used
-             timer.Continue();
-             start_record = false;
-         }
+        if(start_record) // timer start at tick to increase probability of overlapping keypoint when starting at a keypoint
+        {                // FIXME: May want to jump to closest keypoint if dense recording is used
+            timer.Continue();
+            start_record = false;
+        }
 
     //     // Set initial position if not set already - this is used as output when no data is available
 
@@ -1185,7 +1185,7 @@ public:
          {
                  Pause();
                  float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-                 timer.SetTime(position*end_time);
+                 timer.SetTime(position*end_time/1000.0);
                 last_position = position;
         }
 
@@ -1210,7 +1210,7 @@ public:
              }
              else if(position >= 1 || end_time == 0)
              {   
-                 timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
+                 timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]/1000.0);
                  set_one(completed, current_sequence, max_sequences);
                  Pause();
          }   }
