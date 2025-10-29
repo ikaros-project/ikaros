@@ -72,6 +72,18 @@
 
 
 
+        <dialog id="list_select_dialog">
+        <p id="listSelectDialogTitle"></p>
+        <select size="14" id="listSelectDialogItems" style="width:100%">
+            </select>
+        <menu>
+            <button  onclick="dialog.cancelListSelect()">Cancel</button>
+            <button onclick="dialog.confirmListSelect()">Select</button>
+        </menu>
+    </dialog>
+      
+
+
 	<header style="display:none">
         <div  class="breadcrumbs" id="breadcrumbs">
             <div class="button" onclick="nav.toggle()" id="nav">&#8801;</div>

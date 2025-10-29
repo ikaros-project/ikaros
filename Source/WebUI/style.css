@@ -129,6 +129,59 @@ dialog::backdrop {
   }
 
 
+
+
+   #list_select_dialog {
+      margin:auto;
+      background-color:#fff;
+      width:500px; 
+      padding:20px 0  0 0;
+      border:1px solid #bbb;
+      border-radius:12px;
+      box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  }
+
+ 
+
+  #list_select_dialog p {
+      font-family:Arial;
+      font-size:10pt;
+      padding:10px 20px 20px 20px;
+  }
+  
+  #list_select_dialog .button {
+      height:26px;
+      width:80px;
+      font-size:12px;
+      padding: 8px;
+    cursor: pointer;
+  }
+  
+  #list_select_dialog menu {
+      text-align:right;
+      padding-right:20px;
+      padding-top: 20px;
+      height:60px;
+  }
+  
+  #list_select_dialog select {
+  overflow: hidden;
+      outline: none;
+      font-size:14px;
+      padding: 10px 10px 0px 10px;
+  }
+  
+  #list_select_dialog select option:nth-child(odd) { 
+  background: #efefef; 
+  }
+
+  #list_select_dialog .button.selected {
+    border: 2px solid black;
+  }
+
+
+
+
 body {
     display: flex;
     flex-direction: column;

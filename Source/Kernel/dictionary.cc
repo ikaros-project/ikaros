@@ -6,6 +6,7 @@
 
 #include <cctype>
 #include <stdexcept>
+#include <fstream>
 
 using namespace ikaros;
 namespace ikaros 
@@ -303,6 +304,18 @@ namespace ikaros
     dictionary::dictionary(std::string filename):
         dictionary(XMLDocument(filename.c_str()).xml)
     {
+    }
+
+
+    void
+    dictionary::load_json(std::string filename)
+    {
+        std::ifstream file(filename);
+        if (!file)
+            throw("Error: could not open file.");
+
+        std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        parse_json(content);
     }
 
 

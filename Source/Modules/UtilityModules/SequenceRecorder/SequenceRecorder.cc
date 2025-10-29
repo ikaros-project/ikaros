@@ -57,13 +57,11 @@ make_timestamp(float t)
 }
 
 
-
 static inline float
 quantize(double time, long q)
 {
     return q*(int(time+q/2)/q);
 }
-
 
 
 float
@@ -72,7 +70,6 @@ interpolate(float t, float t1, float t2, float p1, float p2) // linear interpola
     float alpha = (t-t1) / (t2-t1);
     return p1 + alpha*(p2-p1);
 }
-
 
 
 static int
@@ -101,7 +98,6 @@ find_index_for_time(list keypoints, float t)
 
     return low;
 }
-
 
 
 class SequenceRecorder: public Module
@@ -163,10 +159,6 @@ public:
     */
 
 
-
-
-
-
     void
     StartRecord()
     {
@@ -185,7 +177,6 @@ public:
         if(was_recoding)
             LinkKeypoints(); // at end of recording
     }
-
 
 
     void
@@ -385,7 +376,6 @@ public:
     }
 
 
-
     void
     DeleteEmptyKeypoints()
     {
@@ -410,7 +400,6 @@ public:
     }
 
 
-
     void
     StoreChannelMode()
     {
@@ -424,7 +413,6 @@ public:
         }
         sequence_data["channel_mode"] = cm;
     }
-
 
 
     void
@@ -441,7 +429,6 @@ public:
             return; // ignore error
         }
     }
-
 
 
     void
@@ -525,7 +512,6 @@ public:
     }
 
 
-
     void
     ClearSequence()
     {
@@ -535,7 +521,6 @@ public:
         sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = 1000;
         sequence_data["sequences"][current_sequence.as_int()]["end_time"] = 1000;
     }
-
 
 
     void
@@ -570,7 +555,6 @@ public:
     }
 
 
-
     void
     DeleteKeypoint(double time)
     {
@@ -582,7 +566,6 @@ public:
         if(abs(t-time) < GetTickDuration()/2)
             ClearKeypointAtIndex(i);
     }
-
 
 
     void
@@ -615,7 +598,6 @@ public:
     }
 
 
-
     void
     ClearKeypointAtIndex(int i, bool all=false)
     {
@@ -631,7 +613,6 @@ public:
                 keypoints[i]["point"][c] = null();
         }
     }
-
 
 
     void
@@ -659,7 +640,6 @@ public:
             ClearKeypointAtIndex(i);
             // printf("--- Deleting: %d", i);
     }
-
 
 
     void
@@ -756,7 +736,6 @@ public:
     }
 
 
-
     std::string
     GetJSONData(const std::string & name, const std::string & tab)
     {
@@ -777,9 +756,6 @@ public:
         else
             return "";
     }
-
-
-
 
 
     void
@@ -877,7 +853,6 @@ public:
     }
 
 
-
     void
     SetOutputForChannel(int c)
     {
@@ -912,7 +887,6 @@ public:
     }
 
 
-
     void
     Rename(const std::string & new_name)
     {
@@ -921,21 +895,19 @@ public:
     }
 
 
-
     void
     UpdateSequenceNames()
     {
-    sequence_names = "";
-    std::string sep = "";
+        sequence_names = "";
+        std::string sep = "";
 
-    for(auto s : sequence_data["sequences"])
-    {
-        std::string name = s["name"];
-        sequence_names = std::string(sequence_names) + sep + name;
-        sep = ",";
+        for(auto s : sequence_data["sequences"])
+        {
+            std::string name = s["name"];
+            sequence_names = std::string(sequence_names) + sep + name;
+            sep = ",";
+        }
     }
-    }
-
 
 
     static dictionary create_sequence(int index)
@@ -951,9 +923,6 @@ public:
 
     return sq;
     }
-
-
-
 
 
     void
@@ -981,7 +950,6 @@ public:
     }
 
 
-
     bool
     Open(const std::string & name)
     {
@@ -999,7 +967,8 @@ public:
 
     try
     {
-        dictionary data(path);
+        dictionary data;
+        data.load_json(path);
 
         // Validate
 
@@ -1024,7 +993,6 @@ public:
     }
     return true;
     }
-
 
 
     void        
@@ -1052,7 +1020,6 @@ public:
     if(std::string(file_names).find(std::string(filename)) == std::string::npos) // ***************** CONTAINS
         file_names = std::string(file_names) + ","+std::string(filename);
     }
-
 
 
     void
@@ -1141,11 +1108,12 @@ public:
         channel_mode[c](3) = 1;
     }
     */
-
+    /*
     left_time = matrix(channels.as_int());
     right_time = matrix(channels.as_int());
     left_position = matrix(channels.as_int());
     right_position = matrix(channels.as_int());
+    */
     left_index = matrix(channels.as_int());
     right_index = matrix(channels.as_int());
 
@@ -1165,10 +1133,10 @@ public:
 
     // Get files in directory
 
-        std::string fsep = "";
-        for(auto& p: fs::directory_iterator(std::string(directory))) // was recursive_directory_iterator
-    {   auto pp = p.path();
-        if(pp.extension() == ".json")
+    std::string fsep = "";
+    for(auto& p: fs::directory_iterator(std::string(directory))) // was recursive_directory_iterator
+{   auto pp = p.path();
+    if(pp.extension() == ".json")
         {
             file_names = std::string(file_names) + fsep + std::string(pp.filename());
             fsep = ",";
@@ -1187,8 +1155,6 @@ public:
     */
 
 
-
-
     void
     Tick()
     {
@@ -1201,18 +1167,15 @@ public:
          for(int s=0; s<trig.size(); s++)
              if(trig[s] > 0 && trig_last[s] == 0) // Trig on rising edge
                  Trig(s);
-             trig_last.copy(trig);
 
+        trig_last.copy(trig);
          float t = timer.GetTime();
-
 
          if(start_record) // timer start at tick to increase probability of overlapping keypoint when starting at a keypoint
          {                // FIXME: May want to jump to closest keypoint if dense recording is used
              timer.Continue();
              start_record = false;
          }
-
-
 
     //     // Set initial position if not set already - this is used as output when no data is available
 
@@ -1224,7 +1187,7 @@ public:
                  float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
                  timer.SetTime(position*end_time);
                 last_position = position;
-    }
+        }
 
     //     // Set position
 
@@ -1297,9 +1260,6 @@ public:
                      positions[c] = output[c];
     }
 
-
-
-
     // Current state
 
     parameter       channels;
@@ -1339,33 +1299,35 @@ public:
 
     // Control  variables
 
-    int             states = 8;
-    int             modes = 4;
+    int         states = 8;
+    int         modes = 4;
 
     matrix      state; // state of the head controller buttons
     matrix      channel_mode;
     parameter   loop;
     parameter   shuffle;
 
+    /*
     matrix      left_time;
     matrix      right_time;
     matrix      left_position;
     matrix      right_position;
+    */
     matrix       left_index;
     matrix       right_index;
 
-    float           last_time;
-    float           last_index;
+    float       last_time;
+    float       last_index;
 
-    Timer           timer;
-    parameter       position;
+    Timer       timer;
+    parameter   position;
     float       last_record_position;
     float       last_position; // to see if the value has been changed by WebUI
-    parameter       mark_start;
-    parameter       mark_end;
+    parameter   mark_start;
+    parameter   mark_end;
 
-    parameter directory;
-    parameter filename;
+    parameter   directory;
+    parameter   filename;
 
     int         untitled_count;
     parameter   time_string;
@@ -1373,10 +1335,7 @@ public:
 
     void        SetOutputForTime(float t); // time in ms
 
-    /*
-    int         smoothing_time; // for torque and position
-    */
-
+   //  int smoothing_time; // for torque and position
 };
 
 INSTALL_CLASS(SequenceRecorder)

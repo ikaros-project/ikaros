@@ -369,6 +369,43 @@ let dialog =
         document.getElementById('user_file_button').classList.add("selected");
         document.getElementById('open_dialog_system_items').style.display='none';
         document.getElementById('open_dialog_user_items').style.display='block';
+    },
+
+    // OLD DIALOG CODE BELOW
+
+    confirmListSelect()
+    {
+        let sel = document.getElementById("listSelectDialogItems");
+        let text= sel.options[sel.selectedIndex].text;
+        dialog.window.close(text);
+            if(dialog.callback)
+                dialog.callback(text);
+    },
+
+    cancelListSelect()
+    {
+        dialog.window.close(null);
+    },
+
+    showListSelectDialog(list, callback, message)
+    {
+        dialog.callback = callback;
+        dialog.window = document.getElementById('list_select_dialog');
+        let sel = document.getElementById('listSelectDialogItems');
+        sel.innerHTML = '';
+        if(list)
+            for(i of list.split(",")) // FIXME: Remove blank space
+            {
+                var opt = document.createElement('option');
+                opt.value = i;
+                opt.innerHTML = i;
+                document.getElementById('listSelectDialogItems').appendChild(opt);
+            }
+            if(message)
+            {
+                document.getElementById('listSelectDialogTitle').innerText = message;
+            }
+        dialog.window.showModal();
     }
 };
 

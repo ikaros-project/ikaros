@@ -141,12 +141,18 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
             else if(p.type=="open")
             {
+                if(main.edit_mode)
+                    return; // TEMPORARY
+
                 let callback = function (selected_item)
                 {
                     thisbutton.parentElement.send_command(p.command, selected_item, p.xindex, p.yindex);
                 }
 
-                dialog.showOpenDialog(this.file_names, callback, p.title);
+                if(this.file_names)
+                    dialog.showListSelectDialog(this.file_names, callback, p.title);
+                else
+                    dialog.showListSelectDialog("", callback, p.title);
             }
     }
 
