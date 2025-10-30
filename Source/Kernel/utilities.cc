@@ -610,9 +610,9 @@ base64_encode(const unsigned char * data,
                 case '\r': escaped += "\\r"; break;
                 case '\t': escaped += "\\t"; break;
                 default:
-                    if (c < 0x20 || c > 0x7E)
-                        escaped += "\\u" + to_hex(c);
-                    else
+                    //if (c < 0x20 || c > 0x7E)
+                    //    escaped += "\\u" + to_hex(c);
+                    //else
                         escaped += c;
             }
         }
