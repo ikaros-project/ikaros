@@ -2888,7 +2888,7 @@ if(classes[classname].path.empty())
         std::string sep = "";
         bool sent = false;
 
-        while(!data.empty()) // FIXME: CHeck the we do not run out of time here and break if next tick is about to start.
+        while(!data.empty()) // FIXME: Check the we do not run out of time here and break if next tick is about to start.
         {
             std::string source = head(data, ",");
             std::string key = source;
@@ -2902,6 +2902,8 @@ if(classes[classname].path.empty())
 
             std::string format = rtail(source, ":");
             std::string source_with_root = root +"."+source;
+            std::string component_path = peek_rhead(source_with_root, ".");
+            std::string attribute = peek_rtail(source_with_root, ".");
 
             if(buffers.count(source_with_root))
             {
@@ -2926,9 +2928,21 @@ if(classes[classname].path.empty())
                 sent = socket->Send(sep + "\t\t\"" + key + "\": "+parameters[source_with_root].json());
             }
 
+            else if(components.count(component_path)) // Use module function to get value
+            {
+                    std::string json_data = components[component_path]->json(attribute);
+
+                if(!json_data.empty())
+                {
+                    socket->Send(sep);
+                    std::string s = "\t\t\"" + source + "\": "+json_data;
+                    socket->Send(s);
+                    sep = ",\n";
+                }
+            }
             else
             {
-                // sent = socket->Send(sep + "\t\t\"" + key + "\": \""+source+"\""); // ERROR: Does not exist, do not send
+                // ERROR: No such buffer or parameter
             }
 
             if(sent)
@@ -3065,6 +3079,9 @@ if(classes[classname].path.empty())
     Kernel::DoSendNetwork(Request & request)
     {
         std::string s = json(); 
+
+        //std::cout << s << std::endl;
+
         Dictionary rtheader;
         rtheader.Set("Session-Id", std::to_string(session_id).c_str());
         rtheader.Set("Package-Type", "network");

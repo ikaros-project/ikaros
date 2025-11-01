@@ -238,7 +238,8 @@ public:
 
     void print();
     void info();
-    std::string json();
+    std::string json();  // json representation of the component
+    virtual std::string json(const std::string & name) { return ""; }; // json representation for name of component
     std::string xml();
 
     bool KeyExists(const std::string & key);  // Check if a key exist here or in any parent; this means that LookupKey will succeed
