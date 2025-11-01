@@ -438,7 +438,7 @@ public:
         int n = keypoints.size();
 
         float qtime = quantize(time, 1000*GetTickDuration()); // Scaled to ms; FIXME: use seconds and nominal time if possible later
-        printf(">>> add: %f => %f\n", time, qtime);
+       // printf(">>> add: %f => %f\n", time, qtime);
 
         // Create the point data array
 
@@ -735,9 +735,7 @@ public:
             Save(value);
     }
 
-
-    std::string
-    GetJSONData(const std::string & name, const std::string & tab)
+    std::string json(const std::string & name)
     {
         if(name=="RANGES")
             return sequence_data["ranges"].json();
