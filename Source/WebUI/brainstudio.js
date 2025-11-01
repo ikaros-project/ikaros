@@ -18,7 +18,8 @@ const widget_classes =
     "drop-down-menu",
     "control-grid",
     "canvas3d",
-    "epi-head"
+    "epi-head",
+    "key-points"
 ]
 
 const identifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.0123456789";
