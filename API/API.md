@@ -19,7 +19,7 @@ The _attribute-value_-pairs are converted to a dictionary that is used as an arg
 The possible commands are listed below. The path is the dotted path to a
 component (a group or a modul) or a prameter.  There can be zero or  multiple attribute value-pairs dependning on the command.
 
-The command should be URL encoded if it include non-ascii characters.
+The command should be URL encoded if it includes non-ascii characters.
 
 Parameters are also  accepted as JSON in the body of a HTTP PUT request (See examples below).
 
