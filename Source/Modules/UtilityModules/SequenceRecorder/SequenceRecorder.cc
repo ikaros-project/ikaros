@@ -103,62 +103,6 @@ find_index_for_time(list keypoints, float t)
 class SequenceRecorder: public Module
 {
 public:
-    //void 		Init();
-    //void 		Tick();
-
-    // Commands
-    /*
-    void        Stop();
-    void        Play();
-    void        Record();
-    void        Pause();
-    void        SkipStart();
-    void        SkipEnd();
-    void        SetStartMark();
-    void        SetEndMark();
-    void        GoToPreviousKeypoint();
-    void        GoToNextKeypoint();
-    void        GoToTime(double time);   // set up current target and left and right interpolation sources
-    void        Trig(int id);
-
-    void        ExtendTime();
-    void        ReduceTime();
-    void        LockChannel(int c);
-
-    void        LinkKeypoints();
-    void        DeleteEmptyKeypoints();
-
-    void        StoreChannelMode();
-    void        LoadChannelMode();
-
-    void        AddKeypoint(double time); // add keypoint at time t
-    void        DeleteKeypoint(double time); // delete a single keypoint at time t (or close to it)
-
-
-    void        Crop(); // Remove points outside the selected area, and let the sequence start at t=0
-
-    void        ClearSequence();    // clear currently selected sequence
-    void        ClearKeypointAtIndex(int i, bool all=false); // nortmally only clears point in record mode, set all to true to clear all
-    void        DeleteKeypoints(); // Delete all points within the selection time window for channels in record mode   
-    void        DeleteKeypointsInRange(float t0, float t1);
-
-    void        New(); // Create new sequence
-    bool        Open(const std::string & name); // Open sequence file
-    void        Save(const std::string & name); // Sabe sequence file under supplied name
-
-    void        Command(std::string s, float x, float y, std::string value);
-
-    std::string GetJSONData(const std::string & name, const std::string & tab);
-
-    void        SetTargetForTime(float t);
-    void        SetOutputForChannel(int c); 
-    void        StartRecord();
-
-    void        UpdateSequenceNames();
-    void        Rename(const std::string & new_name); // Renames the selected sequence
-    */
-
-
     void
     StartRecord()
     {
@@ -1098,20 +1042,10 @@ public:
     Bind(smoothing_start,"SMOOTHING_START");
 
 
-    /* TEMPORARY
-    for(int c=0; c<channels.as_int(); c++)
-    {
-        //set_one_row(channel_mode, 3, c, 4, channels); //  ************ FIXME: default size for matrix parameter **************
-        channel_mode[c].reset();
-        channel_mode[c](3) = 1;
-    }
-    */
-    /*
-    left_time = matrix(channels.as_int());
-    right_time = matrix(channels.as_int());
-    left_position = matrix(channels.as_int());
-    right_position = matrix(channels.as_int());
-    */
+    // Trick to make module run with too few inputs connected
+
+    input.realloc(channels.as_int());
+
     left_index = matrix(channels.as_int());
     right_index = matrix(channels.as_int());
 
@@ -1305,12 +1239,6 @@ public:
     parameter   loop;
     parameter   shuffle;
 
-    /*
-    matrix      left_time;
-    matrix      right_time;
-    matrix      left_position;
-    matrix      right_position;
-    */
     matrix       left_index;
     matrix       right_index;
 
