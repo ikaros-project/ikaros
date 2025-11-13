@@ -603,7 +603,6 @@ public:
 
 
     void
-   // Command(std::string s, float x, float y, std::string value)
     Command(std::string command_name, dictionary & parameters)
     {
         std::string s = command_name;
