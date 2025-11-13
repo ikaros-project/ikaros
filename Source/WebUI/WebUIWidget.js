@@ -479,12 +479,14 @@ class WebUIWidget extends HTMLElement
     {
         if(main.edit_mode)
             return;
-        controller.queueCommand("control", parameter, {"x":index_x, "y":index_y, "value":value});     
+        controller.queueCommand("control", parameter, {"x":index_x, "y":index_y, "value":value});
+        // controller.queueCommand("control", parameter.substring(0, parameter.lastIndexOf('.')), {"x":index_x, "y":index_y, "value":value});     
+
     }
 
     send_command(command, value=0, index_x=0, index_y=0)
     {
-        let path = command.substring(0, command.lastIndexOf('.'));
+        let path =  command.substring(0, command.lastIndexOf('.'));
         let name = command.substring(command.lastIndexOf('.') + 1);
         controller.queueCommand("command", path, {"command":name, "x":index_x, "y":index_y, "value":value}); 
     }

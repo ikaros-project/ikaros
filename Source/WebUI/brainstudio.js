@@ -1107,7 +1107,7 @@ let controller =
             const path = cmd_dict[1];
             const dict = cmd_dict[2];
             dict.data = data_string;
-            dict.root = group_path;
+            //dict.root = group_path;
             const url_params = toURLParams(dict);
 
             if(path.length>0 && path[0]=='.') // top path

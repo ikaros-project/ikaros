@@ -2498,7 +2498,7 @@ if(classes[classname].path.empty())
             // Wait for completion
             for (auto &ts : sequences) 
                 if(!ts->waitForCompletion(5)) // Timeout after 5 seconds
-                    Notify(msg_warning, "Task sequence did not complete successfully within the 5 second timeout period."); 
+                    Notify(msg_trace, "Task sequence did not complete successfully within the 5 second timeout period."); 
         } 
         catch (const std::exception &e) {
             Notify(msg_fatal_error, "Error during task execution: " + std::string(e.what()));
@@ -2574,21 +2574,24 @@ if(classes[classname].path.empty())
                 else if(run_mode == run_mode_play)
                 {
                     timer.SetTime(double(tick+1)*tick_duration); // Fake time increase // FIXME: remove sleep in batch mode
+                    lag = 0;
                     Sleep(0.01);
                 }
                 else
                     Sleep(0.01); // Wait 10 ms to avoid wasting cycles if there are no requests
 
+                if(run_mode == run_mode_realtime)
+                {
                 if(lag > 1.0)
-                {
-                    Notify(msg_warning, "Performance warning: System is " + std::to_string(lag) +  " seconds behind real time. Consider increasing tick_duration.");
-                    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Give HTTP thread more time to run
-                }
-                
-               else  if(lag > 0.001)
-                {
-                    std::cout  << "Ikaros is lagging " << lag << " seconds behind real time." << std::endl;
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1)); // Give HTTP thread a chance to run
+                    {
+                        Notify(msg_warning, "Performance warning: System is " + std::to_string(lag) +  " seconds behind real time. Consider increasing tick_duration.");
+                        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Give HTTP thread more time to run
+                    }
+                    else  if(lag > 0.001)
+                        {
+                            std::cout  << "Ikaros is lagging " << lag << " seconds behind real time." << std::endl;
+                            std::this_thread::sleep_for(std::chrono::milliseconds(1)); // Give HTTP thread a chance to run
+                        }
                 }
 
                 // Run_mode may have changed during the delay - needs to be checked again
@@ -2869,9 +2872,6 @@ if(classes[classname].path.empty())
     void
     Kernel::DoSendData(Request & request)
     {    
-        //sending_ui_data = true; // must be set while main thread is still running
-
-
         DoSendDataHeader();
 
         socket->Send("{\n");
@@ -2881,9 +2881,7 @@ if(classes[classname].path.empty())
         socket->Send("\t\"data\":\n\t{\n");
 
         std::string data = request.parameters["data"];  // FIXME: Check that it exists ******** or return ""
-        std::string root;
-            if(request.parameters.contains("root"))
-                root = std::string(request.parameters["root"]);
+        std::string root = request.component_path;
 
         std::string sep = "";
         bool sent = false;
@@ -2902,6 +2900,7 @@ if(classes[classname].path.empty())
 
             std::string format = rtail(source, ":");
             std::string source_with_root = root +"."+source;
+
             std::string component_path = peek_rhead(source_with_root, ".");
             std::string attribute = peek_rtail(source_with_root, ".");
 
@@ -3217,11 +3216,6 @@ if(classes[classname].path.empty())
     {
         try
         {
-/*            std::string root;
-         
-            if(request.parameters.contains("root"))
-                root= std::string(request.parameters["root"]);
-*/
             if(!parameters.count(request.component_path))
             {
                 Notify(msg_warning, "Parameter '"+request.component_path+"' could not be found.");
@@ -3390,7 +3384,11 @@ if(classes[classname].path.empty())
 
         Request request(socket->header.Get("URI"), sid, socket->body);
 
-        //std::cout << "Request: " << request.url << std::endl;
+        if(request.parameters.contains("proxy"))
+            request.component_path = std::string(request.parameters["proxy"]);
+
+        std::cout << "Request: " << request.url << std::endl;
+
         if(request == "network")
             DoNetwork(request);
 
