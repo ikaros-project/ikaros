@@ -3387,7 +3387,7 @@ if(classes[classname].path.empty())
         if(request.parameters.contains("proxy"))
             request.component_path = std::string(request.parameters["proxy"]);
 
-        std::cout << "Request: " << request.url << std::endl;
+        //std::cout << "Request: " << request.url << std::endl;
 
         if(request == "network")
             DoNetwork(request);
