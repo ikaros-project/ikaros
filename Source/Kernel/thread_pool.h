@@ -95,6 +95,8 @@ protected:
     {
         for (auto &task : tasks_)
         {
+            if(task == nullptr)
+                continue; // FIXME: Should not happen - task list may not have been correctky deleted ******
             task->ProfilingBegin();
             task->Tick();
             task->ProfilingEnd();
