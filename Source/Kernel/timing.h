@@ -27,36 +27,21 @@ private:
 public: 
     void        Pause();                    // Pause the timer
     void        Continue();                 // Start the timer at the pause time
-    void        SetPauseTime(double t);     // Change the time wheere the timer start when Continue is called
+    void        Stop();                     // Pause and set time to zero
+
+    void        SetPauseTime(double t);     // Change the time where the timer start when Continue is called
 
     void		Restart();					// Start the timer from time 0
-    void        SetTime(double t);          // Set start time of the timer
+    void        SetStartTime(double t);     // Set start time of the timer
     double      GetTime();					// Get the time (in seconds) since the timer was created or restarted
+    void        SetTime(double t);          // Set the time (in seconds) of the timer
     std::string GetTimeString();            // Get time since the timer was started as a formated string
-    double      WaitUntil(double time); // Suspend execution until time; return timing lag
+    double      WaitUntil(double time);     // Suspend execution until time; return timing lag
 
     void Lock() { mtx.lock(); }
     void Unlock() { mtx.unlock(); }
 
     Timer();
 };
-
-
-/*
-class Profiler : public Timer
-{
-public:
-    Profiler &  Reset();                        // Reset accumulators
-    Profiler &  Start();                        // Start one sample
-    Profiler &  Stop();                         // Stop the sampe and add to accumulator
-    double  GetAverageTime();               // Get the avreage time over all samples
-
-    Profiler &  Print(std::string msg="");
-
-    long    number_of_samples = 0;          // The number of samples
-    double  accumulated_time = 0;           // Total time used (in seconds)
-};
-*/
-
 
 

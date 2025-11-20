@@ -2573,7 +2573,7 @@ if(classes[classname].path.empty())
                     lag = timer.WaitUntil(double(tick+1)*tick_duration);
                 else if(run_mode == run_mode_play)
                 {
-                    timer.SetTime(double(tick+1)*tick_duration); // Fake time increase // FIXME: remove sleep in batch mode
+                    timer.SetStartTime(double(tick+1)*tick_duration); // Fake time increase // FIXME: remove sleep in batch mode DOES NOT LOOK CORRECT
                     lag = 0;
                     Sleep(0.01);
                 }
