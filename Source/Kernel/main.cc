@@ -25,7 +25,7 @@ main(int argc, char *argv[])
         o.add_option("b", "batch_mode", "start automatically and quit when execution terminates");
         o.add_option("d", "tick_duration", "duration of each tick");
         o.add_option("i", "info", "print model info");
-        o.add_option("r", "real_time", "run in real-time mode");
+        o.add_option("r", "real_time", "run in real-time mode; also implies S");
         o.add_option("S", "start", " start-up automatically without waiting for commands from WebUI");
         o.add_option("s", "stop", "stop Ikaros after this tick", "-1");
         o.add_option("w", "webui_port", "port for ikaros WebUI", "8000");
@@ -67,6 +67,9 @@ main(int argc, char *argv[])
                 else if(k.needs_reload)
                     k.LoadFile();
 
+                if(k.info_.is_set("real_time"))
+                    k.info_["start"] = true;
+            
                 if(k.info_.is_set("start"))
                 {
                     if(k.info_.is_set("real_time"))
