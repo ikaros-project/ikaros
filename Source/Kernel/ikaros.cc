@@ -6,7 +6,7 @@ using namespace ikaros;
 using namespace std::chrono;
 using namespace std::literals;
 
-bool global_terminate = false;
+std::atomic<bool> global_terminate(false);
 
 namespace ikaros
 {
@@ -1612,7 +1612,7 @@ bool operator==(Request & r, const std::string s)
                 run_mode = run_mode_pause;
             
         }
-        return (stop_after!= -1 &&  tick >= stop_after) || global_terminate;
+        return (stop_after!= -1 &&  tick >= stop_after) || global_terminate.load();
     }
 
 
@@ -2565,13 +2565,13 @@ if(classes[classname].path.empty())
     Kernel::Run()
     {
         // Main loop
-        while(run_mode > run_mode_quit && !global_terminate)  // Not quit
+        while(run_mode.load() > run_mode_quit && !global_terminate.load())  // Not quit
         {
-            while (!Terminate() && run_mode > run_mode_quit)
+            while (!Terminate() && run_mode.load() > run_mode_quit)
             {
-                if(run_mode == run_mode_realtime)
+                if(run_mode.load() == run_mode_realtime)
                     lag = timer.WaitUntil(double(tick+1)*tick_duration);
-                else if(run_mode == run_mode_play)
+                else if(run_mode.load() == run_mode_play)
                 {
                     timer.SetStartTime(double(tick+1)*tick_duration); // Fake time increase // FIXME: remove sleep in batch mode DOES NOT LOOK CORRECT
                     lag = 0;
@@ -2580,7 +2580,7 @@ if(classes[classname].path.empty())
                 else
                     Sleep(0.01); // Wait 10 ms to avoid wasting cycles if there are no requests
 
-                if(run_mode == run_mode_realtime)
+                if(run_mode.load() == run_mode_realtime)
                 {
                 if(lag > 1.0)
                     {
@@ -2596,7 +2596,7 @@ if(classes[classname].path.empty())
 
                 // Run_mode may have changed during the delay - needs to be checked again
 
-                if(run_mode == run_mode_realtime || run_mode == run_mode_play) 
+                if(run_mode.load() == run_mode_realtime || run_mode.load() == run_mode_play) 
                 {
                     actual_tick_duration = intra_tick_timer.GetTime();
                     intra_tick_timer.Restart();
@@ -2612,7 +2612,7 @@ if(classes[classname].path.empty())
                         return;                 // FIXME: THROW INSTEAD
                     }
                     tick_time_usage = intra_tick_timer.GetTime();
-                    idle_time = tick_duration - tick_time_usage;
+                    idle_time = std::max(0.0, tick_duration - tick_time_usage);
                 }    
             }
             Stop();
@@ -2712,7 +2712,7 @@ if(classes[classname].path.empty())
     void
     Kernel::Stop()
     {
-        run_mode = std::min(run_mode_stop, run_mode);
+        run_mode.store(std::min(run_mode_stop, run_mode.load()));
         tick = -1;
         timer.Pause();
         timer.SetPauseTime(0);
@@ -2796,7 +2796,7 @@ if(classes[classname].path.empty())
         socket->Send("\t\"debug\": false,\n");
 #endif
 
-            socket->Send("\t\"state\": %d,\n", run_mode);
+            socket->Send("\t\"state\": %d,\n", run_mode.load());
         if(stop_after != -1)
         {
             socket->Send("\t\"tick\": \"%d / %d\",\n", tick, stop_after);

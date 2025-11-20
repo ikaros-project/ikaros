@@ -411,7 +411,7 @@ public:
 
     std::recursive_mutex                    kernelLock;  
     std::atomic<bool>                       shutdown;
-    int                                     run_mode;
+    std::atomic<int>                        run_mode;
 
     dictionary                              current_component_info; // Implivit parameters to create Component
     std::string                             current_component_path;
@@ -452,11 +452,11 @@ public:
 
     tick_count GetTick() { return tick; }
     double GetTickDuration() { return tick_duration; } // Time for each tick in seconds (s)
-    double GetTime() { return (run_mode == run_mode_realtime) ? GetRealTime() : static_cast<double>(tick)*tick_duration; }   // Time since start (in real time or simulated (tick) time dending on mode)
-    double GetRealTime() { return (run_mode == run_mode_realtime) ? timer.GetTime() : static_cast<double>(tick)*tick_duration; }
+    double GetTime() { return (run_mode.load() == run_mode_realtime) ? GetRealTime() : static_cast<double>(tick)*tick_duration; }   // Time since start (in real time or simulated (tick) time dending on mode)
+    double GetRealTime() { return (run_mode.load() == run_mode_realtime) ? timer.GetTime() : static_cast<double>(tick)*tick_duration; }
     double GetNominalTime() { return static_cast<double>(tick)*tick_duration; } 
     double GetTimeOfDay();
-    double GetLag() { return (run_mode == run_mode_realtime) ? static_cast<double>(tick)*tick_duration - timer.GetTime() : 0; }
+    double GetLag() { return (run_mode.load() == run_mode_realtime) ? static_cast<double>(tick)*tick_duration - timer.GetTime() : 0; }
 
     void CalculateCPUUsage();
 

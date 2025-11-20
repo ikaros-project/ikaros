@@ -2,8 +2,9 @@
 
 #include <stdio.h>
 #include <signal.h>
+#include <atomic>
 
-extern bool global_terminate; // Used to flag that CTRL-C has been received; defined in IKAROS.cc
+extern std::atomic<bool> global_terminate; // Used to flag that CTRL-C has been received; defined in IKAROS.cc
 
 class Signal
 {
