@@ -6,7 +6,6 @@ using namespace ikaros;
 class FunctionGenerator : public Module
 {
 public:
-    parameter size;
     parameter type;
     parameter offset;
     parameter amplitude;
@@ -15,14 +14,11 @@ public:
     parameter duty;
     parameter basetime;
     parameter tickduty;
-    parameter sample_rate;
 
-    int t;
     matrix output;
 
     void Init()
     {
-        Bind(size, "size");
         Bind(type, "type");
         Bind(offset, "offset");
         Bind(amplitude, "amplitude");
@@ -31,25 +27,22 @@ public:
         Bind(duty, "duty");
         Bind(basetime, "basetime");
         Bind(tickduty, "tickduty");
-        Bind(sample_rate, "sample_rate");
 
         Bind(output, "OUTPUT");
-
-        t = 0;
     }
 
-    static float triangle(float t)
+    static float triangle(double t)
     {
         float v = 2 * (t / (2 * M_PI) - trunc(t / (2 * M_PI)));
         return (v < 1.0) ? v : 2 - v;
     }
 
-    static float ramp(float t)
+    static float ramp(double t)
     {
         return t / (2 * M_PI) - trunc(t / (2 * M_PI));
     }
 
-    static float square(float t, float d)
+    static float square(double t, double d)
     {
         float v = t / (2 * M_PI) - trunc(t / (2 * M_PI));
         return (v < d) ? 1 : 0;
@@ -62,31 +55,29 @@ public:
 
     void Tick()
     {
-        for (int i = 0; i < size; i++)
+
+        double time = kernel().GetTime();
+
+        switch (type.as_int())
         {
-            float time = (float(t) + i) / sample_rate;
-            switch (type.as_int())
-            {
-                case 0:
-                    output[i] = offset + amplitude * sin(frequency * (time + shift));
-                    break;
-                case 1:
-                    output[i] = offset + amplitude * triangle(frequency * (time + shift));
-                    break;
-                case 2:
-                    output[i] = offset + amplitude * ramp(frequency * (time + shift));
-                    break;
-                case 3:
-                    output[i] = offset + amplitude * square(frequency * (time + shift), duty);
-                    break;
-                case 4:
-                    output[i] = offset + amplitude * ticksquare(t + i, basetime, tickduty);
-                    break;
-                default:
-                    output[i] = 0;
-            }
+            case 0:
+                output = offset + amplitude * sin(frequency * (time + shift));
+                break;
+            case 1:
+                output = offset + amplitude * triangle(frequency * (time + shift));
+                break;
+            case 2:
+                output = offset + amplitude * ramp(frequency * (time + shift));
+                break;
+            case 3:
+                output = offset + amplitude * square(frequency * (time + shift), duty);
+                break;
+            case 4:
+                output = offset + amplitude * ticksquare(time, basetime, tickduty);
+                break;
+            default:
+                output = 0;
         }
-        t += size;
     }
 };
 
