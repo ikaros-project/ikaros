@@ -1146,7 +1146,7 @@ namespace ikaros
             return (*this)[std::string(n)];
         }
 
-        float operator=(float v) // Set all element of the matrix to a value
+        float operator=(float v) // Set the element of the single element matrix to a value
         {
             #ifndef NO_MATRIX_CHECKS
             if(info_->size_ != 1)
