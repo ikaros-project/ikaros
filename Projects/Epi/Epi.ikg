@@ -1,9 +1,9 @@
-<group epi_name="EpiWhite" epi_run_mode="simulate" filename="" name="ExperimentalSetup"
+<group filename="" name="ExperimentalSetup"
    nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19"
    servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26"
    servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5"
    servosIndexRightArm="12" servosIndexSound="27" start="true" stop="-1" tick_duration="1"
-   webui_port="8000">
+   webui_port="8000" epi_name="EpiGreen" epi_run_mode="simulate_servo">
    <_connection source="SR.OUTPUT[0:19]" target="Epi.GOAL_POSITION" />
    <_connection source="SR.OUTPUT[19:21]" target="Epi.LED.EYE_COLOR[0:2]" />
    <_connection source="SR.OUTPUT[22:22]" target="Epi.LED.EYE_INTENSITY[0]" />
@@ -318,7 +318,7 @@
          <input _x="120" _y="264" name="EYE_INTENSITY" />
          <input _x="144" _y="312" name="MOUTH_COLOR" />
          <input _x="120" _y="384" name="MOUTH_INTENSITY" />
-         <module _x="1032" _y="480" class="FadeCandy" name="FadeCandy" />
+         <module _x="1032" _y="480" class="FadeCandy" name="FadeCandy" simulate="true" />
          <module _x="792" _y="216" class="Scale" name="EyeIntensity" />
          <module _x="576" _y="312" class="Scale" name="MouthIntensity" />
          <module _x="384" _y="408" class="Constant" data="0" name="LedOff" />
@@ -817,7 +817,7 @@
             pre_inverted="  0,    0,    0,    0,    0,    0,       0,    0,    0,    0,    0,    1,       0,    1,    0,    0,    0,    0,        1" />
          <module _robot="EpiRed" _simulate="true" _x="336" _y="120" class="EpiServos"
             name="EpiServos" robot="@epi_name"
-            simulate=".Epi.Settings.@epi_run_mode.@simulate_servo" />
+            simulate=".Epi.Settings.@epi_run_mode.@simulate_servo" log_level="1" />
          <module _x="576" _y="96" class="ServoConnector"
             connector="   1,    2,    3,    4,    5,    6,      7,    8,    9,   10,   11,   12,      13,   14,   15,   16,   17,   18,      19"
             name="SCFeedbackPosition"
@@ -1025,8 +1025,6 @@
       <output _x="912" _y="336" name="RIGHT_EYE_INTENSITY" />
       <output _x="912" _y="312" name="RIGHT_EYE_OUTPUT" />
       <parameter control="menu" default="0" name="log_level" type="number" value="0" />
-
-
    </group>
    <!-- PLACEHOLDER MAP:
   __LOCK__ => U+1F512 __LOCK__
@@ -1037,6 +1035,8 @@
   __TRIANGLE_UP__ => U+25B2 ▲
   __MULTIPLY_X__ => U+2715 ✕
 -->
+
+
    <group _x="100" _y="100" name="RecordView">
       <widget class="rectangle" frame_width="1" height="51" show_frame="true" show_title="false"
          style="background-color:#ddd;" title="Default Title" width="1911" _x="0" _y="0" _index_="0"
@@ -1093,7 +1093,8 @@
          label="Button" radioGroup="control" show_frame="false" show_title="false" title="Title"
          type="push" value="1" valueUp="0" width="61" _x="120" xindex="4" _y="55" yindex="0"
          _index_="15" name="btn_skip_start" />
-      <widget class="button" command="SR.skip_end" height="31" icon="images/skip_end.png" label="Button"
+      <widget class="button" command="SR.skip_end" height="31" icon="images/skip_end.png"
+         label="Button"
          radioGroup="control" show_frame="false" show_title="false" title="Title" type="push"
          value="1" valueUp="0" width="51" _x="570" xindex="5" _y="55" yindex="0" _index_="16"
          name="btn_skip_end" />
@@ -1104,9 +1105,12 @@
       <widget class="button" parameter="SR.loop" height="31" show_frame="false" show_title="false"
          title="Title" type="toggle" value="1" valueUp="0" width="51" _x="615" xindex="0" _y="55"
          yindex="0" _index_="19" name="btn_loop" />
-
-    <widget class="button" command="SR.set_start_mark" height="31" label="[" show_frame="false" show_title="false" title="Title" type="push" value="1" valueUp="0" width="51" _x="1060" xindex="0" _y="55" yindex="0" _index_="21" name="btn_set_start_mark"/>
-    <widget class="button" command="SR.set_end_mark" height="31" label="]" show_frame="false" show_title="false" title="Title" type="push" value="1" valueUp="0" width="51" _x="1110" xindex="0" _y="55" yindex="0"  name="btn_set_end_mark"/>
+      <widget class="button" command="SR.set_start_mark" height="31" label="[" show_frame="false"
+         show_title="false" title="Title" type="push" value="1" valueUp="0" width="51" _x="1060"
+         xindex="0" _y="55" yindex="0" _index_="21" name="btn_set_start_mark" />
+      <widget class="button" command="SR.set_end_mark" height="31" label="]" show_frame="false"
+         show_title="false" title="Title" type="push" value="1" valueUp="0" width="51" _x="1110"
+         xindex="0" _y="55" yindex="0" name="btn_set_end_mark" />
       <widget class="button" command="SR.crop" height="31" label="crop" playhead="SR.playhead"
          show_frame="false" show_title="false" title="Title" type="push" value="1" valueUp="0"
          width="51" _x="1175" xindex="0" _y="55" yindex="0" _index_="22" name="btn_crop" />
@@ -1665,9 +1669,6 @@
          name="Full Epi parameters" />
       <widget class="text" _x="405" _y="20" height="26" width="601" title="Default Title"
          parameter="SR.filename" _index_="152" name="text_filename" />
-
-
-
       <widget class="slider-horizontal" count="1" frame-style="" height="31" labels="Eyes (r)"
          max="1" min="0" parameter="SR.positions" select="19" show_frame="false" show_title="false"
          show_values="false" step="0.1" style="" title="Sliders" width="361" _x="130" _y="135"
@@ -1809,8 +1810,6 @@
          max="1" min="0" parameter="SR.positions" select="25" show_frame="false" show_title="false"
          show_values="false" step="0.1" style="" title="Sliders" width="361" _x="130" _y="320"
          name="slider_mouth_b" />
-
-
       <widget class="button" name="button_copy_mode_channel_25" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon="" label="="
          multiGroup="multi_group_bypass_led" parameter="SR.channel_mode"
@@ -1907,10 +1906,7 @@
          radioGroup="channel_28_mode" show_frame="false" show_title="false" style=""
          title="Hold Mode" type="radio" value="1" valueUp="0" width="31" _x="10" xindex="0" _y="385"
          yindex="27" />
-
-
    </group>
-
    <group _x="100" _y="100" name="PlaybackView">
       <widget class="drop-down-menu" height="41" index="0" labelWidth="50" list="Sequence A"
          list_parameter="SR.sequence_names" parameter="SR.current_sequence" show_frame="false"
@@ -1927,14 +1923,10 @@
          show_values="false" show_title="false" show_frame="false" _index_="155"
          name="slider_playback_position" />
    </group>
-
-
    <group _x="100" _y="100" name="EpiSettings">
       <module _x="720" _y="72" class="Constant" data="1" name="BlinkingGain" />
       <parameter control="menu" default="0" name="Blinking" type="number" value="0" />
       <parameter control="menu" default="0" name="log_level" type="number" value="0" />
-
-
       <widget _index_="0" _x="48" _y="144" class="slider-horizontal" count="1" frame-style=""
          height="49" labels="" max="1" min="0" name="Widget_1" parameter="BlinkingGain.data"
          select="0" show_frame="false" show_title="true" show_values="false" source="" step="1"
@@ -1945,11 +1937,17 @@
          text="Here is where you can turn on/off behaviors of Epi" title="Widget_2" width="241" />
    </group>
    <module _x="96" _y="48" class="Constant" data="0" name="Fake_Sound_Trigger" />
+   
+   <widget class="button" command="SR.open" file_names="SR.file_names" height="31"
+      label="ZAP..." playhead="SR.playhead" show_frame="false" show_title="false"
+      title="Select Sequence File to Open:" type="open" value="1" valueUp="0" width="91" _x="120"
+      xindex="0" _y="15" yindex="0" _index_="141" name="btn_open" />
+
    <module _x="24" _y="72"
       channel_mode="0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  0, 0, 0, 0,     0, 0, 0,  0,      0"
       channels="28" class="SequenceRecorder"
       default_output="0, 0, 0, 0, 12, 12,  0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  1, 1, 0, 0.5,   1, 1, 0,   0.6,   -1"
-      filename="untitled.json"
+      filename="demo.json"
       internal_control="0, 0, 0, 0, 1, 1,    0, 0, 0, 0, 0, 1,   0, 0, 0, 0, 0, 1,  0,  1, 1, 1, 1,     1, 1, 1,   1,      1"
       interpolation="1, 1, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1,  1,  1, 1, 1, 1,     1, 1, 1,   1,      0"
       name="SR"
