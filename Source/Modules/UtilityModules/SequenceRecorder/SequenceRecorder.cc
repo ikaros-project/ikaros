@@ -29,10 +29,10 @@ make_timestamp(float t)
 
  
 static std::string 
-make_timestamp(float t)
+make_timestamp(float t) // FIXME: use timer::TimeString instead if it works correctly here
 {
     // Validate input
-    if (t < 0) {
+    if (t <= 0) {
         return "00:00:000";
     }
 
@@ -116,8 +116,7 @@ public:
     {
         bool was_recoding = state[2] > 0;
         set_one(state, 0, states);
-        //timer.Stop();
-        timer.Restart();    // FIXME: Is this scorrect?
+        timer.Stop();
         if(was_recoding)
             LinkKeypoints(); // at end of recording
     }
@@ -147,7 +146,7 @@ public:
     {
         bool was_recoding = state[2] > 0;
         set_one(state, 3, states); 
-        timer.Pause(); // FIXME: Possible error
+        timer.Pause();
         if(was_recoding)
             LinkKeypoints(); // at end of recording
     }
@@ -157,14 +156,14 @@ public:
     void
     SkipStart()
     {
-        timer.Pause(); // FIXME: Possible error
+        timer.Pause();
         set_one(state, 3, states);// Pause
         if((1000*timer.GetTime()) <= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
-            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["start_time"]/1000.0);
+            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["start_time"]/1000.0);
         else if((1000*timer.GetTime()) <= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
-            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]/1000.0);
+            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]/1000.0);
         else
-            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]/1000.0);
+            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]/1000.0);
     }
 
 
@@ -175,11 +174,11 @@ public:
         timer.Pause();
         set_one(state, 3, states);
         if((1000*timer.GetTime()) >= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
-            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]/1000.0);
+            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]/1000.0);
         else if((1000*timer.GetTime()) >= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
-            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]/1000.0);
+            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]/1000.0);
         else
-            timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]/1000.0);
+            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]/1000.0);
     }
 
 
@@ -212,7 +211,7 @@ public:
             float kpt = sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i-1]["time"];
             if(kpt == t && i>1)
                 kpt = sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i-2]["time"];
-            timer.SetTime(kpt);
+            timer.SetPauseTime(kpt/1000.0);
             float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
             position = end_time? kpt/end_time : 0; //Fix me: use set time function
         }
@@ -230,7 +229,7 @@ public:
         if(i < n)
         {
             float kpt = sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i]["time"];
-            timer.SetTime(kpt/1000.0);
+            timer.SetPauseTime(kpt/1000.0);
             float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
             position = end_time? kpt/end_time : 0; //Fix me: use set time function
         }
@@ -242,7 +241,6 @@ public:
     GoToTime(double time)
     {
         SetTargetForTime(time);
-
     }
 
 
@@ -381,7 +379,7 @@ public:
         list keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
         int n = keypoints.size();
 
-        float qtime = quantize(time, 1000*GetTickDuration()); // Scaled to ms; FIXME: use seconds and nominal time if possible later
+        float qtime = quantize(time, 1000*GetTickDuration());
        // printf(">>> add: %f => %f\n", time, qtime);
 
         // Create the point data array
@@ -745,7 +743,6 @@ public:
 
     for(int c=0; c<channels.as_int(); c++)
     {
-
         // Process left point
 
         auto & kp_left = keypoints[i-1];
@@ -966,115 +963,100 @@ public:
     void
     Init()
     {
-    Bind(channels, "channels");
+        timer.Stop();
 
-    // SetInputSize("INPUT", channels); // Make sure that there is an input for every channel even if they are not connected ********* FIX ME ************
-
-    Bind(positions, "positions"); // parameter size will be set by the value channels
-
-
-    Bind(range_min, "range_min");
-    if(range_min.size_x() != channels)
-        Notify(msg_fatal_error, "Min range not set for correct number of channels.");
-
-
-    Bind(range_max, "range_max");
-    if(range_max.size_x() != channels)
-        Notify(msg_fatal_error, "Max range not set for correct number of channels.");
-
-    Bind(interpolation, "interpolation");
-    if(interpolation.size_x() != channels)
-        Notify(msg_fatal_error, "Interpolation not set for correct number of channels.");
-
-
-    Bind(smoothing_time, "smoothing_time");
-
-
-    Bind(state, "state");
-    Bind(loop, "loop");
-    Bind(shuffle, "shuffle");
-
-    Bind(channel_mode, "channel_mode");
-    Bind(time_string, "time");
-    Bind(end_time_string, "end_time");
-    Bind(position, "position");
-    Bind(mark_start, "mark_start");
-    Bind(mark_end, "mark_end");
-
-    Bind(max_sequences, "max_sequences");
-    Bind(sequence_names, "sequence_names");
-    Bind(file_names, "file_names");
-    Bind(filename, "filename");
-
-    file_names = "";
-
-    Bind(current_sequence, "current_sequence");
-    Bind(internal_control, "internal_control");
-
-    Bind(default_output, "default_output");
-    if(default_output.size_x() !=channels)
-        Notify(msg_fatal_error,"Incorrect size for default_output; does not match number of channels.");
-
-    left_output.copy(default_output);
-    right_output.copy(default_output);
-
-    for(int c=0; c<channels.as_int(); c++) // FIXME: Rremove as int where not necessary
-        if(internal_control(c))
-            positions(c) = default_output(c);
-
+        Bind(channels, "channels");
+        Bind(positions, "positions"); // parameter size will be set by the value channels
+        Bind(range_min, "range_min");
+        Bind(range_max, "range_max");
+        Bind(interpolation, "interpolation");
+        Bind(smoothing_time, "smoothing_time");
+        Bind(state, "state");
+        Bind(loop, "loop");
+        Bind(shuffle, "shuffle");
+        Bind(channel_mode, "channel_mode");
+        Bind(time_string, "time");
+        Bind(end_time_string, "end_time");
+        Bind(position, "position");
+        Bind(mark_start, "mark_start");
+        Bind(mark_end, "mark_end");
+        Bind(max_sequences, "max_sequences");
+        Bind(sequence_names, "sequence_names");
+        Bind(file_names, "file_names");
+        Bind(filename, "filename");
+        Bind(current_sequence, "current_sequence");
+        Bind(internal_control, "internal_control");
+        Bind(default_output, "default_output");
         Bind(directory, "directory");
         Bind(filename, "filename");
+        Bind(trig, "TRIG"); //trig_last = matrix(trig.size()); // Set in first assignment
+        Bind(playing, "PLAYING");
+        Bind(completed, "COMPLETED");
+        Bind(target, "TARGET");
+        Bind(input, "INPUT");
+        Bind(output, "OUTPUT");
+        Bind(active, "ACTIVE");
+        Bind(smoothing_start,"SMOOTHING_START");
+
+        if(range_max.size_x() != channels)
+            Notify(msg_fatal_error, "Max range not set for correct number of channels.");
+
+        if(interpolation.size_x() != channels)
+            Notify(msg_fatal_error, "Interpolation not set for correct number of channels.");
+
+        if(range_min.size_x() != channels)
+            Notify(msg_fatal_error, "Min range not set for correct number of channels.");
+
+        if(default_output.size_x() !=channels)
+            Notify(msg_fatal_error,"Incorrect size for default_output; does not match number of channels.");
+
+        file_names = "";
+
+        left_output.copy(default_output);
+        right_output.copy(default_output);
+
+        for(int c=0; c<channels.as_int(); c++) // FIXME: Rremove as int where not necessary
+            if(internal_control(c))
+                positions(c) = default_output(c);
+
         untitled_count = 1;
 
-    fs::create_directory(std::string(directory)); // Only works if not a path // FIXME: make recursive later
+        fs::create_directory(std::string(directory)); // Only works if not a path // FIXME: make recursive later
 
-    Bind(trig, "TRIG");
-    //trig_last = matrix(trig.size()); // Set in first assignment
+        // Trick to make module run with too few inputs connected
 
-    Bind(playing, "PLAYING");
-    Bind(completed, "COMPLETED");
+        input.realloc(channels.as_int());
 
-    Bind(target, "TARGET");
-    Bind(input, "INPUT");
-    Bind(output, "OUTPUT");
-    Bind(active, "ACTIVE");
-    Bind(smoothing_start,"SMOOTHING_START");
+        left_index = matrix(channels.as_int());
+        right_index = matrix(channels.as_int());
 
-
-    // Trick to make module run with too few inputs connected
-
-    input.realloc(channels.as_int());
-
-    left_index = matrix(channels.as_int());
-    right_index = matrix(channels.as_int());
-
-    for(int c=0; c<channels.as_int(); c++)
-    {   
-        left_index[c] = 0;
-        right_index[c] = INT_MAX;
-    }
-
-    if(!std::string(filename).empty() && check_file_exists((std::string(directory)+"/"+std::string(filename)).c_str())) // TODO: Remove call to check_file_exists
-    {
-            if(!Open(std::string(filename)))
-            New();
-    }
-    else
-        New();
-
-    // Get files in directory
-
-    std::string fsep = "";
-    for(auto& p: fs::directory_iterator(std::string(directory))) // was recursive_directory_iterator
-{   auto pp = p.path();
-    if(pp.extension() == ".json")
-        {
-            file_names = std::string(file_names) + fsep + std::string(pp.filename());
-            fsep = ",";
+        for(int c=0; c<channels.as_int(); c++)
+        {   
+            left_index[c] = 0;
+            right_index[c] = INT_MAX;
         }
-    }
 
-    Stop();
+        if(!std::string(filename).empty() && check_file_exists((std::string(directory)+"/"+std::string(filename)).c_str())) // TODO: Remove call to check_file_exists
+        {
+                if(!Open(std::string(filename)))
+                New();
+        }
+        else
+            New();
+
+        // Get files in directory
+
+        std::string fsep = "";
+        for(auto& p: fs::directory_iterator(std::string(directory))) // was recursive_directory_iterator
+    {   auto pp = p.path();
+        if(pp.extension() == ".json")
+            {
+                file_names = std::string(file_names) + fsep + std::string(pp.filename());
+                fsep = ",";
+            }
+        }
+
+        Stop();
     }
 
 
@@ -1089,7 +1071,8 @@ public:
     void
     Tick()
     {
-        long tl = GetTickDuration();
+        std::cout << timer.GetTime() << std::endl;
+        long tl = 1000*GetTickDuration();
         playing.reset();
         completed.reset();
 
@@ -1116,14 +1099,14 @@ public:
          {
                  Pause();
                  float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-                 timer.SetTime(position*end_time/1000.0);
+                 timer.SetPauseTime(position*end_time/1000.0);
                 last_position = position;
         }
 
     //     // Set position
 
          float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-         position = end_time? t/end_time : 0;
+         position = end_time ? t/end_time : 0;
          last_position = position;
 
     //     // Set inputs from parameters for internal channels
@@ -1137,13 +1120,15 @@ public:
              set_one(playing, current_sequence, max_sequences);
              if(loop && t >= float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])) // loop
              {
-                 timer.SetTime(float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]));
+                timer.Pause();
+                timer.SetPauseTime(float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])/1000.0);
+                timer.Continue();
              }
              else if(position >= 1 || end_time == 0)
              {   
-                 timer.SetTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]/1000.0);
+                Pause();
+                 timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]/1000.0);
                  set_one(completed, current_sequence, max_sequences);
-                 Pause();
          }   }
 
          else if(state[2]) // handle record mode
@@ -1156,12 +1141,12 @@ public:
 
          GoToTime(t);
 
-    //     // FIXME: Add smoothing here
+        // FIXME: Add smoothing here
 
          for(int c=0; c<channels.as_int(); c++)
              SetOutputForChannel(c);
 
-    //     // AddPoints if in recording mode
+        // AddPoints if in recording mode
 
          if(state[2] == 1) // record mode
          {
@@ -1176,7 +1161,7 @@ public:
          position = end_time? t/end_time : 0;
          last_position = position;
 
-         time_string = make_timestamp(t); // timer.GetTime()
+         time_string = make_timestamp(t);
          end_time_string  = make_timestamp(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
 
          if(float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]) != 0)

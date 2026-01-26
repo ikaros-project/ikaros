@@ -51,7 +51,7 @@
 	<output name="TARGET" size="@channels" description="The target positions or the interpolated keypoint positions that the output moves towards" />
 	<output name="OUTPUT" size="@channels" description="The current output positions" />
 	<output name="ACTIVE" size="@channels" description="Indicates that the data on the output should be used, for example for torque enable." />
-	<output name="CAN_PLAY" size="@channels" description="A one ona channel indicates that there is data to be played. Used to enable play buttons" />
+	<output name="CAN_PLAY" size="@channels" description="A one on a channel indicates that there is data to be played. Used to enable play buttons" />
 
 
 <!--
