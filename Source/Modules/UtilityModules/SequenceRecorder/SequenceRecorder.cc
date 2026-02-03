@@ -1071,7 +1071,7 @@ public:
     void
     Tick()
     {
-        std::cout << timer.GetTime() << std::endl;
+        // std::cout << timer.GetTime() << std::endl;
         long tl = 1000*GetTickDuration();
         playing.reset();
         completed.reset();
