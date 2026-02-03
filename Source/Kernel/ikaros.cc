@@ -3196,7 +3196,12 @@ if(classes[classname].path.empty())
             if(request.parameters.contains("root"))
                 root = std::string(request.parameters["root"]);
 
-            if(!components.count(request.component_path))
+            std::string key = request.component_path;
+            if(key[0] == '.')
+                key = key.substr(1); // Global path
+
+
+            if(!components.count(key))
             {
                 Notify(msg_warning, "Component '"+request.component_path+"' could not be found.");
                 DoSendData(request);
@@ -3213,7 +3218,7 @@ if(classes[classname].path.empty())
                     return;
             }
 
-            components.at(request.component_path)->Command(request.parameters["command"], request.parameters);
+            components.at(key)->Command(request.parameters["command"], request.parameters);
         }
         catch(const std::exception& e)
         {
@@ -3229,14 +3234,18 @@ if(classes[classname].path.empty())
     {
         try
         {
-            if(!parameters.count(request.component_path))
+            std::string key = request.component_path;
+            if(key[0] == '.')
+                key = key.substr(1); // Global path
+
+            if(!parameters.count(key))
             {
                 Notify(msg_warning, "Parameter '"+request.component_path+"' could not be found.");
                 DoSendData(request);
                 return;
             }
 
-            parameter & p = parameters.at(request.component_path);
+            parameter & p = parameters.at(key);
             if(p.type == matrix_type)
             {
                 int x = 0;
@@ -3400,7 +3409,7 @@ if(classes[classname].path.empty())
         if(request.parameters.contains("proxy"))
             request.component_path = std::string(request.parameters["proxy"]);
 
-        //if(!(request == "update"))
+        if(!(request == "update"))
         std::cout << "Request: " << request.url << std::endl;
 
         if(request == "network")
