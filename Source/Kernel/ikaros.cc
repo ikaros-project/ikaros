@@ -2234,7 +2234,16 @@ if(classes[classname].path.empty())
             if(c.delay_range_.is_delay_0())
                 continue;
             else
-                c.Tick();
+                try
+                {
+                    c.Tick();
+                }
+                catch(const std::exception& e)
+                {
+                    std::cerr << e.what() << '\n';
+                }
+                
+                
     }
 
 
@@ -2901,7 +2910,11 @@ if(classes[classname].path.empty())
             std::string format = rtail(source, ":");
             std::string source_with_root = root +"."+source;
 
+            if(key[0] == '.')
+                source_with_root = key.substr(1); // Global path (keep `key` intact)
+
             std::string component_path = peek_rhead(source_with_root, ".");
+            
             std::string attribute = peek_rtail(source_with_root, ".");
 
             if(buffers.count(source_with_root))
@@ -3387,7 +3400,8 @@ if(classes[classname].path.empty())
         if(request.parameters.contains("proxy"))
             request.component_path = std::string(request.parameters["proxy"]);
 
-        //std::cout << "Request: " << request.url << std::endl;
+        //if(!(request == "update"))
+        std::cout << "Request: " << request.url << std::endl;
 
         if(request == "network")
             DoNetwork(request);
