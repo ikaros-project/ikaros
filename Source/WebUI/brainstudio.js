@@ -1096,8 +1096,11 @@ let controller =
         let sep = "";
         for(s of data_set)
         {
-            data_string += (sep + s);
-            sep = ","
+            if(s!="")
+            {
+                data_string += (sep + s);
+                sep = ","
+            }
          }
 
          while(controller.commandQueue.length>0)
