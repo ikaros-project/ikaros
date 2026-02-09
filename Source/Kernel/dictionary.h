@@ -8,6 +8,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <unordered_map>
 #include <variant>
 #include <iterator>
 #include <iostream>
@@ -27,7 +28,7 @@ namespace ikaros
     struct value;
 
     using valueVariant = std::variant<bool, double, null, std::string, list, dictionary>;
-    using mapPtr = std::shared_ptr<std::map<std::string, value>>;
+    using mapPtr = std::shared_ptr<std::unordered_map<std::string, value>>;
     using listPtr = std::shared_ptr<std::vector<value>>;
     using exclude_set = const std::set<std::string> &;      // "a/b" = element b in a; "a.b" attribute b in a
 
@@ -48,8 +49,8 @@ namespace ikaros
     {
         mapPtr dict_;
 
-        using iterator = std::map<std::string, value>::iterator;
-        using const_iterator = std::map<std::string, value>::const_iterator;
+        using iterator = std::unordered_map<std::string, value>::iterator;
+        using const_iterator = std::unordered_map<std::string, value>::const_iterator;
 
 
         iterator begin() noexcept { return dict_->begin(); }
