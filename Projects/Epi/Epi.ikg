@@ -3,8 +3,8 @@
    servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26"
    servosIndexMouthRGB="23" servosIndexPupil="4" servosIndexPupilLeft="4" servosIndexPupilRight="5"
    servosIndexRightArm="12" servosIndexSound="27" start="true" stop="-1" tick_duration="1"
-   webui_port="8000" epi_name="EpiGreen" epi_run_mode="simulate_servo">
-   <_connection source="SR.OUTPUT[0:19]" target="Epi.GOAL_POSITION" />
+   webui_port="8000" epi_name="EpiGreen" _epi_run_mode="simulate_servo">
+   <connection source="SR.OUTPUT[0:19]" target="Epi.GOAL_POSITION" />
    <_connection source="SR.OUTPUT[19:21]" target="Epi.LED.EYE_COLOR[0:2]" />
    <_connection source="SR.OUTPUT[22:22]" target="Epi.LED.EYE_INTENSITY[0]" />
    <_connection source="SR.OUTPUT[23:25]" target="Epi.LED.MOUTH_COLOR[0:2]" />
@@ -14,7 +14,7 @@
    <connection source="Epi.PRESENT_POSITION" target="SR.INPUT[0:19]" />
    <connection source="SR.ACTIVE[0:19]" target="Epi.TORQUE_ENABLE" />
    <connection source="Fake_Sound_Trigger.OUTPUT" target="OneHotVector.INPUT" />
-   <connection delay="1" source="ManualGoalPosition.OUTPUT" target="Epi.GOAL_POSITION" />
+   <_connection delay="1" source="ManualGoalPosition.OUTPUT" target="Epi.GOAL_POSITION" />
    <group VisionInputLeft="InputJPEG" VisionInputRight="InputJPEG" _x="264" _y="144" name="Epi"
       nrServosTotal="19" servosIndexBody="18" servosIndexEyesIntensity="22" servosIndexEyesRGB="19"
       servosIndexHead="0" servosIndexLeftArm="6" servosIndexMouthIntensity="26"
@@ -1036,17 +1036,16 @@
   __MULTIPLY_X__ => U+2715 ✕
 -->
 
-
-   <group _x="100" _y="100" name="RecordView">
+<group _x="100" _y="100" name="RecordView">
       <widget class="rectangle" frame_width="1" height="51" show_frame="true" show_title="false"
          style="background-color:#ddd;" title="Default Title" width="1911" _x="0" _y="0" _index_="0"
          name="bg_top" />
       <widget class="rectangle" frame_width="1" height="1131" show_frame="true" show_title="false"
          style="background-color:#666;" width="2321" _x="0" _y="50" _index_="1" name="bg_main" />
-      <widget class="key-points" fraction="SR.position" frame_width="1" height="636"
-         input="Servos.PRESENT_POSITION" mark_end="SR.mark_end" mark_start="SR.mark_start" max="1"
-         min="0" output="SR.OUTPUT" playhead="SR.playhead" position="SR.position" ranges="SR.RANGES"
-         sequence="SR.SEQUENCE" show_frame="true" show_title="false" target="SR.TARGET"
+      <widget class="key-points" fraction=".ExperimentalSetup.SR.position" frame_width="1" height="636"
+         input="Servos.PRESENT_POSITION" mark_end=".ExperimentalSetup.SR.mark_end" mark_start=".ExperimentalSetup.SR.mark_start" max="1"
+         min="0" output=".ExperimentalSetup.SR.OUTPUT" playhead=".ExperimentalSetup.SR.playhead" position=".ExperimentalSetup.SR.position" ranges=".ExperimentalSetup.SR.RANGES"
+         sequence=".ExperimentalSetup.SR.SEQUENCE" show_frame="true" show_title="false" target=".ExperimentalSetup.SR.TARGET"
          title="Default Title" width="571" _x="480" _y="90" _index_="2" name="key_points" />
       <widget class="rectangle" frame_width="1" height="231" show_frame="true" show_title="false"
          style="background-color:#bbb;" width="731" _x="710" _y="725" _index_="3"
@@ -1066,511 +1065,511 @@
       <widget class="rectangle" frame_width="1" height="231" show_frame="true" show_title="false"
          style="background-color:#ddd;" title="Head" width="501" _x="0" _y="420" _index_="8"
          name="Head" />
-      <widget class="button" command="SR.stop" height="31" icon="images/stop.png" label="Button"
-         parameter="SR.state" radioGroup="control" show_frame="false" show_title="false"
+      <widget class="button" command=".ExperimentalSetup.SR.stop" height="31" icon="images/stop.png" label="Button"
+         parameter=".ExperimentalSetup.SR.state" radioGroup="control" show_frame="false" show_title="false"
          title="Title" type="radio" value="1" valueUp="0" width="81" _x="240" xindex="0" _y="55"
          yindex="0" _index_="9" name="btn_stop" />
-      <widget class="button" command="SR.play" height="31" icon="images/play.png" label="Button"
-         parameter="SR.state" radioGroup="control" show_frame="false" show_title="false"
+      <widget class="button" command=".ExperimentalSetup.SR.play" height="31" icon="images/play.png" label="Button"
+         parameter=".ExperimentalSetup.SR.state" radioGroup="control" show_frame="false" show_title="false"
          title="Title" type="radio" value="1" valueUp="0" width="71" _x="320" xindex="1" _y="55"
          yindex="0" _index_="10" name="btn_play" />
-      <widget class="button" command="SR.record" height="31" icon="images/record.png" label="Button"
-         parameter="SR.state" radioGroup="control" show_frame="false" show_title="false"
+      <widget class="button" command=".ExperimentalSetup.SR.record" height="31" icon="images/record.png" label="Button"
+         parameter=".ExperimentalSetup.SR.state" radioGroup="control" show_frame="false" show_title="false"
          title="Title" type="radio" value="1" valueUp="0" width="61" _x="450" xindex="2" _y="55"
          yindex="0" _index_="11" name="btn_record" />
-      <widget class="button" command="SR.pause" height="31" icon="images/pause.png" label="Button"
-         parameter="SR.state" radioGroup="control" show_frame="false" show_title="false"
+      <widget class="button" command=".ExperimentalSetup.SR.pause" height="31" icon="images/pause.png" label="Button"
+         parameter=".ExperimentalSetup.SR.state" radioGroup="control" show_frame="false" show_title="false"
          title="Title" type="radio" value="1" valueUp="0" width="61" _x="390" xindex="3" _y="55"
          yindex="0" _index_="12" name="btn_pause" />
-      <widget class="text" frame-style="background-color:black;" height="31" parameter="SR.time"
+      <widget class="text" frame-style="background-color:black;" height="31" parameter=".ExperimentalSetup.SR.time"
          show_frame="true" show_title="false" style="font-size:30px;color:green;"
          title="Default Title" width="151" _x="725" _y="55" _index_="13" name="time_display" />
       <widget class="slider-horizontal" count="1" height="21" max="1" min="0"
-         parameter="SR.position" select="0" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.position" select="0" show_frame="false" show_title="false"
          show_values="false" step="0.00001" title="Sliders" width="531" _x="510" _y="700"
          _index_="14" name="slider_position" />
-      <widget class="button" command="SR.skip_start" height="31" icon="images/skip_start.png"
+      <widget class="button" command=".ExperimentalSetup.SR.skip_start" height="31" icon="images/skip_start.png"
          label="Button" radioGroup="control" show_frame="false" show_title="false" title="Title"
          type="push" value="1" valueUp="0" width="61" _x="120" xindex="4" _y="55" yindex="0"
          _index_="15" name="btn_skip_start" />
-      <widget class="button" command="SR.skip_end" height="31" icon="images/skip_end.png"
+      <widget class="button" command=".ExperimentalSetup.SR.skip_end" height="31" icon="images/skip_end.png"
          label="Button"
          radioGroup="control" show_frame="false" show_title="false" title="Title" type="push"
          value="1" valueUp="0" width="51" _x="570" xindex="5" _y="55" yindex="0" _index_="16"
          name="btn_skip_end" />
-      <widget class="button" command="SR.step_forward" height="31" icon="images/step_forward.png"
+      <widget class="button" command=".ExperimentalSetup.SR.step_forward" height="31" icon="images/step_forward.png"
          label="Button" radioGroup="control" show_frame="false" show_title="false" title="Title"
          type="push" value="1" valueUp="0" width="61" _x="510" xindex="7" _y="55" yindex="0"
          _index_="17" name="btn_step_forward" />
-      <widget class="button" parameter="SR.loop" height="31" show_frame="false" show_title="false"
+      <widget class="button" parameter=".ExperimentalSetup.SR.loop" height="31" show_frame="false" show_title="false"
          title="Title" type="toggle" value="1" valueUp="0" width="51" _x="615" xindex="0" _y="55"
          yindex="0" _index_="19" name="btn_loop" />
-      <widget class="button" command="SR.set_start_mark" height="31" label="[" show_frame="false"
+      <widget class="button" command=".ExperimentalSetup.SR.set_start_mark" height="31" label="[" show_frame="false"
          show_title="false" title="Title" type="push" value="1" valueUp="0" width="51" _x="1060"
          xindex="0" _y="55" yindex="0" _index_="21" name="btn_set_start_mark" />
-      <widget class="button" command="SR.set_end_mark" height="31" label="]" show_frame="false"
+      <widget class="button" command=".ExperimentalSetup.SR.set_end_mark" height="31" label="]" show_frame="false"
          show_title="false" title="Title" type="push" value="1" valueUp="0" width="51" _x="1110"
          xindex="0" _y="55" yindex="0" name="btn_set_end_mark" />
-      <widget class="button" command="SR.crop" height="31" label="crop" playhead="SR.playhead"
+      <widget class="button" command=".ExperimentalSetup.SR.crop" height="31" label="crop" playhead=".ExperimentalSetup.SR.playhead"
          show_frame="false" show_title="false" title="Title" type="push" value="1" valueUp="0"
          width="51" _x="1175" xindex="0" _y="55" yindex="0" _index_="22" name="btn_crop" />
-      <widget class="button" command="SR.add_keypoint" height="31" label="__TRIANGLE_UP__"
-         playhead="SR.playhead" show_frame="false" show_title="false" title="Title" type="push"
+      <widget class="button" command=".ExperimentalSetup.SR.add_keypoint" height="31" label="__TRIANGLE_UP__"
+         playhead=".ExperimentalSetup.SR.playhead" show_frame="false" show_title="false" title="Title" type="push"
          value="1" valueUp="0" width="51" _x="945" xindex="0" _y="55" yindex="0" _index_="23"
          name="btn_add_keypoint" />
-      <widget class="button" command="SR.delete_keypoint" height="31" label="__MULTIPLY_X__"
-         playhead="SR.playhead" show_frame="false" show_title="false" title="Title" type="push"
+      <widget class="button" command=".ExperimentalSetup.SR.delete_keypoint" height="31" label="__MULTIPLY_X__"
+         playhead=".ExperimentalSetup.SR.playhead" show_frame="false" show_title="false" title="Title" type="push"
          value="1" valueUp="0" width="51" _x="995" xindex="0" _y="55" yindex="0" _index_="24"
          name="btn_delete_keypoint" />
-      <widget class="text" height="21" parameter="SR.end_time" show_frame="false" show_title="false"
+      <widget class="text" height="21" parameter=".ExperimentalSetup.SR.end_time" show_frame="false" show_title="false"
          style="font-size:12px;text-align:right;line-height:20px;" title="Default Title" width="76"
          _x="920" _y="670" _index_="25" name="text_end_time" />
-      <widget class="button" command="SR.extend_time" height="21" label="__TRIANGLE_RIGHT__"
-         playhead="SR.playhead" show_frame="false" show_title="false" title="Title" type="push"
+      <widget class="button" command=".ExperimentalSetup.SR.extend_time" height="21" label="__TRIANGLE_RIGHT__"
+         playhead=".ExperimentalSetup.SR.playhead" show_frame="false" show_title="false" title="Title" type="push"
          value="1" valueUp="0" width="21" _x="1010" xindex="0" _y="670" yindex="0" _index_="26"
          name="btn_extend_time" />
-      <widget class="button" command="SR.reduce_time" height="21" label="__TRIANGLE_LEFT__"
-         playhead="SR.playhead" show_frame="false" show_title="false" title="Title" type="push"
+      <widget class="button" command=".ExperimentalSetup.SR.reduce_time" height="21" label="__TRIANGLE_LEFT__"
+         playhead=".ExperimentalSetup.SR.playhead" show_frame="false" show_title="false" title="Title" type="push"
          value="1" valueUp="0" width="21" _x="905" xindex="0" _y="670" yindex="0" _index_="27"
          name="btn_reduce_time" />
       <widget class="slider-horizontal" count="1" height="31" labels="Neck pan" max="55" min="-55"
-         parameter="SR.positions" select="1" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="1" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="371" _x="120" _y="495" _index_="28"
          name="slider_neck_pan" />
       <widget class="slider-horizontal" count="1" height="31" labels="Neck tilt" max="50" min="-50"
-         parameter="SR.positions" select="0" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="0" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="371" _x="120" _y="465" _index_="29"
          name="slider_neck_tilt" />
       <widget class="slider-horizontal" count="1" height="31" labels="Left eye" max="25" min="-25"
-         parameter="SR.positions" select="2" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="2" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="371" _x="120" _y="525" _index_="30"
          name="slider_left_eye" />
       <widget class="slider-horizontal" count="1" height="31" labels="Right eye" max="25" min="-25"
-         parameter="SR.positions" select="3" show_frame="false" show_title="false" step="1"
+         parameter=".ExperimentalSetup.SR.positions" select="3" show_frame="false" show_title="false" step="1"
          title="Sliders" width="371" _x="120" _y="555" _index_="31" name="slider_right_eye" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_head"
-         parameter="SR.channel_mode" radioGroup="channel_1_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_1_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="40" xindex="1" _y="465" yindex="0" _index_="32" name="btn_head_mode_play_1" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_head"
-         parameter="SR.channel_mode" radioGroup="channel_1_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_1_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="10" xindex="0" _y="465" yindex="0" _index_="33" name="btn_head_mode_hold_1" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_head"
-         parameter="SR.channel_mode" radioGroup="channel_1_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_1_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="100" xindex="3" _y="465" yindex="0" _index_="34"
          name="btn_head_mode_copy_1" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_head"
-         parameter="SR.channel_mode" radioGroup="channel_1_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_1_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="70" xindex="2" _y="465" yindex="0" _index_="35" name="btn_head_mode_rec_1" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_head"
-         parameter="SR.channel_mode" radioGroup="channel_2_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_2_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="10" xindex="0" _y="495" yindex="1" _index_="36" name="btn_head_mode_hold_2" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_head"
-         parameter="SR.channel_mode" radioGroup="channel_3_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_3_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="10" xindex="0" _y="525" yindex="2" _index_="37" name="btn_head_mode_hold_3" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_head"
-         parameter="SR.channel_mode" radioGroup="channel_4_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_4_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="10" xindex="0" _y="555" yindex="3" _index_="38" name="btn_head_mode_hold_4" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_head"
-         parameter="SR.channel_mode" radioGroup="channel_2_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_2_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="40" xindex="1" _y="495" yindex="1" _index_="39" name="btn_head_mode_play_2" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_head"
-         parameter="SR.channel_mode" radioGroup="channel_3_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_3_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="40" xindex="1" _y="525" yindex="2" _index_="40" name="btn_head_mode_play_3" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_head"
-         parameter="SR.channel_mode" radioGroup="channel_4_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_4_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="40" xindex="1" _y="555" yindex="3" _index_="41" name="btn_head_mode_play_4" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_head"
-         parameter="SR.channel_mode" radioGroup="channel_2_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_2_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="70" xindex="2" _y="495" yindex="1" _index_="42" name="btn_head_mode_rec_2" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_head"
-         parameter="SR.channel_mode" radioGroup="channel_3_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_3_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="70" xindex="2" _y="525" yindex="2" _index_="43" name="btn_head_mode_rec_3" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_head"
-         parameter="SR.channel_mode" radioGroup="channel_4_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_4_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="70" xindex="2" _y="555" yindex="3" _index_="44" name="btn_head_mode_rec_4" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_head"
-         parameter="SR.channel_mode" radioGroup="channel_2_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_2_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="100" xindex="3" _y="495" yindex="1" _index_="45"
          name="btn_head_mode_copy_2" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_head"
-         parameter="SR.channel_mode" radioGroup="channel_3_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_3_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="100" xindex="3" _y="525" yindex="2" _index_="46"
          name="btn_head_mode_copy_3" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_head"
-         parameter="SR.channel_mode" radioGroup="channel_4_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_4_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="100" xindex="3" _y="555" yindex="3" _index_="47"
          name="btn_head_mode_copy_4" />
       <widget class="slider-horizontal" count="1" height="31" labels="Left pupil" max="20" min="5"
-         parameter="SR.positions" select="4" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="4" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="371" _x="120" _y="585" _index_="48"
          name="slider_left_pupil" />
       <widget class="slider-horizontal" count="1" height="31" labels="Right pupil" max="20" min="5"
-         parameter="SR.positions" select="5" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="5" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="366" _x="125" _y="615" _index_="49"
          name="slider_right_pupil" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_head"
-         parameter="SR.channel_mode" radioGroup="channel_5_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_5_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="10" xindex="0" _y="585" yindex="4" _index_="50" name="btn_head_mode_hold_5" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_head"
-         parameter="SR.channel_mode" radioGroup="channel_6_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_6_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="10" xindex="0" _y="615" yindex="5" _index_="51" name="btn_head_mode_hold_6" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_head"
-         parameter="SR.channel_mode" radioGroup="channel_5_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_5_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="40" xindex="1" _y="585" yindex="4" _index_="52" name="btn_head_mode_play_5" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_head"
-         parameter="SR.channel_mode" radioGroup="channel_6_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_6_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="40" xindex="1" _y="615" yindex="5" _index_="53" name="btn_head_mode_play_6" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_head"
-         parameter="SR.channel_mode" radioGroup="channel_5_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_5_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="70" xindex="2" _y="585" yindex="4" _index_="54" name="btn_head_mode_rec_5" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_head"
-         parameter="SR.channel_mode" radioGroup="channel_6_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_6_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="70" xindex="2" _y="615" yindex="5" _index_="55" name="btn_head_mode_rec_6" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_head"
-         parameter="SR.channel_mode" radioGroup="channel_5_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_5_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="100" xindex="3" _y="585" yindex="4" _index_="56"
          name="btn_head_mode_copy_5" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_head"
-         parameter="SR.channel_mode" radioGroup="channel_6_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_6_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="100" xindex="3" _y="615" yindex="5" _index_="57"
          name="btn_head_mode_copy_6" />
-      <widget class="button" command="SR.delete" height="31" label="del" playhead="SR.playhead"
+      <widget class="button" command=".ExperimentalSetup.SR.delete" height="31" label="del" playhead=".ExperimentalSetup.SR.playhead"
          show_frame="false" show_title="false" title="Title" type="push" value="1" valueUp="0"
          width="51" _x="1225" xindex="0" _y="55" yindex="0" _index_="58" name="btn_delete" />
       <widget class="slider-horizontal" count="1" height="31" labels="Joint 1" max="110" min="-180"
-         parameter="SR.positions" select="6" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="6" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="596" _x="840" _y="770" _index_="59"
          name="slider_left_joint_1" />
       <widget class="slider-horizontal" count="1" height="31" labels="Joint 2" max="90" min="-90"
-         parameter="SR.positions" select="7" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="7" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="596" _x="840" _y="800" _index_="60"
          name="slider_left_joint_2" />
       <widget class="slider-horizontal" count="1" height="31" labels="Joint 3" max="90" min="-90"
-         parameter="SR.positions" select="8" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="8" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="596" _x="840" _y="830" _index_="61"
          name="slider_left_joint_3" />
       <widget class="slider-horizontal" count="1" height="26" labels="Joint 4" max="15" min="-120"
-         parameter="SR.positions" select="9" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="9" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="596" _x="840" _y="860" _index_="62"
          name="slider_left_joint_4" />
       <widget class="slider-horizontal" count="1" height="31" labels="Joint 5" max="90" min="-90"
-         parameter="SR.positions" select="10" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="10" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="596" _x="840" _y="890" _index_="63"
          name="slider_left_joint_5" />
       <widget class="slider-horizontal" count="1" height="31" labels="Hand" max="100" min="-100"
-         parameter="SR.positions" select="11" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="11" show_frame="false" show_title="false"
          show_values="false" step="200" title="Sliders" width="596" _x="840" _y="920" _index_="64"
          name="slider_left_hand" />
       <widget class="slider-horizontal" count="1" height="31" labels="Joint 1" max="110" min="-125"
-         parameter="SR.positions" select="12" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="12" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="576" _x="130" _y="770" _index_="65"
          name="slider_right_joint_1" />
       <widget class="slider-horizontal" count="1" height="31" labels="Joint 2" max="100" min="-110"
-         parameter="SR.positions" select="13" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="13" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="576" _x="130" _y="800" _index_="66"
          name="slider_right_joint_2" />
       <widget class="slider-horizontal" count="1" height="31" labels="Joint 3" max="90" min="-90"
-         parameter="SR.positions" select="14" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="14" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="576" _x="130" _y="830" _index_="67"
          name="slider_right_joint_3" />
       <widget class="slider-horizontal" count="1" height="31" labels="Joint 4" max="130" min="-15"
-         parameter="SR.positions" select="15" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="15" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="576" _x="130" _y="860" _index_="68"
          name="slider_right_joint_4" />
       <widget class="slider-horizontal" count="1" height="31" labels="Joint 5" max="90" min="-90"
-         parameter="SR.positions" select="16" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="16" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="576" _x="130" _y="890" _index_="69"
          name="slider_right_joint_5" />
       <widget class="slider-horizontal" count="1" height="31" labels="Hand" max="140" min="-60"
-         parameter="SR.positions" select="17" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="17" show_frame="false" show_title="false"
          show_values="false" step="200" title="Sliders" width="576" _x="130" _y="920" _index_="70"
          name="slider_right_hand" />
       <widget class="slider-horizontal" count="1" height="31" labels="Body" max="140" min="-140"
-         parameter="SR.positions" select="18" show_frame="false" show_title="false"
+         parameter=".ExperimentalSetup.SR.positions" select="18" show_frame="false" show_title="false"
          show_values="false" step="1" title="Sliders" width="361" _x="130" _y="690" _index_="71"
          name="slider_Body" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_7_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_7_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="720" xindex="0" _y="770" yindex="6" _index_="72"
          name="btn_left_arm_mode_hold_1" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_8_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_8_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="720" xindex="0" _y="800" yindex="7" _index_="73"
          name="btn_left_arm_mode_hold_2" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_9_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_9_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="720" xindex="0" _y="830" yindex="8" _index_="74"
          name="btn_left_arm_mode_hold_3" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_10_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_10_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="720" xindex="0" _y="860" yindex="9" _index_="75"
          name="btn_left_arm_mode_hold_4" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_11_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_11_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="720" xindex="0" _y="890" yindex="10" _index_="76"
          name="btn_left_arm_mode_hold_5" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_12_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_12_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="720" xindex="0" _y="920" yindex="11" _index_="77"
          name="btn_left_arm_mode_hold_6" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_13_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_13_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="10" xindex="0" _y="770" yindex="12" _index_="78"
          name="btn_right_arm_mode_hold_1" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_14_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_14_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="10" xindex="0" _y="800" yindex="13" _index_="79"
          name="btn_right_arm_mode_hold_2" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_15_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_15_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="10" xindex="0" _y="830" yindex="14" _index_="80"
          name="btn_right_arm_mode_hold_3" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_16_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_16_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="10" xindex="0" _y="860" yindex="15" _index_="81"
          name="btn_right_arm_mode_hold_4" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_17_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_17_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="10" xindex="0" _y="890" yindex="16" _index_="82"
          name="btn_right_arm_mode_hold_5" />
       <widget class="button" label="__LOCK__" multiGroup="multi_group_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_18_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_18_mode" show_frame="false"
          show_title="false" title="Hold Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="10" xindex="0" _y="920" yindex="17" _index_="83"
          name="btn_right_arm_mode_hold_6" />
-      <widget class="button" label="__LOCK__" parameter="SR.channel_mode"
+      <widget class="button" label="__LOCK__" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_19_mode" show_frame="false" show_title="false" title="Hold Mode"
          type="radio" value="1" valueUp="0" width="31" height="31" _x="10" xindex="0" _y="690"
          yindex="18" _index_="84" name="btn_body_mode_hold" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_7_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_7_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="750" xindex="1" _y="770" yindex="6" _index_="85"
          name="btn_left_arm_mode_play_1" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_8_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_8_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="750" xindex="1" _y="800" yindex="7" _index_="86"
          name="btn_left_arm_mode_play_2" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_9_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_9_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="750" xindex="1" _y="830" yindex="8" _index_="87"
          name="btn_left_arm_mode_play_3" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_10_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_10_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="750" xindex="1" _y="860" yindex="9" _index_="88"
          name="btn_left_arm_mode_play_4" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_11_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_11_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="750" xindex="1" _y="890" yindex="10" _index_="89"
          name="btn_left_arm_mode_play_5" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_12_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_12_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="750" xindex="1" _y="920" yindex="11" _index_="90"
          name="btn_left_arm_mode_play_6" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_13_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_13_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="40" xindex="1" _y="770" yindex="12" _index_="91"
          name="btn_right_arm_mode_play_1" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_14_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_14_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="40" xindex="1" _y="800" yindex="13" _index_="92"
          name="btn_right_arm_mode_play_2" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_15_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_15_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="40" xindex="1" _y="830" yindex="14" _index_="93"
          name="btn_right_arm_mode_play_3" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_16_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_16_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="40" xindex="1" _y="860" yindex="15" _index_="94"
          name="btn_right_arm_mode_play_4" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_17_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_17_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="40" xindex="1" _y="890" yindex="16" _index_="95"
          name="btn_right_arm_mode_play_5" />
       <widget class="button" label="__POINTER_RIGHT__" multiGroup="multi_group_play_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_18_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_18_mode" show_frame="false"
          show_title="false" title="Play Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="40" xindex="1" _y="920" yindex="17" _index_="96"
          name="btn_right_arm_mode_play_6" />
-      <widget class="button" label="__POINTER_RIGHT__" parameter="SR.channel_mode"
+      <widget class="button" label="__POINTER_RIGHT__" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_19_mode" show_frame="false" show_title="false" title="Play Mode"
          type="radio" value="1" valueUp="0" width="31" height="31" _x="40" xindex="1" _y="690"
          yindex="18" _index_="97" name="btn_body_mode_play" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_8_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_8_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="780" xindex="2" _y="800" yindex="7" _index_="98"
          name="btn_left_arm_mode_rec_2" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_7_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_7_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="780" xindex="2" _y="770" yindex="6" _index_="99"
          name="btn_left_arm_mode_rec_1" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_9_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_9_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="780" xindex="2" _y="830" yindex="8" _index_="100"
          name="btn_left_arm_mode_rec_3" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_10_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_10_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="780" xindex="2" _y="860" yindex="9" _index_="101"
          name="btn_left_arm_mode_rec_4" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_11_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_11_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="780" xindex="2" _y="890" yindex="10" _index_="102"
          name="btn_left_arm_mode_rec_5" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_12_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_12_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="780" xindex="2" _y="920" yindex="11" _index_="103"
          name="btn_left_arm_mode_rec_6" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_13_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_13_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="70" xindex="2" _y="770" yindex="12" _index_="104"
          name="btn_right_arm_mode_rec_1" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_14_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_14_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="70" xindex="2" _y="800" yindex="13" _index_="105"
          name="btn_right_arm_mode_rec_2" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_15_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_15_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="70" xindex="2" _y="830" yindex="14" _index_="106"
          name="btn_right_arm_mode_rec_3" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_16_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_16_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="70" xindex="2" _y="860" yindex="15" _index_="107"
          name="btn_right_arm_mode_rec_4" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_17_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_17_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="70" xindex="2" _y="890" yindex="16" _index_="108"
          name="btn_right_arm_mode_rec_5" />
       <widget class="button" label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_18_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_18_mode" show_frame="false"
          show_title="false" title="Records Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="70" xindex="2" _y="920" yindex="17" _index_="109"
          name="btn_right_arm_mode_rec_6" />
-      <widget class="button" label="__BLACK_CIRCLE__" parameter="SR.channel_mode"
+      <widget class="button" label="__BLACK_CIRCLE__" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_19_mode" show_frame="false" show_title="false" title="Records Mode"
          type="radio" value="1" valueUp="0" width="31" height="31" _x="70" xindex="2" _y="690"
          yindex="18" _index_="110" name="btn_body_mode_rec" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_7_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_7_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="810" xindex="3" _y="770" yindex="6" _index_="111"
          name="btn_left_arm_mode_copy_1" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_8_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_8_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="810" xindex="3" _y="800" yindex="7" _index_="112"
          name="btn_left_arm_mode_copy_2" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_9_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_9_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="810" xindex="3" _y="830" yindex="8" _index_="113"
          name="btn_left_arm_mode_copy_3" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_10_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_10_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="810" xindex="3" _y="860" yindex="9" _index_="114"
          name="btn_left_arm_mode_copy_4" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_11_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_11_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="810" xindex="3" _y="890" yindex="10" _index_="115"
          name="btn_left_arm_mode_copy_5" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_left_arm"
-         parameter="SR.channel_mode" radioGroup="channel_12_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_12_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="810" xindex="3" _y="920" yindex="11" _index_="116"
          name="btn_left_arm_mode_copy_6" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_13_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_13_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="100" xindex="3" _y="770" yindex="12" _index_="117"
          name="btn_right_arm_mode_copy_1" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_14_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_14_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="100" xindex="3" _y="800" yindex="13" _index_="118"
          name="btn_right_arm_mode_copy_2" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_15_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_15_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="100" xindex="3" _y="830" yindex="14" _index_="119"
          name="btn_right_arm_mode_copy_3" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_16_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_16_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="100" xindex="3" _y="860" yindex="15" _index_="120"
          name="btn_right_arm_mode_copy_4" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_17_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_17_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="100" xindex="3" _y="890" yindex="16" _index_="121"
          name="btn_right_arm_mode_copy_5" />
       <widget class="button" label="=" multiGroup="multi_group_bypass_right_arm"
-         parameter="SR.channel_mode" radioGroup="channel_18_mode" show_frame="false"
+         parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_18_mode" show_frame="false"
          show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0" width="31"
          height="31" _x="100" xindex="3" _y="920" yindex="17" _index_="122"
          name="btn_right_arm_mode_copy_6" />
-      <widget class="button" label="=" parameter="SR.channel_mode" radioGroup="channel_19_mode"
+      <widget class="button" label="=" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_19_mode"
          show_frame="false" show_title="false" title="Copy Mode" type="radio" value="1" valueUp="0"
          width="31" height="31" _x="100" xindex="3" _y="690" yindex="18" _index_="123"
          name="btn_body_mode_copy" />
       <widget class="drop-down-menu" height="31" index="0" labelWidth="50" list="Sequence A"
-         list_parameter="SR.sequence_names" parameter="SR.current_sequence" show_frame="false"
+         list_parameter=".ExperimentalSetup.SR.sequence_names" parameter=".ExperimentalSetup.SR.current_sequence" show_frame="false"
          show_title="false" title="Menu" width="311" _x="1010" _y="15" _index_="124"
          name="menu_sequence" />
       <widget class="button" height="31" label="__LOCK__"
@@ -1634,25 +1633,25 @@
          show_frame="false" show_title="false" title="Copy Mode" type="multi" value="1" valueUp="0"
          width="31" _x="100" xindex="3" _y="730" yindex="19" _index_="140"
          name="btn_multi_right_arm_copy" />
-      <widget class="button" command="SR.open" file_names="SR.file_names" height="31"
-         label="Open..." playhead="SR.playhead" show_frame="false" show_title="false"
+      <widget class="button" command=".ExperimentalSetup.SR.open" file_names=".ExperimentalSetup.SR.file_names" height="31"
+         label="Open..." playhead=".ExperimentalSetup.SR.playhead" show_frame="false" show_title="false"
          title="Select Sequence File to Open:" type="open" value="1" valueUp="0" width="91" _x="120"
          xindex="0" _y="15" yindex="0" _index_="141" name="btn_open" />
-      <widget class="button" command="SR.save" height="31" label="Save" playhead="SR.playhead"
+      <widget class="button" command=".ExperimentalSetup.SR.save" height="31" label="Save" playhead=".ExperimentalSetup.SR.playhead"
          show_frame="false" show_title="false" title="Title" type="push" value="1" valueUp="0"
          width="91" _x="210" xindex="0" _y="15" yindex="0" _index_="142" name="btn_save" />
-      <widget class="button" command="SR.clear" height="31" label="clear" playhead="SR.playhead"
+      <widget class="button" command=".ExperimentalSetup.SR.clear" height="31" label="clear" playhead=".ExperimentalSetup.SR.playhead"
          show_frame="false" show_title="false" title="Title" type="push" value="1" valueUp="0"
          width="91" _x="1405" xindex="0" _y="15" yindex="0" _index_="143" name="btn_clear" />
-      <widget class="button" command="SR.rename" height="31" label="rename" playhead="SR.playhead"
+      <widget class="button" command=".ExperimentalSetup.SR.rename" height="31" label="rename" playhead=".ExperimentalSetup.SR.playhead"
          show_frame="false" show_title="false" title="New Sequence Name" type="input" value="1"
          valueUp="0" width="91" _x="1320" xindex="0" _y="15" yindex="0" _index_="144"
          name="btn_rename" />
-      <widget class="button" command="SR.saveas" height="31" label="Save As..."
-         playhead="SR.playhead" show_frame="false" show_title="false" title="Save Sequence As:"
+      <widget class="button" command=".ExperimentalSetup.SR.saveas" height="31" label="Save As..."
+         playhead=".ExperimentalSetup.SR.playhead" show_frame="false" show_title="false" title="Save Sequence As:"
          type="input" value="1" valueUp="0" width="91" _x="300" xindex="0" _y="15" yindex="0"
          _index_="145" name="btn_saveas" />
-      <widget class="button" command="SR.new" height="31" label="New" playhead="SR.playhead"
+      <widget class="button" command=".ExperimentalSetup.SR.new" height="31" label="New" playhead=".ExperimentalSetup.SR.playhead"
          show_frame="false" show_title="false" type="push" value="1" valueUp="0" width="91" _x="30"
          xindex="0" _y="15" yindex="0" _index_="146" name="btn_new" />
       <widget class="rectangle" frame_width="1" height="31" label="Left arm" show_frame="false"
@@ -1668,245 +1667,247 @@
          show_frame="false" show_title="false" width="141" _x="10" _y="655" _index_="151"
          name="Full Epi parameters" />
       <widget class="text" _x="405" _y="20" height="26" width="601" title="Default Title"
-         parameter="SR.filename" _index_="152" name="text_filename" />
+         parameter=".ExperimentalSetup.SR.filename" _index_="152" name="text_filename" />
       <widget class="slider-horizontal" count="1" frame-style="" height="31" labels="Eyes (r)"
-         max="1" min="0" parameter="SR.positions" select="19" show_frame="false" show_title="false"
+         max="1" min="0" parameter=".ExperimentalSetup.SR.positions" select="19" show_frame="false" show_title="false"
          show_values="false" step="0.1" style="" title="Sliders" width="361" _x="130" _y="135"
          name="slider_eyes_r" />
       <widget class="slider-horizontal" count="1" frame-style="" height="31" labels="Mouth (r)"
-         max="1" min="0" parameter="SR.positions" select="23" show_frame="false" show_title="false"
+         max="1" min="0" parameter=".ExperimentalSetup.SR.positions" select="23" show_frame="false" show_title="false"
          show_values="false" step="0.1" style="" title="Sliders" width="361" _x="130" _y="260"
          name="slider_mouth_r" />
       <widget class="slider-horizontal" count="1" frame-style="" height="31" labels="Eyes (int.)"
-         max="1" min="0" parameter="SR.positions" select="22" show_frame="false" show_title="false"
+         max="1" min="0" parameter=".ExperimentalSetup.SR.positions" select="22" show_frame="false" show_title="false"
          show_values="false" step="0.1" style="" title="Sliders" width="361" _x="130" _y="225"
          name="slider_eyes_int" />
       <widget class="slider-horizontal" count="1" frame-style="" height="31" labels="Mouth (int.)"
-         max="1" min="0" parameter="SR.positions" select="26" show_frame="false" show_title="false"
+         max="1" min="0" parameter=".ExperimentalSetup.SR.positions" select="26" show_frame="false" show_title="false"
          show_values="false" step="0.1" style="" title="Sliders" width="361" _x="130" _y="350"
          name="slider_mouth_int" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="="
-         multiGroup="multi_group_bypass_led" parameter="SR.channel_mode"
+         multiGroup="multi_group_bypass_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_20_mode" show_frame="false" show_title="false" style=""
          title="Copy Mode" type="radio" value="1" valueUp="0" width="31" _x="100" xindex="3"
          _y="135" yindex="19" name="btn_channel_20_copy" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="="
-         multiGroup="multi_group_bypass_led" parameter="SR.channel_mode"
+         multiGroup="multi_group_bypass_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_21_mode" show_frame="false" show_title="false" style=""
          title="Copy Mode" type="radio" value="1" valueUp="0" width="31" _x="100" xindex="3"
          _y="165" yindex="20" name="btn_channel_21_copy" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="="
-         multiGroup="multi_group_bypass_led" parameter="SR.channel_mode"
+         multiGroup="multi_group_bypass_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_22_mode" show_frame="false" show_title="false" style=""
          title="Copy Mode" type="radio" value="1" valueUp="0" width="31" _x="100" xindex="3"
          _y="195" yindex="21" name="btn_channel_22_copy" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="="
-         multiGroup="multi_group_bypass_led" parameter="SR.channel_mode"
+         multiGroup="multi_group_bypass_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_23_mode" show_frame="false" show_title="false" style=""
          title="Copy Mode" type="radio" value="1" valueUp="0" width="31" _x="100" xindex="3"
          _y="225" yindex="22" name="btn_channel_23_copy" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__BLACK_CIRCLE__"
-         multiGroup="multi_group_rec_led" parameter="SR.channel_mode" radioGroup="channel_20_mode"
+         multiGroup="multi_group_rec_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_20_mode"
          show_frame="false" show_title="false" style="" title="Records Mode" type="radio" value="1"
          valueUp="0" width="31" _x="70" xindex="2" _y="135" yindex="19" name="btn_channel_20_rec" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__BLACK_CIRCLE__"
-         multiGroup="multi_group_rec_led" parameter="SR.channel_mode" radioGroup="channel_21_mode"
+         multiGroup="multi_group_rec_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_21_mode"
          show_frame="false" show_title="false" style="" title="Records Mode" type="radio" value="1"
          valueUp="0" width="31" _x="70" xindex="2" _y="165" yindex="20" name="btn_channel_21_rec" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__BLACK_CIRCLE__"
-         multiGroup="multi_group_rec_led" parameter="SR.channel_mode" radioGroup="channel_22_mode"
+         multiGroup="multi_group_rec_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_22_mode"
          show_frame="false" show_title="false" style="" title="Records Mode" type="radio" value="1"
          valueUp="0" width="31" _x="70" xindex="2" _y="195" yindex="21" name="btn_channel_22_rec" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__BLACK_CIRCLE__"
-         multiGroup="multi_group_rec_led" parameter="SR.channel_mode" radioGroup="channel_23_mode"
+         multiGroup="multi_group_rec_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_23_mode"
          show_frame="false" show_title="false" style="" title="Records Mode" type="radio" value="1"
          valueUp="0" width="31" _x="70" xindex="2" _y="225" yindex="22" name="btn_channel_23_rec" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__POINTER_RIGHT__"
-         multiGroup="multi_group_play_led" parameter="SR.channel_mode" radioGroup="channel_20_mode"
+         multiGroup="multi_group_play_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_20_mode"
          show_frame="false" show_title="false" style="" title="Play Mode" type="radio" value="1"
          valueUp="0" width="31" _x="40" xindex="1" _y="135" yindex="19" name="btn_channel_20_play" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__POINTER_RIGHT__"
-         multiGroup="multi_group_play_led" parameter="SR.channel_mode" radioGroup="channel_21_mode"
+         multiGroup="multi_group_play_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_21_mode"
          show_frame="false" show_title="false" style="" title="Play Mode" type="radio" value="1"
          valueUp="0" width="31" _x="40" xindex="1" _y="165" yindex="20" name="btn_channel_21_play" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__POINTER_RIGHT__"
-         multiGroup="multi_group_play_led" parameter="SR.channel_mode" radioGroup="channel_22_mode"
+         multiGroup="multi_group_play_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_22_mode"
          show_frame="false" show_title="false" style="" title="Play Mode" type="radio" value="1"
          valueUp="0" width="31" _x="40" xindex="1" _y="195" yindex="21" name="btn_channel_22_play" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__POINTER_RIGHT__"
-         multiGroup="multi_group_play_led" parameter="SR.channel_mode" radioGroup="channel_23_mode"
+         multiGroup="multi_group_play_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_23_mode"
          show_frame="false" show_title="false" style="" title="Play Mode" type="radio" value="1"
          valueUp="0" width="31" _x="40" xindex="1" _y="225" yindex="22" name="btn_channel_23_play" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__LOCK__"
-         multiGroup="multi_group_lock_led" parameter="SR.channel_mode" radioGroup="channel_20_mode"
+         multiGroup="multi_group_lock_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_20_mode"
          show_frame="false" show_title="false" style="" title="Hold Mode" type="radio" value="1"
          valueUp="0" width="31" _x="10" xindex="0" _y="135" yindex="19" name="btn_channel_20_lock" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__LOCK__"
-         multiGroup="multi_group_lock_led" parameter="SR.channel_mode" radioGroup="channel_21_mode"
+         multiGroup="multi_group_lock_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_21_mode"
          show_frame="false" show_title="false" style="" title="Hold Mode" type="radio" value="1"
          valueUp="0" width="31" _x="10" xindex="0" _y="165" yindex="20" name="btn_channel_21_lock" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__LOCK__"
-         multiGroup="multi_group_lock_led" parameter="SR.channel_mode" radioGroup="channel_22_mode"
+         multiGroup="multi_group_lock_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_22_mode"
          show_frame="false" show_title="false" style="" title="Hold Mode" type="radio" value="1"
          valueUp="0" width="31" _x="10" xindex="0" _y="195" yindex="21" name="btn_channel_22_lock" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__LOCK__"
-         multiGroup="multi_group_lock_led" parameter="SR.channel_mode" radioGroup="channel_23_mode"
+         multiGroup="multi_group_lock_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_23_mode"
          show_frame="false" show_title="false" style="" title="Hold Mode" type="radio" value="1"
          valueUp="0" width="31" _x="10" xindex="0" _y="225" yindex="22" name="btn_channel_23_lock" />
       <widget class="slider-horizontal" count="1" frame-style="" height="31" labels="Sound" max="35"
-         min="-1" parameter="SR.positions" select="27" show_frame="false" show_title="false"
+         min="-1" parameter=".ExperimentalSetup.SR.positions" select="27" show_frame="false" show_title="false"
          show_values="true" step="1" style="" title="Sliders" width="361" _x="130" _y="385"
          name="slider_sound" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__LOCK__"
-         multiGroup="multi_group_lock_led" parameter="SR.channel_mode" radioGroup="channel_24_mode"
+         multiGroup="multi_group_lock_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_24_mode"
          show_frame="false" show_title="false" style="" title="Hold Mode" type="radio" value="1"
          valueUp="0" width="31" _x="10" xindex="0" _y="260" yindex="23" name="btn_channel_24_lock" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__POINTER_RIGHT__"
-         multiGroup="multi_group_play_led" parameter="SR.channel_mode" radioGroup="channel_24_mode"
+         multiGroup="multi_group_play_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_24_mode"
          show_frame="false" show_title="false" style="" title="Play Mode" type="radio" value="1"
          valueUp="0" width="31" _x="40" xindex="1" _y="260" yindex="23" name="btn_channel_24_play" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="__BLACK_CIRCLE__"
-         multiGroup="multi_group_rec_led" parameter="SR.channel_mode" radioGroup="channel_24_mode"
+         multiGroup="multi_group_rec_led" parameter=".ExperimentalSetup.SR.channel_mode" radioGroup="channel_24_mode"
          show_frame="false" show_title="false" style="" title="Records Mode" type="radio" value="1"
          valueUp="0" width="31" _x="70" xindex="2" _y="260" yindex="23" name="btn_channel_24_rec" />
       <widget class="button" background="" color="" command="" commandUp="" enableSource=""
          file_names="" frame-style="" height="31" icon="" label="="
-         multiGroup="multi_group_bypass_led" parameter="SR.channel_mode"
+         multiGroup="multi_group_bypass_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_24_mode" show_frame="false" show_title="false" style=""
          title="Copy Mode" type="radio" value="1" valueUp="0" width="31" _x="100" xindex="3"
          _y="260" yindex="23" name="btn_channel_24_copy" />
       <widget class="slider-horizontal" count="1" frame-style="" height="31" labels="Eyes (g)"
-         max="1" min="0" parameter="SR.positions" select="20" show_frame="false" show_title="false"
+         max="1" min="0" parameter=".ExperimentalSetup.SR.positions" select="20" show_frame="false" show_title="false"
          show_values="false" step="0.1" style="" title="Sliders" width="361" _x="130" _y="165"
          name="slider_eyes_g" />
       <widget class="slider-horizontal" count="1" frame-style="" height="31" labels="Eyes (b)"
-         max="1" min="0" parameter="SR.positions" select="21" show_frame="false" show_title="false"
+         max="1" min="0" parameter=".ExperimentalSetup.SR.positions" select="21" show_frame="false" show_title="false"
          show_values="false" step="0.1" style="" title="Sliders" width="361" _x="130" _y="195"
          name="slider_eyes_b" />
       <widget class="slider-horizontal" count="1" frame-style="" height="31" labels="Mouth (g)"
-         max="1" min="0" parameter="SR.positions" select="24" show_frame="false" show_title="false"
+         max="1" min="0" parameter=".ExperimentalSetup.SR.positions" select="24" show_frame="false" show_title="false"
          show_values="false" step="0.1" style="" title="Sliders" width="361" _x="130" _y="290"
          name="slider_mouth_g" />
       <widget class="slider-horizontal" count="1" frame-style="" height="31" labels="Mouth (b)"
-         max="1" min="0" parameter="SR.positions" select="25" show_frame="false" show_title="false"
+         max="1" min="0" parameter=".ExperimentalSetup.SR.positions" select="25" show_frame="false" show_title="false"
          show_values="false" step="0.1" style="" title="Sliders" width="361" _x="130" _y="320"
          name="slider_mouth_b" />
       <widget class="button" name="button_copy_mode_channel_25" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon="" label="="
-         multiGroup="multi_group_bypass_led" parameter="SR.channel_mode"
+         multiGroup="multi_group_bypass_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_25_mode" show_frame="false" show_title="false" style=""
          title="Copy Mode" type="radio" value="1" valueUp="0" width="31" _x="100" xindex="3"
          _y="290" yindex="24" />
       <widget class="button" name="button_copy_mode_channel_26" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon="" label="="
-         multiGroup="multi_group_bypass_led" parameter="SR.channel_mode"
+         multiGroup="multi_group_bypass_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_26_mode" show_frame="false" show_title="false" style=""
          title="Copy Mode" type="radio" value="1" valueUp="0" width="31" _x="100" xindex="3"
          _y="320" yindex="25" />
       <widget class="button" name="button_copy_mode_channel_27" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon="" label="="
-         multiGroup="multi_group_bypass_led" parameter="SR.channel_mode"
+         multiGroup="multi_group_bypass_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_27_mode" show_frame="false" show_title="false" style=""
          title="Copy Mode" type="radio" value="1" valueUp="0" width="31" _x="100" xindex="3"
          _y="350" yindex="26" />
       <widget class="button" name="button_copy_mode_channel_28" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon="" label="="
-         multiGroup="multi_group_bypass_led" parameter="SR.channel_mode"
+         multiGroup="multi_group_bypass_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_28_mode" show_frame="false" show_title="false" style=""
          title="Copy Mode" type="radio" value="1" valueUp="0" width="31" _x="100" xindex="3"
          _y="385" yindex="27" />
       <widget class="button" name="button_records_mode_channel_25" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon=""
-         label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_led" parameter="SR.channel_mode"
+         label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_25_mode" show_frame="false" show_title="false" style=""
          title="Records Mode" type="radio" value="1" valueUp="0" width="31" _x="70" xindex="2"
          _y="290" yindex="24" />
       <widget class="button" name="button_records_mode_channel_26" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon=""
-         label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_led" parameter="SR.channel_mode"
+         label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_26_mode" show_frame="false" show_title="false" style=""
          title="Records Mode" type="radio" value="1" valueUp="0" width="31" _x="70" xindex="2"
          _y="320" yindex="25" />
       <widget class="button" name="button_records_mode_channel_27" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon=""
-         label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_led" parameter="SR.channel_mode"
+         label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_27_mode" show_frame="false" show_title="false" style=""
          title="Records Mode" type="radio" value="1" valueUp="0" width="31" _x="70" xindex="2"
          _y="350" yindex="26" />
       <widget class="button" name="button_records_mode_channel_28" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon=""
-         label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_led" parameter="SR.channel_mode"
+         label="__BLACK_CIRCLE__" multiGroup="multi_group_rec_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_28_mode" show_frame="false" show_title="false" style=""
          title="Records Mode" type="radio" value="1" valueUp="0" width="31" _x="70" xindex="2"
          _y="385" yindex="27" />
       <widget class="button" name="button_play_mode_channel_25" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon=""
-         label="__POINTER_RIGHT__" multiGroup="multi_group_play_led" parameter="SR.channel_mode"
+         label="__POINTER_RIGHT__" multiGroup="multi_group_play_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_25_mode" show_frame="false" show_title="false" style=""
          title="Play Mode" type="radio" value="1" valueUp="0" width="31" _x="40" xindex="1" _y="290"
          yindex="24" />
       <widget class="button" name="button_play_mode_channel_26" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon=""
-         label="__POINTER_RIGHT__" multiGroup="multi_group_play_led" parameter="SR.channel_mode"
+         label="__POINTER_RIGHT__" multiGroup="multi_group_play_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_26_mode" show_frame="false" show_title="false" style=""
          title="Play Mode" type="radio" value="1" valueUp="0" width="31" _x="40" xindex="1" _y="320"
          yindex="25" />
       <widget class="button" name="button_play_mode_channel_27" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon=""
-         label="__POINTER_RIGHT__" multiGroup="multi_group_play_led" parameter="SR.channel_mode"
+         label="__POINTER_RIGHT__" multiGroup="multi_group_play_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_27_mode" show_frame="false" show_title="false" style=""
          title="Play Mode" type="radio" value="1" valueUp="0" width="31" _x="40" xindex="1" _y="350"
          yindex="26" />
       <widget class="button" name="button_play_mode_channel_28" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon=""
-         label="__POINTER_RIGHT__" multiGroup="multi_group_play_led" parameter="SR.channel_mode"
+         label="__POINTER_RIGHT__" multiGroup="multi_group_play_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_28_mode" show_frame="false" show_title="false" style=""
          title="Play Mode" type="radio" value="1" valueUp="0" width="31" _x="40" xindex="1" _y="385"
          yindex="27" />
       <widget class="button" name="button_hold_mode_channel_25" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon=""
-         label="__LOCK__" multiGroup="multi_group_lock_led" parameter="SR.channel_mode"
+         label="__LOCK__" multiGroup="multi_group_lock_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_25_mode" show_frame="false" show_title="false" style=""
          title="Hold Mode" type="radio" value="1" valueUp="0" width="31" _x="10" xindex="0" _y="290"
          yindex="24" />
       <widget class="button" name="button_hold_mode_channel_26" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon=""
-         label="__LOCK__" multiGroup="multi_group_lock_led" parameter="SR.channel_mode"
+         label="__LOCK__" multiGroup="multi_group_lock_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_26_mode" show_frame="false" show_title="false" style=""
          title="Hold Mode" type="radio" value="1" valueUp="0" width="31" _x="10" xindex="0" _y="320"
          yindex="25" />
       <widget class="button" name="button_hold_mode_channel_27" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon=""
-         label="__LOCK__" multiGroup="multi_group_lock_led" parameter="SR.channel_mode"
+         label="__LOCK__" multiGroup="multi_group_lock_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_27_mode" show_frame="false" show_title="false" style=""
          title="Hold Mode" type="radio" value="1" valueUp="0" width="31" _x="10" xindex="0" _y="350"
          yindex="26" />
       <widget class="button" name="button_hold_mode_channel_28" background="" color="" command=""
          commandUp="" enableSource="" file_names="" frame-style="" height="31" icon=""
-         label="__LOCK__" multiGroup="multi_group_lock_led" parameter="SR.channel_mode"
+         label="__LOCK__" multiGroup="multi_group_lock_led" parameter=".ExperimentalSetup.SR.channel_mode"
          radioGroup="channel_28_mode" show_frame="false" show_title="false" style=""
          title="Hold Mode" type="radio" value="1" valueUp="0" width="31" _x="10" xindex="0" _y="385"
          yindex="27" />
    </group>
+
+
    <group _x="100" _y="100" name="PlaybackView">
       <widget class="drop-down-menu" height="41" index="0" labelWidth="50" list="Sequence A"
          list_parameter="SR.sequence_names" parameter="SR.current_sequence" show_frame="false"
