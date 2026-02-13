@@ -85,6 +85,6 @@
    <widget value="1" _index_="162" _y="20" playhead="SR.playhead" yindex="0" class="button" _x="1000" height="41" show_frame="false" command="SR.new" show_title="false" name="widget_082" label="New" valueUp="0" type="push" width="81" xindex="0"/>
    <module name="RobotFeedback" _x="1008" _y="576" class="Constant" data="0,0,0,0"/>
    <module name="Triggers" _x="1008" _y="504" class="Constant" data="0,0,0,0"/>
-   <module channel_mode = "0,0,0,0; 0,0,0,0; 0,0,0,0;0,0,0,0; 0,0,0,0; 0,0,0,0" channels="6" _filename="sequence.json" _auto_save="yes" _directory="Sequences" class="SequenceRecorder" internal_control="1, 1, 1, 1, 1, 1" _x="1152" log_level="10" _y="504" range_max="180, 180, 180, 360, 360, 360" range_min="-180, 180, -180, 0, 0, 0" max_motions="20" interpolation = "1,1,1,1,1,1" smoothing_time="0" default_output="0, 0, 0, 0, 0,0" name="SR" _record_on_trig="true"/>
+   <module channels="6" _filename="sequence.json" _auto_save="yes" _directory="Sequences" class="SequenceRecorder" internal_control="1, 1, 1, 1, 1, 1" _x="1152" log_level="10" _y="504" range_max="180, 180, 180, 360, 360, 360" range_min="-180, 180, -180, 0, 0, 0" max_motions="20" interpolation = "1,1,1,1,1,1" smoothing_time="0" default_output="0, 0, 0, 0, 0,0" name="SR" _record_on_trig="true"/>
    <parameter control="menu" name="log_level" type="number" default="0" value="0" />
 </group>

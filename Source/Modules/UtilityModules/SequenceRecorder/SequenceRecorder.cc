@@ -787,7 +787,6 @@ public:
             target[c] = point_left;
         else // 1 = linear interpolation
             target[c] = interpolate(t, time_left, time_right, point_left, point_right);
-            
     }
     }
 
@@ -806,7 +805,6 @@ public:
         output[c] = target[c]; // SMOOTH HERE AS WELL
         positions[c] = target[c];
         active[c] = 1;
-        output[c].print();
         }   
 
     else if(channel_mode(c,2) == 1) //record
@@ -893,69 +891,42 @@ public:
     bool
     Open(const std::string & name)
     {
-        std::cout << "[SequenceRecorder::Open] Opening file: " << name << std::endl;
-        
         if(std::string(filename).empty())
-        {
-            std::cout << "[SequenceRecorder::Open] ERROR: filename is empty, aborting" << std::endl;
-            return false;
-        }
+        return false;
 
     filename = name;
     auto path = std::string(directory)+"/"+std::string(filename);
-    std::cout << "[SequenceRecorder::Open] Full path: " << path << std::endl;
 
     if(!check_file_exists(path.c_str())) // Remove call t check_file_exists(path.c_str())
     {
-        std::cout << "[SequenceRecorder::Open] ERROR: File does not exist at path: " << path << std::endl;
         Notify(msg_warning, "File does not exist."); // FIXME: path.c_str()
         return false;
     }
 
-    std::cout << "[SequenceRecorder::Open] File exists, loading JSON..." << std::endl;
-    
     try
     {
         dictionary data;
         data.load_json(path);
-        std::cout << "[SequenceRecorder::Open] JSON loaded successfully" << std::endl;
 
         // Validate
 
-        std::cout << "[SequenceRecorder::Open] Validating file format..." << std::endl;
         if(data["type"].is_null() || data["type"].as_string() != u8"Ikaros Sequence Data")
-        {
-            std::cout << "[SequenceRecorder::Open] ERROR: Wrong file format, type = " << data["type"].as_string() << std::endl;
             return Notify(msg_warning, "File has wrong format. Cannot be opended.");
-        }
 
-        std::cout << "[SequenceRecorder::Open] Validating channel count..." << std::endl;
-        if(data["channels"].is_null() || data["channels"] <= channels)
-        {
-            std::cout << "[SequenceRecorder::Open] ERROR: Channel mismatch - file has " << data["channels"].as_int() << ", expected " << channels.as_int() << std::endl;
+        if(data["channels"].is_null() || data["channels"] != channels)
             return Notify(msg_warning, "Sequence file has wrong number of channels. Cannot be opended.");
-        }
 
         // Data is ok
 
-        std::cout << "[SequenceRecorder::Open] Validation passed, loading data..." << std::endl;
         sequence_data = data;
-        std::cout << "[SequenceRecorder::Open] Updating sequence names..." << std::endl;
         UpdateSequenceNames();
-        
-        std::cout << "[SequenceRecorder::Open] Loading channel mode..." << std::endl;
         LoadChannelMode();
-        
-        std::cout << "[SequenceRecorder::Open] Linking keypoints..." << std::endl;
         LinkKeypoints(); // Just in case...
-        
         current_sequence = 0;
-        std::cout << "[SequenceRecorder::Open] File opened successfully, current_sequence = " << current_sequence.as_int() << std::endl;
     }
 
     catch(const std::exception& e)
     {
-        std::cout << "[SequenceRecorder::Open] EXCEPTION: " << e.what() << std::endl;
         return Notify(msg_warning, "Sequence file could not be loaded.");
     }
     return true;
@@ -1004,12 +975,6 @@ public:
         Bind(loop, "loop");
         Bind(shuffle, "shuffle");
         Bind(channel_mode, "channel_mode");
-        // This is not a array but an matrix.
-        // Can I change the size of the matrix?
-        //channel_mode.realloc(channels.as_int(), 4); // 4 modes: locked, play, record, copy
-        std::cout << "Channel mode size: " << channel_mode.size_x() << " x " << channel_mode.size_y() << std::endl; 
-        channel_mode.print();
-
         Bind(time_string, "time");
         Bind(end_time_string, "end_time");
         Bind(position, "position");
@@ -1178,7 +1143,6 @@ public:
 
         // FIXME: Add smoothing here
 
-        // KAN DET VARA FÄR SOM INTE OUTPUT SÄTTS? ELLER ÄR DET NÅGOT MED INTERNAL?!
          for(int c=0; c<channels.as_int(); c++)
              SetOutputForChannel(c);
 
