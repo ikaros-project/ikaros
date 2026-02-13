@@ -2998,7 +2998,11 @@ if(classes[classname].path.empty())
                 Notify(msg_warning, "File \""+file+"\" could not be loaded"); // FIXME: better error message - alert? HTTP reply with error code
                 New();
             }
-        
+            
+        // Great we loaded the file. Check the run_mode in the loaded file and set it accordingly?
+        // if(std::string(info_["real_time"]) == "true")
+        //     Realtime();
+
         DoSendNetwork(request);
     }
 
