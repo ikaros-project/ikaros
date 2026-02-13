@@ -3264,7 +3264,7 @@ if(classes[classname].path.empty())
                 if(p.matrix_value->rank() == 1)
                     (*p.matrix_value)(x)= value;
                 else if(p.matrix_value->rank() == 2)
-                    (*p.matrix_value)(x,y)= value;
+                    (*p.matrix_value)(y,x)= value; // Is this correct?
                 else
                     ;   // FIXME: higher dimensional parameter
             }
