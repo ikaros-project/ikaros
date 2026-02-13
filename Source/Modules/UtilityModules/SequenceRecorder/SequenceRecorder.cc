@@ -797,30 +797,30 @@ public:
     if(channel_mode(c,0) == 1) //locked
     {
         // Do not change output
-        active[c] = 1;
+        active(c) = 1;
     }
 
     else if(channel_mode(c,1) == 1) //play
         {
-        output[c] = target[c]; // SMOOTH HERE AS WELL
-        positions[c] = target[c];
-        active[c] = 1;
+        output(c) = target(c); // SMOOTH HERE AS WELL
+        positions(c) = target(c);
+        active(c) = 1;
         }   
 
     else if(channel_mode(c,2) == 1) //record
         {
-        output[c] = input[c];
-        active[c] = 0;
-            if(internal_control[c] == 1)
-            active[c] = 1;
+        output(c) = input(c);
+        active(c) = 0;
+            if(internal_control(c) == 1)
+            active(c) = 1;
         }   
 
     else if(channel_mode(c,3) == 1) //copy
         {
-            output[c] = input[c];
-            active[c] = 0;
-            if(internal_control[c] == 1)
-            active[c] = 1;
+            output(c) = input(c);
+            active(c) = 0;
+            if(internal_control(c) == 1)
+            active(c) = 1;
         }
     }
 
