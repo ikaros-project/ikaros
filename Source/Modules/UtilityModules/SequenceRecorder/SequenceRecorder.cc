@@ -913,7 +913,7 @@ public:
         if(data["type"].is_null() || data["type"].as_string() != u8"Ikaros Sequence Data")
             return Notify(msg_warning, "File has wrong format. Cannot be opended.");
 
-        if(data["channels"].is_null() || data["channels"] != channels)
+        if(data["channels"].is_null() || data["channels"] < channels) // File might include more channels then used. 
             return Notify(msg_warning, "Sequence file has wrong number of channels. Cannot be opended.");
 
         // Data is ok
