@@ -10,7 +10,7 @@ Version 3 is completely rewritten in modern C++ and includes a number of new fea
 
 Up to date information is available in the [wiki](https://github.com/ikaros-project/ikaros/wiki).
 
-## Ikaros Status - 18 September, 2024
+## Ikaros Status - 10 Fenruary, 2026
 
 | Component | State | Comments |
 | ----|----|----|
