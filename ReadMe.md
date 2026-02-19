@@ -39,7 +39,7 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
 | Log               |<div style="color:green">🟢 OK | |
 | Editing           |<div style="color:green">🟢 OK  | |
 | Sockets           |<div style="color:green">🟢 OK |  |
-| UtilityModules    |<div style="color:#c60">🟡 Partial | 17 modules |
+| UtilityModules    |<div style="color:#c60">🟡 Partial | 47 modules |
 | Named Dimensions  |<div style="color:green">🟢 OK |  |
 
 ## Basic Start-up Parameters
