@@ -1,4 +1,4 @@
-<class name="FadeCandy" description="Allows control of fadecandy hardware">
+<class name="FadeCandy" description="Allows control of fadecandy hardware on Epi">
 
 	<parameter name="simulate" type="bool" default="False" description="Simulation mode. Module is not trying to connect to any fadecandy board" />
 
