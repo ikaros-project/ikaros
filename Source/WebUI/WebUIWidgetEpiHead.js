@@ -245,8 +245,9 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
     else
         this.EyeColors = [Array(12).fill(defaultEyeColor[0]), Array(12).fill(defaultEyeColor[0])];
     
-    let l_eye = this.getSource("leftEyeColor", defaultEyeColor);
-    let r_eye = this.getSource("rightEyeColor", defaultEyeColor);
+    let l_eye = this.getSource("LeftEyeColor", defaultEyeColor);
+    let r_eye = this.getSource("RightEyeColor", defaultEyeColor);
+    
     // Convert the input to a hex representation of color 
     if (l_eye && l_eye.length === 3 && l_eye[0].length === 12 && l_eye[1].length === 12 && l_eye[2].length === 12 )
       this.EyeColors[0] = l_eye[0].map((_, i) => rgbToHex(Math.round(l_eye[0][i] * 255), Math.round(l_eye[1][i] * 255), Math.round(l_eye[2][i] * 255)));
