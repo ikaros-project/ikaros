@@ -10,7 +10,7 @@ Version 3 is completely rewritten in modern C++ and includes a number of new fea
 
 Up to date information is available in the [wiki](https://github.com/ikaros-project/ikaros/wiki).
 
-## Ikaros Status - 18 September, 2024
+## Ikaros Status - 10 February, 2026
 
 | Component | State | Comments |
 | ----|----|----|
@@ -39,7 +39,7 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
 | Log               |<div style="color:green">🟢 OK | |
 | Editing           |<div style="color:green">🟢 OK  | |
 | Sockets           |<div style="color:green">🟢 OK |  |
-| UtilityModules    |<div style="color:#c60">🟡 Partial | 17 modules |
+| UtilityModules    |<div style="color:#c60">🟡 Partial | 47 modules |
 | Named Dimensions  |<div style="color:green">🟢 OK |  |
 
 ## Basic Start-up Parameters
