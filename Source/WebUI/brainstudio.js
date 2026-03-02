@@ -1033,7 +1033,16 @@ let controller =
             controller.setSystemInfo(response);
             controller.tick_duration = response.tick_duration || 0;
             if(response.has_data)
+            {
+
+                if(!response.data || Object.keys(response.data).length === 0)
+                {
+                    //console.log("WARNING: Empty data package received from ikaros.");
+                   return; // Just ignore it; this should not happen, but just in case. 
+                }
+
                 controller.updateImages(response.data);
+            }
         }
 
         if(response.log)
