@@ -17,7 +17,8 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
 
             { 'name': "CONTROL", 'control': 'header' },
             { 'name': 'parameter', 'default': "", 'type': 'source', 'control': 'textedit' },
-            { 'name': 'select', 'default': 0, 'type': 'int', 'control': 'textedit' },
+            { 'name': 'select_x', 'default': 0, 'type': 'int', 'control': 'textedit' },
+            { 'name': 'select_y', 'default': "", 'type': 'string', 'control': 'textedit' },
             { 'name': 'count', 'default': 1, 'type': 'int', 'control': 'textedit' },
 
             { 'name': "STYLE", 'control': 'header' },
@@ -41,13 +42,21 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
 
     slider_moved(value, index = 0) {
         this.is_active = true;
-        this.send_control_change(this.parameters.parameter, value, this.parameters.select + index);
+    if(this.parameters.select_y == "" )
+            this.send_control_change(this.parameters.parameter, value, this.parameters.select_x + index);
+    else
+            this.send_control_change(this.parameters.parameter, value, this.parameters.select_x + index, Math.trunc(this.parameters.select_y));
 
         // moves all sliders at ones. 
         if (this.sync) {
             var newValue = value;
-            for (let i = 0; i < this.parameters.count; i++) {
-                this.send_control_change(this.parameters.parameter, newValue, this.parameters.select + i);
+            for (let i = 0; i < this.parameters.count; i++) 
+            {
+                if(this.parameters.select_y == "" )
+                    this.send_control_change(this.parameters.parameter, newValue, this.parameters.select_x + i);
+                else
+                    this.send_control_change(this.parameters.parameter, newValue, this.parameters.select_x + i, Math.trunc(this.parameters.select_y));
+
                 this.querySelectorAll("input")[i].value = newValue;
             }
         }
@@ -155,13 +164,26 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
                 d = [d];
             }
 
-            if (d) {
+            if (d)
+            {
                 let size_y = d.length;
                 let size_x = d[0].length;
 
-                let i = this.parameters.select;
-                for (let slider of this.querySelectorAll("input"))
-                    slider.value = d[0][i++];
+                if(this.parameters.select_y != "" )
+                {
+                    let sel_y = Math.trunc(this.parameters.select_y);
+                    let i = this.parameters.select_x;
+
+                    for (let slider of this.querySelectorAll("input"))
+                        slider.value = d[sel_y][i++];
+                }
+
+                else
+                {
+                    let i = this.parameters.select_x;
+                    for (let slider of this.querySelectorAll("input")) // Skip to correct row
+                        slider.value = d[i++];
+                }
             }
         }
         catch (err) {
