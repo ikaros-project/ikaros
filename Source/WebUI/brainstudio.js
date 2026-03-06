@@ -2491,7 +2491,122 @@ const main =
         main.grid = document.querySelector("#main_grid");
         main.grid_canvas = document.querySelector("#main_grid_canvas");
         main.drawGrid();
-        main.view.addEventListener("mousedown", (e) => { console.log('main mouse down'); selector.selectBackground();}, false);
+        main.view.addEventListener("mousedown", main.startBackgroundSelection, false);
+    },
+
+    ensureSelectionBox()
+    {
+        if(main.selection_box && main.selection_box.parentElement)
+            return;
+        main.selection_box = document.createElement("div");
+        main.selection_box.className = "selection-rectangle";
+        main.selection_box.style.display = "none";
+        main.view.appendChild(main.selection_box);
+    },
+
+    startBackgroundSelection(evt)
+    {
+        if(evt.button !== 0)
+            return;
+        if(evt.target !== main.view)
+            return;
+
+        if(!main.edit_mode)
+        {
+            selector.selectBackground();
+            return;
+        }
+
+        main.ensureSelectionBox();
+        main.selection_drag_active = true;
+        main.selection_drag_shift = evt.shiftKey;
+        main.selection_start_x = evt.clientX;
+        main.selection_start_y = evt.clientY;
+        main.selection_moved = false;
+
+        main.selection_box.style.left = `${evt.offsetX}px`;
+        main.selection_box.style.top = `${evt.offsetY}px`;
+        main.selection_box.style.width = "0px";
+        main.selection_box.style.height = "0px";
+        main.selection_box.style.display = "block";
+
+        main.view.addEventListener("mousemove", main.updateBackgroundSelection, true);
+        main.view.addEventListener("mouseup", main.finishBackgroundSelection, true);
+        evt.preventDefault();
+        evt.stopPropagation();
+    },
+
+    updateBackgroundSelection(evt)
+    {
+        if(!main.selection_drag_active || !main.selection_box)
+            return;
+
+        const viewRect = main.view.getBoundingClientRect();
+        const x1 = Math.max(0, Math.min(main.selection_start_x - viewRect.left, main.view.clientWidth));
+        const y1 = Math.max(0, Math.min(main.selection_start_y - viewRect.top, main.view.clientHeight));
+        const x2 = Math.max(0, Math.min(evt.clientX - viewRect.left, main.view.clientWidth));
+        const y2 = Math.max(0, Math.min(evt.clientY - viewRect.top, main.view.clientHeight));
+
+        const left = Math.min(x1, x2);
+        const top = Math.min(y1, y2);
+        const width = Math.abs(x2 - x1);
+        const height = Math.abs(y2 - y1);
+
+        if(width > 2 || height > 2)
+            main.selection_moved = true;
+
+        main.selection_box.style.left = `${left}px`;
+        main.selection_box.style.top = `${top}px`;
+        main.selection_box.style.width = `${width}px`;
+        main.selection_box.style.height = `${height}px`;
+    },
+
+    finishBackgroundSelection(evt)
+    {
+        if(!main.selection_drag_active)
+            return;
+
+        main.view.removeEventListener("mousemove", main.updateBackgroundSelection, true);
+        main.view.removeEventListener("mouseup", main.finishBackgroundSelection, true);
+
+        if(main.selection_box)
+            main.selection_box.style.display = "none";
+
+        if(!main.selection_moved)
+        {
+            selector.selectBackground();
+            main.selection_drag_active = false;
+            return;
+        }
+
+        const viewRect = main.view.getBoundingClientRect();
+        const x1 = Math.min(main.selection_start_x, evt.clientX) - viewRect.left;
+        const y1 = Math.min(main.selection_start_y, evt.clientY) - viewRect.top;
+        const x2 = Math.max(main.selection_start_x, evt.clientX) - viewRect.left;
+        const y2 = Math.max(main.selection_start_y, evt.clientY) - viewRect.top;
+
+        const selected = [];
+        for(const element of main.view.querySelectorAll(".gi"))
+        {
+            const r = element.getBoundingClientRect();
+            const ex1 = r.left - viewRect.left;
+            const ey1 = r.top - viewRect.top;
+            const ex2 = ex1 + r.width;
+            const ey2 = ey1 + r.height;
+
+            const intersects = !(ex2 < x1 || ex1 > x2 || ey2 < y1 || ey1 > y2);
+            if(intersects && element.dataset.name)
+                selected.push(element.dataset.name);
+        }
+
+        if(selected.length === 0)
+            selector.selectBackground();
+        else
+            selector.selectItems(selected, null, main.selection_drag_shift, false);
+
+        main.selection_drag_active = false;
+        evt.preventDefault();
+        evt.stopPropagation();
     },
 
     drawGrid()

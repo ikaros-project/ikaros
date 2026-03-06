@@ -1140,6 +1140,14 @@ svg *{
     pointer-events: none;
 }
 
+.selection-rectangle {
+    position: absolute;
+    border: 1px dashed #3b82f6;
+    background: rgba(59, 130, 246, 0.12);
+    pointer-events: none;
+    z-index: 1500;
+}
+
 .connection_line .selected:hover {
     stroke:black;
     stroke-width:3;
