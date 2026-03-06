@@ -2207,6 +2207,8 @@ const selector =
 
     selectItems(foreground=[], background=null, toggle=false, extend=false)
     {
+        const previous_background = selector.selected_background;
+        const previous_connection = selector.selected_connection;
         selector.selected_connection = null;
 
         // Select background
@@ -2215,6 +2217,8 @@ const selector =
             selector.selected_background = background;
 
             setCookie("selected_background", selector.selected_background);
+
+        const background_changed = (background != null && background !== previous_background);
 
         // Toggle foreground
 
@@ -2229,19 +2233,44 @@ const selector =
         if(selector.selected_background == null)
             return;
 
-        if(selector.selected_foreground.length==0) // select background group
+        if(background_changed)
         {
-            nav.selectItem(selector.selected_background);
-            breadcrumbs.selectItem(selector.selected_background);    
-            main.selectItem([], selector.selected_background);
-            inspector.showInspectorForSelection();
+            if(selector.selected_foreground.length==0) // select background group
+            {
+                nav.selectItem(selector.selected_background);
+                breadcrumbs.selectItem(selector.selected_background);    
+                main.selectItem([], selector.selected_background);
+                inspector.showInspectorForSelection();
+            }
+    
+            else // select foreground components
+            {
+                main.selectItem(selector.selected_foreground, selector.selected_background);
+                inspector.showInspectorForSelection();
+            }
+            return;
         }
 
-        else // select forground components
+        const needs_rebuild = selector.selected_foreground.some((name) => !document.getElementById(name));
+        if(needs_rebuild)
         {
             main.selectItem(selector.selected_foreground, selector.selected_background);
             inspector.showInspectorForSelection();
+            return;
         }
+
+        // Background unchanged: update selection state without rebuilding the full view.
+        if(previous_connection && previous_connection !== selector.selected_connection)
+            main.deselectConnection(previous_connection);
+
+        if(selector.selected_foreground.length==0)
+        {
+            nav.selectItem(selector.selected_background);
+            breadcrumbs.selectItem(selector.selected_background);
+        }
+
+        main.updateComponentStates();
+        inspector.showInspectorForSelection();
     },
 
     selectConnection(connection)
@@ -2257,6 +2286,8 @@ const selector =
 
     selectBackground()
     {
+        if(selector.selected_foreground.length === 0 && selector.selected_connection == null)
+            return;
         selector.selectItems([], selector.selected_background);
     },
    
@@ -3256,5 +3287,3 @@ const brainstudio =
 
     }
 }
-
-
