@@ -2643,7 +2643,7 @@ const main =
         const top = Math.min(y1, y2);
         const width = Math.abs(x2 - x1);
         const height = Math.abs(y2 - y1);
-        const toggle_selection = main.selection_drag_shift || evt.shiftKey;
+        const toggle_selection = true;
         const selected = main.collectBackgroundSelection(left, top, width, height);
         main.applyBackgroundSelection(selected, toggle_selection);
 
@@ -3451,7 +3451,7 @@ const main =
         const y1 = source_point.getBoundingClientRect().top-oy+4.5;
         const x2 = target_point.getBoundingClientRect().left-ox+4.5;
         const y2 = target_point.getBoundingClientRect().top-oy+4.5;
-        const cc = `<line x1='${x1}' y1='${y1}' x2='${x2}' y2='${y2}' class='connection_line' data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}'onclick='selector.selectConnection("${path}.${source}*${path}.${target}")'/>`; 
+        const cc = `<line x1='${x1}' y1='${y1}' x2='${x2}' y2='${y2}' class='connection_line' data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`; 
         main.connections += cc;
     },
 

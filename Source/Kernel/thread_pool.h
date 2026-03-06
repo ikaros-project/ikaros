@@ -9,6 +9,8 @@
 #include <functional>
 #include <future>
 #include <chrono>
+#include <atomic>
+#include <exception>
 
 #include "profiler.h"
 
@@ -29,16 +31,19 @@ class TaskSequence
 {
 public:
     TaskSequence(const std::vector<Task *> &tasks)
-        : tasks_(tasks), running(false), completed(false), error_(false) {}
+        : tasks_(tasks), running(false), completed(false), error_(false), exception_(nullptr) {}
 
     virtual ~TaskSequence() = default;
 
     void execute() 
     {
+        std::exception_ptr eptr;
         {
             std::lock_guard<std::mutex> lock(mutex_);
             running = true;
+            completed = false;
             error_ = false;
+            exception_ = nullptr;
         }
         try {
             Tick();
@@ -46,19 +51,30 @@ public:
         catch(...) {
             std::lock_guard<std::mutex> lock(mutex_);
             error_ = true;
-            throw;
+            eptr = std::current_exception();
+            exception_ = eptr;
         }
         {
             std::lock_guard<std::mutex> lock(mutex_);
+            running = false;
             completed = true;
         }
         condition_.notify_all();
+        if(eptr)
+            std::rethrow_exception(eptr);
     }
 
     bool hasError() const 
     {
         std::lock_guard<std::mutex> lock(mutex_);
         return error_;
+    }
+
+    void rethrowIfError() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if(error_ && exception_)
+            std::rethrow_exception(exception_);
     }
 
     bool isRunning() const 
@@ -110,6 +126,7 @@ private:
     bool running;
     bool completed;
     bool error_;
+    std::exception_ptr exception_;
 };
 
 class ThreadPool 
