@@ -3881,6 +3881,24 @@ const main =
             controller.save();
             return;
         }
+        else if (evt.altKey && (key=="t" || code=="KeyT"))
+        {
+            evt.preventDefault();
+            controller.realtime();
+            return;
+        }
+        else if (evt.altKey && (key=="p" || code=="KeyP"))
+        {
+            evt.preventDefault();
+            controller.play();
+            return;
+        }
+        else if (evt.altKey && (key=="." || code=="Period"))
+        {
+            evt.preventDefault();
+            controller.stop();
+            return;
+        }
         else if (evt.altKey && (key=="n" || code=="KeyN"))
         {
             evt.preventDefault();
@@ -3914,6 +3932,9 @@ const main =
         <tr><td>&#8984; + &#8679; + D</td><td>Duplicate selected components (edit mode), preserving incoming/outgoing connections.</td></tr>
         <tr><td>&#8984; + I</td><td>Toggle inspector.</td></tr>
         <tr><td>&#8984; + S</td><td>Save.</td></tr>
+        <tr><td>&#8984; + &#8997; + T</td><td>Set runtime mode (same as Realtime button).</td></tr>
+        <tr><td>&#8984; + &#8997; + P</td><td>Set play mode (same as Play button).</td></tr>
+        <tr><td>&#8984; + &#8997; + .</td><td>Set stop mode (same as Stop button).</td></tr>
         <tr><td>&#8984; + &#8997; + N</td><td>New.</td></tr>
         <tr><td>&#8984; + &#8997; + O</td><td>Open.</td></tr>
         <tr><td>Shift (Horizontal Slider)</td><td>Sync slider values while dragging.</td></tr>
@@ -3942,6 +3963,39 @@ const brainstudio =
             if(evt.stopImmediatePropagation)
                 evt.stopImmediatePropagation();
             dialog.closeInfo();
+            return;
+        }
+
+        if(isModifier && evt.altKey && (key === "t" || code === "KeyT"))
+        {
+            if(evt.cancelable)
+                evt.preventDefault();
+            evt.stopPropagation();
+            if(evt.stopImmediatePropagation)
+                evt.stopImmediatePropagation();
+            controller.realtime();
+            return;
+        }
+
+        if(isModifier && evt.altKey && (key === "p" || code === "KeyP"))
+        {
+            if(evt.cancelable)
+                evt.preventDefault();
+            evt.stopPropagation();
+            if(evt.stopImmediatePropagation)
+                evt.stopImmediatePropagation();
+            controller.play();
+            return;
+        }
+
+        if(isModifier && evt.altKey && (key === "." || code === "Period"))
+        {
+            if(evt.cancelable)
+                evt.preventDefault();
+            evt.stopPropagation();
+            if(evt.stopImmediatePropagation)
+                evt.stopImmediatePropagation();
+            controller.stop();
             return;
         }
 

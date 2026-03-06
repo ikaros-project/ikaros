@@ -29,7 +29,12 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         this.buffer = [];
         this.ix = 0;
 
-        this.onclick = function () { alert(this.data) }; // last matrix
+        this.onclick = function ()
+        {
+            if(main.edit_mode)
+                return;
+            alert(this.data);
+        }; // last matrix
    }
 
     getBufferSize()

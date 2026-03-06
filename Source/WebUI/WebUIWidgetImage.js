@@ -49,6 +49,8 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         
         this.onclick = function (evt)
         {
+            if(main.edit_mode)
+                return;
             let lw = this.parameters.labels ? parseInt(this.parameters.labelWidth) : 0;
             let r = this.canvasElement.getBoundingClientRect();
             let x = (evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw);

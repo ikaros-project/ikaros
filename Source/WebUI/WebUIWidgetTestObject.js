@@ -22,7 +22,12 @@ class WebUIWidgetTestObject extends WebUIWidgetCanvas
     {
         this.data = [10, 83, 32, 56];   // Should connect to main data structure
         
-        this.onclick = function () { alert(this.data) };
+        this.onclick = function ()
+        {
+            if(main.edit_mode)
+                return;
+            alert(this.data);
+        };
         
         var self = this;
         this.timer = setInterval(function () { self.draw(); console.log("draw callback"); }, 100);

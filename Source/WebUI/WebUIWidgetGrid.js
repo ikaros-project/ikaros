@@ -60,6 +60,8 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
         this.onclick = function (evt)
         {
+            if(main.edit_mode)
+                return;
             if(!this.data)
                 return;
             

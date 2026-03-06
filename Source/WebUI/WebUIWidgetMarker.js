@@ -67,6 +67,8 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
         this.data = [];
 
         this.onclick = function () {
+            if(main.edit_mode)
+                return;
             let s = "";
             for(let r of this.data)
             {
