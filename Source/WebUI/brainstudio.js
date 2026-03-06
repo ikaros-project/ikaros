@@ -263,6 +263,7 @@ let dialog =
 {
     window: null,
     callback: null,
+    infoDialogBound: false,
 
     confirmOpen()
     {
@@ -407,6 +408,40 @@ let dialog =
                 document.getElementById('listSelectDialogTitle').innerText = message;
             }
         dialog.window.showModal();
+    },
+
+    showInfoDialog(message, title="Info", as_html=false)
+    {
+        const window = document.getElementById("info_dialog");
+        if(!window)
+            return;
+        document.getElementById("info_dialog_title").innerText = title;
+        const content = document.getElementById("info_dialog_content");
+        if(as_html)
+            content.innerHTML = message;
+        else
+            content.textContent = message;
+
+        if(!dialog.infoDialogBound)
+        {
+            window.addEventListener("click", function(evt) {
+                if(evt.target === window)
+                    dialog.closeInfo();
+            });
+            window.addEventListener("cancel", function(evt) {
+                evt.preventDefault();
+                dialog.closeInfo();
+            });
+            dialog.infoDialogBound = true;
+        }
+        window.showModal();
+    },
+
+    closeInfo()
+    {
+        const window = document.getElementById("info_dialog");
+        if(window)
+            window.close();
     }
 };
 
@@ -2643,7 +2678,7 @@ const main =
         const top = Math.min(y1, y2);
         const width = Math.abs(x2 - x1);
         const height = Math.abs(y2 - y1);
-        const toggle_selection = true;
+        const toggle_selection = main.selection_drag_shift || evt.shiftKey;
         const selected = main.collectBackgroundSelection(left, top, width, height);
         main.applyBackgroundSelection(selected, toggle_selection);
 
@@ -3181,9 +3216,12 @@ const main =
         main.initialMouseX = evt.clientX;
         main.initialMouseY = evt.clientY;
 
-        selector.selectItems([this.dataset.name], null, evt.shiftKey);
+        const clickedName = this.dataset.name;
+        const isAlreadySelected = selector.selected_foreground.includes(clickedName);
+        if(evt.shiftKey || !isAlreadySelected)
+            selector.selectItems([clickedName], null, evt.shiftKey);
 
-        if(!selector.selected_foreground.includes(this.dataset.name))
+        if(!selector.selected_foreground.includes(clickedName))
             return;
 
         if(!main.edit_mode)
@@ -3779,7 +3817,30 @@ const main =
 
     showCommandInfo()
     {
-        alert("No info yet");
+        dialog.showInfoDialog(
+`<table>
+    <thead>
+        <tr>
+            <th>Command</th>
+            <th>Effect</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>Arrow keys</td><td>Move selected components by 1 px (edit mode).</td></tr>
+        <tr><td>Backspace</td><td>Delete selected components/connections (edit mode).</td></tr>
+        <tr><td>Escape</td><td>Toggle system inspector.</td></tr>
+        <tr><td>&#8984; + A</td><td>Select all components/widgets in current group.</td></tr>
+        <tr><td>&#8984; + D</td><td>Duplicate selected components (edit mode).</td></tr>
+        <tr><td>&#8984; + I</td><td>Toggle inspector.</td></tr>
+        <tr><td>&#8984; + S</td><td>Save.</td></tr>
+        <tr><td>&#8984; + &#8997; + N</td><td>New.</td></tr>
+        <tr><td>&#8984; + &#8997; + O</td><td>Open.</td></tr>
+        <tr><td>Shift (Horizontal Slider)</td><td>Sync slider values while dragging.</td></tr>
+    </tbody>
+</table>`,
+            "Keyboard Commands",
+            true
+        );
     }
 }
 
@@ -3790,6 +3851,18 @@ const brainstudio =
         const key = (evt.key || "").toLowerCase();
         const code = evt.code || "";
         const isModifier = evt.metaKey || evt.ctrlKey;
+        const infoDialog = document.getElementById("info_dialog");
+
+        if(infoDialog && infoDialog.open && evt.key === "Escape")
+        {
+            if(evt.cancelable)
+                evt.preventDefault();
+            evt.stopPropagation();
+            if(evt.stopImmediatePropagation)
+                evt.stopImmediatePropagation();
+            dialog.closeInfo();
+            return;
+        }
 
         // Use Cmd/Ctrl+Option+O for Open to avoid browser-reserved Cmd+O.
         if(isModifier && evt.altKey && (key === "o" || code === "KeyO"))

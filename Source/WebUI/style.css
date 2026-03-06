@@ -266,6 +266,85 @@ dialog::backdrop {
     border: 2px solid black;
   }
 
+  #info_dialog {
+      margin:auto;
+      background-color:#fff;
+      width:760px;
+      min-height:420px;
+      padding:20px 0 0 0;
+      border:1px solid #bbb;
+      border-radius:12px;
+      box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+      overflow: hidden;
+  }
+
+  #info_dialog .info-dialog-close {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      width: 24px;
+      height: 24px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: #444;
+      font-size: 18px;
+      line-height: 20px;
+      padding: 0;
+      cursor: pointer;
+  }
+
+  #info_dialog .info-dialog-close:hover {
+      background: #ececec;
+  }
+
+  #info_dialog .info-dialog-close:focus,
+  #info_dialog .info-dialog-close:focus-visible {
+      outline: none;
+      box-shadow: none;
+  }
+
+  #info_dialog p#info_dialog_title {
+      font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      font-size:14px;
+      padding: 10px 20px 14px 20px;
+      margin: 0;
+  }
+
+  #info_dialog #info_dialog_content {
+      margin: 0;
+      padding: 0 20px;
+      font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      font-size:13px;
+      line-height: 1.45;
+      overflow: hidden;
+      max-height: none;
+  }
+
+  #info_dialog #info_dialog_content table {
+      width: 100%;
+      border-collapse: collapse;
+  }
+
+  #info_dialog #info_dialog_content th,
+  #info_dialog #info_dialog_content td {
+      text-align: left;
+      vertical-align: top;
+      padding: 6px 8px;
+      border-bottom: 1px solid #ececec;
+  }
+
+  #info_dialog #info_dialog_content th {
+      font-weight: 600;
+      border-bottom: 1px solid #d9d9d9;
+  }
+
+  #info_dialog #info_dialog_content td:first-child,
+  #info_dialog #info_dialog_content th:first-child {
+      width: 38%;
+      white-space: nowrap;
+  }
+
 
 
 
@@ -647,6 +726,14 @@ main[data-mode="edit"] {
     z-index: 1000;
     top:12px;
     left:680px;
+}
+
+#show_command_info button {
+    border-radius: 0;
+    border: none;
+    font-size: 18px;
+    line-height: 14px;
+    padding: 3px 10px 5px 10px;
 }
 
 

@@ -93,6 +93,12 @@
             <button onclick="dialog.confirmListSelect()">Select</button>
         </menu>
     </dialog>
+
+    <dialog id="info_dialog">
+        <button class="info-dialog-close" onclick="dialog.closeInfo()" aria-label="Close">&#215;</button>
+        <p id="info_dialog_title">Keyboard Commands</p>
+        <div id="info_dialog_content"></div>
+    </dialog>
       
 
 
@@ -137,7 +143,7 @@
                 </div>
 
                 <div class="group_commands" id="show_command_info">
-                    <button onclick="main.showCommandInfo()" style="border-radius:15px 15px 15px 15px; margin-left:0;">&#9432;</button>
+                    <button onclick="main.showCommandInfo()" style="margin-left:0;">&#9432;</button>
                 </div>
 
                 <canvas id="main_grid_canvas" width="3000" height="3000" ></canvas>
