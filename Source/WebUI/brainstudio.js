@@ -334,16 +334,16 @@ let dialog =
     {
         if (files) 
         {
-            let sel = document.getElementById(`open_dialog_${type}_items`);
-            sel.innerHTML = '';  // Clear previous options
+            let items = document.getElementById(`open_dialog_${type}_items`);
+            items.innerHTML = '';
             files.forEach(file => {
-                let opt = document.createElement('option');
+                const opt = document.createElement('option');
                 opt.value = file;
                 opt.text = file;
                 opt.ondblclick = function() {
                     dialog.confirmOpen();
                 };
-                sel.appendChild(opt);
+                items.appendChild(opt);
             });
         }
     },
@@ -2376,11 +2376,10 @@ const selector =
 
         if(toggle)
             toggleStrings(selector.selected_foreground, foreground);
-        else if(!selector.selected_foreground.includes(foreground[0]))
-            selector.selected_foreground = foreground;
-
-         if(extend)
+        else if(extend)
             selector.selected_foreground = [...new Set([...selector.selected_foreground , ...foreground])];
+        else
+            selector.selected_foreground = foreground;
 
         if(selector.selected_background == null)
             return;
@@ -2427,10 +2426,12 @@ const selector =
 
     selectConnection(connection)
     {
+        const previous_connection = selector.selected_connection;
         selector.selected_foreground = [];
         selector.selected_connection = connection;
         main.selectItem(selector.selected_foreground, selector.selected_background);
-        main.deselectConnection(selector.selected_connection);
+        if(previous_connection && previous_connection !== connection)
+            main.deselectConnection(previous_connection);
         main.selectConnection(connection);
         inspector.showInspectorForSelection();
     },
@@ -2520,6 +2521,7 @@ const main =
         main.ensureSelectionBox();
         main.selection_drag_active = true;
         main.selection_drag_shift = evt.shiftKey;
+        main.selection_base_foreground = [...selector.selected_foreground];
         main.selection_start_x = evt.clientX;
         main.selection_start_y = evt.clientY;
         main.selection_moved = false;
@@ -2534,6 +2536,56 @@ const main =
         main.view.addEventListener("mouseup", main.finishBackgroundSelection, true);
         evt.preventDefault();
         evt.stopPropagation();
+    },
+
+    collectBackgroundSelection(left, top, width, height)
+    {
+        const x1 = left;
+        const y1 = top;
+        const x2 = left + width;
+        const y2 = top + height;
+        const viewRect = main.view.getBoundingClientRect();
+        const selected = [];
+
+        for(const element of main.view.querySelectorAll(".gi"))
+        {
+            const r = element.getBoundingClientRect();
+            const ex1 = r.left - viewRect.left;
+            const ey1 = r.top - viewRect.top;
+            const ex2 = ex1 + r.width;
+            const ey2 = ey1 + r.height;
+
+            const intersects = !(ex2 < x1 || ex1 > x2 || ey2 < y1 || ey1 > y2);
+            if(intersects && element.dataset.name)
+                selected.push(element.dataset.name);
+        }
+
+        return selected;
+    },
+
+    applyBackgroundSelection(selected, toggle_selection)
+    {
+        if(toggle_selection)
+        {
+            const base = new Set(main.selection_base_foreground || []);
+            for(const name of selected)
+            {
+                if(base.has(name))
+                    base.delete(name);
+                else
+                    base.add(name);
+            }
+            selector.selectItems(Array.from(base), null, false, false);
+            return;
+        }
+
+        if(selected.length === 0)
+        {
+            selector.selectBackground();
+            return;
+        }
+
+        selector.selectItems(selected, null, false, false);
     },
 
     updateBackgroundSelection(evt)
@@ -2574,37 +2626,29 @@ const main =
 
         if(!main.selection_moved)
         {
-            selector.selectBackground();
+            const toggle_selection = main.selection_drag_shift || evt.shiftKey;
+            if(!toggle_selection)
+                selector.selectBackground();
             main.selection_drag_active = false;
+            main.selection_base_foreground = [];
             return;
         }
 
         const viewRect = main.view.getBoundingClientRect();
-        const x1 = Math.min(main.selection_start_x, evt.clientX) - viewRect.left;
-        const y1 = Math.min(main.selection_start_y, evt.clientY) - viewRect.top;
-        const x2 = Math.max(main.selection_start_x, evt.clientX) - viewRect.left;
-        const y2 = Math.max(main.selection_start_y, evt.clientY) - viewRect.top;
-
-        const selected = [];
-        for(const element of main.view.querySelectorAll(".gi"))
-        {
-            const r = element.getBoundingClientRect();
-            const ex1 = r.left - viewRect.left;
-            const ey1 = r.top - viewRect.top;
-            const ex2 = ex1 + r.width;
-            const ey2 = ey1 + r.height;
-
-            const intersects = !(ex2 < x1 || ex1 > x2 || ey2 < y1 || ey1 > y2);
-            if(intersects && element.dataset.name)
-                selected.push(element.dataset.name);
-        }
-
-        if(selected.length === 0)
-            selector.selectBackground();
-        else
-            selector.selectItems(selected, null, main.selection_drag_shift, false);
+        const x1 = Math.max(0, Math.min(main.selection_start_x - viewRect.left, main.view.clientWidth));
+        const y1 = Math.max(0, Math.min(main.selection_start_y - viewRect.top, main.view.clientHeight));
+        const x2 = Math.max(0, Math.min(evt.clientX - viewRect.left, main.view.clientWidth));
+        const y2 = Math.max(0, Math.min(evt.clientY - viewRect.top, main.view.clientHeight));
+        const left = Math.min(x1, x2);
+        const top = Math.min(y1, y2);
+        const width = Math.abs(x2 - x1);
+        const height = Math.abs(y2 - y1);
+        const toggle_selection = main.selection_drag_shift || evt.shiftKey;
+        const selected = main.collectBackgroundSelection(left, top, width, height);
+        main.applyBackgroundSelection(selected, toggle_selection);
 
         main.selection_drag_active = false;
+        main.selection_base_foreground = [];
         evt.preventDefault();
         evt.stopPropagation();
     },
@@ -3182,8 +3226,8 @@ const main =
             target: null, 
             source_element: e 
         };
-        main.view.addEventListener('mousemove',main.moveTrackedConnection, true);
-        main.view.addEventListener('mouseup',main.releaseTrackedConnection,true);
+        document.addEventListener('mousemove',main.moveTrackedConnection, true);
+        document.addEventListener('mouseup',main.releaseTrackedConnection,true);
     },
 
     moveTrackedConnection(evt)
@@ -3205,12 +3249,31 @@ const main =
     
         if (!main.tracked_connection)
             return;
-    
-        const { target, source } = main.tracked_connection;
+
+        const tracked = main.tracked_connection;
+        const { source } = tracked;
+        let { target } = tracked;
+
+        const hovered = document.elementFromPoint(evt.clientX, evt.clientY);
+        const hoveredTarget = hovered ? hovered.closest('.i_spot, .widget') : null;
+        const hoveredTargetId = hoveredTarget ? hoveredTarget.id : null;
+        if(target == null || target !== hoveredTargetId)
+            target = null;
     
         if (!target) 
         {
+            if(tracked.source_element)
+                tracked.source_element.style.backgroundColor = "rgb(177, 177, 177)";
+            if(tracked.target)
+            {
+                const targetElement = document.getElementById(tracked.target);
+                if(targetElement)
+                    targetElement.style.backgroundColor = targetElement.classList.contains('widget') ? "rgb(0,0,0,0)" : "rgb(177, 177, 177)";
+            }
             main.tracked_connection = null;
+            main.addConnections();
+            document.removeEventListener('mousemove',main.moveTrackedConnection, true);
+            document.removeEventListener('mouseup',main.releaseTrackedConnection,true);
             return;
         }
     
@@ -3231,8 +3294,9 @@ const main =
             selector.selectConnection(`${selector.selected_background}.${cleanSource}*${selector.selected_background}.${cleanTarget}`);
         }
 
-        main.view.removeEventListener('mousemove',main.moveTrackedConnection, true);
-        main.view.removeEventListener('mouseup',main.releaseTrackedConnection,true);
+        document.removeEventListener('mousemove',main.moveTrackedConnection, true);
+        document.removeEventListener('mouseup',main.releaseTrackedConnection,true);
+        main.addConnections();
     },
 
     
@@ -3413,8 +3477,10 @@ const main =
             const st = connection.split('*');
             const s = document.getElementById(st[0]+":out");
             const t = document.getElementById(st[1]+":in");
-            s.style.backgroundColor = "orange";
-            t.style.backgroundColor = "orange";
+            if(s)
+                s.style.backgroundColor = "orange";
+            if(t)
+                t.style.backgroundColor = "orange";
         }
     },
 
@@ -3422,7 +3488,17 @@ const main =
     {
         const c = document.getElementById(connection);
         if(c != undefined) // FIXME: Use exception above instead
+        {
             c.classList.remove("selected");
+
+            const st = connection.split('*');
+            const s = document.getElementById(st[0]+":out");
+            const t = document.getElementById(st[1]+":in");
+            if(s)
+                s.style.backgroundColor = "rgb(177, 177, 177)";
+            if(t)
+                t.style.backgroundColor = "rgb(177, 177, 177)";
+        }
     },
 
     addConnections()
@@ -3430,14 +3506,15 @@ const main =
         const path = selector.selected_background;
         const group = network.dict[path];
         const s = document.getElementById("connections");
-        if(s)
-            s.innerHTML = "";
-        main.connections = "<svg xmlns='http://www.w3.org/2000/svg' id='connections'>";
+        if(!s || !group)
+            return;
+
+        main.connections = "<svg xmlns='http://www.w3.org/2000/svg' class='connections_svg'>";
         for(let c of group.connections || [])
             main.addConnection(c,path);
         main.addTrackedConnection();
         main.connections += "</svg>";
-        s.innerHTML += main.connections;
+        s.innerHTML = main.connections;
     },
 
     updateComponentStates()
@@ -3588,6 +3665,10 @@ const main =
 
     keydown(evt)
     {
+        const key = (evt.key || "").toLowerCase();
+        const code = evt.code || "";
+        const isModifier = evt.metaKey || evt.ctrlKey;
+
         const activeElement = document.activeElement;
         if(activeElement && (activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA" || activeElement.tagName === "SELECT" || activeElement.isContentEditable))
             return;
@@ -3631,12 +3712,12 @@ const main =
             return;
         }
 
-        if(!evt.metaKey)
+        if(!isModifier)
             return;
         if(evt.keyIdentifier=="Meta")
             return;
 
-        if(evt.key=="a")
+        if(key=="a" || code=="KeyA")
         {
             let bg = selector.selected_background;
             let g = network.dict[bg];
@@ -3663,17 +3744,35 @@ const main =
         }
 */
 
-        else if (evt.key=="d")
+        else if (key=="d" || code=="KeyD")
         {
             evt.preventDefault();
             if(main.edit_mode)
                 main.duplicateSelectedComponents();
             return;
         }
-        else if (evt.key=="i")
+        else if (key=="i" || code=="KeyI")
         { 
             evt.preventDefault();
             inspector.toggleComponent();
+            return;
+        }
+        else if (key=="s" || code=="KeyS")
+        {
+            evt.preventDefault();
+            controller.save();
+            return;
+        }
+        else if (evt.altKey && (key=="n" || code=="KeyN"))
+        {
+            evt.preventDefault();
+            controller.new();
+            return;
+        }
+        else if (evt.altKey && (key=="o" || code=="KeyO"))
+        {
+            evt.preventDefault();
+            controller.open();
             return;
         }
     },
@@ -3686,6 +3785,38 @@ const main =
 
 const brainstudio = 
 {
+    keydownHandler(evt)
+    {
+        const key = (evt.key || "").toLowerCase();
+        const code = evt.code || "";
+        const isModifier = evt.metaKey || evt.ctrlKey;
+
+        // Use Cmd/Ctrl+Option+O for Open to avoid browser-reserved Cmd+O.
+        if(isModifier && evt.altKey && (key === "o" || code === "KeyO"))
+        {
+            if(evt.cancelable)
+                evt.preventDefault();
+            evt.stopPropagation();
+            if(evt.stopImmediatePropagation)
+                evt.stopImmediatePropagation();
+            controller.open();
+            return;
+        }
+
+        if(isModifier && evt.altKey && (key === "n" || code === "KeyN"))
+        {
+            if(evt.cancelable)
+                evt.preventDefault();
+            evt.stopPropagation();
+            if(evt.stopImmediatePropagation)
+                evt.stopImmediatePropagation();
+            controller.new();
+            return;
+        }
+
+        main.keydown(evt);
+    },
+
     init()
     {
         log.init();
@@ -3695,7 +3826,7 @@ const brainstudio =
         breadcrumbs.init();
         main.init();
 
-        document.onkeydown = function (evt){ main.keydown(evt) };
+        window.addEventListener("keydown", brainstudio.keydownHandler, true);
 
     }
 }

@@ -55,19 +55,31 @@
     <script src="js/libs/stats.min.js" defer></script>
 
     <dialog id="open_dialog">
-        <p id="open_dialog_title"></p>
-        <p>
-                <span id="system_file_button" onclick="dialog.showSystemFileList()" class="button selected">System Files</span>&nbsp;&nbsp;
-                <span id="user_file_button" onclick="dialog.showUserFileList()" class="button">User Files</span>
-        </p>
-        <select size="14" id="open_dialog_system_items" style="width:100%; display:block"">
-        </select>
-        <select size="14" id="open_dialog_user_items" style="width:100%; display:none">
-        </select>
-        <menu>
-            <button  onclick="dialog.cancelOpen()">Cancel</button>
-            <button onclick="dialog.confirmOpen()">Open</button>
-        </menu>
+        <div class="open-dialog-layout">
+            <div class="open-dialog-sources">
+                <button type="button" id="system_file_button" onclick="dialog.showSystemFileList()" class="button selected">
+                    <span class="source-icon">&#128193;</span>
+                    <span>System Files</span>
+                </button>
+                <button type="button" id="user_file_button" onclick="dialog.showUserFileList()" class="button">
+                    <span class="source-icon">&#128193;</span>
+                    <span>User Files</span>
+                </button>
+            </div>
+            <div class="open-dialog-right">
+                <div class="open-dialog-files">
+                    <p id="open_dialog_title">Select file to open</p>
+                    <select size="14" id="open_dialog_system_items" style="display:block">
+                    </select>
+                    <select size="14" id="open_dialog_user_items" style="display:none">
+                    </select>
+                </div>
+                <menu>
+                    <button  onclick="dialog.cancelOpen()">Cancel</button>
+                    <button onclick="dialog.confirmOpen()">Open</button>
+                </menu>
+            </div>
+        </div>
     </dialog>
 
 
