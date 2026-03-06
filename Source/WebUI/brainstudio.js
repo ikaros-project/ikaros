@@ -2309,6 +2309,13 @@ const log =
         log.view.style.display = 'none';
     },
 
+    close()
+    {
+        log.setAlert(false);
+        if(log.view)
+            log.view.style.display = 'none';
+    },
+
     showView(fromAlert=false)
     {
         log.view.style.display = 'block';

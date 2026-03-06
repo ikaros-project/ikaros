@@ -935,7 +935,7 @@ footer p {
 .log-clear-button {
     position: absolute;
     top: 2px;
-    right: 4px;
+    right: 28px;
     width: 20px;
     height: 20px;
     padding: 0;
@@ -954,11 +954,33 @@ footer p {
     background: #e8e8e8;
 }
 
+.log-close-button {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0;
+    font-size: 12px;
+    line-height: 18px;
+    border: none;
+    border-radius: 3px;
+    background: transparent;
+    color: #333;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.log-close-button:hover {
+    background: transparent;
+}
+
 .log-messages {
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    padding-right: 28px;
+    padding-right: 52px;
 }
 
 .log-resize-handle {
