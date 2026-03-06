@@ -2357,7 +2357,7 @@ const selector =
     selected_connection: null,
     selected_background: null,
 
-    selectItems(foreground=[], background=null, toggle=false, extend=false)
+    selectItems(foreground=[], background=null, toggle=false, extend=false, force_rebuild=false)
     {
         const previous_background = selector.selected_background;
         const previous_connection = selector.selected_connection;
@@ -2385,7 +2385,7 @@ const selector =
         if(selector.selected_background == null)
             return;
 
-        if(background_changed)
+        if(background_changed || force_rebuild)
         {
             if(selector.selected_foreground.length==0) // select background group
             {
@@ -2870,7 +2870,6 @@ const main =
         if(selector.selected_connection !=undefined)
         {
             this.deleteConnection(selector.selected_connection);
-            selector.selectItems([], null);
         }
         else
             for(let c of selector.selected_foreground)
@@ -2895,6 +2894,8 @@ const main =
                 }
             }
         network.rebuildDict();
+        nav.populate();
+        selector.selectItems([], selector.selected_background, false, false, true);
     },
 
     changeComponentPosition(c, dx,dy, snap_to_grid=true)
@@ -3511,9 +3512,13 @@ const main =
 
         if(evt.key== "Backspace")
         {
-
+            if(main.edit_mode && (selector.selected_connection != null || selector.selected_foreground.length > 0))
+            {
+                evt.preventDefault();
+                main.deleteComponent();
+                return;
+            }
             return;
-            alert("Delete selected items. (NOT IMPLEMENTED YET)");
         }
 
         if(!evt.metaKey)
