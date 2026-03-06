@@ -2630,11 +2630,15 @@ const main =
         network.rebuildDict();
     },
 
-    changeComponentPosition(c, dx,dy)
+    changeComponentPosition(c, dx,dy, snap_to_grid=true)
     {
         const e = document.getElementById(c);
-        let new_x = main.map[c][0] + dx;
-        let new_y = main.map[c][1] + dy;
+        if(!e)
+            return;
+
+        const base = main.map[c] || [e.offsetLeft, e.offsetTop];
+        let new_x = base[0] + dx;
+        let new_y = base[1] + dy;
 
         if(new_x < 0)
                 new_x = 0;
@@ -2642,7 +2646,7 @@ const main =
             if(new_y < 0)
                 new_y = 0;
 
-        if(main.edit_mode)
+        if(main.edit_mode && snap_to_grid)
         {
             const g = main.grid_spacing;
             new_x = g*Math.round(new_x/g);
@@ -3206,6 +3210,31 @@ const main =
 
     keydown(evt)
     {
+        const activeElement = document.activeElement;
+        if(activeElement && (activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA" || activeElement.tagName === "SELECT" || activeElement.isContentEditable))
+            return;
+
+        if(main.edit_mode && selector.selected_foreground.length > 0)
+        {
+            const keyMoves = {
+                ArrowLeft: [-1, 0],
+                ArrowRight: [1, 0],
+                ArrowUp: [0, -1],
+                ArrowDown: [0, 1]
+            };
+
+            const move = keyMoves[evt.key];
+            if(move)
+            {
+                evt.preventDefault();
+                for(let c of selector.selected_foreground)
+                    main.changeComponentPosition(c, move[0], move[1], false);
+                main.addConnections();
+                network.tainted = true;
+                return;
+            }
+        }
+
         if(evt.key== "Escape")
         {
             inspector.toggleSystem();
