@@ -1590,6 +1590,8 @@ bool operator==(Request & r, const std::string s)
     {
         tick++;
 
+        Notify(msg_warning, "Tick "+std::to_string(tick));
+
         RunTasks();
         //RunTasksInSingleThread();
 
@@ -2506,8 +2508,12 @@ if(classes[classname].path.empty())
     
             // Wait for completion
             for (auto &ts : sequences) 
+            {
                 if(!ts->waitForCompletion(5)) // Timeout after 5 seconds
-                    Notify(msg_trace, "Task sequence did not complete successfully within the 5 second timeout period."); 
+                    throw std::runtime_error("Task sequence timed out after 5 seconds.");
+
+                ts->rethrowIfError();
+            }
         } 
         catch (const std::exception &e) {
             Notify(msg_fatal_error, "Error during task execution: " + std::string(e.what()));
@@ -3413,8 +3419,8 @@ if(classes[classname].path.empty())
         if(request.parameters.contains("proxy"))
             request.component_path = std::string(request.parameters["proxy"]);
 
-        //if(!(request == "update"))
-        //std::cout << "Request: " << request.url << std::endl;
+        if(!(request == "update"))
+        std::cout << "Request: " << request.url << std::endl;
 
         if(request == "network")
             DoNetwork(request);
@@ -3544,7 +3550,6 @@ Kernel::CalculateCPUUsage() // In percent
 }
 
 }; // namespace ikaros
-
 
 
 
