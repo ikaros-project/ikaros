@@ -240,7 +240,7 @@ function getCookie(name)
     let nameEQ = name + "=";
     const ca = document.cookie.split(';');
     for(let i=0;i < ca.length;i++) {
-        const c = ca[i];
+        let c = ca[i];
         while (c.charAt(0)==' ') c = c.substring(1,c.length);
         if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
     }
@@ -1037,31 +1037,45 @@ let controller =
 
                 if(!response.data || Object.keys(response.data).length === 0)
                 {
-                    //console.log("WARNING: Empty data package received from ikaros.");
-                   return; // Just ignore it; this should not happen, but just in case. 
+                    // Keep going so response.log can still be processed.
                 }
-
-                controller.updateImages(response.data);
+                else
+                {
+                    controller.updateImages(response.data);
+                }
             }
         }
 
         if(response.log)
         {
-            let logElement = document.querySelector('.log');
+            let logElement = log.getMessagesElement();
+            if(!logElement)
+                return;
             //if(response.log.length > 0)    
             //    console.log(response.log);
 
             response.log.forEach((element) => 
             {
                 let message_class = ["inherit", "quiet","exception","end_of_file","terminate","fatal_error","warning","print","debug","trace"][element[0]];
-                let s = "<p class='"+message_class+"'>"+element[1];
+                let p = document.createElement('p');
+                p.className = message_class;
+                p.appendChild(document.createTextNode(element[1]));
                 if(element[2])
-                    s += "<a onclick='selector.selectError("+ '"'+element[2]+'"' +")'> &raquo; "+element[2]+"</a>";
-                s += "</p>\n";
-                logElement.innerHTML += s;
+                {
+                    let a = document.createElement('a');
+                    a.href = '#';
+                    a.innerText = " \u00bb " + element[2];
+                    a.onclick = function (evt)
+                    {
+                        evt.preventDefault();
+                        selector.selectError(element[2]);
+                    };
+                    p.appendChild(a);
+                }
+                logElement.appendChild(p);
                 if(element[0]<=6)
                 {
-                    log.showView();
+                    log.showView(true);
                     logElement.scrollTop = logElement.scrollHeight; // FIXME: Only when needed
                 }
             });
@@ -1075,9 +1089,6 @@ let controller =
         controller.request_timer = setTimeout(controller.requestUpdate, controller.webui_req_int); // immediately schdeule next
 
         if(controller.open_mode)
-            return;
-
-        if(selector.selected_background == null)
             return;
 
         controller.webui_interval = Date.now() - controller.last_request_time;
@@ -1100,7 +1111,7 @@ let controller =
                 console.log("requestData failed: "+err);
             }
 
-        group_path = selector.selected_background;
+        group_path = selector.selected_background || "";
         data_string = ""; // should be added to names to support multiple clients
         let sep = "";
         for(s of data_set)
@@ -2167,13 +2178,130 @@ const inspector =
 
 const log = 
 {
+    height_cookie: 'log_height',
+    resize_threshold: 12,
+    min_height: 40,
+    max_height_margin: 80,
+    resize_active: false,
+
+    isOnResizeBorder(evt)
+    {
+        if(!log.view)
+            return false;
+        const r = log.view.getBoundingClientRect();
+        const y = evt.clientY - r.top;
+        return y >= 0 && y <= log.resize_threshold;
+    },
+
+    updateResizeCursor(evt)
+    {
+        // Cursor is handled by CSS :hover on .log-resize-handle.
+    },
+
+    startResize(evt)
+    {
+        if(evt.button !== 0)
+            return;
+        const fromHandle = !!evt.target.closest('.log-resize-handle');
+        if(!fromHandle && !log.isOnResizeBorder(evt))
+            return;
+
+        evt.preventDefault();
+        log.resize_active = true;
+        log.resize_start_y = evt.clientY;
+        log.resize_start_height = log.view.getBoundingClientRect().height;
+        document.body.classList.add('log-resizing');
+
+        document.addEventListener('mousemove', log.onResizeDrag, true);
+        document.addEventListener('mouseup', log.stopResize, true);
+    },
+
+    onResizeDrag(evt)
+    {
+        if(!log.resize_active || !log.view)
+            return;
+
+        const deltaY = evt.clientY - log.resize_start_y;
+        const maxHeight = Math.max(log.min_height, window.innerHeight - log.max_height_margin);
+        const newHeight = Math.max(log.min_height, Math.min(maxHeight, log.resize_start_height - deltaY));
+
+        log.view.style.flex = `0 0 ${newHeight}px`;
+        log.view.style.height = `${newHeight}px`;
+        evt.preventDefault();
+    },
+
+    stopResize()
+    {
+        if(!log.resize_active)
+            return;
+        log.resize_active = false;
+        document.removeEventListener('mousemove', log.onResizeDrag, true);
+        document.removeEventListener('mouseup', log.stopResize, true);
+        document.body.classList.remove('log-resizing');
+        if(log.view)
+        {
+            const h = Math.round(log.view.getBoundingClientRect().height);
+            if(Number.isFinite(h) && h >= log.min_height)
+                setCookie(log.height_cookie, String(h));
+        }
+    },
+
+    getMessagesElement()
+    {
+        if(!log.view)
+            log.view = document.querySelector('footer');
+        if(!log.view)
+            return null;
+
+        if(!log.messagesElement || !log.view.contains(log.messagesElement))
+            log.messagesElement = log.view.querySelector('.log-messages');
+
+        if(!log.messagesElement)
+        {
+            log.messagesElement = document.createElement('div');
+            log.messagesElement.className = 'log-messages';
+            log.view.appendChild(log.messagesElement);
+        }
+
+        return log.messagesElement;
+    },
+
     init()
     {
         log.view = document.querySelector('footer');
+        log.button = document.getElementById('log_toggle_button');
+        log.messagesElement = log.getMessagesElement();
+        if(log.view)
+        {
+            log.resizeHandle = log.view.querySelector('.log-resize-handle');
+            if(!log.resizeHandle)
+            {
+                log.resizeHandle = document.createElement('div');
+                log.resizeHandle.className = 'log-resize-handle';
+                log.view.prepend(log.resizeHandle);
+            }
+            const savedHeight = parseInt(getCookie(log.height_cookie), 10);
+            if(Number.isFinite(savedHeight) && savedHeight >= log.min_height)
+            {
+                const maxHeight = Math.max(log.min_height, window.innerHeight - log.max_height_margin);
+                const clampedHeight = Math.min(savedHeight, maxHeight);
+                log.view.style.flex = `0 0 ${clampedHeight}px`;
+                log.view.style.height = `${clampedHeight}px`;
+            }
+            log.resizeHandle.addEventListener('mousedown', log.startResize, true);
+        }
+    },
+
+    setAlert(state)
+    {
+        if(!log.button)
+            return;
+        log.button.classList.toggle('log-alert', !!state);
     },
 
     toggleLog()
     {
+        log.setAlert(false);
         const s = window.getComputedStyle(log.view, null);
         if (s.display === 'none')
             log.view.style.display = 'block';
@@ -2181,15 +2309,32 @@ const log =
         log.view.style.display = 'none';
     },
 
-    showView()
+    showView(fromAlert=false)
     {
         log.view.style.display = 'block';
+        if(fromAlert)
+            log.setAlert(true);
+    },
+
+    clear()
+    {
+        const logElement = log.getMessagesElement();
+        if(logElement)
+            logElement.innerHTML = '';
+        else if(log.view)
+            log.view.querySelectorAll('p').forEach((e) => e.remove());
+        log.setAlert(false);
     },
 
     print(message)
     {
-        let logElement = document.querySelector('.log');
-        logElement.innerHTML += "<p class='warning'>"+message+"</p>\n";
+        let logElement = log.getMessagesElement() || log.view || document.querySelector('.log');
+        if(!logElement)
+            return;
+        let p = document.createElement('p');
+        p.className = 'warning';
+        p.appendChild(document.createTextNode(message));
+        logElement.appendChild(p);
     }
 }
 

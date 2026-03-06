@@ -89,7 +89,7 @@
             <div class="button" onclick="nav.toggle()" id="nav">&#8801;</div>
             <div class="stretch" ></div>
             <div class="button" onclick="main.toggleEditMode()" style="font-family:Arial">&#9998;</div>
-            <div class="button" onclick="log.toggleLog()">&#x26A0;</div>
+            <div class="button" id="log_toggle_button" onclick="log.toggleLog()">&#x26A0;</div>
             <div class="button" onclick="inspector.toggleComponent()">&#9432;</divb></div>
             <div class="button large" onclick="inspector.toggleSystem()">&#x2699;</div>
         </div>
@@ -665,7 +665,11 @@
 		</aside>
 	</section>
 
-	<footer class="log"></footer>
+		<footer class="log">
+            <div class="log-resize-handle" onmousedown="log.startResize(event)"></div>
+            <button class="log-clear-button" title="Clear log" aria-label="Clear log" onclick="log.clear()">&#128465;</button>
+            <div class="log-messages"></div>
+        </footer>
     
     <script>
         // interaction.init();
@@ -690,4 +694,3 @@
 
 </body>
 </html>
-

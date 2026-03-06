@@ -289,6 +289,10 @@ header > button:first-child {
     border-radius: 5px;
 }
 
+.breadcrumbs div.button.log-alert {
+    color: #e53935;
+}
+
 .breadcrumbs div.button:after {
     display: none;
 }
@@ -910,11 +914,12 @@ header button:active, aside button:active {
  footer {
     border-top: 1px solid black;
     flex: 0 0 100px;
+    position: relative;
     
     white-space: nowrap;
     text-overflow: ellipsis;
 
-    overflow-y: auto;
+    overflow-y: hidden;
     overflow-x: hidden;
 
     display: none;
@@ -925,6 +930,56 @@ header button:active, aside button:active {
 footer p {
     padding-left:5px;
     font-size: 10px;
+}
+
+.log-clear-button {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0;
+    font-size: 12px;
+    line-height: 18px;
+    border: none;
+    border-radius: 3px;
+    background: #f5f5f5;
+    color: #333;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.log-clear-button:hover {
+    background: #e8e8e8;
+}
+
+.log-messages {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 28px;
+}
+
+.log-resize-handle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 12px;
+    cursor: row-resize;
+    z-index: 9;
+    background: transparent;
+}
+
+footer.log .log-resize-handle:hover {
+    cursor: row-resize;
+}
+
+
+body.log-resizing,
+body.log-resizing * {
+    cursor: row-resize !important;
 }
 p.inherit     { color: lightgray; }
 p.quiet     { color: lightgray; }
