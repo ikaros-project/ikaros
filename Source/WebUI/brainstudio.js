@@ -3288,6 +3288,34 @@ const main =
         main.addConnections();
     },
 
+    getConnectionTargetIdFromElement(element)
+    {
+        if(!element)
+            return null;
+
+        if(element.matches && element.matches(".i_spot") && element.id)
+            return element.id;
+
+        if(element.matches && element.matches(".widget"))
+        {
+            if(element.id)
+                return element.id;
+            const frame = element.closest(".gi.widget");
+            if(frame && frame.id)
+                return frame.id;
+        }
+
+        const socket = element.closest ? element.closest(".i_spot") : null;
+        if(socket && socket.id)
+            return socket.id;
+
+        const widgetFrame = element.closest ? element.closest(".gi.widget") : null;
+        if(widgetFrame && widgetFrame.id)
+            return widgetFrame.id;
+
+        return null;
+    },
+
     releaseTrackedConnection(evt) 
     {
         evt.stopPropagation();
@@ -3310,16 +3338,20 @@ const main =
         if(document.elementsFromPoint)
         {
             const stack = document.elementsFromPoint(evt.clientX, evt.clientY) || [];
-            const hit = stack.find((el) => el && el.matches && el.matches(".i_spot, .widget"));
-            if(hit && hit.id)
-                target = hit.id;
+            for(const el of stack)
+            {
+                const resolved = main.getConnectionTargetIdFromElement(el);
+                if(resolved)
+                {
+                    target = resolved;
+                    break;
+                }
+            }
         }
         else
         {
             const hovered = document.elementFromPoint(evt.clientX, evt.clientY);
-            const hoveredTarget = hovered ? hovered.closest('.i_spot, .widget') : null;
-            if(hoveredTarget && hoveredTarget.id)
-                target = hoveredTarget.id;
+            target = main.getConnectionTargetIdFromElement(hovered);
         }
 
         if(connectionsLayer)
@@ -3349,7 +3381,24 @@ const main =
     
         if (isTargetWidget) 
         {
-            network.dict[target].source = removeStringFromStart(source.split(':')[0], selector.selected_background + ".");
+            const cleanSource = removeStringFromStart(source.split(':')[0], selector.selected_background + ".");
+            network.dict[target].source = cleanSource;
+            network.dict[target].title = cleanSource;
+
+            const widgetFrame = document.getElementById(target);
+            if(widgetFrame && widgetFrame.widget)
+            {
+                widgetFrame.widget.parameters.source = cleanSource;
+                widgetFrame.widget.parameters.title = cleanSource;
+                try
+                {
+                    widgetFrame.widget.updateAll();
+                }
+                catch(err)
+                {
+                    console.log(err);
+                }
+            }
             main.tracked_connection = null;
             selector.selectItems([target], null);
         } 
@@ -3373,8 +3422,9 @@ const main =
         if(!main.tracked_connection)
             return;
         this.style.backgroundColor="orange";
-        if(this.id != "")   // FIXME: Not sure why this is needed
-            main.tracked_connection.target = this.id;
+        const targetId = main.getConnectionTargetIdFromElement(this);
+        if(targetId)
+            main.tracked_connection.target = targetId;
     },
 
     resetConnectectionTarget(evt)
