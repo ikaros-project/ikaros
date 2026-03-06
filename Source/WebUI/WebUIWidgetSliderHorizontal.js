@@ -1,63 +1,107 @@
-/*
-function getTextWidth(text, font) {
-    // re-use canvas object for better performance
-    var canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
-    var context = canvas.getContext("2d");
-    context.font = font;
-    var metrics = context.measureText(text);
-    return metrics.width;
-}
-*/
-
 class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
     static template() {
         return [
-            { 'name': "SLIDER HORIZONTAL", 'control': 'header' },
-            { 'name': 'title', 'default': "Sliders", 'type': 'string', 'control': 'textedit' },
+            { name: "SLIDER HORIZONTAL", control: "header" },
+            { name: "title", default: "Sliders", type: "string", control: "textedit" },
 
-            { 'name': "CONTROL", 'control': 'header' },
-            { 'name': 'parameter', 'default': "", 'type': 'source', 'control': 'textedit' },
-            { 'name': 'select_x', 'default': 0, 'type': 'int', 'control': 'textedit' },
-            { 'name': 'select_y', 'default': "", 'type': 'string', 'control': 'textedit' },
-            { 'name': 'count', 'default': 1, 'type': 'int', 'control': 'textedit' },
+            { name: "CONTROL", control: "header" },
+            { name: "parameter", default: "", type: "source", control: "textedit" },
+            { name: "select_x", default: 0, type: "int", control: "textedit" },
+            { name: "select_y", default: "", type: "string", control: "textedit" },
+            { name: "count", default: 1, type: "int", control: "textedit" },
 
-            { 'name': "STYLE", 'control': 'header' },
-            { 'name': 'labels', 'default': "", 'type': 'string', 'control': 'textedit' },
-            { 'name': 'min', 'default': 0, 'type': 'float', 'control': 'textedit' },
-            { 'name': 'max', 'default': 1, 'type': 'float', 'control': 'textedit' },
-            { 'name': 'step', 'default': 0.01, 'type': 'float', 'control': 'textedit' },
-            { 'name': 'show_values', 'default': false, 'type': 'bool', 'control': 'checkbox' },
+            { name: "STYLE", control: "header" },
+            { name: "labels", default: "", type: "string", control: "textedit" },
+            { name: "min", default: 0, type: "float", control: "textedit" },
+            { name: "max", default: 1, type: "float", control: "textedit" },
+            { name: "step", default: 0.01, type: "float", control: "textedit" },
+            { name: "show_values", default: false, type: "bool", control: "checkbox" },
 
-            { 'name': "FRAME", 'control': 'header' },
-            { 'name': 'show_title', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-            { 'name': 'show_frame', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-            { 'name': 'style', 'default': "", 'type': 'string', 'control': 'textedit' },
-            { 'name': 'frame-style', 'default': "", 'type': 'string', 'control': 'textedit' }
-        ]
-    };
+            { name: "FRAME", control: "header" },
+            { name: "show_title", default: false, type: "bool", control: "checkbox" },
+            { name: "show_frame", default: false, type: "bool", control: "checkbox" },
+            { name: "style", default: "", type: "string", control: "textedit" },
+            { name: "frame-style", default: "", type: "string", control: "textedit" }
+        ];
+    }
 
     static html() {
-        return `<div class="hranger"></div>`;
+        return '<div class="hranger"></div>';
+    }
+
+    disconnectedCallback() {
+        if (typeof super.disconnectedCallback === "function") {
+            super.disconnectedCallback();
+        }
+
+        if (this._keyDownHandler) {
+            document.removeEventListener("keydown", this._keyDownHandler);
+            this._keyDownHandler = null;
+        }
+
+        if (this._keyUpHandler) {
+            document.removeEventListener("keyup", this._keyUpHandler);
+            this._keyUpHandler = null;
+        }
+    }
+
+    _bindKeyHandlersOnce() {
+        if (this._keyDownHandler || this._keyUpHandler) {
+            return;
+        }
+
+        this._keyDownHandler = (event) => {
+            if (event.shiftKey) {
+                this.sync = true;
+            }
+        };
+
+        this._keyUpHandler = (event) => {
+            if (!event.shiftKey) {
+                this.sync = false;
+            }
+        };
+
+        document.addEventListener("keydown", this._keyDownHandler);
+        document.addEventListener("keyup", this._keyUpHandler);
+    }
+
+    _getSliders() {
+        return this.querySelectorAll("input");
+    }
+
+    _sendControlValue(value, index) {
+        const x = Number(this.parameters.select_x) + index;
+        const y = this.parameters.select_y;
+
+        if (y === "") {
+            this.send_control_change(this.parameters.parameter, value, x);
+            return;
+        }
+
+        this.send_control_change(
+            this.parameters.parameter,
+            value,
+            x,
+            Math.trunc(Number(y))
+        );
     }
 
     slider_moved(value, index = 0) {
         this.is_active = true;
-    if(this.parameters.select_y == "" )
-            this.send_control_change(this.parameters.parameter, value, this.parameters.select_x + index);
-    else
-            this.send_control_change(this.parameters.parameter, value, this.parameters.select_x + index, Math.trunc(this.parameters.select_y));
+        this._sendControlValue(value, index);
 
-        // moves all sliders at ones. 
-        if (this.sync) {
-            var newValue = value;
-            for (let i = 0; i < this.parameters.count; i++) 
-            {
-                if(this.parameters.select_y == "" )
-                    this.send_control_change(this.parameters.parameter, newValue, this.parameters.select_x + i);
-                else
-                    this.send_control_change(this.parameters.parameter, newValue, this.parameters.select_x + i, Math.trunc(this.parameters.select_y));
+        if (!this.sync) {
+            return;
+        }
 
-                this.querySelectorAll("input")[i].value = newValue;
+        const sliders = this._getSliders();
+        const count = Number(this.parameters.count);
+
+        for (let i = 0; i < count; i += 1) {
+            this._sendControlValue(value, i);
+            if (sliders[i]) {
+                sliders[i].value = value;
             }
         }
     }
@@ -65,132 +109,139 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
     updateAll() {
         super.updateAll();
 
-        // add or remove sliders
-        while (this.firstChild.childElementCount > this.parameters.count)
-            this.firstChild.removeChild(this.firstChild.children[this.firstChild.childElementCount - 1]);
+        const container = this.firstChild;
+        const count = Number(this.parameters.count);
 
-        while (this.firstChild.childElementCount < this.parameters.count) {
-            let d = document.createElement("div");
-            d.innerHTML = '<span class="slider_label"></span><input type="range"><span class="slider_value">0</span>';
-            this.firstChild.insertBefore(d, null);
+        while (container.childElementCount > count) {
+            container.removeChild(container.lastElementChild);
         }
 
-        // This should only be done on change
+        while (container.childElementCount < count) {
+            const row = document.createElement("div");
 
-        for (let slider of this.querySelectorAll("input")) 
-        {
-            slider.min = Number(this.parameters.min);
-            slider.max = Number(this.parameters.max);
-            slider.step = Number(this.parameters.step);
+            const label = document.createElement("span");
+            label.className = "slider_label";
+
+            const input = document.createElement("input");
+            input.type = "range";
+
+            const value = document.createElement("span");
+            value.className = "slider_value";
+            value.innerText = "0";
+
+            row.append(label, input, value);
+            container.appendChild(row);
         }
 
-        let mode = this.parameters.labels.trim() == "" ? 'none' : 'block';
-        for (let label of this.querySelectorAll(".slider_label"))
-            label.style.display = mode;
-/*
-        for (let label of this.querySelectorAll(".slider_label"))
-            try {
-                label.innerText = l[i++].trim(); // FIXME: l and i are not defined
-            }
-            catch (err) {
-                label.innerText = "";
-            }
-*/
-        if (this.parameters.labels.trim() == "")
-            for (let label of this.querySelectorAll(".slider_label")) {
-                label.style.display = 'none';
-                label.innerText = "";
-            }
-        else {
-            let l = this.parameters.labels.split(',');
-            let i = 0;
-            for (let label of this.querySelectorAll(".slider_label")) {
-                label.style.display = 'block';
-                try {
-                    label.innerText = l[i++].trim();
-                }
-                catch (err) 
-                {
-                }
-            }
+        const sliders = this._getSliders();
+        const labels = this.querySelectorAll(".slider_label");
+        const values = this.querySelectorAll(".slider_value");
+
+        const min = Number(this.parameters.min);
+        const max = Number(this.parameters.max);
+        const step = Number(this.parameters.step);
+
+        for (const slider of sliders) {
+            slider.min = min;
+            slider.max = max;
+            slider.step = step;
         }
 
-        for (let value of this.querySelectorAll(".slider_value")) {
-            value.style.display = this.parameters.show_values ? 'block' : 'none';
-        }
+        const rawLabels = this.parameters.labels.trim();
+        const labelParts = rawLabels === "" ? [] : rawLabels.split(",").map((item) => item.trim());
+        const showLabels = labelParts.length > 0;
 
-        // set-up event handlers
-        document.addEventListener('keydown', (e) => {
-            if (e.shiftKey) {
-                this.sync = true;
-            }
-        });
-        document.addEventListener('keyup', (e) => {
-            if (!e.shiftKey) {
-                this.sync = false;
-            }
+        labels.forEach((label, index) => {
+            label.style.display = showLabels ? "block" : "none";
+            label.innerText = labelParts[index] ?? "";
         });
 
-        let i = 0;
-        for (let slider of this.querySelectorAll("input")) 
-            {
-                slider.index = i++;
-                slider.oninput = function () {
-                    this.parentElement.parentElement.parentElement.slider_moved(this.value, this.index);
+        for (const value of values) {
+            value.style.display = this.parameters.show_values ? "block" : "none";
+        }
+
+        this._bindKeyHandlersOnce();
+
+        sliders.forEach((slider, index) => {
+            slider.oninput = () => {
+                this.slider_moved(slider.value, index);
             };
-            slider.onmousedown = function (e) { this.parentElement.parentElement.parentElement.is_active = false; e.stopPropagation(); console.log("slider down");};  
-            slider.onmouseup = function (e) { this.parentElement.parentElement.parentElement.is_active = false; e.stopPropagation(); console.log("slider up");};
-            slider.onclick = function (e) { 
-                    this.parentElement.parentElement.parentElement.is_active = false; 
-                    e.stopPropagation(); 
-                    console.log("slider click");}
-                ;
-        }
 
+            const stopWidgetPropagation = (event) => {
+                if (main.edit_mode) {
+                    const component = this.parentElement;
+                    const componentName = component?.dataset?.name || component?.id;
+
+                    if (event.type === "mousedown") {
+                        if (componentName) {
+                            selector.selectItems([componentName], null, event.shiftKey);
+                        }
+                    }
+
+                    if (event.detail === 2 && (event.type === "mousedown" || event.type === "click")) {
+                        if (componentName) {
+                            selector.selectItems([componentName], null, event.shiftKey);
+                        }
+                        inspector.toggleComponent();
+                    }
+                    this.is_active = false;
+                    event.stopPropagation();
+                    return;
+                }
+                this.is_active = false;
+                event.stopPropagation();
+            };
+
+            slider.onmousedown = stopWidgetPropagation;
+            slider.onmouseup = stopWidgetPropagation;
+            slider.onclick = stopWidgetPropagation;
+        });
     }
 
     update() {
-        if (this.parameters.show_values)
-            for (let value of this.querySelectorAll(".slider_value"))
+        if (this.parameters.show_values) {
+            for (const value of this.querySelectorAll(".slider_value")) {
                 value.innerText = value.parentNode.children[1].value;
+            }
+        }
 
-        if (this.is_active) // Do not redraw from data while being tracked
+        if (this.is_active) {
             return;
-        try {
-            let d = this.getSource("parameter");
+        }
 
-            // Hack if we have an array. We should have a better way to handle this.
-            if (Array.isArray(d) && !Array.isArray(d[0])) {
-                d = [d];
+        try {
+            let data = this.getSource("parameter");
+
+            if (Array.isArray(data) && !Array.isArray(data[0])) {
+                data = [data];
             }
 
-            if (d)
-            {
-                let size_y = d.length;
-                let size_x = d[0].length;
+            if (!data || !data.length) {
+                return;
+            }
 
-                if(this.parameters.select_y != "" )
-                {
-                    let sel_y = Math.trunc(this.parameters.select_y);
-                    let i = this.parameters.select_x;
+            const sliders = this._getSliders();
 
-                    for (let slider of this.querySelectorAll("input"))
-                        slider.value = d[sel_y][i++];
+            if (this.parameters.select_y !== "") {
+                const selectedY = Math.trunc(Number(this.parameters.select_y));
+                let x = Number(this.parameters.select_x);
+
+                for (const slider of sliders) {
+                    slider.value = data[selectedY]?.[x] ?? slider.value;
+                    x += 1;
                 }
+                return;
+            }
 
-                else
-                {
-                    let i = this.parameters.select_x;
-                    for (let slider of this.querySelectorAll("input")) // Skip to correct row
-                        slider.value = d[i++];
-                }
+            let x = Number(this.parameters.select_x);
+            for (const slider of sliders) {
+                slider.value = data[x] ?? slider.value;
+                x += 1;
             }
         }
         catch (err) {
         }
     }
-};
+}
 
-
-webui_widgets.add('webui-widget-slider-horizontal', WebUIWidgetSliderHorizontal);
-
+webui_widgets.add("webui-widget-slider-horizontal", WebUIWidgetSliderHorizontal);
