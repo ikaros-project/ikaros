@@ -40,6 +40,7 @@ void ThreadPool::worker()
             if (stop && task_sequences.empty()) return;
             task_sequence = task_sequences.front();
             task_sequences.pop();
+            ++active_tasks;
         }
         
         if (task_sequence) {
@@ -51,6 +52,7 @@ void ThreadPool::worker()
                 std::cerr << "Unknown error during task execution." << std::endl;
             }
         }
+        --active_tasks;
     }
 }
 
@@ -67,5 +69,5 @@ void ThreadPool::submit(std::shared_ptr<TaskSequence> task_sequence)
 bool ThreadPool::working() 
 {
     std::lock_guard<std::mutex> lock(queueMutex);
-    return !task_sequences.empty();
+    return !task_sequences.empty() || active_tasks.load() > 0;
 }
