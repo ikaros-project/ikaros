@@ -2997,7 +2997,7 @@ const main =
         return parts.join('.') + afterBracket;
     },
 
-    duplicateSelectedComponents()
+    duplicateSelectedComponents(include_external_connections=false)
     {
         if(!main.edit_mode)
             return;
@@ -3068,7 +3068,14 @@ const main =
             {
                 const sourceComponent = getStringUpToBracket(c.source).split('.')[0];
                 const targetComponent = getStringUpToBracket(c.target).split('.')[0];
-                if(!(sourceComponent in nameMap) || !(targetComponent in nameMap))
+                const sourceMapped = sourceComponent in nameMap;
+                const targetMapped = targetComponent in nameMap;
+                if(include_external_connections)
+                {
+                    if(!sourceMapped && !targetMapped)
+                        continue;
+                }
+                else if(!sourceMapped || !targetMapped)
                     continue;
 
                 const cc = deepCopy(c);
@@ -3290,13 +3297,36 @@ const main =
 
         const tracked = main.tracked_connection;
         const { source } = tracked;
-        let { target } = tracked;
+        let target = null;
 
-        const hovered = document.elementFromPoint(evt.clientX, evt.clientY);
-        const hoveredTarget = hovered ? hovered.closest('.i_spot, .widget') : null;
-        const hoveredTargetId = hoveredTarget ? hoveredTarget.id : null;
-        if(target == null || target !== hoveredTargetId)
-            target = null;
+        const connectionsLayer = document.getElementById("connections");
+        let previousPointerEvents = null;
+        if(connectionsLayer)
+        {
+            previousPointerEvents = connectionsLayer.style.pointerEvents;
+            connectionsLayer.style.pointerEvents = "none";
+        }
+
+        if(document.elementsFromPoint)
+        {
+            const stack = document.elementsFromPoint(evt.clientX, evt.clientY) || [];
+            const hit = stack.find((el) => el && el.matches && el.matches(".i_spot, .widget"));
+            if(hit && hit.id)
+                target = hit.id;
+        }
+        else
+        {
+            const hovered = document.elementFromPoint(evt.clientX, evt.clientY);
+            const hoveredTarget = hovered ? hovered.closest('.i_spot, .widget') : null;
+            if(hoveredTarget && hoveredTarget.id)
+                target = hoveredTarget.id;
+        }
+
+        if(connectionsLayer)
+            connectionsLayer.style.pointerEvents = previousPointerEvents;
+
+        if(!target)
+            target = tracked.target || null;
     
         if (!target) 
         {
@@ -3786,7 +3816,7 @@ const main =
         {
             evt.preventDefault();
             if(main.edit_mode)
-                main.duplicateSelectedComponents();
+                main.duplicateSelectedComponents(evt.shiftKey);
             return;
         }
         else if (key=="i" || code=="KeyI")
@@ -3831,6 +3861,7 @@ const main =
         <tr><td>Escape</td><td>Toggle system inspector.</td></tr>
         <tr><td>&#8984; + A</td><td>Select all components/widgets in current group.</td></tr>
         <tr><td>&#8984; + D</td><td>Duplicate selected components (edit mode).</td></tr>
+        <tr><td>&#8984; + &#8679; + D</td><td>Duplicate selected components (edit mode), preserving incoming/outgoing connections.</td></tr>
         <tr><td>&#8984; + I</td><td>Toggle inspector.</td></tr>
         <tr><td>&#8984; + S</td><td>Save.</td></tr>
         <tr><td>&#8984; + &#8997; + N</td><td>New.</td></tr>
