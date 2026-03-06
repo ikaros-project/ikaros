@@ -2898,6 +2898,116 @@ const main =
         selector.selectItems([], selector.selected_background, false, false, true);
     },
 
+    uniqueComponentName(baseName, reservedNames=new Set())
+    {
+        const background = selector.selected_background;
+        let index = 1;
+        let candidate = `${baseName}${index}`;
+        while((`${background}.${candidate}` in network.dict) || reservedNames.has(candidate))
+            candidate = `${baseName}${++index}`;
+        return candidate;
+    },
+
+    remapConnectionEndpoint(endpoint, nameMap)
+    {
+        const beforeBracket = getStringUpToBracket(endpoint);
+        const afterBracket = getStringAfterBracket(endpoint);
+        const parts = beforeBracket.split('.');
+        if(parts.length > 0 && parts[0] in nameMap)
+            parts[0] = nameMap[parts[0]];
+        return parts.join('.') + afterBracket;
+    },
+
+    duplicateSelectedComponents()
+    {
+        if(!main.edit_mode)
+            return;
+        if(selector.selected_foreground.length === 0)
+            return;
+
+        const background = selector.selected_background;
+        const group = network.dict[background];
+        if(!group)
+            return;
+
+        const selectedFullNames = [...selector.selected_foreground];
+        const reservedNames = new Set();
+        const nameMap = {};
+        const duplicatedFullNames = [];
+
+        for(const fullName of selectedFullNames)
+        {
+            const original = network.dict[fullName];
+            if(!original || !original.name || !original._tag)
+                continue;
+
+            const oldName = original.name;
+            const newName = main.uniqueComponentName(oldName, reservedNames);
+            reservedNames.add(newName);
+            nameMap[oldName] = newName;
+
+            const clone = deepCopy(original);
+            clone.name = newName;
+            if(clone._x !== undefined)
+                clone._x = parseInt(clone._x) + 30;
+            if(clone._y !== undefined)
+                clone._y = parseInt(clone._y) + 30;
+
+            switch(clone._tag)
+            {
+                case 'group':
+                    if(!group.groups) group.groups = [];
+                    group.groups.push(clone);
+                    break;
+                case 'module':
+                    if(!group.modules) group.modules = [];
+                    group.modules.push(clone);
+                    break;
+                case 'input':
+                    if(!group.inputs) group.inputs = [];
+                    group.inputs.push(clone);
+                    break;
+                case 'output':
+                    if(!group.outputs) group.outputs = [];
+                    group.outputs.push(clone);
+                    break;
+                case 'widget':
+                    if(!group.widgets) group.widgets = [];
+                    group.widgets.push(clone);
+                    break;
+                default:
+                    continue;
+            }
+
+            duplicatedFullNames.push(`${background}.${newName}`);
+        }
+
+        if(group.connections && Object.keys(nameMap).length > 0)
+        {
+            const duplicatedConnections = [];
+            for(const c of group.connections)
+            {
+                const sourceComponent = getStringUpToBracket(c.source).split('.')[0];
+                const targetComponent = getStringUpToBracket(c.target).split('.')[0];
+                if(!(sourceComponent in nameMap) || !(targetComponent in nameMap))
+                    continue;
+
+                const cc = deepCopy(c);
+                cc.source = main.remapConnectionEndpoint(c.source, nameMap);
+                cc.target = main.remapConnectionEndpoint(c.target, nameMap);
+                duplicatedConnections.push(cc);
+            }
+            group.connections.push(...duplicatedConnections);
+        }
+
+        if(duplicatedFullNames.length === 0)
+            return;
+
+        network.rebuildDict();
+        nav.populate();
+        selector.selectItems(duplicatedFullNames, background, false, false, true);
+    },
+
     changeComponentPosition(c, dx,dy, snap_to_grid=true)
     {
         const e = document.getElementById(c);
@@ -3556,8 +3666,9 @@ const main =
         else if (evt.key=="d")
         {
             evt.preventDefault();
-            //alert("Duplicate selected items and possibly connections. (NOT IMPLEMENTED YET)");
-            alert(selector.selected_foreground);
+            if(main.edit_mode)
+                main.duplicateSelectedComponents();
+            return;
         }
         else if (evt.key=="i")
         { 
