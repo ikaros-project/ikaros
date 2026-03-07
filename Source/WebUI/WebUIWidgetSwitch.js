@@ -60,10 +60,14 @@ class WebUIWidgetSwitch extends WebUIWidgetControl
             let d = this.getSource("parameter");
             if(d)
             {
-                let size_y = d.length;
-                let size_x = d[0].length;
+                if(!Array.isArray(d))
+                    return;
+                if(!Array.isArray(d[0]))
+                    d = [d];
+                if(!Array.isArray(d[this.parameters.yindex]))
+                    return;
                 let s = this.querySelector("input");
-                s.checked = (d[this.parameters.yindex][this.parameters.xindex] > 0);
+                s.checked = ((d[this.parameters.yindex][this.parameters.xindex] ?? 0) > 0);
             }
         }
         catch(err)
