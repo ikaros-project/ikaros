@@ -60,39 +60,14 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl
             slider.step = this.parameters.step;
         }
 
-        let mode = this.parameters.labels.trim() == "" ? 'none' : 'block';
-            for(let label of this.querySelectorAll(".slider_label"))
-                label.style.display = mode;
-
+        const rawLabels = String(this.parameters.labels ?? "").trim();
+        const labels = rawLabels === "" ? [] : rawLabels.split(",").map((item) => item.trim());
+        const showLabels = labels.length > 0;
+        let i = 0;
         for(let label of this.querySelectorAll(".slider_label"))
-            try {
-                label.innerText = l[i++].trim();
-            }
-            catch(err)
-            {
-                label.innerText = "";
-            }
-
-        if(this.parameters.labels.trim() == "")
-            for(let label of this.querySelectorAll(".slider_label"))
-            {
-                label.style.display = 'none';
-                label.innerText = "";
-            }
-        else
         {
-            let l = this.parameters.labels.split(',');
-            let i=0;
-            for(let label of this.querySelectorAll(".slider_label"))
-            {
-                label.style.display = 'block';
-                try {
-                    label.innerText = l[i++].trim();
-                }
-                catch(err)
-                {
-                }
-            }
+            label.style.display = showLabels ? "block" : "none";
+            label.innerText = labels[i++] ?? "";
         }
 
         for(let value of this.querySelectorAll(".slider_value"))
@@ -118,12 +93,20 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl
             let d = this.getSource("parameter");
             if(d)
             {
-                let size_y = d.length;
-                let size_x = d[0].length;
+                if (!Array.isArray(d))
+                    return;
+                if (!Array.isArray(d[0]))
+                    d = [d];
+                if (!Array.isArray(d[0]))
+                    return;
                 
                 let i = this.parameters.select;
                 for(let slider of this.querySelectorAll("input"))
-                    slider.value = d[0][i++];
+                {
+                    if (typeof d[0][i] !== "undefined")
+                        slider.value = d[0][i];
+                    i++;
+                }
             }
 
             if(this.parameters.show_values)
@@ -140,4 +123,3 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl
 
 
 webui_widgets.add('webui-widget-slider-vertical', WebUIWidgetSliderVertical);
-
