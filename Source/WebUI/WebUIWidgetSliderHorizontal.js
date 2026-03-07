@@ -147,7 +147,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
             slider.step = step;
         }
 
-        const rawLabels = this.parameters.labels.trim();
+        const rawLabels = String(this.parameters.labels ?? "").trim();
         const labelParts = rawLabels === "" ? [] : rawLabels.split(",").map((item) => item.trim());
         const showLabels = labelParts.length > 0;
 
