@@ -275,7 +275,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			if (this.lastmodels != modelListKey) // Remove object if list changed
 			{
 				if (this.model_objects)
-					for (var i = 0; i < this.nrOfModels; i++)
+					for (var i = 0; i < this.model_objects.length; i++)
 						this.scene.remove(this.model_objects[i]);
 				this.models_loaded = false
 			}
@@ -300,6 +300,12 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				this.model_objects[i].matrixAutoUpdate = false;
 				this.model_objects[i].matrix.copy(this.mat[i])
 			}
+			if (this.model_objects && this.model_objects.length > this.nrOfModels) {
+				for (var i = this.nrOfModels; i < this.model_objects.length; i++) {
+					if (this.model_objects[i])
+						this.model_objects[i].visible = false;
+				}
+			}
 
 
 			//console.log('Updated models')
@@ -308,8 +314,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		else  // Hide 
 			if (this.models_loaded)
 				if (this.model_objects)
-					for (var i = 0; i < this.nrOfModels; i++)
-						this.model_objects[i].visible = false;
+					for (var i = 0; i < this.model_objects.length; i++)
+						if (this.model_objects[i])
+							this.model_objects[i].visible = false;
 
 		// Remove loading screen
 		if (this.models_loaded)
