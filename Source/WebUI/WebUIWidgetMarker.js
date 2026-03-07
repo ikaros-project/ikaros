@@ -92,8 +92,10 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
         let s = this.parameters.size*(width+height)/2
         let d = this.data;
 
-              if (Array.isArray(d) && (d.length === 0 || !Array.isArray(d[0])))
+        if (Array.isArray(d) && (d.length === 0 || !Array.isArray(d[0])))
             d = [d];
+        if(!Array.isArray(d) || d.length === 0 || !Array.isArray(d[0]) || d[0].length < this.parameters.select + 2)
+            return;
 
         let rows = d.length;
         this.canvas.lineWidth = this.format.lineWidth;
@@ -104,6 +106,8 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
         
         for(var i=0; i<rows; i++)
         {
+            if(!Array.isArray(d[i]) || d[i].length < this.parameters.select + 2)
+                continue;
             this.setColor(i);
             this.canvas.beginPath();
             
@@ -140,12 +144,16 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
 
     drawCols(width, height, index, transform)
     {
-        let l = this.parameters.labels.split(',');
+        let l = String(this.parameters.labels ?? "").trim() === "" ? [] : String(this.parameters.labels).split(',');
         let n = l.length;
     
         let s = this.parameters.size*(width+height)/2
         let d = this.data;
-        let rows = this.data.length;
+        if (Array.isArray(d) && (d.length === 0 || !Array.isArray(d[0])))
+            d = [d];
+        if(!Array.isArray(d) || d.length === 0 || !Array.isArray(d[0]) || d[0].length < this.parameters.select + 2)
+            return;
+        let rows = d.length;
         
         this.parameters.labelOffsetX = parseFloat(this.parameters.labelOffsetX);    // FIXME: should be converted somewhere else
         this.parameters.labelOffsetY = parseFloat(this.parameters.labelOffsetY);
@@ -159,9 +167,12 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
         this.canvas.textBaseline = this.parameters.labelBaseline;
 
         let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
+        xx = Math.min(xx, d[0].length);
         let c = 0;
         for(var i=this.parameters.select; i<xx; i+=2)
         {
+            if(i+1 >= d[0].length)
+                break;
             let lx = 0;
             let ly = 0;
             let x = (d[0][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
@@ -169,6 +180,8 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             
             for(var j=0; j<rows;j++)
             {
+                if(!Array.isArray(d[j]) || i+1 >= d[j].length)
+                    continue;
                 x = (d[j][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
                 y = (d[j][i+1]-this.parameters.min_y)*this.parameters.scale_y * height;
 
@@ -192,7 +205,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
                 
                 if(this.parameters.labelType != "none")
                 {
-                    let lbl = l[j % n];
+                    let lbl = n > 0 ? l[j % n] : "";
                     if(this.parameters.labelType == "alphabetical")
                         lbl = String.fromCharCode(65+j);
                     if(this.parameters.labelType == "numbered")
@@ -243,6 +256,10 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             this.data = d[this.parameters['source']];
 
             if(!this.data)
+                return;
+            if(this.getMatrixRank(this.data) == 1)
+                this.data = [this.data];
+            if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
                 return;
 
             this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
