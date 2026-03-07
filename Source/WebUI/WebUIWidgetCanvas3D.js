@@ -17,6 +17,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			{ 'name': 'show_axis', 'default': false, 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'show_ground_grid', 'default': false, 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'show_stats', 'default': false, 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'offset_x', 'default': "0", 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'offset_y', 'default': "0", 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'offset_z', 'default': "0", 'type': 'float', 'control': 'textedit' },
 
 			{ 'name': 'views', 'default': "Home", 'type': 'string', 'control': 'menu', 'options': "Home, Top, Bottom, Front, Back, Left, Right" },
 			{ 'name': 'look_at_X', 'default': "0", 'type': 'float', 'control': 'textedit' },
@@ -54,21 +57,45 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			}
 			</script>
 
-		<div id = "demo"></div>
+		<div class="canvas3d-demo"></div>
 		<canvas></canvas>
         `;
 	}
 
 	updateAll() 
 	{
-		this.FixedView = true;
+		this._lastViewName = null;
+		super.updateAll();
 	}
 
 	init() {
 		this.points_loaded = false;
+		this.style.position = "relative";
 		this.canvasElement = this.querySelector('canvas');
+		this.canvasElement.style.display = "block";
+		this.canvasElement.style.width = "100%";
+		this.canvasElement.style.height = "100%";
+		this.canvasElement.style.flexGrow = "1";
+		this.canvasElement.style.pointerEvents = "auto";
+		this.canvasElement.style.position = "relative";
+		this.canvasElement.style.zIndex = "6";
 		this.canvas = this.canvasElement.getContext("webgl");
 		this.models_loaded = false;
+		this._cachedPointColorKey = null;
+		this._cachedPointColors = [[0, 0, 0]];
+		this._cachedPointSizeKey = null;
+		this._cachedPointSizes = [0.15];
+		this._cachedLineColorKey = null;
+		this._cachedLineColors = [[0, 0, 1]];
+		this._cachedLineKey = null;
+		this._cachedLineIndices = [];
+		this._lastRendererWidth = null;
+		this._lastRendererHeight = null;
+		this._lastCameraAspect = null;
+		this._lastLookAtX = null;
+		this._lastLookAtY = null;
+		this._lastLookAtZ = null;
+		this._lastViewName = null;
 
 		// Scene
 		this.scene = new THREE.Scene();
@@ -118,11 +145,24 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		// Stats
 		this.stats = new Stats();
 		this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 
-		this.s = document.getElementById("demo");
-		this.s.appendChild(this.stats.domElement);
-		document.getElementById("demo").firstChild.style.position = "absolute"
-		document.getElementById("demo").firstChild.style.top = "25px"
-		document.getElementById("demo").firstChild.style.left = "5px"
+		this.s = this.querySelector(".canvas3d-demo");
+		if (this.s) {
+			this.s.style.position = "absolute";
+			this.s.style.top = "0";
+			this.s.style.left = "0";
+			this.s.style.right = "0";
+			this.s.style.bottom = "0";
+			this.s.style.pointerEvents = "none";
+			this.s.style.flexGrow = "0";
+			this.s.style.zIndex = "5";
+			this.s.appendChild(this.stats.domElement);
+			if (this.s.firstChild) {
+				this.s.firstChild.style.position = "absolute";
+				this.s.firstChild.style.top = "25px";
+				this.s.firstChild.style.left = "5px";
+				this.s.firstChild.style.pointerEvents = "none";
+			}
+		}
 
 		// Renderer
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, clearColor: 0x335588, canvas: this.canvas.canvas });
@@ -133,20 +173,80 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		//this.renderer.shadowMap.cullFace = THREE.CullFaceBack;
 		this.renderer.shadowMapType = THREE.PCFSoftShadowMap
 
-		this.controls = new THREE.OrbitControls(this.camera, this.canvas.canvas);
+		this.controls = new THREE.OrbitControls(this.camera, this.canvasElement);
 		this.controls.enablePan = true;
+		this.controls.enableRotate = true;
+		this.controls.enableZoom = true;
 		this.controls.enableDamping = true;
-		this.controls.minDistance = 0.5;
+		this.controls.minDistance = 0.1;
 		this.controls.maxDistance = 4;
 		this.controls.update();
-		
+
+		// Prevent browser/page scrolling while zooming the 3D canvas.
+		this.canvasElement.addEventListener("wheel", function (evt) {
+			if (evt.cancelable)
+				evt.preventDefault();
+			evt.stopPropagation();
+		}, { passive: false });
+
+		// Safari can occasionally target an overlay sibling instead of the canvas.
+		// Forward core mouse/pointer/wheel events to the canvas so OrbitControls always receives input.
+		const forwardToCanvas = (evt) => {
+			if (!this.canvasElement || evt.target === this.canvasElement || this.canvasElement.contains(evt.target))
+				return;
+			if (evt.type === "wheel") {
+				if (evt.cancelable)
+					evt.preventDefault();
+				evt.stopPropagation();
+				if (evt.stopImmediatePropagation)
+					evt.stopImmediatePropagation();
+			}
+			try {
+				let cloned;
+				if (typeof PointerEvent !== "undefined" && evt instanceof PointerEvent)
+					cloned = new PointerEvent(evt.type, evt);
+				else if (typeof WheelEvent !== "undefined" && evt instanceof WheelEvent)
+					cloned = new WheelEvent(evt.type, evt);
+				else
+					cloned = new MouseEvent(evt.type, evt);
+				this.canvasElement.dispatchEvent(cloned);
+			}
+			catch (error) {
+			}
+		};
+		this.addEventListener("pointerdown", forwardToCanvas, true);
+		this.addEventListener("pointermove", forwardToCanvas, true);
+		this.addEventListener("pointerup", forwardToCanvas, true);
+		this.addEventListener("mousedown", forwardToCanvas, true);
+		this.addEventListener("mousemove", forwardToCanvas, true);
+		this.addEventListener("mouseup", forwardToCanvas, true);
+		this.addEventListener("wheel", forwardToCanvas, { capture: true, passive: false });
+
+		// Hard-stop wheel scrolling at widget root as an extra guard.
+		this.addEventListener("wheel", function (evt) {
+			const targetIsCanvas = evt.target === this.canvasElement || this.canvasElement.contains(evt.target);
+			if (evt.cancelable)
+				evt.preventDefault();
+			// Let wheel continue to OrbitControls when event already targets canvas.
+			if (!targetIsCanvas) {
+				evt.stopPropagation();
+				if (evt.stopImmediatePropagation)
+					evt.stopImmediatePropagation();
+			}
+		}, { capture: true, passive: false });
+
 		function render(o) {
-			o.camera.lookAt(o.cameraTarget);
+			if (o.controls)
+				o.camera.lookAt(o.controls.target);
+			else
+				o.camera.lookAt(o.cameraTarget);
 			o.renderer.render(o.scene, o.camera);
 		};
 
 		function animate(o, time) {
 			requestAnimationFrame(animate.bind(null, o));
+			if (o.controls)
+				o.controls.enabled = !main.edit_mode;
 			o.controls.update();
 			o.stats.update();
 			render(o);
@@ -213,20 +313,98 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 	}
 
+	updateCameraAndView()
+	{
+		const parameterWidth = Number(this.parameters.width);
+		const parameterHeight = Number(this.parameters.height);
+		const clientWidth = this.canvasElement.clientWidth;
+		const clientHeight = this.canvasElement.clientHeight;
+		const rendererWidth = (Number.isFinite(clientWidth) && clientWidth > 0) ? clientWidth : (Number.isFinite(parameterWidth) ? parameterWidth : this.width);
+		const rendererHeight = (Number.isFinite(clientHeight) && clientHeight > 0) ? clientHeight : (Number.isFinite(parameterHeight) ? parameterHeight : this.height);
+		const cameraAspect = rendererHeight ? (rendererWidth / rendererHeight) : 1;
+		if (this._lastRendererWidth !== rendererWidth || this._lastRendererHeight !== rendererHeight) {
+			this.renderer.setSize(rendererWidth, rendererHeight, false);
+			this._lastRendererWidth = rendererWidth;
+			this._lastRendererHeight = rendererHeight;
+		}
+		if (this._lastCameraAspect !== cameraAspect) {
+			this.camera.aspect = cameraAspect;
+			this._lastCameraAspect = cameraAspect;
+			this.camera.updateProjectionMatrix();
+		}
+
+		const lookAtX = Number(this.parameters.look_at_X);
+		const lookAtY = Number(this.parameters.look_at_Y);
+		const lookAtZ = Number(this.parameters.look_at_Z);
+		const resolvedLookAtX = Number.isFinite(lookAtX) ? lookAtX : 0;
+		const resolvedLookAtY = Number.isFinite(lookAtY) ? lookAtY : 0;
+		const resolvedLookAtZ = Number.isFinite(lookAtZ) ? lookAtZ : 0;
+		if (this._lastLookAtX !== resolvedLookAtX || this._lastLookAtY !== resolvedLookAtY || this._lastLookAtZ !== resolvedLookAtZ) {
+			this.cameraTarget.set(resolvedLookAtX, resolvedLookAtY, resolvedLookAtZ);
+			if (this.controls)
+				this.controls.target.copy(this.cameraTarget);
+			this._lastLookAtX = resolvedLookAtX;
+			this._lastLookAtY = resolvedLookAtY;
+			this._lastLookAtZ = resolvedLookAtZ;
+		}
+
+		const viewName = String(this.parameters.views ?? "").trim();
+		const shouldApplyPresetView = this._lastViewName !== viewName;
+		if (shouldApplyPresetView) {
+			switch (viewName) {
+				case "Top":
+					this.camera.position.set(0, 2, 0);
+					break;
+				case "Bottom":
+					this.camera.position.set(0, -1, 0);
+					break;
+				case "Front":
+					this.camera.position.set(0, 2, 2);
+					break;
+				case "Back":
+					this.camera.position.set(0, 2, -2);
+					break;
+				case "Left":
+					this.camera.position.set(2, 2, 0);
+					break;
+				case "Right":
+					this.camera.position.set(-2, 2, 0);
+					break;
+				case "Home":
+					this.camera.position.set(0.5, 1.5, 1.5);
+					break;
+				default:
+			}
+			if (this.controls)
+				this.controls.update();
+		}
+		this._lastViewName = viewName;
+		this.FixedView = false;
+	}
+
 	update()
 	{
 		this.updateFrame();
-		if (!(this.data = this.getSource('matrix'))) 
+		const incomingData = this.getSource('matrix');
+		if (incomingData)
+			this.data = incomingData;
+		if (!this.data)
 		{
-			console.log("No 3D data from ikaros")
+			this.updateCameraAndView();
 			return;
 		}
 		if (!Array.isArray(this.data))
+		{
+			this.updateCameraAndView();
 			return;
+		}
 		if (Array.isArray(this.data) && this.data.length > 0 && !Array.isArray(this.data[0]))
 			this.data = [this.data];
 		if (!this.data.length)
+		{
+			this.updateCameraAndView();
 			return;
+		}
 
 		const parseList = (value) => {
 			if (Array.isArray(value)) {
@@ -235,6 +413,22 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			}
 			const text = String(value ?? "").trim();
 			return text === "" ? [] : text.split(",").map((entry) => entry.trim()).filter((entry) => entry !== "");
+		};
+		const parseColorTriplets = (value, fallback) => {
+			const key = String(value ?? "").toLowerCase();
+			const list = parseList(key);
+			const colors = [];
+			for (let i = 0; i < list.length; i++) {
+				try {
+					const c = new THREE.Color(list[i]);
+					colors.push([c.r, c.g, c.b]);
+				}
+				catch (error) {
+				}
+			}
+			if (colors.length === 0)
+				colors.push(fallback);
+			return colors;
 		};
 
 		const modelsParameter = String(this.parameters.models ?? "");
@@ -248,6 +442,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		}
 
 		//console.log("Formating data")
+		const offsetX = Number.isFinite(Number(this.parameters.offset_x)) ? Number(this.parameters.offset_x) : 0;
+		const offsetY = Number.isFinite(Number(this.parameters.offset_y)) ? Number(this.parameters.offset_y) : 0;
+		const offsetZ = Number.isFinite(Number(this.parameters.offset_z)) ? Number(this.parameters.offset_z) : 0;
 		this.mat = []
 		this.vertices = []
 		for (var i = 0; i < this.data.length; i++) {
@@ -257,6 +454,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			//this.mat[i].fromArray(this.data[i]) // Not the right order
 			this.mat[i].set(this.data[i][0], this.data[i][1], this.data[i][2], this.data[i][3], this.data[i][4], this.data[i][5], this.data[i][6], this.data[i][7], this.data[i][8], this.data[i][9], this.data[i][10], this.data[i][11], this.data[i][12], this.data[i][13], this.data[i][14], this.data[i][15]);
 			this.mat[i] = this.IkaorsToThreeBase(this.mat[i]);
+			this.mat[i].elements[12] += offsetX;
+			this.mat[i].elements[13] += offsetY;
+			this.mat[i].elements[14] += offsetZ;
 			this.vertices.push(this.mat[i].elements[12], this.mat[i].elements[13], this.mat[i].elements[14])
 		}
 		this.nrOfModels = this.mat.length
@@ -367,12 +567,18 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				//console.log('Updated Points')
 
 				// Calculate point color
-				this.pColors = parseList(String(this.parameters.point_color ?? "").toLowerCase());
-				if (this.pColors.length === 0)
-					this.pColors = ["black"];
-				this.pSize = parseList(this.parameters.point_size).map((entry) => parseFloat(entry)).filter((value) => Number.isFinite(value));
-				if (this.pSize.length === 0)
-					this.pSize = [0.15];
+				const pointColorKey = String(this.parameters.point_color ?? "").toLowerCase();
+				if (this._cachedPointColorKey !== pointColorKey) {
+					this._cachedPointColorKey = pointColorKey;
+					this._cachedPointColors = parseColorTriplets(this.parameters.point_color, [0, 0, 0]);
+				}
+				const pointSizeKey = String(this.parameters.point_size ?? "");
+				if (this._cachedPointSizeKey !== pointSizeKey) {
+					this._cachedPointSizeKey = pointSizeKey;
+					this._cachedPointSizes = parseList(this.parameters.point_size).map((entry) => parseFloat(entry)).filter((value) => Number.isFinite(value));
+					if (this._cachedPointSizes.length === 0)
+						this._cachedPointSizes = [0.15];
+				}
 
 				var positions = this.particles.geometry.attributes.position.array;
 				var colors = this.particles.geometry.attributes.customColor.array;
@@ -389,17 +595,17 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 					// positions[i * 3 + 1] = this.mat[i].elements[13]
 					// positions[i * 3 + 2] = this.mat[i].elements[14]
 
-					if (cIndex >= this.pColors.length)
+					if (cIndex >= this._cachedPointColors.length)
 						cIndex = 0;
-					var color = new THREE.Color(this.pColors[cIndex]);
+					const color = this._cachedPointColors[cIndex];
 					cIndex++;
-					colors[i * 3 + 0] = color.r
-					colors[i * 3 + 1] = color.g
-					colors[i * 3 + 2] = color.b
+					colors[i * 3 + 0] = color[0]
+					colors[i * 3 + 1] = color[1]
+					colors[i * 3 + 2] = color[2]
 
-					if (pIndex >= this.pSize.length)
+					if (pIndex >= this._cachedPointSizes.length)
 						pIndex = 0;
-					sizes[i] = this.pSize[pIndex]
+					sizes[i] = this._cachedPointSizes[pIndex]
 					pIndex++;
 				}
 				this.particles.geometry.attributes.position.needsUpdate = true;
@@ -419,8 +625,12 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		// Line
 		if (this.toBool(this.parameters.show_lines)) {
-			const parsedLines = parseList(this.parameters.line).map((entry) => parseInt(entry, 10)).filter((value) => Number.isFinite(value) && value >= 0);
-			this.l = parsedLines;
+			const lineKey = String(this.parameters.line ?? "");
+			if (this._cachedLineKey !== lineKey) {
+				this._cachedLineKey = lineKey;
+				this._cachedLineIndices = parseList(this.parameters.line).map((entry) => parseInt(entry, 10)).filter((value) => Number.isFinite(value) && value >= 0);
+			}
+			this.l = this._cachedLineIndices;
 			//console.log('Lines')
 
 			if (!this.lines_loaded) {
@@ -436,7 +646,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				}
 				geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 				geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.vertices, 3));
-				geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(this.l), 1));
+				if (this.l.length > 0)
+					geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(this.l), 1));
 
 
 				this.linesObject = new THREE.LineSegments(geometry, material);
@@ -444,29 +655,37 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			}
 			else {
 				// Calculate point color
-				this.lColors = parseList(String(this.parameters.line_color ?? "").toLowerCase());
-				if (this.lColors.length === 0)
-					this.lColors = ["blue"];
+				const lineColorKey = String(this.parameters.line_color ?? "").toLowerCase();
+				if (this._cachedLineColorKey !== lineColorKey) {
+					this._cachedLineColorKey = lineColorKey;
+					this._cachedLineColors = parseColorTriplets(this.parameters.line_color, [0, 0, 1]);
+				}
 				var colors = this.linesObject.geometry.attributes.color.array;
 
 				// Update position from an array 16xi
 				var cIndex = 0;
 
 				for (var i = 0; i < this.nrOfModels; i++) {
-					if (cIndex >= this.lColors.length)
+					if (cIndex >= this._cachedLineColors.length)
 						cIndex = 0;
-					var color = new THREE.Color(this.lColors[cIndex]);
+					const color = this._cachedLineColors[cIndex];
 					cIndex++;
-					colors[i * 3 + 0] = color.r
-					colors[i * 3 + 1] = color.g
-					colors[i * 3 + 2] = color.b
+					colors[i * 3 + 0] = color[0]
+					colors[i * 3 + 1] = color[1]
+					colors[i * 3 + 2] = color[2]
 				}
 				this.linesObject.geometry.attributes.color.needsUpdate = true;
 
 				var positions = this.linesObject.geometry.attributes.position.array;
 
 				var geometry = this.linesObject.geometry;
-				geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(this.l), 1));
+				if (this._lastLineIndexAppliedKey !== this._cachedLineKey) {
+					this._lastLineIndexAppliedKey = this._cachedLineKey;
+					if (this.l.length > 0)
+						geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(this.l), 1));
+					else
+						geometry.setIndex(null);
+				}
 
 				for (var i = 0; i < this.vertices.length; i++)
 					positions[i] = this.vertices[i]
@@ -504,55 +723,10 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		else
 			this.grid.visible = false
 
-		// If we change the area in edit mode. Only work in perspective camera
-		this.renderer.setSize(this.parameters.width, this.parameters.height);
-		this.camera.aspect = this.parameters.width / this.parameters.height;
-
-		// update the camera position. This should only be made if parameter is updated.
-		//this.camera.position.set(this.parameters.camera_X,this.parameters.camera_Y,this.parameters.camera_Z);
-
-		// update the camera look at
-		this.cameraTarget.set(this.parameters.look_at_X, this.parameters.look_at_Y, this.parameters.look_at_Z);
-		this.camera.updateProjectionMatrix();
-
-		if (this.toBool(this.FixedView)) {
-			switch (this.parameters.views) {
-				case "Top":
-					this.camera.position.set(0, 2, 0);
-					break;
-				case "Bottom":
-					this.camera.position.set(0, -1, 0);
-					break;
-				case "Front":
-					this.camera.position.set(0, 2, 2);
-					break;
-				case "Back":
-					this.camera.position.set(0, 2, -2);
-					break;
-				case "Left":
-					this.camera.position.set(2, 2, 0);
-					break;
-				case "Right":
-					this.camera.position.set(-2, 2, 0);
-					break;
-				case "Home":
-					this.camera.position.set(0.5, 1.5, 1.5);
-					break;
-				default:
-					
-			}
-		}
+		this.updateCameraAndView();
 		// var t0 = performance.now();
 		// var t1 = performance.now();
 		// console.log("Update took " + (t1 - t0) + " milliseconds.");
-
-
-
-		this.FixedView = false;
-
-
-
-
 	};
 	
 };
