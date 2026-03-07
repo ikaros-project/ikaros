@@ -24,13 +24,13 @@ class WebUIWidgetRectangle extends WebUIWidgetControl
 
     updateFrame()
     {
-        let fcolors = this.parameters.frame_color.split(',');
-        if(fcolors != "")
+        let fcolors = String(this.parameters.frame_color ?? "").split(',').map((c) => c.trim()).filter((c) => c !== "");
+        if(fcolors.length > 0)
         {
-            this.parentElement.style.borderTopColor = fcolors[0].trim();
-            this.parentElement.style.borderRightColor = fcolors[1 % fcolors.length].trim();
-            this.parentElement.style.borderBottomColor = fcolors[2 % fcolors.length].trim();
-            this.parentElement.style.borderLeftColor = fcolors[3 % fcolors.length].trim();
+            this.parentElement.style.borderTopColor = fcolors[0];
+            this.parentElement.style.borderRightColor = fcolors[1 % fcolors.length];
+            this.parentElement.style.borderBottomColor = fcolors[2 % fcolors.length];
+            this.parentElement.style.borderLeftColor = fcolors[3 % fcolors.length];
         }
         else
         {
@@ -68,4 +68,3 @@ class WebUIWidgetRectangle extends WebUIWidgetControl
 };
 
 webui_widgets.add('webui-widget-rectangle', WebUIWidgetRectangle);
-
