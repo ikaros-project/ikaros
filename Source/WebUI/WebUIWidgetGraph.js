@@ -307,7 +307,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.textAlign = "center";
         this.canvas.textBaseline= "top";
 
-        let l = labels.split(',');
+        let l = String(labels).split(',');
 //        let n = this.data.length;
         let bar_width = (width)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_width);
@@ -316,7 +316,8 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.translate(this.format.spaceLeft+Math.round(bar_width)/2, 5);
         for(let i=0; i<n; i++)
         {
-            this.canvas.fillText(l[i].trim(), 0, 0);
+            const label = (l[i] ?? "").trim();
+            this.canvas.fillText(label, 0, 0);
             this.canvas.translate(bar_spacing, 0);
         }
         this.canvas.restore();
@@ -339,7 +340,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.textAlign = "right";
         this.canvas.textBaseline= "middle";
 
-        let l = labels.split(',');
+        let l = String(labels).split(',');
 //        let n = this.data.length;
         let bar_height = (height)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_height);
@@ -348,7 +349,8 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.translate(0, this.format.spaceTop+Math.round(bar_height)/2);
         for(let i=0; i<n; i++)
         {
-            this.canvas.fillText(l[i].trim(), 0, 0);
+            const label = (l[i] ?? "").trim();
+            this.canvas.fillText(label, 0, 0);
             this.canvas.translate(0, bar_spacing);
         }
         this.canvas.restore();
