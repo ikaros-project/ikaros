@@ -77,10 +77,10 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl
         
         // set-up event handlers
 
-        let i = 0;
+        let sliderIndex = 0;
         for(let slider of this.querySelectorAll("input"))
         {
-            slider.index = i++;
+            slider.index = sliderIndex++;
             slider.oninput = function (){
                 this.parentElement.parentElement.parentElement.slider_moved(this.value, this.index);
             }
