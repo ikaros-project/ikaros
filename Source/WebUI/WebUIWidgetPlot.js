@@ -86,6 +86,8 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
 
     drawPlotVertical(width, height, y)
     {
+        if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
+            return;
         let min = this.parameters.min;
         let max = this.parameters.max;
         let w = this.getBufferSize();
@@ -128,8 +130,12 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
 
         if(this.data = this.getSource('source'))
         {
-            if(typeof this.data[0] != "object") // FIXME: Fix for arbitrary matrix sizes
-            this.data = [this.data];
+            if(!Array.isArray(this.data))
+                return;
+            if(!Array.isArray(this.data[0])) // FIXME: Fix for arbitrary matrix sizes
+                this.data = [this.data];
+            if(!this.data.length || !Array.isArray(this.data[0]) || !this.data[0].length)
+                return;
 
             if(this.buffer.length < this.getBufferSize())
                 this.buffer.push(this.data);
