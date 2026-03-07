@@ -1590,8 +1590,6 @@ bool operator==(Request & r, const std::string s)
     {
         tick++;
 
-        Notify(msg_warning, "Tick "+std::to_string(tick));
-
         RunTasks();
         //RunTasksInSingleThread();
 
