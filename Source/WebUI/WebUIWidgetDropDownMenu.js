@@ -52,7 +52,8 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
         while(selector.childElementCount > 0)
             selector.removeChild(selector.children[0]);
 
-        let l = options.split(',');
+        const optionString = Array.isArray(options) ? options.join(",") : String(options ?? "");
+        let l = optionString === "" ? [] : optionString.split(',');
         let ix = 0;
         for(let e of l)
         {
@@ -72,7 +73,8 @@ updateAll() {
     selector.addEventListener('change', (e) => {
         e.preventDefault();  // Prevent default action
         e.stopPropagation(); // Stop event bubbling
-        this.option_selected(this.parameters.index, e.target.value, e.target.selectedOptions[0].innerText);
+        const selectedText = e.target.selectedOptions?.[0]?.innerText ?? "";
+        this.option_selected(this.parameters.index, e.target.value, selectedText);
     }, true);  // Use capture phase
 
     selector.addEventListener('mousedown', (e) => {
@@ -101,13 +103,18 @@ updateAll() {
 
                 if(this.parameters.parameter_type=='number')
             {
-                selectElement.value= d[this.parameters.index];
+                const index = Number(this.parameters.index) || 0;
+                let value = d;
+                if(Array.isArray(d))
+                    value = Array.isArray(d[0]) ? d[0][index] : d[index];
+                selectElement.value = value ?? selectElement.value;
                 return;
             }
 
+            const stringValue = String(Array.isArray(d) ? (Array.isArray(d[0]) ? d[0][0] : d[0]) : d);
             for (let i = 0; i < selectElement.options.length; i++)
             {
-                if (selectElement.options[i].text === d)
+                if (selectElement.options[i].text === stringValue)
                 {    
                     selectElement.selectedIndex = i;
                     return;
@@ -124,4 +131,3 @@ updateAll() {
 
 
 webui_widgets.add('webui-widget-drop-down-menu', WebUIWidgetDropDownMenu);
-
