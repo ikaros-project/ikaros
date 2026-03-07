@@ -72,6 +72,8 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
     drawPlotHorizontal(width, height, y)
     {
+        if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
+            return;
         let n = this.data[0].length;
         let bar_height = (height)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_height);
@@ -92,6 +94,8 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
     drawPlotVertical(width, height, y)
     {
+        if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
+            return;
         let n = this.data[0].length;
         let bar_width = (width)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_width);
@@ -115,6 +119,8 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
     
     transpose(d)
     {
+        if(!Array.isArray(d) || d.length === 0 || !Array.isArray(d[0]))
+            return [];
         var e = d[0].map(function(col, i){
             return d.map(function(row){
                 return row[i];
@@ -141,8 +147,12 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
     {
         if(this.data = this.getSource('source'))
         {
+            if(!Array.isArray(this.data))
+                return;
             if(typeof this.data[0] != "object") // FIXME: Fix for arbitrary matrix sizes
                 this.data = [this.data];
+            if(!this.data.length || !Array.isArray(this.data[0]) || !this.data[0].length)
+                return;
 
             if(this.parameters.auto)
                 this.parameters.max = this.max(this.data) || 1;
@@ -152,6 +162,8 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
             if(this.parameters.transpose)
                 this.data = this.transpose(this.data); // TODO: should be changed in drawing instead
+            if(!this.data.length || !Array.isArray(this.data[0]) || !this.data[0].length)
+                return;
 
             this.draw(this.data[0].length, this.data.length);
         }
