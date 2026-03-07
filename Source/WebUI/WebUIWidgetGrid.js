@@ -62,7 +62,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         {
             if(main.edit_mode)
                 return;
-            if(!this.data)
+            if(!Array.isArray(this.data) || !Array.isArray(this.data[0]) || this.data.length === 0 || this.data[0].length === 0)
                 return;
             
             if(!this.parameters.command && !this.parameters.parameter)
@@ -78,7 +78,8 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                 return;
             }
             
-            let lw = this.parameters.labels ? parseInt(this.parameters.labelWidth) : 0;
+            const hasLabels = String(this.parameters.labels ?? "").trim() !== "";
+            let lw = hasLabels ? parseInt(this.parameters.labelWidth) : 0;
             let r = this.canvasElement.getBoundingClientRect();
             let x = Math.floor(this.data[0].length*(evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw));
             let y = Math.floor(this.data.length*(evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom));
@@ -105,14 +106,20 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         let d = this.data;
         let rows = 0;
         let cols = 0;
+        if (!Array.isArray(d) || d.length === 0)
+            return;
         
         if(this.parameters.fill == "rgb")
         {
+            if(!Array.isArray(d[0]) || !Array.isArray(d[0][0]))
+                return;
             rows = d[0].length;
             cols = d[0][0].length;
         }
         else
         {
+            if(!Array.isArray(d[0]))
+                return;
             rows = d.length;
             cols = d[0].length;
         }
@@ -127,13 +134,14 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         else if(this.parameters.fill == 'spectrum')
             ct = LUT_spectrum;
 
-        if(this.parameters.colorTable != "")
+        if(String(this.parameters.colorTable ?? "").trim() != "")
         {
-            let q = this.parameters.colorTable;
-            ct = this.parameters.colorTable.split(',');
+            ct = String(this.parameters.colorTable).split(',').map((entry) => entry.trim()).filter((entry) => entry !== "");
+            if (ct.length === 0)
+                ct = LUT_gray;
         }
 
-        let labels = this.parameters.labels === "" ? [] : this.parameters.labels.split(',');
+        let labels = String(this.parameters.labels ?? "").trim() === "" ? [] : String(this.parameters.labels).split(',');
         let ln = labels.length;
         let ls = (ln ? parseInt(this.parameters.labelWidth) : 0);
         let n = ct.length;
@@ -156,7 +164,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                     if(ln)
                     {
                         this.canvas.fillStyle = "black";    // FIXME: Should really use the default color from the stylesheet
-                        this.canvas.fillText(labels[i % (ln+1)].trim(), 0, dy*i+dy/2);
+                        this.canvas.fillText((labels[i % ln] ?? "").trim(), 0, dy*i+dy/2);
                     }
 
                     for(var j=0; j<cols; j++)
@@ -202,7 +210,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                 if(ln)
                 {
                     this.canvas.fillStyle = "black";    // FIXME: Should really use the default color form the stylesheet
-                    this.canvas.fillText(labels[i % (ln+1)].trim(), 0, dy*i+dy/2);
+                    this.canvas.fillText((labels[i % ln] ?? "").trim(), 0, dy*i+dy/2);
                 }
 
                 for(var j=0; j<cols; j++)
@@ -212,7 +220,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                     try {
                         let f = (d[i][j]-this.parameters.min)/(this.parameters.max-this.parameters.min);
                         let ix = Math.min(Math.floor(n*f), n-1);
-                        this.canvas.fillStyle = ct[ix].trim();
+                        this.canvas.fillStyle = String(ct[ix] ?? "black").trim();
                     } catch (error) {
                         this.canvas.fillStyle = "black";
                     }
@@ -249,6 +257,8 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             this.data = [this.getSource('red'), this.getSource('green'), this.getSource('blue')];
             if(!this.data[0] || !this.data[1] || !this.data[2])
                 return;
+            if(!Array.isArray(this.data[0]) || !Array.isArray(this.data[1]) || !Array.isArray(this.data[2]))
+                return;
             if(this.data[0].length != this.data[1].length || this.data[1].length != this.data[2].length)
                 return;
             this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
@@ -268,7 +278,12 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         {
             let l = this.getSource('label_parameter');
             if(l)
-                this.element_labels = l.split(',');
+            {
+                if (Array.isArray(l))
+                    this.element_labels = l.flat ? l.flat(Infinity).map((entry) => String(entry)) : l.map((entry) => String(entry));
+                else
+                    this.element_labels = String(l).split(',');
+            }
         }
     }
 };
