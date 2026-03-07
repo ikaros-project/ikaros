@@ -82,13 +82,13 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         if(this.parameters.file) //  && this.parameters.file.indexOf(",")!=-1
         {
             this.imageObjects = [];
-            let img_names = this.parameters.file.split(',');
+            let img_names = String(this.parameters.file ?? "").split(',').map((name) => name.trim()).filter((name) => name !== "");
             this.imageCount = img_names.length;
             let i = 0;
             for(let img_name of img_names)
             {
                 this.imageObjects[i] = new Image();
-                this.imageObjects[i].src = "/"+img_name.trim();
+                this.imageObjects[i].src = "/"+img_name;
                 i++;
             }
         }
@@ -124,6 +124,8 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         
         if(this.imageCount)
         {
+            if (!this.imageObjects || !this.imageObjects[0])
+                return;
             if(this.parameters.scale == "width")
                 h = this.imageObjects[0].height;
             else if(this.parameters.scale == "height")
@@ -137,7 +139,10 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             let index = this.getSource("index");
             if(index)
             {
-                ix = Math.floor(index[0][0]);
+                if (Array.isArray(index))
+                    ix = Math.floor(Array.isArray(index[0]) ? index[0][0] : index[0]);
+                else
+                    ix = Math.floor(index);
                 if(ix < 0)
                     ix = 0;
                 else if(ix >= this.imageCount)
@@ -154,7 +159,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             else if(this.parameters.scale == "none")
             {
                 w = this.imageObj.width;
-                h = this.iimageObj.height;
+                h = this.imageObj.height;
             }
 
             this.canvas.drawImage(this.imageObj, 0, 0, w, h);
@@ -167,7 +172,10 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         {
             let o = this.getSource('opacity_source');
             if(o)
-            this.canvas.canvas.style.opacity = o;
+            {
+                const opacityValue = Array.isArray(o) ? (Array.isArray(o[0]) ? o[0][0] : o[0]) : o;
+                this.canvas.canvas.style.opacity = opacityValue;
+            }
             this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
             this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
