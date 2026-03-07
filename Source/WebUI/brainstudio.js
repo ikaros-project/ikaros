@@ -1538,6 +1538,21 @@ const inspector =
         return false;
     },
 
+    parseValueForType(value, type, fallbackValue)
+    {
+        if(type == "int")
+        {
+            const parsed = parseInt(value);
+            return Number.isFinite(parsed) ? parsed : fallbackValue;
+        }
+        if(type == "float" || type == "number")
+        {
+            const parsed = parseFloat(value);
+            return Number.isFinite(parsed) ? parsed : fallbackValue;
+        }
+        return value;
+    },
+
     /* [{type, name, control}] */
 
     acreateHeaderRow(item, template)
@@ -1570,29 +1585,35 @@ const inspector =
 
         cell2.contentEditable = true;
         cell2.className += ' textedit';
+        const commitTextEditValue = function(evt)
+        {
+            let newValue = evt.target.innerText.replace(String.fromCharCode(10), "").replace(String.fromCharCode(13), "");
+            if(!inspector.checkValueForType(newValue, p.type))
+                return;
+            item[p.name] = inspector.parseValueForType(newValue, p.type, item[p.name]);
+            if(inspector.notify && inspector.notify.parameters)
+                inspector.notify.parameters[p.name] = item[p.name];
+            if(inspector.notify)
+                inspector.notify.parameterChangeNotification(p);
+        };
         cell2.addEventListener("keypress", function(evt) 
         {
             if(evt.keyCode == 13)
             {
                 evt.target.blur();
                 evt.preventDefault();
-                if(inspector.notify)
-                    inspector.notify.parameterChangeNotification(item);
                 return;
             }
         });
 
+        cell2.addEventListener("input", function(evt)
+        {
+            commitTextEditValue(evt);
+        });
+
         cell2.addEventListener("blur", function(evt) 
         {
-            if(inspector.checkValueForType(evt.target.innerText, p.type))
-            {
-                if(p.type == 'number')
-                    item[p.name] = parseFloat(evt.target.innerText);
-                else
-                    item[p.name] = evt.target.innerText.replace(String.fromCharCode(10), "").replace(String.fromCharCode(13), "");
-                if(inspector.notify)
-                    inspector.notify.parameterChangeNotification(p);
-            }
+            commitTextEditValue(evt);
         });
     },
 
@@ -1621,6 +1642,8 @@ const inspector =
         cell2.innerHTML= s;
         cell2.addEventListener("input", function(evt) { 
                 item[p.name] = evt.target.value.trim();
+                if(inspector.notify && inspector.notify.parameters)
+                    inspector.notify.parameters[p.name] = item[p.name];
                 if(inspector.notify)
                 inspector.notify.parameterChangeNotification(p);
             });
@@ -1640,7 +1663,16 @@ const inspector =
             cell2.innerHTML= '<input type="checkbox" checked />';
         else
             cell2.innerHTML= '<input type="checkbox" />';
-        cell2.addEventListener("change", function(evt) { item[p.name] = evt.target.checked; if(this.notify) this.notify.parameterChangeNotification(p);});
+        const commitCheckBoxValue = function(evt)
+        {
+            item[p.name] = evt.target.checked;
+            if(inspector.notify && inspector.notify.parameters)
+                inspector.notify.parameters[p.name] = item[p.name];
+            if(inspector.notify)
+                inspector.notify.parameterChangeNotification(p);
+        };
+        cell2.addEventListener("input", commitCheckBoxValue);
+        cell2.addEventListener("change", commitCheckBoxValue);
 
     },
 
