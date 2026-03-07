@@ -168,6 +168,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	}
 
 	LoadModel(a, name, m) {
+		if (!Array.isArray(name) || name.length === 0 || !name[0])
+			return;
+
 		//console.log('Loading models')
 		var manager = new THREE.LoadingManager();
 
@@ -218,21 +221,45 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			console.log("No 3D data from ikaros")
 			return;
 		}
+		if (!Array.isArray(this.data))
+			return;
+		if (Array.isArray(this.data) && this.data.length > 0 && !Array.isArray(this.data[0]))
+			this.data = [this.data];
+		if (!this.data.length)
+			return;
 
-		if(this.parameters.models.includes("@"))	// Minimal fix to load models list from Ikaros
-			this.parameters.models = this.getSource("models");
+		const parseList = (value) => {
+			if (Array.isArray(value)) {
+				const flattened = value.flat ? value.flat(Infinity) : value;
+				return flattened.map((entry) => String(entry).trim()).filter((entry) => entry !== "");
+			}
+			const text = String(value ?? "").trim();
+			return text === "" ? [] : text.split(",").map((entry) => entry.trim()).filter((entry) => entry !== "");
+		};
+
+		const modelsParameter = String(this.parameters.models ?? "");
+		if(modelsParameter.includes("@"))	// Minimal fix to load models list from Ikaros
+		{
+			const modelSource = this.getSource("models");
+			if (Array.isArray(modelSource))
+				this.parameters.models = (modelSource.flat ? modelSource.flat(Infinity) : modelSource).join(",");
+			else
+				this.parameters.models = String(modelSource ?? "");
+		}
 
 		//console.log("Formating data")
 		this.mat = []
 		this.vertices = []
 		for (var i = 0; i < this.data.length; i++) {
+			if (!Array.isArray(this.data[i]) || this.data[i].length < 16)
+				continue;
 			this.mat.push(new THREE.Matrix4());
 			//this.mat[i].fromArray(this.data[i]) // Not the right order
 			this.mat[i].set(this.data[i][0], this.data[i][1], this.data[i][2], this.data[i][3], this.data[i][4], this.data[i][5], this.data[i][6], this.data[i][7], this.data[i][8], this.data[i][9], this.data[i][10], this.data[i][11], this.data[i][12], this.data[i][13], this.data[i][14], this.data[i][15]);
 			this.mat[i] = this.IkaorsToThreeBase(this.mat[i]);
 			this.vertices.push(this.mat[i].elements[12], this.mat[i].elements[13], this.mat[i].elements[14])
 		}
-		this.nrOfModels = this.data.length
+		this.nrOfModels = this.mat.length
 		//console.log("Formating data done")
 
 
@@ -240,28 +267,35 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		// Models
 		if (this.toBool(this.parameters.show_models)) {
 			//console.log('Models')
-			this.modelNames = this.parameters.models.split(',');
+			this.modelNames = parseList(this.parameters.models);
+			if (this.modelNames.length === 0)
+				this.modelNames = ["head"];
 
-			if (this.lastmodels != this.parameters.models) // Remove object if list changed
+			const modelListKey = this.modelNames.join(",");
+			if (this.lastmodels != modelListKey) // Remove object if list changed
 			{
 				if (this.model_objects)
 					for (var i = 0; i < this.nrOfModels; i++)
 						this.scene.remove(this.model_objects[i]);
 				this.models_loaded = false
 			}
-			this.lastmodels = this.parameters.models
+			this.lastmodels = modelListKey
 
 			// Load models at first update or change of models array
 			if (!this.models_loaded) {
 				this.widget_loading(true)
 				//console.log('Loading models')
 				this.model_objects = new Array(this.nrOfModels) 
+				for (let i = 0; i < this.nrOfModels; i++)
+					this.modelNames[i] = this.modelNames[i % this.modelNames.length];
 				this.LoadModel(this.model_objects, this.modelNames, this.data);
 				this.models_loaded = true;
 			}
 
 			// Update position from an array 16xid
 			for (var i = 0; i < this.nrOfModels; i++) {
+				if (!this.model_objects[i] || !this.mat[i])
+					continue;
 				this.model_objects[i].visible = true;
 				this.model_objects[i].matrixAutoUpdate = false;
 				this.model_objects[i].matrix.copy(this.mat[i])
@@ -326,8 +360,12 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				//console.log('Updated Points')
 
 				// Calculate point color
-				this.pColors = this.parameters.point_color.toLowerCase().split(',');
-				this.pSize = this.parameters.point_size.split(',');
+				this.pColors = parseList(String(this.parameters.point_color ?? "").toLowerCase());
+				if (this.pColors.length === 0)
+					this.pColors = ["black"];
+				this.pSize = parseList(this.parameters.point_size).map((entry) => parseFloat(entry)).filter((value) => Number.isFinite(value));
+				if (this.pSize.length === 0)
+					this.pSize = [0.15];
 
 				var positions = this.particles.geometry.attributes.position.array;
 				var colors = this.particles.geometry.attributes.customColor.array;
@@ -339,7 +377,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				for (var i = 0; i < this.vertices.length; i++)
 					positions[i] = this.vertices[i]
 
-				for (var i = 0; i < this.data.length; i++) {
+				for (var i = 0; i < this.nrOfModels; i++) {
 					// positions[i * 3 + 0] = this.mat[i].elements[12]
 					// positions[i * 3 + 1] = this.mat[i].elements[13]
 					// positions[i * 3 + 2] = this.mat[i].elements[14]
@@ -361,19 +399,21 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				this.particles.geometry.attributes.customColor.needsUpdate = true;
 				this.particles.geometry.attributes.size.needsUpdate = true;
 			}
-			this.particles.visible = true;
+			if (this.particles)
+				this.particles.visible = true;
 		}
 		else  // Hide 
 		{
 			//console.log("hiding points")
-			if (this.points_loaded)
+			if (this.points_loaded && this.particles)
 				this.particles.visible = false;
 		}
 
 
 		// Line
 		if (this.toBool(this.parameters.show_lines)) {
-			this.l = this.parameters.line.split(',');
+			const parsedLines = parseList(this.parameters.line).map((entry) => parseInt(entry, 10)).filter((value) => Number.isFinite(value) && value >= 0);
+			this.l = parsedLines;
 			//console.log('Lines')
 
 			if (!this.lines_loaded) {
@@ -397,13 +437,15 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			}
 			else {
 				// Calculate point color
-				this.lColors = this.parameters.line_color.toLowerCase().split(',');
+				this.lColors = parseList(String(this.parameters.line_color ?? "").toLowerCase());
+				if (this.lColors.length === 0)
+					this.lColors = ["blue"];
 				var colors = this.linesObject.geometry.attributes.color.array;
 
 				// Update position from an array 16xi
 				var cIndex = 0;
 
-				for (var i = 0; i < this.data.length; i++) {
+				for (var i = 0; i < this.nrOfModels; i++) {
 					if (cIndex >= this.lColors.length)
 						cIndex = 0;
 					var color = new THREE.Color(this.lColors[cIndex]);
@@ -431,7 +473,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		else  // Hide 
 		{
 			//console.log("Hiding Line")
-			if (this.lines_loaded)
+			if (this.lines_loaded && this.linesObject)
 				this.linesObject.visible = false;
 		}
 
