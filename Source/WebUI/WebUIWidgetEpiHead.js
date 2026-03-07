@@ -53,7 +53,10 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
     );
 
     // Figure out color of Epi.
-    let epiColor = this.parameters.EpiName.substring(3);
+    const epiName = String(this.parameters.EpiName ?? "EpiRed");
+    let epiColor = epiName.length >= 3 ? epiName.substring(3) : epiName;
+    if (!epiColor)
+      epiColor = "red";
 
     // left ear
     this.canvas.fillStyle = epiColor;
@@ -236,7 +239,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
 
     // Get values from source input or fill it with default values
     // Eyes
-    let defaultEyeColor = this.parameters.EyeColor.split(','); // Is this suppose to get the default value from template?
+    let defaultEyeColor = String(this.parameters.EyeColor ?? "").split(',').map((c) => c.trim()).filter((c) => c !== ""); // Is this suppose to get the default value from template?
     if (defaultEyeColor.length === 0 || (defaultEyeColor.length === 1 && defaultEyeColor[0] === '')) {
         defaultEyeColor = ['yellow'];
     }
@@ -245,8 +248,8 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
     else
         this.EyeColors = [Array(12).fill(defaultEyeColor[0]), Array(12).fill(defaultEyeColor[0])];
     
-    let l_eye = this.getSource("LeftEyeColor", defaultEyeColor);
-    let r_eye = this.getSource("RightEyeColor", defaultEyeColor);
+    let l_eye = this.getSource("leftEyeColor", this.getSource("LeftEyeColor", defaultEyeColor));
+    let r_eye = this.getSource("rightEyeColor", this.getSource("RightEyeColor", defaultEyeColor));
     
     // Convert the input to a hex representation of color 
     if (l_eye && l_eye.length === 3 && l_eye[0].length === 12 && l_eye[1].length === 12 && l_eye[2].length === 12 )
@@ -255,7 +258,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
       this.EyeColors[1] = r_eye[0].map((_, i) => rgbToHex(Math.round(r_eye[0][i] * 255), Math.round(r_eye[1][i] * 255), Math.round(r_eye[2][i] * 255)));
     
     // Mouth
-    let defaultMouthColor = this.parameters.MouthColor.split(',');
+    let defaultMouthColor = String(this.parameters.MouthColor ?? "").split(',').map((c) => c.trim()).filter((c) => c !== "");
     if (defaultMouthColor.length === 0 || (defaultMouthColor.length === 1 && defaultMouthColor[0] === '')) {
         defaultMouthColor = ['yellow'];
     }
@@ -272,21 +275,36 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
       this.MouthColors[1] = l_mouth[0].map((_, i) => rgbToHex(Math.round(l_mouth[0][i] * 255), Math.round(l_mouth[1][i] * 255), Math.round(l_mouth[2][i] * 255)));
 
     // Gaze. Only x wise and setting Gaze in webUI will controll both eyes.
+    const gazeValue = parseFloat(this.parameters.Gaze);
+    const vergenceValue = parseFloat(this.parameters.Vergence);
     let defaultGaze = [
-      parseFloat(this.parameters.Gaze) - parseFloat(this.parameters.Vergence),
-      parseFloat(this.parameters.Gaze) + parseFloat(this.parameters.Vergence),
+      (Number.isFinite(gazeValue) ? gazeValue : 0) - (Number.isFinite(vergenceValue) ? vergenceValue : 0),
+      (Number.isFinite(gazeValue) ? gazeValue : 0) + (Number.isFinite(vergenceValue) ? vergenceValue : 0),
     ];
     this.gaze = this.getSource("eyeDirection", defaultGaze);
+    if (!Array.isArray(this.gaze))
+      this.gaze = [this.gaze];
+    if (this.gaze.length === 0)
+      this.gaze = defaultGaze;
     if (this.gaze.length < 2) this.gaze = [this.gaze[0], this.gaze[0]];
     
     // Gaze. Only x wise and setting Gaze in webUI will controll both eyes. // What happens if source input is only one element?
-    let defaultPupil = [parseFloat(this.parameters.PupilInMM),parseFloat(this.parameters.PupilInMM)];
+    const pupilValue = parseFloat(this.parameters.PupilInMM);
+    let defaultPupil = [Number.isFinite(pupilValue) ? pupilValue : 11, Number.isFinite(pupilValue) ? pupilValue : 11];
     this.pupil = this.getSource("pupilSize", defaultPupil);
+    if (!Array.isArray(this.pupil))
+      this.pupil = [this.pupil];
+    if (this.pupil.length === 0)
+      this.pupil = defaultPupil;
     if (this.pupil.length < 2) 
       this.pupil = [this.pupil[0], this.pupil[0]];
 
     // Head position. Fake tilt and pan of the robot. One value is treated as only tilt and two values tilt and pan.
-    this.headPosition = this.getSource("HeadPosition", [0, 0]);
+    this.headPosition = this.getSource("headPosition", this.getSource("HeadPosition", [0, 0]));
+    if (!Array.isArray(this.headPosition))
+      this.headPosition = [this.headPosition];
+    if (this.headPosition.length === 0)
+      this.headPosition = [0, 0];
 
     if (this.headPosition.length < 2)
       this.headPosition = [this.headPosition[0], 0];
