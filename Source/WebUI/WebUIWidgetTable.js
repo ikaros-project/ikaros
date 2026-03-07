@@ -63,8 +63,12 @@ class WebUIWidgetTable extends WebUIWidget {
     }
     fillLabels(type, label_x, xCells, label_y, yCells) {
         if (label_x || label_y) {
-            var xLabel = label_x.split(',');
-            var yLabel = label_y.split(',');
+            var xLabel = String(label_x ?? "").split(',').map((label) => label.trim()).filter((label) => label !== "");
+            var yLabel = String(label_y ?? "").split(',').map((label) => label.trim()).filter((label) => label !== "");
+            if (xLabel.length === 0)
+                xLabel = [""];
+            if (yLabel.length === 0)
+                yLabel = [""];
             var ix
 
             this.table.style.border = "none"
@@ -118,10 +122,14 @@ class WebUIWidgetTable extends WebUIWidget {
 
             if(this.getMatrixRank(this.data) == 1) // TEMPORARY
                 this.data = [this.data];
+            if (!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
+                return;
 
             this.loaded = true;
             let size_y = this.data.length;
             let size_x = this.data[0].length;
+            if (!size_x)
+                return;
 
             if (this.parameters.direction == "normal")
                 this.reshapeTable(size_y, size_x, this.parameters.label_x, this.parameters.label_y);
@@ -141,6 +149,8 @@ class WebUIWidgetTable extends WebUIWidget {
 
                 if(this.getMatrixRank(this.data) == 1) // TEMPORARY
                     this.data = [this.data];
+                if (!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
+                    return;
 /*
                 if(!Array.isArray(this.data))
                 {
@@ -163,6 +173,8 @@ class WebUIWidgetTable extends WebUIWidget {
 
                 let size_y = this.data.length;
                 let size_x = this.data[0].length;
+                if (!size_x)
+                    return;
 
 
                 for (let j = 0; j < size_y; j++)
