@@ -69,15 +69,20 @@ class WebUIWidgetPath extends WebUIWidgetGraph
     drawRows(width, height, index, transform)
     {
         let d = this.data;
+        if(!Array.isArray(d) || d.length === 0 || !Array.isArray(d[0]))
+            return;
         let rows = this.data.length;
         this.canvas.lineWidth = this.format.lineWidth;
         this.canvas.lineCap = this.format.lineCap;
         this.canvas.lineJoin = this.format.lineJoin;
 
         let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
+        xx = Math.min(xx, d[0].length);
         
         for(var i=0; i<rows; i++)
         {
+            if(!Array.isArray(d[i]) || d[i].length < this.parameters.select + 2)
+                continue;
             this.setColor(i);
             this.canvas.beginPath();
             
@@ -89,6 +94,8 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             
             for(var j=this.parameters.select+2; j<xx;)
             {
+                if(typeof d[i][j] === "undefined" || typeof d[i][j+1] === "undefined")
+                    break;
                 lx = x;
                 ly = y;
                 x = (d[i][j++]-this.parameters.min_x)*this.parameters.scale_x * width;
@@ -110,15 +117,20 @@ class WebUIWidgetPath extends WebUIWidgetGraph
     drawCols(width, height, index, transform)
     {
         let d = this.data;
+        if(!Array.isArray(d) || d.length === 0 || !Array.isArray(d[0]) || d[0].length < this.parameters.select + 2)
+            return;
         let rows = this.data.length;
         this.canvas.lineWidth = this.format.lineWidth;
         this.canvas.lineCap = this.format.lineCap;
         this.canvas.lineJoin = this.format.lineJoin;
 
         let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
+        xx = Math.min(xx, d[0].length);
         let c = 0;
         for(var i=this.parameters.select; i<xx; i+=2)
         {
+            if(i+1 >= d[0].length)
+                break;
             this.setColor(c);
             this.canvas.beginPath();
             
@@ -130,6 +142,8 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             
             for(var j=1; j<rows;j++)
             {
+                if(!Array.isArray(d[j]) || i+1 >= d[j].length)
+                    break;
                 lx = x;
                 ly = y;
                 x = (d[j][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
@@ -179,6 +193,11 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         
         if(this.data = this.getSource('source'))
         {
+            if (this.getMatrixRank(this.data) == 1)
+                this.data = [this.data];
+            if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
+                return;
+
             this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
             this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
