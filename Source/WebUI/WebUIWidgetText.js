@@ -62,10 +62,16 @@ class WebUIWidgetText extends WebUIWidgetControl
             if(this.data && this.parameters.strings)
             {
                 let sep = this.parameters.separator || "";
-                let ss = this.parameters.strings.split(",")
+                let ss = String(this.parameters.strings ?? "").split(",")
                 let s = [];
+                if (!Array.isArray(this.data))
+                    return;
+                if (!Array.isArray(this.data[0]))
+                    this.data = [this.data];
+                if (!Array.isArray(this.data[0]))
+                    return;
                 for(let i=0; i<this.data[0].length; i++)
-                    if(this.data[0][i] > 0)
+                    if(this.data[0][i] > 0 && typeof ss[i] !== "undefined")
                         s.push(ss[i].trim());
                 this.innerText = (this.parameters.prefix || "")+s.join(sep)+(this.parameters.postfix || "");
 
@@ -79,4 +85,3 @@ class WebUIWidgetText extends WebUIWidgetControl
 };
 
 webui_widgets.add('webui-widget-text', WebUIWidgetText);
-
