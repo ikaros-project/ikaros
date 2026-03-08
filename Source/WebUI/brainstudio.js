@@ -2946,6 +2946,7 @@ const main =
         main.grid = document.querySelector("#main_grid");
         main.grid_canvas = document.querySelector("#main_grid_canvas");
         main.drawGrid();
+        window.addEventListener("resize", main.drawGrid, false);
         main.view.addEventListener("mousedown", main.startBackgroundSelection, false);
     },
 
@@ -3107,20 +3108,49 @@ const main =
         evt.stopPropagation();
     },
 
+    ensureGridCanvasSize()
+    {
+        if(!main.grid_canvas || !main.main || !main.view)
+            return;
+        const dpr = window.devicePixelRatio || 1;
+        const minSize = 3000;
+        const targetWidth = Math.max(minSize, main.main.clientWidth, main.view.clientWidth);
+        const targetHeight = Math.max(minSize, main.main.clientHeight, main.view.clientHeight);
+        const backingWidth = Math.floor(targetWidth * dpr);
+        const backingHeight = Math.floor(targetHeight * dpr);
+        if(main.grid_canvas.width !== backingWidth)
+            main.grid_canvas.width = backingWidth;
+        if(main.grid_canvas.height !== backingHeight)
+            main.grid_canvas.height = backingHeight;
+        main.grid_canvas.style.width = `${targetWidth}px`;
+        main.grid_canvas.style.height = `${targetHeight}px`;
+        main.grid_canvas_css_width = targetWidth;
+        main.grid_canvas_css_height = targetHeight;
+        main.grid_canvas_dpr = dpr;
+    },
+
     drawGrid()
     {
+        main.ensureGridCanvasSize();
         const ctx = main.grid_canvas.getContext("2d");
+        const width = main.grid_canvas_css_width || main.grid_canvas.width;
+        const height = main.grid_canvas_css_height || main.grid_canvas.height;
+        const dpr = main.grid_canvas_dpr || 1;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, main.grid_canvas.width, main.grid_canvas.height);
-        ctx.lineWidth = 0.2;
+        ctx.fillRect(0, 0, width, height);
+        ctx.lineWidth = 1 / dpr;
         ctx.strokeStyle = "gray";
-        for(x=main.grid_spacing; x<3000; x+=main.grid_spacing)
+        const maxDim = Math.max(width, height);
+        const pixelAlign = 0.5 / dpr;
+        for(let x = main.grid_spacing; x < maxDim; x += main.grid_spacing)
         {
+            const xx = x + pixelAlign;
             ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, 3000);
-            ctx.moveTo(0,x);
-            ctx.lineTo(3000,x);
+            ctx.moveTo(xx, 0);
+            ctx.lineTo(xx, height);
+            ctx.moveTo(0,xx);
+            ctx.lineTo(width,xx);
             ctx.stroke();
         }
     },
