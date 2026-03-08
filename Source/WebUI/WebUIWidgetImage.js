@@ -176,7 +176,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
                 const opacityValue = Array.isArray(o) ? (Array.isArray(o[0]) ? o[0][0] : o[0]) : o;
                 this.canvas.canvas.style.opacity = opacityValue;
             }
-            this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
+            this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
             this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
 

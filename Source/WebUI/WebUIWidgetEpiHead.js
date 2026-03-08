@@ -42,8 +42,9 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
     let mw = Math.floor(0.5 * (w - s * 160)) + 0.5;
     let mh = Math.floor(0.5 * (h - s * 165)) + 0.5;
 
+    this.resetCanvasTransform(0, 0);
     this.canvas.clearRect(-1, -1, this.width + 1, this.height + 1);
-    this.canvas.setTransform(s, 0, 0, s, mw, mh);
+    this.setCanvasTransform(s, 0, 0, s, mw, mh);
     this.canvas.lineWidth = 1;
 
     // Move head

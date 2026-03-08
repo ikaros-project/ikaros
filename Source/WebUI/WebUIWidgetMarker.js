@@ -262,7 +262,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
                 return;
 
-            this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
+            this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
             this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
 

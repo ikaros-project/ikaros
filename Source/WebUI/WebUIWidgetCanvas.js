@@ -17,16 +17,37 @@ class WebUIWidgetCanvas extends WebUIWidget
     updateFrame()
     {
         super.updateFrame();
-        
-        this.canvasElement.width = this.offsetWidth * (this.oversampling ? this.oversampling : 1);
-        this.canvasElement.height = this.offsetHeight * (this.oversampling ? this.oversampling : 1);
-        this.canvasElement.style.width = this.offsetWidth+"px";
-        this.canvasElement.style.height = this.offsetHeight+"px";
 
-        this.width = this.offsetWidth;
-        this.height = this.offsetHeight;
+        const cssWidth = Math.max(1, this.offsetWidth);
+        const cssHeight = Math.max(1, this.offsetHeight);
+        const oversampling = this.oversampling ? this.oversampling : 1;
+        const dpr = window.devicePixelRatio || 1;
+        const scale = oversampling * dpr;
+        this.canvas_scale = scale;
+
+        this.canvasElement.width = Math.max(1, Math.round(cssWidth * scale));
+        this.canvasElement.height = Math.max(1, Math.round(cssHeight * scale));
+        this.canvasElement.style.width = cssWidth+"px";
+        this.canvasElement.style.height = cssHeight+"px";
+        if(this.canvas && this.canvas.setTransform)
+            this.canvas.setTransform(scale, 0, 0, scale, 0, 0);
+
+        this.width = cssWidth;
+        this.height = cssHeight;
         this.format.width = this.width - this.format.marginLeft - this.format.marginRight;
         this.format.height = this.height - this.format.marginTop - this.format.marginBottom;
+    }
+
+    resetCanvasTransform(offsetX=0, offsetY=0)
+    {
+        const s = this.canvas_scale || 1;
+        this.canvas.setTransform(s, 0, 0, s, offsetX*s, offsetY*s);
+    }
+
+    setCanvasTransform(a, b, c, d, e, f)
+    {
+        const s = this.canvas_scale || 1;
+        this.canvas.setTransform(a*s, b*s, c*s, d*s, e*s, f*s);
     }
 
     init()

@@ -261,14 +261,14 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                 return;
             if(this.data[0].length != this.data[1].length || this.data[1].length != this.data[2].length)
                 return;
-            this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
+            this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
             this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
             this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
         }
         else if(this.data = this.getSource('source'))
         {
-            this.canvas.setTransform(1, 0, 0, 1, -0.5, -0.5);
+            this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
             this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
             this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
