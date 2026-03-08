@@ -597,6 +597,11 @@ td + td.textedit {
     user-select: text;
     color: black;
     background-color: lightgray;
+    overflow: visible;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    height: auto;
 }
 
 td + td.textedit:hover
@@ -857,6 +862,11 @@ td.inspector-attr-cell {
     user-select: text;
     color: black;
     background-color: lightgray;
+    overflow: visible;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    height: auto;
 }
 
 td.inspector-attr-cell:hover {
