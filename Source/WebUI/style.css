@@ -758,6 +758,105 @@ aside table td.header {
     padding-bottom: 7px;
     font-weight: bold;
 }
+
+.inspector-plus-button {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #8e8e8e;
+    border-radius: 50%;
+    background: transparent;
+    color: #8e8e8e;
+    font-size: 14px;
+    line-height: 18px;
+    text-align: center;
+    padding: 0;
+    cursor: pointer;
+}
+
+.inspector-plus-button:hover {
+    background: #000;
+    color: #fff;
+    border-color: #fff;
+}
+
+.inspector-plus-button:active {
+    color: #000;
+    border-color: #000;
+    background: #fff;
+}
+
+td.inspector-attr-cell {
+    padding-right: 20px;
+    -webkit-user-select: text;
+    user-select: text;
+    color: black;
+    background-color: lightgray;
+}
+
+td.inspector-attr-cell:hover {
+    background-color: lightgray;
+    cursor: text;
+}
+
+td.inspector-attr-cell:focus {
+    color: black;
+    background-color: lightgray;
+}
+
+td.inspector-attr-cell-label {
+    border-right: 1px solid #8a8a8a;
+}
+
+td.inspector-attr-cell:empty::before {
+    content: attr(data-placeholder);
+    color: #666;
+}
+
+td.inspector-removable-value-cell {
+    position: relative;
+    padding-right: 26px;
+}
+
+.inspector-minus-button {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(calc(-50% - 4px));
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: #b0b0b0;
+    line-height: 0;
+    text-align: center;
+    padding: 0;
+    cursor: pointer;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.inspector-minus-button svg {
+    display: block;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+}
+
+.inspector-minus-button:hover {
+    color: #000;
+    background: transparent;
+}
+
+.inspector-minus-button:active {
+    background: transparent;
+}
+
+.inspector-minus-button:active svg {
+    filter: invert(1);
+}
 /*
 aside table td.textedit {
    border: 1px solid gray;
@@ -1098,23 +1197,33 @@ footer p {
 .log-clear-button {
     position: absolute;
     top: 2px;
-    right: 28px;
+    right: 20px;
     width: 20px;
     height: 20px;
     padding: 0;
     margin: 0;
-    font-size: 12px;
-    line-height: 18px;
+    line-height: 0;
     border: none;
-    border-radius: 3px;
-    background: #f5f5f5;
-    color: #333;
+    border-radius: 0;
+    background: transparent;
+    color: #b0b0b0;
     cursor: pointer;
     z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .log-clear-button:hover {
-    background: #e8e8e8;
+    background: transparent;
+    color: #000;
+}
+
+.log-clear-button svg {
+    display: block;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
 }
 
 .log-close-button {
@@ -1128,14 +1237,15 @@ footer p {
     font-size: 12px;
     line-height: 18px;
     border: none;
-    border-radius: 3px;
+    border-radius: 0;
     background: transparent;
-    color: #333;
+    color: #b0b0b0;
     cursor: pointer;
     z-index: 10;
 }
 
 .log-close-button:hover {
+    color: #000;
     background: transparent;
 }
 

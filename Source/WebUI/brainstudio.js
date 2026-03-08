@@ -1585,9 +1585,11 @@ const inspector =
 
         cell2.contentEditable = true;
         cell2.className += ' textedit';
+        const commitOnInput = (p.name !== "name");
         const commitTextEditValue = function(evt)
         {
             let newValue = evt.target.innerText.replace(String.fromCharCode(10), "").replace(String.fromCharCode(13), "");
+            newValue = newValue.replace(/\u200B/g, "");
             if(!inspector.checkValueForType(newValue, p.type))
                 return;
             item[p.name] = inspector.parseValueForType(newValue, p.type, item[p.name]);
@@ -1608,7 +1610,8 @@ const inspector =
 
         cell2.addEventListener("input", function(evt)
         {
-            commitTextEditValue(evt);
+            if(commitOnInput)
+                commitTextEditValue(evt);
         });
 
         cell2.addEventListener("blur", function(evt) 
@@ -2015,6 +2018,22 @@ const inspector =
 
     parameterChangeNotification(p)
     {
+        const isTopGroupBackground = (
+            inspector.item &&
+            inspector.item._tag == "group" &&
+            selector.selected_foreground.length == 0 &&
+            selector.selected_background == network.network.name
+        );
+
+        if(isTopGroupBackground && p && p.name == "tick_duration")
+        {
+            const parsed = parseFloat(inspector.item.tick_duration);
+            const tickDuration = Number.isFinite(parsed) ? parsed : 0;
+            inspector.item.tick_duration = tickDuration;
+            controller.tick_duration = tickDuration;
+            return;
+        }
+
         if(inspector.item._tag == "connection")
         {
             this.item.source = getStringUpToBracket(this.item.source)+this.checkRangeSyntax(this.item.source_range);
@@ -2074,24 +2093,198 @@ const inspector =
     {
         inspector.hideSubviews();
         let item = network.dict[bg];
+        const isTopGroup = (bg == network.network.name);
+        const rowTemplate = [];
+        const readOnlyRows = [];
+        const countRowKeys = ["groups", "modules", "connections", "widgets", "inputs", "outputs"];
+        const countRows = [];
+        const allAttributes = Object.keys(item || {});
+        const hiddenTopGroupAttributes = new Set(["filename", "webui_port", "info", "stop"]);
+        for(const key of allAttributes)
+        {
+            if(key == "_tag" || key.startsWith("_"))
+                continue;
+            if(key == "parameters")
+                continue;
+            if(isTopGroup && hiddenTopGroupAttributes.has(key))
+                continue;
+            if(key == "name" || key == "tick_duration")
+                continue;
+            const value = item[key];
+            if(countRowKeys.includes(key))
+            {
+                countRows.push({ key, value: (item[key] || []).length });
+                continue;
+            }
+            if(Array.isArray(value))
+                continue;
+            if(typeof value == "number")
+                rowTemplate.push({'name': key, 'control':'textedit', 'type': Number.isInteger(value) ? 'int' : 'float'});
+            else if(typeof value == "boolean")
+                rowTemplate.push({'name': key, 'control':'checkbox', 'type':'bool'});
+            else if(typeof value == "string" || value === undefined || value === null)
+                rowTemplate.push({'name': key, 'control':'textedit', 'type':'source'});
+            else
+                readOnlyRows.push({ key, value });
+        }
+        for(const key of countRowKeys)
+            if(!countRows.some((r) => r.key == key))
+                countRows.push({ key, value: (item[key] || []).length });
 
         inspector.setTable(inspector.subview.table);
         inspector.subview.table.style.display = 'block';
 
-        inspector.addHeader("Group");
+        inspector.addHeader(isTopGroup ? "Top Group" : "Group");
         if(main.edit_mode)
         {
-            inspector.addDataRows(item, [{'name':'name', 'control':'textedit', 'type':'source'}], inspector);
+            const template = [{'name':'name', 'control':'textedit', 'type':'source'}];
+            if(isTopGroup)
+            {
+                if(item.tick_duration === undefined)
+                    item.tick_duration = controller.tick_duration || 0;
+                template.push({'name':'tick_duration', 'control':'textedit', 'type':'float'});
+            }
+            inspector.addDataRows(item, template, inspector);
+            if(rowTemplate.length > 0)
+            {
+                const firstCustomRowIndex = current_t_body.rows.length;
+                inspector.addDataRows(item, rowTemplate, inspector);
+                for(let i = 0; i < rowTemplate.length; i++)
+                {
+                    const attribute = rowTemplate[i];
+                    const row = current_t_body.rows[firstCustomRowIndex + i];
+                    if(!row || row.cells.length < 2)
+                        continue;
+                    const valueCell = row.cells[1];
+                    valueCell.classList.add("inspector-removable-value-cell");
+                    const removeButton = document.createElement("button");
+                    removeButton.type = "button";
+                    removeButton.className = "inspector-minus-button";
+                    removeButton.setAttribute("aria-label", "Remove attribute");
+                    removeButton.setAttribute("contenteditable", "false");
+                    removeButton.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                            <path d="M18 6L17.1991 18.0129C17.129 19.065 17.0939 19.5911 16.8667 19.99C16.6666 20.3412 16.3648 20.6235 16.0011 20.7998C15.588 21 15.0607 21 14.0062 21H9.99377C8.93927 21 8.41202 21 7.99889 20.7998C7.63517 20.6235 7.33339 20.3412 7.13332 19.99C6.90607 19.5911 6.871 19.065 6.80086 18.0129L6 6M4 6H20M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6M14 10V17M10 10V17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    `;
+                    removeButton.addEventListener("mousedown", function(evt)
+                    {
+                        evt.preventDefault();
+                    });
+                    removeButton.addEventListener("click", function(evt)
+                    {
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        delete item[attribute.name];
+                        row.remove();
+                    });
+                    valueCell.appendChild(removeButton);
+                    if(valueCell.childNodes.length == 1)
+                        valueCell.insertBefore(document.createTextNode("\u200B"), removeButton);
+                }
+            }
         }
         else
         {
             inspector.addAttributeValue("name", item.name);
+            if(isTopGroup)
+                inspector.addAttributeValue("tick_duration", item.tick_duration !== undefined ? item.tick_duration : controller.tick_duration);
+            for(const p of rowTemplate)
+                inspector.addAttributeValue(p.name, item[p.name]);
+        }
+        for(const p of readOnlyRows)
+            inspector.addAttributeValue(p.key, p.value);
+
+        if(main.edit_mode)
+        {
+            const actionRow = current_t_body.insertRow(-1);
+            const actionCellLeft = actionRow.insertCell(0);
+            const actionCellRight = actionRow.insertCell(1);
+            actionCellLeft.innerHTML = "";
+            actionCellRight.style.textAlign = "right";
+            actionCellRight.innerHTML = '<button type="button" class="inspector-plus-button" aria-label="Add">+</button>';
+
+            const plusButton = actionCellRight.querySelector(".inspector-plus-button");
+            if(plusButton)
+            {
+                plusButton.addEventListener("click", function(evt)
+                {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+
+                    const row = document.createElement("tr");
+                    const labelCell = document.createElement("td");
+                    const valueCell = document.createElement("td");
+                    labelCell.className = "textedit inspector-attr-cell inspector-attr-cell-label";
+                    valueCell.className = "textedit inspector-attr-cell";
+                    labelCell.contentEditable = true;
+                    valueCell.contentEditable = true;
+                    labelCell.setAttribute("data-placeholder", "label");
+                    valueCell.setAttribute("data-placeholder", "value");
+                    row.appendChild(labelCell);
+                    row.appendChild(valueCell);
+                    current_t_body.insertBefore(row, actionRow);
+
+                    const commitAttribute = function()
+                    {
+                        const attrName = labelCell.innerText.trim();
+                        if(attrName === "")
+                            return;
+                        const rawValue = valueCell.innerText.trim();
+                        let parsedValue = rawValue;
+                        if(rawValue === "true")
+                            parsedValue = true;
+                        else if(rawValue === "false")
+                            parsedValue = false;
+                        else if(rawValue !== "" && !isNaN(rawValue))
+                            parsedValue = Number(rawValue);
+                        item[attrName] = parsedValue;
+                        inspector.showGroupBackground(selector.selected_background);
+                    };
+
+                    const blurOnEnter = function(evt)
+                    {
+                        if(evt.keyCode == 13)
+                        {
+                            evt.preventDefault();
+                            evt.target.blur();
+                        }
+                    };
+
+                    let movingFromLabelToValue = false;
+                    const moveFocusToValue = function(evt)
+                    {
+                        if(evt.key == "Enter" || evt.key == "Tab")
+                        {
+                            evt.preventDefault();
+                            movingFromLabelToValue = true;
+                            setTimeout(function()
+                            {
+                                valueCell.focus();
+                            }, 0);
+                        }
+                    };
+
+                    labelCell.addEventListener("keydown", moveFocusToValue);
+                    valueCell.addEventListener("keypress", blurOnEnter);
+                    labelCell.addEventListener("blur", function()
+                    {
+                        if(movingFromLabelToValue)
+                        {
+                            movingFromLabelToValue = false;
+                            return;
+                        }
+                        commitAttribute();
+                    });
+                    valueCell.addEventListener("blur", commitAttribute);
+                    labelCell.focus();
+                });
+            }
         }
 
-        inspector.addAttributeValue("subgroups", (item.groups || []).length);
-        inspector.addAttributeValue("modules", (item.modules || []).length);
-        inspector.addAttributeValue("connections", (item.connections || []).length);
-        inspector.addAttributeValue("widgets", (item.widgets || []).length);
+        for(const p of countRows)
+            inspector.addAttributeValue(p.key, p.value);
+
     },
 
 
@@ -2123,10 +2316,13 @@ const inspector =
                 inspector.addHeader("MODULE");
                 if (editMode) {
                     inspector.addDataRows(item, commonDataRow, inspector);
-                    inspector.addMenu("class", item.class, network.classes).addEventListener('change', function () {
-                        network.changeModuleClass(selector.selected_foreground[0], this.value);
-                        selector.selectItems(selector.selected_foreground);
-                    });
+                    const moduleClassMenu = inspector.addMenu("class", item.class, network.classes);
+                    const applyModuleClass = function () {
+                        network.changeModuleClass(c, this.value);
+                        selector.selectItems([c], null, false, false, true);
+                    };
+                    moduleClassMenu.addEventListener('input', applyModuleClass);
+                    moduleClassMenu.addEventListener('change', applyModuleClass);
 
                     const template = item.parameters || [];
                     for (let key in template) {
@@ -2173,10 +2369,13 @@ const inspector =
                 const widgetContainer = document.getElementById(`${selector.selected_background}.${item.name}`);
                 inspector.addHeader("WIDGET");
                 if (editMode) {
-                    inspector.addMenu("class", item.class, widget_classes).addEventListener('change', function () {
-                        network.changeWidgetClass(selector.selected_foreground[0], this.value);
-                        selector.selectItems(selector.selected_foreground);
-                    });
+                    const widgetClassMenu = inspector.addMenu("class", item.class, widget_classes);
+                    const applyWidgetClass = function () {
+                        network.changeWidgetClass(c, this.value);
+                        selector.selectItems([c], null, false, false, true);
+                    };
+                    widgetClassMenu.addEventListener('input', applyWidgetClass);
+                    widgetClassMenu.addEventListener('change', applyWidgetClass);
                     const template = widgetContainer.widget.parameter_template;
                     inspector.addDataRows(item, template, widgetContainer.widget);
                 } else {
