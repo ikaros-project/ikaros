@@ -82,6 +82,37 @@
         </div>
     </dialog>
 
+    <dialog id="save_dialog">
+        <div class="open-dialog-layout">
+            <div class="open-dialog-sources">
+                <button type="button" id="save_system_file_button" onclick="dialog.showSystemSaveFileList()" class="button">
+                    <span class="source-icon">&#128193;</span>
+                    <span>System Files</span>
+                </button>
+                <button type="button" id="save_user_file_button" onclick="dialog.showUserSaveFileList()" class="button selected">
+                    <span class="source-icon">&#128193;</span>
+                    <span>User Files</span>
+                </button>
+            </div>
+            <div class="open-dialog-right">
+                <div class="open-dialog-files">
+                    <div class="save-dialog-name-row">
+                        <label for="save_dialog_filename">Save as:</label>
+                        <input id="save_dialog_filename" type="text" />
+                    </div>
+                    <select size="14" id="save_dialog_system_items" style="display:none">
+                    </select>
+                    <select size="14" id="save_dialog_user_items" style="display:block">
+                    </select>
+                </div>
+                <menu>
+                    <button onclick="dialog.cancelSave()">Cancel</button>
+                    <button onclick="dialog.confirmSave()">Save</button>
+                </menu>
+            </div>
+        </div>
+    </dialog>
+
 
 
         <dialog id="list_select_dialog">
@@ -138,7 +169,7 @@
                 </div>
 
                 <div class="group_commands" id="show_command_info">
-                    <button onclick="main.showCommandInfo()" style="margin-left:0;">&#9432;</button>
+                    <button onclick="main.showCommandInfo()" style="margin-left:0;"><span class="info-glyph">i</span></button>
                 </div>
 
                 <canvas id="main_grid_canvas" width="3000" height="3000" ></canvas>

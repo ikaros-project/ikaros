@@ -313,6 +313,57 @@ let dialog =
         })
     },
 
+    showSaveDialog(callback, message)
+    {
+        fetch('/files', {method: 'GET', headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id}})
+        .then(response => {
+            if (!response.ok) {
+                alert("Could not get file list from server.");
+                throw new Error("HTTP error " + response.status);
+            }
+            return response.json();
+        })
+        .then(json => {
+            controller.filelist = json;
+            this.callback = callback;
+            this.window = document.getElementById('save_dialog');
+            this.populateSaveFileList(controller.filelist);
+            if(message)
+            {
+                const saveTitle = document.getElementById('save_dialog_title');
+                if(saveTitle)
+                    saveTitle.innerText = message;
+            }
+            const filenameInput = document.getElementById("save_dialog_filename");
+            if(filenameInput)
+            {
+                filenameInput.value = "Untitled";
+                filenameInput.onkeydown = function(evt)
+                {
+                    if(evt.key == "Enter")
+                    {
+                        evt.preventDefault();
+                        dialog.confirmSave();
+                    }
+                };
+            }
+            this.showUserSaveFileList();
+            this.window.showModal();
+            if(filenameInput)
+            {
+                setTimeout(function()
+                {
+                    filenameInput.focus();
+                    filenameInput.select();
+                }, 0);
+            }
+        })
+        .catch(function () {
+            alert("Could not get file list from server.");
+            console.log("Could not get file list from server.");
+        });
+    },
+
     getDialogType() 
     {
         const sys = document.getElementById("open_dialog_system_items");
@@ -347,6 +398,109 @@ let dialog =
                 items.appendChild(opt);
             });
         }
+    },
+
+    populateSaveFileList(file_list)
+    {
+        this.populateSaveOptions('system', file_list.system_files || []);
+        this.populateSaveOptions('user', file_list.user_files || []);
+    },
+
+    populateSaveOptions(type, files)
+    {
+        const items = document.getElementById(`save_dialog_${type}_items`);
+        if(!items)
+            return;
+        items.innerHTML = '';
+        files.forEach(file => {
+            const opt = document.createElement('option');
+            opt.value = file;
+            opt.text = file;
+            opt.ondblclick = function() {
+                dialog.confirmSave();
+            };
+            items.appendChild(opt);
+        });
+        items.selectedIndex = -1;
+        items.oninput = function()
+        {
+            dialog.syncSaveFilenameFromSelection();
+        };
+        items.onchange = function()
+        {
+            dialog.syncSaveFilenameFromSelection();
+        };
+    },
+
+    getActiveSaveSelect()
+    {
+        const dialogType = this.getSaveDialogType();
+        return document.getElementById(`save_dialog_${dialogType}_items`);
+    },
+
+    syncSaveFilenameFromSelection()
+    {
+        const sel = this.getActiveSaveSelect();
+        const filenameInput = document.getElementById("save_dialog_filename");
+        if(!sel || !filenameInput)
+            return;
+        if(sel.selectedIndex >= 0)
+            filenameInput.value = sel.options[sel.selectedIndex].text;
+    },
+
+    getSaveDialogType()
+    {
+        const sys = document.getElementById("save_dialog_system_items");
+        return sys && sys.style.display === 'block' ? 'system' : 'user';
+    },
+
+    showSystemSaveFileList()
+    {
+        document.getElementById('save_system_file_button').classList.add("selected");
+        document.getElementById('save_user_file_button').classList.remove("selected");
+        document.getElementById('save_dialog_system_items').style.display='block';
+        document.getElementById('save_dialog_user_items').style.display='none';
+        this.syncSaveFilenameFromSelection();
+    },
+
+    showUserSaveFileList()
+    {
+        document.getElementById('save_system_file_button').classList.remove("selected");
+        document.getElementById('save_user_file_button').classList.add("selected");
+        document.getElementById('save_dialog_system_items').style.display='none';
+        document.getElementById('save_dialog_user_items').style.display='block';
+        this.syncSaveFilenameFromSelection();
+    },
+
+    confirmSave()
+    {
+        try {
+            const dialogType = this.getSaveDialogType();
+            const sel = document.getElementById(`save_dialog_${dialogType}_items`);
+            const filenameInput = document.getElementById("save_dialog_filename");
+            let text = filenameInput ? filenameInput.value.trim() : "";
+            if(!text && sel)
+            {
+                if(sel.selectedIndex < 0 && sel.options.length > 0)
+                    sel.selectedIndex = 0;
+                text = sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex].text : "";
+            }
+            if(!text)
+                return;
+            this.window.close(text);
+            if(this.callback)
+                this.callback(text, dialogType);
+        }
+        catch(err)
+        {
+            alert("Error saving file");
+        }
+    },
+
+    cancelSave()
+    {
+        if(this.window)
+            this.window.close(null);
     },
 
     displayMessage(message)
@@ -833,16 +987,10 @@ let controller =
 
     saveas() 
     {
-        const filename = prompt("Save as:");
-        if (filename !== null)
-        {
+        dialog.showSaveDialog(function(filename) {
             network.network.filename = filename;
             controller.save();
-        } 
-        else
-        {
-
-        }
+        }, null);
     },
 
     quit() {
@@ -2207,11 +2355,8 @@ const inspector =
             const plusButton = actionCellRight.querySelector(".inspector-plus-button");
             if(plusButton)
             {
-                plusButton.addEventListener("click", function(evt)
+                const openNewAttributeRow = function()
                 {
-                    evt.preventDefault();
-                    evt.stopPropagation();
-
                     const row = document.createElement("tr");
                     const labelCell = document.createElement("td");
                     const valueCell = document.createElement("td");
@@ -2269,6 +2414,12 @@ const inspector =
                     valueCell.addEventListener("keypress", blurOnEnter);
                     labelCell.addEventListener("blur", function()
                     {
+                        labelCell.contentEditable = false;
+                        labelCell.setAttribute("contenteditable", "false");
+                        labelCell.classList.remove("textedit", "inspector-attr-cell");
+                        labelCell.classList.add("inspector-attr-cell-locked");
+                        labelCell.removeAttribute("data-placeholder");
+                        labelCell.tabIndex = -1;
                         if(movingFromLabelToValue)
                         {
                             movingFromLabelToValue = false;
@@ -2276,9 +2427,46 @@ const inspector =
                         }
                         commitAttribute();
                     });
+                    labelCell.addEventListener("mousedown", function(evt)
+                    {
+                        if(labelCell.classList.contains("inspector-attr-cell-locked"))
+                            evt.preventDefault();
+                    });
                     valueCell.addEventListener("blur", commitAttribute);
                     labelCell.focus();
+                };
+
+                const requestNewAttributeRow = function()
+                {
+                    inspector.pendingAddAttributeRow = true;
+                    const active = document.activeElement;
+                    if(active && active.closest && active.closest("#component_inspector") && typeof active.blur == "function")
+                        active.blur();
+                    setTimeout(function()
+                    {
+                        if(inspector.pendingAddAttributeRow)
+                            inspector.showGroupBackground(selector.selected_background);
+                    }, 0);
+                };
+
+                plusButton.addEventListener("mousedown", function(evt)
+                {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    requestNewAttributeRow();
                 });
+
+                plusButton.addEventListener("click", function(evt)
+                {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                });
+
+                if(inspector.pendingAddAttributeRow)
+                {
+                    inspector.pendingAddAttributeRow = false;
+                    openNewAttributeRow();
+                }
             }
         }
 
@@ -4168,7 +4356,6 @@ const main =
         <tr><td>&#8984; + &#8997; + .</td><td>Set stop mode (same as Stop button).</td></tr>
         <tr><td>&#8984; + &#8997; + N</td><td>New.</td></tr>
         <tr><td>&#8984; + &#8997; + O</td><td>Open.</td></tr>
-        <tr><td>Shift (Horizontal Slider)</td><td>Sync slider values while dragging.</td></tr>
     </tbody>
 </table>`,
             "Keyboard Commands",

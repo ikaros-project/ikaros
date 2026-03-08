@@ -4,6 +4,13 @@
  *
  */
 
+@font-face {
+    font-family: "CharterBlackLocal";
+    src: local("Charter Black"), local("Charter-Black"), local("ITC Charter Black"), local("Charter");
+    font-style: normal;
+    font-weight: 900;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -91,7 +98,8 @@ dialog::backdrop {
     }
   }      
 
-  #open_dialog {
+  #open_dialog,
+  #save_dialog {
       margin:auto;
       background-color:#fff;
       width:640px;
@@ -102,12 +110,14 @@ dialog::backdrop {
       overflow: hidden;
   }
 
-  #open_dialog .open-dialog-layout {
+  #open_dialog .open-dialog-layout,
+  #save_dialog .open-dialog-layout {
       display: flex;
       min-height: 330px;
   }
 
-  #open_dialog .open-dialog-sources {
+  #open_dialog .open-dialog-sources,
+  #save_dialog .open-dialog-sources {
       width: 185px;
       background: #f5f5f7;
       border-right: 1px solid #dcdcdc;
@@ -117,7 +127,8 @@ dialog::backdrop {
       gap: 4px;
   }
 
-  #open_dialog .open-dialog-sources .button {
+  #open_dialog .open-dialog-sources .button,
+  #save_dialog .open-dialog-sources .button {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -133,49 +144,57 @@ dialog::backdrop {
       cursor: pointer;
   }
 
-  #open_dialog .open-dialog-sources .button:hover {
+  #open_dialog .open-dialog-sources .button:hover,
+  #save_dialog .open-dialog-sources .button:hover {
       background: #ececef;
   }
 
-  #open_dialog .open-dialog-sources .button.selected {
+  #open_dialog .open-dialog-sources .button.selected,
+  #save_dialog .open-dialog-sources .button.selected {
       background: #0a64ff;
       color: #fff;
   }
 
-  #open_dialog .open-dialog-sources .source-icon {
+  #open_dialog .open-dialog-sources .source-icon,
+  #save_dialog .open-dialog-sources .source-icon {
       width: 14px;
       text-align: center;
       opacity: 0.9;
   }
 
-  #open_dialog .open-dialog-right {
+  #open_dialog .open-dialog-right,
+  #save_dialog .open-dialog-right {
       flex: 1;
       display: flex;
       flex-direction: column;
   }
 
-  #open_dialog .open-dialog-files {
+  #open_dialog .open-dialog-files,
+  #save_dialog .open-dialog-files {
       flex: 1;
       display: flex;
       flex-direction: column;
       padding: 0;
   }
 
-  #open_dialog .open-dialog-files p#open_dialog_title {
+  #open_dialog .open-dialog-files p#open_dialog_title,
+  #save_dialog .open-dialog-files p#save_dialog_title {
       font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
       font-size:13px;
       margin: 0;
       padding: 12px 12px 10px 12px;
   }
   
-  #open_dialog menu {
+  #open_dialog menu,
+  #save_dialog menu {
       text-align:right;
       padding: 16px 20px 12px 0;
       height:64px;
       margin: 0;
   }
   
-  #open_dialog select {
+  #open_dialog select,
+  #save_dialog select {
       width: 100%;
       flex: 1;
       overflow: hidden;
@@ -189,11 +208,45 @@ dialog::backdrop {
       box-sizing: border-box;
   }
 
-  #open_dialog select option:nth-child(odd) { 
+  #save_dialog .save-dialog-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px 10px 12px;
+      border-bottom: 1px solid #e1e1e1;
+      font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      font-size: 13px;
+      color: #222;
+  }
+
+  #save_dialog .save-dialog-name-row input {
+      flex: 1;
+      height: 28px;
+      border: 1px solid #cfcfcf;
+      border-radius: 6px;
+      padding: 0 8px;
+      font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      font-size: 13px;
+      color: #111;
+      background: #fff;
+      outline: none;
+      overflow: visible;
+      user-select: text;
+      -webkit-user-select: text;
+  }
+
+  #save_dialog .save-dialog-name-row input:focus {
+      border-color: #0a64ff;
+      box-shadow: 0 0 0 1px #0a64ff inset;
+  }
+
+  #open_dialog select option:nth-child(odd),
+  #save_dialog select option:nth-child(odd) { 
       background: #f5f5f5;
   }
 
-  #open_dialog menu button {
+  #open_dialog menu button,
+  #save_dialog menu button {
       min-width: 108px;
       height: 36px;
       margin-left: 10px;
@@ -206,11 +259,13 @@ dialog::backdrop {
       cursor: pointer;
   }
 
-  #open_dialog menu button:hover {
+  #open_dialog menu button:hover,
+  #save_dialog menu button:hover {
       background: linear-gradient(#ffffff, #e9e9e9);
   }
 
-  #open_dialog menu button:active {
+  #open_dialog menu button:active,
+  #save_dialog menu button:active {
       background: linear-gradient(#d9d9d9, #efefef);
       border-color: #8f8f8f;
   }
@@ -725,15 +780,26 @@ main[data-mode="edit"] {
     position:absolute;
     z-index: 1000;
     top:12px;
-    left:515px;
+    left:540px;
 }
 
 #show_command_info button {
-    border-radius: 0;
-    border: none;
+    border-radius: 15px;
+    font-size: 14px;
+    line-height: 1;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#show_command_info button .info-glyph {
+    display: inline-block;
+    font-family: "CharterBlackLocal", "Charter", "Times New Roman", Times, serif !important;
+    font-weight: 900;
     font-size: 18px;
-    line-height: 14px;
-    padding: 3px 10px 5px 10px;
+    line-height: 1;
 }
 
 
@@ -807,6 +873,26 @@ td.inspector-attr-cell-label {
     border-right: 1px solid #8a8a8a;
 }
 
+td.inspector-attr-cell-locked {
+    background-color: #38383A;
+    color: #b0b0b0;
+    cursor: default;
+    -webkit-user-select: none;
+    user-select: none;
+    padding-top: 5px;
+    padding-bottom: 2px;
+    padding-left: 20px;
+    padding-right: 5px;
+    border-top: 1px solid #585858;
+    border-bottom: 1px solid #171717;
+    border-right: 1px solid #8a8a8a;
+}
+
+td.inspector-attr-cell-locked:hover {
+    background-color: #38383A;
+    cursor: default;
+}
+
 td.inspector-attr-cell:empty::before {
     content: attr(data-placeholder);
     color: #666;
@@ -827,7 +913,7 @@ td.inspector-removable-value-cell {
     border: none;
     border-radius: 0;
     background: transparent;
-    color: #b0b0b0;
+    color: #808080;
     line-height: 0;
     text-align: center;
     padding: 0;
@@ -836,6 +922,8 @@ td.inspector-removable-value-cell {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .inspector-minus-button svg {
@@ -856,6 +944,12 @@ td.inspector-removable-value-cell {
 
 .inspector-minus-button:active svg {
     filter: invert(1);
+}
+
+td.inspector-removable-value-cell:hover .inspector-minus-button,
+td.inspector-removable-value-cell:focus-within .inspector-minus-button {
+    opacity: 1;
+    pointer-events: auto;
 }
 /*
 aside table td.textedit {
@@ -1206,7 +1300,7 @@ footer p {
     border: none;
     border-radius: 0;
     background: transparent;
-    color: #b0b0b0;
+    color: #808080;
     cursor: pointer;
     z-index: 10;
     display: inline-flex;
