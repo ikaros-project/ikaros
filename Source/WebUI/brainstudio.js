@@ -3718,10 +3718,30 @@ const main =
             y2: y, 
             source: id.split(':')[0], 
             target: null, 
-            source_element: e 
+            source_element: e,
+            target_element: null
         };
         document.addEventListener('mousemove',main.moveTrackedConnection, true);
         document.addEventListener('mouseup',main.releaseTrackedConnection,true);
+    },
+
+    clearTrackedConnectionHighlights(tracked)
+    {
+        if(!tracked)
+            return;
+
+        if(tracked.source_element)
+            tracked.source_element.style.backgroundColor = "";
+
+        if(tracked.target_element)
+            tracked.target_element.style.backgroundColor = "";
+
+        if(tracked.target)
+        {
+            const targetElement = document.getElementById(tracked.target);
+            if(targetElement)
+                targetElement.style.backgroundColor = "";
+        }
     },
 
     moveTrackedConnection(evt)
@@ -3811,14 +3831,7 @@ const main =
     
         if (!target) 
         {
-            if(tracked.source_element)
-                tracked.source_element.style.backgroundColor = "rgb(177, 177, 177)";
-            if(tracked.target)
-            {
-                const targetElement = document.getElementById(tracked.target);
-                if(targetElement)
-                    targetElement.style.backgroundColor = targetElement.classList.contains('widget') ? "rgb(0,0,0,0)" : "rgb(177, 177, 177)";
-            }
+            main.clearTrackedConnectionHighlights(tracked);
             main.tracked_connection = null;
             main.addConnections();
             document.removeEventListener('mousemove',main.moveTrackedConnection, true);
@@ -3848,6 +3861,7 @@ const main =
                     console.log(err);
                 }
             }
+            main.clearTrackedConnectionHighlights(tracked);
             main.tracked_connection = null;
             selector.selectItems([target], null);
         } 
@@ -3856,6 +3870,7 @@ const main =
             const cleanSource = removeStringFromStart(source.split(':')[0], selector.selected_background + ".");
             const cleanTarget = removeStringFromStart(target.split(':')[0], selector.selected_background + ".");
             network.newConnection(selector.selected_background, cleanSource, cleanTarget);
+            main.clearTrackedConnectionHighlights(tracked);
             main.tracked_connection = null;
             selector.selectConnection(`${selector.selected_background}.${cleanSource}*${selector.selected_background}.${cleanTarget}`);
         }
@@ -3870,8 +3885,13 @@ const main =
     {
         if(!main.tracked_connection)
             return;
+
+        if(main.tracked_connection.target_element && main.tracked_connection.target_element !== this)
+            main.tracked_connection.target_element.style.backgroundColor = "";
+
         this.style.backgroundColor="orange";
         const targetId = main.getConnectionTargetIdFromElement(this);
+        main.tracked_connection.target_element = this;
         if(targetId)
             main.tracked_connection.target = targetId;
     },
@@ -3880,11 +3900,10 @@ const main =
     {
         if(!main.tracked_connection)
             return;
-            main.tracked_connection.target = null;
-        if(this.classList.contains('widget'))
-            this.style.backgroundColor="rgb(0,0,0,0)";
-        else
-            this.style.backgroundColor="gray";
+        main.tracked_connection.target = null;
+        if(main.tracked_connection.target_element === this)
+            main.tracked_connection.target_element = null;
+        this.style.backgroundColor="";
     },
 
     addGroup(g,path)
