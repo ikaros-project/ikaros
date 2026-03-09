@@ -817,6 +817,73 @@ aside {
 #component_inspector
 {
     padding-right:6px;
+    position: relative;
+}
+
+#component_inspector table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+#component_inspector #inspector_table {
+    width: 100%;
+    table-layout: fixed;
+    display: table;
+}
+
+#component_inspector #inspector_table tbody {
+    display: table-row-group;
+}
+
+#component_inspector #inspector_table tr {
+    display: table-row;
+}
+
+#component_inspector #inspector_table td {
+    display: table-cell;
+}
+
+#component_inspector .subview,
+#component_inspector #inspector_table,
+#component_inspector #inspector_table tbody {
+    min-width: 100%;
+}
+
+#component_inspector table td:first-child {
+    width: 38%;
+}
+
+#component_inspector table td + td {
+    width: auto;
+}
+
+#component_inspector td + td select,
+#component_inspector td + td input[type="text"],
+#component_inspector td + td input[type="number"] {
+    width: 100%;
+    max-width: 100%;
+    display: block;
+    box-sizing: border-box;
+}
+
+#component_inspector .inspector-resize-handle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 12px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 20;
+    background: transparent;
+}
+
+#component_inspector .inspector-resize-handle:hover {
+    cursor: col-resize;
+}
+
+body.inspector-resizing,
+body.inspector-resizing * {
+    cursor: col-resize !important;
 }
 
 aside table {

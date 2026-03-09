@@ -1563,6 +1563,12 @@ const inspector =
     current_t_body: null,
     component: null,
     system: null,
+    width_cookie: 'inspector_width',
+    min_width: 220,
+    max_width_margin: 160,
+    resize_active: false,
+    default_width: 300,
+    last_selected_signature: "",
 
     init()
     {
@@ -1578,8 +1584,90 @@ const inspector =
         inspector.subview.widget =  document.querySelector('#inspector_widget');
 
         inspector.hideSubviews();
-        inspector.subview.nothing.style.display='block';
+        inspector.subview.nothing.style.display='table';
+
+        if(inspector.component)
+        {
+            const computed = window.getComputedStyle(inspector.component);
+            const basis = parseInt(computed.flexBasis, 10);
+            const width = parseInt(computed.width, 10);
+            if(Number.isFinite(basis) && basis > 0)
+                inspector.default_width = basis;
+            else if(Number.isFinite(width) && width > 0)
+                inspector.default_width = width;
+
+            inspector.resizeHandle = inspector.component.querySelector('.inspector-resize-handle');
+            if(!inspector.resizeHandle)
+            {
+                inspector.resizeHandle = document.createElement('div');
+                inspector.resizeHandle.className = 'inspector-resize-handle';
+                inspector.component.prepend(inspector.resizeHandle);
+            }
+
+            const savedWidth = parseInt(getCookie(inspector.width_cookie), 10);
+            if(Number.isFinite(savedWidth) && savedWidth >= inspector.min_width)
+            {
+                const maxWidth = Math.max(inspector.min_width, window.innerWidth - inspector.max_width_margin);
+                const clampedWidth = Math.min(savedWidth, maxWidth);
+                inspector.component.style.flex = `0 0 ${clampedWidth}px`;
+                inspector.component.style.width = `${clampedWidth}px`;
+            }
+
+            inspector.resizeHandle.addEventListener('mousedown', inspector.startResize, true);
+        }
     },
+
+    resetComponentWidth()
+    {
+        if(!inspector.component)
+            return;
+        const maxWidth = Math.max(inspector.min_width, window.innerWidth - inspector.max_width_margin);
+        const width = Math.max(inspector.min_width, Math.min(maxWidth, inspector.default_width || 300));
+        inspector.component.style.flex = `0 0 ${width}px`;
+        inspector.component.style.width = `${width}px`;
+    },
+
+    startResize(evt)
+    {
+        if(evt.button !== 0 || !inspector.component)
+            return;
+        evt.preventDefault();
+        inspector.resize_active = true;
+        inspector.resize_start_x = evt.clientX;
+        inspector.resize_start_width = inspector.component.getBoundingClientRect().width;
+        document.body.classList.add('inspector-resizing');
+        document.addEventListener('mousemove', inspector.onResizeDrag, true);
+        document.addEventListener('mouseup', inspector.stopResize, true);
+    },
+
+    onResizeDrag(evt)
+    {
+        if(!inspector.resize_active || !inspector.component)
+            return;
+        const deltaX = inspector.resize_start_x - evt.clientX;
+        const maxWidth = Math.max(inspector.min_width, window.innerWidth - inspector.max_width_margin);
+        const newWidth = Math.max(inspector.min_width, Math.min(maxWidth, inspector.resize_start_width + deltaX));
+        inspector.component.style.flex = `0 0 ${newWidth}px`;
+        inspector.component.style.width = `${newWidth}px`;
+        evt.preventDefault();
+    },
+
+    stopResize()
+    {
+        if(!inspector.resize_active)
+            return;
+        inspector.resize_active = false;
+        document.removeEventListener('mousemove', inspector.onResizeDrag, true);
+        document.removeEventListener('mouseup', inspector.stopResize, true);
+        document.body.classList.remove('inspector-resizing');
+        if(inspector.component)
+        {
+            const w = Math.round(inspector.component.getBoundingClientRect().width);
+            if(Number.isFinite(w) && w >= inspector.min_width)
+                setCookie(inspector.width_cookie, String(w));
+        }
+    },
+
     toggleSystem()
     {
         if (window.getComputedStyle(inspector.system, null).display === 'none')
@@ -1600,6 +1688,7 @@ const inspector =
             {
             inspector.component.style.display = "block";
             inspector.system.style.display = "none";
+            inspector.resetComponentWidth();
         }
         else
         {
@@ -1612,6 +1701,7 @@ const inspector =
     {
         inspector.component.style.display = "block";
         inspector.system.style.display = "none";
+        inspector.resetComponentWidth();
     },
 
     hideSubviews()
@@ -2280,7 +2370,7 @@ const inspector =
                 countRows.push({ key, value: (item[key] || []).length });
 
         inspector.setTable(inspector.subview.table);
-        inspector.subview.table.style.display = 'block';
+        inspector.subview.table.style.display = 'table';
 
         inspector.addHeader(isTopGroup ? "Top Group" : "Group");
         if(main.edit_mode)
@@ -2481,7 +2571,7 @@ const inspector =
         const item = network.dict[c];
         inspector.hideSubviews();
         inspector.setTable(inspector.subview.table);
-        inspector.subview.table.style.display = 'block';
+        inspector.subview.table.style.display = 'table';
     
         if (!item) 
         {
@@ -2584,7 +2674,7 @@ const inspector =
 
         inspector.hideSubviews();
         inspector.setTable(inspector.subview.table);
-        inspector.subview.table.style.display = 'block';
+        inspector.subview.table.style.display = 'table';
 
         inspector.addHeader("CONNECTION");
         inspector.addAttributeValue("source", item.source);
@@ -2611,13 +2701,28 @@ const inspector =
     {
         inspector.hideSubviews();
         inspector.setTable(inspector.subview.table);
-        inspector.subview.table.style.display = 'block';
+        inspector.subview.table.style.display = 'table';
         inspector.addHeader("Multiple");
         inspector.addAttributeValue("selected", n); 
     },
 
     showInspectorForSelection()
     {
+        if(selector.selected_foreground.length > 0)
+        {
+            const signature = selector.selected_foreground.join("|");
+            if(signature !== inspector.last_selected_signature)
+            {
+                inspector.resetComponentWidth();
+                inspector.last_selected_signature = signature;
+            }
+        }
+        else
+        {
+            inspector.last_selected_signature = "";
+            inspector.resetComponentWidth();
+        }
+
         if(selector.selected_connection)
             inspector.showConnection(selector.selected_connection)
         else if(selector.selected_foreground.length == 0)
