@@ -3307,6 +3307,563 @@ const main =
         }
         selector.selectItems([], null);
     },
+
+    getArrangeItems(group)
+    {
+        const items = [];
+        const pushItem = function(localName, object)
+        {
+            if(!localName || !object)
+                return;
+            const fullName = `${selector.selected_background}.${localName}`;
+            const element = document.getElementById(fullName);
+            let width = element ? element.offsetWidth : 0;
+            let height = element ? element.offsetHeight : 0;
+            if(width <= 0 || height <= 0)
+            {
+                if(object._tag == "widget")
+                {
+                    width = parseInt(object.width) || 200;
+                    height = parseInt(object.height) || 140;
+                }
+                else if(object._tag == "input" || object._tag == "output")
+                {
+                    width = 140;
+                    height = 26;
+                }
+                else
+                {
+                    const inCount = (object.inputs || []).length;
+                    const outCount = (object.outputs || []).length;
+                    width = 220;
+                    height = 34 + Math.max(inCount, outCount) * 20;
+                }
+            }
+            items.push({
+                localName,
+                fullName,
+                object,
+                width: Math.max(60, width),
+                height: Math.max(20, height),
+                inDegree: 0,
+                outDegree: 0,
+                layer: 0
+            });
+        };
+
+        for(const g of group.groups || [])
+            pushItem(g.name, g);
+        for(const m of group.modules || [])
+            pushItem(m.name, m);
+        for(const i of group.inputs || [])
+            pushItem(i.name, i);
+        for(const o of group.outputs || [])
+            pushItem(o.name, o);
+        // Widgets are intentionally excluded from auto-arrange.
+        // They keep their current positions.
+        return items;
+    },
+
+    arrangeComponents()
+    {
+        const background = selector.selected_background;
+        const group = network.dict[background];
+        if(!group)
+            return;
+
+        const nodes = main.getArrangeItems(group);
+        if(nodes.length === 0)
+            return;
+
+        const nodeMap = new Map(nodes.map((n) => [n.localName, n]));
+        const outgoing = new Map(nodes.map((n) => [n.localName, new Set()]));
+        const incoming = new Map(nodes.map((n) => [n.localName, new Set()]));
+
+        for(const c of group.connections || [])
+        {
+            const sourcePath = getStringUpToBracket(c.source || "");
+            const targetPath = getStringUpToBracket(c.target || "");
+            const sourceLocal = sourcePath.split(".")[0];
+            const targetLocal = targetPath.split(".")[0];
+            if(!nodeMap.has(sourceLocal) || !nodeMap.has(targetLocal) || sourceLocal == targetLocal)
+                continue;
+            outgoing.get(sourceLocal).add(targetLocal);
+            incoming.get(targetLocal).add(sourceLocal);
+        }
+
+        for(const n of nodes)
+        {
+            n.outDegree = outgoing.get(n.localName).size;
+            n.inDegree = incoming.get(n.localName).size;
+        }
+
+        const inputNodes = nodes.filter((n) => n.object && n.object._tag === "input");
+        const outputNodes = nodes.filter((n) => n.object && n.object._tag === "output");
+        const middleCandidates = nodes.filter((n) => !inputNodes.includes(n) && !outputNodes.includes(n));
+
+        const sourceNodes = nodes.filter((n) => n.inDegree === 0 && n.outDegree > 0);
+        const sinkNodes = nodes.filter((n) => n.outDegree === 0 && n.inDegree > 0);
+        const isolatedNodes = nodes.filter((n) => n.inDegree === 0 && n.outDegree === 0);
+        const middleNodes = nodes.filter((n) => n.inDegree > 0 && n.outDegree > 0);
+
+        const queue = [];
+        const visited = new Set();
+        if(sourceNodes.length > 0)
+        {
+            for(const s of sourceNodes)
+            {
+                s.layer = 0;
+                queue.push(s.localName);
+                visited.add(s.localName);
+            }
+        }
+        else
+        {
+            for(const n of middleNodes)
+            {
+                n.layer = 1;
+                queue.push(n.localName);
+                visited.add(n.localName);
+            }
+        }
+
+        while(queue.length > 0)
+        {
+            const u = queue.shift();
+            const nodeU = nodeMap.get(u);
+            for(const v of outgoing.get(u))
+            {
+                const nodeV = nodeMap.get(v);
+                const nextLayer = nodeU.layer + 1;
+                if(nextLayer > nodeV.layer)
+                    nodeV.layer = nextLayer;
+                if(!visited.has(v))
+                {
+                    visited.add(v);
+                    queue.push(v);
+                }
+            }
+        }
+
+        let maxLayer = 0;
+        for(const n of nodes)
+            maxLayer = Math.max(maxLayer, n.layer);
+
+        for(const n of sinkNodes)
+            n.layer = Math.max(n.layer, maxLayer + 1);
+        maxLayer = Math.max(maxLayer + (sinkNodes.length ? 1 : 0), ...nodes.map((n) => n.layer));
+
+        for(const n of isolatedNodes)
+            n.layer = Math.max(1, Math.floor(maxLayer / 2));
+
+        // Force all inputs to the first (leftmost) layer.
+        for(const n of inputNodes)
+            n.layer = 0;
+
+        // Keep non-input/non-output nodes in the middle layers (start at layer 1).
+        for(const n of middleCandidates)
+            n.layer = Math.max(1, n.layer + 1);
+
+        // Force all outputs to the last (rightmost) layer.
+        let maxMiddleLayer = 1;
+        for(const n of middleCandidates)
+            maxMiddleLayer = Math.max(maxMiddleLayer, n.layer);
+        for(const n of outputNodes)
+            n.layer = maxMiddleLayer + 1;
+
+        const layers = new Map();
+        for(const n of nodes)
+        {
+            if(!layers.has(n.layer))
+                layers.set(n.layer, []);
+            layers.get(n.layer).push(n);
+        }
+
+        const layerIndices = Array.from(layers.keys()).sort((a,b)=>a-b);
+        const getLayerPositionMap = function(layerNodes)
+        {
+            const m = new Map();
+            for(let i = 0; i < layerNodes.length; i++)
+                m.set(layerNodes[i].localName, i);
+            return m;
+        };
+
+        const reorderByNeighborLayer = function(layerIndex, neighborLayerIndex, useIncoming)
+        {
+            const currentLayer = layers.get(layerIndex);
+            const neighborLayer = layers.get(neighborLayerIndex);
+            if(!currentLayer || !neighborLayer || currentLayer.length <= 1)
+                return;
+
+            const neighborPos = getLayerPositionMap(neighborLayer);
+            const currentPos = getLayerPositionMap(currentLayer);
+            currentLayer.sort((a, b) => {
+                const neighA = useIncoming ? Array.from(incoming.get(a.localName)) : Array.from(outgoing.get(a.localName));
+                const neighB = useIncoming ? Array.from(incoming.get(b.localName)) : Array.from(outgoing.get(b.localName));
+                const avgA = neighA.length ? neighA.map((k) => neighborPos.get(k)).filter((v)=>v!==undefined).reduce((p,c)=>p+c,0) / neighA.length : currentPos.get(a.localName);
+                const avgB = neighB.length ? neighB.map((k) => neighborPos.get(k)).filter((v)=>v!==undefined).reduce((p,c)=>p+c,0) / neighB.length : currentPos.get(b.localName);
+                if(avgA !== avgB)
+                    return avgA - avgB;
+                return currentPos.get(a.localName) - currentPos.get(b.localName);
+            });
+        };
+
+        // Crossing-minimization sweeps (second pass): top-down and bottom-up.
+        for(let iter = 0; iter < 4; iter++)
+        {
+            for(let i = 1; i < layerIndices.length; i++)
+                reorderByNeighborLayer(layerIndices[i], layerIndices[i - 1], true);
+            for(let i = layerIndices.length - 2; i >= 0; i--)
+                reorderByNeighborLayer(layerIndices[i], layerIndices[i + 1], false);
+        }
+
+        const yCenter = new Map();
+        for(const layerIndex of layerIndices)
+        {
+            const layerNodes = layers.get(layerIndex);
+            let y = 0;
+            const rowGap = Math.max(main.grid_spacing || 24, 20);
+            for(const n of layerNodes)
+            {
+                n.y = y;
+                yCenter.set(n.localName, y + n.height / 2);
+                y += n.height + rowGap;
+            }
+            const usedHeight = Math.max(0, y - rowGap);
+            const offset = -usedHeight / 2;
+            for(const n of layerNodes)
+                n.y += offset;
+        }
+
+        const colGap = Math.max(main.grid_spacing || 24, 40);
+        let cursorX = 0;
+        for(const layerIndex of layerIndices)
+        {
+            const layerNodes = layers.get(layerIndex);
+            const layerWidth = Math.max(...layerNodes.map((n) => n.width));
+            for(const n of layerNodes)
+                n.x = cursorX;
+            cursorX += layerWidth + colGap;
+        }
+
+        const edges = [];
+        for(const n of nodes)
+            for(const t of outgoing.get(n.localName))
+                if(nodeMap.has(t))
+                    edges.push([n, nodeMap.get(t)]);
+
+        const minGap = Math.max(main.grid_spacing || 24, 20);
+        const pushMargin = Math.max(4, Math.round(minGap * 0.2));
+        const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+        // Third pass: vertical optimization to reduce edges crossing component boxes.
+        for(let iter = 0; iter < 6; iter++)
+        {
+            const deltaY = new Map(nodes.map((n) => [n.localName, 0]));
+
+            // 1) Pull toward average neighbor center to shorten edges.
+            for(const n of nodes)
+            {
+                const neigh = [...incoming.get(n.localName), ...outgoing.get(n.localName)]
+                    .map((k) => nodeMap.get(k))
+                    .filter((x) => !!x);
+                if(neigh.length === 0)
+                    continue;
+                const centerY = n.y + n.height / 2;
+                const targetY = neigh.reduce((s, m) => s + (m.y + m.height / 2), 0) / neigh.length;
+                deltaY.set(n.localName, deltaY.get(n.localName) + clamp((targetY - centerY) * 0.18, -minGap * 0.6, minGap * 0.6));
+            }
+
+            // 2) Repel nodes from connection segments that pass through their boxes.
+            for(const [u, v] of edges)
+            {
+                const x1 = u.x + u.width / 2;
+                const y1 = u.y + u.height / 2;
+                const x2 = v.x + v.width / 2;
+                const y2 = v.y + v.height / 2;
+                if(Math.abs(x2 - x1) < 1e-6)
+                    continue;
+
+                const left = Math.min(x1, x2);
+                const right = Math.max(x1, x2);
+                for(const w of nodes)
+                {
+                    if(w === u || w === v)
+                        continue;
+                    const wx = w.x + w.width / 2;
+                    if(wx <= left || wx >= right)
+                        continue;
+                    const t = (wx - x1) / (x2 - x1);
+                    const yLine = y1 + t * (y2 - y1);
+                    const top = w.y - pushMargin;
+                    const bottom = w.y + w.height + pushMargin;
+                    if(yLine < top || yLine > bottom)
+                        continue;
+
+                    const wCenter = w.y + w.height / 2;
+                    const dist = Math.max(1, Math.abs(wCenter - yLine));
+                    const dir = (wCenter >= yLine) ? 1 : -1;
+                    const push = clamp((minGap * 1.1) / dist, 0.2, 1.2) * dir * (minGap * 0.55);
+                    deltaY.set(w.localName, deltaY.get(w.localName) + push);
+                }
+            }
+
+            // 3) Apply per-layer and enforce non-overlap with at least one-grid vertical spacing.
+            for(const layerIndex of layerIndices)
+            {
+                const layerNodes = layers.get(layerIndex);
+                if(!layerNodes || layerNodes.length === 0)
+                    continue;
+
+                for(const n of layerNodes)
+                    n.y += deltaY.get(n.localName);
+
+                layerNodes.sort((a, b) => a.y - b.y);
+                let currentY = layerNodes[0].y;
+                layerNodes[0].y = currentY;
+                for(let i = 1; i < layerNodes.length; i++)
+                {
+                    const prev = layerNodes[i - 1];
+                    const n = layerNodes[i];
+                    const minY = prev.y + prev.height + minGap;
+                    if(n.y < minY)
+                        n.y = minY;
+                }
+
+                const layerTop = Math.min(...layerNodes.map((n) => n.y));
+                const layerBottom = Math.max(...layerNodes.map((n) => n.y + n.height));
+                const offset = -((layerTop + layerBottom) / 2);
+                for(const n of layerNodes)
+                    n.y += offset;
+            }
+        }
+
+        const edgeCrossesNode = function(u, v, w)
+        {
+            if(u === w || v === w)
+                return false;
+            const x1 = u.x + u.width / 2;
+            const y1 = u.y + u.height / 2;
+            const x2 = v.x + v.width / 2;
+            const y2 = v.y + v.height / 2;
+
+            const left = w.x - pushMargin;
+            const right = w.x + w.width + pushMargin;
+            const top = w.y - pushMargin;
+            const bottom = w.y + w.height + pushMargin;
+
+            const edgeMinX = Math.min(x1, x2);
+            const edgeMaxX = Math.max(x1, x2);
+            if(edgeMaxX < left || edgeMinX > right)
+                return false;
+
+            if(Math.abs(x2 - x1) < 1e-6)
+            {
+                if(x1 < left || x1 > right)
+                    return false;
+                const edgeMinY = Math.min(y1, y2);
+                const edgeMaxY = Math.max(y1, y2);
+                return !(edgeMaxY < top || edgeMinY > bottom);
+            }
+
+            const xa = Math.max(edgeMinX, left);
+            const xb = Math.min(edgeMaxX, right);
+            const ya = y1 + (xa - x1) * (y2 - y1) / (x2 - x1);
+            const yb = y1 + (xb - x1) * (y2 - y1) / (x2 - x1);
+            const segMinY = Math.min(ya, yb);
+            const segMaxY = Math.max(ya, yb);
+            return !(segMaxY < top || segMinY > bottom);
+        };
+
+        const snapY = function(v)
+        {
+            const g = main.grid_spacing || 1;
+            return g * Math.round(v / g);
+        };
+
+        // Fourth pass: discrete local search minimizing "connection-over-component" events.
+        for(let sweep = 0; sweep < 4; sweep++)
+        {
+            for(const layerIndex of layerIndices)
+            {
+                const layerNodes = layers.get(layerIndex);
+                if(!layerNodes || layerNodes.length <= 1)
+                    continue;
+
+                layerNodes.sort((a, b) => a.y - b.y);
+                for(let i = 0; i < layerNodes.length; i++)
+                {
+                    const n = layerNodes[i];
+                    const prev = i > 0 ? layerNodes[i - 1] : null;
+                    const next = i < layerNodes.length - 1 ? layerNodes[i + 1] : null;
+                    const minYAllowed = prev ? (prev.y + prev.height + minGap) : -Infinity;
+                    const maxYAllowed = next ? (next.y - n.height - minGap) : Infinity;
+
+                    const neighbors = [...incoming.get(n.localName), ...outgoing.get(n.localName)]
+                        .map((k) => nodeMap.get(k))
+                        .filter((x) => !!x);
+                    const targetY = neighbors.length
+                        ? neighbors.reduce((s, m) => s + (m.y + m.height / 2), 0) / neighbors.length - n.height / 2
+                        : n.y;
+
+                    const originalY = n.y;
+                    let bestY = originalY;
+                    let bestScore = Infinity;
+                    for(let step = -8; step <= 8; step++)
+                    {
+                        let candidateY = snapY(originalY + step * minGap);
+                        if(candidateY < minYAllowed)
+                            candidateY = minYAllowed;
+                        if(candidateY > maxYAllowed)
+                            candidateY = maxYAllowed;
+                        n.y = candidateY;
+
+                        let blockCount = 0;
+                        for(const [u, v] of edges)
+                            if(edgeCrossesNode(u, v, n))
+                                blockCount++;
+
+                        const distancePenalty = Math.abs(candidateY - targetY) / (minGap || 1);
+                        const score = blockCount * 100 + distancePenalty;
+                        if(score < bestScore)
+                        {
+                            bestScore = score;
+                            bestY = candidateY;
+                        }
+                    }
+                    n.y = bestY;
+                }
+
+                // Enforce ordering/non-overlap after local search.
+                layerNodes.sort((a, b) => a.y - b.y);
+                for(let i = 1; i < layerNodes.length; i++)
+                {
+                    const prev = layerNodes[i - 1];
+                    const n = layerNodes[i];
+                    const minYAllowed = prev.y + prev.height + minGap;
+                    if(n.y < minYAllowed)
+                        n.y = minYAllowed;
+                }
+
+                // Keep each layer centered while allowing extra vertical expansion when needed.
+                const layerTop = Math.min(...layerNodes.map((n) => n.y));
+                const layerBottom = Math.max(...layerNodes.map((n) => n.y + n.height));
+                const offset = -((layerTop + layerBottom) / 2);
+                for(const n of layerNodes)
+                    n.y += offset;
+            }
+        }
+
+        const totalOverlapCount = function()
+        {
+            let count = 0;
+            for(const [u, v] of edges)
+                for(const w of nodes)
+                    if(edgeCrossesNode(u, v, w))
+                        count++;
+            return count;
+        };
+
+        const totalConnectionLength = function()
+        {
+            let length = 0;
+            for(const [u, v] of edges)
+            {
+                const x1 = u.x + u.width / 2;
+                const y1 = u.y + u.height / 2;
+                const x2 = v.x + v.width / 2;
+                const y2 = v.y + v.height / 2;
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                length += Math.sqrt(dx*dx + dy*dy);
+            }
+            return length;
+        };
+
+        // Final pass: greedy global minimization of edge-over-component overlaps.
+        for(let pass = 0; pass < 3; pass++)
+        {
+            let improved = false;
+            for(const layerIndex of layerIndices)
+            {
+                const layerNodes = layers.get(layerIndex);
+                if(!layerNodes || layerNodes.length === 0)
+                    continue;
+
+                layerNodes.sort((a, b) => a.y - b.y);
+                for(let i = 0; i < layerNodes.length; i++)
+                {
+                    const n = layerNodes[i];
+                    const prev = i > 0 ? layerNodes[i - 1] : null;
+                    const next = i < layerNodes.length - 1 ? layerNodes[i + 1] : null;
+                    const minYAllowed = prev ? (prev.y + prev.height + minGap) : -Infinity;
+                    const maxYAllowed = next ? (next.y - n.height - minGap) : Infinity;
+
+                    const originalY = n.y;
+                    let bestY = originalY;
+                    let bestOverlap = totalOverlapCount();
+                    let bestLength = totalConnectionLength();
+
+                    const candidates = [];
+                    for(let s = -6; s <= 6; s++)
+                    {
+                        if(s === 0)
+                            continue;
+                        candidates.push(snapY(originalY + s * minGap));
+                    }
+
+                    for(const candidateRaw of candidates)
+                    {
+                        const candidateY = clamp(candidateRaw, minYAllowed, maxYAllowed);
+                        n.y = candidateY;
+                        const overlap = totalOverlapCount();
+                        if(overlap > bestOverlap)
+                            continue;
+
+                        const length = totalConnectionLength();
+                        if(
+                            overlap < bestOverlap ||
+                            (overlap === bestOverlap && length < bestLength)
+                        )
+                        {
+                            bestOverlap = overlap;
+                            bestLength = length;
+                            bestY = candidateY;
+                        }
+                    }
+
+                    n.y = bestY;
+                    if(bestY !== originalY)
+                        improved = true;
+                }
+            }
+            if(!improved)
+                break;
+        }
+
+        const minX = Math.min(...nodes.map((n) => n.x));
+        const minY = Math.min(...nodes.map((n) => n.y));
+        const grid = main.grid_spacing || 24;
+        const dx = (1 * grid) - minX;
+        const dy = (2 * grid) - minY;
+        const snap = function(v)
+        {
+            const g = main.grid_spacing || 1;
+            return g * Math.round(v / g);
+        };
+
+        for(const n of nodes)
+        {
+            n.object._x = snap(n.x + dx);
+            n.object._y = snap(n.y + dy);
+        }
+
+        const selected = [...selector.selected_foreground];
+        network.rebuildDict();
+        nav.populate();
+        selector.selectItems(selected, background, false, false, true);
+        main.addConnections();
+    },
     
     newModule()
     {
