@@ -616,6 +616,15 @@ td + td.textedit:focus
     background-color: lightgray;
 }
 
+td + td.textedit.inspector-default-placeholder:empty::before {
+    content: attr(data-placeholder);
+    color: #7a7a7a;
+}
+
+td + td.textedit.inspector-default-placeholder:focus:empty::before {
+    content: "";
+}
+
 select {
     outline: none;
 }

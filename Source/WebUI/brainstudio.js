@@ -1810,10 +1810,27 @@ const inspector =
         const value = item[p.name];
         const cell1 = row.insertCell(0);
         const cell2 = row.insertCell(1);
+        const hasDefaultPlaceholder = !!(p && p.default !== undefined && p.default !== null && p.default !== "");
+        const updateDefaultPlaceholderState = (targetCell, isEmpty) =>
+        {
+            if(!hasDefaultPlaceholder)
+            {
+                targetCell.removeAttribute("data-placeholder");
+                targetCell.classList.remove("inspector-default-placeholder");
+                return;
+            }
+            targetCell.setAttribute("data-placeholder", String(p.default));
+            if(isEmpty)
+                targetCell.classList.add("inspector-default-placeholder");
+            else
+                targetCell.classList.remove("inspector-default-placeholder");
+        };
 
         cell1.innerText = p.name;
-        cell2.innerHTML = value != undefined ? value : "";
-        cell2.setAttribute('class', p.type);
+        const hasValue = !(value === undefined || value === null || value === "");
+        cell2.textContent = hasValue ? String(value) : "";
+        cell2.setAttribute('class', p.type + ' textedit');
+        updateDefaultPlaceholderState(cell2, !hasValue);
         cell2.addEventListener("paste", function(e) 
         {
             e.preventDefault();
@@ -1822,7 +1839,6 @@ const inspector =
         });
 
         cell2.contentEditable = true;
-        cell2.className += ' textedit';
         const commitOnInput = (p.name !== "name");
         const commitTextEditValue = function(evt)
         {
@@ -1848,6 +1864,7 @@ const inspector =
 
         cell2.addEventListener("input", function(evt)
         {
+            updateDefaultPlaceholderState(evt.target, evt.target.innerText.trim() === "");
             if(commitOnInput)
                 commitTextEditValue(evt);
         });
@@ -1855,6 +1872,7 @@ const inspector =
         cell2.addEventListener("blur", function(evt) 
         {
             commitTextEditValue(evt);
+            updateDefaultPlaceholderState(evt.target, evt.target.innerText.trim() === "");
         });
     },
 
