@@ -700,7 +700,8 @@ main[data-mode="edit"] {
     position:absolute;
     z-index: 1000;
     top:12px;
-    left:15px;
+    right:15px;
+    left:auto;
 
 }
 
@@ -744,6 +745,10 @@ main[data-mode="edit"] {
 
 }
 
+#group_commands {
+    left: 15px;
+}
+
 
 .group_commands button{
     float: left;
@@ -781,14 +786,7 @@ main[data-mode="edit"] {
     left:515px;
 }
 
-#show_command_info {
-    position:absolute;
-    z-index: 1000;
-    top:12px;
-    left:540px;
-}
-
-#show_command_info button {
+#command_info_button {
     border-radius: 15px;
     font-size: 14px;
     line-height: 1;
@@ -799,7 +797,7 @@ main[data-mode="edit"] {
     justify-content: center;
 }
 
-#show_command_info button .info-glyph {
+#command_info_button .info-glyph {
     display: inline-block;
     font-family: "CharterBlackLocal", "Charter", "Times New Roman", Times, serif !important;
     font-weight: 900;

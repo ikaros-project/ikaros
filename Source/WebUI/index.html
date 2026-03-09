@@ -157,7 +157,8 @@
                     <button onclick="main.decreaseGrid()" style="border-radius:15px 0 0 15px; margin-left: 0">-</button>
                     <button onclick="main.increaseGrid()" >+</button>
                     <button>auto</button>
-                    <button onclick="main.centerComponents()" style="border-radius:0 15px 15px 0;" >center</button>
+                    <button onclick="main.centerComponents()">center</button>
+                    <button id="command_info_button" onclick="main.showCommandInfo()" style="border-radius:0 15px 15px 0;"><span class="info-glyph">i</span></button>
                 </div>
 
                 <div class="group_commands" id="group_commands">
@@ -166,10 +167,6 @@
                     <button onclick="main.newInput()">Input</button>
                     <button onclick="main.newOutput()">Output</button>
                     <button onclick="main.newWidget()" style="border-radius:0 15px 15px 0;" >Widget</button>
-                </div>
-
-                <div class="group_commands" id="show_command_info">
-                    <button onclick="main.showCommandInfo()" style="margin-left:0;"><span class="info-glyph">i</span></button>
                 </div>
 
                 <canvas id="main_grid_canvas" width="3000" height="3000" ></canvas>
