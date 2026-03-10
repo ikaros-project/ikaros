@@ -1718,8 +1718,7 @@ svg *{
 }
 
 .gi {
-
-    border: 1px solid rgba(0, 0, 0, 0);
+    border: 1px solid var(--component-border, rgba(0, 0, 0, 0));
 }
 
 

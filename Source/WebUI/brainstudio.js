@@ -2274,6 +2274,20 @@ const inspector =
 
     parameterChangeNotification(p)
     {
+        if(
+            p &&
+            p.name == "color" &&
+            selector.selected_foreground &&
+            selector.selected_foreground.length == 1 &&
+            ["module", "group", "input", "output"].includes(inspector.item?._tag)
+        )
+        {
+            const selectedId = selector.selected_foreground[0];
+            const selectedElement = document.getElementById(selectedId);
+            main.applyComponentColorToElement(selectedElement, inspector.item);
+            network.tainted = true;
+        }
+
         const isTopGroupBackground = (
             inspector.item &&
             inspector.item._tag == "group" &&
@@ -2605,15 +2619,18 @@ const inspector =
         }
     
         const editMode = main.edit_mode;
+        const colorOptions = "red,yellow,green,blue,purple,pink,white,black";
         const commonDataRow = [
             {'name': 'name', 'control': 'textedit', 'type': 'source'},
-            {'name': 'color', 'control': 'textedit', 'type': 'source'}
+            {'name': 'color', 'control': 'menu', 'type': 'source', 'options': colorOptions}
         ];
     
         switch (item._tag) {
             case "module":
                 inspector.addHeader("MODULE");
                 if (editMode) {
+                    if(!item.color)
+                        item.color = "black";
                     inspector.addDataRows(item, commonDataRow, inspector);
                     const moduleClassMenu = inspector.addMenu("class", item.class, network.classes);
                     const applyModuleClass = function () {
@@ -2640,6 +2657,8 @@ const inspector =
             case "group":
                 inspector.addHeader("GROUP");
                 if (editMode) {
+                    if(!item.color)
+                        item.color = "black";
                     inspector.addDataRows(item, commonDataRow, inspector);
                 } else {
                     inspector.addAttributeValue("name", item.name);
@@ -2649,6 +2668,8 @@ const inspector =
             case "input":
                 inspector.addHeader("INPUT");
                 if (editMode) {
+                    if(!item.color)
+                        item.color = "black";
                     inspector.addDataRows(item, commonDataRow, inspector);
                 } else {
                     inspector.addAttributeValue("name", item.name);
@@ -2658,6 +2679,8 @@ const inspector =
             case "output":
                 inspector.addHeader("OUTPUT");
                 if (editMode) {
+                    if(!item.color)
+                        item.color = "black";
                     inspector.addDataRows(item, commonDataRow, inspector);
                 } else {
                     inspector.addAttributeValue("name", item.name);
@@ -3180,6 +3203,7 @@ const main =
             <button type="button" class="main-context-menu-item" data-color="green">green</button>
             <button type="button" class="main-context-menu-item" data-color="blue">blue</button>
             <button type="button" class="main-context-menu-item" data-color="purple">purple</button>
+            <button type="button" class="main-context-menu-item" data-color="pink">pink</button>
             <button type="button" class="main-context-menu-item" data-color="white">white</button>
             <button type="button" class="main-context-menu-item" data-color="black">black</button>
         `;
@@ -4865,15 +4889,17 @@ const main =
         const colorName = component.color.trim().toLowerCase();
         if(colorName === "")
             return null;
+        if(colorName === "black")
+            return null;
 
         const palettes = {
-            red:    { bg:"#512525", titleBg:"#6a2f2f", rowBg:"#7a3b3b", classBg:"#5b2a2a", separator:"#8f5555", titleFg:"#f8eaea", rowFg:"#f1d8d8" },
-            yellow: { bg:"#5a5224", titleBg:"#72662c", rowBg:"#857638", classBg:"#665c28", separator:"#9d8c4a", titleFg:"#fff8dc", rowFg:"#f4efc8" },
+            red:    { bg:"#5e1a1a", titleBg:"#7a2020", rowBg:"#9a2b2b", classBg:"#8a2525", separator:"#a74747", titleFg:"#ffecec", rowFg:"#ffdede" },
+            yellow: { bg:"#aa9445", titleBg:"#9b7f32", rowBg:"#fff79a", classBg:"#b28c39", separator:"#d8d08b", border:"#333333", titleFg:"#fff7d6", rowFg:"#2b2b2b" },
             green:  { bg:"#234426", titleBg:"#2d5a31", rowBg:"#397241", classBg:"#2a522e", separator:"#4f8d58", titleFg:"#e6f5e7", rowFg:"#d5ecd7" },
             blue:   { bg:"#233a5b", titleBg:"#2c4b73", rowBg:"#375f8f", classBg:"#294864", separator:"#4a78a6", titleFg:"#e8f0ff", rowFg:"#dbe8ff" },
             purple: { bg:"#3f2a55", titleBg:"#51356d", rowBg:"#66458a", classBg:"#4a3164", separator:"#7d58a6", titleFg:"#f1e9ff", rowFg:"#e5d8fb" },
-            white:  { bg:"#d8d8d8", titleBg:"#ebebeb", rowBg:"#f4f4f4", classBg:"#dfdfdf", separator:"#c3c3c3", titleFg:"#222222", rowFg:"#333333" },
-            black:  { bg:"#111111", titleBg:"#1a1a1a", rowBg:"#2a2a2a", classBg:"#202020", separator:"#444444", titleFg:"#f0f0f0", rowFg:"#dcdcdc" }
+            pink:   { bg:"#8c4f71", titleBg:"#a65f86", rowBg:"#e6a8ca", classBg:"#cb7faa", separator:"#b27398", titleFg:"#fff4fa", rowFg:"#ffe8f3" },
+            white:  { bg:"#d8d8d8", titleBg:"#ebebeb", rowBg:"#f4f4f4", classBg:"#dfdfdf", separator:"#c3c3c3", border:"#333333", titleFg:"#222222", rowFg:"#333333" }
         };
         return palettes[colorName] || null;
     },
@@ -4883,7 +4909,8 @@ const main =
         const p = main.getComponentColorPalette(component);
         if(!p)
             return "";
-        return `--component-bg:${p.bg};--component-title-bg:${p.titleBg};--component-row-bg:${p.rowBg};--component-class-bg:${p.classBg};--component-separator:${p.separator};--component-title-fg:${p.titleFg};--component-row-fg:${p.rowFg};`;
+        const borderVar = p.border ? `--component-border:${p.border};` : "";
+        return `--component-bg:${p.bg};--component-title-bg:${p.titleBg};--component-row-bg:${p.rowBg};--component-class-bg:${p.classBg};--component-separator:${p.separator};--component-title-fg:${p.titleFg};--component-row-fg:${p.rowFg};${borderVar}`;
     },
 
     getPositionedComponentStyle(component)
@@ -4903,6 +4930,7 @@ const main =
             "--component-row-bg",
             "--component-class-bg",
             "--component-separator",
+            "--component-border",
             "--component-title-fg",
             "--component-row-fg"
         ];
@@ -4917,6 +4945,10 @@ const main =
         element.style.setProperty("--component-row-bg", p.rowBg);
         element.style.setProperty("--component-class-bg", p.classBg);
         element.style.setProperty("--component-separator", p.separator);
+        if(p.border)
+            element.style.setProperty("--component-border", p.border);
+        else
+            element.style.removeProperty("--component-border");
         element.style.setProperty("--component-title-fg", p.titleFg);
         element.style.setProperty("--component-row-fg", p.rowFg);
     },
