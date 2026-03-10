@@ -467,11 +467,13 @@ namespace ikaros
         }
         catch(exception & e)
         {
-            Notify(msg_fatal_error, e.message());
+            Notify(msg_warning, e.message());
+            // FIXME:   THROW ???? 
         }
         catch(std::exception & e)
         {
-            Notify(msg_fatal_error, "ERROR: Could not resolve parameter \""s +name + "\" .", name);  
+            Notify(msg_warning, "ERROR: Could not resolve parameter \""s +name + "\" .", name);  
+            // FIXME:   THROW ???? 
         }
         return false;
     }
@@ -1265,7 +1267,7 @@ namespace ikaros
         }
         catch(const std::invalid_argument & e)
         {
-            //Notify(msg_fatal_error, e.what());
+            Notify(msg_warning, e.what());
             throw setup_error("Size expression for output \""+std::string(d.at("name")) +"\" is invalid. "+e.what(), path_);
         }
         catch(...)
@@ -1732,13 +1734,13 @@ bool operator==(Request & r, const std::string s)
         }
         catch(fatal_error & e)
         {
-            //Notify(msg_fatal_error, e.message()); // FIXME: Remove
+            Notify(msg_warning, e.message());
             throw setup_error("Could not calculate input and output sizes. "+e.message(), e.path());
         }
 
         catch(setup_error & e)
         {
-            Notify(msg_fatal_error, e.message()); // FIXME: Remove
+            Notify(msg_warning, e.message());
             throw setup_error("Could not calculate input and output sizes. "+e.message(), e.path());
         }
 
@@ -2139,6 +2141,7 @@ if(classes[classname].path.empty())
         catch(const exception& e)
         {
             Notify(msg_warning, e.what(), e.path()); // Do not exit if not in batch mode // FIXME: Check this
+            throw;
         }
     }
 
@@ -2758,12 +2761,18 @@ if(classes[classname].path.empty())
     void
     Kernel::Realtime()
     {
-        if(needs_reload)
-            LoadFile();
-     
-        Pause();
-        timer.Continue(); 
-        run_mode = run_mode_realtime;
+        try {
+            if(needs_reload)
+                LoadFile();
+        
+            Pause();
+            timer.Continue(); 
+            run_mode = run_mode_realtime;
+        }
+        catch(const load_failed& e)
+        {
+            Notify(msg_warning, e.what(), e.path());
+        }
     }
 
 
