@@ -674,7 +674,9 @@ const network =
             _tag: "connection",
             source: source,
             target: target,
-            delay: "1"
+            delay: "1",
+            color: "black",
+            line_type: "line"
         };
         let group = network.dict[path];
         if(group.connections == null)
@@ -706,6 +708,7 @@ const network =
         new_module.name = old_module.name;
         new_module._x = old_module._x;
         new_module._y = old_module._y;
+        new_module.color = old_module.color;
         new_module.log_level = old_module.log_level;
         // TODO: Check that all properties are in the class
         network.dict[module] = new_module;
@@ -1891,11 +1894,17 @@ const inspector =
         let s = '<select name="'+p.name+'">';
         for(let j in opts)
         {
-            let value = p.type == 'int' ? j : opts[j];
+            let optionValue = p.type == 'int' ? j : opts[j];
+            let optionLabel = opts[j];
+            let optionStyle = "";
+            if(p.option_labels && Object.prototype.hasOwnProperty.call(p.option_labels, optionValue))
+                optionLabel = p.option_labels[optionValue];
+            if(p.option_styles && Object.prototype.hasOwnProperty.call(p.option_styles, optionValue))
+                optionStyle = ` style="${p.option_styles[optionValue]}"`;
             if(opts[j] == item[p.name])
-                s += '<option value="'+value+'" selected >'+opts[j]+'</option>';
+                s += '<option value="'+optionValue+'" selected'+optionStyle+'>'+optionLabel+'</option>';
             else
-                s += '<option value="'+value+'">'+opts[j]+'</option>';
+                s += '<option value="'+optionValue+'"'+optionStyle+'>'+optionLabel+'</option>';
         }
         s += '</select>';
         cell2.innerHTML= s;
@@ -2619,10 +2628,27 @@ const inspector =
         }
     
         const editMode = main.edit_mode;
-        const colorOptions = "red,yellow,green,blue,purple,pink,white,black";
+        const colorOptions = "red,orange,yellow,green,blue,purple,pink,white,black";
+        const colorOptionLabels = {
+            red: "&#x1F7E5; red",
+            orange: "&#x1F7E7; orange",
+            yellow: "&#x1F7E8; yellow",
+            green: "&#x1F7E9; green",
+            blue: "&#x1F7E6; blue",
+            purple: "&#x1F7EA; purple",
+            pink: "&#x25A3; pink",
+            white: "&#x2B1C; white",
+            black: "&#x2B1B; black"
+        };
         const commonDataRow = [
             {'name': 'name', 'control': 'textedit', 'type': 'source'},
-            {'name': 'color', 'control': 'menu', 'type': 'source', 'options': colorOptions}
+            {'name': 'color', 'control': 'menu', 'type': 'source', 'options': colorOptions, 'option_labels': colorOptionLabels}
+        ];
+        const nameOnlyDataRow = [
+            {'name': 'name', 'control': 'textedit', 'type': 'source'}
+        ];
+        const colorOnlyDataRow = [
+            {'name': 'color', 'control': 'menu', 'type': 'source', 'options': colorOptions, 'option_labels': colorOptionLabels}
         ];
     
         switch (item._tag) {
@@ -2631,7 +2657,7 @@ const inspector =
                 if (editMode) {
                     if(!item.color)
                         item.color = "black";
-                    inspector.addDataRows(item, commonDataRow, inspector);
+                    inspector.addDataRows(item, nameOnlyDataRow, inspector);
                     const moduleClassMenu = inspector.addMenu("class", item.class, network.classes);
                     const applyModuleClass = function () {
                         network.changeModuleClass(c, this.value);
@@ -2639,6 +2665,7 @@ const inspector =
                     };
                     moduleClassMenu.addEventListener('input', applyModuleClass);
                     moduleClassMenu.addEventListener('change', applyModuleClass);
+                    inspector.addDataRows(item, colorOnlyDataRow, inspector);
 
                     const template = item.parameters || [];
                     for (let key in template) {
@@ -2726,12 +2753,42 @@ const inspector =
 
             if(main.edit_mode)
             {
+                if(!item.color)
+                    item.color = "black";
+                if(!item.line_type)
+                    item.line_type = "line";
                 inspector.addDataRows(item, 
                 [
                     {'name':'source_range', 'control':'textedit', 'type':'range'},
                     {'name':'target_range', 'control':'textedit', 'type':'range'},
                     {'name':'delay', 'control':'textedit', 'type':'delay'},
                     {'name':'alias', 'control':'textedit', 'type':'source'}     
+                ], this);
+                inspector.addDataRows(item,
+                [
+                    {
+                        'name':'color',
+                        'control':'menu',
+                        'type':'source',
+                        'options':'red,orange,yellow,green,blue,purple,pink,white,black',
+                        'option_labels':{
+                            red: "&#x1F7E5; red",
+                            orange: "&#x1F7E7; orange",
+                            yellow: "&#x1F7E8; yellow",
+                            green: "&#x1F7E9; green",
+                            blue: "&#x1F7E6; blue",
+                            purple: "&#x1F7EA; purple",
+                            pink: "&#x25A3; pink",
+                            white: "&#x2B1C; white",
+                            black: "&#x2B1B; black"
+                        }
+                    },
+                    {
+                        'name':'line_type',
+                        'control':'menu',
+                        'type':'source',
+                        'options':'line,orthogonal,spline'
+                    }
                 ], this);
             }
             else
@@ -3152,8 +3209,15 @@ const main =
             }
         }, true);
 
-        document.addEventListener("scroll", function()
+        document.addEventListener("scroll", function(evt)
         {
+            const target = evt ? evt.target : null;
+            if(
+                target &&
+                target.closest &&
+                target.closest(".main-context-menu")
+            )
+                return;
             main.hideContextMenu();
             main.hideComponentColorMenu();
         }, true);
@@ -3198,17 +3262,29 @@ const main =
         const menu = document.createElement("div");
         menu.className = "main-context-menu";
         menu.innerHTML = `
-            <button type="button" class="main-context-menu-item" data-color="red">red</button>
-            <button type="button" class="main-context-menu-item" data-color="yellow">yellow</button>
-            <button type="button" class="main-context-menu-item" data-color="green">green</button>
-            <button type="button" class="main-context-menu-item" data-color="blue">blue</button>
-            <button type="button" class="main-context-menu-item" data-color="purple">purple</button>
-            <button type="button" class="main-context-menu-item" data-color="pink">pink</button>
-            <button type="button" class="main-context-menu-item" data-color="white">white</button>
-            <button type="button" class="main-context-menu-item" data-color="black">black</button>
+            <div class="main-context-submenu component-class-submenu">
+                <button type="button" class="main-context-menu-item main-context-submenu-trigger">class</button>
+                <div class="main-context-submenu-panel main-context-class-submenu-panel" role="menu" aria-label="Class"></div>
+            </div>
+            <div class="main-context-submenu">
+                <button type="button" class="main-context-menu-item main-context-submenu-trigger">color</button>
+                <div class="main-context-submenu-panel" role="menu" aria-label="Color">
+                    <button type="button" class="main-context-color-swatch" data-color="red" title="red" aria-label="red"><span class="main-context-color-chip" style="background:#d84a4a"></span></button>
+                    <button type="button" class="main-context-color-swatch" data-color="orange" title="orange" aria-label="orange"><span class="main-context-color-chip" style="background:#e58e3a"></span></button>
+                    <button type="button" class="main-context-color-swatch" data-color="yellow" title="yellow" aria-label="yellow"><span class="main-context-color-chip" style="background:#efe26a"></span></button>
+                    <button type="button" class="main-context-color-swatch" data-color="green" title="green" aria-label="green"><span class="main-context-color-chip" style="background:#58a663"></span></button>
+                    <button type="button" class="main-context-color-swatch" data-color="blue" title="blue" aria-label="blue"><span class="main-context-color-chip" style="background:#4f79c8"></span></button>
+                    <button type="button" class="main-context-color-swatch" data-color="purple" title="purple" aria-label="purple"><span class="main-context-color-chip" style="background:#7f59b3"></span></button>
+                    <button type="button" class="main-context-color-swatch" data-color="pink" title="pink" aria-label="pink"><span class="main-context-color-chip" style="background:#d77db2"></span></button>
+                    <button type="button" class="main-context-color-swatch" data-color="white" title="white" aria-label="white"><span class="main-context-color-chip" style="background:#f5f5f5"></span></button>
+                    <button type="button" class="main-context-color-swatch" data-color="black" title="black" aria-label="black"><span class="main-context-color-chip" style="background:#1a1a1a"></span></button>
+                </div>
+            </div>
         `;
         document.body.appendChild(menu);
         main.component_color_menu = menu;
+        main.component_class_submenu = menu.querySelector(".component-class-submenu");
+        main.component_class_submenu_panel = menu.querySelector(".main-context-class-submenu-panel");
 
         menu.addEventListener("mousedown", function(evt)
         {
@@ -3217,7 +3293,16 @@ const main =
 
         menu.addEventListener("click", function(evt)
         {
-            const button = evt.target.closest(".main-context-menu-item");
+            const classButton = evt.target.closest(".main-context-class-item");
+            if(classButton)
+            {
+                main.setComponentClass(classButton.dataset.className || "");
+                main.hideComponentColorMenu();
+                evt.preventDefault();
+                evt.stopPropagation();
+                return;
+            }
+            const button = evt.target.closest(".main-context-color-swatch");
             if(!button)
                 return;
             main.setComponentColor(button.dataset.color || "");
@@ -3252,13 +3337,24 @@ const main =
         return fullName;
     },
 
-    showComponentColorMenuAt(clientX, clientY, componentFullName)
+    showComponentColorMenuAt(clientX, clientY, componentFullName, preferredSubmenu="color")
     {
         if(!main.component_color_menu || !componentFullName)
             return;
 
         main.hideContextMenu();
+        main.populateComponentClassSubmenu(componentFullName);
         main.component_color_target = componentFullName;
+        if(preferredSubmenu === "class")
+        {
+            main.component_color_menu.classList.add("open-class-submenu");
+            main.component_color_menu.classList.add("open-class-only");
+        }
+        else
+        {
+            main.component_color_menu.classList.remove("open-class-submenu");
+            main.component_color_menu.classList.remove("open-class-only");
+        }
         main.component_color_menu.style.display = "block";
 
         const rect = main.component_color_menu.getBoundingClientRect();
@@ -3276,6 +3372,8 @@ const main =
         if(!main.component_color_menu)
             return;
         main.component_color_menu.style.display = "none";
+        main.component_color_menu.classList.remove("open-class-submenu");
+        main.component_color_menu.classList.remove("open-class-only");
         main.component_color_menu_visible = false;
         main.component_color_target = null;
     },
@@ -3293,6 +3391,80 @@ const main =
         if(inspector && typeof inspector.showInspectorForSelection === "function")
             inspector.showInspectorForSelection();
         network.tainted = true;
+    },
+
+    populateComponentClassSubmenu(componentFullName)
+    {
+        if(!main.component_class_submenu || !main.component_class_submenu_panel)
+            return;
+
+        const item = network.dict[componentFullName];
+        if(!item || item._tag !== "module" || !Array.isArray(network.classes) || network.classes.length === 0)
+        {
+            main.component_class_submenu.style.display = "none";
+            main.component_class_submenu_panel.innerHTML = "";
+            return;
+        }
+
+        main.component_class_submenu.style.display = "";
+        main.component_class_submenu_panel.innerHTML = "";
+        for(const className of network.classes)
+        {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = "main-context-class-item";
+            if(className === item.class)
+                b.classList.add("selected");
+            b.dataset.className = className;
+            b.textContent = className;
+            main.component_class_submenu_panel.appendChild(b);
+        }
+    },
+
+    setComponentClass(className)
+    {
+        const fullName = main.component_color_target;
+        if(!fullName || !className)
+            return;
+        const item = network.dict[fullName];
+        if(!item || item._tag !== "module")
+            return;
+
+        network.changeModuleClass(fullName, className);
+        selector.selectItems([fullName], null, false, false, true);
+        network.tainted = true;
+    },
+
+    openComponentColorMenuFromButton(evt)
+    {
+        if(!main.edit_mode)
+            return;
+        evt.preventDefault();
+        evt.stopPropagation();
+        const button = evt.currentTarget || evt.target.closest(".module-title-menu-button");
+        if(!button)
+            return;
+        const fullName = button.dataset.component || (button.closest(".gi") ? button.closest(".gi").dataset.name : null);
+        if(!fullName)
+            return;
+        const r = button.getBoundingClientRect();
+        main.showComponentColorMenuAt(r.right + 2, r.top, fullName, "color");
+    },
+
+    openComponentClassMenuFromButton(evt)
+    {
+        if(!main.edit_mode)
+            return;
+        evt.preventDefault();
+        evt.stopPropagation();
+        const button = evt.currentTarget || evt.target.closest(".module-class-menu-button");
+        if(!button)
+            return;
+        const fullName = button.dataset.component || (button.closest(".gi.module") ? button.closest(".gi.module").dataset.name : null);
+        if(!fullName)
+            return;
+        const r = button.getBoundingClientRect();
+        main.showComponentColorMenuAt(r.right + 2, r.top, fullName, "class");
     },
 
     getSnappedBackgroundPositionFromEvent(evt)
@@ -3313,12 +3485,16 @@ const main =
         if(!main.edit_mode)
             return;
 
+        const isModuleTitleRow = !!(evt.target && evt.target.closest && evt.target.closest(".gi.module td.title"));
+        if(isModuleTitleRow)
+            return;
+
         const colorTarget = main.getComponentColorTargetFromElement(evt.target);
         if(colorTarget)
         {
             evt.preventDefault();
             evt.stopPropagation();
-            main.showComponentColorMenuAt(evt.clientX, evt.clientY, colorTarget);
+            main.showComponentColorMenuAt(evt.clientX, evt.clientY, colorTarget, "color");
             return;
         }
 
@@ -4894,6 +5070,7 @@ const main =
 
         const palettes = {
             red:    { bg:"#5e1a1a", titleBg:"#7a2020", rowBg:"#9a2b2b", classBg:"#8a2525", separator:"#a74747", titleFg:"#ffecec", rowFg:"#ffdede" },
+            orange: { bg:"#8b4a1f", titleBg:"#a85a24", rowBg:"#cf7d3f", classBg:"#b8672d", separator:"#c98958", titleFg:"#fff2e8", rowFg:"#ffe6d2" },
             yellow: { bg:"#aa9445", titleBg:"#9b7f32", rowBg:"#fff79a", classBg:"#b28c39", separator:"#d8d08b", border:"#333333", titleFg:"#fff7d6", rowFg:"#2b2b2b" },
             green:  { bg:"#234426", titleBg:"#2d5a31", rowBg:"#397241", classBg:"#2a522e", separator:"#4f8d58", titleFg:"#e6f5e7", rowFg:"#d5ecd7" },
             blue:   { bg:"#233a5b", titleBg:"#2c4b73", rowBg:"#375f8f", classBg:"#294864", separator:"#4a78a6", titleFg:"#e8f0ff", rowFg:"#dbe8ff" },
@@ -4953,6 +5130,26 @@ const main =
         element.style.setProperty("--component-row-fg", p.rowFg);
     },
 
+    getConnectionColorValue(connection)
+    {
+        if(!connection || typeof connection.color !== "string")
+            return "";
+        const c = connection.color.trim().toLowerCase();
+        if(c === "" || c === "black")
+            return "";
+        const map = {
+            red: "#c43a3a",
+            orange: "#d57c2f",
+            yellow: "#b7a22d",
+            green: "#3f8c49",
+            blue: "#3f69b7",
+            purple: "#7551ad",
+            pink: "#c06aa0",
+            white: "#efefef"
+        };
+        return map[c] || connection.color;
+    },
+
     addGroup(g,path)
         {
         const fullName = `${path}.${g.name}`;
@@ -4990,9 +5187,9 @@ const main =
          let s = "";
          s += `<div class='gi module' style='${main.getPositionedComponentStyle(m)}'   id='${path}.${m.name}' data-name='${path}.${m.name}'>`;
          s += `<table>`;
-         s += `<tr><td class='title' colspan='3'>${m.name}</td></tr>`;
+         s += `<tr><td class='title' colspan='3'>${m.name}<button type='button' class='module-title-menu-button' aria-label='Module menu' title='Module menu' data-component='${path}.${m.name}'>&#9776;</button></td></tr>`;
 
-             s += `<tr><td  colspan='3' class='class_line'>${m.class}</td></tr>`;
+             s += `<tr><td  colspan='3' class='class_line'>${m.class}<button type='button' class='module-class-menu-button' aria-label='Class menu' title='Class menu' data-component='${path}.${m.name}'>&#9776;</button></td></tr>`;
   
         for(let i of m.inputs || [])
             s += `<tr><td class='input'><div class='i_spot' id='${path}.${m.name}.${i.name}:in' onclick='alert(this.id)'></div></td ><td>${i.name}</td><td class='output'></td></tr>`;
@@ -5084,7 +5281,29 @@ const main =
         const y1 = source_point.getBoundingClientRect().top-oy+4.5;
         const x2 = target_point.getBoundingClientRect().left-ox+4.5;
         const y2 = target_point.getBoundingClientRect().top-oy+4.5;
-        const cc = `<line x1='${x1}' y1='${y1}' x2='${x2}' y2='${y2}' class='connection_line' data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`; 
+        const connectionColor = main.getConnectionColorValue(c);
+        const styleAttr = connectionColor ? ` style="--connection-color:${connectionColor};"` : "";
+        const lineType = (c.line_type || "line").toLowerCase();
+        let cc = "";
+        if(lineType === "orthogonal")
+        {
+            const mx = Math.round((x1 + x2) / 2);
+            const points = `${x1},${y1} ${mx},${y1} ${mx},${y2} ${x2},${y2}`;
+            cc = `<polyline points='${points}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`;
+        }
+        else if(lineType === "spline")
+        {
+            const dx = Math.abs(x2 - x1);
+            const bend = Math.max(24, Math.round(dx * 0.5));
+            const c1x = x1 + bend;
+            const c1y = y1;
+            const c2x = x2 - bend;
+            const c2y = y2;
+            const d = `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
+            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`;
+        }
+        else
+            cc = `<line x1='${x1}' y1='${y1}' x2='${x2}' y2='${y2}' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`;
         main.connections += cc;
     },
 
@@ -5195,6 +5414,11 @@ const main =
                 i.addEventListener('mouseover', main.setConnectectionTarget, true);
                 i.addEventListener('mouseleave', main.resetConnectectionTarget, true);
             }
+
+            for(const b of main.view.querySelectorAll(".module-title-menu-button"))
+                b.addEventListener('mousedown', main.openComponentColorMenuFromButton, false);
+            for(const b of main.view.querySelectorAll(".module-class-menu-button"))
+                b.addEventListener('mousedown', main.openComponentClassMenuFromButton, false);
         }
         else // View mode
         {
