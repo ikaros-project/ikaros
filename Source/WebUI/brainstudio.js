@@ -2605,7 +2605,10 @@ const inspector =
         }
     
         const editMode = main.edit_mode;
-        const commonDataRow = [{'name': 'name', 'control': 'textedit', 'type': 'source'}];
+        const commonDataRow = [
+            {'name': 'name', 'control': 'textedit', 'type': 'source'},
+            {'name': 'color', 'control': 'textedit', 'type': 'source'}
+        ];
     
         switch (item._tag) {
             case "module":
@@ -3068,9 +3071,270 @@ const main =
         main.view = document.querySelector("#main_view");
         main.grid = document.querySelector("#main_grid");
         main.grid_canvas = document.querySelector("#main_grid_canvas");
+        main.createContextMenu();
+        main.createComponentColorMenu();
         main.drawGrid();
         window.addEventListener("resize", main.drawGrid, false);
         main.view.addEventListener("mousedown", main.startBackgroundSelection, false);
+        main.view.addEventListener("contextmenu", main.showBackgroundContextMenu, false);
+    },
+
+    createContextMenu()
+    {
+        if(main.context_menu && main.context_menu.parentElement)
+            return;
+
+        const menu = document.createElement("div");
+        menu.className = "main-context-menu";
+        menu.innerHTML = `
+            <button type="button" class="main-context-menu-item" data-choice="Module">Module</button>
+            <button type="button" class="main-context-menu-item" data-choice="Group">Group</button>
+            <button type="button" class="main-context-menu-item" data-choice="Input">Input</button>
+            <button type="button" class="main-context-menu-item" data-choice="Output">Output</button>
+            <button type="button" class="main-context-menu-item" data-choice="Widget">Widget</button>
+        `;
+        document.body.appendChild(menu);
+        main.context_menu = menu;
+
+        menu.addEventListener("mousedown", function(evt)
+        {
+            evt.stopPropagation();
+        }, true);
+
+        menu.addEventListener("click", function(evt)
+        {
+            const button = evt.target.closest(".main-context-menu-item");
+            if(!button)
+                return;
+            main.onContextMenuChoice(button.dataset.choice || "");
+            main.hideContextMenu();
+            evt.preventDefault();
+            evt.stopPropagation();
+        }, false);
+
+        document.addEventListener("mousedown", function(evt)
+        {
+            if(main.context_menu_visible && main.context_menu && !main.context_menu.contains(evt.target))
+                main.hideContextMenu();
+            if(main.component_color_menu_visible && main.component_color_menu && !main.component_color_menu.contains(evt.target))
+                main.hideComponentColorMenu();
+        }, true);
+
+        document.addEventListener("keydown", function(evt)
+        {
+            if(evt.key === "Escape")
+            {
+                main.hideContextMenu();
+                main.hideComponentColorMenu();
+            }
+        }, true);
+
+        document.addEventListener("scroll", function()
+        {
+            main.hideContextMenu();
+            main.hideComponentColorMenu();
+        }, true);
+
+        window.addEventListener("blur", function()
+        {
+            main.hideContextMenu();
+            main.hideComponentColorMenu();
+        }, false);
+    },
+
+    showContextMenuAt(clientX, clientY)
+    {
+        if(!main.context_menu)
+            return;
+
+        main.hideComponentColorMenu();
+        main.context_menu.style.display = "block";
+        const rect = main.context_menu.getBoundingClientRect();
+        const maxLeft = Math.max(0, window.innerWidth - rect.width - 4);
+        const maxTop = Math.max(0, window.innerHeight - rect.height - 4);
+        const left = Math.max(0, Math.min(clientX, maxLeft));
+        const top = Math.max(0, Math.min(clientY, maxTop));
+        main.context_menu.style.left = `${left}px`;
+        main.context_menu.style.top = `${top}px`;
+        main.context_menu_visible = true;
+    },
+
+    hideContextMenu()
+    {
+        if(!main.context_menu)
+            return;
+        main.context_menu.style.display = "none";
+        main.context_menu_visible = false;
+    },
+
+    createComponentColorMenu()
+    {
+        if(main.component_color_menu && main.component_color_menu.parentElement)
+            return;
+
+        const menu = document.createElement("div");
+        menu.className = "main-context-menu";
+        menu.innerHTML = `
+            <button type="button" class="main-context-menu-item" data-color="red">red</button>
+            <button type="button" class="main-context-menu-item" data-color="yellow">yellow</button>
+            <button type="button" class="main-context-menu-item" data-color="green">green</button>
+            <button type="button" class="main-context-menu-item" data-color="blue">blue</button>
+            <button type="button" class="main-context-menu-item" data-color="purple">purple</button>
+            <button type="button" class="main-context-menu-item" data-color="white">white</button>
+            <button type="button" class="main-context-menu-item" data-color="black">black</button>
+        `;
+        document.body.appendChild(menu);
+        main.component_color_menu = menu;
+
+        menu.addEventListener("mousedown", function(evt)
+        {
+            evt.stopPropagation();
+        }, true);
+
+        menu.addEventListener("click", function(evt)
+        {
+            const button = evt.target.closest(".main-context-menu-item");
+            if(!button)
+                return;
+            main.setComponentColor(button.dataset.color || "");
+            main.hideComponentColorMenu();
+            evt.preventDefault();
+            evt.stopPropagation();
+        }, false);
+    },
+
+    getComponentColorTargetFromElement(element)
+    {
+        if(!element || !element.closest)
+            return null;
+
+        let gi = null;
+        const titleCell = element.closest("td.title");
+        if(titleCell)
+            gi = titleCell.closest(".gi");
+        else
+            gi = element.closest(".group_input, .group_output");
+
+        if(!gi || !gi.dataset || !gi.dataset.name)
+            return null;
+
+        const fullName = gi.dataset.name;
+        const item = network.dict[fullName];
+        if(!item)
+            return null;
+        if(!["module", "group", "input", "output"].includes(item._tag))
+            return null;
+
+        return fullName;
+    },
+
+    showComponentColorMenuAt(clientX, clientY, componentFullName)
+    {
+        if(!main.component_color_menu || !componentFullName)
+            return;
+
+        main.hideContextMenu();
+        main.component_color_target = componentFullName;
+        main.component_color_menu.style.display = "block";
+
+        const rect = main.component_color_menu.getBoundingClientRect();
+        const maxLeft = Math.max(0, window.innerWidth - rect.width - 4);
+        const maxTop = Math.max(0, window.innerHeight - rect.height - 4);
+        const left = Math.max(0, Math.min(clientX, maxLeft));
+        const top = Math.max(0, Math.min(clientY, maxTop));
+        main.component_color_menu.style.left = `${left}px`;
+        main.component_color_menu.style.top = `${top}px`;
+        main.component_color_menu_visible = true;
+    },
+
+    hideComponentColorMenu()
+    {
+        if(!main.component_color_menu)
+            return;
+        main.component_color_menu.style.display = "none";
+        main.component_color_menu_visible = false;
+        main.component_color_target = null;
+    },
+
+    setComponentColor(color)
+    {
+        const fullName = main.component_color_target;
+        if(!fullName || !color)
+            return;
+        const item = network.dict[fullName];
+        if(!item || !["module", "group", "input", "output"].includes(item._tag))
+            return;
+        item.color = color;
+        main.applyComponentColorToElement(document.getElementById(fullName), item);
+        if(inspector && typeof inspector.showInspectorForSelection === "function")
+            inspector.showInspectorForSelection();
+        network.tainted = true;
+    },
+
+    getSnappedBackgroundPositionFromEvent(evt)
+    {
+        const viewRect = main.view.getBoundingClientRect();
+        let x = evt.clientX - viewRect.left;
+        let y = evt.clientY - viewRect.top;
+        if(x < 0) x = 0;
+        if(y < 0) y = 0;
+        const g = main.grid_spacing || 1;
+        x = g * Math.round(x / g);
+        y = g * Math.round(y / g);
+        return {x, y};
+    },
+
+    showBackgroundContextMenu(evt)
+    {
+        if(!main.edit_mode)
+            return;
+
+        const colorTarget = main.getComponentColorTargetFromElement(evt.target);
+        if(colorTarget)
+        {
+            evt.preventDefault();
+            evt.stopPropagation();
+            main.showComponentColorMenuAt(evt.clientX, evt.clientY, colorTarget);
+            return;
+        }
+
+        if(evt.target !== main.view)
+            return;
+
+        evt.preventDefault();
+        evt.stopPropagation();
+        main.context_menu_position = main.getSnappedBackgroundPositionFromEvent(evt);
+        main.showContextMenuAt(evt.clientX, evt.clientY);
+    },
+
+    onContextMenuChoice(choice)
+    {
+        if(main.context_menu_position)
+        {
+            main.new_position_x = main.context_menu_position.x;
+            main.new_position_y = main.context_menu_position.y;
+        }
+
+        switch(choice)
+        {
+            case "Module":
+                main.newModule();
+                break;
+            case "Group":
+                main.newGroup();
+                break;
+            case "Input":
+                main.newInput();
+                break;
+            case "Output":
+                main.newOutput();
+                break;
+            case "Widget":
+                main.newWidget();
+                break;
+        }
+
+        main.context_menu_position = null;
     },
 
     ensureSelectionBox()
@@ -3085,6 +3349,8 @@ const main =
 
     startBackgroundSelection(evt)
     {
+        main.hideContextMenu();
+        main.hideComponentColorMenu();
         if(evt.button !== 0)
             return;
         if(evt.target !== main.view)
@@ -3890,6 +4156,7 @@ const main =
         {
             name:name,
             class:"Module",
+            color:"",
             log_level: 0,
             _tag:"module",
             _x:main.new_position_x,
@@ -3919,6 +4186,7 @@ const main =
         const m =
         {
             name:name,
+            color:"",
             _tag:"group",
             _x:main.new_position_x,
             _y:main.new_position_y,
@@ -3951,6 +4219,7 @@ const main =
         const m =
         {
             name:name,
+            color:"",
             _tag:"input",
             _x:main.new_position_x,
             _y:main.new_position_y
@@ -3975,6 +4244,7 @@ const main =
         const m =
         {
             name:name,
+            color:"",
             //size:"1",
             _tag:"output",
             _x:main.new_position_x,
@@ -3997,6 +4267,7 @@ const main =
     newWidget()
     {
         const name = network.uniqueID("Widget_");
+        const defaultWidgetSize = main.grid_spacing * 8 + 1;
         const w = {
             "_tag": "widget",
             "name": name,
@@ -4004,8 +4275,8 @@ const main =
             "class": "bar-graph",
             _x:main.new_position_x,
             _y:main.new_position_y,
-            width: 200,
-            height: 200
+            width: defaultWidgetSize,
+            height: defaultWidgetSize
         };
         const full_name = selector.selected_background+'.'+name;
 
@@ -4586,11 +4857,75 @@ const main =
         this.style.backgroundColor="";
     },
 
+    getComponentColorPalette(component)
+    {
+        if(!component || typeof component.color !== "string")
+            return null;
+
+        const colorName = component.color.trim().toLowerCase();
+        if(colorName === "")
+            return null;
+
+        const palettes = {
+            red:    { bg:"#512525", titleBg:"#6a2f2f", rowBg:"#7a3b3b", classBg:"#5b2a2a", separator:"#8f5555", titleFg:"#f8eaea", rowFg:"#f1d8d8" },
+            yellow: { bg:"#5a5224", titleBg:"#72662c", rowBg:"#857638", classBg:"#665c28", separator:"#9d8c4a", titleFg:"#fff8dc", rowFg:"#f4efc8" },
+            green:  { bg:"#234426", titleBg:"#2d5a31", rowBg:"#397241", classBg:"#2a522e", separator:"#4f8d58", titleFg:"#e6f5e7", rowFg:"#d5ecd7" },
+            blue:   { bg:"#233a5b", titleBg:"#2c4b73", rowBg:"#375f8f", classBg:"#294864", separator:"#4a78a6", titleFg:"#e8f0ff", rowFg:"#dbe8ff" },
+            purple: { bg:"#3f2a55", titleBg:"#51356d", rowBg:"#66458a", classBg:"#4a3164", separator:"#7d58a6", titleFg:"#f1e9ff", rowFg:"#e5d8fb" },
+            white:  { bg:"#d8d8d8", titleBg:"#ebebeb", rowBg:"#f4f4f4", classBg:"#dfdfdf", separator:"#c3c3c3", titleFg:"#222222", rowFg:"#333333" },
+            black:  { bg:"#111111", titleBg:"#1a1a1a", rowBg:"#2a2a2a", classBg:"#202020", separator:"#444444", titleFg:"#f0f0f0", rowFg:"#dcdcdc" }
+        };
+        return palettes[colorName] || null;
+    },
+
+    getComponentStyleVars(component)
+    {
+        const p = main.getComponentColorPalette(component);
+        if(!p)
+            return "";
+        return `--component-bg:${p.bg};--component-title-bg:${p.titleBg};--component-row-bg:${p.rowBg};--component-class-bg:${p.classBg};--component-separator:${p.separator};--component-title-fg:${p.titleFg};--component-row-fg:${p.rowFg};`;
+    },
+
+    getPositionedComponentStyle(component)
+    {
+        const vars = main.getComponentStyleVars(component);
+        return `top:${component._y}px;left:${component._x}px;${vars}`;
+    },
+
+    applyComponentColorToElement(element, component)
+    {
+        if(!element)
+            return;
+        const p = main.getComponentColorPalette(component);
+        const keys = [
+            "--component-bg",
+            "--component-title-bg",
+            "--component-row-bg",
+            "--component-class-bg",
+            "--component-separator",
+            "--component-title-fg",
+            "--component-row-fg"
+        ];
+        if(!p)
+        {
+            for(const k of keys)
+                element.style.removeProperty(k);
+            return;
+        }
+        element.style.setProperty("--component-bg", p.bg);
+        element.style.setProperty("--component-title-bg", p.titleBg);
+        element.style.setProperty("--component-row-bg", p.rowBg);
+        element.style.setProperty("--component-class-bg", p.classBg);
+        element.style.setProperty("--component-separator", p.separator);
+        element.style.setProperty("--component-title-fg", p.titleFg);
+        element.style.setProperty("--component-row-fg", p.rowFg);
+    },
+
     addGroup(g,path)
         {
         const fullName = `${path}.${g.name}`;
         let s = "";
-        s += `<div class='gi module group' style='top:${g._y}px;left:${g._x}px;'  id='${fullName}' data-name='${fullName}'>`;
+        s += `<div class='gi module group' style='${main.getPositionedComponentStyle(g)}'  id='${fullName}' data-name='${fullName}'>`;
         s += `<table>`;
         s += `<tr><td class='title' colspan='3'>${g.name}</td></tr>`;
 
@@ -4607,7 +4942,7 @@ const main =
 
     addInput(i,path)
     {
-        main.view.innerHTML += `<div class='gi group_input' id='${path}.${i.name}' data-name='${path}.${i.name}' style='top:${i._y}px;left:${i._x}px;'>
+        main.view.innerHTML += `<div class='gi group_input' id='${path}.${i.name}' data-name='${path}.${i.name}' style='${main.getPositionedComponentStyle(i)}'>
         ${i.name}
         <div class='o_spot'  id='${path}.${i.name}:out'></div>
         </div>`;
@@ -4615,13 +4950,13 @@ const main =
 
     addOutput(o,path)
     {
-        main.view.innerHTML += `<div class='gi group_output'  id='${path}.${o.name}' data-name='${path}.${o.name}'  style='top:${o._y}px;left:${o._x}px;'><div class='i_spot' id='${path}.${o.name}:in'></div>${o.name}</div>`;
+        main.view.innerHTML += `<div class='gi group_output'  id='${path}.${o.name}' data-name='${path}.${o.name}'  style='${main.getPositionedComponentStyle(o)}'><div class='i_spot' id='${path}.${o.name}:in'></div>${o.name}</div>`;
     },
 
     addModule(m,path)
     {
          let s = "";
-         s += `<div class='gi module' style='top:${m._y}px;left:${m._x}px;'   id='${path}.${m.name}' data-name='${path}.${m.name}'>`;
+         s += `<div class='gi module' style='${main.getPositionedComponentStyle(m)}'   id='${path}.${m.name}' data-name='${path}.${m.name}'>`;
          s += `<table>`;
          s += `<tr><td class='title' colspan='3'>${m.name}</td></tr>`;
 

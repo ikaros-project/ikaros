@@ -577,7 +577,7 @@ td {
     padding-left: 20px;
     padding-right: 5px;
     color: #b0b0b0;
-    font-size: 10pt;
+    font-size: 9pt; /* Main variable for setting component size */
 /*    font-weight: bold; */
     width: 100px;
     text-align: left;
@@ -1487,9 +1487,9 @@ div.module {
     position: absolute;
     /* z-index: 200; */
     overflow: hidden;
-    background-color: #383838;
+    background-color: var(--component-bg, #383838);
     /* border:2px solid #00000000; */
-    color: yellow;
+    color: var(--component-title-fg, yellow);
     /*font-size: 12px;
     cursor: move;*/
     text-align: center;
@@ -1503,9 +1503,9 @@ div.module td {
     width: auto;
     padding-left: 5px;
     padding-right: 5px;
-    border-top: 1px solid #888888;
-    color:#ddd;
-    background-color: #535353;
+    border-top: 1px solid var(--component-separator, #888888);
+    color: var(--component-row-fg, #ddd);
+    background-color: var(--component-row-bg, #535353);
     cursor:default;
 }
 
@@ -1513,7 +1513,7 @@ div.module td.title {
     text-align: center;
     padding-right: 20px;
     padding-left:20px;
-    background-color: #383838;
+    background-color: var(--component-title-bg, #383838);
 }
 
 div.module tr:last-child td {
@@ -1531,7 +1531,7 @@ div.module td.output {
 }
 .module .title {
     border-top: none;
-    color:#f2f0f0;
+    color: var(--component-title-fg, #f2f0f0);
     /* background-color: #5a5a5a; */
 }
 
@@ -1577,6 +1577,39 @@ svg *{
     pointer-events:auto;
   }
 
+.main-context-menu {
+    position: fixed;
+    display: none;
+    min-width: 120px;
+    padding: 4px;
+    border: 1px solid #777;
+    border-radius: 6px;
+    background: #f2f2f2;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+    z-index: 6000;
+}
+
+.main-context-menu-item {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: #222;
+    text-align: left;
+    cursor: default;
+}
+
+.main-context-menu-item:hover {
+    background: #d9e8ff;
+}
+
+.main-context-menu-item:active {
+    background: #b7d3ff;
+}
+
 .connection_line {
     stroke:darkgray;
     stroke-width:3;
@@ -1621,11 +1654,11 @@ svg *{
     padding-left:16px;
     padding-bottom: 2px;
     width: auto;
-    color:#e2e2e2;
+    color: var(--component-title-fg, #e2e2e2);
     border-radius: 14px;
     font-size: 13.33333px;
     cursor: default;
-    background-color: var(--widget-title-background);
+    background-color: var(--component-title-bg, var(--widget-title-background));
 }
 
 .group_output
@@ -1636,11 +1669,11 @@ svg *{
     padding-left:0px;
     padding-bottom: 2px;
     width: auto;
-    color:#e2e2e2;
+    color: var(--component-title-fg, #e2e2e2);
     border-radius: 14px;
     font-size: 13.33333px;
     cursor: default;
-    background-color: var(--widget-title-background);
+    background-color: var(--component-title-bg, var(--widget-title-background));
 }
 
 
@@ -1697,6 +1730,6 @@ div.module td.class_line {
     width: 100%;
     font-size:10px;
     font-style: italic;
-    background-color: #404040;
+    background-color: var(--component-class-bg, #404040);
 
 }
