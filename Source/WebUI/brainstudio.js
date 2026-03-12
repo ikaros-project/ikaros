@@ -676,7 +676,8 @@ const network =
             target: target,
             delay: "1",
             color: "black",
-            line_type: "line"
+            line_type: "line",
+            auto_routing: true
         };
         let group = network.dict[path];
         if(group.connections == null)
@@ -2757,6 +2758,8 @@ const inspector =
                     item.color = "black";
                 if(!item.line_type)
                     item.line_type = "line";
+                if(item.auto_routing === undefined)
+                    item.auto_routing = true;
                 inspector.addDataRows(item, 
                 [
                     {'name':'source_range', 'control':'textedit', 'type':'range'},
@@ -2787,7 +2790,12 @@ const inspector =
                         'name':'line_type',
                         'control':'menu',
                         'type':'source',
-                        'options':'line,orthogonal,spline'
+                        'options':'line,orthogonal,orthagonal rounded,spline'
+                    },
+                    {
+                        'name':'auto_routing',
+                        'control':'checkbox',
+                        'type':'bool'
                     }
                 ], this);
             }
@@ -3280,6 +3288,11 @@ const main =
                     <button type="button" class="main-context-color-swatch" data-color="black" title="black" aria-label="black"><span class="main-context-color-chip" style="background:#1a1a1a"></span></button>
                 </div>
             </div>
+            <div class="main-context-menu-separator" role="separator" aria-hidden="true"></div>
+            <button type="button" class="main-context-menu-item" data-action="duplicate">Duplicate</button>
+            <button type="button" class="main-context-menu-item" data-action="delete">Delete</button>
+            <div class="main-context-menu-separator" role="separator" aria-hidden="true"></div>
+            <button type="button" class="main-context-menu-item" data-action="show-inspector">Show Inspector...</button>
         `;
         document.body.appendChild(menu);
         main.component_color_menu = menu;
@@ -3303,13 +3316,51 @@ const main =
                 return;
             }
             const button = evt.target.closest(".main-context-color-swatch");
-            if(!button)
+            if(button)
+            {
+                main.setComponentColor(button.dataset.color || "");
+                main.hideComponentColorMenu();
+                evt.preventDefault();
+                evt.stopPropagation();
                 return;
-            main.setComponentColor(button.dataset.color || "");
+            }
+            const actionButton = evt.target.closest(".main-context-menu-item[data-action]");
+            if(actionButton)
+            {
+                main.handleComponentMenuAction(actionButton.dataset.action || "");
+                main.hideComponentColorMenu();
+                evt.preventDefault();
+                evt.stopPropagation();
+                return;
+            }
             main.hideComponentColorMenu();
-            evt.preventDefault();
-            evt.stopPropagation();
         }, false);
+    },
+
+    handleComponentMenuAction(action)
+    {
+        if(!main.edit_mode)
+            return;
+        const fullName = main.component_color_target;
+        if(!fullName || !network.dict[fullName])
+            return;
+        if(!selector.selected_foreground.includes(fullName))
+            selector.selectItems([fullName], selector.selected_background);
+        switch((action || "").toLowerCase())
+        {
+            case "duplicate":
+                main.duplicateSelectedComponents(false);
+                break;
+            case "delete":
+                main.deleteComponent();
+                break;
+            case "show-inspector":
+                if(inspector && typeof inspector.showInspectorForSelection === "function")
+                    inspector.showInspectorForSelection();
+                if(inspector && typeof inspector.showComponent === "function")
+                    inspector.showComponent();
+                break;
+        }
     },
 
     getComponentColorTargetFromElement(element)
@@ -5150,6 +5201,57 @@ const main =
         return map[c] || connection.color;
     },
 
+    buildRoundedOrthogonalPath(points, radius=10)
+    {
+        if(!points || points.length < 2)
+            return "";
+        if(points.length === 2)
+            return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+
+        const rBase = Math.max(1, radius);
+        let d = `M ${points[0].x} ${points[0].y}`;
+        for(let i = 1; i < points.length - 1; i++)
+        {
+            const prev = points[i - 1];
+            const curr = points[i];
+            const next = points[i + 1];
+
+            const v1x = curr.x - prev.x;
+            const v1y = curr.y - prev.y;
+            const v2x = next.x - curr.x;
+            const v2y = next.y - curr.y;
+
+            const len1 = Math.abs(v1x) + Math.abs(v1y);
+            const len2 = Math.abs(v2x) + Math.abs(v2y);
+            if(len1 < 1 || len2 < 1)
+                continue;
+
+            const dir1x = v1x === 0 ? 0 : (v1x > 0 ? 1 : -1);
+            const dir1y = v1y === 0 ? 0 : (v1y > 0 ? 1 : -1);
+            const dir2x = v2x === 0 ? 0 : (v2x > 0 ? 1 : -1);
+            const dir2y = v2y === 0 ? 0 : (v2y > 0 ? 1 : -1);
+
+            const r = Math.min(rBase, Math.floor(len1 * 0.5), Math.floor(len2 * 0.5));
+            if(r < 1)
+            {
+                d += ` L ${curr.x} ${curr.y}`;
+                continue;
+            }
+
+            const inX = curr.x - dir1x * r;
+            const inY = curr.y - dir1y * r;
+            const outX = curr.x + dir2x * r;
+            const outY = curr.y + dir2y * r;
+
+            d += ` L ${inX} ${inY}`;
+            d += ` Q ${curr.x} ${curr.y}, ${outX} ${outY}`;
+        }
+
+        const last = points[points.length - 1];
+        d += ` L ${last.x} ${last.y}`;
+        return d;
+    },
+
     addGroup(g,path)
         {
         const fullName = `${path}.${g.name}`;
@@ -5290,6 +5392,13 @@ const main =
             const mx = Math.round((x1 + x2) / 2);
             const points = `${x1},${y1} ${mx},${y1} ${mx},${y2} ${x2},${y2}`;
             cc = `<polyline points='${points}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`;
+        }
+        else if(lineType === "orthagonal rounded" || lineType === "orthogonal rounded")
+        {
+            const mx = Math.round((x1 + x2) / 2);
+            const points = [{x:x1,y:y1}, {x:mx,y:y1}, {x:mx,y:y2}, {x:x2,y:y2}];
+            const d = main.buildRoundedOrthogonalPath(points, 10);
+            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`;
         }
         else if(lineType === "spline")
         {

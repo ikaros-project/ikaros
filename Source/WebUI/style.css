@@ -1640,6 +1640,12 @@ svg *{
     background: #b7d3ff;
 }
 
+.main-context-menu-separator {
+    height: 0;
+    margin: 4px 6px;
+    border-top: 1px solid #bcbcbc;
+}
+
 .main-context-submenu {
     position: relative;
     overflow: visible;
