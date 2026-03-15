@@ -611,8 +611,19 @@ const network =
     init(n)
     {
         this.network = n;
+        this.ensureGroupAutoRouting(this.network);
         this.rebuildDict();
         this.component_count = Object.keys(this.dict).length+1;
+    },
+
+    ensureGroupAutoRouting(group)
+    {
+        if(!group || typeof group !== "object")
+            return;
+        if(group.auto_routing === undefined)
+            group.auto_routing = false;
+        for(const child of group.groups || [])
+            this.ensureGroupAutoRouting(child);
     },
 
     isUnique(name)  // test if name can be changed to this ******************************
@@ -2314,6 +2325,18 @@ const inspector =
             return;
         }
 
+        if(
+            inspector.item &&
+            inspector.item._tag == "group" &&
+            selector.selected_foreground.length == 0 &&
+            p &&
+            p.name == "auto_routing"
+        )
+        {
+            main.updateAutoRoutingButtonState();
+            main.addConnections();
+        }
+
         if(inspector.item._tag == "connection")
         {
             this.item.source = getStringUpToBracket(this.item.source)+this.checkRangeSyntax(this.item.source_range);
@@ -3159,6 +3182,7 @@ const main =
         main.view = document.querySelector("#main_view");
         main.grid = document.querySelector("#main_grid");
         main.grid_canvas = document.querySelector("#main_grid_canvas");
+        main.auto_routing_toggle_button = document.getElementById("auto_routing_toggle_button");
         main.createContextMenu();
         main.createComponentColorMenu();
         main.drawGrid();
@@ -3897,6 +3921,41 @@ const main =
         // Widgets are intentionally excluded from auto-arrange.
         // They keep their current positions.
         return items;
+    },
+
+    getBackgroundAutoRoutingGroup()
+    {
+        const background = selector.selected_background;
+        const group = background ? network.dict[background] : null;
+        if(!group)
+            return null;
+        if(group.auto_routing === undefined)
+            group.auto_routing = false;
+        return group;
+    },
+
+    updateAutoRoutingButtonState()
+    {
+        if(!main.auto_routing_toggle_button)
+            return;
+        const group = main.getBackgroundAutoRoutingGroup();
+        const enabled = !!(group && group.auto_routing);
+        main.auto_routing_toggle_button.classList.toggle("selected", enabled);
+        main.auto_routing_toggle_button.setAttribute("aria-pressed", enabled ? "true" : "false");
+        main.auto_routing_toggle_button.title = enabled ? "Disable automatic routing" : "Enable automatic routing";
+    },
+
+    toggleBackgroundAutoRouting()
+    {
+        const group = main.getBackgroundAutoRoutingGroup();
+        if(!group)
+            return;
+        group.auto_routing = !group.auto_routing;
+        network.tainted = true;
+        main.updateAutoRoutingButtonState();
+        if(inspector && typeof inspector.showInspectorForSelection === "function" && selector.selected_foreground.length === 0)
+            inspector.showInspectorForSelection();
+        main.addConnections();
     },
 
     arrangeComponents()
@@ -5252,6 +5311,11 @@ const main =
         return d;
     },
 
+    shouldHighlightAutoRoutedConnection(group, connection)
+    {
+        return !!(group && group.auto_routing && connection && connection.auto_routing);
+    },
+
     addGroup(g,path)
         {
         const fullName = `${path}.${g.name}`;
@@ -5383,7 +5447,8 @@ const main =
         const y1 = source_point.getBoundingClientRect().top-oy+4.5;
         const x2 = target_point.getBoundingClientRect().left-ox+4.5;
         const y2 = target_point.getBoundingClientRect().top-oy+4.5;
-        const connectionColor = main.getConnectionColorValue(c);
+        const group = network.dict[path];
+        const connectionColor = main.shouldHighlightAutoRoutedConnection(group, c) ? "#3f69b7" : main.getConnectionColorValue(c);
         const styleAttr = connectionColor ? ` style="--connection-color:${connectionColor};"` : "";
         const lineType = (c.line_type || "line").toLowerCase();
         let cc = "";
@@ -5627,6 +5692,7 @@ const main =
             let group = network.dict[background];
             main.addComponents(group, foreground, background);
         }
+        main.updateAutoRoutingButtonState();
     },
 
     keydown(evt)
