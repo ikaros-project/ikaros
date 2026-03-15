@@ -3314,6 +3314,8 @@ const main =
             <button type="button" class="main-context-menu-item" data-action="duplicate">Duplicate</button>
             <button type="button" class="main-context-menu-item" data-action="delete">Delete</button>
             <div class="main-context-menu-separator" role="separator" aria-hidden="true"></div>
+            <button type="button" class="main-context-menu-item" data-action="rename">Rename</button>
+            <div class="main-context-menu-separator" role="separator" aria-hidden="true"></div>
             <button type="button" class="main-context-menu-item" data-action="show-inspector">Show Inspector...</button>
         `;
         document.body.appendChild(menu);
@@ -3375,6 +3377,9 @@ const main =
                 break;
             case "delete":
                 main.deleteComponent();
+                break;
+            case "rename":
+                main.startInlineNameEditForComponent(fullName);
                 break;
             case "show-inspector":
                 if(inspector && typeof inspector.showInspectorForSelection === "function")
@@ -3624,6 +3629,8 @@ const main =
     {
         main.hideContextMenu();
         main.hideComponentColorMenu();
+        if(main.inline_name_edit)
+            main.finishInlineNameEdit(false);
         if(evt.button !== 0)
             return;
         if(evt.target !== main.view)
@@ -4486,6 +4493,7 @@ const main =
         }
         nav.populate();
         selector.selectItems([full_name]);
+        main.beginRenameAfterSelection(full_name);
     },
 
     newGroup() // FIXME: Move to network
@@ -4519,6 +4527,7 @@ const main =
 
         nav.populate();
         selector.selectItems([full_name]);
+        main.beginRenameAfterSelection(full_name);
     },
 
     newInput() // FIXME: Move to network
@@ -4544,6 +4553,7 @@ const main =
             main.new_position_y = 100;   
         }
         selector.selectItems([full_name]);
+        main.beginRenameAfterSelection(full_name);
     },
 
     newOutput() // FIXME: Move to network
@@ -4570,6 +4580,7 @@ const main =
             main.new_position_y = 100;   
         }
         selector.selectItems([full_name]);
+        main.beginRenameAfterSelection(full_name);
     },
 
     newWidget()
@@ -4591,6 +4602,7 @@ const main =
         network.dict[selector.selected_background].widgets.push(w);
         network.dict[full_name]=w;
         selector.selectItems([full_name]);
+        main.beginRenameAfterSelection(full_name);
         main.new_position_x += 30;
         main.new_position_y += 30;
 
@@ -5320,7 +5332,7 @@ const main =
         let s = "";
         s += `<div class='gi module group' style='${main.getPositionedComponentStyle(g)}'  id='${fullName}' data-name='${fullName}'>`;
         s += `<table>`;
-        s += `<tr><td class='title' colspan='3'>${g.name}</td></tr>`;
+        s += `<tr><td class='title' colspan='3'><span class='component-title-text' data-component='${fullName}'>${g.name}</span></td></tr>`;
 
         for(let i of g.inputs || [])
             s += `<tr><td class='input'><div class='i_spot' id='${path}.${g.name}.${i.name}:in' onclick='alert(this.id)'></div></td><td>${i.name}</td><td></td></tr>`;
@@ -5336,14 +5348,14 @@ const main =
     addInput(i,path)
     {
         main.view.innerHTML += `<div class='gi group_input' id='${path}.${i.name}' data-name='${path}.${i.name}' style='${main.getPositionedComponentStyle(i)}'>
-        ${i.name}
+        <span class='component-title-text' data-component='${path}.${i.name}'>${i.name}</span>
         <div class='o_spot'  id='${path}.${i.name}:out'></div>
         </div>`;
     },
 
     addOutput(o,path)
     {
-        main.view.innerHTML += `<div class='gi group_output'  id='${path}.${o.name}' data-name='${path}.${o.name}'  style='${main.getPositionedComponentStyle(o)}'><div class='i_spot' id='${path}.${o.name}:in'></div>${o.name}</div>`;
+        main.view.innerHTML += `<div class='gi group_output'  id='${path}.${o.name}' data-name='${path}.${o.name}'  style='${main.getPositionedComponentStyle(o)}'><div class='i_spot' id='${path}.${o.name}:in'></div><span class='component-title-text' data-component='${path}.${o.name}'>${o.name}</span></div>`;
     },
 
     addModule(m,path)
@@ -5351,7 +5363,7 @@ const main =
          let s = "";
          s += `<div class='gi module' style='${main.getPositionedComponentStyle(m)}'   id='${path}.${m.name}' data-name='${path}.${m.name}'>`;
          s += `<table>`;
-         s += `<tr><td class='title' colspan='3'>${m.name}<button type='button' class='module-title-menu-button' aria-label='Module menu' title='Module menu' data-component='${path}.${m.name}'>&#9776;</button></td></tr>`;
+         s += `<tr><td class='title' colspan='3'><span class='component-title-text' data-component='${path}.${m.name}'>${m.name}</span><button type='button' class='module-title-menu-button' aria-label='Module menu' title='Module menu' data-component='${path}.${m.name}'>&#9776;</button></td></tr>`;
 
              s += `<tr><td  colspan='3' class='class_line'>${m.class}<button type='button' class='module-class-menu-button' aria-label='Class menu' title='Class menu' data-component='${path}.${m.name}'>&#9776;</button></td></tr>`;
   
@@ -5372,7 +5384,7 @@ const main =
     
         const newTitle = document.createElement("div");
         newTitle.setAttribute("class", "title");
-        newTitle.innerHTML = w.name;
+        newTitle.innerHTML = `<span class="component-title-text" data-component="${path}.${w.name}">${w.name}</span>`;
         newObject.appendChild(newTitle);
     
         const index = main.view.querySelectorAll(".widget").length;
@@ -5452,20 +5464,20 @@ const main =
         if(Array.isArray(routedPoints) && routedPoints.length >= 2)
         {
             const d = main.buildRoundedOrthogonalPath(routedPoints, 10);
-            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`;
+            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}")'/>`;
         }
         else if(lineType === "orthogonal")
         {
             const mx = Math.round((x1 + x2) / 2);
             const points = `${x1},${y1} ${mx},${y1} ${mx},${y2} ${x2},${y2}`;
-            cc = `<polyline points='${points}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`;
+            cc = `<polyline points='${points}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}")'/>`;
         }
         else if(lineType === "orthagonal rounded" || lineType === "orthogonal rounded")
         {
             const mx = Math.round((x1 + x2) / 2);
             const points = [{x:x1,y:y1}, {x:mx,y:y1}, {x:mx,y:y2}, {x:x2,y:y2}];
             const d = main.buildRoundedOrthogonalPath(points, 10);
-            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`;
+            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}")'/>`;
         }
         else if(lineType === "spline")
         {
@@ -5476,10 +5488,10 @@ const main =
             const c2x = x2 - bend;
             const c2y = y2;
             const d = `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
-            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`;
+            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}")'/>`;
         }
         else
-            cc = `<line x1='${x1}' y1='${y1}' x2='${x2}' y2='${y2}' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`;
+            cc = `<line x1='${x1}' y1='${y1}' x2='${x2}' y2='${y2}' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}")'/>`;
         main.connections += cc;
     },
 
@@ -6232,6 +6244,169 @@ const main =
         return `${path}.${source}*${path}.${target}`;
     },
 
+    commitInlineRename(fullName, newName)
+    {
+        const item = network.dict[fullName];
+        if(!item || !newName)
+            return;
+
+        const trimmedName = newName.trim();
+        if(!trimmedName || trimmedName === item.name)
+            return;
+
+        const group = selector.selected_background;
+        const newFullName = `${group}.${trimmedName}`;
+        if(newFullName !== fullName && network.dict[newFullName])
+            return;
+
+        item.name = trimmedName;
+        if(item._tag == "input")
+        {
+            network.renameInput(group, fullName, newFullName);
+            selector.selectItems([newFullName], null);
+        }
+        else if(item._tag == "output")
+        {
+            network.renameOutput(group, fullName, newFullName);
+            selector.selectItems([newFullName], null);
+        }
+        else if(item._tag == "group" || item._tag == "module")
+        {
+            network.renameGroupOrModule(group, fullName, newFullName);
+            selector.selectItems([newFullName], null);
+        }
+        else if(item._tag == "widget")
+        {
+            network.dict[newFullName] = item;
+            delete network.dict[fullName];
+            selector.selectItems([newFullName], null);
+        }
+        network.rebuildDict();
+        nav.populate();
+        network.tainted = true;
+    },
+
+    beginRenameAfterSelection(fullName)
+    {
+        if(!fullName)
+            return;
+        setTimeout(function()
+        {
+            main.startInlineNameEditForComponent(fullName);
+        }, 0);
+    },
+
+    finishInlineNameEdit(commit)
+    {
+        const session = main.inline_name_edit;
+        if(!session || session.finished)
+            return;
+
+        session.finished = true;
+        const title = session.title;
+        const componentElement = session.componentElement;
+        title.contentEditable = "false";
+        title.classList.remove("inline-name-edit");
+        title.removeEventListener("keydown", session.onKeyDown, true);
+        title.removeEventListener("blur", session.onBlur, true);
+
+        const candidateName = title.textContent.replace(/\n/g, "").trim();
+        if(commit && candidateName)
+            main.commitInlineRename(session.fullName, candidateName);
+        else
+            title.textContent = session.originalName;
+
+        if(componentElement)
+            componentElement.style.minWidth = "";
+
+        main.inline_name_edit = null;
+    },
+
+    startInlineNameEdit(evt)
+    {
+        if(!main.edit_mode)
+            return;
+
+        const title = evt.currentTarget || evt.target.closest(".component-title-text");
+        if(!title)
+            return;
+        const componentElement = title.closest(".gi");
+        const fullName = title.dataset.component || (componentElement ? componentElement.dataset.name : "");
+        const item = fullName ? network.dict[fullName] : null;
+        if(!item || !["group", "module", "input", "output", "widget"].includes(item._tag))
+            return;
+
+        evt.preventDefault();
+        evt.stopPropagation();
+
+        if(main.inline_name_edit)
+            main.finishInlineNameEdit(false);
+
+        if(selector.selected_foreground[0] !== fullName || selector.selected_foreground.length !== 1)
+            selector.selectItems([fullName], selector.selected_background);
+
+        const originalName = item.name || title.textContent || "";
+        if(componentElement)
+            componentElement.style.minWidth = `${Math.ceil(componentElement.getBoundingClientRect().width)}px`;
+        title.contentEditable = "true";
+        title.spellcheck = false;
+        title.classList.add("inline-name-edit");
+        title.textContent = originalName;
+        title.focus();
+        document.getSelection()?.selectAllChildren(title);
+
+        const onKeyDown = function(keyEvt)
+        {
+            if(keyEvt.key === "Enter")
+            {
+                keyEvt.preventDefault();
+                main.finishInlineNameEdit(true);
+                title.blur();
+                return;
+            }
+            if(keyEvt.key === "Escape")
+            {
+                keyEvt.preventDefault();
+                main.finishInlineNameEdit(false);
+                title.blur();
+            }
+        };
+
+        const onBlur = function()
+        {
+            main.finishInlineNameEdit(false);
+        };
+
+        main.inline_name_edit = {
+            title,
+            componentElement,
+            fullName,
+            originalName,
+            onKeyDown,
+            onBlur,
+            finished: false
+        };
+        title.addEventListener("keydown", onKeyDown, true);
+        title.addEventListener("blur", onBlur, true);
+    },
+
+    startInlineNameEditForComponent(fullName)
+    {
+        if(!fullName)
+            return;
+        if(!main.view || typeof CSS === "undefined" || typeof CSS.escape !== "function")
+            return;
+        const title = main.view.querySelector(`.component-title-text[data-component="${CSS.escape(fullName)}"]`);
+        if(!title)
+            return;
+        const syntheticEvent = {
+            currentTarget: title,
+            preventDefault() {},
+            stopPropagation() {}
+        };
+        main.startInlineNameEdit(syntheticEvent);
+    },
+
     selectConnection(connection)
     {
         const c = document.getElementById(connection);
@@ -6305,7 +6480,7 @@ const main =
                 if (e.classList.contains("group")) 
                     e.ondblclick = function (evt) { selector.selectItems([], this.dataset.name); } // Jump into group
                 else 
-                    e.ondblclick = function (evt) { selector.selectItems([this.dataset.name]); inspector.toggleComponent(); } // Select item and toggle inspector
+                    e.ondblclick = null;
      
                 // Set selection class if selected
                 if(selectionList.includes(e.dataset.name))
@@ -6338,6 +6513,8 @@ const main =
                 b.addEventListener('mousedown', main.openComponentColorMenuFromButton, false);
             for(const b of main.view.querySelectorAll(".module-class-menu-button"))
                 b.addEventListener('mousedown', main.openComponentClassMenuFromButton, false);
+            for(const t of main.view.querySelectorAll(".component-title-text"))
+                t.addEventListener('dblclick', main.startInlineNameEdit, false);
         }
         else // View mode
         {
@@ -6351,7 +6528,7 @@ const main =
                     if (e.classList.contains("group")) 
                         e.ondblclick = function (evt) { selector.selectItems([], this.dataset.name); } // Jump into group
                     else 
-                        e.ondblclick = function (evt) { selector.selectItems([this.dataset.name]); inspector.toggleComponent(); } // Select item and toggle inspector
+                        e.ondblclick = null;
 
             // Add handlerer to outputs
             for(let o of main.view.querySelectorAll(".o_spot"))
@@ -6367,6 +6544,8 @@ const main =
                     else
                         e.classList.remove("selected"); // FIXME: is this ever necessary?
                 }
+            for(const t of main.view.querySelectorAll(".component-title-text"))
+                t.addEventListener('dblclick', main.startInlineNameEdit, false);
         }
     },
 

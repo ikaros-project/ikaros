@@ -1538,6 +1538,18 @@ div.module td.output {
     /* background-color: #5a5a5a; */
 }
 
+.component-title-text.inline-name-edit {
+    user-select: text;
+    -webkit-user-select: text;
+    outline: 1px solid rgba(96, 165, 250, 0.8);
+    border-radius: 4px;
+    padding: 0 2px;
+}
+
+.component-title-text {
+    white-space: nowrap;
+}
+
 .module-title-menu-button {
     position: absolute;
     top: 50%;
