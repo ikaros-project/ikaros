@@ -1,5 +1,21 @@
 class WebUIWidgetBarGraph extends WebUIWidgetGraph
 {
+    roundUpToSignificantFigure(value)
+    {
+        if(!Number.isFinite(value) || value === 0)
+            return 0;
+        const scale = Math.pow(10, Math.floor(Math.log10(Math.abs(value))));
+        return Math.ceil(value / scale) * scale;
+    }
+
+    roundDownToSignificantFigure(value)
+    {
+        if(!Number.isFinite(value) || value === 0)
+            return 0;
+        const scale = Math.pow(10, Math.floor(Math.log10(Math.abs(value))));
+        return Math.floor(value / scale) * scale;
+    }
+
     static template()
     {
         return [
@@ -78,15 +94,21 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
         let bar_height = (height)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_height);
         bar_height = Math.round(bar_height);
-        let min = parseFloat(this.parameters.min);
-        let max = parseFloat(this.parameters.max);
+        const {min, max} = this.getYRange();
+        let axisX = 0;
+        if(min <= 0 && max >= 0)
+            axisX = (-min / (max - min)) * width;
+        else if(max < 0)
+            axisX = width;
 
         for(let i=0; i<n; i++)
         {
-            let h = (this.data[y][i])/(max-min);
+            const valueX = ((this.data[y][i] - min) / (max - min)) * width;
+            const left = Math.min(axisX, valueX);
+            const barWidth = Math.abs(valueX - axisX);
             this.canvas.save();
-            this.canvas.translate(-min/(max-min)*width,0 );
-            this.drawBarVertical(h*width, bar_height, i);
+            this.canvas.translate(left, 0);
+            this.drawBarVertical(barWidth, bar_height, i);
             this.canvas.restore();
             this.canvas.translate(0, bar_spacing);
         }
@@ -100,15 +122,21 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
         let bar_width = (width)/(n + (n-1)*this.format.spacing);
         let bar_spacing = Math.round((1 + this.format.spacing) * bar_width);
         bar_width = Math.round(bar_width);
-        let min = parseFloat(this.parameters.min);
-        let max = parseFloat(this.parameters.max);
+        const {min, max} = this.getYRange();
+        let axisY = height;
+        if(min <= 0 && max >= 0)
+            axisY = this.getPlotYForValue(0, height);
+        else if(max < 0)
+            axisY = 0;
 
         for(let i=0; i<n; i++)
         {
-            let h = (this.data[y][i])/(max-min);
+            const valueY = this.getPlotYForValue(this.data[y][i], height);
+            const top = Math.min(axisY, valueY);
+            const barHeight = Math.abs(valueY - axisY);
             this.canvas.save();
-            this.canvas.translate(0, (1-h)*height + min/(max-min)*height); // Translate to origo
-            this.drawBarVertical(bar_width, h*height, i);
+            this.canvas.translate(0, top);
+            this.drawBarVertical(bar_width, barHeight, i);
             this.canvas.restore();
             this.canvas.translate(bar_spacing, 0);
         }
@@ -129,20 +157,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
         return e;
     }
 
-    max(m)
-    {
-        let res = 0;
-        for(const r of m)
-            res = Math.max(res, Math.max(...r));
-        return res;
-    }
-    min(m)
-    {
-        let res = 0;
-        for(const r of m)
-            res = Math.min(res, Math.min(...r));
-        return res;
-    }
     update()
     {
         if(this.data = this.getSource('source'))
@@ -156,26 +170,26 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
             if(this.parameters.auto)
             {
-                const nextMax = this.max(this.data);
-                const nextMin = this.min(this.data);
-                const currentMax = parseFloat(this.parameters.max);
-                const currentMin = parseFloat(this.parameters.min);
-
-                if(Number.isFinite(nextMax))
+                const values = this.getFiniteValues(this.data);
+                if(values.length > 0)
                 {
-                    if(!Number.isFinite(currentMax))
-                        this.parameters.max = nextMax || 1;
-                    else
-                        this.parameters.max = Math.max(currentMax, nextMax);
-                }
+                    const nextMax = Math.max(...values);
+                    const nextMin = Math.min(...values);
+                    if(!Number.isFinite(this.computedMax))
+                        this.computedMax = this.roundUpToSignificantFigure(nextMax || 1);
+                    else if(nextMax > this.computedMax)
+                        this.computedMax = this.roundUpToSignificantFigure(nextMax || 1);
 
-                if(Number.isFinite(nextMin))
-                {
-                    if(!Number.isFinite(currentMin))
-                        this.parameters.min = nextMin || 0;
-                    else
-                        this.parameters.min = Math.min(currentMin, nextMin);
+                    if(!Number.isFinite(this.computedMin))
+                        this.computedMin = this.roundDownToSignificantFigure(nextMin || 0);
+                    else if(nextMin < this.computedMin)
+                        this.computedMin = this.roundDownToSignificantFigure(nextMin || 0);
                 }
+            }
+            else
+            {
+                this.computedMin = null;
+                this.computedMax = null;
             }
 
             if(this.parameters.transpose)

@@ -3,6 +3,15 @@
 
 
 webui-widget-bar-graph {
+    --margin-left: 0;
+    --margin-right: 0;
+    --margin-top: 0;
+    --margin-bottom: 0;
+
+    --space-left: 10;
+    --space-right: 10;
+    --space-top: 10;
+    --space-bottom: 10;
 }
 
 webui-widget-bar-graph.direction-vertical {
@@ -20,6 +29,16 @@ webui-widget-bar-graph.direction-horizontal {
 }
 
 webui-widget-plot.direction-vertical {
+    --margin-left: 0;
+    --margin-right: 0;
+    --margin-top: 0;
+    --margin-bottom: 0;
+
+    --space-left: 10;
+    --space-right: 10;
+    --space-top: 10;
+    --space-bottom: 10;
+
     --vertical-gridlines: 0;
     --horizontal-gridlines: 5;
     --draw-labels-y: yes;
@@ -27,6 +46,16 @@ webui-widget-plot.direction-vertical {
 }
 
 webui-widget-plot.direction-horizontal {
+    --margin-left: 0;
+    --margin-right: 0;
+    --margin-top: 0;
+    --margin-bottom: 0;
+
+    --space-left: 10;
+    --space-right: 10;
+    --space-top: 10;
+    --space-bottom: 10;
+
     --vertical-gridlines: 5;
     --horizontal-gridlines: 0;
     --draw-labels-x: yes;
@@ -35,6 +64,16 @@ webui-widget-plot.direction-horizontal {
 
 
 webui-widget-graph {
+    --margin-left: 0;
+    --margin-right: 0;
+    --margin-top: 0;
+    --margin-bottom: 0;
+
+    --space-left: 10;
+    --space-right: 10;
+    --space-top: 10;
+    --space-bottom: 10;
+
     --vertical-gridlines: 5;
     --horizontal-gridlines: 5;
     --x-axis: no;
@@ -204,5 +243,3 @@ webui-widget-table td {
     padding-left: 10px;
     padding-right: 10px;
 }
-
-
