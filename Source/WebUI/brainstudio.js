@@ -5710,42 +5710,7 @@ const main =
 
     getOutputRoutePitch()
     {
-        const ys = (main.output_debug_lines || [])
-            .map((line) => Number(line.y1))
-            .filter((y) => Number.isFinite(y))
-            .sort((a, b) => a - b);
-
-        const uniqueYs = [];
-        for(const y of ys)
-        {
-            if(uniqueYs.length === 0 || Math.abs(uniqueYs[uniqueYs.length - 1] - y) > 1)
-                uniqueYs.push(y);
-        }
-
-        const counts = new Map();
-        for(let i = 1; i < uniqueYs.length; i++)
-        {
-            const delta = uniqueYs[i] - uniqueYs[i - 1];
-            if(!Number.isFinite(delta) || delta <= 4)
-                continue;
-            const rounded = Math.round(delta);
-            counts.set(rounded, (counts.get(rounded) || 0) + 1);
-        }
-
-        let pitch = null;
-        let bestCount = -1;
-        for(const [delta, count] of counts.entries())
-        {
-            if(count > bestCount || (count === bestCount && (pitch === null || delta > pitch)))
-            {
-                pitch = delta;
-                bestCount = count;
-            }
-        }
-
-        if(Number.isFinite(pitch))
-            return pitch;
-        return 20;
+        return 22;
     },
 
     subtractBlockedIntervals(width, blocked)
