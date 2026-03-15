@@ -5453,15 +5453,14 @@ const main =
         const y1 = source_point.getBoundingClientRect().top-oy+4.5;
         const x2 = target_point.getBoundingClientRect().left-ox+4.5;
         const y2 = target_point.getBoundingClientRect().top-oy+4.5;
-        const group = network.dict[path];
-        const connectionColor = main.shouldHighlightAutoRoutedConnection(group, c) ? "#3f69b7" : main.getConnectionColorValue(c);
+        const connectionColor = main.getConnectionColorValue(c);
         const styleAttr = connectionColor ? ` style="--connection-color:${connectionColor};"` : "";
         const lineType = (c.line_type || "line").toLowerCase();
         let cc = "";
         if(Array.isArray(routedPoints) && routedPoints.length >= 2)
         {
-            const points = routedPoints.map((point) => `${point.x},${point.y}`).join(" ");
-            cc = `<polyline points='${points}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`;
+            const d = main.buildRoundedOrthogonalPath(routedPoints, 10);
+            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`;
         }
         else if(lineType === "orthogonal")
         {
