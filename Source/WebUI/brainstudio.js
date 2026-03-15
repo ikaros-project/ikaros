@@ -687,8 +687,7 @@ const network =
             target: target,
             delay: "1",
             color: "black",
-            line_type: "line",
-            auto_routing: true
+            line_type: "auto_route"
         };
         let group = network.dict[path];
         if(group.connections == null)
@@ -2780,9 +2779,7 @@ const inspector =
                 if(!item.color)
                     item.color = "black";
                 if(!item.line_type)
-                    item.line_type = "line";
-                if(item.auto_routing === undefined)
-                    item.auto_routing = true;
+                    item.line_type = "auto_route";
                 inspector.addDataRows(item, 
                 [
                     {'name':'source_range', 'control':'textedit', 'type':'range'},
@@ -2813,12 +2810,7 @@ const inspector =
                         'name':'line_type',
                         'control':'menu',
                         'type':'source',
-                        'options':'line,orthogonal,orthagonal rounded,spline'
-                    },
-                    {
-                        'name':'auto_routing',
-                        'control':'checkbox',
-                        'type':'bool'
+                        'options':'line,orthogonal,orthagonal rounded,spline,auto_route'
                     }
                 ], this);
             }
@@ -4135,7 +4127,7 @@ const main =
                 n.y += offset;
         }
 
-        const colGap = Math.max(main.grid_spacing || 24, 40);
+        const colGap = Math.max((main.grid_spacing || 24) * 5, 40);
         let cursorX = 0;
         for(const layerIndex of layerIndices)
         {
@@ -5319,7 +5311,7 @@ const main =
 
     shouldHighlightAutoRoutedConnection(group, connection)
     {
-        return !!(group && group.auto_routing && connection && connection.auto_routing);
+        return !!(group && group.auto_routing && connection && connection.line_type === "auto_route");
     },
 
     addGroup(g,path)
