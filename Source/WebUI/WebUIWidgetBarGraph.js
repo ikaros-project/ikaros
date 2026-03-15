@@ -39,6 +39,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'auto', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'include_zero', 'default':true, 'type':'bool', 'control': 'checkbox'},
             
             {'name': "FRAME", 'control':'header'},
             {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
@@ -173,8 +174,13 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
                 const values = this.getFiniteValues(this.data);
                 if(values.length > 0)
                 {
-                    const nextMax = Math.max(...values);
-                    const nextMin = Math.min(...values);
+                    let nextMax = Math.max(...values);
+                    let nextMin = Math.min(...values);
+                    if(this.parameters.include_zero)
+                    {
+                        nextMax = Math.max(0, nextMax);
+                        nextMin = Math.min(0, nextMin);
+                    }
                     if(!Number.isFinite(this.computedMax))
                         this.computedMax = this.roundUpToSignificantFigure(nextMax || 1);
                     else if(nextMax > this.computedMax)
