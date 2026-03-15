@@ -975,8 +975,8 @@ let controller =
 
     new() 
     {
-        controller.queueCommand('new');
-        network.tainted = true;
+        controller.clearQueue();
+        controller.get("new", controller.update);
     },
 
     openCallback(filename, where)
