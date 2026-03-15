@@ -449,8 +449,24 @@ class WebUIWidget extends HTMLElement
     {
         this.parentElement.className = this.parentElement.className.replace(/visible/,'');
         this.parentElement.className += this.toBool(this.parameters.show_frame) ? ' visible' : '';
-        this.parentElement.firstChild.style.display = this.toBool(this.parameters.show_title) ? 'block' : 'none';
-        this.parentElement.firstChild.innerText = this.parameters.title;
+        const titleContainer = this.parentElement.firstChild;
+        titleContainer.style.display = this.toBool(this.parameters.show_title) ? 'block' : 'none';
+
+        let titleText = titleContainer.querySelector(".component-title-text");
+        if(!titleText)
+        {
+            titleText = document.createElement("span");
+            titleText.className = "component-title-text";
+            const fullName = this.parentElement.dataset ? this.parentElement.dataset.name : "";
+            if(fullName)
+                titleText.dataset.component = fullName;
+            titleText.dataset.field = "title";
+            titleContainer.replaceChildren(titleText);
+        }
+
+        if(!titleText.classList.contains("inline-name-edit"))
+            titleText.textContent = this.parameters.title;
+
         this.setCSSClass();
         this.readCSSvariables();
     }

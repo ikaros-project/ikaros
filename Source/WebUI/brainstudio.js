@@ -4592,6 +4592,7 @@ const main =
             "name": name,
             "title": name,
             "class": "bar-graph",
+            "show_frame": true,
             _x:main.new_position_x,
             _y:main.new_position_y,
             width: defaultWidgetSize,
@@ -4934,8 +4935,15 @@ const main =
         evt.stopPropagation();
         if(evt.detail == 2) // handle double clicks elsewhere
         {
-                evt.stopPropagation();
-                return;
+            const titleText = main.getEditableTitleTarget(evt.target);
+            if(titleText)
+            {
+                const fullName = titleText.dataset.component || (this.dataset ? this.dataset.name : "");
+                if(fullName)
+                    setTimeout(function() { main.startInlineNameEditForComponent(fullName); }, 0);
+            }
+            evt.stopPropagation();
+            return;
         }
 
        // this.style.pointerEvents = "none";
@@ -5056,6 +5064,16 @@ const main =
         return null;
     },
 
+    getEditableTitleTarget(target)
+    {
+        let element = target || null;
+        if(element && element.nodeType === Node.TEXT_NODE)
+            element = element.parentElement;
+        if(!element || !element.closest)
+            return null;
+        return element.closest(".component-title-text");
+    },
+
     releaseTrackedConnection(evt) 
     {
         evt.stopPropagation();
@@ -5115,14 +5133,19 @@ const main =
         if (isTargetWidget) 
         {
             const cleanSource = removeStringFromStart(source.split(':')[0], selector.selected_background + ".");
+            const currentTitle = typeof network.dict[target].title === "string" ? network.dict[target].title : "";
+            const currentSource = typeof network.dict[target].source === "string" ? network.dict[target].source : "";
+            const shouldUpdateTitle = currentTitle.startsWith("Widget") || (currentTitle !== "" && currentTitle === currentSource);
             network.dict[target].source = cleanSource;
-            network.dict[target].title = cleanSource;
+            if(shouldUpdateTitle)
+                network.dict[target].title = cleanSource;
 
             const widgetFrame = document.getElementById(target);
             if(widgetFrame && widgetFrame.widget)
             {
                 widgetFrame.widget.parameters.source = cleanSource;
-                widgetFrame.widget.parameters.title = cleanSource;
+                if(shouldUpdateTitle)
+                    widgetFrame.widget.parameters.title = cleanSource;
                 try
                 {
                     widgetFrame.widget.updateAll();
@@ -5379,12 +5402,24 @@ const main =
     },
 
     addWidget(w, path) {
+        const fullName = `${path}.${w.name}`;
         const newObject = document.createElement("div");
         newObject.setAttribute("class", "frame visible gi widget");
     
         const newTitle = document.createElement("div");
         newTitle.setAttribute("class", "title");
-        newTitle.innerHTML = `<span class="component-title-text" data-component="${path}.${w.name}">${w.name}</span>`;
+        newTitle.setAttribute("data-component", fullName);
+        newTitle.innerHTML = `<span class="component-title-text" data-component="${fullName}" data-field="title">${w.title || w.name}</span>`;
+        const titleText = newTitle.querySelector(".component-title-text");
+        const startWidgetTitleEdit = function(evt)
+        {
+            evt.preventDefault();
+            evt.stopPropagation();
+            setTimeout(function() { main.startInlineNameEditForComponent(fullName); }, 0);
+        };
+        newTitle.addEventListener("dblclick", startWidgetTitleEdit, false);
+        if(titleText)
+            titleText.addEventListener("dblclick", startWidgetTitleEdit, false);
         newObject.appendChild(newTitle);
     
         const index = main.view.querySelectorAll(".widget").length;
@@ -5410,6 +5445,8 @@ const main =
                     w[k] = setType(w[k], tp);
                 }
             }
+            if(w.show_frame === undefined)
+                w.show_frame = true;
             newObject.widget.parameters = w;
             newObject.widget.parameters['_index_'] = index;
         }
@@ -5430,7 +5467,6 @@ const main =
         newObject.appendChild(handle);
     
         // Set attributes for the new object
-        const fullName = `${path}.${w.name}`;
         newObject.setAttribute("id", fullName);
         newObject.setAttribute("data-name", fullName);
     
@@ -6286,6 +6322,35 @@ const main =
         network.tainted = true;
     },
 
+    commitInlineTitleEdit(fullName, newTitle)
+    {
+        const item = network.dict[fullName];
+        if(!item || item._tag !== "widget" || !newTitle)
+            return;
+
+        const trimmedTitle = newTitle.trim();
+        if(!trimmedTitle || trimmedTitle === item.title)
+            return;
+
+        item.title = trimmedTitle;
+        const widgetFrame = document.getElementById(fullName);
+        if(widgetFrame && widgetFrame.widget)
+        {
+            widgetFrame.widget.parameters.title = trimmedTitle;
+            try
+            {
+                widgetFrame.widget.updateAll();
+            }
+            catch(err)
+            {
+                console.log(err);
+            }
+        }
+        if(inspector && typeof inspector.showInspectorForSelection === "function")
+            inspector.showInspectorForSelection();
+        network.tainted = true;
+    },
+
     beginRenameAfterSelection(fullName)
     {
         if(!fullName)
@@ -6312,12 +6377,18 @@ const main =
 
         const candidateName = title.textContent.replace(/\n/g, "").trim();
         if(commit && candidateName)
-            main.commitInlineRename(session.fullName, candidateName);
+        {
+            if(session.field === "title")
+                main.commitInlineTitleEdit(session.fullName, candidateName);
+            else
+                main.commitInlineRename(session.fullName, candidateName);
+        }
         else
             title.textContent = session.originalName;
 
         if(componentElement)
             componentElement.style.minWidth = "";
+        title.removeAttribute("tabindex");
 
         main.inline_name_edit = null;
     },
@@ -6333,7 +6404,10 @@ const main =
         const componentElement = title.closest(".gi");
         const fullName = title.dataset.component || (componentElement ? componentElement.dataset.name : "");
         const item = fullName ? network.dict[fullName] : null;
+        const field = title.dataset.field || "name";
         if(!item || !["group", "module", "input", "output", "widget"].includes(item._tag))
+            return;
+        if(item._tag === "widget" && field !== "title")
             return;
 
         evt.preventDefault();
@@ -6345,14 +6419,16 @@ const main =
         if(selector.selected_foreground[0] !== fullName || selector.selected_foreground.length !== 1)
             selector.selectItems([fullName], selector.selected_background);
 
-        const originalName = item.name || title.textContent || "";
+        const originalName = field === "title" ? (item.title || title.textContent || "") : (item.name || title.textContent || "");
         if(componentElement)
             componentElement.style.minWidth = `${Math.ceil(componentElement.getBoundingClientRect().width)}px`;
         title.contentEditable = "true";
+        title.setAttribute("contenteditable", "true");
+        title.tabIndex = -1;
         title.spellcheck = false;
         title.classList.add("inline-name-edit");
         title.textContent = originalName;
-        title.focus();
+        title.focus({preventScroll:true});
         document.getSelection()?.selectAllChildren(title);
 
         const onKeyDown = function(keyEvt)
@@ -6381,6 +6457,7 @@ const main =
             title,
             componentElement,
             fullName,
+            field,
             originalName,
             onKeyDown,
             onBlur,
@@ -6390,13 +6467,28 @@ const main =
         title.addEventListener("blur", onBlur, true);
     },
 
-    startInlineNameEditForComponent(fullName)
+    getInlineEditFieldForComponent(fullName)
+    {
+        const item = fullName ? network.dict[fullName] : null;
+        return item && item._tag === "widget" ? "title" : "name";
+    },
+
+    getInlineEditTitleElement(fullName, field=null)
     {
         if(!fullName)
-            return;
+            return null;
         if(!main.view || typeof CSS === "undefined" || typeof CSS.escape !== "function")
-            return;
-        const title = main.view.querySelector(`.component-title-text[data-component="${CSS.escape(fullName)}"]`);
+            return null;
+        const escapedName = CSS.escape(fullName);
+        const resolvedField = field || main.getInlineEditFieldForComponent(fullName);
+        if(resolvedField === "title")
+            return main.view.querySelector(`.component-title-text[data-component="${escapedName}"][data-field="title"]`);
+        return main.view.querySelector(`.component-title-text[data-component="${escapedName}"]:not([data-field]), .component-title-text[data-component="${escapedName}"][data-field="name"]`);
+    },
+
+    startInlineNameEditForComponent(fullName, field=null)
+    {
+        const title = main.getInlineEditTitleElement(fullName, field);
         if(!title)
             return;
         const syntheticEvent = {
