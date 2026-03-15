@@ -1115,10 +1115,9 @@ let controller =
             let w = document.getElementsByClassName('frame')
             for(let i=0; i<w.length; i++)
             {
-                if(w[i].children[1].loadData)
-                {
-                    controller.load_count += w[i].children[1].loadData(data);
-                }
+                const widgetElement = w[i].widget;
+                if(widgetElement && widgetElement.loadData)
+                    controller.load_count += widgetElement.loadData(data);
             }
      
             controller.load_count_timeout = setTimeout(controller.clear_wait, 200); // give up after 1/5 s and continue
@@ -1339,8 +1338,10 @@ let controller =
         for(let i=0; i<w.length; i++)
             try
             {
-                if(w[i].children[1] && 'requestData' in w[i].children[1])
-                    w[i].children[1].requestData(data_set);
+                const frame = w[i].closest('.frame');
+                const widgetElement = frame ? frame.widget : null;
+                if(widgetElement && 'requestData' in widgetElement)
+                    widgetElement.requestData(data_set);
             }
             catch(err)
             {
@@ -1450,8 +1451,11 @@ let controller =
         for(let i=0; i<w.length; i++)
             try
             {
-                w[i].children[1].receivedData = data;
-                w[i].children[1].update(data); // include data for backward compatibility
+                const widgetElement = w[i].widget;
+                if(!widgetElement)
+                    continue;
+                widgetElement.receivedData = data;
+                widgetElement.update(data); // include data for backward compatibility
             }
             catch(err)
             {
@@ -1776,6 +1780,27 @@ const inspector =
         cell1.innerText = label;
         cell2.innerHTML = content;
         return cell2.firstElementChild;
+    },
+
+    focusEditableField(label)
+    {
+        if(!inspector.subview.table)
+            return false;
+        const rows = inspector.subview.table.querySelectorAll("tbody tr");
+        for(const row of rows)
+        {
+            const cells = row.cells || [];
+            if(cells.length < 2)
+                continue;
+            if((cells[0].innerText || "").trim() !== label)
+                continue;
+            const target = cells[1];
+            if(!target || target.contentEditable !== "true")
+                continue;
+            target.focus();
+            return true;
+        }
+        return false;
     },
 
     addHeader(header)
@@ -3526,7 +3551,16 @@ const main =
                 main.deleteComponent();
                 break;
             case "rename":
-                main.startInlineNameEditForComponent(fullName);
+                if(!item.show_title)
+                {
+                    if(inspector && typeof inspector.showComponent === "function")
+                        inspector.showComponent();
+                    if(inspector && typeof inspector.showInspectorForSelection === "function")
+                        inspector.showInspectorForSelection();
+                    setTimeout(function() { inspector.focusEditableField("title"); }, 0);
+                }
+                else
+                    main.startInlineNameEditForComponent(fullName);
                 break;
             case "show-inspector":
                 if(inspector && typeof inspector.showInspectorForSelection === "function")

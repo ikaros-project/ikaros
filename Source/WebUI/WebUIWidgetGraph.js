@@ -4,6 +4,33 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
     {
         super.init();
     }
+
+    getYRange()
+    {
+        let min = parseFloat(this.parameters.min);
+        let max = parseFloat(this.parameters.max);
+        if('min_y' in this.parameters && 'max_y' in this.parameters)
+        {
+            min = parseFloat(this.parameters.min_y);
+            max = parseFloat(this.parameters.max_y);
+        }
+        if(!Number.isFinite(min))
+            min = 0;
+        if(!Number.isFinite(max))
+            max = 1;
+        if(min === max)
+            max = min + 1;
+        return {min, max};
+    }
+
+    getPlotYForValue(value, height)
+    {
+        const {min, max} = this.getYRange();
+        let y = (max - value) * height / (max - min);
+        if(this.format.flipYAxis)
+            y = height - y;
+        return y;
+    }
     
     drawLeftTickMarks(top, bottom)
     {
@@ -165,11 +192,16 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         if(!this.format.xAxis)
             return;
 
+        const {min, max} = this.getYRange();
+        let y = height;
+        if(min <= 0 && max >= 0)
+            y = this.getPlotYForValue(0, height);
+
         this.canvas.beginPath();
         this.canvas.lineWidth = 1;
         this.canvas.strokeStyle = this.format.axisColor;
-        this.canvas.moveTo(0, height);
-        this.canvas.lineTo(width, height);
+        this.canvas.moveTo(0, y);
+        this.canvas.lineTo(width, y);
         this.canvas.stroke();
     }
 
@@ -202,17 +234,17 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let n = this.format.horizontalGridlines;
         if(n==0)
             return;
-        
-        let p=0;
+
+        const {min, max} = this.getYRange();
         for(let j=0; j<n; j++)
         {
-            let q = Math.round(p)
+            const value = min + (n-j-1) * (max-min) / (n-1);
+            let q = Math.round(this.getPlotYForValue(value, height));
             this.canvas.beginPath();
             this.canvas.strokeStyle = this.format.gridColor;
             this.canvas.moveTo(0, q);
             this.canvas.lineTo(width, q);
             this.canvas.stroke();
-            p += height/(n-1);
         }
     }
 
@@ -240,17 +272,17 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let n = this.format.horizontalGridlinesOver;
         if(n==0)
             return;
-        
-        let p=0;
+
+        const {min, max} = this.getYRange();
         for(let j=0; j<n; j++)
         {
-            let q = Math.round(p)
+            const value = min + (n-j-1) * (max-min) / (n-1);
+            let q = Math.round(this.getPlotYForValue(value, height));
             this.canvas.beginPath();
             this.canvas.strokeStyle = this.format.gridColor;
             this.canvas.moveTo(0, q);
             this.canvas.lineTo(width, q);
             this.canvas.stroke();
-            p += height/(n-1);
         }
     }
 

@@ -22,7 +22,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name': "COORDINATE SYSTEM", 'control':'header'},
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'auto', 'default':false, 'type':'bool', 'control': 'checkbox'},
+            {'name':'auto', 'default':true, 'type':'bool', 'control': 'checkbox'},
             
             {'name': "FRAME", 'control':'header'},
             {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
@@ -155,10 +155,28 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
                 return;
 
             if(this.parameters.auto)
-                this.parameters.max = this.max(this.data) || 1;
+            {
+                const nextMax = this.max(this.data);
+                const nextMin = this.min(this.data);
+                const currentMax = parseFloat(this.parameters.max);
+                const currentMin = parseFloat(this.parameters.min);
 
-            if(this.parameters.auto)
-                this.parameters.min = this.min(this.data) || 0;
+                if(Number.isFinite(nextMax))
+                {
+                    if(!Number.isFinite(currentMax))
+                        this.parameters.max = nextMax || 1;
+                    else
+                        this.parameters.max = Math.max(currentMax, nextMax);
+                }
+
+                if(Number.isFinite(nextMin))
+                {
+                    if(!Number.isFinite(currentMin))
+                        this.parameters.min = nextMin || 0;
+                    else
+                        this.parameters.min = Math.min(currentMin, nextMin);
+                }
+            }
 
             if(this.parameters.transpose)
                 this.data = this.transpose(this.data); // TODO: should be changed in drawing instead

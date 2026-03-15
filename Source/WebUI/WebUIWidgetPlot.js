@@ -7,16 +7,14 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
             {'name':'title', 'default':"Plot", 'type':'string', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'select', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'buffer_size', 'default':50, 'type':'int', 'control': 'textedit'},
             {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'options': "vertical", 'class':'true'},
             {'name': "STYLE", 'control':'header'},
             {'name':'color', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name': "COORDINATE SYSTEM", 'control':'header'},
+            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'auto', 'default':true, 'type':'bool', 'control': 'checkbox'},
 
         ]};
 
@@ -136,6 +134,34 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
                 this.data = [this.data];
             if(!this.data.length || !Array.isArray(this.data[0]) || !this.data[0].length)
                 return;
+
+            if(this.parameters.auto)
+            {
+                const flat = this.data.flat().filter((v) => Number.isFinite(parseFloat(v))).map((v) => parseFloat(v));
+                if(flat.length > 0)
+                {
+                    const nextMax = Math.max(...flat);
+                    const nextMin = Math.min(...flat);
+                    const currentMax = parseFloat(this.parameters.max);
+                    const currentMin = parseFloat(this.parameters.min);
+
+                    if(Number.isFinite(nextMax))
+                    {
+                        if(!Number.isFinite(currentMax))
+                            this.parameters.max = nextMax || 1;
+                        else
+                            this.parameters.max = Math.max(currentMax, nextMax);
+                    }
+
+                    if(Number.isFinite(nextMin))
+                    {
+                        if(!Number.isFinite(currentMin))
+                            this.parameters.min = nextMin || 0;
+                        else
+                            this.parameters.min = Math.min(currentMin, nextMin);
+                    }
+                }
+            }
 
             if(this.buffer.length < this.getBufferSize())
                 this.buffer.push(this.data);

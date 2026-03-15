@@ -1092,7 +1092,7 @@ div.frame {
     position: absolute;
     top: 10;
     left: 10;
-    z-index: 200;
+    z-index: 50;
     width: 101px;
     height: 101px;
 /*    border: 1px solid red; */
@@ -1152,9 +1152,21 @@ div.frame {
     pointer-events: none;
 }
 
+[data-mode="edit"] webui-widget-text {
+    pointer-events: auto;
+}
+
 [data-mode="run"] .widget {
     cursor: pointer;
     pointer-events: auto;
+}
+
+webui-widget-text > div.inline-widget-text-edit {
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
+    outline: 1px solid rgba(96, 165, 250, 0.8);
+    outline-offset: -1px;
 }
 
 .dragged, .resized {
@@ -1994,6 +2006,11 @@ svg .routing-grid-point {
 
 .gi {
     border: 1px solid var(--component-border, rgba(0, 0, 0, 0));
+    z-index: 100;
+}
+
+.gi.widget {
+    z-index: 50;
 }
 
 #main.edit_mode .gi.widget:hover {

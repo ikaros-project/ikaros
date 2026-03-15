@@ -1,5 +1,77 @@
 class WebUIWidget extends HTMLElement
 {
+    static normalizeTemplate(template)
+    {
+        const source = Array.isArray(template) ? template : [];
+        const frameFieldNames = new Set([
+            "show_title",
+            "show_frame",
+            "background",
+            "frame_color",
+            "frame_width",
+            "style",
+            "frame-style"
+        ]);
+        const frameDefaults = {
+            show_title: false,
+            show_frame: false,
+            background: "",
+            frame_color: "",
+            frame_width: "1",
+            style: "",
+            "frame-style": ""
+        };
+        const frameTypes = {
+            show_title: "bool",
+            show_frame: "bool",
+            background: "string",
+            frame_color: "string",
+            frame_width: "int",
+            style: "string",
+            "frame-style": "string"
+        };
+        const frameControls = {
+            show_title: "checkbox",
+            show_frame: "checkbox",
+            background: "textedit",
+            frame_color: "textedit",
+            frame_width: "textedit",
+            style: "textedit",
+            "frame-style": "textedit"
+        };
+
+        const existing = {};
+        const normalized = [];
+        for(const entry of source)
+        {
+            if(!entry || typeof entry !== "object")
+                continue;
+            if(entry.control === "header" && entry.name === "FRAME")
+                continue;
+            if(frameFieldNames.has(entry.name))
+            {
+                existing[entry.name] = entry;
+                continue;
+            }
+            normalized.push(entry);
+        }
+
+        normalized.push({name: "FRAME", control: "header"});
+        for(const name of ["show_title", "show_frame", "background", "frame_color", "frame_width", "style", "frame-style"])
+        {
+            const prior = existing[name] || {};
+            normalized.push({
+                ...prior,
+                name,
+                default: prior.default !== undefined ? prior.default : frameDefaults[name],
+                type: prior.type || frameTypes[name],
+                control: prior.control || frameControls[name]
+            });
+        }
+
+        return normalized;
+    }
+
     // functions that should be overridden in subclasses
     
     requestData(data_set)
@@ -41,6 +113,7 @@ class WebUIWidget extends HTMLElement
     {
         super();
         let pt = this.constructor.template();
+        pt = this.constructor.normalizeTemplate(pt);
         this.param_types = {};
         this.parameters = {};
         for(let i in pt)
@@ -447,6 +520,25 @@ class WebUIWidget extends HTMLElement
 
     updateFrame()
     {
+        let fcolors = String(this.parameters.frame_color ?? "").split(',').map((c) => c.trim()).filter((c) => c !== "");
+        if(fcolors.length > 0)
+        {
+            this.parentElement.style.borderTopColor = fcolors[0];
+            this.parentElement.style.borderRightColor = fcolors[1 % fcolors.length];
+            this.parentElement.style.borderBottomColor = fcolors[2 % fcolors.length];
+            this.parentElement.style.borderLeftColor = fcolors[3 % fcolors.length];
+        }
+        else
+        {
+            this.parentElement.style.borderTopColor = "";
+            this.parentElement.style.borderRightColor = "";
+            this.parentElement.style.borderBottomColor = "";
+            this.parentElement.style.borderLeftColor = "";
+        }
+
+        let fw = this.parameters.frame_width;
+        this.parentElement.style.borderWidth = fw ? fw + "px" : "";
+        this.parentElement.style.background = this.parameters.background;
         this.parentElement.className = this.parentElement.className.replace(/visible/,'');
         this.parentElement.className += this.toBool(this.parameters.show_frame) ? ' visible' : '';
         const titleContainer = this.parentElement.firstChild;
