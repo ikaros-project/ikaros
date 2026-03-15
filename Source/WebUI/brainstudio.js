@@ -3168,6 +3168,12 @@ const main =
     view: null,
     grid: null,
     connections: "",
+    component_rectangles: [],
+    output_debug_lines: [],
+    input_debug_lines: [],
+    horizontal_routing_lines: [],
+    vertical_routing_lines: [],
+    routing_grid_points: [],
     grid_spacing: 24,
     grid_active: false,
     edit_mode: false,
@@ -5494,6 +5500,419 @@ const main =
         main.connections += cc;
     },
 
+    collectComponentRectangles()
+    {
+        main.component_rectangles = [];
+        if(!main.view)
+            return main.component_rectangles;
+
+        const viewRect = main.view.getBoundingClientRect();
+        const margin = 15;
+        for(const element of main.view.querySelectorAll(".gi"))
+        {
+            if(element.classList.contains("widget"))
+                continue;
+            const rect = element.getBoundingClientRect();
+            const x = Math.round(rect.left - viewRect.left - margin);
+            const y = Math.round(rect.top - viewRect.top - margin);
+            const width = Math.round(rect.width + margin * 2);
+            const height = Math.round(rect.height + margin * 2);
+            main.component_rectangles.push({
+                id: element.id || "",
+                x,
+                y,
+                width,
+                height
+            });
+        }
+
+        return main.component_rectangles;
+    },
+
+    addDebugRectangles()
+    {
+        const rectangles = main.collectComponentRectangles();
+        for(const rect of rectangles)
+        {
+            main.connections += `<rect class='component-debug-rectangle' x='${rect.x}' y='${rect.y}' width='${rect.width}' height='${rect.height}' data-component='${rect.id}'/>`;
+        }
+    },
+
+    getOutputOwnerId(outputSpot)
+    {
+        if(!outputSpot || !outputSpot.id)
+            return "";
+        const outputId = outputSpot.id.replace(/:out$/, "");
+        if(document.getElementById(outputId))
+            return outputId;
+        return parentPath(outputId);
+    },
+
+    collectOutputDebugLines()
+    {
+        main.output_debug_lines = [];
+        if(!main.view)
+            return main.output_debug_lines;
+
+        const viewRect = main.view.getBoundingClientRect();
+        const viewWidth = main.view.clientWidth || Math.round(viewRect.width) || 3000;
+        const rectangles = main.component_rectangles || [];
+
+        for(const outputSpot of main.view.querySelectorAll(".o_spot"))
+        {
+            const spotRect = outputSpot.getBoundingClientRect();
+            const x1 = Math.round(spotRect.left - viewRect.left + spotRect.width * 0.5);
+            const y = Math.round(spotRect.top - viewRect.top + spotRect.height * 0.5);
+            const ownerId = main.getOutputOwnerId(outputSpot);
+            let x2 = viewWidth;
+
+            for(const rect of rectangles)
+            {
+                if(rect.id === ownerId)
+                    continue;
+                const top = rect.y;
+                const bottom = rect.y + rect.height;
+                if(y < top || y > bottom)
+                    continue;
+                if(rect.x <= x1)
+                    continue;
+                x2 = Math.min(x2, rect.x);
+            }
+
+            main.output_debug_lines.push({
+                id: outputSpot.id,
+                ownerId,
+                x1,
+                y1: y,
+                x2,
+                y2: y
+            });
+        }
+
+        return main.output_debug_lines;
+    },
+
+    addOutputDebugLines()
+    {
+        const lines = main.collectOutputDebugLines();
+        for(const line of lines)
+        {
+            main.connections += `<line class='output-debug-line' x1='${line.x1}' y1='${line.y1}' x2='${line.x2}' y2='${line.y2}' data-output='${line.id}' data-owner='${line.ownerId}'/>`;
+        }
+    },
+
+    getInputOwnerId(inputSpot)
+    {
+        if(!inputSpot || !inputSpot.id)
+            return "";
+        const inputId = inputSpot.id.replace(/:in$/, "");
+        if(document.getElementById(inputId))
+            return inputId;
+        return parentPath(inputId);
+    },
+
+    collectInputDebugLines()
+    {
+        main.input_debug_lines = [];
+        if(!main.view)
+            return main.input_debug_lines;
+
+        const viewRect = main.view.getBoundingClientRect();
+        const rectangles = main.component_rectangles || [];
+
+        for(const inputSpot of main.view.querySelectorAll(".i_spot"))
+        {
+            const spotRect = inputSpot.getBoundingClientRect();
+            const xEnd = Math.round(spotRect.left - viewRect.left + spotRect.width * 0.5);
+            const y = Math.round(spotRect.top - viewRect.top + spotRect.height * 0.5);
+            const ownerId = main.getInputOwnerId(inputSpot);
+            let xStart = 0;
+
+            for(const rect of rectangles)
+            {
+                if(rect.id === ownerId)
+                    continue;
+                const top = rect.y;
+                const bottom = rect.y + rect.height;
+                if(y < top || y > bottom)
+                    continue;
+                const rectRight = rect.x + rect.width;
+                if(rectRight >= xEnd)
+                    continue;
+                xStart = Math.max(xStart, rectRight);
+            }
+
+            main.input_debug_lines.push({
+                id: inputSpot.id,
+                ownerId,
+                x1: xStart,
+                y1: y,
+                x2: xEnd,
+                y2: y
+            });
+        }
+
+        return main.input_debug_lines;
+    },
+
+    addInputDebugLines()
+    {
+        const lines = main.collectInputDebugLines();
+        for(const line of lines)
+        {
+            main.connections += `<line class='input-debug-line' x1='${line.x1}' y1='${line.y1}' x2='${line.x2}' y2='${line.y2}' data-input='${line.id}' data-owner='${line.ownerId}'/>`;
+        }
+    },
+
+    getOutputRoutePitch()
+    {
+        const ys = (main.output_debug_lines || [])
+            .map((line) => Number(line.y1))
+            .filter((y) => Number.isFinite(y))
+            .sort((a, b) => a - b);
+
+        const uniqueYs = [];
+        for(const y of ys)
+        {
+            if(uniqueYs.length === 0 || Math.abs(uniqueYs[uniqueYs.length - 1] - y) > 1)
+                uniqueYs.push(y);
+        }
+
+        const counts = new Map();
+        for(let i = 1; i < uniqueYs.length; i++)
+        {
+            const delta = uniqueYs[i] - uniqueYs[i - 1];
+            if(!Number.isFinite(delta) || delta <= 4)
+                continue;
+            const rounded = Math.round(delta);
+            counts.set(rounded, (counts.get(rounded) || 0) + 1);
+        }
+
+        let pitch = null;
+        let bestCount = -1;
+        for(const [delta, count] of counts.entries())
+        {
+            if(count > bestCount || (count === bestCount && (pitch === null || delta > pitch)))
+            {
+                pitch = delta;
+                bestCount = count;
+            }
+        }
+
+        if(Number.isFinite(pitch))
+            return pitch;
+        return 20;
+    },
+
+    subtractBlockedIntervals(width, blocked)
+    {
+        let segments = [{x1: 0, x2: width}];
+        for(const interval of blocked)
+        {
+            const nextSegments = [];
+            for(const segment of segments)
+            {
+                if(interval.x2 <= segment.x1 || interval.x1 >= segment.x2)
+                {
+                    nextSegments.push(segment);
+                    continue;
+                }
+                if(interval.x1 > segment.x1)
+                    nextSegments.push({x1: segment.x1, x2: interval.x1});
+                if(interval.x2 < segment.x2)
+                    nextSegments.push({x1: interval.x2, x2: segment.x2});
+            }
+            segments = nextSegments;
+            if(segments.length === 0)
+                break;
+        }
+        return segments.filter((segment) => segment.x2 - segment.x1 > 1);
+    },
+
+    collectHorizontalRoutingLines()
+    {
+        main.horizontal_routing_lines = [];
+        if(!main.view)
+            return main.horizontal_routing_lines;
+
+        const viewRect = main.view.getBoundingClientRect();
+        const viewWidth = main.view.clientWidth || Math.round(viewRect.width) || 3000;
+        const viewHeight = main.view.clientHeight || Math.round(viewRect.height) || 3000;
+        const pitch = main.getOutputRoutePitch();
+        const reservedLines = [
+            ...(main.output_debug_lines || []),
+            ...(main.input_debug_lines || [])
+        ].filter((line) =>
+            line &&
+            Number.isFinite(line.y1) &&
+            Number.isFinite(line.x1) &&
+            Number.isFinite(line.x2)
+        );
+
+        for(let y = Math.round(pitch); y < viewHeight; y += pitch)
+        {
+            const blocked = [];
+            for(const rect of main.component_rectangles || [])
+            {
+                const top = rect.y;
+                const bottom = rect.y + rect.height;
+                if(y < top || y > bottom)
+                    continue;
+                blocked.push({x1: rect.x, x2: rect.x + rect.width});
+            }
+            for(const reservedLine of reservedLines)
+            {
+                if(Math.abs(y - reservedLine.y1) >= pitch)
+                    continue;
+                const x1 = Math.min(reservedLine.x1, reservedLine.x2);
+                const x2 = Math.max(reservedLine.x1, reservedLine.x2);
+                blocked.push({x1, x2});
+            }
+            blocked.sort((a, b) => a.x1 - b.x1);
+
+            const segments = main.subtractBlockedIntervals(viewWidth, blocked);
+            for(const segment of segments)
+            {
+                main.horizontal_routing_lines.push({
+                    x1: Math.round(segment.x1),
+                    y1: y,
+                    x2: Math.round(segment.x2),
+                    y2: y
+                });
+            }
+        }
+
+        return main.horizontal_routing_lines;
+    },
+
+    addHorizontalRoutingLines()
+    {
+        const lines = main.collectHorizontalRoutingLines();
+        for(const line of lines)
+        {
+            main.connections += `<line class='routing-debug-line' x1='${line.x1}' y1='${line.y1}' x2='${line.x2}' y2='${line.y2}'/>`;
+        }
+    },
+
+    collectVerticalRoutingLines()
+    {
+        main.vertical_routing_lines = [];
+        if(!main.view)
+            return main.vertical_routing_lines;
+
+        const viewRect = main.view.getBoundingClientRect();
+        const viewWidth = main.view.clientWidth || Math.round(viewRect.width) || 3000;
+        const viewHeight = main.view.clientHeight || Math.round(viewRect.height) || 3000;
+        const pitch = main.getOutputRoutePitch();
+        const candidateXs = [];
+
+        for(const rect of main.component_rectangles || [])
+        {
+            const left = rect.x;
+            const right = rect.x + rect.width;
+            for(let i = 0; i < 5; i++)
+            {
+                candidateXs.push(left - i * pitch, right + i * pitch);
+            }
+        }
+
+        const uniqueXs = [];
+        for(const rawX of candidateXs)
+        {
+            const x = Math.round(rawX);
+            if(x < 0 || x > viewWidth)
+                continue;
+            if(uniqueXs.some((existingX) => Math.abs(existingX - x) < pitch))
+                continue;
+            uniqueXs.push(x);
+        }
+
+        for(const x of uniqueXs)
+        {
+            const blocked = [];
+            for(const rect of main.component_rectangles || [])
+            {
+                const left = rect.x;
+                const right = rect.x + rect.width;
+                if(x < left || x > right)
+                    continue;
+                blocked.push({x1: rect.y, x2: rect.y + rect.height});
+            }
+            blocked.sort((a, b) => a.x1 - b.x1);
+
+            const segments = main.subtractBlockedIntervals(viewHeight, blocked);
+            for(const segment of segments)
+            {
+                main.vertical_routing_lines.push({
+                    x1: x,
+                    y1: Math.round(segment.x1),
+                    x2: x,
+                    y2: Math.round(segment.x2)
+                });
+            }
+        }
+
+        return main.vertical_routing_lines;
+    },
+
+    addVerticalRoutingLines()
+    {
+        const lines = main.collectVerticalRoutingLines();
+        for(const line of lines)
+        {
+            main.connections += `<line class='vertical-routing-debug-line' x1='${line.x1}' y1='${line.y1}' x2='${line.x2}' y2='${line.y2}'/>`;
+        }
+    },
+
+    collectRoutingGridPoints()
+    {
+        main.routing_grid_points = [];
+        const horizontalLines = [
+            ...(main.horizontal_routing_lines || []),
+            ...(main.output_debug_lines || []),
+            ...(main.input_debug_lines || [])
+        ];
+        const verticalLines = main.vertical_routing_lines || [];
+        const seen = new Set();
+
+        for(const h of horizontalLines)
+        {
+            const hx1 = Math.min(h.x1, h.x2);
+            const hx2 = Math.max(h.x1, h.x2);
+            const hy = h.y1;
+            for(const v of verticalLines)
+            {
+                const vy1 = Math.min(v.y1, v.y2);
+                const vy2 = Math.max(v.y1, v.y2);
+                const vx = v.x1;
+                if(vx < hx1 || vx > hx2)
+                    continue;
+                if(hy < vy1 || hy > vy2)
+                    continue;
+
+                const key = `${Math.round(vx)}:${Math.round(hy)}`;
+                if(seen.has(key))
+                    continue;
+                seen.add(key);
+                main.routing_grid_points.push({
+                    x: Math.round(vx),
+                    y: Math.round(hy)
+                });
+            }
+        }
+
+        return main.routing_grid_points;
+    },
+
+    addRoutingGridPoints()
+    {
+        const points = main.collectRoutingGridPoints();
+        for(const point of points)
+        {
+            main.connections += `<circle class='routing-grid-point' cx='${point.x}' cy='${point.y}' r='4'/>`;
+        }
+    },
+
     selectConnection(connection)
     {
         const c = document.getElementById(connection);
@@ -5536,6 +5955,12 @@ const main =
             return;
 
         main.connections = "<svg xmlns='http://www.w3.org/2000/svg' class='connections_svg'>";
+        main.addDebugRectangles();
+        main.addOutputDebugLines();
+        main.addInputDebugLines();
+        main.addHorizontalRoutingLines();
+        main.addVerticalRoutingLines();
+        main.addRoutingGridPoints();
         for(let c of group.connections || [])
             main.addConnection(c,path);
         main.addTrackedConnection();
