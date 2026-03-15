@@ -5437,7 +5437,7 @@ const main =
         }
     },
 
-    addConnection(c,path)
+    addConnection(c,path, routedPoints=null)
     {
         const source = getStringUpToBracket(c.source);
         const target = getStringUpToBracket(c.target);       
@@ -5458,7 +5458,12 @@ const main =
         const styleAttr = connectionColor ? ` style="--connection-color:${connectionColor};"` : "";
         const lineType = (c.line_type || "line").toLowerCase();
         let cc = "";
-        if(lineType === "orthogonal")
+        if(Array.isArray(routedPoints) && routedPoints.length >= 2)
+        {
+            const points = routedPoints.map((point) => `${point.x},${point.y}`).join(" ");
+            cc = `<polyline points='${points}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}");inspector.toggleComponent();'/>`;
+        }
+        else if(lineType === "orthogonal")
         {
             const mx = Math.round((x1 + x2) / 2);
             const points = `${x1},${y1} ${mx},${y1} ${mx},${y2} ${x2},${y2}`;
@@ -5913,6 +5918,329 @@ const main =
         }
     },
 
+    getRoutingNodeId(x, y)
+    {
+        return `${Math.round(x)},${Math.round(y)}`;
+    },
+
+    getConnectionSocketIds(path, connection)
+    {
+        const source = getStringUpToBracket(connection.source || "");
+        const target = getStringUpToBracket(connection.target || "");
+        return {
+            sourceSocketId: `${path}.${source}:out`,
+            targetSocketId: `${path}.${target}:in`
+        };
+    },
+
+    getRoutingHorizontalLines()
+    {
+        return [
+            ...(main.output_debug_lines || []),
+            ...(main.input_debug_lines || []),
+            ...(main.horizontal_routing_lines || [])
+        ].map((line) => ({
+            x1: Math.min(line.x1, line.x2),
+            y1: line.y1,
+            x2: Math.max(line.x1, line.x2),
+            y2: line.y2,
+            id: line.id || ""
+        }));
+    },
+
+    getRoutingVerticalLines()
+    {
+        return (main.vertical_routing_lines || []).map((line) => ({
+            x1: line.x1,
+            y1: Math.min(line.y1, line.y2),
+            x2: line.x2,
+            y2: Math.max(line.y1, line.y2)
+        }));
+    },
+
+    buildRoutingGraph()
+    {
+        const graph = {
+            nodes: new Map(),
+            edges: new Map(),
+            adjacency: new Map()
+        };
+        const horizontals = main.getRoutingHorizontalLines();
+        const verticals = main.getRoutingVerticalLines();
+
+        const ensureNode = function(x, y)
+        {
+            const id = main.getRoutingNodeId(x, y);
+            if(!graph.nodes.has(id))
+                graph.nodes.set(id, {id, x: Math.round(x), y: Math.round(y)});
+            if(!graph.adjacency.has(id))
+                graph.adjacency.set(id, []);
+            return id;
+        };
+
+        const addEdge = function(nodeA, nodeB, dir)
+        {
+            if(nodeA === nodeB)
+                return;
+            const key = nodeA < nodeB ? `${nodeA}|${nodeB}` : `${nodeB}|${nodeA}`;
+            if(graph.edges.has(key))
+                return;
+            const a = graph.nodes.get(nodeA);
+            const b = graph.nodes.get(nodeB);
+            const length = dir === "H" ? Math.abs(a.x - b.x) : Math.abs(a.y - b.y);
+            const edge = {key, a: nodeA, b: nodeB, dir, length};
+            graph.edges.set(key, edge);
+            graph.adjacency.get(nodeA).push(edge);
+            graph.adjacency.get(nodeB).push(edge);
+        };
+
+        for(const h of horizontals)
+        {
+            const xs = [h.x1, h.x2];
+            for(const other of horizontals)
+            {
+                if(other === h || Math.abs(other.y1 - h.y1) > 0.5)
+                    continue;
+                if(other.x1 > h.x2 || other.x2 < h.x1)
+                    continue;
+                xs.push(Math.max(h.x1, other.x1), Math.min(h.x2, other.x2), other.x1, other.x2);
+            }
+            for(const v of verticals)
+            {
+                if(v.x1 < h.x1 || v.x1 > h.x2)
+                    continue;
+                if(h.y1 < v.y1 || h.y1 > v.y2)
+                    continue;
+                xs.push(v.x1);
+            }
+            const uniqueXs = Array.from(new Set(xs.map((x) => Math.round(x)))).sort((a, b) => a - b);
+            for(let i = 0; i < uniqueXs.length; i++)
+                ensureNode(uniqueXs[i], h.y1);
+            for(let i = 1; i < uniqueXs.length; i++)
+                addEdge(main.getRoutingNodeId(uniqueXs[i - 1], h.y1), main.getRoutingNodeId(uniqueXs[i], h.y1), "H");
+        }
+
+        for(const v of verticals)
+        {
+            const ys = [v.y1, v.y2];
+            for(const h of horizontals)
+            {
+                if(v.x1 < h.x1 || v.x1 > h.x2)
+                    continue;
+                if(h.y1 < v.y1 || h.y1 > v.y2)
+                    continue;
+                ys.push(h.y1);
+            }
+            const uniqueYs = Array.from(new Set(ys.map((y) => Math.round(y)))).sort((a, b) => a - b);
+            for(let i = 0; i < uniqueYs.length; i++)
+                ensureNode(v.x1, uniqueYs[i]);
+            for(let i = 1; i < uniqueYs.length; i++)
+                addEdge(main.getRoutingNodeId(v.x1, uniqueYs[i - 1]), main.getRoutingNodeId(v.x1, uniqueYs[i]), "V");
+        }
+
+        return graph;
+    },
+
+    compareRouteCost(a, b)
+    {
+        if(a.length !== b.length)
+            return a.length - b.length;
+        return a.segments - b.segments;
+    },
+
+    isRoutingEdgeAvailable(edgeKey, sourceSocketId, targetSocketId, occupiedEdges)
+    {
+        const occupants = occupiedEdges.get(edgeKey);
+        if(!occupants || occupants.length === 0)
+            return true;
+        return occupants.every((occupant) => occupant.sourceSocketId === sourceSocketId || occupant.targetSocketId === targetSocketId);
+    },
+
+    findOrthogonalRoute(graph, sourceNodeId, targetNodeId, sourceSocketId, targetSocketId, occupiedEdges)
+    {
+        if(!graph.nodes.has(sourceNodeId) || !graph.nodes.has(targetNodeId))
+            return null;
+
+        const queue = [{
+            nodeId: sourceNodeId,
+            prevDir: null,
+            length: 0,
+            segments: 0,
+            prevNodeId: null,
+            prevState: null,
+            viaEdgeKey: null
+        }];
+        const best = new Map();
+
+        while(queue.length > 0)
+        {
+            let bestIndex = 0;
+            for(let i = 1; i < queue.length; i++)
+            {
+                if(main.compareRouteCost(queue[i], queue[bestIndex]) < 0)
+                    bestIndex = i;
+            }
+            const state = queue.splice(bestIndex, 1)[0];
+            const bestKey = `${state.nodeId}|${state.prevDir || "-"}|${state.segments}`;
+            const recorded = best.get(bestKey);
+            if(recorded && main.compareRouteCost(recorded, state) < 0)
+                continue;
+
+            if(state.nodeId === targetNodeId && state.segments <= 5)
+                return state;
+
+            const currentNode = graph.nodes.get(state.nodeId);
+            for(const edge of graph.adjacency.get(state.nodeId) || [])
+            {
+                if(!main.isRoutingEdgeAvailable(edge.key, sourceSocketId, targetSocketId, occupiedEdges))
+                    continue;
+
+                const nextNodeId = edge.a === state.nodeId ? edge.b : edge.a;
+                if(state.prevNodeId && nextNodeId === state.prevNodeId)
+                    continue;
+
+                const nextNode = graph.nodes.get(nextNodeId);
+                if(state.prevDir === null)
+                {
+                    if(edge.dir !== "H" || nextNode.x <= currentNode.x)
+                        continue;
+                }
+
+                if(nextNodeId === targetNodeId)
+                {
+                    if(edge.dir !== "H" || currentNode.x >= nextNode.x)
+                        continue;
+                }
+
+                const nextSegments = state.prevDir === null ? 1 : (state.prevDir === edge.dir ? state.segments : state.segments + 1);
+                if(nextSegments > 5)
+                    continue;
+
+                const nextState = {
+                    nodeId: nextNodeId,
+                    prevDir: edge.dir,
+                    length: state.length + edge.length,
+                    segments: nextSegments,
+                    prevNodeId: state.nodeId,
+                    prevState: state,
+                    viaEdgeKey: edge.key
+                };
+                const nextKey = `${nextState.nodeId}|${nextState.prevDir}|${nextState.segments}`;
+                const bestNext = best.get(nextKey);
+                if(bestNext && main.compareRouteCost(bestNext, nextState) <= 0)
+                    continue;
+                best.set(nextKey, nextState);
+                queue.push(nextState);
+            }
+        }
+
+        return null;
+    },
+
+    reconstructRoutePoints(graph, finalState)
+    {
+        const nodes = [];
+        const edgeKeys = [];
+        let state = finalState;
+        while(state)
+        {
+            nodes.push(graph.nodes.get(state.nodeId));
+            if(state.viaEdgeKey)
+                edgeKeys.push(state.viaEdgeKey);
+            state = state.prevState;
+        }
+        nodes.reverse();
+        edgeKeys.reverse();
+
+        const points = [];
+        for(const node of nodes)
+        {
+            if(points.length < 2)
+            {
+                points.push({x: node.x, y: node.y});
+                continue;
+            }
+            const prev = points[points.length - 1];
+            const prevPrev = points[points.length - 2];
+            const sameX = prevPrev.x === prev.x && prev.x === node.x;
+            const sameY = prevPrev.y === prev.y && prev.y === node.y;
+            if(sameX || sameY)
+            {
+                points[points.length - 1] = {x: node.x, y: node.y};
+                continue;
+            }
+            points.push({x: node.x, y: node.y});
+        }
+
+        return {points, edgeKeys};
+    },
+
+    registerRouteOccupancy(edgeKeys, sourceSocketId, targetSocketId, occupiedEdges)
+    {
+        for(const edgeKey of edgeKeys)
+        {
+            if(!occupiedEdges.has(edgeKey))
+                occupiedEdges.set(edgeKey, []);
+            occupiedEdges.get(edgeKey).push({sourceSocketId, targetSocketId});
+        }
+    },
+
+    buildAutoRoutesForGroup(group, path)
+    {
+        const routes = new Map();
+        if(!group)
+            return routes;
+
+        const graph = main.buildRoutingGraph();
+        const occupiedEdges = new Map();
+        const sourceLineMap = new Map((main.output_debug_lines || []).map((line) => [line.id, line]));
+        const targetLineMap = new Map((main.input_debug_lines || []).map((line) => [line.id, line]));
+
+        const candidates = [];
+        for(const connection of group.connections || [])
+        {
+            if(!main.shouldHighlightAutoRoutedConnection(group, connection))
+                continue;
+            const {sourceSocketId, targetSocketId} = main.getConnectionSocketIds(path, connection);
+            const sourceLine = sourceLineMap.get(sourceSocketId);
+            const targetLine = targetLineMap.get(targetSocketId);
+            if(!sourceLine || !targetLine)
+                continue;
+            candidates.push({
+                connection,
+                sourceSocketId,
+                targetSocketId,
+                sourceLine,
+                targetLine,
+                estimatedLength: Math.abs(targetLine.x2 - sourceLine.x1) + Math.abs(targetLine.y1 - sourceLine.y1)
+            });
+        }
+
+        candidates.sort((a, b) => a.estimatedLength - b.estimatedLength);
+
+        for(const candidate of candidates)
+        {
+            const sourceNodeId = main.getRoutingNodeId(candidate.sourceLine.x1, candidate.sourceLine.y1);
+            const targetNodeId = main.getRoutingNodeId(candidate.targetLine.x2, candidate.targetLine.y2);
+            const finalState = main.findOrthogonalRoute(graph, sourceNodeId, targetNodeId, candidate.sourceSocketId, candidate.targetSocketId, occupiedEdges);
+            if(!finalState)
+                continue;
+
+            const route = main.reconstructRoutePoints(graph, finalState);
+            routes.set(main.getConnectionKey(path, candidate.connection), route.points);
+            main.registerRouteOccupancy(route.edgeKeys, candidate.sourceSocketId, candidate.targetSocketId, occupiedEdges);
+        }
+
+        return routes;
+    },
+
+    getConnectionKey(path, connection)
+    {
+        const source = getStringUpToBracket(connection.source || "");
+        const target = getStringUpToBracket(connection.target || "");
+        return `${path}.${source}*${path}.${target}`;
+    },
+
     selectConnection(connection)
     {
         const c = document.getElementById(connection);
@@ -5955,14 +6283,15 @@ const main =
             return;
 
         main.connections = "<svg xmlns='http://www.w3.org/2000/svg' class='connections_svg'>";
-        main.addDebugRectangles();
-        main.addOutputDebugLines();
-        main.addInputDebugLines();
-        main.addHorizontalRoutingLines();
-        main.addVerticalRoutingLines();
-        main.addRoutingGridPoints();
+        main.collectComponentRectangles();
+        main.collectOutputDebugLines();
+        main.collectInputDebugLines();
+        main.collectHorizontalRoutingLines();
+        main.collectVerticalRoutingLines();
+        main.collectRoutingGridPoints();
+        const autoRoutes = main.buildAutoRoutesForGroup(group, path);
         for(let c of group.connections || [])
-            main.addConnection(c,path);
+            main.addConnection(c, path, autoRoutes.get(main.getConnectionKey(path, c)) || null);
         main.addTrackedConnection();
         main.connections += "</svg>";
         s.innerHTML = main.connections;
