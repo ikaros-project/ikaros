@@ -1569,12 +1569,39 @@ div.module td.output {
     cursor: pointer;
 }
 
+.widget-title-menu-button {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: none;
+    width: 14px;
+    height: 14px;
+    line-height: 12px;
+    font-size: 10px;
+    text-align: center;
+    border: 1px solid #000;
+    border-radius: 3px;
+    padding: 0;
+    background: #fff;
+    color: #000;
+    cursor: pointer;
+    z-index: 20;
+}
+
 #main.edit_mode div.module td.title:hover .module-title-menu-button {
+    display: inline-block;
+}
+
+#main.edit_mode .gi.widget:hover > .widget-title-menu-button {
     display: inline-block;
 }
 
 .module-title-menu-button:hover {
     background: rgba(255, 255, 255, 0.2);
+}
+
+.widget-title-menu-button:hover {
+    background: #f0f0f0;
 }
 
 /*
@@ -1967,6 +1994,11 @@ svg .routing-grid-point {
 
 .gi {
     border: 1px solid var(--component-border, rgba(0, 0, 0, 0));
+}
+
+#main.edit_mode .gi.widget:hover {
+    outline: 1px dashed rgba(0, 0, 0, 0.8);
+    outline-offset: -2px;
 }
 
 

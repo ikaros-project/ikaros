@@ -616,6 +616,39 @@ const network =
         this.component_count = Object.keys(this.dict).length+1;
     },
 
+    hasAnyComponentPosition(group=this.network)
+    {
+        if(!group || typeof group !== "object")
+            return false;
+
+        const hasPosition = function(component)
+        {
+            if(!component || typeof component !== "object")
+                return false;
+            const x = parseFloat(component._x);
+            const y = parseFloat(component._y);
+            return Number.isFinite(x) && Number.isFinite(y);
+        };
+
+        const components = [
+            ...(group.groups || []),
+            ...(group.modules || []),
+            ...(group.inputs || []),
+            ...(group.outputs || []),
+            ...(group.widgets || [])
+        ];
+
+        for(const component of components)
+        {
+            if(hasPosition(component))
+                return true;
+            if(component && component._tag === "group" && this.hasAnyComponentPosition(component))
+                return true;
+        }
+
+        return false;
+    },
+
     ensureGroupAutoRouting(group)
     {
         if(!group || typeof group !== "object")
@@ -739,6 +772,8 @@ const network =
             _y:old_widget._y,
             width: old_widget.width,
             height: old_widget.height,
+            show_title: old_widget.show_title,
+            show_frame: old_widget.show_frame,
 
             source: old_widget.source || "",
             min: (old_widget.min !== undefined ?  old_widget.min : ""),
@@ -1198,6 +1233,7 @@ let controller =
    
             controller.tick = response.tick;
             network.init(response);
+            const shouldAutoArrange = !network.hasAnyComponentPosition();
             nav.populate();
             let top = network.network.name;
 
@@ -1206,6 +1242,9 @@ let controller =
                 selector.selectItems([], v);
             else
                 selector.selectItems([], top);
+
+            if(shouldAutoArrange)
+                main.arrangeComponents();
 
             if(response.filename=="")
                 network.tainted = true;
@@ -3183,6 +3222,7 @@ const main =
         main.auto_routing_toggle_button = document.getElementById("auto_routing_toggle_button");
         main.createContextMenu();
         main.createComponentColorMenu();
+        main.createWidgetMenu();
         main.drawGrid();
         window.addEventListener("resize", main.drawGrid, false);
         main.view.addEventListener("mousedown", main.startBackgroundSelection, false);
@@ -3228,6 +3268,8 @@ const main =
                 main.hideContextMenu();
             if(main.component_color_menu_visible && main.component_color_menu && !main.component_color_menu.contains(evt.target))
                 main.hideComponentColorMenu();
+            if(main.widget_menu_visible && main.widget_menu && !main.widget_menu.contains(evt.target))
+                main.hideWidgetMenu();
         }, true);
 
         document.addEventListener("keydown", function(evt)
@@ -3236,6 +3278,7 @@ const main =
             {
                 main.hideContextMenu();
                 main.hideComponentColorMenu();
+                main.hideWidgetMenu();
             }
         }, true);
 
@@ -3250,12 +3293,14 @@ const main =
                 return;
             main.hideContextMenu();
             main.hideComponentColorMenu();
+            main.hideWidgetMenu();
         }, true);
 
         window.addEventListener("blur", function()
         {
             main.hideContextMenu();
             main.hideComponentColorMenu();
+            main.hideWidgetMenu();
         }, false);
     },
 
@@ -3361,6 +3406,66 @@ const main =
         }, false);
     },
 
+    createWidgetMenu()
+    {
+        if(main.widget_menu && main.widget_menu.parentElement)
+            main.widget_menu.remove();
+
+        const menu = document.createElement("div");
+        menu.className = "main-context-menu";
+        menu.innerHTML = `
+            <div class="main-context-submenu widget-class-submenu">
+                <button type="button" class="main-context-menu-item main-context-submenu-trigger">class</button>
+                <div class="main-context-submenu-panel main-context-class-submenu-panel" role="menu" aria-label="Widget Class"></div>
+            </div>
+            <div class="main-context-menu-separator" role="separator" aria-hidden="true"></div>
+            <button type="button" class="main-context-menu-item" data-action="toggle-title">Hide Title</button>
+            <button type="button" class="main-context-menu-item" data-action="toggle-frame">Hide Frame</button>
+            <div class="main-context-menu-separator" role="separator" aria-hidden="true"></div>
+            <button type="button" class="main-context-menu-item" data-action="bring-to-front">Bring to Front</button>
+            <button type="button" class="main-context-menu-item" data-action="bring-to-back">Send to Back</button>
+            <div class="main-context-menu-separator" role="separator" aria-hidden="true"></div>
+            <button type="button" class="main-context-menu-item" data-action="duplicate">Duplicate</button>
+            <button type="button" class="main-context-menu-item" data-action="delete">Delete</button>
+            <div class="main-context-menu-separator" role="separator" aria-hidden="true"></div>
+            <button type="button" class="main-context-menu-item" data-action="rename">Rename</button>
+            <div class="main-context-menu-separator" role="separator" aria-hidden="true"></div>
+            <button type="button" class="main-context-menu-item" data-action="show-inspector">Show Inspector...</button>
+        `;
+        document.body.appendChild(menu);
+        main.widget_menu = menu;
+        main.widget_class_submenu = menu.querySelector(".widget-class-submenu");
+        main.widget_class_submenu_panel = menu.querySelector(".main-context-class-submenu-panel");
+
+        menu.addEventListener("mousedown", function(evt)
+        {
+            evt.stopPropagation();
+        }, true);
+
+        menu.addEventListener("click", function(evt)
+        {
+            const classButton = evt.target.closest(".main-context-class-item");
+            if(classButton)
+            {
+                main.setWidgetClass(classButton.dataset.className || "");
+                main.hideWidgetMenu();
+                evt.preventDefault();
+                evt.stopPropagation();
+                return;
+            }
+            const actionButton = evt.target.closest(".main-context-menu-item[data-action]");
+            if(actionButton)
+            {
+                main.handleWidgetMenuAction(actionButton.dataset.action || "");
+                main.hideWidgetMenu();
+                evt.preventDefault();
+                evt.stopPropagation();
+                return;
+            }
+            main.hideWidgetMenu();
+        }, false);
+    },
+
     handleComponentMenuAction(action)
     {
         if(!main.edit_mode)
@@ -3388,6 +3493,83 @@ const main =
                     inspector.showComponent();
                 break;
         }
+    },
+
+    handleWidgetMenuAction(action)
+    {
+        if(!main.edit_mode)
+            return;
+        const fullName = main.widget_menu_target;
+        const item = fullName ? network.dict[fullName] : null;
+        if(!fullName || !item || item._tag !== "widget")
+            return;
+        if(!selector.selected_foreground.includes(fullName))
+            selector.selectItems([fullName], selector.selected_background);
+        switch((action || "").toLowerCase())
+        {
+            case "toggle-title":
+                main.toggleWidgetParameter("show_title");
+                break;
+            case "toggle-frame":
+                main.toggleWidgetParameter("show_frame");
+                break;
+            case "bring-to-front":
+                main.reorderWidget(fullName, "front");
+                break;
+            case "bring-to-back":
+                main.reorderWidget(fullName, "back");
+                break;
+            case "duplicate":
+                main.duplicateSelectedComponents(false);
+                break;
+            case "delete":
+                main.deleteComponent();
+                break;
+            case "rename":
+                main.startInlineNameEditForComponent(fullName);
+                break;
+            case "show-inspector":
+                if(inspector && typeof inspector.showInspectorForSelection === "function")
+                    inspector.showInspectorForSelection();
+                if(inspector && typeof inspector.showComponent === "function")
+                    inspector.showComponent();
+                break;
+        }
+    },
+
+    populateWidgetClassSubmenu(widgetFullName)
+    {
+        if(!main.widget_class_submenu || !main.widget_class_submenu_panel)
+            return;
+
+        const item = network.dict[widgetFullName];
+        if(!item || item._tag !== "widget")
+        {
+            main.widget_class_submenu.style.display = "none";
+            main.widget_class_submenu_panel.innerHTML = "";
+            return;
+        }
+
+        main.widget_class_submenu.style.display = "";
+        main.widget_class_submenu_panel.innerHTML = "";
+        for(const className of widget_classes)
+        {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = "main-context-class-item";
+            if(className === item.class)
+                b.classList.add("selected");
+            b.dataset.className = className;
+            b.textContent = className;
+            main.widget_class_submenu_panel.appendChild(b);
+        }
+
+        const titleToggle = main.widget_menu.querySelector('.main-context-menu-item[data-action="toggle-title"]');
+        const frameToggle = main.widget_menu.querySelector('.main-context-menu-item[data-action="toggle-frame"]');
+        if(titleToggle)
+            titleToggle.textContent = item.show_title ? "Hide Title" : "Show Title";
+        if(frameToggle)
+            frameToggle.textContent = item.show_frame ? "Hide Frame" : "Show Frame";
     },
 
     getComponentColorTargetFromElement(element)
@@ -3454,6 +3636,99 @@ const main =
         main.component_color_menu.classList.remove("open-class-only");
         main.component_color_menu_visible = false;
         main.component_color_target = null;
+    },
+
+    showWidgetMenuAt(clientX, clientY, widgetFullName)
+    {
+        if(!main.widget_menu || !widgetFullName)
+            return;
+
+        main.hideContextMenu();
+        main.hideComponentColorMenu();
+        main.populateWidgetClassSubmenu(widgetFullName);
+        main.widget_menu_target = widgetFullName;
+        main.widget_menu.style.display = "block";
+
+        const rect = main.widget_menu.getBoundingClientRect();
+        const maxLeft = Math.max(0, window.innerWidth - rect.width - 4);
+        const maxTop = Math.max(0, window.innerHeight - rect.height - 4);
+        const left = Math.max(0, Math.min(clientX, maxLeft));
+        const top = Math.max(0, Math.min(clientY, maxTop));
+        main.widget_menu.style.left = `${left}px`;
+        main.widget_menu.style.top = `${top}px`;
+        main.widget_menu_visible = true;
+    },
+
+    hideWidgetMenu()
+    {
+        if(!main.widget_menu)
+            return;
+        main.widget_menu.style.display = "none";
+        main.widget_menu_visible = false;
+        main.widget_menu_target = null;
+    },
+
+    setWidgetClass(className)
+    {
+        const fullName = main.widget_menu_target;
+        if(!fullName || !className)
+            return;
+        const item = network.dict[fullName];
+        if(!item || item._tag !== "widget")
+            return;
+
+        network.changeWidgetClass(fullName, className);
+        selector.selectItems([fullName], null, false, false, true);
+        network.tainted = true;
+    },
+
+    toggleWidgetParameter(parameterName)
+    {
+        const fullName = main.widget_menu_target;
+        if(!fullName || !parameterName)
+            return;
+        const item = network.dict[fullName];
+        const widgetFrame = document.getElementById(fullName);
+        if(!item || item._tag !== "widget" || !widgetFrame || !widgetFrame.widget)
+            return;
+
+        item[parameterName] = !widgetFrame.widget.toBool(item[parameterName]);
+        widgetFrame.widget.parameters[parameterName] = item[parameterName];
+        try
+        {
+            widgetFrame.widget.updateAll();
+        }
+        catch(err)
+        {
+            console.log(err);
+        }
+        if(inspector && typeof inspector.showInspectorForSelection === "function")
+            inspector.showInspectorForSelection();
+        network.tainted = true;
+    },
+
+    reorderWidget(fullName, direction)
+    {
+        if(!fullName)
+            return;
+        const group = network.dict[selector.selected_background];
+        const item = network.dict[fullName];
+        if(!group || !item || item._tag !== "widget" || !Array.isArray(group.widgets))
+            return;
+
+        const index = group.widgets.findIndex((widget) => widget && widget.name === item.name);
+        if(index < 0)
+            return;
+
+        const [widget] = group.widgets.splice(index, 1);
+        if(direction === "back")
+            group.widgets.unshift(widget);
+        else
+            group.widgets.push(widget);
+
+        network.rebuildDict();
+        selector.selectItems([fullName], selector.selected_background, false, false, true);
+        network.tainted = true;
     },
 
     setComponentColor(color)
@@ -3543,6 +3818,22 @@ const main =
             return;
         const r = button.getBoundingClientRect();
         main.showComponentColorMenuAt(r.right + 2, r.top, fullName, "class");
+    },
+
+    openWidgetMenuFromButton(evt)
+    {
+        if(!main.edit_mode)
+            return;
+        evt.preventDefault();
+        evt.stopPropagation();
+        const button = evt.currentTarget || evt.target.closest(".widget-title-menu-button");
+        if(!button)
+            return;
+        const fullName = button.dataset.component || (button.closest(".gi.widget") ? button.closest(".gi.widget").dataset.name : null);
+        if(!fullName)
+            return;
+        const r = button.getBoundingClientRect();
+        main.showWidgetMenuAt(r.right + 2, r.top, fullName);
     },
 
     getSnappedBackgroundPositionFromEvent(evt)
@@ -4881,6 +5172,12 @@ const main =
         main_view.removeEventListener('mouseup',main.releaseComponents, true);
         main_view.removeEventListener('mousemove',main.moveComponents, false);
         main_view.removeEventListener('mouseup',main.releaseComponents, false);
+        for(const c of selector.selected_foreground)
+        {
+            const e = document.getElementById(c);
+            if(e)
+                e.classList.remove("dragged");
+        }
         main.map = {};
     },
 
@@ -4905,6 +5202,7 @@ const main =
         w.style.height = newHeight + 'px';
         network.dict[w_id].width = newWidth;
         network.dict[w_id].height = newHeight;
+        w.classList.remove("resized");
     },
 
     startResize(evt)
@@ -5421,6 +5719,15 @@ const main =
         if(titleText)
             titleText.addEventListener("dblclick", startWidgetTitleEdit, false);
         newObject.appendChild(newTitle);
+
+        const menuButton = document.createElement("button");
+        menuButton.type = "button";
+        menuButton.className = "widget-title-menu-button";
+        menuButton.setAttribute("aria-label", "Widget menu");
+        menuButton.setAttribute("title", "Widget menu");
+        menuButton.setAttribute("data-component", fullName);
+        menuButton.innerHTML = "&#9776;";
+        newObject.appendChild(menuButton);
     
         const index = main.view.querySelectorAll(".widget").length;
         main.view.appendChild(newObject);
@@ -6570,12 +6877,15 @@ const main =
                 b.addEventListener('mousedown', main.openComponentColorMenuFromButton, false);
             for(const b of main.view.querySelectorAll(".module-class-menu-button"))
                 b.addEventListener('mousedown', main.openComponentClassMenuFromButton, false);
+            for(const b of main.view.querySelectorAll(".widget-title-menu-button"))
+                b.addEventListener('mousedown', main.openWidgetMenuFromButton, false);
             for(const t of main.view.querySelectorAll(".component-title-text"))
                 t.addEventListener('dblclick', main.startInlineNameEdit, false);
         }
         else // View mode
         {
             for (let e of main.view.querySelectorAll(".gi"))
+            {
                 if(!e.classList.contains("widget"))
                 {
                     // Main drag function
@@ -6596,10 +6906,12 @@ const main =
                         }, false);
 
                     // Set selection class if selected
-                    if(selectionList.includes(e.dataset.name))
-                        e.classList.add("selected")
-                    else
-                        e.classList.remove("selected"); // FIXME: is this ever necessary?
+                }
+
+                if(selectionList.includes(e.dataset.name))
+                    e.classList.add("selected")
+                else
+                    e.classList.remove("selected"); // FIXME: is this ever necessary?
                 }
             for(const t of main.view.querySelectorAll(".component-title-text"))
                 t.addEventListener('dblclick', main.startInlineNameEdit, false);
@@ -6654,8 +6966,7 @@ const main =
         main.main.classList.add("view_mode");
         main.main.classList.remove("edit_mode");
         main.edit_mode = false;
-        main.updateComponentStates();
-        inspector.showInspectorForSelection();
+        selector.selectItems([], selector.selected_background);
     },
 
     toggleEditMode()
@@ -6764,6 +7075,12 @@ const main =
                 main.duplicateSelectedComponents(evt.shiftKey);
             return;
         }
+        else if (key=="e" || code=="KeyE")
+        {
+            evt.preventDefault();
+            main.toggleEditMode();
+            return;
+        }
         else if (key=="i" || code=="KeyI")
         { 
             evt.preventDefault();
@@ -6825,6 +7142,7 @@ const main =
         <tr><td>&#8984; + A</td><td>Select all components/widgets in current group.</td></tr>
         <tr><td>&#8984; + D</td><td>Duplicate selected components (edit mode).</td></tr>
         <tr><td>&#8984; + &#8679; + D</td><td>Duplicate selected components (edit mode), preserving incoming/outgoing connections.</td></tr>
+        <tr><td>&#8984; + E</td><td>Toggle edit mode.</td></tr>
         <tr><td>&#8984; + I</td><td>Toggle inspector.</td></tr>
         <tr><td>&#8984; + S</td><td>Save.</td></tr>
         <tr><td>&#8984; + &#8997; + T</td><td>Set runtime mode (same as Realtime button).</td></tr>
