@@ -1220,6 +1220,41 @@ let controller =
         controller.ping = Date.now() - controller.send_stamp;
         controller.defer_reconnect(); // we are still connected
 
+        if(response.log)
+        {
+            let logElement = log.getMessagesElement();
+            if(!logElement)
+                return;
+            //if(response.log.length > 0)    
+            //    console.log(response.log);
+
+            response.log.forEach((element) => 
+            {
+                let message_class = ["inherit", "quiet","exception","end_of_file","terminate","fatal_error","warning","print","debug","trace"][element[0]];
+                let p = document.createElement('p');
+                p.className = message_class;
+                p.appendChild(document.createTextNode(element[1]));
+                if(element[2])
+                {
+                    let a = document.createElement('a');
+                    a.href = '#';
+                    a.innerText = " \u00bb " + element[2];
+                    a.onclick = function (evt)
+                    {
+                        evt.preventDefault();
+                        selector.selectError(element[2]);
+                    };
+                    p.appendChild(a);
+                }
+                logElement.appendChild(p);
+                if(element[0]<=6)
+                {
+                    log.showView(true);
+                    logElement.scrollTop = logElement.scrollHeight; // FIXME: Only when needed
+                }
+            });
+        }
+
         // NETWORK
 
         if(package_type == "network")
@@ -1281,42 +1316,6 @@ let controller =
                 }
             }
         }
-
-        if(response.log)
-        {
-            let logElement = log.getMessagesElement();
-            if(!logElement)
-                return;
-            //if(response.log.length > 0)    
-            //    console.log(response.log);
-
-            response.log.forEach((element) => 
-            {
-                let message_class = ["inherit", "quiet","exception","end_of_file","terminate","fatal_error","warning","print","debug","trace"][element[0]];
-                let p = document.createElement('p');
-                p.className = message_class;
-                p.appendChild(document.createTextNode(element[1]));
-                if(element[2])
-                {
-                    let a = document.createElement('a');
-                    a.href = '#';
-                    a.innerText = " \u00bb " + element[2];
-                    a.onclick = function (evt)
-                    {
-                        evt.preventDefault();
-                        selector.selectError(element[2]);
-                    };
-                    p.appendChild(a);
-                }
-                logElement.appendChild(p);
-                if(element[0]<=6)
-                {
-                    log.showView(true);
-                    logElement.scrollTop = logElement.scrollHeight; // FIXME: Only when needed
-                }
-            });
-        }
-
     },
 
     requestUpdate()
