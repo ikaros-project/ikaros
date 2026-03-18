@@ -697,6 +697,5 @@ ServerSocket::Host()
     if(gethostname(hostname, 256) == 0)	// everything ok
         return hostname;
     else
-        return "unkown-host";
+        return "unknown-host";
 }
-

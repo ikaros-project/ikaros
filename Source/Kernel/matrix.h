@@ -81,7 +81,7 @@ namespace ikaros
     }
 
     
-    // Recursive initalizer_list
+    // Recursive initializer_list
 
     struct InitList
     {
@@ -107,7 +107,7 @@ namespace ikaros
         std::vector<int> stride_;                       // stride for jumping to the next row - necessary for submatrices
         std::vector<int> max_size_;                     // shape of allocated memory; same as stride for main matrix
         int size_;                                      // the size of the data, is different from data_.size() for submatrices
-        bool continuous;                                // the data is continous in memory
+        bool continuous;                                // the data is continuous in memory
         std::string name_;                              // name of the matrix, used when printing and possibly for access in the future
         std::vector<std::vector<std::string>> labels_;  // label for each 'column' in each dimension; will be used for tables in the future
 
@@ -1326,7 +1326,7 @@ namespace ikaros
         matrix &
         hypot(matrix & x, matrix & y) // Compute element-wise hypotenuse sqrt(x^2 + y^2)
         {
-            // FIXME: Handle non-continous matrices as well
+            // FIXME: Handle non-continuous matrices as well
 
             if(empty())
                 realloc(x.shape());
@@ -1360,7 +1360,7 @@ namespace ikaros
         matrix &
         atan2(matrix & y, matrix & x) // Compute element-wise atan2
         {
-            // FIXME: Handle non-continous matrices as well
+            // FIXME: Handle non-continuous matrices as well
 
             if(empty())
                 realloc(x.shape());
@@ -1972,4 +1972,3 @@ friend void im2row(std::vector<float> &submatrices_flat, const matrix &I, const 
     match       search(const matrix & target,const rect & search_ractangle) const;
     };
 }
-

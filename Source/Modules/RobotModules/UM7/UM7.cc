@@ -116,15 +116,15 @@ class UM7 : public Module
             rx_length = s->ReceiveBytes(rx_data, 255, 0);
             // Notify(log_level_debug, "Data length %i\n", rx_length);
 
-            if (rx_length <= 11 and !packet_has_data) // No data this tick. I think the minimal lenght
+            if (rx_length <= 11 and !packet_has_data) // No data this tick. I think the minimal length
             {
-                // Notify(log_level_trace, "No data or incomplete data recived from UM7.");
+                // Notify(log_level_trace, "No data or incomplete data received from UM7.");
                 return;
             }
 
             if (rx_length <= 0 and packet_has_data) // Read all buffer and have data
             {
-                // Notify(log_level_trace, "Recived some data.");
+                // Notify(log_level_trace, "Received some data.");
                 break;
             }
 

@@ -72,7 +72,7 @@ namespace ikaros
 
         auto type_index = std::find(parameter_strings.begin(), parameter_strings.end(), type_string);
         if(type_index == parameter_strings.end())
-            throw exception("Unkown parameter type: "+type_string+".");
+            throw exception("Unknown parameter type: "+type_string+".");
 
         type = parameter_type(std::distance(parameter_strings.begin(), type_index));
 
@@ -532,7 +532,7 @@ namespace ikaros
 // GetComponent
 //
 // sensitive to variables and indirection
-// does local substitution of vaiables unlike GetValue() / FIXME: is this correct?
+// does local substitution of variables unlike GetValue() / FIXME: is this correct?
 //
  
     Component * 
@@ -1904,7 +1904,7 @@ bool operator==(Request & r, const std::string s)
     // Functions for creating the network
 
     void 
-    Kernel::AddInput(std::string name, dictionary parameters) // FIXME: use name as argument insteas of parameters
+    Kernel::AddInput(std::string name, dictionary parameters) // FIXME: use name as argument instead of parameters
     {
         buffers[name] = matrix().set_name(parameters["name"]);
     }
@@ -1926,7 +1926,7 @@ bool operator==(Request & r, const std::string s)
     Kernel::SetParameter(std::string name, std::string value)
     {
         if(!parameters.count(name))
-            throw exception("Parameter \""+name+"\" could not be set because it doees not exist.");
+            throw exception("Parameter \""+name+"\" could not be set because it does not exist.");
 
         try
         {
@@ -1935,7 +1935,7 @@ bool operator==(Request & r, const std::string s)
         }
         catch(...)
         {
-            throw exception("Parameter \""+name+"\" could not be set. Check that parameter exist and that the data type and value is correct.");
+            throw exception("Parameter \""+name+"\" could not be set. Check that the parameter exists and that the data type and value is correct.");
         }
     }
 
@@ -1994,18 +1994,18 @@ if(classes[classname].path.empty())
     void 
     Kernel::AddConnection(dictionary info, std::string path)
     {
-         std::string souce = path+"."+std::string(info["source"]);   // FIXME: Look for global paths later - string conversion should not be necessary
+         std::string source = path+"."+std::string(info["source"]);   // FIXME: Look for global paths later - string conversion should not be necessary
          std::string target = path+"."+std::string(info["target"]);
 
-         std::string delay_range = info.contains("delay") ? info["delay"] : "";// FIXME: return "" if name not in dict - or use containts *********
-         std::string alias = info.contains("alias") ? info["alias"] : "";// FIXME: return "" if name not in dict - or use containts *********
+         std::string delay_range = info.contains("delay") ? info["delay"] : "";// FIXME: return "" if name not in dict - or use contains *********
+         std::string alias = info.contains("alias") ? info["alias"] : "";// FIXME: return "" if name not in dict - or use contains *********
 
         if(delay_range.empty() || delay_range=="null")  // FIXME: return "" if name not in dict - or use contains *********
             delay_range = "[1]";
         else if(delay_range[0] != '[')
             delay_range = "["+delay_range+"]";
         range r(delay_range);
-        connections.push_back(Connection(souce, target, r, alias));
+        connections.push_back(Connection(source, target, r, alias));
     }
 
 
@@ -2126,7 +2126,7 @@ if(classes[classname].path.empty())
 
                     CalculateCheckSum();
                     needs_reload = false;
-                    Pause(); // Rest clocks
+                    Pause(); // Reset clocks
                 }
                 catch(const exception& e)
                 {
@@ -2883,10 +2883,12 @@ if(classes[classname].path.empty())
         std::string sep;
         for(auto line : log)
         {
+            std::string s = line.json();
             socket->Send(sep +line.json());
             sep = ",";
         }
         socket->Send("]");
+        if(!log.empty() )
         log.clear();
     }
 
@@ -2908,11 +2910,10 @@ if(classes[classname].path.empty())
         std::string sep = "";
         bool sent = false;
 
-        while(!data.empty()) // FIXME: Check the we do not run out of time here and break if next tick is about to start.
+        while(!data.empty()) // FIXME: Check that we do not run out of time here and break if next tick is about to start.
         {
             std::string source = head(data, ",");
             std::string key = source;
-
 
             if(source.find("@") != std::string::npos && components.count(root) > 0)
             {

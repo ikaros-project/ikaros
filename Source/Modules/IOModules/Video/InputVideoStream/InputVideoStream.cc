@@ -109,7 +109,7 @@ class InputVideoStream : public Module
 			Notify(msg_fatal_error, "Can not create frame grabber");
 		}
 
-		// Set paramters
+		// Set parameters
 		framegrabber->uv4l = uv4l;
 		framegrabber->url = url.c_str(); // copy string?
 		framegrabber->printInfo = printInfo;

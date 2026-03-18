@@ -59,7 +59,7 @@ Components of the WebUI
 
 ## Main Area
 
-- Module and conections in selected group
+- Module and connections in selected group
 - Wdigets in selected view
 
 ## Inspector
@@ -83,4 +83,3 @@ Inspector for selected item:
     - table (i_table)
         - atribute-value
         - filled from dict
-

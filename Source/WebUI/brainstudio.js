@@ -1204,7 +1204,7 @@ let controller =
         }
         catch(err)
         {
-            console.log("controller.setSystemInfo: incorrect package received form ikaros.")
+            console.log("controller.setSystemInfo: incorrect package received from ikaros.")
         }
     },
 
@@ -1215,6 +1215,7 @@ let controller =
             console.log("ERROR: empty or malformed response");
             return;
         }
+
 
         controller.ping = Date.now() - controller.send_stamp;
         controller.defer_reconnect(); // we are still connected
@@ -1321,7 +1322,7 @@ let controller =
     requestUpdate()
     {
         clearTimeout(controller.request_timer);
-        controller.request_timer = setTimeout(controller.requestUpdate, controller.webui_req_int); // immediately schdeule next
+        controller.request_timer = setTimeout(controller.requestUpdate, controller.webui_req_int); // immediately schedule next
 
         if(controller.open_mode)
             return;

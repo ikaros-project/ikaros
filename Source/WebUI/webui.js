@@ -2057,7 +2057,7 @@ controller = {
         }
         catch(err)
         {
-            console.log("controller.setSystemInfo: incorrect package received form ikaros.")
+            console.log("controller.setSystemInfo: incorrect package received from ikaros.")
         }
     },
 
@@ -2109,7 +2109,7 @@ controller = {
         }
         else
         {
-            //console.log(">>> controller.update: unkown package type");
+            //console.log(">>> controller.update: unknown package type");
         }
 
 
@@ -2171,7 +2171,7 @@ controller = {
         }
         else
         {
-            console.log("controller.update: incorrect package received form ikaros.")
+            console.log("controller.update: incorrect package received from ikaros.")
         }
         controller.defer_reconnect(); // we are still on line
     },
@@ -2179,7 +2179,7 @@ controller = {
     requestUpdate: function()
     {
         clearTimeout(controller.request_timer);
-        controller.request_timer = setTimeout(controller.requestUpdate, controller.webui_req_int); // immediately schdeule next
+        controller.request_timer = setTimeout(controller.requestUpdate, controller.webui_req_int); // immediately schedule next
 
         controller.webui_interval = Date.now() - controller.last_request_time;
         controller.last_request_time = Date.now();
@@ -2218,4 +2218,3 @@ controller = {
         controller.queueCommand('update/');
     }
 }
-

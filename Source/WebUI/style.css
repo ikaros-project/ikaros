@@ -1380,9 +1380,10 @@ header button:active, aside button:active {
     padding-top: 2px;
 }
 
-footer p {
+footer .log-messages p {
     padding-left:5px;
-    font-size: 10px;
+    font-size: 13px;
+    line-height: 1.4;
 }
 
 .log-clear-button {

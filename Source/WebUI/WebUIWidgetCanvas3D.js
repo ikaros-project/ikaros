@@ -537,7 +537,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				sizes = [];
 
 				var geometry = new THREE.BufferGeometry();
-				//console.log("Adding poitns")
+				//console.log("Adding points")
 				for (var i = 0; i < this.vertices.length; i++) {
 					colors.push(0, 0, 0);
 					sizes.push(0)

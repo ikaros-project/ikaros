@@ -181,7 +181,7 @@ Example reponse:
     "name":"topgroup",
     "groups": [...],
     "modules": [...],
-    "conections": [...],
+    "connections": [...],
     :
     :
 }
@@ -267,4 +267,3 @@ Save current network with a new name. The parameter name indicates the path and 
 Example:
 
     /saveas?name=new_name
-

@@ -452,7 +452,7 @@ public:
 
     tick_count GetTick() { return tick; }
     double GetTickDuration() { return tick_duration; } // Time for each tick in seconds (s)
-    double GetTime() { return (run_mode.load() == run_mode_realtime) ? GetRealTime() : static_cast<double>(tick)*tick_duration; }   // Time since start (in real time or simulated (tick) time dending on mode)
+    double GetTime() { return (run_mode.load() == run_mode_realtime) ? GetRealTime() : static_cast<double>(tick)*tick_duration; }   // Time since start (in real time or simulated (tick) time depending on mode)
     double GetRealTime() { return (run_mode.load() == run_mode_realtime) ? timer.GetTime() : static_cast<double>(tick)*tick_duration; }
     double GetNominalTime() { return static_cast<double>(tick)*tick_duration; } 
     double GetTimeOfDay();
@@ -595,4 +595,3 @@ public:
 };
 
 }; // namespace ikaros
-
