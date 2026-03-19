@@ -1225,8 +1225,6 @@ let controller =
             let logElement = log.getMessagesElement();
             if(!logElement)
                 return;
-            //if(response.log.length > 0)    
-            //    console.log(response.log);
 
             response.log.forEach((element) => 
             {
