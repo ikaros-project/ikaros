@@ -612,6 +612,7 @@ const network =
     {
         this.network = n;
         this.ensureGroupAutoRouting(this.network);
+        this.ensureConnectionDefaults(this.network);
         this.rebuildDict();
         this.component_count = Object.keys(this.dict).length+1;
     },
@@ -653,10 +654,31 @@ const network =
     {
         if(!group || typeof group !== "object")
             return;
+        if(group.color === undefined || group.color === null || group.color === "")
+            group.color = "black";
         if(group.auto_routing === undefined)
             group.auto_routing = false;
         for(const child of group.groups || [])
             this.ensureGroupAutoRouting(child);
+    },
+
+    ensureConnectionDefaults(group)
+    {
+        if(!group || typeof group !== "object")
+            return;
+
+        for(const connection of group.connections || [])
+        {
+            if(!connection || typeof connection !== "object")
+                continue;
+            if(connection.color === undefined || connection.color === null || connection.color === "")
+                connection.color = "black";
+            if(connection.line_type === undefined || connection.line_type === null || connection.line_type === "")
+                connection.line_type = "auto_route";
+        }
+
+        for(const child of group.groups || [])
+            this.ensureConnectionDefaults(child);
     },
 
     isUnique(name)  // test if name can be changed to this ******************************
@@ -4811,7 +4833,9 @@ const main =
             n.object._y = snap(n.y + dy);
         }
 
-        const selected = [...selector.selected_foreground];
+        const selected = nodes
+            .filter((n) => n.object && n.object._tag !== "widget")
+            .map((n) => n.fullName);
         network.rebuildDict();
         nav.populate();
         selector.selectItems(selected, background, false, false, true);
@@ -7050,6 +7074,34 @@ const main =
         main.updateAutoRoutingButtonState();
     },
 
+    selectCurrentGroupComponents(options = {})
+    {
+        const background = selector.selected_background;
+        const group = network.dict[background];
+        if(!group)
+            return;
+
+        const includeWidgets = options.includeWidgets !== false;
+        const widgetsOnly = options.widgetsOnly === true;
+        let components = [];
+
+        if(widgetsOnly)
+            components = [...(group.widgets || [])];
+        else
+        {
+            components = [
+                ...(group.groups || []),
+                ...(group.modules || []),
+                ...(group.inputs || []),
+                ...(group.outputs || [])
+            ];
+            if(includeWidgets)
+                components.push(...(group.widgets || []));
+        }
+
+        selector.selectItems(components.map((component) => background + '.' + component.name), null, false, true);
+    },
+
     keydown(evt)
     {
         const key = (evt.key || "").toLowerCase();
@@ -7106,10 +7158,14 @@ const main =
 
         if(key=="a" || code=="KeyA")
         {
-            let bg = selector.selected_background;
-            let g = network.dict[bg];
-            let comps = [...g.groups||[], ...g.modules||[], ...g.inputs||[], ...g.outputs||[], ...g.widgets||[]];
-            selector.selectItems(comps.map((x) => bg+'.'+x.name), null, false, true);
+            evt.preventDefault();
+            if(evt.altKey)
+                main.selectCurrentGroupComponents({widgetsOnly: true});
+            else if(evt.shiftKey)
+                main.selectCurrentGroupComponents({includeWidgets: false});
+            else
+                main.selectCurrentGroupComponents({includeWidgets: true});
+            return;
         }
   
   /*
@@ -7203,6 +7259,8 @@ const main =
         <tr><td>Backspace</td><td>Delete selected components/connections (edit mode).</td></tr>
         <tr><td>Escape</td><td>Toggle system inspector.</td></tr>
         <tr><td>&#8984; + A</td><td>Select all components/widgets in current group.</td></tr>
+        <tr><td>&#8984; + &#8679; + A</td><td>Select all non-widget components in current group.</td></tr>
+        <tr><td>&#8984; + &#8997; + A</td><td>Select widgets only in current group.</td></tr>
         <tr><td>&#8984; + D</td><td>Duplicate selected components (edit mode).</td></tr>
         <tr><td>&#8984; + &#8679; + D</td><td>Duplicate selected components (edit mode), preserving incoming/outgoing connections.</td></tr>
         <tr><td>&#8984; + E</td><td>Toggle edit mode.</td></tr>
