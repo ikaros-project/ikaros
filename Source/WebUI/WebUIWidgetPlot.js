@@ -1,5 +1,43 @@
 class WebUIWidgetPlot extends WebUIWidgetGraph
 {
+    getSelectedIndices(columnCount)
+    {
+        if(!Number.isInteger(columnCount) || columnCount <= 0)
+            return [];
+
+        const select = String(this.parameters.select ?? "").trim();
+        if(select === "")
+            return Array.from({length: columnCount}, (_, index) => index);
+
+        const indices = [];
+        const seen = new Set();
+        for(const token of select.split(/[,\s]+/))
+        {
+            if(token === "")
+                continue;
+            const index = Math.trunc(Number(token));
+            if(!Number.isInteger(index) || index < 0 || index >= columnCount || seen.has(index))
+                continue;
+            seen.add(index);
+            indices.push(index);
+        }
+        return indices;
+    }
+
+    getSelectedData(data)
+    {
+        if(!Array.isArray(data) || data.length === 0 || !Array.isArray(data[0]))
+            return [];
+
+        const selectedIndices = this.getSelectedIndices(data[0].length);
+        return data.map((row) =>
+        {
+            if(!Array.isArray(row))
+                return [];
+            return selectedIndices.map((index) => row[index]);
+        });
+    }
+
     roundUpToSignificantFigure(value)
     {
         if(!Number.isFinite(value) || value === 0)
@@ -115,16 +153,20 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         const history = this.getOrderedBuffer();
         if(history.length === 0)
             return;
+        const selectedIndices = this.getSelectedIndices(this.data[0].length);
+        if(selectedIndices.length === 0)
+            return;
         let dx = width/Math.max(1, this.getBufferSize());
 
-        for(let xx=0; xx<this.data[0].length; xx++)
+        for(let xx=0; xx<selectedIndices.length; xx++)
         {
+            const selectedIndex = selectedIndices[xx];
             this.canvas.beginPath();
-            this.setColor(xx);
+            this.setColor(selectedIndex);
             for(let i=0; i<history.length; i++)
             {
                 const x = i * dx;
-                const value = history[i]?.[y]?.[xx];
+                const value = history[i]?.[y]?.[selectedIndex];
                 const yy = this.getPlotYForValue(value, height);
                 if(i === 0)
                     this.canvas.moveTo(x, yy);
@@ -157,7 +199,7 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
 
             if(this.parameters.auto)
             {
-                const values = this.getFiniteValues(this.data);
+                const values = this.getFiniteValues(this.getSelectedData(this.data));
                 if(values.length > 0)
                 {
                     let nextMax = Math.max(...values);
@@ -185,7 +227,15 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
                 this.computedMax = null;
             }
 
-            this.draw(this.data[0].length, this.data.length);
+            const selectedData = this.getSelectedData(this.data);
+            if(!selectedData.length || !Array.isArray(selectedData[0]) || selectedData[0].length === 0)
+            {
+                this.resetCanvasTransform(-0.5, -0.5);
+                this.canvas.clearRect(0, 0, this.width, this.height);
+                return;
+            }
+
+            this.draw(selectedData[0].length, selectedData.length);
         }
     }
 };
