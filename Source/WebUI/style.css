@@ -75,6 +75,27 @@ dialog::backdrop {
     font-size: 12px;
 }
 
+.status-spinner {
+    display: inline-block;
+    width: 0.8em;
+    height: 0.8em;
+    margin-left: 0.35em;
+    border: 0.14em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    vertical-align: -0.08em;
+    animation: statusSpinnerRotate 0.8s linear infinite;
+}
+
+@keyframes statusSpinnerRotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
   .loader {
     width: 120px;
     height: 13px;

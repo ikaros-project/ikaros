@@ -931,19 +931,32 @@ let controller =
     {
         controller.get("update", controller.update);
         controller.setSystemInfo(null);
-        let s = document.querySelector("#state");
-        if(s.innerText == "waiting")
-            s.innerHTML = "waiting &bull;";
-        else
-            s.innerHTML = "waiting";
-
+        controller.setWaitingState();
     },
 
     defer_reconnect()
     {
         clearInterval(controller.reconnect_timer);
-        //controller.reconnect_timer = setInterval(controller.reconnect, controller.reconnect_interval);
-        // AUTOMATIC RECONNECT TEMPORARILY TURNED OFF - should only happen in run mode **********
+        controller.reconnect_timer = null;
+    },
+
+    schedule_reconnect()
+    {
+        clearTimeout(controller.request_timer);
+        controller.request_timer = null;
+        if(controller.reconnect_timer != null)
+            return;
+        controller.setSystemInfo(null);
+        controller.setWaitingState();
+        controller.reconnect_timer = setInterval(controller.reconnect, controller.reconnect_interval);
+    },
+
+    setWaitingState()
+    {
+        const stateElement = document.querySelector("#state");
+        if(!stateElement)
+            return;
+        stateElement.innerHTML = 'waiting <span class="status-spinner" aria-hidden="true"></span>';
     },
 
         saveNetwork()
@@ -995,12 +1008,15 @@ let controller =
         
         xhr.ontimeout = function() 
         {
-            //log.print("Request timed out.");
             controller.open_mode = false;
-            controller.requestUpdate();
-
-
+            controller.schedule_reconnect();
         }
+
+        xhr.onerror = function()
+        {
+            controller.open_mode = false;
+            controller.schedule_reconnect();
+        };
 
         xhr.responseType = 'json';
         xhr.timeout = 2000;
@@ -1018,7 +1034,6 @@ let controller =
         controller.getClasses();
         controller.getClassInfo();
         controller.requestUpdate();
-        controller.reconnect_timer = setInterval(controller.reconnect, controller.reconnect_interval);
     },
     
     queueCommand(command, path="", dictionary={}) {
@@ -1241,6 +1256,8 @@ let controller =
 
         controller.ping = Date.now() - controller.send_stamp;
         controller.defer_reconnect(); // we are still connected
+        if(controller.request_timer == null && !controller.open_mode)
+            controller.requestUpdate();
 
         if(response.log)
         {
