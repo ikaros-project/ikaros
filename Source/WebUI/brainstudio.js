@@ -7107,9 +7107,10 @@ const main =
         const key = (evt.key || "").toLowerCase();
         const code = evt.code || "";
         const isModifier = evt.metaKey || evt.ctrlKey;
+        const isSaveShortcut = isModifier && (key == "s" || code == "KeyS");
 
         const activeElement = document.activeElement;
-        if(activeElement && (activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA" || activeElement.tagName === "SELECT" || activeElement.isContentEditable))
+        if(!isSaveShortcut && activeElement && (activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA" || activeElement.tagName === "SELECT" || activeElement.isContentEditable))
             return;
 
         if(main.edit_mode && selector.selected_foreground.length > 0)
