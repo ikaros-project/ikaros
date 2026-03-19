@@ -2457,6 +2457,18 @@ const inspector =
     {
         inspector.hideSubviews();
         let item = network.dict[bg];
+        const colorOptions = "red,orange,yellow,green,blue,purple,pink,white,black";
+        const colorOptionLabels = {
+            red: "&#x1F7E5; red",
+            orange: "&#x1F7E7; orange",
+            yellow: "&#x1F7E8; yellow",
+            green: "&#x1F7E9; green",
+            blue: "&#x1F7E6; blue",
+            purple: "&#x1F7EA; purple",
+            pink: "&#x25A3; pink",
+            white: "&#x2B1C; white",
+            black: "&#x2B1B; black"
+        };
         const isTopGroup = (bg == network.network.name);
         const rowTemplate = [];
         const readOnlyRows = [];
@@ -2464,6 +2476,7 @@ const inspector =
         const countRows = [];
         const allAttributes = Object.keys(item || {});
         const hiddenTopGroupAttributes = new Set(["filename", "webui_port", "info", "stop"]);
+        const priorityRowTemplates = new Map();
         for(const key of allAttributes)
         {
             if(key == "_tag" || key.startsWith("_"))
@@ -2482,6 +2495,16 @@ const inspector =
             }
             if(Array.isArray(value))
                 continue;
+            if(key == "color")
+            {
+                priorityRowTemplates.set(key, {'name': key, 'control':'menu', 'type':'source', 'options': colorOptions, 'option_labels': colorOptionLabels});
+                continue;
+            }
+            if(key == "auto_routing")
+            {
+                priorityRowTemplates.set(key, {'name': key, 'control':'checkbox', 'type':'bool'});
+                continue;
+            }
             if(typeof value == "number")
                 rowTemplate.push({'name': key, 'control':'textedit', 'type': Number.isInteger(value) ? 'int' : 'float'});
             else if(typeof value == "boolean")
@@ -2491,6 +2514,12 @@ const inspector =
             else
                 readOnlyRows.push({ key, value });
         }
+        const orderedPriorityRows = [];
+        if(priorityRowTemplates.has("color"))
+            orderedPriorityRows.push(priorityRowTemplates.get("color"));
+        if(priorityRowTemplates.has("auto_routing"))
+            orderedPriorityRows.push(priorityRowTemplates.get("auto_routing"));
+        rowTemplate.unshift(...orderedPriorityRows);
         for(const key of countRowKeys)
             if(!countRows.some((r) => r.key == key))
                 countRows.push({ key, value: (item[key] || []).length });
@@ -2518,6 +2547,8 @@ const inspector =
                     const attribute = rowTemplate[i];
                     const row = current_t_body.rows[firstCustomRowIndex + i];
                     if(!row || row.cells.length < 2)
+                        continue;
+                    if(attribute.name == "auto_routing" || attribute.name == "color")
                         continue;
                     const valueCell = row.cells[1];
                     valueCell.classList.add("inspector-removable-value-cell");
