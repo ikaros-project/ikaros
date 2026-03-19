@@ -2757,7 +2757,6 @@ if(classes[classname].path.empty())
     }
 
 
-
     void
     Kernel::Realtime()
     {
@@ -2780,11 +2779,18 @@ if(classes[classname].path.empty())
     void
     Kernel::Play()
     {
-        if(needs_reload)
-            LoadFile();
-  
-        run_mode = run_mode_play;
-        timer.Continue();
+        try 
+        {
+            if(needs_reload)
+                LoadFile();
+    
+            run_mode = run_mode_play;
+            timer.Continue();
+        }
+        catch(const load_failed& e)
+        {
+            Notify(msg_warning, e.what(), e.path());
+        }
     }
 
 
@@ -3125,20 +3131,42 @@ if(classes[classname].path.empty())
     void
     Kernel::DoPause(Request & request)
     {
+        try
+        {
+            Pause();
+        }
+        catch(const load_failed& e)
+        {
+            Notify(msg_warning, e.what(), e.path());
+        }
+        
+
+
+
         Notify(msg_print, "pause");
-        Pause();
+    
+  
         DoSendData(request);
     }
+
 
 
     void
     Kernel::DoStep(Request & request)
     {
         Notify(msg_print, "step");
-        Pause();
-        run_mode = run_mode_pause; // FIXME: Probably not necessary
-        Tick();
-        timer.SetPauseTime(GetTime()+tick_duration);
+        try
+        {
+            Pause();
+            run_mode = run_mode_pause; // FIXME: Probably not necessary
+            Tick();
+            timer.SetPauseTime(GetTime()+tick_duration);
+ 
+        }
+        catch(const load_failed& e)
+        {
+            Notify(msg_warning, e.what(), e.path());
+        }
         DoSendData(request);
     }
 
