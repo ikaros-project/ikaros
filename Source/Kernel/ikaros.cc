@@ -3393,6 +3393,50 @@ if(classes[classname].path.empty())
 
 
     void
+    Kernel::DoSendClassReadMe(Request & request)
+    {
+        Dictionary header;
+        header.Set("Content-Type", "text/plain; charset=utf-8");
+        header.Set("Cache-Control", "no-cache");
+        header.Set("Cache-Control", "no-store");
+        header.Set("Pragma", "no-cache");
+        socket->SendHTTPHeader(&header);
+
+        if(!request.parameters.contains("class"))
+        {
+            socket->Send("No class selected.");
+            return;
+        }
+
+        std::string class_name = request.parameters["class"];
+        if(!classes.count(class_name))
+        {
+            socket->Send("Class not found: " + class_name);
+            return;
+        }
+
+        std::filesystem::path class_path = classes[class_name].path;
+        if(class_path.empty())
+        {
+            socket->Send("No class path available for: " + class_name);
+            return;
+        }
+
+        std::filesystem::path readme_path = class_path.parent_path() / "ReadMe.md";
+        std::ifstream readme_file(readme_path);
+        if(!readme_file.is_open())
+        {
+            socket->Send("No ReadMe.md found for: " + class_name);
+            return;
+        }
+
+        std::string content((std::istreambuf_iterator<char>(readme_file)), std::istreambuf_iterator<char>());
+        socket->Send(content);
+    }
+
+
+
+    void
     Kernel::DoSendFileList(Request & request)
     {
         // Scan for files
@@ -3495,6 +3539,8 @@ if(classes[classname].path.empty())
             DoSendClasses(request);
         else if(request == "classinfo") 
             DoSendClassInfo(request);
+        else if(request == "classreadme")
+            DoSendClassReadMe(request);
         else if(request == "files") 
             DoSendFileList(request);
         else if(request == "")

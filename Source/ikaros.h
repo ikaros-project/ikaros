@@ -558,6 +558,7 @@ public:
     void DoSendLog(Request & request);
     void DoSendClasses(Request & request);
     void DoSendClassInfo(Request & request);
+    void DoSendClassReadMe(Request & request);
     void DoSendFileList(Request & request);
     void DoSendFile(std::string file);
     void DoSendError();
