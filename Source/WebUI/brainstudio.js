@@ -3344,14 +3344,14 @@ const inspector =
             const signature = selector.selected_foreground.join("|");
             if(signature !== inspector.last_selected_signature)
             {
-                inspector.resetComponentWidth();
+                inspector.resetPanelWidth(inspector.component);
                 inspector.last_selected_signature = signature;
             }
         }
         else
         {
             inspector.last_selected_signature = "";
-            inspector.resetComponentWidth();
+            inspector.resetPanelWidth(inspector.component);
         }
 
         if(selector.selected_connection)
@@ -5712,6 +5712,8 @@ const main =
     startDragComponents(evt)
     {
         console.log("startDragComponents");
+        if(main.inline_name_edit)
+            main.finishInlineNameEdit(false);
         evt.stopPropagation();
         if(evt.detail == 2) // handle double clicks elsewhere
         {
