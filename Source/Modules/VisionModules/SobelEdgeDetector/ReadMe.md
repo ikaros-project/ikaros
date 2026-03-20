@@ -14,7 +14,7 @@ motion- and contour-sensitive pathways, tactile image preprocessing, or robot vi
 edge strength should be estimated cheaply and fed forward into higher-level segmentation or
 recognition.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

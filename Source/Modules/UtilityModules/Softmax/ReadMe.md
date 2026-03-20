@@ -14,7 +14,7 @@ selection, attention allocation, mixture-of-experts control, and any circuit whe
 should be emphasized without losing the interpretation that all alternatives remain part of a single
 normalized decision state.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Inputs
 

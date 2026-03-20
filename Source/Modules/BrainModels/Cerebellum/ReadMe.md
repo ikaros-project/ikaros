@@ -9,7 +9,7 @@ ISI_sigma, and ISI_tau shape its behavior. Within a larger brain-inspired archit
 can be used as one component in a pathway for sensory integration, value-based gating, rhythmic
 control, or state estimation, depending on how its inputs are embedded in the surrounding circuit.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

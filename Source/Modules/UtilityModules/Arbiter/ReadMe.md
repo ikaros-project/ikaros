@@ -25,7 +25,7 @@ as no_of_inputs, metric, arbitration, by_row, and softmax_exponent shape its beh
 use case is to place the module inside a larger sensorimotor or cognitive architecture where it
 helps transform, summarize, or route signals between neural subsystems and robot effectors.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

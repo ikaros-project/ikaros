@@ -19,7 +19,7 @@ robot systems, that matters because the neural side may choose goals or trajecto
 behavior still depends on a low-level layer that enforces physical constraints while exposing
 measurable joint state back to the model.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

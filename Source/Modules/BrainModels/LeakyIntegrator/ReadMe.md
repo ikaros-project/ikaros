@@ -15,7 +15,7 @@ That makes this kind of module useful for membrane-potential style dynamics, evi
 in decision circuits, low-pass filtering of sensory input, and motor systems where commands should
 build up gradually instead of changing instantaneously.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

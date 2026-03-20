@@ -12,7 +12,7 @@ previously recorded sensory streams into a brain model, or when feeding a robot 
 scripted trajectories, calibrated motor commands, or annotated experiment data for repeatable
 benchmarking.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

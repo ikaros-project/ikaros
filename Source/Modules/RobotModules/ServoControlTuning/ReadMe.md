@@ -17,7 +17,7 @@ architecture in which perception and decision circuits choose targets, impedance
 while this module family handles the low-level interface needed to turn those choices into stable
 movement and usable feedback.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

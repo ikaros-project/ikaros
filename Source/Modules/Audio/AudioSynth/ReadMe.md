@@ -17,7 +17,7 @@ just a debugging aid. They can be used to model vocal production, to provide emb
 feedback during learning, or to generate structured signals whose timbre and pitch are controlled by
 higher-level affective, social, or motor modules.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

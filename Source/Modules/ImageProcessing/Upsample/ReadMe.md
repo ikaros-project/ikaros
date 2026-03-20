@@ -16,7 +16,7 @@ to a finer one. This can happen when an attention map, occupancy estimate, or lo
 prediction must be expanded so that later visual or motor stages can use it in the same coordinate
 system as detailed image data.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Inputs
 

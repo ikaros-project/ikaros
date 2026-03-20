@@ -12,7 +12,7 @@ when injecting controlled noise into decision circuits, sampling exploratory mot
 stochastic search, or modeling trial-to-trial variability in sensory or neuromodulatory input
 streams.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

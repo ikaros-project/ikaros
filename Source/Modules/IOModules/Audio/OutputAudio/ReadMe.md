@@ -16,7 +16,7 @@ includes speech production, turn-taking, active audition, and experiments where 
 align closely with movement or internal state in order for adaptation and interaction to remain
 stable.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

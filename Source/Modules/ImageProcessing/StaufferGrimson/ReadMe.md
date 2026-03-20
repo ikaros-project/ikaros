@@ -15,7 +15,7 @@ combined into layered pipelines rather than used alone. Their role is often to r
 into spatial cues that later modules can use for recognition, action selection, and visually guided
 control.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

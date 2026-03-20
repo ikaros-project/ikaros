@@ -12,7 +12,7 @@ experiments it can be used to correlate energy consumption with behavior, for ex
 gaze-control strategies, adaptive locomotion policies, or manipulation plans that trade speed
 against electrical cost.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

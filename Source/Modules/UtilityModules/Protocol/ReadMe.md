@@ -18,7 +18,7 @@ stimuli is itself part of the hypothesis, such as in prediction-error studies, e
 renewal experiments, or robot training tasks where delayed outcomes must be linked back to earlier
 signals.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

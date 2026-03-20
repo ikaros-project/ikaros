@@ -16,7 +16,7 @@ reveals global layout before fine detail is processed. Downsampling is therefore
 vision, image pyramids, fast peripheral monitoring, and active vision systems that first detect
 where to look coarsely and only then commit high-resolution resources.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Inputs
 

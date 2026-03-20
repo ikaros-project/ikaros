@@ -20,7 +20,7 @@ prediction, adaptive sensor fusion, and policy-learning pipelines where intermed
 matters as much as the final output, for example when a robot has to estimate body state from noisy
 multimodal input before generating coordinated action.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 

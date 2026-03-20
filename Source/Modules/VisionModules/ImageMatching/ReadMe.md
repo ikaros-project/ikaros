@@ -15,7 +15,7 @@ a current observation with a remembered visual fragment. This supports landmark 
 tracking, object re-detection, and calibration tasks in robotics, especially when a learned control
 module needs robust visual anchors to stabilize behavior in a changing scene.
 
-*This file was automaticlaly created.*
+*This description was automatically created and may not describe the full function of the module..*
 
 ## Parameters
 
