@@ -12,11 +12,11 @@ previously recorded sensory streams into a brain model, or when feeding a robot 
 scripted trajectories, calibrated motor commands, or annotated experiment data for repeatable
 benchmarking.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
 | filename | File to read the data from | string |  |
 | send_end_of_file | Set to 'no' to have the module send arrays of zeros forever. | bool | yes |
+
+*This description was automatically created and may not describe the full function of the module.*

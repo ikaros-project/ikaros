@@ -10,8 +10,6 @@ PresentCurrent. A strong use case is a layered robot architecture in which perce
 circuits choose targets, impedances, or action modes while this module family handles the low-level
 interface needed to turn those choices into stable movement and usable feedback.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Inputs
 
 | Name | Description | Optional |
@@ -26,3 +24,5 @@ interface needed to turn those choices into stable movement and usable feedback.
 | --- | --- |
 | PresentPosition | The present position of the servomotors in degrees |
 | PresentCurrent | Current in the motors |
+
+*This description was automatically created and may not describe the full function of the module.*

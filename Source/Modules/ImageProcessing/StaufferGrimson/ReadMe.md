@@ -15,8 +15,6 @@ combined into layered pipelines rather than used alone. Their role is often to r
 into spatial cues that later modules can use for recognition, action selection, and visually guided
 control.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -41,3 +39,5 @@ control.
 | WEIGHTS | The weights |
 | MEANS | The mean of each gaussian |
 | VARIANCES | The variance of each gaussian |
+
+*This description was automatically created and may not describe the full function of the module.*

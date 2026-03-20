@@ -16,8 +16,6 @@ temporal coding, and oscillatory coupling, or for driving event-sensitive contro
 systems where precisely timed bursts can signal saliency, movement onset, or phase transitions in
 behavior.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -44,3 +42,5 @@ behavior.
 | Name | Description |
 | --- | --- |
 | OUTPUT | The output |
+
+*This description was automatically created and may not describe the full function of the module.*

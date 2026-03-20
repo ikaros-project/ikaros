@@ -11,4 +11,4 @@ In larger embodied experiments, a startup logger is useful for tracking exactly 
 configuration, robot setup, and parameterization produced a given behavioral run so results remain
 comparable across long experimental series.
 
-*This description was automatically created and may not describe the full function of the module..*
+*This description was automatically created and may not describe the full function of the module.*

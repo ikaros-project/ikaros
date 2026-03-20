@@ -17,8 +17,6 @@ architecture in which perception and decision circuits choose targets, impedance
 while this module family handles the low-level interface needed to turn those choices into stable
 movement and usable feedback.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -38,3 +36,5 @@ movement and usable feedback.
 | --- | --- |
 | Position | Goal position and present position of the seleected servo |
 | Current | Goal Current and present current of the selected servo |
+
+*This description was automatically created and may not describe the full function of the module.*

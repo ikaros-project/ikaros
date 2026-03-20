@@ -12,8 +12,6 @@ perception and decision circuits choose targets, impedances, or action modes whi
 family handles the low-level interface needed to turn those choices into stable movement and usable
 feedback.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -37,3 +35,5 @@ feedback.
 | --- | --- |
 | CurrentOutput | Goal current in mA to be sent to the servos (only in current-based (position) control mode) |
 | GoalPositionOut | The goal position of the servomotors in degrees |
+
+*This description was automatically created and may not describe the full function of the module.*

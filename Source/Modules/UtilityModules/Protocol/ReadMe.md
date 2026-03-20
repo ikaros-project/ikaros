@@ -18,8 +18,6 @@ stimuli is itself part of the hypothesis, such as in prediction-error studies, e
 renewal experiments, or robot training tasks where delayed outcomes must be linked back to earlier
 signals.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -37,3 +35,5 @@ signals.
 | --- | --- |
 | STIMULUS | Stimulus |
 | REWARD | The reward |
+
+*This description was automatically created and may not describe the full function of the module.*

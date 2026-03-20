@@ -15,8 +15,6 @@ a current observation with a remembered visual fragment. This supports landmark 
 tracking, object re-detection, and calibration tasks in robotics, especially when a learned control
 module needs robust visual anchors to stabilize behavior in a changing scene.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -39,3 +37,5 @@ module needs robust visual anchors to stabilize behavior in a changing scene.
 | FOCUS | The focus area in the left image |
 | TARGET | The found target area in the right image |
 | PROFILE | The calculated disparity output |
+
+*This description was automatically created and may not describe the full function of the module.*

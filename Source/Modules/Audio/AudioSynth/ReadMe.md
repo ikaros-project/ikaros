@@ -17,8 +17,6 @@ just a debugging aid. They can be used to model vocal production, to provide emb
 feedback during learning, or to generate structured signals whose timbre and pitch are controlled by
 higher-level affective, social, or motor modules.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -39,3 +37,5 @@ higher-level affective, social, or motor modules.
 | Name | Description |
 | --- | --- |
 | OUTPUT | Audio output |
+
+*This description was automatically created and may not describe the full function of the module.*

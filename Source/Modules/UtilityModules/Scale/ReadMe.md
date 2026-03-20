@@ -11,8 +11,6 @@ In practice it is useful for gain control in sensorimotor loops, for modulating 
 from one neural subsystem to another, or for converting normalized policy outputs into actuator-
 specific command ranges on a robot.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -31,3 +29,5 @@ specific command ranges on a robot.
 | Name | Description |
 | --- | --- |
 | OUTPUT | The output |
+
+*This description was automatically created and may not describe the full function of the module.*

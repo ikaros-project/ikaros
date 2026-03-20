@@ -9,8 +9,6 @@ ISI_sigma shape its behavior. Within a larger brain-inspired architecture, this 
 as one component in a pathway for sensory integration, value-based gating, rhythmic control, or
 state estimation, depending on how its inputs are embedded in the surrounding circuit.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -31,3 +29,5 @@ state estimation, depending on how its inputs are embedded in the surrounding ci
 | --- | --- |
 | W | The weights |
 | OUTPUT | The output |
+
+*This description was automatically created and may not describe the full function of the module.*

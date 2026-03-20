@@ -20,8 +20,6 @@ parameters such as command, sounds, scale_volume, lag, and intentities shape its
 meaningful use case is to place the module inside a larger sensorimotor or cognitive architecture
 where it helps transform, summarize, or route signals between neural subsystems and robot effectors.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -50,3 +48,5 @@ where it helps transform, summarize, or route signals between neural subsystems 
 | ACTIVE | Set to 1 while a sound is playing, otherwise 0. |
 | RMS | precalculated approximate volume (dB) of the current sound being played at relativey low temporal resolution. Can be used for VU-meter or other animation (left and right). |
 | VOLUME | precalculated approximate volume of the current sound being played at relativey low temporal resolution. Linear version of VU (left and right). |
+
+*This description was automatically created and may not describe the full function of the module.*

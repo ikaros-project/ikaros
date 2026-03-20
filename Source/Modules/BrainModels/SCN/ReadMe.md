@@ -14,8 +14,6 @@ rhythms across physiology and behavior. A module inspired by that function can b
 sleep-wake state, modulate hormone-like signals over long timescales, or schedule robot behavior so
 that attention, activity, and energy usage vary systematically across extended experiments.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -34,3 +32,5 @@ that attention, activity, and energy usage vary systematically across extended e
 | --- | --- |
 | OUTPUT | The output |
 | DIFF | The difference to zeitgeber |
+
+*This description was automatically created and may not describe the full function of the module.*

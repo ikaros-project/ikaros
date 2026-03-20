@@ -18,8 +18,6 @@ robot systems, that matters because the neural side may choose goals or trajecto
 behavior still depends on a low-level layer that enforces physical constraints while exposing
 measurable joint state back to the model.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -38,3 +36,5 @@ measurable joint state back to the model.
 | Name | Description |
 | --- | --- |
 | PRESENT_POSITION | Present angle of the joints in degrees. |
+
+*This description was automatically created and may not describe the full function of the module.*

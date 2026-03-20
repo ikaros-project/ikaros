@@ -11,4 +11,4 @@ This kind of placeholder can still be useful in toolchains that explore module m
 experimental UIs, or scaffold future brain-model and robot-control components before custom runtime
 logic has been implemented.
 
-*This description was automatically created and may not describe the full function of the module..*
+*This description was automatically created and may not describe the full function of the module.*

@@ -12,8 +12,6 @@ inspired architecture, this module can be used as one component in a pathway for
 integration, value-based gating, rhythmic control, or state estimation, depending on how its inputs
 are embedded in the surrounding circuit.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -46,3 +44,5 @@ are embedded in the surrounding circuit.
 | --- | --- |
 | X | Internal state of the nucleus |
 | OUTPUT | The output from the nucleus |
+
+*This description was automatically created and may not describe the full function of the module.*

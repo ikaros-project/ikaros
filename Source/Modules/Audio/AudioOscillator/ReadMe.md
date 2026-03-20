@@ -19,8 +19,6 @@ simple way to organize repeated structure over time. In models they can stand in
 generators, periodic probes, pacing signals, or entrainment sources that coordinate distributed
 subsystems during locomotion, breathing-like behavior, scanning, or exploratory sensing.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -40,3 +38,5 @@ subsystems during locomotion, breathing-like behavior, scanning, or exploratory 
 | Name | Description |
 | --- | --- |
 | OUTPUT | The output |
+
+*This description was automatically created and may not describe the full function of the module.*

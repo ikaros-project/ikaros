@@ -1440,6 +1440,8 @@ let controller =
         })
         .then(json => {
             network.classes = json.classes.sort();
+            if(inspector && typeof inspector.renderLibraryClassList === "function")
+                inspector.renderLibraryClassList();
         })
         .catch(function () {
             console.log("Could not get class list from server.");
@@ -1656,8 +1658,13 @@ const inspector =
     subview: {},
     current_t_body: null,
     component: null,
+    library: null,
     system: null,
-    width_cookie: 'inspector_width',
+    selected_library_class: null,
+    library_readme_cache: {},
+    pending_library_readme_class: null,
+    component_width_cookie: 'component_inspector_width',
+    library_width_cookie: 'library_inspector_width',
     min_width: 220,
     max_width_margin: 160,
     resize_active: false,
@@ -1668,6 +1675,9 @@ const inspector =
     {
         inspector.system = document.querySelector('#system_inspector');
         inspector.component = document.querySelector('#component_inspector');
+        inspector.library = document.querySelector('#library_inspector');
+        inspector.libraryClassList = document.querySelector('#library_class_list');
+        inspector.libraryClassDetails = document.querySelector('#library_class_details');
 
         inspector.subview.nothing  = document.querySelector('#inspector_nothing'); 
         inspector.subview.multiple  = document.querySelector('#inspector_multiple');
@@ -1679,56 +1689,69 @@ const inspector =
 
         inspector.hideSubviews();
         inspector.subview.nothing.style.display='table';
+        inspector.updateLibraryButtonState();
+        inspector.updateLibraryAddButtonState();
+        inspector.renderLibraryClassList();
 
-        if(inspector.component)
-        {
-            const computed = window.getComputedStyle(inspector.component);
-            const basis = parseInt(computed.flexBasis, 10);
-            const width = parseInt(computed.width, 10);
-            if(Number.isFinite(basis) && basis > 0)
-                inspector.default_width = basis;
-            else if(Number.isFinite(width) && width > 0)
-                inspector.default_width = width;
-
-            inspector.resizeHandle = inspector.component.querySelector('.inspector-resize-handle');
-            if(!inspector.resizeHandle)
-            {
-                inspector.resizeHandle = document.createElement('div');
-                inspector.resizeHandle.className = 'inspector-resize-handle';
-                inspector.component.prepend(inspector.resizeHandle);
-            }
-
-            const savedWidth = parseInt(getCookie(inspector.width_cookie), 10);
-            if(Number.isFinite(savedWidth) && savedWidth >= inspector.min_width)
-            {
-                const maxWidth = Math.max(inspector.min_width, window.innerWidth - inspector.max_width_margin);
-                const clampedWidth = Math.min(savedWidth, maxWidth);
-                inspector.component.style.flex = `0 0 ${clampedWidth}px`;
-                inspector.component.style.width = `${clampedWidth}px`;
-            }
-
-            inspector.resizeHandle.addEventListener('mousedown', inspector.startResize, true);
-        }
+        inspector.setupResizeForPanel(inspector.component);
+        inspector.setupResizeForPanel(inspector.library);
     },
 
-    resetComponentWidth()
+    setupResizeForPanel(panel)
     {
-        if(!inspector.component)
+        if(!panel)
             return;
+
+        const computed = window.getComputedStyle(panel);
+        const basis = parseInt(computed.flexBasis, 10);
+        const width = parseInt(computed.width, 10);
+        let defaultWidth = 300;
+        if(Number.isFinite(basis) && basis > 0)
+            defaultWidth = basis;
+        else if(Number.isFinite(width) && width > 0)
+            defaultWidth = width;
+        panel.dataset.defaultWidth = String(defaultWidth);
+        panel.dataset.widthCookie = panel === inspector.library ? inspector.library_width_cookie : inspector.component_width_cookie;
+
+        let resizeHandle = panel.querySelector('.inspector-resize-handle');
+        if(!resizeHandle)
+        {
+            resizeHandle = document.createElement('div');
+            resizeHandle.className = 'inspector-resize-handle';
+            panel.prepend(resizeHandle);
+        }
+
+        inspector.resetPanelWidth(panel);
+
+        resizeHandle.addEventListener('mousedown', inspector.startResize, true);
+    },
+
+    resetPanelWidth(panel)
+    {
+        if(!panel)
+            return;
+        const cookieName = panel.dataset.widthCookie || inspector.component_width_cookie;
+        const savedWidth = parseInt(getCookie(cookieName), 10);
         const maxWidth = Math.max(inspector.min_width, window.innerWidth - inspector.max_width_margin);
-        const width = Math.max(inspector.min_width, Math.min(maxWidth, inspector.default_width || 300));
-        inspector.component.style.flex = `0 0 ${width}px`;
-        inspector.component.style.width = `${width}px`;
+        const defaultWidth = parseInt(panel.dataset.defaultWidth, 10);
+        const targetWidth = Number.isFinite(savedWidth) && savedWidth >= inspector.min_width
+            ? savedWidth
+            : (Number.isFinite(defaultWidth) && defaultWidth > 0 ? defaultWidth : 300);
+        const width = Math.max(inspector.min_width, Math.min(maxWidth, targetWidth));
+        panel.style.flex = `0 0 ${width}px`;
+        panel.style.width = `${width}px`;
     },
 
     startResize(evt)
     {
-        if(evt.button !== 0 || !inspector.component)
+        const panel = evt.currentTarget ? evt.currentTarget.parentElement : null;
+        if(evt.button !== 0 || !panel)
             return;
         evt.preventDefault();
         inspector.resize_active = true;
+        inspector.resize_target = panel;
         inspector.resize_start_x = evt.clientX;
-        inspector.resize_start_width = inspector.component.getBoundingClientRect().width;
+        inspector.resize_start_width = panel.getBoundingClientRect().width;
         document.body.classList.add('inspector-resizing');
         document.addEventListener('mousemove', inspector.onResizeDrag, true);
         document.addEventListener('mouseup', inspector.stopResize, true);
@@ -1736,13 +1759,13 @@ const inspector =
 
     onResizeDrag(evt)
     {
-        if(!inspector.resize_active || !inspector.component)
+        if(!inspector.resize_active || !inspector.resize_target)
             return;
         const deltaX = inspector.resize_start_x - evt.clientX;
         const maxWidth = Math.max(inspector.min_width, window.innerWidth - inspector.max_width_margin);
         const newWidth = Math.max(inspector.min_width, Math.min(maxWidth, inspector.resize_start_width + deltaX));
-        inspector.component.style.flex = `0 0 ${newWidth}px`;
-        inspector.component.style.width = `${newWidth}px`;
+        inspector.resize_target.style.flex = `0 0 ${newWidth}px`;
+        inspector.resize_target.style.width = `${newWidth}px`;
         evt.preventDefault();
     },
 
@@ -1754,12 +1777,14 @@ const inspector =
         document.removeEventListener('mousemove', inspector.onResizeDrag, true);
         document.removeEventListener('mouseup', inspector.stopResize, true);
         document.body.classList.remove('inspector-resizing');
-        if(inspector.component)
+        if(inspector.resize_target)
         {
-            const w = Math.round(inspector.component.getBoundingClientRect().width);
+            const w = Math.round(inspector.resize_target.getBoundingClientRect().width);
+            const cookieName = inspector.resize_target.dataset.widthCookie || inspector.component_width_cookie;
             if(Number.isFinite(w) && w >= inspector.min_width)
-                setCookie(inspector.width_cookie, String(w));
+                setCookie(cookieName, String(w));
         }
+        inspector.resize_target = null;
     },
 
     toggleSystem()
@@ -1768,12 +1793,17 @@ const inspector =
         {
             inspector.system.style.display = 'block';
             inspector.component.style.display = 'none';
+            if(inspector.library)
+                inspector.library.style.display = 'none';
         }
         else
         {
             inspector.system.style.display = 'none';
             inspector.component.style.display = 'none';
+            if(inspector.library)
+                inspector.library.style.display = 'none';
         }
+        inspector.updateLibraryButtonState();
     },
 
     toggleComponent()
@@ -1782,20 +1812,365 @@ const inspector =
             {
             inspector.component.style.display = "block";
             inspector.system.style.display = "none";
-            inspector.resetComponentWidth();
+            if(inspector.library)
+                inspector.library.style.display = "none";
+            inspector.resetPanelWidth(inspector.component);
         }
         else
         {
             inspector.system.style.display = "none";
             inspector.component.style.display = "none";
+            if(inspector.library)
+                inspector.library.style.display = "none";
         }
+        inspector.updateLibraryButtonState();
+    },
+
+    toggleLibrary()
+    {
+        if(!inspector.library)
+            return;
+        if(window.getComputedStyle(inspector.library, null).display === 'none')
+        {
+            inspector.library.style.display = "flex";
+            inspector.system.style.display = "none";
+            inspector.component.style.display = "none";
+            inspector.resetPanelWidth(inspector.library);
+            inspector.renderLibraryClassList();
+        }
+        else
+        {
+            inspector.library.style.display = "none";
+            inspector.system.style.display = "none";
+            inspector.component.style.display = "none";
+        }
+        inspector.updateLibraryButtonState();
     },
 
     showComponent()
     {
         inspector.component.style.display = "block";
         inspector.system.style.display = "none";
-        inspector.resetComponentWidth();
+        if(inspector.library)
+            inspector.library.style.display = "none";
+        inspector.resetPanelWidth(inspector.component);
+        inspector.updateLibraryButtonState();
+    },
+
+    showLibrary()
+    {
+        if(!inspector.library)
+            return;
+        inspector.library.style.display = "flex";
+        inspector.system.style.display = "none";
+        inspector.component.style.display = "none";
+        inspector.resetPanelWidth(inspector.library);
+        inspector.renderLibraryClassList();
+        inspector.updateLibraryButtonState();
+        inspector.updateLibraryAddButtonState();
+    },
+
+    updateLibraryButtonState()
+    {
+        const button = document.getElementById("library_inspector_button");
+        if(!button || !inspector.library)
+            return;
+        const open = window.getComputedStyle(inspector.library, null).display !== 'none';
+        button.setAttribute("aria-pressed", open ? "true" : "false");
+    },
+
+    updateLibraryAddButtonState()
+    {
+        const button = document.getElementById("library_add_button");
+        if(!button)
+            return;
+        const canAdd = !!(main && main.edit_mode && inspector.selected_library_class);
+        button.disabled = !canAdd;
+    },
+
+    renderLibraryClassList()
+    {
+        if(!inspector.libraryClassList)
+            return;
+
+        inspector.libraryClassList.innerHTML = "";
+
+        const classes = Array.isArray(network.classes) ? network.classes : [];
+        if(classes.length === 0)
+        {
+            const emptyState = document.createElement("div");
+            emptyState.className = "library-inspector-placeholder";
+            emptyState.textContent = "No module classes available yet.";
+            inspector.libraryClassList.appendChild(emptyState);
+            if(inspector.libraryClassDetails && !inspector.selected_library_class)
+                inspector.libraryClassDetails.textContent = "Select a module class to view details here later.";
+            return;
+        }
+
+        if(!inspector.selected_library_class || !classes.includes(inspector.selected_library_class))
+            inspector.selected_library_class = classes[0];
+        inspector.updateLibraryAddButtonState();
+
+        for(const className of classes)
+        {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "library-class-item";
+            if(className === inspector.selected_library_class)
+                button.classList.add("is-selected");
+            button.setAttribute("role", "option");
+            button.setAttribute("aria-selected", className === inspector.selected_library_class ? "true" : "false");
+            button.textContent = className;
+            button.addEventListener("click", function()
+            {
+                inspector.selectLibraryClass(className);
+            });
+            inspector.libraryClassList.appendChild(button);
+        }
+
+        inspector.updateLibraryClassDetails();
+    },
+
+    selectLibraryClass(className)
+    {
+        inspector.selected_library_class = className;
+        inspector.updateLibraryAddButtonState();
+        inspector.renderLibraryClassList();
+    },
+
+    addSelectedLibraryClass()
+    {
+        if(!main.edit_mode || !inspector.selected_library_class)
+            return;
+        const fullName = main.newModule(inspector.selected_library_class);
+        if(fullName)
+            selector.selectItems([fullName], selector.selected_background, false, false, true);
+    },
+
+    escapeHtml(text)
+    {
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    },
+
+    renderInlineMarkdown(text)
+    {
+        let html = inspector.escapeHtml(text);
+        html = html.replace(/&lt;br\s*\/?&gt;/gi, "<br>");
+        html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+        html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+        html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+        html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+        return html;
+    },
+
+    renderMarkdown(text)
+    {
+        const lines = String(text || "").replace(/\r\n/g, "\n").split("\n");
+        const blocks = [];
+        let paragraph = [];
+        let listItems = [];
+        let codeLines = [];
+        let inCodeBlock = false;
+        let tableRows = [];
+
+        const isTableLine = function(line)
+        {
+            return /\|/.test(line);
+        };
+
+        const isTableDivider = function(line)
+        {
+            const normalized = line.trim().replace(/^\||\|$/g, "").trim();
+            if(normalized === "")
+                return false;
+            return normalized.split("|").every((cell) => /^:?-{3,}:?$/.test(cell.trim()));
+        };
+
+        const splitTableRow = function(line)
+        {
+            return line.trim().replace(/^\||\|$/g, "").split("|").map((cell) => cell.trim());
+        };
+
+        const flushParagraph = function()
+        {
+            if(paragraph.length === 0)
+                return;
+            blocks.push(`<p>${inspector.renderInlineMarkdown(paragraph.join(" "))}</p>`);
+            paragraph = [];
+        };
+
+        const flushList = function()
+        {
+            if(listItems.length === 0)
+                return;
+            blocks.push(`<ul>${listItems.map((item) => `<li>${inspector.renderInlineMarkdown(item)}</li>`).join("")}</ul>`);
+            listItems = [];
+        };
+
+        const flushTable = function()
+        {
+            if(tableRows.length < 2)
+            {
+                if(tableRows.length === 1)
+                    paragraph.push(tableRows[0].join(" | "));
+                tableRows = [];
+                return;
+            }
+
+            const header = tableRows[0];
+            const bodyRows = tableRows.slice(2);
+            const thead = `<thead><tr>${header.map((cell) => `<th>${inspector.renderInlineMarkdown(cell)}</th>`).join("")}</tr></thead>`;
+            const tbody = bodyRows.length > 0
+                ? `<tbody>${bodyRows.map((row) => `<tr>${row.map((cell) => `<td>${inspector.renderInlineMarkdown(cell)}</td>`).join("")}</tr>`).join("")}</tbody>`
+                : "";
+            blocks.push(`<table>${thead}${tbody}</table>`);
+            tableRows = [];
+        };
+
+        const flushCodeBlock = function()
+        {
+            if(codeLines.length === 0)
+                return;
+            blocks.push(`<pre><code>${inspector.escapeHtml(codeLines.join("\n"))}</code></pre>`);
+            codeLines = [];
+        };
+
+        for(const line of lines)
+        {
+            if(line.trim().startsWith("```"))
+            {
+                flushParagraph();
+                flushList();
+                flushTable();
+                if(inCodeBlock)
+                {
+                    flushCodeBlock();
+                    inCodeBlock = false;
+                }
+                else
+                {
+                    inCodeBlock = true;
+                }
+                continue;
+            }
+
+            if(inCodeBlock)
+            {
+                codeLines.push(line);
+                continue;
+            }
+
+            const trimmed = line.trim();
+            if(trimmed === "")
+            {
+                flushParagraph();
+                flushList();
+                flushTable();
+                continue;
+            }
+
+            if(isTableLine(line))
+            {
+                const row = splitTableRow(line);
+                if(tableRows.length === 0)
+                {
+                    flushParagraph();
+                    flushList();
+                    tableRows.push(row);
+                    continue;
+                }
+                if(tableRows.length === 1 && isTableDivider(line))
+                {
+                    tableRows.push(row);
+                    continue;
+                }
+                if(tableRows.length >= 2)
+                {
+                    tableRows.push(row);
+                    continue;
+                }
+            }
+            else
+            {
+                flushTable();
+            }
+
+            const heading = trimmed.match(/^(#{1,6})\s+(.*)$/);
+            if(heading)
+            {
+                flushParagraph();
+                flushList();
+                flushTable();
+                const level = Math.min(6, heading[1].length);
+                blocks.push(`<h${level}>${inspector.renderInlineMarkdown(heading[2])}</h${level}>`);
+                continue;
+            }
+
+            const listItem = trimmed.match(/^[-*]\s+(.*)$/);
+            if(listItem)
+            {
+                flushParagraph();
+                listItems.push(listItem[1]);
+                continue;
+            }
+
+            flushList();
+            paragraph.push(trimmed);
+        }
+
+        flushParagraph();
+        flushList();
+        flushTable();
+        flushCodeBlock();
+
+        if(blocks.length === 0)
+            return "<p></p>";
+        return blocks.join("");
+    },
+
+    updateLibraryClassDetails()
+    {
+        if(!inspector.libraryClassDetails)
+            return;
+        if(!inspector.selected_library_class)
+        {
+            inspector.libraryClassDetails.innerHTML = "<p>Select a module class to view details here later.</p>";
+            return;
+        }
+        const className = inspector.selected_library_class;
+        if(Object.prototype.hasOwnProperty.call(inspector.library_readme_cache, className))
+        {
+            inspector.libraryClassDetails.innerHTML = inspector.renderMarkdown(inspector.library_readme_cache[className]);
+            return;
+        }
+
+        inspector.pending_library_readme_class = className;
+        inspector.libraryClassDetails.innerHTML = `<p>Loading ReadMe.md for ${inspector.escapeHtml(className)}...</p>`;
+        fetch(`/classreadme?class=${encodeURIComponent(className)}`, {
+            method: "GET",
+            headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id}
+        })
+        .then(response => {
+            if(!response.ok)
+                throw new Error("HTTP error " + response.status);
+            return response.text();
+        })
+        .then(text => {
+            inspector.library_readme_cache[className] = text;
+            if(inspector.pending_library_readme_class === className && inspector.selected_library_class === className)
+                inspector.libraryClassDetails.innerHTML = inspector.renderMarkdown(text);
+        })
+        .catch(() => {
+            const fallback = `Could not load ReadMe.md for ${className}.`;
+            inspector.library_readme_cache[className] = fallback;
+            if(inspector.pending_library_readme_class === className && inspector.selected_library_class === className)
+                inspector.libraryClassDetails.innerHTML = `<p>${inspector.escapeHtml(fallback)}</p>`;
+        });
     },
 
     hideSubviews()
@@ -4859,13 +5234,13 @@ const main =
         main.addConnections();
     },
     
-    newModule()
+    newModule(moduleClass = "Module")
     {
         const name = network.uniqueID("Untitled_");
         const m =
         {
             name:name,
-            class:"Module",
+            class:moduleClass,
             color:"",
             log_level: 0,
             _tag:"module",
@@ -4878,6 +5253,8 @@ const main =
         const full_name = selector.selected_background+'.'+name;
         network.dict[selector.selected_background].modules.push(m);
         network.dict[full_name]=m;
+        if(moduleClass !== "Module" && network.classinfo && network.classinfo[moduleClass])
+            network.changeModuleClass(full_name, moduleClass);
         main.new_position_x += 30;
         main.new_position_y += 30;
 
@@ -4889,6 +5266,7 @@ const main =
         nav.populate();
         selector.selectItems([full_name]);
         main.beginRenameAfterSelection(full_name);
+        return full_name;
     },
 
     newGroup() // FIXME: Move to network
@@ -7062,6 +7440,7 @@ const main =
         controller.run_mode = 'stop';
         controller.get("stop", controller.update);
         main.updateComponentStates();
+        inspector.updateLibraryAddButtonState();
         inspector.showInspectorForSelection();
     },
 
@@ -7070,6 +7449,7 @@ const main =
         main.main.classList.add("view_mode");
         main.main.classList.remove("edit_mode");
         main.edit_mode = false;
+        inspector.updateLibraryAddButtonState();
         selector.selectItems([], selector.selected_background);
     },
 

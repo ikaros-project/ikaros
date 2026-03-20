@@ -13,8 +13,6 @@ trajectories from a cognitive model, capturing high-dimensional motor commands d
 learning, or exporting synchronized internal signals for offline analysis of closed-loop robot
 behavior.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -32,3 +30,5 @@ behavior.
 | INPUT | The input to be written to file |  |
 | WRITE | The input to be written to file | yes |
 | NEWFILE | If connected, a 1 on the input will close the current file, increase the file number (if %d is in the name) and open a new file. | yes |
+
+*This description was automatically created and may not describe the full function of the module.*

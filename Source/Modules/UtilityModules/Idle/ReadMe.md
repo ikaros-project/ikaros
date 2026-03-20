@@ -11,11 +11,11 @@ Parameters such as duration and init shape its behavior. In larger embodied expe
 logger is useful for tracking exactly which model configuration, robot setup, and parameterization
 produced a given behavioral run so results remain comparable across long experimental series.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
 | duration | idle time in seconds | float |  |
 | init | start-up (init) time in seconds | float |  |
+
+*This description was automatically created and may not describe the full function of the module.*

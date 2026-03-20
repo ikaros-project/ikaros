@@ -8,8 +8,6 @@ It consumes OUTPUT and produces OUTPUT. A meaningful use case is to place the mo
 sensorimotor or cognitive architecture where it helps transform, summarize, or route signals between
 neural subsystems and robot effectors.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Inputs
 
 | Name | Description | Optional |
@@ -21,3 +19,5 @@ neural subsystems and robot effectors.
 | Name | Description |
 | --- | --- |
 | OUTPUT | The output |
+
+*This description was automatically created and may not describe the full function of the module.*

@@ -9,8 +9,6 @@ behavior. Within a larger brain-inspired architecture, this module can be used a
 pathway for sensory integration, value-based gating, rhythmic control, or state estimation,
 depending on how its inputs are embedded in the surrounding circuit.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -30,3 +28,5 @@ depending on how its inputs are embedded in the surrounding circuit.
 | Name | Description |
 | --- | --- |
 | OUTPUT | The current concentration |
+
+*This description was automatically created and may not describe the full function of the module.*

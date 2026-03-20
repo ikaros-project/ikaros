@@ -12,8 +12,6 @@ when injecting controlled noise into decision circuits, sampling exploratory mot
 stochastic search, or modeling trial-to-trial variability in sensory or neuromodulatory input
 streams.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -27,3 +25,5 @@ streams.
 | Name | Description |
 | --- | --- |
 | OUTPUT | The output |
+
+*This description was automatically created and may not describe the full function of the module.*

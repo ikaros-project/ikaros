@@ -10,8 +10,6 @@ layered robot architecture in which perception and decision circuits choose targ
 action modes while this module family handles the low-level interface needed to turn those choices
 into stable movement and usable feedback.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Inputs
 
 | Name | Description | Optional |
@@ -24,3 +22,5 @@ into stable movement and usable feedback.
 | Name | Description |
 | --- | --- |
 | PositionOutput | The position array that will be sent to the motors as goal position |
+
+*This description was automatically created and may not describe the full function of the module.*

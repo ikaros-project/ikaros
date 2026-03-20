@@ -12,8 +12,6 @@ experiments it can be used to correlate energy consumption with behavior, for ex
 gaze-control strategies, adaptive locomotion policies, or manipulation plans that trade speed
 against electrical cost.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -26,3 +24,5 @@ against electrical cost.
 | --- | --- |
 | MEASURED_POWER | Current power consumption |
 | ENERGY | Accumulated power consumption |
+
+*This description was automatically created and may not describe the full function of the module.*

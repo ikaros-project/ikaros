@@ -25,8 +25,6 @@ as no_of_inputs, metric, arbitration, by_row, and softmax_exponent shape its beh
 use case is to place the module inside a larger sensorimotor or cognitive architecture where it
 helps transform, summarize, or route signals between neural subsystems and robot effectors.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -57,3 +55,5 @@ helps transform, summarize, or route signals between neural subsystems and robot
 | NORMALIZED | The arbitration state after normalization; the weights used to weigh together the inputs |
 | OUTPUT | The selected output |
 | VALUE | The value of the current output; norm of the smoothed arbitration state (not implemented yet) |
+
+*This description was automatically created and may not describe the full function of the module.*

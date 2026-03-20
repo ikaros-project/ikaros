@@ -18,8 +18,6 @@ behavior. A meaningful use case is to place the module inside a larger sensorimo
 architecture where it helps transform, summarize, or route signals between neural subsystems and
 robot effectors.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -39,3 +37,5 @@ robot effectors.
 | Name | Description |
 | --- | --- |
 | OUTPUT | The diffuse sky radiation in W/m^2 |
+
+*This description was automatically created and may not describe the full function of the module.*

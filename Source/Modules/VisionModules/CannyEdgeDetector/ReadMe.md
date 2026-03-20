@@ -14,8 +14,6 @@ suppression of multiple responses to the same contour. In a larger model this ma
 early visual stage for contour extraction, object-boundary proposals, and attention guidance when
 the downstream system needs a sparse but spatially meaningful description of scene structure.
 
-*This description was automatically created and may not describe the full function of the module..*
-
 ## Parameters
 
 | Name | Description | Type | Default |
@@ -35,3 +33,5 @@ the downstream system needs a sparse but spatially meaningful description of sce
 | Name | Description |
 | --- | --- |
 | OUTPUT | Binary edge map (2D matrix) |
+
+*This description was automatically created and may not describe the full function of the module.*

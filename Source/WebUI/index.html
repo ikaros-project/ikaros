@@ -138,6 +138,9 @@
             <div class="button" onclick="nav.toggle()" id="nav">&#8801;</div>
             <div class="stretch" ></div>
             <div class="button" onclick="main.toggleEditMode()" style="font-family:Arial">&#9998;</div>
+            <div class="button" id="library_inspector_button" onclick="inspector.toggleLibrary()" aria-label="Open library inspector" title="Open library inspector">
+                <span class="book-glyph" aria-hidden="true">&#128214;</span>
+            </div>
             <div class="button" id="log_toggle_button" onclick="log.toggleLog()">&#x26A0;</div>
             <div class="button" onclick="inspector.toggleComponent()">&#9432;</divb></div>
             <div class="button large" onclick="inspector.toggleSystem()">&#x2699;</div>
@@ -706,6 +709,29 @@
 
             <p id="title"></p>
 		</aside>
+
+        <aside id="library_inspector">
+            <table id="library_inspector_table">
+                <tbody>
+                    <tr>
+                        <td colspan="2" class="header">LIBRARY</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="library-inspector-section">
+                <div class="library-inspector-section-title">Module Classes</div>
+                <div id="library_class_list" class="library-class-list" role="listbox" aria-label="Available module classes"></div>
+            </div>
+            <div class="library-inspector-section library-inspector-details-section">
+                <div class="library-inspector-section-title">Class Info</div>
+                <div id="library_class_details" class="library-inspector-placeholder">
+                    Select a module class to view details here later.
+                </div>
+            </div>
+            <div class="library-inspector-actions">
+                <button id="library_add_button" type="button" onclick="inspector.addSelectedLibraryClass()">Add</button>
+            </div>
+        </aside>
 	</section>
 
 		<footer class="log">
