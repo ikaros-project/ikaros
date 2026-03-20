@@ -1,4 +1,4 @@
-<class name="DeepNetwork" description="outputs a constant value">
+<class name="DeepNetwork" description="runs inference in a deep neural network">
 	<!--parameter name="output_size" type="int" default="10" description="The number of inference classes used by the network" /-->
 	<parameter name="spec_filename" type="string" default="network_spec.json" description="specification of layers" />
 	<parameter name="weights_filename" type="string" default="network_weights.dat" description="network weights" />
