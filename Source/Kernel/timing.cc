@@ -15,6 +15,9 @@ using namespace std::chrono;
 
 std::string TimeString(double time)
 {
+    if(time < 0)
+        return "--:--:--.---";
+
     int days = time / 86400;
     time -= (double(days) * 86400.0);
 
@@ -185,5 +188,4 @@ Timer::GetTimeString()
 {
     return TimeString(GetTime());
 }
-
 

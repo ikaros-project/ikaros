@@ -2643,9 +2643,11 @@ if(classes[classname].path.empty())
             static std::mutex mtx;
             std::lock_guard<std::mutex> lock(mtx); // Lock the mutex
 
-            log.push_back(Message(msg, message, path));
+            const std::string timestamped_message = "[" + TimeString(GetTime()) + "] " + message;
 
-            std::cout << "ikaros: " << message;
+            log.push_back(Message(msg, timestamped_message, path));
+
+            std::cout << timestamped_message;
             if(!path.empty())
                 std::cout  << " ("<<path << ")";
             std::cout << std::endl;
@@ -3455,8 +3457,7 @@ if(classes[classname].path.empty())
         if(request.parameters.contains("proxy"))
             request.component_path = std::string(request.parameters["proxy"]);
 
-        if(!(request == "update"))
-        std::cout << "Request: " << request.url << std::endl;
+        //std::cout << "Request: " << request.url << std::endl;
 
         if(request == "network")
             DoNetwork(request);
@@ -3586,6 +3587,3 @@ Kernel::CalculateCPUUsage() // In percent
 }
 
 }; // namespace ikaros
-
-
-
