@@ -2766,18 +2766,12 @@ if(classes[classname].path.empty())
     void
     Kernel::Realtime()
     {
-        try {
             if(needs_reload)
-                LoadFile();
-        
-            Pause();
-            timer.Continue(); 
-            run_mode = run_mode_realtime;
-        }
-        catch(const load_failed& e)
-        {
-            Notify(msg_warning, e.what(), e.path());
-        }
+            LoadFile();
+    
+        Pause();
+        timer.Continue(); 
+        run_mode = run_mode_realtime;
     }
 
 
@@ -2785,18 +2779,11 @@ if(classes[classname].path.empty())
     void
     Kernel::Play()
     {
-        try 
-        {
-            if(needs_reload)
-                LoadFile();
-    
-            run_mode = run_mode_play;
-            timer.Continue();
-        }
-        catch(const load_failed& e)
-        {
-            Notify(msg_warning, e.what(), e.path());
-        }
+        if(needs_reload)
+            LoadFile();
+
+        run_mode = run_mode_play;
+        timer.Continue();
     }
 
 
@@ -3154,21 +3141,15 @@ if(classes[classname].path.empty())
     void
     Kernel::DoPause(Request & request)
     {
+        Notify(msg_print, "pause");
         try
         {
             Pause();
         }
-        catch(const load_failed& e)
+        catch(const exception& e)
         {
             Notify(msg_warning, e.what(), e.path());
         }
-        
-
-
-
-        Notify(msg_print, "pause");
-    
-  
         DoSendData(request);
     }
 
@@ -3184,9 +3165,8 @@ if(classes[classname].path.empty())
             run_mode = run_mode_pause; // FIXME: Probably not necessary
             Tick();
             timer.SetPauseTime(GetTime()+tick_duration);
- 
         }
-        catch(const load_failed& e)
+        catch(const exception& e)
         {
             Notify(msg_warning, e.what(), e.path());
         }
@@ -3199,7 +3179,14 @@ if(classes[classname].path.empty())
     Kernel::DoRealtime(Request & request)
     {
         Notify(msg_print, "realtime");
-        Realtime();
+        try
+        {
+            Realtime();
+        }
+        catch(const exception& e)
+        {
+             Notify(msg_warning, e.what(), e.path());
+        }
         DoSendData(request);
     }
 
@@ -3208,7 +3195,15 @@ if(classes[classname].path.empty())
     Kernel::DoPlay(Request & request)
     {
         Notify(msg_print, "play");
-        Play();
+        try
+        {
+            Play();
+
+        }
+        catch(const exception& e)
+        {
+            Notify(msg_warning, e.what(), e.path());
+        }
         DoSendData(request);
     }
 
