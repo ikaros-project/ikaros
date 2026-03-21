@@ -5,7 +5,7 @@
 Checking the used current and increase it step by step to reach the target. Reduce the current with
 too much restance is met.
 
-It consumes GoalPositionIn, PresentPosition, PresentCurrent, and CurrentLimit and produces
+It receives GoalPositionIn, PresentPosition, PresentCurrent, and CurrentLimit and produces
 CurrentOutput and GoalPositionOut while parameters such as GainConstant, SmoothFactor, and
 ErrorThreshold shape its behavior. A strong use case is a layered robot architecture in which
 perception and decision circuits choose targets, impedances, or action modes while this module
@@ -13,7 +13,6 @@ family handles the low-level interface needed to turn those choices into stable 
 feedback.
 
 ![ForceCheck](ForceCheck.svg)
-
 
 ## Parameters
 

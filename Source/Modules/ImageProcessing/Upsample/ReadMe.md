@@ -7,7 +7,7 @@ like input by a factor of two. The module is used when a coarser representation 
 again, and the implementation description indicates a nearest-neighbor style reconstruction for the
 output image.
 
-It consumes INPUT and produces OUTPUT. A meaningful use case is to project coarse spatial decisions
+It receives INPUT and produces OUTPUT. A meaningful use case is to project coarse spatial decisions
 back into image coordinates, for example when a dorsal-stream style attention map or a low-
 resolution occupancy estimate must guide detailed visual or motor processing downstream.
 
@@ -17,7 +17,6 @@ prediction must be expanded so that later visual or motor stages can use it in t
 system as detailed image data.
 
 ![Upsample](Upsample.svg)
-
 
 ## Inputs
 

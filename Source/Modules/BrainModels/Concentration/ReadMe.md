@@ -4,13 +4,12 @@
 
 Implements a single hormone system.
 
-It consumes INPUT and produces OUTPUT while parameters such as alpha, beta, and gamma shape its
+It receives INPUT and produces OUTPUT while parameters such as alpha, beta, and gamma shape its
 behavior. Within a larger brain-inspired architecture, this module can be used as one component in a
 pathway for sensory integration, value-based gating, rhythmic control, or state estimation,
 depending on how its inputs are embedded in the surrounding circuit.
 
 ![Concentration](Concentration.svg)
-
 
 ## Parameters
 

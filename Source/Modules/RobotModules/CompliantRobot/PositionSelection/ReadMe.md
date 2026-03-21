@@ -5,13 +5,12 @@
 Selecting an array of values to be sent to the servomotors from multiple stacked incoming position
 arrays. Avoid setting goal positions to zero
 
-It consumes PositionInput and InputRanking and produces PositionOutput. A strong use case is a
+It receives PositionInput and InputRanking and produces PositionOutput. A strong use case is a
 layered robot architecture in which perception and decision circuits choose targets, impedances, or
 action modes while this module family handles the low-level interface needed to turn those choices
 into stable movement and usable feedback.
 
 ![PositionSelection](PositionSelection.svg)
-
 
 ## Inputs
 

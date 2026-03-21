@@ -1,6 +1,5 @@
 # EpiSpeech
 
-
 <br><br>
 ## Short description
 
@@ -9,7 +8,6 @@ Plays a sound file
 <br><br>
 
 ![EpiSpeech](EpiSpeech.svg)
-
 
 ## Inputs
 

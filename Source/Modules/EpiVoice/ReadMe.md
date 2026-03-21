@@ -15,13 +15,12 @@ output can be connected to the INHIBITION of another sound module to prevent mul
 being played at the same time. If both modules are triggered at the same times, their sounds will
 play after each other.
 
-It consumes TRIG, INTENSITY, and INHIBITION and produces PLAYING, COMPLETED, ACTIVE, and RMS while
+It receives TRIG, INTENSITY, and INHIBITION and produces PLAYING, COMPLETED, ACTIVE, and RMS while
 parameters such as command, sounds, scale_volume, lag, and intentities shape its behavior. A
 meaningful use case is to place the module inside a larger sensorimotor or cognitive architecture
 where it helps transform, summarize, or route signals between neural subsystems and robot effectors.
 
 ![EpiVoice](EpiVoice.svg)
-
 
 ## Parameters
 

@@ -1,6 +1,5 @@
 # SoundOutput
 
-
 <br><br>
 ## Short description
 
@@ -9,7 +8,6 @@ Plays a sound file
 <br><br>
 
 ![SoundOutput](SoundOutput.svg)
-
 
 ## Inputs
 

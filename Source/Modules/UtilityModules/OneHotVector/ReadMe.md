@@ -4,13 +4,12 @@
 
 Generate a one hot vector from input value.
 
-It consumes INPUT and produces OUTPUT while parameters such as value and output_size shape its
+It receives INPUT and produces OUTPUT while parameters such as value and output_size shape its
 behavior. A meaningful use case is to place the module inside a larger sensorimotor or cognitive
 architecture where it helps transform, summarize, or route signals between neural subsystems and
 robot effectors.
 
 ![OneHotVector](OneHotVector.svg)
-
 
 ## Parameters
 

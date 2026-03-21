@@ -7,7 +7,7 @@ Dynamixel-based servo chains on the Epi robot platform. The implementation manag
 buses, sends goal positions and currents, reads present position and current feedback, and includes
 protocol-level constants and safety logic needed for coordinated robot actuation.
 
-It consumes GOAL_POSITION, GOAL_CURRENT, and TORQUE_ENABLE and produces PRESENT_POSITION and
+It receives GOAL_POSITION, GOAL_CURRENT, and TORQUE_ENABLE and produces PRESENT_POSITION and
 PRESENT_CURRENT while parameters such as robot and simulate shape its behavior. In embodied
 cognitive architectures, this module can serve as the motor endpoint for learned gaze shifts,
 coordinated head-arm orienting, or expressive whole-body behavior where high-level neural
@@ -20,7 +20,6 @@ behavior still depends on a low-level layer that enforces physical constraints w
 measurable joint state back to the model.
 
 ![EpiServos](EpiServos.svg)
-
 
 ## Parameters
 

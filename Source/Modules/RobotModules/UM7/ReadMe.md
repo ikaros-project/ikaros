@@ -18,7 +18,6 @@ inertial information must be reconciled in a common reference frame.
 
 ![UM7](UM7.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

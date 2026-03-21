@@ -10,7 +10,6 @@ where it helps transform, summarize, or route signals between neural subsystems 
 
 ![InputAudio](InputAudio.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

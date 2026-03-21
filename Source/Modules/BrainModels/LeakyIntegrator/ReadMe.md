@@ -4,7 +4,7 @@
 
 Basic leaky integrator.
 
-It consumes EXCITATION and INHIBITION and produces OUTPUT while parameters such as decay_type,
+It receives EXCITATION and INHIBITION and produces OUTPUT while parameters such as decay_type,
 decay_rate, excitation_gain, and inhibition_gain shape its behavior. Within a larger brain-inspired
 architecture, this module can be used as one component in a pathway for sensory integration, value-
 based gating, rhythmic control, or state estimation, depending on how its inputs are embedded in the
@@ -16,7 +16,6 @@ in decision circuits, low-pass filtering of sensory input, and motor systems whe
 build up gradually instead of changing instantaneously.
 
 ![LeakyIntegrator](LeakyIntegrator.svg)
-
 
 ## Parameters
 

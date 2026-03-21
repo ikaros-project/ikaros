@@ -14,7 +14,6 @@ against electrical cost.
 
 ![EnergyMeter](EnergyMeter.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

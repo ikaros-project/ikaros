@@ -4,7 +4,7 @@
 
 Canny edge detector for grayscale images. Non-maximum suppression
 
-It consumes INPUT and produces OUTPUT while parameters such as sigma, low_threshold, and
+It receives INPUT and produces OUTPUT while parameters such as sigma, low_threshold, and
 high_threshold shape its behavior. In a non-trivial vision stack, that makes it useful for building
 layered perception pipelines that support active attention, object-directed reaching, scene
 segmentation, or visually guided robot navigation.
@@ -15,7 +15,6 @@ early visual stage for contour extraction, object-boundary proposals, and attent
 the downstream system needs a sparse but spatially meaningful description of scene structure.
 
 ![CannyEdgeDetector](CannyEdgeDetector.svg)
-
 
 ## Parameters
 

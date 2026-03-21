@@ -1,6 +1,5 @@
 # RotationConverter
 
-
 <br><br>
 ## Short description
 
@@ -9,7 +8,6 @@ Converts between rotation notations
 <br><br>
 
 ![RotationConverter](RotationConverter.svg)
-
 
 ## Inputs
 

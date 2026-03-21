@@ -5,7 +5,7 @@
 Forground/background segmentation. Implementation of the Stauffer-Grimson forground/background
 segmentation for grayscale and color images. Initialize the background model
 
-It consumes INPUT and produces OUTPUT, WEIGHTS, MEANS, and VARIANCES while parameters such as T,
+It receives INPUT and produces OUTPUT, WEIGHTS, MEANS, and VARIANCES while parameters such as T,
 threshold, max_gaussians, initial_variance, and learning_rate shape its behavior. In a non-trivial
 vision stack, that makes it useful for building layered perception pipelines that support active
 attention, object-directed reaching, scene segmentation, or visually guided robot navigation.
@@ -16,7 +16,6 @@ into spatial cues that later modules can use for recognition, action selection, 
 control.
 
 ![StaufferGrimson](StaufferGrimson.svg)
-
 
 ## Parameters
 

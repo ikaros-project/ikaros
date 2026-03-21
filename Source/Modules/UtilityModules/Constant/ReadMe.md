@@ -13,7 +13,6 @@ that is injected into a larger circuit during a specific behavioral phase.
 
 ![Constant](Constant.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

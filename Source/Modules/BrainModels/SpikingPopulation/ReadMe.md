@@ -4,7 +4,7 @@
 
 Simulates a population of spiking neurons. Internals
 
-It consumes EXCITATION, INHIBITION, DIRECT_IN, and INTERNAL_TOPOLOGY and produces OUTPUT while
+It receives EXCITATION, INHIBITION, DIRECT_IN, and INTERNAL_TOPOLOGY and produces OUTPUT while
 parameters such as population_size, substeps, model_type, neuron_type, and threshold shape its
 behavior. Within a larger brain-inspired architecture, this module can be used as one component in a
 pathway for sensory integration, value-based gating, rhythmic control, or state estimation,
@@ -17,7 +17,6 @@ systems where precisely timed bursts can signal saliency, movement onset, or pha
 behavior.
 
 ![SpikingPopulation](SpikingPopulation.svg)
-
 
 ## Parameters
 

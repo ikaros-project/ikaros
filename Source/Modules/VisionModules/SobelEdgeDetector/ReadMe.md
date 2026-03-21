@@ -4,7 +4,7 @@
 
 Canny edge detector for grayscale images. Register the module with Ikaros
 
-It consumes INPUT and produces OUTPUT while parameters such as sigma shape its behavior. In a non-
+It receives INPUT and produces OUTPUT while parameters such as sigma shape its behavior. In a non-
 trivial vision stack, that makes it useful for building layered perception pipelines that support
 active attention, object-directed reaching, scene segmentation, or visually guided robot navigation.
 
@@ -15,7 +15,6 @@ edge strength should be estimated cheaply and fed forward into higher-level segm
 recognition.
 
 ![SobelEdgeDetector](SobelEdgeDetector.svg)
-
 
 ## Parameters
 

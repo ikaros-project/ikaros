@@ -7,7 +7,7 @@ like input by a factor of two. The module is intended for pyramid construction a
 preprocessing, and its behavior is described in the source as averaging neighboring pixels before
 writing a smaller output image.
 
-It consumes INPUT and produces OUTPUT. This is especially useful in hierarchical vision models where
+It receives INPUT and produces OUTPUT. This is especially useful in hierarchical vision models where
 coarse scales guide attention or motion segmentation, and in mobile robots where lower-resolution
 channels provide fast peripheral context for later high-resolution processing.
 
@@ -17,7 +17,6 @@ vision, image pyramids, fast peripheral monitoring, and active vision systems th
 where to look coarsely and only then commit high-resolution resources.
 
 ![Downsample](Downsample.svg)
-
 
 ## Inputs
 

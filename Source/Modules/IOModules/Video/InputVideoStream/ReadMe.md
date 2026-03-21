@@ -1,6 +1,5 @@
 # InputVideoStream
 
-
 <br><br>
 ## Short description
 
@@ -9,7 +8,6 @@ Grabs video using ffmpeg
 <br><br>
 
 ![InputVideoStream](InputVideoStream.svg)
-
 
 ## Inputs
 

@@ -5,7 +5,7 @@
 Claculates disaprity between two camera inputs, using a focus region in the left input to seach in
 the right. Compute means
 
-It consumes LEFT and RIGHT and produces OUTPUT, FOCUS, TARGET, and PROFILE while parameters such as
+It receives LEFT and RIGHT and produces OUTPUT, FOCUS, TARGET, and PROFILE while parameters such as
 focus_size and search_size shape its behavior. In a non-trivial vision stack, that makes it useful
 for building layered perception pipelines that support active attention, object-directed reaching,
 scene segmentation, or visually guided robot navigation.
@@ -16,7 +16,6 @@ tracking, object re-detection, and calibration tasks in robotics, especially whe
 module needs robust visual anchors to stabilize behavior in a changing scene.
 
 ![ImageMatching](ImageMatching.svg)
-
 
 ## Parameters
 

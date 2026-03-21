@@ -9,7 +9,7 @@ buffer with a requred number of samples to fill upp between two ticks. For examp
 tick_duration is 0.1 and the sample_rate is 1000 then the output buffer will contin 100 elements for
 each oscillator arranged in the same matrix structure as the frequency parameter.
 
-It consumes INPUT and produces OUTPUT while parameters such as type, frequency, and sample_rate
+It receives INPUT and produces OUTPUT while parameters such as type, frequency, and sample_rate
 shape its behavior. A meaningful use case is to place the module inside a larger sensorimotor or
 cognitive architecture where it helps transform, summarize, or route signals between neural
 subsystems and robot effectors.
@@ -20,7 +20,6 @@ generators, periodic probes, pacing signals, or entrainment sources that coordin
 subsystems during locomotion, breathing-like behavior, scanning, or exploratory sensing.
 
 ![AudioOscillator](AudioOscillator.svg)
-
 
 ## Parameters
 

@@ -5,14 +5,13 @@
 Randomises postions and maps the needed current to make the transisitons from the present position.
 Initialize the random number generator with the seed
 
-It consumes PresentPosition and PresentCurrent and produces GoalPosition and GoalCurrent while
+It receives PresentPosition and PresentCurrent and produces GoalPosition and GoalCurrent while
 parameters such as NumberTransitions, MinLimits, MaxLimits, and RobotType shape its behavior. A
 strong use case is a layered robot architecture in which perception and decision circuits choose
 targets, impedances, or action modes while this module family handles the low-level interface needed
 to turn those choices into stable movement and usable feedback.
 
 ![CurrentPositionMapping](CurrentPositionMapping.svg)
-
 
 ## Parameters
 

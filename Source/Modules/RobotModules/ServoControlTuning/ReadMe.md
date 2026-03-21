@@ -19,7 +19,6 @@ movement and usable feedback.
 
 ![ServoControlTuning](ServoControlTuning.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

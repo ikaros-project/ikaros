@@ -1,6 +1,5 @@
 # FadeCandy
 
-
 <br><br>
 ## Short description
 
@@ -9,7 +8,6 @@ Minimal example module
 <br><br>
 
 ![FadeCandy](FadeCandy.svg)
-
 
 ## Inputs
 

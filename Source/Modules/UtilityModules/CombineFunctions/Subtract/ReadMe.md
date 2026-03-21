@@ -6,12 +6,11 @@ Subtracts two inputs. Subtract is a binary combination module that subtracts two
 and writes the result to a single output. In an Ikaros graph it is used as a simple arithmetic
 building block for constructing larger data-flow expressions from streaming matrices.
 
-It consumes INPUT1 and INPUT2 and produces OUTPUT. A realistic use case is to combine converging
+It receives INPUT1 and INPUT2 and produces OUTPUT. A realistic use case is to combine converging
 neural signals, such as excitatory and inhibitory drive in a simplified circuit model, or to merge
 feedforward and feedback terms in a robot control law before sending the result onward.
 
 ![Subtract](Subtract.svg)
-
 
 ## Inputs
 

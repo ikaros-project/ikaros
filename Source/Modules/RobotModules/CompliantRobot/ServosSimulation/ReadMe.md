@@ -5,13 +5,12 @@
 Simple simulation of changing the position and currrent to the goals. Could also be done by using
 dynamixel_sdk
 
-It consumes GoalCurrent, CurrentLimit, and GoalPosition and produces PresentPosition and
+It receives GoalCurrent, CurrentLimit, and GoalPosition and produces PresentPosition and
 PresentCurrent. A strong use case is a layered robot architecture in which perception and decision
 circuits choose targets, impedances, or action modes while this module family handles the low-level
 interface needed to turn those choices into stable movement and usable feedback.
 
 ![ServosSimulation](ServosSimulation.svg)
-
 
 ## Inputs
 

@@ -13,7 +13,6 @@ produced a given behavioral run so results remain comparable across long experim
 
 ![Idle](Idle.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

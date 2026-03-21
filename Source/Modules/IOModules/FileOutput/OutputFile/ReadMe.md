@@ -7,14 +7,13 @@ The implementation opens a CSV- or TSV-style file, writes column labels when the
 the input matrix, and appends one flattened row of numeric values on every tick. This makes it a
 simple sink for logging time-series activity or exporting module outputs for later analysis.
 
-It consumes INPUT, WRITE, and NEWFILE while parameters such as filename, format, decimals,
+It receives INPUT, WRITE, and NEWFILE while parameters such as filename, format, decimals,
 timestamp, and directory shape its behavior. That makes it suitable for logging latent state
 trajectories from a cognitive model, capturing high-dimensional motor commands during imitation
 learning, or exporting synchronized internal signals for offline analysis of closed-loop robot
 behavior.
 
 ![OutputFile](OutputFile.svg)
-
 
 ## Parameters
 

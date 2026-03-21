@@ -20,13 +20,12 @@ set by the switching_time parameter or directly by the integration constant alph
 convex combinations of inputs are calculated by first normalizaing the smoothed state and the
 calculating the weighted average of the inputs.
 
-It consumes * and produces AMPLITUDES, ARBITRATION, SMOOTHED, and NORMALIZED while parameters such
+It receives * and produces AMPLITUDES, ARBITRATION, SMOOTHED, and NORMALIZED while parameters such
 as no_of_inputs, metric, arbitration, by_row, and softmax_exponent shape its behavior. A meaningful
 use case is to place the module inside a larger sensorimotor or cognitive architecture where it
 helps transform, summarize, or route signals between neural subsystems and robot effectors.
 
 ![Arbiter](Arbiter.svg)
-
 
 ## Parameters
 

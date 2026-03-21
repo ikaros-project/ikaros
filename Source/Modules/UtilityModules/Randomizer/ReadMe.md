@@ -14,7 +14,6 @@ streams.
 
 ![Randomizer](Randomizer.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

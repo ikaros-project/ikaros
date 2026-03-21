@@ -20,7 +20,6 @@ robot effectors.
 
 ![AmbientLight](AmbientLight.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

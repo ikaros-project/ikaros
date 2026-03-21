@@ -19,7 +19,6 @@ subsystems during locomotion, breathing-like behavior, scanning, or exploratory 
 
 ![FunctionGenerator](FunctionGenerator.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

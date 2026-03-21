@@ -1980,8 +1980,17 @@ const inspector =
             return "";
         if(/^(?:[a-z]+:)?\/\//i.test(value) || value.startsWith("data:") || value.startsWith("/"))
             return value;
-        if(className)
-            return `/classasset?class=${encodeURIComponent(className)}&file=${encodeURIComponent(value)}`;
+        if(className && network.classinfo && network.classinfo[className] && network.classinfo[className].path)
+        {
+            const classPath = String(network.classinfo[className].path).replace(/\\/g, "/");
+            const sourceModules = "/Source/Modules/";
+            const relativeIndex = classPath.indexOf(sourceModules);
+            if(relativeIndex !== -1)
+            {
+                const moduleRelativePath = classPath.slice(relativeIndex + "/Source/".length);
+                return `/../${moduleRelativePath}/${encodeURIComponent(value)}`;
+            }
+        }
         return value;
     },
 

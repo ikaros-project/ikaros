@@ -5,12 +5,11 @@
 Streams input matrix data to a JSON or JSONL file. If filename already ends with the right
 extension, keep it
 
-It consumes INPUT while parameters such as filename, clear_file, and JSONL shape its behavior. A
+It receives INPUT while parameters such as filename, clear_file, and JSONL shape its behavior. A
 meaningful use case is to place the module inside a larger sensorimotor or cognitive architecture
 where it helps transform, summarize, or route signals between neural subsystems and robot effectors.
 
 ![OutputJSON](OutputJSON.svg)
-
 
 ## Parameters
 

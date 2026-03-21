@@ -7,7 +7,7 @@ host audio device. Its implementation binds the INPUT signal, configures an Audi
 using the selected sample rate and buffer size, and keeps a playback thread running so incoming
 buffers can be copied to the system audio queue in real time.
 
-It consumes INPUT while parameters such as sample_rate and buffer_size shape its behavior. It can
+It receives INPUT while parameters such as sample_rate and buffer_size shape its behavior. It can
 therefore act as the final stage of an active audition experiment, a speech-motor loop, or a robot
 interaction system where synthesized or transformed sound has to be rendered with low latency.
 
@@ -17,7 +17,6 @@ align closely with movement or internal state in order for adaptation and intera
 stable.
 
 ![OutputAudio](OutputAudio.svg)
-
 
 ## Parameters
 

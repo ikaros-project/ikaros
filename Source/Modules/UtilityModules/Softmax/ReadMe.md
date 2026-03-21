@@ -4,7 +4,7 @@
 
 Outputs the softmax of the input. Compute exp(x - max(x)) for numerical stability
 
-It consumes INPUT and produces OUTPUT. A meaningful use case is to place the module inside a larger
+It receives INPUT and produces OUTPUT. A meaningful use case is to place the module inside a larger
 sensorimotor or cognitive architecture where it helps transform, summarize, or route signals between
 neural subsystems and robot effectors.
 
@@ -15,7 +15,6 @@ should be emphasized without losing the interpretation that all alternatives rem
 normalized decision state.
 
 ![Softmax](Softmax.svg)
-
 
 ## Inputs
 

@@ -8,7 +8,7 @@ optionally restores weights, runs forward inference on the current INPUT matrix,
 backpropagation updates when training inputs and targets are connected. The LOSS output is used to
 expose the current training loss while OUTPUT carries the network prediction.
 
-It consumes INPUT, EFFORT, T_INPUT, and T_TARGET and produces OUTPUT and LOSS while parameters such
+It receives INPUT, EFFORT, T_INPUT, and T_TARGET and produces OUTPUT and LOSS while parameters such
 as spec_filename, weights_filename, load_weights, save_weights, and learning_rate shape its
 behavior. A realistic use case would be a cortico-cerebellar style controller where visual and
 proprioceptive state are combined to predict motor corrections during reaching, or a perception
@@ -21,7 +21,6 @@ matters as much as the final output, for example when a robot has to estimate bo
 multimodal input before generating coordinated action.
 
 ![DeepNetwork](DeepNetwork.svg)
-
 
 ## Parameters
 

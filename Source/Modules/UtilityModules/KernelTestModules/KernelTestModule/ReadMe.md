@@ -4,13 +4,12 @@
 
 Tests all parameter and io-functionality. Testing setting parameters from code
 
-It consumes INPUT and produces OUTPUT, OUTPUT1, OUTPUT2, and OUTPUT3 while parameters such as a, b,
+It receives INPUT and produces OUTPUT, OUTPUT1, OUTPUT2, and OUTPUT3 while parameters such as a, b,
 c, d, and e shape its behavior. A meaningful use case is to place the module inside a larger
 sensorimotor or cognitive architecture where it helps transform, summarize, or route signals between
 neural subsystems and robot effectors.
 
 ![KernelTestModule](KernelTestModule.svg)
-
 
 ## Parameters
 

@@ -6,14 +6,13 @@ Implements a nucleus. Module that implements a generic brain nucleus. output = a
 [1/(1+psi*ShuntingInhibition)] *SUM(Excitation) - gamma*SUM/Inhibition). If not set, beta and gamma
 are set to 1/N, where N are the number of connected inputs.
 
-It consumes EXCITATION, INHIBITION, and SHUNTING_INHIBITION and produces X and OUTPUT while
+It receives EXCITATION, INHIBITION, and SHUNTING_INHIBITION and produces X and OUTPUT while
 parameters such as alpha, beta, gamma, delta, and psi shape its behavior. Within a larger brain-
 inspired architecture, this module can be used as one component in a pathway for sensory
 integration, value-based gating, rhythmic control, or state estimation, depending on how its inputs
 are embedded in the surrounding circuit.
 
 ![Nucleus](Nucleus.svg)
-
 
 ## Parameters
 

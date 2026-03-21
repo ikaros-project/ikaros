@@ -18,7 +18,6 @@ subsystems during locomotion, breathing-like behavior, scanning, or exploratory 
 
 ![Oscillator](Oscillator.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

@@ -7,7 +7,7 @@ structure and parameters, the module is designed to send commanded positions to 
 while reading back the corresponding state, making it a focused hardware bridge for head motion
 within a larger Ikaros robot setup.
 
-It consumes GOAL_POSITION and TORQUE_ENABLE and produces PRESENT_POSITION while parameters such as
+It receives GOAL_POSITION and TORQUE_ENABLE and produces PRESENT_POSITION while parameters such as
 port shape its behavior. A strong use case is active vision, where saliency or superior-colliculus-
 like circuits generate gaze targets that must be converted into stable head movements while
 preserving feedback about the current mechanical state.
@@ -19,7 +19,6 @@ behavior still depends on a low-level layer that enforces physical constraints w
 measurable joint state back to the model.
 
 ![HeadServos](HeadServos.svg)
-
 
 ## Parameters
 

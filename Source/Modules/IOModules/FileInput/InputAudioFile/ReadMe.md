@@ -11,7 +11,6 @@ robot effectors.
 
 ![InputAudioFile](InputAudioFile.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

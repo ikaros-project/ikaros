@@ -1,6 +1,5 @@
 # LinearSplines
 
-
 <br><br>
 ## Short description
 
@@ -9,6 +8,8 @@ Computes linear spline functions
 <br><br>
 
 ![LinearSplines](LinearSplines.svg)
+
+![LinearSplines](LinearSplines_fig1.png)
 
 
 ## Inputs

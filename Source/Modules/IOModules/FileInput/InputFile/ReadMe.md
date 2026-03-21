@@ -14,7 +14,6 @@ benchmarking.
 
 ![InputFile](InputFile.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

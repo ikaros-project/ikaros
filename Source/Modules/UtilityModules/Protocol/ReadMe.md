@@ -20,7 +20,6 @@ signals.
 
 ![Protocol](Protocol.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

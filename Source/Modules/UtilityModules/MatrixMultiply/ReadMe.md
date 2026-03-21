@@ -1,6 +1,5 @@
 # MatrixMultiply
 
-
 <br><br>
 ## Short description
 
@@ -9,7 +8,6 @@ Multiplies two matrices
 <br><br>
 
 ![MatrixMultiply](MatrixMultiply.svg)
-
 
 ## Inputs
 

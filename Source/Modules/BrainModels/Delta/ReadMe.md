@@ -4,13 +4,12 @@
 
 A neuron model with delta function response.
 
-It consumes INPUT and produces W and OUTPUT while parameters such as learning_rate, ISI_mean, and
+It receives INPUT and produces W and OUTPUT while parameters such as learning_rate, ISI_mean, and
 ISI_sigma shape its behavior. Within a larger brain-inspired architecture, this module can be used
 as one component in a pathway for sensory integration, value-based gating, rhythmic control, or
 state estimation, depending on how its inputs are embedded in the surrounding circuit.
 
 ![Delta](Delta.svg)
-
 
 ## Parameters
 

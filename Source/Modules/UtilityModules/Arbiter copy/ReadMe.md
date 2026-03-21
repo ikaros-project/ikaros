@@ -22,7 +22,6 @@ calculating the weighted average of the inputs.
 
 ![Arbiter](Arbiter.svg)
 
-
 ## Parameters
 
 | Name | Description | Type | Default |

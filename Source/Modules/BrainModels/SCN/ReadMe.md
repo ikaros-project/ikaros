@@ -4,7 +4,7 @@
 
 Basic model of the suprachiasmatic nucleus.
 
-It consumes INPUT and produces OUTPUT and DIFF while parameters such as frequency shape its
+It receives INPUT and produces OUTPUT and DIFF while parameters such as frequency shape its
 behavior. Within a larger brain-inspired architecture, this module can be used as one component in a
 pathway for sensory integration, value-based gating, rhythmic control, or state estimation,
 depending on how its inputs are embedded in the surrounding circuit.
@@ -15,7 +15,6 @@ sleep-wake state, modulate hormone-like signals over long timescales, or schedul
 that attention, activity, and energy usage vary systematically across extended experiments.
 
 ![SCN](SCN.svg)
-
 
 ## Parameters
 
