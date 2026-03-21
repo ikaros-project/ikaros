@@ -14,6 +14,9 @@ suppression of multiple responses to the same contour. In a larger model this ma
 early visual stage for contour extraction, object-boundary proposals, and attention guidance when
 the downstream system needs a sparse but spatially meaningful description of scene structure.
 
+![CannyEdgeDetector](CannyEdgeDetector.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

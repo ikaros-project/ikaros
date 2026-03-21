@@ -16,6 +16,9 @@ in space rather than raw inertial signals alone. That can support vestibular-lik
 stabilization, postural control, and sensor fusion architectures where camera, proprioceptive, and
 inertial information must be reconciled in a common reference frame.
 
+![UM7](UM7.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

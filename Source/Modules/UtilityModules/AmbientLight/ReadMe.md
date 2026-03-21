@@ -18,6 +18,9 @@ behavior. A meaningful use case is to place the module inside a larger sensorimo
 architecture where it helps transform, summarize, or route signals between neural subsystems and
 robot effectors.
 
+![AmbientLight](AmbientLight.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

@@ -8,6 +8,9 @@ Plays a sound file
 
 <br><br>
 
+![EpiSpeech](EpiSpeech.svg)
+
+
 ## Inputs
 
 |Name|Description|Optional|

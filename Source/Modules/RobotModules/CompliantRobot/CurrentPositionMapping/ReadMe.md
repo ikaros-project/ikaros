@@ -11,6 +11,9 @@ strong use case is a layered robot architecture in which perception and decision
 targets, impedances, or action modes while this module family handles the low-level interface needed
 to turn those choices into stable movement and usable feedback.
 
+![CurrentPositionMapping](CurrentPositionMapping.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

@@ -8,6 +8,9 @@ Multiplies two matrices
 
 <br><br>
 
+![MatrixMultiply](MatrixMultiply.svg)
+
+
 ## Inputs
 
 |Name|Description|Optional|

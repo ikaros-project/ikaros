@@ -12,6 +12,9 @@ perception and decision circuits choose targets, impedances, or action modes whi
 family handles the low-level interface needed to turn those choices into stable movement and usable
 feedback.
 
+![ForceCheck](ForceCheck.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

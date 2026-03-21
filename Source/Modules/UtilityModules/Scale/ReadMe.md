@@ -11,6 +11,9 @@ In practice it is useful for gain control in sensorimotor loops, for modulating 
 from one neural subsystem to another, or for converting normalized policy outputs into actuator-
 specific command ranges on a robot.
 
+![Scale](Scale.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

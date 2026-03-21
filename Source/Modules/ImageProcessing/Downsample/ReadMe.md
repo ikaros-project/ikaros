@@ -16,6 +16,9 @@ reveals global layout before fine detail is processed. Downsampling is therefore
 vision, image pyramids, fast peripheral monitoring, and active vision systems that first detect
 where to look coarsely and only then commit high-resolution resources.
 
+![Downsample](Downsample.svg)
+
+
 ## Inputs
 
 | Name | Description | Optional |

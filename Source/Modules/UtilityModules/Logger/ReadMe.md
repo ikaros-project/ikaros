@@ -12,3 +12,5 @@ configuration, robot setup, and parameterization produced a given behavioral run
 comparable across long experimental series.
 
 *This description was automatically created and may not be an accurate description of the module.*
+
+![Logger](Logger.svg)

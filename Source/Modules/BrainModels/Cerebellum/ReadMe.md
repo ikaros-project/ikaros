@@ -9,6 +9,9 @@ ISI_sigma, and ISI_tau shape its behavior. Within a larger brain-inspired archit
 can be used as one component in a pathway for sensory integration, value-based gating, rhythmic
 control, or state estimation, depending on how its inputs are embedded in the surrounding circuit.
 
+![Cerebellum](Cerebellum.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

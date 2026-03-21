@@ -9,6 +9,9 @@ It consumes INPUT while parameters such as filename, clear_file, and JSONL shape
 meaningful use case is to place the module inside a larger sensorimotor or cognitive architecture
 where it helps transform, summarize, or route signals between neural subsystems and robot effectors.
 
+![OutputJSON](OutputJSON.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

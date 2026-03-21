@@ -8,6 +8,9 @@ Reads a video file using ffmpeg
 
 <br><br>
 
+![InputVideoFile](InputVideoFile.svg)
+
+
 ## Inputs
 
 |Name|Description|Optional|

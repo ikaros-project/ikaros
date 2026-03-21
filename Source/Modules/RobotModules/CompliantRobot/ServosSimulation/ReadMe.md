@@ -10,6 +10,9 @@ PresentCurrent. A strong use case is a layered robot architecture in which perce
 circuits choose targets, impedances, or action modes while this module family handles the low-level
 interface needed to turn those choices into stable movement and usable feedback.
 
+![ServosSimulation](ServosSimulation.svg)
+
+
 ## Inputs
 
 | Name | Description | Optional |

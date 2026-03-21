@@ -8,6 +8,9 @@ Grabs video using ffmpeg
 
 <br><br>
 
+![InputVideoStream](InputVideoStream.svg)
+
+
 ## Inputs
 
 |Name|Description|Optional|

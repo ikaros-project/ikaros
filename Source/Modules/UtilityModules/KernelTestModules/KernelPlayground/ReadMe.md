@@ -8,3 +8,5 @@ A meaningful use case is to place the module inside a larger sensorimotor or cog
 where it helps transform, summarize, or route signals between neural subsystems and robot effectors.
 
 *This description was automatically created and may not be an accurate description of the module.*
+
+![KernelPlayground](KernelPlayground.svg)

@@ -1957,18 +1957,35 @@ const inspector =
             .replace(/'/g, "&#39;");
     },
 
-    renderInlineMarkdown(text)
+    renderInlineMarkdown(text, options = {})
     {
         let html = inspector.escapeHtml(text);
         html = html.replace(/&lt;br\s*\/?&gt;/gi, "<br>");
         html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+        html = html.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_match, alt, url) =>
+        {
+            const src = inspector.resolveMarkdownAssetUrl(url, options.className);
+            return `<img src="${src}" alt="${inspector.escapeHtml(alt)}" loading="lazy">`;
+        });
         html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
         html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
         html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
         return html;
     },
 
-    renderMarkdown(text)
+    resolveMarkdownAssetUrl(url, className = "")
+    {
+        const value = String(url || "").trim();
+        if(!value)
+            return "";
+        if(/^(?:[a-z]+:)?\/\//i.test(value) || value.startsWith("data:") || value.startsWith("/"))
+            return value;
+        if(className)
+            return `/classasset?class=${encodeURIComponent(className)}&file=${encodeURIComponent(value)}`;
+        return value;
+    },
+
+    renderMarkdown(text, options = {})
     {
         const lines = String(text || "").replace(/\r\n/g, "\n").split("\n");
         const blocks = [];
@@ -2000,7 +2017,7 @@ const inspector =
         {
             if(paragraph.length === 0)
                 return;
-            blocks.push(`<p>${inspector.renderInlineMarkdown(paragraph.join(" "))}</p>`);
+            blocks.push(`<p>${inspector.renderInlineMarkdown(paragraph.join(" "), options)}</p>`);
             paragraph = [];
         };
 
@@ -2008,7 +2025,7 @@ const inspector =
         {
             if(listItems.length === 0)
                 return;
-            blocks.push(`<ul>${listItems.map((item) => `<li>${inspector.renderInlineMarkdown(item)}</li>`).join("")}</ul>`);
+            blocks.push(`<ul>${listItems.map((item) => `<li>${inspector.renderInlineMarkdown(item, options)}</li>`).join("")}</ul>`);
             listItems = [];
         };
 
@@ -2024,9 +2041,9 @@ const inspector =
 
             const header = tableRows[0];
             const bodyRows = tableRows.slice(2);
-            const thead = `<thead><tr>${header.map((cell) => `<th>${inspector.renderInlineMarkdown(cell)}</th>`).join("")}</tr></thead>`;
+            const thead = `<thead><tr>${header.map((cell) => `<th>${inspector.renderInlineMarkdown(cell, options)}</th>`).join("")}</tr></thead>`;
             const tbody = bodyRows.length > 0
-                ? `<tbody>${bodyRows.map((row) => `<tr>${row.map((cell) => `<td>${inspector.renderInlineMarkdown(cell)}</td>`).join("")}</tr>`).join("")}</tbody>`
+                ? `<tbody>${bodyRows.map((row) => `<tr>${row.map((cell) => `<td>${inspector.renderInlineMarkdown(cell, options)}</td>`).join("")}</tr>`).join("")}</tbody>`
                 : "";
             blocks.push(`<table>${thead}${tbody}</table>`);
             tableRows = [];
@@ -2107,7 +2124,7 @@ const inspector =
                 flushList();
                 flushTable();
                 const level = Math.min(6, heading[1].length);
-                blocks.push(`<h${level}>${inspector.renderInlineMarkdown(heading[2])}</h${level}>`);
+                blocks.push(`<h${level}>${inspector.renderInlineMarkdown(heading[2], options)}</h${level}>`);
                 continue;
             }
 
@@ -2145,7 +2162,7 @@ const inspector =
         const className = inspector.selected_library_class;
         if(Object.prototype.hasOwnProperty.call(inspector.library_readme_cache, className))
         {
-            inspector.libraryClassDetails.innerHTML = inspector.renderMarkdown(inspector.library_readme_cache[className]);
+            inspector.libraryClassDetails.innerHTML = inspector.renderMarkdown(inspector.library_readme_cache[className], {className});
             return;
         }
 
@@ -2163,7 +2180,7 @@ const inspector =
         .then(text => {
             inspector.library_readme_cache[className] = text;
             if(inspector.pending_library_readme_class === className && inspector.selected_library_class === className)
-                inspector.libraryClassDetails.innerHTML = inspector.renderMarkdown(text);
+                inspector.libraryClassDetails.innerHTML = inspector.renderMarkdown(text, {className});
         })
         .catch(() => {
             const fallback = `Could not load ReadMe.md for ${className}.`;

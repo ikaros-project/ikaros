@@ -9,6 +9,9 @@ ISI_sigma shape its behavior. Within a larger brain-inspired architecture, this 
 as one component in a pathway for sensory integration, value-based gating, rhythmic control, or
 state estimation, depending on how its inputs are embedded in the surrounding circuit.
 
+![Delta](Delta.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

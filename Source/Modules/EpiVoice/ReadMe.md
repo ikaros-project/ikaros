@@ -20,6 +20,9 @@ parameters such as command, sounds, scale_volume, lag, and intentities shape its
 meaningful use case is to place the module inside a larger sensorimotor or cognitive architecture
 where it helps transform, summarize, or route signals between neural subsystems and robot effectors.
 
+![EpiVoice](EpiVoice.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

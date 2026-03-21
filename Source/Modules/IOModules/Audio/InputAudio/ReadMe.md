@@ -8,6 +8,9 @@ It produces OUTPUT while parameters such as samplingrate and buffersize shape it
 meaningful use case is to place the module inside a larger sensorimotor or cognitive architecture
 where it helps transform, summarize, or route signals between neural subsystems and robot effectors.
 
+![InputAudio](InputAudio.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

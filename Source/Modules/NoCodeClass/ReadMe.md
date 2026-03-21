@@ -12,3 +12,5 @@ experimental UIs, or scaffold future brain-model and robot-control components be
 logic has been implemented.
 
 *This description was automatically created and may not be an accurate description of the module.*
+
+![NoCodeClass](NoCodeClass.svg)

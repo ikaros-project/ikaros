@@ -8,6 +8,9 @@ Plays a sound file
 
 <br><br>
 
+![SoundOutput](SoundOutput.svg)
+
+
 ## Inputs
 
 |Name|Description|Optional|

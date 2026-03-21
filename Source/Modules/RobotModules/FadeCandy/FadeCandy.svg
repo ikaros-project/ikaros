@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="510" viewBox="0 0 1200 510">
+  <rect width="100%" height="100%" fill="white"/>
+
+  <line x1="70" y1="140" x2="308" y2="140" stroke="#333333" stroke-width="5"/>
+  <polygon points="308,130 328,140 308,150" fill="#333333"/>
+
+  <line x1="70" y1="210" x2="308" y2="210" stroke="#333333" stroke-width="5"/>
+  <polygon points="308,200 328,210 308,220" fill="#333333"/>
+
+  <line x1="70" y1="280" x2="308" y2="280" stroke="#333333" stroke-width="5"/>
+  <polygon points="308,270 328,280 308,290" fill="#333333"/>
+
+  <line x1="70" y1="350" x2="308" y2="350" stroke="#333333" stroke-width="5"/>
+  <polygon points="308,340 328,350 308,360" fill="#333333"/>
+
+  <text x="120" y="115" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#141414">LEFT_EYE</text>
+  <text x="120" y="185" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#141414">RIGHT_EYE</text>
+  <text x="120" y="255" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#141414">MOUTH_HIGH</text>
+  <text x="120" y="325" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#141414">MOUTH_LOW</text>
+
+
+  <rect x="340" y="70" width="520" height="370" rx="20" ry="20" fill="#E8F0FF" stroke="#3C5AB4" stroke-width="4"/>
+  <text x="600.0" y="255.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="700" fill="#141414">FadeCandy</text>
+</svg>

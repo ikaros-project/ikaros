@@ -8,6 +8,9 @@ Organize servos
 
 <br><br>
 
+![ServoConnector](ServoConnector.svg)
+
+
 ## Inputs
 
 |Name|Description|Optional|

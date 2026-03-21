@@ -8,6 +8,9 @@ Reads jpeg files
 
 <br><br>
 
+![InputJPEG](InputJPEG.svg)
+
+
 ## Inputs
 
 |Name|Description|Optional|

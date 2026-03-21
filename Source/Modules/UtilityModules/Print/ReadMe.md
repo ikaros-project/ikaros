@@ -8,6 +8,9 @@ It consumes INPUT. A meaningful use case is to place the module inside a larger 
 cognitive architecture where it helps transform, summarize, or route signals between neural
 subsystems and robot effectors.
 
+![Print](Print.svg)
+
+
 ## Inputs
 
 | Name | Description | Optional |

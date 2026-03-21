@@ -1087,6 +1087,14 @@ aside {
     color: #0b57d0;
 }
 
+#library_inspector .library-inspector-placeholder img {
+    display: block;
+    width: 75%;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto 10px auto;
+}
+
 #library_inspector .inspector-resize-handle,
 #component_inspector .inspector-resize-handle {
     position: absolute;

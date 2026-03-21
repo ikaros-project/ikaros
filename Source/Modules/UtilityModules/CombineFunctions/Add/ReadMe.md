@@ -10,6 +10,9 @@ It consumes INPUT1 and INPUT2 and produces OUTPUT. A realistic use case is to co
 neural signals, such as excitatory and inhibitory drive in a simplified circuit model, or to merge
 feedforward and feedback terms in a robot control law before sending the result onward.
 
+![Add](Add.svg)
+
+
 ## Inputs
 
 | Name | Description | Optional |

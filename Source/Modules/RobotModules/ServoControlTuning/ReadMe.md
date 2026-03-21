@@ -17,6 +17,9 @@ architecture in which perception and decision circuits choose targets, impedance
 while this module family handles the low-level interface needed to turn those choices into stable
 movement and usable feedback.
 
+![ServoControlTuning](ServoControlTuning.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

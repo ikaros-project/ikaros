@@ -12,6 +12,9 @@ inspired architecture, this module can be used as one component in a pathway for
 integration, value-based gating, rhythmic control, or state estimation, depending on how its inputs
 are embedded in the surrounding circuit.
 
+![Nucleus](Nucleus.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

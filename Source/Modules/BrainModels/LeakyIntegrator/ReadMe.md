@@ -15,6 +15,9 @@ That makes this kind of module useful for membrane-potential style dynamics, evi
 in decision circuits, low-pass filtering of sensory input, and motor systems where commands should
 build up gradually instead of changing instantaneously.
 
+![LeakyIntegrator](LeakyIntegrator.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

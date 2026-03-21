@@ -12,3 +12,5 @@ parts, such as a visuomotor circuit that feeds a robot head, an adaptive reachin
 perception-to-action model composed from many specialized processing stages.
 
 *This description was automatically created and may not be an accurate description of the module.*
+
+![Module](Module.svg)

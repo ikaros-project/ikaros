@@ -20,6 +20,9 @@ prediction, adaptive sensor fusion, and policy-learning pipelines where intermed
 matters as much as the final output, for example when a robot has to estimate body state from noisy
 multimodal input before generating coordinated action.
 
+![DeepNetwork](DeepNetwork.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

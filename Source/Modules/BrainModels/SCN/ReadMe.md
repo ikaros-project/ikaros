@@ -14,6 +14,9 @@ rhythms across physiology and behavior. A module inspired by that function can b
 sleep-wake state, modulate hormone-like signals over long timescales, or schedule robot behavior so
 that attention, activity, and energy usage vary systematically across extended experiments.
 
+![SCN](SCN.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

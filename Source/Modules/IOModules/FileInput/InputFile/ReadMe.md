@@ -12,6 +12,9 @@ previously recorded sensory streams into a brain model, or when feeding a robot 
 scripted trajectories, calibrated motor commands, or annotated experiment data for repeatable
 benchmarking.
 
+![InputFile](InputFile.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

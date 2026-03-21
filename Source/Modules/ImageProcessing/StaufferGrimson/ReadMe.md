@@ -15,6 +15,9 @@ combined into layered pipelines rather than used alone. Their role is often to r
 into spatial cues that later modules can use for recognition, action selection, and visually guided
 control.
 
+![StaufferGrimson](StaufferGrimson.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

@@ -8,6 +8,9 @@ Computes linear spline functions
 
 <br><br>
 
+![LinearSplines](LinearSplines.svg)
+
+
 ## Inputs
 
 |Name|Description|Optional|

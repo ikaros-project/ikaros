@@ -11,6 +11,9 @@ It produces OUTPUT while parameters such as data shape its behavior. A non-trivi
 hold a learned posture template, a target muscle-synergy pattern, or a fixed neuromodulatory bias
 that is injected into a larger circuit during a specific behavioral phase.
 
+![Constant](Constant.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

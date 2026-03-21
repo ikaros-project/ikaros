@@ -16,6 +16,9 @@ includes speech production, turn-taking, active audition, and experiments where 
 align closely with movement or internal state in order for adaptation and interaction to remain
 stable.
 
+![OutputAudio](OutputAudio.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

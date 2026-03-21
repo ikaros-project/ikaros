@@ -8,6 +8,9 @@ Records a sequence
 
 <br><br>
 
+![SequenceRecorder](SequenceRecorder.svg)
+
+
 ## Inputs
 
 |Name|Description|Optional|

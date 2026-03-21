@@ -8,6 +8,9 @@ Minimal example module
 
 <br><br>
 
+![FadeCandy](FadeCandy.svg)
+
+
 ## Inputs
 
 |Name|Description|Optional|

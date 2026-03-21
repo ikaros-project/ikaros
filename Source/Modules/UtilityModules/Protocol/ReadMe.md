@@ -18,6 +18,9 @@ stimuli is itself part of the hypothesis, such as in prediction-error studies, e
 renewal experiments, or robot training tasks where delayed outcomes must be linked back to earlier
 signals.
 
+![Protocol](Protocol.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

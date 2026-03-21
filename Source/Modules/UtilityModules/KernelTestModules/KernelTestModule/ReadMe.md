@@ -9,6 +9,9 @@ c, d, and e shape its behavior. A meaningful use case is to place the module ins
 sensorimotor or cognitive architecture where it helps transform, summarize, or route signals between
 neural subsystems and robot effectors.
 
+![KernelTestModule](KernelTestModule.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

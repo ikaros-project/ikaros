@@ -13,6 +13,9 @@ trajectories from a cognitive model, capturing high-dimensional motor commands d
 learning, or exporting synchronized internal signals for offline analysis of closed-loop robot
 behavior.
 
+![OutputFile](OutputFile.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

@@ -11,6 +11,9 @@ Parameters such as duration and init shape its behavior. In larger embodied expe
 logger is useful for tracking exactly which model configuration, robot setup, and parameterization
 produced a given behavioral run so results remain comparable across long experimental series.
 
+![Idle](Idle.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

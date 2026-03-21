@@ -11,6 +11,9 @@ It consumes INPUT and produces OUTPUT. These reductions are useful when a distri
 activity must be collapsed into a compact decision variable, confidence estimate, or control scalar
 that can drive action selection or adaptive robot behavior.
 
+![Average](Average.svg)
+
+
 ## Inputs
 
 | Name | Description | Optional |

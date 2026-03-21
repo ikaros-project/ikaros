@@ -9,6 +9,9 @@ behavior. Within a larger brain-inspired architecture, this module can be used a
 pathway for sensory integration, value-based gating, rhythmic control, or state estimation,
 depending on how its inputs are embedded in the surrounding circuit.
 
+![Concentration](Concentration.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

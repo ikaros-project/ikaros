@@ -16,6 +16,9 @@ simple way to organize repeated structure over time. In models they can stand in
 generators, periodic probes, pacing signals, or entrainment sources that coordinate distributed
 subsystems during locomotion, breathing-like behavior, scanning, or exploratory sensing.
 
+![Oscillator](Oscillator.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

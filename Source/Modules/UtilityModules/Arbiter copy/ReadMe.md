@@ -20,6 +20,9 @@ set by the switching_time parameter or directly by the integration constant alph
 convex combinations of inputs are calculated by first normalizaing the smoothed state and the
 calculating the weighted average of the inputs.
 
+![Arbiter](Arbiter.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

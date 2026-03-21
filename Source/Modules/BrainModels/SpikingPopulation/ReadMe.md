@@ -16,6 +16,9 @@ temporal coding, and oscillatory coupling, or for driving event-sensitive contro
 systems where precisely timed bursts can signal saliency, movement onset, or phase transitions in
 behavior.
 
+![SpikingPopulation](SpikingPopulation.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |

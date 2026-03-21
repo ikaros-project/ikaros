@@ -17,6 +17,9 @@ just a debugging aid. They can be used to model vocal production, to provide emb
 feedback during learning, or to generate structured signals whose timbre and pitch are controlled by
 higher-level affective, social, or motor modules.
 
+![AudioSynth](AudioSynth.svg)
+
+
 ## Parameters
 
 | Name | Description | Type | Default |
