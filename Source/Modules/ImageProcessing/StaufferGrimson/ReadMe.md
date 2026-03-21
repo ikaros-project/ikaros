@@ -40,4 +40,4 @@ control.
 | MEANS | The mean of each gaussian |
 | VARIANCES | The variance of each gaussian |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

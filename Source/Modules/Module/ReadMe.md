@@ -11,4 +11,4 @@ Conceptually, it is the abstraction that makes it possible to assemble large sys
 parts, such as a visuomotor circuit that feeds a robot head, an adaptive reaching controller, or a
 perception-to-action model composed from many specialized processing stages.
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

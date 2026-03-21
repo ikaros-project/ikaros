@@ -34,4 +34,4 @@ the downstream system needs a sparse but spatially meaningful description of sce
 | --- | --- |
 | OUTPUT | Binary edge map (2D matrix) |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

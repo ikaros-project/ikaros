@@ -19,4 +19,4 @@ benchmarking.
 | filename | File to read the data from | string |  |
 | send_end_of_file | Set to 'no' to have the module send arrays of zeros forever. | bool | yes |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

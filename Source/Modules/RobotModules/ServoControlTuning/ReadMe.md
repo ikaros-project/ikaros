@@ -37,4 +37,4 @@ movement and usable feedback.
 | Position | Goal position and present position of the seleected servo |
 | Current | Goal Current and present current of the selected servo |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

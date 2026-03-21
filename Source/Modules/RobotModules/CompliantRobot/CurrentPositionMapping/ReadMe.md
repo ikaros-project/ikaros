@@ -34,4 +34,4 @@ to turn those choices into stable movement and usable feedback.
 | GoalPosition |  |
 | GoalCurrent |  |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

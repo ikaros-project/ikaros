@@ -45,4 +45,4 @@ are embedded in the surrounding circuit.
 | X | Internal state of the nucleus |
 | OUTPUT | The output from the nucleus |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

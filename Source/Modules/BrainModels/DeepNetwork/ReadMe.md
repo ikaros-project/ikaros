@@ -46,4 +46,4 @@ multimodal input before generating coordinated action.
 | OUTPUT | Inference output |
 | LOSS | Training loss |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

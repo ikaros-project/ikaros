@@ -23,4 +23,4 @@ into stable movement and usable feedback.
 | --- | --- |
 | PositionOutput | The position array that will be sent to the motors as goal position |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

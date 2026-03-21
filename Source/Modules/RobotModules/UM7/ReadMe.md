@@ -30,4 +30,4 @@ inertial information must be reconciled in a common reference frame.
 | PITCH | Estimated Pitch |
 | YAW | Estimated Yaw |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

@@ -33,4 +33,4 @@ that attention, activity, and energy usage vary systematically across extended e
 | OUTPUT | The output |
 | DIFF | The difference to zeitgeber |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

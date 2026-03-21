@@ -30,4 +30,4 @@ state estimation, depending on how its inputs are embedded in the surrounding ci
 | W | The weights |
 | OUTPUT | The output |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

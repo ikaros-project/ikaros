@@ -23,4 +23,4 @@ feedforward and feedback terms in a robot control law before sending the result 
 | --- | --- |
 | OUTPUT | The output |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

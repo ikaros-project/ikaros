@@ -56,4 +56,4 @@ helps transform, summarize, or route signals between neural subsystems and robot
 | OUTPUT | The selected output |
 | VALUE | The value of the current output; norm of the smoothed arbitration state (not implemented yet) |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

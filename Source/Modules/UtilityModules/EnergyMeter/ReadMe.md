@@ -25,4 +25,4 @@ against electrical cost.
 | MEASURED_POWER | Current power consumption |
 | ENERGY | Accumulated power consumption |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

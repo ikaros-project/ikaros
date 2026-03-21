@@ -18,4 +18,4 @@ produced a given behavioral run so results remain comparable across long experim
 | duration | idle time in seconds | float |  |
 | init | start-up (init) time in seconds | float |  |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

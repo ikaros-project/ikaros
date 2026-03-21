@@ -30,4 +30,4 @@ specific command ranges on a robot.
 | --- | --- |
 | OUTPUT | The output |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

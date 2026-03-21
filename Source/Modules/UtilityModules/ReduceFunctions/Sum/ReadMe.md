@@ -23,4 +23,4 @@ that can drive action selection or adaptive robot behavior.
 | --- | --- |
 | OUTPUT | The output with the Sum |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

@@ -14,4 +14,4 @@ subsystems and robot effectors.
 | --- | --- | --- |
 | INPUT | The input to be printed. |  |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

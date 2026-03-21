@@ -31,4 +31,4 @@ behavior.
 | WRITE | The input to be written to file | yes |
 | NEWFILE | If connected, a 1 on the input will close the current file, increase the file number (if %d is in the name) and open a new file. | yes |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

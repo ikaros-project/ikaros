@@ -21,4 +21,4 @@ where it helps transform, summarize, or route signals between neural subsystems 
 | --- | --- |
 | OUTPUT | The recorded audio samples |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*

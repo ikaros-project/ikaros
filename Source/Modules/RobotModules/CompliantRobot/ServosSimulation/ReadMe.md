@@ -25,4 +25,4 @@ interface needed to turn those choices into stable movement and usable feedback.
 | PresentPosition | The present position of the servomotors in degrees |
 | PresentCurrent | Current in the motors |
 
-*This description was automatically created and may not describe the full function of the module.*
+*This description was automatically created and may not be an accurate description of the module.*
