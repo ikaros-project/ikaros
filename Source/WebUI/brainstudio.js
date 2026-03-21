@@ -1311,9 +1311,9 @@ let controller =
 
             let v = getCookie('selected_background');
             if(v && network.dict[v])
-                selector.selectItems([], v);
+                selector.selectItems([], v, false, false, true);
             else
-                selector.selectItems([], top);
+                selector.selectItems([], top, false, false, true);
 
             if(shouldAutoArrange)
                 main.arrangeComponents();

@@ -38,10 +38,16 @@ namespace ikaros {
         load_failed(std::string message, std::string path="") : exception(message, path) {}
     };
 
-    class setup_error : public exception 
+        class build_failed : public exception 
     {
     public:
-        setup_error(std::string message, std::string path="") : exception(message, path) {}
+        build_failed(std::string message, std::string path="") : exception(message, path) {}
+    };
+
+    class setup_failed : public exception 
+    {
+    public:
+        setup_failed(std::string message, std::string path="") : exception(message, path) {}
     };
 
     class init_error : public exception

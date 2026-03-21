@@ -1181,7 +1181,7 @@ namespace ikaros
        Trace("\t\t\tComponent::SetOutputSize " , path_ + "." + std::string(d["name"]));
 
         if(d.contains("size"))
-            throw setup_error(u8"Output \""+std::string(d["name"])+"\"+in group \""+path_+"\" can not have size attribute.", path_);
+            throw setup_failed(u8"Output \""+std::string(d["name"])+"\"+in group \""+path_+"\" can not have size attribute.", path_);
 
         range output_size; // FIXME: rename output_range
         std::string name = d.at("name");
@@ -1235,7 +1235,7 @@ namespace ikaros
         Kernel & k = kernel();
         for(dictionary d : info_["inputs"])
         if(!d.is_set("optional") && k.buffers[path_+"."+d["name"].as_string()].empty())
-            throw setup_error("Component \""+info_["name"].as_string()+"\" has required input \""+d["name"].as_string()+"\" that is not connected.", path_);
+            throw setup_failed("Component \""+info_["name"].as_string()+"\" has required input \""+d["name"].as_string()+"\" that is not connected.", path_);
     }
 
 
@@ -1251,14 +1251,14 @@ namespace ikaros
             if(d.contains("size"))
                 size = std::string(d.at("size"));
             else
-                throw setup_error("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".", path_);
+                throw setup_failed("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".", path_);
 
             // FIX: special indirection
             while(!size.empty() && size[0]=='@' && size.find(',')==std::string::npos)
                 size = GetValue(size.substr(1));
             
             if(size.empty())
-                throw setup_error("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".", path_);
+                throw setup_failed("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".", path_);
             std::vector<int> shape = EvaluateSizeList(size);
             matrix o;
             Bind(o, d.at("name"));
@@ -1268,11 +1268,11 @@ namespace ikaros
         catch(const std::invalid_argument & e)
         {
             Notify(msg_warning, e.what());
-            throw setup_error("Size expression for output \""+std::string(d.at("name")) +"\" is invalid. "+e.what(), path_);
+            throw setup_failed("Size expression for output \""+std::string(d.at("name")) +"\" is invalid. "+e.what(), path_);
         }
         catch(...)
         {
-            throw setup_error("Size expression for output \""+std::string(d.at("name")) +"\" is invalid.", path_);
+            throw setup_failed("Size expression for output \""+std::string(d.at("name")) +"\" is invalid.", path_);
         }
     }
 
@@ -1708,8 +1708,8 @@ bool operator==(Request & r, const std::string s)
         {
             for(auto & p : parameters)
                 if(!*(p.second.resolved))
-                    throw setup_error("Parameter \""+p.first+"\" could not be resolved.", p.first);
-            throw setup_error("All parameters could not be resolved.");
+                    throw setup_failed("Parameter \""+p.first+"\" could not be resolved.", p.first);
+            throw setup_failed("All parameters could not be resolved.");
         }
     }
 
@@ -1735,18 +1735,18 @@ bool operator==(Request & r, const std::string s)
         catch(fatal_error & e)
         {
             Notify(msg_warning, e.message());
-            throw setup_error("Could not calculate input and output sizes. "+e.message(), e.path());
+            throw setup_failed("Could not calculate input and output sizes. "+e.message(), e.path());
         }
 
-        catch(setup_error & e)
+        catch(setup_failed & e)
         {
             Notify(msg_warning, e.message());
-            throw setup_error("Could not calculate input and output sizes. "+e.message(), e.path());
+            throw setup_failed("Could not calculate input and output sizes. "+e.message(), e.path());
         }
 
         catch(...)
         {
-            throw setup_error("Could not calculate input and output sizes.");
+            throw setup_failed("Could not calculate input and output sizes.");
         }
     }
 
@@ -1947,7 +1947,7 @@ bool operator==(Request & r, const std::string s)
         current_component_path = path;
 
         if(components.count(current_component_path)> 0)
-            throw exception("Module or group named \""+current_component_path+"\" already exists.", path);
+            throw build_failed("Module or group named \""+current_component_path+"\" already exists.", path);
 
         components[current_component_path] = new Group(); // Implicit argument passing as for components
     }
@@ -1960,7 +1960,7 @@ bool operator==(Request & r, const std::string s)
         current_component_path = path+"."+std::string(info["name"]);
 
         if(components.count(current_component_path)> 0)
-            throw exception("Module or group with this name already exists. \""+std::string(info["name"])+"\".", path);
+            throw build_failed("Module or group with this name already exists. \""+std::string(info["name"])+"\".", path);
 
         std::string classname = info["class"];
 
@@ -1972,10 +1972,10 @@ bool operator==(Request & r, const std::string s)
         }
 
         if(!classes.count(classname))
-            throw exception("Class \""+classname+"\" does not exist.", path);
+            throw build_failed("Class \""+classname+"\" does not exist.", path);
 
 if(classes[classname].path.empty())
-        throw setup_error("Class file \""+classname+".ikc\" could not be found.", path);
+        throw build_failed("Class file \""+classname+".ikc\" could not be found.", path);
 
          info.merge(dictionary(classes[classname].path));  // merge with class data structure
 
@@ -2027,10 +2027,10 @@ if(classes[classname].path.empty())
         try
         {
             if(std::string(d["_tag"]) != "group")
-                throw setup_error("Main element is '"+std::string(d["_tag"])+"' but must be 'group' for ikg-file.");
+                throw build_failed("Main element is '"+std::string(d["_tag"])+"' but must be 'group' for ikg-file.");
 
             if(!d.contains("name"))
-                throw setup_error("Groups must have a name.", path);
+                throw build_failed("Groups must have a name.", path);
 
             std::string name = validate_identifier(d["name"]);
             if(!path.empty())
@@ -2053,11 +2053,11 @@ if(classes[classname].path.empty())
         }
         catch(const exception& e)
         {
-            throw setup_error("Build group failed for "+path+": "+e.message());
+            throw build_failed("Build group failed for "+path+": "+e.message());
         }
         catch(const std::exception& e)
         {
-            throw setup_error("Build group failed for "+path+": "+std::string(e.what()), path);
+            throw build_failed("Build group failed for "+path+": "+std::string(e.what()), path);
         }
     }
 
@@ -2120,21 +2120,25 @@ if(classes[classname].path.empty())
                     SetCommandLineParameters(d);
                     BuildGroup(d);
                     info_ = d;
-                    session_id = new_session_id();
-                    SetUp();
+                    session_id = new_session_id(); 
                     Notify(msg_print, u8"Loaded "s+options_.full_path());
-
+                    SetUp();
                     CalculateCheckSum();
                     needs_reload = false;
                     Pause(); // Reset clocks
                 }
-                catch(const exception& e)
+
+                catch(const load_failed& e)
                 {
                     throw load_failed(u8"Load file failed for "s+options_.full_path()+". "+e.message(), e.path());
                 }
+                catch(const setup_failed& e)
+                {
+                    throw setup_failed(u8"Set-up file failed for "s+options_.full_path()+". "+e.message(), e.path());
+                }
                 catch(const std::exception& e)
                 {
-                    throw load_failed(u8"Load file failed for "s+options_.full_path()+". "+e.what());
+                    throw load_failed(u8"Load or set-up failed for "s+options_.full_path()+". "+e.what());
                 }
 
         }
@@ -2415,7 +2419,7 @@ if(classes[classname].path.empty())
     Kernel::sort(std::vector<std::string> nodes, std::vector<std::pair<std::string, std::string>> edges)
     {
         if(hasCycle(nodes, edges)) 
-            throw setup_error("Network has zero-delay loops");
+            throw setup_failed("Network has zero-delay loops");
         else 
         {
 
@@ -2568,11 +2572,11 @@ if(classes[classname].path.empty())
         }
         catch(exception & e)
         {
-            throw setup_error("SetUp Failed. "+e.message(), e.path());
+            throw setup_failed("SetUp Failed. "+e.message(), e.path());
         }
         catch(std::exception & e)
         {
-            throw setup_error("SetUp Failed. "+std::string(+e.what()));
+            throw setup_failed("SetUp Failed. "+std::string(+e.what()));
         }
     }
 
@@ -3014,10 +3018,16 @@ if(classes[classname].path.empty())
             {
                 LoadFile();
             }
+            catch(const setup_failed& e)
+            {
+                //std::cerr << e.what() << '\n';
+                Notify(msg_warning, "File \""+file+"\" could not be set-up: "+e.message()); // FIXME: better error message - alert? HTTP reply with error code
+                // New();
+            }
             catch(const std::exception& e)
             {
                 std::cerr << e.what() << '\n';
-                Notify(msg_warning, "File \""+file+"\" could not be loaded"); // FIXME: better error message - alert? HTTP reply with error code
+                Notify(msg_warning, "File \""+file+"\" could not be loaded, built or set-up"); // FIXME: better error message - alert? HTTP reply with error code
                 New();
             }
             
