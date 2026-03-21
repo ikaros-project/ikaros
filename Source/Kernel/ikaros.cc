@@ -3098,11 +3098,22 @@ if(classes[classname].path.empty())
 
         //std::cout << "Sending file: " << file << std::endl;
 
+        if(socket->SendFile(file, user_dir))   // Look in user directory
+            return;
+
         if(socket->SendFile(file, webui_dir))   // Now look in WebUI directory
             return;
-        /*
+
         if(socket->SendFile(file, std::string(webui_dir)+"Images/"))   // Now look in WebUI/Images directory
             return;
+
+        if(socket->SendFile(file, webui_dir+"../"))   // Now look in Source directory
+            return;
+
+    
+
+        /*
+ 
         
         file = "error." + rcut(file, ".");
         if(socket->SendFile("error." + rcut(file, "."), webui_dir)) // Try to send error file
@@ -3384,7 +3395,9 @@ if(classes[classname].path.empty())
         {
             socket->Send(s);
             socket->Send("\""+c.first+"\": ");
-            socket->Send(c.second.info_.json());
+            dictionary class_info = c.second.info_.copy();
+            class_info["path"] = std::filesystem::path(c.second.path).parent_path().string();
+            socket->Send(class_info.json());
             s = ",\n\t";
         }
         socket->Send("\n}\n");
