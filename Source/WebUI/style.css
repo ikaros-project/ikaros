@@ -696,6 +696,7 @@ li.group-empty {
 main {
     padding: 0px;
     background: var(--main-background);
+    position: relative;
 }
 
 main[data-mode="edit"] {
@@ -712,6 +713,45 @@ main[data-mode="edit"] {
 #main.edit_mode #main_grid
 {
     display:block;
+}
+
+.reconnect-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: var(--main-background);
+    pointer-events: all;
+}
+
+.reconnect-overlay.visible {
+    display: flex;
+}
+
+.reconnect-overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    color: #5d6770;
+    text-align: center;
+}
+
+.reconnect-spinner {
+    width: 72px;
+    height: 72px;
+    margin-left: 0;
+    border-width: 8px;
+    vertical-align: middle;
+}
+
+.reconnect-overlay-label {
+    font-family: "Didact Gothic", sans-serif;
+    font-size: 28px;
+    letter-spacing: 0.02em;
+    text-transform: lowercase;
 }
 
 #main_grid_canvas
@@ -1157,6 +1197,42 @@ aside {
     max-width: 100%;
     display: block;
     box-sizing: border-box;
+}
+
+#component_inspector td + td .range-editor-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    min-height: 100%;
+    align-items: stretch;
+    column-gap: 6px;
+    overflow: visible;
+}
+
+#component_inspector td + td.range-editor {
+    padding-right: 20px;
+    overflow: visible;
+}
+
+#component_inspector td + td .range-editor-input {
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    border-radius: 0;
+    outline: none;
+    background-color: lightgray;
+    color: black;
+    padding: 0;
+    min-width: 0;
+    width: 100%;
+    min-height: 1.4em;
+    font: inherit;
+    line-height: inherit;
+}
+
+#component_inspector td + td .range-editor-input:focus,
+#component_inspector td + td .range-editor-input:hover {
+    background-color: lightgray;
 }
 
 body.inspector-resizing,

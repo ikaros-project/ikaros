@@ -227,6 +227,44 @@ function getStringAfterBracket(str)
     return str.substring(index, str.length);
 }
 
+function parseBracketRangeString(str)
+{
+    const source = typeof str === "string" ? str : "";
+    const matches = source.match(/\[[^\]]*\]/g);
+    if(!matches)
+        return [];
+
+    return matches.map((token) =>
+    {
+        const content = token.slice(1, -1);
+        const parts = content.split(':');
+        return {
+            start: parts[0] ?? "",
+            end: parts.length > 1 ? (parts[1] ?? "") : "",
+            step: parts.length > 2 ? parts.slice(2).join(':') : ""
+        };
+    });
+}
+
+function serializeBracketRangeParts(parts)
+{
+    if(!Array.isArray(parts) || parts.length === 0)
+        return "";
+
+    return parts.map((part) =>
+    {
+        const start = part && part.start != null ? String(part.start).trim() : "";
+        const end = part && part.end != null ? String(part.end).trim() : "";
+        const step = part && part.step != null ? String(part.step).trim() : "";
+
+        if(end === "" && step === "")
+            return `[${start}]`;
+        if(step === "")
+            return `[${start}:${end}]`;
+        return `[${start}:${end}:${step}]`;
+    }).join("");
+}
+
 function setCookie(name,value,days=100)
 {
     let date = new Date();
@@ -954,9 +992,10 @@ let controller =
     setWaitingState()
     {
         const stateElement = document.querySelector("#state");
-        if(!stateElement)
-            return;
-        stateElement.innerHTML = 'waiting <span class="status-spinner" aria-hidden="true"></span>';
+        if(stateElement)
+            stateElement.innerHTML = 'waiting to reconnect <span class="status-spinner" aria-hidden="true"></span>';
+        if(main && typeof main.showReconnectOverlay === "function")
+            main.showReconnectOverlay();
     },
 
         saveNetwork()
@@ -1253,7 +1292,8 @@ let controller =
             return;
         }
 
-
+        if(main && typeof main.hideReconnectOverlay === "function")
+            main.hideReconnectOverlay();
         controller.ping = Date.now() - controller.send_stamp;
         controller.defer_reconnect(); // we are still connected
         if(controller.request_timer == null && !controller.open_mode)
@@ -2355,7 +2395,10 @@ const inspector =
         });
 
         cell2.contentEditable = true;
-        const commitOnInput = (p.name !== "name");
+        const commitOnInput = !(
+            p.name === "name" ||
+            (inspector.item && inspector.item._tag == "connection")
+        );
         const commitTextEditValue = function(evt)
         {
             let newValue = evt.target.innerText.replace(String.fromCharCode(10), "").replace(String.fromCharCode(13), "");
@@ -2390,6 +2433,176 @@ const inspector =
             commitTextEditValue(evt);
             updateDefaultPlaceholderState(evt.target, evt.target.innerText.trim() === "");
         });
+    },
+
+    createRangeEditorRows(item, p)
+    {
+        const currentValue = typeof item[p.name] === "string" ? item[p.name] : "";
+        const rows = parseBracketRangeString(currentValue);
+        const displayRows = rows.slice();
+
+        const commitRangeRows = function()
+        {
+            const serialized = serializeBracketRangeParts(displayRows);
+            item[p.name] = serialized;
+            if(inspector.notify && inspector.notify.parameters)
+                inspector.notify.parameters[p.name] = item[p.name];
+            if(inspector.notify)
+                inspector.notify.parameterChangeNotification(p);
+        };
+
+        const buildRangePlaceholder = function(axis)
+        {
+            if(axis == "start")
+                return "start";
+            if(axis == "end")
+                return "end";
+            return "step";
+        };
+
+        for(let i = 0; i < displayRows.length; i++)
+        {
+            const rangeRow = displayRows[i];
+            const row = current_t_body.insertRow(-1);
+            const labelCell = row.insertCell(0);
+            const editorCell = row.insertCell(1);
+
+            labelCell.innerText = `${p.label || p.name} [${i+1}]`;
+            editorCell.className = `${p.type || "range"} textedit range-editor`;
+            editorCell.classList.add("inspector-removable-value-cell");
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "range-editor-fields";
+
+            const fields = [
+                {key:"start", inputMode:"numeric"},
+                {key:"end", inputMode:"numeric"},
+                {key:"step", inputMode:"numeric"}
+            ];
+            const rowInputs = [];
+
+            for(const field of fields)
+            {
+                const input = document.createElement("input");
+                input.type = "text";
+                input.value = rangeRow[field.key] || "";
+                input.placeholder = buildRangePlaceholder(field.key);
+                input.setAttribute("aria-label", `${p.name} ${i+1} ${field.key}`);
+                input.className = "range-editor-input";
+                if(field.inputMode)
+                    input.inputMode = field.inputMode;
+                input.style.width = "100%";
+                const updateFieldValue = function(evt)
+                {
+                    rangeRow[field.key] = evt.target.value;
+                    item[p.name] = serializeBracketRangeParts(displayRows);
+                    if(inspector.notify && inspector.notify.parameters)
+                        inspector.notify.parameters[p.name] = item[p.name];
+                };
+                const commitFieldValue = function(evt)
+                {
+                    updateFieldValue(evt);
+                    commitRangeRows();
+                };
+                input.addEventListener("input", updateFieldValue);
+                input.addEventListener("change", updateFieldValue);
+                input.addEventListener("blur", function(evt)
+                {
+                    updateFieldValue(evt);
+                    const nextTarget = evt.relatedTarget;
+                    if(nextTarget && wrapper.contains(nextTarget))
+                        return;
+                    commitRangeRows();
+                });
+                input.addEventListener("keydown", function(evt)
+                {
+                    if(evt.key === "Enter")
+                    {
+                        evt.preventDefault();
+                        const currentIndex = rowInputs.indexOf(evt.target);
+                        const nextInput = currentIndex >= 0 ? rowInputs[currentIndex + 1] : null;
+                        if(nextInput)
+                            nextInput.focus();
+                        else
+                            evt.target.blur();
+                    }
+                });
+                rowInputs.push(input);
+                wrapper.appendChild(input);
+
+                if(
+                    item._range_editor_focus &&
+                    item._range_editor_focus.name === p.name &&
+                    item._range_editor_focus.index === i &&
+                    item._range_editor_focus.key === field.key
+                )
+                {
+                    const focusTarget = input;
+                    setTimeout(function()
+                    {
+                        focusTarget.focus();
+                        focusTarget.select();
+                    }, 0);
+                    delete item._range_editor_focus;
+                }
+            }
+
+            editorCell.appendChild(wrapper);
+
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "inspector-minus-button";
+            removeButton.setAttribute("aria-label", "Remove range");
+            removeButton.setAttribute("contenteditable", "false");
+            removeButton.innerHTML = `
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                    <path d="M18 6L17.1991 18.0129C17.129 19.065 17.0939 19.5911 16.8667 19.99C16.6666 20.3412 16.3648 20.6235 16.0011 20.7998C15.588 21 15.0607 21 14.0062 21H9.99377C8.93927 21 8.41202 21 7.99889 20.7998C7.63517 20.6235 7.33339 20.3412 7.13332 19.99C6.90607 19.5911 6.871 19.065 6.80086 18.0129L6 6M4 6H20M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6M14 10V17M10 10V17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+            `;
+            removeButton.addEventListener("mousedown", function(evt)
+            {
+                evt.preventDefault();
+            });
+            removeButton.addEventListener("click", function(evt)
+            {
+                evt.preventDefault();
+                evt.stopPropagation();
+                const updatedRows = parseBracketRangeString(item[p.name]);
+                if(i < updatedRows.length)
+                    updatedRows.splice(i, 1);
+                item[p.name] = serializeBracketRangeParts(updatedRows);
+                if(inspector.notify && inspector.notify.parameters)
+                    inspector.notify.parameters[p.name] = item[p.name];
+                if(inspector.notify)
+                    inspector.notify.parameterChangeNotification(p);
+            });
+            editorCell.appendChild(removeButton);
+        }
+
+        const actionRow = current_t_body.insertRow(-1);
+        const actionCellLeft = actionRow.insertCell(0);
+        const actionCellRight = actionRow.insertCell(1);
+        actionCellLeft.innerText = displayRows.length === 0 ? (p.label || p.name) : "";
+        actionCellRight.style.textAlign = "right";
+        actionCellRight.innerHTML = '<button type="button" class="inspector-plus-button" aria-label="Add range">+</button>';
+
+        const plusButton = actionCellRight.querySelector(".inspector-plus-button");
+        if(plusButton)
+        {
+            plusButton.addEventListener("click", function(evt)
+            {
+                evt.preventDefault();
+                evt.stopPropagation();
+                const updatedRows = parseBracketRangeString(item[p.name]);
+                updatedRows.push({start:"", end:"", step:""});
+                item[p.name] = serializeBracketRangeParts(updatedRows);
+                item._range_editor_focus = {name: p.name, index: updatedRows.length - 1, key: "start"};
+                if(inspector.notify && inspector.notify.parameters)
+                    inspector.notify.parameters[p.name] = item[p.name];
+                if(inspector.notify)
+                    inspector.notify.parameterChangeNotification(p);
+            });
+        }
     },
 
 
@@ -2491,6 +2704,8 @@ const inspector =
                         this.acreateHeaderRow(item, p); break;
                     case 'textedit':
                         this.createTextEditRow(item, p); break;
+                    case 'range-editor':
+                        this.createRangeEditorRows(item, p); break;
                     case 'menu':
                         this.createMenuRow(item, p); break;
                     case 'checkbox':
@@ -3298,6 +3513,8 @@ const inspector =
     showConnection(connection)
     {
         const item = network.dict[connection];
+        item.source_range = getStringAfterBracket(item.source || "");
+        item.target_range = getStringAfterBracket(item.target || "");
 
         inspector.hideSubviews();
         inspector.setTable(inspector.subview.table);
@@ -3315,8 +3532,8 @@ const inspector =
                     item.line_type = "auto_route";
                 inspector.addDataRows(item, 
                 [
-                    {'name':'source_range', 'control':'textedit', 'type':'range'},
-                    {'name':'target_range', 'control':'textedit', 'type':'range'},
+                    {'name':'source_range', 'label':'source range', 'control':'range-editor', 'type':'range'},
+                    {'name':'target_range', 'label':'target range', 'control':'range-editor', 'type':'range'},
                     {'name':'delay', 'control':'textedit', 'type':'delay'},
                     {'name':'alias', 'control':'textedit', 'type':'source'}     
                 ], this);
@@ -3703,6 +3920,7 @@ const main =
     grid_active: false,
     edit_mode: false,
     map: {},
+    reconnect_overlay: null,
 
     new_position_x: 100,
     new_position_y: 100,
@@ -3717,10 +3935,45 @@ const main =
         main.createContextMenu();
         main.createComponentColorMenu();
         main.createWidgetMenu();
+        main.createReconnectOverlay();
         main.drawGrid();
         window.addEventListener("resize", main.drawGrid, false);
         main.view.addEventListener("mousedown", main.startBackgroundSelection, false);
         main.view.addEventListener("contextmenu", main.showBackgroundContextMenu, false);
+    },
+
+    createReconnectOverlay()
+    {
+        if(main.reconnect_overlay && main.reconnect_overlay.parentElement)
+            return;
+
+        const overlay = document.createElement("div");
+        overlay.className = "reconnect-overlay";
+        overlay.setAttribute("aria-live", "polite");
+        overlay.innerHTML = `
+            <div class="reconnect-overlay-content">
+                <span class="status-spinner reconnect-spinner" aria-hidden="true"></span>
+                <span class="reconnect-overlay-label">waiting to reconnect</span>
+            </div>
+        `;
+        main.main.appendChild(overlay);
+        main.reconnect_overlay = overlay;
+    },
+
+    showReconnectOverlay()
+    {
+        if(!main.main)
+            return;
+        if(!main.reconnect_overlay)
+            main.createReconnectOverlay();
+        if(main.reconnect_overlay)
+            main.reconnect_overlay.classList.add("visible");
+    },
+
+    hideReconnectOverlay()
+    {
+        if(main.reconnect_overlay)
+            main.reconnect_overlay.classList.remove("visible");
     },
 
     createContextMenu()
