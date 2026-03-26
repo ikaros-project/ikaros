@@ -950,7 +950,7 @@ namespace ikaros
 
         // Add log_level parameter to all components
 
-        AddLogLevel();
+        // AddLogLevel();
 
         for(auto p: info_["parameters"])
             AddParameter(p);
@@ -1632,6 +1632,46 @@ bool operator==(Request & r, const std::string s)
                 std::string name = p.path().stem();
                 classes[name].path = p.path();
                 classes[name].info_ = dictionary(p.path());
+
+                // Inject default parameters
+
+                if(classes[name].info_["parameters"].is_null())
+                    classes[name].info_["parameters"] = list();
+
+                bool has_log_level = false;
+                bool has_color = false;
+                for(auto parameter : classes[name].info_["parameters"])
+                {
+                    std::string parameter_name = parameter["name"];
+                    if(parameter_name == "log_level")
+                        has_log_level = true;
+                    else if(parameter_name == "color")
+                        has_color = true;
+                }
+
+                if(!has_log_level)
+                {
+                    dictionary log_param;
+                    log_param["_tag"] = "parameter";
+                    log_param["name"] = "log_level";
+                    log_param["type"] = "number";
+                    log_param["control"] = "menu";
+                    log_param["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
+                    log_param["default"] = 0;
+                    classes[name].info_["parameters"].push_back(log_param);
+                }
+
+                if(!has_color)
+                {
+                    dictionary color_param;
+                    color_param["_tag"] = "parameter";
+                    color_param["name"] = "color";
+                    color_param["type"] = "string";
+                    color_param["default"] = "black";
+                    color_param["description"] = "Selected ui color";
+                    color_param["control"] = "ui_color";
+                    classes[name].info_["parameters"].push_back(color_param);
+                }
             }
     }
 
@@ -1977,7 +2017,45 @@ bool operator==(Request & r, const std::string s)
 if(classes[classname].path.empty())
         throw build_failed("Class file \""+classname+".ikc\" could not be found.", path);
 
-         info.merge(dictionary(classes[classname].path));  // merge with class data structure
+         info.merge(classes[classname].info_);  // merge with scanned class data, including injected defaults
+
+        if(info["parameters"].is_null())
+            info["parameters"] = list();
+
+        bool has_log_level = false;
+        bool has_color = false;
+        for(auto parameter : info["parameters"])
+        {
+            std::string parameter_name = parameter["name"];
+            if(parameter_name == "log_level")
+                has_log_level = true;
+            else if(parameter_name == "color")
+                has_color = true;
+        }
+
+        if(!has_log_level)
+        {
+            dictionary log_param;
+            log_param["_tag"] = "parameter";
+            log_param["name"] = "log_level";
+            log_param["type"] = "number";
+            log_param["control"] = "menu";
+            log_param["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
+            log_param["default"] = 0;
+            info["parameters"].push_back(log_param);
+        }
+
+        if(!has_color)
+        {
+            dictionary color_param;
+            color_param["_tag"] = "parameter";
+            color_param["name"] = "color";
+            color_param["type"] = "string";
+            color_param["default"] = "black";
+            color_param["description"] = "Selected ui color";
+            color_param["control"] = "ui_color";
+            info["parameters"].push_back(color_param);
+        }
 
         if(classes[classname].module_creator == nullptr)
         {
@@ -2520,8 +2598,13 @@ if(classes[classname].path.empty())
                 ts->rethrowIfError();
             }
         } 
-        catch (const std::exception &e) {
+        catch (const std::exception &e) 
+        {
             Notify(msg_fatal_error, "Error during task execution: " + std::string(e.what()));
+        }
+        catch (...) 
+        {
+            Notify(msg_fatal_error, "Error during task execution: Unknown error.");
         }
     }
 

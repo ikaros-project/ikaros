@@ -117,6 +117,7 @@ function toURLParams(params) {
 }
 
 const inspectorUIColorOptions = "red,orange,yellow,green,blue,purple,pink,white,black";
+const logLevelOptions = ["inherit", "quiet", "exception", "end_of_file", "terminate", "fatal_error", "warning", "print", "debug", "trace"];
 const inspectorUIColorLabels = {
     red: "&#x1F7E5; red",
     orange: "&#x1F7E7; orange",
@@ -3647,7 +3648,6 @@ const inspector =
         }
     
         const editMode = main.edit_mode;
-        const logLevelOptions = ["inherit", "quiet","exception","end_of_file","terminate","fatal_error","warning","print","debug","trace"];
         const getParameterRows = function(component)
         {
             if(!component || component.parameters == null)

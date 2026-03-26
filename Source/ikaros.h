@@ -354,7 +354,7 @@ public:
     ModuleCreator   module_creator;
     std::string     name;
     std::string     path;
-    std::map<std::string, std::string>  parameters;
+    // std::map<std::string, std::string>  parameters;
 
     Class() {};
     Class(std::string n, std::string p);
