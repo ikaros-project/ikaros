@@ -116,6 +116,104 @@ function toURLParams(params) {
     }).join('&');
 }
 
+const inspectorUIColorOptions = "red,orange,yellow,green,blue,purple,pink,white,black";
+const inspectorUIColorLabels = {
+    red: "&#x1F7E5; red",
+    orange: "&#x1F7E7; orange",
+    yellow: "&#x1F7E8; yellow",
+    green: "&#x1F7E9; green",
+    blue: "&#x1F7E6; blue",
+    purple: "&#x1F7EA; purple",
+    pink: "pink",
+    white: "&#x2B1C; white",
+    black: "&#x2B1B; black"
+};
+const inspectorUIColorStyles = {
+    red: "background:#d84a4a;color:#fff;",
+    orange: "background:#e58e3a;color:#111;",
+    yellow: "background:#efe26a;color:#111;",
+    green: "background:#58a663;color:#fff;",
+    blue: "background:#4f79c8;color:#fff;",
+    purple: "background:#7f59b3;color:#fff;",
+    pink: "background:#d77db2;color:#111;",
+    white: "background:#f5f5f5;color:#111;",
+    black: "background:#1a1a1a;color:#fff;"
+};
+const inspectorUIColorSwatches = {
+    red: "#d84a4a",
+    orange: "#e58e3a",
+    yellow: "#efe26a",
+    green: "#58a663",
+    blue: "#4f79c8",
+    purple: "#7f59b3",
+    pink: "#d77db2",
+    white: "#f5f5f5",
+    black: "#1a1a1a"
+};
+
+function parseInspectorRGBColor(colorValue)
+{
+    const fallback = { r: 0, g: 0, b: 0 };
+    if(colorValue === undefined || colorValue === null)
+        return fallback;
+    const rawValue = String(colorValue).trim().toLowerCase();
+    const namedValue = inspectorUIColorSwatches[rawValue];
+    const normalized = (namedValue || rawValue).replace(/^#/, "");
+    if(!/^[0-9a-fA-F]{6}$/.test(normalized))
+        return fallback;
+    return {
+        r: parseInt(normalized.slice(0, 2), 16),
+        g: parseInt(normalized.slice(2, 4), 16),
+        b: parseInt(normalized.slice(4, 6), 16)
+    };
+}
+
+function formatInspectorRGBColor(r, g, b)
+{
+    const toHex = function(value)
+    {
+        const n = Math.max(0, Math.min(255, parseInt(value, 10) || 0));
+        return n.toString(16).padStart(2, "0").toUpperCase();
+    };
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function clampInspectorColorChannel(value)
+{
+    return Math.max(0, Math.min(255, Math.round(value)));
+}
+
+function mixInspectorColorChannel(a, b, ratio)
+{
+    return clampInspectorColorChannel(a + (b - a) * ratio);
+}
+
+function buildInspectorDerivedPalette(colorValue)
+{
+    const { r, g, b } = parseInspectorRGBColor(colorValue);
+    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    const mix = function(target, ratio)
+    {
+        return formatInspectorRGBColor(
+            mixInspectorColorChannel(r, target.r, ratio),
+            mixInspectorColorChannel(g, target.g, ratio),
+            mixInspectorColorChannel(b, target.b, ratio)
+        );
+    };
+    const darkTarget = { r: 0, g: 0, b: 0 };
+    const lightTarget = { r: 255, g: 255, b: 255 };
+    return {
+        bg: mix(darkTarget, 0.58),
+        titleBg: mix(darkTarget, 0.42),
+        rowBg: mix(lightTarget, 0.18),
+        classBg: mix(darkTarget, 0.32),
+        separator: mix(lightTarget, 0.28),
+        border: luminance > 0.65 ? "#333333" : "",
+        titleFg: luminance > 0.6 ? "#222222" : "#f7f7f7",
+        rowFg: luminance > 0.7 ? "#2b2b2b" : "#f1f1f1"
+    };
+}
+
 
 function setType(x, t)
 {
@@ -692,8 +790,6 @@ const network =
     {
         if(!group || typeof group !== "object")
             return;
-        if(group.color === undefined || group.color === null || group.color === "")
-            group.color = "black";
         if(group.auto_routing === undefined)
             group.auto_routing = false;
         for(const child of group.groups || [])
@@ -709,8 +805,6 @@ const network =
         {
             if(!connection || typeof connection !== "object")
                 continue;
-            if(connection.color === undefined || connection.color === null || connection.color === "")
-                connection.color = "black";
             if(connection.line_type === undefined || connection.line_type === null || connection.line_type === "")
                 connection.line_type = "auto_route";
         }
@@ -813,7 +907,6 @@ const network =
         new_module._x = old_module._x;
         new_module._y = old_module._y;
         new_module.color = old_module.color;
-        new_module.log_level = old_module.log_level;
         // TODO: Check that all properties are in the class
         network.dict[module] = new_module;
         // FIXME: Update existing connections if possible
@@ -1443,11 +1536,16 @@ let controller =
             let s = cmd_dict[0]; // FIXME: check empty string
             const path = cmd_dict[1];
             const dict = cmd_dict[2];
-            dict.data = data_string;
+            if(data_string !== "")
+                dict.data = data_string;
             //dict.root = group_path;
             const url_params = toURLParams(dict);
 
-            if(path.length>0 && path[0]=='.') // top path
+            if(s == "control" && path != "")
+            {
+                s += "/" + path;
+            }
+            else if(path.length>0 && path[0]=='.') // top path
             {
                 s += "/" + path;
             }
@@ -2643,6 +2741,142 @@ const inspector =
             });
     },
 
+    createUIColorRow(item, p)
+    {
+        const row = current_t_body.insertRow(-1);
+        const cell1 = row.insertCell(0);
+        const cell2 = row.insertCell(1);
+
+        cell1.innerText = p.name;
+        cell2.className = "ui-color-cell";
+
+        const colorName = item[p.name] || "black";
+        const wrapper = document.createElement("div");
+        wrapper.className = "inspector-ui-color-display";
+
+        const swatch = document.createElement("span");
+        swatch.className = "inspector-ui-color-swatch";
+        swatch.style.background = inspectorUIColorSwatches[colorName] || inspectorUIColorSwatches.black;
+        swatch.setAttribute("aria-label", colorName);
+        swatch.title = colorName;
+        swatch.tabIndex = 0;
+        const openColorMenu = function()
+        {
+            let fullName = null;
+            if(selector.selected_foreground.length == 1)
+                fullName = selector.selected_foreground[0];
+            else if(inspector.item && inspector.item._tag == "group" && selector.selected_foreground.length == 0)
+                fullName = selector.selected_background;
+            else if(inspector.item && inspector.item._tag == "connection" && selector.selected_connection)
+                fullName = selector.selected_connection;
+            if(!fullName)
+                return;
+            const rect = swatch.getBoundingClientRect();
+            main.showComponentColorMenuAt(rect.right + 2, rect.top, fullName, "color-only", p.name);
+        };
+        swatch.addEventListener("click", function(evt)
+        {
+            evt.preventDefault();
+            evt.stopPropagation();
+            openColorMenu();
+        });
+        swatch.addEventListener("keydown", function(evt)
+        {
+            if(evt.key === "Enter" || evt.key === " ")
+            {
+                evt.preventDefault();
+                evt.stopPropagation();
+                openColorMenu();
+            }
+        });
+        wrapper.appendChild(swatch);
+
+        const label = document.createElement("span");
+        label.className = "inspector-ui-color-label";
+        label.textContent = colorName;
+        wrapper.appendChild(label);
+
+        cell2.appendChild(wrapper);
+    },
+
+    createColorRow(item, p)
+    {
+        const row = current_t_body.insertRow(-1);
+        const cell1 = row.insertCell(0);
+        const cell2 = row.insertCell(1);
+
+        cell1.innerText = p.name;
+        cell2.className = "inspector-rgb-color-cell";
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "inspector-rgb-color-editor";
+
+        const previewRow = document.createElement("div");
+        previewRow.className = "inspector-rgb-color-preview-row";
+
+        const swatch = document.createElement("span");
+        swatch.className = "inspector-rgb-color-swatch";
+        previewRow.appendChild(swatch);
+
+        const valueLabel = document.createElement("span");
+        valueLabel.className = "inspector-rgb-color-value";
+        previewRow.appendChild(valueLabel);
+
+        wrapper.appendChild(previewRow);
+
+        const sliderContainer = document.createElement("div");
+        sliderContainer.className = "inspector-rgb-slider-list";
+
+        const channels = [
+            { key: "r", label: "R" },
+            { key: "g", label: "G" },
+            { key: "b", label: "B" }
+        ];
+        const sliders = {};
+        const channelValues = parseInspectorRGBColor(item[p.name]);
+
+        const commitColor = function()
+        {
+            const nextValue = formatInspectorRGBColor(sliders.r.value, sliders.g.value, sliders.b.value);
+            item[p.name] = nextValue;
+            swatch.style.backgroundColor = nextValue;
+            valueLabel.textContent = nextValue;
+            if(inspector.notify && inspector.notify.parameters)
+                inspector.notify.parameters[p.name] = item[p.name];
+            if(inspector.notify)
+                inspector.notify.parameterChangeNotification(p);
+        };
+
+        for(const channel of channels)
+        {
+            const sliderRow = document.createElement("label");
+            sliderRow.className = "inspector-rgb-slider-row";
+
+            const channelLabel = document.createElement("span");
+            channelLabel.className = "inspector-rgb-slider-label";
+            channelLabel.textContent = channel.label;
+            sliderRow.appendChild(channelLabel);
+
+            const slider = document.createElement("input");
+            slider.type = "range";
+            slider.min = "0";
+            slider.max = "255";
+            slider.step = "1";
+            slider.value = String(channelValues[channel.key]);
+            slider.className = "inspector-rgb-slider-input";
+            slider.addEventListener("input", commitColor);
+            slider.addEventListener("change", commitColor);
+            sliderRow.appendChild(slider);
+
+            sliders[channel.key] = slider;
+            sliderContainer.appendChild(sliderRow);
+        }
+
+        wrapper.appendChild(sliderContainer);
+        cell2.appendChild(wrapper);
+        commitColor();
+    },
+
     
 
     createCheckBoxRow(item, p)
@@ -2687,6 +2921,14 @@ const inspector =
     
             for(let p of inspector.template)
             {
+                if(p.control == "ui_color")
+                {
+                    p.type = p.type || "source";
+                    p.options = inspectorUIColorOptions;
+                    p.option_labels = inspectorUIColorLabels;
+                    p.option_styles = inspectorUIColorStyles;
+                }
+
                 // Set standard controls
                 if(p.control == undefined)
                 {
@@ -2706,6 +2948,10 @@ const inspector =
                         this.createTextEditRow(item, p); break;
                     case 'range-editor':
                         this.createRangeEditorRows(item, p); break;
+                    case 'color':
+                        this.createColorRow(item, p); break;
+                    case 'ui_color':
+                        this.createUIColorRow(item, p); break;
                     case 'menu':
                         this.createMenuRow(item, p); break;
                     case 'checkbox':
@@ -3011,20 +3257,6 @@ const inspector =
 
     parameterChangeNotification(p)
     {
-        if(
-            p &&
-            p.name == "color" &&
-            selector.selected_foreground &&
-            selector.selected_foreground.length == 1 &&
-            ["module", "group", "input", "output"].includes(inspector.item?._tag)
-        )
-        {
-            const selectedId = selector.selected_foreground[0];
-            const selectedElement = document.getElementById(selectedId);
-            main.applyComponentColorToElement(selectedElement, inspector.item);
-            network.tainted = true;
-        }
-
         const isTopGroupBackground = (
             inspector.item &&
             inspector.item._tag == "group" &&
@@ -3051,6 +3283,19 @@ const inspector =
         {
             main.updateAutoRoutingButtonState();
             main.addConnections();
+        }
+
+        if(
+            inspector.item &&
+            ["module", "group", "input", "output"].includes(inspector.item._tag) &&
+            p &&
+            p.name == "color"
+        )
+        {
+            network.tainted = true;
+            main.selectItem(selector.selected_foreground, selector.selected_background);
+            inspector.showInspectorForSelection();
+            return;
         }
 
         if(inspector.item._tag == "connection")
@@ -3112,18 +3357,6 @@ const inspector =
     {
         inspector.hideSubviews();
         let item = network.dict[bg];
-        const colorOptions = "red,orange,yellow,green,blue,purple,pink,white,black";
-        const colorOptionLabels = {
-            red: "&#x1F7E5; red",
-            orange: "&#x1F7E7; orange",
-            yellow: "&#x1F7E8; yellow",
-            green: "&#x1F7E9; green",
-            blue: "&#x1F7E6; blue",
-            purple: "&#x1F7EA; purple",
-            pink: "&#x25A3; pink",
-            white: "&#x2B1C; white",
-            black: "&#x2B1B; black"
-        };
         const isTopGroup = (bg == network.network.name);
         const rowTemplate = [];
         const readOnlyRows = [];
@@ -3151,10 +3384,7 @@ const inspector =
             if(Array.isArray(value))
                 continue;
             if(key == "color")
-            {
-                priorityRowTemplates.set(key, {'name': key, 'control':'menu', 'type':'source', 'options': colorOptions, 'option_labels': colorOptionLabels});
                 continue;
-            }
             if(key == "auto_routing")
             {
                 priorityRowTemplates.set(key, {'name': key, 'control':'checkbox', 'type':'bool'});
@@ -3170,8 +3400,6 @@ const inspector =
                 readOnlyRows.push({ key, value });
         }
         const orderedPriorityRows = [];
-        if(priorityRowTemplates.has("color"))
-            orderedPriorityRows.push(priorityRowTemplates.get("color"));
         if(priorityRowTemplates.has("auto_routing"))
             orderedPriorityRows.push(priorityRowTemplates.get("auto_routing"));
         rowTemplate.unshift(...orderedPriorityRows);
@@ -3192,7 +3420,25 @@ const inspector =
                     item.tick_duration = controller.tick_duration || 0;
                 template.push({'name':'tick_duration', 'control':'textedit', 'type':'float'});
             }
+            if(!isTopGroup)
+            {
+                if(!item.color)
+                    item.color = "black";
+                template.push({
+                    'name':'color',
+                    'control':'ui_color',
+                    'type':'source'
+                });
+            }
             inspector.addDataRows(item, template, inspector);
+            const logLevelMenu = inspector.addMenu("log_level", logLevelOptions[item.log_level ?? 0], logLevelOptions);
+            const applyGroupLogLevel = function()
+            {
+                item.log_level = logLevelOptions.indexOf(this.value);
+                selector.setLogLevel(item.log_level);
+            };
+            logLevelMenu.addEventListener("input", applyGroupLogLevel);
+            logLevelMenu.addEventListener("change", applyGroupLogLevel);
             if(rowTemplate.length > 0)
             {
                 const firstCustomRowIndex = current_t_body.rows.length;
@@ -3239,6 +3485,8 @@ const inspector =
             inspector.addAttributeValue("name", item.name);
             if(isTopGroup)
                 inspector.addAttributeValue("tick_duration", item.tick_duration !== undefined ? item.tick_duration : controller.tick_duration);
+            else
+                inspector.addAttributeValue("color", item.color || "black");
             for(const p of rowTemplate)
                 inspector.addAttributeValue(p.name, item[p.name]);
         }
@@ -3399,35 +3647,28 @@ const inspector =
         }
     
         const editMode = main.edit_mode;
-        const colorOptions = "red,orange,yellow,green,blue,purple,pink,white,black";
-        const colorOptionLabels = {
-            red: "&#x1F7E5; red",
-            orange: "&#x1F7E7; orange",
-            yellow: "&#x1F7E8; yellow",
-            green: "&#x1F7E9; green",
-            blue: "&#x1F7E6; blue",
-            purple: "&#x1F7EA; purple",
-            pink: "&#x25A3; pink",
-            white: "&#x2B1C; white",
-            black: "&#x2B1B; black"
+        const logLevelOptions = ["inherit", "quiet","exception","end_of_file","terminate","fatal_error","warning","print","debug","trace"];
+        const getParameterRows = function(component)
+        {
+            if(!component || component.parameters == null)
+                return [];
+            if(Array.isArray(component.parameters))
+                return component.parameters;
+            if(typeof component.parameters == "object")
+                return Object.values(component.parameters);
+            return [];
         };
         const commonDataRow = [
-            {'name': 'name', 'control': 'textedit', 'type': 'source'},
-            {'name': 'color', 'control': 'menu', 'type': 'source', 'options': colorOptions, 'option_labels': colorOptionLabels}
+            {'name': 'name', 'control': 'textedit', 'type': 'source'}
         ];
         const nameOnlyDataRow = [
             {'name': 'name', 'control': 'textedit', 'type': 'source'}
-        ];
-        const colorOnlyDataRow = [
-            {'name': 'color', 'control': 'menu', 'type': 'source', 'options': colorOptions, 'option_labels': colorOptionLabels}
         ];
     
         switch (item._tag) {
             case "module":
                 inspector.addHeader("MODULE");
                 if (editMode) {
-                    if(!item.color)
-                        item.color = "black";
                     inspector.addDataRows(item, nameOnlyDataRow, inspector);
                     const moduleClassMenu = inspector.addMenu("class", item.class, network.classes);
                     const applyModuleClass = function () {
@@ -3436,19 +3677,12 @@ const inspector =
                     };
                     moduleClassMenu.addEventListener('input', applyModuleClass);
                     moduleClassMenu.addEventListener('change', applyModuleClass);
-                    inspector.addDataRows(item, colorOnlyDataRow, inspector);
-
-                    const template = item.parameters || [];
-                    for (let key in template) {
-                        //template[key].control = "textedit";
-                    }
+                    const template = getParameterRows(item);
                     inspector.addDataRows(item, template, inspector);
                 } else {
                     inspector.addAttributeValue("name", item.name);
                     inspector.addAttributeValue("class", item.class);
                 }
-                const alternatives = ["inherit", "quiet","exception","end_of_file","terminate","fatal_error","warning","print","debug","trace"];
-                inspector.addMenu("log_level", alternatives[item.log_level], alternatives).addEventListener('change', function () { item.log_level=alternatives.indexOf(this.value); selector.setLogLevel(alternatives.indexOf(this.value)) });
 
                 break;
             
@@ -3458,16 +3692,28 @@ const inspector =
                     if(!item.color)
                         item.color = "black";
                     inspector.addDataRows(item, commonDataRow, inspector);
+                    inspector.addDataRows(item, [{
+                        'name': 'color',
+                        'control': 'ui_color',
+                        'type': 'source'
+                    }], inspector);
+                    const logLevelMenu = inspector.addMenu("log_level", logLevelOptions[item.log_level ?? 0], logLevelOptions);
+                    const applyGroupLogLevel = function()
+                    {
+                        item.log_level = logLevelOptions.indexOf(this.value);
+                        selector.setLogLevel(item.log_level);
+                    };
+                    logLevelMenu.addEventListener("input", applyGroupLogLevel);
+                    logLevelMenu.addEventListener("change", applyGroupLogLevel);
                 } else {
                     inspector.addAttributeValue("name", item.name);
+                    inspector.addAttributeValue("color", item.color || "black");
                 }
                 break;
             
             case "input":
                 inspector.addHeader("INPUT");
                 if (editMode) {
-                    if(!item.color)
-                        item.color = "black";
                     inspector.addDataRows(item, commonDataRow, inspector);
                 } else {
                     inspector.addAttributeValue("name", item.name);
@@ -3477,8 +3723,6 @@ const inspector =
             case "output":
                 inspector.addHeader("OUTPUT");
                 if (editMode) {
-                    if(!item.color)
-                        item.color = "black";
                     inspector.addDataRows(item, commonDataRow, inspector);
                 } else {
                     inspector.addAttributeValue("name", item.name);
@@ -3537,32 +3781,19 @@ const inspector =
                     {'name':'delay', 'control':'textedit', 'type':'delay'},
                     {'name':'alias', 'control':'textedit', 'type':'source'}     
                 ], this);
-                inspector.addDataRows(item,
-                [
-                    {
-                        'name':'color',
-                        'control':'menu',
-                        'type':'source',
-                        'options':'red,orange,yellow,green,blue,purple,pink,white,black',
-                        'option_labels':{
-                            red: "&#x1F7E5; red",
-                            orange: "&#x1F7E7; orange",
-                            yellow: "&#x1F7E8; yellow",
-                            green: "&#x1F7E9; green",
-                            blue: "&#x1F7E6; blue",
-                            purple: "&#x1F7EA; purple",
-                            pink: "&#x25A3; pink",
-                            white: "&#x2B1C; white",
-                            black: "&#x2B1B; black"
-                        }
-                    },
-                    {
-                        'name':'line_type',
-                        'control':'menu',
-                        'type':'source',
-                        'options':'line,orthogonal,orthagonal rounded,spline,auto_route'
-                    }
-                ], this);
+                const connectionRows = [];
+                connectionRows.push({
+                    'name':'color',
+                    'control':'ui_color',
+                    'type':'source'
+                });
+                connectionRows.push({
+                    'name':'line_type',
+                    'control':'menu',
+                    'type':'source',
+                    'options':'line,orthogonal,orthagonal rounded,spline,auto_route'
+                });
+                inspector.addDataRows(item, connectionRows, this);
             }
             else
             {
@@ -3897,11 +4128,16 @@ const selector =
 
     setLogLevel(level)
     {
+        if(!["pause", "play", "realtime"].includes(controller.run_mode))
+            return;
+
         let component = "";
         if(selector.selected_foreground.length == 1)
             component = selector.selected_foreground[0];
+        else if(selector.selected_background)
+            component = selector.selected_background;
 
-        controller.queueCommand("control", selector.getLocalPath(component)+".log_level", {"x":0, "y":0, "value":level});
+        controller.queueCommand("control", getStringUpToBracket(component)+".log_level", {"value":level});
     }
 }
 
@@ -3921,6 +4157,7 @@ const main =
     edit_mode: false,
     map: {},
     reconnect_overlay: null,
+    component_color_property: "color",
 
     new_position_x: 100,
     new_position_y: 100,
@@ -4353,7 +4590,7 @@ const main =
         return fullName;
     },
 
-    showComponentColorMenuAt(clientX, clientY, componentFullName, preferredSubmenu="color")
+    showComponentColorMenuAt(clientX, clientY, componentFullName, preferredSubmenu="color", propertyName="color")
     {
         if(!main.component_color_menu || !componentFullName)
             return;
@@ -4361,15 +4598,24 @@ const main =
         main.hideContextMenu();
         main.populateComponentClassSubmenu(componentFullName);
         main.component_color_target = componentFullName;
+        main.component_color_property = propertyName || "color";
         if(preferredSubmenu === "class")
         {
             main.component_color_menu.classList.add("open-class-submenu");
             main.component_color_menu.classList.add("open-class-only");
+            main.component_color_menu.classList.remove("open-color-only");
+        }
+        else if(preferredSubmenu === "color-only")
+        {
+            main.component_color_menu.classList.remove("open-class-submenu");
+            main.component_color_menu.classList.remove("open-class-only");
+            main.component_color_menu.classList.add("open-color-only");
         }
         else
         {
             main.component_color_menu.classList.remove("open-class-submenu");
             main.component_color_menu.classList.remove("open-class-only");
+            main.component_color_menu.classList.remove("open-color-only");
         }
         main.component_color_menu.style.display = "block";
 
@@ -4390,8 +4636,10 @@ const main =
         main.component_color_menu.style.display = "none";
         main.component_color_menu.classList.remove("open-class-submenu");
         main.component_color_menu.classList.remove("open-class-only");
+        main.component_color_menu.classList.remove("open-color-only");
         main.component_color_menu_visible = false;
         main.component_color_target = null;
+        main.component_color_property = "color";
     },
 
     showWidgetMenuAt(clientX, clientY, widgetFullName)
@@ -4490,13 +4738,24 @@ const main =
     setComponentColor(color)
     {
         const fullName = main.component_color_target;
+        const propertyName = main.component_color_property || "color";
         if(!fullName || !color)
             return;
         const item = network.dict[fullName];
-        if(!item || !["module", "group", "input", "output"].includes(item._tag))
+        if(!item || !["module", "group", "input", "output", "connection"].includes(item._tag))
             return;
-        item.color = color;
-        main.applyComponentColorToElement(document.getElementById(fullName), item);
+        item[propertyName] = color;
+        if(item._tag == "connection")
+        {
+            network.tainted = true;
+            if(selector.selected_connection)
+                selector.selectConnection(selector.selected_connection);
+            if(inspector && typeof inspector.showInspectorForSelection === "function")
+                inspector.showInspectorForSelection();
+            return;
+        }
+        if(selector.selected_background != null)
+            main.selectItem(selector.selected_foreground, selector.selected_background);
         if(inspector && typeof inspector.showInspectorForSelection === "function")
             inspector.showInspectorForSelection();
         network.tainted = true;
@@ -5521,7 +5780,6 @@ const main =
             name:name,
             class:moduleClass,
             color:"",
-            log_level: 0,
             _tag:"module",
             _x:main.new_position_x,
             _y:main.new_position_y,
@@ -6266,11 +6524,10 @@ const main =
         if(!component || typeof component.color !== "string")
             return null;
 
-        const colorName = component.color.trim().toLowerCase();
-        if(colorName === "")
+        const colorValue = component.color.trim();
+        if(colorValue === "")
             return null;
-        if(colorName === "black")
-            return null;
+        const colorName = colorValue.toLowerCase();
 
         const palettes = {
             red:    { bg:"#5e1a1a", titleBg:"#7a2020", rowBg:"#9a2b2b", classBg:"#8a2525", separator:"#a74747", titleFg:"#ffecec", rowFg:"#ffdede" },
@@ -6282,7 +6539,11 @@ const main =
             pink:   { bg:"#8c4f71", titleBg:"#a65f86", rowBg:"#e6a8ca", classBg:"#cb7faa", separator:"#b27398", titleFg:"#fff4fa", rowFg:"#ffe8f3" },
             white:  { bg:"#d8d8d8", titleBg:"#ebebeb", rowBg:"#f4f4f4", classBg:"#dfdfdf", separator:"#c3c3c3", border:"#333333", titleFg:"#222222", rowFg:"#333333" }
         };
-        return palettes[colorName] || null;
+        if(Object.prototype.hasOwnProperty.call(palettes, colorName))
+            return palettes[colorName];
+        if(/^(#)?[0-9a-fA-F]{6}$/.test(colorValue))
+            return buildInspectorDerivedPalette(colorValue);
+        return null;
     },
 
     getComponentStyleVars(component)

@@ -1235,6 +1235,139 @@ aside {
     background-color: lightgray;
 }
 
+#component_inspector td + td.ui-color-cell {
+    overflow: visible;
+}
+
+#component_inspector .inspector-ui-color-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#component_inspector .inspector-ui-color-swatch {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 1px solid rgba(0,0,0,0.35);
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+#component_inspector .inspector-ui-color-label {
+    color: #8e8e8e;
+}
+
+#component_inspector td + td.inspector-rgb-color-cell {
+    overflow: visible;
+}
+
+#component_inspector .inspector-rgb-color-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    padding-bottom: 2px;
+}
+
+#component_inspector .inspector-rgb-color-preview-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#component_inspector .inspector-rgb-color-swatch {
+    width: 18px;
+    height: 18px;
+    border: 1px solid rgba(0,0,0,0.35);
+    flex: 0 0 auto;
+}
+
+#component_inspector .inspector-rgb-color-value {
+    color: #8e8e8e;
+    font-family: monospace;
+}
+
+#component_inspector .inspector-rgb-slider-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+#component_inspector .inspector-rgb-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+#component_inspector .inspector-rgb-slider-label {
+    color: #8e8e8e;
+    width: 10px;
+    flex: 0 0 10px;
+}
+
+#component_inspector .inspector-rgb-slider-input {
+    flex: 1 1 auto;
+    width: 100%;
+    margin: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    background: none;
+    height: 16px;
+    outline: none;
+}
+
+#component_inspector .inspector-rgb-slider-input::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 5px;
+    background-image: -webkit-linear-gradient(top, #555, #aaa);
+    border: 1px solid #666;
+    border-radius: 13px;
+}
+
+#component_inspector .inspector-rgb-slider-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: none;
+    height: 14px;
+    width: 14px;
+    border-radius: 50%;
+    border: 1px solid #777;
+    background-image: -webkit-linear-gradient(top, #888, #aaa, #555);
+    margin-top: -5px;
+    box-shadow: none;
+}
+
+#component_inspector .inspector-rgb-slider-input::-moz-range-track {
+    width: 100%;
+    height: 5px;
+    background-image: linear-gradient(to bottom, #555, #aaa);
+    border: 1px solid #666;
+    border-radius: 13px;
+}
+
+#component_inspector .inspector-rgb-slider-input::-moz-range-thumb {
+    border: none;
+    height: 14px;
+    width: 14px;
+    border-radius: 50%;
+    border: 1px solid #777;
+    background-image: linear-gradient(to bottom, #888, #aaa, #555);
+    box-shadow: none;
+}
+
+#component_inspector .inspector-rgb-slider-input::-moz-range-progress {
+    height: 5px;
+    background-image: linear-gradient(to bottom, #555, #aaa);
+    border: 1px solid #666;
+    border-radius: 13px;
+}
+
+#component_inspector .inspector-rgb-slider-input:focus {
+    outline: none;
+}
+
 body.inspector-resizing,
 body.inspector-resizing * {
     cursor: col-resize !important;
@@ -2165,6 +2298,32 @@ svg *{
 }
 
 .main-context-menu.open-class-only .component-class-submenu > .main-context-submenu-panel {
+    position: static;
+    display: block;
+    top: auto;
+    left: auto;
+}
+
+.main-context-menu.open-color-only {
+    min-width: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.main-context-menu.open-color-only .component-class-submenu,
+.main-context-menu.open-color-only > .main-context-menu-separator,
+.main-context-menu.open-color-only > .main-context-menu-item {
+    display: none;
+}
+
+.main-context-menu.open-color-only .main-context-submenu > .main-context-submenu-trigger {
+    display: none;
+}
+
+.main-context-menu.open-color-only .main-context-submenu > .main-context-submenu-panel {
     position: static;
     display: block;
     top: auto;
