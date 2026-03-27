@@ -2135,6 +2135,13 @@ if(classes[classname].path.empty())
             if(!d.contains("name"))
                 throw build_failed("Groups must have a name.", path);
 
+            if(path.empty())
+            {
+                std::string log_level = d.contains("log_level") ? std::string(d["log_level"]) : "";
+                if(log_level.empty() || log_level == "0")
+                    d["log_level"] = msg_warning;
+            }
+
             std::string name = validate_identifier(d["name"]);
             if(!path.empty())
                 name = path+"."+name;
