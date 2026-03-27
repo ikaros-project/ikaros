@@ -170,6 +170,8 @@ class UM7 : public Module
 
     void Tick()
     {
+        // Tick
+        
         // Read available data with short timeout for responsive operation
         rx_length = s->ReceiveBytes(rx_data, 256, 5);
         if (rx_length <= 0)
