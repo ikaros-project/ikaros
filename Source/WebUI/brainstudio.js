@@ -1452,10 +1452,9 @@ let controller =
             if(shouldAutoArrange)
                 main.arrangeComponents();
 
-            if(response.filename=="")
-                network.tainted = true;
-            else
-                network.tainted = main.edit_mode;            
+            // A file that has just been opened should start clean.
+            // Edit mode may stay active across loads, but that alone should not force a save.
+            network.tainted = (response.filename == "");
        }
 
         // NEW SESSION
@@ -2009,6 +2008,14 @@ const inspector =
         inspector.updateLibraryAddButtonState();
     },
 
+    showLibraryForClass(className)
+    {
+        if(!className)
+            return;
+        inspector.selected_library_class = className;
+        inspector.showLibrary();
+    },
+
     updateLibraryButtonState()
     {
         const button = document.getElementById("library_inspector_button");
@@ -2096,7 +2103,20 @@ const inspector =
             inspector.libraryClassList.appendChild(button);
         }
 
+        inspector.revealSelectedLibraryClass();
         inspector.updateLibraryClassDetails();
+    },
+
+    revealSelectedLibraryClass()
+    {
+        if(!inspector.libraryClassList || !inspector.selected_library_class)
+            return;
+
+        const selectedButton = inspector.libraryClassList.querySelector('.library-class-item.is-selected');
+        if(!selectedButton)
+            return;
+
+        selectedButton.scrollIntoView({block: "nearest"});
     },
 
     selectLibraryClass(className)
@@ -3428,7 +3448,7 @@ const inspector =
                 continue;
             if(isTopGroup && hiddenTopGroupAttributes.has(key))
                 continue;
-            if(key == "name" || key == "tick_duration")
+            if(key == "name" || key == "tick_duration" || key == "log_level")
                 continue;
             const value = item[key];
             if(countRowKeys.includes(key))
@@ -4423,6 +4443,8 @@ const main =
             <button type="button" class="main-context-menu-item" data-action="rename">Rename</button>
             <div class="main-context-menu-separator" role="separator" aria-hidden="true"></div>
             <button type="button" class="main-context-menu-item" data-action="show-inspector">Show Inspector...</button>
+            <div class="main-context-menu-separator component-documentation-separator" role="separator" aria-hidden="true"></div>
+            <button type="button" class="main-context-menu-item" data-action="show-documentation">Show documentation...</button>
         `;
         document.body.appendChild(menu);
         main.component_color_menu = menu;
@@ -4532,7 +4554,8 @@ const main =
         if(!main.edit_mode)
             return;
         const fullName = main.component_color_target;
-        if(!fullName || !network.dict[fullName])
+        const item = fullName ? network.dict[fullName] : null;
+        if(!fullName || !item)
             return;
         if(!selector.selected_foreground.includes(fullName))
             selector.selectItems([fullName], selector.selected_background);
@@ -4552,6 +4575,10 @@ const main =
                     inspector.showInspectorForSelection();
                 if(inspector && typeof inspector.showComponent === "function")
                     inspector.showComponent();
+                break;
+            case "show-documentation":
+                if(item && item._tag === "module" && inspector && typeof inspector.showLibraryForClass === "function")
+                    inspector.showLibraryForClass(item.class);
                 break;
         }
     },
@@ -4676,6 +4703,14 @@ const main =
         main.populateComponentClassSubmenu(componentFullName);
         main.component_color_target = componentFullName;
         main.component_color_property = propertyName || "color";
+        const item = network.dict[componentFullName];
+        const documentationButton = main.component_color_menu.querySelector('.main-context-menu-item[data-action="show-documentation"]');
+        const documentationSeparator = main.component_color_menu.querySelector('.component-documentation-separator');
+        const canShowDocumentation = !!(item && item._tag === "module" && item.class);
+        if(documentationButton)
+            documentationButton.style.display = canShowDocumentation ? "" : "none";
+        if(documentationSeparator)
+            documentationSeparator.style.display = canShowDocumentation ? "" : "none";
         if(preferredSubmenu === "class")
         {
             main.component_color_menu.classList.add("open-class-submenu");
