@@ -1384,6 +1384,48 @@ aside table td.header {
     font-weight: bold;
 }
 
+#system_inspector progress#progress,
+#system_inspector progress#usage,
+#system_inspector progress#time_usage {
+    display: block;
+    width: 100%;
+    height: 6px;
+    margin: -1px auto 0;
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    border-radius: 999px;
+    background: #5a5a5a;
+}
+
+#system_inspector td:has(> progress#progress),
+#system_inspector td:has(> progress#usage),
+#system_inspector td:has(> progress#time_usage) {
+    vertical-align: middle;
+}
+
+#system_inspector progress#progress::-webkit-progress-bar,
+#system_inspector progress#usage::-webkit-progress-bar,
+#system_inspector progress#time_usage::-webkit-progress-bar {
+    background: #5a5a5a;
+    border-radius: 999px;
+}
+
+#system_inspector progress#progress::-webkit-progress-value,
+#system_inspector progress#usage::-webkit-progress-value,
+#system_inspector progress#time_usage::-webkit-progress-value {
+    background: #9a9a9a;
+    border-radius: 999px;
+}
+
+#system_inspector progress#progress::-moz-progress-bar,
+#system_inspector progress#usage::-moz-progress-bar,
+#system_inspector progress#time_usage::-moz-progress-bar {
+    background: #9a9a9a;
+    border: none;
+    border-radius: 999px;
+}
+
 .inspector-plus-button {
     width: 20px;
     height: 20px;

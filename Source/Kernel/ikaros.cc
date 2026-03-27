@@ -656,7 +656,7 @@ namespace ikaros
     }
 
 
-    void Component::Bind(parameter & p, std::string name)
+       void Component::Bind(parameter & p, std::string name)
     {
         Kernel & k = kernel();
         std::string pname = path_+"."+name;
@@ -689,6 +689,16 @@ namespace ikaros
             throw exception("Bind:\""+name+"\" failed. "+e.message(), path_);
         }
     }
+
+
+    parameter &  
+    Component::GetParameter(std::string name)
+    {
+               Kernel & k = kernel();
+        return kernel().parameters.at(path_+"."+name);
+    }
+
+
 
     void Component::AddInput(dictionary parameters)
     {
@@ -918,7 +928,7 @@ namespace ikaros
         log_param["name"] = "log_level";
         log_param["type"] = "number";
         log_param["control"] = "menu";
-        //log_param["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
+        log_param["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
         log_param["default"] = 0;
 
         info_["parameters"].push_back(log_param); // FIXME: Do we need to copy the dict?
@@ -950,7 +960,7 @@ namespace ikaros
 
         // Add log_level parameter to all components
 
-        // AddLogLevel();
+        AddLogLevel();
 
         for(auto p: info_["parameters"])
             AddParameter(p);
@@ -973,26 +983,25 @@ namespace ikaros
     bool
     Component::Notify(int msg, std::string message, std::string path)
     {
-        /*
-        int log_level = GetIntValue("log_level", 0);
-        //if(kernel().parameters.count(path_+".log_level")==1)
-         //   log_level = kernel().parameters.at(path_+".log_level").as_int();
-        */
+        try
+        {
+            int log_level = GetParameter("log_level");
+            if(log_level == 0)
+            {
+                if(parent_)
+                    return parent_->Notify(msg, message, path);
+                else
+                    return true;
+            }
 
-        int log_level = 0;
-        if(info_.contains("log_level"))
-            log_level = info_["log_level"].as_int();
-
-        if(log_level == 0)
-    {
-        if(parent_)
-            return parent_->Notify(msg, message, path);
-        else
-            return true;
-    }
-
-        if(msg <= log_level)
-            return kernel().Notify(msg, message, path);
+            if(msg <= log_level)
+                return kernel().Notify(msg, message, path);
+            }
+            catch(...)
+            {
+               // ignore errors in logging
+               int x = 0;
+        }
 
         return true;
     }

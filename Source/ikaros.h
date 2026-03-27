@@ -225,6 +225,7 @@ public:
     void Bind(parameter & p, std::string n);   // Bind to parameter in global parameter table
     void Bind(matrix & m, std::string n); // Bind to input or output in global parameter table, or matrix parameter
 
+    parameter & GetParameter(std::string name);
     virtual void SetParameters() {} // Can be overridden in modules to set parmeter values in code rather than from the ikc/ikg file; called before Init()
     virtual void Tick() {}
     virtual void Init() {}

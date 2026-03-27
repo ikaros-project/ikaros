@@ -30,7 +30,7 @@
 	<output name="OUTPUT1" description="The output" size="13"/>
 	<output name="OUTPUT2" description="The output" size="4,5"/>
 	<output name="OUTPUT3" description="The output" size="4,5,6"/>
-
+<!--
 	<output name="OUTPUT4" description="The output" size="@z"/>
 	<output name="OUTPUT5" description="The output" size="@y,@x"/>
 
@@ -39,6 +39,6 @@
 
 	<output name="OUTPUT8" description="The output" size="data.size"/>
 	<output name="OUTPUT9" description="The output" size="INPUT.size"/>
-
+-->
 </class>
 

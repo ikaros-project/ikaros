@@ -1,0 +1,3 @@
+<class name="LogTester" description="Emits a Notify call every tick at the selected log level">
+    <parameter name="module_log_level" type="number" control="menu" default="print" options="inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace" description="Log level used for the per-tick Notify call" />
+</class>

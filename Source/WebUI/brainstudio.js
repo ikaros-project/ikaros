@@ -1947,8 +1947,8 @@ const inspector =
 
     toggleComponent()
     {
-        if (window.getComputedStyle(inspector.component, null).display === 'none')        
-            {
+        if(window.getComputedStyle(inspector.component, null).display === 'none')
+        {
             inspector.component.style.display = "block";
             inspector.system.style.display = "none";
             if(inspector.library)
@@ -2025,6 +2025,35 @@ const inspector =
             return;
         const canAdd = !!(main && main.edit_mode && inspector.selected_library_class);
         button.disabled = !canAdd;
+    },
+
+    isPanelVisible(panel)
+    {
+        return !!(panel && window.getComputedStyle(panel, null).display !== 'none');
+    },
+
+    isAnyInspectorOpen()
+    {
+        return inspector.isPanelVisible(inspector.system)
+            || inspector.isPanelVisible(inspector.component)
+            || inspector.isPanelVisible(inspector.library);
+    },
+
+    revealSelectionPanel(shouldReveal=false)
+    {
+        if(!shouldReveal || !inspector.isAnyInspectorOpen() || inspector.isPanelVisible(inspector.component))
+            return;
+        inspector.showComponent();
+    },
+
+    updateSelectionPanelWidth()
+    {
+        const signature = selector.selected_foreground.length > 0
+            ? selector.selected_foreground.join("|")
+            : "";
+        if(signature !== inspector.last_selected_signature)
+            inspector.last_selected_signature = signature;
+        inspector.resetPanelWidth(inspector.component);
     },
 
     renderLibraryClassList()
@@ -2406,6 +2435,20 @@ const inspector =
         return inspector.addTableRow(name, s);
     },
 
+    addRuntimeLogLevelControl(item)
+    {
+        const currentLevel = Number.isFinite(Number(item.log_level)) ? Number(item.log_level) : 0;
+        const selectedLabel = logLevelOptions[currentLevel] || logLevelOptions[0];
+        const logLevelMenu = inspector.addMenu("log_level", selectedLabel, logLevelOptions);
+        const applyLogLevel = function()
+        {
+            item.log_level = logLevelOptions.indexOf(this.value);
+            selector.setLogLevel(item.log_level);
+        };
+        logLevelMenu.addEventListener("input", applyLogLevel);
+        logLevelMenu.addEventListener("change", applyLogLevel);
+    },
+
     createTemplate(component)
     {
         let t = []; // {'name':'name','control':'textedit', 'type':'source'}] // FIXME: should be "identifier"
@@ -2688,10 +2731,8 @@ const inspector =
         const plusButton = actionCellRight.querySelector(".inspector-plus-button");
         if(plusButton)
         {
-            plusButton.addEventListener("click", function(evt)
+            const requestAddRangeRow = function()
             {
-                evt.preventDefault();
-                evt.stopPropagation();
                 const updatedRows = parseBracketRangeString(item[p.name]);
                 updatedRows.push({start:"", end:"", step:""});
                 item[p.name] = serializeBracketRangeParts(updatedRows);
@@ -2700,6 +2741,19 @@ const inspector =
                     inspector.notify.parameters[p.name] = item[p.name];
                 if(inspector.notify)
                     inspector.notify.parameterChangeNotification(p);
+            };
+            plusButton.addEventListener("mousedown", function(evt)
+            {
+                evt.preventDefault();
+                evt.stopPropagation();
+                const active = document.activeElement;
+                if(active && active.closest && active.closest("#component_inspector") && typeof active.blur == "function")
+                {
+                    active.blur();
+                    setTimeout(requestAddRangeRow, 0);
+                }
+                else
+                    requestAddRangeRow();
             });
         }
     },
@@ -3620,6 +3674,13 @@ const inspector =
                 }
             }
         }
+        else
+        {
+            inspector.addAttributeValue("name", item.name);
+            if(!isTopGroup)
+                inspector.addAttributeValue("color", item.color || "black");
+            inspector.addRuntimeLogLevelControl(item);
+        }
 
         for(const p of countRows)
             inspector.addAttributeValue(p.key, p.value);
@@ -3682,6 +3743,7 @@ const inspector =
                 } else {
                     inspector.addAttributeValue("name", item.name);
                     inspector.addAttributeValue("class", item.class);
+                    inspector.addRuntimeLogLevelControl(item);
                 }
 
                 break;
@@ -3708,6 +3770,7 @@ const inspector =
                 } else {
                     inspector.addAttributeValue("name", item.name);
                     inspector.addAttributeValue("color", item.color || "black");
+                    inspector.addRuntimeLogLevelControl(item);
                 }
                 break;
             
@@ -3811,32 +3874,20 @@ const inspector =
         inspector.addAttributeValue("selected", n); 
     },
 
-    showInspectorForSelection()
+    showInspectorForSelection(reveal_inspector=false)
     {
-        if(selector.selected_foreground.length > 0)
-        {
-            const signature = selector.selected_foreground.join("|");
-            if(signature !== inspector.last_selected_signature)
-            {
-                inspector.resetPanelWidth(inspector.component);
-                inspector.last_selected_signature = signature;
-            }
-        }
-        else
-        {
-            inspector.last_selected_signature = "";
-            inspector.resetPanelWidth(inspector.component);
-        }
+        inspector.revealSelectionPanel(reveal_inspector);
+        inspector.updateSelectionPanelWidth();
 
         if(selector.selected_connection)
             inspector.showConnection(selector.selected_connection)
         else if(selector.selected_foreground.length == 0)
-            inspector.showGroupBackground(selector.selected_background);    
+            inspector.showGroupBackground(selector.selected_background);
         else if(selector.selected_foreground.length > 1)
-                inspector.showMultipleSelection(selector.selected_foreground.length);
-            else
-                inspector.showSingleSelection(selector.selected_foreground[0]);
-    }               
+            inspector.showMultipleSelection(selector.selected_foreground.length);
+        else
+            inspector.showSingleSelection(selector.selected_foreground[0]);
+    }
 }
 
 
@@ -4021,7 +4072,42 @@ const selector =
     selected_connection: null,
     selected_background: null,
 
-    selectItems(foreground=[], background=null, toggle=false, extend=false, force_rebuild=false)
+    showBackgroundSelection(reveal_inspector=false, rebuild_main=false)
+    {
+        nav.selectItem(selector.selected_background);
+        breadcrumbs.selectItem(selector.selected_background);
+        if(rebuild_main)
+            main.selectItem([], selector.selected_background);
+        else
+            main.updateComponentStates();
+        inspector.showInspectorForSelection(reveal_inspector);
+    },
+
+    showForegroundSelection(reveal_inspector=false, rebuild_main=false)
+    {
+        if(rebuild_main)
+            main.selectItem(selector.selected_foreground, selector.selected_background);
+        else
+            main.updateComponentStates();
+        inspector.showInspectorForSelection(reveal_inspector);
+    },
+
+    selectItemsAndReveal(foreground=[], background=null, toggle=false, extend=false, force_rebuild=false)
+    {
+        selector.selectItems(foreground, background, toggle, extend, force_rebuild, true);
+    },
+
+    selectConnectionAndReveal(connection)
+    {
+        selector.selectConnection(connection, true);
+    },
+
+    selectBackgroundAndReveal()
+    {
+        selector.selectBackground(true);
+    },
+
+    selectItems(foreground=[], background=null, toggle=false, extend=false, force_rebuild=false, reveal_inspector=false)
     {
         const previous_background = selector.selected_background;
         const previous_connection = selector.selected_connection;
@@ -4051,26 +4137,17 @@ const selector =
         if(background_changed || force_rebuild)
         {
             if(selector.selected_foreground.length==0) // select background group
-            {
-                nav.selectItem(selector.selected_background);
-                breadcrumbs.selectItem(selector.selected_background);    
-                main.selectItem([], selector.selected_background);
-                inspector.showInspectorForSelection();
-            }
+                selector.showBackgroundSelection(reveal_inspector, true);
     
             else // select foreground components
-            {
-                main.selectItem(selector.selected_foreground, selector.selected_background);
-                inspector.showInspectorForSelection();
-            }
+                selector.showForegroundSelection(reveal_inspector, true);
             return;
         }
 
         const needs_rebuild = selector.selected_foreground.some((name) => !document.getElementById(name));
         if(needs_rebuild)
         {
-            main.selectItem(selector.selected_foreground, selector.selected_background);
-            inspector.showInspectorForSelection();
+            selector.showForegroundSelection(reveal_inspector, true);
             return;
         }
 
@@ -4079,16 +4156,12 @@ const selector =
             main.deselectConnection(previous_connection);
 
         if(selector.selected_foreground.length==0)
-        {
-            nav.selectItem(selector.selected_background);
-            breadcrumbs.selectItem(selector.selected_background);
-        }
-
-        main.updateComponentStates();
-        inspector.showInspectorForSelection();
+            selector.showBackgroundSelection(reveal_inspector, false);
+        else
+            selector.showForegroundSelection(reveal_inspector, false);
     },
 
-    selectConnection(connection)
+    selectConnection(connection, reveal_inspector=false)
     {
         const previous_connection = selector.selected_connection;
         selector.selected_foreground = [];
@@ -4097,15 +4170,19 @@ const selector =
         if(previous_connection && previous_connection !== connection)
             main.deselectConnection(previous_connection);
         main.selectConnection(connection);
-        inspector.showInspectorForSelection();
+        inspector.showInspectorForSelection(reveal_inspector);
     },
 
 
-    selectBackground()
+    selectBackground(reveal_inspector=false)
     {
         if(selector.selected_foreground.length === 0 && selector.selected_connection == null)
+        {
+            if(inspector && typeof inspector.showInspectorForSelection === "function")
+                inspector.showInspectorForSelection(reveal_inspector);
             return;
-        selector.selectItems([], selector.selected_background);
+        }
+        selector.selectItems([], selector.selected_background, false, false, false, reveal_inspector);
     },
    
    
@@ -4864,6 +4941,24 @@ const main =
         return {x, y};
     },
 
+    isBackgroundEventTarget(target)
+    {
+        if(!target)
+            return false;
+        if(target === main.view || target === main.selection_box)
+            return true;
+        if(target.closest)
+        {
+            if(target.closest(".gi"))
+                return false;
+            if(target.closest(".connection_line"))
+                return false;
+            if(target.closest(".o_spot") || target.closest(".i_spot"))
+                return false;
+        }
+        return !!(main.view && main.view.contains(target));
+    },
+
     showBackgroundContextMenu(evt)
     {
         if(!main.edit_mode)
@@ -4882,7 +4977,7 @@ const main =
             return;
         }
 
-        if(evt.target !== main.view)
+        if(!main.isBackgroundEventTarget(evt.target))
             return;
 
         evt.preventDefault();
@@ -4939,12 +5034,12 @@ const main =
             main.finishInlineNameEdit(false);
         if(evt.button !== 0)
             return;
-        if(evt.target !== main.view)
+        if(!main.isBackgroundEventTarget(evt.target))
             return;
 
         if(!main.edit_mode)
         {
-            selector.selectBackground();
+            selector.selectBackgroundAndReveal();
             return;
         }
 
@@ -5005,17 +5100,17 @@ const main =
                 else
                     base.add(name);
             }
-            selector.selectItems(Array.from(base), null, false, false);
+            selector.selectItemsAndReveal(Array.from(base));
             return;
         }
 
         if(selected.length === 0)
         {
-            selector.selectBackground();
+            selector.selectBackgroundAndReveal();
             return;
         }
 
-        selector.selectItems(selected, null, false, false);
+        selector.selectItemsAndReveal(selected);
     },
 
     updateBackgroundSelection(evt)
@@ -5058,7 +5153,7 @@ const main =
         {
             const toggle_selection = main.selection_drag_shift || evt.shiftKey;
             if(!toggle_selection)
-                selector.selectBackground();
+                selector.selectBackgroundAndReveal();
             main.selection_drag_active = false;
             main.selection_base_foreground = [];
             return;
@@ -5928,6 +6023,7 @@ const main =
     {
         let group = network.dict[selector.selected_background];
         const name = nameInPath(g);
+        this.deleteConnectionsForComponent(name, group);
         group.groups = group.groups.filter(function(g) { return g.name !== name; });
         selector.selectItems([], null);
     },
@@ -5936,6 +6032,7 @@ const main =
     {
         let group = network.dict[selector.selected_background];
         const name = nameInPath(m);
+        this.deleteConnectionsForComponent(name, group);
         group.modules = group.modules.filter(function(m) { return m.name !== name; });
         selector.selectItems([], null);
     },
@@ -5944,6 +6041,7 @@ const main =
     {
         let group = network.dict[selector.selected_background];
         const name = nameInPath(i);
+        this.deleteConnectionsForComponent(name, group);
         group.inputs = group.inputs.filter(function(i) { return i.name !== name; });
         selector.selectItems([], null);
     },
@@ -5952,6 +6050,7 @@ const main =
     {
         let group = network.dict[selector.selected_background];
         const name = nameInPath(o);
+        this.deleteConnectionsForComponent(name, group);
         group.outputs = group.outputs.filter(function(o) { return o.name !== name; });
         selector.selectItems([], null);
     },
@@ -5960,8 +6059,26 @@ const main =
     {
         let group = network.dict[selector.selected_background];
         const name = nameInPath(w);
+        this.deleteConnectionsForComponent(name, group);
         group.widgets = group.widgets.filter(function(w) { return w.name !== name; });
         selector.selectItems([], null);
+    },
+
+    connectionReferencesComponent(endpoint, componentName)
+    {
+        const localEndpoint = getStringUpToBracket(endpoint);
+        return localEndpoint === componentName || localEndpoint.startsWith(componentName + ".");
+    },
+
+    deleteConnectionsForComponent(componentName, group)
+    {
+        if(!group || !group.connections)
+            return;
+
+        group.connections = group.connections.filter((connection) =>
+            !this.connectionReferencesComponent(connection.source, componentName) &&
+            !this.connectionReferencesComponent(connection.target, componentName)
+        );
     },
 
     deleteConnection(c)
@@ -6229,7 +6346,7 @@ const main =
         evt.stopPropagation();
         main.startX = this.offsetLeft;
         main.startY = this.offsetTop;
-        selector.selectItems([this.parentElement.id], null);
+        selector.selectItemsAndReveal([this.parentElement.id]);
         this.parentElement.classList.add("resized");
 
         main.initialMouseX = evt.clientX;
@@ -6248,7 +6365,6 @@ const main =
 
     startDragComponents(evt)
     {
-        console.log("startDragComponents");
         if(main.inline_name_edit)
             main.finishInlineNameEdit(false);
         evt.stopPropagation();
@@ -6273,7 +6389,7 @@ const main =
         const clickedName = this.dataset.name;
         const isAlreadySelected = selector.selected_foreground.includes(clickedName);
         if(evt.shiftKey || !isAlreadySelected)
-            selector.selectItems([clickedName], null, evt.shiftKey);
+            selector.selectItemsAndReveal([clickedName], null, evt.shiftKey);
 
         if(!selector.selected_foreground.includes(clickedName))
             return;
@@ -6831,20 +6947,20 @@ const main =
         if(Array.isArray(routedPoints) && routedPoints.length >= 2)
         {
             const d = main.buildRoundedOrthogonalPath(routedPoints, 10);
-            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}")'/>`;
+            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")'/>`;
         }
         else if(lineType === "orthogonal")
         {
             const mx = Math.round((x1 + x2) / 2);
             const points = `${x1},${y1} ${mx},${y1} ${mx},${y2} ${x2},${y2}`;
-            cc = `<polyline points='${points}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}")'/>`;
+            cc = `<polyline points='${points}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")'/>`;
         }
         else if(lineType === "orthagonal rounded" || lineType === "orthogonal rounded")
         {
             const mx = Math.round((x1 + x2) / 2);
             const points = [{x:x1,y:y1}, {x:mx,y:y1}, {x:mx,y:y2}, {x:x2,y:y2}];
             const d = main.buildRoundedOrthogonalPath(points, 10);
-            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}")'/>`;
+            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")'/>`;
         }
         else if(lineType === "spline")
         {
@@ -6855,10 +6971,10 @@ const main =
             const c2x = x2 - bend;
             const c2y = y2;
             const d = `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
-            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}")'/>`;
+            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")'/>`;
         }
         else
-            cc = `<line x1='${x1}' y1='${y1}' x2='${x2}' y2='${y2}' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnection("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnection("${path}.${source}*${path}.${target}")'/>`;
+            cc = `<line x1='${x1}' y1='${y1}' x2='${x2}' y2='${y2}' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")'/>`;
         main.connections += cc;
     },
 
