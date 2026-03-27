@@ -103,7 +103,7 @@
 // This must be after ikaros.h
 #include "dynamixel_sdk.h" // Uses Dynamixel SDK library
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 #include <string>
 #include <algorithm>
 
