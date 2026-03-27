@@ -15,12 +15,14 @@
 
 	<link class="UM7" />
 	
-	<parameter name="port" description="Serial port" type="string" default="/dev/cu.usbserial-AU04OEIL"/>
+	<parameter name="port" description="Serial port" type="string" default="/dev/cu.usbserial-AU04OIL4"/>
 
 	<output name="ROLL" description="Estimated Roll" size="1" />
 	<output name="PITCH" description="Estimated Pitch" size="1" />
 	<output name="YAW" description="Estimated Yaw" size="1" />
-
+	<output name="ProcessedGyro" description="Processed Gyro data (XYZ)" size="3" />
+	<output name="ProcessedAccel" description="Processed accelerometer data (XYZ)" size="3" />
+	<output name="EulerAngles" description="Euler angles data (XYZ)" size="3" />
 	<author>
 		<name>Birger Johansson</name>
 		<email>birger.johansson@lucs.lu.se</email>
