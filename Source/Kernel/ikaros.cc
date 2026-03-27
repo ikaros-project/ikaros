@@ -969,13 +969,19 @@ namespace ikaros
     }
 
 
-    
+
     bool
     Component::Notify(int msg, std::string message, std::string path)
     {
+        /*
         int log_level = GetIntValue("log_level", 0);
         //if(kernel().parameters.count(path_+".log_level")==1)
          //   log_level = kernel().parameters.at(path_+".log_level").as_int();
+        */
+
+        int log_level = 0;
+        if(info_.contains("log_level"))
+            log_level = info_["log_level"].as_int();
 
         if(log_level == 0)
     {
