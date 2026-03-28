@@ -26,6 +26,7 @@ add_subdirectory(SequenceRecorder)
 
 
 add_subdirectory(LinearSplines)
+add_subdirectory(PythonModule)
 
 add_subdirectory(KernelTestModules)
 

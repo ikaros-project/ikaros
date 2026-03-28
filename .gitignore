@@ -59,3 +59,7 @@ Thumbs.db
 /Debug/
 /Release/
 /Build/
+
+# Python
+__pycache__/
+*.pyc

@@ -501,6 +501,9 @@ public:
     void SetParameter(std::string name, std::string value);
     void AddGroup(dictionary info, std::string path);
     void AddModule(dictionary info, std::string path);
+    bool PreparePythonModule(dictionary & info, const std::string & classname);
+    void InstantiatePythonModule(dictionary & info, const std::string & path);
+    void InstantiateStandardModule(dictionary & info, const std::string & classname, const std::string & path);
     void AddConnection(dictionary info, std::string path);
     void LoadExternalGroup(dictionary d);
     void BuildGroup(dictionary d, std::string path="");

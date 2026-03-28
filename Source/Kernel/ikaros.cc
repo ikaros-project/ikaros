@@ -2042,6 +2042,77 @@ bool operator==(Request & r, const std::string s)
 
 
     void 
+    Kernel::InstantiatePythonModule(dictionary & info, const std::string & path)
+    {
+        current_component_info = info;
+        current_component_path = path+"."+std::string(info["name"]);
+
+        if(!classes.count("PythonModule") || classes["PythonModule"].module_creator == nullptr)
+            throw build_failed("Internal PythonModule runtime class is not installed.", path);
+
+        components[current_component_path] = classes["PythonModule"].module_creator();
+    }
+
+
+    bool
+    Kernel::PreparePythonModule(dictionary & info, const std::string & classname)
+    {
+        bool is_python_backed = info.contains("python") && !std::string(info["python"]).empty();
+        if(!is_python_backed)
+            return false;
+
+        if(classes.count("PythonModule"))
+        {
+            dictionary python_runtime_info = classes["PythonModule"].info_.copy();
+            python_runtime_info.erase("name");
+            python_runtime_info.erase("description");
+            info.merge(python_runtime_info);
+
+            if(info["parameters"].is_null())
+                info["parameters"] = list();
+
+            std::set<std::string> parameter_names;
+            for(auto parameter : info["parameters"])
+                parameter_names.insert(std::string(parameter["name"]));
+
+            for(auto parameter : python_runtime_info["parameters"])
+            {
+                std::string parameter_name = parameter["name"];
+                if(!parameter_names.count(parameter_name))
+                {
+                    info["parameters"].push_back(parameter);
+                    parameter_names.insert(parameter_name);
+                }
+            }
+        }
+
+        std::filesystem::path python_path = std::string(info["python"]);
+        if(python_path.is_relative())
+            python_path = std::filesystem::path(classes[classname].path).parent_path() / python_path;
+        info["python"] = python_path.lexically_normal().string();
+        return true;
+    }
+
+
+    void
+    Kernel::InstantiateStandardModule(dictionary & info, const std::string & classname, const std::string & path)
+    {
+        current_component_info = info;
+        current_component_path = path+"."+std::string(info["name"]);
+
+        if(classes[classname].module_creator == nullptr)
+        {
+            if(info.is_not_set("no_code"))
+                std::cout << "Class \""<< classname << "\" has no installed code. Creating group." << std::endl; // throw exception("Class \""+classname+"\" has no installed code. Check that it is included in CMakeLists.txt."); // TODO: Check that this works for classes that are allowed to have no code
+            info["_tag"]="module";
+            BuildGroup(info, path); // FIXME: This is probably not working correctly
+        }
+        else
+            components[current_component_path] = classes[classname].module_creator();
+    }
+
+
+    void 
     Kernel::AddModule(dictionary info, std::string path)
     {
         current_component_info = info;
@@ -2062,10 +2133,12 @@ bool operator==(Request & r, const std::string s)
         if(!classes.count(classname))
             throw build_failed("Class \""+classname+"\" does not exist.", path);
 
-if(classes[classname].path.empty())
-        throw build_failed("Class file \""+classname+".ikc\" could not be found.", path);
+        if(classes[classname].path.empty())
+            throw build_failed("Class file \""+classname+".ikc\" could not be found.", path);
 
-         info.merge(classes[classname].info_);  // merge with scanned class data, including injected defaults
+        info.merge(classes[classname].info_);  // merge with scanned class data, including injected defaults
+
+        bool is_python_backed = PreparePythonModule(info, classname);
 
         if(info["parameters"].is_null())
             info["parameters"] = list();
@@ -2105,15 +2178,10 @@ if(classes[classname].path.empty())
             info["parameters"].push_back(color_param);
         }
 
-        if(classes[classname].module_creator == nullptr)
-        {
-            if(info.is_not_set("no_code"))
-             std::cout << "Class \""<< classname << "\" has no installed code. Creating group." << std::endl; // throw exception("Class \""+classname+"\" has no installed code. Check that it is included in CMakeLists.txt."); // TODO: Check that this works for classes that are allowed to have no code
-            info["_tag"]="module";
-            BuildGroup(info, path); // FIXME: This is probably not working correctly
-        }
+        if(is_python_backed)
+            InstantiatePythonModule(info, path);
         else
-            components[current_component_path] = classes[classname].module_creator();
+            InstantiateStandardModule(info, classname, path);
     }
 
 

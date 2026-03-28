@@ -1,0 +1,8 @@
+<group name="TestPythonLogForwarding" description="Test that python log messages are forwarded to the Ikaros log" start="true" webui_port="8103">
+    <module class="Constant" name="InputValues" data="5,6,7"/>
+    <module class="LogForward" name="Forward"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="InputValues.OUTPUT" target="Forward.X" delay="0"/>
+    <connection source="Forward.Y" target="Print.INPUT" delay="0"/>
+</group>

@@ -1,0 +1,12 @@
+<group name="SumInputExample" description="Example network for the Python SumInput class" start="true" stop="0" webui_port="8000">
+    <module class="Constant" name="InputValues" data="1,2,3,4">
+        <parameter name="data" type="matrix" value="1,2,3,4"/>
+        <output name="OUTPUT" size="data.size"/>
+    </module>
+
+    <module class="SumInput" name="Sum"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="InputValues.OUTPUT" target="Sum.X" delay="0"/>
+    <connection source="Sum.Y" target="Print.INPUT" delay="0"/>
+</group>

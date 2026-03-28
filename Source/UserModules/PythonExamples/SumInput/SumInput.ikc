@@ -1,0 +1,4 @@
+<class name="SumInput" description="Python example module that sums all values in its input" python="SumInput.py">
+    <input name="X" description="Input values to sum." />
+    <output name="Y" description="Single-value sum of the input." size="1" />
+</class>
