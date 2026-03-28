@@ -285,6 +285,29 @@ namespace ikaros
     }
 
 
+    bool
+    parameter::as_bool()
+    {
+        if(type == string_type && string_value)
+            return is_true(*string_value);
+        return as_double() != 0;
+    }
+
+
+    float
+    parameter::as_float()
+    {
+        return float(as_double());
+    }
+
+
+    double
+    parameter::as_double()
+    {
+        return double(*this);
+    }
+
+
     int
     parameter::as_int()
     {

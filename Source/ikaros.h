@@ -145,6 +145,9 @@ public:
     void print(std::string name="");
     void info();
 
+    bool as_bool();
+    float as_float();
+    double as_double();
     int as_int();
     std::string as_int_string(); // as_int() converted to string
     std::string as_string();
