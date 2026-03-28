@@ -1,0 +1,4 @@
+<class name="Not" description="calculates the logical negation of the input">
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" size="INPUT.size" />
+</class>

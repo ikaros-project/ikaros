@@ -1,0 +1,4 @@
+<class name="Exp" description="calculates the exponential of the input">
+	<input name="INPUT" description="The input" />
+	<output name="OUTPUT" description="The output" size="INPUT.size" />
+</class>

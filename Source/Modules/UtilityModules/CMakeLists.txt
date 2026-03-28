@@ -7,6 +7,7 @@ add_subdirectory(Randomizer)
 
 add_subdirectory(CombineFunctions)
 add_subdirectory(ReduceFunctions)
+add_subdirectory(Functions)
 
 add_subdirectory(Scale)
 add_subdirectory(Oscillator)
@@ -31,4 +32,3 @@ add_subdirectory(KernelTestModules)
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)
 set(MODULES_LIBS ${MODULES_LIBS} PARENT_SCOPE)
-
