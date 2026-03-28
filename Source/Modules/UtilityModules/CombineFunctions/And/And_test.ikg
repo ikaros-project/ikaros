@@ -1,0 +1,11 @@
+<group name="AndTest" >
+   <module class="Constant" data="0, 1; 2, 0" name="Constant1" />
+   <module class="Constant" data="1, 1; 0, 3" name="Constant2" />
+   <module class="And" description="computes the element-wise logical and of two inputs" name="And" />
+   <module class="Print" name="Print"/>
+
+   <connection source="Constant1.OUTPUT" target="And.INPUT1" delay="0" />
+   <connection source="Constant2.OUTPUT" target="And.INPUT2" delay="2" />
+   <connection source="And.OUTPUT" target="Print.INPUT" delay="0" />
+
+</group>

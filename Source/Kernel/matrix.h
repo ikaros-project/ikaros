@@ -17,6 +17,7 @@
 #include <iterator>
 #include <numeric>
 #include <limits>
+#include <algorithm>
 
 
 //#include <cblas.h>
@@ -1183,6 +1184,11 @@ namespace ikaros
         matrix & subtract(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return x-y;}); }// Fixme: use vDSP for continuous matrices
         matrix & multiply(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return x*y;}); }// Fixme: use vDSP for continuous matrices
         matrix & divide(matrix A)   { check_same_size(A); return apply(A, [](float x, float y)->float {return x/y;}); }// Fixme: use vDSP for continuous matrices
+        matrix & maximum(matrix A)  { check_same_size(A); return apply(A, [](float x, float y)->float {return std::max(x, y);}); }
+        matrix & minimum(matrix A)  { check_same_size(A); return apply(A, [](float x, float y)->float {return std::min(x, y);}); }
+        matrix & logical_and(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return (x != 0.0f && y != 0.0f) ? 1.0f : 0.0f;}); }
+        matrix & logical_or(matrix A)  { check_same_size(A); return apply(A, [](float x, float y)->float {return (x != 0.0f || y != 0.0f) ? 1.0f : 0.0f;}); }
+        matrix & logical_xor(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return ((x != 0.0f) != (y != 0.0f)) ? 1.0f : 0.0f;}); }
 
         matrix & add(matrix A, matrix B)
         { 
@@ -1261,6 +1267,46 @@ namespace ikaros
             }
             else
                 return apply(A, B, [](float x, float y)->float {return x/y;}); 
+        }
+
+
+        matrix & maximum(matrix A, matrix B)
+        {
+            check_same_size(A);
+            check_same_size(B);
+            return apply(A, B, [](float x, float y)->float {return std::max(x, y);});
+        }
+
+
+        matrix & minimum(matrix A, matrix B)
+        {
+            check_same_size(A);
+            check_same_size(B);
+            return apply(A, B, [](float x, float y)->float {return std::min(x, y);});
+        }
+
+
+        matrix & logical_and(matrix A, matrix B)
+        {
+            check_same_size(A);
+            check_same_size(B);
+            return apply(A, B, [](float x, float y)->float {return (x != 0.0f && y != 0.0f) ? 1.0f : 0.0f;});
+        }
+
+
+        matrix & logical_or(matrix A, matrix B)
+        {
+            check_same_size(A);
+            check_same_size(B);
+            return apply(A, B, [](float x, float y)->float {return (x != 0.0f || y != 0.0f) ? 1.0f : 0.0f;});
+        }
+
+
+        matrix & logical_xor(matrix A, matrix B)
+        {
+            check_same_size(A);
+            check_same_size(B);
+            return apply(A, B, [](float x, float y)->float {return ((x != 0.0f) != (y != 0.0f)) ? 1.0f : 0.0f;});
         }
 
 

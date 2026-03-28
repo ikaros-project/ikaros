@@ -1,0 +1,5 @@
+<class name="Or" description="computes the element-wise logical or of two inputs">
+	<input name="INPUT1" description="The first input" />
+	<input name="INPUT2" description="The second input" optional="yes" />
+	<output name="OUTPUT" description="Binary output" size="INPUT1.size" />
+</class>
