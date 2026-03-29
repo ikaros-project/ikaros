@@ -1,4 +1,4 @@
-<group name="Test" description="Test of Longer looped size calculations" check_sum="6538" >
+<group name="Test" description="Test of Longer looped size calculations" check_sum="5250" >
 
 	<module class = "Constant" name = "Constant" data="0, 1,2;0, 3,4" />
 
@@ -17,4 +17,3 @@
 	<connection  source = "Add.OUTPUT"  	target = "Print.INPUT" />
 
 </group>
-

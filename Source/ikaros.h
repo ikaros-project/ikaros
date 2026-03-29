@@ -505,7 +505,7 @@ public:
     void InstantiatePythonModule(dictionary & info, const std::string & path);
     void InstantiateStandardModule(dictionary & info, const std::string & classname, const std::string & path);
     void AddConnection(dictionary info, std::string path);
-    void LoadExternalGroup(dictionary d);
+    void LoadExternalGroup(dictionary & d);
     void BuildGroup(dictionary d, std::string path="");
 
     void AllocateInputs();

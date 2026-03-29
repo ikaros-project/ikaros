@@ -1,7 +1,7 @@
 <group 
     name="Test" 
     description="Test size expressions for outputs" 
-    check_sum="21395" 
+    check_sum="23553" 
     a = "2"
     b = "3"
     c = "7"
@@ -25,4 +25,3 @@
 
 	<module class = "KernelSizeTestModule" name = "M10" size="1" />
 </group>
-

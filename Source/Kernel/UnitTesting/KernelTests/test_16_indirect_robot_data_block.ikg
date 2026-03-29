@@ -1,4 +1,4 @@
-<group name="ExperimentalSetup" description="Test access data block for Epi" EpiName="EpiBlue"  check_sum="204" >
+<group name="ExperimentalSetup" description="Test access data block for Epi" EpiName="EpiBlue"  check_sum="174" >
 
 	<group name="Epi">
 
@@ -32,4 +32,3 @@
 
 
 </group>
-

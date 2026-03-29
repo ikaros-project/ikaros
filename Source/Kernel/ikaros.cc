@@ -1283,7 +1283,24 @@ namespace ikaros
         Kernel & k = kernel();
         for(dictionary d : info_["inputs"])
         if(!d.is_set("optional") && k.buffers[path_+"."+d["name"].as_string()].empty())
+        {
+            // Unconnected group inputs that are never referenced internally are harmless.
+            if(dynamic_cast<Group *>(this) != nullptr)
+            {
+                std::string full_input_name = path_+"."+d["name"].as_string();
+                bool consumed_inside_group = false;
+                for(auto & c : k.connections)
+                    if(c.source == full_input_name)
+                    {
+                        consumed_inside_group = true;
+                        break;
+                    }
+                if(!consumed_inside_group)
+                    continue;
+            }
+
             throw setup_failed("Component \""+info_["name"].as_string()+"\" has required input \""+d["name"].as_string()+"\" that is not connected.", path_);
+        }
     }
 
 
@@ -1298,6 +1315,8 @@ namespace ikaros
             std::string size;
             if(d.contains("size"))
                 size = std::string(d.at("size"));
+            else if(info_.contains("size"))
+                size = std::string(info_.at("size"));
             else
                 throw setup_failed("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".", path_);
 
@@ -1317,6 +1336,10 @@ namespace ikaros
         {
             Notify(msg_warning, e.what());
             throw setup_failed("Size expression for output \""+std::string(d.at("name")) +"\" is invalid. "+e.what(), path_);
+        }
+        catch(const std::exception & e)
+        {
+            throw setup_failed("Size expression for output \""+std::string(d.at("name")) +"\" is invalid. "+std::string(e.what()), path_);
         }
         catch(...)
         {
@@ -1374,8 +1397,12 @@ namespace ikaros
     
         for(auto & d : info_["parameters"])
         {
+            std::string parameter_name = d["name"].as_string();
+            if(parameter_name == "log_level" || parameter_name == "color")
+                continue;
+
             parameter p;
-            Bind(p, d["name"]);
+            Bind(p, parameter_name);
             //std::cout << "Parameter: " << d["name"] << std::endl;
 
             if(p.type == string_type)
@@ -2118,7 +2145,7 @@ bool operator==(Request & r, const std::string s)
         {
             if(info.is_not_set("no_code"))
                 std::cout << "Class \""<< classname << "\" has no installed code. Creating group." << std::endl; // throw exception("Class \""+classname+"\" has no installed code. Check that it is included in CMakeLists.txt."); // TODO: Check that this works for classes that are allowed to have no code
-            info["_tag"]="module";
+            info["_tag"]="group";
             BuildGroup(info, path); // FIXME: This is probably not working correctly
         }
         else
@@ -2218,7 +2245,7 @@ bool operator==(Request & r, const std::string s)
 
 
 
-    void Kernel::LoadExternalGroup(dictionary d)
+    void Kernel::LoadExternalGroup(dictionary & d)
     {
         std::string path = d["external"];
         dictionary external(path);

@@ -1,4 +1,4 @@
-<group name="Test_15" description="Test that indices are not dropped in single connection without indices " check_sum="12139" >
+<group name="Test_15" description="Test that indices are not dropped in single connection without indices " check_sum="9501" >
 
 	<module class = "Randomizer" name = "R" size="1,4,5" />
     <module class = "Print" name = "P" />
@@ -7,4 +7,3 @@
 	<connection  source = "R.OUTPUT"  	target = "P.INPUT" />
 	
 </group>
-
