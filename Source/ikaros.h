@@ -526,6 +526,7 @@ public:
     std::string xml();
 
     void InitSocket(long port);
+    void StopHTTPServer();
 
     void New();
     void Pause();

@@ -72,6 +72,7 @@ class ServerSocket
 		bool				SendFile(const char * filename, const char * path="", Dictionary * header = nullptr); // FIXME: add header automatically based on file type
 		bool				SendFile(const std::filesystem::path & filename, const std::string & path="");
 		bool				SendBuffer();
+		void				StopListening();
 
 		bool				Close();								// Close reply socket
 		
@@ -82,8 +83,8 @@ class ServerSocket
 		std::string 		body;									// Body of PUT request
 	private:
 		int				portno;
-		int 			sockfd;						// Listen on sock_fd,
-		int				new_fd;						// New connection on new_fd
+		int 			sockfd = -1;				// Listen on sock_fd,
+		int				new_fd = -1;				// New connection on new_fd
 		int				block_flags;				// Original flags for blocking I/O
 		int             request_allocated_size = 1024;
 		char *		 	request = (char *)malloc(sizeof(char)*request_allocated_size);
@@ -94,6 +95,5 @@ class ServerSocket
 		bool				Poll(bool block=false);                 // Poll for connection; return >=0 if accepted connection (or > 0 CHECK!!!)
 		size_t				Read(char * buffer, int maxSize, bool fill=false);	// Read, fill means fill with maxSize, return read size
 	};
-
 
 

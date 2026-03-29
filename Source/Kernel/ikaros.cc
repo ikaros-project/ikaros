@@ -2380,7 +2380,9 @@ bool operator==(Request & r, const std::string s)
             Notify(msg_fatal_error, msg);
             if(info_.is_set("batch_mode"))
             {
-                delete socket;
+                StopHTTPServer();
+                delete thread_pool;
+                thread_pool = nullptr;
                 exit(1);
             }
         }
@@ -2462,6 +2464,7 @@ bool operator==(Request & r, const std::string s)
     {
         try
         {
+            shutdown.store(false, std::memory_order_release);
             socket =  new ServerSocket(port);
         }
         catch (const exception& e)
@@ -2470,6 +2473,29 @@ bool operator==(Request & r, const std::string s)
         }
 
         httpThread = new std::thread(Kernel::StartHTTPThread, this);
+    }
+
+
+    void
+    Kernel::StopHTTPServer()
+    {
+        shutdown.store(true, std::memory_order_release);
+
+        if(socket != nullptr)
+            socket->StopListening();
+
+        if(httpThread != nullptr)
+        {
+            httpThread->join();
+            delete httpThread;
+            httpThread = nullptr;
+        }
+
+        if(socket != nullptr)
+        {
+            delete socket;
+            socket = nullptr;
+        }
     }
 
 
@@ -3843,16 +3869,10 @@ Kernel::CalculateCPUUsage() // In percent
 
     Kernel::~Kernel()
 {
-    if(socket && httpThread)
+    StopHTTPServer();
+    if(thread_pool)
     {
-        shutdown.store(true, std::memory_order_release);
-        httpThread->join();
-        delete httpThread;
-        delete socket;
         delete thread_pool;
-        
-        httpThread = nullptr;
-        socket = nullptr;
         thread_pool = nullptr;
     }
 }

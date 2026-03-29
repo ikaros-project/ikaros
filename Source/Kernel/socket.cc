@@ -220,7 +220,8 @@ ServerSocket::ServerSocket(int port)
 
 ServerSocket::~ServerSocket()
 {
-    close(sockfd);
+    StopListening();
+    Close();
 }
 
 
@@ -678,6 +679,18 @@ ServerSocket::Close()
     new_fd = -1;
 	
     return true;
+}
+
+
+void
+ServerSocket::StopListening()
+{
+    if(sockfd == -1)
+        return;
+
+    shutdown(sockfd, SHUT_RDWR);
+    close(sockfd);
+    sockfd = -1;
 }
 
 
