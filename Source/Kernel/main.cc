@@ -57,7 +57,15 @@ main(int argc, char *argv[])
 #endif
 
         k.options_ = o;
-        k.InitSocket(o.get_long("webui_port"));
+        bool socket_initialized = false;
+        auto shutdown_batch_http = [&]()
+        {
+            if(socket_initialized)
+            {
+                k.StopHTTPServer();
+                socket_initialized = false;
+            }
+        };
 
     while(k.run_mode.load() != run_mode_quit && !global_terminate.load())
         {
@@ -67,6 +75,24 @@ main(int argc, char *argv[])
                     k.New();
                 else if(k.needs_reload)
                     k.LoadFile();
+
+                if(!socket_initialized)
+                {
+                    long port = k.options_.get_long("webui_port");
+                    if(k.info_.contains("webui_port"))
+                        port = long(k.info_["webui_port"]);
+                    k.InitSocket(port);
+                    socket_initialized = true;
+                }
+
+                if(o.is_set("batch_mode"))
+                    k.info_["start"] = true;
+
+                if(k.options_.filename().empty() && o.is_set("batch_mode") && k.info_.contains("stop") && long(k.info_["stop"]) == 0)
+                {
+                    k.run_mode = run_mode_quit;
+                    continue;
+                }
 
                 if(k.info_.is_set("real_time"))
                     k.info_["start"] = true;
@@ -81,11 +107,19 @@ main(int argc, char *argv[])
                        // k.run_mode = run_mode_play;
                 }
                 k.Run();
+
+                if(k.options_.filename().empty() && o.is_set("batch_mode"))
+                    k.run_mode = run_mode_quit;
             }
 
             catch(load_failed & e)
             {
                 std::cout << "Load failed. "+e.message() << std::endl;
+                if(o.is_set("batch_mode"))
+                {
+                    shutdown_batch_http();
+                    exit(1);
+                }
                 k.options_.path_.clear();
             }
 
@@ -93,7 +127,10 @@ main(int argc, char *argv[])
             {
                 std::cerr << "Ikaros:: Fatal error: " << e.what() << std::endl;
                 if(o.is_set("batch_mode"))
+                {
+                    shutdown_batch_http();
                     exit(1);
+                }
                 else
                 {   
                     // Assuming load failed or other error that can be handled by WebUI
@@ -116,4 +153,3 @@ main(int argc, char *argv[])
     std::cout << "\nIkaros 3.0 Ended" << std::endl;
     return 0;
 }
-

@@ -1632,6 +1632,7 @@ bool operator==(Request & r, const std::string s)
         run_mode = run_mode_stop;
         session_id = new_session_id(); // FIXME: Probably not necessary - done in clear
         SetUp(); // FIXME: Catch exceptions if new fails
+        needs_reload = false;
     }
 
 
