@@ -1,0 +1,8 @@
+<group name="TestPythonOnErrorZero" description="Test that python worker failures can zero outputs and continue" start="true" stop="3" webui_port="8105">
+    <module class="Constant" name="InputValues" data="7,8,9"/>
+    <module class="FailAfterSuccess" name="Failer" on_error="zero"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="InputValues.OUTPUT" target="Failer.X" delay="0"/>
+    <connection source="Failer.Y" target="Print.INPUT" delay="0"/>
+</group>

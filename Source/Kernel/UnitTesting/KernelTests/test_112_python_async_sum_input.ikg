@@ -1,0 +1,8 @@
+<group name="TestPythonAsyncSumInput" description="Test that an async python-backed class can publish a completed result without blocking the kernel" start="true" stop="10" webui_port="8104">
+    <module class="Constant" name="InputValues" data="1,2,3,4"/>
+    <module class="AsyncSumInput" name="Sum" execution_mode="async"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="InputValues.OUTPUT" target="Sum.X" delay="0"/>
+    <connection source="Sum.Y" target="Print.INPUT" delay="0"/>
+</group>

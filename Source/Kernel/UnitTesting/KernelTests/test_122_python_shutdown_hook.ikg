@@ -1,0 +1,8 @@
+<group name="TestPythonShutdownHook" description="Test that python shutdown() runs during worker shutdown" start="true" stop="1" webui_port="8222" expected_output_contains="INPUT = {2, 4}" expected_file_exists="/tmp/ikaros_shutdown_hook_marker.txt">
+    <module class="Constant" name="InputValues" data="2,4"/>
+    <module class="ShutdownHook" name="Hook"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="InputValues.OUTPUT" target="Hook.X" delay="0"/>
+    <connection source="Hook.Y" target="Print.INPUT" delay="0"/>
+</group>

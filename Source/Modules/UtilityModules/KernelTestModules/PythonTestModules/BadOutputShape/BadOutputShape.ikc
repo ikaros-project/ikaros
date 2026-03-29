@@ -1,0 +1,3 @@
+<class name="BadOutputShape" description="Python example module that returns the wrong output shape after one successful tick">
+    <output name="Y" description="Output values." size="2" />
+</class>

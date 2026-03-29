@@ -1,0 +1,6 @@
+<group name="TestPythonModuleExecutableOverride" description="Test module-level python_executable override over top-group python_executable" start="true" stop="2" webui_port="8134" python_executable="/definitely/not/a/python/interpreter" expected_output_contains="INPUT = {9, 9}||ValueError: could not broadcast input array from shape (3,) into shape (2,)">
+    <module class="BadOutputShape" name="Broken" on_error="zero" python_executable="/Users/cba/cbvenv/bin/python"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="Broken.Y" target="Print.INPUT" delay="0"/>
+</group>

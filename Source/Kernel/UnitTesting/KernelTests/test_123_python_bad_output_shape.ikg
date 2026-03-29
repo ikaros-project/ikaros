@@ -1,0 +1,6 @@
+<group name="TestPythonBadOutputShape" description="Test that malformed python output shapes trigger on_error handling" start="true" stop="2" webui_port="8223" expected_output_contains="INPUT = {9, 9}||Python output shape does not match declared output shape.">
+    <module class="BadOutputShape" name="Broken" on_error="zero"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="Broken.Y" target="Print.INPUT" delay="0"/>
+</group>

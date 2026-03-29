@@ -1,0 +1,4 @@
+<class name="TracebackForward" description="Python example module that raises a nested exception to test traceback forwarding">
+    <input name="X" description="Input values." />
+    <output name="Y" description="Unused output." size="X.size" />
+</class>

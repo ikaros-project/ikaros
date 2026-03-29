@@ -1,8 +1,10 @@
 <class name="PythonModule" description="runtime module used for python-backed class definitions">
+    <parameter name="log_level" type="number" control="menu" options="inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace" default="print" description="Log level used by the python-backed module." />
     <parameter name="timeout_ms" type="number" default="1000" description="Maximum time budget for one python tick call." />
-    <parameter name="on_error" type="string" default="pause" description="Action to take when python execution fails." />
+    <parameter name="on_error" type="string" control="menu" options="pause,zero,log" default="pause" description="Action to take when python execution fails." />
     <parameter name="restart_on_crash" type="bool" default="false" description="Restart the python worker after a crash." />
-    <parameter name="process_mode" type="string" default="worker" description="Runtime mode for the python implementation." />
-    <parameter name="execution_mode" type="string" default="sync" description="Execution policy for the python implementation." />
-    <parameter name="python_executable" type="string" default="python3" description="Python interpreter used in worker mode." />
+    <parameter name="process_mode" type="string" control="menu" options="worker" default="worker" description="Runtime mode for the python implementation." />
+    <parameter name="execution_mode" type="string" control="menu" options="sync,async" default="sync" description="Execution policy for the python implementation." />
+    <parameter name="python_executable" type="string" default="" description="Python interpreter used in worker mode." />
+    <parameter name="use_global_names" type="bool" default="true" description="Expose input and output names as bare Python globals when safe." />
 </class>

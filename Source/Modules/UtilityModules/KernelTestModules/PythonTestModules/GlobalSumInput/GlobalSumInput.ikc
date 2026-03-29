@@ -1,0 +1,4 @@
+<class name="GlobalSumInput" description="Python example module that uses bare global names for input and output buffers">
+    <input name="X" description="Input values." />
+    <output name="Y" description="Summed output." size="1" />
+</class>

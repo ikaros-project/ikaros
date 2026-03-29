@@ -1,0 +1,4 @@
+<class name="ShutdownHook" description="Python example module that logs from shutdown()">
+    <input name="X" description="Input values." />
+    <output name="Y" description="Forwarded output values." size="X.size" />
+</class>

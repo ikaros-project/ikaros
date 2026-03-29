@@ -1,0 +1,8 @@
+<group name="TestPythonTracebackForwarding" description="Test that python tracebacks are forwarded into Ikaros error handling" start="true" stop="1" webui_port="8108">
+    <module class="Constant" name="InputValues" data="1,2,3"/>
+    <module class="TracebackForward" name="Trace" on_error="log"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="InputValues.OUTPUT" target="Trace.X" delay="0"/>
+    <connection source="Trace.Y" target="Print.INPUT" delay="0"/>
+</group>

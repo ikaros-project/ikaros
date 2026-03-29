@@ -1,0 +1,4 @@
+<class name="InitFailure" description="Python class that raises in init()">
+    <input name="X" description="Input values." />
+    <output name="Y" description="Output values." size="X.size" />
+</class>

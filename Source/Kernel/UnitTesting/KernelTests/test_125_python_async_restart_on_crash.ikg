@@ -1,0 +1,8 @@
+<group name="TestPythonAsyncRestartOnCrash" description="Test that an async python worker can restart after a crash and later publish output" start="true" stop="30" webui_port="8225" expected_output_contains="INPUT = {3}" expected_file_exists="/tmp/ikaros_async_crash_restart_marker.txt">
+    <module class="Constant" name="InputValues" data="3"/>
+    <module class="AsyncCrashRestart" name="Async" execution_mode="async" restart_on_crash="true" on_error="log"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="InputValues.OUTPUT" target="Async.X" delay="0"/>
+    <connection source="Async.Y" target="Print.INPUT" delay="0"/>
+</group>

@@ -1,0 +1,8 @@
+<group name="TestPythonOnErrorLog" description="Test that python worker failures can keep the last output and continue" start="true" stop="3" webui_port="8106">
+    <module class="Constant" name="InputValues" data="7,8,9"/>
+    <module class="FailAfterSuccess" name="Failer" on_error="log"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="InputValues.OUTPUT" target="Failer.X" delay="0"/>
+    <connection source="Failer.Y" target="Print.INPUT" delay="0"/>
+</group>

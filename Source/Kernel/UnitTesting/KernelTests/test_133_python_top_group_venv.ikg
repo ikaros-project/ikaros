@@ -1,0 +1,6 @@
+<group name="TestPythonTopGroupExecutable" description="Test top-group python_executable for python-backed classes" start="true" stop="2" webui_port="8133" python_executable="/Users/cba/cbvenv/bin/python" expected_output_contains="INPUT = {9, 9}||ValueError: could not broadcast input array from shape (3,) into shape (2,)">
+    <module class="BadOutputShape" name="Broken" on_error="zero"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="Broken.Y" target="Print.INPUT" delay="0"/>
+</group>

@@ -1,0 +1,8 @@
+<group name="TestPythonGlobalLogging" description="Test global logging helpers when use_global_names is enabled" start="true" stop="1" webui_port="8137" expected_output_contains="global print logging active||INPUT = {10}">
+    <module class="Constant" name="InputValues" data="1,2,3,4"/>
+    <module class="GlobalLogging" name="Log"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="InputValues.OUTPUT" target="Log.X" delay="0"/>
+    <connection source="Log.Y" target="Print.INPUT" delay="0"/>
+</group>

@@ -2058,7 +2058,20 @@ bool operator==(Request & r, const std::string s)
     bool
     Kernel::PreparePythonModule(dictionary & info, const std::string & classname)
     {
+        std::filesystem::path class_path = classes[classname].path;
+        std::filesystem::path class_directory = class_path.parent_path();
+
         bool is_python_backed = info.contains("python") && !std::string(info["python"]).empty();
+        if(!is_python_backed)
+        {
+            std::filesystem::path inferred_python_path = class_directory / (classname + ".py");
+            if(std::filesystem::exists(inferred_python_path))
+            {
+                info["python"] = inferred_python_path.lexically_normal().string();
+                is_python_backed = true;
+            }
+        }
+
         if(!is_python_backed)
             return false;
 
@@ -2089,7 +2102,7 @@ bool operator==(Request & r, const std::string s)
 
         std::filesystem::path python_path = std::string(info["python"]);
         if(python_path.is_relative())
-            python_path = std::filesystem::path(classes[classname].path).parent_path() / python_path;
+            python_path = class_directory / python_path;
         info["python"] = python_path.lexically_normal().string();
         return true;
     }

@@ -1,0 +1,4 @@
+<class name="ZeroArgHooks" description="Python example module using zero-argument init, tick, and shutdown hooks">
+    <input name="X" description="Input values." />
+    <output name="Y" description="Forwarded sum output." size="1" />
+</class>

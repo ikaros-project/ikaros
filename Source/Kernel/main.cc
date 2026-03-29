@@ -29,6 +29,7 @@ main(int argc, char *argv[])
         o.add_option("r", "real_time", "run in real-time mode; also implies S");
         o.add_option("S", "start", " start-up automatically without waiting for commands from WebUI");
         o.add_option("s", "stop", "stop Ikaros after this tick", "-1");
+        o.add_option("p", "python_executable", "default Python interpreter for python-backed classes");
         o.add_option("w", "webui_port", "port for ikaros WebUI", "8000");
         o.add_option("h", "help", "list command line options");
         o.add_option("x", "experimental", "run with experimental features");

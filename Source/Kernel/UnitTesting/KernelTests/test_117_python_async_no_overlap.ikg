@@ -1,0 +1,8 @@
+<group name="TestPythonAsyncNoOverlap" description="Test that an async python-backed class launches at most one worker job at a time" start="true" stop="25" webui_port="8109">
+    <module class="Constant" name="InputValues" data="1"/>
+    <module class="AsyncNoOverlap" name="Async" execution_mode="async"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="InputValues.OUTPUT" target="Async.X" delay="0"/>
+    <connection source="Async.Y" target="Print.INPUT" delay="0"/>
+</group>

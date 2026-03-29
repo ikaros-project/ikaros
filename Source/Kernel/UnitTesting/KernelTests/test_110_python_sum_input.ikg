@@ -1,4 +1,4 @@
-<group name="TestPythonSumInput" description="Test that a python-backed class can sum its input values" start="true" webui_port="8102">
+<group name="TestPythonSumInput" description="Test that a python-backed class can sum its input values" start="true" stop="0" webui_port="8102">
     <module class="Constant" name="InputValues" data="1,2,3,4"/>
     <module class="SumInput" name="Sum"/>
     <module class="Print" name="Print"/>

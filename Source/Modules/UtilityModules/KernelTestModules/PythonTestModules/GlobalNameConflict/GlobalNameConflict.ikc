@@ -1,0 +1,4 @@
+<class name="GlobalNameConflict" description="Python example module with a symbol that conflicts with use_global_names">
+    <input name="X" description="Input values." />
+    <output name="Y" description="Output values." size="1" />
+</class>

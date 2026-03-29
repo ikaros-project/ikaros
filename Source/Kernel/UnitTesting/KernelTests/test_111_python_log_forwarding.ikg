@@ -1,4 +1,4 @@
-<group name="TestPythonLogForwarding" description="Test that python log messages are forwarded to the Ikaros log" start="true" webui_port="8103">
+<group name="TestPythonLogForwarding" description="Test that python log messages are forwarded to the Ikaros log" start="true" stop="0" webui_port="8103">
     <module class="Constant" name="InputValues" data="5,6,7"/>
     <module class="LogForward" name="Forward"/>
     <module class="Print" name="Print"/>

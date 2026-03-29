@@ -1,0 +1,4 @@
+<class name="FailAfterSuccess" description="Python example module that succeeds once and then raises an error">
+    <input name="X" description="Input values." />
+    <output name="Y" description="Forwarded output before failure." size="X.size" />
+</class>

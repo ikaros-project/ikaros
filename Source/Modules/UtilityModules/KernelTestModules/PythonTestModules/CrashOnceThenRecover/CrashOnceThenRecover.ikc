@@ -1,0 +1,4 @@
+<class name="CrashOnceThenRecover" description="Python example module that crashes once and then succeeds after worker restart">
+    <input name="X" description="Input values." />
+    <output name="Y" description="Forwarded output after restart." size="X.size" />
+</class>

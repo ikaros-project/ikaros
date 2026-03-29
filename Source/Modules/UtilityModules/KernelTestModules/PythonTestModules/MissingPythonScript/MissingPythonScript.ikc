@@ -1,0 +1,4 @@
+<class name="MissingPythonScript" description="Python class with a missing backing script" python="MissingPythonScript.py">
+    <input name="X" description="Input values." />
+    <output name="Y" description="Output values." size="X.size" />
+</class>

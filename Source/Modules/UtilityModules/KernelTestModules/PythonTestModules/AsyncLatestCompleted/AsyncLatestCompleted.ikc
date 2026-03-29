@@ -1,0 +1,4 @@
+<class name="AsyncLatestCompleted" description="Python example module that publishes the tick value asynchronously">
+    <input name="X" description="Unused input." />
+    <output name="Y" description="Latest completed tick value." size="1" />
+</class>

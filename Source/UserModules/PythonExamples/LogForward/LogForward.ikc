@@ -1,4 +1,0 @@
-<class name="LogForward" description="Python example module that emits log messages and forwards its input" python="LogForward.py">
-    <input name="X" description="Input values." />
-    <output name="Y" description="Forwarded input." size="X.size" />
-</class>

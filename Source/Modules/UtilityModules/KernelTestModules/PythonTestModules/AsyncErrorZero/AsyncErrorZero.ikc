@@ -1,0 +1,3 @@
+<class name="AsyncErrorZero" description="Python example module that fails on its second async completion">
+    <output name="Y" description="Output values." size="1" />
+</class>

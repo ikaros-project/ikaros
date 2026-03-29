@@ -1,0 +1,4 @@
+<class name="AsyncNoOverlap" description="Python example module that counts async launches without overlap">
+    <input name="X" description="Unused input." />
+    <output name="Y" description="Invocation counter." size="1" />
+</class>
