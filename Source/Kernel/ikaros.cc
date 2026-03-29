@@ -2288,11 +2288,12 @@ bool operator==(Request & r, const std::string s)
 
 
     void 
-    Kernel::SetCommandLineParameters(dictionary & d) // Add command line arguments - will override XML - probably not correct ******************
+    Kernel::SetCommandLineParameters(dictionary & d) // Add explicit command line overrides without clobbering file values with defaults
     {
     
         for(auto & x : options_.d)
-            d[x.first] = x.second;
+            if(options_.is_explicitly_set(x.first))
+                d[x.first] = x.second;
 
         d["filename"] = options_.stem();
 

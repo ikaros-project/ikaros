@@ -16,6 +16,7 @@ namespace ikaros {
         std::filesystem::path path_;       // If only one, or empty path if none
         std::vector<std::string> filenames;
         std::map<std::string, std::string> d;
+        std::set<std::string> explicitly_set;
         std::map<std::string, std::string> full;
         std::map<std::string, std::string> description;
 
@@ -52,6 +53,7 @@ namespace ikaros {
                         d[s.substr(0, pos)] = s.substr(pos+2, s.size()-pos-3);
                     else
                         d[s.substr(0, pos)] = s.substr(pos+1, s.size()-pos);
+                    explicitly_set.insert(s.substr(0, pos));
                 }
                 else if(s.size()>2 && s.front() =='-')
                 {
@@ -59,6 +61,7 @@ namespace ikaros {
                     if(!full.count(attr))
                         throw std::runtime_error("\"-"+attr + "\" is not a valid command line option");
                     d[full[attr]] = s.substr(2);  // option with parameter
+                    explicitly_set.insert(full[attr]);
                 }
                 else if(s.size()>1 && s.front() =='-')
                 {
@@ -66,6 +69,7 @@ namespace ikaros {
                     if(!full.count(attr))
                         throw std::runtime_error("\"-"+attr + "\" is not a valid command line option");
                     d[full[attr]] = "true";  // option without parameter
+                    explicitly_set.insert(full[attr]);
                 }
                 else
                 {
@@ -119,6 +123,11 @@ namespace ikaros {
         bool is_set(std::string o)
         {
             return d.count(o)>0;
+        }
+
+        bool is_explicitly_set(std::string o)
+        {
+            return explicitly_set.count(o)>0;
         }
 
         void set(std::string o)
