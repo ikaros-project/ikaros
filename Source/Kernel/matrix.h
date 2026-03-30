@@ -49,6 +49,16 @@
 
 namespace ikaros
 {
+    inline float parse_matrix_token(const std::string & token)
+    {
+        std::string trimmed = trim(token);
+        size_t pos = 0;
+        float value = std::stof(trimmed, &pos);
+        if(trimmed.substr(pos).find_first_not_of(" \t\r\n") != std::string::npos)
+            throw std::invalid_argument("Invalid matrix value \"" + token + "\". Values must be separated by ',' or ';'.");
+        return value;
+    }
+
     struct point
     {
         float x;
@@ -236,7 +246,7 @@ namespace ikaros
                 //data_ = std::make_shared<std::vector<float>>(info_->calculate_size());
             
                 for(int i=0; i< row.size(); i++)
-                    (*this)(i) = stof(row.at(i));
+                    (*this)(i) = parse_matrix_token(row.at(i));
             }
             else // 2D
             {
@@ -248,7 +258,7 @@ namespace ikaros
                 {
                     auto r = split(rows.at(j), ",");
                     for(int i=0; i< r.size(); i++)
-                        (*this)(j,i) = stof(r.at(i));
+                        (*this)(j,i) = parse_matrix_token(r.at(i));
                 }
             }
         }
@@ -272,7 +282,7 @@ namespace ikaros
                     data_ = std::make_shared<std::vector<float>>(info_->calculate_size());
                 
                     for(int i=0; i< row.size(); i++)
-                        (*this)(i) = stof(row.at(i));
+                        (*this)(i) = parse_matrix_token(row.at(i));
                 }
                 else // 2D
                 {
@@ -283,7 +293,7 @@ namespace ikaros
                     {
                         auto r = split(rows.at(j), ",");
                         for(int i=0; i< row.size(); i++)
-                            (*this)(j, i) = stof(r.at(i));
+                            (*this)(j, i) = parse_matrix_token(r.at(i));
                     }
                 }
             }
