@@ -77,7 +77,12 @@ main(int argc, char *argv[])
                 else if(k.needs_reload)
                     k.LoadFile();
 
-                if(!socket_initialized)
+                bool should_start_socket =
+                    !o.is_set("batch_mode")
+                    || o.is_explicitly_set("webui_port")
+                    || k.info_.contains("webui_port");
+
+                if(should_start_socket && !socket_initialized)
                 {
                     long port = k.options_.get_long("webui_port");
                     if(k.info_.contains("webui_port"))
