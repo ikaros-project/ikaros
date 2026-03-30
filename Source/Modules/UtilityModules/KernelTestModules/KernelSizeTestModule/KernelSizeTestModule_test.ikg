@@ -1,7 +1,5 @@
 <group filename="" name="Test">
-   <module _x="144" _y="144" class="KernelSizeTestModule" description="used internally to test the ikaros kernel." name="KernelSizeTestModule" size="2">
-      <output description="The output" name="OUTPUT"/>
-   </module>
+   <module _x="144" _y="144" class="KernelSizeTestModule" description="used internally to test the ikaros kernel." name="KernelSizeTestModule" size="2"/>
 </group>
 
 

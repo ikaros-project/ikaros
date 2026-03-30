@@ -1,9 +1,6 @@
 <group filename="../Source/Modules/TestModules/sptst4.ikg" name="SpikingPopulation_test">
    <connection delay_range="1" source="c1.OUTPUT" source_range="" target="sp1.DIRECT_IN" target_range=""/>
-   <module _x="100.000000" _y="100.000000" class="Constant" description="outputs a constant value" name="c1" value="11, 12, 13, 14, 15, 16">
-      <output description="The output" name="OUTPUT" size="data.size"/>
-      <parameter default="11, 12, 13, 14, 15, 16" description="output from module" name="data" type="matrix" value="11, 12, 13, 14, 15, 16"/>
-   </module>
+   <module _x="100.000000" _y="100.000000" class="Constant" description="outputs a constant value" name="c1" value="11, 12, 13, 14, 15, 16"/>
    <module _x="240.000000" _y="96.000000" class="SpikingPopulation" description="Simulates a population of spiking neurons" name="sp1" population_size="6.000000" substeps="2.000000" threshold="30.000000"/>
    <widget _index_="0.000000" _x="432.000000" _y="96.000000" auto="false" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200.000000" labels="" lineCap="" lineJoin="" lineWidth="1.000000" max="100.000000" min="-100.000000" name="Widget_5" show_frame="false" show_title="true" source="sp1.OUTPUT" style="" title="SP1" transpose="false" width="200.000000"/>
    <widget _index_="2.000000" _x="48.000000" _y="288.000000" auto="false" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200.000000" labels="" lineCap="" lineJoin="" lineWidth="1.000000" max="10.000000" min="0.000000" name="Widget_6" show_frame="false" show_title="true" source="c1.OUTPUT" style="" title="C1" transpose="false" width="200.000000"/>

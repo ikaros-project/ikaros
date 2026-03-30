@@ -3,47 +3,12 @@
    <connection source="Inhibition.OUTPUT" target="EpiSpeech.INHIBITION"/>
    <connection source="Attribute1.OUTPUT" target="EpiSpeech.ATTRIBUTE1"/>
    <connection source="Attribute2.OUTPUT" target="EpiSpeech.ATTRIBUTE2"/>
-   <module _x="24" _y="96" class="Constant" data="0, 0, 0, 0, 0, 0" description="outputs a constant value" name="Command">
-      <output description="The output" name="OUTPUT" size="data.size"/>
-      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="0, 0, 0, 0, 0, 0"/>
-   </module>
-   <module _x="24" _y="240" class="Constant" data="0, 0, 0" description="outputs a constant value" name="Attribute1">
-      <output description="The output" name="OUTPUT" size="data.size"/>
-      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="0, 0, 0"/>
-   </module>
-   <module _x="24" _y="312" class="Constant" data="0.5" description="outputs a constant value" name="Attribute2">
-      <output description="The output" name="OUTPUT" size="data.size"/>
-      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="0.5"/>
-   </module>
-   <module _x="24" _y="168" class="Constant" data="0" description="outputs a constant value" name="Inhibition">
-      <output description="The output" name="OUTPUT" size="data.size"/>
-      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="0"/>
-   </module>
-   <module _x="312" _y="144" class="EpiSpeech" description="reads a text using Apple's speech synthesis" name="EpiSpeech" text="one,two,three,111, robotic beings rule the world, the humans are dead." voice="Noelle (Enhanced)">
-      <description type="text"/>
-      <files>
-         <file/>
-         <file/>
-         <file/>
-      </files>
-      <input description="vector with sounds to play. A transition from zero to one in an element starts the corresponding sound. A sound can be triggered several times even if it is already playing." name="TRIG"/>
-      <input description="No new sound is started while this input > 0. A single triggering input will be queued and start when the inhibition is removed." name="INHIBITION"/>
-      <input description="Data to phrase as a feature vector or a number value." name="ATTRIBUTE1" optional="yes"/>
-      <input description="Data to phrase as a feature vector or a number value" name="ATTRIBUTE2" optional="yes"/>
-      <output description="Set to 1 while a sound is playing, otherwise 0." name="PLAYING" size="TRIG.size"/>
-      <output description="Element for each sound set to 1 for one tick after a sound has complted playing." name="COMPLETED" size="TRIG.size"/>
-      <output description="Set to 1 while a sound is playing, otherwise 0." name="ACTIVE" size="1"/>
-      <output description="precalculated approximate volume (dB) of the current sound being played at relativey low temporal resolution. Can be used for VU-meter or other animation (left and right)." name="RMS" size="2"/>
-      <output description="precalculated approximate volume of the current sound being played at relativey low temporal resolution. Linear version of VU (left and right)." name="VOLUME" size="2"/>
-      <parameter control="textedit" default="/usr/bin/afplay" description="the command to use to play sounds, The dafult is the OS X command afplay" name="command" type="string" value="/usr/bin/afplay"/>
-      <parameter control="textedit" default="/usr/bin/say" description="the command used to produce a sound file from a text, The dafult is the OS X command say" name="speech_command" type="string" value="/usr/bin/say"/>
-      <parameter control="textedit" default="Noelle (Enhanced)" description="voice to be used. This voice must be installed and the module will silently fail if it is not." name="voice" type="string" value="Noelle (Enhanced)"/>
-      <parameter control="textedit" default="hello there,yes,no" description="comma separated list of texts to say." name="text" type="string" value="one,two,three,111, robotic beings rule the world, the humans are dead."/>
-      <parameter control="textedit" default="1.0" description="factor for scaling the volume output (not the actual volume)." name="scale_volume" type="number" value="1.0"/>
-      <parameter control="textedit" default="100.0" description="Lag in seconds before the sound starts. Used to correct timing of volume output for better animations." name="lag" type="number" value="100.0"/>
-   </module>
-   <module _x="48" _y="408" class="Logger" description="logs start to Ikaros site" name="Logger">
-   </module>
+   <module _x="24" _y="96" class="Constant" data="0, 0, 0, 0, 0, 0" description="outputs a constant value" name="Command"/>
+   <module _x="24" _y="240" class="Constant" data="0, 0, 0" description="outputs a constant value" name="Attribute1"/>
+   <module _x="24" _y="312" class="Constant" data="0.5" description="outputs a constant value" name="Attribute2"/>
+   <module _x="24" _y="168" class="Constant" data="0" description="outputs a constant value" name="Inhibition"/>
+   <module _x="312" _y="144" class="EpiSpeech" description="reads a text using Apple's speech synthesis" name="EpiSpeech" text="one,two,three,111, robotic beings rule the world, the humans are dead." voice="Noelle (Enhanced)"/>
+   <module _x="48" _y="408" class="Logger" description="logs start to Ikaros site" name="Logger"/>
    <view name="Controls">
       <bar-graph auto="false" color="" direction="vertical" fill="" frame-style="" height="201" labels="" lineCap="" lineJoin="" lineWidth="1" max="1" min="0" module="Command" show_frame="false" show_title="true" source="Command.OUTPUT" style="" title="Sound Triggers" transpose="false" w="3" width="701" x="60" y="20"/>
       <bar-graph auto="false" color="" direction="vertical" fill="" frame-style="" height="200" labels="" lineCap="" lineJoin="" lineWidth="1" max="5" min="-100" show_frame="false" show_title="true" source="EpiSpeech.RMS" style="" title="VU" transpose="false" width="200" x="780" y="20"/>

@@ -6,44 +6,14 @@
    <connection delay_range="1" source="Position.OUTPUT" source_range="" target="ForceCheck.PresentPosition" target_range=""/>
    <connection delay_range="1" source="GoalPos.OUTPUT" source_range="" target="ForceCheck.GoalPosition" target_range=""/>
 
-   <module _x="72.000000" _y="240.000000" class="Constant" data="1; 1" description="outputs a constant value" name="Constant1">
-      <output description="The output" name="OUTPUT" size="data.size"/>
-      <parameter default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="1; 1"/>
-   </module>
-   <module _x="72.000000" _y="48.000000" class="Constant" data="800; 1100" description="outputs a constant value" name="Limit">
-      <output description="The output" name="OUTPUT" size="data.size"/>
-      <parameter default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="800; 1100"/>
-   </module>
-   <module _x="72.000000" _y="96.000000" class="Constant" data="15; 13" description="outputs a constant value" name="Position">
-      <output description="The output" name="OUTPUT" size="data.size"/>
-      <parameter default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="15; 13"/>
-   </module>
-   <module _x="72.000000" _y="144.000000" class="Constant" data="15; 0" description="outputs a constant value" name="GoalPos">
-      <output description="The output" name="OUTPUT" size="data.size"/>
-      <parameter default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="15; 0"/>
-   </module>
-   <module _x="72.000000" _y="144.000000" class="Constant" data="15; 0" description="outputs a constant value" name="StartingPos">
-      <output description="The output" name="OUTPUT" size="data.size"/>
-      <parameter default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="15; 0"/>
-   </module>
-   <module _x="312.000000" _y="72.000000" class="ForceCheck" description="Checks current level" name="ForceCheck">
-      <files>
-         <file/>
-         <file/>
-      </files>
-      <input description="The first input" name="PresentCurrent"/>
-      <input description="The second input" name="CurrentLimit"/>
-      <input description="The second input" name="PresentPosition"/>
-      <input description="The second input" name="GoalPosition"/>
-      <output description="The output" name="CurrentOutput" size="PresentCurrent.size"/>
-   </module>
-   <module _x="0.000000" _y="288.000000" class="Logger" description="logs start to Ikaros site" name="Logger">
-   </module>
-   <module _x="192.000000" _y="264.000000" class="Add" description="adds two inputs" name="Add">
-      <input description="The first input" name="INPUT1"/>
-      <input description="The second input" name="INPUT2"/>
-      <output description="The output" name="OUTPUT" size="INPUT1.size"/>
-   </module>
+   <module _x="72.000000" _y="240.000000" class="Constant" data="1; 1" description="outputs a constant value" name="Constant1"/>
+   <module _x="72.000000" _y="48.000000" class="Constant" data="800; 1100" description="outputs a constant value" name="Limit"/>
+   <module _x="72.000000" _y="96.000000" class="Constant" data="15; 13" description="outputs a constant value" name="Position"/>
+   <module _x="72.000000" _y="144.000000" class="Constant" data="15; 0" description="outputs a constant value" name="GoalPos"/>
+   <module _x="72.000000" _y="144.000000" class="Constant" data="15; 0" description="outputs a constant value" name="StartingPos"/>
+   <module _x="312.000000" _y="72.000000" class="ForceCheck" description="Checks current level" name="ForceCheck"/>
+   <module _x="0.000000" _y="288.000000" class="Logger" description="logs start to Ikaros site" name="Logger"/>
+   <module _x="192.000000" _y="264.000000" class="Add" description="adds two inputs" name="Add"/>
 
    <view name="View">
       <widget class="table" colorize="true" decimals="4" height="300" show_frame="true" show_title="true" source="ForceCheck.GoalPosition" title="A" width="300" x="40" y="20"/>
