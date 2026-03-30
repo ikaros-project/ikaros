@@ -1,5 +1,4 @@
 <class name="PythonModule" description="runtime module used for python-backed class definitions">
-    <parameter name="log_level" type="number" control="menu" options="inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace" default="print" description="Log level used by the python-backed module." />
     <parameter name="timeout_ms" type="number" default="1000" description="Maximum time budget for one python tick call." />
     <parameter name="on_error" type="string" control="menu" options="pause,zero,log" default="pause" description="Action to take when python execution fails." />
     <parameter name="restart_on_crash" type="bool" default="false" description="Restart the python worker after a crash." />
