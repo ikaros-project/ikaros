@@ -23,7 +23,7 @@ main(int argc, char *argv[])
         //o.add_option("q", "quiet", "do not print log to terminal; equal to loglevel=0");
         //o.add_option("c", "lagcutoff", "reset lag and restart timing if it exceed this value", "10s");
 
-        o.add_option("b", "batch_mode", "start automatically and quit when execution terminates");
+        o.add_option("b", "batch_mode", "start automatically and quit when execution terminates; no WebUI unless explicitly set with -w");
         o.add_option("d", "tick_duration", "duration of each tick");
         o.add_option("i", "info", "print model info");
         o.add_option("r", "real_time", "run in real-time mode; also implies S");

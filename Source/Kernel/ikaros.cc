@@ -2854,6 +2854,15 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::Run()
     {
+        bool has_async_workers = false;
+        if(options_.is_set("batch_mode"))
+            for(auto & [name, parameter] : parameters)
+                if(ends_with(name, ".execution_mode") && std::string(parameter) == "async")
+                {
+                    has_async_workers = true;
+                    break;
+                }
+
         // Main loop
         while(run_mode.load() > run_mode_quit && !global_terminate.load())  // Not quit
         {
@@ -2865,7 +2874,8 @@ bool operator==(Request & r, const std::string s)
                 {
                     timer.SetStartTime(double(tick+1)*tick_duration); // Fake time increase // FIXME: remove sleep in batch mode DOES NOT LOOK CORRECT
                     lag = 0;
-                    Sleep(0.01);
+                    if(!options_.is_set("batch_mode") || has_async_workers)
+                        Sleep(0.01);
                 }
                 else
                     Sleep(0.01); // Wait 10 ms to avoid wasting cycles if there are no requests
@@ -2906,7 +2916,8 @@ bool operator==(Request & r, const std::string s)
                 }    
             }
             Stop();
-            Sleep(0.1);
+            if(!options_.is_set("batch_mode"))
+                Sleep(0.1);
 
         }
     }
