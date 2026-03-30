@@ -1111,8 +1111,6 @@ namespace ikaros
             c->target_range = range(begin_index, end_index);
             begin_index += s;
             flattened_input_size += s;
-
-                std::cout << flattened_input_size << std::endl;
         }
     
         if(flattened_input_size != 0)
@@ -1152,9 +1150,7 @@ namespace ikaros
         // Handle single connection without inidices - do not collapse dimensions
 
         if(ingoing_connections.size() == 1 && ingoing_connections.begin()->second[0]->source_range.empty() && ingoing_connections.begin()->second[0]->target_range.empty())
-        {        
-            std::cout << "Simple connection" << std::endl;
-
+        {
             range output_matrix = kernel().buffers[ingoing_connections.begin()->second[0]->source].get_range();
             if(output_matrix.empty())
                 return 0;
