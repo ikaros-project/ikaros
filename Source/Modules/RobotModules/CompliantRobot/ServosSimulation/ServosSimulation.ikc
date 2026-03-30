@@ -9,10 +9,5 @@
    		<file>ServosSimulation.ikc</file>
    </files>
 
-	<author>
-		<name>Pierre Klintefors</name>
-		<email>pierre.klintefors@lucs.lu.se</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-	</author>
 </class>
 

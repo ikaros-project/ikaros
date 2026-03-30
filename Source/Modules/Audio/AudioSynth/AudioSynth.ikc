@@ -1,5 +1,5 @@
 <class name="AudioSynth" description="An audio synthesizer module">
-    <parameter name="sample_rate" type="int" default="22050" description="Sample rate of the audio output" />
+    <parameter name="sample_rate" type="number" default="22050" description="Sample rate of the audio output" />
     
     <input name="WAVESHAPE" description="Waveshape control 0.0-1.0" />
     <input name="FREQUENCY" description="Frequency control 0.0-1.0, maps to piano keys A0 to C8" />

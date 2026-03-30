@@ -6,20 +6,11 @@
 		Module that reads a movie using the FFMpeg library. The movie can be optionally scaled by setting the parameters size_x and size_y.
 	</description>
 
-	<example description="A simple example">
-		<module
-			class="InputVideoFile"
-			name="InputVideoFile"
-            filename = "../../../../../../Examples/Media/ikaros.mp4"
-		/>
 
-	</example>
-
-	<link class="InputVideoFile" />
     
     <parameter name="filename" type="string" description="File or url to read the data from." />
-	<parameter name="size_x" type="int" default="original movie size" description="Size to scale the movie to" />
-	<parameter name="size_y" type="int" default="original movie size" description="Size to scale the movie to" />
+	<parameter name="size_x" type="number" default="original movie size" description="Size to scale the movie to" />
+	<parameter name="size_y" type="number" default="original movie size" description="Size to scale the movie to" />
 	<parameter name="loop" type="bool" default="no" description="Loop playback" />
 	<parameter name="info" type="bool" default="no" description="Printing information about the video stream" />
 
@@ -44,12 +35,6 @@
 	<output name="RESTART" size = "1" description="This output is 1 on the first frame of the movie." />
 
     
-    <author>
-		<name>Birger Johansson</name>
-		<email>birger.johansson@lucs.lu.se</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage>http://www.birgerjohansson.com</homepage>
-	</author>
 
    <files>
    		<file>InputVideoFile.h</file>

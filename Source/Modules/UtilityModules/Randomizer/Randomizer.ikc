@@ -1,7 +1,7 @@
 <class name="Randomizer" description="outputs a random value">
 	<parameter name="size" type="string" default="2,3" description="output from module" />
-	<parameter name="min" type="float" description="Minimum value of the output (inclusive)" default="0" />
-	<parameter name="max" type="float" description="Maximum value of the output (inclusive)" default="1" />
+	<parameter name="min" type="number" description="Minimum value of the output (inclusive)" default="0" />
+	<parameter name="max" type="number" description="Maximum value of the output (inclusive)" default="1" />
 
 	<output name="OUTPUT" description="The output" size="@size"/>
 </class>

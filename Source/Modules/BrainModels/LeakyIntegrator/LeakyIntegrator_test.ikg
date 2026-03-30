@@ -1,4 +1,10 @@
-<group name="Test">
-	<module class = "LeakyIntegrator" name = "LeakyIntegrator" />
-</group>
+<group name="LeakyIntegrator_test">
+	<connection source="Excitation.OUTPUT" target="LeakyIntegrator.EXCITATION" />
+	<connection source="Inhibition.OUTPUT" target="LeakyIntegrator.INHIBITION" />
+	<connection source="LeakyIntegrator.OUTPUT" target="Print.INPUT" />
 
+	<module class="Constant" name="Excitation" value="1" />
+	<module class="Constant" name="Inhibition" value="0" />
+	<module class="LeakyIntegrator" name="LeakyIntegrator" />
+	<module class="Print" name="Print" />
+</group>

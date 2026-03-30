@@ -23,26 +23,10 @@
      </p>
 	</description>
 
-	<example description="A simple example">
-		<module
-			class="LinearSplines"
-			name="LinearSplines"
-            points =
-            "3 5; 4 20; 7 25; 9 10"
-		/>
-	</example>
 
-    <example description="Example with two different splines, the first with four control points and the second with three.">
-        <module
-            class="LinearSplines"
-            name="LinearSplines"
-            points =
-                "0 0 0 4; 1 10 5 0; 2 30 10 -1; 4 40 0 0"
-        />
-    </example>
 
-	<parameter name="points" description="(x, y) pairs for the splines" />
+	<parameter name="points" type="matrix" description="(x, y) pairs for the splines" />
 
     <input name="INPUT" description="Input signal" />
-	<output name="OUTPUT" description="The output" size_set="INPUT" />
+	<output name="OUTPUT" description="The output" size ="INPUT.size" />
 </class>

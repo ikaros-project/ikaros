@@ -29,21 +29,15 @@
         Finally, the convex combinations of inputs are calculated by first normalizaing the smoothed state and the calculating the weighted average of the inputs.
 	</description>
 
-	<example description="An example">
-		<module
-			class="Arbiter"
-			name="Arbiter"
-		/>
-	</example>
 
-    <parameter name="no_of_inputs" type="int" default="2" description="The number of inputs"/>
+    <parameter name="no_of_inputs" type="number" default="2" description="The number of inputs"/>
     <parameter name="metric" type="list" values="1/2" default="1" description="The metric use: city block or euclidean"/>
     <parameter name="arbitration" type="list" values="WTA/hysteresis/softmax/hierarchy" default="WTA" description="The arbitration function"/>
     <parameter name="by_row" type="bool" default="no" description="If set, the effects is equivalent to having one arbiter per row of the input"/>
-    <parameter name="softmax_exponent" type="float" default="2" description="The softmax exponent"/>
-    <parameter name="hysteresis_threshold" type="float" default="5" description="The value difference that needs to be passed for a switch"/>
-    <parameter name="switch_time" type="int" default="0" description="Number of ticks to switch over"/>
-    <parameter name="alpha" type="float" default="1" description="Smoothing constant (set to 1/switch_time if not set)"/>
+    <parameter name="softmax_exponent" type="number" default="2" description="The softmax exponent"/>
+    <parameter name="hysteresis_threshold" type="number" default="5" description="The value difference that needs to be passed for a switch"/>
+    <parameter name="switch_time" type="number" default="0" description="Number of ticks to switch over"/>
+    <parameter name="alpha" type="number" default="1" description="Smoothing constant (set to 1/switch_time if not set)"/>
 	<parameter name="debug" type="bool" default="false" description="Print out debug info"/>
 
 	<input name="*" description="A number of inputs named INPUT_1 and VALUE_1 etc" />
@@ -56,14 +50,7 @@
 	<output name="OUTPUT" description="The selected output" />
 	<output name="VALUE" size="1" description="The value of the current output; norm of the smoothed arbitration state (not implemented yet)"/>
 
-	<link class="Arbiter" />
 
-	<author>
-		<name>Christian Balkenius</name>
-		<email>christian.balkenius@lucs.lu.se</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
-	</author>
 
    <files>
    		<file>Arbiter.h</file>

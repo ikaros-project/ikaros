@@ -1,4 +1,12 @@
-<group name="Test">
-	<module class = "Cerebellum" name = "Cerebellum" />
-</group>
+<group name="Cerebellum_test">
+	<connection source="Input.OUTPUT" target="Cerebellum.INPUT" />
+	<connection source="State.OUTPUT" target="Cerebellum.STATE" />
+	<connection source="Target.OUTPUT" target="Cerebellum.TARGET" />
+	<connection source="Cerebellum.OUTPUT" target="Print.INPUT" />
 
+	<module class="Constant" name="Input" value="1" />
+	<module class="Constant" name="State" value="0" />
+	<module class="Constant" name="Target" value="0" />
+	<module class="Cerebellum" name="Cerebellum" />
+	<module class="Print" name="Print" />
+</group>

@@ -38,14 +38,7 @@
 
 
 
-	<link class="EpiVoice" />
 
-	<author>
-		<name>Christian Balkenius</name>
-		<email>christian.balkenius@lucs.lu.se</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-		<homepage>http://www.lucs.lu.se/Christian.Balkenius</homepage>
-	</author>
 
    <files>
    		<file>EpiVoice.h</file>

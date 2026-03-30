@@ -8,7 +8,7 @@
    <module _x="312" _y="288" class="Constant" data="0.1, 0.2, 0.3, 0.4, 0.5, 0.6" name="XYZAXAYAZ"/>
    <module _x="504" _y="288" angle_unit="degrees" class="RotationConverter" input_format="xyzaxayaz" name="rot_xyzaxayaz_to_mat" output_format="matrix"/>
    <module _x="768" _y="48" angle_unit="degrees" class="RotationConverter" input_format="matrix" name="rot_mat_to_xyz" output_format="xyz"/>
-   <module _x="768" _y="288" class="RotationConverter" input_format="matrix" log_level="0" name="rot_mat_to_xyzaxayaz" output_format="xyzaxayaz"/>
+   <module _x="768" _y="288" class="RotationConverter" input_format="matrix" name="rot_mat_to_xyzaxayaz" output_format="xyzaxayaz"/>
    <parameter control="menu" default="0" name="log_level" type="number" value="0"/>
    <parameter control="menu" default="0" name="log_level" type="number"/>
    <widget _index_="0" _x="264" _y="144" class="table" colorize="true" decimals="1" direction="normal" frame-style="" height="25" label_x="" label_y="" max="1" min="0" name="Widget_1" scrollable="false" select="" show_frame="false" show_title="false" source="XYZ.OUTPUT" style="" title="XYZ" width="169"/>

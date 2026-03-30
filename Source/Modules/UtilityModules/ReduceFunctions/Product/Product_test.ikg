@@ -1,11 +1,9 @@
-<group name="TestSum">
+<group name="TestProduct">
 	<module class = "Constant" name = "Constant" data="1, 1; 3, 4" />
-	<module class = "Sum" name = "Sum" />
+	<module class = "Product" name = "Product" />
 	<module class = "Print" name = "Print" />
 	<module class = "Logger" name = "Logger" />	
-	<connection  source = "Constant.OUTPUT"  	target = "Sum.INPUT" />
-	<connection  source = "Sum.OUTPUT"  target = "Print.INPUT" /
+	<connection  source = "Constant.OUTPUT"  	target = "Product.INPUT" />
+	<connection  source = "Product.OUTPUT"  target = "Print.INPUT" />
 
 </group>
-
-

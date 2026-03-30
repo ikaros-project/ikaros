@@ -1,61 +1,47 @@
 #include "ikaros.h"
 
-#include <math.h>
-
 using namespace ikaros;
 
 class Delta: public Module
 {
-    parameter decay_type;
-    parameter decay_rate;
-    parameter excitation_gain;
-    parameter inhibition_gain;
+    parameter alpha;
+    parameter inverse;
 
-    matrix excitation;
-    matrix inhibition;
-    matrix output;
-
-    double      x = 0;
+    matrix cs;
+    matrix us;
+    matrix cr;
+    matrix weights;
 
     void Init()
     {
-        Bind(decay_type, "decay_type");
-        Bind(excitation_gain, "excitation_gain");
-        Bind(inhibition_gain, "inhibition_gain");
+        Bind(alpha, "alpha");
+        Bind(inverse, "inverse");
 
-        Bind(excitation, "EXCITATION");
-        Bind(inhibition, "INHIBITION");
-        Bind(output, "OUTPUT");
+        Bind(cs, "CS");
+        Bind(us, "US");
+        Bind(cr, "CR");
     }
-
 
     void Tick()
     {
-        x += excitation_gain * excitation.sum() - inhibition_gain *inhibition.sum();
+        if (!cs.connected() || !us.connected())
+            return;
 
-        switch(decay_type.as_int())
-        {
-            case 0: // none
-                break;
+        if (weights.rank() == 0)
+            weights = matrix(cs.shape());
 
-            case 1: // linear
-                x -= decay_rate;
-                break;
+        float us_sum = us.sum();
+        float response = cs.dot(weights);
+        float delta = alpha.as_float() * (us_sum - response);
 
-            case 2: // exponential
-                x *= (1-decay_rate);
-                break;
+        if (delta > 0)
+            weights.apply(cs, [delta](float w, float stimulus) { return w + stimulus * delta; });
 
-            default:
-                break;
-        }
-
-        if(x  < 0)
-            x = 0;
-
-        output = x;
+        if (inverse.as_bool())
+            cr = std::max(0.0f, response - us_sum);
+        else
+            cr = response;
     }
 };
 
 INSTALL_CLASS(Delta)
-

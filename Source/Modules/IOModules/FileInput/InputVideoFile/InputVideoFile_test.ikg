@@ -4,7 +4,7 @@
 		<module
 			class = "InputVideoFile"
 			name = "InputVideoFile"
-            filename = "ikaros.mp4"
+            filename = "../Source/Modules/IOModules/FileInput/InputVideoFile/ikaros.mp4"
             _filename = "../../../../../Examples/Media/ikaros.mp4"
 			loop = "true"
 			size_x = "148"
@@ -29,7 +29,6 @@
 		y = "60"
 		flipXAxis = "no"
 		scale = "both"
-		class = "image"
 		scales = "no"
 		w = "4"
 		/>

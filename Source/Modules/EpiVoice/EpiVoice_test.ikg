@@ -5,7 +5,7 @@
 		<module
 			class = "Constant"
 			name = "MyConstant"
-			data  = "0 0 0 0 0 0"
+			data  = "0, 0, 0, 0, 0, 0"
 		/>
 
 		<module

@@ -7,10 +7,10 @@ Implementation of the Stauffer-Grimson forground/background segmentation for gra
 </description>
 
 
-<parameter name="T" type="float" default="0.8" description="The background portion"/>
+<parameter name="T" type="number" default="0.8" description="The background portion"/>
 <parameter name="threshold" type="number" default="2.5" description="The threshold as value times standard deviation"/>
 <parameter name="max_gaussians" type="number" default="5" description="Number of gaussians per pixel" />
-<parameter name="initial_variance" type="float" default="100" description="The initial variance"/>
+<parameter name="initial_variance" type="number" default="100" description="The initial variance"/>
 <parameter name="learning_rate" type="rate" default="0.01" description="The learning rate"/>
 
 

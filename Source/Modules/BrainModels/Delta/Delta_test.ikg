@@ -1,4 +1,9 @@
-<group name="Test">
-	<module class = "Delta" name = "Delta" />
+<group name="Delta_test">
+	<module class="Constant" name="CS" data="1" />
+	<module class="Constant" name="US" data="1" />
+	<module class="Delta" name="Delta" />
+	<module class="Print" name="Print" />
+	<connection source="CS.OUTPUT" target="Delta.CS" />
+	<connection source="US.OUTPUT" target="Delta.US" />
+	<connection source="Delta.CR" target="Print.INPUT" />
 </group>
-

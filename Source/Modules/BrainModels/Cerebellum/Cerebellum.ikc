@@ -1,14 +1,14 @@
-<class name="Delta" description="A neuron model with delta function response">
+<class name="Cerebellum" description="A cerebellar learning model">
 
 	<parameter name="learning_rate" type="rate" default="0.1" description="learning rate" />
 	
-	<parameter name="ISI_mean" type="number" default="0" description="optimal inter-stimulus interval (in seconds)" />
-	<parameter name="ISI_sigma" type="number" default="0" description="standard deviation of the curve (in seconds)" />
-	<parameter name="ISI_tau" type="number" default="0" description="exponential decay of the curve (in seconds)" />
+	<parameter name="isi_mu" type="number" default="0" description="optimal inter-stimulus interval (in seconds)" />
+	<parameter name="isi_sigma" type="number" default="0" description="standard deviation of the curve (in seconds)" />
+	<parameter name="isi_tau" type="number" default="0" description="exponential decay of the curve (in seconds)" />
 
 	<input name="INPUT" description="The  input" flatten="true" />
-	<output name="W" description="The weights" size="1"/>
+	<input name="STATE" description="The current state" flatten="true" />
+	<input name="TARGET" description="The target signal" flatten="true" />
 	<output name="OUTPUT" description="The output" size="1"/>
 
 </class>
-

@@ -1,5 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-#add_subdirectory(EnergyMeter)
+add_subdirectory(EnergyMeter)
 add_subdirectory(Logger)
 add_subdirectory(Idle)
 add_subdirectory(Constant)
@@ -27,6 +27,7 @@ add_subdirectory(SequenceRecorder)
 
 add_subdirectory(LinearSplines)
 add_subdirectory(PythonModule)
+add_subdirectory(Softmax)
 
 add_subdirectory(KernelTestModules)
 

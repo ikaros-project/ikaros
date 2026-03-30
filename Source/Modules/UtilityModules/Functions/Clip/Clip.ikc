@@ -1,6 +1,6 @@
 <class name="Clip" description="clips the input between a minimum and maximum value">
-	<parameter name="a" type="float" default="0" />
-	<parameter name="b" type="float" default="1" />
+	<parameter name="a" type="number" default="0" />
+	<parameter name="b" type="number" default="1" />
 	<input name="INPUT" description="The input" />
 	<output name="OUTPUT" description="The output" size="INPUT.size" />
 </class>

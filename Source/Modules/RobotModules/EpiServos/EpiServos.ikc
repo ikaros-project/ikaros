@@ -36,14 +36,6 @@
 
 	</description>
 
-	<example description="A simple example">
-		<module
-			class="EpiServo"
-			name="EpiServo"
-			robot = "EpiWhite"
-			simulate = "true"
-		/>
-	</example>
 
 
     <!--<parameter name="robot" type="list" values="EpiWhite/EpiGreen/EpiBlue/EpiBlack" default="EpiWhite" descrition="Robot to connect to." />-->

@@ -6,7 +6,7 @@
 			class = "Constant"
 			name = "MyConstant"
 			outputsize  = "2"
-			data  = "1 2"
+			data  = "1, 2"
 		/>
 		<module
 		  class       =   "FunctionGenerator"

@@ -1,20 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500">
-  <rect width="100%" height="100%" fill="white"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="680" viewBox="0 0 1440 680">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2b2b2b"/>
+    </marker>
+  </defs>
 
-  <line x1="70" y1="250.0" x2="308" y2="250.0" stroke="#333333" stroke-width="5"/>
-  <polygon points="308,240.0 328,250.0 308,260.0" fill="#333333"/>
+  <rect x="360" y="90" width="720" height="430" rx="28" ry="28" fill="#fffaf0" stroke="#725b2d" stroke-width="5"/>
+  <text x="720" y="160" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="700" fill="#1e1b16">Delta Rule</text>
+  <text x="720" y="208" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="26" fill="#4a4032">Associative learning by prediction error</text>
 
-  <line x1="862" y1="140" x2="1040" y2="140" stroke="#333333" stroke-width="5"/>
-  <polygon points="1040,130 1060,140 1040,150" fill="#333333"/>
+  <line x1="110" y1="260" x2="340" y2="260" stroke="#2b2b2b" stroke-width="5" marker-end="url(#arrow)"/>
+  <line x1="110" y1="370" x2="340" y2="370" stroke="#2b2b2b" stroke-width="5" marker-end="url(#arrow)"/>
+  <line x1="1100" y1="260" x2="1320" y2="260" stroke="#2b2b2b" stroke-width="5" marker-end="url(#arrow)"/>
 
-  <line x1="862" y1="210" x2="1040" y2="210" stroke="#333333" stroke-width="5"/>
-  <polygon points="1040,200 1060,210 1040,220" fill="#333333"/>
+  <text x="150" y="230" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#1e1b16">CS</text>
+  <text x="150" y="340" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#1e1b16">US</text>
+  <text x="1130" y="230" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#1e1b16">CR</text>
 
-  <text x="120" y="225.0" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#141414">INPUT</text>
+  <rect x="420" y="225" width="210" height="80" rx="14" ry="14" fill="#dbe8c8" stroke="#51633a" stroke-width="3"/>
+  <text x="525" y="273" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#1e1b16">dot(CS, w)</text>
 
-  <text x="900" y="115" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#141414">W</text>
-  <text x="900" y="185" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#141414">OUTPUT</text>
+  <rect x="730" y="225" width="250" height="80" rx="14" ry="14" fill="#f4d9a7" stroke="#8b6a2b" stroke-width="3"/>
+  <text x="855" y="273" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#1e1b16">alpha * (US - CR)</text>
 
-  <rect x="340" y="70" width="520" height="360" rx="20" ry="20" fill="#E8F0FF" stroke="#3C5AB4" stroke-width="4"/>
-  <text x="600.0" y="250.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="700" fill="#141414">Delta</text>
+  <line x1="630" y1="265" x2="730" y2="265" stroke="#2b2b2b" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="340" y1="260" x2="420" y2="260" stroke="#2b2b2b" stroke-width="4"/>
+  <line x1="340" y1="370" x2="855" y2="370" stroke="#2b2b2b" stroke-width="4"/>
+  <line x1="855" y1="370" x2="855" y2="305" stroke="#2b2b2b" stroke-width="4" marker-end="url(#arrow)"/>
+  <line x1="630" y1="265" x2="630" y2="430" stroke="#2b2b2b" stroke-width="4"/>
+  <line x1="630" y1="430" x2="700" y2="430" stroke="#2b2b2b" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="700" y="395" width="280" height="85" rx="14" ry="14" fill="#cfe2f3" stroke="#3f6486" stroke-width="3"/>
+  <text x="840" y="428" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="27" fill="#1e1b16">if delta &gt; 0</text>
+  <text x="840" y="460" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="27" fill="#1e1b16">w = w + CS * delta</text>
+
+  <line x1="980" y1="265" x2="1075" y2="265" stroke="#2b2b2b" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <text x="720" y="590" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#3b342a">Classic Widrow-Hoff delta learning for conditioned responses</text>
 </svg>

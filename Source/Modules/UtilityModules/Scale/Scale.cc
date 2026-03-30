@@ -15,7 +15,8 @@ class Scale : public Module
         Bind(input, "INPUT");
         Bind(output, "OUTPUT");
         Bind(factor, "factor");
-        Bind(scale, "SCALE");
+        if(kernel().buffers.count(path_ + ".SCALE")) // FIXME: this is a bit hacky - need to check if input is connected
+            Bind(scale, "SCALE");
     }
 
     void Tick()

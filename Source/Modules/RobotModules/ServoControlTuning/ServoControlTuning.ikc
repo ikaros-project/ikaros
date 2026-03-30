@@ -75,13 +75,7 @@
 
 	
 
-	<link class="ServoControlTuning" />
 
-	<author>
-		<name>Pierre Klintefors</name>
-		<email>pierre.klintefors@lucs.lu.se</email>
-		<affiliation>Lund University Cognitive Science</affiliation>
-	</author>
    <limitations>
 		Only mac support.
    </limitations>

@@ -1,4 +1,4 @@
-<group name="SumInputExample" description="Example network for the Python SumInput class" start="true" stop="0" webui_port="8000">
+<group name="SumInputExample" description="Example network for the Python SumInput class" start="true">
     <module class="Constant" name="InputValues" data="1,2,3,4">
         <parameter name="data" type="matrix" value="1,2,3,4"/>
         <output name="OUTPUT" size="data.size"/>

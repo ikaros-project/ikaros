@@ -19,8 +19,8 @@
    </module>
    <module _x="336" _y="96" buffer_size="2205" class="OutputAudio" description="Plays audio received as input" log_level="5" name="audio" sample_rate="22050">
       <input description="Audio buffer to play" name="INPUT"/>
-      <parameter default="44100" description="Sample rate of the audio" name="sample_rate" type="int" value="22050"/>
-      <parameter default="4096" description="Size of the audio buffer" name="buffer_size" type="int" value="2205"/>
+      <parameter default="44100" description="Sample rate of the audio" name="sample_rate" type="number" value="22050"/>
+      <parameter default="4096" description="Size of the audio buffer" name="buffer_size" type="number" value="2205"/>
    </module>
    <module class="Logger" description="logs start to Ikaros site" log_level="5" name="Logger">
    </module>

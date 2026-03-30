@@ -1,20 +1,20 @@
 <?xml version="1.0"?>
 
-<group>
+<group name="MatrixMultiply_test">
 	
 		<module class = "Constant" name = "Constant1" outputsize_x = "2" outputsize_y = "5"
 			data = "
-				1 0
-				2 0
-				3 0
-				4 0
-				5 0"
+				1, 0;
+				2, 0;
+				3, 0;
+				4, 0;
+				5, 0"
 			/>
 	
 		<module class = "Constant" name = "Constant2" outputsize_x = "5" outputsize_y = "2"
 			data = "
-				1 2 3 4 5
-				5 4 3 2 1"
+				1, 2, 3, 4, 5;
+				5, 4, 3, 2, 1"
 		/>
 
 		<module
@@ -40,7 +40,7 @@
 		<module
 		class = "Constant"
 		name = "Constant3"
-		data  = "1 2"
+		data  = "1, 2"
 		/>
 		<connection source = "Constant3.OUTPUT"  target = "Product3.INPUT1" />
 		<connection source = "Constant3.OUTPUT"  target = "Product3.INPUT2" />
@@ -48,7 +48,7 @@
 		<module
 		class = "Constant"
 		name = "Constant4"
-		data  = "1 2; 3 4"
+		data  = "1, 2; 3, 4"
 		/>
 		<connection source = "Constant4.OUTPUT"  target = "Product4.INPUT1" />
 		<connection source = "Constant3.OUTPUT"  target = "Product4.INPUT2" />

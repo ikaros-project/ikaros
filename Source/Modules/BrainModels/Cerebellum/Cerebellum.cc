@@ -23,7 +23,7 @@ class Cerebellum: public Module
         Bind(learning_rate, "learning_rate");
         Bind(isi_mu, "isi_mu");
         Bind(isi_sigma, "isi_sigma");
-        Bind(isi_sigma, "isi_tau");
+        Bind(isi_tau, "isi_tau");
 
         Bind(input, "INPUT");
         Bind(state, "STATE");
@@ -45,4 +45,3 @@ class Cerebellum: public Module
 };
 
 INSTALL_CLASS(Cerebellum)
-

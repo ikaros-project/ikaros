@@ -4,8 +4,7 @@
 	<module class = "Print" name = "Print" />
 	<module class = "Logger" name = "Logger" />	
 	<connection  source = "Constant.OUTPUT"  	target = "Median.INPUT" />
-	<connection  source = "Median.OUTPUT"  target = "Print.INPUT" /
+	<connection  source = "Median.OUTPUT"  target = "Print.INPUT" />
 
 </group>
-
 

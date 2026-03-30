@@ -1,4 +1,4 @@
-<group filename="" name="Jpeg" stop="-1" webui_port="8000">
+<group filename="" name="Jpeg">
    <module _x="168" _y="216" class="InputJPEG" filename="../Examples/Media/grayrobot.jpg" iterations="1000" name="IN">
       <limitation/>
    </module>

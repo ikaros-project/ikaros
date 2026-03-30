@@ -19,7 +19,7 @@
          <module _x="600" _y="550" class="Scale" description="does nothing for the specified time" duration="1" name="123">
             <input description="The  input" name="INPUT"/>
             <output description="The output" name="OUTPUT" size="INPUT.size"/>
-            <parameter default="1" name="factor" type="float" value="1"/>
+            <parameter default="1" name="factor" type="number" value="1"/>
          </module>
          <module _x="50" _y="200" class="Constant" description="does nothing for the specified time" duration="1" name="Constant">
             <output description="The output" name="OUTPUT" size="data.size"/>
@@ -28,7 +28,7 @@
          <module _x="50" _y="450" class="Scale" description="does nothing for the specified time" duration="1" name="789">
             <input description="The  input" name="INPUT"/>
             <output description="The output" name="OUTPUT" size="INPUT.size"/>
-            <parameter default="1" name="factor" type="float" value="1"/>
+            <parameter default="1" name="factor" type="number" value="1"/>
          </module>
          <output _x="600" _y="300" name="GROUP_OUTPUT" size="1"/>
          <output _x="600" _y="100" name="X_OUTPUT" size="2"/>

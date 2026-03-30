@@ -1,9 +1,9 @@
 <class name="SpikingPopulation" description="Simulates a population of spiking neurons">
-	<parameter name="population_size" type="int" default="1" description="Number of units in population" />
-	<parameter name="substeps" type="int" default="2" description="Number of substeps when calculating voltage" />
-	<parameter name="model_type" type="options" options="Izhikevich" default="Izhikevich" />
-	<parameter name="neuron_type" type="options" options="regular_spiking, intrinsically_bursting, chattering, fast_spiking, low_threshold, resonator" default="regular_spiking" />
-	<parameter name="threshold" type="float" default="30" description="Threshold value for firing" />
+	<parameter name="population_size" type="number" default="1" description="Number of units in population" />
+	<parameter name="substeps" type="number" default="2" description="Number of substeps when calculating voltage" />
+	<parameter name="model_type" type="number" default="0" description="Neuron model: 0=Izhikevich" />
+	<parameter name="neuron_type" type="number" default="0" description="Neuron type: 0=regular_spiking, 1=intrinsically_bursting, 2=chattering, 3=fast_spiking, 4=low_threshold, 5=resonator" />
+	<parameter name="threshold" type="number" default="30" description="Threshold value for firing" />
 	<parameter name="debugmode" type="bool" default="false" />
 
 	<input name="EXCITATION" description="The excitatory input" optional="yes" flatten="yes" />

@@ -2,8 +2,8 @@
  
      
     <group name="image" sx="11" sy="22">
-        <parameter name="sx" type="int" default="10" />
-        <parameter name="sx" type="int" default="20" />
+        <parameter name="sx" type="number" default="10" />
+        <parameter name="sx" type="number" default="20" />
 
         <output name="OUTPUT" size="30, 40" />
     </group>

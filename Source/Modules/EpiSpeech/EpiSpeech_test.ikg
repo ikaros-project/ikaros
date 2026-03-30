@@ -1,31 +1,25 @@
-<group filename="" log_level="5" name="EpiSpeech" stop="-1" title="EpiSpeech Example" webui_port="8000">
+<group filename="" name="EpiSpeech" title="EpiSpeech Example">
    <connection source="Command.OUTPUT" target="EpiSpeech.TRIG"/>
    <connection source="Inhibition.OUTPUT" target="EpiSpeech.INHIBITION"/>
    <connection source="Attribute1.OUTPUT" target="EpiSpeech.ATTRIBUTE1"/>
    <connection source="Attribute2.OUTPUT" target="EpiSpeech.ATTRIBUTE2"/>
-   <module _x="24" _y="96" class="Constant" data="0 0 0 0 0 0" description="outputs a constant value" log_level="5" name="Command">
+   <module _x="24" _y="96" class="Constant" data="0, 0, 0, 0, 0, 0" description="outputs a constant value" name="Command">
       <output description="The output" name="OUTPUT" size="data.size"/>
-      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="0 0 0 0 0 0"/>
+      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="0, 0, 0, 0, 0, 0"/>
    </module>
-   <module _x="24" _y="240" class="Constant" data="0 0 0" description="outputs a constant value" log_level="5" name="Attribute1">
+   <module _x="24" _y="240" class="Constant" data="0, 0, 0" description="outputs a constant value" name="Attribute1">
       <output description="The output" name="OUTPUT" size="data.size"/>
-      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="0 0 0"/>
+      <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="0, 0, 0"/>
    </module>
-   <module _x="24" _y="312" class="Constant" data="0.5" description="outputs a constant value" log_level="5" name="Attribute2">
+   <module _x="24" _y="312" class="Constant" data="0.5" description="outputs a constant value" name="Attribute2">
       <output description="The output" name="OUTPUT" size="data.size"/>
       <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="0.5"/>
    </module>
-   <module _x="24" _y="168" class="Constant" data="0" description="outputs a constant value" log_level="5" name="Inhibition">
+   <module _x="24" _y="168" class="Constant" data="0" description="outputs a constant value" name="Inhibition">
       <output description="The output" name="OUTPUT" size="data.size"/>
       <parameter control="textedit" default="1, 2, 3, 4, 5, 6" description="output from module" name="data" type="matrix" value="0"/>
    </module>
-   <module _x="312" _y="144" class="EpiSpeech" description="reads a text using Apple's speech synthesis" log_level="5" name="EpiSpeech" text="one,two,three,111, robotic beings rule the world, the humans are dead." voice="Noelle (Enhanced)">
-      <author>
-         <affiliation/>
-         <email/>
-         <homepage/>
-         <name/>
-      </author>
+   <module _x="312" _y="144" class="EpiSpeech" description="reads a text using Apple's speech synthesis" name="EpiSpeech" text="one,two,three,111, robotic beings rule the world, the humans are dead." voice="Noelle (Enhanced)">
       <description type="text"/>
       <files>
          <file/>
@@ -36,7 +30,6 @@
       <input description="No new sound is started while this input > 0. A single triggering input will be queued and start when the inhibition is removed." name="INHIBITION"/>
       <input description="Data to phrase as a feature vector or a number value." name="ATTRIBUTE1" optional="yes"/>
       <input description="Data to phrase as a feature vector or a number value" name="ATTRIBUTE2" optional="yes"/>
-      <link class="EpiSpeech"/>
       <output description="Set to 1 while a sound is playing, otherwise 0." name="PLAYING" size="TRIG.size"/>
       <output description="Element for each sound set to 1 for one tick after a sound has complted playing." name="COMPLETED" size="TRIG.size"/>
       <output description="Set to 1 while a sound is playing, otherwise 0." name="ACTIVE" size="1"/>
@@ -49,7 +42,7 @@
       <parameter control="textedit" default="1.0" description="factor for scaling the volume output (not the actual volume)." name="scale_volume" type="number" value="1.0"/>
       <parameter control="textedit" default="100.0" description="Lag in seconds before the sound starts. Used to correct timing of volume output for better animations." name="lag" type="number" value="100.0"/>
    </module>
-   <module _x="48" _y="408" class="Logger" description="logs start to Ikaros site" log_level="5" name="Logger">
+   <module _x="48" _y="408" class="Logger" description="logs start to Ikaros site" name="Logger">
    </module>
    <view name="Controls">
       <bar-graph auto="false" color="" direction="vertical" fill="" frame-style="" height="201" labels="" lineCap="" lineJoin="" lineWidth="1" max="1" min="0" module="Command" show_frame="false" show_title="true" source="Command.OUTPUT" style="" title="Sound Triggers" transpose="false" w="3" width="701" x="60" y="20"/>

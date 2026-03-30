@@ -1,13 +1,14 @@
-<class name="Delta" description="A neuron model with delta function response">
+<class name="Delta" description="Learning using the delta rule">
 
-	<parameter name="learning_rate" type="rate" default="0.1" description="learning rate" />
-	
-	<parameter name="ISI_mean" type="number" default="0" description="optimal inter-stimulus interval (in seconds)" />
-	<parameter name="ISI_sigma" type="number" default="0" description="ostandard deviation of the curve (in seconds)" />
+	<description type="text">
+		Simple conditioning model. Acquisition only. Learning using the delta rule with a linear output function.
+	</description>
 
-	<input name="INPUT" description="The  input" flatten="true" />
-	<output name="W" description="The weights" size="1"/>
-	<output name="OUTPUT" description="The output" size="1"/>
+	<parameter name="alpha" type="number" default="0.1" description="learning rate" />
+	<parameter name="inverse" type="bool" default="no" description="Set CR to max(0, CR-US) to imitate cerebellar inhibition." />
+
+	<input name="CS" description="The conditioned stimulus input" optional="yes" />
+	<input name="US" description="The unconditioned stimulus input" optional="yes" />
+	<output name="CR" description="The conditioned response" size="1"/>
 
 </class>
-
