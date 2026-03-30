@@ -4,5 +4,4 @@
    <module class="Oscillator" description="basic sin oscillator; one output per frequency value" frequency="440" name="Oscillator" sample_rate="22050" type="sin"/>
    <module class="Oscillator" description="basic sin oscillator; one output per frequency value" frequency="2" name="Modulator" type="square"/>
    <module _x="336" _y="96" buffer_size="2205" class="OutputAudio" description="Plays audio received as input" name="audio" sample_rate="22050"/>
-   <module class="Logger" description="logs start to Ikaros site" name="Logger"/>
 </group>

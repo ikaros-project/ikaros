@@ -8,7 +8,6 @@
    <module _x="24" _y="312" class="Constant" data="0.5" description="outputs a constant value" name="Attribute2"/>
    <module _x="24" _y="168" class="Constant" data="0" description="outputs a constant value" name="Inhibition"/>
    <module _x="312" _y="144" class="EpiSpeech" description="reads a text using Apple's speech synthesis" name="EpiSpeech" text="one,two,three,111, robotic beings rule the world, the humans are dead." voice="Noelle (Enhanced)"/>
-   <module _x="48" _y="408" class="Logger" description="logs start to Ikaros site" name="Logger"/>
    <view name="Controls">
       <bar-graph auto="false" color="" direction="vertical" fill="" frame-style="" height="201" labels="" lineCap="" lineJoin="" lineWidth="1" max="1" min="0" module="Command" show_frame="false" show_title="true" source="Command.OUTPUT" style="" title="Sound Triggers" transpose="false" w="3" width="701" x="60" y="20"/>
       <bar-graph auto="false" color="" direction="vertical" fill="" frame-style="" height="200" labels="" lineCap="" lineJoin="" lineWidth="1" max="5" min="-100" show_frame="false" show_title="true" source="EpiSpeech.RMS" style="" title="VU" transpose="false" width="200" x="780" y="20"/>

@@ -12,7 +12,6 @@
    <module _x="72.000000" _y="144.000000" class="Constant" data="15; 0" description="outputs a constant value" name="GoalPos"/>
    <module _x="72.000000" _y="144.000000" class="Constant" data="15; 0" description="outputs a constant value" name="StartingPos"/>
    <module _x="312.000000" _y="72.000000" class="ForceCheck" description="Checks current level" name="ForceCheck"/>
-   <module _x="0.000000" _y="288.000000" class="Logger" description="logs start to Ikaros site" name="Logger"/>
    <module _x="192.000000" _y="264.000000" class="Add" description="adds two inputs" name="Add"/>
 
    <view name="View">
