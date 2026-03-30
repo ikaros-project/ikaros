@@ -1,9 +1,13 @@
-<group name="CannyEdge_Test">
-    <module class="Constant" name="ImageSource" data="0.1, 0.1, 0.1, 0.1; 0.1, 0.9, 0.9, 0.1; 0.1, 0.9, 0.9, 0.1; 0.1, 0.1, 0.1, 0.1" />
-    <module class="CannyEdgeDetector" name="EdgeDetector" sigma="1.0" low_threshold="0.1" high_threshold="0.3" />
-    <connection source="ImageSource.OUTPUT" target="EdgeDetector.INPUT" />
-
-
-
+<group filename="" name="CannyEdge_Test">
+   <connection source="ImageSource.OUTPUT" target="EdgeDetector.INPUT"/>
+   <connection delay="1" source="Video.INTENSITY" target="EdgeDetector.INPUT"/>
+   <connection delay="1" source="Video.INTENSITY" target="Sobel.INPUT"/>
+   <module _x="336" _y="624" class="CannyEdgeDetector" high_threshold="0.5" low_threshold="0.1" name="EdgeDetector" sigma="5"/>
+   <module _x="120" _y="576" class="InputVideo" name="Video"/>
+   <module _x="336" _y="720" class="SobelEdgeDetector" name="Sobel" sigma="1"/>
+   <widget _index_="0" _x="24" _y="72" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="rgb" frame-style="" height="433" index="" max="1" max_x="1" max_y="1" min="0" min_x="0" min_y="0" module="" name="Widget_1" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="true" show_title="false" source="Video.OUTPUT" style="" title="Input" width="553"/>
+   <widget _index_="2" _x="600" _y="72" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="gray" frame-style="" height="433" index="" max="1" max_x="1" max_y="1" min="0" min_x="0" min_y="0" module="" name="Widget_2" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="true" show_title="false" source="EdgeDetector.OUTPUT" style="" title="Output" width="577"/>
+   <widget _index_="4" _x="600" _y="528" class="slider-horizontal" count="1" frame-style="" height="73" labels="" max="0.2" min="0" name="Widget_3" parameter="EdgeDetector.low_threshold" select="0" show_frame="false" show_title="true" show_values="false" source="" step="0.001" style="" title="Lower" width="217"/>
+   <widget _index_="6" _x="840" _y="528" class="slider-horizontal" count="1" frame-style="" height="73" labels="" max="0.2" min="0" name="Widget_4" parameter="EdgeDetector.high_threshold" select="0" show_frame="false" show_title="true" show_values="false" source="" step="0.001" style="" title="Upper" width="193"/>
+   <widget _index_="8" _x="600" _y="600" class="image" command="" file="" flipXAxis="no" flipXCanvas="no" flipYAxis="no" flipYCanvas="no" format="gray" frame-style="" height="433" index="" max="1" max_x="1" max_y="1" min="0" min_x="0" min_y="0" module="" name="Widget_5" opacity="1" opacity_source="" scale="both" scales="no" select="" show_frame="true" show_title="false" source="Sobel.OUTPUT" style="" title="Sobel" width="577"/>
 </group>
-
