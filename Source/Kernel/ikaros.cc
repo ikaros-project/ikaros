@@ -592,7 +592,12 @@ namespace ikaros
             if(path.find('.') == std::string::npos)
                 return GetValue(path.substr(1));
             else
-                return GetValue(exchange_before_dot(path, GetValue( before_dot(path).substr(1))));
+            {
+                std::string prefix = GetValue(before_dot(path).substr(1));
+                if(prefix.empty())
+                    return "";
+                return GetValue(exchange_before_dot(path, prefix));
+            }
         }
 
         if(path[0]=='.')
@@ -613,7 +618,7 @@ namespace ikaros
             std::string local_path = path_+'.'+head;
             if(kernel().components.count(local_path))
                 return kernel().components[local_path]->GetValue(tail);
-            else if(std::string(parent_->info_["name"]) == head)
+            else if(parent_ && std::string(parent_->info_["name"]) == head)
                 return parent_->GetValue(tail);
             else
                 return ""; // throw exception("Name not found"); // throw not_found_exception instead 
