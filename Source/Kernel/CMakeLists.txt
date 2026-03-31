@@ -13,6 +13,7 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/xml.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/thread_pool.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/ikaros.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/session_logging.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/serial_bsd.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/socket.cc
@@ -35,6 +36,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/signal.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/xml.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/thread_pool.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/ikaros.cc
+${CMAKE_CURRENT_SOURCE_DIR}/session_logging.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/main.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/serial_bsd.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/socket_bsd.cc
@@ -45,4 +47,3 @@ ${CMAKE_CURRENT_SOURCE_DIR}/image_file_formats.cc
     PARENT_SCOPE
 	)
 endif()
-

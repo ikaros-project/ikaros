@@ -67,6 +67,12 @@ main(int argc, char *argv[])
                 socket_initialized = false;
             }
         };
+        auto shutdown_and_exit = [&](int code) -> int
+        {
+            k.LogProcessExit();
+            shutdown_batch_http();
+            return code;
+        };
 
     while(k.run_mode.load() != run_mode_quit && !global_terminate.load())
         {
@@ -123,8 +129,7 @@ main(int argc, char *argv[])
                 std::cout << "Load failed. "+e.message() << std::endl;
                 if(o.is_set("batch_mode"))
                 {
-                    shutdown_batch_http();
-                    exit(1);
+                    return shutdown_and_exit(1);
                 }
                 k.options_.path_.clear();
             }
@@ -134,8 +139,7 @@ main(int argc, char *argv[])
                 std::cerr << "Ikaros:: Fatal error: " << e.what() << std::endl;
                 if(o.is_set("batch_mode"))
                 {
-                    shutdown_batch_http();
-                    exit(1);
+                    return shutdown_and_exit(1);
                 }
                 else
                 {   
@@ -144,18 +148,22 @@ main(int argc, char *argv[])
                 }                    
             }
         }
+
+        k.LogProcessExit();
+        shutdown_batch_http();
+        std::cout << "\nIkaros 3.0 Ended" << std::endl;
+        return 0;
     }
     catch(std::exception & e)
     {
+        kernel().LogProcessExit();
         std::cerr << std::string(e.what()) << std::endl;
-        exit(1);
+        return 1;
     }
     catch(...)
     {
+        kernel().LogProcessExit();
         std::cout << "Ikaros: Internal Error" << std::endl;
-        exit(1);
+        return 1;
     }
-
-    std::cout << "\nIkaros 3.0 Ended" << std::endl;
-    return 0;
 }

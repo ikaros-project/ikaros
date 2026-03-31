@@ -1,6 +1,7 @@
 // Ikaros 3.0
 
 #include "ikaros.h"
+#include "session_logging.h"
 
 using namespace ikaros;
 using namespace std::chrono;
@@ -1628,6 +1629,11 @@ bool operator==(Request & r, const std::string s)
         actual_tick_duration = tick_duration;
         idle_time = 0;
         stop_after = -1;
+        lag = 0;
+        lag_min = 0;
+        lag_max = 0;
+        lag_sum = 0;
+        session_logging_active = false;
         shutdown = false;
     }
 
@@ -1999,6 +2005,10 @@ bool operator==(Request & r, const std::string s)
         idle_time(0),
         stop_after(-1),
         tick_duration(1),
+        lag(0),
+        lag_min(0),
+        lag_max(0),
+        lag_sum(0),
         shutdown(false),
         session_id(new_session_id()),
         needs_reload(true)
@@ -2431,12 +2441,35 @@ bool operator==(Request & r, const std::string s)
     }
 
 
-     dictionary 
-     Kernel::GetModuleInstantiationInfo()
-     {
+    dictionary 
+    Kernel::GetModuleInstantiationInfo()
+    {
         dictionary d;
-        d["Constant"] = "1";
-        d["Print"] = "2";
+        std::map<std::string, int> class_counts;
+
+        for(const auto & [path, component] : components)
+        {
+            (void)path;
+            if(component == nullptr)
+                continue;
+
+            std::string class_name = component->info_.contains("class") ? std::string(component->info_["class"]) : "";
+            if(class_name.empty())
+                class_name = component->Info();
+            if(class_name.empty())
+                class_name = "unknown";
+
+            class_counts[class_name]++;
+        }
+
+        std::vector<std::string> summary_entries;
+        summary_entries.reserve(class_counts.size());
+        for(const auto & [class_name, count] : class_counts)
+            summary_entries.push_back(class_name + ":" + std::to_string(count));
+
+        d["module_count"] = static_cast<int>(components.size());
+        d["class_count"] = static_cast<int>(class_counts.size());
+        d["classes"] = join(",", summary_entries, false);
         return d;
      }
 
@@ -2462,10 +2495,7 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::LogStart()
     {
-        Socket socket;
-        char b[2048];
-        socket.Get("www.ikaros-project.org", 80, "GET /start3/ HTTP/1.1\r\nHost: www.ikaros-project.org\r\nConnection: close\r\n\r\n", b, 1024);
-        socket.Close();
+        LogSessionEvent("/start3/", "start");
     }
 
 
@@ -2473,10 +2503,25 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::LogStop()
     {
-        Socket socket;
-        char b[2048];
-        socket.Get("www.ikaros-project.org", 80, "GET /stop3/ HTTP/1.1\r\nHost: www.ikaros-project.org\r\nConnection: close\r\n\r\n", b, 1024);
-        socket.Close();
+        LogSessionEvent("/stop3/", "stop");
+    }
+
+
+    void
+    Kernel::LogProcessExit()
+    {
+        if(process_exit_logged)
+            return;
+
+        process_exit_logged = true;
+        SendProcessExitLogEvent(*this);
+    }
+
+
+    void
+    Kernel::LogSessionEvent(const std::string & endpoint, const std::string & event_name)
+    {
+        SendSessionLogEvent(*this, endpoint, event_name);
     }
 
     void 
@@ -2842,7 +2887,6 @@ bool operator==(Request & r, const std::string s)
                 //ListTasks();
             }
 
-            LogStart();
             //PrintLog();
         }
         catch(exception & e)
@@ -3024,7 +3068,11 @@ bool operator==(Request & r, const std::string s)
         tick = -1;
         timer.Pause();
         timer.SetPauseTime(0);
-        LogStop();
+        if(session_logging_active)
+        {
+            LogStop();
+            session_logging_active = false;
+        }
         PrintProfiling();
         Clear(); // Delete all modules
         needs_reload = true;
@@ -3052,10 +3100,16 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::Realtime()
     {
-            if(needs_reload)
+        if(needs_reload)
             LoadFile();
     
         Pause();
+        if(!session_logging_active)
+        {
+            session_timer.Restart();
+            LogStart();
+            session_logging_active = true;
+        }
         timer.Continue(); 
         run_mode = run_mode_realtime;
     }
@@ -3068,6 +3122,12 @@ bool operator==(Request & r, const std::string s)
         if(needs_reload)
             LoadFile();
 
+        if(!session_logging_active)
+        {
+            session_timer.Restart();
+            LogStart();
+            session_logging_active = true;
+        }
         run_mode = run_mode_play;
         timer.Continue();
     }

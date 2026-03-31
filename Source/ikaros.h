@@ -412,6 +412,8 @@ public:
 
     long                                    session_id;
     bool                                    needs_reload;
+    bool                                    session_logging_active = false;
+    bool                                    process_exit_logged = false;
 
     std::recursive_mutex                    kernelLock;  
     std::atomic<bool>                       shutdown;
@@ -426,6 +428,7 @@ public:
     double                                  last_cpu = 0;
 
     Timer                                   uptime_timer;   // Measues kernel uptime
+    Timer                                   session_timer;  // Measures elapsed wall-clock time for a logged run
     Timer                                   timer;          // Main timer
     Timer                                   intra_tick_timer;
     bool                                    start;          // Start automatically                   
@@ -521,6 +524,8 @@ public:
 
     void LogStart();
     void LogStop();
+    void LogSessionEvent(const std::string & endpoint, const std::string & event_name);
+    void LogProcessExit();
 
     std::string json();
     std::string xml();
