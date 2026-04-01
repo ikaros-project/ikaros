@@ -9,6 +9,18 @@ set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 # Project name
 project(ikaros)
 
+# Configure logging with for example:
+#   cmake -S . -B Build -DLOGGING=OFF
+#   cmake -S . -B Build -DLOGGING=MINIMAL
+#   cmake -S . -B Build -DLOGGING=FULL
+set(LOGGING "FULL" CACHE STRING "Logging mode: OFF, MINIMAL, or FULL")
+set_property(CACHE LOGGING PROPERTY STRINGS OFF MINIMAL FULL)
+string(TOUPPER "${LOGGING}" LOGGING)
+
+if(NOT LOGGING STREQUAL "OFF" AND NOT LOGGING STREQUAL "MINIMAL" AND NOT LOGGING STREQUAL "FULL")
+    message(FATAL_ERROR "LOGGING must be one of: OFF, MINIMAL, FULL")
+endif()
+
 # Checking OS
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    # Mac OS X specific code
@@ -189,6 +201,14 @@ target_link_libraries (ikaros ${MODULES_LIBS})
 
 add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
 
+if(LOGGING STREQUAL "OFF")
+add_compile_definitions(LOGGING_OFF)
+elseif(LOGGING STREQUAL "MINIMAL")
+add_compile_definitions(LOGGING_MINIMAL)
+else()
+add_compile_definitions(LOGGING_FULL)
+endif()
+
 # Print all variables
 # get_cmake_property(_variableNames VARIABLES)
 # list (SORT _variableNames)
@@ -197,6 +217,7 @@ add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
 #endforeach()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Logging mode: ${LOGGING}")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 add_compile_definitions(DEBUG)
 endif()

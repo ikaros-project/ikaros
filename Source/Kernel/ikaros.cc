@@ -2495,7 +2495,11 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::LogStart()
     {
+#if defined(LOGGING_OFF)
+        return;
+#else
         LogSessionEvent("/start3/", "start");
+#endif
     }
 
 
@@ -2503,18 +2507,26 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::LogStop()
     {
+#if defined(LOGGING_FULL)
         LogSessionEvent("/stop3/", "stop");
+#else
+        return;
+#endif
     }
 
 
     void
     Kernel::LogProcessExit()
     {
+#if !defined(LOGGING_FULL)
+        return;
+#else
         if(process_exit_logged)
             return;
 
         process_exit_logged = true;
         SendProcessExitLogEvent(*this);
+#endif
     }
 
 
@@ -3068,11 +3080,13 @@ bool operator==(Request & r, const std::string s)
         tick = -1;
         timer.Pause();
         timer.SetPauseTime(0);
+#if !defined(LOGGING_OFF)
         if(session_logging_active)
         {
             LogStop();
             session_logging_active = false;
         }
+#endif
         PrintProfiling();
         Clear(); // Delete all modules
         needs_reload = true;
@@ -3104,12 +3118,14 @@ bool operator==(Request & r, const std::string s)
             LoadFile();
     
         Pause();
+#if !defined(LOGGING_OFF)
         if(!session_logging_active)
         {
             session_timer.Restart();
             LogStart();
             session_logging_active = true;
         }
+#endif
         timer.Continue(); 
         run_mode = run_mode_realtime;
     }
@@ -3122,12 +3138,14 @@ bool operator==(Request & r, const std::string s)
         if(needs_reload)
             LoadFile();
 
+#if !defined(LOGGING_OFF)
         if(!session_logging_active)
         {
             session_timer.Restart();
             LogStart();
             session_logging_active = true;
         }
+#endif
         run_mode = run_mode_play;
         timer.Continue();
     }
