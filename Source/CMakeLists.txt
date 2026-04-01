@@ -1,7 +1,5 @@
 # Include the directory itself as a path to include directories
-#
-# cmake -DCMAKE_BUILD_TYPE=Debug ..
-#
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(Kernel)
