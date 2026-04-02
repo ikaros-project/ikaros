@@ -35,7 +35,7 @@ namespace ikaros
                 throw std::runtime_error("Incomplete Unicode escape sequence");
 
             uint32_t codepoint = 0;
-            for(int i = 0; i < 4; ++i)
+            for(size_t i = 0; i < 4; ++i)
             {
                 int digit = hex_digit_value(s[pos + i]);
                 if(digit < 0)
@@ -259,12 +259,12 @@ namespace ikaros
 /*
         int dictionary::get_index(std::string key) // Returns the index of the key in the dictionary
         {
-            int index = 0;
+            size_t index = 0;
             for (const auto& [k, v] : *dict_)
             {
                 if (k == key)
                 {
-                    return index;
+                    return static_cast<int>(index);
                 }
                 index++;
             }
@@ -379,12 +379,12 @@ namespace ikaros
     {
         std::ifstream file(filename);
         if (!file)
-            throw("Error: could not open file.");
+            throw std::runtime_error("Error: could not open file.");
 
         std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         value d = parse_json(content);
         if(!d.is_dictionary())
-            throw("Error: JSON root is not a dictionary."); 
+            throw std::runtime_error("Error: JSON root is not a dictionary."); 
 
         *this = dictionary(d);
     }
@@ -594,10 +594,7 @@ namespace ikaros
   
         value::operator dictionary ()
         {
-            if(std::holds_alternative<null>(value_))
-                return dictionary();
-            else
-                return std::get<dictionary>(value_);
+            return std::get<dictionary>(value_);
         }
 
 

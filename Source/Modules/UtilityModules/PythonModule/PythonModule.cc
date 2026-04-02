@@ -498,10 +498,14 @@ class PythonModule: public Module
             return;
         }
 
-        if(!message.contains("outputs"))
+        if(!message.contains_non_null("outputs"))
             return;
 
-        dictionary output_values = message["outputs"];
+        value & output_values_value = message["outputs"];
+        if(!output_values_value.is_dictionary())
+            throw exception("Python worker returned malformed outputs payload.", path_);
+
+        dictionary output_values = make_dictionary(output_values_value);
         for(auto & [name, buffer] : outputs_)
         {
             if(!output_values.contains(name))
