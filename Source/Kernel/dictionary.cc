@@ -256,7 +256,7 @@ namespace ikaros
         }
 
 
-
+/*
         int dictionary::get_index(std::string key) // Returns the index of the key in the dictionary
         {
             int index = 0;
@@ -270,7 +270,7 @@ namespace ikaros
             }
             return -1; // Key not found
         }
-
+*/
 
     dictionary::operator std::string () const
     {
@@ -365,6 +365,12 @@ namespace ikaros
     dictionary::dictionary(std::string filename):
         dictionary(XMLDocument(filename.c_str()).xml)
     {
+    }
+
+    void
+    dictionary::load_xml(std::string filename)
+    {
+        *this = dictionary(XMLDocument(filename.c_str()).xml);
     }
 
 

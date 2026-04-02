@@ -1714,7 +1714,7 @@ bool operator==(Request & r, const std::string s)
             {
                 std::string name = p.path().stem();
                 classes[name].path = p.path();
-                classes[name].info_ = dictionary(p.path());
+                classes[name].info_.load_xml(p.path());
 
                 // Inject default parameters
 
@@ -2259,7 +2259,8 @@ bool operator==(Request & r, const std::string s)
     void Kernel::LoadExternalGroup(dictionary & d)
     {
         std::string path = d["external"];
-        dictionary external(path);
+        dictionary external;
+        external.load_xml(path);
         external["name"] = d["name"]; // FIXME: Just in case - check for errors later
         d.merge(external);
         d.erase("external");
@@ -2370,7 +2371,8 @@ bool operator==(Request & r, const std::string s)
 
                 try
                 {
-                    dictionary d = dictionary(options_.full_path());
+                    dictionary d;
+                    d.load_xml(options_.full_path());
                     SetCommandLineParameters(d);
                     BuildGroup(d);
                     info_ = d;

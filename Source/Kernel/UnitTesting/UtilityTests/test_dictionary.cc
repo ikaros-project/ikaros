@@ -216,7 +216,8 @@ main()
  std::cout <<  e.json() << std::endl;
 
 
-dictionary xmldict = dictionary("../Modules/TestModules/Test1.ikc");
+dictionary xmldict;
+xmldict.load_xml("../Modules/TestModules/Test1.ikc");
 //std::cout << xmldict.json() << std::endl;
 std::cout <<  std::endl;
 std::cout << xmldict.xml("group") << std::endl;
@@ -286,7 +287,8 @@ std::cout << xmldict.xml("group") << std::endl;
     }
 
 
-    dictionary d42("../Modules/TestModules/Test1.ikc");
+    dictionary d42;
+    d42.load_xml("../Modules/TestModules/Test1.ikc");
 
         std::cout << std::endl;
         std::cout << std::endl;

@@ -62,6 +62,7 @@ namespace ikaros
 
         dictionary();
         dictionary(XMLElement * xml);
+        [[deprecated("Use load_xml() for file loading instead of dictionary(std::string).")]]
         dictionary(std::string filename);
         dictionary(const std::initializer_list<std::pair<std::string, std::string>>& init_list);
 
@@ -82,7 +83,7 @@ namespace ikaros
         int get_int(std::string s);
         bool is_set(std::string s);    // Returns true if set and true, and false if not set or not set to true, bool or string
         bool is_not_set(std::string s);    // Negation of is_set
-        int get_index(std::string key); // Returns the index of the key in the dictionary
+        int get_index(std::string key); // Deprecated: unordered_map iteration order is not stable, so this index is not meaningful
 
         std::string json() const;
         std::string xml(std::string name="dictionary", exclude_set exclude={}, int depth=0);
@@ -97,6 +98,7 @@ namespace ikaros
 
         void print() const { std::cout << this->json() << std::endl; };
 
+        void load_xml(std::string filename);
         void load_json(std::string filename);
     };
 
