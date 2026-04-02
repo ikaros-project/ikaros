@@ -55,6 +55,17 @@ main()
     null_list.push_back(nullptr);
     assert(null_list[0].is_null());
 
+    bool threw_on_invalid_list_erase = false;
+    try
+    {
+        null_list.erase(5);
+    }
+    catch(const std::out_of_range &)
+    {
+        threw_on_invalid_list_erase = true;
+    }
+    assert(threw_on_invalid_list_erase);
+
     value parsed_json = parse_json(R"({"name":"John","scores":[1,2,3]})");
     assert(parsed_json.is_dictionary());
     assert(parsed_json["name"].as_string() == "John");

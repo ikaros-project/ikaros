@@ -47,7 +47,7 @@ namespace ikaros
 
     struct dictionary
     {
-        mapPtr dict_;
+        mapPtr dict_; // Shared storage: copied dictionaries refer to the same underlying map unless copy() is used.
 
         using iterator = std::unordered_map<std::string, value>::iterator;
         using const_iterator = std::unordered_map<std::string, value>::const_iterator;
@@ -63,12 +63,12 @@ namespace ikaros
         dictionary();
         dictionary(XMLElement * xml);
         [[deprecated("Use load_xml() for file loading instead of dictionary(std::string).")]]
-        dictionary(std::string filename);
+        explicit dictionary(std::string filename);
         dictionary(const std::initializer_list<std::pair<std::string, std::string>>& init_list);
 
         //dictionary(const dictionary & d);
     
-        value & operator[](std::string s);
+        value & operator[](std::string s); // Creates the key on demand if it does not exist.
         value & at(std::string s);  // throws if s is not in dictionary
         bool contains(std::string s);
         bool contains_non_null(std::string s);
@@ -83,7 +83,6 @@ namespace ikaros
         int get_int(std::string s);
         bool is_set(std::string s);    // Returns true if set and true, and false if not set or not set to true, bool or string
         bool is_not_set(std::string s);    // Negation of is_set
-        int get_index(std::string key); // Deprecated: unordered_map iteration order is not stable, so this index is not meaningful
 
         std::string json() const;
         std::string xml(std::string name="dictionary", exclude_set exclude={}, int depth=0);
@@ -105,7 +104,7 @@ namespace ikaros
 
     struct list
     {
-        listPtr list_;
+        listPtr list_; // Shared storage: copied lists refer to the same underlying vector unless copy() is used.
 
         list();
     
@@ -119,14 +118,17 @@ namespace ikaros
         const_iterator cbegin() const noexcept { return list_->cbegin(); }
         const_iterator cend() const noexcept { return list_->cend(); }
 
-        iterator erase(const_iterator pos) const { return list_->erase(pos); }
+        iterator erase(const_iterator pos) { return list_->erase(pos); }
         iterator insert(const_iterator pos, const value & v) { return list_->insert(pos, v); }
 
-        value & operator[] (int i);
-        int size() { return list_->size(); };
+        value & operator[] (int i); // Auto-resizes with null values up to i before returning the element.
+        value & operator[] (size_t i); // Auto-resizes with null values up to i before returning the element.
+        size_t size() const { return list_->size(); };
+        bool empty() const { return list_->empty(); }
         list & push_back(const value & v) { list_->push_back(v); return *this; };
         list & insert_front(const value & v) { list_->insert(list_->begin(), v);  return *this; }
         list & erase(int index);
+        list & erase(size_t index);
         operator std::string ()  const;
         std::string json() const;
         std::string xml(std::string name, exclude_set exclude={}, int depth=0);
@@ -176,14 +178,15 @@ namespace ikaros
         std::string as_string()     { return std::string(*this); };
 
         value & operator[] (const char * s); // Captures literals as argument ***************
-        value & operator[] (const std::string & s);
+        value & operator[] (const std::string & s); // Converts null/non-dictionary values into a dictionary before indexing.
         value & at(const std::string & s); // throws if not dictionary or non-existent attribute
-        value & operator[] (int i); // list shortcut ***************
+        value & operator[] (int i); // Converts null/non-list values into a list and auto-resizes with null values up to i.
+        value & operator[] (size_t i); // Converts null/non-list values into a list and auto-resizes with null values up to i.
 
         value & push_back(const value & v);
 
         friend std::ostream& operator<<(std::ostream& os, const value & v);
-        int size();
+        size_t size();
 
         std::vector<value>::iterator begin();   // value iterator ******* over what?? **********
         std::vector<value>::iterator end();

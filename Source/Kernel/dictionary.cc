@@ -121,8 +121,18 @@ namespace ikaros
 
 
         list & 
-        list::erase(int index)  
+        list::erase(int index)
         {
+                if(index < 0)
+                    throw std::out_of_range("List index out of range.");
+                return erase(static_cast<size_t>(index));
+        }
+
+        list & 
+        list::erase(size_t index)  
+        {
+                if(index >= list_->size())
+                    throw std::out_of_range("List index out of range.");
                 list_->erase(list_->begin()+index); return *this;
         }
 
@@ -144,6 +154,14 @@ namespace ikaros
 
        value & 
        list::operator[] (int i)
+        {
+            if(i < 0)
+                throw std::out_of_range("List index out of range.");
+            return (*this)[static_cast<size_t>(i)];
+        }
+
+       value & 
+       list::operator[] (size_t i)
         {
             if( list_->size() < i+1)
                  list_->resize(i+1);
@@ -254,23 +272,6 @@ namespace ikaros
         {
             dict_->erase(key);
         }
-
-
-/*
-        int dictionary::get_index(std::string key) // Returns the index of the key in the dictionary
-        {
-            size_t index = 0;
-            for (const auto& [k, v] : *dict_)
-            {
-                if (k == key)
-                {
-                    return static_cast<int>(index);
-                }
-                index++;
-            }
-            return -1; // Key not found
-        }
-*/
 
     dictionary::operator std::string () const
     {
@@ -463,7 +464,7 @@ namespace ikaros
                 return *this;
         }
 
-        int  
+        size_t  
         value::size()
         {
             if(std::holds_alternative<list>(value_))
@@ -497,6 +498,14 @@ namespace ikaros
 
         value &   
         value::operator[] (int i)
+        {
+            if(i < 0)
+                throw std::out_of_range("List index out of range.");
+            return (*this)[static_cast<size_t>(i)];
+        }
+
+        value &   
+        value::operator[] (size_t i)
         {
             if(!std::holds_alternative<list>(value_))
                 value_ = list();

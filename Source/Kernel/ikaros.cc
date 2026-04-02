@@ -1565,8 +1565,9 @@ Connection::Info()
 
 // Class
 
-    Class::Class(std::string n, std::string p) : module_creator(nullptr), name(n), path(p),info_(p)
+    Class::Class(std::string n, std::string p) : module_creator(nullptr), name(n), path(p), info_()
     {
+        info_.load_xml(p);
     }
 
     Class::Class(std::string n, ModuleCreator mc) : module_creator(mc), name(n)
