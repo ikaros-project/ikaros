@@ -1,5 +1,4 @@
 #include "session_logging.h"
-
 #include "ikaros.h"
 
 namespace ikaros
@@ -54,20 +53,6 @@ namespace ikaros
             query += UrlEncode(LimitLogValue(value));
         }
 
-        std::string RunModeName(int run_mode)
-        {
-            switch(run_mode)
-            {
-                case run_mode_quit: return "quit";
-                case run_mode_stop: return "stop";
-                case run_mode_pause: return "pause";
-                case run_mode_play: return "play";
-                case run_mode_realtime: return "realtime";
-                case run_mode_restart: return "restart";
-                default: return "unknown";
-            }
-        }
-
         void AddCommonParameters(std::string & path, Kernel & kernel, const std::string & event_name)
         {
             dictionary module_info = kernel.GetModuleInstantiationInfo();
@@ -82,14 +67,9 @@ namespace ikaros
             AppendQueryParameter(path, "session_name", kernel.info_.contains("name") ? std::string(kernel.info_["name"]) : "");
             AppendQueryParameter(path, "file", kernel.info_.contains("filename") ? std::string(kernel.info_["filename"]) : kernel.options_.filename());
             AppendQueryParameter(path, "file_path", kernel.options_.full_path());
-            AppendQueryParameter(path, "run_mode", RunModeName(kernel.run_mode.load()));
-            AppendQueryParameter(path, "tick", std::to_string(kernel.GetTick()));
-            AppendQueryParameter(path, "time", formatNumber(kernel.GetTime(), 4));
             AppendQueryParameter(path, "clock_time", formatNumber(kernel.session_timer.GetTime(), 4));
             AppendQueryParameter(path, "host", hostname);
             AppendQueryParameter(path, "cpu_cores", std::to_string(kernel.cpu_cores));
-            AppendQueryParameter(path, "module_count", module_info.contains("module_count") ? std::string(module_info["module_count"]) : "");
-            AppendQueryParameter(path, "class_count", module_info.contains("class_count") ? std::string(module_info["class_count"]) : "");
             AppendQueryParameter(path, "classes", module_info.contains("classes") ? std::string(module_info["classes"]) : "");
 #if DEBUG
             AppendQueryParameter(path, "debug", "1");
@@ -116,13 +96,6 @@ namespace ikaros
         {
             std::string path = endpoint;
             AddCommonParameters(path, kernel, event_name);
-            AppendQueryParameter(path, "real_time", kernel.info_.is_set("real_time") ? "1" : "0");
-            AppendQueryParameter(path, "auto_start", kernel.info_.is_set("start") ? "1" : "0");
-            AppendQueryParameter(path, "tick_duration", formatNumber(kernel.tick_duration, 6));
-            AppendQueryParameter(path, "actual_tick_duration", formatNumber(kernel.actual_tick_duration, 6));
-            AppendQueryParameter(path, "cpu_usage", formatNumber(kernel.cpu_usage, 6));
-            AppendQueryParameter(path, "lag", formatNumber(kernel.lag, 6));
-            AppendQueryParameter(path, "stop_after", kernel.stop_after >= 0 ? std::to_string(kernel.stop_after) : "");
             SendLogRequest(path);
         }
         catch(...)
