@@ -26,12 +26,34 @@ main()
 
     d["x"] = 12;
     assert(d["x"].as_int() == 12);
+    assert(d["x"].is_number());
+    assert(!d["x"].is_string());
+
+    d["flag"] = true;
+    assert(d["flag"].is_bool());
+
+    d["text"] = "hello";
+    assert(d["text"].is_string());
 
     dictionary url_dict;
     url_dict.parse_url("a=123&b=XXX&xxx=oiuy");
     assert(url_dict["a"].as_string() == "123");
     assert(url_dict["b"].as_string() == "XXX");
     assert(url_dict["xxx"].as_string() == "oiuy");
+
+    d["null_value"] = nullptr;
+    assert(d["null_value"].is_null());
+    assert(d["null_value"].json() == "null");
+    assert(d.contains_non_null("x"));
+    assert(!d.contains_non_null("null_value"));
+    assert(!d.contains_non_null("missing_value"));
+
+    value null_value = nullptr;
+    assert(null_value.is_null());
+
+    list null_list;
+    null_list.push_back(nullptr);
+    assert(null_list[0].is_null());
 
     value parsed_json = parse_json(R"({"name":"John","scores":[1,2,3]})");
     assert(parsed_json.is_dictionary());
@@ -79,6 +101,21 @@ main()
         threw_on_invalid_unicode = true;
     }
     assert(threw_on_invalid_unicode);
+
+    const std::string truncated_json_inputs[] = {"{\"a\":", "[1,", "{\"a\""};
+    for(const auto & truncated_json : truncated_json_inputs)
+    {
+        bool threw_on_truncated_json = false;
+        try
+        {
+            parse_json(truncated_json);
+        }
+        catch(const std::runtime_error &)
+        {
+            threw_on_truncated_json = true;
+        }
+        assert(threw_on_truncated_json);
+    }
 
     std::cout << "test_dictionary: ok" << std::endl;
 

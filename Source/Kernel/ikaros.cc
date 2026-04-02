@@ -2099,7 +2099,7 @@ bool operator==(Request & r, const std::string s)
         std::filesystem::path class_path = classes[classname].path;
         std::filesystem::path class_directory = class_path.parent_path();
 
-        bool is_python_backed = info.contains("python") && !std::string(info["python"]).empty();
+        bool is_python_backed = info.contains_non_null("python") && !std::string(info["python"]).empty();
         if(!is_python_backed)
         {
             std::filesystem::path inferred_python_path = class_directory / (classname + ".py");
@@ -2243,8 +2243,8 @@ bool operator==(Request & r, const std::string s)
          std::string source = path+"."+std::string(info["source"]);   // FIXME: Look for global paths later - string conversion should not be necessary
          std::string target = path+"."+std::string(info["target"]);
 
-         std::string delay_range = info.contains("delay") ? info["delay"] : "";// FIXME: return "" if name not in dict - or use contains *********
-         std::string alias = info.contains("alias") ? info["alias"] : "";// FIXME: return "" if name not in dict - or use contains *********
+         std::string delay_range = info.contains_non_null("delay") ? info["delay"] : "";// FIXME: return "" if name not in dict - or use contains *********
+         std::string alias = info.contains_non_null("alias") ? info["alias"] : "";// FIXME: return "" if name not in dict - or use contains *********
 
         if(delay_range.empty() || delay_range=="null")  // FIXME: return "" if name not in dict - or use contains *********
             delay_range = "[1]";
@@ -2280,7 +2280,7 @@ bool operator==(Request & r, const std::string s)
 
             if(path.empty())
             {
-                std::string log_level = d.contains("log_level") ? std::string(d["log_level"]) : "";
+                std::string log_level = d.contains_non_null("log_level") ? std::string(d["log_level"]) : "";
                 if(log_level.empty() || log_level == "0")
                     d["log_level"] = msg_warning;
             }
@@ -2453,7 +2453,7 @@ bool operator==(Request & r, const std::string s)
             if(component == nullptr)
                 continue;
 
-            std::string class_name = component->info_.contains("class") ? std::string(component->info_["class"]) : "";
+            std::string class_name = component->info_.contains_non_null("class") ? std::string(component->info_["class"]) : "";
             if(class_name.empty())
                 class_name = component->Info();
             if(class_name.empty())

@@ -278,7 +278,7 @@ class PythonModule: public Module
         if(!python_executable_.empty())
             return python_executable_;
 
-        if(kernel().info_.contains("python_executable"))
+        if(kernel().info_.contains_non_null("python_executable"))
         {
             std::string kernel_python_executable = std::string(kernel().info_["python_executable"]);
             if(!kernel_python_executable.empty())
@@ -423,8 +423,8 @@ class PythonModule: public Module
                 continue;
 
             dictionary entry = make_dictionary(entry_value);
-            std::string level = entry.contains("level") ? std::string(entry["level"]) : "print";
-            std::string text = entry.contains("message") ? std::string(entry["message"]) : "";
+            std::string level = entry.contains_non_null("level") ? std::string(entry["level"]) : "print";
+            std::string text = entry.contains_non_null("message") ? std::string(entry["message"]) : "";
 
             if(level == "debug")
                 kernel().Notify(msg_debug, text, path_);
@@ -515,11 +515,11 @@ class PythonModule: public Module
     {
         HandleWorkerLogs(reply);
 
-        std::string status = reply.contains("status") ? std::string(reply["status"]) : "";
+        std::string status = reply.contains_non_null("status") ? std::string(reply["status"]) : "";
         if(status != "ok")
         {
-            std::string error = reply.contains("error") ? std::string(reply["error"]) : "Python worker reported an unknown error.";
-            if(reply.contains("traceback"))
+            std::string error = reply.contains_non_null("error") ? std::string(reply["error"]) : "Python worker reported an unknown error.";
+            if(reply.contains_non_null("traceback"))
                 error += "\n" + std::string(reply["traceback"]);
             HandleWorkerFailure(error);
             return false;
@@ -632,17 +632,17 @@ class PythonModule: public Module
         WriteLine(init_payload.json());
         dictionary init_message = ReadMessage(timeout_ms_);
         HandleWorkerLogs(init_message);
-        std::string status = init_message.contains("status") ? std::string(init_message["status"]) : "";
+        std::string status = init_message.contains_non_null("status") ? std::string(init_message["status"]) : "";
         if(status != "ready")
         {
-            std::string error = init_message.contains("error") ? std::string(init_message["error"]) : "Python worker failed to initialize.";
-            if(init_message.contains("traceback"))
+            std::string error = init_message.contains_non_null("error") ? std::string(init_message["error"]) : "Python worker failed to initialize.";
+            if(init_message.contains_non_null("traceback"))
                 error += "\n" + std::string(init_message["traceback"]);
             ShutdownWorker();
             throw exception(error, path_);
         }
 
-        use_shared_memory_transport_ = !init_message.contains("transport") || std::string(init_message["transport"]) != "json";
+        use_shared_memory_transport_ = !init_message.contains_non_null("transport") || std::string(init_message["transport"]) != "json";
     }
 
     void ShutdownWorker()
@@ -662,11 +662,11 @@ class PythonModule: public Module
                     dictionary reply = ReadMessage(std::max(timeout_ms_, 100));
                     HandleWorkerLogs(reply);
 
-                    std::string status = reply.contains("status") ? std::string(reply["status"]) : "";
+                    std::string status = reply.contains_non_null("status") ? std::string(reply["status"]) : "";
                     if(status == "error")
                     {
-                        std::string error = reply.contains("error") ? std::string(reply["error"]) : "Python worker shutdown failed.";
-                        if(reply.contains("traceback"))
+                        std::string error = reply.contains_non_null("error") ? std::string(reply["error"]) : "Python worker shutdown failed.";
+                        if(reply.contains_non_null("traceback"))
                             error += "\n" + std::string(reply["traceback"]);
                         Notify(msg_warning, error, path_);
                     }
@@ -786,8 +786,8 @@ public:
 
     void Init() override
     {
-        python_script_ = info_.contains("python") ? std::string(info_["python"]) : "";
-        python_function_ = info_.contains("python_function") ? std::string(info_["python_function"]) : "tick";
+        python_script_ = info_.contains_non_null("python") ? std::string(info_["python"]) : "";
+        python_function_ = info_.contains_non_null("python_function") ? std::string(info_["python_function"]) : "tick";
         if(python_function_.empty())
             python_function_ = "tick";
 

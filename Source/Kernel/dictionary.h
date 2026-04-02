@@ -70,6 +70,7 @@ namespace ikaros
         value & operator[](std::string s);
         value & at(std::string s);  // throws if s is not in dictionary
         bool contains(std::string s);
+        bool contains_non_null(std::string s);
         size_t count(std::string s);
         bool empty() { return dict_->empty(); }
         void merge(const dictionary & source, bool overwrite=false); // shallow merge: copy from source to this
@@ -142,7 +143,7 @@ namespace ikaros
         value(bool v)               { value_ = v; }
         value(double v)             { value_ = v; }
         value(null n=null())        { value_ = null(); }
-        //value(std::nullptr_t n)     { value_ = null(); } // FIXME: This messses with the thread pool for some reason
+        value(std::nullptr_t)       { value_ = null(); }
         value(const char * s)       { value_ = s; }
         value(const std::string & s){ value_ = s; }
         value(const list & v)       { value_ = v; }
@@ -152,6 +153,7 @@ namespace ikaros
         value & operator =(int v) { value_ = double(v); return *this; }
         value & operator =(double v) { value_ = double(v); return *this; }
         value & operator =(null n) { value_ = null(); return *this; };
+        value & operator =(std::nullptr_t) { value_ = null(); return *this; }
         value & operator =(const std::string & s) { value_ = s; return *this; }
         value & operator =(const char * s) { value_ = s; return *this; }
         value & operator =(const list & v) { value_ = v; return *this; }
@@ -160,6 +162,9 @@ namespace ikaros
         bool is_dictionary()    { return std::holds_alternative<dictionary>(value_); }
         bool is_list()          { return std::holds_alternative<list>(value_); }
         bool is_null()          { return std::holds_alternative<null>(value_); }
+        bool is_bool()          { return std::holds_alternative<bool>(value_); }
+        bool is_number()        { return std::holds_alternative<double>(value_); }
+        bool is_string()        { return std::holds_alternative<std::string>(value_); }
         bool is_true();
 
         bool as_bool()              { return double(*this) != 0; };
@@ -196,5 +201,3 @@ namespace ikaros
 
     value parse_json(const std::string& json_str);
 };
-
-

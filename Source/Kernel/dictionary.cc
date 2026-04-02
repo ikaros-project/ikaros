@@ -211,6 +211,13 @@ namespace ikaros
             return dict_->count(s);
         }
 
+    bool
+    dictionary::contains_non_null(std::string s)
+    {
+        auto it = dict_->find(s);
+        return it != dict_->end() && !it->second.is_null();
+    }
+
 
         size_t 
         dictionary::count(std::string s)
@@ -608,6 +615,9 @@ namespace ikaros
     
     std::string parse_string(const std::string& s, size_t& pos)
     {
+        if(pos >= s.length())
+            throw std::runtime_error("Unexpected end of JSON while parsing string");
+
         if(s[pos] != '"')
             throw std::runtime_error("Expected '\"' at the beginning of string");
 
@@ -673,12 +683,17 @@ namespace ikaros
 
     list parse_array(const std::string& s, size_t& pos)
     {
+        if(pos >= s.length())
+            throw std::runtime_error("Unexpected end of JSON while parsing array at position " + std::to_string(pos));
+
         if(s[pos] != '[')
             throw std::runtime_error("Expected '[' at the beginning of array");
 
         ++pos; // Skip the opening bracket
         list result;
         skip_whitespace(s, pos);
+        if(pos >= s.length())
+            throw std::runtime_error("Unexpected end of array at position " + std::to_string(pos));
         if(s[pos] == ']')
         {
             ++pos; // Skip the closing bracket
@@ -689,6 +704,8 @@ namespace ikaros
         {
             result.push_back(parse_value(s, pos));
             skip_whitespace(s, pos);
+            if(pos >= s.length())
+                throw std::runtime_error("Unexpected end of array at position " + std::to_string(pos));
             if(s[pos] == ']')
             {
                 ++pos; // Skip the closing bracket
@@ -705,12 +722,17 @@ namespace ikaros
 
     dictionary parse_object(const std::string& s, size_t& pos)
     {
+        if(pos >= s.length())
+            throw std::runtime_error("Unexpected end of JSON while parsing object at position " + std::to_string(pos));
+
         if(s[pos] != '{')
             throw std::runtime_error("Expected '{' at the beginning of object");
 
         ++pos; // Skip the opening brace
         dictionary result;
         skip_whitespace(s, pos);
+        if(pos >= s.length())
+            throw std::runtime_error("Unexpected end of object at position " + std::to_string(pos));
         if(s[pos] == '}')
         {
             ++pos; // Skip the closing brace
@@ -720,23 +742,33 @@ namespace ikaros
         while (pos < s.length())
         {
             skip_whitespace(s, pos);
+            if(pos >= s.length())
+                throw std::runtime_error("Unexpected end of object at position " + std::to_string(pos));
             std::string key = parse_string(s, pos);
             skip_whitespace(s, pos);
+            if(pos >= s.length())
+                throw std::runtime_error("Unexpected end of object after key at position " + std::to_string(pos));
             if(s[pos] != ':')
-                throw std::runtime_error("Expected ':' in object");
+                throw std::runtime_error("Expected ':' in object at position " + std::to_string(pos));
             ++pos; // Skip the colon
             skip_whitespace(s, pos);
+            if(pos >= s.length())
+                throw std::runtime_error("Unexpected end of object after ':' at position " + std::to_string(pos));
             result[key] = parse_value(s, pos);
             skip_whitespace(s, pos);
+            if(pos >= s.length())
+                throw std::runtime_error("Unexpected end of object at position " + std::to_string(pos));
             if(s[pos] == '}')
             {
                 ++pos; // Skip the closing brace
                 return result;
             }
             if(s[pos] != ',')
-                throw std::runtime_error("Expected ',' in object");
+                throw std::runtime_error("Expected ',' in object at position " + std::to_string(pos));
             ++pos; // Skip the comma
             skip_whitespace(s, pos);
+            if(pos >= s.length())
+                throw std::runtime_error("Unexpected end of object after ',' at position " + std::to_string(pos));
         }
 
         throw std::runtime_error("Unexpected end of object");
