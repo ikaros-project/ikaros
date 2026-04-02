@@ -132,6 +132,22 @@ namespace ikaros
     }
 
     void
+    SendProcessStartLogEvent(Kernel & kernel)
+    {
+        try
+        {
+            std::string path = "/process_start3/";
+            AddCommonParameters(path, kernel, "process_start");
+            AppendQueryParameter(path, "uptime", formatNumber(kernel.uptime_timer.GetTime(), 4));
+            SendLogRequest(path);
+        }
+        catch(...)
+        {
+            // Process start logging is best-effort and must never interrupt startup.
+        }
+    }
+
+    void
     SendProcessExitLogEvent(Kernel & kernel)
     {
         try

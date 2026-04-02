@@ -2516,6 +2516,21 @@ bool operator==(Request & r, const std::string s)
 
 
     void
+    Kernel::LogProcessStart()
+    {
+#if !defined(LOGGING_FULL)
+        return;
+#else
+        if(process_start_logged)
+            return;
+
+        process_start_logged = true;
+        SendProcessStartLogEvent(*this);
+#endif
+    }
+
+
+    void
     Kernel::LogProcessExit()
     {
 #if !defined(LOGGING_FULL)

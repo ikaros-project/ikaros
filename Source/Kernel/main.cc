@@ -58,6 +58,7 @@ main(int argc, char *argv[])
 #endif
 
         k.options_ = o;
+        k.LogProcessStart();
         bool socket_initialized = false;
         auto shutdown_batch_http = [&]()
         {

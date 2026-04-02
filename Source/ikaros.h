@@ -413,6 +413,7 @@ public:
     long                                    session_id;
     bool                                    needs_reload;
     bool                                    session_logging_active = false;
+    bool                                    process_start_logged = false;
     bool                                    process_exit_logged = false;
 
     std::recursive_mutex                    kernelLock;  
@@ -525,6 +526,7 @@ public:
     void LogStart();
     void LogStop();
     void LogSessionEvent(const std::string & endpoint, const std::string & event_name);
+    void LogProcessStart();
     void LogProcessExit();
 
     std::string json();
