@@ -18,6 +18,60 @@ namespace ikaros
                 ++pos;
         }
 
+        static int hex_digit_value(char c)
+        {
+            if(c >= '0' && c <= '9')
+                return c - '0';
+            if(c >= 'a' && c <= 'f')
+                return 10 + (c - 'a');
+            if(c >= 'A' && c <= 'F')
+                return 10 + (c - 'A');
+            return -1;
+        }
+
+        static uint32_t parse_hex4(const std::string& s, size_t& pos)
+        {
+            if(pos + 4 > s.length())
+                throw std::runtime_error("Incomplete Unicode escape sequence");
+
+            uint32_t codepoint = 0;
+            for(int i = 0; i < 4; ++i)
+            {
+                int digit = hex_digit_value(s[pos + i]);
+                if(digit < 0)
+                    throw std::runtime_error("Invalid Unicode escape sequence");
+                codepoint = (codepoint << 4) | digit;
+            }
+            pos += 4;
+            return codepoint;
+        }
+
+        static void append_utf8(std::string& result, uint32_t codepoint)
+        {
+            if(codepoint <= 0x7F)
+                result += static_cast<char>(codepoint);
+            else if(codepoint <= 0x7FF)
+            {
+                result += static_cast<char>(0xC0 | (codepoint >> 6));
+                result += static_cast<char>(0x80 | (codepoint & 0x3F));
+            }
+            else if(codepoint <= 0xFFFF)
+            {
+                result += static_cast<char>(0xE0 | (codepoint >> 12));
+                result += static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
+                result += static_cast<char>(0x80 | (codepoint & 0x3F));
+            }
+            else if(codepoint <= 0x10FFFF)
+            {
+                result += static_cast<char>(0xF0 | (codepoint >> 18));
+                result += static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F));
+                result += static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
+                result += static_cast<char>(0x80 | (codepoint & 0x3F));
+            }
+            else
+                throw std::runtime_error("Invalid Unicode code point");
+        }
+
     // null
 
     null::operator std::string () const
@@ -331,8 +385,9 @@ namespace ikaros
 
         for(auto p : split(s, "&"))
         {   
-            std::string a = head(p,"=");
-            (*this)[a] = p;
+            std::string key = head(p,"=");
+            std::string value = p;
+            (*this)[key] = value;
         }
     }
 
@@ -575,6 +630,28 @@ namespace ikaros
                     case 'n': result += '\n'; break;
                     case 'r': result += '\r'; break;
                     case 't': result += '\t'; break;
+                    case 'u':
+                    {
+                        ++pos;
+                        uint32_t codepoint = parse_hex4(s, pos);
+
+                        if(codepoint >= 0xD800 && codepoint <= 0xDBFF)
+                        {
+                            if(pos + 2 > s.length() || s[pos] != '\\' || s[pos + 1] != 'u')
+                                throw std::runtime_error("Missing low surrogate in Unicode escape sequence");
+                            pos += 2;
+                            uint32_t low_surrogate = parse_hex4(s, pos);
+                            if(low_surrogate < 0xDC00 || low_surrogate > 0xDFFF)
+                                throw std::runtime_error("Invalid low surrogate in Unicode escape sequence");
+                            codepoint = 0x10000 + (((codepoint - 0xD800) << 10) | (low_surrogate - 0xDC00));
+                        }
+                        else if(codepoint >= 0xDC00 && codepoint <= 0xDFFF)
+                            throw std::runtime_error("Unexpected low surrogate in Unicode escape sequence");
+
+                        append_utf8(result, codepoint);
+                        --pos;
+                        break;
+                    }
                     default:
                         throw std::runtime_error("Invalid escape sequence");
                 }
@@ -665,6 +742,57 @@ namespace ikaros
         throw std::runtime_error("Unexpected end of object");
     }
 
+    value parse_number(const std::string& s, size_t& pos)
+    {
+        size_t start = pos;
+
+        if(s[pos] == '-')
+        {
+            ++pos;
+            if(pos >= s.length())
+                throw std::runtime_error("Invalid JSON number at position " + std::to_string(start));
+        }
+
+        if(s[pos] == '0')
+        {
+            ++pos;
+            if(pos < s.length() && std::isdigit(static_cast<unsigned char>(s[pos])))
+                throw std::runtime_error("Invalid JSON number with leading zero at position " + std::to_string(start));
+        }
+        else if(std::isdigit(static_cast<unsigned char>(s[pos])))
+        {
+            while(pos < s.length() && std::isdigit(static_cast<unsigned char>(s[pos])))
+                ++pos;
+        }
+        else
+            throw std::runtime_error("Invalid JSON number at position " + std::to_string(start));
+
+        if(pos < s.length() && s[pos] == '.')
+        {
+            ++pos;
+            if(pos >= s.length() || !std::isdigit(static_cast<unsigned char>(s[pos])))
+                throw std::runtime_error("Invalid JSON number fractional part at position " + std::to_string(start));
+
+            while(pos < s.length() && std::isdigit(static_cast<unsigned char>(s[pos])))
+                ++pos;
+        }
+
+        if(pos < s.length() && (s[pos] == 'e' || s[pos] == 'E'))
+        {
+            ++pos;
+            if(pos < s.length() && (s[pos] == '+' || s[pos] == '-'))
+                ++pos;
+
+            if(pos >= s.length() || !std::isdigit(static_cast<unsigned char>(s[pos])))
+                throw std::runtime_error("Invalid JSON number exponent at position " + std::to_string(start));
+
+            while(pos < s.length() && std::isdigit(static_cast<unsigned char>(s[pos])))
+                ++pos;
+        }
+
+        return value(std::stod(s.substr(start, pos - start)));
+    }
+
 
     value parse_value(const std::string& s, size_t& pos)
     {
@@ -710,14 +838,7 @@ namespace ikaros
         }
         else if(std::isdigit(s[pos]) || s[pos] == '-')
         {
-            size_t end_pos = pos;
-            while (end_pos < s.length() && (std::isdigit(s[end_pos]) || s[end_pos] == '.' || s[end_pos] == 'e' || s[end_pos] == 'E' || s[end_pos] == '+' || s[end_pos] == '-'))
-            {
-                ++end_pos;
-            }
-            value num_value = std::stod(s.substr(pos, end_pos - pos));
-            pos = end_pos;
-            return num_value;
+            return parse_number(s, pos);
         }
 
        throw std::runtime_error("Invalid JSON value at position " + std::to_string(pos));
@@ -727,7 +848,11 @@ namespace ikaros
 value parse_json(const std::string& json_str)
 {
     size_t pos = 0;
-    return parse_value(json_str, pos);
+    value result = parse_value(json_str, pos);
+    skip_whitespace(json_str, pos);
+    if(pos != json_str.length())
+        throw std::runtime_error("Unexpected trailing characters after JSON value at position " + std::to_string(pos));
+    return result;
 }
 
 

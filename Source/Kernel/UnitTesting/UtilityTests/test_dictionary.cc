@@ -8,6 +8,7 @@
 
 #include <string>
 #include <iostream>
+#include <cassert>
 
 #include "../../dictionary.h"
 #include "../../xml.h"
@@ -24,12 +25,63 @@ main()
     dictionary d;
 
     d["x"] = 12;
-    
-    int x = d["x"];
+    assert(d["x"].as_int() == 12);
 
-    std::cout << x << std::endl;
+    dictionary url_dict;
+    url_dict.parse_url("a=123&b=XXX&xxx=oiuy");
+    assert(url_dict["a"].as_string() == "123");
+    assert(url_dict["b"].as_string() == "XXX");
+    assert(url_dict["xxx"].as_string() == "oiuy");
 
-    std::cout << "********" << std::endl;
+    value parsed_json = parse_json(R"({"name":"John","scores":[1,2,3]})");
+    assert(parsed_json.is_dictionary());
+    assert(parsed_json["name"].as_string() == "John");
+    assert(parsed_json["scores"][2].as_int() == 3);
+    assert(parse_json("-12.5e2").as_double() == -1250.0);
+
+    value unicode_json = parse_json(R"({"latin":"\u00E5","emoji":"\uD83D\uDE00"})");
+    assert(unicode_json["latin"].as_string() == "\xC3\xA5");
+    assert(unicode_json["emoji"].as_string() == "\xF0\x9F\x98\x80");
+
+    bool threw_on_trailing_junk = false;
+    try
+    {
+        parse_json("{\"name\":\"John\"} trailing");
+    }
+    catch(const std::runtime_error &)
+    {
+        threw_on_trailing_junk = true;
+    }
+    assert(threw_on_trailing_junk);
+
+    const std::string invalid_numbers[] = {"01", "1.", "1e", "1e+", "-01"};
+    for(const auto & invalid_number : invalid_numbers)
+    {
+        bool threw_on_invalid_number = false;
+        try
+        {
+            parse_json(invalid_number);
+        }
+        catch(const std::runtime_error &)
+        {
+            threw_on_invalid_number = true;
+        }
+        assert(threw_on_invalid_number);
+    }
+
+    bool threw_on_invalid_unicode = false;
+    try
+    {
+        parse_json(R"({"broken":"\uD83D"})");
+    }
+    catch(const std::runtime_error &)
+    {
+        threw_on_invalid_unicode = true;
+    }
+    assert(threw_on_invalid_unicode);
+
+    std::cout << "test_dictionary: ok" << std::endl;
+
 /**
     std::string s =  R"({"name": "John Doe", "age": 30, "is_student": false, "scores": [85.5, 90.2, 78], "address": {"city": "New York", "zip": "10001"}})";
   
@@ -243,4 +295,3 @@ std::cout << xmldict.xml("group") << std::endl;
 */
     return 0;
 }
-
