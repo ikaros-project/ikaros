@@ -467,16 +467,16 @@ ServerSocket::GetRequest(bool block)
 		return false;
 	}
 	
-	header.Clear();
-	header.Set("Method", strsep(&p, " "));
-	header.Set("URI", UriDecode(strsep(&p, " ")).c_str());
-	header.Set("HTTP-Version", strsep(&p, "\r"));
+	header = dictionary();
+	header["Method"] = strsep(&p, " ");
+	header["URI"] = UriDecode(strsep(&p, " "));
+	header["HTTP-Version"] = strsep(&p, "\r");
 	strsep(&p, "\n");
 	while(p && *p != '\r')
 	{
         char * k = strip(strsep(&p, ":"));
         char * v = strip(strsep(&p, "\r"));
-		header.Set(k, v);
+		header[k] = v;
 		strsep(&p, "\n");
 	}
     if(*p=='\r')
@@ -484,11 +484,10 @@ ServerSocket::GetRequest(bool block)
     if(*p=='\n')
         p++;
 	
-    if(equal_strings(header.Get("Method"), "PUT"))
+    if(header.contains_non_null("Method") && std::string(header["Method"]) == "PUT")
     {
-        const char* content_length_str = header.Get("Content-Length");
-        if (content_length_str) {
-            const size_t content_length = std::stoull(content_length_str);
+        if(header.contains_non_null("Content-Length")) {
+            const size_t content_length = std::stoull(std::string(header["Content-Length"]));
             if (content_length > 0) {
                 std::vector<char> buffer(content_length);
                 size_t n = strlen(p);
@@ -506,27 +505,27 @@ ServerSocket::GetRequest(bool block)
 
 
 bool
-ServerSocket::SendHTTPHeader(Dictionary * d, const char * response) // Content length from where?
+ServerSocket::SendHTTPHeader(dictionary * d, const char * response) // Content length from where?
 {
     if(!response)
 		Send("HTTP/1.1 200 OK\r\n");
     else
 		Send("HTTP/1.1 %s\r\n", response);
 
-    d->Set("Server", "Ikaros/3.0");
-    d->Set("Connection", "Close");
+    d->operator[]("Server") = "Ikaros/3.0";
+    d->operator[]("Connection") = "Close";
 	
     time_t rawtime;
     time(&rawtime);
     char tb[32];
     strftime(tb, sizeof(tb), "%a, %d %b %Y %H:%M:%S GMT", gmtime(&rawtime)); // RFC 1123 really uses numeric time zones rather than GMT
 
-    d->Set("Date", tb);
-    d->Set("Expires", tb);
+    d->operator[]("Date") = tb;
+    d->operator[]("Expires") = tb;
     
-    for(Dictionary::Iterator i = Dictionary::First(d); i.kv; ++i)
+    for(const auto & [key, value] : *d)
     {
-		Send("%s: %s\r\n", d->GetKey(i), d->GetString(i));
+		Send("%s: %s\r\n", key.c_str(), std::string(value).c_str());
     }
 	
     Send("\r\n");
@@ -599,7 +598,7 @@ ServerSocket::Send(const char * format, ...)
 
 
 bool
-ServerSocket::SendFile(const char * filename, const char * path, Dictionary * hdr)
+ServerSocket::SendFile(const char * filename, const char * path, dictionary * hdr)
 {
     if(filename == nullptr) return false;
 	
@@ -613,34 +612,35 @@ ServerSocket::SendFile(const char * filename, const char * path, Dictionary * hd
     size_t len  = ftell(f);
     fseek(f, 0, SEEK_SET);
 	
-    Dictionary * h = (hdr ? hdr : new Dictionary());
+    dictionary local_header;
+    dictionary * h = (hdr ? hdr : &local_header);
 	
-    h->Set("Connection",  "Close"); // TODO: check if socket uses persistent connections
+    (*h)["Connection"] = "Close"; // TODO: check if socket uses persistent connections
 
     std::string length = std::to_string((size_t)len);
-    h->Set("Content-Length", length.c_str());
-    h->Set("Server", "Ikaros/3.0");
+    (*h)["Content-Length"] = length;
+    (*h)["Server"] = "Ikaros/3.0";
 	
     if(strend(filename, ".html"))
-		h->Set("Content-Type", "text/html");
+		(*h)["Content-Type"] = "text/html";
     else if(strend(filename, ".css"))
-		h->Set("Content-Type", "text/css");
+		(*h)["Content-Type"] = "text/css";
     else if(strend(filename, ".js"))
-		h->Set("Content-Type", "text/javascript");
+		(*h)["Content-Type"] = "text/javascript";
     else if(strend(filename, ".jpg"))
-		h->Set("Content-Type", "image/jpeg");
+		(*h)["Content-Type"] = "image/jpeg";
     else if(strend(filename, ".jpeg"))
-		h->Set("Content-Type", "image/jpeg");
+		(*h)["Content-Type"] = "image/jpeg";
     else if(strend(filename, ".gif"))
-		h->Set("Content-Type", "image/gif");
+		(*h)["Content-Type"] = "image/gif";
     else if(strend(filename, ".png"))
-		h->Set("Content-Type", "image/png");
+		(*h)["Content-Type"] = "image/png";
     else if(strend(filename, ".svg"))
-		h->Set("Content-Type", "image/svg+xml");
+		(*h)["Content-Type"] = "image/svg+xml";
     else if(strend(filename, ".xml"))
-		h->Set("Content-Type", "text/xml");
+		(*h)["Content-Type"] = "text/xml";
     else if(strend(filename, ".ico"))
-		h->Set("Content-Type", "image/vnd.microsoft.icon");
+		(*h)["Content-Type"] = "image/vnd.microsoft.icon";
 	
     SendHTTPHeader(h);
 	
@@ -649,9 +649,6 @@ ServerSocket::SendFile(const char * filename, const char * path, Dictionary * hd
     SendData(s, len);
     fclose(f);
     delete [] s;
-	
-    if(!hdr)
-		delete h;
 	
     return true;
 }

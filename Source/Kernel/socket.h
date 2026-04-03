@@ -26,6 +26,7 @@
 #include <filesystem>
 
 #include "utilities.h"
+#include "dictionary.h"
 #include "deprecated.h"
 
 #define PORTNO		8000 	// the default port clients will be connecting to
@@ -62,14 +63,14 @@ class ServerSocket
 		ServerSocket(int port=PORTNO);		// Create server socket on port
 		~ServerSocket();
 		
-		Dictionary			header;									// The current HTTP request header
+		ikaros::dictionary	header;									// The current HTTP request header
 		bool				GetRequest(bool block=false);           // Check for request and read if available
 		
-		bool				SendHTTPHeader(Dictionary * d = nullptr, const char * response=nullptr);
+		bool				SendHTTPHeader(ikaros::dictionary * d = nullptr, const char * response=nullptr);
 		bool				SendData(const char * buffer, long size);
 		bool				Send(const char * format, ...); // Maximum 1023 characters
 		bool				Send(std::string data);
-		bool				SendFile(const char * filename, const char * path="", Dictionary * header = nullptr); // FIXME: add header automatically based on file type
+		bool				SendFile(const char * filename, const char * path="", ikaros::dictionary * header = nullptr); // FIXME: add header automatically based on file type
 		bool				SendFile(const std::filesystem::path & filename, const std::string & path="");
 		bool				SendBuffer();
 		void				StopListening();
@@ -95,5 +96,4 @@ class ServerSocket
 		bool				Poll(bool block=false);                 // Poll for connection; return >=0 if accepted connection (or > 0 CHECK!!!)
 		size_t				Read(char * buffer, int maxSize, bool fill=false);	// Read, fill means fill with maxSize, return read size
 	};
-
 

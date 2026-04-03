@@ -3172,14 +3172,14 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoSendDataHeader()
     {
-        Dictionary header;
-        header.Set("Session-Id", std::to_string(session_id).c_str());
-        header.Set("Package-Type", "data");
-        header.Set("Content-Type", "application/json");
-        header.Set("Cache-Control", "no-cache");
-        header.Set("Cache-Control", "no-store");
-        header.Set("Pragma", "no-cache");
-        header.Set("Expires", "0");
+        dictionary header({
+            {"Session-Id", std::to_string(session_id)},
+            {"Package-Type", "data"},
+            {"Content-Type", "application/json"},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"},
+            {"Expires", "0"}
+        });
         socket->SendHTTPHeader(&header);
     }
 
@@ -3510,11 +3510,12 @@ bool operator==(Request & r, const std::string s)
 
         //std::cout << s << std::endl;
 
-        Dictionary rtheader;
-        rtheader.Set("Session-Id", std::to_string(session_id).c_str());
-        rtheader.Set("Package-Type", "network");
-        rtheader.Set("Content-Type", "application/json");
-        rtheader.Set("Content-Length", int(s.size()));
+        dictionary rtheader({
+            {"Session-Id", std::to_string(session_id)},
+            {"Package-Type", "network"},
+            {"Content-Type", "application/json"},
+            {"Content-Length", std::to_string(s.size())}
+        });
         socket->SendHTTPHeader(&rtheader);
         socket->SendData(s.c_str(), int(s.size()));
     }
@@ -3596,11 +3597,11 @@ bool operator==(Request & r, const std::string s)
     {
          if(!buffers.count(request.component_path))
             {
-                Dictionary header;
-                header.Set("Content-Type", "text/plain");
-                header.Set("Cache-Control", "no-cache");
-                header.Set("Cache-Control", "no-store");
-                header.Set("Pragma", "no-cache");
+                dictionary header({
+                    {"Content-Type", "text/plain"},
+                    {"Cache-Control", "no-cache, no-store"},
+                    {"Pragma", "no-cache"}
+                });
                 socket->SendHTTPHeader(&header);
         
                 socket->Send("Buffer \""+request.component_path+"\" can not be found");
@@ -3609,22 +3610,22 @@ bool operator==(Request & r, const std::string s)
 
         if(buffers[request.component_path].rank() > 2)
         {
-            Dictionary header;
-            header.Set("Content-Type", "text/plain");
-            header.Set("Cache-Control", "no-cache");
-            header.Set("Cache-Control", "no-store");
-            header.Set("Pragma", "no-cache");
+            dictionary header({
+                {"Content-Type", "text/plain"},
+                {"Cache-Control", "no-cache, no-store"},
+                {"Pragma", "no-cache"}
+            });
             socket->SendHTTPHeader(&header);
 
             socket->Send("Rank of matrix != 2. Cannot be displayed as CSV");
             return;
         }
 
-        Dictionary header;
-        header.Set("Content-Type", "text/plain");
-        header.Set("Cache-Control", "no-cache");
-        header.Set("Cache-Control", "no-store");
-        header.Set("Pragma", "no-cache");
+        dictionary header({
+            {"Content-Type", "text/plain"},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"}
+        });
         socket->SendHTTPHeader(&header);
 
         socket->Send(buffers[request.component_path].csv());
@@ -3748,11 +3749,11 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoSendClasses(Request & request)
     {
-        Dictionary header;
-        header.Set("Content-Type", "text/json");
-        header.Set("Cache-Control", "no-cache");
-        header.Set("Cache-Control", "no-store");
-        header.Set("Pragma", "no-cache");
+        dictionary header({
+            {"Content-Type", "text/json"},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"}
+        });
         socket->SendHTTPHeader(&header);
         socket->Send("{\"classes\":[\n\t\"");
         std::string s = "";
@@ -3770,11 +3771,11 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoSendClassInfo(Request & request)
     {
-        Dictionary header;
-        header.Set("Content-Type", "text/json");
-        header.Set("Cache-Control", "no-cache");
-        header.Set("Cache-Control", "no-store");
-        header.Set("Pragma", "no-cache");
+        dictionary header({
+            {"Content-Type", "text/json"},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"}
+        });
         socket->SendHTTPHeader(&header);
         socket->Send("{\n");
         std::string s = "";
@@ -3795,11 +3796,11 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoSendClassReadMe(Request & request)
     {
-        Dictionary header;
-        header.Set("Content-Type", "text/plain; charset=utf-8");
-        header.Set("Cache-Control", "no-cache");
-        header.Set("Cache-Control", "no-store");
-        header.Set("Pragma", "no-cache");
+        dictionary header({
+            {"Content-Type", "text/plain; charset=utf-8"},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"}
+        });
         socket->SendHTTPHeader(&header);
 
         if(!request.parameters.contains("class"))
@@ -3848,11 +3849,11 @@ bool operator==(Request & r, const std::string s)
 
         // Send result
 
-        Dictionary header;
-        header.Set("Content-Type", "text/json");
-        header.Set("Cache-Control", "no-cache");
-        header.Set("Cache-Control", "no-store");
-        header.Set("Pragma", "no-cache");
+        dictionary header({
+            {"Content-Type", "text/json"},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"}
+        });
         socket->SendHTTPHeader(&header);
         std::string sep;
     socket->Send("{\"system_files\":[\n\t\"");
@@ -3881,8 +3882,9 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoSendError()
     {
-    Dictionary header;
-    header.Set("Content-Type", "text/plain");
+    dictionary header({
+        {"Content-Type", "text/plain"}
+    });
     socket->SendHTTPHeader(&header);
     socket->Send("ERROR\n");
     }
@@ -3892,11 +3894,10 @@ bool operator==(Request & r, const std::string s)
     Kernel::HandleHTTPRequest()
     {
         long sid = 0;
-        const char * sids = socket->header.Get("Session-Id");
-        if(sids)
-            sid = atol(sids);
+        if(socket->header.contains_non_null("Session-Id"))
+            sid = atol(std::string(socket->header["Session-Id"]).c_str());
 
-        Request request(socket->header.Get("URI"), sid, socket->body);
+        Request request(std::string(socket->header["URI"]), sid, socket->body);
 
         if(request.parameters.contains("proxy"))
             request.component_path = std::string(request.parameters["proxy"]);
@@ -3995,11 +3996,11 @@ Kernel::CalculateCPUUsage() // In percent
             if(socket != nullptr && socket->GetRequest(true))
             {
                 std::lock_guard<std::recursive_mutex> lock(kernelLock); // Lock the mutex to ensure thread safety
-                if(equal_strings(socket->header.Get("Method"), "GET"))
+                if(socket->header.contains_non_null("Method") && std::string(socket->header["Method"]) == "GET")
                 {
                     HandleHTTPRequest();
                 }
-                else if(equal_strings(socket->header.Get("Method"), "PUT")) // JSON Data
+                else if(socket->header.contains_non_null("Method") && std::string(socket->header["Method"]) == "PUT") // JSON Data
                 {
                     HandleHTTPRequest();
                 }
