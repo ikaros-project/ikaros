@@ -272,7 +272,7 @@ public:
 
 // Dictionary
 // FIXME: don't use lists
-
+/*
 class Dictionary
 	{
 	public:
@@ -328,6 +328,8 @@ class Dictionary
 		
 		static Iterator      First(Dictionary * d) { return (d ? Iterator(d->first): NULL); }
 	};
+*/
+
 
 
     // mark - TAT additions

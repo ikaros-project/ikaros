@@ -1140,7 +1140,7 @@ void take(float *r, float *a,int len, int *indeces)
         r[i] = a[indeces[i]];
 }
 
-
+/*
 // Dictionary
 
 Dictionary::KeyValue::KeyValue(const char * k, const char * v, KeyValue * first)
@@ -1351,6 +1351,8 @@ Dictionary::GetKey(Dictionary::Iterator i)
 {
 	return i.kv->key;
 }
+
+*/
 
 
 const char *
