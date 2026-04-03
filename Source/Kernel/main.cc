@@ -2,6 +2,7 @@
 
 #include "ikaros.h"
 #include <atomic>
+#include <cstdlib>
 
 using namespace ikaros;
 
@@ -10,6 +11,12 @@ extern std::atomic<bool> global_terminate;
 int
 main(int argc, char *argv[])
 {
+#if defined(__APPLE__)
+    // Keep Apple framework unified logging from flooding stderr while
+    // preserving normal IKAROS stdout/stderr messages.
+    setenv("OS_ACTIVITY_MODE", "disable", 0);
+#endif
+
     bool debug_mode = false;
 #if DEBUG
     debug_mode = true;

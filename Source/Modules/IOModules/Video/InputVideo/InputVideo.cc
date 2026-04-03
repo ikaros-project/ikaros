@@ -112,6 +112,9 @@ class InputVideo : public Module
     std::vector<uint8_t> latest_frame_data;
     int latest_frame_linesize = 0;
     bool frame_ready = false;
+    std::atomic<bool> empty_packet_warning_logged{false};
+    std::atomic<bool> scale_warning_logged{false};
+    std::atomic<bool> decode_warning_logged{false};
 
 
 
@@ -134,7 +137,8 @@ class InputVideo : public Module
 
                     if (packet->size <= 0) // Check packet size
                     {
-                        std::cerr << "Warning: received empty or corrupt packet" << std::endl;
+                        if (!empty_packet_warning_logged.exchange(true))
+                            Warning("Received empty or corrupt packet from video input. Further messages suppressed.");
                         av_packet_unref(packet);
                         continue;
                     }
@@ -157,7 +161,8 @@ class InputVideo : public Module
                     int h = sws_scale(img_convert_ctx,  (const uint8_t *const *)inputFrame->data, inputFrame->linesize,  0, avctx->height, outputFrame->data, outputFrame->linesize);
                     if (h <= 0)
                     {
-                        std::cerr << "sws_scale failed or returned empty image" << std::endl;
+                        if (!scale_warning_logged.exchange(true))
+                            Warning("Video conversion failed or returned an empty image. Further messages suppressed.");
                         continue;
                     }
 
@@ -205,7 +210,7 @@ class InputVideo : public Module
 
         if(listDevices)
             for(int i = 0; i < dev_list.size(); i++)
-                std::cout << "Device " << std::to_string(i) << ": " << dev_list[i] << std::endl;
+                Print("Device " + std::to_string(i) + ": " + dev_list[i]);
 
         if(!device_name.empty()) // Remapping id
         {
@@ -214,7 +219,7 @@ class InputVideo : public Module
                 throw  fatal_error("Device \"" + device_name.as_string() + "\" with index " + device_index.as_int_string()+" not found.");
  
             id = std::to_string(new_index); // Set the id to the new index
-            std::cout << "Using device: " <<  id.as_int_string() << "  = " << dev_list[new_index] << std::endl;
+            Debug("Using device: " + id.as_int_string() + " = " + dev_list[new_index]);
         }
 
         // Setting options
@@ -224,6 +229,7 @@ class InputVideo : public Module
 
         input_format_context = avformat_alloc_context();
         avdevice_register_all();
+        av_log_set_level(AV_LOG_ERROR);
 
         const AVInputFormat *ifmt = av_find_input_format("avfoundation");
         
@@ -301,7 +307,8 @@ class InputVideo : public Module
         {
             char errbuf[128];
             av_strerror(ret, errbuf, sizeof(errbuf));
-            std::cerr << "Decoding error: " << errbuf << std::endl;
+            if (!decode_warning_logged.exchange(true))
+                Warning(std::string("Decoding error from video input: ") + errbuf + ". Further messages suppressed.");
             return ret;
      }
 
