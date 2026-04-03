@@ -66,8 +66,8 @@ namespace ikaros
         void info(std::string name="");
         void print_index(); // Print the current index position during a loop
 
-        operator std::string();
-        std::string curly(); // empty string or range within curly brackets
+        operator std::string() const;
+        std::string curly() const; // empty string or range within curly brackets
 
         friend bool operator==(range & a, range & b);
         friend bool operator!=(range & a, range & b);
@@ -76,4 +76,3 @@ namespace ikaros
         friend std::ostream& operator<<(std::ostream& os, const range & x);
     };
 }; // namespace ikaros
-

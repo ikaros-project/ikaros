@@ -139,23 +139,23 @@ public:
     std::string operator=(std::string v);
 
     operator matrix & ();
-    operator std::string();
-    operator double();
+    operator std::string() const;
+    operator double() const;
 
-    void print(std::string name="");
-    void info();
+    void print(std::string name="") const;
+    void info() const;
 
-    bool as_bool();
-    float as_float();
-    double as_double();
-    int as_int();
-    std::string as_int_string(); // as_int() converted to string
-    std::string as_string();
-    bool empty();
+    bool as_bool() const;
+    float as_float() const;
+    double as_double() const;
+    int as_int() const;
+    std::string as_int_string() const; // as_int() converted to string
+    std::string as_string() const;
+    bool empty() const;
 
     const char* c_str() const noexcept;
 
-    std::string json();    
+    std::string json() const;    
     
     friend std::ostream& operator<<(std::ostream& os, parameter p);
     // Method to compare string_value with a string literal
@@ -183,7 +183,7 @@ class Message
             path_(path)
         {}
 
-        std::string json()
+        std::string json() const
         {
             return "[\""+std::to_string(level_)+"\",\""+escape_json_string(message_)+"\",\""+escape_json_string(path_)+"\"]";
         }
@@ -204,7 +204,7 @@ public:
 
     virtual ~Component() {};
 
-    std::string Info() { return info_["name"]; }
+    std::string Info() const { return info_["name"]; }
 
     bool Notify(int msg, std::string message, std::string path=""); // Path to componenet with problem
 
@@ -240,21 +240,21 @@ public:
 
     } // Used to send commands and arbitrary data structures to modules
 
-    void print();
-    void info();
-    std::string json();  // json representation of the component
+    void print() const;
+    void info() const;
+    std::string json() const;  // json representation of the component
     virtual std::string json(const std::string & name) { return ""; }; // json representation for name of component
     std::string xml();
 
-    bool KeyExists(const std::string & key);  // Check if a key exist here or in any parent; this means that LookupKey will succeed
-    std::string LookupKey(const std::string & key); // Look up value in dictionary with inheritance
+    bool KeyExists(const std::string & key) const;  // Check if a key exist here or in any parent; this means that LookupKey will succeed
+    std::string LookupKey(const std::string & key) const; // Look up value in dictionary with inheritance
 
     Component * GetComponent(const std::string & s); // Get component; sensitive to variables and indirection
-    std::string GetValue(const std::string & name);    // Get value of a attribute/variable in the context of this component
-    int GetIntValue(const std::string & name, int d=0);    // Get value of a key in the context of this component; return deflt if not found
+    std::string GetValue(const std::string & name) const;    // Get value of a attribute/variable in the context of this component
+    int GetIntValue(const std::string & name, int d=0) const;    // Get value of a key in the context of this component; return deflt if not found
 
-    std::string GetBind(const std::string & name);
-    std::string SubstituteVariables(const std::string & s);
+    std::string GetBind(const std::string & name) const;
+    std::string SubstituteVariables(const std::string & s) const;
 
     matrix & GetBuffer(const std::string & s);
 
@@ -262,7 +262,7 @@ public:
     std::string EvaluateVariableOrFunction(const std::string & s);
     bool LookupParameter(parameter & p, const std::string & name);
     
-    double EvaluateNumericalExpression(std::string & s);
+    double EvaluateNumericalExpression(const std::string & s);
 
     std::vector<int> EvaluateSizeList(std::string & s);
     bool EvaluateBool(std::string v);
@@ -310,13 +310,13 @@ public:
     int SetOutputSizes(input_map ingoing_connections); // Uses the size attribute
     int SetSizes(input_map  ingoing_connections); // Sets input and output if possible
 
-    tick_count GetTick();
-    double GetTickDuration();
-    double GetTime();           // actual or nominal time depending om run mode
-    double GetRealTime();       // actual time since start
-    double GetNominalTime();    // nominal time at current tick
-    double GetTimeOfDay();      // seconds since midnight
-    double GetLag();
+    tick_count GetTick() const;
+    double GetTickDuration() const;
+    double GetTime() const;           // actual or nominal time depending om run mode
+    double GetRealTime() const;       // actual time since start
+    double GetNominalTime() const;    // nominal time at current tick
+    double GetTimeOfDay() const;      // seconds since midnight
+    double GetLag() const;
 
     void ProfilingBegin() { profiler_.begin(); }
     void ProfilingEnd()  { profiler_.end();  }
@@ -342,9 +342,9 @@ public:
     range Resolve(const range & source_output);
 
     void Tick();
-    void Print();
+    void Print() const;
 
-    std::string Info(); // FIXME: Make consistent with other classes
+    std::string Info() const; // FIXME: Make consistent with other classes
 };
 
 //
@@ -364,7 +364,7 @@ public:
     Class(std::string n, std::string p);
     Class(std::string n, ModuleCreator mc);
 
-    void Print();
+    void Print() const;
 };
 
 

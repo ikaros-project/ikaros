@@ -231,7 +231,7 @@ namespace ikaros
     }
 
 
-    parameter::operator std::string()
+    parameter::operator std::string() const
     {
         if(string_value)
             return  *string_value;
@@ -259,7 +259,7 @@ namespace ikaros
     }
 
 
-    parameter::operator double()
+    parameter::operator double() const
     {
         if(type==rate_type)
             return *number_value * kernel().GetTickDuration();
@@ -287,7 +287,7 @@ namespace ikaros
 
 
     bool
-    parameter::as_bool()
+    parameter::as_bool() const
     {
         if(type == string_type && string_value)
             return is_true(*string_value);
@@ -296,21 +296,21 @@ namespace ikaros
 
 
     float
-    parameter::as_float()
+    parameter::as_float() const
     {
         return float(as_double());
     }
 
 
     double
-    parameter::as_double()
+    parameter::as_double() const
     {
         return double(*this);
     }
 
 
     int
-    parameter::as_int()
+    parameter::as_int() const
     {
         switch(type)
         {
@@ -327,7 +327,7 @@ namespace ikaros
 
 
     std::string
-    parameter::as_int_string()
+    parameter::as_int_string() const
     {
         return std::to_string(as_int());    
     }
@@ -344,7 +344,7 @@ namespace ikaros
 
 
     std::string
-    parameter::as_string()
+    parameter::as_string() const
     {
         return std::string(*this);
     }
@@ -352,7 +352,7 @@ namespace ikaros
 
 
     bool 
-    parameter::empty()
+    parameter::empty() const
     {
         return (*this).as_string().empty();
     }
@@ -360,7 +360,7 @@ namespace ikaros
 
 
     void 
-        parameter::print(std::string name)
+        parameter::print(std::string name) const
     {
         if(!name.empty())
             std::cout << name << " = ";
@@ -372,7 +372,7 @@ namespace ikaros
 
 
     void 
-    parameter::info()
+    parameter::info() const
     {
         std::cout << "name: " << info_["name"] << std::endl;
         std::cout << "type: " << type << std::endl;
@@ -383,7 +383,7 @@ namespace ikaros
     }
 
     std::string 
-    parameter::json()
+    parameter::json() const
     {
         switch(type)     // FIXME: remove if statements and use exception handling
         {
@@ -416,13 +416,13 @@ namespace ikaros
 // Component
 
     void 
-    Component::print()
+    Component::print() const
     {
         std::cout << "Component: " << info_["name"]  << '\n';
     }
 
         void 
-        Component::info()
+        Component::info() const
         {
             std::cout << "Component: " << info_["name"]  << '\n';
             std::cout << "Path: " << path_  << '\n';
@@ -505,7 +505,7 @@ namespace ikaros
 
 
     bool 
-    Component::KeyExists(const std::string & key)
+    Component::KeyExists(const std::string & key) const
     {        
         if(info_.contains(key))
             return true;
@@ -518,7 +518,7 @@ namespace ikaros
 
 
     std::string 
-    Component::LookupKey(const std::string & key)
+    Component::LookupKey(const std::string & key) const
     {        
         if(info_.contains(key))
             return info_[key];
@@ -583,7 +583,7 @@ namespace ikaros
 
 
     std::string 
-    Component::GetValue(const std::string & path) 
+    Component::GetValue(const std::string & path) const
     {     
         if(path.empty())
             return ""; // throw exception("Name not found"); // throw not_found_exception instead
@@ -645,7 +645,7 @@ namespace ikaros
 
 
     int 
-    Component::GetIntValue(const std::string & name, int d)
+    Component::GetIntValue(const std::string & name, int d) const
     {
         std::string value = GetValue(name);
         if(value.empty())
@@ -655,7 +655,7 @@ namespace ikaros
 
 
     std::string 
-    Component::GetBind(const std::string & name)
+    Component::GetBind(const std::string & name) const
     {
         if(info_.contains(name))
             return ""; // Value set in attribute - do not bind
@@ -669,7 +669,7 @@ namespace ikaros
 
 
     std::string 
-    Component::SubstituteVariables(const std::string & s)
+    Component::SubstituteVariables(const std::string & s) const
     {
         std::string var; 
         std::string sep;
@@ -877,7 +877,7 @@ namespace ikaros
 
 
     double 
-    Component::EvaluateNumericalExpression(std::string & s)
+    Component::EvaluateNumericalExpression(const std::string & s)
     {
         expression e = expression(s);
         std::map<std::string, std::string> vars;
@@ -1036,13 +1036,13 @@ namespace ikaros
     }
 
 
-    tick_count Module::GetTick()        { return kernel().GetTick(); }
-    double Module::GetTickDuration()    { return kernel().GetTickDuration(); } // Time for each tick in seconds (s)
-    double Module::GetTime()            { return kernel().GetTime(); }
-    double Module::GetRealTime()        { return kernel().GetRealTime(); }
-    double Module::GetNominalTime()     { return kernel().GetNominalTime(); }
-    double Module::GetTimeOfDay()       { return kernel().GetTimeOfDay(); }
-    double Module::GetLag()             { return kernel().GetLag(); }
+    tick_count Module::GetTick() const        { return kernel().GetTick(); }
+    double Module::GetTickDuration() const    { return kernel().GetTickDuration(); } // Time for each tick in seconds (s)
+    double Module::GetTime() const            { return kernel().GetTime(); }
+    double Module::GetRealTime() const        { return kernel().GetRealTime(); }
+    double Module::GetNominalTime() const     { return kernel().GetNominalTime(); }
+    double Module::GetTimeOfDay() const       { return kernel().GetTimeOfDay(); }
+    double Module::GetLag() const             { return kernel().GetLag(); }
 
 
     Module::Module()
@@ -1545,7 +1545,7 @@ namespace ikaros
 
 
     void
-    Connection::Print()
+    Connection::Print() const
     {
         std::cout << "\t" << source <<  delay_range_.curly() <<  std::string(source_range) << " => " << target  << std::string(target_range);
         if(!alias_.empty())
@@ -1555,7 +1555,7 @@ namespace ikaros
 
 
 std::string
-Connection::Info()
+Connection::Info() const
 {
     std::string s = source + delay_range_.curly() +  std::string(source_range) + " => " + target  + std::string(target_range);
         if(!alias_.empty())
@@ -1576,7 +1576,7 @@ Connection::Info()
 
 
     void 
-    Class::Print()
+    Class::Print() const
     {
         std::cout << name << ": " << path  << '\n';
     }
@@ -3026,7 +3026,7 @@ bool operator==(Request & r, const std::string s)
     //
 
     std::string 
-    Component::json()
+    Component::json() const
     {
         return info_.json();
     }

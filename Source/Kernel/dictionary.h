@@ -69,11 +69,16 @@ namespace ikaros
         //dictionary(const dictionary & d);
     
         value & operator[](std::string s); // Creates the key on demand if it does not exist.
+        const value & operator[](std::string s) const;
         value & at(std::string s);  // throws if s is not in dictionary
+        const value & at(std::string s) const;
         bool contains(std::string s);
+        bool contains(std::string s) const;
         bool contains_non_null(std::string s);
+        bool contains_non_null(std::string s) const;
         size_t count(std::string s);
-        bool empty() { return dict_->empty(); }
+        size_t count(std::string s) const;
+        bool empty() const { return dict_->empty(); }
         void merge(const dictionary & source, bool overwrite=false); // shallow merge: copy from source to this
 
         void erase(std::string key);

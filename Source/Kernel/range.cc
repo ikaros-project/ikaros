@@ -332,7 +332,7 @@ namespace ikaros
         std::cout << std::endl;
     }
 
-    range::operator std::string()
+    range::operator std::string() const
     {
         std::string s;
         std::string sep;
@@ -368,7 +368,7 @@ namespace ikaros
 
 
     std::string 
-    range::curly()
+    range::curly() const
     {
         if(index_.empty())
             return "";

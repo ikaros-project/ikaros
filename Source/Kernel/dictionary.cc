@@ -196,8 +196,22 @@ namespace ikaros
         return (*dict_)[s];
     }
 
+    const value &
+    dictionary::operator[](std::string s) const
+    {
+        static const value null_value;
+        auto it = dict_->find(s);
+        return (it != dict_->end()) ? it->second : null_value;
+    }
+
     value & 
     dictionary::at(std::string s)
+    {
+        return dict_->at(s);
+    }
+
+    const value &
+    dictionary::at(std::string s) const
     {
         return dict_->at(s);
     }
@@ -230,15 +244,34 @@ namespace ikaros
         }
 
     bool
+    dictionary::contains(std::string s) const
+    {
+        return dict_->count(s);
+    }
+
+    bool
     dictionary::contains_non_null(std::string s)
     {
         auto it = dict_->find(s);
         return it != dict_->end() && !it->second.is_null();
     }
 
+    bool
+    dictionary::contains_non_null(std::string s) const
+    {
+        auto it = dict_->find(s);
+        return it != dict_->end() && !std::holds_alternative<null>(it->second.value_);
+    }
+
 
         size_t 
         dictionary::count(std::string s)
+        {
+            return dict_->count(s);
+        }
+
+        size_t
+        dictionary::count(std::string s) const
         {
             return dict_->count(s);
         }

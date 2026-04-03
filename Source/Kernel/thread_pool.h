@@ -17,7 +17,7 @@
 class Task {
 public:
     virtual void Tick() = 0;
-    virtual std::string Info() = 0;
+    virtual std::string Info() const = 0;
     virtual bool Priority() { return false; }
     virtual void ProfilingBegin() {};
     virtual void ProfilingEnd()  {};
