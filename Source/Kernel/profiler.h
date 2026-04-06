@@ -82,11 +82,11 @@ public:
 
         if(cpu_time_.no_data())
         {
-            std::cout << "-" << std::endl;
+            std::cout << "-\n";
             return;
         }
     
-        std::cout  << std::fixed << std::setprecision(4) << 1000*cpu_time_.mean()  << " ms" << std::endl;
+        std::cout  << std::fixed << std::setprecision(4) << 1000*cpu_time_.mean()  << " ms\n";
 
        // std::cout << " [" << wall_time_.count() << "] ";
         //std::cout << "Wall: " << wall_seconds() << " s (mean: " << wall_time_.mean() << " s, sd: " << wall_time_.standard_deviation() << " s) ";
@@ -115,5 +115,4 @@ private:
     statistics wall_time_;
     statistics cpu_time_;
 };
-
 

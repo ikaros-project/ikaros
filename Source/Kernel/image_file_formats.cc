@@ -454,7 +454,7 @@ namespace ikaros
     {
         my_src_ptr src;
         
-        if (cinfo->src == NULL) // first time for this JPEG object?
+        if (cinfo->src == nullptr) // first time for this JPEG object?
         {	
             cinfo->src = (struct jpeg_source_mgr *)
             (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof(my_source_mgr));
@@ -532,9 +532,9 @@ namespace ikaros
         long sizex = image.shape()[2];  // FIXME: Change to size(2)
         long sizey = image.shape()[1];
 
-        if (r==NULL) return NULL;
-        if (g==NULL) return NULL;
-        if (b==NULL) return NULL;
+        if (r == nullptr) return nullptr;
+        if (g == nullptr) return nullptr;
+        if (b == nullptr) return nullptr;
         
         JSAMPLE *   image_buffer = new JSAMPLE [3*sizex];
         JSAMPROW    row_pointer[1];
@@ -609,7 +609,7 @@ namespace ikaros
     jpeg_get_size(int & sizex, int & sizey, std::filesystem::path filename)
     {
         FILE * infile;
-        if ((infile = fopen(filename.c_str(), "rb")) == NULL) {
+        if ((infile = fopen(filename.c_str(), "rb")) == nullptr) {
             throw std::runtime_error("Can't open " + filename.string());
         }
 
@@ -632,7 +632,7 @@ namespace ikaros
     jpeg_get_channels(std::filesystem::path filename)
     {
         FILE * infile;
-        if ((infile = fopen(filename.c_str(), "rb")) == NULL) {
+        if ((infile = fopen(filename.c_str(), "rb")) == nullptr) {
             throw std::runtime_error("Can't open " + filename.string());
         }
 
@@ -656,7 +656,7 @@ namespace ikaros
     jpeg_get_image(matrix & red, matrix & green, matrix & blue, std::filesystem::path filename)
     {
         FILE * infile;
-        if ((infile = fopen(filename.c_str(), "rb")) == NULL) {
+        if ((infile = fopen(filename.c_str(), "rb")) == nullptr) {
             throw std::runtime_error("Can't open " + filename.string());
         }
 
@@ -717,7 +717,7 @@ namespace ikaros
                 throw std::runtime_error("Not a PNG file: " + filename.string());
             }
 
-            png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+            png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
             if (!png) {
                 fclose(fp);
                 throw std::runtime_error("Failed to create PNG read struct");
@@ -763,7 +763,7 @@ namespace ikaros
                 throw std::runtime_error("Not a PNG file: " + filename.string());
             }
 
-            png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+            png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
             png_infop info = png_create_info_struct(png);
 
             if (setjmp(png_jmpbuf(png))) {
@@ -801,7 +801,7 @@ namespace ikaros
         throw std::runtime_error("Not a PNG file: " + filename.string());
     }
 
-    png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     png_infop info = png_create_info_struct(png);
 
     if (setjmp(png_jmpbuf(png))) {

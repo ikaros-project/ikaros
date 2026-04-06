@@ -27,7 +27,7 @@
 
 #pragma once
 
-#define XML_DEBUG   false
+inline constexpr bool XML_DEBUG = false;
 
 #include <cstdio>
 #include <cstring>
@@ -44,7 +44,7 @@ public:
     XMLNode *	next;
     void *		aux;		// used for extensions
 
-    XMLNode() : parent(NULL), prev(NULL), next(NULL), aux(NULL)
+    XMLNode() : parent(nullptr), prev(nullptr), next(nullptr), aux(nullptr)
     {};
     virtual ~XMLNode()
     {
@@ -53,8 +53,8 @@ public:
 
     virtual void	Print(FILE * f, int d);
 
-    virtual XMLElement * GetElement(const char * element_name=NULL);
-    virtual bool IsElement(const char * e=NULL)
+    virtual XMLElement * GetElement(const char * element_name=nullptr);
+    virtual bool IsElement(const char * e=nullptr)
     {
         return false;
     }
@@ -74,7 +74,7 @@ public:
     XMLCharacterData(char * s, bool cd, XMLNode * n);
     virtual ~XMLCharacterData();
 
-    virtual void	Print(FILE * f, int d);
+    void	Print(FILE * f, int d) override;
 };
 
 
@@ -87,7 +87,7 @@ public:
     XMLComment(char * s, XMLNode * n);
     virtual ~XMLComment();
 
-    virtual void	Print(FILE * f, int d);
+    void	Print(FILE * f, int d) override;
 };
 
 
@@ -104,7 +104,7 @@ public:
 
     void    RemoveDuplicates();
 
-    virtual void	Print(FILE * f, int d);
+    void	Print(FILE * f, int d) override;
 };
 
 
@@ -122,14 +122,14 @@ public:
     XMLElement(XMLNode * p, char * nm, XMLAttribute * a, bool e, XMLNode * c, XMLNode * n);
     virtual ~XMLElement();
 
-    virtual void	Print(FILE * f, int d);
+    void	Print(FILE * f, int d) override;
 
-	virtual bool IsElement(const char * e=NULL) // Is this an element with a particular name or any element (if NULL)
+	bool IsElement(const char * e=nullptr) override // Is this an element with a particular name or any element (if nullptr)
     {
         return !e || !strcmp(e, name);
     }
 	
-    virtual void SetPrev(XMLNode * p);
+    void SetPrev(XMLNode * p) override;
     
     const char *	GetAttribute(const char *);
 
@@ -147,9 +147,9 @@ public:
     const char *    GetActualAttribute(const char *);    // without inheritence but with variables - temporary
 	void			SetAttribute(const char * a, const char * v);
 
-    virtual XMLElement * GetElement(const char * element_name=NULL); // NULL indicates any element
-    virtual XMLElement * GetContentElement(const char * element_name=NULL);
-    virtual XMLElement * GetNextElement(const char * element_name=NULL);
+    XMLElement * GetElement(const char * element_name=nullptr) override; // nullptr indicates any element
+    virtual XMLElement * GetContentElement(const char * element_name=nullptr);
+    virtual XMLElement * GetNextElement(const char * element_name=nullptr);
     virtual XMLElement * GetParentElement();
 };
 
@@ -164,9 +164,9 @@ public:
     XMLProcessingInstruction(char * nm, char * c, XMLNode * n);
     virtual ~XMLProcessingInstruction();
 
-    virtual void	Print(FILE * f, int d);
+    void	Print(FILE * f, int d) override;
 
-    virtual bool IsElement(const char * e=NULL)
+    bool IsElement(const char * e=nullptr) override
     {
         return false;
     }
@@ -174,7 +174,7 @@ public:
 
 
 
-const int initial_buffer_size = 16768;
+inline constexpr int initial_buffer_size = 16768;
 
 class XMLDocument
 {
@@ -205,7 +205,7 @@ public:
     void		SkipWhitespace(const char *t);
 
     char *		Push(const char * t, int n);
-    char *		PushUntil(const char *t, const char * s0, const char * s1=NULL);
+    char *		PushUntil(const char *t, const char * s0, const char * s1=nullptr);
     char *		PushName(const char *t);
 
     void		SetAction(const char *);
@@ -223,5 +223,4 @@ public:
 
     void		Print(FILE * f);
 };
-
 

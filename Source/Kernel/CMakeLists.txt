@@ -12,6 +12,7 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/signal.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/xml.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/thread_pool.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/compute_engine.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/ikaros.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/session_logging.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cc
@@ -35,6 +36,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/deprecated.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/signal.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/xml.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/thread_pool.cc
+${CMAKE_CURRENT_SOURCE_DIR}/compute_engine.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/ikaros.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/session_logging.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/main.cc

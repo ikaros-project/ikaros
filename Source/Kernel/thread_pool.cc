@@ -24,7 +24,7 @@ ThreadPool::~ThreadPool()
     // Ensure all tasks are completed
     if (!task_sequences.empty()) 
     {
-        std::cerr << "Warning: Tasks remaining in the queue during shutdown." << std::endl;
+        std::cerr << "Warning: Tasks remaining in the queue during shutdown.\n";
     }
 }
 
@@ -47,9 +47,9 @@ void ThreadPool::worker()
             try {
                 task_sequence->execute();
             } catch (const std::exception &e) {
-                std::cerr << "Task execution error: " << e.what() << std::endl;
+                std::cerr << "Task execution error: " << e.what() << '\n';
             } catch (...) {
-                std::cerr << "Unknown error during task execution." << std::endl;
+                std::cerr << "Unknown error during task execution.\n";
             }
         }
         --active_tasks;

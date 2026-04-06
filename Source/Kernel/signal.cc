@@ -15,10 +15,10 @@ private:
         struct sigaction sa;
         sa.sa_handler = SIG_DFL;
         sigemptyset(&sa.sa_mask);
-        sigaction(SIGINT, &sa, NULL);
-        fflush(NULL);
+        sigaction(SIGINT, &sa, nullptr);
+        fflush(nullptr);
         printf("\nikaros will terminate after this iteration.\n");
-        fflush(NULL);
+        fflush(nullptr);
     }
 public:
     Signal() // Install the CTRL-C handler
@@ -27,8 +27,7 @@ public:
         sa.sa_handler = Signal::Handler;
         sigemptyset(&sa.sa_mask);
         sa.sa_flags = 0;
-        sigaction(SIGINT, &sa, NULL);
+        sigaction(SIGINT, &sa, nullptr);
     }
 }
 INIT;
-

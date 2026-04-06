@@ -2,7 +2,7 @@
 
 #pragma once
 
-#define DEFAULT_MAX_FAILED_READS 100
+inline constexpr int DEFAULT_MAX_FAILED_READS = 100;
 
 #include <string>
 #include <cstdlib>
@@ -44,4 +44,3 @@ protected:
 private:
     SerialData *    data;
 };
-

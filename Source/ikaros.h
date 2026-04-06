@@ -257,7 +257,7 @@ public:
 
     matrix & GetBuffer(const std::string & s);
 
-    std::string Compute(const std::string & s);
+    std::string ComputeValue(const std::string & s);
     double ComputeDouble(const std::string & s);
     int ComputeInt(const std::string & s);
     bool ComputeBool(const std::string & s);
@@ -285,24 +285,6 @@ public:
     void CalculateCheckSum(long & check_sum, prime & prime_number); // Calculates a value that depends on all parameters and buffer size
 
 private:
-    std::string ComputeMatrix(const std::string & s, int depth=0);
-    std::string ComputeList(const std::string & s, int depth=0);
-    std::string ComputeScalar(const std::string & s, int depth=0, bool evaluate_final=false);
-    std::string ComputeCurlySubstitutions(const std::string & s, int depth=0);
-    std::string ComputePath(const std::string & s, int depth=0, bool evaluate_final=false);
-    std::string ComputeFinalSegment(const std::string & s, int depth=0, bool evaluate_final=false);
-    std::string ComputeFunction(const std::string & s, int depth=0);
-    std::string ComputeMath(const std::string & s, int depth=0);
-    std::string ComputeExpandSegment(const std::string & s, int depth=0);
-    std::string ComputeLookupLocal(const std::string & name) const;
-    bool ComputeHasExplicitSyntax(const std::string & s) const;
-    bool ComputeIsPathLike(const std::string & s) const;
-    bool ComputeShouldReturnLiteral(const std::string & s, bool evaluate_final) const;
-    std::vector<std::string> ComputeSplitTopLevel(const std::string & s, char separator) const;
-    bool ComputeHasTopLevelMath(const std::string & s);
-    bool ComputeIsFunction(const std::string & s) const;
-    bool ComputeLooksLikeNumber(const std::string & s) const;
-    void ComputeCheckDepth(int depth) const;
 };
 
 typedef std::function<Module *()> ModuleCreator;

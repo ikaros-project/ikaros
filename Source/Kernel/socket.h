@@ -29,7 +29,7 @@
 #include "dictionary.h"
 #include "deprecated.h"
 
-#define PORTNO		8000 	// the default port clients will be connecting to
+inline constexpr int PORTNO = 8000; // the default port clients will be connecting to
 
 //
 //	Socket used to request data from a HTTP server in a simple way
@@ -96,4 +96,3 @@ class ServerSocket
 		bool				Poll(bool block=false);                 // Poll for connection; return >=0 if accepted connection (or > 0 CHECK!!!)
 		size_t				Read(char * buffer, int maxSize, bool fill=false);	// Read, fill means fill with maxSize, return read size
 	};
-

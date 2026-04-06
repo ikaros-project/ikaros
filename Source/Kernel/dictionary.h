@@ -41,7 +41,7 @@ namespace ikaros
         std::string xml(std::string name, exclude_set exclude={}, int depth=0);
         friend std::ostream& operator<<(std::ostream& os, const null & v);
 
-        void print() const { std::cout << "null" << std::endl; };
+        void print() const { std::cout << "null\n"; };
     };
 
 
@@ -100,7 +100,7 @@ namespace ikaros
 
         dictionary copy() const;
 
-        void print() const { std::cout << this->json() << std::endl; };
+        void print() const { std::cout << this->json() << '\n'; };
 
         void load_xml(std::string filename);
         void load_json(std::string filename);
@@ -141,7 +141,7 @@ namespace ikaros
 
         list copy() const;
 
-        void print() const { std::cout << this->json() << std::endl; };
+        void print() const { std::cout << this->json() << '\n'; };
     };
 
 
@@ -204,7 +204,7 @@ namespace ikaros
         operator list ();
         operator dictionary ();
 
-        void print() const { std::cout << this->json() << std::endl; };
+        void print() const { std::cout << this->json() << '\n'; };
 
         value copy() const;
     };

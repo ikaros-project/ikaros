@@ -304,7 +304,7 @@ namespace ikaros
     void
     range::print(std::string name)
     {
-        std::cout << name << ": " << std::string(*this) << std::endl;
+        std::cout << name << ": " << std::string(*this) << '\n';
     }
 
 
@@ -314,13 +314,13 @@ namespace ikaros
         std::string tab;
         if(!name.empty())
         {
-            std::cout << name << ": " << std::endl;
+            std::cout << name << ":\n";
             tab = "\t";
         }
-        std::cout << tab << "rank: " << rank() << std::endl;
-        std::cout << tab << "size: " << size() << std::endl;
-        std::cout << tab << "value: "  << std::string(*this) << std::endl;
-        std::cout << tab << std::endl;
+        std::cout << tab << "rank: " << rank() << '\n';
+        std::cout << tab << "size: " << size() << '\n';
+        std::cout << tab << "value: "  << std::string(*this) << '\n';
+        std::cout << tab << '\n';
     }
 
 
@@ -329,7 +329,7 @@ namespace ikaros
     {
         for(auto x: index_)
             std::cout << x << " ";
-        std::cout << std::endl;
+        std::cout << '\n';
     }
 
     range::operator std::string() const

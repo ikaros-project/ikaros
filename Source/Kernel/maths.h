@@ -8,7 +8,7 @@ namespace ikaros
 {
 	enum angle_unit {degrees, radians, tau};
 
-	const double pi = 3.14159265358979323846;  // Awaiting C++20
+	inline constexpr double pi = 3.14159265358979323846;
 	
 	double sgn(double x);
 
@@ -23,5 +23,4 @@ namespace ikaros
 
 	double exgaussian(double x, double K, double mu, double sigma, double A = 1.0); // Ex-Gaussian PDF (exponnorm parameterization) / K = tau / sigma, mu = mean of Gaussian, sigma = std of Gaussian
 };
-
 

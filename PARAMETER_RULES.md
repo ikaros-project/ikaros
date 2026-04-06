@@ -62,7 +62,7 @@ If no explicit or inherited value exists, the parameter falls back to the `.ikc`
 Current behavior:
 
 - defaults are assigned directly
-- defaults are not passed through `Compute()`
+- defaults are not passed through `ComputeValue()`
 
 So a default value is treated as literal data for its type, not as an expression language input.
 
@@ -117,7 +117,7 @@ String parameters are assigned directly unless the raw value contains explicit c
 
 If explicit compute syntax is present, the value is resolved with:
 
-- `Compute(...)`
+- `ComputeValue(...)`
 
 Examples:
 
@@ -129,7 +129,7 @@ Examples:
 
 Matrix parameters are always resolved with:
 
-- `Compute(...)`
+- `ComputeValue(...)`
 
 A matrix uses:
 
@@ -167,7 +167,7 @@ For bool parameters with options:
 
 ## The Compute Language
 
-`Compute()` is the explicit evaluation system used for expressions.
+`ComputeValue()` is the explicit evaluation system used for expressions.
 
 Main rule:
 
@@ -176,7 +176,7 @@ Main rule:
 
 ### Lists and Matrices
 
-`Compute()` handles:
+`ComputeValue()` handles:
 
 - comma-separated lists
 - semicolon-separated matrix rows
@@ -274,7 +274,7 @@ Examples:
 
 ### Math Limitations
 
-The parser handles ordinary arithmetic with parentheses correctly, but it is still the `Compute()` language, not unrestricted mathematical notation.
+The parser handles ordinary arithmetic with parentheses correctly, but it is still the `ComputeValue()` language, not unrestricted mathematical notation.
 
 These expressions are valid:
 
@@ -301,7 +301,7 @@ So the safe rule is:
 
 ## Lookup Precedence During Compute
 
-When `Compute()` performs an explicit local lookup for a name:
+When `ComputeValue()` performs an explicit local lookup for a name:
 
 1. the component's own raw attribute
 2. the component's resolved local parameter value, if non-empty

@@ -59,9 +59,9 @@ main(int argc, char *argv[])
             o.set("start");
 
 #if DEBUG
-        std::cout << "Ikaros 3.0 Starting (Debug)\n" << std::endl;
+        std::cout << "Ikaros 3.0 Starting (Debug)\n\n";
 #else
-        std::cout << "Ikaros 3.0 Starting\n" << std::endl;
+        std::cout << "Ikaros 3.0 Starting\n\n";
 #endif
 
         k.options_ = o;
@@ -134,7 +134,7 @@ main(int argc, char *argv[])
 
             catch(load_failed & e)
             {
-                std::cout << "Load failed. "+e.message() << std::endl;
+                std::cout << "Load failed. " + e.message() << '\n';
                 if(o.is_set("batch_mode"))
                 {
                     return shutdown_and_exit(1);
@@ -144,7 +144,7 @@ main(int argc, char *argv[])
 
             catch(fatal_error & e)
             {
-                std::cerr << "Ikaros:: Fatal error: " << e.what() << std::endl;
+                std::cerr << "Ikaros:: Fatal error: " << e.what() << '\n';
                 if(o.is_set("batch_mode"))
                 {
                     return shutdown_and_exit(1);
@@ -159,19 +159,19 @@ main(int argc, char *argv[])
 
         k.LogProcessExit();
         shutdown_batch_http();
-        std::cout << "\nIkaros 3.0 Ended" << std::endl;
+        std::cout << "\nIkaros 3.0 Ended\n";
         return 0;
     }
     catch(std::exception & e)
     {
         kernel().LogProcessExit();
-        std::cerr << std::string(e.what()) << std::endl;
+        std::cerr << std::string(e.what()) << '\n';
         return 1;
     }
     catch(...)
     {
         kernel().LogProcessExit();
-        std::cout << "Ikaros: Internal Error" << std::endl;
+        std::cout << "Ikaros: Internal Error\n";
         return 1;
     }
 }

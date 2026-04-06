@@ -19,7 +19,7 @@ create_string(const char * c)
         return p;
     }
     else
-        return NULL;
+        return nullptr;
 }
 
 
@@ -33,7 +33,7 @@ destroy_string(char * c)
 void
 XMLNode::Print(FILE * f, int d)
 {
-    if (next != NULL)
+    if (next != nullptr)
         next->Print(f, d);
 }
 
@@ -42,10 +42,10 @@ XMLNode::Print(FILE * f, int d)
 XMLElement *
 XMLNode::GetElement(const char * element_name)
 {
-    if (next != NULL)
+    if (next != nullptr)
         return next->GetElement(element_name);
     else
-        return NULL;
+        return nullptr;
 }
 
 
@@ -63,14 +63,14 @@ XMLNode::SetPrev(XMLNode * p)
 XMLNode *
 XMLNode::Disconnect()
 {
-    if(prev != NULL)
+    if(prev != nullptr)
         prev->next = next;
-    else if(parent != NULL)
+    else if(parent != nullptr)
         ((XMLElement *)parent)->content = next;
     
-    parent = NULL;
-    prev = NULL;
-    next = NULL;
+    parent = nullptr;
+    prev = nullptr;
+    next = nullptr;
 
     return this;
 }
@@ -100,7 +100,7 @@ XMLCharacterData::Print(FILE * f, int d)
     if (cdata) fprintf(f, "<![CDATA[");
     fprintf(f, "%s", data);
     if (cdata) fprintf(f, "]]>");
-    if (next != NULL)
+    if (next != nullptr)
         next->Print(f, d);
 }
 
@@ -126,7 +126,7 @@ void
 XMLComment::Print(FILE * f, int d)
 {
     fprintf(f, "<!--%s-->", data);
-    if (next != NULL)
+    if (next != nullptr)
         next->Print(f, d);
 }
 
@@ -155,7 +155,7 @@ XMLAttribute::Print(FILE * f, int d)
 {
     fprintf(f, " %s=%c%s%c", name, quote, value, quote);
 
-    if (next != NULL)
+    if (next != nullptr)
         next->Print(f, d);
 }
 
@@ -168,8 +168,8 @@ XMLElement::XMLElement(XMLNode * p, char * nm, XMLAttribute * a, bool e) :
     name = nm;
     attributes = a;
     empty = e;
-    content = NULL;
-    next = NULL;
+    content = nullptr;
+    next = nullptr;
 }
 
 
@@ -202,22 +202,22 @@ XMLElement::Print(FILE * f, int d)
     if(empty)
     {
         fprintf(f, "<%s", name);
-        if (attributes != NULL)
+        if (attributes != nullptr)
             attributes->Print(f, d);
         fprintf(f, "/>");
-        if (next != NULL)
+        if (next != nullptr)
             next->Print(f, d);
         return;
     }
 
     fprintf(f, "<%s", name);
-    if (attributes != NULL)
+    if (attributes != nullptr)
         attributes->Print(f, d);
     fprintf(f, ">");
-    if(content != NULL)
+    if(content != nullptr)
         content->Print(f, d+1);
     fprintf(f, "</%s>", name);
-    if (next != NULL)
+    if (next != nullptr)
         next->Print(f, d);
 }
 
@@ -227,9 +227,9 @@ void
 XMLElement::SetPrev(XMLNode * p)
 {
     if(content)
-        content->SetPrev(NULL);
+        content->SetPrev(nullptr);
     if(attributes)
-        attributes->SetPrev(NULL);
+        attributes->SetPrev(nullptr);
     XMLNode::SetPrev(p);
 }
 
@@ -239,7 +239,7 @@ const char *
 XMLElement::GetAttribute(const char * attribute_name)       // Implement variables and inheritance here - not standard XML but implemented here for simpicity
                                                             // FIXME: move to kernel and always use kernel function exept for raw acces to XML
 {
-    for (XMLAttribute * a = attributes; a != NULL; a = (XMLAttribute *)(a->next))
+    for (XMLAttribute * a = attributes; a != nullptr; a = (XMLAttribute *)(a->next))
         if (!strcmp(a->name, attribute_name))
         {
             if(a->value[0] != '@')
@@ -255,12 +255,12 @@ XMLElement::GetAttribute(const char * attribute_name)       // Implement variabl
         }
 
     // Inhertiance
-    if(parent != NULL && parent->IsElement())
+    if(parent != nullptr && parent->IsElement())
     {
         return ((XMLElement *)(parent))->GetAttribute(attribute_name);
     }
 
-    return NULL;
+    return nullptr;
 }
 
 
@@ -269,7 +269,7 @@ XMLElement::GetAttribute(const char * attribute_name)       // Implement variabl
 const char *
 XMLElement::GetActualAttribute(const char * attribute_name)
 {
-    for (XMLAttribute * a = attributes; a != NULL; a = (XMLAttribute *)(a->next))
+    for (XMLAttribute * a = attributes; a != nullptr; a = (XMLAttribute *)(a->next))
         if (!strcmp(a->name, attribute_name))
         {
             if(a->value[0] != '@')
@@ -284,14 +284,14 @@ XMLElement::GetActualAttribute(const char * attribute_name)
             }
         }
 
-    return NULL;
+    return nullptr;
 }
 
 
 void
 XMLElement::SetAttribute(const char * attribute_name, const char * value)
 {
-    for (XMLAttribute * a = attributes; a != NULL; a = (XMLAttribute *)(a->next))
+    for (XMLAttribute * a = attributes; a != nullptr; a = (XMLAttribute *)(a->next))
         if (!strcmp(a->name, attribute_name))
         {
 			destroy_string(a->value);
@@ -300,7 +300,7 @@ XMLElement::SetAttribute(const char * attribute_name, const char * value)
 		}
 	
 	attributes = new XMLAttribute(create_string(attribute_name), create_string(value), '\"', attributes);
-	if(attributes->next != NULL)
+	if(attributes->next != nullptr)
 		attributes->next->prev = attributes;
 	attributes->parent = this;
 }
@@ -313,10 +313,10 @@ XMLElement::GetElement(const char * element_name)
 {
     if (IsElement(element_name))
         return this;
-    else if (next != NULL)
+    else if (next != nullptr)
         return GetNextElement(element_name);
 
-    return NULL;
+    return nullptr;
 }
 
 
@@ -324,10 +324,10 @@ XMLElement::GetElement(const char * element_name)
 XMLElement *
 XMLElement::GetContentElement(const char * element_name)
 {
-    if (content != NULL)
+    if (content != nullptr)
         return content->GetElement(element_name);
     else
-        return NULL;
+        return nullptr;
 }
 
 
@@ -338,7 +338,7 @@ XMLElement::GetNextElement(const char * element_name)
 	if(next)
 		return next->GetElement(element_name);
 	else
-		return NULL;
+		return nullptr;
 	
 /*    
 	for (XMLNode * xml = next; xml != NULL; xml = xml->next)
@@ -382,7 +382,7 @@ XMLProcessingInstruction::Print(FILE * f, int d)
     fprintf(f, "<?%s", name);
     fprintf(f, "%s", content);
     fprintf(f, "?>");
-    if (next != NULL)
+    if (next != nullptr)
         next->Print(f, d);
     return;
 }
@@ -397,7 +397,7 @@ XMLDocument::XMLDocument(const char * filename, bool included)
 
     f = fopen(filename, "rb");
 
-    if (f==NULL)
+    if (f == nullptr)
     {
         printf("XML: Could not open \"%s\".\n", filename);
         throw std::runtime_error("File not found");
@@ -413,17 +413,17 @@ XMLDocument::XMLDocument(const char * filename, bool included)
 
     try
     {
-        prolog = Parse(NULL);
-		if (prolog == NULL)
+        prolog = Parse(nullptr);
+		if (prolog == nullptr)
 			throw "File is empty";
-        prolog->SetPrev(NULL);
+        prolog->SetPrev(nullptr);
         
         // Find root
 
         XMLNode * xml_node = prolog;
         while(!xml_node->IsElement())
         {
-            if(xml_node->next == NULL)
+            if(xml_node->next == nullptr)
                 throw "XML contains no root element";
             xml_node = xml_node->next;
         }
@@ -431,19 +431,19 @@ XMLDocument::XMLDocument(const char * filename, bool included)
 
         // Disconnect prolog before root element
         
-        if(xml->prev != NULL)
-            xml->prev->next = NULL;
-        xml->prev = NULL;
+        if(xml->prev != nullptr)
+            xml->prev->next = nullptr;
+        xml->prev = nullptr;
         
         if(prolog == xml)
-            prolog = NULL;
+            prolog = nullptr;
             
         // Delete data after root (should never have been parsed)
         
         if(!included)
         {
             delete xml->next;
-            xml->next = NULL;
+            xml->next = nullptr;
         }
     }
     catch (const char * msg)
@@ -578,7 +578,7 @@ XMLDocument::Push(const char * t, int n)
     for (int i=0; i<n; i++)
     {
         char c= fgetc(f);
-        if (feof(f)) return NULL; // throw "Unexpected end of file (2)";
+        if (feof(f)) return nullptr; // throw "Unexpected end of file (2)";
 
         if (c == 0xA)
         {
@@ -601,7 +601,7 @@ XMLDocument::Push(const char * t, int n)
 
         buffer[pos++] = c;		// Check bounds later***
     }
-    return (pos > 0 ? buffer : NULL);
+    return (pos > 0 ? buffer : nullptr);
 }
 
 
@@ -612,8 +612,8 @@ XMLDocument::PushUntil(const char * t, const char * s0 , const char * s1)
     pos = 0;
     while (!feof(f))
     {
-        if (	(s0 != NULL && Match(s0, false)) ||
-                (s1 != NULL && Match(s1, false))
+        if (	(s0 != nullptr && Match(s0, false)) ||
+                (s1 != nullptr && Match(s1, false))
            )
         {
             buffer[pos] = 0;
@@ -624,7 +624,7 @@ XMLDocument::PushUntil(const char * t, const char * s0 , const char * s1)
     }
 
     buffer[pos] = 0;
-    return (pos > 0 ? buffer : NULL);
+    return (pos > 0 ? buffer : nullptr);
 }
 
 
@@ -651,10 +651,10 @@ XMLDocument::PushName(const char * t)
         else
         {
             buffer[pos] = 0;
-            return (pos > 0 ? buffer : NULL);	// test needed???
+            return (pos > 0 ? buffer : nullptr);	// test needed???
         }
     }
-    return NULL; // internal error throw
+    return nullptr; // internal error throw
 }
 
 
@@ -803,13 +803,13 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
         if (!Match(">"))
             throw "'>' expected after '/'";
         empty = true;
-        return NULL;
+        return nullptr;
     }
 
     if (Match(">"))
     {
         empty = false;
-        return NULL;
+        return nullptr;
     }
 
     if (Match("<"))
@@ -819,7 +819,7 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
     }
 
     char * name = create_string(PushName("AT"));
-    if (name == NULL) throw "Attribute not found";
+    if (name == nullptr) throw "Attribute not found";
 
     // Check that attribute does not already exist ***
 
@@ -827,7 +827,7 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
     if (!Match("=")) throw "'=' expected";
     SkipWhitespace("WS");
 
-    const char  * q = NULL;
+    const char  * q = nullptr;
     if (Match('"'))
         q = "\"";
     else if (Match('\''))
@@ -868,15 +868,15 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
 void
 XMLAttribute::RemoveDuplicates()
 {
-    for (XMLAttribute * a = this; a != NULL; a = (XMLAttribute *)(a->next))
-        for (XMLAttribute * b = (XMLAttribute *)(a->next); b != NULL; b = (XMLAttribute *)(b->next))
+    for (XMLAttribute * a = this; a != nullptr; a = (XMLAttribute *)(a->next))
+        for (XMLAttribute * b = (XMLAttribute *)(a->next); b != nullptr; b = (XMLAttribute *)(b->next))
             if(!strcmp(a->name, b->name) && a != b)
             {
                 printf("WARNING: Redefined attribute. Will use %s = \"%s\".\n", a->name, a->value);
                 
-                if(b->prev != NULL)
+                if(b->prev != nullptr)
                     b->prev->next = (XMLAttribute *)(b->next);
-                if(b->next != NULL)
+                if(b->next != nullptr)
                     b->next->prev = (XMLAttribute *)(b->prev);
              }
 }
@@ -898,10 +898,10 @@ XMLDocument::ParseElement(XMLNode * parent)
 
     if(attributes)
     {
-        attributes->SetPrev(NULL);
+        attributes->SetPrev(nullptr);
         attributes->RemoveDuplicates();
     }
-    if (empty) return new XMLElement(parent, name, attributes, true, NULL, Parse(parent));
+    if (empty) return new XMLElement(parent, name, attributes, true, nullptr, Parse(parent));
 
     XMLElement * e = new XMLElement(parent, name, attributes, false);
     XMLNode * content = Parse(e);
@@ -934,7 +934,7 @@ XMLNode *
 XMLDocument::Parse(XMLNode * parent)
 {
     if (feof(f))
-        return NULL;
+        return nullptr;
 
     if (Match("<?xml"))
         return ParseXMLDeclaration(parent);
@@ -955,7 +955,7 @@ XMLDocument::Parse(XMLNode * parent)
         return ParseCDATA(parent);
 
     else if (Match("</", false))
-        return NULL;
+        return nullptr;
 
     else if (Match("<"))
         return ParseElement(parent);
@@ -963,7 +963,7 @@ XMLDocument::Parse(XMLNode * parent)
     else
         return ParseCharacterData(parent);
 
-    return NULL;
+    return nullptr;
 }
 
 
@@ -974,5 +974,3 @@ XMLDocument::Print(FILE * file)
     fprintf(file, "<?xml\n\tversion=\"1.0\"\n\tencoding=\"UTF-8\"\n\tstandalone=\"yes\"\n?>\n\n");
     xml->Print(file, 0);
 }
-
-

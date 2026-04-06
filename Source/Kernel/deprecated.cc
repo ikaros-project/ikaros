@@ -45,7 +45,7 @@ create_string(const char * c)
         return p;
     }
     else
-        return NULL;
+        return nullptr;
 }
 
 char *
@@ -63,7 +63,7 @@ create_string_head(const char * c, int n)
         return p;
     }
     else
-        return NULL;
+        return nullptr;
 }
 
 char *
@@ -74,14 +74,14 @@ create_string_tail(const char * c, int i)
         int l = int(strlen(c));
 		
         if(i > l)
-            return NULL;
+            return nullptr;
 		
         char * p = strncpy(new char [l-i+1], &c[i], l-i); // FIXME: replace with create string ***
         p[l-i] = 0;
         return p;
     }
     else
-        return NULL;
+        return nullptr;
 }
 
 char *
@@ -111,7 +111,7 @@ equal_strings(const char * a, const char * b)
 {
     if (a == b)		// Identical string or both NULL
         return true;
-    if (a == NULL || b == NULL) // only one is NULL, they can't be equal
+    if (a == nullptr || b == nullptr) // only one is NULL, they can't be equal
         return false;
     return !strcmp(a, b);	// Do the usual comparison
 }
@@ -436,12 +436,12 @@ create_array(const char * s, int & size, bool fixed_size)
 {
     int sz = 0;
 
-    if (s == NULL)
+    if (s == nullptr)
     {
         if(fixed_size)
             return create_array(size);
         else
-            return NULL;
+            return nullptr;
     }
     
     // Count values in s
@@ -457,7 +457,7 @@ create_array(const char * s, int & size, bool fixed_size)
     }
     
     if(sz == 0)
-        return NULL;
+        return nullptr;
 
     if(!fixed_size)
         size = sz;
@@ -490,7 +490,7 @@ create_matrix(int sizex, int sizey)
     if(sizex == 0 || sizey == 0)
     {
         printf("IKAROS: Warning: Attempting to create matrix of size 0\n");
-        return NULL;
+        return nullptr;
     }
     
     float * a = (float *)calloc(sizex*sizey, sizeof(float));
@@ -530,12 +530,12 @@ create_matrix(const char * s, int & sizex, int & sizey, bool fixed_size)
     int sx = 0; // to allow &sizex == &sizey
     int sy = 1;
 
-    if (s == NULL)
+    if (s == nullptr)
     {
         if(fixed_size)
             return create_matrix(sizex, sizey);
         else
-            return NULL;
+            return nullptr;
     }
     
     // Skip leading whitespace in s
@@ -614,7 +614,7 @@ create_matrix(const char * s, int & sizex, int & sizey, bool fixed_size)
 float *
 resize_array(float * a, int size, bool clear=false)
 {
-    return NULL;
+    return nullptr;
 }
 
 
@@ -622,7 +622,7 @@ resize_array(float * a, int size, bool clear=false)
 float **
 resize_matrix(int sizex, int sizey, bool clear=false)
 {
-    return NULL;
+    return nullptr;
 }
 
 
@@ -630,7 +630,7 @@ resize_matrix(int sizex, int sizey, bool clear=false)
 float ***
 resize_matrix(int sizex, int sizey, int sizez, bool clear=false)
 {
-    return NULL;
+    return nullptr;
 }
 
 
@@ -1358,13 +1358,13 @@ Dictionary::GetKey(Dictionary::Iterator i)
 const char *
 check_file_exists(const char * path)
 {
-	if(path != NULL)
+	if(path != nullptr)
 	{
 		FILE * t = fopen(path, "rb");
-		bool exists = (t != NULL);
+		bool exists = (t != nullptr);
 		if(t) fclose(t);
-		return (exists ? path : NULL);
+		return (exists ? path : nullptr);
 	}
     
-	return NULL;
+	return nullptr;
 }

@@ -436,13 +436,13 @@ std::ostream& operator<<(std::ostream& os, const std::vector<int> & v)
     void 
     print_attribute_value(const std::string & name, int value, int indent)
     {
-        std::cout << name << " = " << value <<  std::endl;
+        std::cout << name << " = " << value << '\n';
     }
 
     void 
     print_attribute_value(const std::string & name, const std::string & value, int indent)
     {
-        std::cout << name << " = " << value <<  std::endl;
+        std::cout << name << " = " << value << '\n';
     }
 
     void 
@@ -456,8 +456,8 @@ std::ostream& operator<<(std::ostream& os, const std::vector<int> & v)
         for(int i=0; i<s; i++)
             std::cout << values.at(i) << " ";
         if(values.size() >= max_items && max_items>0)
-            std::cout << "..." << std::endl;
-        std::cout << std::endl;
+            std::cout << "...\n";
+        std::cout << '\n';
     }
    
     void 
@@ -471,25 +471,25 @@ std::ostream& operator<<(std::ostream& os, const std::vector<int> & v)
         for(int i=0; i<s; i++)
             std::cout << values.at(i) << " ";
         if(values.size() >= max_items)
-            std::cout << "..." << std::endl;
-        std::cout << std::endl;
+            std::cout << "...\n";
+        std::cout << '\n';
     }
 
     void
     print_attribute_value(const std::string & name, const std::vector<std::vector<std::string>> &  values, int indent, int max_items)
     {
-        std::cout << name << " = " << std::endl;
+        std::cout << name << " = \n";
         for(auto d : values)
         {
             std::cout << tab(1);
             if(d.empty())
-                std::cout << "none" << std::endl;
+                std::cout << "none\n";
             else
                 for(auto s : d)
                     std::cout << s << " ";
-           std::cout << std::endl; 
+           std::cout << '\n'; 
         }
-        std::cout << std::endl;
+        std::cout << '\n';
     }
 
 
@@ -503,7 +503,7 @@ base64_encode(const unsigned char * data,
     *size_out = ((size_in - 1) / 3) * 4 + 4;
     
     char *encoded_data = (char *)malloc(*size_out);
-    if (encoded_data == NULL) return NULL;
+    if (encoded_data == nullptr) return nullptr;
     
     for (int i = 0, j = 0; i < size_in;)
     {
@@ -652,4 +652,3 @@ base64_encode(const unsigned char * data,
     }
     
 };
-

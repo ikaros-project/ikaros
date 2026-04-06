@@ -1,14 +1,20 @@
-// expression.h - -(c) Christian Balkenius 2023
+// expression.h - (c) Christian Balkenius 2023
 //
-// evaluates a numerical expression with optional variables
+// Small arithmetic-expression parser for numeric expressions.
 //
-// variables must start with a letter or _ or @  and may also include dots and numbers
+// Supported syntax:
+// - binary operators: +, -, *, /
+// - unary minus
+// - parentheses
+// - variables beginning with a letter, '_' or '@', optionally followed by
+//   letters, digits, '_' and dots
 //
-// expression e = expression(string) creates the expression
-// e.variables() retusn a set of strings that contains the variables in the expression
-// e.evaluat(vars) evaluate the expression with the variables in vars (map of strings)
+// expression e(s) parses an expression string.
+// e.variables() returns the variables referenced by the expression.
+// e.evaluate(vars) evaluates the expression using a map of variable values.
 //
-// expressions are evaluated as floats
+// Expressions are evaluated as doubles.
+// Missing variables and invalid numeric conversions throw std::invalid_argument.
 
 #ifndef EXPRESSION
 #define EXPRESSION
@@ -22,30 +28,11 @@
 
 #include "utilities.h"
 
-typedef std::map<std::string, std::string> variables;
+using variables = std::map<std::string, std::string>;
 
 class expression
 {
 public:
-    static bool is_expression(const std::string & s)
-    {
-        if(s.empty())
-            return false;
-
-        if(s.find(',') != std::string::npos)
-            return false;
-
-    if(s.find(';') != std::string::npos)
-            return false;
-            
-        for(char c : "+-*/()")
-            if(s.find(c) != std::string::npos)
-            return true;
-        //if(s[0] >= '0' && s[0] <='9')
-        //    return true;
-        return false;
-    }
-
     bool split(std::string s, char bin_op, bool unary=false)
     {
         std::string left_string, right_string;
@@ -64,7 +51,7 @@ public:
         int right_p_count = std::count(s.begin(), s.end(), ')');
 
         if(left_p_count != right_p_count)
-            throw std::invalid_argument("Unmatched parantheses");
+            throw std::invalid_argument("Unmatched parentheses");
 
         op = ' ';
         erase_whitespace(s);
@@ -94,7 +81,7 @@ public:
         // terminal - do nothing
     }
 
-    std::set<std::string> variables()
+    std::set<std::string> variables() const
     {
         std::set<std::string> vars;
         std::string s;
@@ -124,19 +111,20 @@ public:
         return vars;
     }
 
-    double evaluate(::variables vars = {})
+    double evaluate(const ::variables & vars = {}) const
     {
         try
         {
             switch(op)
             {
-                case ' ':   if(str.empty())
+                case ' ':
+                        if(str.empty())
                                 return 0;
-                            else if(vars.count(str))
-                                str = vars[str];
-                            if(str.empty()) // FIXME: throw parameter is not set; should get default if possible
-                                return 0;
-                            return std::stod(str);
+                        if(vars.count(str))
+                            return std::stod(vars.at(str));
+                        if(initial_identifier_char(str[0]))
+                            throw std::invalid_argument("Variable \"" + str + "\" not defined.");
+                        return std::stod(str);
                 
 
                 case '+':   return left->evaluate(vars) + right->evaluate(vars);
@@ -163,28 +151,28 @@ public:
         }
     }
 
-    void print(int depth=0)
+    void print(int depth=0) const
     {
         if(op==' ')
-            std::cout << ::ikaros::tab(depth) << "[" << str << "]" << std::endl;
+            std::cout << ::ikaros::tab(depth) << "[" << str << "]\n";
         else
-            std::cout << ::ikaros::tab(depth) << op << std::endl;
+            std::cout << ::ikaros::tab(depth) << op << '\n';
         if(left)
             left->print(depth+1);
         if(right)
             right->print(depth+1);
         if(depth == 0)
-            std::cout << std::endl;
+            std::cout << '\n';
     }
 
 private:
 
-    bool initial_identifier_char(char c)
-        {
-            return (c>='A' && c<='Z') || (c>='a' && c<='z') || (c=='_') || (c=='@');
-        }
+    bool initial_identifier_char(char c) const
+    {
+        return (c>='A' && c<='Z') || (c>='a' && c<='z') || (c=='_') || (c=='@');
+    }
 
-    bool identifier_char(char c)
+    bool identifier_char(char c) const
     {
         return initial_identifier_char(c)  || (c=='.')   || (c >= '0' && c <= '9');
     }
@@ -195,12 +183,13 @@ private:
         s.erase(std::remove_if(s.begin(), s.end(), [](unsigned char x){ return std::isspace(x); }), s.end());
     }
 
-    // split string at token except withing parantheses or after a chacter in not_after-list (for unary minus mainly)
+    // Split string at token except within parentheses or after a character
+    // in not_after (used to distinguish binary from unary minus).
 
-    int find_closing(std::string & s)
+    int find_closing(const std::string & s) const
     {
         int c = 1;
-        for(int i=1; i< s.size(); i++)
+        for(int i=1; i< static_cast<int>(s.size()); i++)
         {
             if(s[i]==')')
                 c--;
@@ -212,13 +201,13 @@ private:
         return 0;
     }
 
-    bool split_expression(std::string & head, std::string & tail, std::string & s, char token, bool unary=false)
+    bool split_expression(std::string & head, std::string & tail, const std::string & s, char token, bool unary=false) const
     {
         if(s.empty())
             return false;
 
         int p_count = 0;
-        for(int i=s.size()-1; i>=0 ; i--)
+        for(int i=static_cast<int>(s.size())-1; i>=0 ; i--)
         {
             if(s[i]=='(')
                 p_count++;
@@ -239,7 +228,7 @@ private:
                 if(match)
                 {    
                     int start=0;
-                    while(isspace(s[start]))
+                    while(start < static_cast<int>(s.size()) && isspace(s[start]))
                         start++;
                         
                         head = s.substr(start, i);

@@ -84,14 +84,14 @@ namespace ikaros {
 
         void print_help()
         {
-            std::cout << "usage: ikaros [options] [variable=value] [filename]" << std::endl;
-            std::cout << "\tCommand line options:" << std::endl;
+            std::cout << "usage: ikaros [options] [variable=value] [filename]\n";
+            std::cout << "\tCommand line options:\n";
             for(auto & p : full)
             {
                 std::cout << "\t-"<< p.first << " (" << p.second << "): " << description[p.second];
                 if(d.count(p.second))
                     std::cout << " [" << d[p.second] << "]"; 
-                std::cout << std::endl;
+                std::cout << '\n';
             }
         }
 
