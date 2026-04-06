@@ -1,6 +1,6 @@
 <group 
     name="Test" 
-    description="Test size expressions for outputs" 
+    description="Test expressions in matrix data" 
     check_sum="23553" 
     a = "2"
     b = "3"

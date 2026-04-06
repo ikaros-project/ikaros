@@ -29,11 +29,12 @@
 		<module name="L6" class="Constant" data="7, 8, 9" />
 
 
-		<module name="M" class="Constant" data=".@block.x" />
-		<module name="N" class="Constant" data=".@block.i" />
-		<module name="O" class="Constant" data=".@block.x" />
-		<module name="P" class="Constant" data=".@block.x" />
+		<module name="M" class="Constant" data="{.Test_14.@block.x}" />
+		<module name="N" class="Constant" data="{.Test_14.@block.i}" />
+		<module name="O" class="Constant" data="{.Test_14.@block.x}" />
+		<module name="P" class="Constant" data="{Test_14.@block.x}" />
 
-		<module name="K" class="Constant" data=".@block.@x" />
+		<module name="K" class="Constant" data=".Test_14.@block.@x" />
 
 </group>
+

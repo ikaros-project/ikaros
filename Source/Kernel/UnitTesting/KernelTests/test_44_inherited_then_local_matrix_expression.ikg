@@ -1,0 +1,19 @@
+<group
+    name="Test_44"
+    description="Test inherited expression becomes local value for later matrix expression"
+    check_sum="196332"
+
+    b = "1"
+    a = "2+@b"
+>
+
+    <module
+        name="M1"
+        class="KernelTestModule"
+        m2 = "1, 2; 3, @a*1000"
+    />
+
+    <module name="Const" class="Constant" data="9, 8, 7" />
+    <connection source="Const.OUTPUT" target="M1.INPUT" />
+
+</group>

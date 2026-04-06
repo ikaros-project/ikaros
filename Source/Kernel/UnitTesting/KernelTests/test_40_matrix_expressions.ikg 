@@ -1,0 +1,30 @@
+<group 
+    name="Test" 
+    description="Test size expressions for outputs" 
+    check_sum="23553" 
+    a = "2+@b"
+    b = "1"
+    c = "7"
+    x = "@y"
+    y = "@c"
+>
+
+	<group name="P1" ppp="111" />
+	<group name="P2" ppp="222"/>
+
+	<module class = "Constant" name = "C" data="1, 2, 3" />	
+	<module 
+		xxx = "1000"
+		class = "KernelTestModule" 
+		name = "M1"
+		m1 = "1, 2; 3"
+		m2 = "1+1*@xxx, 2+2; 3+3, @a*10000"
+		m3 = "1, 2; 3"
+		m4 = "1, 2; 3"
+		m5 = "1, 2; 3"
+
+		b = "false"
+	 />
+	
+	<connection source="C.OUTPUT" target="M1.INPUT" />
+</group>

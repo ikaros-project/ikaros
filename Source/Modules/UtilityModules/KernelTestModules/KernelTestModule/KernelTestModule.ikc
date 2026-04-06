@@ -15,6 +15,12 @@
 	<parameter name="data" type="matrix" default="1, 2, 3, 4"  description="parameter data" />
 	<parameter name="mdata" type="matrix" default="1, 2; 3, 4"  description="parameter data" />
 
+	<parameter name="m1" type="matrix" default="1, 2; 3"  description="matrix data" />
+	<parameter name="m2" type="matrix" default="1, 2; 3"  description="matrix data" />
+	<parameter name="m3" type="matrix" default="1, 2; 3"  description="matrix data" />
+	<parameter name="m4" type="matrix" default="1, 2; 3"  description="matrix data" />
+	<parameter name="m5" type="matrix" default="1, 2; 3"  description="matrix data" />
+
 	<parameter name="x" type="number" default="7" description="parameter x" />
 	<parameter name="y" type="number" default="9" description="parameter y" />
 

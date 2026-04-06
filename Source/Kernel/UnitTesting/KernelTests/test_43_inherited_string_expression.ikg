@@ -1,0 +1,19 @@
+<group
+    name="Test_43"
+    description="Test inherited string expression uses owner context"
+    check_sum="238491"
+
+    source_text = "OuterText"
+    a = "@source_text"
+>
+
+    <module
+        name="M1"
+        class="KernelTestModule"
+        source_text = "InnerText"
+    />
+
+    <module name="Const" class="Constant" data="9, 8, 7" />
+    <connection source="Const.OUTPUT" target="M1.INPUT" />
+
+</group>

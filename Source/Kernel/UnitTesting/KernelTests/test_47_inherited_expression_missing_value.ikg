@@ -1,0 +1,18 @@
+<group
+    name="Test_47"
+    description="Test inherited expression reports missing value clearly"
+    expected_exit="1"
+    expected_output_contains="Variable &quot;@missing&quot; not defined."
+
+    c = "@missing+1"
+>
+
+    <module
+        name="M1"
+        class="KernelTestModule"
+    />
+
+    <module name="Const" class="Constant" data="9, 8, 7" />
+    <connection source="Const.OUTPUT" target="M1.INPUT" />
+
+</group>

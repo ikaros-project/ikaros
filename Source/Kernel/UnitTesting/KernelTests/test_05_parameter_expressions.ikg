@@ -1,5 +1,5 @@
 <group name="Test"  
-    check_sum = "424121" 
+    check_sum = "485211" 
     description="Test parameter expressions"
 
     aa = "abc/def:ghi"

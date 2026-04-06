@@ -1,0 +1,5 @@
+Ikaros 3.0 Starting (Debug)
+
+[00:00:0.000] Loaded /Users/cba/ikaros/Source/Kernel/UnitTesting/KernelTests/test_40_matrix_expressions.ikg 
+[00:00:0.000] ComputeBool could not convert "3" to bool.
+[00:00:0.000] Set-up file failed for /Users/cba/ikaros/Source/Kernel/UnitTesting/KernelTests/test_40_matrix_expressions.ikg . SetUp Failed. Parameter "Test.M1.b" could not be resolved. (Test.M1.b)

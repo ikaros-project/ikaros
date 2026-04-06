@@ -246,29 +246,24 @@ public:
     virtual std::string json(const std::string & name) { return ""; }; // json representation for name of component
     std::string xml();
 
-    bool KeyExists(const std::string & key) const;  // Check if a key exist here or in any parent; this means that LookupKey will succeed
-    std::string LookupKey(const std::string & key) const; // Look up value in dictionary with inheritance
+    bool KeyExists(const std::string & key) const;  // Check if a key exist here or in any parent; this means that GetValue will succeed
+    std::string GetValue(const std::string & key) const; // Look up value in dictionary with inheritance
+    const Component * GetValueOwner(const std::string & key) const; // Find component that defines a key in the inheritance chain
 
     Component * GetComponent(const std::string & s); // Get component; sensitive to variables and indirection
-    std::string GetValue(const std::string & name) const;    // Get value of a attribute/variable in the context of this component
     int GetIntValue(const std::string & name, int d=0) const;    // Get value of a key in the context of this component; return deflt if not found
 
     std::string GetBind(const std::string & name) const;
-    std::string SubstituteVariables(const std::string & s) const;
 
     matrix & GetBuffer(const std::string & s);
 
-    std::string Evaluate(const std::string & s, bool is_string=false);     // Evaluate an expression in the current context
-    std::string EvaluateVariableOrFunction(const std::string & s);
+    std::string Compute(const std::string & s);
+    double ComputeDouble(const std::string & s);
+    int ComputeInt(const std::string & s);
+    bool ComputeBool(const std::string & s);
     bool LookupParameter(parameter & p, const std::string & name);
-    
-    double EvaluateNumericalExpression(const std::string & s);
 
     std::vector<int> EvaluateSizeList(std::string & s);
-    bool EvaluateBool(std::string v);
-    std::string EvaluateString(std::string v);
-    std::string EvaluateMatrix(std::string v);
-    int EvaluateOptions(std::string v, std::vector<std::string> & options);
 
     bool InputsReady(dictionary d, input_map ingoing_connections);
 
@@ -288,6 +283,26 @@ public:
     void CheckRequiredInputs();
 
     void CalculateCheckSum(long & check_sum, prime & prime_number); // Calculates a value that depends on all parameters and buffer size
+
+private:
+    std::string ComputeMatrix(const std::string & s, int depth=0);
+    std::string ComputeList(const std::string & s, int depth=0);
+    std::string ComputeScalar(const std::string & s, int depth=0, bool evaluate_final=false);
+    std::string ComputeCurlySubstitutions(const std::string & s, int depth=0);
+    std::string ComputePath(const std::string & s, int depth=0, bool evaluate_final=false);
+    std::string ComputeFinalSegment(const std::string & s, int depth=0, bool evaluate_final=false);
+    std::string ComputeFunction(const std::string & s, int depth=0);
+    std::string ComputeMath(const std::string & s, int depth=0);
+    std::string ComputeExpandSegment(const std::string & s, int depth=0);
+    std::string ComputeLookupLocal(const std::string & name) const;
+    bool ComputeHasExplicitSyntax(const std::string & s) const;
+    bool ComputeIsPathLike(const std::string & s) const;
+    bool ComputeShouldReturnLiteral(const std::string & s, bool evaluate_final) const;
+    std::vector<std::string> ComputeSplitTopLevel(const std::string & s, char separator) const;
+    bool ComputeHasTopLevelMath(const std::string & s);
+    bool ComputeIsFunction(const std::string & s) const;
+    bool ComputeLooksLikeNumber(const std::string & s) const;
+    void ComputeCheckDepth(int depth) const;
 };
 
 typedef std::function<Module *()> ModuleCreator;

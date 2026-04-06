@@ -1,0 +1,19 @@
+<group
+    name="Test_41"
+    description="Test inherited number expression uses owner context"
+    check_sum="207966"
+
+    x = "2"
+    c = "@x+1"
+>
+
+    <module
+        name="M1"
+        class="KernelTestModule"
+        x = "100"
+    />
+
+    <module name="Const" class="Constant" data="9, 8, 7" />
+    <connection source="Const.OUTPUT" target="M1.INPUT" />
+
+</group>

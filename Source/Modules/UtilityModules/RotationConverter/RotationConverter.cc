@@ -92,7 +92,7 @@ class RotationConverter : public Module
         Bind(size_y, "size_y");
 
         Bind(outputFormat, "output_format");                // Not working as parameter is not resolved in setParameter.
-        std::string outputType = GetValue("output_format"); // Get the value manually
+        std::string outputType = GetValue("output_format"); // Get the configured value manually
 
         // Set the x and y output size.
         if (outputType.compare("xyz") == 0)

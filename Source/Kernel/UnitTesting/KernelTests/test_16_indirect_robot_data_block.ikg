@@ -27,7 +27,7 @@
 			/>
 		</group>
 
-		<module name="M" class="Constant" data=".Epi.Settings.@type.@Body_L1_T1_data" />
+		<module name="M" class="Constant" data="Epi.Settings.@type.@Body_L1_T1_data" />
 		</group>
 
 

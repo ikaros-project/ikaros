@@ -1,4 +1,4 @@
-<group name="Test_11"  check_sum = "272606" description="Test module parameters">
+<group name="Test_11"  check_sum = "308606" description="Test module parameters">
 
     <module 
         name="Test" 

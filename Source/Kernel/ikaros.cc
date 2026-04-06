@@ -432,7 +432,7 @@ namespace ikaros
     bool 
     Component::BindParameter(parameter & p,  std::string & name) // Handle parameter sharing
     {
-        std::string bind_to = GetValue(name+".bind");
+        std::string bind_to = GetBind(name);
         if(bind_to.empty())
             return false;
         else
@@ -456,7 +456,8 @@ namespace ikaros
                     return true;
             }
 
-            std::string value = LookupKey(name);
+            const Component * value_owner = GetValueOwner(name);
+            std::string value = value_owner ? std::string(value_owner->info_[name]) : "";
             if(value.empty())
             {
                 if(!p.info_.contains("default"))
@@ -473,20 +474,34 @@ namespace ikaros
 
             if(p.type==number_type && !p.has_options)
             {
-                SetParameter(name, std::to_string(EvaluateNumericalExpression(value))); //FIXME: HANDLE DEFAULTVALUES ALSO
+                SetParameter(name, formatNumber(const_cast<Component *>(value_owner ? value_owner : this)->ComputeDouble(value)));
+                return true;
+            }
+
+            if(p.type==matrix_type)
+            {
+                SetParameter(name, const_cast<Component *>(value_owner ? value_owner : this)->Compute(value));
+                return true;
+            }
+
+            if(p.type==bool_type && !p.has_options)
+            {
+                SetParameter(name, const_cast<Component *>(value_owner ? value_owner : this)->ComputeBool(value) ? "true" : "false");
                 return true;
             }
 
             // Lookup normal value in current component-context
 
-            value = GetValue(name);
             if(value.empty())  // ****************** this does not work for string that are allowed to be empty // FIXME: USE EXCEPTIONS *****
             {
                 SetParameter(name, p.info_["default"]);
                 return true;
             }
                 
-            SetParameter(name, value);
+            if(value.find('@') != std::string::npos || value.find('{') != std::string::npos)
+                SetParameter(name, const_cast<Component *>(value_owner ? value_owner : this)->Compute(value));
+            else
+                SetParameter(name, value);
             return true;
         }
         catch(exception & e)
@@ -496,7 +511,7 @@ namespace ikaros
         }
         catch(std::exception & e)
         {
-            Notify(msg_warning, "ERROR: Could not resolve parameter \""s +name + "\" .", name);  
+            Notify(msg_warning, "ERROR: Could not resolve parameter \""s +name + "\": " + e.what(), name);  
             // FIXME:   THROW ???? 
         }
         return false;
@@ -518,14 +533,25 @@ namespace ikaros
 
 
     std::string 
-    Component::LookupKey(const std::string & key) const
+    Component::GetValue(const std::string & key) const
     {        
         if(info_.contains(key))
             return info_[key];
         if(parent_)
-            return parent_->LookupKey(key);
+            return parent_->GetValue(key);
         else
             return ""; // throw exception("Name not found"); // throw not_found_exception instead
+    }
+
+
+    const Component *
+    Component::GetValueOwner(const std::string & key) const
+    {
+        if(info_.contains(key))
+            return this;
+        if(parent_)
+            return parent_->GetValueOwner(key);
+        return nullptr;
     }
 
 
@@ -555,14 +581,13 @@ namespace ikaros
 //
 // GetComponent
 //
-// sensitive to variables and indirection
-// does local substitution of variables unlike GetValue() / FIXME: is this correct?
+// literal component navigation relative to the current component
 //
  
     Component * 
     Component::GetComponent(const std::string & s) 
     {
-        std::string path = SubstituteVariables(s);
+        std::string path = s;
         try
         {
             if(path.empty()) // this
@@ -580,68 +605,6 @@ namespace ikaros
             throw exception("Component \""+path+"\" does not exist.");
         }
     }
-
-
-    std::string 
-    Component::GetValue(const std::string & path) const
-    {     
-        if(path.empty())
-            return ""; // throw exception("Name not found"); // throw not_found_exception instead
-
-        if(path[0]=='@')
-        {
-            if(path.find('.') == std::string::npos)
-                return GetValue(path.substr(1));
-            else
-            {
-                std::string prefix = GetValue(before_dot(path).substr(1));
-                if(prefix.empty())
-                    return "";
-                return GetValue(exchange_before_dot(path, prefix));
-            }
-        }
-
-        if(path[0]=='.')
-        {
-            auto c = kernel().components.begin()->second;
-            return kernel().components.begin()->second->GetValue(path.substr(1)); // Absolute path
-        }
-
-        size_t pos = path.find('.');
-        if(pos != std::string::npos)
-        {
-            std::string head = path.substr(0, pos);
-            std::string tail = path.substr(pos + 1);
-
-            if(head[0]=='@')
-                head = LookupKey(head.substr(1));
-
-            std::string local_path = path_+'.'+head;
-            if(kernel().components.count(local_path))
-                return kernel().components[local_path]->GetValue(tail);
-            else if(parent_ && std::string(parent_->info_["name"]) == head)
-                return parent_->GetValue(tail);
-            else
-                return ""; // throw exception("Name not found"); // throw not_found_exception instead 
-        }
-
-        std::string value = LookupKey(path);
-
-        if(value.empty())
-        {
-            // Check if we have a resolved paramater for this value and use that in that case
-            if(kernel().parameters.count(path_+'.'+path) && kernel().parameters[path_+'.'+path].resolved)
-            return kernel().parameters[path_+'.'+path];
-        }
-
-        if(value.find('@') != std::string::npos && value.find('.') != std::string::npos) // A new indirect 'path' - start over
-            return GetValue(value);
-        else if(value.find('@') != std::string::npos) // A new indirect 'key' - start over
-            return GetValue(value.substr(1));
-        else
-            return value;
-    }
-
 
 
     int 
@@ -665,25 +628,6 @@ namespace ikaros
             return parent_->GetBind(name);
         return "";
     }
-
-
-
-    std::string 
-    Component::SubstituteVariables(const std::string & s) const
-    {
-        std::string var; 
-        std::string sep;
-        for(auto c : split(s, "."))
-        {
-            if(c[0] == '@')
-                var += sep + GetValue(c.substr(1));
-            else
-                var += sep + c;
-            sep = ".";
-        }
-        return var;
-    }
-
 
        void Component::Bind(parameter & p, std::string name)
     {
@@ -803,87 +747,533 @@ namespace ikaros
         return kernel().buffers.at(path_+'.'+s);
     }
 
-
-    std::string 
-    Component::Evaluate(const std::string & s, bool is_string)
+    std::string
+    Component::Compute(const std::string & s)
     {
-        if(s.empty())
-            return "";
-
-    if(!expression::is_expression(s) || is_string)
-    {
-        if(s[0]=='@') // Handle indirection (unless expression)
-        {
-            if(s.find('.')==std::string::npos)
-                return GetValue(s.substr(1));
-            
-            std::string component_path = peek_rhead(s.substr(1), ".");
-            std::string variable_name = SubstituteVariables(peek_rtail(s, "."));
-            return GetComponent(component_path)->GetValue(variable_name);
-        }
-        else
-            return s;
+        // Compute uses an explicit-evaluation style:
+        // plain final segments are literals, while @ and {...} request lookup/substitution.
+        // Math is evaluated recursively, but variable references inside math must use @.
+        return ComputeMatrix(s, 0);
     }
 
-        // Handle mathematical expression
 
-        if(!expression::is_expression(s) || is_string)
-            return s;
-
-         expression e = expression(s);
-            std::map<std::string, std::string> vars;
-            for(auto v : e.variables())
-            {
-                std::string value = Evaluate(v);
-                if(value.empty())
-                    throw exception("Variable \""+v+"\" not defined.", path_);
-                vars[v] = value;
-        }
-        return std::to_string(expression(s).evaluate(vars));
+    double
+    Component::ComputeDouble(const std::string & s)
+    {
+        std::string value = trim(Compute(s));
+        if(!is_number(value))
+            throw exception("ComputeDouble could not convert \""+value+"\" to number.", path_);
+        return std::stod(value);
     }
 
+
+    int
+    Component::ComputeInt(const std::string & s)
+    {
+        double value = ComputeDouble(s);
+        double rounded = std::round(value);
+        if(std::fabs(value-rounded) > 1e-9)
+            throw exception("ComputeInt could not convert non-integer value \""+formatNumber(value)+"\".", path_);
+        return static_cast<int>(rounded);
+    }
+
+
+    bool
+    Component::ComputeBool(const std::string & s)
+    {
+        std::string value = trim(Compute(s));
+        static std::vector<std::string> false_list = {"false", "False", "no", "NO", "off", "OFF", "0"};
+
+        if(is_true(value))
+            return true;
+        if(std::find(false_list.begin(), false_list.end(), value) != false_list.end())
+            return false;
+
+        throw exception("ComputeBool could not convert \""+value+"\" to bool.", path_);
+    }
 
 
     std::string
-    Component::EvaluateVariableOrFunction(const std::string & s)
+    Component::ComputeMatrix(const std::string & s, int depth)
     {
-        std::string ss = s;
+        ComputeCheckDepth(depth);
 
-        // Check functions
+        auto rows = ComputeSplitTopLevel(s, ';');
+        if(rows.size() <= 1)
+            return ComputeList(trim(s), depth+1);
 
-        if(ends_with(s, ".size_x"))
-            return std::to_string(GetBuffer(rhead(ss,".")).size_x()); // FIXME: Add nondestructive rhead with string instead of string &
+        std::vector<std::string> computed_rows;
+        for(const auto & row : rows)
+        {
+            if(row.empty())
+                continue;
+            computed_rows.push_back(ComputeList(row, depth+1));
+        }
 
-        if(ends_with(s, ".size_y"))
-            return std::to_string(GetBuffer(rhead(ss,".")).size_y());
-
-        if(ends_with(s, ".size_z"))
-            return std::to_string(GetBuffer(rhead(ss,".")).size_z());
-
-        if(ends_with(s, ".rows"))
-            return std::to_string(GetBuffer(rhead(ss,".")).rows());
-
-        if(ends_with(s, ".cols"))
-            return std::to_string(GetBuffer(rhead(ss,".")).cols());
-            
-        // Get or evaluate variables
-
-        parameter p;
-        if(LookupParameter(p, s.substr(1))) // CHECK @ sign
-            return p;
-        else
-            return Evaluate(s); // FIXME: Should probably not use full evaluation
+        return join(";", computed_rows, false);
     }
 
 
-    double 
-    Component::EvaluateNumericalExpression(const std::string & s)
+    std::vector<std::string>
+    Component::ComputeSplitTopLevel(const std::string & s, char separator) const
     {
-        expression e = expression(s);
+        std::vector<std::string> items;
+        std::string current;
+        int paren_depth = 0;
+        int brace_depth = 0;
+
+        for(char c : s)
+        {
+            if(c == '(')
+                paren_depth++;
+            else if(c == ')')
+                paren_depth--;
+            else if(c == '{')
+                brace_depth++;
+            else if(c == '}')
+                brace_depth--;
+
+            if(c == separator && paren_depth == 0 && brace_depth == 0)
+            {
+                items.push_back(trim(current));
+                current.clear();
+            }
+            else
+                current.push_back(c);
+        }
+
+        items.push_back(trim(current));
+        return items;
+    }
+
+
+    void
+    Component::ComputeCheckDepth(int depth) const
+    {
+        if(depth > 64)
+            throw exception("Maximum compute recursion depth exceeded.", path_);
+    }
+
+
+    bool
+    Component::ComputeLooksLikeNumber(const std::string & s) const
+    {
+        return is_number(trim(s));
+    }
+
+
+    bool
+    Component::ComputeHasExplicitSyntax(const std::string & s) const
+    {
+        return s.find('@') != std::string::npos || s.find('{') != std::string::npos;
+    }
+
+
+    bool
+    Component::ComputeIsPathLike(const std::string & s) const
+    {
+        if(s.empty())
+            return false;
+
+        if(s[0] == '.')
+            return true;
+
+        return ComputeSplitTopLevel(s, '.').size() > 1 || ComputeIsFunction(s);
+    }
+
+
+    bool
+    Component::ComputeShouldReturnLiteral(const std::string & s, bool evaluate_final) const
+    {
+        if(evaluate_final)
+            return false;
+
+        if(ComputeIsPathLike(s))
+            return false;
+
+        if(ComputeHasExplicitSyntax(s))
+            return false;
+
+        return std::any_of(s.begin(), s.end(), [](unsigned char c)
+        {
+            return std::isalpha(c);
+        });
+    }
+
+
+    bool
+    Component::ComputeIsFunction(const std::string & s) const
+    {
+        return ends_with(s, ".size_x") || ends_with(s, ".size_y") || ends_with(s, ".size_z")
+            || ends_with(s, ".rows") || ends_with(s, ".cols");
+    }
+
+
+    bool
+    Component::ComputeHasTopLevelMath(const std::string & s)
+    {
+        int paren_depth = 0;
+        int brace_depth = 0;
+
+        for(size_t i = 0; i < s.size(); i++)
+        {
+            char c = s[i];
+            if(c == '(')
+                paren_depth++;
+            else if(c == ')')
+                paren_depth--;
+            else if(c == '{')
+                brace_depth++;
+            else if(c == '}')
+                brace_depth--;
+
+            if(paren_depth != 0 || brace_depth != 0)
+                continue;
+
+            if(c == '+' || c == '*' || c == '/')
+                return true;
+
+            if(c == '-')
+            {
+                if(i == 0)
+                    return true;
+                char prev = s[i-1];
+                if(prev != '.' && prev != '_' && !std::isalnum(static_cast<unsigned char>(prev)) && prev != '@' && prev != '}')
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    std::string
+    Component::ComputeLookupLocal(const std::string & name) const
+    {
+        if(name.empty())
+            return "";
+
+        if(info_.contains(name))
+            return std::string(info_[name]);
+
+        if(kernel().parameters.count(path_+'.'+name) && kernel().parameters.at(path_+'.'+name).resolved)
+        {
+            std::string value = kernel().parameters.at(path_+'.'+name).as_string();
+            if(!value.empty())
+                return value;
+        }
+
+        if(const Component * owner = GetValueOwner(name))
+        {
+            if(owner == this)
+                return std::string(info_[name]);
+
+            return const_cast<Component *>(owner)->Compute(std::string(owner->info_[name]));
+        }
+
+        return "";
+    }
+
+
+    std::string
+    Component::ComputeList(const std::string & s, int depth)
+    {
+        ComputeCheckDepth(depth);
+
+        auto items = ComputeSplitTopLevel(s, ',');
+        if(items.size() <= 1)
+            return ComputeScalar(trim(s), depth+1);
+
+        std::vector<std::string> values;
+        for(const auto & item : items)
+            values.push_back(ComputeScalar(item, depth+1));
+
+        return join(",", values, false);
+    }
+
+
+    std::string
+    Component::ComputeCurlySubstitutions(const std::string & s, int depth)
+    {
+        ComputeCheckDepth(depth);
+
+        std::string out = s;
+        while(true)
+        {
+            int start = -1;
+            int end = -1;
+            int brace_depth = 0;
+
+            for(size_t i = 0; i < out.size(); i++)
+            {
+                if(out[i] == '{')
+                {
+                    if(brace_depth == 0)
+                        start = static_cast<int>(i);
+                    brace_depth++;
+                }
+                else if(out[i] == '}')
+                {
+                    brace_depth--;
+                    if(brace_depth < 0)
+                        throw exception("Unmatched closing brace in compute expression.", path_);
+                    if(brace_depth == 0)
+                    {
+                        end = static_cast<int>(i);
+                        break;
+                    }
+                }
+            }
+
+            if(start == -1 && end == -1)
+                return out;
+            if(start == -1 || end == -1)
+                throw exception("Unmatched curly brace in compute expression.", path_);
+
+            std::string inner = out.substr(start+1, end-start-1);
+            std::string value = ComputeScalar(inner, depth+1, true);
+            out = out.substr(0, start) + value + out.substr(end+1);
+        }
+    }
+
+
+    std::string
+    Component::ComputeExpandSegment(const std::string & s, int depth)
+    {
+        ComputeCheckDepth(depth);
+
+        std::string segment = ComputeCurlySubstitutions(trim(s), depth+1);
+        if(segment.empty())
+            return segment;
+
+        if(segment[0] == '@')
+        {
+            std::string operand = trim(segment.substr(1));
+            bool operand_path_like = ComputeIsPathLike(operand);
+
+            if(!operand_path_like && !ComputeHasTopLevelMath(operand) && !ComputeHasExplicitSyntax(operand))
+                return ComputeFinalSegment(operand, depth+1, true);
+
+            return ComputeScalar(operand, depth+1, true);
+        }
+
+        if(ComputeHasTopLevelMath(segment))
+            return ComputeMath(segment, depth+1);
+
+        return segment;
+    }
+
+
+    std::string
+    Component::ComputeFunction(const std::string & s, int depth)
+    {
+        ComputeCheckDepth(depth);
+
+        std::string ss = s;
+
+        if(ends_with(s, ".size_x"))
+            return std::to_string(GetBuffer(rhead(ss, ".")).size_x());
+
+        if(ends_with(s, ".size_y"))
+            return std::to_string(GetBuffer(rhead(ss, ".")).size_y());
+
+        if(ends_with(s, ".size_z"))
+            return std::to_string(GetBuffer(rhead(ss, ".")).size_z());
+
+        if(ends_with(s, ".rows"))
+            return std::to_string(GetBuffer(rhead(ss, ".")).rows());
+
+        if(ends_with(s, ".cols"))
+            return std::to_string(GetBuffer(rhead(ss, ".")).cols());
+
+        throw exception("Unknown compute function \""+s+"\".", path_);
+    }
+
+
+    std::string
+    Component::ComputeFinalSegment(const std::string & s, int depth, bool evaluate_final)
+    {
+        ComputeCheckDepth(depth);
+
+        std::string original = trim(s);
+        if(original.empty())
+            return "";
+
+        // Final segments are lookup-by-request rather than lookup-by-default.
+        // This avoids collisions between literal strings and defined attribute names.
+        bool explicit_evaluation = ComputeHasExplicitSyntax(original);
+
+        std::string segment = ComputeExpandSegment(original, depth+1);
+        if(ComputeIsFunction(segment))
+            return ComputeFunction(segment, depth+1);
+
+        if(!explicit_evaluation && !evaluate_final)
+            return segment;
+
+        std::string value = ComputeLookupLocal(segment);
+        if(value.empty())
+        {
+            if(evaluate_final)
+                return "";
+            if(ComputeLooksLikeNumber(segment))
+                return formatNumber(std::stod(segment));
+            return segment;
+        }
+
+        bool has_explicit_syntax = ComputeHasExplicitSyntax(value);
+
+        bool has_alpha = std::any_of(value.begin(), value.end(), [](unsigned char c)
+        {
+            return std::isalpha(c);
+        });
+
+        if(has_explicit_syntax || (!has_alpha && (ComputeLooksLikeNumber(value) || ComputeHasTopLevelMath(value))))
+            return ComputeScalar(value, depth+1);
+
+        return value;
+    }
+
+
+    std::string
+    Component::ComputePath(const std::string & s, int depth, bool evaluate_final)
+    {
+        ComputeCheckDepth(depth);
+
+        std::string path = trim(s);
+        if(path.empty())
+            return "";
+
+        bool absolute = !path.empty() && path[0] == '.';
+        if(absolute)
+            path = path.substr(1);
+
+        auto parts = ComputeSplitTopLevel(path, '.');
+        std::vector<std::string> segments;
+        for(const auto & part : parts)
+            if(!part.empty())
+                segments.push_back(part);
+
+        if(segments.empty())
+            return "";
+
+        Component * current = this;
+        if(absolute)
+        {
+            std::string root_path = peek_head(path_, ".");
+            current = kernel().components.at(root_path);
+        }
+
+        while(true)
+        {
+            current->ComputeCheckDepth(depth);
+
+            if(segments.size() == 1)
+                return current->ComputeFinalSegment(segments[0], depth+1, evaluate_final);
+
+            if(segments.size() >= 2)
+            {
+                std::string function_candidate = segments[0] + "." + segments[1];
+                if(current->ComputeIsFunction(function_candidate))
+                    return current->ComputeFunction(function_candidate, depth+1);
+            }
+
+            std::string expanded = current->ComputeExpandSegment(segments[0], depth+1);
+            auto extra = current->ComputeSplitTopLevel(expanded, '.');
+            std::vector<std::string> rewritten;
+            for(const auto & piece : extra)
+                if(!piece.empty())
+                    rewritten.push_back(piece);
+            rewritten.insert(rewritten.end(), segments.begin()+1, segments.end());
+            segments = rewritten;
+
+            if(segments.empty())
+                return "";
+
+            if(segments.size() == 1)
+                return current->ComputeFinalSegment(segments[0], depth+1, evaluate_final);
+
+            std::string next_component = segments[0];
+            Component * ancestor = current;
+            while(ancestor)
+            {
+                if(std::string(ancestor->info_["name"]) == next_component)
+                {
+                    current = ancestor;
+                    break;
+                }
+                ancestor = ancestor->parent_;
+            }
+
+            if(!ancestor)
+                current = current->GetComponent(next_component);
+
+            segments.erase(segments.begin());
+        }
+    }
+
+
+    std::string
+    Component::ComputeMath(const std::string & s, int depth)
+    {
+        ComputeCheckDepth(depth);
+
+        expression e(s);
         std::map<std::string, std::string> vars;
-        for(auto v : e.variables())
-            vars[v] = EvaluateVariableOrFunction(v);
-        return expression(s).evaluate(vars);
+        for(const auto & v : e.variables())
+        {
+            // Keep math variable syntax explicit so bare tokens remain string literals elsewhere.
+            if(v.empty() || v[0] != '@')
+                throw exception("Variables in compute expressions must use @ indirection: \""+v+"\".", path_);
+
+            std::string value = ComputeExpandSegment(v, depth+1);
+            if(value.empty())
+                throw exception("Variable \""+v+"\" not defined.", path_);
+            if(!is_number(value))
+                throw exception("Variable \""+v+"\" resolved to non-numeric value \""+value+"\".", path_);
+            vars[v] = value;
+        }
+
+        return formatNumber(e.evaluate(vars));
+    }
+
+
+    std::string
+    Component::ComputeScalar(const std::string & s, int depth, bool evaluate_final)
+    {
+        ComputeCheckDepth(depth);
+
+        std::string current = trim(s);
+        if(current.empty())
+            return "";
+
+        for(int i = 0; i < 64; i++)
+        {
+            std::string previous = current;
+
+            if(ComputeLooksLikeNumber(current))
+                return formatNumber(std::stod(current));
+
+            if(ComputeShouldReturnLiteral(current, evaluate_final))
+                return current;
+
+            if(!ComputeIsPathLike(current))
+                current = ComputeCurlySubstitutions(current, depth+1);
+
+            if(ComputeHasTopLevelMath(current))
+                current = ComputeMath(current, depth+1);
+            else
+                current = ComputePath(current, depth+1, evaluate_final);
+
+            current = trim(current);
+
+            if(current != previous && ComputeShouldReturnLiteral(current, evaluate_final))
+                return current;
+
+            if(current == previous)
+                return current;
+        }
+
+        throw exception("Compute expression did not converge.", path_);
     }
 
 
@@ -891,59 +1281,43 @@ namespace ikaros
     Component::EvaluateSizeList(std::string & s) // return list of size from size list in string
     {
         std::vector<int> shape;
-        for(std::string e : split(s, ","))
+        for(std::string e : ComputeSplitTopLevel(s, ','))
         {
+            e = trim(e);
+            if(e.empty())
+                continue;
+
             if(ends_with(e, ".size")) // special case: use shape function on input and push each dimension on list
             {
                 auto & x = rsplit(e, ".", 1);
+                std::string buffer_name = Compute(x.at(0));
                 matrix m;
-                Bind(m, x.at(0));
+                Bind(m, buffer_name);
                 for(auto d : m.shape())
                     shape.push_back(d);
             }
             else
             {
-                int d = EvaluateNumericalExpression(e);
-                if(d>0)
-                    shape.push_back(d);
-                // else
-                //     throw std::invalid_argument("Value of "+e+" is non-positive or not found."); // Does not work since function can be called multiple times duing SetSizes
+                std::string computed = Compute(e);
+                if(computed.find(';') != std::string::npos)
+                    throw std::invalid_argument("Size expression \""+e+"\" evaluated to a matrix.");
+
+                for(std::string item : ComputeSplitTopLevel(computed, ','))
+                {
+                    item = trim(item);
+                    if(item.empty())
+                        continue;
+
+                    int d = static_cast<int>(ComputeDouble(item));
+                    if(d>0)
+                        shape.push_back(d);
+                    // else
+                    //     throw std::invalid_argument("Value of "+e+" is non-positive or not found."); // Does not work since function can be called multiple times duing SetSizes
+                }
             }
         }
         return shape;
     }
-
-    
-    bool 
-    Component::EvaluateBool(std::string v)
-    {
-        return false;
-    }
-
-
-    std::string 
-    Component::EvaluateString(std::string v)
-    {
-        return "";
-    }
-
-
-
-    std::string 
-    Component::EvaluateMatrix(std::string v)
-    {
-        return "";
-    }
-
-
-
-    int 
-    Component::EvaluateOptions(std::string v, std::vector<std::string> & options)
-    {
-        return 0;
-    }
-
-
 
     void
     Component::AddLogLevel()
@@ -1321,10 +1695,6 @@ namespace ikaros
                 size = std::string(info_.at("size"));
             else
                 throw setup_failed("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".", path_);
-
-            // FIX: special indirection
-            while(!size.empty() && size[0]=='@' && size.find(',')==std::string::npos)
-                size = GetValue(size.substr(1));
             
             if(size.empty())
                 throw setup_failed("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".", path_);
@@ -2061,6 +2431,14 @@ bool operator==(Request & r, const std::string s)
             parameters[name] = value;
             parameters[name].info_["value"] = value;
         }
+        catch(const exception & e)
+        {
+            throw exception("Parameter \""+name+"\" could not be set: "+e.message());
+        }
+        catch(const std::exception & e)
+        {
+            throw exception("Parameter \""+name+"\" could not be set: "+std::string(e.what()));
+        }
         catch(...)
         {
             throw exception("Parameter \""+name+"\" could not be set. Check that the parameter exists and that the data type and value is correct.");
@@ -2176,10 +2554,10 @@ bool operator==(Request & r, const std::string s)
 
         std::string classname = info["class"];
 
-        if(!classname.empty() && classname[0] == '@')
+        if(!classname.empty() && (classname.find('@') != std::string::npos || classname.find('{') != std::string::npos))
         {
             Component * c = components.at(path);
-            classname = c->GetValue(classname.substr(1));
+            classname = c->Compute(classname);
             info["class"] = classname;
         }
 
@@ -3295,14 +3673,14 @@ bool operator==(Request & r, const std::string s)
         {
             std::string source = head(data, ",");
             std::string key = source;
+            std::string format = rtail(source, ":");
 
-            if(source.find("@") != std::string::npos && components.count(root) > 0)
+            if((source.find('@') != std::string::npos || source.find('{') != std::string::npos) && components.count(root) > 0)
             {
                 Component * c = components[root]; // FIXME: Handle exceptions
-                source = c->GetValue(source);
+                source = c->Compute(source);
             }
 
-            std::string format = rtail(source, ":");
             std::string source_with_root = root +"."+source;
 
             if(key[0] == '.')
