@@ -31,11 +31,6 @@
 #include <algorithm>
 #include <stdexcept>
 
-#if defined USE_VDSP
-#include <Accelerate/Accelerate.h>
-#endif
-
-
 char *
 create_string(const char * c)
 {
@@ -638,12 +633,7 @@ resize_matrix(int sizex, int sizey, int sizez, bool clear=false)
 float *
 reset_array(float * a, int size)
 {
-#ifdef USE_VDSP
-    vDSP_vclr(a, 1, size);
-#else
-    for (int i=0; i<size; i++)
-        a[i] = 0.0;
-#endif
+    std::fill_n(a, size, 0.0f);
     return a;
 }
 

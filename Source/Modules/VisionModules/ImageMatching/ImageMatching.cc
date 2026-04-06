@@ -1,5 +1,4 @@
 #include "ikaros.h"
-#include <Accelerate/Accelerate.h>
 using namespace ikaros;
 
 
@@ -201,4 +200,3 @@ Disparity ScanImage()
 
 
 INSTALL_CLASS(ImageMatching)
-

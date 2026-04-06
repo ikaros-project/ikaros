@@ -1,8 +1,6 @@
 #include "ikaros.h"
 #include <cmath>
 
-#include <Accelerate/Accelerate.h>
-
 using namespace ikaros;
 
 class SobelEdgeDetector : public Module 

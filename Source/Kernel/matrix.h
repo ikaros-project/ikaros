@@ -20,29 +20,6 @@
 #include <algorithm>
 
 
-//#include <cblas.h>
-
-#define USE_BLAS
-#define ACCELERATE_NEW_LAPACK
-
-#include <Accelerate/Accelerate.h>
-
-
-#ifndef LAPACK_ROW_MAJOR
-#define LAPACK_ROW_MAJOR 101
-#endif
-
-#ifndef LAPACK_COL_MAJOR
-#define LAPACK_COL_MAJOR 102
-#endif
-
-
-        
-        extern "C" void sgesvd_(const char* jobu, const char* jobvt, const int* m, const int* n, float* a, const int* lda, float* s, float* u, const int* ldu, float* vt, const int* ldvt, float* work, const int* lwork, int* info);
-
-
-
-
 #include "exceptions.h"
 #include "utilities.h"
 #include "range.h"
@@ -1176,16 +1153,7 @@ namespace ikaros
         
         //matrix & scale(float c) { return apply([c](float x)->float {return x*c;});  }
 
-        matrix & scale(float c)
-        { 
-            if(info_->continuous)
-            {
-                vDSP_vsmul(data_->data(), 1, &c, data_->data(), 1, info_->size_);
-                return *this;
-            }
-            else
-                return apply([c](float x)->float {return x*c;});
-        }
+        matrix & scale(float c);
 
 
         matrix & divide(float c) { return scale(1/c); } // Fixme: use vDSP for continuous matrices
@@ -1200,84 +1168,16 @@ namespace ikaros
         matrix & logical_or(matrix A)  { check_same_size(A); return apply(A, [](float x, float y)->float {return (x != 0.0f || y != 0.0f) ? 1.0f : 0.0f;}); }
         matrix & logical_xor(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return ((x != 0.0f) != (y != 0.0f)) ? 1.0f : 0.0f;}); }
 
-        matrix & add(matrix A, matrix B)
-        { 
-            check_same_size(A); 
-            check_same_size(B); 
-            
-            if(info_->continuous && A.info_->continuous && B.info_->continuous)
-            {
-                // vDSP version
-                float *a = A.data();
-                float *b = B.data();
-                float *r = this->data();
-
-                vDSP_vadd(b, 1, a, 1, r, 1, this->data_->size()); 
-                return *this;
-            }
-            else
-                return apply(A, B, [](float x, float y)->float {return x+y;}); 
-        }
+        matrix & add(matrix A, matrix B);
 
 
-        matrix & subtract(matrix A, matrix B)
-        { 
-            check_same_size(A); 
-            check_same_size(B); 
-            
-            if(info_->continuous && A.info_->continuous && B.info_->continuous)
-            {
-                // vDSP version
-                float *a = A.data();
-                float *b = B.data();
-                float *r = this->data();
-
-                vDSP_vsub(b, 1, a, 1, r, 1, this->data_->size());  // result[i] = a[i] - b[i]
-                return *this;
-            }
-            else
-                return apply(A, B, [](float x, float y)->float {return x-y;}); 
-        }
+        matrix & subtract(matrix A, matrix B);
 
 
-        matrix & multiply(matrix A, matrix B) 
-        { 
-            check_same_size(A); 
-            check_same_size(B); 
-            
-            if(info_->continuous && A.info_->continuous && B.info_->continuous)
-            {
-                // vDSP version
-                float *a = A.data();
-                float *b = B.data();
-                float *r = this->data();
-
-                vDSP_vmul(b, 1, a, 1, r, 1, this->data_->size()); 
-                return *this;
-            }
-            else
-                return apply(A, B, [](float x, float y)->float {return x*y;}); 
-        }
+        matrix & multiply(matrix A, matrix B);
 
 
-        matrix & divide(matrix A, matrix B) 
-        { 
-            check_same_size(A); 
-            check_same_size(B); 
-            
-            if(info_->continuous && A.info_->continuous && B.info_->continuous)
-            {
-                // vDSP version
-                float *a = A.data();
-                float *b = B.data();
-                float *r = this->data();
-
-                vDSP_vdiv(b, 1, a, 1, r, 1, this->data_->size()); 
-                return *this;
-            }
-            else
-                return apply(A, B, [](float x, float y)->float {return x/y;}); 
-        }
+        matrix & divide(matrix A, matrix B);
 
 
         matrix & maximum(matrix A, matrix B)
@@ -1379,146 +1279,18 @@ namespace ikaros
 
 
 
-        matrix &
-        hypot(matrix & x, matrix & y) // Compute element-wise hypotenuse sqrt(x^2 + y^2)
-        {
-            // FIXME: Handle non-continuous matrices as well
-
-            if(empty())
-                realloc(x.shape());
-
-            check_same_size(x);
-            check_same_size(y);
-            
-            if(this == &x || this == &y)
-                throw std::invalid_argument("Result cannot be assigned to x or y.");
-
-            #if __APPLE__
-                vDSP_vdist(x.data(), 1, y.data(), 1, data(), 1, size());
-
-            #elif defined(USE_BLAS)
-                reset();
-                cblas_saxpy(x.size(), 1.0, x.data(), 1, data(), 1);
-                cblas_saxpy(y.size(), 1.0, y.data(), 1, data(), 1);
-                vDSP_vsqrt(data(), 1, data(), 1, size());
-
-            #else
-            // discrete version
-            for(int j=0; size(); j++)
-                    (*this)(j) = sqrt(x(j)*x(j) + y(j)*y(j));
-            #endif
-
-            return *this;
-        }
+        matrix & hypot(matrix & x, matrix & y); // Compute element-wise hypotenuse sqrt(x^2 + y^2)
 
 
 
-        matrix &
-        atan2(matrix & y, matrix & x) // Compute element-wise atan2
-        {
-            // FIXME: Handle non-continuous matrices as well
-
-            if(empty())
-                realloc(x.shape());
-
-            check_same_size(x);
-            check_same_size(y);
-            
-            if(this == &x || this == &y)
-                throw std::invalid_argument("Result cannot be assigned to x or y.");
-
-            #if __APPLE__
-                int n = size();
-                vvatan2f(data(), y.data(), x.data(), &n);
-
-            #else   
-            // discrete version
-            for(int j=0; size(); j++)
-                    (*this)(j) = atan2(y(j), x(j));
-            #endif
-
-            return *this;
-        }
+        matrix & atan2(matrix & y, matrix & x); // Compute element-wise atan2
 
 
 
-        matrix &
-        matmul(matrix & A, matrix & B) // Compute matrix multiplication A*B and put result in current matrix // FIXME: realloc() if this.rank() = 0
-        {
-            if(empty())
-                realloc(A.rows(), B.cols());
-
-                #ifndef NO_MATRIX_CHECKS
-                if(rank() != 2 || A.rank() !=2 || B.rank() != 2)
-                    throw std::invalid_argument("Multiplication requires two-dimensional matrices.");
-
-                if(A.cols() != B.rows())
-                    throw std::invalid_argument("Matrices are not compatible for multiplication.");
-                #endif
-            if(rows() != A.rows() || cols() != B.cols())
-                    throw std::invalid_argument("Result matrix does not have size " + std::to_string(A.rows()) + "x" + std::to_string(B.cols())+".");
-
-            if(this == &A || this == &B)
-                    throw std::invalid_argument("Result cannot be assigned to A or B.");
-            
-            // blas version
-
-            #ifdef USE_BLAS
-
-            cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
-                        A.rows(), B.cols(), A.cols(), 1.0, 
-                        A.data(), A.info_->stride_[1],
-                        B.data(), B.info_->stride_[1],
-                        0.0, 
-                        this->data(), this->info_->stride_[1]);
-
-            #else
-
-            // discrete version
-            reset();
-            for(int j=0; j<A.rows(); j++)
-                for(int i=0; i< B.cols(); i++)
-                    for(int k=0; k<B.rows(); k++)
-                        (*this)(j, i) += A(j,k) *B(k,i);
-
-            #endif
-
-            return *this;
-        }
+        matrix & matmul(matrix & A, matrix & B); // Compute matrix multiplication A*B and put result in current matrix // FIXME: realloc() if this.rank() = 0
 
 
-        matrix & inv() // Invert matrix in place
-        {
-            if (rank() != 2) 
-                throw std::invalid_argument("Matrix must be two-dimensional.");
-
-            if (size_x() != size_y())
-                throw std::invalid_argument("Matrix must be square for inversion.");
-            
-            int n = size_x(); // Size of the square matrix
-            int lda = size_y();        // Leading dimension of the matrix // TODO: Check if this should involve strides
-            int info;
-
-            std::vector<int> ipiv(n); // Pivot indices
-
-            // Allocate workspace
-            int lwork = n * 64; // Can be optimized
-            std::vector<float> work(lwork);
-
-            // Perform LU decomposition
-            sgetrf_(&n, &n, data(), &lda, ipiv.data(), &info);
-
-            if (info != 0)
-                throw std::runtime_error("LU decomposition failed with info = " + std::to_string(info));
-
-            // Compute the inverse
-            sgetri_(&n, data(), &lda, ipiv.data(), work.data(), &lwork, &info);
-            if (info != 0) {
-                throw std::runtime_error("Matrix inversion failed with info = " + std::to_string(info));
-            }
-
-            return *this;
-        }
+        matrix & inv(); // Invert matrix in place
 
         matrix &
         corr(matrix & I, matrix & K) // correlation of I and K
@@ -1587,61 +1359,14 @@ corr2(matrix &I, matrix &K) {
     // Use the im2row function to prepare submatrices
     std::vector<float> submatrices_flat = im2row(I, K);
 
-    // Use cblas_sgemm to perform the matrix multiplication directly into this->data()
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                rr * rc, 1, K.rows() * K.cols(), // Dimensions: M, N, K
-                1.0f,                            // Alpha
-                submatrices_flat.data(), K.rows() * K.cols(), // A: submatrices_flat
-                kernel_flat.data(), 1,                       // B: kernel_flat
-                0.0f,                            // Beta
-                this->data(), 1);                // C: this->data()
+    // Use a matrix multiplication backend to perform the multiplication directly into this->data()
 
     return *this;
 }
 
 */
 
-matrix &
-corr3(matrix &I, matrix &K, const std::vector<float> &kernel_flat, const std::vector<float> &submatrices_flat) 
-{
-    if (empty()) {
-        realloc(I.rows() - K.rows() + 1, I.cols() - K.cols() + 1);
-    }
-
-    #ifndef NO_MATRIX_CHECKS
-    if (rank() != 2 || I.rank() != 2 || K.rank() != 2) {
-        throw std::invalid_argument("Correlation requires two-dimensional matrices.");
-    }
-
-    if (I.cols() < K.cols() || I.rows() < K.rows()) {
-        throw std::invalid_argument("K must fit in I");
-    }
-    #endif
-
-    int rr = I.rows() - K.rows() + 1;
-    int rc = I.cols() - K.cols() + 1;
-
-    if (rows() != rr || cols() != rc) {
-        throw std::invalid_argument("Result matrix does not have size " + std::to_string(rr) + "x" + std::to_string(rc) + ".");
-    }
-
-    if (this == &I || this == &K) {
-        throw std::invalid_argument("Result cannot be assigned to I or K.");
-    }
-
-    reset();
-
-    // Use cblas_sgemm to perform the matrix multiplication directly into this->data()
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                rr * rc, 1, K.rows() * K.cols(), // Dimensions: M, N, K
-                1.0f,                            // Alpha
-                submatrices_flat.data(), K.rows() * K.cols(), // A: submatrices_flat
-                kernel_flat.data(), 1,                       // B: kernel_flat
-                0.0f,                            // Beta
-                this->data(), 1);                // C: this->data()
-
-    return *this;
-}
+        matrix & corr3(matrix &I, matrix &K, const std::vector<float> &kernel_flat, const std::vector<float> &submatrices_flat);
 
 
 
@@ -1689,53 +1414,7 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
 
 
 
-    matrix &conv(matrix &I, matrix &K) // Convolution of I and K; border; result same size as input image
-    {
-    #ifndef NO_MATRIX_CHECKS
-    if (rank() != 2 || I.rank() != 2 || K.rank() != 2) {
-        throw std::invalid_argument("Convolution requires two-dimensional matrices.");
-    }
-
-    if (I.cols() < K.cols() || I.rows() < K.rows()) {
-        throw std::invalid_argument("K must fit in I");
-    }
-    #endif
-
-    int Ir = I.rows();
-    int Ic = I.cols();
-    int Kr = K.rows();
-    int Kc = K.cols();
-    int r = Ir - Kr + 1;
-    int c = Ic - Kc + 1;
-
-    //if (rows() != r || cols() != c) {
-    //    throw std::invalid_argument("Result matrix does not have size " + std::to_string(r) + "x" + std::to_string(c) + ".");
-    //}
-
-    if (this == &I || this == &K) {
-        throw std::invalid_argument("Result cannot be assigned to I or K.");
-    }
-
-    reset();
-
-    // Prepare input and kernel data
-    const float *input = I.data();
-    const float *kernel = K.data();
-    float *output = this->data();
-
-    // Perform the convolution using vDSP_imgfir
-    vDSP_imgfir(
-        input,               // Input image
-        Ir,                  // Number of image rows
-        Ic,                  // Number of image columns
-        kernel,              // Filter kernel
-        output,              // Output image
-        Kr,                  // Number of filter rows
-        Kc                   // Number of filter columns
-    );
-
-    return *this;
-}
+    matrix &conv(matrix &I, matrix &K); // Convolution of I and K; border; result same size as input image
 
 
     matrix &
@@ -1909,68 +1588,7 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
         // operator>=
 
 
-    void 
-    singular_value_decomposition(matrix& inputMatrix, matrix& U, matrix& S, matrix& Vt) 
-    {
-        // Retrieve dimensions
-        int m = inputMatrix.size_y();
-        int n = inputMatrix.size_x();
-
-        // Prepare data and dimensions
-        std::vector<float> a(inputMatrix.data(), inputMatrix.data() + m * n);
-        int min_mn = std::min(m, n);
-
-    /*
-        std::vector<float> singularValues(min_mn);
-        std::vector<float> u(m * m);
-        std::vector<float> vt(n * n);
-    */
-
-        matrix singularValues(min_mn);
-        matrix u(m, m);
-        matrix vt(n, n);
-
-        int lda = m;
-        int ldu = m;
-        int ldvt = n;
-        int info;
-
-        // Workspace query
-        int lwork = -1;
-        float work_size;
-        sgesvd_("A", "A", &m, &n, a.data(), &lda, singularValues.data(), u.data(), &ldu, vt.data(), &ldvt, &work_size, &lwork, &info);
-
-        // Allocate workspace and compute SVD
-        lwork = static_cast<int>(work_size);
-        std::vector<float> work(lwork);
-        sgesvd_("A", "A", &m, &n, a.data(), &lda, singularValues.data(),
-                u.data(), &ldu, vt.data(), &ldvt, work.data(), &lwork, &info);
-
-        if (info > 0)
-            throw std::runtime_error("SVD did not converge.");
-
-        // Assign outputs
-
-    /*
-        U = matrix(u.data(), m, m);
-        Vt = matrix(vt.data(), n, n);
-    */
-        U.copy(U);
-        Vt.copy(vt);
-
-        // Construct diagonal matrix S
-        std::vector<float> s(m * n, 0.0f);
-
-        for (size_t i = 0; i < min_mn; ++i) {
-            s[i * n + i] = singularValues[i];
-        }
-        
-        //S = matrix(s.data(), m, n);
-
-        S.resize(m,n);
-
-        // COPY DATA HERE
-    }
+    void singular_value_decomposition(matrix& inputMatrix, matrix& U, matrix& S, matrix& Vt);
 
 
                 // Helper function to flatten the kernel matrix

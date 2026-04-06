@@ -2,6 +2,7 @@
 
 #include "matrix.h"
 
+#define ACCELERATE_NEW_LAPACK
 #include <Accelerate/Accelerate.h>
 
 namespace ikaros {
@@ -70,6 +71,351 @@ matrix::average()
         return 0;
     else
         return sum()/size();
+}
+
+
+matrix &
+matrix::scale(float c)
+{
+    if(info_->continuous)
+    {
+        vDSP_vsmul(data_->data(), 1, &c, data_->data(), 1, info_->size_);
+        return *this;
+    }
+    else
+    {
+        return apply([c](float x)->float { return x * c; });
+    }
+}
+
+
+matrix &
+matrix::add(matrix A, matrix B)
+{
+    check_same_size(A);
+    check_same_size(B);
+
+    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    {
+        float *a = A.data();
+        float *b = B.data();
+        float *r = this->data();
+
+        vDSP_vadd(b, 1, a, 1, r, 1, this->data_->size());
+        return *this;
+    }
+    else
+    {
+        return apply(A, B, [](float x, float y)->float { return x + y; });
+    }
+}
+
+
+matrix &
+matrix::subtract(matrix A, matrix B)
+{
+    check_same_size(A);
+    check_same_size(B);
+
+    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    {
+        float *a = A.data();
+        float *b = B.data();
+        float *r = this->data();
+
+        vDSP_vsub(b, 1, a, 1, r, 1, this->data_->size());
+        return *this;
+    }
+    else
+    {
+        return apply(A, B, [](float x, float y)->float { return x - y; });
+    }
+}
+
+
+matrix &
+matrix::multiply(matrix A, matrix B)
+{
+    check_same_size(A);
+    check_same_size(B);
+
+    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    {
+        float *a = A.data();
+        float *b = B.data();
+        float *r = this->data();
+
+        vDSP_vmul(b, 1, a, 1, r, 1, this->data_->size());
+        return *this;
+    }
+    else
+    {
+        return apply(A, B, [](float x, float y)->float { return x * y; });
+    }
+}
+
+
+matrix &
+matrix::divide(matrix A, matrix B)
+{
+    check_same_size(A);
+    check_same_size(B);
+
+    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    {
+        float *a = A.data();
+        float *b = B.data();
+        float *r = this->data();
+
+        vDSP_vdiv(b, 1, a, 1, r, 1, this->data_->size());
+        return *this;
+    }
+    else
+    {
+        return apply(A, B, [](float x, float y)->float { return x / y; });
+    }
+}
+
+
+matrix &
+matrix::hypot(matrix & x, matrix & y)
+{
+    if(empty())
+        realloc(x.shape());
+
+    check_same_size(x);
+    check_same_size(y);
+
+    if(this == &x || this == &y)
+        throw std::invalid_argument("Result cannot be assigned to x or y.");
+
+#if defined(__APPLE__)
+    vDSP_vdist(x.data(), 1, y.data(), 1, data(), 1, size());
+#else
+    for(int j = 0; j < size(); ++j)
+        (*this)(j) = std::sqrt(x(j) * x(j) + y(j) * y(j));
+#endif
+
+    return *this;
+}
+
+
+matrix &
+matrix::atan2(matrix & y, matrix & x)
+{
+    if(empty())
+        realloc(x.shape());
+
+    check_same_size(x);
+    check_same_size(y);
+
+    if(this == &x || this == &y)
+        throw std::invalid_argument("Result cannot be assigned to x or y.");
+
+#if defined(__APPLE__)
+    int n = size();
+    vvatan2f(data(), y.data(), x.data(), &n);
+#else
+    for(int j = 0; j < size(); ++j)
+        (*this)(j) = std::atan2(y(j), x(j));
+#endif
+
+    return *this;
+}
+
+
+matrix &
+matrix::matmul(matrix & A, matrix & B)
+{
+    if(empty())
+        realloc(A.rows(), B.cols());
+
+#ifndef NO_MATRIX_CHECKS
+    if(rank() != 2 || A.rank() != 2 || B.rank() != 2)
+        throw std::invalid_argument("Multiplication requires two-dimensional matrices.");
+
+    if(A.cols() != B.rows())
+        throw std::invalid_argument("Matrices are not compatible for multiplication.");
+#endif
+
+    if(rows() != A.rows() || cols() != B.cols())
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(A.rows()) + "x" + std::to_string(B.cols()) + ".");
+
+    if(this == &A || this == &B)
+        throw std::invalid_argument("Result cannot be assigned to A or B.");
+
+#if defined(__APPLE__)
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                A.rows(), B.cols(), A.cols(), 1.0f,
+                A.data(), A.info_->stride_[1],
+                B.data(), B.info_->stride_[1],
+                0.0f,
+                this->data(), this->info_->stride_[1]);
+#else
+    reset();
+    for(int j = 0; j < A.rows(); ++j)
+        for(int i = 0; i < B.cols(); ++i)
+            for(int k = 0; k < B.rows(); ++k)
+                (*this)(j, i) += A(j, k) * B(k, i);
+#endif
+
+    return *this;
+}
+
+
+matrix &
+matrix::inv()
+{
+    if(rank() != 2)
+        throw std::invalid_argument("Matrix must be two-dimensional.");
+
+    if(size_x() != size_y())
+        throw std::invalid_argument("Matrix must be square for inversion.");
+
+    int n = size_x();
+    int lda = size_y();
+    int info;
+
+    std::vector<int> ipiv(n);
+    int lwork = n * 64;
+    std::vector<float> work(lwork);
+
+    sgetrf_(&n, &n, data(), &lda, ipiv.data(), &info);
+
+    if(info != 0)
+        throw std::runtime_error("LU decomposition failed with info = " + std::to_string(info));
+
+    sgetri_(&n, data(), &lda, ipiv.data(), work.data(), &lwork, &info);
+
+    if(info != 0)
+        throw std::runtime_error("Matrix inversion failed with info = " + std::to_string(info));
+
+    return *this;
+}
+
+
+matrix &
+matrix::corr3(matrix &I, matrix &K, const std::vector<float> &kernel_flat, const std::vector<float> &submatrices_flat)
+{
+    if(empty())
+        realloc(I.rows() - K.rows() + 1, I.cols() - K.cols() + 1);
+
+#ifndef NO_MATRIX_CHECKS
+    if(rank() != 2 || I.rank() != 2 || K.rank() != 2)
+        throw std::invalid_argument("Correlation requires two-dimensional matrices.");
+
+    if(I.cols() < K.cols() || I.rows() < K.rows())
+        throw std::invalid_argument("K must fit in I");
+#endif
+
+    int rr = I.rows() - K.rows() + 1;
+    int rc = I.cols() - K.cols() + 1;
+
+    if(rows() != rr || cols() != rc)
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(rr) + "x" + std::to_string(rc) + ".");
+
+    if(this == &I || this == &K)
+        throw std::invalid_argument("Result cannot be assigned to I or K.");
+
+    reset();
+
+#if defined(__APPLE__)
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                rr * rc, 1, K.rows() * K.cols(),
+                1.0f,
+                submatrices_flat.data(), K.rows() * K.cols(),
+                kernel_flat.data(), 1,
+                0.0f,
+                this->data(), 1);
+#else
+    for(int idx = 0; idx < rr * rc; ++idx)
+    {
+        float sum = 0.0f;
+        int base = idx * K.rows() * K.cols();
+        for(int k = 0; k < K.rows() * K.cols(); ++k)
+            sum += submatrices_flat[base + k] * kernel_flat[k];
+        this->data()[idx] = sum;
+    }
+#endif
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv(matrix &I, matrix &K)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(rank() != 2 || I.rank() != 2 || K.rank() != 2)
+        throw std::invalid_argument("Convolution requires two-dimensional matrices.");
+
+    if(I.cols() < K.cols() || I.rows() < K.rows())
+        throw std::invalid_argument("K must fit in I");
+#endif
+
+    int Ir = I.rows();
+    int Ic = I.cols();
+    int Kr = K.rows();
+    int Kc = K.cols();
+
+    if(this == &I || this == &K)
+        throw std::invalid_argument("Result cannot be assigned to I or K.");
+
+    reset();
+
+#if defined(__APPLE__)
+    const float *input = I.data();
+    const float *kernel = K.data();
+    float *output = this->data();
+
+    vDSP_imgfir(input, Ir, Ic, kernel, output, Kr, Kc);
+#else
+    return conv_slow(I, K);
+#endif
+
+    return *this;
+}
+
+
+void
+matrix::singular_value_decomposition(matrix& inputMatrix, matrix& U, matrix& S, matrix& Vt)
+{
+    int m = inputMatrix.size_y();
+    int n = inputMatrix.size_x();
+
+    std::vector<float> a(inputMatrix.data(), inputMatrix.data() + m * n);
+    int min_mn = std::min(m, n);
+
+    matrix singularValues(min_mn);
+    matrix u(m, m);
+    matrix vt(n, n);
+
+    int lda = m;
+    int ldu = m;
+    int ldvt = n;
+    int info;
+
+    int lwork = -1;
+    float work_size;
+    sgesvd_("A", "A", &m, &n, a.data(), &lda, singularValues.data(), u.data(), &ldu, vt.data(), &ldvt, &work_size, &lwork, &info);
+
+    lwork = static_cast<int>(work_size);
+    std::vector<float> work(lwork);
+    sgesvd_("A", "A", &m, &n, a.data(), &lda, singularValues.data(),
+            u.data(), &ldu, vt.data(), &ldvt, work.data(), &lwork, &info);
+
+    if(info > 0)
+        throw std::runtime_error("SVD did not converge.");
+
+    U.copy(u);
+    Vt.copy(vt);
+
+    std::vector<float> s(m * n, 0.0f);
+    for(int i = 0; i < min_mn; ++i)
+        s[i * n + i] = singularValues[i];
+
+    S.resize(m, n);
+    std::copy(s.begin(), s.end(), S.data());
 }
 
 
@@ -355,4 +701,3 @@ matrix::downsample(const matrix &source)
             return !(*last_ == *this);
         }
 }
-

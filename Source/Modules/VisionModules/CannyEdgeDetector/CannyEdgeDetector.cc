@@ -3,8 +3,6 @@
 #include <utility>
 #include <vector>
 
-#include <Accelerate/Accelerate.h>
-
 using namespace ikaros;
 
 class CannyEdgeDetector : public Module 
