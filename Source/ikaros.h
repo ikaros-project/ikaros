@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <stack>
+#include <memory>
 
 using namespace std::literals;
 
@@ -397,7 +398,7 @@ public:
     std::map<std::string, Class>            classes;
     std::map<std::string, std::string>      system_files; // ikg-files
     std::map<std::string, std::string>      user_files;   // ikg-files  
-    std::map<std::string, Component *>      components;
+    std::map<std::string, std::unique_ptr<Component>> components;
     std::vector<Connection>                 connections;
     std::map<std::string, matrix>           buffers;                // IO-structure    
     std::map<std::string, int>              max_delays;             // Maximum delay needed for each output
@@ -405,7 +406,7 @@ public:
     std::map<std::string, parameter>        parameters;
 
     std::vector<std::vector<Task *>>        tasks;                  // Sorted tasks in groups
-    ThreadPool *                            thread_pool = nullptr;
+    std::unique_ptr<ThreadPool>             thread_pool;
 
     long                                    session_id;
     bool                                    needs_reload;
@@ -442,9 +443,9 @@ public:
     double                                  lag_max;        // Largest positive lag
     double                                  lag_sum;        // Sum |lag|
 
-    ServerSocket *                          socket = nullptr;
+    std::unique_ptr<ServerSocket>           socket;
     std::vector<Message>                    log;
-    std::thread *                           httpThread = nullptr;
+    std::thread                             httpThread;
 
     Kernel();
     ~Kernel();

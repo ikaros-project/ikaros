@@ -4,8 +4,11 @@
 
 #include <string>
 #include <map>
+#include <set>
+#include <vector>
 #include <iostream>
 #include <filesystem>
+#include <stdexcept>
 
 namespace ikaros {
 
@@ -20,9 +23,9 @@ namespace ikaros {
         std::map<std::string, std::string> full;
         std::map<std::string, std::string> description;
 
-        options() {};
+        options() = default;
 
-        void add_option(std::string short_name, std::string full_name, std::string desc, std::string default_value="")
+        void add_option(const std::string & short_name, const std::string & full_name, const std::string & desc, const std::string & default_value = "")
         {
             full[short_name] = full_name;
             description[full_name] = desc;
@@ -82,60 +85,60 @@ namespace ikaros {
         }
 
 
-        void print_help()
+        void print_help() const
         {
             std::cout << "usage: ikaros [options] [variable=value] [filename]\n";
             std::cout << "\tCommand line options:\n";
             for(auto & p : full)
             {
-                std::cout << "\t-"<< p.first << " (" << p.second << "): " << description[p.second];
+                std::cout << "\t-"<< p.first << " (" << p.second << "): " << description.at(p.second);
                 if(d.count(p.second))
-                    std::cout << " [" << d[p.second] << "]"; 
+                    std::cout << " [" << d.at(p.second) << "]"; 
                 std::cout << '\n';
             }
         }
 
 
         std::string
-        full_path()
+        full_path() const
         {
             return path_.string();
         }
 
         std::string
-        stem()
+        stem() const
         {
             return path_.stem();
         }
 
         std::string
-        filename()
+        filename() const
         {
             return path_.filename();
         }
 
         std::string
-        parent_path()
+        parent_path() const
         {
             return path_.parent_path();
         }
 
-        bool is_set(std::string o)
+        bool is_set(const std::string & o) const
         {
             return d.count(o)>0;
         }
 
-        bool is_explicitly_set(std::string o)
+        bool is_explicitly_set(const std::string & o) const
         {
             return explicitly_set.count(o)>0;
         }
 
-        void set(std::string o)
+        void set(const std::string & o)
         {
             d[o] = "true";
         }
 
-        std::string get(std::string o)
+        std::string get(const std::string & o) const
         { 
             if(d.count(o)>0)
                 return d.at(o);
@@ -143,7 +146,7 @@ namespace ikaros {
                 return "";
         }
 
-        long get_long(std::string o)
+        long get_long(const std::string & o) const
         { 
             if(d.count(o)>0)
                 return std::stol(d.at(o));
@@ -151,7 +154,7 @@ namespace ikaros {
                 return 0;
         }
 
-        double get_double(std::string o)
+        double get_double(const std::string & o) const
         { 
             if(d.count(o)>0)
                 return std::stod(d.at(o));

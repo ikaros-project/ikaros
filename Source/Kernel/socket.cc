@@ -568,7 +568,7 @@ ServerSocket::SendData(const char * buffer, long size)
 
 
 bool
-ServerSocket::Send(std::string data)
+ServerSocket::Send(const std::string & data)
 {
     return SendData(data.c_str(), data.size());
 }

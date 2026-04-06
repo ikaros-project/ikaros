@@ -492,7 +492,7 @@ ComputeEngine::EvalPath(EvalContext & context, const std::string & s, int depth,
     if(parsed.absolute)
     {
         std::string root_path = peek_head(component_.path_, ".");
-        current = kernel().components.at(root_path);
+        current = kernel().components.at(root_path).get();
     }
 
     while(true)

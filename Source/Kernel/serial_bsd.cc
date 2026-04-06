@@ -133,7 +133,7 @@ public:
 
 
 
-Serial::Serial(std::string device_name , unsigned long baud_rate)
+Serial::Serial(const std::string & device_name, unsigned long baud_rate)
 {
 	//printf("port: %s\n", device_name.c_str());
 	struct termios options;

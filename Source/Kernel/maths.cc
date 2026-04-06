@@ -44,21 +44,21 @@ namespace ikaros
 	}
     
 
-    double angle_to_angle(double angle, int from_angle_unit, int to_angle_unit)
+    double angle_to_angle(double angle, angle_unit from_angle_unit, angle_unit to_angle_unit)
     {
         switch(from_angle_unit)
         {
             default:
-            case 0: angle = angle; break;
-            case 1: angle = (angle/(2.0*pi))*360; break;
-            case 2: angle = angle*360; break;
+            case degrees: angle = angle; break;
+            case radians: angle = (angle/(2.0*pi))*360; break;
+            case tau: angle = angle*360; break;
         }
         switch(to_angle_unit)
         {
             default:
-            case 0: angle = angle;break;
-            case 1: angle = angle/360*(2.0*pi);break;
-            case 2: angle = angle/360;break;
+            case degrees: angle = angle;break;
+            case radians: angle = angle/360*(2.0*pi);break;
+            case tau: angle = angle/360;break;
         }
         return angle;
     }
@@ -104,4 +104,3 @@ namespace ikaros
 		return A * (expo / (K * sigma)) * Phi(phi_arg);
 	}
 };
-

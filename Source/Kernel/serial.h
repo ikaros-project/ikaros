@@ -17,9 +17,12 @@ class SerialData;
 class Serial
 {
 public:
-
-    Serial();
-    Serial(std::string device_name, unsigned long baud_rate); // defaults to 8 bits, no partity, 1 stop bit
+    Serial() = default;
+    Serial(const Serial &) = delete;
+    Serial & operator=(const Serial &) = delete;
+    Serial(Serial &&) = delete;
+    Serial & operator=(Serial &&) = delete;
+    explicit Serial(const std::string & device_name, unsigned long baud_rate); // defaults to 8 bits, no partity, 1 stop bit
 
     ~Serial();
 
@@ -39,8 +42,8 @@ public:
     void FlushIn();
 
 protected:
-    int             max_failed_reads;
-	float 			time_per_byte;
+    int             max_failed_reads = DEFAULT_MAX_FAILED_READS;
+	float 			time_per_byte = 0.0f;
 private:
-    SerialData *    data;
+    SerialData *    data = nullptr;
 };

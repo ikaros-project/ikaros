@@ -38,7 +38,11 @@ inline constexpr int PORTNO = 8000; // the default port clients will be connecti
 class Socket
 	{
 	public:
-		Socket() {};
+		Socket() = default;
+		Socket(const Socket &) = delete;
+		Socket & operator=(const Socket &) = delete;
+		Socket(Socket &&) = delete;
+		Socket & operator=(Socket &&) = delete;
 		~Socket();
 		
 		std::string 	HTTPGet(const std::string & url);
@@ -60,7 +64,11 @@ class Socket
 class ServerSocket
 	{
 	public:
-		ServerSocket(int port=PORTNO);		// Create server socket on port
+		explicit ServerSocket(int port=PORTNO);		// Create server socket on port
+		ServerSocket(const ServerSocket &) = delete;
+		ServerSocket & operator=(const ServerSocket &) = delete;
+		ServerSocket(ServerSocket &&) = delete;
+		ServerSocket & operator=(ServerSocket &&) = delete;
 		~ServerSocket();
 		
 		ikaros::dictionary	header;									// The current HTTP request header
@@ -69,7 +77,7 @@ class ServerSocket
 		bool				SendHTTPHeader(ikaros::dictionary * d = nullptr, const char * response=nullptr);
 		bool				SendData(const char * buffer, long size);
 		bool				Send(const char * format, ...); // Maximum 1023 characters
-		bool				Send(std::string data);
+		bool				Send(const std::string & data);
 		bool				SendFile(const char * filename, const char * path="", ikaros::dictionary * header = nullptr); // FIXME: add header automatically based on file type
 		bool				SendFile(const std::filesystem::path & filename, const std::string & path="");
 		bool				SendBuffer();

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <chrono>
+#include <iostream>
+#include <string>
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <iomanip>
@@ -14,13 +16,10 @@ class Profiler
 public:
     using clock = std::chrono::steady_clock;
 
-    Profiler()
-    { 
-        reset();
-    }
+    Profiler() = default;
 
     void 
-    reset() 
+    reset() noexcept
     {
         running_ = false;
         wall_duration_ = clock::duration::zero();
@@ -56,26 +55,29 @@ public:
     }
 
     // Results (in seconds)
+    [[nodiscard]]
     double 
     wall_seconds() const 
     {
         return std::chrono::duration<double>(wall_duration_).count();
     }
 
+    [[nodiscard]]
     double 
     cpu_seconds() const 
     {
         return cpu_duration_sec_;
     }
 
+    [[nodiscard]]
     bool 
-    running() const 
+    running() const noexcept
     { 
             return running_; 
     }
 
 
-    void print(const std::string & msg="") 
+    void print(const std::string & msg="") const
     {
         if (!msg.empty())
             std::cout << msg << "\t";
@@ -115,4 +117,3 @@ private:
     statistics wall_time_;
     statistics cpu_time_;
 };
-

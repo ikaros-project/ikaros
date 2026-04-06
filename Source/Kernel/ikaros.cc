@@ -594,7 +594,7 @@ namespace ikaros
             if(path.empty()) // this
                 return this;
             if(path[0]=='.') // global
-                return kernel().components.at(path.substr(1));
+                return kernel().components.at(path.substr(1)).get();
             if(kernel().components.count(path_+"."+peek_head(path,"."))) // inside
                 return kernel().components[path_+"."+peek_head(path,".")]->GetComponent(peek_tail(path,"."));
             if(peek_rtail(peek_rhead(path_,"."),".") == peek_head(path,".") && parent_) // parent
@@ -877,7 +877,7 @@ namespace ikaros
 
         auto p = path_.rfind('.');
         if(p != std::string::npos)
-            parent_ = kernel().components.at(path_.substr(0, p));
+            parent_ = kernel().components.at(path_.substr(0, p)).get();
     }
 
 
@@ -1477,9 +1477,6 @@ bool operator==(Request & r, const std::string s)
     {
         // FIXME: retain persistent components
 
-        for(auto [_,c] : components) // components contains pointers so nee need to be explcitly deleted
-            // if(NOT PERSISTENT)
-                delete c;
         components.clear();
 
         connections.clear();
@@ -1669,7 +1666,7 @@ bool operator==(Request & r, const std::string s)
         if(i == std::string::npos)
             return; // FIXME: Is this an error?
 
-        auto c = components.at(name.substr(0, i));
+        Component * c = components.at(name.substr(0, i)).get();
         std::string parameter_name = name.substr(i+1, name.size());
         c->ResolveParameter(p, parameter_name);
     }
@@ -1692,7 +1689,7 @@ bool operator==(Request & r, const std::string s)
             i = p->first.rfind(".");
             if(i != std::string::npos)
             {
-                auto c = components.at(p->first.substr(0, i));
+                Component * c = components.at(p->first.substr(0, i)).get();
                 std::string parameter_name = p->first.substr(i+1, p->first.size());
                   ok &= c->ResolveParameter(p->second, parameter_name);
             }
@@ -1884,8 +1881,8 @@ bool operator==(Request & r, const std::string s)
         needs_reload(true)
     {
         cpu_cores = std::thread::hardware_concurrency();
-        thread_pool = new ThreadPool(cpu_cores > 1 ? cpu_cores-1 : 1); // FIXME: optionally use ikg parameters
-        //thread_pool = new ThreadPool(1); // FIXME: optionally use ikg parameters
+        thread_pool = std::make_unique<ThreadPool>(cpu_cores > 1 ? cpu_cores-1 : 1); // FIXME: optionally use ikg parameters
+        //thread_pool = std::make_unique<ThreadPool>(1); // FIXME: optionally use ikg parameters
     }
 
 
@@ -1954,7 +1951,7 @@ bool operator==(Request & r, const std::string s)
         if(components.count(current_component_path)> 0)
             throw build_failed("Module or group named \""+current_component_path+"\" already exists.", path);
 
-        components[current_component_path] = new Group(); // Implicit argument passing as for components
+        components[current_component_path] = std::make_unique<Group>(); // Implicit argument passing as for components
     }
 
 
@@ -1967,7 +1964,7 @@ bool operator==(Request & r, const std::string s)
         if(!classes.count("PythonModule") || classes["PythonModule"].module_creator == nullptr)
             throw build_failed("Internal PythonModule runtime class is not installed.", path);
 
-        components[current_component_path] = classes["PythonModule"].module_creator();
+        components[current_component_path] = std::unique_ptr<Component>(classes["PythonModule"].module_creator());
     }
 
 
@@ -2038,7 +2035,7 @@ bool operator==(Request & r, const std::string s)
             BuildGroup(info, path); // FIXME: This is probably not working correctly
         }
         else
-            components[current_component_path] = classes[classname].module_creator();
+            components[current_component_path] = std::unique_ptr<Component>(classes[classname].module_creator());
     }
 
 
@@ -2055,7 +2052,7 @@ bool operator==(Request & r, const std::string s)
 
         if(!classname.empty() && (classname.find('@') != std::string::npos || classname.find('{') != std::string::npos))
         {
-            Component * c = components.at(path);
+            Component * c = components.at(path).get();
             classname = c->ComputeValue(classname);
             info["class"] = classname;
         }
@@ -2313,8 +2310,7 @@ bool operator==(Request & r, const std::string s)
             if(info_.is_set("batch_mode"))
             {
                 StopHTTPServer();
-                delete thread_pool;
-                thread_pool = nullptr;
+                thread_pool.reset();
                 exit(1);
             }
         }
@@ -2459,14 +2455,14 @@ bool operator==(Request & r, const std::string s)
         try
         {
             shutdown.store(false, std::memory_order_release);
-            socket =  new ServerSocket(port);
+            socket = std::make_unique<ServerSocket>(port);
         }
         catch (const exception& e)
         {
             throw fatal_error("Ikaros is unable to start a webserver on port "+std::to_string(port)+". Make sure no other ikaros process is running and try again.");
         }
 
-        httpThread = new std::thread(Kernel::StartHTTPThread, this);
+        httpThread = std::thread(Kernel::StartHTTPThread, this);
     }
 
 
@@ -2478,18 +2474,12 @@ bool operator==(Request & r, const std::string s)
         if(socket != nullptr)
             socket->StopListening();
 
-        if(httpThread != nullptr)
+        if(httpThread.joinable())
         {
-            httpThread->join();
-            delete httpThread;
-            httpThread = nullptr;
+            httpThread.join();
         }
 
-        if(socket != nullptr)
-        {
-            delete socket;
-            socket = nullptr;
-        }
+        socket.reset();
     }
 
 
@@ -2678,7 +2668,7 @@ bool operator==(Request & r, const std::string s)
         for(auto & [s,c] : components)
         {
             nodes.push_back(s);
-            task_map[s] = c; // Save in task map
+            task_map[s] = c.get(); // Save in task map
         }
 
         for(auto & c : connections) // Only zero-delay connections are sorted into tasks
@@ -3176,7 +3166,7 @@ bool operator==(Request & r, const std::string s)
 
             if((source.find('@') != std::string::npos || source.find('{') != std::string::npos) && components.count(root) > 0)
             {
-                Component * c = components[root]; // FIXME: Handle exceptions
+                Component * c = components[root].get(); // FIXME: Handle exceptions
                 source = c->ComputeValue(source);
             }
 
@@ -3894,14 +3884,9 @@ Kernel::CalculateCPUUsage() // In percent
     return nullptr;
     }
 
-    Kernel::~Kernel()
+Kernel::~Kernel()
 {
     StopHTTPServer();
-    if(thread_pool)
-    {
-        delete thread_pool;
-        thread_pool = nullptr;
-    }
 }
 
 }; // namespace ikaros

@@ -44,7 +44,7 @@ class RotationConverter : public Module
     matrix outputMatrix;
     // Internally
     h_matrix m;
-    int angleUnit; // Only used in xyzaxayaz and axayaz mode.
+    angle_unit angleUnit = degrees; // Only used in xyzaxayaz and axayaz mode.
 
     void Init()
     {

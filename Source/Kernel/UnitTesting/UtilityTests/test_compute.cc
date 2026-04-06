@@ -23,9 +23,10 @@ namespace
         k.current_component_info = info;
         k.current_component_path = path;
 
-        Group * g = new Group();
-        k.components[path] = g;
-        return g;
+        auto g = std::make_unique<Group>();
+        Group * raw = g.get();
+        k.components[path] = std::move(g);
+        return raw;
     }
 
     bool throws_compute(const std::function<void()> & fn)
