@@ -2,8 +2,11 @@
 
 #pragma once
 
+#include <initializer_list>
 #include <string>
+#include <tuple>
 #include <vector>
+#include <ostream>
 
 namespace ikaros
 {
@@ -22,7 +25,7 @@ namespace ikaros
         range();
         range(int a);
         range(int a, int b, int inc=1);
-        range(std::string s);                            // parse range string: [a:b:inc]
+        range(const std::string & s);                            // parse range string: [a:b:inc]
 
         range & push(int a, int b, int inc=1);
         range & push(int a);
@@ -33,26 +36,26 @@ namespace ikaros
         range & extend(const range & r);          // Extend size to include r
         range & fill(const range & r);      // Fill empty ranges from r
 
-        int rank() const;                         // dimensionality of the range
-        int size();                         // number of elements in the range
-        int size(int f);                    // number of element in odimension d of the range
-        std::vector<int> extent();          // the largest index in each fimension
+        [[nodiscard]] int rank() const;                         // dimensionality of the range
+        [[nodiscard]] int size() const;                         // number of elements in the range
+        [[nodiscard]] int size(int f) const;                    // number of element in odimension d of the range
+        [[nodiscard]] std::vector<int> extent() const;          // the largest index in each fimension
         std::vector<int> & index() ;        // the current index during iteration
         std::vector<int> operator++(int);
 
         range & reset(int d=0);
         range & clear();
         
-        range trim();  // move range to 0..
-        range strip(); // rremove dimensions with single index size
-        range tail();  // drop first dimension // FIXME: pop_front?
+        [[nodiscard]] range trim() const;  // move range to 0..
+        [[nodiscard]] range strip() const; // rremove dimensions with single index size
+        [[nodiscard]] range tail() const;  // drop first dimension // FIXME: pop_front?
 
-        bool is_delay_0(); // FIXME: rename
-        bool is_delay_1();
+        [[nodiscard]] bool is_delay_0() const; // FIXME: rename
+        [[nodiscard]] bool is_delay_1() const;
 
-        bool more(int d=0) const;
-        bool empty() const;
-        bool empty(int d) const;
+        [[nodiscard]] bool more(int d=0) const;
+        [[nodiscard]] bool empty() const;
+        [[nodiscard]] bool empty(int d) const;
 
         operator std::vector<int> &();
 
@@ -62,16 +65,16 @@ namespace ikaros
 
         friend void operator|=(range & r, range & s);
 
-        void print(std::string name="");
-        void info(std::string name="");
-        void print_index(); // Print the current index position during a loop
+        void print(std::string name="") const;
+        void info(std::string name="") const;
+        void print_index() const; // Print the current index position during a loop
 
         operator std::string() const;
-        std::string curly() const; // empty string or range within curly brackets
+        [[nodiscard]] std::string curly() const; // empty string or range within curly brackets
 
-        friend bool operator==(range & a, range & b);
-        friend bool operator!=(range & a, range & b);
-        friend bool operator<=(range & a, range & b);        // is subset
+        friend bool operator==(const range & a, const range & b);
+        friend bool operator!=(const range & a, const range & b);
+        friend bool operator<=(const range & a, const range & b);        // is subset
 
         friend std::ostream& operator<<(std::ostream& os, const range & x);
     };

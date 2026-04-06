@@ -7,7 +7,7 @@ namespace ikaros
     {
         constexpr size_t kMaxLogValueLength = 1024;
 
-        std::string UrlEncode(const std::string & value)
+        [[nodiscard]] std::string UrlEncode(const std::string & value)
         {
             std::string encoded;
             encoded.reserve(value.size());
@@ -31,7 +31,7 @@ namespace ikaros
             return encoded;
         }
 
-        std::string LimitLogValue(const std::string & value, size_t max_length = kMaxLogValueLength)
+        [[nodiscard]] std::string LimitLogValue(const std::string & value, size_t max_length = kMaxLogValueLength)
         {
             if(value.size() <= max_length)
                 return value;

@@ -7,13 +7,14 @@
 #include <thread>
 #include <string>
 #include <mutex>
+#include <atomic>
 
 
 // All parameters are time in seconds represented by a double
 
-std::string TimeString(double time);    // Convert double time to formatted string           
-long        GetTimeStamp();             // Get long representation of clock time
-std::string GetClockTimeString();       // Get string representation of clock time
+[[nodiscard]] std::string TimeString(double time);    // Convert double time to formatted string
+[[nodiscard]] long        GetTimeStamp();             // Get long representation of clock time
+[[nodiscard]] std::string GetClockTimeString();       // Get string representation of clock time
 void        Sleep(double d);		    // Sleep for this duration (in seconds)
 
 
@@ -25,6 +26,11 @@ private:
     std::atomic<bool> paused;
     std::mutex mtx;
 public: 
+    Timer(const Timer&) = delete;
+    Timer& operator=(const Timer&) = delete;
+    Timer(Timer&&) = delete;
+    Timer& operator=(Timer&&) = delete;
+
     void        Pause();                    // Pause the timer
     void        Continue();                 // Start the timer at the pause time
     void        Stop();                     // Pause and set time to zero
@@ -33,15 +39,14 @@ public:
 
     void		Restart();					// Start the timer from time 0
     void        SetStartTime(double t);     // Set start time of the timer
-    double      GetTime();					// Get the time (in seconds) since the timer was created or restarted
+    [[nodiscard]] double GetTime();					// Get the time (in seconds) since the timer was created or restarted
     void        SetTime(double t);          // Set the time (in seconds) of the timer
-    std::string GetTimeString();            // Get time since the timer was started as a formated string
-    double      WaitUntil(double time);     // Suspend execution until time; return timing lag
+    [[nodiscard]] std::string GetTimeString();            // Get time since the timer was started as a formated string
+    [[nodiscard]] double WaitUntil(double time);     // Suspend execution until time; return timing lag
 
     void Lock() { mtx.lock(); }
     void Unlock() { mtx.unlock(); }
 
     Timer();
 };
-
 

@@ -86,7 +86,7 @@ namespace ikaros
     }
 
     std::string 
-    null::xml(std::string name,exclude_set exclude, int depth)
+    null::xml(std::string name,exclude_set exclude, int depth) const
     {
         return tab(depth)+"<null/>\n";
     }
@@ -191,13 +191,13 @@ namespace ikaros
 
 
     value & 
-    dictionary::operator[](std::string s)
+    dictionary::operator[](const std::string & s)
     {
         return (*dict_)[s];
     }
 
     const value &
-    dictionary::operator[](std::string s) const
+    dictionary::operator[](const std::string & s) const
     {
         static const value null_value;
         auto it = dict_->find(s);
@@ -205,59 +205,59 @@ namespace ikaros
     }
 
     value & 
-    dictionary::at(std::string s)
+    dictionary::at(const std::string & s)
     {
         return dict_->at(s);
     }
 
     const value &
-    dictionary::at(std::string s) const
+    dictionary::at(const std::string & s) const
     {
         return dict_->at(s);
     }
 
     int 
-    dictionary::get_int(std::string s)
+    dictionary::get_int(const std::string & s) const
     {
-        return (*dict_)[s].as_int();
+        return (*this)[s].as_int();
     }
 
     bool
-    dictionary::is_set(std::string s)
+    dictionary::is_set(const std::string & s) const
     {
         if(!contains(s))
             return false;
 
-        return (*dict_)[s].is_true();
+        return (*this)[s].is_true();
     }
 
     bool
-    dictionary::is_not_set(std::string s)
+    dictionary::is_not_set(const std::string & s) const
     {
         return !is_set(s);
     }
 
     bool 
-    dictionary::contains(std::string s)
+    dictionary::contains(const std::string & s)
         {
             return dict_->count(s);
         }
 
     bool
-    dictionary::contains(std::string s) const
+    dictionary::contains(const std::string & s) const
     {
         return dict_->count(s);
     }
 
     bool
-    dictionary::contains_non_null(std::string s)
+    dictionary::contains_non_null(const std::string & s)
     {
         auto it = dict_->find(s);
         return it != dict_->end() && !it->second.is_null();
     }
 
     bool
-    dictionary::contains_non_null(std::string s) const
+    dictionary::contains_non_null(const std::string & s) const
     {
         auto it = dict_->find(s);
         return it != dict_->end() && !std::holds_alternative<null>(it->second.value_);
@@ -265,13 +265,13 @@ namespace ikaros
 
 
         size_t 
-        dictionary::count(std::string s)
+        dictionary::count(const std::string & s)
         {
             return dict_->count(s);
         }
 
         size_t
-        dictionary::count(std::string s) const
+        dictionary::count(const std::string & s) const
         {
             return dict_->count(s);
         }
@@ -301,7 +301,7 @@ namespace ikaros
         }
         
 
-        void dictionary::erase(std::string key)
+        void dictionary::erase(const std::string & key)
         {
             dict_->erase(key);
         }
@@ -339,7 +339,7 @@ namespace ikaros
     // XML
 
     std::string 
-    list::xml(std::string name, exclude_set exclude, int depth)
+    list::xml(std::string name, exclude_set exclude, int depth) const
     {
         std::string s;
         for(auto & v : *list_)
@@ -352,7 +352,7 @@ namespace ikaros
     // FIXME: Use _tag for elememt name
 
     std::string  
-    dictionary::xml(std::string name,exclude_set exclude, int depth)
+    dictionary::xml(std::string name,exclude_set exclude, int depth) const
     {
         std::string s = tab(depth)+"<"+name;
         for(auto & a : *dict_)
@@ -402,14 +402,14 @@ namespace ikaros
     }
 
     void
-    dictionary::load_xml(std::string filename)
+    dictionary::load_xml(const std::string & filename)
     {
         *this = dictionary(XMLDocument(filename.c_str()).xml);
     }
 
 
     void
-    dictionary::load_json(std::string filename)
+    dictionary::load_json(const std::string & filename)
     {
         std::ifstream file(filename);
         if (!file)
@@ -425,7 +425,7 @@ namespace ikaros
 
 
     void 
-    dictionary::parse_url(std::string s)
+    dictionary::parse_url(const std::string & s)
     {
         if(s.empty())
             return;
@@ -498,7 +498,7 @@ namespace ikaros
         }
 
         size_t  
-        value::size()
+        value::size() const
         {
             if(std::holds_alternative<list>(value_))
                 return std::get<list>(value_). list_->size();
@@ -569,7 +569,7 @@ namespace ikaros
         }
 
         bool 
-        value::is_true()
+        value::is_true() const
         {
             if(std::holds_alternative<bool>(value_))
                 return std::get<bool>(value_);
@@ -600,7 +600,7 @@ namespace ikaros
         }
 
         std::string  
-        value::xml(std::string name,exclude_set exclude, int depth)
+        value::xml(std::string name,exclude_set exclude, int depth) const
         {
             if(std::holds_alternative<std::string>(value_))
                 return tab(depth)+"<string>"+std::get<std::string>(value_)+"</string>\n"; // FIXME: <'type' value="v" />    ???
@@ -615,7 +615,7 @@ namespace ikaros
         }
 
           
-        value::operator double ()
+        value::operator double () const
         { 
             if(std::holds_alternative<double>(value_))
                 return std::get<double>(value_);

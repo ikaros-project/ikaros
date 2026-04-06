@@ -10,6 +10,8 @@
 #include <map>
 #include <unordered_map>
 #include <variant>
+#include <memory>
+#include <initializer_list>
 #include <iterator>
 #include <iostream>
 #include <cctype>
@@ -37,8 +39,8 @@ namespace ikaros
     struct null
     {
         operator std::string () const;
-        std::string json() const;
-        std::string xml(std::string name, exclude_set exclude={}, int depth=0);
+        [[nodiscard]] std::string json() const;
+        std::string xml(std::string name, exclude_set exclude={}, int depth=0) const;
         friend std::ostream& operator<<(std::ostream& os, const null & v);
 
         void print() const { std::cout << "null\n"; };
@@ -68,42 +70,49 @@ namespace ikaros
 
         //dictionary(const dictionary & d);
     
-        value & operator[](std::string s); // Creates the key on demand if it does not exist.
-        const value & operator[](std::string s) const;
-        value & at(std::string s);  // throws if s is not in dictionary
-        const value & at(std::string s) const;
-        bool contains(std::string s);
-        bool contains(std::string s) const;
-        bool contains_non_null(std::string s);
-        bool contains_non_null(std::string s) const;
-        size_t count(std::string s);
-        size_t count(std::string s) const;
+        value & operator[](const std::string & s); // Creates the key on demand if it does not exist.
+        const value & operator[](const std::string & s) const;
+        value & at(const std::string & s);  // throws if s is not in dictionary
+        const value & at(const std::string & s) const;
+        [[nodiscard]]
+        bool contains(const std::string & s);
+        [[nodiscard]]
+        bool contains(const std::string & s) const;
+        [[nodiscard]]
+        bool contains_non_null(const std::string & s);
+        [[nodiscard]]
+        bool contains_non_null(const std::string & s) const;
+        [[nodiscard]]
+        size_t count(const std::string & s);
+        [[nodiscard]]
+        size_t count(const std::string & s) const;
+        [[nodiscard]]
         bool empty() const { return dict_->empty(); }
         void merge(const dictionary & source, bool overwrite=false); // shallow merge: copy from source to this
 
-        void erase(std::string key);
+        void erase(const std::string & key);
 
         operator std::string () const;
         
-        int get_int(std::string s);
-        bool is_set(std::string s);    // Returns true if set and true, and false if not set or not set to true, bool or string
-        bool is_not_set(std::string s);    // Negation of is_set
+        [[nodiscard]] int get_int(const std::string & s) const;
+        [[nodiscard]] bool is_set(const std::string & s) const;    // Returns true if set and true, and false if not set or not set to true, bool or string
+        [[nodiscard]] bool is_not_set(const std::string & s) const;    // Negation of is_set
 
-        std::string json() const;
-        std::string xml(std::string name="dictionary", exclude_set exclude={}, int depth=0);
+        [[nodiscard]] std::string json() const;
+        std::string xml(std::string name="dictionary", exclude_set exclude={}, int depth=0) const;
         friend std::ostream& operator<<(std::ostream& os, const dictionary & v);
         //void print();
 
-        void parse_url(std::string s);
+        void parse_url(const std::string & s);
         // void parse_json(std::string s);
         // void parse_xml(std::string s); // TODO
 
-        dictionary copy() const;
+        [[nodiscard]] dictionary copy() const;
 
         void print() const { std::cout << this->json() << '\n'; };
 
-        void load_xml(std::string filename);
-        void load_json(std::string filename);
+        void load_xml(const std::string & filename);
+        void load_json(const std::string & filename);
     };
 
 
@@ -128,18 +137,18 @@ namespace ikaros
 
         value & operator[] (int i); // Auto-resizes with null values up to i before returning the element.
         value & operator[] (size_t i); // Auto-resizes with null values up to i before returning the element.
-        size_t size() const { return list_->size(); };
-        bool empty() const { return list_->empty(); }
+        [[nodiscard]] size_t size() const { return list_->size(); };
+        [[nodiscard]] bool empty() const { return list_->empty(); }
         list & push_back(const value & v) { list_->push_back(v); return *this; };
         list & insert_front(const value & v) { list_->insert(list_->begin(), v);  return *this; }
         list & erase(int index);
         list & erase(size_t index);
         operator std::string ()  const;
-        std::string json() const;
-        std::string xml(std::string name, exclude_set exclude={}, int depth=0);
+        [[nodiscard]] std::string json() const;
+        std::string xml(std::string name, exclude_set exclude={}, int depth=0) const;
         friend std::ostream& operator<<(std::ostream& os, const list & v);
 
-        list copy() const;
+        [[nodiscard]] list copy() const;
 
         void print() const { std::cout << this->json() << '\n'; };
     };
@@ -168,19 +177,19 @@ namespace ikaros
         value & operator =(const list & v) { value_ = v; return *this; }
         value & operator =(const dictionary & d) { value_ = d; return *this; }
 
-        bool is_dictionary()    { return std::holds_alternative<dictionary>(value_); }
-        bool is_list()          { return std::holds_alternative<list>(value_); }
-        bool is_null()          { return std::holds_alternative<null>(value_); }
-        bool is_bool()          { return std::holds_alternative<bool>(value_); }
-        bool is_number()        { return std::holds_alternative<double>(value_); }
-        bool is_string()        { return std::holds_alternative<std::string>(value_); }
-        bool is_true();
+        [[nodiscard]] bool is_dictionary() const { return std::holds_alternative<dictionary>(value_); }
+        [[nodiscard]] bool is_list() const { return std::holds_alternative<list>(value_); }
+        [[nodiscard]] bool is_null() const { return std::holds_alternative<null>(value_); }
+        [[nodiscard]] bool is_bool() const { return std::holds_alternative<bool>(value_); }
+        [[nodiscard]] bool is_number() const { return std::holds_alternative<double>(value_); }
+        [[nodiscard]] bool is_string() const { return std::holds_alternative<std::string>(value_); }
+        [[nodiscard]] bool is_true() const;
 
-        bool as_bool()              { return double(*this) != 0; };
-        int as_int()                { return double(*this); };
-        float as_float()            { return double(*this); };
-        double as_double()          { return double(*this); };
-        std::string as_string()     { return std::string(*this); };
+        [[nodiscard]] bool as_bool() const { return double(*this) != 0; };
+        [[nodiscard]] int as_int() const { return double(*this); };
+        [[nodiscard]] float as_float() const { return double(*this); };
+        [[nodiscard]] double as_double() const { return double(*this); };
+        [[nodiscard]] std::string as_string() const { return std::string(*this); };
 
         value & operator[] (const char * s); // Captures literals as argument ***************
         value & operator[] (const std::string & s); // Converts null/non-dictionary values into a dictionary before indexing.
@@ -191,23 +200,23 @@ namespace ikaros
         value & push_back(const value & v);
 
         friend std::ostream& operator<<(std::ostream& os, const value & v);
-        size_t size();
+        [[nodiscard]] size_t size() const;
 
         std::vector<value>::iterator begin();   // value iterator ******* over what?? **********
         std::vector<value>::iterator end();
 
         operator std::string () const;
-        std::string json() const;
-        std::string xml(std::string name, exclude_set exclude={}, int depth=0);
+        [[nodiscard]] std::string json() const;
+        std::string xml(std::string name, exclude_set exclude={}, int depth=0) const;
 
-        operator double ();
+        operator double () const;
         operator list ();
         operator dictionary ();
 
         void print() const { std::cout << this->json() << '\n'; };
 
-        value copy() const;
+        [[nodiscard]] value copy() const;
     };
 
-    value parse_json(const std::string& json_str);
+    [[nodiscard]] value parse_json(const std::string& json_str);
 };

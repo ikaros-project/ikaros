@@ -91,12 +91,12 @@ namespace ikaros
     }
 
     
-    std::vector<int> range::extent()
+    std::vector<int> range::extent() const
     {
         return b_;
     }
 
-    range::range(std::string s)
+    range::range(const std::string & s)
     {
         try
         {        
@@ -193,7 +193,7 @@ namespace ikaros
     };
 
     
-    range range::trim()
+    range range::trim() const
     {
         range r = *this;
         for(int d=0; d<index_.size(); d++)
@@ -206,7 +206,7 @@ namespace ikaros
 
 
     range 
-    range::strip()
+    range::strip() const
     {
         range r;
         for(int i=0; i<index_.size(); i++)
@@ -220,7 +220,7 @@ namespace ikaros
     }
 
 
-    range range::tail()
+    range range::tail() const
     {
         range r = *this;
         r.a_.erase(r.a_.begin());
@@ -231,13 +231,13 @@ namespace ikaros
     }
 
 
-    bool range::is_delay_0()
+    bool range::is_delay_0() const
     {
         return a_.size() == 1 && a_[0] == 0 && b_[0] == 1;
     }
 
 
-    bool range::is_delay_1()
+    bool range::is_delay_1() const
     {
         return a_.size() == 1 && a_[0] == 1 && b_[0] == 2;
     }
@@ -302,14 +302,14 @@ namespace ikaros
     }
 
     void
-    range::print(std::string name)
+    range::print(std::string name) const
     {
         std::cout << name << ": " << std::string(*this) << '\n';
     }
 
 
     void 
-    range::info(std::string name)
+    range::info(std::string name) const
     {
         std::string tab;
         if(!name.empty())
@@ -325,7 +325,7 @@ namespace ikaros
 
 
     void 
-    range::print_index()
+    range::print_index() const
     {
         for(auto x: index_)
             std::cout << x << " ";
@@ -406,26 +406,26 @@ namespace ikaros
     }
 
     bool 
-    operator==(range & a, range & b)
+    operator==(const range & a, const range & b)
     {
         return a.index_==b.index_ && a.a_==b.a_ && a.b_==b.b_ && a.inc_==b.inc_;
     }
     
     bool 
-    operator!=(range & a, range & b)
+    operator!=(const range & a, const range & b)
     {
         return !(a==b);
     }
 
     bool 
-    operator<=(range & a, range & b)
+    operator<=(const range & a, const range & b)
     {
         throw std::runtime_error("operator <= not implemented");
         return false;
     }
 
     int
-    range::size(int d)
+    range::size(int d) const
     {
         if(inc_[d]==0)
             return 0; // FIXME: should this throw an expection?
@@ -434,7 +434,7 @@ namespace ikaros
     }
 
     int 
-    range::size()
+    range::size() const
     {
         if(index_.size() == 0)
             return 0;
