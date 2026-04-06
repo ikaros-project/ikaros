@@ -1,36 +1,29 @@
-#include "json.cc"
+#include <cassert>
+#include <iostream>
+#include <string>
 
+#include "../../dictionary.h"
+#include "../../xml.h"
+#include "../../xml.cc"
+#include "../../dictionary.cc"
+#include "../../utilities.cc"
 
-int main() {
-    std::string jsonString = R"({"name": "John Doe", "age": 30, "is_student": false, "scores": [85.5, 90.2, 78, 1, 2, 3, 4, 5], "address": {"city": "New York", "zip": "10001"}})";
-    try {
-        JSON json = JSON::parse(jsonString);
-        std::cout << "Parsed JSON successfully." << std::endl;
+using namespace ikaros;
 
-        // Access elements using the overloaded operator[]
-        std::cout << "Name: " << json["name"].asString() << std::endl;
-        std::cout << "Age: " << json["age"].asNumber() << std::endl;
-        std::cout << "Is student: " << json["is_student"].asBool() << std::endl;
-        std::cout << "First score: " << json["scores"][0].asNumber() << std::endl;
-        std::cout << "City: " << json["address"]["city"].asString() << std::endl;
+int
+main()
+{
+    value json = parse_json(R"({"name":"John Doe","age":30,"is_student":false,"scores":[85.5,90.2,78],"address":{"city":"New York","zip":"10001"}})");
 
-        // Iterate over array elements
-        std::cout << "Scores: ";
-        for (auto& score : json["scores"]) {
-            std::cout << score.asNumber() << std::endl;
-        }
-        std::cout << std::endl;
+    assert(json.is_dictionary());
+    assert(json["name"].as_string() == "John Doe");
+    assert(json["age"].as_int() == 30);
+    assert(json["is_student"].is_bool());
+    assert(!json["is_student"].is_true());
+    assert(json["scores"][0].as_double() == 85.5);
+    assert(json["address"]["city"].as_string() == "New York");
+    assert(json["address"]["zip"].as_string() == "10001");
 
-        // Iterate over object properties
-        std::cout << "Address: ";
-        for (auto& [key, value] : json["address"].asObject()) {
-            std::cout << key << ": " << value.asString() << std::endl;
-        }
-        std::cout << std::endl;
-
-    } catch (const std::exception& ex) {
-        std::cerr << "Error parsing JSON: " << ex.what() << std::endl;
-    }
+    std::cout << "test_json: ok\n";
     return 0;
 }
-

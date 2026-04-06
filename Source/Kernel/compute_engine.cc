@@ -212,6 +212,9 @@ ComputeEngine::ShouldReturnLiteral(EvalContext & context, const std::string & s,
     if(evaluate_final)
         return false;
 
+    if(HasTopLevelMath(context, s))
+        return false;
+
     if(IsPathLike(context, s))
         return false;
 
@@ -542,10 +545,14 @@ ComputeEngine::EvalMath(EvalContext & context, const std::string & s, int depth)
     std::map<std::string, std::string> vars;
     for(const auto & v : e.variables())
     {
-        if(v.empty() || v[0] != '@')
+        std::string value;
+        if(!v.empty() && v[0] == '@')
+            value = ExpandSegment(context, v, depth+1);
+        else if(IsPathLike(context, v))
+            value = EvalScalar(context, v, depth+1, true);
+        else
             throw exception("Variables in compute expressions must use @ indirection: \""+v+"\".", component_.path_);
 
-        std::string value = ExpandSegment(context, v, depth+1);
         if(value.empty())
             throw exception("Variable \""+v+"\" not defined.", component_.path_);
         if(!LooksLikeNumber(context, value))
@@ -586,7 +593,9 @@ ComputeEngine::EvalScalar(EvalContext & context, const std::string & s, int dept
 
         current = trim(current);
 
-        if(current != previous && ShouldReturnLiteral(context, current, evaluate_final))
+        // After a successful final lookup, plain resolved literals like "child"
+        // should be preserved rather than re-evaluated as another name lookup.
+        if(current != previous && ShouldReturnLiteral(context, current, false))
             return current;
 
         if(current == previous)

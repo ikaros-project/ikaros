@@ -9,7 +9,7 @@
 #include <vector>
 #include <set>
 
-#include "../expression.h"
+#include "../../expression.h"
 
 
 
@@ -47,5 +47,4 @@ main()
     std::cout << expression("10*(7-9)").evaluate() << '\n'; 
     std::cout << expression("(1+2)*3").evaluate() << '\n'; 
 }
-
 

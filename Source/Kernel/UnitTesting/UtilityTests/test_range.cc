@@ -5,9 +5,9 @@
 
 #include <string>
 #include <iostream>
-#include "../utilities.cc"
-#include "../range.h"
-#include "../range.cc"
+#include "../../utilities.cc"
+#include "../../range.h"
+#include "../../range.cc"
 
 using namespace ikaros;
 

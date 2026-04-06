@@ -1,5 +1,5 @@
 
-#include "../utilities.cc"   
+#include "../../utilities.cc"
 #include <string>
 
 using namespace ikaros;
@@ -26,4 +26,3 @@ main()
     std::cout << h1 << "|" << s3 << std::endl;
     std::cout << s4 << "|" << t1 << std::endl;
 }
-
