@@ -3,22 +3,20 @@
 #pragma once
 
 #include <stdexcept>
-#include <string>
-#include <map>
-#include <set>
-#include <iostream>
-#include <fstream>
-#include <filesystem>
 #include <algorithm>
-#include <iostream> 
-#include <vector>
+#include <array>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <set>
+#include <stack>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
-#include <stack>
-#include <memory>
-
-using namespace std::literals;
+#include <vector>
 
 #define INSTALL_CLASS(class_name)  static InitClass init_##class_name(#class_name, []() { return new class_name(); });
 
@@ -107,15 +105,14 @@ enum parameter_type
 
 };
 
-static std::vector<std::string> parameter_strings = 
-{
-    "none", 
+inline constexpr std::array<std::string_view, 6> parameter_strings = {
+    "none",
     "number",
     "rate",
-    "bool", 
-    "string", 
-    "matrix", 
-}; 
+    "bool",
+    "string",
+    "matrix",
+};
 
 
 
@@ -131,11 +128,11 @@ public:
     std::shared_ptr<matrix>         matrix_value;
     std::shared_ptr<std::string>    string_value;
 
-    parameter(): type(no_type), has_options(false) {}
+    parameter(): has_options(false), type(no_type) {}
     parameter(dictionary info);
     parameter(const std::string type, const std::string options="");
 
-    void operator=(parameter & p); // this shares data with p
+    void share(parameter & p); // this shares data with p
     double operator=(double v);
     std::string operator=(std::string v);
 
@@ -158,7 +155,7 @@ public:
 
     std::string json() const;    
     
-    friend std::ostream& operator<<(std::ostream& os, parameter p);
+    friend std::ostream& operator<<(std::ostream& os, const parameter & p);
     // Method to compare string_value with a string literal
     bool compare_string(const std::string& value) const {
         // Check if string_value is non-null and compare

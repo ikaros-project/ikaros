@@ -34,8 +34,8 @@ namespace ikaros
 // CircularBuffer
 
     CircularBuffer::CircularBuffer(matrix &  m,  int size):
-        index_(0),
-        buffer_(std::vector<matrix>(size))
+        buffer_(std::vector<matrix>(size)),
+        index_(0)
     {
         for(int i=0; i<size;i++)
         {
@@ -63,9 +63,9 @@ namespace ikaros
 
     parameter::parameter(dictionary info):
         info_(info), 
-        type(no_type), 
         has_options(info_.contains("options")),
-        resolved(std::make_shared<bool>(false))
+        resolved(std::make_shared<bool>(false)),
+        type(no_type)
     {
         std::string type_string = info_["type"];
 
@@ -116,7 +116,7 @@ namespace ikaros
 
 
     void 
-    parameter::operator=(parameter & p) // this shares data with p 
+    parameter::share(parameter & p) // this shares data with p 
     {
         info_ = p.info_;
         type = p.type;
@@ -152,6 +152,7 @@ namespace ikaros
                 default:
                     break; // FIXME: error?
             }
+            *resolved = true;
             return v;
         }
 
@@ -398,7 +399,7 @@ namespace ikaros
     }
 
 
-    std::ostream& operator<<(std::ostream& os, parameter p) // FIXME: Handle options
+    std::ostream& operator<<(std::ostream& os, const parameter & p) // FIXME: Handle options
     {
         switch(p.type)
         {
@@ -635,7 +636,7 @@ namespace ikaros
         Kernel & k = kernel();
         std::string pname = path_+"."+name;
         if(k.parameters.count(pname))
-            p = (parameter &)kernel().parameters[pname];
+            p.share((parameter &)kernel().parameters[pname]);
         else
             throw exception("Cannot bind to \""+name+"\"");
     };
@@ -730,7 +731,7 @@ namespace ikaros
         Kernel & k = kernel();
         if(k.parameters.count(path_+"."+name))
         {
-            p = k.parameters[path_+"."+name];
+            p.share(k.parameters[path_+"."+name]);
             return true;
         }
         else if(parent_)
@@ -1434,7 +1435,7 @@ Connection::Info() const
 
 // Class
 
-    Class::Class(std::string n, std::string p) : module_creator(nullptr), name(n), path(p), info_()
+    Class::Class(std::string n, std::string p) : info_(), module_creator(nullptr), name(n), path(p)
     {
         info_.load_xml(p);
     }
@@ -1864,21 +1865,20 @@ bool operator==(Request & r, const std::string s)
 
 
     Kernel::Kernel():
-        tick(0),
+        session_id(new_session_id()),
+        needs_reload(true),
+        shutdown(false),
         run_mode(run_mode_pause),
-        //(false),
-        tick_time_usage(0),
-        actual_tick_duration(0), // FIME: Use desired tick duration here
         idle_time(0),
-        stop_after(-1),
         tick_duration(1),
+        actual_tick_duration(0), // FIME: Use desired tick duration here
+        tick_time_usage(0),
+        tick(0),
+        stop_after(-1),
         lag(0),
         lag_min(0),
         lag_max(0),
-        lag_sum(0),
-        shutdown(false),
-        session_id(new_session_id()),
-        needs_reload(true)
+        lag_sum(0)
     {
         cpu_cores = std::thread::hardware_concurrency();
         thread_pool = std::make_unique<ThreadPool>(cpu_cores > 1 ? cpu_cores-1 : 1); // FIXME: optionally use ikg parameters
