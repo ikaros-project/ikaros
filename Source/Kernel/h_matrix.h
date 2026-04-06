@@ -20,7 +20,7 @@ namespace ikaros
         //h_matrix() : matrix(4,4) {};
         h_matrix() : matrix(4,4) {eye();}; 
 
-        h_matrix & reset() { return reset(); }
+        h_matrix & reset() { return eye(); }
         
         h_matrix & copy(h_matrix m) 
         {
@@ -36,9 +36,8 @@ namespace ikaros
     
         h_matrix & copy(matrix mat) 
         {
-            matrix *p = this;
-            p->copy(mat);
-          return *this;
+            matrix::copy(mat);
+            return *this;
         }
 
 
@@ -101,7 +100,6 @@ namespace ikaros
         {
             h_matrix mt;
 
-            float * r = data();
             float * a = ma. data();
             float * b = mb.data();
             float * t = mt.data();
@@ -150,8 +148,6 @@ namespace ikaros
         h_matrix & 
         set_rotation_matrix(float x, float y, float z)
         {
-            float * r = data();
-            
             h_matrix rX,rY,rZ;
 
             rX.set_rotation_matrix(X, x);

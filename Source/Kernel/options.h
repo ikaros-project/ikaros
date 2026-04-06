@@ -47,7 +47,7 @@ namespace ikaros {
             const std::vector<std::string> args(argv+1, argv+argc);
             for(auto & s: args)
             {
-                int pos = s.find('=');
+                const auto pos = s.find('=');
                 if(pos != std::string::npos && s.front() !='-')
                 {
                     if(pos < 1)

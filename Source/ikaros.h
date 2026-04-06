@@ -241,7 +241,7 @@ public:
     void print() const;
     void info() const;
     std::string json() const;  // json representation of the component
-    virtual std::string json(const std::string & name) { return ""; }; // json representation for name of component
+    virtual std::string json(const std::string &) { return ""; }; // json representation for name of component
     std::string xml();
 
     bool KeyExists(const std::string & key) const;  // Check if a key exist here or in any parent; this means that GetValue will succeed
@@ -333,6 +333,7 @@ public:
     bool        flatten_;
 
     Connection(std::string s, std::string t, range & delay_range, std::string alias="");
+    virtual ~Connection() = default;
 
     range Resolve(const range & source_output);
 

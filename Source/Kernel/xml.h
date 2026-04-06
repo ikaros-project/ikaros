@@ -54,7 +54,7 @@ public:
     virtual void	Print(FILE * f, int d);
 
     virtual XMLElement * GetElement(const char * element_name=nullptr);
-    virtual bool IsElement(const char * e=nullptr)
+    virtual bool IsElement(const char * =nullptr)
     {
         return false;
     }
@@ -166,7 +166,7 @@ public:
 
     void	Print(FILE * f, int d) override;
 
-    bool IsElement(const char * e=nullptr) override
+    bool IsElement(const char * =nullptr) override
     {
         return false;
     }
@@ -223,4 +223,3 @@ public:
 
     void		Print(FILE * f);
 };
-

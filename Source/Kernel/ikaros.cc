@@ -242,7 +242,7 @@ namespace ikaros
         {
             int index = int(*number_value);
             auto options = split(info_["options"],","); // FIXME: Check trim in split
-            if(index < 0 || index>= options.size())
+            if(index < 0 || static_cast<std::size_t>(index) >= options.size())
                 return std::to_string(index)+" (OUT-OF-RANGE)";
             else
                 return options[index];
@@ -555,31 +555,6 @@ namespace ikaros
             return parent_->GetValueOwner(key);
         return nullptr;
     }
-
-
-
-    static std::string
-    exchange_before_dot(const std::string& original, const std::string& replacement)
-    {
-        size_t pos = original.find('.');
-        if(pos == std::string::npos) // No dot found, replace the whole string
-            return replacement;
-     else  // Replace up to the first dot
-            return replacement + original.substr(pos);
-    }
-
-
-
-    static std::string
-    before_dot(const std::string& original)
-    {
-        size_t pos = original.find('.');
-        if(pos == std::string::npos)
-            return original;
-     else 
-            return original.substr(0,pos);
-    }
-
 //
 // GetComponent
 //
@@ -669,7 +644,6 @@ namespace ikaros
     parameter &  
     Component::GetParameter(std::string name)
     {
-               Kernel & k = kernel();
         return kernel().parameters.at(path_+"."+name);
     }
 
@@ -899,11 +873,10 @@ namespace ikaros
 
             if(msg <= log_level)
                 return kernel().Notify(msg, message, path);
-            }
-            catch(...)
-            {
-               // ignore errors in logging
-               int x = 0;
+        }
+        catch(...)
+        {
+            // ignore errors in logging
         }
 
         return true;
@@ -953,7 +926,7 @@ namespace ikaros
 
 
     void 
-    Component::SetSourceRanges(const std::string & name, const std::vector<Connection *> & ingoing_connections) // FIXME:REMOVE
+    Component::SetSourceRanges(const std::string &, const std::vector<Connection *> & ingoing_connections) // FIXME:REMOVE
     {
         for(auto & c : ingoing_connections) // Copy source size to source_range if not set
         {
@@ -1184,7 +1157,7 @@ namespace ikaros
 // ****************************** MODULE Sizes ******************************
 
     int 
-    Module::SetOutputSize(dictionary d, input_map ingoing_connections)
+    Module::SetOutputSize(dictionary d, input_map)
     {
         try
         {
@@ -1716,7 +1689,7 @@ bool operator==(Request & r, const std::string s)
             ingoing_connections[c.target].push_back(&c);
 
         // Loop enough for all sizes to be calculated // FIXME: Restore progress calculation *******************
-        for(int i=0; i<components.size(); i++)
+        for(std::size_t i = 0; i < components.size(); ++i)
             for(auto & [n, c] : components)
                 c->SetSizes(ingoing_connections);
 
@@ -2648,8 +2621,6 @@ bool operator==(Request & r, const std::string s)
             for (const auto& component : components) {
                 std::vector<std::string> sortedSubgraph = topologicalSort(component, graph);
                 result.push_back(sortedSubgraph);
-                for (const auto& node : sortedSubgraph) {
-                }
             }
 
             return result;
@@ -2950,7 +2921,7 @@ bool operator==(Request & r, const std::string s)
 
         char * jpeg_base64 = base64_encode(jpeg, size, &output_length);
         socket->Send("\"data:image/jpeg;base64,");
-        bool ok = socket->SendData(jpeg_base64, output_length);
+        socket->SendData(jpeg_base64, output_length);
         socket->Send("\"");
         destroy_jpeg(jpeg);
         free(jpeg_base64);
@@ -3125,7 +3096,7 @@ bool operator==(Request & r, const std::string s)
 
 
     void
-    Kernel::DoSendLog(Request & request)
+    Kernel::DoSendLog(Request &)
     {
         socket->Send(",\n\"log\": [");
         std::string sep;
@@ -3371,7 +3342,7 @@ bool operator==(Request & r, const std::string s)
 
 
     void
-    Kernel::DoSendNetwork(Request & request)
+    Kernel::DoSendNetwork(Request &)
     {
         std::string s = json(); 
 
@@ -3614,7 +3585,7 @@ bool operator==(Request & r, const std::string s)
 
 
     void
-    Kernel::DoSendClasses(Request & request)
+    Kernel::DoSendClasses(Request &)
     {
         dictionary header({
             {"Content-Type", "text/json"},
@@ -3636,7 +3607,7 @@ bool operator==(Request & r, const std::string s)
 
 
     void
-    Kernel::DoSendClassInfo(Request & request)
+    Kernel::DoSendClassInfo(Request &)
     {
         dictionary header({
             {"Content-Type", "text/json"},
@@ -3705,7 +3676,7 @@ bool operator==(Request & r, const std::string s)
 
 
     void
-    Kernel::DoSendFileList(Request & request)
+    Kernel::DoSendFileList(Request &)
     {
         // Scan for files
 

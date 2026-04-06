@@ -313,9 +313,25 @@ ComputeEngine::LookupLocal(EvalContext & context, const std::string & name) cons
         if(owner == &component_)
             return context.lookup_cache.emplace(name, LookupResult{LookupResult::Source::local_attribute, std::string(component_.info_[name])}).first->second;
 
+        std::string inherited_value = std::string(owner->info_[name]);
+        ComputeEngine owner_engine(*const_cast<Component *>(owner));
+        EvalContext owner_context;
+
+        bool has_explicit_syntax = owner_engine.HasExplicitSyntax(owner_context, inherited_value);
+        bool is_path_like = owner_engine.IsPathLike(owner_context, inherited_value);
+        bool looks_like_number = owner_engine.LooksLikeNumber(owner_context, inherited_value);
+        bool has_top_level_math = owner_engine.HasTopLevelMath(owner_context, inherited_value);
+        bool has_alpha = std::any_of(inherited_value.begin(), inherited_value.end(), [](unsigned char c)
+        {
+            return std::isalpha(c);
+        });
+
+        if(has_explicit_syntax || is_path_like || looks_like_number || (!has_alpha && has_top_level_math))
+            inherited_value = owner_engine.ComputeValue(inherited_value);
+
         return context.lookup_cache.emplace(name, LookupResult{
             LookupResult::Source::inherited_value,
-            ComputeEngine(*const_cast<Component *>(owner)).ComputeValue(std::string(owner->info_[name]))
+            inherited_value
         }).first->second;
     }
 
@@ -593,9 +609,14 @@ ComputeEngine::EvalScalar(EvalContext & context, const std::string & s, int dept
 
         current = trim(current);
 
-        // After a successful final lookup, plain resolved literals like "child"
-        // should be preserved rather than re-evaluated as another name lookup.
-        if(current != previous && ShouldReturnLiteral(context, current, false))
+        // After explicit expansion or a successful final lookup, preserve a newly
+        // resolved literal string rather than re-evaluating punctuation inside it
+        // as math or another lookup. This keeps values such as "abc/def:ghi"
+        // returned from "@name" intact for string parameters.
+        if(current != previous &&
+           !HasExplicitSyntax(context, current) &&
+           !IsPathLike(context, current) &&
+           std::any_of(current.begin(), current.end(), [](unsigned char c) { return std::isalpha(c); }))
             return current;
 
         if(current == previous)

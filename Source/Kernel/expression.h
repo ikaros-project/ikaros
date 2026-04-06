@@ -60,7 +60,8 @@ public:
         if(s.empty())
             return;
 
-        while(s.size()>1 && s.front()=='(' && s.back() == ')' && find_closing(s) == s.size()-1)
+        while(s.size()>1 && s.front()=='(' && s.back() == ')' &&
+              static_cast<std::string::size_type>(find_closing(s)) == s.size()-1)
             str = s = s.substr(1, s.size()-2);
 
         if(split(s, '+'))
@@ -218,7 +219,7 @@ private:
                 bool match = true;
                 std::string not_after = "+(*/";
                 if(unary)
-                    for(int j=0; j<not_after.size(); j++)
+                    for(std::string::size_type j = 0; j < not_after.size(); ++j)
                         if(i>0 && s[i-1]==not_after[j])
                         {
                             match = false;

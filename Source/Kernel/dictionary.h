@@ -160,7 +160,7 @@ namespace ikaros
 
         value(bool v)               { value_ = v; }
         value(double v)             { value_ = v; }
-        value(null n=null())        { value_ = null(); }
+        value(null =null())         { value_ = null(); }
         value(std::nullptr_t)       { value_ = null(); }
         value(const char * s)       { value_ = s; }
         value(const std::string & s){ value_ = s; }
@@ -170,7 +170,7 @@ namespace ikaros
         value & operator =(bool v) { value_ = v; return *this; }
         value & operator =(int v) { value_ = double(v); return *this; }
         value & operator =(double v) { value_ = double(v); return *this; }
-        value & operator =(null n) { value_ = null(); return *this; };
+        value & operator =(null) { value_ = null(); return *this; };
         value & operator =(std::nullptr_t) { value_ = null(); return *this; }
         value & operator =(const std::string & s) { value_ = s; return *this; }
         value & operator =(const char * s) { value_ = s; return *this; }

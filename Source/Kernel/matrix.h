@@ -111,7 +111,7 @@ namespace ikaros
         matrix_info() {}
 
         matrix_info(std::vector<int> shape):
-            offset_(0), shape_(shape), stride_(shape), max_size_(shape), size_(calculate_size()), labels_(shape.size()), continuous(true) // NOTE: Actual initialization order depends on order in class definition
+            offset_(0), shape_(shape), stride_(shape), max_size_(shape), size_(calculate_size()), continuous(true), labels_(shape.size()) // NOTE: Actual initialization order depends on order in class definition
         {}
 
         void
@@ -195,11 +195,11 @@ namespace ikaros
             matrix(std::vector<int>({shape...}))
         {}
 
-        matrix(int cols, float *data):
+        matrix(int cols, float *):
             matrix(cols)
         {}
 
-        matrix(int rows, int cols, float **data)
+        matrix(int, int, float **)
         {}
 
 /*
@@ -222,7 +222,7 @@ namespace ikaros
                 //info_ = std::make_shared<matrix_info>(std::vector<int>{x});
                 //data_ = std::make_shared<std::vector<float>>(info_->calculate_size());
             
-                for(int i=0; i< row.size(); i++)
+                for(std::size_t i = 0; i < row.size(); ++i)
                     (*this)(i) = parse_matrix_token(row.at(i));
             }
             else // 2D
@@ -231,11 +231,11 @@ namespace ikaros
                 //info_ = std::make_shared<matrix_info>(std::vector<int>{y, x});
                 //data_ = std::make_shared<std::vector<float>>(info_->calculate_size());
 
-                for(int j=0; j< rows.size(); j++)
+                for(std::size_t j = 0; j < rows.size(); ++j)
                 {
                     auto r = split(rows.at(j), ",");
-                    for(int i=0; i< r.size(); i++)
-                        (*this)(j,i) = parse_matrix_token(r.at(i));
+                    for(std::size_t i = 0; i < r.size(); ++i)
+                        (*this)(static_cast<int>(j), static_cast<int>(i)) = parse_matrix_token(r.at(i));
                 }
             }
         }
@@ -258,7 +258,7 @@ namespace ikaros
                     info_ = std::make_shared<matrix_info>(std::vector<int>{x});
                     data_ = std::make_shared<std::vector<float>>(info_->calculate_size());
                 
-                    for(int i=0; i< row.size(); i++)
+                    for(std::size_t i = 0; i < row.size(); ++i)
                         (*this)(i) = parse_matrix_token(row.at(i));
                 }
                 else // 2D
@@ -269,8 +269,8 @@ namespace ikaros
                     for(int j=0; j< y; j++)
                     {
                         auto r = split(rows.at(j), ",");
-                        for(int i=0; i< row.size(); i++)
-                            (*this)(j, i) = parse_matrix_token(r.at(i));
+                        for(std::size_t i = 0; i < row.size(); ++i)
+                            (*this)(j, static_cast<int>(i)) = parse_matrix_token(r.at(i));
                     }
                 }
             }
@@ -310,7 +310,7 @@ namespace ikaros
             if(r.info_->size_==0)
                 r.info_->size_ = 1;
 
-            if(info_->labels_.at(0).size() > i)
+            if(info_->labels_.at(0).size() > static_cast<std::size_t>(i))
                 r.info_->name_ += std::string(".") + info_->labels_.at(0).at(i);
             else
                 r.info_->name_ += "["+std::to_string(i)+"]";
@@ -332,22 +332,22 @@ namespace ikaros
         void
         test_fill() // test function that fillls the elements with consecutive numbers - will be removed in the future
         {
-            for(int i=0; i<data_->size(); i++)
+            for(std::size_t i = 0; i < data_->size(); ++i)
                 (*data_)[i] = float(i);
         }
 
         void
         init(std::vector<int> & shape, std::shared_ptr<std::vector<float>> data, std::initializer_list<InitList> list, int depth=0) // internal initialization function
         {
-            if(shape.size() <= depth)
+            if(shape.size() <= static_cast<std::size_t>(depth))
                 shape.push_back(list.size());
 
             #ifndef NO_MATRIX_CHECKS
-            if(depth < shape.size())
+            if(depth < static_cast<int>(shape.size()))
             {
-                if(list.size() < shape[depth])
+                if(list.size() < static_cast<std::size_t>(shape[depth]))
                     throw std::out_of_range("Too few values in matrix initialization");
-                else if(list.size() > shape[depth])
+                else if(list.size() > static_cast<std::size_t>(shape[depth]))
                     throw std::out_of_range("Too many values in matrix initialization");
             }
             #endif
@@ -376,8 +376,8 @@ namespace ikaros
 
         matrix(std::initializer_list<InitList>  list): // Main creator function from initializer list
 
-            data_(std::make_shared<std::vector<float>>()),
-            info_(std::make_shared<matrix_info>())
+            info_(std::make_shared<matrix_info>()),
+            data_(std::make_shared<std::vector<float>>())
         {
             info_->offset_ = 0;
             info_->size_ = 0;
@@ -444,27 +444,27 @@ namespace ikaros
             return info_->labels_.at(dimension);
         }
 
-        const int rank() const 
+        int rank() const 
         {
             return info_->shape_.size();
         }
 
-        const bool empty() const
+        bool empty() const
         {
             return rank() == 0 && (info_->size_  == 0);
         }
 
-        const bool unfilled() const
+        bool unfilled() const
         {
             return std::accumulate(info_->shape_.begin(), info_->shape_.end(), 0)  == 0;
         }
 
-        const bool is_scalar() const
+        bool is_scalar() const
         {
             return rank() == 0 && (info_->size_  == 1);
         }
 
-        const bool connected()
+        bool connected()
         {
             return !empty();
         }
@@ -681,7 +681,7 @@ namespace ikaros
                 return *this;
             }
             else
-                return apply([=](float x)->float {return v;});
+                return apply([=](float)->float {return v;});
         }
 
         matrix & 
@@ -718,7 +718,7 @@ namespace ikaros
             source.reset();
             target.reset();
 
-            for(;source.more() & target.more(); source++, target++)
+            for(; source.more() && target.more(); source++, target++)
             {
                 //source.print_index();
                 //target.print_index();
@@ -813,7 +813,7 @@ namespace ikaros
             if(v.size() != info_->shape_.size())
                 throw std::out_of_range(get_name()+"Index has incorrect rank.");
 
-            for (int i = 0; i < v.size(); ++i)
+            for (std::size_t i = 0; i < v.size(); ++i)
                 if (v[i] < 0 || v[i] >= info_->shape_[i]) 
                      throw std::out_of_range(get_name()+"Index out of range.");
             #endif
@@ -831,7 +831,7 @@ namespace ikaros
                 throw std::out_of_range(get_name()+"Index has incorrect rank.");
 
             std::vector<int> v{static_cast<int>(indices)...};
-            for (int i = 0; i < v.size(); ++i)
+            for (std::size_t i = 0; i < v.size(); ++i)
             {
                 if (v[i] < 0 || v[i] >= info_->shape_[i]) 
                     throw std::out_of_range(get_name()+"Index out of range.");
@@ -979,7 +979,7 @@ namespace ikaros
             if(dim  < 0)
                 dim = info_->shape_.size()+dim;
 
-            if(dim < 0 || dim > info_->shape_.size()-1) // range error - remove condition to throw exception instead
+            if(dim < 0 || static_cast<std::size_t>(dim) > info_->shape_.size()-1) // range error - remove condition to throw exception instead
                 return 0;
 
             return info_->shape_.at(dim); 
@@ -1001,7 +1001,7 @@ namespace ikaros
 
             std::vector<int> v{static_cast<int>(new_shape)...};
 
-            for(int i=0; i<info_->shape_.size(); i++)
+            for(std::size_t i = 0; i < info_->shape_.size(); ++i)
                 if(v[i] > info_->max_size_[i])
                     throw std::out_of_range(get_name()+"New size larger than allocated space.");
             #endif
@@ -1032,7 +1032,7 @@ namespace ikaros
             for(int i : {new_shape...})
                 n *= i;
             
-            if(n != data_->size())
+            if(static_cast<std::size_t>(n) != data_->size())
                 throw std::out_of_range(get_name()+"Incompatible matrix sizes.");
 
             info_->shape_ = std::vector<int>({new_shape...});
@@ -1050,7 +1050,7 @@ namespace ikaros
             for(int i : new_shape)
                 n *= i;
             
-            if(n != data_->size())
+            if(static_cast<std::size_t>(n) != data_->size())
                 throw std::out_of_range(get_name()+"Incompatible matrix sizes.");
 
             info_->shape_ = new_shape;
@@ -1073,7 +1073,7 @@ namespace ikaros
                 realloc(info_->shape_);
                 info_->shape_.front()--;
             }
-            for(int i=0; i<m.info_->shape_.size(); i++)
+            for(std::size_t i = 0; i < m.info_->shape_.size(); ++i)
                 if(info_->shape_[i+1] != m.info_->shape_[i])
                     throw std::out_of_range(get_name()+"Pushed matrix has wrong shape.");
 
@@ -1511,7 +1511,7 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
         float trace() { throw std::logic_error("Not implemented."); return 0; }
         float det() { throw std::logic_error("trace(). Not implemented."); return 0; }
         matrix & inv(const matrix & m) { return copy(m); return inv(); }
-        matrix & pinv(const matrix & m) { throw std::logic_error("pinv(). Not implemented."); return *this; }
+        matrix & pinv(const matrix &) { throw std::logic_error("pinv(). Not implemented."); return *this; }
 
         matrix & transpose(matrix &ret) 
         {
@@ -1527,7 +1527,7 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
             return ret;
         }
         
-        matrix & eig(const matrix & m) { throw std::logic_error("eig(). Not implemented."); return *this; }
+        matrix & eig(const matrix &) { throw std::logic_error("eig(). Not implemented."); return *this; }
         // lu
         // chol
         // mldivide
@@ -1612,8 +1612,6 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
 friend void im2row(std::vector<float> &submatrices_flat, const matrix &I, const matrix &K) {
     int rr = I.rows() - K.rows() + 1;
     int rc = I.cols() - K.cols() + 1;
-
-    int submatrix_size = K.rows() * K.cols();
 
     const float* I_data = I.data(); // Cache pointer to I's data
     int I_cols = I.cols();
