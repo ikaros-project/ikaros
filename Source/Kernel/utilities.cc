@@ -367,7 +367,7 @@ const std::string rtail(std::string s, char token) // without token
 */
 
 
-bool contains(std::string & s, std::string n)
+bool contains(const std::string & s, const std::string & n)
 {
     return s.find(n) != std::string::npos;
 }
@@ -461,7 +461,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<int> & v)
     }
    
     void 
-    print_attribute_value(const std::string name, std::vector<float> & values, int indent, int max_items)
+    print_attribute_value(const std::string & name, const std::vector<float> & values, int indent, int max_items)
     {
                 std::cout << name << " = ";
         int s = values.size();
@@ -578,7 +578,7 @@ base64_encode(const unsigned char * data,
     }
 
     long
-    character_sum(std::string s)
+    character_sum(const std::string & s)
     {
         long sum = 0;
         for(char c : s)
