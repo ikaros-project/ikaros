@@ -20,6 +20,16 @@ network over HTTP, collects data from one output, and saves a plot.
 6. Saves a graph of value over time as `step_collect_plot.png`
 7. Quits `ikaros`
 
+## IkarosClient
+
+`ikaros_client.py` currently provides these helpers:
+
+- `start()`: start `ikaros` and wait for the HTTP API to become available
+- `step()`: run one step and store the latest `tick` and `time`
+- `get(path)`: fetch JSON data and return the `"value"` field
+- `set(path, value, x=None, y=None)`: set a parameter through `/control/...`
+- `quit()`: stop `ikaros`
+
 ## Running The Example
 
 ```bash

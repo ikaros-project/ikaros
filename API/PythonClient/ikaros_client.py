@@ -51,6 +51,14 @@ class IkarosClient:
     def get(self, buffer_path: str):
         return self.request(f"/json/{buffer_path}")["value"]
 
+    def set(self, path: str, value, x=None, y=None) -> None:
+        endpoint = f"/control/{path}?value={value}"
+        if x is not None:
+            endpoint += f"&x={x}"
+        if y is not None:
+            endpoint += f"&y={y}"
+        requests.get(f"{self.base_url}{endpoint}", timeout=5).raise_for_status()
+
     def quit(self) -> None:
         requests.get(f"{self.base_url}/quit", timeout=2)
         self.process.wait(timeout=5)
