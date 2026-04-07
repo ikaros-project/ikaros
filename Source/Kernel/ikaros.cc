@@ -3548,6 +3548,174 @@ bool operator==(Request & r, const std::string s)
 
 
     void
+    Kernel::DoJSON(Request & request)
+    {
+        std::string key = request.component_path;
+        if(!key.empty() && key[0] == '.')
+            key = key.substr(1); // Global path
+
+        dictionary header({
+            {"Content-Type", "application/json; charset=utf-8"},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"}
+        });
+        socket->SendHTTPHeader(&header);
+
+        auto send_json_response = [&](const std::string & json_value, const std::vector<int> & shape)
+        {
+            socket->Send("{\"path\": ");
+            socket->Send(value(request.component_path).json());
+            socket->Send(", \"shape\": [");
+
+            std::string sep;
+            for(int dim : shape)
+            {
+                socket->Send(sep);
+                socket->Send(std::to_string(dim));
+                sep = ", ";
+            }
+
+            socket->Send("], \"value\": ");
+            socket->Send(json_value);
+            socket->Send("}");
+        };
+
+        if(buffers.count(key))
+        {
+            send_json_response(buffers[key].json(), buffers[key].shape());
+            return;
+        }
+
+        if(parameters.count(key))
+        {
+            if(parameters[key].type == matrix_type && parameters[key].matrix_value)
+                send_json_response(parameters[key].json(), parameters[key].matrix_value->shape());
+            else
+                send_json_response(parameters[key].json(), {});
+            return;
+        }
+
+        std::string component_path = peek_rhead(key, ".");
+        std::string attribute = peek_rtail(key, ".");
+
+        if(components.count(component_path))
+        {
+            std::string json_data = components[component_path]->json(attribute);
+            if(!json_data.empty())
+            {
+                send_json_response(json_data, {});
+                return;
+            }
+        }
+
+        dictionary error;
+        error["error"] = "Value \"" + request.component_path + "\" can not be found";
+        socket->Send(error.json());
+    }
+
+
+
+    void
+    Kernel::DoCSV(Request & request)
+    {
+         if(!buffers.count(request.component_path))
+            {
+                dictionary header({
+                    {"Content-Type", "text/csv; charset=utf-8"},
+                    {"Cache-Control", "no-cache, no-store"},
+                    {"Pragma", "no-cache"}
+                });
+                socket->SendHTTPHeader(&header);
+        
+                socket->Send("Buffer \""+request.component_path+"\" can not be found");
+                return;
+            }
+
+        if(buffers[request.component_path].rank() > 2)
+        {
+            dictionary header({
+                {"Content-Type", "text/csv; charset=utf-8"},
+                {"Cache-Control", "no-cache, no-store"},
+                {"Pragma", "no-cache"}
+            });
+            socket->SendHTTPHeader(&header);
+
+            socket->Send("Rank of matrix != 2. Cannot be displayed as CSV");
+            return;
+        }
+
+        dictionary header({
+            {"Content-Type", "text/csv; charset=utf-8"},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"}
+        });
+        socket->SendHTTPHeader(&header);
+
+        socket->Send(buffers[request.component_path].csv());
+    }
+
+
+
+    void
+    Kernel::DoImage(Request & request)
+    {
+        std::string key = request.component_path;
+        if(!key.empty() && key[0] == '.')
+            key = key.substr(1); // Global path
+
+        matrix * image = nullptr;
+
+        if(buffers.count(key))
+            image = &buffers[key];
+        else if(parameters.count(key) && parameters[key].type == matrix_type && parameters[key].matrix_value)
+            image = parameters[key].matrix_value.get();
+
+        if(!image)
+        {
+            dictionary header({
+                {"Content-Type", "text/plain"},
+                {"Cache-Control", "no-cache, no-store"},
+                {"Pragma", "no-cache"}
+            });
+            socket->SendHTTPHeader(&header);
+            socket->Send("Matrix \"" + request.component_path + "\" can not be found");
+            return;
+        }
+
+        long size = 0;
+        unsigned char * jpeg = nullptr;
+
+        if(image->rank() == 2)
+            jpeg = create_gray_jpeg(size, *image, 0, 1, 90);
+        else if(image->rank() == 3 && image->size(0) == 3)
+            jpeg = create_color_jpeg(size, *image, 90);
+
+        if(!jpeg)
+        {
+            dictionary header({
+                {"Content-Type", "text/plain"},
+                {"Cache-Control", "no-cache, no-store"},
+                {"Pragma", "no-cache"}
+            });
+            socket->SendHTTPHeader(&header);
+            socket->Send("Matrix \"" + request.component_path + "\" can not be converted to JPEG");
+            return;
+        }
+
+        dictionary header({
+            {"Content-Type", "image/jpeg"},
+            {"Content-Length", std::to_string(size)},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"}
+        });
+        socket->SendHTTPHeader(&header);
+        socket->SendData(reinterpret_cast<const char *>(jpeg), size);
+        destroy_jpeg(jpeg);
+    }
+
+
+
+    void
     Kernel::DoCommand(Request & request)
     {
         try
@@ -3863,6 +4031,12 @@ bool operator==(Request & r, const std::string s)
 
         else if(request == "data")
             DoData(request);
+        else if(request == "json")
+            DoJSON(request);
+        else if(request == "csv")
+            DoCSV(request);
+        else if(request == "image")
+            DoImage(request);
 
         // Control commands
 

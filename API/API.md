@@ -1,35 +1,58 @@
 Ikaros Kernel API
-==================
+=================
 
-The API is mainly used internally by BrainStudio to communicate with the kernal,
-but can also be used by other programs to communicate with the kernel. Unless
-you are writing a new user interface for Ikaros, this information is probably
-not useful.
+The Ikaros kernel exposes a small HTTP API used by BrainStudio/WebUI and by external clients.
+It can be used to:
 
-The HTTP protool is used for communiaction with Ikaros.
+- inspect the current network
+- fetch live data from buffers and parameters
+- control execution
+- load and save networks
+- send commands to modules and groups
 
-API requests have the following syntax:
+The API is served over HTTP.
 
-    host:port/command[/path[?(attribute=value)*]
+## Request Syntax
 
-_Path_ is the path to the current component - a group, a module or a parameter.
+Requests have the following form:
 
-The _attribute-value_-pairs are converted to a dictionary that is used as an argument to the handlers in the kernel.
+    host:port/command[/path][?attribute=value&attribute=value...]
 
-The possible commands are listed below. The path is the dotted path to a
-component (a group or a modul) or a prameter.  There can be zero or  multiple attribute value-pairs dependning on the command.
+- `command` selects the handler
+- `path` is usually the dotted path to a group, module, buffer, output, input, or parameter
+- query parameters are parsed into a dictionary and passed to the handler
 
-The command should be URL encoded if it includes non-ascii characters.
+Example:
 
-Parameters are also  accepted as JSON in the body of a HTTP PUT request (See examples below).
+    http://localhost:8000/control/a.b.c.p?value=96
 
-Each command has its own set of possible parameters.
+The command should be URL-encoded if it contains non-ASCII characters.
+
+The kernel accepts both `GET` and `PUT` requests. JSON request bodies are used by some endpoints, especially `/command` and `/save`.
 
 ## Basic API Requests for External Clients
 
 ### /json
 
-Get data from an input, output or parameter in a module in JSON format.
+Get a buffer, parameter, or component-provided value as JSON.
+
+Response type:
+
+    Content-Type: application/json; charset=utf-8
+
+Successful responses are wrapped in an object:
+
+```json
+{
+    "path": "group.module.OUTPUT",
+    "shape": [2, 2],
+    "value": [[0.0, 0.5], [1.0, 0.25]]
+}
+```
+
+- `path` is the requested path
+- `shape` is the matrix shape when available, otherwise `[]`
+- `value` is the JSON value
 
 Example:
 
@@ -37,7 +60,13 @@ Example:
 
 ### /csv
 
-Get data from an input, output or parameter in a module in CSV format.
+Get a buffer as CSV.
+
+Response type:
+
+    Content-Type: text/csv; charset=utf-8
+
+Currently `/csv` is intended for buffers with rank 1 or 2.
 
 Example:
 
@@ -45,7 +74,18 @@ Example:
 
 ### /image
 
-Get an ouput as an image. The image is encoded in jpeg format in grayscale or color depending on the output shape.
+Get a matrix as a JPEG image.
+
+Response type:
+
+    Content-Type: image/jpeg
+
+Supported shapes:
+
+- rank 2: interpreted as a grayscale image with values assumed to be in the range `0..1`
+- rank 3 with first dimension `3`: interpreted as an RGB image with shape `3 x height x width`, with values assumed to be in the range `0..1`
+
+The endpoint works for buffers and matrix-valued parameters.
 
 Example:
 
@@ -57,63 +97,63 @@ Change a parameter value in a module.
 
 Parameters:
 
-- path. 
-- value. The new value. A number or a string.
-x. x-index for matrix value of rank 1, i.e. an array.
-y. y-index for matrix value of rank 2, i.e. a normal matrix.
+- `value`: the new scalar value
+- `x`: x-index for a rank-1 or rank-2 matrix parameter
+- `y`: y-index for a rank-2 matrix parameter
 
-Example:
+Examples:
 
-To set parameter _p_ in module at _a.b.c_
+Set parameter `p` in module `a.b.c`:
 
     /control/a.b.c.p?value=96
 
-Example with index into matrix parameter:
+Set a matrix element:
 
     /control/a.b.c.p?x=2&y=3&value=96
 
 ### /command
 
-Execute a command in a module. A dictionary with all parameters are sent to the module.
+Execute a command in a module or group. All supplied parameters are forwarded as a dictionary.
 
-Example:
+Query-string example:
 
     /command/a.b.x?command=mycommand&x=42&y=123
 
+JSON `PUT` example:
 
-## A Simple HTML Client
-
-This example HTTP fragment shows to build a simple web client to Ikaros using HTML code that changes a parameter and send a command to Ikaros. There is no error hadnling and the response from Ikaros is ignored in this example.
-
-```HTML
-    <div>
-        <button onclick=fetch('/control/module.p?value=7');">Set p to 7</button>
-        <button onclick=fetch('/command/module?command=doSomething&value=31');">Send command</button>
-    </div>
-```
-
-## A Minimal Python Client
-
-The Python script below send a command to an Ikaros module A.B.C with a command named 'command_name' and two parameters x and text.
-
-```Python
+```python
 import requests
 import json
 
-url = 'http://127.0.0.1:8000/command/A.B.C/'
-data = { 'command': "command_name",  'x': '42',  'text': 'my message to the module'}
-headers = {'Content-Type': 'application/json'}
+url = "http://127.0.0.1:8000/command/A.B.C/"
+data = {
+    "command": "command_name",
+    "x": "42",
+    "text": "my message to the module"
+}
+headers = {"Content-Type": "application/json"}
 
 response = requests.put(url, headers=headers, data=json.dumps(data))
-````
+```
 
-A larger example with error handling can be found in the file _API/ikaros_api_put.py_.
+A larger example with error handling can be found in `API/ikaros_api_put.py`.
 
-## API Requests used Interally by BrainStudio and WebUI
+## A Simple HTML Client
+
+This example changes a parameter and sends a command to Ikaros:
+
+```html
+<div>
+    <button onclick="fetch('/control/module.p?value=7');">Set p to 7</button>
+    <button onclick="fetch('/command/module?command=doSomething&value=31');">Send command</button>
+</div>
+```
+
+## API Requests Used Internally by BrainStudio and WebUI
 
 ### /
 
-Get the main BrainStudio html code defined in index.html. This will in turn load all the required additional files into the web browser and start the BrainStudio interface. A BrainStudio spash screen is shown while additional script files (mainly widgets) are loaded.
+Get the main BrainStudio HTML page.
 
 Example:
 
@@ -121,130 +161,145 @@ Example:
 
 ### /classes
 
-Get list of all classes defined in Ikaros as JSON.
+Get the list of all available classes as JSON.
 
-Example request:
+Example:
 
     http://localhost:8000/classes
 
-Example reponse:
+### /classinfo
+
+Get metadata for all classes as JSON.
+
+Example:
+
+    http://localhost:8000/classinfo
+
+### /classreadme
+
+Get the `ReadMe.md` for a class.
+
+Parameters:
+
+- `class`: class name
+
+Example:
+
+    http://localhost:8000/classreadme?class=Constant
+
+### /files
+
+Get the list of available files that can be opened.
+
+Response shape:
 
 ```json
-{"classes":
-    [
+{
+    "system_files": [
         "Add",
-        "Constant",
-        "Logger",
-        "Nucleus",
-        "Oscillator",
-        "OutputFile",
-        "Print",
-        "Protocol",
-        "Randomizer"
+        "Constant"
+    ],
+    "user_files": [
+        "MyProject"
     ]
 }
 ```
 
-### /files
-
-Get list of all available ikg files. These files are used bu the Open command.
-
-Example request:
+Example:
 
     http://localhost:8000/files
+
+### /network
+
+Get the active network description as JSON.
+
+Example:
+
+    http://localhost:8000/network
+
+### /update
+
+Get the current runtime state of Ikaros.
+
+The `data` parameter contains a comma-separated list of values to include in the response.
+Each item may optionally include a format specifier:
+
+    path[:format]
+
+Examples of image formats used by the WebUI include `rgb`, `gray`, `red`, `green`, `blue`, `spectrum`, and `fire`.
+
+Synopsis:
+
+    http://localhost:8000/update/path?data=var,var,var
+
+Example:
+
+    http://localhost:8000/update/group.subgroup?data=X,Y,Z,IMAGE:rgb
+
+The response package contains status information, selected data values, and log messages.
+The HTTP header `Package-Type` is set to either `data` or `network`.
 
 Example response:
 
 ```json
-{"files":
-    [
-        "Add_test",
-        "Constant_test",
-        "Oscillator_test",
-        "OutputFile_test"
-    ]
-}
-```
-
-### /network
-
-Get the active network description as a JSON structure.
-
-Example request:
-
-    http://localhost:8000/network
-
-Example reponse:
-
-```json
 {
-    "name":"topgroup",
-    "groups": [...],
-    "modules": [...],
-    "connections": [...],
-    :
-    :
+    "file": "MyProject",
+    "state": 4,
+    "tick": 123,
+    "timestamp": 1712490000,
+    "uptime": 12.34,
+    "tick_duration": 0.01,
+    "cpu_cores": 8,
+    "time": 1.23,
+    "ticks_per_s": 99.8,
+    "actual_duration": 0.01,
+    "lag": 0.0,
+    "time_usage": 0.12,
+    "cpu_usage": 0.03,
+    "data": {
+        "X": [[1.0, 2.0]],
+        "Y": [[3.0, 4.0]]
+    },
+    "log": [],
+    "has_data": 1
 }
 ```
 
-### /update
+### /data
 
-Basic function to get the state of Ikaros. The data parameter contains a list of variables in the current context that should be sent to the WebUI in the returned JSON package. A variable can contain a format specification if it contain an image. A format specification is indicated by a colon followed by the format name.
+Get a buffer as plain text CSV-like output.
 
-The response from the kernel is always a JSON package that can contain different types of data. Currently there are only _data_ and _network_ messages. Data are used to update the state in the WebUI and network is used to represent the current state of the network loaded into the kernel.
+This is the older plain-text buffer endpoint. New external clients will usually prefer `/csv`.
 
-The type of response is indicated in the HTTP header Package-Type as "data" or "network".
+Example:
 
-Synopsis:
-
-    http://localhost:8000/update/path?data=var,var,var,var
-
-var == path[:format]
-
-Example request:
-
-    http://localhost:8000/update/path?root=group.subgroup&data=X,Y,Z
-
-Example reponse:
-
-```json
-{
-    :
-    :
-    "data":"
-        {
-            "X": "12",
-            "Y": "42",
-            "Z": "0"
-        },
-    :
-    :
-}
-```
-
-The update response also contain status information.
+    http://localhost:8000/data/group.module.OUTPUT
 
 ## Control Requests
 
 ### /pause
 
-Pause execution of the kernel
+Pause execution of the kernel.
 
 ### /step
 
-Run a single tick and set pause mode.
+Run a single tick and then pause.
 
 ### /play
 
-Run a single tick and set run mode.
+Run as fast as possible.
 
 ### /realtime
 
-Start realtime mode.
+Run in realtime mode.
 
 ### /stop
 
-Stop execution of a network. The kernel is still responsive and can load and start a new network. 
+Stop execution of the current network. The kernel remains responsive.
+
+### /quit
+
+Stop execution and quit.
 
 ## File Handling Requests
 
@@ -254,16 +309,19 @@ Create a new empty network.
 
 ### /open
 
-Open an ikg file
+Open an IKG file.
 
-### /save
+Parameters:
 
-Overwrite the current ikg file with changes made.
-
-### /saveas?name=<new_file_name>
-
-Save current network with a new name. The parameter name indicates the path and name of the new file.
+- `file`: file name from `/files`
+- `where`: `system` or `user`
 
 Example:
 
-    /saveas?name=new_name
+    /open?file=Add_test&where=system
+
+### /save
+
+Save a network sent as JSON in the body of a `PUT` request.
+
+This endpoint is used by BrainStudio/WebUI.

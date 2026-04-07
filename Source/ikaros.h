@@ -559,6 +559,9 @@ public:
     void DoRealtime(Request & request);
     
     void DoData(Request & request);
+    void DoJSON(Request & request);
+    void DoCSV(Request & request);
+    void DoImage(Request & request);
 
     void DoCommand(Request & request);
     void DoControl(Request & request);
