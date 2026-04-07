@@ -1,9 +1,45 @@
 
 #include "ikaros.h"
 
+#include <filesystem>
+#include <fstream>
+#include <sstream>
 #include <spawn.h>
 
 using namespace ikaros;
+namespace fs = std::filesystem;
+
+static std::string
+shell_quote(const std::string & value)
+{
+    std::string quoted = "'";
+    for(char c : value)
+    {
+        if(c == '\'')
+            quoted += "'\\''";
+        else
+            quoted += c;
+    }
+    quoted += "'";
+    return quoted;
+}
+
+static std::string
+cache_key_for_text(const std::string & text, const std::string & voice, const std::string & speech_command)
+{
+    // FNV-1a provides a stable cache key across process restarts.
+    uint64_t hash = 1469598103934665603ULL;
+    std::string key_source = speech_command + "\n" + voice + "\n" + text;
+    for(unsigned char c : key_source)
+    {
+        hash ^= c;
+        hash *= 1099511628211ULL;
+    }
+
+    std::ostringstream s;
+    s << std::hex << hash;
+    return s.str();
+}
 
 class SpeechSound
 {
@@ -48,6 +84,7 @@ public:
 
     parameter  command;
     parameter  speech_command;
+    parameter  voice;
     parameter text;
     
     std::vector<SpeechSound> sound;
@@ -59,7 +96,7 @@ public:
 
     virtual ~EpiSpeech() {}
 
-    SpeechSound       CreateSound(std::string text, std::string path, int id=0);
+    SpeechSound       CreateSound(std::string text);
 
     void 		Init();
     void 		Tick();
@@ -100,24 +137,51 @@ SpeechSound::UpdateVolume(matrix rms, double lag)
 
 
 SpeechSound
-EpiSpeech::CreateSound(std::string text, std::string path, int id)
+EpiSpeech::CreateSound(std::string text)
 {
     std::cout << "EpiSpeech::CreateSound for \"" << text << "\"." << std::endl;
-    std::string sound_path = path + std::to_string(id)+".aiff";
-    SpeechSound sound(sound_path);
+    fs::path cache_dir = fs::current_path() / "EpiSpeechCache";
+    fs::create_directories(cache_dir);
+
+    std::string key = cache_key_for_text(text, std::string(voice), std::string(speech_command));
+    fs::path sound_path = cache_dir / (key + ".aiff");
+    fs::path analysis_path = cache_dir / (key + ".rms");
+    SpeechSound sound(sound_path.string());
 
     int err = 0;
 
-    // synthesize speech
+    if(fs::exists(sound_path) && fs::exists(analysis_path))
+    {
+        std::ifstream analysis(analysis_path);
+        float t, l, r;
+        while(analysis >> t >> l >> r)
+        {
+            sound.time.push_back(t);
+            sound.left.push_back(l);
+            sound.right.push_back(r);
+        }
 
-    std::string com = std::string(speech_command) + u8" -o " + std::string(sound_path) +u8" \""+ text +u8"\"";
-    system(com.c_str());
+        if(!sound.time.empty())
+            return sound;
+    }
+
+    // Synthesize speech only when the cached audio file is missing.
+    if(!fs::exists(sound_path))
+    {
+        std::string com = std::string(speech_command) +
+            " -v " + shell_quote(std::string(voice)) +
+            " -o " + shell_quote(sound_path.string()) +
+            " -- " + shell_quote(text);
+        system(com.c_str());
+    }
 
     // Calculate volume  using ffprobe
 
-    char * command_line = create_formatted_string("ffprobe -f lavfi -i amovie=%s,astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0 2>/dev/null", sound_path.c_str());
+    std::string command_line =
+        "ffprobe -f lavfi -i amovie=" + sound_path.string() +
+        ",astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0 2>/dev/null";
     float t, l, r;
-    FILE * fp = popen(command_line, "r"); 
+    FILE * fp = popen(command_line.c_str(), "r"); 
     if(fp != NULL)
     {
         while(fscanf(fp, "%f,%f,%f\n", &t, &l, &r) == 3)
@@ -137,6 +201,14 @@ EpiSpeech::CreateSound(std::string text, std::string path, int id)
             sound.left.push_back(-15);
             sound.right.push_back(-15);
     }
+
+    if(!sound.time.empty())
+    {
+        std::ofstream analysis(analysis_path);
+        for(size_t i = 0; i < sound.time.size(); ++i)
+            analysis << sound.time[i] << ' ' << sound.left[i] << ' ' << sound.right[i] << '\n';
+    }
+
     return sound;
 }
 
@@ -165,13 +237,13 @@ EpiSpeech::Init()
     
        Bind(command, "command");
        Bind(speech_command, "speech_command");
+       Bind(voice, "voice");
 
     Bind(scale_volume, "scale_volume");
     Bind(text, "text");
 
-    int id = 0;
     for(auto t: split(std::string(text), ","))
-        sound.push_back(CreateSound(trim(t), "", id++));    // FIXME: Use current path here *********
+        sound.push_back(CreateSound(trim(t)));
 }
 
 
@@ -245,5 +317,4 @@ EpiSpeech::Tick()
 
 
 INSTALL_CLASS(EpiSpeech)
-
 
