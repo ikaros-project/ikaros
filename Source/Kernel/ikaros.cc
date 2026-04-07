@@ -1572,7 +1572,7 @@ bool operator==(Request & r, const std::string s)
                 run_mode = run_mode_pause;
             
         }
-        return (stop_after!= -1 &&  tick >= stop_after) || global_terminate.load();
+        return (stop_after!= -1 &&  tick >= stop_after) || notify_stop_requested.load() || global_terminate.load();
     }
 
 
@@ -2910,14 +2910,28 @@ bool operator==(Request & r, const std::string s)
 
             log.push_back(Message(msg, timestamped_message, path));
 
-            std::cout << timestamped_message;
-            if(!path.empty())
-                std::cout  << " ("<<path << ")";
-            std::cout << '\n';
+        std::cout << timestamped_message;
+        if(!path.empty())
+            std::cout  << " ("<<path << ")";
+        std::cout << '\n';
 
-            if(msg <= msg_fatal_error)
+        if(msg == msg_fatal_error || msg == msg_terminate)
+        {
+            if(options_.is_set("batch_mode"))
+            {
+                process_exit_code = (msg == msg_fatal_error) ? 1 : 0;
                 global_terminate = true;
-            return true;
+            }
+            else
+            {
+                notify_stop_requested = true;
+            }
+        }
+        else if(msg <= msg_end_of_file)
+        {
+            global_terminate = true;
+        }
+        return true;
         }
 
     //
@@ -2993,6 +3007,7 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::Stop()
     {
+        notify_stop_requested = false;
         run_mode.store(std::min(run_mode_stop, run_mode.load()));
         tick = -1;
         timer.Pause();

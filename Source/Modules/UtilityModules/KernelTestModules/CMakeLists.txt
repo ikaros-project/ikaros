@@ -4,6 +4,7 @@ add_subdirectory(KernelTestModule)
 add_subdirectory(KernelSizeTestModule)
 add_subdirectory(KernelPlayground)
 add_subdirectory(LogTester)
+add_subdirectory(NotifyTester)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)

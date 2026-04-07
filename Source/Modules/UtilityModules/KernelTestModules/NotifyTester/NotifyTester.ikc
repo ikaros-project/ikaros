@@ -1,0 +1,6 @@
+<class name="NotifyTester" description="Emits a parameterized Notify call to exercise kernel log and termination handling">
+    <parameter name="notify_level" type="number" control="menu" default="warning" options="inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace" description="Notify level to emit" />
+    <parameter name="notify_message" type="string" default="NotifyTester message" description="Message sent with Notify" />
+    <parameter name="notify_tick" type="number" default="0" description="First tick on which Notify should fire" />
+    <parameter name="repeat" type="bool" default="false" description="Emit on every tick from notify_tick onward instead of only once" />
+</class>

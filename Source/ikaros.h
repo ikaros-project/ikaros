@@ -3,6 +3,7 @@
 #pragma once
 
 #include <stdexcept>
+#include <atomic>
 #include <algorithm>
 #include <array>
 #include <filesystem>
@@ -417,6 +418,8 @@ public:
     std::recursive_mutex                    kernelLock;  
     std::atomic<bool>                       shutdown;
     std::atomic<int>                        run_mode;
+    std::atomic<bool>                       notify_stop_requested = false;
+    std::atomic<int>                        process_exit_code = 0;
 
     dictionary                              current_component_info; // Implivit parameters to create Component
     std::string                             current_component_path;

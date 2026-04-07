@@ -1,0 +1,5 @@
+<group name="NotifyTester_Test">
+    <module class="NotifyTester" name="FatalErrorNotify" notify_level="fatal_error" notify_message="Testing msg_fatal_error" notify_tick="0" repeat="false" />
+    <module class="NotifyTester" name="TerminateNotify" notify_level="terminate" notify_message="Testing msg_terminate" notify_tick="1" repeat="false" />
+    <module class="NotifyTester" name="WarningNotify" notify_level="warning" notify_message="Testing msg_warning" notify_tick="2" repeat="false" />
+</group>

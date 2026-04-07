@@ -8,28 +8,10 @@ using namespace ikaros;
 
 extern std::atomic<bool> global_terminate;
 
-int
-main(int argc, char *argv[])
+namespace
 {
-#if defined(__APPLE__)
-    // Keep Apple framework unified logging from flooding stderr while
-    // preserving normal IKAROS stdout/stderr messages.
-    setenv("OS_ACTIVITY_MODE", "disable", 0);
-#endif
-
-    bool debug_mode = false;
-#if DEBUG
-    debug_mode = true;
-#endif
-    try
-    { 
-        Kernel & k = kernel();
-        options o;
-
-        //o.add_option("l", "loglevel", "what to print to the log");
-        //o.add_option("q", "quiet", "do not print log to terminal; equal to loglevel=0");
-        //o.add_option("c", "lagcutoff", "reset lag and restart timing if it exceed this value", "10s");
-
+    void ConfigureOptions(options & o)
+    {
         o.add_option("b", "batch_mode", "start automatically and quit when execution terminates; no WebUI unless explicitly set with -w");
         o.add_option("d", "tick_duration", "duration of each tick");
         o.add_option("i", "info", "print model info");
@@ -40,6 +22,250 @@ main(int argc, char *argv[])
         o.add_option("w", "webui_port", "port for ikaros WebUI", "8000");
         o.add_option("h", "help", "list command line options");
         o.add_option("x", "experimental", "run with experimental features");
+    }
+
+    void InitializeKernelPaths(Kernel & k, const options & o)
+    {
+        k.webui_dir = o.ikaros_root+"/Source/WebUI/";
+        k.user_dir = o.ikaros_root+"/UserData/";
+        k.ScanClasses(o.ikaros_root+"/Source/Modules");
+        k.ScanClasses(o.ikaros_root+"/Source/UserModules");
+
+        std::filesystem::current_path(k.user_dir);
+    }
+
+    void PrintStartupBanner()
+    {
+#if DEBUG
+        std::cout << "Ikaros 3.0 Starting (Debug)\n\n";
+#else
+        std::cout << "Ikaros 3.0 Starting\n\n";
+#endif
+    }
+
+    class MainLoopController
+    {
+    public:
+        MainLoopController(Kernel & kernel, options & opts)
+            : k(kernel), o(opts)
+        {
+            k.options_ = o;
+            k.notify_stop_requested = false;
+            k.process_exit_code = 0;
+            k.LogProcessStart();
+        }
+
+        bool ShouldKeepRunning() const
+        {
+            return k.run_mode.load() != run_mode_quit && !global_terminate.load();
+        }
+
+        int Finish()
+        {
+            return Shutdown(k.process_exit_code.load(), true);
+        }
+
+        int FailFast(int code)
+        {
+            return Shutdown(code, false);
+        }
+
+        int HandleLoopException(const exception & e)
+        {
+            return RecoverOrExit("Ikaros error: " + e.message(), e.path());
+        }
+
+        int HandleLoopException(const std::exception & e)
+        {
+            return RecoverOrExit("Standard exception: " + std::string(e.what()));
+        }
+
+        int HandleUnknownLoopException()
+        {
+            return RecoverOrExit("Unknown exception.");
+        }
+
+        template<typename Fn>
+        int RunProtected(Fn && fn)
+        {
+            try
+            {
+                fn();
+                return -1;
+            }
+            catch(const exception & e)
+            {
+                return HandleLoopException(e);
+            }
+            catch(const std::exception & e)
+            {
+                return HandleLoopException(e);
+            }
+            catch(...)
+            {
+                return HandleUnknownLoopException();
+            }
+        }
+
+        void RunIteration()
+        {
+            LoadModelIfNeeded();
+            EnsureSocketStarted();
+            ApplyAutoStartFlags();
+
+            if(ShouldQuitEmptyBatchModel())
+            {
+                k.run_mode = run_mode_quit;
+                return;
+            }
+
+            StartRequestedRunMode();
+            k.Run();
+
+            if(k.options_.filename().empty() && o.is_set("batch_mode"))
+                k.run_mode = run_mode_quit;
+        }
+
+    private:
+        Kernel & k;
+        options & o;
+        bool socket_initialized = false;
+
+        int Shutdown(int code, bool print_banner)
+        {
+            k.LogProcessExit();
+            ShutdownHttp();
+            if(print_banner)
+                std::cout << "\nIkaros 3.0 Ended\n";
+            return code;
+        }
+
+        void ShutdownHttp()
+        {
+            if(socket_initialized)
+            {
+                k.StopHTTPServer();
+                socket_initialized = false;
+            }
+        }
+
+        void LogLoopError(const std::string & message, const std::string & path = std::string())
+        {
+            try
+            {
+                k.Notify(msg_warning, message, path);
+            }
+            catch(...)
+            {
+                std::cerr << message;
+                if(!path.empty())
+                    std::cerr << " (" << path << ")";
+                std::cerr << '\n';
+            }
+        }
+
+        int RecoverOrExit(const std::string & message, const std::string & path = std::string())
+        {
+            LogLoopError(message, path);
+
+            if(o.is_set("batch_mode"))
+                return FailFast(1);
+
+            try
+            {
+                k.Stop();
+            }
+            catch(const exception & e)
+            {
+                LogLoopError("Failed to stop after error: " + e.message(), e.path());
+                k.run_mode = run_mode_stop;
+                k.needs_reload = true;
+            }
+            catch(const std::exception & e)
+            {
+                LogLoopError("Failed to stop after error: " + std::string(e.what()));
+                k.run_mode = run_mode_stop;
+                k.needs_reload = true;
+            }
+            catch(...)
+            {
+                LogLoopError("Failed to stop after error: Unknown error.");
+                k.run_mode = run_mode_stop;
+                k.needs_reload = true;
+            }
+
+            return -1;
+        }
+
+        void LoadModelIfNeeded()
+        {
+            if(k.options_.filename().empty())
+                k.New();
+            else if(k.needs_reload)
+                k.LoadFile();
+        }
+
+        void EnsureSocketStarted()
+        {
+            bool should_start_socket =
+                !o.is_set("batch_mode")
+                || o.is_explicitly_set("webui_port")
+                || k.info_.contains("webui_port");
+
+            if(!should_start_socket || socket_initialized)
+                return;
+
+            long port = k.options_.get_long("webui_port");
+            if(k.info_.contains("webui_port"))
+                port = long(k.info_["webui_port"]);
+            k.InitSocket(port);
+            socket_initialized = true;
+        }
+
+        void ApplyAutoStartFlags()
+        {
+            if(o.is_set("batch_mode"))
+                k.info_["start"] = true;
+
+            if(k.info_.is_set("real_time"))
+                k.info_["start"] = true;
+        }
+
+        bool ShouldQuitEmptyBatchModel() const
+        {
+            return
+                k.options_.filename().empty()
+                && o.is_set("batch_mode")
+                && k.info_.contains("stop")
+                && long(k.info_["stop"]) == 0;
+        }
+
+        void StartRequestedRunMode()
+        {
+            if(!k.info_.is_set("start"))
+                return;
+
+            if(k.info_.is_set("real_time"))
+                k.Realtime();
+            else
+                k.Play();
+        }
+    };
+}
+
+int
+main(int argc, char *argv[])
+{
+#if defined(__APPLE__)
+    // Keep Apple framework unified logging from flooding stderr while
+    // preserving normal IKAROS stdout/stderr messages.
+    setenv("OS_ACTIVITY_MODE", "disable", 0);
+#endif
+
+    try
+    { 
+        options o;
+        ConfigureOptions(o);
 
         o.parse_args(argc, argv);
         if(o.is_set("help"))
@@ -48,119 +274,22 @@ main(int argc, char *argv[])
             return 0;
         }
 
-        k.webui_dir = o.ikaros_root+"/Source/WebUI/";   // FIXME: Use consistent file paths without "/" at end
-        k.user_dir = o.ikaros_root+"/UserData/";    // FIXME: Use consistent file paths without "/" at end
-        k.ScanClasses(o.ikaros_root+"/Source/Modules");
-        k.ScanClasses(o.ikaros_root+"/Source/UserModules"); // FIXME: Can probably be removed here
-
-        std::filesystem::current_path(k.user_dir);
+        InitializeKernelPaths(kernel(), o);
 
         if(o.is_set("batch_mode"))
             o.set("start");
 
-#if DEBUG
-        std::cout << "Ikaros 3.0 Starting (Debug)\n\n";
-#else
-        std::cout << "Ikaros 3.0 Starting\n\n";
-#endif
+        PrintStartupBanner();
+        MainLoopController session(kernel(), o);
 
-        k.options_ = o;
-        k.LogProcessStart();
-        bool socket_initialized = false;
-        auto shutdown_batch_http = [&]()
+        while(session.ShouldKeepRunning())
         {
-            if(socket_initialized)
-            {
-                k.StopHTTPServer();
-                socket_initialized = false;
-            }
-        };
-        auto shutdown_and_exit = [&](int code) -> int
-        {
-            k.LogProcessExit();
-            shutdown_batch_http();
-            return code;
-        };
-
-    while(k.run_mode.load() != run_mode_quit && !global_terminate.load())
-        {
-            try
-            {
-                if(k.options_.filename().empty())
-                    k.New();
-                else if(k.needs_reload)
-                    k.LoadFile();
-
-                bool should_start_socket =
-                    !o.is_set("batch_mode")
-                    || o.is_explicitly_set("webui_port")
-                    || k.info_.contains("webui_port");
-
-                if(should_start_socket && !socket_initialized)
-                {
-                    long port = k.options_.get_long("webui_port");
-                    if(k.info_.contains("webui_port"))
-                        port = long(k.info_["webui_port"]);
-                    k.InitSocket(port);
-                    socket_initialized = true;
-                }
-
-                if(o.is_set("batch_mode"))
-                    k.info_["start"] = true;
-
-                if(k.options_.filename().empty() && o.is_set("batch_mode") && k.info_.contains("stop") && long(k.info_["stop"]) == 0)
-                {
-                    k.run_mode = run_mode_quit;
-                    continue;
-                }
-
-                if(k.info_.is_set("real_time"))
-                    k.info_["start"] = true;
-            
-                if(k.info_.is_set("start"))
-                {
-                    if(k.info_.is_set("real_time"))
-                        k.Realtime();
-                        //k.run_mode = run_mode_realtime;
-                    else
-                        k.Play();
-                       // k.run_mode = run_mode_play;
-                }
-                k.Run();
-
-                if(k.options_.filename().empty() && o.is_set("batch_mode"))
-                    k.run_mode = run_mode_quit;
-            }
-
-            catch(load_failed & e)
-            {
-                std::cout << "Load failed. " + e.message() << '\n';
-                if(o.is_set("batch_mode"))
-                {
-                    return shutdown_and_exit(1);
-                }
-                k.options_.path_.clear();
-            }
-
-            catch(fatal_error & e)
-            {
-                std::cerr << "Ikaros:: Fatal error: " << e.what() << '\n';
-                if(o.is_set("batch_mode"))
-                {
-                    return shutdown_and_exit(1);
-                }
-                else
-                {   
-                    // Assuming load failed or other error that can be handled by WebUI
-                    // Stop if running but retain data for WebUI
-                }                    
-            }
+            int exit_code = session.RunProtected([&]() { session.RunIteration(); });
+            if(exit_code >= 0)
+                return exit_code;
         }
 
-        k.LogProcessExit();
-        shutdown_batch_http();
-        std::cout << "\nIkaros 3.0 Ended\n";
-        return 0;
+        return session.Finish();
     }
     catch(std::exception & e)
     {
