@@ -1,0 +1,13 @@
+<group
+    name="Test_48"
+    description="Test bracket-prefixed higher-dimensional matrix strings"
+    start="true"
+    stop="2"
+    check_sum="210"
+>
+    <module
+        class="Constant"
+        name="Const"
+        data="[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]"
+    />
+</group>

@@ -23,6 +23,7 @@
 #include "exceptions.h"
 #include "utilities.h"
 #include "range.h"
+#include "dictionary.h"
 
 namespace ikaros
 {
@@ -80,6 +81,8 @@ namespace ikaros
     };
 
     class matrix;
+
+    [[nodiscard]] inline bool try_parse_bracket_matrix_literal(matrix & out, const std::string & data_string);
 
     void save_matrix_states();
     void clear_matrix_states();
@@ -210,6 +213,9 @@ namespace ikaros
 */
         void operator=(std::string & data_string) // set from data string after resizing
         {
+            if(try_parse_bracket_matrix_literal(*this, data_string))
+                return;
+
             auto & rows = split(data_string, ";");
             auto & row = split(rows.at(0), ",");
 
@@ -244,6 +250,9 @@ namespace ikaros
         {
             try 
             {
+                if(try_parse_bracket_matrix_literal(*this, data_string))
+                    return;
+
                 auto & rows = split(data_string, ";");
                 auto & row = split(rows.at(0), ",");
 
@@ -1643,4 +1652,65 @@ friend void im2row(std::vector<float> &submatrices_flat, const matrix &I, const 
     matrix &    upsample(const matrix &source); // Upsample an image matrix by repeating each pixel 2x2 times
     match       search(const matrix & target,const rect & search_ractangle) const;
     };
+
+
+    inline void parse_bracket_matrix_value(const value & v, std::vector<int> & shape, std::vector<float> & data, int depth = 0)
+    {
+        if(v.is_number())
+        {
+            if(depth != static_cast<int>(shape.size()))
+                throw std::invalid_argument("Invalid matrix string");
+            data.push_back(v.as_float());
+            return;
+        }
+
+        if(!v.is_list())
+            throw std::invalid_argument("Invalid matrix string");
+
+        const list & items = std::get<list>(v.value_);
+        int item_count = static_cast<int>(items.size());
+
+        if(static_cast<int>(shape.size()) <= depth)
+            shape.push_back(item_count);
+        else if(shape[depth] != item_count)
+            throw std::invalid_argument("Invalid matrix string");
+
+        bool contains_numbers = false;
+        bool contains_lists = false;
+        for(const auto & item : items)
+        {
+            contains_numbers = contains_numbers || item.is_number();
+            contains_lists = contains_lists || item.is_list();
+            if(!item.is_number() && !item.is_list())
+                throw std::invalid_argument("Invalid matrix string");
+        }
+
+        if(contains_numbers && contains_lists)
+            throw std::invalid_argument("Invalid matrix string");
+
+        for(const auto & item : items)
+            parse_bracket_matrix_value(item, shape, data, depth + 1);
+    }
+
+
+    inline bool try_parse_bracket_matrix_literal(matrix & out, const std::string & data_string)
+    {
+        std::string trimmed = trim(data_string);
+        if(trimmed.empty() || trimmed.front() != '[')
+            return false;
+
+        value parsed = parse_json(trimmed);
+        if(!parsed.is_list())
+            throw std::invalid_argument("Invalid matrix string");
+
+        std::vector<int> shape;
+        std::vector<float> data;
+        parse_bracket_matrix_value(parsed, shape, data);
+
+        out = matrix(shape);
+        for(std::size_t i = 0; i < data.size(); ++i)
+            (*out.data_)[i] = data[i];
+
+        return true;
+    }
 }
