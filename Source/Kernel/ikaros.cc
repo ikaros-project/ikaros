@@ -12,6 +12,26 @@ std::atomic<bool> global_terminate(false);
 
 namespace ikaros
 {
+    namespace
+    {
+        bool try_parse_matrix_literal(matrix & out, const std::string & value)
+        {
+            try
+            {
+                out = matrix(value);
+                return true;
+            }
+            catch(const std::invalid_argument &)
+            {
+                return false;
+            }
+            catch(const std::out_of_range &)
+            {
+                return false;
+            }
+        }
+    }
+
     std::string  validate_identifier(std::string s)
     {
         static std::string legal = "_0123456789aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ";
@@ -92,15 +112,7 @@ namespace ikaros
                 break;
 
             case matrix_type: 
-                {
-                    if(info_.contains("size"))
-                    {
-                        std::cout << "HAS SIZE\n";
-                        matrix_value = std::make_shared<matrix>();
-                    }
-                    else
-                        matrix_value = std::make_shared<matrix>();
-                }
+                matrix_value = std::make_shared<matrix>();
                 break;
 
             default: 
@@ -116,7 +128,7 @@ namespace ikaros
 
 
     void 
-    parameter::share(parameter & p) // this shares data with p 
+    parameter::assign(const parameter & p) // this aliases data from p
     {
         info_ = p.info_;
         type = p.type;
@@ -137,6 +149,8 @@ namespace ikaros
         {
             auto options = split(info_["options"],",");
             int c = options.size();
+            if(v < 0)
+                v = 0;
             if(v > c-1)
                 v = c-1;
             switch(type)
@@ -147,7 +161,7 @@ namespace ikaros
                     *number_value = double(v);
                     break;
                 case string_type:
-                    *string_value = options[round(v)];
+                    *string_value = options.at(static_cast<std::size_t>(round(v)));
                     break;
                 default:
                     break; // FIXME: error?
@@ -221,6 +235,17 @@ namespace ikaros
         }
         *resolved = true;
         return v;
+    }
+
+
+    void
+    parameter::set_matrix(const matrix & v)
+    {
+        if(type != matrix_type)
+            throw exception("Invalid parameter value");
+
+        *matrix_value = v;
+        *resolved = true;
     }
 
 
@@ -468,7 +493,7 @@ namespace ikaros
                     return false;
                 }
 
-                SetParameter(name, p.info_["default"]); // FIXME: SHOULD EVALUATE DEFAULT VALUE - MAYBE
+                SetParameter(name, std::string(p.info_["default"])); // FIXME: SHOULD EVALUATE DEFAULT VALUE - MAYBE
                 return true;
             }
 
@@ -482,13 +507,17 @@ namespace ikaros
 
             if(p.type==matrix_type)
             {
-                SetParameter(name, const_cast<Component *>(value_owner ? value_owner : this)->ComputeValue(value));
+                matrix literal;
+                if(try_parse_matrix_literal(literal, value))
+                    SetParameter(name, literal, value);
+                else
+                    SetParameter(name, const_cast<Component *>(value_owner ? value_owner : this)->ComputeValue(value));
                 return true;
             }
 
             if(p.type==bool_type && !p.has_options)
             {
-                SetParameter(name, const_cast<Component *>(value_owner ? value_owner : this)->ComputeBool(value) ? "true" : "false");
+                SetParameter(name, std::string(const_cast<Component *>(value_owner ? value_owner : this)->ComputeBool(value) ? "true" : "false"));
                 return true;
             }
 
@@ -496,7 +525,7 @@ namespace ikaros
 
             if(value.empty())  // ****************** this does not work for string that are allowed to be empty // FIXME: USE EXCEPTIONS *****
             {
-                SetParameter(name, p.info_["default"]);
+                SetParameter(name, std::string(p.info_["default"]));
                 return true;
             }
                 
@@ -611,7 +640,7 @@ namespace ikaros
         Kernel & k = kernel();
         std::string pname = path_+"."+name;
         if(k.parameters.count(pname))
-            p.share((parameter &)kernel().parameters[pname]);
+            p.assign((parameter &)kernel().parameters[pname]);
         else
             throw exception("Cannot bind to \""+name+"\"");
     };
@@ -625,16 +654,14 @@ namespace ikaros
             Kernel & k = kernel();
             if(k.buffers.count(name))
                 m = k.buffers[name];
-            else if(k.buffers.count(name))
-                m = k.buffers[name];
             else if(k.parameters.count(name))
                 m = (matrix &)(k.parameters[name]);
-            else if(k.parameters.count(name))
+            else if(KeyExists(n))
                 throw exception("Cannot bind to attribute \""+name+"\". Define it as a parameter!", path_);
             else
                 throw exception("Input, output or parameter named \""+name+"\" does not exist", path_);
         }
-        catch(exception e)
+        catch(const exception & e)
         {
             throw exception("Bind:\""+name+"\" failed. "+e.message(), path_);
         }
@@ -700,12 +727,19 @@ namespace ikaros
     }
 
 
+    void Component::SetParameter(std::string name, const matrix & value, const std::string & source_value)
+    {
+        std::string parameter_name = path_+"."+validate_identifier(name);
+        kernel().SetParameter(parameter_name, value, source_value);
+    }
+
+
     bool Component::LookupParameter(parameter & p, const std::string & name)
     {
         Kernel & k = kernel();
         if(k.parameters.count(path_+"."+name))
         {
-            p.share(k.parameters[path_+"."+name]);
+            p.assign(k.parameters[path_+"."+name]);
             return true;
         }
         else if(parent_)
@@ -1899,6 +1933,33 @@ bool operator==(Request & r, const std::string s)
         {
             parameters[name] = value;
             parameters[name].info_["value"] = value;
+        }
+        catch(const exception & e)
+        {
+            throw exception("Parameter \""+name+"\" could not be set: "+e.message());
+        }
+        catch(const std::exception & e)
+        {
+            throw exception("Parameter \""+name+"\" could not be set: "+std::string(e.what()));
+        }
+        catch(...)
+        {
+            throw exception("Parameter \""+name+"\" could not be set. Check that the parameter exists and that the data type and value is correct.");
+        }
+    }
+
+
+    void
+    Kernel::SetParameter(std::string name, const matrix & value, const std::string & source_value)
+    {
+        if(!parameters.count(name))
+            throw exception("Parameter \""+name+"\" could not be set because it does not exist.");
+
+        try
+        {
+            parameters[name].set_matrix(value);
+            matrix stored_value = value;
+            parameters[name].info_["value"] = source_value.empty() ? stored_value.json() : source_value;
         }
         catch(const exception & e)
         {

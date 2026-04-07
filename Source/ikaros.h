@@ -132,9 +132,10 @@ public:
     parameter(dictionary info);
     parameter(const std::string type, const std::string options="");
 
-    void share(parameter & p); // this shares data with p
+    void assign(const parameter & p); // this aliases data from p
     double operator=(double v);
     std::string operator=(std::string v);
+    void set_matrix(const matrix & v);
 
     operator matrix & ();
     operator std::string() const;
@@ -221,6 +222,7 @@ public:
     void ClearOutputs();    // Must be called from creator function and not from Init
     void AddParameter(dictionary parameters);
     void SetParameter(std::string name, std::string value);
+    void SetParameter(std::string name, const matrix & value, const std::string & source_value="");
     bool BindParameter(parameter & p,  std::string & name);
     bool ResolveParameter(parameter & p,  std::string & name);
     void Bind(parameter & p, std::string n);   // Bind to parameter in global parameter table
@@ -499,6 +501,7 @@ public:
     void AddOutput(std::string name, dictionary parameters=dictionary());
     void AddParameter(std::string name, dictionary params=dictionary());
     void SetParameter(std::string name, std::string value);
+    void SetParameter(std::string name, const matrix & value, const std::string & source_value="");
     void AddGroup(dictionary info, std::string path);
     void AddModule(dictionary info, std::string path);
     bool PreparePythonModule(dictionary & info, const std::string & classname);
