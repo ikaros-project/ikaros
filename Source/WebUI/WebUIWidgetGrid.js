@@ -94,9 +94,9 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             else if(this.parameters.parameter)
             {
                 if(this.data[y][x] < this.parameters.valueHigh)
-                    this.get("/control/"+this.parameters.parameter+"/"+x+"/"+y+"/"+this.parameters.valueHigh);
+                    this.send_control_change(this.parameters.parameter, this.parameters.valueHigh, x, y);
                 else
-                    this.get("/control/"+this.parameters.parameter+"/"+x+"/"+y+"/"+this.parameters.valueLow);
+                    this.send_control_change(this.parameters.parameter, this.parameters.valueLow, x, y);
             }
         }
     }

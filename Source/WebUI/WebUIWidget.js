@@ -583,11 +583,43 @@ class WebUIWidget extends HTMLElement
         this.updateAll();
     }
 
+    getControlScopePath()
+    {
+        if(typeof selector !== "undefined" && selector && selector.selected_background)
+            return selector.selected_background;
+
+        const fullName = this.parentElement && this.parentElement.dataset ? this.parentElement.dataset.name : "";
+        if(fullName.includes("."))
+            return fullName.substring(0, fullName.lastIndexOf("."));
+
+        return "";
+    }
+
+    resolveControlPath(parameter)
+    {
+        if(!parameter)
+            return parameter;
+
+        if(parameter.startsWith("."))
+            return parameter;
+
+        const scopePath = this.getControlScopePath();
+        const rootPath = (typeof network !== "undefined" && network && network.network && network.network.name) ? network.network.name : "";
+
+        if(scopePath && (parameter === scopePath || parameter.startsWith(scopePath + ".")))
+            return parameter;
+
+        if(rootPath && (parameter === rootPath || parameter.startsWith(rootPath + ".")))
+            return parameter;
+
+        return scopePath ? `${scopePath}.${parameter}` : parameter;
+    }
+
     send_control_change(parameter, value=0, index_x=0, index_y=0)
     {
         if(main.edit_mode)
             return;
-        controller.queueCommand("control", parameter, {"x":index_x, "y":index_y, "value":value});
+        controller.queueCommand("control", this.resolveControlPath(parameter), {"x":index_x, "y":index_y, "value":value});
         // controller.queueCommand("control", parameter.substring(0, parameter.lastIndexOf('.')), {"x":index_x, "y":index_y, "value":value});     
 
     }

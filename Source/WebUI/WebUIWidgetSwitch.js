@@ -38,9 +38,9 @@ class WebUIWidgetSwitch extends WebUIWidgetControl
         if(p.parameter)
         {
             if(s.checked)
-                this.get("/control/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/0");
+                this.send_control_change(p.parameter, 0, p.xindex, p.yindex);
             else
-                this.get("/control/"+p.parameter+"/"+p.xindex+"/"+p.yindex+"/1");
+                this.send_control_change(p.parameter, 1, p.xindex, p.yindex);
         }
     }
 
