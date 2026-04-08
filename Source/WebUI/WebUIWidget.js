@@ -628,6 +628,7 @@ class WebUIWidget extends HTMLElement
     {
         let path =  command.substring(0, command.lastIndexOf('.'));
         let name = command.substring(command.lastIndexOf('.') + 1);
+        path = this.resolveControlPath(path);
         controller.queueCommand("command", path, {"command":name, "x":index_x, "y":index_y, "value":value}); 
     }
 

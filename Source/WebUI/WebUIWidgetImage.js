@@ -57,7 +57,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             let y = (evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom);
             
             if(this.parameters.command && this.parameters.module)
-                this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+x+"/"+y+"/1");
+                this.send_command(`${this.parameters.module}.${this.parameters.command}`, 1, x, y);
         }
     }
 
