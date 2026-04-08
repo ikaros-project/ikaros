@@ -595,31 +595,11 @@ class WebUIWidget extends HTMLElement
         return "";
     }
 
-    resolveControlPath(parameter)
-    {
-        if(!parameter)
-            return parameter;
-
-        if(parameter.startsWith("."))
-            return parameter;
-
-        const scopePath = this.getControlScopePath();
-        const rootPath = (typeof network !== "undefined" && network && network.network && network.network.name) ? network.network.name : "";
-
-        if(scopePath && (parameter === scopePath || parameter.startsWith(scopePath + ".")))
-            return parameter;
-
-        if(rootPath && (parameter === rootPath || parameter.startsWith(rootPath + ".")))
-            return parameter;
-
-        return scopePath ? `${scopePath}.${parameter}` : parameter;
-    }
-
     send_control_change(parameter, value=0, index_x=0, index_y=0)
     {
         if(main.edit_mode)
             return;
-        controller.queueCommand("control", this.resolveControlPath(parameter), {"x":index_x, "y":index_y, "value":value});
+        controller.queueCommand("control", parameter, {"x":index_x, "y":index_y, "value":value});
         // controller.queueCommand("control", parameter.substring(0, parameter.lastIndexOf('.')), {"x":index_x, "y":index_y, "value":value});     
 
     }
@@ -628,7 +608,6 @@ class WebUIWidget extends HTMLElement
     {
         let path =  command.substring(0, command.lastIndexOf('.'));
         let name = command.substring(command.lastIndexOf('.') + 1);
-        path = this.resolveControlPath(path);
         controller.queueCommand("command", path, {"command":name, "x":index_x, "y":index_y, "value":value}); 
     }
 

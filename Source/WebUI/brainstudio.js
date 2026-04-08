@@ -1541,18 +1541,16 @@ let controller =
             //dict.root = group_path;
             const url_params = toURLParams(dict);
 
-            if(s == "control" && path != "")
-            {
-                s += "/" + path;
-            }
-            else if(path.length>0 && path[0]=='.') // top path
+            if(path.length>0 && path[0]=='.') // top path
             {
                 s += "/" + path;
             }
             else
             {
                 if(group_path != "")
-                    s += "/" + group_path;
+                    s += "/." + group_path;
+                else if(path != "")
+                    s += "/.";
 
                 if(path != "")
                     s += "." + path;
