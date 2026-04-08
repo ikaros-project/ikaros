@@ -3201,6 +3201,8 @@ bool operator==(Request & r, const std::string s)
 
         std::string data = request.parameters["data"];  // FIXME: Check that it exists ******** or return ""
         std::string root = request.component_path;
+        if(!root.empty() && root[0] == '.')
+            root = root.substr(1); // Global path prefix should not be part of buffer or parameter names
 
         std::string sep = "";
         bool sent = false;
