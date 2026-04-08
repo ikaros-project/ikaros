@@ -580,6 +580,7 @@ public:
     void DoSendClassInfo(Request & request);
     void DoSendClassReadMe(Request & request);
     void DoSendFileList(Request & request);
+    bool SanitizeProjectPath(const std::filesystem::path & candidate_path, std::filesystem::path & sanitized_path) const;
     void DoSendFile(std::string file);
     void DoSendError();
     void SendImage(matrix & image, std::string & format);

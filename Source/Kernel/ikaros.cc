@@ -3382,6 +3382,39 @@ bool operator==(Request & r, const std::string s)
     }
 
 
+    bool
+    Kernel::SanitizeProjectPath(const std::filesystem::path & candidate_path, std::filesystem::path & sanitized_path) const
+    {
+        if(candidate_path.empty())
+            return false;
+
+        std::error_code ec;
+        std::filesystem::path project_root = std::filesystem::weakly_canonical(options_.ikaros_root, ec);
+        if(ec)
+            return false;
+
+        std::filesystem::path resolved_path = candidate_path.is_absolute() ? candidate_path : project_root / candidate_path;
+        resolved_path = std::filesystem::weakly_canonical(resolved_path, ec);
+        if(ec)
+            return false;
+
+        auto root_it = project_root.begin();
+        auto root_end = project_root.end();
+        auto path_it = resolved_path.begin();
+        auto path_end = resolved_path.end();
+
+        for(; root_it != root_end && path_it != path_end; ++root_it, ++path_it)
+            if(*root_it != *path_it)
+                return false;
+
+        if(root_it != root_end)
+            return false;
+
+        sanitized_path = resolved_path;
+        return true;
+    }
+
+
     void
     Kernel::DoSendFile(std::string file)
     {
