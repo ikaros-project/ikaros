@@ -17,6 +17,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <unordered_set>
+#include <variant>
 #include <vector>
 
 #define INSTALL_CLASS(class_name)  static InitClass init_##class_name(#class_name, []() { return new class_name(); });
@@ -121,15 +122,15 @@ class parameter
 {
 private:
 public:
+    using parameter_value = std::variant<std::monostate, double, bool, int, std::string, matrix>;
+
     dictionary                      info_;
     bool                            has_options;
     std::shared_ptr<bool>           resolved;
     parameter_type                  type;
-    std::shared_ptr<double>         number_value;
-    std::shared_ptr<matrix>         matrix_value;
-    std::shared_ptr<std::string>    string_value;
+    std::shared_ptr<parameter_value> value;
 
-    parameter(): has_options(false), type(no_type) {}
+    parameter(): has_options(false), resolved(std::make_shared<bool>(false)), type(no_type), value(std::make_shared<parameter_value>(std::monostate{})) {}
     parameter(dictionary info);
     parameter(const std::string type, const std::string options="");
 
@@ -141,6 +142,7 @@ public:
     operator matrix & ();
     operator std::string() const;
     operator double() const;
+    explicit operator bool() const;
 
     void print(std::string name="") const;
     void info() const;
@@ -158,10 +160,8 @@ public:
     std::string json() const;    
     
     friend std::ostream& operator<<(std::ostream& os, const parameter & p);
-    // Method to compare string_value with a string literal
     bool compare_string(const std::string& value) const {
-        // Check if string_value is non-null and compare
-        return string_value && *string_value == value;
+        return as_string() == value;
     }
 };
 
