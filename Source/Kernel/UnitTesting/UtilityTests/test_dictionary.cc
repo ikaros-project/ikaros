@@ -76,6 +76,20 @@ main()
     assert(unicode_json["latin"].as_string() == "\xC3\xA5");
     assert(unicode_json["emoji"].as_string() == "\xF0\x9F\x98\x80");
 
+    dictionary escaped_output;
+    escaped_output["key\"\\\n\t"] = "value\"\\\n\t";
+    std::string escaped_json = escaped_output.json();
+    assert(escaped_json == "{\"key\\\"\\\\\\n\\t\": \"value\\\"\\\\\\n\\t\"}");
+    value reparsed_escaped = parse_json(escaped_json);
+    assert(reparsed_escaped["key\"\\\n\t"].as_string() == "value\"\\\n\t");
+
+    dictionary control_chars;
+    control_chars["nul"] = std::string("a\0b", 3);
+    std::string control_json = control_chars.json();
+    assert(control_json == "{\"nul\": \"a\\u0000b\"}");
+    value reparsed_control = parse_json(control_json);
+    assert(reparsed_control["nul"].as_string() == std::string("a\0b", 3));
+
     bool threw_on_trailing_junk = false;
     try
     {

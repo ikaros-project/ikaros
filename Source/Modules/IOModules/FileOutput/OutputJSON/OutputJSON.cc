@@ -39,7 +39,7 @@ class OutputJSON: public Module
     std::string MakeFrameJSON()
     {
         std::ostringstream oss;
-        oss << "{ \"ts\": \"" << GetClockTimeString() << "\", "
+        oss << "{ \"ts\": \"" << escape_json_string(GetClockTimeString()) << "\", "
             << "\"tick\": " << GetTick() << ", "
             << "\"frame\": ";
 
@@ -139,4 +139,3 @@ public:
 };
 
 INSTALL_CLASS(OutputJSON)
-

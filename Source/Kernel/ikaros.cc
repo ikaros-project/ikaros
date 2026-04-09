@@ -481,7 +481,7 @@ namespace ikaros
                 case number_type:
                 case rate_type:     return "[["+std::to_string(as_double())+"]]";
                 case bool_type:     return (as_bool() ? "[[true]]" : "[[false]]");
-                case string_type:   return "\""+as_string()+"\"";
+                case string_type:   return "\""+escape_json_string(as_string())+"\"";
                 default:            throw exception("Cannot convert parameter to string");
             }
         }
@@ -491,7 +491,7 @@ namespace ikaros
             case number_type:    if(auto number_value = std::get_if<double>(value.get())) return "[["+std::to_string(*number_value)+"]]";
             case bool_type:      if(auto bool_value = std::get_if<bool>(value.get())) return (*bool_value ? "[[true]]" : "[[false]]");
             case rate_type:      if(auto number_value = std::get_if<double>(value.get())) return "[["+std::to_string(*number_value)+"]]";
-            case string_type:    if(auto string_value = std::get_if<std::string>(value.get())) return "\""+*string_value+"\"";
+            case string_type:    if(auto string_value = std::get_if<std::string>(value.get())) return "\""+escape_json_string(*string_value)+"\"";
             case matrix_type:    if(auto matrix_value = get_parameter_matrix_ptr(value.get())) return matrix_value->json();
             default:            throw exception("Cannot convert parameter to string");
         }
@@ -3173,7 +3173,9 @@ bool operator==(Request & r, const std::string s)
         if(nm.find("/") != std::string::npos)
             nm = rtail(nm,"/");
 
-        socket->Send("\t\"file\": \"%s\",\n", nm.c_str());
+        socket->Send("\t\"file\": ");
+        socket->Send(value(nm).json());
+        socket->Send(",\n");
 
 #if DEBUG
         socket->Send("\t\"debug\": true,\n");
@@ -3300,23 +3302,23 @@ bool operator==(Request & r, const std::string s)
             {
                 if(format.empty())
                 {
-                    sent = socket->Send(sep + "\t\t\"" + key + "\": "+buffers[source_with_root].json());
+                    sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": "+buffers[source_with_root].json());
                 }
                 else if(format=="rgb")
                 { 
                         // sent = socket->Send(sep + "\t\t\"" + key + ":"+format+"\": ");
-                        sent = socket->Send(sep + "\t\t\"" + key + "\": ");
+                        sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": ");
                         SendImage(buffers[source_with_root], format);
                 }
                 else if(format=="gray" || format=="red" || format=="green" || format=="blue" || format=="spectrum" || format=="fire")
                 { 
-                    sent = socket->Send(sep + "\t\t\"" + key + "\": ");
+                    sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": ");
                         SendImage(buffers[source_with_root], format);
                 }
             }
             else if(parameters.count(source_with_root))
             {
-                sent = socket->Send(sep + "\t\t\"" + key + "\": "+parameters[source_with_root].json());
+                sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": "+parameters[source_with_root].json());
             }
 
             else if(components.count(component_path)) // Use module function to get value
@@ -3326,7 +3328,7 @@ bool operator==(Request & r, const std::string s)
                 if(!json_data.empty())
                 {
                     socket->Send(sep);
-                    std::string s = "\t\t\"" + source + "\": "+json_data;
+                    std::string s = "\t\t\"" + escape_json_string(source) + "\": "+json_data;
                     socket->Send(s);
                     sep = ",\n";
                 }
@@ -3958,7 +3960,7 @@ bool operator==(Request & r, const std::string s)
         for(auto & c: classes)
         {
             socket->Send(s.c_str());
-            socket->Send(c.first.c_str());
+            socket->Send(escape_json_string(c.first));
             s = "\",\n\t\"";
         }
         socket->Send("\"\n]\n}\n");
@@ -3980,7 +3982,7 @@ bool operator==(Request & r, const std::string s)
         for(auto & c: classes)
         {
             socket->Send(s);
-            socket->Send("\""+c.first+"\": ");
+            socket->Send("\""+escape_json_string(c.first)+"\": ");
             dictionary class_info = c.second.info_.copy();
             class_info["path"] = std::filesystem::path(c.second.path).parent_path().string();
             socket->Send(class_info.json());
@@ -4058,7 +4060,7 @@ bool operator==(Request & r, const std::string s)
         for(auto & f: system_files)
         {
             socket->Send(sep);
-            socket->Send(f.first);
+            socket->Send(escape_json_string(f.first));
             sep = "\",\n\t\"";
         }
     socket->Send("\"\n],\n");
@@ -4068,7 +4070,7 @@ bool operator==(Request & r, const std::string s)
         for(auto & f: user_files)
         {
             socket->Send(sep);
-            socket->Send(f.first);
+            socket->Send(escape_json_string(f.first));
             sep = "\",\n\t\"";
         }
     socket->Send("\"\n]\n");

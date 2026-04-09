@@ -1,5 +1,6 @@
 
 #include "../../utilities.cc"
+#include <cassert>
 #include <string>
 
 using namespace ikaros;
@@ -7,6 +8,9 @@ using namespace ikaros;
 int
 main()
 {
+    assert(escape_json_string("quote\"slash\\line\n") == "quote\\\"slash\\\\line\\n");
+    assert(escape_json_string(std::string("a\0b", 3)) == "a\\u0000b");
+
     std::string s = "aaa++bbb++ccc++ddd"; 
 
     std::string s1 = s;

@@ -328,7 +328,7 @@ namespace ikaros
         std::string sep = "";
         for(auto & v : *dict_)
         {
-            s += sep + "\"" + v.first + "\": " + v.second.json();
+            s += sep + "\"" + escape_json_string(v.first) + "\": " + v.second.json();
             sep = ", ";
         }
         s += "}";

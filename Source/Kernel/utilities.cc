@@ -598,7 +598,7 @@ base64_encode(const unsigned char * data,
     std::string escape_json_string(const std::string& str)
     {
         std::string escaped;
-        for (char c : str)
+        for (unsigned char c : str)
         {
             switch (c)
             {
@@ -610,9 +610,9 @@ base64_encode(const unsigned char * data,
                 case '\r': escaped += "\\r"; break;
                 case '\t': escaped += "\\t"; break;
                 default:
-                    //if (c < 0x20 || c > 0x7E)
-                    //    escaped += "\\u" + to_hex(c);
-                    //else
+                    if(c < 0x20)
+                        escaped += "\\u00" + to_hex(static_cast<char>(c));
+                    else
                         escaped += c;
             }
         }
