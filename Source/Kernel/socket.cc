@@ -172,6 +172,9 @@ Socket::HTTPGet(const std::string & url) // Very temporary implementation that o
     constexpr size_t max_response_size = 100 * 1024;
     std::vector<char> buffer(max_response_size);
     auto parts = split(url, "/", 1);
+    if(parts.size() < 2 || parts.at(0).empty())
+        return "";
+
     auto site = parts.at(0);
     auto path = parts.at(1);
     std::string request = "GET /"+path+" HTTP/1.1\r\nHost: " + site+"\r\nConnection: close\r\n\r\n";
@@ -659,9 +662,23 @@ ServerSocket::SendFile(const char * filename, const char * path, dictionary * hd
 	
     if(f == nullptr) return false;
 	
-    fseek(f, 0, SEEK_END);
-    size_t len  = ftell(f);
-    fseek(f, 0, SEEK_SET);
+    if(fseek(f, 0, SEEK_END) != 0)
+    {
+        fclose(f);
+        return false;
+    }
+    long file_length = ftell(f);
+    if(file_length < 0)
+    {
+        fclose(f);
+        return false;
+    }
+    size_t len  = static_cast<size_t>(file_length);
+    if(fseek(f, 0, SEEK_SET) != 0)
+    {
+        fclose(f);
+        return false;
+    }
 	
     dictionary local_header;
     dictionary * h = (hdr ? hdr : &local_header);
