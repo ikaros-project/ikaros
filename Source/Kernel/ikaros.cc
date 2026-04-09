@@ -3362,13 +3362,26 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoOpen(Request & request)
     {
+        if(!request.parameters.contains("file"))
+        {
+            Notify(msg_warning, "No file specified.");
+            DoSendNetwork(request);
+            return;
+        }
+
         std::string file = request.parameters["file"];
-        std::string where = request.parameters["where"];
+        std::string where = request.parameters.contains("where") ? std::string(request.parameters["where"]) : "";
+        auto & files = where == "system" ? system_files : user_files;
+        auto file_path = files.find(file);
+        if(file_path == files.end())
+        {
+            Notify(msg_warning, "File \""+file+"\" could not be found.");
+            DoSendNetwork(request);
+            return;
+        }
+
         Stop();
-        if(where == "system")
-            options_.path_ = system_files.at(file);
-        else
-            options_.path_ = user_files.at(file);
+        options_.path_ = file_path->second;
             try
             {
                 LoadFile();
@@ -4232,18 +4245,27 @@ Kernel::CalculateCPUUsage() // In percent
     {
         while(!shutdown)
         {
-            if(socket != nullptr && socket->GetRequest(true))
+            try
             {
-                std::lock_guard<std::recursive_mutex> lock(kernelLock); // Lock the mutex to ensure thread safety
-                if(socket->header.contains_non_null("Method") && std::string(socket->header["Method"]) == "GET")
+                if(socket != nullptr && socket->GetRequest(true))
                 {
-                    HandleHTTPRequest();
+                    std::lock_guard<std::recursive_mutex> lock(kernelLock); // Lock the mutex to ensure thread safety
+                    if(socket->header.contains_non_null("Method") && std::string(socket->header["Method"]) == "GET")
+                    {
+                        HandleHTTPRequest();
+                    }
+                    else if(socket->header.contains_non_null("Method") && std::string(socket->header["Method"]) == "PUT") // JSON Data
+                    {
+                        HandleHTTPRequest();
+                    }
+                    socket->Close();
                 }
-                else if(socket->header.contains_non_null("Method") && std::string(socket->header["Method"]) == "PUT") // JSON Data
-                {
-                    HandleHTTPRequest();
-                }
-                socket->Close();
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << "HTTP request failed: " << e.what() << '\n';
+                if(socket != nullptr)
+                    socket->Close();
             }
         }
     }
