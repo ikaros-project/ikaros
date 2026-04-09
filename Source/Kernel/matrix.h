@@ -213,10 +213,12 @@ namespace ikaros
 */
         void operator=(std::string & data_string) // set from data string after resizing
         {
-            if(try_parse_bracket_matrix_literal(*this, data_string))
+            std::string sanitized = remove_comment(data_string);
+
+            if(try_parse_bracket_matrix_literal(*this, sanitized))
                 return;
 
-            auto & rows = split(data_string, ";");
+            auto & rows = split(sanitized, ";");
             auto & row = split(rows.at(0), ",");
 
             int x = row.size();
@@ -250,16 +252,18 @@ namespace ikaros
         {
             try 
             {
-                if(try_parse_bracket_matrix_literal(*this, data_string))
+                std::string sanitized = remove_comment(data_string);
+
+                if(try_parse_bracket_matrix_literal(*this, sanitized))
                     return;
 
-                auto & rows = split(data_string, ";");
+                auto & rows = split(sanitized, ";");
                 auto & row = split(rows.at(0), ",");
 
                 int x = row.size();
                 int y = rows.size();
 
-                if(data_string.back() == ';') // Allow trailing semicolon
+                if(!sanitized.empty() && sanitized.back() == ';') // Allow trailing semicolon
                     y--;
 
                 if(rows.size() == 1) // 1D - array

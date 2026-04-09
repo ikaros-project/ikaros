@@ -643,11 +643,31 @@ base64_encode(const unsigned char * data,
     std::string 
     remove_comment(const std::string& input) 
     {
-        std::string result = input;
-        size_t pos = result.find('#'); 
-        if(pos != std::string::npos) 
-            result.erase(pos);
-    
+        std::string result;
+        result.reserve(input.size());
+
+        bool in_comment = false;
+        for(char c : input)
+        {
+            if(in_comment)
+            {
+                if(c == '\n')
+                {
+                    in_comment = false;
+                    result += c;
+                }
+                continue;
+            }
+
+            if(c == '#')
+            {
+                in_comment = true;
+                continue;
+            }
+
+            result += c;
+        }
+
         return result;
     }
     

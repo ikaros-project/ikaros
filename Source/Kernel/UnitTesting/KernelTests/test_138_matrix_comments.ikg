@@ -1,0 +1,15 @@
+<group
+    name="Test_138"
+    description="Test hash comments in matrix strings"
+    start="true"
+    stop="1"
+    check_sum="100"
+>
+    <module
+        class="Constant"
+        name="Const"
+        data="1, 2; # first row comment
+
+3, 4 # second row comment"
+    />
+</group>
