@@ -819,22 +819,46 @@ namespace ikaros
     int color_type = png_get_color_type(png, info);
     int bit_depth = png_get_bit_depth(png, info);
 
-    // Convert to RGB if needed
     if (color_type == PNG_COLOR_TYPE_PALETTE)
         png_set_palette_to_rgb(png);
     if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
         png_set_expand_gray_1_2_4_to_8(png);
+    if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+        png_set_gray_to_rgb(png);
     if (png_get_valid(png, info, PNG_INFO_tRNS))
         png_set_tRNS_to_alpha(png);
     if (bit_depth == 16)
         png_set_strip_16(png);
+    if (color_type & PNG_COLOR_MASK_ALPHA || png_get_valid(png, info, PNG_INFO_tRNS))
+        png_set_strip_alpha(png);
 
     png_read_update_info(png, info);
+    if(png_get_channels(png, info) != 3)
+    {
+        png_destroy_read_struct(&png, &info, nullptr);
+        fclose(fp);
+        throw std::runtime_error("Unsupported PNG color format: " + filename.string());
+    }
 
     // Allocate memory for the row pointers
     png_bytep *row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
+    if(row_pointers == nullptr)
+    {
+        png_destroy_read_struct(&png, &info, nullptr);
+        fclose(fp);
+        throw std::runtime_error("Could not allocate PNG row pointers");
+    }
     for(int y = 0; y < height; y++) {
         row_pointers[y] = (png_byte*)malloc(png_get_rowbytes(png, info));
+        if(row_pointers[y] == nullptr)
+        {
+            for(int i = 0; i < y; i++)
+                free(row_pointers[i]);
+            free(row_pointers);
+            png_destroy_read_struct(&png, &info, nullptr);
+            fclose(fp);
+            throw std::runtime_error("Could not allocate PNG row");
+        }
     }
 
     png_read_image(png, row_pointers);
