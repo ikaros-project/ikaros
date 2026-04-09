@@ -749,6 +749,7 @@ const network =
     {
         this.network = n;
         this.ensureGroupAutoRouting(this.network);
+        this.ensureGroupGridSpacing(this.network);
         this.ensureConnectionDefaults(this.network);
         this.rebuildDict();
         this.component_count = Object.keys(this.dict).length+1;
@@ -795,6 +796,19 @@ const network =
             group.auto_routing = false;
         for(const child of group.groups || [])
             this.ensureGroupAutoRouting(child);
+    },
+
+    ensureGroupGridSpacing(group)
+    {
+        if(!group || typeof group !== "object")
+            return;
+        const parsed = parseInt(group.grid_spacing, 10);
+        if(Number.isFinite(parsed))
+            group.grid_spacing = Math.min(192, Math.max(8, parsed));
+        else
+            group.grid_spacing = 24;
+        for(const child of group.groups || [])
+            this.ensureGroupGridSpacing(child);
     },
 
     ensureConnectionDefaults(group)
@@ -4152,6 +4166,9 @@ const selector =
         if(selector.selected_background == null)
             return;
 
+        if(background_changed)
+            main.applyBackgroundGridSpacing();
+
         if(background_changed || force_rebuild)
         {
             if(selector.selected_foreground.length==0) // select background group
@@ -5262,7 +5279,8 @@ const main =
     {
         main.grid_spacing = main.grid_spacing*2;
         if(main.grid_spacing > 192)
-        main.grid_spacing = 192;
+            main.grid_spacing = 192;
+        main.storeBackgroundGridSpacing();
         main.drawGrid();
     },
 
@@ -5270,7 +5288,8 @@ const main =
     {
         main.grid_spacing = main.grid_spacing/2;
         if(main.grid_spacing < 8)
-        main.grid_spacing = 8;
+            main.grid_spacing = 8;
+        main.storeBackgroundGridSpacing();
         main.drawGrid();
     },
 
@@ -5382,6 +5401,40 @@ const main =
         main.auto_routing_toggle_button.classList.toggle("selected", enabled);
         main.auto_routing_toggle_button.setAttribute("aria-pressed", enabled ? "true" : "false");
         main.auto_routing_toggle_button.title = enabled ? "Disable automatic routing" : "Enable automatic routing";
+    },
+
+    getBackgroundGridGroup()
+    {
+        const background = selector.selected_background;
+        return background ? network.dict[background] : null;
+    },
+
+    applyBackgroundGridSpacing()
+    {
+        const group = main.getBackgroundGridGroup();
+        if(!group)
+            return;
+        const parsed = parseInt(group.grid_spacing, 10);
+        const nextGridSpacing = Number.isFinite(parsed) ? Math.min(192, Math.max(8, parsed)) : 24;
+        group.grid_spacing = nextGridSpacing;
+        if(main.grid_spacing === nextGridSpacing)
+            return;
+        main.grid_spacing = nextGridSpacing;
+        main.drawGrid();
+    },
+
+    storeBackgroundGridSpacing()
+    {
+        const group = main.getBackgroundGridGroup();
+        if(!group)
+            return;
+        const nextGridSpacing = Math.min(192, Math.max(8, parseInt(main.grid_spacing, 10) || 24));
+        if(group.grid_spacing === nextGridSpacing)
+            return;
+        group.grid_spacing = nextGridSpacing;
+        network.tainted = true;
+        if(inspector && typeof inspector.showInspectorForSelection === "function" && selector.selected_foreground.length === 0)
+            inspector.showInspectorForSelection();
     },
 
     toggleBackgroundAutoRouting()
