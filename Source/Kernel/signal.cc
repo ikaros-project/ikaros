@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <signal.h>
 #include <atomic>
+#include <unistd.h>
 
 extern std::atomic<bool> global_terminate; // Used to flag that CTRL-C has been received; defined in IKAROS.cc
 
@@ -13,6 +14,8 @@ namespace
     private:
         static void Handler([[maybe_unused]] int signal_number)  // Catch CTRL-C and set the terminate flag.
         {
+            static constexpr char message[] = "\nikaros will terminate after this iteration.\n";
+            write(STDERR_FILENO, message, sizeof(message) - 1);
             global_terminate.store(true, std::memory_order_relaxed);
         }
 
