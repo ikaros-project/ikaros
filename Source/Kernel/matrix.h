@@ -520,7 +520,7 @@ namespace ikaros
                 if(info_->size_ == 0)
                     return "[]";  
                 else // if(info_->size_ == 1)
-                    return std::to_string(data_->at(info_->offset_));
+                    return format_json_number(data_->at(info_->offset_));
             }
 
             std::string sep;

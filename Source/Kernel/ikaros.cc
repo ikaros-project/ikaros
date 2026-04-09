@@ -479,7 +479,7 @@ namespace ikaros
             switch(type)
             {
                 case number_type:
-                case rate_type:     return "[["+std::to_string(as_double())+"]]";
+                case rate_type:     return "[["+format_json_number(as_double())+"]]";
                 case bool_type:     return (as_bool() ? "[[true]]" : "[[false]]");
                 case string_type:   return "\""+escape_json_string(as_string())+"\"";
                 default:            throw exception("Cannot convert parameter to string");
@@ -488,9 +488,9 @@ namespace ikaros
 
         switch(type)     // FIXME: remove if statements and use exception handling
         {
-            case number_type:    if(auto number_value = std::get_if<double>(value.get())) return "[["+std::to_string(*number_value)+"]]";
+            case number_type:    if(auto number_value = std::get_if<double>(value.get())) return "[["+format_json_number(*number_value)+"]]";
             case bool_type:      if(auto bool_value = std::get_if<bool>(value.get())) return (*bool_value ? "[[true]]" : "[[false]]");
-            case rate_type:      if(auto number_value = std::get_if<double>(value.get())) return "[["+std::to_string(*number_value)+"]]";
+            case rate_type:      if(auto number_value = std::get_if<double>(value.get())) return "[["+format_json_number(*number_value)+"]]";
             case string_type:    if(auto string_value = std::get_if<std::string>(value.get())) return "\""+escape_json_string(*string_value)+"\"";
             case matrix_type:    if(auto matrix_value = get_parameter_matrix_ptr(value.get())) return matrix_value->json();
             default:            throw exception("Cannot convert parameter to string");
@@ -3950,7 +3950,7 @@ bool operator==(Request & r, const std::string s)
     Kernel::DoSendClasses(Request &)
     {
         dictionary header({
-            {"Content-Type", "text/json"},
+            {"Content-Type", "application/json; charset=utf-8"},
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
@@ -3972,7 +3972,7 @@ bool operator==(Request & r, const std::string s)
     Kernel::DoSendClassInfo(Request &)
     {
         dictionary header({
-            {"Content-Type", "text/json"},
+            {"Content-Type", "application/json; charset=utf-8"},
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
@@ -4050,7 +4050,7 @@ bool operator==(Request & r, const std::string s)
         // Send result
 
         dictionary header({
-            {"Content-Type", "text/json"},
+            {"Content-Type", "application/json; charset=utf-8"},
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });

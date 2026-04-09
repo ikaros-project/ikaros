@@ -9,6 +9,8 @@
 #include <string>
 #include <iostream>
 #include <cassert>
+#include <cmath>
+#include <limits>
 
 #include "../../dictionary.h"
 #include "../../xml.h"
@@ -89,6 +91,11 @@ main()
     assert(control_json == "{\"nul\": \"a\\u0000b\"}");
     value reparsed_control = parse_json(control_json);
     assert(reparsed_control["nul"].as_string() == std::string("a\0b", 3));
+
+    dictionary non_finite;
+    non_finite["nan"] = std::nan("");
+    non_finite["inf"] = std::numeric_limits<double>::infinity();
+    assert(non_finite.json() == "{\"inf\": null, \"nan\": null}" || non_finite.json() == "{\"nan\": null, \"inf\": null}");
 
     bool threw_on_trailing_junk = false;
     try

@@ -589,6 +589,8 @@ namespace ikaros
         {
             if(std::holds_alternative<std::string>(value_))
                 return "\""+escape_json_string(std::get<std::string>(value_))+"\"";
+            else if(std::holds_alternative<double>(value_))
+                return format_json_number(std::get<double>(value_));
             else if(std::holds_alternative<list>(value_))
                 return std::get<list>(value_).json();
             else if(std::holds_alternative<dictionary>(value_))
@@ -713,6 +715,8 @@ namespace ikaros
             }
             else
             {
+                if(static_cast<unsigned char>(s[pos]) < 0x20)
+                    throw std::runtime_error("Unescaped control character in JSON string");
                 result += s[pos];
             }
             ++pos;

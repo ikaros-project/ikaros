@@ -1,6 +1,7 @@
 // utilities.cc
 
 #include "utilities.h"
+#include <cmath>
 
 namespace ikaros
 {
@@ -542,6 +543,13 @@ base64_encode(const unsigned char * data,
         }
 
         return str;
+    }
+
+    std::string format_json_number(double value, int decimals)
+    {
+        if(!std::isfinite(value))
+            return "null";
+        return formatNumber(value, decimals);
     }
 
 
