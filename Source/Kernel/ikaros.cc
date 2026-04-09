@@ -3485,9 +3485,27 @@ bool operator==(Request & r, const std::string s)
     }
 
 
+    Kernel::SendFileResult
+    Kernel::SendFileIfSafe(const std::filesystem::path & root, const std::string & file)
+    {
+        std::filesystem::path sanitized_path;
+        if(!SanitizeProjectPath(root / file, sanitized_path))
+            return SendFileResult::forbidden;
+
+        std::error_code ec;
+        if(!std::filesystem::is_regular_file(sanitized_path, ec) || ec)
+            return SendFileResult::not_found;
+
+        return socket->SendFile(sanitized_path) ? SendFileResult::sent : SendFileResult::not_found;
+    }
+
+
     void
     Kernel::DoSendFile(std::string file)
     {
+        if(file.empty())
+            return;
+
         if(file[0] == '/')
             file = file.erase(0,1); // Remove initial slash
 
@@ -3496,17 +3514,31 @@ bool operator==(Request & r, const std::string s)
 
         //std::cout << "Sending file: " << file << std::endl;
 
-        if(socket->SendFile(file, user_dir))   // Look in user directory
+        bool forbidden = false;
+        auto try_send_file = [this, &file, &forbidden](const std::filesystem::path & root)
+        {
+            SendFileResult result = SendFileIfSafe(root, file);
+            if(result == SendFileResult::forbidden)
+                forbidden = true;
+            return result == SendFileResult::sent;
+        };
+
+        if(try_send_file(user_dir))   // Look in user directory
             return;
 
-        if(socket->SendFile(file, webui_dir))   // Now look in WebUI directory
+        if(try_send_file(webui_dir))   // Now look in WebUI directory
             return;
 
-        if(socket->SendFile(file, std::string(webui_dir)+"Images/"))   // Now look in WebUI/Images directory
+        if(try_send_file(std::filesystem::path(webui_dir) / "Images"))   // Now look in WebUI/Images directory
             return;
 
-        if(socket->SendFile(file, webui_dir+"../"))   // Now look in Source directory
+        if(try_send_file(std::filesystem::path(webui_dir) / ".."))   // Now look in Source directory
             return;
+
+        if(forbidden)
+            DoSendError("403 Forbidden", "403 Forbidden\n");
+        else
+            DoSendError("404 Not Found", "404 Not Found\n");
 
     
 
@@ -4080,13 +4112,14 @@ bool operator==(Request & r, const std::string s)
 
 
     void
-    Kernel::DoSendError()
+    Kernel::DoSendError(const std::string & status, const std::string & message)
     {
     dictionary header({
-        {"Content-Type", "text/plain"}
+        {"Content-Type", "text/plain"},
+        {"Content-Length", std::to_string(message.size())}
     });
-    socket->SendHTTPHeader(&header);
-    socket->Send("ERROR\n");
+    socket->SendHTTPHeader(&header, status.c_str());
+    socket->Send(message);
     }
 
 
