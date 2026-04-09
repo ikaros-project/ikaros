@@ -12,6 +12,12 @@
 
 using namespace ikaros;
 
+namespace
+{
+    constexpr int MAX_HTTP_HEADER_SIZE = 64 * 1024;
+    constexpr size_t MAX_HTTP_BODY_SIZE = 10 * 1024 * 1024;
+}
+
 //
 //	Socket - functions that gets data from a HTTP server
 //
@@ -463,12 +469,16 @@ ServerSocket::GetRequest(bool block)
         read_count += rr;
         request[read_count] = '\0';
         if(read_count >= request_allocated_size-1) {
-            char *new_request = (char *)realloc(request, request_allocated_size + 1024);
+            if(request_allocated_size >= MAX_HTTP_HEADER_SIZE)
+                return false;
+
+            int new_request_size = std::min(request_allocated_size + 1024, MAX_HTTP_HEADER_SIZE);
+            char *new_request = (char *)realloc(request, new_request_size);
             if(new_request == nullptr) 
                 throw std::system_error(errno, std::system_category(), "Failed to allocate memory");
 
             request = new_request;
-            request_allocated_size += 1024;
+            request_allocated_size = new_request_size;
         }
     }
     	
@@ -482,17 +492,33 @@ ServerSocket::GetRequest(bool block)
 	}
 	
 	header = dictionary();
-	header["Method"] = strsep(&p, " ");
-	header["URI"] = UriDecode(strsep(&p, " "));
-	header["HTTP-Version"] = strsep(&p, "\r");
+    char * method = strsep(&p, " ");
+    char * uri = strsep(&p, " ");
+    char * http_version = strsep(&p, "\r");
+    if(method == nullptr || uri == nullptr || http_version == nullptr || p == nullptr)
+        return false;
+
+	header["Method"] = method;
+	header["URI"] = UriDecode(uri);
+	header["HTTP-Version"] = http_version;
 	strsep(&p, "\n");
 	while(p && *p != '\r')
 	{
-        char * k = strip(strsep(&p, ":"));
-        char * v = strip(strsep(&p, "\r"));
+        char * key = strsep(&p, ":");
+        char * value = strsep(&p, "\r");
+        if(key == nullptr || value == nullptr)
+            return false;
+
+        char * k = strip(key);
+        char * v = strip(value);
+        if(k == nullptr || v == nullptr || *k == '\0')
+            return false;
+
 		header[k] = v;
 		strsep(&p, "\n");
 	}
+    if(p == nullptr)
+        return false;
     if(*p=='\r')
         p++;
     if(*p=='\n')
@@ -501,7 +527,16 @@ ServerSocket::GetRequest(bool block)
     if(header.contains_non_null("Method") && std::string(header["Method"]) == "PUT")
     {
         if(header.contains_non_null("Content-Length")) {
-            const size_t content_length = std::stoull(std::string(header["Content-Length"]));
+            size_t content_length = 0;
+            try {
+                content_length = std::stoull(std::string(header["Content-Length"]));
+            } catch(const std::exception &) {
+                return false;
+            }
+
+            if(content_length > MAX_HTTP_BODY_SIZE)
+                return false;
+
             if (content_length > 0) {
                 std::vector<char> buffer(content_length);
                 size_t buffered_size = 0;
