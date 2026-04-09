@@ -14,7 +14,7 @@ namespace ikaros
 
         static void skip_whitespace(const std::string& s, size_t& pos)
         {
-            while (pos<s.length() && std::isspace(s[pos]))
+            while (pos<s.length() && std::isspace(static_cast<unsigned char>(s[pos])))
                 ++pos;
         }
 
@@ -917,7 +917,7 @@ namespace ikaros
         {
             return value(parse_object(s, pos));
         }
-        else if(std::isdigit(s[pos]) || s[pos] == '-')
+        else if(std::isdigit(static_cast<unsigned char>(s[pos])) || s[pos] == '-')
         {
             return parse_number(s, pos);
         }
