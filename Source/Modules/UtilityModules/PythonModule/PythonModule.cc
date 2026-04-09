@@ -529,7 +529,15 @@ class PythonModule: public Module
             return false;
         }
 
-        PublishOutputs(reply);
+        try
+        {
+            PublishOutputs(reply);
+        }
+        catch(const std::exception & e)
+        {
+            HandleWorkerFailure(std::string(e.what()));
+            return false;
+        }
         return true;
     }
 
