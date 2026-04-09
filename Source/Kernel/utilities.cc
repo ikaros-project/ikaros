@@ -8,8 +8,8 @@ namespace ikaros
 
 std::string trim(const std::string &s)
 {
-   auto wsfront=std::find_if_not(s.begin(),s.end(),[](int c){return std::isspace(c);});
-   auto wsback=std::find_if_not(s.rbegin(),s.rend(),[](int c){return std::isspace(c);}).base();
+   auto wsfront=std::find_if_not(s.begin(),s.end(),[](unsigned char c){return std::isspace(c);});
+   auto wsback=std::find_if_not(s.rbegin(),s.rend(),[](unsigned char c){return std::isspace(c);}).base();
    return (wsback<=wsfront ? std::string() : std::string(wsfront,wsback));
 }
 
@@ -25,10 +25,10 @@ split(const std::string & s, const std::string & sep, int maxsplit)
     {
         while(i<len)
         {
-            while (i < len && ::isspace(s[i]))
+            while (i < len && ::isspace(static_cast<unsigned char>(s[i])))
                 i++;
             j = i;
-            while (i < len && !::isspace(s[i]))
+            while (i < len && !::isspace(static_cast<unsigned char>(s[i])))
                 i++;
 
             if(j < i)
@@ -36,7 +36,7 @@ split(const std::string & s, const std::string & sep, int maxsplit)
                 if(maxsplit != -1 && maxsplit-- <= 0)
                     break;
                 r.push_back(trim(s.substr(j, i-j)));
-                while(i < len && ::isspace(s[i]))
+                while(i < len && ::isspace(static_cast<unsigned char>(s[i])))
                     i++;
                 j = i;
             }
@@ -82,10 +82,10 @@ rsplit(const std::string & str, const std::string & sep, int maxsplit)
     {
         while(i > 0)
         {
-            while(i > 0 && ::isspace(str[i-1]))
+            while(i > 0 && ::isspace(static_cast<unsigned char>(str[i-1])))
                 i--;
             j = i;
-            while(i > 0 && !::isspace(str[i-1]))
+            while(i > 0 && !::isspace(static_cast<unsigned char>(str[i-1])))
                 i--;
 
             if (j > i)
@@ -93,7 +93,7 @@ rsplit(const std::string & str, const std::string & sep, int maxsplit)
                 if(maxsplit != -1 && maxsplit-- <= 0)
                     break;
                 r.push_back(str.substr(i, j-i));
-                while(i > 0 && ::isspace(str[i-1]))
+                while(i > 0 && ::isspace(static_cast<unsigned char>(str[i-1])))
                     i--;
                 j = i;
             }
@@ -501,6 +501,15 @@ base64_encode(const unsigned char * data,
 {
     static char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     static int mod_table[] = {0, 2, 1};
+    if(size_in == 0)
+    {
+        *size_out = 0;
+        char *encoded_data = (char *)malloc(1);
+        if(encoded_data != nullptr)
+            encoded_data[0] = '\0';
+        return encoded_data;
+    }
+
     *size_out = ((size_in - 1) / 3) * 4 + 4;
     
     char *encoded_data = (char *)malloc(*size_out);
