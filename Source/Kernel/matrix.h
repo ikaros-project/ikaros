@@ -1022,19 +1022,29 @@ namespace ikaros
             return *this;
         }
 
-        template <typename... Args>
         matrix & 
-        realloc(Args... shape)
+        realloc(const std::vector<int> & shape)
         {
+            for(int dimension : shape)
+                if(dimension < 0)
+                    throw std::invalid_argument(get_name()+"Matrix size cannot be negative.");
+
             info_-> offset_ = 0; 
-            info_-> shape_ = std::vector<int>({shape...}); 
-            info_->stride_ = std::vector<int>({shape...});
-            info_->max_size_ = std::vector<int>({shape...});
+            info_-> shape_ = shape; 
+            info_->stride_ = shape;
+            info_->max_size_ = shape;
             info_->size_ = info_->calculate_size(); 
             info_->labels_.resize(info_->shape_.size());
             data_->resize(info_->size_);
 
             return *this;
+        }
+
+        template <typename... Args>
+        matrix & 
+        realloc(Args... shape)
+        {
+            return realloc(std::vector<int>({shape...}));
         }
 
         template <typename... Args>
