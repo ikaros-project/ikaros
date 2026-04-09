@@ -504,12 +504,14 @@ ServerSocket::GetRequest(bool block)
             const size_t content_length = std::stoull(std::string(header["Content-Length"]));
             if (content_length > 0) {
                 std::vector<char> buffer(content_length);
-                size_t n = strlen(p);
-                strncpy(buffer.data(), p, buffer.size() - 1);
-                buffer[buffer.size() - 1] = '\0';
+                size_t buffered_size = 0;
+                if(p >= request && p <= request + read_count)
+                    buffered_size = std::min(content_length, static_cast<size_t>(request + read_count - p));
 
-                long rr = n + Read(buffer.data() + n, content_length - n, true);
-                body = std::string(buffer.data());
+                std::copy_n(p, buffered_size, buffer.data());
+
+                size_t bytes_read = buffered_size + Read(buffer.data() + buffered_size, content_length - buffered_size, true);
+                body = std::string(buffer.data(), bytes_read);
             }
         }
     }
