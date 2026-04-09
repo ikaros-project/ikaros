@@ -11,16 +11,9 @@ namespace
     class Signal
     {
     private:
-        static void Handler([[maybe_unused]] int signal_number)  // Catch CTRL-C, set the terminate flag and remove the handler
-        {                                                        // so that next CTRL-C will terminate the process immediately
-            global_terminate = true;
-            struct sigaction sa {};
-            sa.sa_handler = SIG_DFL;
-            sigemptyset(&sa.sa_mask);
-            sigaction(SIGINT, &sa, nullptr);
-            std::fflush(nullptr);
-            std::printf("\nikaros will terminate after this iteration.\n");
-            std::fflush(nullptr);
+        static void Handler([[maybe_unused]] int signal_number)  // Catch CTRL-C and set the terminate flag.
+        {
+            global_terminate.store(true, std::memory_order_relaxed);
         }
 
     public:
@@ -34,7 +27,7 @@ namespace
             struct sigaction sa {};
             sa.sa_handler = Signal::Handler;
             sigemptyset(&sa.sa_mask);
-            sa.sa_flags = 0;
+            sa.sa_flags = SA_RESETHAND; // Let a second CTRL-C terminate immediately.
             sigaction(SIGINT, &sa, nullptr);
         }
     };
