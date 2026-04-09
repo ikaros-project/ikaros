@@ -118,7 +118,7 @@ Socket::ReadData(char * result, ssize_t maxlen, bool fill)
         ssize_t read_size = (maxlen-dst < BUFFER_SIZE ? maxlen-dst : BUFFER_SIZE);
         rc = read(sd, buffer, read_size);
 
-        rc = read(sd, buffer, read_size);
+        // rc = read(sd, buffer, read_size); // Do not read twice; this discards the first chunk.
         if(rc == -1)
             return -1;
     
@@ -163,16 +163,22 @@ Socket::Close()
 std::string
 Socket::HTTPGet(const std::string & url) // Very temporary implementation that only handles incomplete urls for now with only site + path
 {
-    long max_size = 100000;
-    char buffer[100000];
+    constexpr size_t max_response_size = 100 * 1024;
+    std::vector<char> buffer(max_response_size);
     auto parts = split(url, "/", 1);
     auto site = parts.at(0);
     auto path = parts.at(1);
     std::string request = "GET /"+path+" HTTP/1.1\r\nHost: " + site+"\r\nConnection: close\r\n\r\n";
-    Get(site.c_str(), 80, request.c_str(), buffer, 100000);
-    auto buff = std::string(buffer);
+    int bytes_read = Get(site.c_str(), 80, request.c_str(), buffer.data(), buffer.size());
+    if(bytes_read <= 0)
+        return "";
+
+    auto buff = std::string(buffer.data(), bytes_read);
     auto header_and_data = split(buff, "\r\n\r\n", 1);
     Close();
+
+    if(header_and_data.size() < 2)
+        return "";
 
     return header_and_data.at(1); 
 }
@@ -320,12 +326,20 @@ ServerSocket::Read(char *buffer, int maxSize, bool fill)
 static char *
 strip(char * s)
 {
-	ssize_t t = strlen(s)-1;
-	while(s[t] <= ' ')
-		s[t--] = '\0';
-	while(*s <= ' ')
-		s++;
-	return s;
+    if(s == nullptr)
+        return nullptr;
+
+    while(*s != '\0' && *s <= ' ')
+        s++;
+
+    if(*s == '\0')
+        return s;
+
+    char * t = s + strlen(s) - 1;
+    while(t >= s && *t <= ' ')
+        *t-- = '\0';
+
+    return s;
 }
 
 
