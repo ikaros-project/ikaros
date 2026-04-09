@@ -564,7 +564,7 @@ XMLDocument::SkipWhitespace(const char *t)
 char *
 XMLDocument::Push(const char * t, int n)
 {
-    if (pos >= buffer_size)
+    while (pos + n + 1 > buffer_size)
     {
         // grow buffer size
         
