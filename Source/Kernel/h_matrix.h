@@ -300,6 +300,9 @@ namespace ikaros
         h_matrix &
         multiply_v(h_matrix mm, matrix vv) // FIXME: Should check size of vv, should be matrix(4) ****************
     {
+        if(vv.size() != 4)
+            throw exception("multiply_v requires a vector with exactly 4 elements.");
+
         float * r = data();
         float * m = mm.data();
         float * v = vv.data();
