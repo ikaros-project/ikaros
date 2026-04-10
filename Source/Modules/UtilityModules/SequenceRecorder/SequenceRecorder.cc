@@ -95,6 +95,14 @@ find_index_for_time(list keypoints, float t)
     return low;
 }
 
+static void
+set_one_hot(matrix & target, int index, int size)
+{
+    target.set(0);
+    if (0 <= index && index < size)
+        target[index] = 1;
+}
+
 class SequenceRecorder : public Module
 {
 public:
@@ -109,7 +117,7 @@ public:
     Stop()
     {
         bool was_recoding = state[2] > 0;
-        set_one(state, 0, states);
+        set_one_hot(state, 0, states);
         timer.Stop();
         if (was_recoding)
             LinkKeypoints(); // at end of recording
@@ -119,7 +127,7 @@ public:
     Play()
     {
         // if(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] == 0)
-        set_one(state, 1, states);
+        set_one_hot(state, 1, states);
         timer.Continue();
     }
 
@@ -127,14 +135,14 @@ public:
     Record()
     {
         StartRecord();
-        set_one(state, 2, states);
+        set_one_hot(state, 2, states);
     }
 
     void
     Pause()
     {
         bool was_recoding = state[2] > 0;
-        set_one(state, 3, states);
+        set_one_hot(state, 3, states);
         timer.Pause();
         if (was_recoding)
             LinkKeypoints(); // at end of recording
@@ -144,7 +152,7 @@ public:
     SkipStart()
     {
         timer.Pause();
-        set_one(state, 3, states); // Pause
+        set_one_hot(state, 3, states); // Pause
         if ((1000 * timer.GetTime()) <= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
             timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["start_time"] / 1000.0);
         else if ((1000 * timer.GetTime()) <= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
@@ -157,7 +165,7 @@ public:
     SkipEnd()
     {
         timer.Pause();
-        set_one(state, 3, states);
+        set_one_hot(state, 3, states);
         if ((1000 * timer.GetTime()) >= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
             timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"] / 1000.0);
         else if ((1000 * timer.GetTime()) >= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
@@ -840,7 +848,7 @@ public:
         filename = name;
         auto path = std::string(directory) + "/" + std::string(filename);
 
-        if (!check_file_exists(path.c_str())) // Remove call t check_file_exists(path.c_str())
+        if (!fs::exists(path))
         {
             Notify(msg_warning, "File does not exist."); // FIXME: path.c_str()
             return false;
@@ -977,7 +985,7 @@ public:
             right_index[c] = INT_MAX;
         }
 
-        if (!std::string(filename).empty() && check_file_exists((std::string(directory) + "/" + std::string(filename)).c_str())) // TODO: Remove call to check_file_exists
+        if (!std::string(filename).empty() && fs::exists(std::string(directory) + "/" + std::string(filename)))
         {
             if (!Open(std::string(filename)))
                 New();
@@ -1057,7 +1065,7 @@ public:
 
         if (state[1]) // handle play mode
         {
-            set_one(playing, current_sequence, max_sequences);
+            set_one_hot(playing, current_sequence, max_sequences);
             if (loop && t >= float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])) // loop
             {
                 timer.Pause();
@@ -1068,7 +1076,7 @@ public:
             {
                 Pause();
                 timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"] / 1000.0);
-                set_one(completed, current_sequence, max_sequences);
+                set_one_hot(completed, current_sequence, max_sequences);
             }
         }
 

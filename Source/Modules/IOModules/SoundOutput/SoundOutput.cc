@@ -148,12 +148,14 @@ class SoundOutput : public Module
 
         if (current_sound == -1)
         {
-            reset_array(playing, trig.size());
+            playing.set(0);
             active(0) = 0;
         }
         else
         {
-            set_one(playing, current_sound, trig.size());
+            playing.set(0);
+            if (0 <= current_sound && current_sound < trig.size())
+                playing[current_sound] = 1;
             active(0) = 1;
         }
 
@@ -161,11 +163,13 @@ class SoundOutput : public Module
 
         if ((current_sound != last_sound) && (last_sound != -1))
         {
-            set_one(completed, last_sound, trig.size());
+            completed.set(0);
+            if (0 <= last_sound && last_sound < trig.size())
+                completed[last_sound] = 1;
         }
         else
         {
-            reset_array(completed, trig.size());
+            completed.set(0);
         }
     }
 
@@ -176,9 +180,9 @@ class SoundOutput : public Module
         // Get amplitudes using ffprobe
 
         int err = 0;
-        char *command_line = create_formatted_string("ffprobe -f lavfi -i amovie=%s,astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0 2>/dev/null", sound_path.c_str());
+        std::string command_line = "ffprobe -f lavfi -i amovie=" + sound_path + ",astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0 2>/dev/null";
         float t, l, r;
-        FILE *fp = popen(command_line, "r");
+        FILE *fp = popen(command_line.c_str(), "r");
         if (fp != NULL)
         {
             while (fscanf(fp, "%f,%f,%f\n", &t, &l, &r) == 3) // Reads output from ffprobe

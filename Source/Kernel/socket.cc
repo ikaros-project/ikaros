@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <algorithm> // For std::min
+#include <string_view>
 
 
 #define BACKLOG		10 		// how many pending connections queue will hold
@@ -16,6 +17,52 @@ namespace
 {
     constexpr int MAX_HTTP_HEADER_SIZE = 64 * 1024;
     constexpr size_t MAX_HTTP_BODY_SIZE = 10 * 1024 * 1024;
+
+    bool
+    ends_with(std::string_view value, std::string_view suffix)
+    {
+        return value.size() >= suffix.size() &&
+            value.compare(value.size() - suffix.size(), suffix.size(), suffix) == 0;
+    }
+
+    char *
+    copy_string(char * dest, const char * src, int len)
+    {
+        int size;
+
+        if (!len)
+            return dest;
+
+        if(!src) // NULL is treated as an empty string
+        {
+            dest[0] = '\0';
+            return dest;
+        }
+
+        size = int(strlen(src));
+        if (size >= len)
+            size = len-1;
+        memcpy(dest, src, size);
+        dest[size] = '\0';
+        return dest;
+    }
+
+    char *
+    append_string(char * dest, const char * a, int len)
+    {
+        if(!len || !a)
+            return dest;
+
+        int used = int(strlen(dest));
+
+        int size = int(strlen(a));
+        if(used+size >= len)
+            size = len-used-1;
+        memcpy(dest+used, a, size);
+        dest[used+size] = '\0';
+
+        return dest;
+    }
 }
 
 //
@@ -689,25 +736,26 @@ ServerSocket::SendFile(const char * filename, const char * path, dictionary * hd
     (*h)["Content-Length"] = length;
     (*h)["Server"] = "Ikaros/3.0";
 	
-    if(strend(filename, ".html"))
+    const std::string_view filename_view(filename);
+    if(ends_with(filename_view, ".html"))
 		(*h)["Content-Type"] = "text/html";
-    else if(strend(filename, ".css"))
+    else if(ends_with(filename_view, ".css"))
 		(*h)["Content-Type"] = "text/css";
-    else if(strend(filename, ".js"))
+    else if(ends_with(filename_view, ".js"))
 		(*h)["Content-Type"] = "text/javascript";
-    else if(strend(filename, ".jpg"))
+    else if(ends_with(filename_view, ".jpg"))
 		(*h)["Content-Type"] = "image/jpeg";
-    else if(strend(filename, ".jpeg"))
+    else if(ends_with(filename_view, ".jpeg"))
 		(*h)["Content-Type"] = "image/jpeg";
-    else if(strend(filename, ".gif"))
+    else if(ends_with(filename_view, ".gif"))
 		(*h)["Content-Type"] = "image/gif";
-    else if(strend(filename, ".png"))
+    else if(ends_with(filename_view, ".png"))
 		(*h)["Content-Type"] = "image/png";
-    else if(strend(filename, ".svg"))
+    else if(ends_with(filename_view, ".svg"))
 		(*h)["Content-Type"] = "image/svg+xml";
-    else if(strend(filename, ".xml"))
+    else if(ends_with(filename_view, ".xml"))
 		(*h)["Content-Type"] = "text/xml";
-    else if(strend(filename, ".ico"))
+    else if(ends_with(filename_view, ".ico"))
 		(*h)["Content-Type"] = "image/vnd.microsoft.icon";
 	
     SendHTTPHeader(h);

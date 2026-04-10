@@ -7,8 +7,8 @@ using namespace ikaros;
 class Arbiter: public Module
 {
 public:
-    char **     input_name;
-    char **     value_name;
+    std::string * input_name;
+    std::string * value_name;
 
     matrix          input; // float ***
     matrix          value_in;
@@ -46,16 +46,18 @@ public:
 
         no_of_inputs = GetIntValue("no_of_inputs");
 
-        input_name  = new char * [no_of_inputs];
-        value_name  = new char * [no_of_inputs];
+        input_name  = new std::string[no_of_inputs];
+        value_name  = new std::string[no_of_inputs];
 
         input      = new float ** [no_of_inputs];
         value_in   = new float * [no_of_inputs];
 
         for (int i=0; i<no_of_inputs; i++)
         {
-            AddInput(input_name[i] = create_formatted_string("INPUT_%d", i+1));
-            AddInput(value_name[i] = create_formatted_string("VALUE_%d", i+1));
+            input_name[i] = "INPUT_" + std::to_string(i + 1);
+            value_name[i] = "VALUE_" + std::to_string(i + 1);
+            AddInput(input_name[i].c_str());
+            AddInput(value_name[i].c_str());
         }
 
         AddOutput("OUTPUT");
@@ -66,16 +68,10 @@ public:
         AddOutput("SMOOTHED");
         AddOutput("NORMALIZED");
     }
-
-
-
     ~Arbiter()
     {
-        for (int i=0; i<no_of_inputs; i++)
-        {
-            destroy_string(input_name[i]);
-            destroy_string(value_name[i]);
-        }
+        delete [] input_name;
+        delete [] value_name;
     }
 
 
@@ -88,8 +84,8 @@ public:
 
         for(int i=0; i<no_of_inputs; i++)
         {
-            int sxi = GetInputSizeX(input_name[i]);
-            int syi = GetInputSizeY(input_name[i]);
+            int sxi = GetInputSizeX(input_name[i].c_str());
+            int syi = GetInputSizeY(input_name[i].c_str());
 
             if(sxi == unknown_size)
                 continue; // Not ready yet
@@ -98,10 +94,10 @@ public:
                 continue; // Not ready yet
 
             if(sx != 0 && sxi != 0 && sx != sxi)
-                Notify(msg_fatal_error, "Inputs have different sizes x: %s, %i vs %i, ", input_name[i], sxi, sx);
+                Notify(msg_fatal_error, "Inputs have different sizes x: %s, %i vs %i, ", input_name[i].c_str(), sxi, sx);
 
             if(sy != 0 && syi != 0 && sy != syi)
-                Notify(msg_fatal_error, "Inputs have different sizes y: %s, %i vs %i", input_name[i], syi, sy);
+                Notify(msg_fatal_error, "Inputs have different sizes y: %s, %i vs %i", input_name[i].c_str(), syi, sy);
             
             sx = sxi;
             sy = syi;
@@ -148,8 +144,8 @@ public:
         int vcnt = 0;
         for(int i=0; i<no_of_inputs; i++)
         {
-            input[i] = GetInputMatrix(input_name[i]);
-            value_in[i] = GetInputArray(value_name[i], false);
+            input[i] = GetInputMatrix(input_name[i].c_str());
+            value_in[i] = GetInputArray(value_name[i].c_str(), false);
             if(value_in[i])
                 vcnt++;
         }
@@ -293,8 +289,8 @@ public:
             printf("size_x= %i, size_y= %i\n", size_x, size_y);
             for (int i = 0; i < no_of_inputs; i++)
             {
-                print_matrix(input_name[i], input[i], size_x, size_y);
-                print_array(value_name[i], value_in[i], size_x);
+                print_matrix(input_name[i].c_str(), input[i], size_x, size_y);
+                print_array(value_name[i].c_str(), value_in[i], size_x);
             }
             print_matrix("output", output, size_x, size_y);
             print_matrix("value_out", value_out, size_x, size_y);

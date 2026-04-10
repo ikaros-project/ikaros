@@ -1,6 +1,8 @@
 //
 //	deprecated.cc		Various compatibility utilities for the IKAROS project - will be removed in the future
 //
+// The code are here temporarily for documentation purposes - do not use any of the functions in this file in new code
+//
 //    Copyright (C) 2001-2022  Christian Balkenius
 //
 //    This program is free software; you can redistribute it and/or modify
@@ -31,6 +33,7 @@
 #include <algorithm>
 #include <stdexcept>
 
+#if 0
 char *
 create_string(const char * c)
 {
@@ -78,7 +81,9 @@ create_string_tail(const char * c, int i)
     else
         return nullptr;
 }
+#endif
 
+#if 0
 char *
 create_formatted_string(const char *format, ...)
 {
@@ -99,8 +104,10 @@ destroy_string(char * c)
 {
     delete [] c;
 }
+#endif
 
 
+#if 0
 bool
 equal_strings(const char * a, const char * b)
 {
@@ -119,7 +126,9 @@ strstart(const char * s1, const char *s2) // does s1 start with s2
 			return false;
 	return true;
 }
+#endif
 
+#if 0
 bool
 strend(const char * s1, const char * s2) // does 1s end with s2
 {
@@ -133,7 +142,9 @@ strend(const char * s1, const char * s2) // does 1s end with s2
 	while(i1 && i2);
 	return true;
 }
+#endif
 
+#if 0
 char *
 copy_string(char * dest, const char * src, int len)
 {
@@ -172,7 +183,9 @@ append_string(char * dest, const char * a, int len)
     
     return dest;
 }
+#endif
 
+#if 0
 //
 // Taken from http://www.cplusplus.com/articles/2wA0RXSz/
 //
@@ -336,9 +349,11 @@ is_absolute_path(const char * p)
         return true;
     return false;
 }
+#endif
 
 
 
+#if 0
 void
 print_array(const char * name, float * a, int size, int decimals)
 {
@@ -369,6 +384,7 @@ print_array(const char * name, float * a, int size, int decimals)
     }
 }
 
+#if 0
 void
 print_array(const char * name, int * a, int size)
 {
@@ -377,6 +393,7 @@ print_array(const char * name, int * a, int size)
         printf("%i ", a[i]);
     printf("\n");
 }
+#endif
 
 void
 print_matrix(const char * name, float ** m, int sizex, int sizey, int decimals)
@@ -415,16 +432,16 @@ print_matrix(const char * name, float ** m, int sizex, int sizey, int decimals)
         printf("\n");
     }
 }
+#endif
 
 
 
+#if 0
 float *
 create_array(int size)
 {
     return (float *)calloc(size, sizeof(float));
 }
-
-
 
 float *
 create_array(const char * s, int & size, bool fixed_size)
@@ -627,16 +644,20 @@ resize_matrix(int sizex, int sizey, int sizez, bool clear=false)
 {
     return nullptr;
 }
+#endif
 
 
 
+#if 0
 float *
 reset_array(float * a, int size)
 {
     std::fill_n(a, size, 0.0f);
     return a;
 }
+#endif
 
+#if 0
 float **
 reset_matrix(float ** m, int sizex, int sizey)
 {
@@ -672,9 +693,11 @@ set_matrix(float *** m, float v, int sizex, int sizey, int sizez)
     set_array(m[0][0], v, sizex*sizey*sizez);
     return m;
 }
+#endif
 
 // row/col operations
 
+#if 0
 float **
 reset_row(float ** m, int row, int sizex, int sizey)
 {
@@ -689,7 +712,9 @@ reset_col(float ** m, int col, int sizex, int sizey)
         m[i][col] = 0;
     return m;
 }
+#endif
 
+#if 0
 float **
 set_row(float ** m, float * a, int row, int sizex)
 {
@@ -724,8 +749,10 @@ get_col(float * a, float ** m, int col, int sizey)
         a[j] = m[j][col];
     return a;
 }
+#endif
 
 
+#if 0
 float *
 set_one(float * a, int index, int size)
 {
@@ -734,7 +761,9 @@ set_one(float * a, int index, int size)
         a[index] = 1;
     return a;
 }
+#endif
 
+#if 0
 float **
 set_one_row(float ** m, int x, int y, int sizex, int sizey)
 {
@@ -750,11 +779,13 @@ set_one_col(float ** m, int x, int y, int sizex, int sizey)
     m[y][x] = 1;
     return m;
 }
+#endif
 
 
 //
 // put source into target with given indeces
 //
+#if 0
 float *
 put(float *target, const int *indices, const float *source, const int len)
 {
@@ -1001,6 +1032,9 @@ destroy_matrix(float **** a)
     free(a);
 }
 
+#endif
+
+#if 0
 float *
 copy_array(float * r, float * a, int size)
 {
@@ -1020,9 +1054,11 @@ copy_matrix(float *** r, float *** a, int sizex, int sizey, int sizez)
     memcpy(r[0][0], a[0][0], sizex*sizey*sizez*sizeof(float));
     return r;
 }
+#endif
 
 
 // mark - TAT additions
+#if 0
 // void        set_submatrix(float *A, int ncols, float *S, int mrows, int mcols, int row, int col);
     //  Taken from: http://www.mymathlib.com/
     //  Arguments:                                                                //
@@ -1129,6 +1165,7 @@ void take(float *r, float *a,int len, int *indeces)
     for (int i=0; i< len; ++i)
         r[i] = a[indeces[i]];
 }
+#endif
 
 /*
 // Dictionary
@@ -1345,6 +1382,7 @@ Dictionary::GetKey(Dictionary::Iterator i)
 */
 
 
+#if 0
 const char *
 check_file_exists(const char * path)
 {
@@ -1358,3 +1396,4 @@ check_file_exists(const char * path)
     
 	return nullptr;
 }
+#endif
