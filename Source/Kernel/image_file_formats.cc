@@ -4,6 +4,7 @@
 #include "matrix.h"
 #include "image_file_formats.h"
 #include "color_tables.h"
+#include <new>
 
 extern "C"
 {
@@ -62,6 +63,8 @@ namespace ikaros
         dst->used = 0; 
         dst->size = 2048+cinfo->image_width * cinfo->image_height * cinfo->input_components * 2; // arbitrary initial size ; 2048 for header in case of very small images
         dst->buffer = (JOCTET *)malloc(dst->size * sizeof *dst->buffer);
+        if(dst->buffer == nullptr)
+            throw std::bad_alloc();
         dst->dest_mgr.next_output_byte = dst->buffer; 
         dst->dest_mgr.free_in_buffer = dst->size; 
         return; 
@@ -76,7 +79,10 @@ namespace ikaros
         struct jpeg_destination *dst = (jpeg_destination *)cinfo->dest; 
         dst->used = dst->size - dst->dest_mgr.free_in_buffer;
         dst->size *= 2; 
-        dst->buffer = (JOCTET *)realloc(dst->buffer, dst->size * sizeof *dst->buffer);
+        JOCTET * resized = (JOCTET *)realloc(dst->buffer, dst->size * sizeof *dst->buffer);
+        if(resized == nullptr)
+            throw std::bad_alloc();
+        dst->buffer = resized;
         dst->dest_mgr.next_output_byte = &dst->buffer[dst->used];
         dst->dest_mgr.free_in_buffer = dst->size - dst->used; 
         return true; 
@@ -526,10 +532,13 @@ namespace ikaros
     {
         size = 0;
 
+        if(image.rank() != 3 || image.size(0) != 3)
+            return nullptr;
+
         float * r = image[0][0];
         float * g = image[1][0];
         float * b = image[2][0];
-        long sizex = image.shape()[2];  // FIXME: Change to size(2)
+        long sizex = image.size(2);
         long sizey = image.shape()[1];
 
         if (r == nullptr) return nullptr;
