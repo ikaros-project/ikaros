@@ -267,8 +267,6 @@ public:
     std::vector<int> EvaluateSizeList(std::string & s);
 
     bool InputsReady(dictionary d, input_map ingoing_connections);
-
-    void SetSourceRanges(const std::string & name, const std::vector<Connection *> & ingoing_connections);
     int SetInputSize_Flat(dictionary d, input_map ingoing_connections);
     int SetInputSize_Index(dictionary d, input_map ingoing_connections);
 
