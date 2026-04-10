@@ -1,5 +1,5 @@
 <group filename="functiongenerator_test.ikg" name="FunctionGenerator_test">
-   <module _x="100" _y="100" class="FunctionGenerator" description="Generates functions" name="func" size="2" type="">
+   <module _x="100" _y="100" class="FunctionGenerator" description="Generates functions" name="func" size="2" type="sine">
    </module>
    <widget _index_="0" _x="312" _y="96" buffer_size="50" class="plot" color="" direction="vertical" frame-style="" height="200" max="1" min="0" name="Widget_3" select="" show_frame="false" show_title="true" source="func.OUTPUT" style="" title="Widget_3" width="200"/>
 </group>
