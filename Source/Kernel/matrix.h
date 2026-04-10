@@ -402,12 +402,17 @@ namespace ikaros
             info_->labels_.resize(info_->shape_.size());
         }
 
-        range get_range()
+        range get_range() const
         {
             range r;
             for(auto b : info_->shape_)
                 r.push(0, b);
             return r;
+        }
+
+        operator range() const
+        {
+            return get_range();
         }
 
         matrix &
@@ -820,7 +825,7 @@ namespace ikaros
         }
     
         void
-        check_bounds(std::vector<int> &v) const // Check bounds and throw exception if indices are out of range
+        check_bounds(const std::vector<int> &v) const // Check bounds and throw exception if indices are out of range
         {
             #ifndef NO_MATRIX_CHECKS
             if(v.size() != info_->shape_.size())
@@ -1040,6 +1045,12 @@ namespace ikaros
             return *this;
         }
 
+        matrix &
+        realloc(const range & r)
+        {
+            return realloc(r.extent());
+        }
+
         template <typename... Args>
         matrix & 
         realloc(Args... shape)
@@ -1245,8 +1256,15 @@ namespace ikaros
 
     
         int
-        compute_index(std::vector<int> & v)
+        compute_index(const std::vector<int> & v) const
         {
+            if(v.size() != info_->stride_.size())
+                throw exception(get_name()+"Number of indices must match matrix rank.");
+
+            #ifndef NO_MATRIX_CHECKS
+            check_bounds(v);
+            #endif
+
             int index = info_->offset_; // WAS 0!
             int stride = 1;
             for (int i = info_->stride_.size() - 1; i >= 0; --i)
@@ -1261,14 +1279,7 @@ namespace ikaros
         compute_index(Args... indices) const
         {
             std::vector<int> v{static_cast<int>(indices)...};
-            int index = 0;
-            int stride = 1;
-            for (int i = info_->stride_.size() - 1; i >= 0; --i)
-            {
-                index += v[i] * stride;
-                stride *= info_->stride_[i];
-            }
-            return info_->offset_ + index;  // FIXME: TEST ALL USES **********************
+            return compute_index(v);
         }
 
         matrix &
@@ -1577,10 +1588,14 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
         if (this->shape() != other.shape())
             return false;
 
-        // Check if data values are the same
-        for (int i = 0; i < this->size(); ++i) 
-            if ((*this->data_)[this->info_->offset_ + i] != (*other.data_)[other.info_->offset_ + i]) // FIXME: May not work for complex matrix shapes
+        if(rank() == 0)
+            return size() == other.size() && (size() == 0 || (*data_)[info_->offset_] == (*other.data_)[other.info_->offset_]);
+
+        for(auto ix = get_range(); ix.more(); ix++)
+        {
+            if((*data_)[compute_index(ix.index())] != (*other.data_)[other.compute_index(ix.index())])
                 return false;
+        }
 
         return true;
     }
