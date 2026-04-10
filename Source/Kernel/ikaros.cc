@@ -56,6 +56,86 @@ namespace ikaros
         {
             return value ? std::get_if<matrix>(value) : nullptr;
         }
+
+        matrix scalar_parameter_matrix(double value)
+        {
+            matrix m(1);
+            m(0) = static_cast<float>(value);
+            return m;
+        }
+
+        double get_scalar_matrix_value(const matrix & value, const std::string & conversion_name)
+        {
+            if(value.size() != 1)
+                throw exception("Could not convert matrix to " + conversion_name + ". Matrix must contain exactly one element.");
+
+            std::vector<int> zero_index(value.rank(), 0);
+            return (*value.data_)[value.compute_index(zero_index)];
+        }
+
+        double parse_parameter_number(const std::string & value, const std::string & conversion_name)
+        {
+            try
+            {
+                std::size_t consumed = 0;
+                double parsed = std::stod(value, &consumed);
+                if(consumed != value.size())
+                    throw exception("Could not convert string \"" + value + "\" to " + conversion_name + ".");
+                return parsed;
+            }
+            catch(const std::invalid_argument &)
+            {
+                throw exception("Could not convert string \"" + value + "\" to " + conversion_name + ".");
+            }
+            catch(const std::out_of_range &)
+            {
+                throw exception("String \"" + value + "\" is out of range for " + conversion_name + ".");
+            }
+        }
+
+        dictionary make_log_level_parameter()
+        {
+            dictionary log_param;
+            log_param["_tag"] = "parameter";
+            log_param["name"] = "log_level";
+            log_param["type"] = "number";
+            log_param["control"] = "menu";
+            log_param["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
+            log_param["default"] = 0;
+            return log_param;
+        }
+
+        dictionary make_color_parameter()
+        {
+            dictionary color_param;
+            color_param["_tag"] = "parameter";
+            color_param["name"] = "color";
+            color_param["type"] = "string";
+            color_param["default"] = "black";
+            color_param["description"] = "Selected ui color";
+            color_param["control"] = "ui_color";
+            return color_param;
+        }
+
+        void ensure_list(dictionary & info, const std::string & key)
+        {
+            if(!info.contains_non_null(key) || !info[key].is_list())
+                info[key] = list();
+        }
+
+        void ensure_component_collections(dictionary & info)
+        {
+            ensure_list(info, "inputs");
+            ensure_list(info, "outputs");
+            ensure_list(info, "parameters");
+            ensure_list(info, "groups");
+            ensure_list(info, "modules");
+        }
+
+        int default_thread_pool_size(unsigned int cpu_cores)
+        {
+            return cpu_cores > 1 ? static_cast<int>(cpu_cores) - 1 : 1;
+        }
     }
 
     std::string  validate_identifier(std::string s)
@@ -197,8 +277,11 @@ namespace ikaros
             case string_type:
                 *value = std::to_string(v);
                 break;
+            case matrix_type:
+                *value = scalar_parameter_matrix(v);
+                break;
             default:
-                break; // FIXME: error?
+                throw exception("Invalid parameter type for numeric assignment.");
         }
         *resolved = true;
         return v;
@@ -208,6 +291,7 @@ namespace ikaros
     parameter::operator=(std::string v) // FIXME: Check this function for all type combinations
     {
         double val = 0;
+        bool has_numeric_value = false;
         if(has_options)
         {
             auto options = get_parameter_options(info_);
@@ -215,7 +299,7 @@ namespace ikaros
             if(it != options.end())
                 *value = int(std::distance(options.begin(), it));
             else if(is_number(v))
-                *value = clamp_option_index(int(stod(v)), options);
+                *value = clamp_option_index(int(parse_parameter_number(v, "option index")), options);
             else
                 throw exception("Invalid parameter value");
 
@@ -223,12 +307,17 @@ namespace ikaros
             return v;
         }
         else if(is_number(v))
-            val = stod(v);
+        {
+            val = parse_parameter_number(v, "number");
+            has_numeric_value = true;
+        }
 
         switch(type)
         {
             case number_type:
             case rate_type:
+                if(!has_numeric_value)
+                    throw exception("Invalid numeric parameter value \"" + v + "\".");
                 *value = val;
                 break;
 
@@ -248,7 +337,7 @@ namespace ikaros
                 break;
 
             default:
-                break; // FIXME: error? Handle matrix with single element
+                throw exception("Invalid parameter type for string assignment.");
         }
         *resolved = true;
         return v;
@@ -335,9 +424,9 @@ namespace ikaros
         else if(auto bool_value = std::get_if<bool>(value.get()))
             return *bool_value ? 1.0 : 0.0;
         else if(auto string_value = std::get_if<std::string>(value.get()))
-            return stod(*string_value); // FIXME: may fail ************
+            return parse_parameter_number(*string_value, "double");
         else if(get_parameter_matrix_ptr(value.get()))
-            return 0;// FIXME check 1x1 matrix ************
+            return get_scalar_matrix_value(*get_parameter_matrix_ptr(value.get()), "double");
         else
             throw exception("Type conversion error. Parameter does not have a type Check spelling IKC and cc file.");
     }
@@ -398,7 +487,7 @@ namespace ikaros
             case number_type:
             case rate_type:
                 if(auto number_value = std::get_if<double>(value.get()))
-                    return *number_value;    // FIXME: Take care of time base
+                    return type == rate_type ? int(*number_value * kernel().GetTickDuration()) : int(*number_value);
                 break;
             case bool_type:
                 if(auto bool_value = std::get_if<bool>(value.get()))
@@ -406,9 +495,12 @@ namespace ikaros
                 break;
             case string_type:
                 if(auto string_value = std::get_if<std::string>(value.get()))
-                    return stoi(*string_value); // FIXME: Check that it is a number
+                    return int(parse_parameter_number(*string_value, "int"));
                 break;
-            case matrix_type: throw exception("Could not convert matrix to int"); // FIXME check 1x1 matrix
+            case matrix_type:
+                if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
+                    return int(get_scalar_matrix_value(*matrix_value, "int"));
+                throw exception("Could not convert matrix to int");
             default: ;
         }
         throw exception("Type conversion error for  parameter");
@@ -476,31 +568,31 @@ namespace ikaros
     {
         if(has_options)
         {
-            switch(type)
-            {
-                case number_type:
-                case rate_type:     return "[["+format_json_number(as_double())+"]]";
-                case bool_type:     return (as_bool() ? "[[true]]" : "[[false]]");
-                case string_type:   return "\""+escape_json_string(as_string())+"\"";
-                default:            throw exception("Cannot convert parameter to string");
-            }
+            if(type == number_type || type == rate_type)
+                return "[["+format_json_number(as_double())+"]]";
+            if(type == bool_type)
+                return (as_bool() ? "[[true]]" : "[[false]]");
+            if(type == string_type)
+                return "\""+escape_json_string(as_string())+"\"";
+            throw exception("Cannot convert parameter to string");
         }
 
-        switch(type)     // FIXME: remove if statements and use exception handling
-        {
-            case number_type:    if(auto number_value = std::get_if<double>(value.get())) return "[["+format_json_number(*number_value)+"]]";
-            case bool_type:      if(auto bool_value = std::get_if<bool>(value.get())) return (*bool_value ? "[[true]]" : "[[false]]");
-            case rate_type:      if(auto number_value = std::get_if<double>(value.get())) return "[["+format_json_number(*number_value)+"]]";
-            case string_type:    if(auto string_value = std::get_if<std::string>(value.get())) return "\""+escape_json_string(*string_value)+"\"";
-            case matrix_type:    if(auto matrix_value = get_parameter_matrix_ptr(value.get())) return matrix_value->json();
-            default:            throw exception("Cannot convert parameter to string");
-        }
+        if((type == number_type || type == rate_type) && std::holds_alternative<double>(*value))
+            return "[["+format_json_number(std::get<double>(*value))+"]]";
+        if(type == bool_type && std::holds_alternative<bool>(*value))
+            return (std::get<bool>(*value) ? "[[true]]" : "[[false]]");
+        if(type == string_type && std::holds_alternative<std::string>(*value))
+            return "\""+escape_json_string(std::get<std::string>(*value))+"\"";
+        if(type == matrix_type)
+            if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
+                return matrix_value->json();
+        throw exception("Cannot convert parameter to string");
     }
 
 
-    std::ostream& operator<<(std::ostream& os, const parameter & p) // FIXME: Handle options
+    std::ostream& operator<<(std::ostream& os, const parameter & p)
     {
-        os << std::string(p);
+        os << p.as_string();
         return os;
     }
 
@@ -538,6 +630,39 @@ namespace ikaros
     {
         if(*(p.resolved))
             return true; // Already set from SetParameters
+
+        auto resolve_value = [&](const std::string & raw_value, Component * owner)
+        {
+            Component * context = owner ? owner : this;
+
+            if(p.type==number_type && !p.has_options)
+            {
+                SetParameter(name, formatNumber(context->ComputeDouble(raw_value)));
+                return;
+            }
+
+            if(p.type==matrix_type)
+            {
+                matrix literal;
+                if(try_parse_matrix_literal(literal, raw_value))
+                    SetParameter(name, literal, raw_value);
+                else
+                    SetParameter(name, context->ComputeValue(raw_value));
+                return;
+            }
+
+            if(p.type==bool_type && !p.has_options)
+            {
+                SetParameter(name, std::string(context->ComputeBool(raw_value) ? "true" : "false"));
+                return;
+            }
+
+            if(raw_value.find('@') != std::string::npos || raw_value.find('{') != std::string::npos)
+                SetParameter(name, context->ComputeValue(raw_value));
+            else
+                SetParameter(name, raw_value);
+        };
+
         try
         {
             // Look for binding
@@ -549,8 +674,8 @@ namespace ikaros
             }
 
             const Component * value_owner = GetValueOwner(name);
-            std::string value = value_owner ? std::string(value_owner->info_[name]) : "";
-            if(value.empty())
+            bool has_explicit_value = value_owner && value_owner->info_.contains_non_null(name);
+            if(!has_explicit_value)
             {
                 if(!p.info_.contains("default"))
                 {
@@ -558,57 +683,20 @@ namespace ikaros
                     return false;
                 }
 
-                SetParameter(name, std::string(p.info_["default"])); // FIXME: SHOULD EVALUATE DEFAULT VALUE - MAYBE
+                resolve_value(std::string(p.info_["default"]), this);
                 return true;
             }
 
-            // Evaluate if numerical expression
-
-            if(p.type==number_type && !p.has_options)
-            {
-                SetParameter(name, formatNumber(const_cast<Component *>(value_owner ? value_owner : this)->ComputeDouble(value)));
-                return true;
-            }
-
-            if(p.type==matrix_type)
-            {
-                matrix literal;
-                if(try_parse_matrix_literal(literal, value))
-                    SetParameter(name, literal, value);
-                else
-                    SetParameter(name, const_cast<Component *>(value_owner ? value_owner : this)->ComputeValue(value));
-                return true;
-            }
-
-            if(p.type==bool_type && !p.has_options)
-            {
-                SetParameter(name, std::string(const_cast<Component *>(value_owner ? value_owner : this)->ComputeBool(value) ? "true" : "false"));
-                return true;
-            }
-
-            // Lookup normal value in current component-context
-
-            if(value.empty())  // ****************** this does not work for string that are allowed to be empty // FIXME: USE EXCEPTIONS *****
-            {
-                SetParameter(name, std::string(p.info_["default"]));
-                return true;
-            }
-                
-            if(value.find('@') != std::string::npos || value.find('{') != std::string::npos)
-                SetParameter(name, const_cast<Component *>(value_owner ? value_owner : this)->ComputeValue(value));
-            else
-                SetParameter(name, value);
+            resolve_value(std::string(value_owner->info_[name]), const_cast<Component *>(value_owner));
             return true;
         }
         catch(exception & e)
         {
-            Notify(msg_warning, e.message());
-            // FIXME:   THROW ???? 
+            throw exception("Could not resolve parameter \"" + name + "\": " + e.message(), e.path().empty() ? path_+"."+name : e.path());
         }
         catch(std::exception & e)
         {
-            Notify(msg_warning, "ERROR: Could not resolve parameter \""s +name + "\": " + e.what(), name);  
-            // FIXME:   THROW ???? 
+            throw exception("Could not resolve parameter \"" + name + "\": " + e.what(), path_+"."+name);
         }
         return false;
     }
@@ -899,15 +987,7 @@ namespace ikaros
             if(p["name"].as_string()=="log_level")
                 return;
 
-        dictionary log_param;
-        log_param["_tag"] = "parameter";
-        log_param["name"] = "log_level";
-        log_param["type"] = "number";
-        log_param["control"] = "menu";
-        log_param["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
-        log_param["default"] = 0;
-
-        info_["parameters"].push_back(log_param); // FIXME: Do we need to copy the dict?
+        info_["parameters"].push_back(make_log_level_parameter().copy());
     }
 
 
@@ -917,22 +997,7 @@ namespace ikaros
         info_(kernel().current_component_info),
         path_(kernel().current_component_path)
     {
-              // FIXME: Make sure there are empty lists. None of this should be necessary when dictionary is fixed
-
-        if(info_["inputs"].is_null())
-            info_["inputs"] = list();
-
-        if(info_["outputs"].is_null())
-            info_["outputs"] = list();
-
-        if(info_["parameters"].is_null())
-            info_["parameters"] = list();
-
-        if(info_["groups"].is_null())
-            info_["groups"] = list();
-
-        if(info_["modules"].is_null())
-            info_["modules"] = list();
+        ensure_component_collections(info_);
 
         // Add log_level parameter to all components
 
@@ -1009,31 +1074,22 @@ namespace ikaros
 
 
     bool
-    Component::InputsReady(dictionary d,  input_map ingoing_connections) // FIXME: Handle optional inputs
+    Component::InputsReady(dictionary d,  input_map ingoing_connections)
     {
+        if(d.contains("inputs") && d["inputs"].is_list())
+            return true;
 
-        Trace("\t\t\tComponent::InputReady", path_  + "." +  std::string(d["name"]));
+        std::string full_name = path_ + "." + std::string(d["name"]);
+        Trace("\t\t\tComponent::InputReady", full_name);
         Kernel& k = kernel();
 
-        std::string n = d["name"];   // ["attributes"]
-        if(ingoing_connections.count(path_))
-            for(auto & c : ingoing_connections.at(path_))
-                if(k.buffers.at(c->source).rank()==0)
-                    return false;
+        if(!ingoing_connections.count(full_name))
+            return d.is_set("optional");
+
+        for(auto & c : ingoing_connections.at(full_name))
+            if(k.buffers.at(c->source).rank()==0)
+                return false;
         return true;
-    }
-
-
-    void 
-    Component::SetSourceRanges(const std::string &, const std::vector<Connection *> & ingoing_connections) // FIXME:REMOVE
-    {
-        for(auto & c : ingoing_connections) // Copy source size to source_range if not set
-        {
-            if(c->source_range.empty())
-                c->source_range = kernel().buffers[c->source].get_range();
-            else if(c->source_range.rank() != kernel().buffers[c->source].rank())
-                throw exception("Explicitly set source range dimensionality does not match source.", path_);
-        }
     }
 
 
@@ -1055,10 +1111,10 @@ namespace ikaros
         {
             c->flatten_ = true;
 
-         range output_matrix = kernel().buffers[c->source].get_range();  //**NEW  // FIXME: automatic matrix to range conection
+         range output_matrix = kernel().buffers[c->source];
             c->Resolve(output_matrix);  //**NEW  
 
-            int s = c->source_range.size() * c->delay_range_.trim().b_[0];
+            int s = c->source_range.size() * std::max(1, c->delay_range_.trim().size());
             end_index = begin_index + s;
             c->target_range = range(begin_index, end_index);
             begin_index += s;
@@ -1076,7 +1132,7 @@ namespace ikaros
             begin_index = 0;
             for(auto & c : ingoing_connections.at(full_name))
             {
-                int s = c->source_range.size() * c->delay_range_.trim().b_[0];
+                int s = c->source_range.size() * std::max(1, c->delay_range_.trim().size());
                 if(c->alias_.empty())
                     kernel().buffers[full_name].push_label(0, c->source, s); // WAS: kernel().buffers[d.at(full_name)].push_label(0, c->source, s);
                 else
@@ -1103,7 +1159,7 @@ namespace ikaros
 
         if(ingoing_connections.size() == 1 && ingoing_connections.begin()->second[0]->source_range.empty() && ingoing_connections.begin()->second[0]->target_range.empty())
         {
-            range output_matrix = kernel().buffers[ingoing_connections.begin()->second[0]->source].get_range();
+            range output_matrix = kernel().buffers[ingoing_connections.begin()->second[0]->source];
             if(output_matrix.empty())
                 return 0;
     
@@ -1116,7 +1172,7 @@ namespace ikaros
 
         for(auto c : ingoing_connections.at(full_name))
         {
-            range output_matrix = kernel().buffers[c->source].get_range();  // FIXME: automatic matrix to range conection
+            range output_matrix = kernel().buffers[c->source];
             if(output_matrix.empty())
                 return 0;
             input_size.extend(c->Resolve(output_matrix));
@@ -1179,7 +1235,7 @@ namespace ikaros
         if(d.contains("size"))
             throw setup_failed(u8"Output \""+std::string(d["name"])+"\"+in group \""+path_+"\" can not have size attribute.", path_);
 
-        range output_size; // FIXME: rename output_range
+        range output_range;
         std::string name = d.at("name");
         std::string full_name = path_ +"."+ name;
 
@@ -1188,15 +1244,15 @@ namespace ikaros
 
         for(auto c : ingoing_connections.at(full_name))
         {
-            range output_matrix = kernel().buffers[c->source].get_range();  // FIXME: automatic matrix to range conection
+            range output_matrix = kernel().buffers[c->source];
             
             if(output_matrix.empty())
                 return 0;
             
-            output_size.extend(c->Resolve(output_matrix));
+            output_range.extend(c->Resolve(output_matrix));
         }
-        kernel().buffers[full_name].realloc(output_size.extent()); // FIXME: realloc with range argument
-      Trace("\t\t\t\t\tComponent:: Alloc" + std::string(output_size), path_);
+        kernel().buffers[full_name].realloc(output_range);
+      Trace("\t\t\t\t\tComponent:: Alloc" + std::string(output_range), path_);
 
         return 1;
     }
@@ -1383,8 +1439,7 @@ namespace ikaros
     Connection::Resolve(const range & source_output)
     {
         if(source_output.empty())
-            return 0;
-            // throw exception("Cannot resolve connection. Source output is empty."); //  FIXME: What is correct here? ************
+            return range();
 
         source_range.extend(source_output.rank());
         source_range.fill(source_output);
@@ -1422,7 +1477,8 @@ namespace ikaros
                 target_range.inc_[target_range.rank()-1] = 1;
             }
         }
-        int delay_size = delay_range_.trim().b_[0];
+        range trimmed_delay = delay_range_.trim();
+        int delay_size = trimmed_delay.empty() ? 1 : trimmed_delay.size();
         if(delay_size > 1)
             target_range.push_front(0, delay_size);
         if(delay_size*source_range.size() != target_range.size())
@@ -1454,9 +1510,9 @@ namespace ikaros
             //std::cout << source << " =F=> " << target << std::endl; 
             matrix ctarget = k.buffers[target];
             int target_offset = target_range.a_[0];
-            for(int i=delay_range_.a_[0]; i<delay_range_.b_[0]; i++)  // FIXME: assuming continous range (inc==1)
+            for(auto delay = delay_range_; delay.more(); delay++)
             {   
-                matrix s = k.circular_buffers[source].get(i);
+                matrix s = k.circular_buffers[source].get(delay.index()[0]);
 
                 for(auto ix=source_range; ix.more(); ix++)
                 {
@@ -1466,7 +1522,7 @@ namespace ikaros
             }
         }
 
-        else if(delay_range_.a_[0]+1 == delay_range_.b_[0]) // Copy indexed delayed value with single delay
+        else if(delay_range_.size() == 1) // Copy indexed delayed value with single delay
         {
             //std::cout << source << " =D=> " << target << std::endl;
             matrix s = k.circular_buffers[source].get(delay_range_.a_[0]);
@@ -1476,10 +1532,10 @@ namespace ikaros
         else // Copy indexed delayed values with more than one element
         {
             //std::cout << source << " =DD=> " << target << std::endl;
-            for(int i=delay_range_.a_[0]; i<delay_range_.b_[0]; i++)  // FIXME: assuming continous range (inc==1)
+            int target_ix = 0;
+            for(auto delay = delay_range_; delay.more(); delay++, target_ix++)
             {   
-                matrix s = k.circular_buffers[source].get(i);
-                int target_ix = i - delay_range_.a_[0]; // trim!
+                matrix s = k.circular_buffers[source].get(delay.index()[0]);
                 range tr = target_range.tail();
                 matrix t = k.buffers[target][target_ix];
                 t.copy(s, tr, source_range);
@@ -1655,48 +1711,40 @@ bool operator==(Request & r, const std::string s)
         for(auto& p: std::filesystem::recursive_directory_iterator(path))
             if(std::string(p.path().extension())==".ikc")
             {
-                std::string name = p.path().stem();
-                classes[name].path = p.path();
-                classes[name].info_.load_xml(p.path());
-
-                // Inject default parameters
-
-                if(classes[name].info_["parameters"].is_null())
-                    classes[name].info_["parameters"] = list();
-
-                bool has_log_level = false;
-                bool has_color = false;
-                for(auto parameter : classes[name].info_["parameters"])
+                try
                 {
-                    std::string parameter_name = parameter["name"];
-                    if(parameter_name == "log_level")
-                        has_log_level = true;
-                    else if(parameter_name == "color")
-                        has_color = true;
+                    std::string name = p.path().stem();
+                    classes[name].path = p.path();
+                    classes[name].info_.load_xml(p.path());
+
+                    ensure_list(classes[name].info_, "parameters");
+
+                    bool has_log_level = false;
+                    bool has_color = false;
+                    for(auto parameter : classes[name].info_["parameters"])
+                    {
+                        std::string parameter_name = parameter["name"];
+                        if(parameter_name == "log_level")
+                            has_log_level = true;
+                        else if(parameter_name == "color")
+                            has_color = true;
+                    }
+
+                    if(!has_log_level)
+                        classes[name].info_["parameters"].push_back(make_log_level_parameter().copy());
+
+                    if(!has_color)
+                        classes[name].info_["parameters"].push_back(make_color_parameter().copy());
                 }
-
-                if(!has_log_level)
+                catch(const exception & e)
                 {
-                    dictionary log_param;
-                    log_param["_tag"] = "parameter";
-                    log_param["name"] = "log_level";
-                    log_param["type"] = "number";
-                    log_param["control"] = "menu";
-                    log_param["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
-                    log_param["default"] = 0;
-                    classes[name].info_["parameters"].push_back(log_param);
+                    Notify(msg_warning, "Could not load class file \"" + p.path().string() + "\": " + e.message(), p.path().string());
+                    classes.erase(p.path().stem());
                 }
-
-                if(!has_color)
+                catch(const std::exception & e)
                 {
-                    dictionary color_param;
-                    color_param["_tag"] = "parameter";
-                    color_param["name"] = "color";
-                    color_param["type"] = "string";
-                    color_param["default"] = "black";
-                    color_param["description"] = "Selected ui color";
-                    color_param["control"] = "ui_color";
-                    classes[name].info_["parameters"].push_back(color_param);
+                    Notify(msg_warning, "Could not load class file \"" + p.path().string() + "\": " + e.what(), p.path().string());
+                    classes.erase(p.path().stem());
                 }
             }
     }
@@ -1740,7 +1788,7 @@ bool operator==(Request & r, const std::string s)
 
         std::size_t i = name.rfind(".");
         if(i == std::string::npos)
-            return; // FIXME: Is this an error?
+            throw exception("Malformed parameter name \"" + name + "\".");
 
         Component * c = components.at(name.substr(0, i)).get();
         std::string parameter_name = name.substr(i+1, name.size());
@@ -1749,7 +1797,7 @@ bool operator==(Request & r, const std::string s)
 
 
     void 
-    Kernel::ResolveParameters() // Find and evaluate value or default // FIXME: return success
+    Kernel::ResolveParameters() // Find and evaluate value or default
     {
         // All all componenets to initialize parameters programmatically
 
@@ -1761,14 +1809,12 @@ bool operator==(Request & r, const std::string s)
         for (auto p=parameters.rbegin(); p!=parameters.rend(); p++) // Reverse order equals outside in in groups
         {
             std::size_t i = p->first.rfind(".");
-            // Find component and parameter_name and resolve
-            i = p->first.rfind(".");
-            if(i != std::string::npos)
-            {
-                Component * c = components.at(p->first.substr(0, i)).get();
-                std::string parameter_name = p->first.substr(i+1, p->first.size());
-                  ok &= c->ResolveParameter(p->second, parameter_name);
-            }
+            if(i == std::string::npos)
+                throw setup_failed("Malformed parameter name \""+p->first+"\".", p->first);
+
+            Component * c = components.at(p->first.substr(0, i)).get();
+            std::string parameter_name = p->first.substr(i+1, p->first.size());
+            ok &= c->ResolveParameter(p->second, parameter_name);
         }
         if(!ok)
         {
@@ -1785,18 +1831,69 @@ bool operator==(Request & r, const std::string s)
     {
         try 
         {
-        // Build input table
-        std::map<std::string,std::vector<Connection *>> ingoing_connections; 
-        for(auto & c : connections)
-            ingoing_connections[c.target].push_back(&c);
+            // Build input table
+            std::map<std::string,std::vector<Connection *>> ingoing_connections; 
+            for(auto & c : connections)
+                ingoing_connections[c.target].push_back(&c);
 
-        // Loop enough for all sizes to be calculated // FIXME: Restore progress calculation *******************
-        for(std::size_t i = 0; i < components.size(); ++i)
-            for(auto & [n, c] : components)
-                c->SetSizes(ingoing_connections);
+            auto count_pending_sizes = [&]() -> std::size_t
+            {
+                std::size_t pending = 0;
+                for(auto & [name, component] : components)
+                {
+                    for(dictionary d : component->info_["inputs"])
+                    {
+                        std::string full_name = name + "." + d["name"].as_string();
+                        if(!d.is_set("optional") && ingoing_connections.count(full_name) && buffers[full_name].empty())
+                            pending++;
+                    }
+
+                    bool is_module = dynamic_cast<Module *>(component.get()) != nullptr;
+                    for(dictionary d : component->info_["outputs"])
+                    {
+                        std::string full_name = name + "." + d["name"].as_string();
+                        if((is_module || ingoing_connections.count(full_name)) && buffers[full_name].empty())
+                            pending++;
+                    }
+                }
+                return pending;
+            };
+
+            auto size_signature = [&]() -> std::size_t
+            {
+                std::size_t signature = 0;
+                for(auto & [name, buffer] : buffers)
+                {
+                    std::size_t local = std::hash<std::string>{}(name);
+                    local ^= std::hash<int>{}(buffer.rank()) + 0x9e3779b9 + (local << 6) + (local >> 2);
+                    for(int dim : buffer.shape())
+                        local ^= std::hash<int>{}(dim) + 0x9e3779b9 + (local << 6) + (local >> 2);
+                    signature ^= local + 0x9e3779b9 + (signature << 6) + (signature >> 2);
+                }
+                return signature;
+            };
+
+            std::size_t previous_pending = count_pending_sizes();
+            std::size_t previous_signature = size_signature();
+            for(std::size_t i = 0; i < components.size(); ++i)
+            {
+                for(auto & [n, c] : components)
+                    c->SetSizes(ingoing_connections);
+
+                std::size_t pending = count_pending_sizes();
+                std::size_t signature = size_signature();
+                if(signature == previous_signature && pending == previous_pending)
+                    break;
+                previous_pending = pending;
+                previous_signature = signature;
+            }
 
             for(auto & [n, c] : components)
                 c->CheckRequiredInputs();
+
+            std::size_t pending = count_pending_sizes();
+            if(pending != 0)
+                throw setup_failed("Could not resolve all input and output sizes. " + std::to_string(pending) + " buffers remain unresolved.");
         }
         catch(fatal_error & e)
         {
@@ -1956,8 +2053,7 @@ bool operator==(Request & r, const std::string s)
         lag_sum(0)
     {
         cpu_cores = std::thread::hardware_concurrency();
-        thread_pool = std::make_unique<ThreadPool>(cpu_cores > 1 ? cpu_cores-1 : 1); // FIXME: optionally use ikg parameters
-        //thread_pool = std::make_unique<ThreadPool>(1); // FIXME: optionally use ikg parameters
+        thread_pool = std::make_unique<ThreadPool>(default_thread_pool_size(cpu_cores));
     }
 
 
@@ -2332,6 +2428,29 @@ bool operator==(Request & r, const std::string s)
 
         if(d.contains("tick_duration"))
             tick_duration = d["tick_duration"];
+
+        std::string thread_pool_value;
+        for(const std::string & key : {"thread_pool_size", "threads", "workers"})
+            if(thread_pool_value.empty() && d.contains_non_null(key))
+                thread_pool_value = std::string(d[key]);
+
+        if(!thread_pool_value.empty())
+        {
+            int requested_threads = 0;
+            try
+            {
+                requested_threads = std::stoi(thread_pool_value);
+            }
+            catch(const std::exception &)
+            {
+                throw setup_failed("Invalid thread pool size \"" + thread_pool_value + "\". Expected a positive integer.");
+            }
+
+            if(requested_threads < 1)
+                throw setup_failed("Invalid thread pool size \"" + thread_pool_value + "\". Expected a positive integer.");
+
+            thread_pool = std::make_unique<ThreadPool>(requested_threads);
+        }
     }
 
 
@@ -3389,13 +3508,18 @@ bool operator==(Request & r, const std::string s)
             catch(const setup_failed& e)
             {
                 //std::cerr << e.what() << '\n';
-                Notify(msg_warning, "File \""+file+"\" could not be set-up: "+e.message()); // FIXME: better error message - alert? HTTP reply with error code
+                Notify(msg_warning, "Could not set up file \""+file+"\": "+e.message(), e.path());
                 // New();
+            }
+            catch(const load_failed& e)
+            {
+                Notify(msg_warning, "Could not load file \""+file+"\": "+e.message(), e.path());
+                New();
             }
             catch(const std::exception& e)
             {
                 std::cerr << e.what() << '\n';
-                Notify(msg_warning, "File \""+file+"\" could not be loaded, built or set-up"); // FIXME: better error message - alert? HTTP reply with error code
+                Notify(msg_warning, "Could not open file \""+file+"\": "+std::string(e.what()));
                 New();
             }
             
