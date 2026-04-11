@@ -1,0 +1,3 @@
+<class name="MatrixFunctionTestModule" description="Exercises core matrix functions in the kernel">
+    <parameter name="suite" type="string" default="reductions" options="reductions,scalar,elementwise,linalg,image" description="Matrix function test suite to run during Init" />
+</class>

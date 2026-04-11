@@ -1,0 +1,9 @@
+<group
+    name="Test_73"
+    description="Exercise linear algebra matrix functions"
+    start="true"
+    stop="1"
+    expected_output_contains="MATRIX TEST linalg OK"
+>
+    <module name="MatrixFns" class="MatrixFunctionTestModule" suite="linalg" />
+</group>

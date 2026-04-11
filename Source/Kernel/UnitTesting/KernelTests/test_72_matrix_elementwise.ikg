@@ -1,0 +1,9 @@
+<group
+    name="Test_72"
+    description="Exercise elementwise matrix functions"
+    start="true"
+    stop="1"
+    expected_output_contains="MATRIX TEST elementwise OK"
+>
+    <module name="MatrixFns" class="MatrixFunctionTestModule" suite="elementwise" />
+</group>

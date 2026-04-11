@@ -1,0 +1,9 @@
+<group
+    name="Test_74"
+    description="Exercise image-style matrix functions"
+    start="true"
+    stop="1"
+    expected_output_contains="MATRIX TEST image OK"
+>
+    <module name="MatrixFns" class="MatrixFunctionTestModule" suite="image" />
+</group>

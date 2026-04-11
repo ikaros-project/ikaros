@@ -1,0 +1,9 @@
+<group
+    name="Test_70"
+    description="Exercise matrix reduction functions"
+    start="true"
+    stop="1"
+    expected_output_contains="MATRIX TEST reductions OK"
+>
+    <module name="MatrixFns" class="MatrixFunctionTestModule" suite="reductions" />
+</group>

@@ -1,0 +1,9 @@
+<group
+    name="Test_71"
+    description="Exercise scalar and shape matrix functions"
+    start="true"
+    stop="1"
+    expected_output_contains="MATRIX TEST scalar OK"
+>
+    <module name="MatrixFns" class="MatrixFunctionTestModule" suite="scalar" />
+</group>
