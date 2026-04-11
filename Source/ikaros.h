@@ -150,6 +150,7 @@ public:
     bool as_bool() const;
     float as_float() const;
     double as_double() const;
+    long as_long() const;
     int as_int() const;
     std::string as_int_string() const; // as_int() converted to string
     std::string as_string() const;
@@ -373,12 +374,15 @@ struct Request
     {
         long       session_id;
         dictionary parameters;
+        value      json_body;
         std::string url;
         std::string command; 
         std::string component_path;
         std::string body;
 
-        Request(std::string  uri, long sid=0, std::string body="");  // Add client id later
+        Request(std::string  uri, long sid=0, std::string body="", std::string content_type="");  // Add client id later
+        bool HasJsonBody() const;
+        void MergeJsonBodyIntoParameters(bool overwrite=true);
     };
 
     bool operator==(Request & r, const std::string s);
@@ -451,11 +455,9 @@ public:
     Kernel();
     ~Kernel();
 
-    void Clear();        // Remove all non-persistent data and reset kernel variables - // FIXME: Init???
+    void Clear();        // Remove all non-persistent data and reset kernel variables
 
     static void *   StartHTTPThread(Kernel * k);
-
-    // FIXME: Add mutexes for functions called by modules
 
     tick_count GetTick() { return tick; }
     double GetTickDuration() { return tick_duration; } // Time for each tick in seconds (s)
