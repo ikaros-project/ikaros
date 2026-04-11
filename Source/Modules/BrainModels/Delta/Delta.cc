@@ -31,7 +31,7 @@ class Delta: public Module
             weights = matrix(cs.shape());
 
         float us_sum = us.sum();
-        float response = cs.dot(weights);
+        float response = dot(cs, weights);
         float delta = alpha.as_float() * (us_sum - response);
 
         if (delta > 0)
