@@ -255,7 +255,7 @@ namespace ikaros
 
 
     double 
-    parameter::operator=(double v) // FIXME: handle matrix type as well
+    parameter::operator=(double v)
     {
         if(has_options)
         {
@@ -288,7 +288,7 @@ namespace ikaros
     }
 
     std::string 
-    parameter::operator=(std::string v) // FIXME: Check this function for all type combinations
+    parameter::operator=(std::string v)
     {
         double val = 0;
         bool has_numeric_value = false;
@@ -468,6 +468,42 @@ namespace ikaros
     parameter::as_double() const
     {
         return double(*this);
+    }
+
+
+    long
+    parameter::as_long() const
+    {
+        if(has_options)
+        {
+            if(auto option_index = std::get_if<int>(value.get()))
+                return static_cast<long>(*option_index);
+            throw exception("Option parameter missing index value.");
+        }
+
+        switch(type)
+        {
+            case no_type: throw exception("Uninitialized_parameter.");
+            case number_type:
+            case rate_type:
+                if(auto number_value = std::get_if<double>(value.get()))
+                    return type == rate_type ? static_cast<long>(*number_value * kernel().GetTickDuration()) : static_cast<long>(*number_value);
+                break;
+            case bool_type:
+                if(auto bool_value = std::get_if<bool>(value.get()))
+                    return *bool_value ? 1L : 0L;
+                break;
+            case string_type:
+                if(auto string_value = std::get_if<std::string>(value.get()))
+                    return static_cast<long>(parse_parameter_number(*string_value, "long"));
+                break;
+            case matrix_type:
+                if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
+                    return static_cast<long>(get_scalar_matrix_value(*matrix_value, "long"));
+                throw exception("Could not convert matrix to long");
+            default: ;
+        }
+        throw exception("Type conversion error for parameter");
     }
 
 
@@ -1414,7 +1450,7 @@ namespace ikaros
                     check_sum += prime_number.next() * matrix_value->size();
             }
             else
-                check_sum += prime_number.next() *  p.as_int(); // FIXME: convert to long later 
+                check_sum += prime_number.next() * p.as_long();
         }
         // std::cout << "Check sum: " << check_sum << std::endl;
     }
@@ -1584,7 +1620,7 @@ Connection::Info() const
 
     // Request
 
-    Request::Request(std::string  uri, long sid, std::string b):
+    Request::Request(std::string  uri, long sid, std::string b, std::string content_type):
         body(b)
     {
         url = uri;
@@ -1595,6 +1631,30 @@ Connection::Info() const
         command = head(uri, "/"); 
         component_path = uri;
         parameters.parse_url(params);
+
+        if(!body.empty())
+        {
+            if(!starts_with(content_type, "application/json"))
+                throw exception("Request body must have Content-Type application/json.");
+
+            json_body = parse_json(body);
+        }
+    }
+
+    bool
+    Request::HasJsonBody() const
+    {
+        return !json_body.is_null();
+    }
+
+    void
+    Request::MergeJsonBodyIntoParameters(bool overwrite)
+    {
+        if(!HasJsonBody())
+            return;
+        if(!json_body.is_dictionary())
+            throw exception("JSON request body must be an object.");
+        parameters.merge(dictionary(json_body), overwrite);
     }
 
 bool operator==(Request & r, const std::string s)
@@ -1663,9 +1723,28 @@ bool operator==(Request & r, const std::string s)
         info_ = d;
 
         run_mode = run_mode_stop;
-        session_id = new_session_id(); // FIXME: Probably not necessary - done in clear
-        SetUp(); // FIXME: Catch exceptions if new fails
-        needs_reload = false;
+        session_id = new_session_id();
+        try
+        {
+            SetUp();
+            needs_reload = false;
+        }
+        catch(const setup_failed & e)
+        {
+            Notify(msg_warning, "Could not create new file: " + e.message(), e.path());
+            Clear();
+            info_ = d;
+            run_mode = run_mode_stop;
+            needs_reload = true;
+        }
+        catch(const std::exception & e)
+        {
+            Notify(msg_warning, "Could not create new file: " + std::string(e.what()));
+            Clear();
+            info_ = d;
+            run_mode = run_mode_stop;
+            needs_reload = true;
+        }
     }
 
 
@@ -2069,7 +2148,7 @@ bool operator==(Request & r, const std::string s)
     // Functions for creating the network
 
     void 
-    Kernel::AddInput(std::string name, dictionary parameters) // FIXME: use name as argument instead of parameters
+    Kernel::AddInput(std::string name, dictionary parameters) 
     {
         buffers[name] = matrix().set_name(parameters["name"]);
     }
@@ -2230,7 +2309,7 @@ bool operator==(Request & r, const std::string s)
             if(info.is_not_set("no_code"))
                 std::cout << "Class \""<< classname << "\" has no installed code. Creating group." << std::endl; // throw exception("Class \""+classname+"\" has no installed code. Check that it is included in CMakeLists.txt."); // TODO: Check that this works for classes that are allowed to have no code
             info["_tag"]="group";
-            BuildGroup(info, path); // FIXME: This is probably not working correctly
+            BuildGroup(info, path); 
         }
         else
             components[current_component_path] = std::unique_ptr<Component>(classes[classname].module_creator());
@@ -2313,13 +2392,13 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::AddConnection(dictionary info, std::string path)
     {
-         std::string source = path+"."+std::string(info["source"]);   // FIXME: Look for global paths later - string conversion should not be necessary
-         std::string target = path+"."+std::string(info["target"]);
+         std::string source = path + "." + std::string(info["source"]); 
+         std::string target = path + "." + std::string(info["target"]);
 
-         std::string delay_range = info.contains_non_null("delay") ? info["delay"] : "";// FIXME: return "" if name not in dict - or use contains *********
-         std::string alias = info.contains_non_null("alias") ? info["alias"] : "";// FIXME: return "" if name not in dict - or use contains *********
+         std::string delay_range = info.contains_non_null("delay") ? info["delay"] : "";
+         std::string alias = info.contains_non_null("alias") ? info["alias"] : "";
 
-        if(delay_range.empty() || delay_range=="null")  // FIXME: return "" if name not in dict - or use contains *********
+        if(delay_range.empty() || delay_range=="null")
             delay_range = "[1]";
         else if(delay_range[0] != '[')
             delay_range = "["+delay_range+"]";
@@ -2334,7 +2413,7 @@ bool operator==(Request & r, const std::string s)
         std::string path = d["external"];
         dictionary external;
         external.load_xml(path);
-        external["name"] = d["name"]; // FIXME: Just in case - check for errors later
+        external["name"] = d["name"];
         d.merge(external);
         d.erase("external");
     }
@@ -2342,7 +2421,7 @@ bool operator==(Request & r, const std::string s)
 
 
     void 
-    Kernel::BuildGroup(dictionary d, std::string path) // Traverse dictionary and build all items at each level, FIXME: rename AddGroup later
+    Kernel::BuildGroup(dictionary d, std::string path) // Traverse dictionary and build all items at each level
     {
         try
         {
@@ -2429,13 +2508,9 @@ bool operator==(Request & r, const std::string s)
         if(d.contains("tick_duration"))
             tick_duration = d["tick_duration"];
 
-        std::string thread_pool_value;
-        for(const std::string & key : {"thread_pool_size", "threads", "workers"})
-            if(thread_pool_value.empty() && d.contains_non_null(key))
-                thread_pool_value = std::string(d[key]);
-
-        if(!thread_pool_value.empty())
+        if(d.contains_non_null("threads"))
         {
+            std::string thread_pool_value = std::string(d["threads"]);
             int requested_threads = 0;
             try
             {
@@ -2496,7 +2571,7 @@ bool operator==(Request & r, const std::string s)
         }
         catch(const exception& e)
         {
-            Notify(msg_warning, e.what(), e.path()); // Do not exit if not in batch mode // FIXME: Check this
+            Notify(msg_warning, e.what(), e.path());
             throw;
         }
     }
@@ -2581,7 +2656,7 @@ bool operator==(Request & r, const std::string s)
         //std::cout << data << std::endl;
 
         std::ofstream file;
-        std::string filename = add_extension(info_["filename"], ".ikg");        // FIXME: ADD DIRECTORY PATH – USER DATA ********
+        std::string filename = add_extension(info_["filename"], ".ikg");
         file.open (filename);
         file << data;
         file.close();
@@ -2984,7 +3059,7 @@ bool operator==(Request & r, const std::string s)
             //ListParameters();
             CalculateDelays();
             CalculateSizes();
-            //ListConnections(); // FIXME: Add flags for this
+            //ListConnections();
             //ListInputs();
             ListOutputs();
 
@@ -3037,7 +3112,7 @@ bool operator==(Request & r, const std::string s)
                     lag = timer.WaitUntil(double(tick+1)*tick_duration);
                 else if(run_mode.load() == run_mode_play)
                 {
-                    timer.SetStartTime(double(tick+1)*tick_duration); // Fake time increase // FIXME: remove sleep in batch mode DOES NOT LOOK CORRECT
+                    timer.SetStartTime(double(tick+1)*tick_duration); // Fake time increase
                     lag = 0;
                     if(!options_.is_set("batch_mode") || has_async_workers)
                         Sleep(0.01);
@@ -3074,7 +3149,7 @@ bool operator==(Request & r, const std::string s)
                     {
                         //std::cout << e.what() << std::endl;
                         Notify(msg_fatal_error, (e.what()));
-                        return;                 // FIXME: THROW INSTEAD
+                        return;
                     }
                     tick_time_usage = intra_tick_timer.GetTime();
                     idle_time = std::max(0.0, tick_duration - tick_time_usage);
@@ -3288,9 +3363,9 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoSendDataStatus()
     {
-        std::string nm = std::string(info_["filename"]);    // FIXME ******************************
-        if(nm.find("/") != std::string::npos)
-            nm = rtail(nm,"/");
+        std::string nm = std::string(info_["filename"]);
+        if(!nm.empty())
+            nm = std::filesystem::path(nm).filename().string();
 
         socket->Send("\t\"file\": ");
         socket->Send(value(nm).json());
@@ -3388,7 +3463,9 @@ bool operator==(Request & r, const std::string s)
 
         socket->Send("\t\"data\":\n\t{\n");
 
-        std::string data = request.parameters["data"];  // FIXME: Check that it exists ******** or return ""
+        std::string data;
+        if(request.parameters.contains("data"))
+            data = std::string(request.parameters["data"]);
         std::string root = request.component_path;
         if(!root.empty() && root[0] == '.')
             root = root.substr(1); // Global path prefix should not be part of buffer or parameter names
@@ -3398,63 +3475,79 @@ bool operator==(Request & r, const std::string s)
 
         while(!data.empty()) // FIXME: Check that we do not run out of time here and break if next tick is about to start.
         {
+            if(run_mode == run_mode_realtime && tick_duration > 0 && intra_tick_timer.GetTime() >= tick_duration)
+            {
+                Notify(msg_warning, "Stopped sending data before next realtime tick.");
+                break;
+            }
+
             std::string source = head(data, ",");
+            if(source.empty())
+                continue;
+
             std::string key = source;
             std::string format = rtail(source, ":");
 
-            if((source.find('@') != std::string::npos || source.find('{') != std::string::npos) && components.count(root) > 0)
+            try
             {
-                Component * c = components[root].get(); // FIXME: Handle exceptions
-                source = c->ComputeValue(source);
-            }
-
-            std::string source_with_root = root +"."+source;
-
-            if(key[0] == '.')
-                source_with_root = key.substr(1); // Global path (keep `key` intact)
-
-            std::string component_path = peek_rhead(source_with_root, ".");
-            
-            std::string attribute = peek_rtail(source_with_root, ".");
-
-            if(buffers.count(source_with_root))
-            {
-                if(format.empty())
+                if((source.find('@') != std::string::npos || source.find('{') != std::string::npos) && components.count(root) > 0)
                 {
-                    sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": "+buffers[source_with_root].json());
+                    Component * c = components[root].get();
+                    source = c->ComputeValue(source);
                 }
-                else if(format=="rgb")
-                { 
-                        // sent = socket->Send(sep + "\t\t\"" + key + ":"+format+"\": ");
+
+                std::string source_with_root = root +"."+source;
+
+                if(!key.empty() && key[0] == '.')
+                    source_with_root = key.substr(1); // Global path (keep `key` intact)
+
+                std::string component_path = peek_rhead(source_with_root, ".");
+                
+                std::string attribute = peek_rtail(source_with_root, ".");
+
+                if(buffers.count(source_with_root))
+                {
+                    if(format.empty())
+                    {
+                        sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": "+buffers[source_with_root].json());
+                    }
+                    else if(format=="rgb")
+                    { 
+                            // sent = socket->Send(sep + "\t\t\"" + key + ":"+format+"\": ");
+                            sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": ");
+                            SendImage(buffers[source_with_root], format);
+                    }
+                    else if(format=="gray" || format=="red" || format=="green" || format=="blue" || format=="spectrum" || format=="fire")
+                    { 
                         sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": ");
-                        SendImage(buffers[source_with_root], format);
+                            SendImage(buffers[source_with_root], format);
+                    }
                 }
-                else if(format=="gray" || format=="red" || format=="green" || format=="blue" || format=="spectrum" || format=="fire")
-                { 
-                    sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": ");
-                        SendImage(buffers[source_with_root], format);
-                }
-            }
-            else if(parameters.count(source_with_root))
-            {
-                sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": "+parameters[source_with_root].json());
-            }
-
-            else if(components.count(component_path)) // Use module function to get value
-            {
-                    std::string json_data = components[component_path]->json(attribute);
-
-                if(!json_data.empty())
+                else if(parameters.count(source_with_root))
                 {
-                    socket->Send(sep);
-                    std::string s = "\t\t\"" + escape_json_string(source) + "\": "+json_data;
-                    socket->Send(s);
-                    sep = ",\n";
+                    sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": "+parameters[source_with_root].json());
+                }
+
+                else if(components.count(component_path)) // Use module function to get value
+                {
+                        std::string json_data = components[component_path]->json(attribute);
+
+                    if(!json_data.empty())
+                    {
+                        socket->Send(sep);
+                        std::string s = "\t\t\"" + escape_json_string(source) + "\": "+json_data;
+                        socket->Send(s);
+                        sep = ",\n";
+                    }
+                }
+                else
+                {
+                    // ERROR: No such buffer or parameter
                 }
             }
-            else
+            catch(const std::exception & e)
             {
-                // ERROR: No such buffer or parameter
+                Notify(msg_warning, "Could not send data for \""+key+"\": "+std::string(e.what()));
             }
 
             if(sent)
@@ -3463,7 +3556,7 @@ bool operator==(Request & r, const std::string s)
 
         socket->Send("\n\t}");
         DoSendLog(request);
-        socket->Send(",\n\t\"has_data\": 1\n"); // "+std::to_string(!tick_is_running)+" new tick has started during sending; there may be data but it cannot be trusted // FIXME: Never happens
+        socket->Send(",\n\t\"has_data\": 1\n");
         socket->Send("}\n");
 
         //sending_ui_data = false;
@@ -3474,7 +3567,7 @@ bool operator==(Request & r, const std::string s)
     Kernel::DoNew(Request & request)
     {
         New();
-        DoUpdate(request);  // FIXME: OR SEND NETWORK
+        DoUpdate(request); 
     }
 
 
@@ -3537,9 +3630,11 @@ bool operator==(Request & r, const std::string s)
         dictionary d;
         try
         {
-        
-            std::cout << request.body.size() << '\n';
-             d = parse_json(request.body);
+            if(!request.HasJsonBody())
+                throw exception("Save request must include a JSON body.");
+            if(!request.json_body.is_dictionary())
+                throw exception("Save request body must be a JSON object.");
+            d = dictionary(request.json_body).copy();
         }
         catch(const std::exception& e)
         {
@@ -3553,7 +3648,7 @@ bool operator==(Request & r, const std::string s)
         std::filesystem::path path = add_extension(std::string(d["filename"]), ".ikg");
         std::string filename = path.filename();
 
-        d["filename"] = ""; // Do not include filename in file // FIXME: Remove key from dict
+        d.erase("filename");
         std::string data = d.xml("group", {"module/parameters","module/inputs","module/outputs", "module/authors","module/descriptions", "group/views", "module.description"});
         std::ofstream file;
         file.open (filename);
@@ -3733,7 +3828,7 @@ bool operator==(Request & r, const std::string s)
         try
         {
             Pause();
-            run_mode = run_mode_pause; // FIXME: Probably not necessary
+            run_mode = run_mode_pause;
             Tick();
             timer.SetPauseTime(GetTime()+tick_duration);
         }
@@ -4002,10 +4097,7 @@ bool operator==(Request & r, const std::string s)
     {
         try
        {
-            std::string root;
-         
-            if(request.parameters.contains("root"))
-                root = std::string(request.parameters["root"]);
+            request.MergeJsonBodyIntoParameters();
 
             std::string key = request.component_path;
             if(key[0] == '.')
@@ -4019,9 +4111,6 @@ bool operator==(Request & r, const std::string s)
                 return;
             }
    
-            if(!request.body.empty()) // FIXME: Move to request and check content-type first
-                request.parameters = parse_json(request.body);
-
             if(!request.parameters.contains("command"))
             {
                     Notify(msg_warning, "No command specified for  '"+request.component_path+"'.");
@@ -4045,6 +4134,8 @@ bool operator==(Request & r, const std::string s)
     {
         try
         {
+            request.MergeJsonBodyIntoParameters();
+
             std::string key = request.component_path;
             if(key[0] == '.')
                 key = key.substr(1); // Global path
@@ -4079,7 +4170,7 @@ bool operator==(Request & r, const std::string s)
                     else if(matrix_value->rank() == 2)
                         (*matrix_value)(y,x)= value; // Is this correct?
                     else
-                        ;   // FIXME: higher dimensional parameter
+                        throw exception("Higher-dimensional matrix parameters are not supported by /control.");
                 }
                 else
                     throw exception("Parameter is not a matrix.");
@@ -4267,7 +4358,11 @@ bool operator==(Request & r, const std::string s)
         if(socket->header.contains_non_null("Session-Id"))
             sid = atol(std::string(socket->header["Session-Id"]).c_str());
 
-        Request request(std::string(socket->header["URI"]), sid, socket->body);
+        std::string content_type;
+        if(socket->header.contains_non_null("Content-Type"))
+            content_type = std::string(socket->header["Content-Type"]);
+
+        Request request(std::string(socket->header["URI"]), sid, socket->body, content_type);
 
         if(request.parameters.contains("proxy"))
             request.component_path = std::string(request.parameters["proxy"]);

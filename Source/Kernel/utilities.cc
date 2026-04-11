@@ -70,7 +70,7 @@ split(const std::string & s, const std::string & sep, int maxsplit)
 const std::vector<std::string>
 rsplit(const std::string & str, const std::string & sep, int maxsplit)
 {
-    if (maxsplit < 0)   // FIXME: Is this necessary?? WHY???
+    if (maxsplit < 0)
         return split(str, sep, maxsplit);
 
     std::vector<std::string> r;
