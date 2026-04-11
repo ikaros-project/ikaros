@@ -1,5 +1,0 @@
-<group filename="/Users/cba/ikaros-3/Source/Modules/TestModules/Test4_test.ikg" name="Test" q="333">
-   <group name="Inner" result="@x+@q" x="10" y="20" z="50">
-      <parameter default="1.2" name="result" type="number" value="333"/>
-   </group>
-</group>
