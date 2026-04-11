@@ -19,6 +19,12 @@
 #include <limits>
 #include <algorithm>
 
+#if defined(__APPLE__)
+#ifndef ACCELERATE_NEW_LAPACK
+#define ACCELERATE_NEW_LAPACK
+#endif
+#include <Accelerate/Accelerate.h>
+#endif
 
 #include "exceptions.h"
 #include "utilities.h"
@@ -118,7 +124,7 @@ namespace ikaros
         {}
 
         void
-        print(std::string n="") const // print matrix info; n overrides name if set (useful during debugging) // FIXME: Mmove partially to matrix_info + print_data
+        print(std::string n="") const // print matrix info; n overrides name if set (useful during debugging) 
         {
             print_attribute_value("name", n.empty() ? name_ : n);
             print_attribute_value("rank", shape_.size());
@@ -153,7 +159,7 @@ namespace ikaros
             iterator(matrix & m) : matrix_(&m), index_(0) {}
             iterator(matrix & m, int i) : matrix_(&m), index_(i) {}
 
-            matrix operator*() { return (*matrix_)[index_]; } // FIXME: should probably be removed
+            matrix operator*() { return (*matrix_)[index_]; }
             
             //pointer operator->() { return m_ptr; }
 
@@ -624,6 +630,13 @@ namespace ikaros
         {
             if(empty())
                 return *this;
+            if(info_->continuous)
+            {
+                float * data = data_->data() + info_->offset_;
+                for(int i = 0; i < info_->size_; ++i)
+                    f(data[i]);
+                return *this;
+            }
             if(is_scalar())
                 f((*data_)[info_->offset_]);
             else
@@ -638,6 +651,13 @@ namespace ikaros
         {
             if(empty())
                 return *this;
+            if(info_->continuous)
+            {
+                float * data = data_->data() + info_->offset_;
+                for(int i = 0; i < info_->size_; ++i)
+                    data[i] = f(data[i]);
+                return *this;
+            }
             if(is_scalar())
                 (*data_)[info_->offset_] = f((*data_)[info_->offset_]);
             else
@@ -651,6 +671,14 @@ namespace ikaros
         {
             if(empty())
                 return *this;
+            else if(info_->continuous && A.info_->continuous)
+            {
+                float * data = data_->data() + info_->offset_;
+                const float * a = A.data_->data() + A.info_->offset_;
+                for(int i = 0; i < info_->size_; ++i)
+                    data[i] = f(data[i], a[i]);
+                return *this;
+            }
             else if(is_scalar())
                 (*data_)[info_->offset_] = f((*data_)[info_->offset_], (*A.data_)[info_->offset_]);
             else
@@ -667,6 +695,15 @@ namespace ikaros
         {
             if(empty())
                 return *this;
+            else if(info_->continuous && A.info_->continuous && B.info_->continuous)
+            {
+                float * data = data_->data() + info_->offset_;
+                const float * a = A.data_->data() + A.info_->offset_;
+                const float * b = B.data_->data() + B.info_->offset_;
+                for(int i = 0; i < info_->size_; ++i)
+                    data[i] = f(a[i], b[i]);
+                return *this;
+            }
             else if(is_scalar())
                 (*data_)[info_->offset_] = f((*A.data_)[info_->offset_], (*B.data_)[info_->offset_]);
             else
@@ -676,18 +713,6 @@ namespace ikaros
                     X.apply(A[i], B[i], f);
                 }
             return *this;
-        }
-
-        float
-        dot(matrix A) // FIXME: Change to function of two matrices: fot(A,B) and use apply.
-        {
-            float s = 0;
-            if(empty())
-                return (*data_)[info_->offset_] * (*A.data_)[info_->offset_];
-            else
-                for(int i=0; i<info_->shape_.front(); i++)
-                    s += (*this)[i].dot(A[i]);
-            return s;
         }
 
         matrix & 
@@ -1196,8 +1221,8 @@ namespace ikaros
         matrix & subtract(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return x-y;}); }// Fixme: use vDSP for continuous matrices
         matrix & multiply(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return x*y;}); }// Fixme: use vDSP for continuous matrices
         matrix & divide(matrix A)   { check_same_size(A); return apply(A, [](float x, float y)->float {return x/y;}); }// Fixme: use vDSP for continuous matrices
-        matrix & maximum(matrix A)  { check_same_size(A); return apply(A, [](float x, float y)->float {return std::max(x, y);}); }
-        matrix & minimum(matrix A)  { check_same_size(A); return apply(A, [](float x, float y)->float {return std::min(x, y);}); }
+        matrix & maximum(matrix A);
+        matrix & minimum(matrix A);
         matrix & logical_and(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return (x != 0.0f && y != 0.0f) ? 1.0f : 0.0f;}); }
         matrix & logical_or(matrix A)  { check_same_size(A); return apply(A, [](float x, float y)->float {return (x != 0.0f || y != 0.0f) ? 1.0f : 0.0f;}); }
         matrix & logical_xor(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return ((x != 0.0f) != (y != 0.0f)) ? 1.0f : 0.0f;}); }
@@ -1214,20 +1239,10 @@ namespace ikaros
         matrix & divide(matrix A, matrix B);
 
 
-        matrix & maximum(matrix A, matrix B)
-        {
-            check_same_size(A);
-            check_same_size(B);
-            return apply(A, B, [](float x, float y)->float {return std::max(x, y);});
-        }
+        matrix & maximum(matrix A, matrix B);
 
 
-        matrix & minimum(matrix A, matrix B)
-        {
-            check_same_size(A);
-            check_same_size(B);
-            return apply(A, B, [](float x, float y)->float {return std::min(x, y);});
-        }
+        matrix & minimum(matrix A, matrix B);
 
 
         matrix & logical_and(matrix A, matrix B)
@@ -1741,5 +1756,34 @@ friend void im2row(std::vector<float> &submatrices_flat, const matrix &I, const 
             (*out.data_)[i] = data[i];
 
         return true;
+    }
+
+    inline float dot(matrix A, matrix B)
+    {
+        A.check_same_size(B);
+
+        if(A.info_->continuous && B.info_->continuous)
+        {
+            const float * a = A.data_->data() + A.info_->offset_;
+            const float * b = B.data_->data() + B.info_->offset_;
+#if defined(__APPLE__)
+            float s = 0;
+            vDSP_dotpr(a, 1, b, 1, &s, static_cast<vDSP_Length>(A.info_->size_));
+            return s;
+#else
+            float s = 0;
+            for(int i = 0; i < A.info_->size_; ++i)
+                s += a[i] * b[i];
+            return s;
+#endif
+        }
+
+        if(A.is_scalar())
+            return (*A.data_)[A.info_->offset_] * (*B.data_)[B.info_->offset_];
+
+        float s = 0;
+        for(int i = 0; i < A.info_->shape_.front(); ++i)
+            s += dot(A[i], B[i]);
+        return s;
     }
 }

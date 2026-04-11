@@ -1,15 +1,24 @@
 // matrix.cc
 
-#include "matrix.h"
-
+#ifndef ACCELERATE_NEW_LAPACK
 #define ACCELERATE_NEW_LAPACK
-#include <Accelerate/Accelerate.h>
+#endif
+
+#include "matrix.h"
 
 namespace ikaros {
 
 float
 matrix::sum()
 {
+#if defined(__APPLE__)
+    if(info_->continuous)
+    {
+        float s = 0;
+        vDSP_sve(data(), 1, &s, static_cast<vDSP_Length>(info_->size_));
+        return s;
+    }
+#endif
     float s = 0;
     reduce([&s](float x) { s+=x;});
     return s; 
@@ -30,6 +39,14 @@ matrix::min()
 {
     if(empty())
         throw std::domain_error("Empty matrix has no min");
+#if defined(__APPLE__)
+    if(info_->continuous)
+    {
+        float s = 0;
+        vDSP_minv(data(), 1, &s, static_cast<vDSP_Length>(info_->size_));
+        return s;
+    }
+#endif
     float s = std::numeric_limits<float>::max();
     reduce([&s](float x) { if(x<s) s=x;});
     return s; 
@@ -41,6 +58,14 @@ matrix::max()
 {
     if(empty())
         throw std::domain_error("Empty matrix has no max");
+#if defined(__APPLE__)
+    if(info_->continuous)
+    {
+        float s = 0;
+        vDSP_maxv(data(), 1, &s, static_cast<vDSP_Length>(info_->size_));
+        return s;
+    }
+#endif
     float s = -std::numeric_limits<float>::max();
     reduce([&s](float x) { if(x>s) s=x;});
     return s; 
@@ -69,8 +94,15 @@ matrix::average()
 {
     if(empty())
         return 0;
-    else
-        return sum()/size();
+#if defined(__APPLE__)
+    if(info_->continuous)
+    {
+        float s = 0;
+        vDSP_meanv(data(), 1, &s, static_cast<vDSP_Length>(info_->size_));
+        return s;
+    }
+#endif
+    return sum()/size();
 }
 
 
@@ -174,6 +206,76 @@ matrix::divide(matrix A, matrix B)
     {
         return apply(A, B, [](float x, float y)->float { return x / y; });
     }
+}
+
+
+matrix &
+matrix::maximum(matrix A)
+{
+    check_same_size(A);
+
+#if defined(__APPLE__)
+    if(info_->continuous && A.info_->continuous)
+    {
+        vDSP_vmax(data(), 1, A.data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
+        return *this;
+    }
+#endif
+
+    return apply(A, [](float x, float y)->float { return std::max(x, y); });
+}
+
+
+matrix &
+matrix::minimum(matrix A)
+{
+    check_same_size(A);
+
+#if defined(__APPLE__)
+    if(info_->continuous && A.info_->continuous)
+    {
+        vDSP_vmin(data(), 1, A.data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
+        return *this;
+    }
+#endif
+
+    return apply(A, [](float x, float y)->float { return std::min(x, y); });
+}
+
+
+matrix &
+matrix::maximum(matrix A, matrix B)
+{
+    check_same_size(A);
+    check_same_size(B);
+
+#if defined(__APPLE__)
+    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    {
+        vDSP_vmax(A.data(), 1, B.data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
+        return *this;
+    }
+#endif
+
+    return apply(A, B, [](float x, float y)->float { return std::max(x, y); });
+}
+
+
+matrix &
+matrix::minimum(matrix A, matrix B)
+{
+    check_same_size(A);
+    check_same_size(B);
+
+#if defined(__APPLE__)
+    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    {
+        vDSP_vmin(A.data(), 1, B.data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
+        return *this;
+    }
+#endif
+
+    return apply(A, B, [](float x, float y)->float { return std::min(x, y); });
 }
 
 
