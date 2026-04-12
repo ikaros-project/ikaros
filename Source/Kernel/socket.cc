@@ -17,52 +17,6 @@ namespace
 {
     constexpr int MAX_HTTP_HEADER_SIZE = 64 * 1024;
     constexpr size_t MAX_HTTP_BODY_SIZE = 10 * 1024 * 1024;
-
-    bool
-    ends_with(std::string_view value, std::string_view suffix)
-    {
-        return value.size() >= suffix.size() &&
-            value.compare(value.size() - suffix.size(), suffix.size(), suffix) == 0;
-    }
-
-    char *
-    copy_string(char * dest, const char * src, int len)
-    {
-        int size;
-
-        if (!len)
-            return dest;
-
-        if(!src) // NULL is treated as an empty string
-        {
-            dest[0] = '\0';
-            return dest;
-        }
-
-        size = int(strlen(src));
-        if (size >= len)
-            size = len-1;
-        memcpy(dest, src, size);
-        dest[size] = '\0';
-        return dest;
-    }
-
-    char *
-    append_string(char * dest, const char * a, int len)
-    {
-        if(!len || !a)
-            return dest;
-
-        int used = int(strlen(dest));
-
-        int size = int(strlen(a));
-        if(used+size >= len)
-            size = len-used-1;
-        memcpy(dest+used, a, size);
-        dest[used+size] = '\0';
-
-        return dest;
-    }
 }
 
 //
@@ -295,6 +249,8 @@ ServerSocket::Poll(bool block)
     if(!block)
         fcntl(sockfd, F_SETFL, O_NONBLOCK);				// temporariliy make the socket non-blocking
     new_fd = accept(sockfd, (struct sockaddr *)&(their_addr), (socklen_t*) &sin_size);
+    if(new_fd != -1)
+        output_buffer.clear();
     if(!block)
         fcntl(sockfd, F_SETFL, 0);						// make the socket blocking again
 /*
@@ -606,30 +562,30 @@ ServerSocket::GetRequest(bool block)
 
 
 bool
-ServerSocket::SendHTTPHeader(dictionary * d, const char * response) // Content length from where?
+ServerSocket::SendHTTPHeader(dictionary & d, const char * response) // Content length from where?
 {
     if(!response)
-		Send("HTTP/1.1 200 OK\r\n");
+		Append("HTTP/1.1 200 OK\r\n");
     else
-		Send("HTTP/1.1 %s\r\n", response);
+		Append("HTTP/1.1 %s\r\n", response);
 
-    d->operator[]("Server") = "Ikaros/3.0";
-    d->operator[]("Connection") = "Close";
+    d["Server"] = "Ikaros/3.0";
+    d["Connection"] = "Close";
 	
     time_t rawtime;
     time(&rawtime);
     char tb[32];
     strftime(tb, sizeof(tb), "%a, %d %b %Y %H:%M:%S GMT", gmtime(&rawtime)); // RFC 1123 really uses numeric time zones rather than GMT
 
-    d->operator[]("Date") = tb;
-    d->operator[]("Expires") = tb;
+    d["Date"] = tb;
+    d["Expires"] = tb;
     
-    for(const auto & [key, value] : *d)
+    for(const auto & [key, value] : d)
     {
-		Send("%s: %s\r\n", key.c_str(), std::string(value).c_str());
+		Append("%s: %s\r\n", key.c_str(), std::string(value).c_str());
     }
 	
-    Send("\r\n");
+    Append("\r\n");
 	
     return true;
 }
@@ -669,15 +625,19 @@ ServerSocket::SendData(const char * buffer, long size)
 
 
 bool
-ServerSocket::Send(const std::string & data)
+ServerSocket::Append(const std::string & data)
 {
-    return SendData(data.c_str(), data.size());
+    if(new_fd == -1)
+        return false;	// Connection closed - ignore send
+
+    output_buffer += data;
+    return true;
 }
 
 
 
 bool
-ServerSocket::Send(const char * format, ...)
+ServerSocket::Append(const char * format, ...)
 {
     if(new_fd == -1)
         return false;	// Connection closed - ignore send
@@ -693,19 +653,76 @@ ServerSocket::Send(const char * format, ...)
     }
     va_end(args);
 	
-    return SendData(buffer, strlen(buffer));
+    output_buffer += buffer;
+    return true;
 }
 
 
 
 bool
-ServerSocket::SendFile(const char * filename, const char * path, dictionary * hdr)
+ServerSocket::Flush()
 {
-    if(filename == nullptr) return false;
-	
-    copy_string(filepath, path, PATH_MAX);
-    append_string(filepath, filename, PATH_MAX);
-    FILE * f = fopen(filepath, "r+b");
+    if(new_fd == -1)
+        return false;
+
+    if(output_buffer.empty())
+        return true;
+
+    if(!SendData(output_buffer.c_str(), output_buffer.size()))
+        return false;
+
+    output_buffer.clear();
+    return true;
+}
+
+
+
+bool
+ServerSocket::Send(const std::string & data)
+{
+    return Append(data);
+}
+
+
+
+bool
+ServerSocket::Send(const char * format, ...)
+{
+    if(new_fd == -1)
+        return false;	// Connection closed - ignore send
+
+    char buffer[1024];
+    va_list 	args;
+    va_start(args, format);
+
+    if(vsnprintf(buffer, 1024, format, args) == -1)
+    {
+        va_end(args);
+        return false;
+    }
+    va_end(args);
+
+    return Append(buffer);
+}
+
+
+
+bool
+ServerSocket::SendFile(const std::filesystem::path & filename)
+{
+    dictionary header;
+    return SendFile(filename, header);
+}
+
+
+
+bool
+ServerSocket::SendFile(const std::filesystem::path & filename, dictionary & hdr)
+{
+    if(filename.empty()) return false;
+
+    std::filesystem::path resolved_filename = filename;
+    FILE * f = fopen(resolved_filename.c_str(), "r+b");
 	
     if(f == nullptr) return false;
 	
@@ -727,38 +744,40 @@ ServerSocket::SendFile(const char * filename, const char * path, dictionary * hd
         return false;
     }
 	
-    dictionary local_header;
-    dictionary * h = (hdr ? hdr : &local_header);
-	
-    (*h)["Connection"] = "Close"; // TODO: check if socket uses persistent connections
+    hdr["Connection"] = "Close"; // TODO: check if socket uses persistent connections
 
     std::string length = std::to_string((size_t)len);
-    (*h)["Content-Length"] = length;
-    (*h)["Server"] = "Ikaros/3.0";
+    hdr["Content-Length"] = length;
+    hdr["Server"] = "Ikaros/3.0";
 	
-    const std::string_view filename_view(filename);
-    if(ends_with(filename_view, ".html"))
-		(*h)["Content-Type"] = "text/html";
-    else if(ends_with(filename_view, ".css"))
-		(*h)["Content-Type"] = "text/css";
-    else if(ends_with(filename_view, ".js"))
-		(*h)["Content-Type"] = "text/javascript";
-    else if(ends_with(filename_view, ".jpg"))
-		(*h)["Content-Type"] = "image/jpeg";
-    else if(ends_with(filename_view, ".jpeg"))
-		(*h)["Content-Type"] = "image/jpeg";
-    else if(ends_with(filename_view, ".gif"))
-		(*h)["Content-Type"] = "image/gif";
-    else if(ends_with(filename_view, ".png"))
-		(*h)["Content-Type"] = "image/png";
-    else if(ends_with(filename_view, ".svg"))
-		(*h)["Content-Type"] = "image/svg+xml";
-    else if(ends_with(filename_view, ".xml"))
-		(*h)["Content-Type"] = "text/xml";
-    else if(ends_with(filename_view, ".ico"))
-		(*h)["Content-Type"] = "image/vnd.microsoft.icon";
+    const std::string extension = resolved_filename.extension().string();
+    if(extension == ".html")
+		hdr["Content-Type"] = "text/html";
+    else if(extension == ".css")
+		hdr["Content-Type"] = "text/css";
+    else if(extension == ".js")
+		hdr["Content-Type"] = "text/javascript";
+    else if(extension == ".jpg")
+		hdr["Content-Type"] = "image/jpeg";
+    else if(extension == ".jpeg")
+		hdr["Content-Type"] = "image/jpeg";
+    else if(extension == ".gif")
+		hdr["Content-Type"] = "image/gif";
+    else if(extension == ".png")
+		hdr["Content-Type"] = "image/png";
+    else if(extension == ".svg")
+		hdr["Content-Type"] = "image/svg+xml";
+    else if(extension == ".xml")
+		hdr["Content-Type"] = "text/xml";
+    else if(extension == ".ico")
+		hdr["Content-Type"] = "image/vnd.microsoft.icon";
 	
-    SendHTTPHeader(h);
+    SendHTTPHeader(hdr);
+    if(!Flush())
+    {
+        fclose(f);
+        return false;
+    }
 	
     char * s = new char[len];
     fread(s, len, 1, f);
@@ -772,17 +791,12 @@ ServerSocket::SendFile(const char * filename, const char * path, dictionary * hd
 
 
 bool
-ServerSocket::SendFile(const std::filesystem::path & filename, const std::string & path)
-{
-    return SendFile(filename.c_str(), path.c_str());
-}
-
-
-
-bool
 ServerSocket::Close()
 {
     if(new_fd == -1) return true;	// Connection already closed
+
+    if(!output_buffer.empty() && !Flush())
+        return false;
 	
     if(close(new_fd) == -1)
     {
@@ -790,6 +804,7 @@ ServerSocket::Close()
         return false;
     }
     new_fd = -1;
+    output_buffer.clear();
 	
     return true;
 }

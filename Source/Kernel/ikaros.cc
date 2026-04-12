@@ -3252,14 +3252,15 @@ bool operator==(Request & r, const std::string s)
 
             if(!jpeg)
             {
-                socket->Send("\"\"");
+                socket->Append("\"\"");
                 return;
             }
 
         char * jpeg_base64 = base64_encode(jpeg, size, &output_length);
-        socket->Send("\"data:image/jpeg;base64,");
+        socket->Append("\"data:image/jpeg;base64,");
+        socket->Flush();
         socket->SendData(jpeg_base64, output_length);
-        socket->Send("\"");
+        socket->Append("\"");
         destroy_jpeg(jpeg);
         free(jpeg_base64);
     }
@@ -3356,7 +3357,7 @@ bool operator==(Request & r, const std::string s)
             {"Pragma", "no-cache"},
             {"Expires", "0"}
         });
-        socket->SendHTTPHeader(&header);
+        socket->SendHTTPHeader(header);
     }
 
 
@@ -3367,25 +3368,25 @@ bool operator==(Request & r, const std::string s)
         if(!nm.empty())
             nm = std::filesystem::path(nm).filename().string();
 
-        socket->Send("\t\"file\": ");
-        socket->Send(value(nm).json());
-        socket->Send(",\n");
+        socket->Append("\t\"file\": ");
+        socket->Append(value(nm).json());
+        socket->Append(",\n");
 
 #if DEBUG
-        socket->Send("\t\"debug\": true,\n");
+        socket->Append("\t\"debug\": true,\n");
 #else
-        socket->Send("\t\"debug\": false,\n");
+        socket->Append("\t\"debug\": false,\n");
 #endif
 
-            socket->Send("\t\"state\": %d,\n", run_mode.load());
+            socket->Append("\t\"state\": %d,\n", run_mode.load());
         if(stop_after != -1)
         {
-            socket->Send("\t\"tick\": \"%d / %d\",\n", tick, stop_after);
-            socket->Send("\t\"progress\": %f,\n", double(tick)/double(stop_after));
+            socket->Append("\t\"tick\": \"%d / %d\",\n", tick, stop_after);
+            socket->Append("\t\"progress\": %f,\n", double(tick)/double(stop_after));
         }
         else
         {
-            socket->Send("\t\"progress\": 0,\n");
+            socket->Append("\t\"progress\": 0,\n");
         }
 
         // Timing information
@@ -3393,42 +3394,42 @@ bool operator==(Request & r, const std::string s)
         double uptime = uptime_timer.GetTime();
         double total_time = GetTime();
 
-        socket->Send("\t\"timestamp\": %ld,\n", GetTimeStamp());
-        socket->Send("\t\"uptime\": %.2f,\n", uptime);
-        socket->Send("\t\"tick_duration\": %f,\n", tick_duration);
-        socket->Send("\t\"cpu_cores\": %d,\n", cpu_cores);
+        socket->Append("\t\"timestamp\": %ld,\n", GetTimeStamp());
+        socket->Append("\t\"uptime\": %.2f,\n", uptime);
+        socket->Append("\t\"tick_duration\": %f,\n", tick_duration);
+        socket->Append("\t\"cpu_cores\": %d,\n", cpu_cores);
     
         switch(run_mode)
         {
             case run_mode_stop:
-                socket->Send("\t\"tick\": \"-\",\n");
-                socket->Send("\t\"time\": \"-\",\n");
-                socket->Send("\t\"ticks_per_s\": \"-\",\n");
-                socket->Send("\t\"actual_duration\": \"-\",\n");
-                socket->Send("\t\"lag\": \"-\",\n");
-                socket->Send("\t\"time_usage\": 0,\n");
-                socket->Send("\t\"cpu_usage\": 0,\n"); 
+                socket->Append("\t\"tick\": \"-\",\n");
+                socket->Append("\t\"time\": \"-\",\n");
+                socket->Append("\t\"ticks_per_s\": \"-\",\n");
+                socket->Append("\t\"actual_duration\": \"-\",\n");
+                socket->Append("\t\"lag\": \"-\",\n");
+                socket->Append("\t\"time_usage\": 0,\n");
+                socket->Append("\t\"cpu_usage\": 0,\n"); 
                 break;
 
             case run_mode_pause:
-                socket->Send("\t\"tick\": %lld,\n", GetTick());
-                socket->Send("\t\"time\": %.2f,\n", GetTime());
-                socket->Send("\t\"ticks_per_s\": \"-\",\n");
-                socket->Send("\t\"actual_duration\": \"-\",\n");
-                socket->Send("\t\"lag\": \"-\",\n");
-                socket->Send("\t\"time_usage\": %f,\n", actual_tick_duration> 0 ? tick_time_usage/actual_tick_duration : 0);
-                socket->Send("\t\"cpu_usage\": %f,\n", cpu_usage);  
+                socket->Append("\t\"tick\": %lld,\n", GetTick());
+                socket->Append("\t\"time\": %.2f,\n", GetTime());
+                socket->Append("\t\"ticks_per_s\": \"-\",\n");
+                socket->Append("\t\"actual_duration\": \"-\",\n");
+                socket->Append("\t\"lag\": \"-\",\n");
+                socket->Append("\t\"time_usage\": %f,\n", actual_tick_duration> 0 ? tick_time_usage/actual_tick_duration : 0);
+                socket->Append("\t\"cpu_usage\": %f,\n", cpu_usage);  
                 break;
 
             case run_mode_realtime:
             default:
-                socket->Send("\t\"tick\": %lld,\n", GetTick());
-                socket->Send("\t\"time\": %.2f,\n", GetTime());
-                socket->Send("\t\"ticks_per_s\": %.2f,\n", tick>0 ? double(tick)/total_time: 0);
-                socket->Send("\t\"actual_duration\": %f,\n", actual_tick_duration);
-                socket->Send("\t\"lag\": %f,\n", lag);
-                socket->Send("\t\"time_usage\": %f,\n", actual_tick_duration> 0 ? tick_time_usage/actual_tick_duration : 0);
-                socket->Send("\t\"cpu_usage\": %f,\n", cpu_usage);
+                socket->Append("\t\"tick\": %lld,\n", GetTick());
+                socket->Append("\t\"time\": %.2f,\n", GetTime());
+                socket->Append("\t\"ticks_per_s\": %.2f,\n", tick>0 ? double(tick)/total_time: 0);
+                socket->Append("\t\"actual_duration\": %f,\n", actual_tick_duration);
+                socket->Append("\t\"lag\": %f,\n", lag);
+                socket->Append("\t\"time_usage\": %f,\n", actual_tick_duration> 0 ? tick_time_usage/actual_tick_duration : 0);
+                socket->Append("\t\"cpu_usage\": %f,\n", cpu_usage);
                 break;
         }
 
@@ -3438,15 +3439,15 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoSendLog(Request &)
     {
-        socket->Send(",\n\"log\": [");
+        socket->Append(",\n\"log\": [");
         std::string sep;
         for(auto line : log)
         {
             std::string s = line.json();
-            socket->Send(sep +line.json());
+            socket->Append(sep +line.json());
             sep = ",";
         }
-        socket->Send("]");
+        socket->Append("]");
         if(!log.empty() )
         log.clear();
     }
@@ -3457,11 +3458,11 @@ bool operator==(Request & r, const std::string s)
     {    
         DoSendDataHeader();
 
-        socket->Send("{\n");
+        socket->Append("{\n");
 
         DoSendDataStatus();
 
-        socket->Send("\t\"data\":\n\t{\n");
+        socket->Append("\t\"data\":\n\t{\n");
 
         std::string data;
         if(request.parameters.contains("data"))
@@ -3509,23 +3510,23 @@ bool operator==(Request & r, const std::string s)
                 {
                     if(format.empty())
                     {
-                        sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": "+buffers[source_with_root].json());
+                        sent = socket->Append(sep + "\t\t\"" + escape_json_string(key) + "\": "+buffers[source_with_root].json());
                     }
                     else if(format=="rgb")
                     { 
-                            // sent = socket->Send(sep + "\t\t\"" + key + ":"+format+"\": ");
-                            sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": ");
+                            // sent = socket->Append(sep + "\t\t\"" + key + ":"+format+"\": ");
+                            sent = socket->Append(sep + "\t\t\"" + escape_json_string(key) + "\": ");
                             SendImage(buffers[source_with_root], format);
                     }
                     else if(format=="gray" || format=="red" || format=="green" || format=="blue" || format=="spectrum" || format=="fire")
                     { 
-                        sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": ");
+                        sent = socket->Append(sep + "\t\t\"" + escape_json_string(key) + "\": ");
                             SendImage(buffers[source_with_root], format);
                     }
                 }
                 else if(parameters.count(source_with_root))
                 {
-                    sent = socket->Send(sep + "\t\t\"" + escape_json_string(key) + "\": "+parameters[source_with_root].json());
+                    sent = socket->Append(sep + "\t\t\"" + escape_json_string(key) + "\": "+parameters[source_with_root].json());
                 }
 
                 else if(components.count(component_path)) // Use module function to get value
@@ -3534,9 +3535,9 @@ bool operator==(Request & r, const std::string s)
 
                     if(!json_data.empty())
                     {
-                        socket->Send(sep);
+                        socket->Append(sep);
                         std::string s = "\t\t\"" + escape_json_string(source) + "\": "+json_data;
-                        socket->Send(s);
+                        socket->Append(s);
                         sep = ",\n";
                     }
                 }
@@ -3554,10 +3555,10 @@ bool operator==(Request & r, const std::string s)
                 sep = ",\n";
         }
 
-        socket->Send("\n\t}");
+        socket->Append("\n\t}");
         DoSendLog(request);
-        socket->Send(",\n\t\"has_data\": 1\n");
-        socket->Send("}\n");
+        socket->Append(",\n\t\"has_data\": 1\n");
+        socket->Append("}\n");
 
         //sending_ui_data = false;
     }
@@ -3799,7 +3800,8 @@ bool operator==(Request & r, const std::string s)
             {"Content-Type", "application/json"},
             {"Content-Length", std::to_string(s.size())}
         });
-        socket->SendHTTPHeader(&rtheader);
+        socket->SendHTTPHeader(rtheader);
+        socket->Flush();
         socket->SendData(s.c_str(), int(s.size()));
     }
 
@@ -3885,9 +3887,9 @@ bool operator==(Request & r, const std::string s)
                     {"Cache-Control", "no-cache, no-store"},
                     {"Pragma", "no-cache"}
                 });
-                socket->SendHTTPHeader(&header);
+                socket->SendHTTPHeader(header);
         
-                socket->Send("Buffer \""+request.component_path+"\" can not be found");
+                socket->Append("Buffer \""+request.component_path+"\" can not be found");
                 return;
             }
 
@@ -3898,9 +3900,9 @@ bool operator==(Request & r, const std::string s)
                 {"Cache-Control", "no-cache, no-store"},
                 {"Pragma", "no-cache"}
             });
-            socket->SendHTTPHeader(&header);
+            socket->SendHTTPHeader(header);
 
-            socket->Send("Rank of matrix != 2. Cannot be displayed as CSV");
+            socket->Append("Rank of matrix != 2. Cannot be displayed as CSV");
             return;
         }
 
@@ -3909,9 +3911,9 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(&header);
+        socket->SendHTTPHeader(header);
 
-        socket->Send(buffers[request.component_path].csv());
+        socket->Append(buffers[request.component_path].csv());
     }
 
 
@@ -3928,25 +3930,25 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(&header);
+        socket->SendHTTPHeader(header);
 
         auto send_json_response = [&](const std::string & json_value, const std::vector<int> & shape)
         {
-            socket->Send("{\"path\": ");
-            socket->Send(value(request.component_path).json());
-            socket->Send(", \"shape\": [");
+            socket->Append("{\"path\": ");
+            socket->Append(value(request.component_path).json());
+            socket->Append(", \"shape\": [");
 
             std::string sep;
             for(int dim : shape)
             {
-                socket->Send(sep);
-                socket->Send(std::to_string(dim));
+                socket->Append(sep);
+                socket->Append(std::to_string(dim));
                 sep = ", ";
             }
 
-            socket->Send("], \"value\": ");
-            socket->Send(json_value);
-            socket->Send("}");
+            socket->Append("], \"value\": ");
+            socket->Append(json_value);
+            socket->Append("}");
         };
 
         if(buffers.count(key))
@@ -3984,7 +3986,7 @@ bool operator==(Request & r, const std::string s)
 
         dictionary error;
         error["error"] = "Value \"" + request.component_path + "\" can not be found";
-        socket->Send(error.json());
+        socket->Append(error.json());
     }
 
 
@@ -3999,9 +4001,9 @@ bool operator==(Request & r, const std::string s)
                     {"Cache-Control", "no-cache, no-store"},
                     {"Pragma", "no-cache"}
                 });
-                socket->SendHTTPHeader(&header);
+                socket->SendHTTPHeader(header);
         
-                socket->Send("Buffer \""+request.component_path+"\" can not be found");
+                socket->Append("Buffer \""+request.component_path+"\" can not be found");
                 return;
             }
 
@@ -4012,9 +4014,9 @@ bool operator==(Request & r, const std::string s)
                 {"Cache-Control", "no-cache, no-store"},
                 {"Pragma", "no-cache"}
             });
-            socket->SendHTTPHeader(&header);
+            socket->SendHTTPHeader(header);
 
-            socket->Send("Rank of matrix != 2. Cannot be displayed as CSV");
+            socket->Append("Rank of matrix != 2. Cannot be displayed as CSV");
             return;
         }
 
@@ -4023,9 +4025,9 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(&header);
+        socket->SendHTTPHeader(header);
 
-        socket->Send(buffers[request.component_path].csv());
+        socket->Append(buffers[request.component_path].csv());
     }
 
 
@@ -4054,8 +4056,8 @@ bool operator==(Request & r, const std::string s)
                 {"Cache-Control", "no-cache, no-store"},
                 {"Pragma", "no-cache"}
             });
-            socket->SendHTTPHeader(&header);
-            socket->Send("Matrix \"" + request.component_path + "\" can not be found");
+            socket->SendHTTPHeader(header);
+            socket->Append("Matrix \"" + request.component_path + "\" can not be found");
             return;
         }
 
@@ -4074,8 +4076,8 @@ bool operator==(Request & r, const std::string s)
                 {"Cache-Control", "no-cache, no-store"},
                 {"Pragma", "no-cache"}
             });
-            socket->SendHTTPHeader(&header);
-            socket->Send("Matrix \"" + request.component_path + "\" can not be converted to JPEG");
+            socket->SendHTTPHeader(header);
+            socket->Append("Matrix \"" + request.component_path + "\" can not be converted to JPEG");
             return;
         }
 
@@ -4085,7 +4087,8 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(&header);
+        socket->SendHTTPHeader(header);
+        socket->Flush();
         socket->SendData(reinterpret_cast<const char *>(jpeg), size);
         destroy_jpeg(jpeg);
     }
@@ -4214,16 +4217,16 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(&header);
-        socket->Send("{\"classes\":[\n\t\"");
+        socket->SendHTTPHeader(header);
+        socket->Append("{\"classes\":[\n\t\"");
         std::string s = "";
         for(auto & c: classes)
         {
-            socket->Send(s.c_str());
-            socket->Send(escape_json_string(c.first));
+            socket->Append(s.c_str());
+            socket->Append(escape_json_string(c.first));
             s = "\",\n\t\"";
         }
-        socket->Send("\"\n]\n}\n");
+        socket->Append("\"\n]\n}\n");
     }
 
 
@@ -4236,19 +4239,19 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(&header);
-        socket->Send("{\n");
+        socket->SendHTTPHeader(header);
+        socket->Append("{\n");
         std::string s = "";
         for(auto & c: classes)
         {
-            socket->Send(s);
-            socket->Send("\""+escape_json_string(c.first)+"\": ");
+            socket->Append(s);
+            socket->Append("\""+escape_json_string(c.first)+"\": ");
             dictionary class_info = c.second.info_.copy();
             class_info["path"] = std::filesystem::path(c.second.path).parent_path().string();
-            socket->Send(class_info.json());
+            socket->Append(class_info.json());
             s = ",\n\t";
         }
-        socket->Send("\n}\n");
+        socket->Append("\n}\n");
     }
 
 
@@ -4261,25 +4264,25 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(&header);
+        socket->SendHTTPHeader(header);
 
         if(!request.parameters.contains("class"))
         {
-            socket->Send("No class selected.");
+            socket->Append("No class selected.");
             return;
         }
 
         std::string class_name = request.parameters["class"];
         if(!classes.count(class_name))
         {
-            socket->Send("Class not found: " + class_name);
+            socket->Append("Class not found: " + class_name);
             return;
         }
 
         std::filesystem::path class_path = classes[class_name].path;
         if(class_path.empty())
         {
-            socket->Send("No class path available for: " + class_name);
+            socket->Append("No class path available for: " + class_name);
             return;
         }
 
@@ -4287,12 +4290,12 @@ bool operator==(Request & r, const std::string s)
         std::ifstream readme_file(readme_path);
         if(!readme_file.is_open())
         {
-            socket->Send("No ReadMe.md found for: " + class_name);
+            socket->Append("No ReadMe.md found for: " + class_name);
             return;
         }
 
         std::string content((std::istreambuf_iterator<char>(readme_file)), std::istreambuf_iterator<char>());
-        socket->Send(content);
+        socket->Append(content);
     }
 
 
@@ -4314,28 +4317,28 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(&header);
+        socket->SendHTTPHeader(header);
         std::string sep;
-    socket->Send("{\"system_files\":[\n\t\"");
+    socket->Append("{\"system_files\":[\n\t\"");
         for(auto & f: system_files)
         {
-            socket->Send(sep);
-            socket->Send(escape_json_string(f.first));
+            socket->Append(sep);
+            socket->Append(escape_json_string(f.first));
             sep = "\",\n\t\"";
         }
-    socket->Send("\"\n],\n");
+    socket->Append("\"\n],\n");
     
     sep = "";
-    socket->Send("\"user_files\":[\n\t\"");
+    socket->Append("\"user_files\":[\n\t\"");
         for(auto & f: user_files)
         {
-            socket->Send(sep);
-            socket->Send(escape_json_string(f.first));
+            socket->Append(sep);
+            socket->Append(escape_json_string(f.first));
             sep = "\",\n\t\"";
         }
-    socket->Send("\"\n]\n");
+    socket->Append("\"\n]\n");
 
-    socket->Send("}\n");
+    socket->Append("}\n");
     }
 
 
@@ -4346,8 +4349,8 @@ bool operator==(Request & r, const std::string s)
         {"Content-Type", "text/plain"},
         {"Content-Length", std::to_string(message.size())}
     });
-    socket->SendHTTPHeader(&header, status.c_str());
-    socket->Send(message);
+    socket->SendHTTPHeader(header, status.c_str());
+    socket->Append(message);
     }
 
 
@@ -4477,6 +4480,7 @@ Kernel::CalculateCPUUsage() // In percent
                     {
                         HandleHTTPRequest();
                     }
+                    socket->Flush();
                     socket->Close();
                 }
             }

@@ -74,12 +74,15 @@ class ServerSocket
 		ikaros::dictionary	header;									// The current HTTP request header
 		bool				GetRequest(bool block=false);           // Check for request and read if available
 		
-		bool				SendHTTPHeader(ikaros::dictionary * d = nullptr, const char * response=nullptr);
+		bool				SendHTTPHeader(ikaros::dictionary & d, const char * response=nullptr);
+		bool				Append(const char * format, ...); // Maximum 1023 characters
+		bool				Append(const std::string & data);
+		bool				Flush();
 		bool				SendData(const char * buffer, long size);
-		bool				Send(const char * format, ...); // Maximum 1023 characters
-		bool				Send(const std::string & data);
-		bool				SendFile(const char * filename, const char * path="", ikaros::dictionary * header = nullptr); // FIXME: add header automatically based on file type
-		bool				SendFile(const std::filesystem::path & filename, const std::string & path="");
+		bool				Send(const char * format, ...); // Compatibility wrapper around Append
+		bool				Send(const std::string & data); // Compatibility wrapper around Append
+		bool				SendFile(const std::filesystem::path & filename); // FIXME: add header automatically based on file type
+		bool				SendFile(const std::filesystem::path & filename, ikaros::dictionary & header);
 		bool				SendBuffer();
 		void				StopListening();
 
@@ -94,11 +97,10 @@ class ServerSocket
 		int				portno;
 		int 			sockfd = -1;				// Listen on sock_fd,
 		int				new_fd = -1;				// New connection on new_fd
+		std::string		output_buffer;
 		int				block_flags;				// Original flags for blocking I/O
 		int             request_allocated_size = 1024;
 		char *		 	request = (char *)malloc(sizeof(char)*request_allocated_size);
-		char			filepath[PATH_MAX];
-		
 		struct sockaddr_in	my_addr; 					// My address information
 		struct sockaddr_in	their_addr;					// Connector's address information
 		bool				Poll(bool block=false);                 // Poll for connection; return >=0 if accepted connection (or > 0 CHECK!!!)
