@@ -343,7 +343,7 @@ matrix::push_label(int dimension, std::string label, int no_of_columns)
 
 
 const std::vector<std::string>
-matrix::labels(int dimension)
+matrix::labels(int dimension) const
 {
     return info_->labels_.at(dimension);
 }
@@ -385,14 +385,14 @@ matrix::is_scalar() const
 
 
 bool
-matrix::connected()
+matrix::connected() const
 {
     return !is_uninitialized();
 }
 
 
 bool
-matrix::print_(int depth)
+matrix::print_(int depth) const
 {
     if(rank() == 0)
     {
@@ -421,7 +421,7 @@ matrix::print_(int depth)
 
 
 std::string
-matrix::json()
+matrix::json() const
 {
     if(rank() == 0)
     {
@@ -443,7 +443,7 @@ matrix::json()
 
 
 std::string
-matrix::csv(std::string separator)
+matrix::csv(std::string separator) const
 {
     std::string sep;
     std::string s;
@@ -489,7 +489,7 @@ matrix::csv(std::string separator)
 
 
 void
-matrix::print(std::string n)
+matrix::print(std::string n) const
 {
     if(!n.empty())
         std::cout << n << " = ";
@@ -1074,7 +1074,7 @@ matrix::fillExtendBorder(int wx, int wy)
 
 
 std::ostream &
-operator<<(std::ostream & os, matrix & m)
+operator<<(std::ostream & os, const matrix & m)
 {
     if(m.rank() == 0)
     {

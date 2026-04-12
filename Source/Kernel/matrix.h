@@ -122,7 +122,7 @@ namespace ikaros
         struct iterator
         {
         public:
-            matrix *    matrix_;
+            const matrix *    matrix_;
             int         index_;
 
             using iterator_category = std::forward_iterator_tag;
@@ -134,7 +134,9 @@ namespace ikaros
             */
 
             iterator(matrix & m) : matrix_(&m), index_(0) {}
+            iterator(const matrix & m) : matrix_(&m), index_(0) {}
             iterator(matrix & m, int i) : matrix_(&m), index_(i) {}
+            iterator(const matrix & m, int i) : matrix_(&m), index_(i) {}
 
             matrix operator*();
             
@@ -156,6 +158,8 @@ namespace ikaros
 
         iterator begin() { return iterator(*this, 0); }
         iterator end()   { return iterator(*this, info_->shape_.front()); }
+        iterator begin() const { return iterator(*this, 0); }
+        iterator end()   const { return iterator(*this, info_->shape_.front()); }
 
         // Initialization
         
@@ -197,18 +201,18 @@ namespace ikaros
 
         matrix & clear_labels(int dimension);
         matrix & push_label(int dimension, std::string label, int no_of_columns=1);
-        const std::vector<std::string> labels(int dimension=0);
+        const std::vector<std::string> labels(int dimension=0) const;
         int rank() const;
         bool empty() const;
         bool is_uninitialized() const;
         bool unfilled() const;
         bool is_scalar() const;
-        bool connected();
+        bool connected() const;
 
-        bool print_(int depth=0);
-        std::string json(); // Generate JSON-representation of matrix
-        std::string csv(std::string separator=","); // Generate CSV representation of matrix
-        void print(std::string n=""); // print matrix; n overrides name if set (useful during debugging)
+        bool print_(int depth=0) const;
+        std::string json() const; // Generate JSON-representation of matrix
+        std::string csv(std::string separator=",") const; // Generate CSV representation of matrix
+        void print(std::string n="") const; // print matrix; n overrides name if set (useful during debugging)
 
 
         matrix & reduce(std::function< void(float) > f); // Apply a lambda over elements of a matrix
@@ -564,7 +568,7 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
 
 
 
-        friend std::ostream& operator<<(std::ostream& os, matrix & m);
+        friend std::ostream& operator<<(std::ostream& os, const matrix & m);
 
         // Last Functions
 
