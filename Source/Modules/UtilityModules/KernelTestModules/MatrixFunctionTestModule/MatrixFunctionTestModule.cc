@@ -74,6 +74,20 @@ namespace
             require_close((*actual.data_)[actual_index], (*expected.data_)[expected_index], message, tolerance);
         }
     }
+
+    template <typename Fn>
+    void require_throws(Fn && fn, const std::string & message)
+    {
+        try
+        {
+            fn();
+        }
+        catch(const std::exception &)
+        {
+            return;
+        }
+        throw exception("MatrixFunctionTestModule: " + message + " (expected exception)");
+    }
 }
 
 class MatrixFunctionTestModule : public Module
@@ -286,6 +300,104 @@ class MatrixFunctionTestModule : public Module
         require_matrix_close(extended, make_matrix("1, 1, 2, 2; 1, 1, 2, 2; 3, 3, 4, 4; 3, 3, 4, 4"), "fillExtendBorder()");
     }
 
+    void test_submatrix_views()
+    {
+        matrix base = make_matrix("1, 2, 3; 4, 5, 6; 7, 8, 9");
+
+        matrix row = base[1];
+        row.set(99.0f);
+        require_matrix_close(base, make_matrix("1, 2, 3; 99, 99, 99; 7, 8, 9"), "row.set() honors offset");
+
+        matrix source = make_matrix("1, 2, 3; 4, 5, 6; 7, 8, 9");
+        matrix target = make_matrix("10, 11, 12; 13, 14, 15; 16, 17, 18");
+        target[2].copy(source[0]);
+        require_matrix_close(target, make_matrix("10, 11, 12; 13, 14, 15; 1, 2, 3"), "row.copy() honors offset");
+
+        matrix a = make_matrix("1, 2, 3; 4, 5, 6; 7, 8, 9");
+        matrix b = make_matrix("10, 20, 30; 40, 50, 60; 70, 80, 90");
+        matrix add_result = make_matrix("100, 101, 102; 103, 104, 105; 106, 107, 108");
+        add_result[1].add(a[2], b[0]);
+        require_matrix_close(add_result, make_matrix("100, 101, 102; 17, 28, 39; 106, 107, 108"), "add(row, row) honors offset");
+
+        matrix sub_result = make_matrix("100, 101, 102; 103, 104, 105; 106, 107, 108");
+        sub_result[0].subtract(b[2], a[1]);
+        require_matrix_close(sub_result, make_matrix("66, 75, 84; 103, 104, 105; 106, 107, 108"), "subtract(row, row) honors offset");
+
+        matrix mul_result = make_matrix("100, 101, 102; 103, 104, 105; 106, 107, 108");
+        mul_result[2].multiply(a[0], b[1]);
+        require_matrix_close(mul_result, make_matrix("100, 101, 102; 103, 104, 105; 40, 100, 180"), "multiply(row, row) honors offset");
+
+        matrix div_result = make_matrix("100, 101, 102; 103, 104, 105; 106, 107, 108");
+        div_result[1].divide(b[2], a[0]);
+        require_matrix_close(div_result, make_matrix("100, 101, 102; 70, 40, 30; 106, 107, 108"), "divide(row, row) honors offset");
+    }
+
+    void test_output_size_contracts()
+    {
+        matrix original = make_matrix("1, 2; 3, 4");
+        matrix wrong_copy(3);
+        require_throws([&]() { wrong_copy.copy(original); }, "copy() should throw for wrong-sized initialized destination");
+
+        matrix wrong_submatrix(1, 3);
+        matrix submatrix_source = make_matrix("1, 2, 3; 4, 5, 6; 7, 8, 9");
+        require_throws([&]() { wrong_submatrix.submatrix(submatrix_source, {0, 0, 2, 2}); }, "submatrix() should throw for wrong-sized initialized destination");
+
+        matrix transpose_target(3, 1);
+        require_throws([&]() { original.transpose(transpose_target); }, "transpose() should throw for wrong-sized initialized destination");
+
+        matrix left = make_matrix("1, 2, 3; 4, 5, 6");
+        matrix right = make_matrix("7, 8; 9, 10; 11, 12");
+        matrix wrong_matmul(3, 3);
+        require_throws([&]() { wrong_matmul.matmul(left, right); }, "matmul() should throw for wrong-sized initialized destination");
+
+        matrix hx = make_matrix("3, 4");
+        matrix hy = make_matrix("4, 3");
+        matrix wrong_hypot(3);
+        require_throws([&]() { wrong_hypot.hypot(hx, hy); }, "hypot() should throw for wrong-sized initialized destination");
+
+        matrix ax = make_matrix("1, 0");
+        matrix ay = make_matrix("0, 1");
+        matrix wrong_atan2(3);
+        require_throws([&]() { wrong_atan2.atan2(ay, ax); }, "atan2() should throw for wrong-sized initialized destination");
+
+        matrix image = make_matrix("1, 2, 3; 4, 5, 6; 7, 8, 9");
+        matrix kernel = make_matrix("1, 0; 0, -1");
+        matrix wrong_corr(3, 3);
+        require_throws([&]() { wrong_corr.corr(image, kernel); }, "corr() should throw for wrong-sized initialized destination");
+
+        matrix wrong_conv_slow(3, 3);
+        require_throws([&]() { wrong_conv_slow.conv_slow(image, kernel); }, "conv_slow() should throw for wrong-sized initialized destination");
+
+        matrix wrong_conv(2, 2);
+        matrix conv_image = make_matrix("1, 2, 3; 4, 5, 6; 7, 8, 9");
+        matrix conv_kernel = make_matrix("1, 0; 0, -1");
+        require_throws([&]() { wrong_conv.conv(conv_image, conv_kernel); }, "conv() should throw for wrong-sized initialized destination");
+
+        matrix down_source = make_matrix("1, 2, 3, 4; 5, 6, 7, 8; 9, 10, 11, 12; 13, 14, 15, 16");
+        matrix wrong_downsample(3, 3);
+        require_throws([&]() { wrong_downsample.downsample(down_source); }, "downsample() should throw for wrong-sized initialized destination");
+
+        matrix up_source = make_matrix("1, 2; 3, 4");
+        matrix wrong_upsample(3, 3);
+        require_throws([&]() { wrong_upsample.upsample(up_source); }, "upsample() should throw for wrong-sized initialized destination");
+
+        matrix svd_input = make_matrix("1, 2; 3, 4");
+        matrix U(3, 3);
+        matrix S;
+        matrix Vt;
+        require_throws([&]() { svd_input.singular_value_decomposition(svd_input, U, S, Vt); }, "singular_value_decomposition() should throw for wrong-sized U");
+
+        matrix U_ok;
+        matrix S_wrong(3, 3);
+        matrix Vt_ok;
+        require_throws([&]() { svd_input.singular_value_decomposition(svd_input, U_ok, S_wrong, Vt_ok); }, "singular_value_decomposition() should throw for wrong-sized S");
+
+        matrix U_ok2;
+        matrix S_ok2;
+        matrix Vt_wrong(3, 3);
+        require_throws([&]() { svd_input.singular_value_decomposition(svd_input, U_ok2, S_ok2, Vt_wrong); }, "singular_value_decomposition() should throw for wrong-sized Vt");
+    }
+
     void Init() override
     {
         Bind(suite_, "suite");
@@ -302,6 +414,10 @@ class MatrixFunctionTestModule : public Module
             test_linalg();
         else if(suite == "image")
             test_image();
+        else if(suite == "submatrix")
+            test_submatrix_views();
+        else if(suite == "contracts")
+            test_output_size_contracts();
         else
             throw exception("MatrixFunctionTestModule: Unknown suite \"" + suite + "\"");
 

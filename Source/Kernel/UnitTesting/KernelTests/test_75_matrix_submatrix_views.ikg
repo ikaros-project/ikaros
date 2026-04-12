@@ -1,0 +1,9 @@
+<group
+    name="Test_75"
+    description="Exercise matrix functions on submatrix views"
+    start="true"
+    stop="1"
+    expected_output_contains="MATRIX TEST submatrix OK"
+>
+    <module name="MatrixFns" class="MatrixFunctionTestModule" suite="submatrix" />
+</group>

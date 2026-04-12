@@ -175,6 +175,7 @@ namespace ikaros
         matrix(const char * data_string);
 
         matrix operator[](int i); // submatrix operator; returns a submatrix with rank()-1
+        matrix operator[](int i) const;
 
         void info(std::string n="") const; // print matrix info; n overrides name if set (useful during debugging)
         void test_fill(); // test function that fills the elements with consecutive numbers
@@ -199,6 +200,7 @@ namespace ikaros
         const std::vector<std::string> labels(int dimension=0);
         int rank() const;
         bool empty() const;
+        bool is_uninitialized() const;
         bool unfilled() const;
         bool is_scalar() const;
         bool connected();
@@ -211,12 +213,12 @@ namespace ikaros
 
         matrix & reduce(std::function< void(float) > f); // Apply a lambda over elements of a matrix
         matrix & apply(std::function< float(float) > f); // Apply a lambda to elements of a matrix
-        matrix & apply(matrix A, std::function<float(float, float)> f); // e = f(A[], x)
-        matrix & apply(matrix A, matrix B, std::function<float(float, float)> f); // e[] = f(A[], B[])
+        matrix & apply(const matrix & A, std::function<float(float, float)> f); // e = f(A[], x)
+        matrix & apply(const matrix & A, const matrix & B, std::function<float(float, float)> f); // e[] = f(A[], B[])
         matrix & set(float v); // Set all element of the matrix to a value
-        matrix & copy(matrix m);  // assign to matrix or submatrix - copy data
-        matrix & copy(matrix & m, range & target, range & source);
-        matrix & submatrix(matrix & m, const rect & region); // Copy a submatrix from m to this matrix
+        matrix & copy(const matrix & m);  // assign to matrix or submatrix - copy data
+        matrix & copy(const matrix & m, range & target, range & source);
+        matrix & submatrix(const matrix & m, const rect & region); // Copy a submatrix from m to this matrix
 
 
 
@@ -228,26 +230,15 @@ namespace ikaros
         matrix & reset(); // reset the matrix
         void check_bounds(const std::vector<int> &v) const; // Check bounds and throw exception if indices are out of range
 
-        template <typename... Args> // FIXME: Call function above
+        template <typename... Args>
         void
         check_bounds(Args... indices) const // Check bounds and throw exception if indices are out of range
         {
-            #ifdef NO_MATRIX_CHECKS
-                return;
-            #endif
-
-           if(sizeof...(indices) != info_->shape_.size())
-                throw std::out_of_range(get_name()+"Index has incorrect rank.");
-
             std::vector<int> v{static_cast<int>(indices)...};
-            for (std::size_t i = 0; i < v.size(); ++i)
-            {
-                if (v[i] < 0 || v[i] >= info_->shape_[i]) 
-                    throw std::out_of_range(get_name()+"Index out of range.");
-            }
+            check_bounds(v);
         }
 
-        void check_same_size(matrix & A);
+        void check_same_size(const matrix & A) const;
 
 
         template <typename... Args>
@@ -453,31 +444,31 @@ namespace ikaros
         matrix & scale(float c);
         matrix & divide(float c);
 
-        matrix & add(matrix A);
-        matrix & subtract(matrix A);
-        matrix & multiply(matrix A);
-        matrix & divide(matrix A);
-        matrix & maximum(matrix A);
-        matrix & minimum(matrix A);
-        matrix & logical_and(matrix A);
-        matrix & logical_or(matrix A);
-        matrix & logical_xor(matrix A);
+        matrix & add(const matrix & A);
+        matrix & subtract(const matrix & A);
+        matrix & multiply(const matrix & A);
+        matrix & divide(const matrix & A);
+        matrix & maximum(const matrix & A);
+        matrix & minimum(const matrix & A);
+        matrix & logical_and(const matrix & A);
+        matrix & logical_or(const matrix & A);
+        matrix & logical_xor(const matrix & A);
 
-        matrix & add(matrix A, matrix B);
-        matrix & subtract(matrix A, matrix B);
-        matrix & multiply(matrix A, matrix B);
-        matrix & divide(matrix A, matrix B);
-        matrix & maximum(matrix A, matrix B);
-        matrix & minimum(matrix A, matrix B);
-        matrix & logical_and(matrix A, matrix B);
-        matrix & logical_or(matrix A, matrix B);
-        matrix & logical_xor(matrix A, matrix B);
+        matrix & add(const matrix & A, const matrix & B);
+        matrix & subtract(const matrix & A, const matrix & B);
+        matrix & multiply(const matrix & A, const matrix & B);
+        matrix & divide(const matrix & A, const matrix & B);
+        matrix & maximum(const matrix & A, const matrix & B);
+        matrix & minimum(const matrix & A, const matrix & B);
+        matrix & logical_and(const matrix & A, const matrix & B);
+        matrix & logical_or(const matrix & A, const matrix & B);
+        matrix & logical_xor(const matrix & A, const matrix & B);
 
 
     
         int compute_index(const std::vector<int> & v) const;
 
-        template <typename... Args> int  // FIXME: Call function above
+        template <typename... Args> int
         compute_index(Args... indices) const
         {
             std::vector<int> v{static_cast<int>(indices)...};
@@ -488,20 +479,20 @@ namespace ikaros
 
 
 
-        matrix & hypot(matrix & x, matrix & y); // Compute element-wise hypotenuse sqrt(x^2 + y^2)
+        matrix & hypot(const matrix & x, const matrix & y); // Compute element-wise hypotenuse sqrt(x^2 + y^2)
 
 
 
-        matrix & atan2(matrix & y, matrix & x); // Compute element-wise atan2
+        matrix & atan2(const matrix & y, const matrix & x); // Compute element-wise atan2
 
 
 
-        matrix & matmul(matrix & A, matrix & B); // Compute matrix multiplication A*B and put result in current matrix // FIXME: realloc() if this.rank() = 0
+        matrix & matmul(const matrix & A, const matrix & B); // Compute matrix multiplication A*B and put result in current matrix
 
 
         matrix & inv(); // Invert matrix in place
 
-        matrix & corr(matrix & I, matrix & K); // correlation of I and K
+        matrix & corr(const matrix & I, const matrix & K); // correlation of I and K
 
 
 /*
@@ -548,7 +539,7 @@ corr2(matrix &I, matrix &K) {
 
 */
 
-        matrix & corr3(matrix &I, matrix &K, const std::vector<float> &kernel_flat, const std::vector<float> &submatrices_flat);
+        matrix & corr3(const matrix &I, const matrix &K, const std::vector<float> &kernel_flat, const std::vector<float> &submatrices_flat);
 
 
 
@@ -561,11 +552,11 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
 */
 
 
-        matrix & conv_slow(matrix & I, matrix & K); // Convolution of I and K; no border; result smaller than input image
+        matrix & conv_slow(const matrix & I, const matrix & K); // Convolution of I and K; no border; result smaller than input image
 
 
 
-    matrix &conv(matrix &I, matrix &K); // Convolution of I and K; border; result same size as input image
+    matrix &conv(const matrix &I, const matrix &K); // Convolution of I and K; border; result same size as input image
 
 
     matrix & fillReflect101Border(int wx, int wy);
@@ -620,7 +611,7 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
         // operator>=
 
 
-    void singular_value_decomposition(matrix& inputMatrix, matrix& U, matrix& S, matrix& Vt);
+    void singular_value_decomposition(const matrix& inputMatrix, matrix& U, matrix& S, matrix& Vt);
 
 
                 // Helper function to flatten the kernel matrix
@@ -638,5 +629,5 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
 
     void parse_bracket_matrix_value(const value & v, std::vector<int> & shape, std::vector<float> & data, int depth = 0);
     bool try_parse_bracket_matrix_literal(matrix & out, const std::string & data_string);
-    float dot(matrix A, matrix B);
+    float dot(const matrix & A, const matrix & B);
 }

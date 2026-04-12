@@ -187,6 +187,36 @@ matrix::operator[](int i)
 }
 
 
+matrix
+matrix::operator[](int i) const
+{
+#ifndef NO_MATRIX_CHECKS
+    if(i < 0 || i >= info_->shape_.front())
+        throw std::out_of_range("Index out of range");
+#endif
+    matrix r = *this;
+    r.info_ = std::make_shared<matrix_info>(this->info_->shape_);
+    *r.info_ = *info_;
+    int new_offset = i;
+    for(int d = info_->stride_.size() - 1; d > 0; --d)
+        new_offset *= info_->stride_.at(d);
+    r.info_->offset_ += new_offset;
+    r.info_->shape_ = {info_->shape_.begin() + 1, info_->shape_.end()};
+    r.info_->stride_ = {info_->stride_.begin() + 1, info_->stride_.end()};
+    r.info_->max_size_ = {info_->max_size_.begin() + 1, info_->max_size_.end()};
+    r.info_->size_ = r.info_->calculate_size();
+    if(r.info_->size_ == 0)
+        r.info_->size_ = 1;
+
+    if(info_->labels_.at(0).size() > static_cast<std::size_t>(i))
+        r.info_->name_ += std::string(".") + info_->labels_.at(0).at(i);
+    else
+        r.info_->name_ += "[" + std::to_string(i) + "]";
+    r.info_->labels_.erase(r.info_->labels_.begin());
+    return r;
+}
+
+
 void
 matrix::info(std::string n) const
 {
@@ -329,6 +359,13 @@ matrix::rank() const
 bool
 matrix::empty() const
 {
+    return info_->size_ == 0;
+}
+
+
+bool
+matrix::is_uninitialized() const
+{
     return rank() == 0 && (info_->size_ == 0);
 }
 
@@ -350,7 +387,7 @@ matrix::is_scalar() const
 bool
 matrix::connected()
 {
-    return !empty();
+    return !is_uninitialized();
 }
 
 
@@ -518,7 +555,7 @@ matrix::apply(std::function<float(float)> f)
 
 
 matrix &
-matrix::apply(matrix A, std::function<float(float, float)> f)
+matrix::apply(const matrix & A, std::function<float(float, float)> f)
 {
     if(empty())
         return *this;
@@ -543,7 +580,7 @@ matrix::apply(matrix A, std::function<float(float, float)> f)
 
 
 matrix &
-matrix::apply(matrix A, matrix B, std::function<float(float, float)> f)
+matrix::apply(const matrix & A, const matrix & B, std::function<float(float, float)> f)
 {
     if(empty())
         return *this;
@@ -573,7 +610,7 @@ matrix::set(float v)
 {
     if(info_->continuous)
     {
-        std::fill(data_->begin() + info_->offset_, data_->begin() + info_->offset_ + info_->offset_ + info_->size_, v);
+        std::fill(data_->begin() + info_->offset_, data_->begin() + info_->offset_ + info_->size_, v);
         return *this;
     }
     else
@@ -582,21 +619,27 @@ matrix::set(float v)
 
 
 matrix &
-matrix::copy(matrix m)
+matrix::copy(const matrix & m)
 {
-    if(rank() == 0)
+    if(is_uninitialized())
         realloc(m.shape());
 
     if(info_->shape_ != m.info_->shape_)
         throw std::out_of_range("Assignment requires matrices of the same size");
 
-    std::copy_n(m.data_->begin() + m.info_->offset_, m.info_->size_, data_->begin() + info_->offset_);
+    if(info_->continuous && m.info_->continuous)
+        std::copy_n(m.data_->begin() + m.info_->offset_, m.info_->size_, data_->begin() + info_->offset_);
+    else if(is_scalar())
+        (*data_)[info_->offset_] = (*m.data_)[m.info_->offset_];
+    else
+        for(int i = 0; i < info_->shape_.front(); ++i)
+            (*this)[i].copy(m[i]);
     return *this;
 }
 
 
 matrix &
-matrix::copy(matrix & m, range & target, range & source)
+matrix::copy(const matrix & m, range & target, range & source)
 {
     if(info_->continuous && m.info_->continuous && source == target && m.info_->shape_ == info_->shape_)
         return copy(m);
@@ -615,13 +658,15 @@ matrix::copy(matrix & m, range & target, range & source)
 
 
 matrix &
-matrix::submatrix(matrix & m, const rect & region)
+matrix::submatrix(const matrix & m, const rect & region)
 {
     int height = region.height;
     int width = region.width;
 
-    if(rank() == 0)
+    if(is_uninitialized())
         realloc(height, width);
+    else if(rows() != height || cols() != width)
+        throw std::invalid_argument("Destination matrix does not have size " + std::to_string(height) + "x" + std::to_string(width) + ".");
 
     if(rank() != 2 || m.rank() != 2)
         throw std::invalid_argument(get_name() + " Matrix must be two-dimensional.");
@@ -700,7 +745,7 @@ matrix::check_bounds(const std::vector<int> & v) const
 
 
 void
-matrix::check_same_size(matrix & A)
+matrix::check_same_size(const matrix & A) const
 {
     if(info_->shape_ != A.info_->shape_)
         throw std::invalid_argument(get_name() + A.get_name() + "Matrix sizes must match.");
@@ -790,7 +835,7 @@ matrix::push(const matrix & m, bool extend)
         throw std::out_of_range(get_name() + "No room for additional element");
 #endif
     if(info_->shape_.front() < info_->max_size_.front())
-        return (*this)[info_->shape_.front()++].copy(const_cast<matrix &>(m));
+        return (*this)[info_->shape_.front()++].copy(m);
     else
         return *this;
 }
@@ -911,7 +956,7 @@ matrix::gaussian(float sigma)
 
 
 matrix &
-matrix::corr(matrix & I, matrix & K)
+matrix::corr(const matrix & I, const matrix & K)
 {
 #ifndef NO_MATRIX_CHECKS
     if(rank() != 2 || I.rank() != 2 || K.rank() != 2)
@@ -923,6 +968,9 @@ matrix::corr(matrix & I, matrix & K)
 
     int rr = I.rows() - K.rows() + 1;
     int rc = I.cols() - K.cols() + 1;
+
+    if(is_uninitialized())
+        realloc(rr, rc);
 
     if(rows() != rr || cols() != rc)
         throw std::invalid_argument("Result matrix does not have size " + std::to_string(rr) + "x" + std::to_string(rc) + ".");
@@ -941,7 +989,7 @@ matrix::corr(matrix & I, matrix & K)
 
 
 matrix &
-matrix::conv_slow(matrix & I, matrix & K)
+matrix::conv_slow(const matrix & I, const matrix & K)
 {
 #ifndef NO_MATRIX_CHECKS
     if(rank() != 2 || I.rank() != 2 || K.rank() != 2)
@@ -957,6 +1005,9 @@ matrix::conv_slow(matrix & I, matrix & K)
     int Kc = K.cols();
     int r = Ir - Kr + 1;
     int c = Ic - Kc + 1;
+
+    if(is_uninitialized())
+        realloc(r, c);
 
     if(rows() != r || cols() != c)
         throw std::invalid_argument("Result matrix does not have size " + std::to_string(r) + "x" + std::to_string(c) + ".");
@@ -1063,7 +1114,11 @@ matrix::transpose(matrix & ret)
 {
     int rows = this->rows();
     int cols = this->cols();
-    ret = matrix(cols, rows);
+
+    if(ret.is_uninitialized())
+        ret.realloc(cols, rows);
+    else if(ret.rows() != cols || ret.cols() != rows)
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(cols) + "x" + std::to_string(rows) + ".");
 
     for(int i = 0; i < rows; ++i)
         for(int j = 0; j < cols; ++j)
@@ -1239,7 +1294,7 @@ try_parse_bracket_matrix_literal(matrix & out, const std::string & data_string)
 
 
 float
-dot(matrix A, matrix B)
+dot(const matrix & A, const matrix & B)
 {
     A.check_same_size(B);
 
@@ -1398,15 +1453,14 @@ matrix::subtract(float c)
 matrix &
 matrix::scale(float c)
 {
+#if defined(__APPLE__)
     if(info_->continuous)
     {
         vDSP_vsmul(data(), 1, &c, data(), 1, info_->size_);
         return *this;
     }
-    else
-    {
-        return apply([c](float x)->float { return x * c; });
-    }
+#endif
+    return apply([c](float x)->float { return x * c; });
 }
 
 
@@ -1425,7 +1479,7 @@ matrix::divide(float c)
 
 
 matrix &
-matrix::add(matrix A)
+matrix::add(const matrix & A)
 {
     check_same_size(A);
 
@@ -1442,7 +1496,7 @@ matrix::add(matrix A)
 
 
 matrix &
-matrix::subtract(matrix A)
+matrix::subtract(const matrix & A)
 {
     check_same_size(A);
 
@@ -1459,7 +1513,7 @@ matrix::subtract(matrix A)
 
 
 matrix &
-matrix::multiply(matrix A)
+matrix::multiply(const matrix & A)
 {
     check_same_size(A);
 
@@ -1476,7 +1530,7 @@ matrix::multiply(matrix A)
 
 
 matrix &
-matrix::divide(matrix A)
+matrix::divide(const matrix & A)
 {
     check_same_size(A);
 
@@ -1493,7 +1547,7 @@ matrix::divide(matrix A)
 
 
 matrix &
-matrix::logical_and(matrix A)
+matrix::logical_and(const matrix & A)
 {
     check_same_size(A);
 
@@ -1511,7 +1565,7 @@ matrix::logical_and(matrix A)
 
 
 matrix &
-matrix::logical_or(matrix A)
+matrix::logical_or(const matrix & A)
 {
     check_same_size(A);
 
@@ -1529,7 +1583,7 @@ matrix::logical_or(matrix A)
 
 
 matrix &
-matrix::logical_xor(matrix A)
+matrix::logical_xor(const matrix & A)
 {
     check_same_size(A);
 
@@ -1547,95 +1601,91 @@ matrix::logical_xor(matrix A)
 
 
 matrix &
-matrix::add(matrix A, matrix B)
+matrix::add(const matrix & A, const matrix & B)
 {
     check_same_size(A);
     check_same_size(B);
 
+#if defined(__APPLE__)
     if(info_->continuous && A.info_->continuous && B.info_->continuous)
     {
-        float *a = A.data();
-        float *b = B.data();
+        const float *a = A.data();
+        const float *b = B.data();
         float *r = this->data();
 
-        vDSP_vadd(b, 1, a, 1, r, 1, this->data_->size());
+        vDSP_vadd(b, 1, a, 1, r, 1, static_cast<vDSP_Length>(size()));
         return *this;
     }
-    else
-    {
-        return apply(A, B, [](float x, float y)->float { return x + y; });
-    }
+#endif
+    return apply(A, B, [](float x, float y)->float { return x + y; });
 }
 
 
 matrix &
-matrix::subtract(matrix A, matrix B)
+matrix::subtract(const matrix & A, const matrix & B)
 {
     check_same_size(A);
     check_same_size(B);
 
+#if defined(__APPLE__)
     if(info_->continuous && A.info_->continuous && B.info_->continuous)
     {
-        float *a = A.data();
-        float *b = B.data();
+        const float *a = A.data();
+        const float *b = B.data();
         float *r = this->data();
 
-        vDSP_vsub(b, 1, a, 1, r, 1, this->data_->size());
+        vDSP_vsub(b, 1, a, 1, r, 1, static_cast<vDSP_Length>(size()));
         return *this;
     }
-    else
-    {
-        return apply(A, B, [](float x, float y)->float { return x - y; });
-    }
+#endif
+    return apply(A, B, [](float x, float y)->float { return x - y; });
 }
 
 
 matrix &
-matrix::multiply(matrix A, matrix B)
+matrix::multiply(const matrix & A, const matrix & B)
 {
     check_same_size(A);
     check_same_size(B);
 
+#if defined(__APPLE__)
     if(info_->continuous && A.info_->continuous && B.info_->continuous)
     {
-        float *a = A.data();
-        float *b = B.data();
+        const float *a = A.data();
+        const float *b = B.data();
         float *r = this->data();
 
-        vDSP_vmul(b, 1, a, 1, r, 1, this->data_->size());
+        vDSP_vmul(b, 1, a, 1, r, 1, static_cast<vDSP_Length>(size()));
         return *this;
     }
-    else
-    {
-        return apply(A, B, [](float x, float y)->float { return x * y; });
-    }
+#endif
+    return apply(A, B, [](float x, float y)->float { return x * y; });
 }
 
 
 matrix &
-matrix::divide(matrix A, matrix B)
+matrix::divide(const matrix & A, const matrix & B)
 {
     check_same_size(A);
     check_same_size(B);
 
+#if defined(__APPLE__)
     if(info_->continuous && A.info_->continuous && B.info_->continuous)
     {
-        float *a = A.data();
-        float *b = B.data();
+        const float *a = A.data();
+        const float *b = B.data();
         float *r = this->data();
 
-        vDSP_vdiv(b, 1, a, 1, r, 1, this->data_->size());
+        vDSP_vdiv(b, 1, a, 1, r, 1, static_cast<vDSP_Length>(size()));
         return *this;
     }
-    else
-    {
-        return apply(A, B, [](float x, float y)->float { return x / y; });
-    }
+#endif
+    return apply(A, B, [](float x, float y)->float { return x / y; });
 }
 
 
 matrix &
-matrix::maximum(matrix A)
+matrix::maximum(const matrix & A)
 {
     check_same_size(A);
 
@@ -1652,7 +1702,7 @@ matrix::maximum(matrix A)
 
 
 matrix &
-matrix::minimum(matrix A)
+matrix::minimum(const matrix & A)
 {
     check_same_size(A);
 
@@ -1669,7 +1719,7 @@ matrix::minimum(matrix A)
 
 
 matrix &
-matrix::maximum(matrix A, matrix B)
+matrix::maximum(const matrix & A, const matrix & B)
 {
     check_same_size(A);
     check_same_size(B);
@@ -1687,7 +1737,7 @@ matrix::maximum(matrix A, matrix B)
 
 
 matrix &
-matrix::minimum(matrix A, matrix B)
+matrix::minimum(const matrix & A, const matrix & B)
 {
     check_same_size(A);
     check_same_size(B);
@@ -1705,7 +1755,7 @@ matrix::minimum(matrix A, matrix B)
 
 
 matrix &
-matrix::logical_and(matrix A, matrix B)
+matrix::logical_and(const matrix & A, const matrix & B)
 {
     check_same_size(A);
     check_same_size(B);
@@ -1725,7 +1775,7 @@ matrix::logical_and(matrix A, matrix B)
 
 
 matrix &
-matrix::logical_or(matrix A, matrix B)
+matrix::logical_or(const matrix & A, const matrix & B)
 {
     check_same_size(A);
     check_same_size(B);
@@ -1745,7 +1795,7 @@ matrix::logical_or(matrix A, matrix B)
 
 
 matrix &
-matrix::logical_xor(matrix A, matrix B)
+matrix::logical_xor(const matrix & A, const matrix & B)
 {
     check_same_size(A);
     check_same_size(B);
@@ -1765,9 +1815,9 @@ matrix::logical_xor(matrix A, matrix B)
 
 
 matrix &
-matrix::hypot(matrix & x, matrix & y)
+matrix::hypot(const matrix & x, const matrix & y)
 {
-    if(empty())
+    if(is_uninitialized())
         realloc(x.shape());
 
     check_same_size(x);
@@ -1788,9 +1838,9 @@ matrix::hypot(matrix & x, matrix & y)
 
 
 matrix &
-matrix::atan2(matrix & y, matrix & x)
+matrix::atan2(const matrix & y, const matrix & x)
 {
-    if(empty())
+    if(is_uninitialized())
         realloc(x.shape());
 
     check_same_size(x);
@@ -1812,9 +1862,9 @@ matrix::atan2(matrix & y, matrix & x)
 
 
 matrix &
-matrix::matmul(matrix & A, matrix & B)
+matrix::matmul(const matrix & A, const matrix & B)
 {
-    if(empty())
+    if(is_uninitialized())
         realloc(A.rows(), B.cols());
 
 #ifndef NO_MATRIX_CHECKS
@@ -1859,6 +1909,9 @@ matrix::inv()
     if(size_x() != size_y())
         throw std::invalid_argument("Matrix must be square for inversion.");
 
+#if !defined(__APPLE__)
+    throw std::runtime_error("matrix::inv() requires Apple Accelerate LAPACK today. A portable fallback could use Eigen, LAPACK/OpenBLAS, or a local Gauss-Jordan/LU implementation.");
+#else
     int n = size_x();
     int lda = size_y();
     int info;
@@ -1878,13 +1931,14 @@ matrix::inv()
         throw std::runtime_error("Matrix inversion failed with info = " + std::to_string(info));
 
     return *this;
+#endif
 }
 
 
 matrix &
-matrix::corr3(matrix &I, matrix &K, const std::vector<float> &kernel_flat, const std::vector<float> &submatrices_flat)
+matrix::corr3(const matrix &I, const matrix &K, const std::vector<float> &kernel_flat, const std::vector<float> &submatrices_flat)
 {
-    if(empty())
+    if(is_uninitialized())
         realloc(I.rows() - K.rows() + 1, I.cols() - K.cols() + 1);
 
 #ifndef NO_MATRIX_CHECKS
@@ -1930,7 +1984,7 @@ matrix::corr3(matrix &I, matrix &K, const std::vector<float> &kernel_flat, const
 
 
 matrix &
-matrix::conv(matrix &I, matrix &K)
+matrix::conv(const matrix &I, const matrix &K)
 {
 #ifndef NO_MATRIX_CHECKS
     if(rank() != 2 || I.rank() != 2 || K.rank() != 2)
@@ -1944,6 +1998,12 @@ matrix::conv(matrix &I, matrix &K)
     int Ic = I.cols();
     int Kr = K.rows();
     int Kc = K.cols();
+
+    if(is_uninitialized())
+        realloc(Ir, Ic);
+
+    if(rows() != Ir || cols() != Ic)
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(Ir) + "x" + std::to_string(Ic) + ".");
 
     if(this == &I || this == &K)
         throw std::invalid_argument("Result cannot be assigned to I or K.");
@@ -1965,13 +2025,31 @@ matrix::conv(matrix &I, matrix &K)
 
 
 void
-matrix::singular_value_decomposition(matrix& inputMatrix, matrix& U, matrix& S, matrix& Vt)
+matrix::singular_value_decomposition(const matrix& inputMatrix, matrix& U, matrix& S, matrix& Vt)
 {
+#if !defined(__APPLE__)
+    throw std::runtime_error("matrix::singular_value_decomposition() requires Apple Accelerate LAPACK today. A portable fallback could use Eigen, LAPACK/OpenBLAS, or another SVD-capable linear algebra library.");
+#else
     int m = inputMatrix.size_y();
     int n = inputMatrix.size_x();
+    int min_mn = std::min(m, n);
+
+    if(U.is_uninitialized())
+        U.realloc(m, m);
+    else if(U.rows() != m || U.cols() != m)
+        throw std::invalid_argument("U matrix does not have size " + std::to_string(m) + "x" + std::to_string(m) + ".");
+
+    if(Vt.is_uninitialized())
+        Vt.realloc(n, n);
+    else if(Vt.rows() != n || Vt.cols() != n)
+        throw std::invalid_argument("Vt matrix does not have size " + std::to_string(n) + "x" + std::to_string(n) + ".");
+
+    if(S.is_uninitialized())
+        S.realloc(m, n);
+    else if(S.rows() != m || S.cols() != n)
+        throw std::invalid_argument("S matrix does not have size " + std::to_string(m) + "x" + std::to_string(n) + ".");
 
     std::vector<float> a(inputMatrix.data(), inputMatrix.data() + m * n);
-    int min_mn = std::min(m, n);
 
     matrix singularValues(min_mn);
     matrix u(m, m);
@@ -2001,8 +2079,8 @@ matrix::singular_value_decomposition(matrix& inputMatrix, matrix& U, matrix& S, 
     for(int i = 0; i < min_mn; ++i)
         s[i * n + i] = singularValues[i];
 
-    S.resize(m, n);
     std::copy(s.begin(), s.end(), S.data());
+#endif
 }
 
 
@@ -2020,7 +2098,7 @@ matrix::downsample(const matrix &source)
     int new_rows = src_rows / 2;
     int new_cols = src_cols / 2;
 
-    if (rank() == 0) {
+    if (is_uninitialized()) {
         realloc(new_rows, new_cols);
     } else if (rows() != new_rows || cols() != new_cols) {
         throw std::invalid_argument("Destination matrix has incorrect size.");
@@ -2085,7 +2163,7 @@ matrix::downsample(const matrix &source)
         int new_rows = src_rows * 2;
         int new_cols = src_cols * 2;
 
-        if (rank() == 0) {
+        if (is_uninitialized()) {
             realloc(new_rows, new_cols);
         } else if (rows() != new_rows || cols() != new_cols) {
             throw std::invalid_argument("Destination matrix has incorrect size for upsample.");
@@ -2152,6 +2230,13 @@ matrix::downsample(const matrix &source)
         if (len == 0) 
             return 0.0f;
 
+#if !defined(__APPLE__)
+        (void)kernel;
+        (void)submatrix;
+        (void)buffer;
+        (void)len;
+        throw std::runtime_error("matrix::search() requires Apple Accelerate today. A portable fallback could use Eigen, OpenCV, or a local scalar normalized-correlation implementation.");
+#else
         float submatrix_mean = 0.0f;
         vDSP_meanv(submatrix, 1, &submatrix_mean, len);
 
@@ -2169,6 +2254,7 @@ matrix::downsample(const matrix &source)
         float denom = std::sqrt(submatrix_norm2);
 
         return denom > 0.0f ? dot / denom : 0.0f;
+#endif
     }
 
 
@@ -2179,6 +2265,11 @@ matrix::downsample(const matrix &source)
     match
     matrix::search(const matrix & target, const rect & search_rectangle) const
     {
+#if !defined(__APPLE__)
+        (void)target;
+        (void)search_rectangle;
+        throw std::runtime_error("matrix::search() requires Apple Accelerate today. A portable fallback could use Eigen, OpenCV, or a local scalar normalized-correlation implementation.");
+#else
         #ifndef NO_MATRIX_CHECKS
         if (target.rank() != 2)
             throw std::invalid_argument("Search requires a 2D target matrix.");
@@ -2237,6 +2328,7 @@ matrix::downsample(const matrix &source)
 
         best_match.score /= norm_k; // Normalize the score by the target norm
         return best_match;
+#endif
     }
 
 

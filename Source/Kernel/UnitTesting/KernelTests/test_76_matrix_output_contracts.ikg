@@ -1,0 +1,9 @@
+<group
+    name="Test_76"
+    description="Exercise matrix output size contract failures"
+    start="true"
+    stop="1"
+    expected_output_contains="MATRIX TEST contracts OK"
+>
+    <module name="MatrixFns" class="MatrixFunctionTestModule" suite="contracts" />
+</group>
