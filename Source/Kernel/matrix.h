@@ -1205,68 +1205,34 @@ namespace ikaros
         
         // Element-wise functions
 
-        matrix & add(float c) { return apply([c](float x)->float {return x+c;}); }
-        
-        matrix & subtract(float c) { return add(-c); }
+        matrix & add(float c);
+        matrix & subtract(float c);
         
         
         //matrix & scale(float c) { return apply([c](float x)->float {return x*c;});  }
 
         matrix & scale(float c);
+        matrix & divide(float c);
 
-
-        matrix & divide(float c) { return scale(1/c); } // Fixme: use vDSP for continuous matrices
-
-        matrix & add(matrix A)      { check_same_size(A); return apply(A, [](float x, float y)->float {return x+y;}); } // Fixme: use vDSP for continuous matrices
-        matrix & subtract(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return x-y;}); }// Fixme: use vDSP for continuous matrices
-        matrix & multiply(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return x*y;}); }// Fixme: use vDSP for continuous matrices
-        matrix & divide(matrix A)   { check_same_size(A); return apply(A, [](float x, float y)->float {return x/y;}); }// Fixme: use vDSP for continuous matrices
+        matrix & add(matrix A);
+        matrix & subtract(matrix A);
+        matrix & multiply(matrix A);
+        matrix & divide(matrix A);
         matrix & maximum(matrix A);
         matrix & minimum(matrix A);
-        matrix & logical_and(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return (x != 0.0f && y != 0.0f) ? 1.0f : 0.0f;}); }
-        matrix & logical_or(matrix A)  { check_same_size(A); return apply(A, [](float x, float y)->float {return (x != 0.0f || y != 0.0f) ? 1.0f : 0.0f;}); }
-        matrix & logical_xor(matrix A) { check_same_size(A); return apply(A, [](float x, float y)->float {return ((x != 0.0f) != (y != 0.0f)) ? 1.0f : 0.0f;}); }
+        matrix & logical_and(matrix A);
+        matrix & logical_or(matrix A);
+        matrix & logical_xor(matrix A);
 
         matrix & add(matrix A, matrix B);
-
-
         matrix & subtract(matrix A, matrix B);
-
-
         matrix & multiply(matrix A, matrix B);
-
-
         matrix & divide(matrix A, matrix B);
-
-
         matrix & maximum(matrix A, matrix B);
-
-
         matrix & minimum(matrix A, matrix B);
-
-
-        matrix & logical_and(matrix A, matrix B)
-        {
-            check_same_size(A);
-            check_same_size(B);
-            return apply(A, B, [](float x, float y)->float {return (x != 0.0f && y != 0.0f) ? 1.0f : 0.0f;});
-        }
-
-
-        matrix & logical_or(matrix A, matrix B)
-        {
-            check_same_size(A);
-            check_same_size(B);
-            return apply(A, B, [](float x, float y)->float {return (x != 0.0f || y != 0.0f) ? 1.0f : 0.0f;});
-        }
-
-
-        matrix & logical_xor(matrix A, matrix B)
-        {
-            check_same_size(A);
-            check_same_size(B);
-            return apply(A, B, [](float x, float y)->float {return ((x != 0.0f) != (y != 0.0f)) ? 1.0f : 0.0f;});
-        }
+        matrix & logical_and(matrix A, matrix B);
+        matrix & logical_or(matrix A, matrix B);
+        matrix & logical_xor(matrix A, matrix B);
 
 
     

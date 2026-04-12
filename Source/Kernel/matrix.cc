@@ -107,17 +107,182 @@ matrix::average()
 
 
 matrix &
+matrix::add(float c)
+{
+#if defined(__APPLE__)
+    if(info_->continuous)
+    {
+        vDSP_vsadd(data(), 1, &c, data(), 1, static_cast<vDSP_Length>(info_->size_));
+        return *this;
+    }
+#endif
+    return apply([c](float x)->float { return x + c; });
+}
+
+
+matrix &
+matrix::subtract(float c)
+{
+#if defined(__APPLE__)
+    if(info_->continuous)
+    {
+        float negated = -c;
+        vDSP_vsadd(data(), 1, &negated, data(), 1, static_cast<vDSP_Length>(info_->size_));
+        return *this;
+    }
+#endif
+    return apply([c](float x)->float { return x - c; });
+}
+
+
+matrix &
 matrix::scale(float c)
 {
     if(info_->continuous)
     {
-        vDSP_vsmul(data_->data(), 1, &c, data_->data(), 1, info_->size_);
+        vDSP_vsmul(data(), 1, &c, data(), 1, info_->size_);
         return *this;
     }
     else
     {
         return apply([c](float x)->float { return x * c; });
     }
+}
+
+
+matrix &
+matrix::divide(float c)
+{
+#if defined(__APPLE__)
+    if(info_->continuous)
+    {
+        vDSP_vsdiv(data(), 1, &c, data(), 1, static_cast<vDSP_Length>(info_->size_));
+        return *this;
+    }
+#endif
+    return apply([c](float x)->float { return x / c; });
+}
+
+
+matrix &
+matrix::add(matrix A)
+{
+    check_same_size(A);
+
+#if defined(__APPLE__)
+    if(info_->continuous && A.info_->continuous)
+    {
+        vDSP_vadd(data(), 1, A.data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
+        return *this;
+    }
+#endif
+
+    return apply(A, [](float x, float y)->float { return x + y; });
+}
+
+
+matrix &
+matrix::subtract(matrix A)
+{
+    check_same_size(A);
+
+#if defined(__APPLE__)
+    if(info_->continuous && A.info_->continuous)
+    {
+        vDSP_vsub(A.data(), 1, data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
+        return *this;
+    }
+#endif
+
+    return apply(A, [](float x, float y)->float { return x - y; });
+}
+
+
+matrix &
+matrix::multiply(matrix A)
+{
+    check_same_size(A);
+
+#if defined(__APPLE__)
+    if(info_->continuous && A.info_->continuous)
+    {
+        vDSP_vmul(data(), 1, A.data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
+        return *this;
+    }
+#endif
+
+    return apply(A, [](float x, float y)->float { return x * y; });
+}
+
+
+matrix &
+matrix::divide(matrix A)
+{
+    check_same_size(A);
+
+#if defined(__APPLE__)
+    if(info_->continuous && A.info_->continuous)
+    {
+        vDSP_vdiv(A.data(), 1, data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
+        return *this;
+    }
+#endif
+
+    return apply(A, [](float x, float y)->float { return x / y; });
+}
+
+
+matrix &
+matrix::logical_and(matrix A)
+{
+    check_same_size(A);
+
+    if(info_->continuous && A.info_->continuous)
+    {
+        float * lhs = data();
+        const float * rhs = A.data();
+        for(int i = 0; i < size(); ++i)
+            lhs[i] = (lhs[i] != 0.0f && rhs[i] != 0.0f) ? 1.0f : 0.0f;
+        return *this;
+    }
+
+    return apply(A, [](float x, float y)->float { return (x != 0.0f && y != 0.0f) ? 1.0f : 0.0f; });
+}
+
+
+matrix &
+matrix::logical_or(matrix A)
+{
+    check_same_size(A);
+
+    if(info_->continuous && A.info_->continuous)
+    {
+        float * lhs = data();
+        const float * rhs = A.data();
+        for(int i = 0; i < size(); ++i)
+            lhs[i] = (lhs[i] != 0.0f || rhs[i] != 0.0f) ? 1.0f : 0.0f;
+        return *this;
+    }
+
+    return apply(A, [](float x, float y)->float { return (x != 0.0f || y != 0.0f) ? 1.0f : 0.0f; });
+}
+
+
+matrix &
+matrix::logical_xor(matrix A)
+{
+    check_same_size(A);
+
+    if(info_->continuous && A.info_->continuous)
+    {
+        float * lhs = data();
+        const float * rhs = A.data();
+        for(int i = 0; i < size(); ++i)
+            lhs[i] = ((lhs[i] != 0.0f) != (rhs[i] != 0.0f)) ? 1.0f : 0.0f;
+        return *this;
+    }
+
+    return apply(A, [](float x, float y)->float { return ((x != 0.0f) != (y != 0.0f)) ? 1.0f : 0.0f; });
 }
 
 
@@ -276,6 +441,66 @@ matrix::minimum(matrix A, matrix B)
 #endif
 
     return apply(A, B, [](float x, float y)->float { return std::min(x, y); });
+}
+
+
+matrix &
+matrix::logical_and(matrix A, matrix B)
+{
+    check_same_size(A);
+    check_same_size(B);
+
+    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    {
+        float * out = data();
+        const float * lhs = A.data();
+        const float * rhs = B.data();
+        for(int i = 0; i < size(); ++i)
+            out[i] = (lhs[i] != 0.0f && rhs[i] != 0.0f) ? 1.0f : 0.0f;
+        return *this;
+    }
+
+    return apply(A, B, [](float x, float y)->float { return (x != 0.0f && y != 0.0f) ? 1.0f : 0.0f; });
+}
+
+
+matrix &
+matrix::logical_or(matrix A, matrix B)
+{
+    check_same_size(A);
+    check_same_size(B);
+
+    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    {
+        float * out = data();
+        const float * lhs = A.data();
+        const float * rhs = B.data();
+        for(int i = 0; i < size(); ++i)
+            out[i] = (lhs[i] != 0.0f || rhs[i] != 0.0f) ? 1.0f : 0.0f;
+        return *this;
+    }
+
+    return apply(A, B, [](float x, float y)->float { return (x != 0.0f || y != 0.0f) ? 1.0f : 0.0f; });
+}
+
+
+matrix &
+matrix::logical_xor(matrix A, matrix B)
+{
+    check_same_size(A);
+    check_same_size(B);
+
+    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    {
+        float * out = data();
+        const float * lhs = A.data();
+        const float * rhs = B.data();
+        for(int i = 0; i < size(); ++i)
+            out[i] = ((lhs[i] != 0.0f) != (rhs[i] != 0.0f)) ? 1.0f : 0.0f;
+        return *this;
+    }
+
+    return apply(A, B, [](float x, float y)->float { return ((x != 0.0f) != (y != 0.0f)) ? 1.0f : 0.0f; });
 }
 
 
