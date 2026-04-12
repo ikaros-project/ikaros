@@ -9,6 +9,1266 @@
 namespace ikaros {
 
 float
+parse_matrix_token(const std::string & token)
+{
+    std::string trimmed = trim(token);
+    size_t pos = 0;
+    float value = std::stof(trimmed, &pos);
+    if(trimmed.substr(pos).find_first_not_of(" \t\r\n") != std::string::npos)
+        throw std::invalid_argument("Invalid matrix value \"" + token + "\". Values must be separated by ',' or ';'.");
+    return value;
+}
+
+
+matrix_info::matrix_info(std::vector<int> shape):
+    offset_(0), shape_(shape), stride_(shape), max_size_(shape), size_(calculate_size()), continuous(true), labels_(shape.size())
+{}
+
+
+void
+matrix_info::print(std::string n) const
+{
+    print_attribute_value("name", n.empty() ? name_ : n);
+    print_attribute_value("rank", shape_.size());
+    print_attribute_value("shape", shape_);
+    print_attribute_value("stride", stride_);
+    print_attribute_value("max_size", max_size_);
+    print_attribute_value("size", size_);
+    print_attribute_value("offeset", offset_);
+    print_attribute_value("labels", labels_);
+}
+
+
+matrix
+matrix::iterator::operator*()
+{
+    return (*matrix_)[index_];
+}
+
+
+matrix::matrix(std::vector<int> shape)
+{
+    try
+    {
+        info_ = std::make_shared<matrix_info>(shape);
+        data_ = std::make_shared<std::vector<float>>(info_->calculate_size());
+    }
+    catch(const std::exception &)
+    {
+        throw out_of_memory_matrix_error("Could not allocate memory for matrix");
+    }
+}
+
+
+matrix::matrix(int cols, float *):
+    matrix(cols)
+{}
+
+
+matrix::matrix(int, int, float **)
+{}
+
+
+void
+matrix::operator=(std::string & data_string)
+{
+    std::string sanitized = remove_comment(data_string);
+
+    if(try_parse_bracket_matrix_literal(*this, sanitized))
+        return;
+
+    auto & rows = split(sanitized, ";");
+    auto & row = split(rows.at(0), ",");
+
+    int x = row.size();
+    int y = rows.size();
+
+    if(rows.size() == 1)
+    {
+        realloc(x);
+        for(std::size_t i = 0; i < row.size(); ++i)
+            (*this)(i) = parse_matrix_token(row.at(i));
+    }
+    else
+    {
+        realloc(y, x);
+        for(std::size_t j = 0; j < rows.size(); ++j)
+        {
+            auto r = split(rows.at(j), ",");
+            for(std::size_t i = 0; i < r.size(); ++i)
+                (*this)(static_cast<int>(j), static_cast<int>(i)) = parse_matrix_token(r.at(i));
+        }
+    }
+}
+
+
+matrix::matrix(const std::string & data_string)
+{
+    try
+    {
+        std::string sanitized = remove_comment(data_string);
+
+        if(try_parse_bracket_matrix_literal(*this, sanitized))
+            return;
+
+        auto & rows = split(sanitized, ";");
+        auto & row = split(rows.at(0), ",");
+
+        int x = row.size();
+        int y = rows.size();
+
+        if(!sanitized.empty() && sanitized.back() == ';')
+            y--;
+
+        if(rows.size() == 1)
+        {
+            info_ = std::make_shared<matrix_info>(std::vector<int>{x});
+            data_ = std::make_shared<std::vector<float>>(info_->calculate_size());
+
+            for(std::size_t i = 0; i < row.size(); ++i)
+                (*this)(i) = parse_matrix_token(row.at(i));
+        }
+        else
+        {
+            info_ = std::make_shared<matrix_info>(std::vector<int>{y, x});
+            data_ = std::make_shared<std::vector<float>>(info_->calculate_size());
+
+            for(int j = 0; j < y; ++j)
+            {
+                auto r = split(rows.at(j), ",");
+                for(std::size_t i = 0; i < row.size(); ++i)
+                    (*this)(j, static_cast<int>(i)) = parse_matrix_token(r.at(i));
+            }
+        }
+    }
+    catch(std::out_of_range &)
+    {
+        throw std::invalid_argument("Invalid matrix string");
+    }
+    catch(std::invalid_argument &)
+    {
+        throw std::invalid_argument("Invalid matrix string");
+    }
+}
+
+
+matrix::matrix(const char * data_string):
+    matrix(std::string(data_string))
+{}
+
+
+matrix
+matrix::operator[](int i)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(i < 0 || i >= info_->shape_.front())
+        throw std::out_of_range("Index out of range");
+#endif
+    matrix r = *this;
+    r.info_ = std::make_shared<matrix_info>(this->info_->shape_);
+    *r.info_ = *info_;
+    int new_offset = i;
+    for(int d = info_->stride_.size() - 1; d > 0; --d)
+        new_offset *= info_->stride_.at(d);
+    r.info_->offset_ += new_offset;
+    r.info_->shape_ = {info_->shape_.begin() + 1, info_->shape_.end()};
+    r.info_->stride_ = {info_->stride_.begin() + 1, info_->stride_.end()};
+    r.info_->max_size_ = {info_->max_size_.begin() + 1, info_->max_size_.end()};
+    r.info_->size_ = r.info_->calculate_size();
+    if(r.info_->size_ == 0)
+        r.info_->size_ = 1;
+
+    if(info_->labels_.at(0).size() > static_cast<std::size_t>(i))
+        r.info_->name_ += std::string(".") + info_->labels_.at(0).at(i);
+    else
+        r.info_->name_ += "[" + std::to_string(i) + "]";
+    r.info_->labels_.erase(r.info_->labels_.begin());
+    return r;
+}
+
+
+void
+matrix::info(std::string n) const
+{
+    info_->print(n);
+    print_attribute_value("data size", data_->size());
+    print_attribute_value("data", *data_, 0, 40);
+}
+
+
+void
+matrix::test_fill()
+{
+    for(std::size_t i = 0; i < data_->size(); ++i)
+        (*data_)[i] = float(i);
+}
+
+
+void
+matrix::init(std::vector<int> & shape, std::shared_ptr<std::vector<float>> data, std::initializer_list<InitList> list, int depth)
+{
+    if(shape.size() <= static_cast<std::size_t>(depth))
+        shape.push_back(list.size());
+
+#ifndef NO_MATRIX_CHECKS
+    if(depth < static_cast<int>(shape.size()))
+    {
+        if(list.size() < static_cast<std::size_t>(shape[depth]))
+            throw std::out_of_range("Too few values in matrix initialization");
+        else if(list.size() > static_cast<std::size_t>(shape[depth]))
+            throw std::out_of_range("Too many values in matrix initialization");
+    }
+#endif
+
+    int row_type = 0;
+    for(auto d : list)
+        if(std::holds_alternative<float>(d.value))
+        {
+#ifndef NO_MATRIX_CHECKS
+            if(row_type != 0 && row_type != 1)
+                throw std::invalid_argument("Mixed data in initialization list");
+#endif
+            row_type = 1;
+            (*data).push_back(std::get<float>(d.value));
+        }
+        else if(std::holds_alternative<std::initializer_list<InitList>>(d.value))
+        {
+#ifndef NO_MATRIX_CHECKS
+            if(row_type != 0 && row_type != 2)
+                throw std::invalid_argument("Mixed data in initialization list");
+#endif
+            row_type = 2;
+            init(shape, data, std::get<std::initializer_list<InitList>>(d.value), depth + 1);
+        }
+}
+
+
+matrix::matrix(std::initializer_list<InitList> list):
+    info_(std::make_shared<matrix_info>()),
+    data_(std::make_shared<std::vector<float>>())
+{
+    info_->offset_ = 0;
+    info_->size_ = 0;
+    init(info_->shape_, data_, list);
+    info_->stride_ = info_->shape_;
+    info_->max_size_ = info_->shape_;
+    info_->size_ = info_->calculate_size();
+    data_->resize(info_->size_);
+    info_->labels_.resize(info_->shape_.size());
+}
+
+
+range
+matrix::get_range() const
+{
+    range r;
+    for(auto b : info_->shape_)
+        r.push(0, b);
+    return r;
+}
+
+
+matrix::operator range() const
+{
+    return get_range();
+}
+
+
+matrix &
+matrix::set_name(std::string n)
+{
+    info_->name_ = n;
+    return *this;
+}
+
+
+std::string
+matrix::get_name(std::string post) const
+{
+    if(!info_->name_.empty())
+        return info_->name_ + post;
+    else
+        return "";
+}
+
+
+matrix &
+matrix::clear_labels(int dimension)
+{
+    set_labels(dimension);
+    return *this;
+}
+
+
+matrix &
+matrix::push_label(int dimension, std::string label, int no_of_columns)
+{
+    if(no_of_columns == 1)
+        info_->labels_.at(dimension).push_back(label);
+    else
+        for(int i = 0; i < no_of_columns; ++i)
+            info_->labels_.at(dimension).push_back(label + ":" + std::to_string(i));
+    return *this;
+}
+
+
+const std::vector<std::string>
+matrix::labels(int dimension)
+{
+    return info_->labels_.at(dimension);
+}
+
+
+int
+matrix::rank() const
+{
+    return info_->shape_.size();
+}
+
+
+bool
+matrix::empty() const
+{
+    return rank() == 0 && (info_->size_ == 0);
+}
+
+
+bool
+matrix::unfilled() const
+{
+    return std::accumulate(info_->shape_.begin(), info_->shape_.end(), 0) == 0;
+}
+
+
+bool
+matrix::is_scalar() const
+{
+    return rank() == 0 && (info_->size_ == 1);
+}
+
+
+bool
+matrix::connected()
+{
+    return !empty();
+}
+
+
+bool
+matrix::print_(int depth)
+{
+    if(rank() == 0)
+    {
+        if(info_->size_ == 0)
+            std::cout << "{}";
+        else if(info_->size_ == 1)
+            std::cout << data_->at(info_->offset_);
+        return true;
+    }
+
+    std::string sep;
+    bool t = false;
+    std::cout << "\n" << tab(depth) << "{";
+    for(int i = 0; i < info_->shape_.at(0); ++i)
+    {
+        std::cout << sep;
+        t = (*this)[i].print_(depth + 1);
+        sep = ", ";
+    }
+    if(t)
+        std::cout << "}";
+    else
+        std::cout << "\n" << tab(depth) << "}";
+    return false;
+}
+
+
+std::string
+matrix::json()
+{
+    if(rank() == 0)
+    {
+        if(info_->size_ == 0)
+            return "[]";
+        return format_json_number(data_->at(info_->offset_));
+    }
+
+    std::string sep;
+    std::string s = "[";
+    for(auto x : *this)
+    {
+        s += sep + x.json();
+        sep = ", ";
+    }
+    s += "]";
+    return s;
+}
+
+
+std::string
+matrix::csv(std::string separator)
+{
+    std::string sep;
+    std::string s;
+
+    if(rank() == 1)
+    {
+        for(auto value : *this)
+        {
+            s += sep + std::to_string(value);
+            sep = separator;
+        }
+        s += "\n";
+        return s;
+    }
+
+    if(rank() == 2)
+    {
+        if(info_->labels_.size() > 1)
+        {
+            for(auto & header : info_->labels_[1])
+            {
+                s += sep + header;
+                sep = separator;
+            }
+            s += "\n";
+        }
+
+        for(auto row : *this)
+        {
+            std::string row_sep;
+            for(auto value : row)
+            {
+                s += row_sep + std::to_string(value);
+                row_sep = separator;
+            }
+            s += "\n";
+        }
+        return s;
+    }
+
+    throw exception("Matrix must have one or two dimensions for conversion to csv.");
+}
+
+
+void
+matrix::print(std::string n)
+{
+    if(!n.empty())
+        std::cout << n << " = ";
+    else if(!info_->name_.empty())
+        std::cout << info_->name_ << " = ";
+    if(rank() == 1)
+    {
+        std::string sep;
+        std::cout << "{";
+        for(auto v : *this)
+        {
+            std::cout << sep << v;
+            sep = ", ";
+        }
+        std::cout << "}";
+    }
+    else
+        print_();
+    std::cout << std::endl;
+}
+
+
+matrix &
+matrix::reduce(std::function<void(float)> f)
+{
+    if(empty())
+        return *this;
+    if(info_->continuous)
+    {
+        float * data = data_->data() + info_->offset_;
+        for(int i = 0; i < info_->size_; ++i)
+            f(data[i]);
+        return *this;
+    }
+    if(is_scalar())
+        f((*data_)[info_->offset_]);
+    else
+        for(int i = 0; i < info_->shape_.front(); ++i)
+            (*this)[i].reduce(f);
+    return *this;
+}
+
+
+matrix &
+matrix::apply(std::function<float(float)> f)
+{
+    if(empty())
+        return *this;
+    if(info_->continuous)
+    {
+        float * data = data_->data() + info_->offset_;
+        for(int i = 0; i < info_->size_; ++i)
+            data[i] = f(data[i]);
+        return *this;
+    }
+    if(is_scalar())
+        (*data_)[info_->offset_] = f((*data_)[info_->offset_]);
+    else
+        for(int i = 0; i < info_->shape_.front(); ++i)
+            (*this)[i].apply(f);
+    return *this;
+}
+
+
+matrix &
+matrix::apply(matrix A, std::function<float(float, float)> f)
+{
+    if(empty())
+        return *this;
+    else if(info_->continuous && A.info_->continuous)
+    {
+        float * data = data_->data() + info_->offset_;
+        const float * a = A.data_->data() + A.info_->offset_;
+        for(int i = 0; i < info_->size_; ++i)
+            data[i] = f(data[i], a[i]);
+        return *this;
+    }
+    else if(is_scalar())
+        (*data_)[info_->offset_] = f((*data_)[info_->offset_], (*A.data_)[info_->offset_]);
+    else
+        for(int i = 0; i < info_->shape_.front(); ++i)
+        {
+            matrix X = (*this)[i];
+            X.apply(A[i], f);
+        }
+    return *this;
+}
+
+
+matrix &
+matrix::apply(matrix A, matrix B, std::function<float(float, float)> f)
+{
+    if(empty())
+        return *this;
+    else if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    {
+        float * data = data_->data() + info_->offset_;
+        const float * a = A.data_->data() + A.info_->offset_;
+        const float * b = B.data_->data() + B.info_->offset_;
+        for(int i = 0; i < info_->size_; ++i)
+            data[i] = f(a[i], b[i]);
+        return *this;
+    }
+    else if(is_scalar())
+        (*data_)[info_->offset_] = f((*A.data_)[info_->offset_], (*B.data_)[info_->offset_]);
+    else
+        for(int i = 0; i < info_->shape_.front(); ++i)
+        {
+            matrix X = (*this)[i];
+            X.apply(A[i], B[i], f);
+        }
+    return *this;
+}
+
+
+matrix &
+matrix::set(float v)
+{
+    if(info_->continuous)
+    {
+        std::fill(data_->begin() + info_->offset_, data_->begin() + info_->offset_ + info_->offset_ + info_->size_, v);
+        return *this;
+    }
+    else
+        return apply([=](float)->float { return v; });
+}
+
+
+matrix &
+matrix::copy(matrix m)
+{
+    if(rank() == 0)
+        realloc(m.shape());
+
+    if(info_->shape_ != m.info_->shape_)
+        throw std::out_of_range("Assignment requires matrices of the same size");
+
+    std::copy_n(m.data_->begin() + m.info_->offset_, m.info_->size_, data_->begin() + info_->offset_);
+    return *this;
+}
+
+
+matrix &
+matrix::copy(matrix & m, range & target, range & source)
+{
+    if(info_->continuous && m.info_->continuous && source == target && m.info_->shape_ == info_->shape_)
+        return copy(m);
+
+    source.reset();
+    target.reset();
+
+    for(; source.more() && target.more(); source++, target++)
+    {
+        int source_index = m.compute_index(source.index());
+        int target_index = compute_index(target.index());
+        (*data_).at(target_index) = (*m.data_)[source_index];
+    }
+    return *this;
+}
+
+
+matrix &
+matrix::submatrix(matrix & m, const rect & region)
+{
+    int height = region.height;
+    int width = region.width;
+
+    if(rank() == 0)
+        realloc(height, width);
+
+    if(rank() != 2 || m.rank() != 2)
+        throw std::invalid_argument(get_name() + " Matrix must be two-dimensional.");
+
+    float * t = this->data();
+    for(int j = 0; j < height; ++j)
+        for(int i = 0; i < width; ++i)
+            *t++ = m(region.y + j, region.x + i);
+
+    return *this;
+}
+
+
+matrix::operator float & ()
+{
+#ifndef NO_MATRIX_CHECKS
+    if(info_->size_ != 1)
+        throw empty_matrix_error(get_name() + " Not a matrix element.");
+#endif
+    return (*data_)[info_->offset_];
+}
+
+
+matrix::operator float * ()
+{
+    return &(*data_).data()[info_->offset_];
+}
+
+
+matrix::operator float ** ()
+{
+    if(rank() != 2)
+        throw std::out_of_range(get_name() + "Matrix must be two-dimensional.");
+
+    if(row_pointers_.empty())
+        for(int i = 0; i < info_->shape_.front(); ++i)
+            row_pointers_.push_back(&(*this)(i, 0));
+
+    return row_pointers_.data();
+}
+
+
+float *
+matrix::data()
+{
+    return &data_->data()[info_->offset_];
+}
+
+
+const float *
+matrix::data() const
+{
+    return &data_->data()[info_->offset_];
+}
+
+
+matrix &
+matrix::reset()
+{
+    return set(0);
+}
+
+
+void
+matrix::check_bounds(const std::vector<int> & v) const
+{
+#ifndef NO_MATRIX_CHECKS
+    if(v.size() != info_->shape_.size())
+        throw std::out_of_range(get_name() + "Index has incorrect rank.");
+
+    for(std::size_t i = 0; i < v.size(); ++i)
+        if(v[i] < 0 || v[i] >= info_->shape_[i])
+            throw std::out_of_range(get_name() + "Index out of range.");
+#endif
+}
+
+
+void
+matrix::check_same_size(matrix & A)
+{
+    if(info_->shape_ != A.info_->shape_)
+        throw std::invalid_argument(get_name() + A.get_name() + "Matrix sizes must match.");
+}
+
+
+const std::vector<int> &
+matrix::shape() const
+{
+    return info_->shape_;
+}
+
+
+int
+matrix::size() const
+{
+    return info_->size_;
+}
+
+
+int
+matrix::size(int dim) const
+{
+    if(info_->shape_.size() == 0)
+        return 0;
+
+    if(dim < 0)
+        dim = info_->shape_.size() + dim;
+
+    if(dim < 0 || static_cast<std::size_t>(dim) > info_->shape_.size() - 1)
+        return 0;
+
+    return info_->shape_.at(dim);
+}
+
+
+int matrix::rows() const { return size(-2); }
+int matrix::cols() const { return size(-1); }
+int matrix::size_x() const { return cols(); }
+int matrix::size_y() const { return rows(); }
+int matrix::size_z() const { return size(-3); }
+
+
+matrix &
+matrix::realloc(const std::vector<int> & shape)
+{
+    for(int dimension : shape)
+        if(dimension < 0)
+            throw std::invalid_argument(get_name() + "Matrix size cannot be negative.");
+
+    info_->offset_ = 0;
+    info_->shape_ = shape;
+    info_->stride_ = shape;
+    info_->max_size_ = shape;
+    info_->size_ = info_->calculate_size();
+    info_->labels_.resize(info_->shape_.size());
+    data_->resize(info_->size_);
+
+    return *this;
+}
+
+
+matrix &
+matrix::realloc(const range & r)
+{
+    return realloc(r.extent());
+}
+
+
+matrix &
+matrix::push(const matrix & m, bool extend)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(rank() != m.rank() + 1)
+        throw std::out_of_range(get_name() + "Incompatible matrix sizes");
+    if(extend)
+    {
+        info_->shape_.front()++;
+        realloc(info_->shape_);
+        info_->shape_.front()--;
+    }
+    for(std::size_t i = 0; i < m.info_->shape_.size(); ++i)
+        if(info_->shape_[i + 1] != m.info_->shape_[i])
+            throw std::out_of_range(get_name() + "Pushed matrix has wrong shape.");
+
+    if(info_->shape_.front() >= info_->max_size_.front())
+        throw std::out_of_range(get_name() + "No room for additional element");
+#endif
+    if(info_->shape_.front() < info_->max_size_.front())
+        return (*this)[info_->shape_.front()++].copy(const_cast<matrix &>(m));
+    else
+        return *this;
+}
+
+
+matrix &
+matrix::push(float v)
+{
+    if(rank() != 1)
+        throw std::out_of_range(get_name() + "Matrix must be one-dimensional.");
+    if(info_->shape_.front() >= info_->max_size_.front())
+        throw std::out_of_range(get_name() + "No room for additional element");
+
+    info_->shape_.front()++;
+    (*this)[info_->shape_.front() - 1] = v;
+    return *this;
+}
+
+
+matrix &
+matrix::pop(matrix & m)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(m.info_->shape_.front() == 0)
+        throw std::out_of_range(get_name() + "Nothing to pop.");
+#endif
+    copy(m[m.info_->shape_.front() - 1]);
+    m.info_->shape_.front()--;
+    return *this;
+}
+
+
+matrix
+matrix::operator[](std::string n)
+{
+    if(info_->labels_.empty())
+        throw std::out_of_range(get_name() + "No labels found in matrix.");
+
+    int i = 0;
+    for(auto l : info_->labels_.at(0))
+    {
+        if(l == n)
+            return (*this)[i];
+        i++;
+    }
+    throw std::out_of_range(get_name() + "Label " + n + " not found.");
+}
+
+
+matrix
+matrix::operator[](const char * n)
+{
+    return (*this)[std::string(n)];
+}
+
+
+float
+matrix::operator=(float v)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(info_->size_ != 1)
+        throw std::out_of_range(get_name() + "Not a matrix element.");
+#endif
+    data_->at(info_->offset_) = v;
+    return v;
+}
+
+
+int
+matrix::compute_index(const std::vector<int> & v) const
+{
+    if(v.size() != info_->stride_.size())
+        throw exception(get_name() + "Number of indices must match matrix rank.");
+
+#ifndef NO_MATRIX_CHECKS
+    check_bounds(v);
+#endif
+
+    int index = info_->offset_;
+    int stride = 1;
+    for(int i = info_->stride_.size() - 1; i >= 0; --i)
+    {
+        index += v[i] * stride;
+        stride *= info_->stride_[i];
+    }
+    return index;
+}
+
+
+matrix &
+matrix::gaussian(float sigma)
+{
+    if(rank() != 0)
+        throw std::invalid_argument("Gaussian function requires an empty matrix.");
+
+    int kernel_size = ceil(6 * sigma);
+    if(kernel_size % 2 == 0)
+        kernel_size++;
+    realloc(kernel_size, kernel_size);
+
+    int size = rows();
+    int half_size = size / 2;
+    float sum = 0;
+    for(int i = 0; i < size; i++)
+        for(int j = 0; j < size; j++)
+        {
+            int x = i - half_size;
+            int y = j - half_size;
+            (*this)(i, j) = exp(-(x * x + y * y) / (2 * sigma * sigma));
+            sum += (*this)(i, j);
+        }
+    for(int i = 0; i < size; i++)
+        for(int j = 0; j < size; j++)
+            (*this)(i, j) /= sum;
+
+    return *this;
+}
+
+
+matrix &
+matrix::corr(matrix & I, matrix & K)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(rank() != 2 || I.rank() != 2 || K.rank() != 2)
+        throw std::invalid_argument("Correlation requires two-dimensional matrices.");
+
+    if(I.cols() < K.cols() || I.rows() < K.rows())
+        throw std::invalid_argument("K must fit in I");
+#endif
+
+    int rr = I.rows() - K.rows() + 1;
+    int rc = I.cols() - K.cols() + 1;
+
+    if(rows() != rr || cols() != rc)
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(rr) + "x" + std::to_string(rc) + ".");
+
+    if(this == &I || this == &K)
+        throw std::invalid_argument("Result cannot be assigned to I or K.");
+    reset();
+
+    for(int j = 0; j < rows(); j++)
+        for(int i = 0; i < cols(); i++)
+            for(int k = 0; k < K.rows(); k++)
+                for(int l = 0; l < K.cols(); l++)
+                    (*this)(j, i) += I(j + k, i + l) * K(k, l);
+    return *this;
+}
+
+
+matrix &
+matrix::conv_slow(matrix & I, matrix & K)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(rank() != 2 || I.rank() != 2 || K.rank() != 2)
+        throw std::invalid_argument("Convolution requires two-dimensional matrices.");
+
+    if(I.cols() < K.cols() || I.rows() < K.rows())
+        throw std::invalid_argument("K must fit in I");
+#endif
+
+    int Ir = I.rows();
+    int Ic = I.cols();
+    int Kr = K.rows();
+    int Kc = K.cols();
+    int r = Ir - Kr + 1;
+    int c = Ic - Kc + 1;
+
+    if(rows() != r || cols() != c)
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(r) + "x" + std::to_string(c) + ".");
+
+    if(this == &I || this == &K)
+        throw std::invalid_argument("Result cannot be assigned to I or K.");
+    reset();
+
+    for(int j = 0; j < r; j++)
+        for(int i = 0; i < c; i++)
+            for(int k = 0; k < Kr; k++)
+                for(int l = 0; l < Kc; l++)
+                    (*this)(j, i) += I(j + k, i + l) * K(Kr - k - 1, Kc - l - 1);
+    return *this;
+}
+
+
+matrix &
+matrix::fillReflect101Border(int wx, int wy)
+{
+    float * image = data();
+    int width = size_x();
+    int height = size_y();
+    int inner_w = width - 2 * wx;
+    int inner_h = height - 2 * wy;
+
+    for(int y = 0; y < height; ++y)
+    {
+        int src_y = reflect101(y - wy, inner_h);
+        for(int x = 0; x < width; ++x)
+        {
+            int src_x = reflect101(x - wx, inner_w);
+            int dst_idx = y * width + x;
+            int src_idx = (src_y + wy) * width + (src_x + wx);
+            image[dst_idx] = image[src_idx];
+        }
+    }
+    return *this;
+}
+
+
+matrix &
+matrix::fillExtendBorder(int wx, int wy)
+{
+    float * image = data();
+    int width = size_x();
+    int height = size_y();
+    int inner_w = width - 2 * wx;
+    int inner_h = height - 2 * wy;
+
+    for(int y = 0; y < height; ++y)
+    {
+        int src_y = std::clamp(y - wy, 0, inner_h - 1);
+        for(int x = 0; x < width; ++x)
+        {
+            int src_x = std::clamp(x - wx, 0, inner_w - 1);
+            int dst_idx = y * width + x;
+            int src_idx = (src_y + wy) * width + (src_x + wx);
+            image[dst_idx] = image[src_idx];
+        }
+    }
+    return *this;
+}
+
+
+std::ostream &
+operator<<(std::ostream & os, matrix & m)
+{
+    if(m.rank() == 0)
+    {
+        if(m.info_->size_ == 0)
+            os << "{}";
+        else if(m.info_->size_ == 1)
+            os << m.data_->at(m.info_->offset_);
+    }
+    else
+        m.print();
+    return os;
+}
+
+
+float matrix::matrank() { throw std::logic_error("matrank(). Not implemented."); }
+float matrix::trace() { throw std::logic_error("Not implemented."); }
+float matrix::det() { throw std::logic_error("trace(). Not implemented."); }
+
+
+matrix &
+matrix::inv(const matrix & m)
+{
+    copy(m);
+    return inv();
+}
+
+
+matrix &
+matrix::pinv(const matrix &)
+{
+    throw std::logic_error("pinv(). Not implemented.");
+}
+
+
+matrix &
+matrix::transpose(matrix & ret)
+{
+    int rows = this->rows();
+    int cols = this->cols();
+    ret = matrix(cols, rows);
+
+    for(int i = 0; i < rows; ++i)
+        for(int j = 0; j < cols; ++j)
+            ret(j, i) = (*this)(i, j);
+    return ret;
+}
+
+
+matrix &
+matrix::eig(const matrix &)
+{
+    throw std::logic_error("eig(). Not implemented.");
+}
+
+
+bool
+matrix::operator==(float v) const
+{
+    if(!is_scalar())
+        throw std::invalid_argument("Matrix must be scalar.");
+    return ((*data_)[info_->offset_] == v);
+}
+
+
+bool
+matrix::operator==(int v) const
+{
+    if(!is_scalar())
+        throw std::invalid_argument("Matrix must be scalar.");
+    return ((*data_)[info_->offset_] == v);
+}
+
+
+bool
+matrix::operator==(const matrix & other) const
+{
+    if(this->shape() != other.shape())
+        return false;
+
+    if(rank() == 0)
+        return size() == other.size() && (size() == 0 || (*data_)[info_->offset_] == (*other.data_)[other.info_->offset_]);
+
+    for(auto ix = get_range(); ix.more(); ix++)
+        if((*data_)[compute_index(ix.index())] != (*other.data_)[other.compute_index(ix.index())])
+            return false;
+
+    return true;
+}
+
+
+bool
+matrix::operator!=(const matrix & other) const
+{
+    return !(*this == other);
+}
+
+
+bool
+matrix::operator!=(float v) const
+{
+    if(!is_scalar())
+        throw std::invalid_argument("Matrix must be scalar.");
+    return ((*data_)[info_->offset_] != v);
+}
+
+
+bool
+matrix::operator!=(int v) const
+{
+    if(!is_scalar())
+        throw std::invalid_argument("Matrix must be scalar.");
+    return ((*data_)[info_->offset_] != v);
+}
+
+
+std::vector<float>
+flattenKernel(const matrix & K)
+{
+    std::vector<float> kernel_flat(K.rows() * K.cols());
+    for(int k = 0; k < K.rows(); ++k)
+        for(int l = 0; l < K.cols(); ++l)
+            kernel_flat[k * K.cols() + l] = K(k, l);
+    return kernel_flat;
+}
+
+
+void
+im2row(std::vector<float> & submatrices_flat, const matrix & I, const matrix & K)
+{
+    int rr = I.rows() - K.rows() + 1;
+    int rc = I.cols() - K.cols() + 1;
+
+    const float * I_data = I.data();
+    int I_cols = I.cols();
+    int K_cols = K.cols();
+    int K_rows = K.rows();
+
+    size_t offset = 0;
+    for(int j = 0; j < rr; ++j)
+        for(int i = 0; i < rc; ++i)
+            for(int k = 0; k < K_rows; ++k)
+            {
+                const float * input_row_start = I_data + (j + k) * I_cols + i;
+                float * output_row_start = submatrices_flat.data() + offset;
+                for(int l = 0; l < K_cols; ++l)
+                    output_row_start[l] = input_row_start[l];
+                offset += K_cols;
+            }
+}
+
+
+void
+parse_bracket_matrix_value(const value & v, std::vector<int> & shape, std::vector<float> & data, int depth)
+{
+    if(v.is_number())
+    {
+        if(depth != static_cast<int>(shape.size()))
+            throw std::invalid_argument("Invalid matrix string");
+        data.push_back(v.as_float());
+        return;
+    }
+
+    if(!v.is_list())
+        throw std::invalid_argument("Invalid matrix string");
+
+    const list & items = std::get<list>(v.value_);
+    int item_count = static_cast<int>(items.size());
+
+    if(static_cast<int>(shape.size()) <= depth)
+        shape.push_back(item_count);
+    else if(shape[depth] != item_count)
+        throw std::invalid_argument("Invalid matrix string");
+
+    bool contains_numbers = false;
+    bool contains_lists = false;
+    for(const auto & item : items)
+    {
+        contains_numbers = contains_numbers || item.is_number();
+        contains_lists = contains_lists || item.is_list();
+        if(!item.is_number() && !item.is_list())
+            throw std::invalid_argument("Invalid matrix string");
+    }
+
+    if(contains_numbers && contains_lists)
+        throw std::invalid_argument("Invalid matrix string");
+
+    for(const auto & item : items)
+        parse_bracket_matrix_value(item, shape, data, depth + 1);
+}
+
+
+bool
+try_parse_bracket_matrix_literal(matrix & out, const std::string & data_string)
+{
+    std::string trimmed = trim(data_string);
+    if(trimmed.empty() || trimmed.front() != '[')
+        return false;
+
+    value parsed = parse_json(trimmed);
+    if(!parsed.is_list())
+        throw std::invalid_argument("Invalid matrix string");
+
+    std::vector<int> shape;
+    std::vector<float> data;
+    parse_bracket_matrix_value(parsed, shape, data);
+
+    out = matrix(shape);
+    for(std::size_t i = 0; i < data.size(); ++i)
+        (*out.data_)[i] = data[i];
+
+    return true;
+}
+
+
+float
+dot(matrix A, matrix B)
+{
+    A.check_same_size(B);
+
+    if(A.info_->continuous && B.info_->continuous)
+    {
+        const float * a = A.data_->data() + A.info_->offset_;
+        const float * b = B.data_->data() + B.info_->offset_;
+#if defined(__APPLE__)
+        float s = 0;
+        vDSP_dotpr(a, 1, b, 1, &s, static_cast<vDSP_Length>(A.info_->size_));
+        return s;
+#else
+        float s = 0;
+        for(int i = 0; i < A.info_->size_; ++i)
+            s += a[i] * b[i];
+        return s;
+#endif
+    }
+
+    if(A.is_scalar())
+        return (*A.data_)[A.info_->offset_] * (*B.data_)[B.info_->offset_];
+
+    float s = 0;
+    for(int i = 0; i < A.info_->shape_.front(); ++i)
+        s += dot(A[i], B[i]);
+    return s;
+}
+
+float
 matrix::sum()
 {
 #if defined(__APPLE__)
