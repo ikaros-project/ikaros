@@ -22,7 +22,6 @@ namespace
         o.add_option("t", "threads", "number of worker threads for the kernel thread pool");
         o.add_option("w", "webui_port", "port for ikaros WebUI", "8000");
         o.add_option("h", "help", "list command line options");
-        o.add_option("x", "experimental", "run with experimental features");
     }
 
     void InitializeKernelPaths(Kernel & k, const options & o)
