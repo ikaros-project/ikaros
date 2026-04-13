@@ -136,6 +136,12 @@ namespace ikaros
         {
             return cpu_cores > 1 ? static_cast<int>(cpu_cores) - 1 : 1;
         }
+
+        struct DataSnapshotItem
+        {
+            std::string prefix;
+            std::string value;
+        };
     }
 
     std::string  validate_identifier(std::string s)
@@ -2005,6 +2011,21 @@ bool operator==(Request & r, const std::string s)
                 max_delays[c.source] = c.delay_range_.extent()[0];
             }
         }
+
+        enum class DataSnapshotKind
+        {
+            json,
+            image
+        };
+
+        struct DataSnapshotItem
+        {
+            std::string prefix;
+            DataSnapshotKind kind = DataSnapshotKind::json;
+            std::string json_value;
+            matrix image;
+            std::string image_format;
+        };
     }
 
 
@@ -3234,13 +3255,15 @@ bool operator==(Request & r, const std::string s)
     // WebUI
     //
 
-    void
-    Kernel::SendImage(matrix & image, std::string & format) // Compress image to jpg and send from memory after base64 encoding
+    std::string
+    Kernel::SendImage(matrix & image, const std::string & format) // Compress image to jpg and return a base64 data URI
     {
+        auto total_start = steady_clock::now();
         long size = 0;
         unsigned char * jpeg = nullptr;
         size_t output_length = 0 ;
-        
+        auto jpeg_start = steady_clock::now();
+
         if(format=="rgb" && image.rank() == 3 && image.size(0) == 3)
             jpeg = (unsigned char *)create_color_jpeg(size, image, 90);
 
@@ -3250,19 +3273,37 @@ bool operator==(Request & r, const std::string s)
         else if(image.rank() == 2) // taking our chances with the format...
             jpeg = (unsigned char *)create_pseudocolor_jpeg(size, image, 0, 1, format, 90);
 
+        auto jpeg_done = steady_clock::now();
+
             if(!jpeg)
             {
-                socket->Append("\"\"");
-                return;
+                return "\"\"";
             }
 
+        auto base64_start = steady_clock::now();
         char * jpeg_base64 = base64_encode(jpeg, size, &output_length);
-        socket->Append("\"data:image/jpeg;base64,");
-        socket->Flush();
-        socket->SendData(jpeg_base64, output_length);
-        socket->Append("\"");
+        auto base64_done = steady_clock::now();
+        std::string result = "\"data:image/jpeg;base64,";
+        result.append(jpeg_base64, output_length);
+        result += "\"";
         destroy_jpeg(jpeg);
         free(jpeg_base64);
+        auto total_done = steady_clock::now();
+
+        auto jpeg_us = duration_cast<microseconds>(jpeg_done - jpeg_start).count();
+        auto base64_us = duration_cast<microseconds>(base64_done - base64_start).count();
+        auto total_us = duration_cast<microseconds>(total_done - total_start).count();
+        if(total_us >= 1000)
+        {
+            std::cerr << "HTTP image timing format=" << format
+                      << " rank=" << image.rank()
+                      << " size=" << size
+                      << " jpeg=" << (double(jpeg_us) / 1000.0) << "ms"
+                      << " base64=" << (double(base64_us) / 1000.0) << "ms"
+                      << " total=" << (double(total_us) / 1000.0) << "ms"
+                      << "\n";
+        }
+        return result;
     }
 
 
@@ -3347,8 +3388,110 @@ bool operator==(Request & r, const std::string s)
 
 
     void
-    Kernel::DoSendDataHeader()
+    Kernel::SendStringResponse(dictionary header, const std::string & body, const char * response)
     {
+        header["Content-Length"] = std::to_string(body.size());
+        socket->SendHTTPHeader(header, response);
+        socket->Append(body);
+    }
+
+
+    std::string
+    Kernel::DoSendDataStatus()
+    {
+        std::ostringstream response;
+        std::string nm = std::string(info_["filename"]);
+        if(!nm.empty())
+            nm = std::filesystem::path(nm).filename().string();
+
+        response << "\t\"file\": " << value(nm).json() << ",\n";
+
+#if DEBUG
+        response << "\t\"debug\": true,\n";
+#else
+        response << "\t\"debug\": false,\n";
+#endif
+
+        response << "\t\"state\": " << run_mode.load() << ",\n";
+        if(stop_after != -1)
+        {
+            response << "\t\"tick\": \"" << tick << " / " << stop_after << "\",\n";
+            response << "\t\"progress\": " << double(tick)/double(stop_after) << ",\n";
+        }
+        else
+        {
+            response << "\t\"progress\": 0,\n";
+        }
+
+        // Timing information
+
+        double uptime = uptime_timer.GetTime();
+        double total_time = GetTime();
+
+        response << "\t\"timestamp\": " << GetTimeStamp() << ",\n";
+        response << "\t\"uptime\": " << uptime << ",\n";
+        response << "\t\"tick_duration\": " << tick_duration << ",\n";
+        response << "\t\"cpu_cores\": " << cpu_cores << ",\n";
+    
+        switch(run_mode)
+        {
+            case run_mode_stop:
+                response << "\t\"tick\": \"-\",\n";
+                response << "\t\"time\": \"-\",\n";
+                response << "\t\"ticks_per_s\": \"-\",\n";
+                response << "\t\"actual_duration\": \"-\",\n";
+                response << "\t\"lag\": \"-\",\n";
+                response << "\t\"time_usage\": 0,\n";
+                response << "\t\"cpu_usage\": 0,\n";
+                break;
+
+            case run_mode_pause:
+                response << "\t\"tick\": " << GetTick() << ",\n";
+                response << "\t\"time\": " << GetTime() << ",\n";
+                response << "\t\"ticks_per_s\": \"-\",\n";
+                response << "\t\"actual_duration\": \"-\",\n";
+                response << "\t\"lag\": \"-\",\n";
+                response << "\t\"time_usage\": " << (actual_tick_duration> 0 ? tick_time_usage/actual_tick_duration : 0) << ",\n";
+                response << "\t\"cpu_usage\": " << cpu_usage << ",\n";
+                break;
+
+            case run_mode_realtime:
+            default:
+                response << "\t\"tick\": " << GetTick() << ",\n";
+                response << "\t\"time\": " << GetTime() << ",\n";
+                response << "\t\"ticks_per_s\": " << (tick>0 ? double(tick)/total_time: 0) << ",\n";
+                response << "\t\"actual_duration\": " << actual_tick_duration << ",\n";
+                response << "\t\"lag\": " << lag << ",\n";
+                response << "\t\"time_usage\": " << (actual_tick_duration> 0 ? tick_time_usage/actual_tick_duration : 0) << ",\n";
+                response << "\t\"cpu_usage\": " << cpu_usage << ",\n";
+                break;
+        }
+
+        return response.str();
+    }
+
+
+    std::string
+    Kernel::DoSendLog(Request &)
+    {
+        std::string response = ",\n\"log\": [";
+        std::string sep;
+        for(auto line : log)
+        {
+            response += sep + line.json();
+            sep = ",";
+        }
+        response += "]";
+        if(!log.empty() )
+            log.clear();
+        return response;
+    }
+
+
+    void
+    Kernel::DoSendData(Request & request)
+    {
+        auto do_send_data_start = steady_clock::now();
         dictionary header({
             {"Session-Id", std::to_string(session_id)},
             {"Package-Type", "data"},
@@ -3357,112 +3500,9 @@ bool operator==(Request & r, const std::string s)
             {"Pragma", "no-cache"},
             {"Expires", "0"}
         });
-        socket->SendHTTPHeader(header);
-    }
-
-
-    void
-    Kernel::DoSendDataStatus()
-    {
-        std::string nm = std::string(info_["filename"]);
-        if(!nm.empty())
-            nm = std::filesystem::path(nm).filename().string();
-
-        socket->Append("\t\"file\": ");
-        socket->Append(value(nm).json());
-        socket->Append(",\n");
-
-#if DEBUG
-        socket->Append("\t\"debug\": true,\n");
-#else
-        socket->Append("\t\"debug\": false,\n");
-#endif
-
-            socket->Append("\t\"state\": %d,\n", run_mode.load());
-        if(stop_after != -1)
-        {
-            socket->Append("\t\"tick\": \"%d / %d\",\n", tick, stop_after);
-            socket->Append("\t\"progress\": %f,\n", double(tick)/double(stop_after));
-        }
-        else
-        {
-            socket->Append("\t\"progress\": 0,\n");
-        }
-
-        // Timing information
-
-        double uptime = uptime_timer.GetTime();
-        double total_time = GetTime();
-
-        socket->Append("\t\"timestamp\": %ld,\n", GetTimeStamp());
-        socket->Append("\t\"uptime\": %.2f,\n", uptime);
-        socket->Append("\t\"tick_duration\": %f,\n", tick_duration);
-        socket->Append("\t\"cpu_cores\": %d,\n", cpu_cores);
-    
-        switch(run_mode)
-        {
-            case run_mode_stop:
-                socket->Append("\t\"tick\": \"-\",\n");
-                socket->Append("\t\"time\": \"-\",\n");
-                socket->Append("\t\"ticks_per_s\": \"-\",\n");
-                socket->Append("\t\"actual_duration\": \"-\",\n");
-                socket->Append("\t\"lag\": \"-\",\n");
-                socket->Append("\t\"time_usage\": 0,\n");
-                socket->Append("\t\"cpu_usage\": 0,\n"); 
-                break;
-
-            case run_mode_pause:
-                socket->Append("\t\"tick\": %lld,\n", GetTick());
-                socket->Append("\t\"time\": %.2f,\n", GetTime());
-                socket->Append("\t\"ticks_per_s\": \"-\",\n");
-                socket->Append("\t\"actual_duration\": \"-\",\n");
-                socket->Append("\t\"lag\": \"-\",\n");
-                socket->Append("\t\"time_usage\": %f,\n", actual_tick_duration> 0 ? tick_time_usage/actual_tick_duration : 0);
-                socket->Append("\t\"cpu_usage\": %f,\n", cpu_usage);  
-                break;
-
-            case run_mode_realtime:
-            default:
-                socket->Append("\t\"tick\": %lld,\n", GetTick());
-                socket->Append("\t\"time\": %.2f,\n", GetTime());
-                socket->Append("\t\"ticks_per_s\": %.2f,\n", tick>0 ? double(tick)/total_time: 0);
-                socket->Append("\t\"actual_duration\": %f,\n", actual_tick_duration);
-                socket->Append("\t\"lag\": %f,\n", lag);
-                socket->Append("\t\"time_usage\": %f,\n", actual_tick_duration> 0 ? tick_time_usage/actual_tick_duration : 0);
-                socket->Append("\t\"cpu_usage\": %f,\n", cpu_usage);
-                break;
-        }
-
-    }
-
-
-    void
-    Kernel::DoSendLog(Request &)
-    {
-        socket->Append(",\n\"log\": [");
-        std::string sep;
-        for(auto line : log)
-        {
-            std::string s = line.json();
-            socket->Append(sep +line.json());
-            sep = ",";
-        }
-        socket->Append("]");
-        if(!log.empty() )
-        log.clear();
-    }
-
-
-    void
-    Kernel::DoSendData(Request & request)
-    {    
-        DoSendDataHeader();
-
-        socket->Append("{\n");
-
-        DoSendDataStatus();
-
-        socket->Append("\t\"data\":\n\t{\n");
+        auto status_start = steady_clock::now();
+        std::string status = DoSendDataStatus();
+        auto status_done = steady_clock::now();
 
         std::string data;
         if(request.parameters.contains("data"))
@@ -3471,8 +3511,11 @@ bool operator==(Request & r, const std::string s)
         if(!root.empty() && root[0] == '.')
             root = root.substr(1); // Global path prefix should not be part of buffer or parameter names
 
-        std::string sep = "";
-        bool sent = false;
+        std::vector<DataSnapshotItem> snapshot_items;
+        long long compute_value_us = 0;
+        long long value_snapshot_us = 0;
+        int resolved_items = 0;
+        auto snapshot_start = steady_clock::now();
 
         while(!data.empty()) // FIXME: Check that we do not run out of time here and break if next tick is about to start.
         {
@@ -3493,8 +3536,10 @@ bool operator==(Request & r, const std::string s)
             {
                 if((source.find('@') != std::string::npos || source.find('{') != std::string::npos) && components.count(root) > 0)
                 {
+                    auto compute_start = steady_clock::now();
                     Component * c = components[root].get();
                     source = c->ComputeValue(source);
+                    compute_value_us += duration_cast<microseconds>(steady_clock::now() - compute_start).count();
                 }
 
                 std::string source_with_root = root +"."+source;
@@ -3506,59 +3551,119 @@ bool operator==(Request & r, const std::string s)
                 
                 std::string attribute = peek_rtail(source_with_root, ".");
 
+                auto snapshot_value_start = steady_clock::now();
                 if(buffers.count(source_with_root))
                 {
                     if(format.empty())
                     {
-                        sent = socket->Append(sep + "\t\t\"" + escape_json_string(key) + "\": "+buffers[source_with_root].json());
+                        snapshot_items.push_back({
+                            "\t\t\"" + escape_json_string(key) + "\": ",
+                            buffers[source_with_root].json()
+                        });
                     }
                     else if(format=="rgb")
                     { 
-                            // sent = socket->Append(sep + "\t\t\"" + key + ":"+format+"\": ");
-                            sent = socket->Append(sep + "\t\t\"" + escape_json_string(key) + "\": ");
-                            SendImage(buffers[source_with_root], format);
+                        snapshot_items.push_back({
+                            "\t\t\"" + escape_json_string(key) + "\": ",
+                            SendImage(buffers[source_with_root], format)
+                        });
                     }
                     else if(format=="gray" || format=="red" || format=="green" || format=="blue" || format=="spectrum" || format=="fire")
                     { 
-                        sent = socket->Append(sep + "\t\t\"" + escape_json_string(key) + "\": ");
-                            SendImage(buffers[source_with_root], format);
+                        snapshot_items.push_back({
+                            "\t\t\"" + escape_json_string(key) + "\": ",
+                            SendImage(buffers[source_with_root], format)
+                        });
                     }
                 }
                 else if(parameters.count(source_with_root))
                 {
-                    sent = socket->Append(sep + "\t\t\"" + escape_json_string(key) + "\": "+parameters[source_with_root].json());
+                    snapshot_items.push_back({
+                        "\t\t\"" + escape_json_string(key) + "\": ",
+                        parameters[source_with_root].json()
+                    });
                 }
 
                 else if(components.count(component_path)) // Use module function to get value
                 {
-                        std::string json_data = components[component_path]->json(attribute);
+                    std::string json_data = components[component_path]->json(attribute);
 
                     if(!json_data.empty())
                     {
-                        socket->Append(sep);
-                        std::string s = "\t\t\"" + escape_json_string(source) + "\": "+json_data;
-                        socket->Append(s);
-                        sep = ",\n";
+                        snapshot_items.push_back({
+                            "\t\t\"" + escape_json_string(source) + "\": ",
+                            json_data
+                        });
                     }
                 }
                 else
                 {
                     // ERROR: No such buffer or parameter
                 }
+                value_snapshot_us += duration_cast<microseconds>(steady_clock::now() - snapshot_value_start).count();
+                ++resolved_items;
             }
             catch(const std::exception & e)
             {
                 Notify(msg_warning, "Could not send data for \""+key+"\": "+std::string(e.what()));
             }
-
-            if(sent)
-                sep = ",\n";
         }
+        auto snapshot_done = steady_clock::now();
 
-        socket->Append("\n\t}");
-        DoSendLog(request);
-        socket->Append(",\n\t\"has_data\": 1\n");
-        socket->Append("}\n");
+        auto log_start = steady_clock::now();
+        std::string log_json = DoSendLog(request);
+        auto log_done = steady_clock::now();
+
+        kernelLock.unlock();
+        try
+        {
+            auto assemble_start = steady_clock::now();
+            std::string response = "{\n";
+            response += status;
+            response += "\t\"data\":\n\t{\n";
+
+            std::string sep;
+            for(auto & item : snapshot_items)
+            {
+                response += sep;
+                response += item.prefix;
+                response += item.value;
+                sep = ",\n";
+            }
+
+            response += "\n\t}";
+            response += log_json;
+            response += ",\n\t\"has_data\": 1\n";
+            response += "}\n";
+            auto assemble_done = steady_clock::now();
+            SendStringResponse(header, response);
+            auto do_send_data_done = steady_clock::now();
+
+            auto status_us = duration_cast<microseconds>(status_done - status_start).count();
+            auto snapshot_total_us = duration_cast<microseconds>(snapshot_done - snapshot_start).count();
+            auto log_us = duration_cast<microseconds>(log_done - log_start).count();
+            auto assemble_us = duration_cast<microseconds>(assemble_done - assemble_start).count();
+            auto total_us = duration_cast<microseconds>(do_send_data_done - do_send_data_start).count();
+            if(total_us >= 1000)
+            {
+                std::cerr << "HTTP update timing"
+                          << " total=" << (double(total_us) / 1000.0) << "ms"
+                          << " status=" << (double(status_us) / 1000.0) << "ms"
+                          << " snapshot=" << (double(snapshot_total_us) / 1000.0) << "ms"
+                          << " compute=" << (double(compute_value_us) / 1000.0) << "ms"
+                          << " values=" << (double(value_snapshot_us) / 1000.0) << "ms"
+                          << " log=" << (double(log_us) / 1000.0) << "ms"
+                          << " assemble=" << (double(assemble_us) / 1000.0) << "ms"
+                          << " items=" << resolved_items
+                          << '\n';
+            }
+        }
+        catch(...)
+        {
+            kernelLock.lock();
+            throw;
+        }
+        kernelLock.lock();
 
         //sending_ui_data = false;
     }
@@ -3800,9 +3905,7 @@ bool operator==(Request & r, const std::string s)
             {"Content-Type", "application/json"},
             {"Content-Length", std::to_string(s.size())}
         });
-        socket->SendHTTPHeader(rtheader);
-        socket->Flush();
-        socket->SendData(s.c_str(), int(s.size()));
+        SendStringResponse(rtheader, s);
     }
 
 
@@ -3880,40 +3983,25 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoData(Request & request)
     {
-         if(!buffers.count(request.component_path))
-            {
-                dictionary header({
-                    {"Content-Type", "text/plain"},
-                    {"Cache-Control", "no-cache, no-store"},
-                    {"Pragma", "no-cache"}
-                });
-                socket->SendHTTPHeader(header);
-        
-                socket->Append("Buffer \""+request.component_path+"\" can not be found");
-                return;
-            }
-
-        if(buffers[request.component_path].rank() > 2)
-        {
-            dictionary header({
-                {"Content-Type", "text/plain"},
-                {"Cache-Control", "no-cache, no-store"},
-                {"Pragma", "no-cache"}
-            });
-            socket->SendHTTPHeader(header);
-
-            socket->Append("Rank of matrix != 2. Cannot be displayed as CSV");
-            return;
-        }
-
         dictionary header({
             {"Content-Type", "text/plain"},
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(header);
-
-        socket->Append(buffers[request.component_path].csv());
+        std::string body;
+        if(!buffers.count(request.component_path))
+        {
+            body = "Buffer \""+request.component_path+"\" can not be found";
+            SendStringResponse(header, body);
+            return;
+        }
+        if(buffers[request.component_path].rank() > 2)
+        {
+            body = "Rank of matrix != 2. Cannot be displayed as CSV";
+            SendStringResponse(header, body);
+            return;
+        }
+        SendStringResponse(header, buffers[request.component_path].csv());
     }
 
 
@@ -3930,30 +4018,31 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(header);
+        std::string body;
 
         auto send_json_response = [&](const std::string & json_value, const std::vector<int> & shape)
         {
-            socket->Append("{\"path\": ");
-            socket->Append(value(request.component_path).json());
-            socket->Append(", \"shape\": [");
+            body = "{\"path\": ";
+            body += value(request.component_path).json();
+            body += ", \"shape\": [";
 
             std::string sep;
             for(int dim : shape)
             {
-                socket->Append(sep);
-                socket->Append(std::to_string(dim));
+                body += sep;
+                body += std::to_string(dim);
                 sep = ", ";
             }
 
-            socket->Append("], \"value\": ");
-            socket->Append(json_value);
-            socket->Append("}");
+            body += "], \"value\": ";
+            body += json_value;
+            body += "}";
         };
 
         if(buffers.count(key))
         {
             send_json_response(buffers[key].json(), buffers[key].shape());
+            SendStringResponse(header, body);
             return;
         }
 
@@ -3968,6 +4057,7 @@ bool operator==(Request & r, const std::string s)
             }
             else
                 send_json_response(parameters[key].json(), {});
+            SendStringResponse(header, body);
             return;
         }
 
@@ -3980,13 +4070,14 @@ bool operator==(Request & r, const std::string s)
             if(!json_data.empty())
             {
                 send_json_response(json_data, {});
+                SendStringResponse(header, body);
                 return;
             }
         }
 
         dictionary error;
         error["error"] = "Value \"" + request.component_path + "\" can not be found";
-        socket->Append(error.json());
+        SendStringResponse(header, error.json());
     }
 
 
@@ -3994,40 +4085,22 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoCSV(Request & request)
     {
-         if(!buffers.count(request.component_path))
-            {
-                dictionary header({
-                    {"Content-Type", "text/csv; charset=utf-8"},
-                    {"Cache-Control", "no-cache, no-store"},
-                    {"Pragma", "no-cache"}
-                });
-                socket->SendHTTPHeader(header);
-        
-                socket->Append("Buffer \""+request.component_path+"\" can not be found");
-                return;
-            }
-
-        if(buffers[request.component_path].rank() > 2)
-        {
-            dictionary header({
-                {"Content-Type", "text/csv; charset=utf-8"},
-                {"Cache-Control", "no-cache, no-store"},
-                {"Pragma", "no-cache"}
-            });
-            socket->SendHTTPHeader(header);
-
-            socket->Append("Rank of matrix != 2. Cannot be displayed as CSV");
-            return;
-        }
-
         dictionary header({
             {"Content-Type", "text/csv; charset=utf-8"},
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(header);
-
-        socket->Append(buffers[request.component_path].csv());
+        if(!buffers.count(request.component_path))
+        {
+            SendStringResponse(header, "Buffer \""+request.component_path+"\" can not be found");
+            return;
+        }
+        if(buffers[request.component_path].rank() > 2)
+        {
+            SendStringResponse(header, "Rank of matrix != 2. Cannot be displayed as CSV");
+            return;
+        }
+        SendStringResponse(header, buffers[request.component_path].csv());
     }
 
 
@@ -4056,8 +4129,7 @@ bool operator==(Request & r, const std::string s)
                 {"Cache-Control", "no-cache, no-store"},
                 {"Pragma", "no-cache"}
             });
-            socket->SendHTTPHeader(header);
-            socket->Append("Matrix \"" + request.component_path + "\" can not be found");
+            SendStringResponse(header, "Matrix \"" + request.component_path + "\" can not be found");
             return;
         }
 
@@ -4076,8 +4148,7 @@ bool operator==(Request & r, const std::string s)
                 {"Cache-Control", "no-cache, no-store"},
                 {"Pragma", "no-cache"}
             });
-            socket->SendHTTPHeader(header);
-            socket->Append("Matrix \"" + request.component_path + "\" can not be converted to JPEG");
+            SendStringResponse(header, "Matrix \"" + request.component_path + "\" can not be converted to JPEG");
             return;
         }
 
@@ -4217,16 +4288,16 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(header);
-        socket->Append("{\"classes\":[\n\t\"");
+        std::string body = "{\"classes\":[\n\t\"";
         std::string s = "";
         for(auto & c: classes)
         {
-            socket->Append(s.c_str());
-            socket->Append(escape_json_string(c.first));
+            body += s;
+            body += escape_json_string(c.first);
             s = "\",\n\t\"";
         }
-        socket->Append("\"\n]\n}\n");
+        body += "\"\n]\n}\n";
+        SendStringResponse(header, body);
     }
 
 
@@ -4239,19 +4310,19 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(header);
-        socket->Append("{\n");
+        std::string body = "{\n";
         std::string s = "";
         for(auto & c: classes)
         {
-            socket->Append(s);
-            socket->Append("\""+escape_json_string(c.first)+"\": ");
+            body += s;
+            body += "\""+escape_json_string(c.first)+"\": ";
             dictionary class_info = c.second.info_.copy();
             class_info["path"] = std::filesystem::path(c.second.path).parent_path().string();
-            socket->Append(class_info.json());
+            body += class_info.json();
             s = ",\n\t";
         }
-        socket->Append("\n}\n");
+        body += "\n}\n";
+        SendStringResponse(header, body);
     }
 
 
@@ -4264,25 +4335,28 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(header);
+        std::string body;
 
         if(!request.parameters.contains("class"))
         {
-            socket->Append("No class selected.");
+            body = "No class selected.";
+            SendStringResponse(header, body);
             return;
         }
 
         std::string class_name = request.parameters["class"];
         if(!classes.count(class_name))
         {
-            socket->Append("Class not found: " + class_name);
+            body = "Class not found: " + class_name;
+            SendStringResponse(header, body);
             return;
         }
 
         std::filesystem::path class_path = classes[class_name].path;
         if(class_path.empty())
         {
-            socket->Append("No class path available for: " + class_name);
+            body = "No class path available for: " + class_name;
+            SendStringResponse(header, body);
             return;
         }
 
@@ -4290,12 +4364,13 @@ bool operator==(Request & r, const std::string s)
         std::ifstream readme_file(readme_path);
         if(!readme_file.is_open())
         {
-            socket->Append("No ReadMe.md found for: " + class_name);
+            body = "No ReadMe.md found for: " + class_name;
+            SendStringResponse(header, body);
             return;
         }
 
-        std::string content((std::istreambuf_iterator<char>(readme_file)), std::istreambuf_iterator<char>());
-        socket->Append(content);
+        body.assign((std::istreambuf_iterator<char>(readme_file)), std::istreambuf_iterator<char>());
+        SendStringResponse(header, body);
     }
 
 
@@ -4317,28 +4392,27 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        socket->SendHTTPHeader(header);
         std::string sep;
-    socket->Append("{\"system_files\":[\n\t\"");
+        std::string body = "{\"system_files\":[\n\t\"";
         for(auto & f: system_files)
         {
-            socket->Append(sep);
-            socket->Append(escape_json_string(f.first));
+            body += sep;
+            body += escape_json_string(f.first);
             sep = "\",\n\t\"";
         }
-    socket->Append("\"\n],\n");
+        body += "\"\n],\n";
     
-    sep = "";
-    socket->Append("\"user_files\":[\n\t\"");
+        sep = "";
+        body += "\"user_files\":[\n\t\"";
         for(auto & f: user_files)
         {
-            socket->Append(sep);
-            socket->Append(escape_json_string(f.first));
+            body += sep;
+            body += escape_json_string(f.first);
             sep = "\",\n\t\"";
         }
-    socket->Append("\"\n]\n");
-
-    socket->Append("}\n");
+        body += "\"\n]\n";
+        body += "}\n";
+        SendStringResponse(header, body);
     }
 
 
@@ -4347,10 +4421,8 @@ bool operator==(Request & r, const std::string s)
     {
     dictionary header({
         {"Content-Type", "text/plain"},
-        {"Content-Length", std::to_string(message.size())}
     });
-    socket->SendHTTPHeader(header, status.c_str());
-    socket->Append(message);
+    SendStringResponse(header, message, status.c_str());
     }
 
 
@@ -4358,14 +4430,14 @@ bool operator==(Request & r, const std::string s)
     Kernel::HandleHTTPRequest()
     {
         long sid = 0;
-        if(socket->header.contains_non_null("Session-Id"))
-            sid = atol(std::string(socket->header["Session-Id"]).c_str());
+        if(socket->header.contains_non_null("session-id"))
+            sid = atol(std::string(socket->header["session-id"]).c_str());
 
         std::string content_type;
-        if(socket->header.contains_non_null("Content-Type"))
-            content_type = std::string(socket->header["Content-Type"]);
+        if(socket->header.contains_non_null("content-type"))
+            content_type = std::string(socket->header["content-type"]);
 
-        Request request(std::string(socket->header["URI"]), sid, socket->body, content_type);
+        Request request(std::string(socket->header["uri"]), sid, socket->body, content_type);
 
         if(request.parameters.contains("proxy"))
             request.component_path = std::string(request.parameters["proxy"]);
@@ -4465,23 +4537,62 @@ Kernel::CalculateCPUUsage() // In percent
     void
     Kernel::HandleHTTPThread()
     {
+        constexpr long long http_timing_log_threshold_us = 5000;
+
         while(!shutdown)
         {
             try
             {
-                if(socket != nullptr && socket->GetRequest(true))
+                if(socket != nullptr && socket->QueueRequest(true))
                 {
+                    ServerSocket::QueuedRequest queued_request;
+                    if(!socket->PopRequest(queued_request, false))
+                        continue;
+
+                    auto request_start = steady_clock::now();
+                    auto lock_wait_start = request_start;
                     std::lock_guard<std::recursive_mutex> lock(kernelLock); // Lock the mutex to ensure thread safety
-                    if(socket->header.contains_non_null("Method") && std::string(socket->header["Method"]) == "GET")
+                    auto activate_start = steady_clock::now();
+                    socket->ActivateRequest(queued_request);
+                    auto dispatch_start = steady_clock::now();
+                    if(socket->header.contains_non_null("method") && std::string(socket->header["method"]) == "GET")
                     {
                         HandleHTTPRequest();
                     }
-                    else if(socket->header.contains_non_null("Method") && std::string(socket->header["Method"]) == "PUT") // JSON Data
+                    else if(socket->header.contains_non_null("method") && std::string(socket->header["method"]) == "PUT") // JSON Data
                     {
                         HandleHTTPRequest();
                     }
+                    auto flush_start = steady_clock::now();
                     socket->Flush();
-                    socket->Close();
+                    auto finish_start = steady_clock::now();
+                    socket->FinishActiveRequest();
+                    auto request_done = steady_clock::now();
+
+                    long long lock_wait_duration_us = duration_cast<microseconds>(activate_start - lock_wait_start).count();
+                    long long activate_duration_us = duration_cast<microseconds>(dispatch_start - activate_start).count();
+                    long long dispatch_duration_us = duration_cast<microseconds>(flush_start - dispatch_start).count();
+                    long long flush_duration_us = duration_cast<microseconds>(finish_start - flush_start).count();
+                    long long finish_duration_us = duration_cast<microseconds>(request_done - finish_start).count();
+                    long long total_duration_us = queued_request.parse_duration_us +
+                        duration_cast<microseconds>(request_done - request_start).count();
+
+                    std::string method = socket->header.contains_non_null("method") ? std::string(socket->header["method"]) : "?";
+                    std::string uri = socket->header.contains_non_null("uri") ? std::string(socket->header["uri"]) : "?";
+                    bool is_update_request = uri.find("/update") != std::string::npos;
+                    if(is_update_request || total_duration_us >= http_timing_log_threshold_us)
+                    {
+                        std::cerr
+                            << "HTTP timing " << method << " " << uri
+                            << " total=" << total_duration_us / 1000.0 << "ms"
+                            << " parse=" << queued_request.parse_duration_us / 1000.0 << "ms"
+                            << " wait_lock=" << lock_wait_duration_us / 1000.0 << "ms"
+                            << " activate=" << activate_duration_us / 1000.0 << "ms"
+                            << " dispatch=" << dispatch_duration_us / 1000.0 << "ms"
+                            << " flush=" << flush_duration_us / 1000.0 << "ms"
+                            << " finish=" << finish_duration_us / 1000.0 << "ms"
+                            << '\n';
+                    }
                 }
             }
             catch(const std::exception& e)

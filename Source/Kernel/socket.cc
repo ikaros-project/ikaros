@@ -17,6 +17,14 @@ namespace
 {
     constexpr int MAX_HTTP_HEADER_SIZE = 64 * 1024;
     constexpr size_t MAX_HTTP_BODY_SIZE = 10 * 1024 * 1024;
+
+    std::string
+    to_lower_copy(std::string value)
+    {
+        std::transform(value.begin(), value.end(), value.begin(),
+            [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        return value;
+    }
 }
 
 //
@@ -248,21 +256,23 @@ ServerSocket::Poll(bool block)
     int sin_size = sizeof(struct sockaddr_in);
     if(!block)
         fcntl(sockfd, F_SETFL, O_NONBLOCK);				// temporariliy make the socket non-blocking
-    new_fd = accept(sockfd, (struct sockaddr *)&(their_addr), (socklen_t*) &sin_size);
-    if(new_fd != -1)
-        output_buffer.clear();
+    int accepted_fd = accept(sockfd, (struct sockaddr *)&(their_addr), (socklen_t*) &sin_size);
     if(!block)
         fcntl(sockfd, F_SETFL, 0);						// make the socket blocking again
 /*
     // --- Add this block to set a 5 second receive timeout ---
-    if (new_fd != -1) {
+    if (accepted_fd != -1) {
         struct timeval timeout;
         timeout.tv_sec = 5;   // 5 seconds timeout
         timeout.tv_usec = 0;
-        setsockopt(new_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
+        setsockopt(accepted_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
     }
 */
-    return (new_fd != -1);
+    if(accepted_fd == -1)
+        return false;
+
+    connections.emplace(next_connection_id++, ConnectionState{accepted_fd, {}});
+    return true;
 }
 
 
@@ -271,7 +281,8 @@ ServerSocket::Poll(bool block)
 size_t 
 ServerSocket::Read(char *buffer, int maxSize, bool fill) 
 {
-    if(new_fd == -1) {
+    ConnectionState * connection = ConnectionFor(current_read_connection_id);
+    if(connection == nullptr) {
         return 0; // Invalid socket
     }
 
@@ -281,7 +292,7 @@ ServerSocket::Read(char *buffer, int maxSize, bool fill)
     if(fill) {
         // Fill the buffer completely if requested
         while (total_read < maxSize) {
-            n = recv(new_fd, buffer + total_read, maxSize - total_read, 0);
+            n = recv(connection->fd, buffer + total_read, maxSize - total_read, 0);
 
             if(n > 0) 
             {
@@ -310,7 +321,7 @@ ServerSocket::Read(char *buffer, int maxSize, bool fill)
     } 
     else 
     {
-        n = recv(new_fd, buffer, maxSize, 0);   // Single call to recv, do not enforce filling the buffer
+        n = recv(connection->fd, buffer, maxSize, 0);   // Single call to recv, do not enforce filling the buffer
 
         if(n > 0) 
         {
@@ -457,9 +468,109 @@ static std::string UriDecode(const std::string & sSrc)
 bool
 ServerSocket::GetRequest(bool block)
 {
-    if(!Poll(block))
+    QueuedRequest queued_request;
+    if(!QueueRequest(block))
         return false;
-	
+
+    if(!PopRequest(queued_request, false))
+        return false;
+
+    ActivateRequest(queued_request);
+    return true;
+}
+
+
+
+bool
+ServerSocket::QueueRequest(bool block)
+{
+    QueuedRequest queued_request;
+    while(true)
+    {
+        int connection_id = 0;
+        if(!WaitForReadyConnection(block, connection_id))
+            return false;
+
+        current_read_connection_id = connection_id;
+        bool read_ok = false;
+        auto parse_start = std::chrono::steady_clock::now();
+        try
+        {
+            read_ok = ReadCurrentRequest(queued_request);
+        }
+        catch(...)
+        {
+            current_read_connection_id = 0;
+            throw;
+        }
+        queued_request.parse_duration_us = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now() - parse_start).count();
+        current_read_connection_id = 0;
+
+        if(!read_ok)
+        {
+            if(!block)
+                return false;
+            continue;
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(pending_requests_mutex);
+            pending_requests.push(std::move(queued_request));
+        }
+        pending_requests_cv.notify_one();
+
+        return true;
+    }
+}
+
+
+
+bool
+ServerSocket::PopRequest(QueuedRequest & queued_request, bool block)
+{
+    std::unique_lock<std::mutex> lock(pending_requests_mutex);
+
+    if(block)
+        pending_requests_cv.wait(lock, [this] { return !pending_requests.empty(); });
+    else if(pending_requests.empty())
+        return false;
+
+    queued_request = std::move(pending_requests.front());
+    pending_requests.pop();
+    return true;
+}
+
+
+
+void
+ServerSocket::ActivateRequest(const QueuedRequest & queued_request)
+{
+    header = queued_request.header;
+    body = queued_request.body;
+    active_connection_id = queued_request.connection_id;
+    active_close_after_response = queued_request.close_after_response;
+}
+
+
+
+bool
+ServerSocket::FinishActiveRequest()
+{
+    int connection_id = active_connection_id;
+    active_connection_id = 0;
+
+    if(active_close_after_response)
+        return CloseConnection(connection_id);
+
+    return true;
+}
+
+
+
+bool
+ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
+{
     body.clear();
 
  	// Loop until CRLF CRLF is found which marks the end of the HTTP request
@@ -470,7 +581,10 @@ ServerSocket::GetRequest(bool block)
     {
         long rr = Read(&(request[read_count]), request_allocated_size-read_count);
         if(rr == 0)         // the connections has been closed since the beginning of the request
+        {
+            CloseConnection(current_read_connection_id);
             return false;   // this can occur when a view is changed; return and ignore the request
+        }
         
         read_count += rr;
         request[read_count] = '\0';
@@ -497,16 +611,20 @@ ServerSocket::GetRequest(bool block)
 		return false;
 	}
 	
-	header = dictionary();
+    queued_request.header = dictionary();
+    queued_request.body.clear();
+    queued_request.close_after_response = true; // Keep current close-after-response behavior for now.
+    queued_request.connection_id = current_read_connection_id;
+
     char * method = strsep(&p, " ");
     char * uri = strsep(&p, " ");
     char * http_version = strsep(&p, "\r");
     if(method == nullptr || uri == nullptr || http_version == nullptr || p == nullptr)
         return false;
 
-	header["Method"] = method;
-	header["URI"] = UriDecode(uri);
-	header["HTTP-Version"] = http_version;
+    queued_request.header["method"] = method;
+	queued_request.header["uri"] = UriDecode(uri);
+	queued_request.header["http-version"] = http_version;
 	strsep(&p, "\n");
 	while(p && *p != '\r')
 	{
@@ -520,8 +638,8 @@ ServerSocket::GetRequest(bool block)
         if(k == nullptr || v == nullptr || *k == '\0')
             return false;
 
-		header[k] = v;
-		strsep(&p, "\n");
+			queued_request.header[to_lower_copy(k)] = v;
+			strsep(&p, "\n");
 	}
     if(p == nullptr)
         return false;
@@ -529,13 +647,25 @@ ServerSocket::GetRequest(bool block)
         p++;
     if(*p=='\n')
         p++;
-	
-    if(header.contains_non_null("Method") && std::string(header["Method"]) == "PUT")
+
+    std::string http_version_string = std::string(queued_request.header["http-version"]);
+    bool close_after_response = (http_version_string != "HTTP/1.1");
+    if(queued_request.header.contains_non_null("connection"))
     {
-        if(header.contains_non_null("Content-Length")) {
+        std::string connection_value = to_lower_copy(std::string(queued_request.header["connection"]));
+        if(connection_value == "close")
+            close_after_response = true;
+        else if(connection_value == "keep-alive")
+            close_after_response = false;
+    }
+    queued_request.close_after_response = close_after_response;
+		
+    if(queued_request.header.contains_non_null("method") && std::string(queued_request.header["method"]) == "PUT")
+    {
+        if(queued_request.header.contains_non_null("content-length")) {
             size_t content_length = 0;
             try {
-                content_length = std::stoull(std::string(header["Content-Length"]));
+                content_length = std::stoull(std::string(queued_request.header["content-length"]));
             } catch(const std::exception &) {
                 return false;
             }
@@ -552,7 +682,7 @@ ServerSocket::GetRequest(bool block)
                 std::copy_n(p, buffered_size, buffer.data());
 
                 size_t bytes_read = buffered_size + Read(buffer.data() + buffered_size, content_length - buffered_size, true);
-                body = std::string(buffer.data(), bytes_read);
+                queued_request.body = std::string(buffer.data(), bytes_read);
             }
         }
     }
@@ -564,13 +694,19 @@ ServerSocket::GetRequest(bool block)
 bool
 ServerSocket::SendHTTPHeader(dictionary & d, const char * response) // Content length from where?
 {
+    bool can_keep_alive = active_close_after_response == false &&
+        (d.contains_non_null("Content-Length") || d.contains_non_null("Transfer-Encoding"));
+
+    if(!can_keep_alive)
+        active_close_after_response = true;
+
     if(!response)
-		Append("HTTP/1.1 200 OK\r\n");
+			Append("HTTP/1.1 200 OK\r\n");
     else
-		Append("HTTP/1.1 %s\r\n", response);
+			Append("HTTP/1.1 %s\r\n", response);
 
     d["Server"] = "Ikaros/3.0";
-    d["Connection"] = "Close";
+    d["Connection"] = active_close_after_response ? "Close" : "keep-alive";
 	
     time_t rawtime;
     time(&rawtime);
@@ -595,7 +731,8 @@ ServerSocket::SendHTTPHeader(dictionary & d, const char * response) // Content l
 bool
 ServerSocket::SendData(const char * buffer, long size)
 {
-    if(new_fd == -1)
+    ConnectionState * connection = ConnectionFor(active_connection_id);
+    if(connection == nullptr)
         return false;	// Connection closed - ignore send
     
     long total = 0;
@@ -604,7 +741,7 @@ ServerSocket::SendData(const char * buffer, long size)
 
      while (total < size)
     {
-        n = send(new_fd, buffer+total, bytesleft, MSG_NOSIGNAL);
+        n = send(connection->fd, buffer+total, bytesleft, MSG_NOSIGNAL);
         if(n == -1)
         {
             break;
@@ -615,7 +752,7 @@ ServerSocket::SendData(const char * buffer, long size)
 	
     if(n == -1 || bytesleft > 0) // We failed to send all data
     {
-        Close();	// Close the socket and ignore further data
+        CloseConnection(active_connection_id);	// Close the socket and ignore further data
         return false;
     }
 	
@@ -627,10 +764,11 @@ ServerSocket::SendData(const char * buffer, long size)
 bool
 ServerSocket::Append(const std::string & data)
 {
-    if(new_fd == -1)
+    ConnectionState * connection = ConnectionFor(active_connection_id);
+    if(connection == nullptr)
         return false;	// Connection closed - ignore send
 
-    output_buffer += data;
+    connection->output_buffer += data;
     return true;
 }
 
@@ -639,7 +777,7 @@ ServerSocket::Append(const std::string & data)
 bool
 ServerSocket::Append(const char * format, ...)
 {
-    if(new_fd == -1)
+    if(ConnectionFor(active_connection_id) == nullptr)
         return false;	// Connection closed - ignore send
     
     char buffer[1024];
@@ -653,7 +791,7 @@ ServerSocket::Append(const char * format, ...)
     }
     va_end(args);
 	
-    output_buffer += buffer;
+    ConnectionFor(active_connection_id)->output_buffer += buffer;
     return true;
 }
 
@@ -662,16 +800,17 @@ ServerSocket::Append(const char * format, ...)
 bool
 ServerSocket::Flush()
 {
-    if(new_fd == -1)
+    ConnectionState * connection = ConnectionFor(active_connection_id);
+    if(connection == nullptr)
         return false;
 
-    if(output_buffer.empty())
+    if(connection->output_buffer.empty())
         return true;
 
-    if(!SendData(output_buffer.c_str(), output_buffer.size()))
+    if(!SendData(connection->output_buffer.c_str(), connection->output_buffer.size()))
         return false;
 
-    output_buffer.clear();
+    connection->output_buffer.clear();
     return true;
 }
 
@@ -688,7 +827,7 @@ ServerSocket::Send(const std::string & data)
 bool
 ServerSocket::Send(const char * format, ...)
 {
-    if(new_fd == -1)
+    if(ConnectionFor(active_connection_id) == nullptr)
         return false;	// Connection closed - ignore send
 
     char buffer[1024];
@@ -744,7 +883,7 @@ ServerSocket::SendFile(const std::filesystem::path & filename, dictionary & hdr)
         return false;
     }
 	
-    hdr["Connection"] = "Close"; // TODO: check if socket uses persistent connections
+    hdr["Connection"] = active_close_after_response ? "Close" : "keep-alive";
 
     std::string length = std::to_string((size_t)len);
     hdr["Content-Length"] = length;
@@ -793,32 +932,133 @@ ServerSocket::SendFile(const std::filesystem::path & filename, dictionary & hdr)
 bool
 ServerSocket::Close()
 {
-    if(new_fd == -1) return true;	// Connection already closed
-
-    if(!output_buffer.empty() && !Flush())
-        return false;
-	
-    if(close(new_fd) == -1)
+    if(active_connection_id != 0)
     {
-        errcode = errno;
-        return false;
+        if(ConnectionFor(active_connection_id) != nullptr &&
+           !ConnectionFor(active_connection_id)->output_buffer.empty() && !Flush())
+            return false;
+        return CloseConnection(active_connection_id);
     }
-    new_fd = -1;
-    output_buffer.clear();
-	
-    return true;
+    if(current_read_connection_id != 0)
+        return CloseConnection(current_read_connection_id);
+    return true;	// Connection already closed
 }
 
 
 void
 ServerSocket::StopListening()
 {
+    for(auto & [connection_id, connection] : connections)
+    {
+        if(connection.fd != -1)
+            close(connection.fd);
+    }
+    connections.clear();
+
     if(sockfd == -1)
         return;
 
     shutdown(sockfd, SHUT_RDWR);
     close(sockfd);
     sockfd = -1;
+}
+
+
+
+bool
+ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
+{
+    connection_id = 0;
+
+    while(true)
+    {
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(sockfd, &readfds);
+        int max_fd = sockfd;
+
+        for(const auto & [id, connection] : connections)
+        {
+            if(connection.fd != -1)
+            {
+                FD_SET(connection.fd, &readfds);
+                max_fd = std::max(max_fd, connection.fd);
+            }
+        }
+
+        struct timeval timeout;
+        struct timeval * timeout_ptr = nullptr;
+        if(!block)
+        {
+            timeout.tv_sec = 0;
+            timeout.tv_usec = 0;
+            timeout_ptr = &timeout;
+        }
+
+        int ready = select(max_fd + 1, &readfds, nullptr, nullptr, timeout_ptr);
+        if(ready == -1)
+        {
+            if(errno == EINTR)
+                continue;
+            throw std::system_error(errno, std::system_category(), "select failed");
+        }
+        if(ready == 0)
+            return false;
+
+        if(FD_ISSET(sockfd, &readfds))
+        {
+            Poll(false);
+            if(--ready <= 0)
+            {
+                if(!block)
+                    return false;
+                continue;
+            }
+        }
+
+        for(const auto & [id, connection] : connections)
+        {
+            if(connection.fd != -1 && FD_ISSET(connection.fd, &readfds))
+            {
+                connection_id = id;
+                return true;
+            }
+        }
+    }
+}
+
+
+
+bool
+ServerSocket::CloseConnection(int connection_id)
+{
+    auto it = connections.find(connection_id);
+    if(it == connections.end())
+        return true;
+
+    if(close(it->second.fd) == -1)
+    {
+        errcode = errno;
+        return false;
+    }
+
+    connections.erase(it);
+    if(active_connection_id == connection_id)
+        active_connection_id = 0;
+    if(current_read_connection_id == connection_id)
+        current_read_connection_id = 0;
+    return true;
+}
+
+
+
+ServerSocket::ConnectionState *
+ServerSocket::ConnectionFor(int connection_id)
+{
+    auto it = connections.find(connection_id);
+    if(it == connections.end())
+        return nullptr;
+    return &it->second;
 }
 
 

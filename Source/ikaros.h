@@ -568,14 +568,14 @@ public:
     
     void DoSendNetwork(Request & request);
 
-    void DoSendDataHeader();
-    void DoSendDataStatus();
+    void SendStringResponse(ikaros::dictionary header, const std::string & body, const char * response=nullptr);
+    std::string DoSendDataStatus();
 
     void DoSendData(Request & request);
     void DoUpdate(Request & request);
 
     void DoNetwork(Request & request);
-    void DoSendLog(Request & request);
+    std::string DoSendLog(Request & request);
     void DoSendClasses(Request & request);
     void DoSendClassInfo(Request & request);
     void DoSendClassReadMe(Request & request);
@@ -585,7 +585,7 @@ public:
     SendFileResult SendFileIfSafe(const std::filesystem::path & root, const std::string & file);
     void DoSendFile(std::string file);
     void DoSendError(const std::string & status = "404 Not Found", const std::string & message = "404 Not Found\n");
-    void SendImage(matrix & image, std::string & format);
+    std::string SendImage(matrix & image, const std::string & format);
 
     void HandleHTTPRequest();
     void HandleHTTPThread();

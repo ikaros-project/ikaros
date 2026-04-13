@@ -24,6 +24,11 @@
 #include <cstring>
 #include <csignal>
 #include <filesystem>
+#include <chrono>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+#include <map>
 
 #include "utilities.h"
 #include "dictionary.h"
@@ -62,8 +67,23 @@ class Socket
 //
 
 class ServerSocket
-	{
+		{
 	public:
+		struct QueuedRequest
+		{
+			ikaros::dictionary	header;
+			std::string			body;
+			bool				close_after_response = true;
+			int					connection_id = 0;
+			long long			parse_duration_us = 0;
+		};
+
+		struct ConnectionState
+		{
+			int					fd = -1;
+			std::string			output_buffer;
+		};
+
 		explicit ServerSocket(int port=PORTNO);		// Create server socket on port
 		ServerSocket(const ServerSocket &) = delete;
 		ServerSocket & operator=(const ServerSocket &) = delete;
@@ -73,6 +93,10 @@ class ServerSocket
 		
 		ikaros::dictionary	header;									// The current HTTP request header
 		bool				GetRequest(bool block=false);           // Check for request and read if available
+		bool				QueueRequest(bool block=false);
+		bool				PopRequest(QueuedRequest & request, bool block=true);
+		void				ActivateRequest(const QueuedRequest & request);
+		bool				FinishActiveRequest();
 		
 		bool				SendHTTPHeader(ikaros::dictionary & d, const char * response=nullptr);
 		bool				Append(const char * format, ...); // Maximum 1023 characters
@@ -93,16 +117,26 @@ class ServerSocket
 		
 		int					errcode;								// Last error
 		std::string 		body;									// Body of PUT request
-	private:
+		private:
 		int				portno;
 		int 			sockfd = -1;				// Listen on sock_fd,
-		int				new_fd = -1;				// New connection on new_fd
-		std::string		output_buffer;
+		std::map<int, ConnectionState> connections;
+		std::queue<QueuedRequest> pending_requests;
+		std::mutex		pending_requests_mutex;
+		std::condition_variable pending_requests_cv;
+		int				next_connection_id = 1;
+		int				current_read_connection_id = 0;
+		int				active_connection_id = 0;
+		bool			active_close_after_response = true;
 		int				block_flags;				// Original flags for blocking I/O
 		int             request_allocated_size = 1024;
 		char *		 	request = (char *)malloc(sizeof(char)*request_allocated_size);
 		struct sockaddr_in	my_addr; 					// My address information
 		struct sockaddr_in	their_addr;					// Connector's address information
-		bool				Poll(bool block=false);                 // Poll for connection; return >=0 if accepted connection (or > 0 CHECK!!!)
+		bool				Poll(bool block=false);                 // Accept a new connection if available
+		bool				WaitForReadyConnection(bool block, int & connection_id);
+		bool				CloseConnection(int connection_id);
+		ConnectionState *	ConnectionFor(int connection_id);
+		bool				ReadCurrentRequest(QueuedRequest & request);
 		size_t				Read(char * buffer, int maxSize, bool fill=false);	// Read, fill means fill with maxSize, return read size
-	};
+		};
