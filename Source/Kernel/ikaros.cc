@@ -3239,18 +3239,15 @@ bool operator==(Request & r, const std::string s)
             PruneConnections();
             SortTasks();
             ResolveParameters();
-            //ListParameters();
             CalculateDelays();
             CalculateSizes();
-            //ListConnections();
-            //ListInputs();
-            ListOutputs();
 
             InitCircularBuffers();
             InitComponents();
 
             if(info_.is_set("info"))
             {
+                ListOutputs();
                 ListParameters();
                 //ListComponents();
                 ListConnections();
