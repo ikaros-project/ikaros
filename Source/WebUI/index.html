@@ -700,11 +700,16 @@
                     <tr>
                         <td>CPU usage</td><td><progress id="usage"value="0" max="1"></progress></td>
                     </tr>
-                     <tr>
-                        <td>time usage</td><td><progress id="time_usage" value="0" max="1"></progress></td>
-                    </tr>
-             </tbody>
-            </table>
+	                     <tr>
+	                        <td>time usage</td><td><progress id="time_usage" value="0" max="1"></progress></td>
+	                    </tr>
+	                    <tr>
+	                        <td colspan="2" class="system-inspector-button-row">
+	                            <button type="button" class="system-inspector-button" onclick="inspector.openProfilingWindow()">profiling</button>
+	                        </td>
+	                    </tr>
+	             </tbody>
+	            </table>
 
             <p id="title"></p>
 		</aside>

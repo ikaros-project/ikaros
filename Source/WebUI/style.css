@@ -1426,6 +1426,35 @@ aside table td.header {
     border-radius: 999px;
 }
 
+#system_inspector .system-inspector-button-row {
+    padding-top: 10px;
+    text-align: center;
+}
+
+#system_inspector .system-inspector-button {
+    padding: 4px 10px;
+    border: 1px solid #8e8e8e;
+    border-radius: 999px;
+    background: transparent;
+    color: #d5d5d5;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+    cursor: pointer;
+}
+
+#system_inspector .system-inspector-button:hover {
+    background: #f2f2f2;
+    color: #111;
+    border-color: #f2f2f2;
+}
+
+#system_inspector .system-inspector-button:active {
+    background: #cfcfcf;
+    color: #000;
+    border-color: #cfcfcf;
+}
+
 .inspector-plus-button {
     width: 20px;
     height: 20px;

@@ -2788,6 +2788,47 @@ bool operator==(Request & r, const std::string s)
      }
 
 
+    std::string
+    Kernel::GetProfilingJSON() const
+    {
+        std::ostringstream body;
+        body << "{";
+        body << "\"tick\": " << tick << ", ";
+        body << "\"run_mode\": " << run_mode.load() << ", ";
+        body << "\"components\": [";
+
+        std::string separator;
+        for(const auto & [path, component] : components)
+        {
+            if(component == nullptr)
+                continue;
+
+            body << separator;
+            body << "{";
+            body << "\"path\": \"" << escape_json_string(path) << "\", ";
+            body << "\"name\": \"" << escape_json_string(component->Info()) << "\", ";
+
+            std::string class_name;
+            if(component->info_.contains_non_null("class"))
+                class_name = std::string(component->info_["class"]);
+
+            body << "\"class\": ";
+            if(class_name.empty())
+                body << "null";
+            else
+                body << "\"" << escape_json_string(class_name) << "\"";
+            body << ", ";
+            body << "\"profiling\": " << component->profiler_.json();
+            body << "}";
+            separator = ", ";
+        }
+
+        body << "]";
+        body << "}";
+        return body.str();
+    }
+
+
     void 
     Kernel::Save() // Simple save function in present file from kernel data
     {
@@ -3429,7 +3470,7 @@ bool operator==(Request & r, const std::string s)
             session_logging_active = false;
         }
 #endif
-        PrintProfiling();
+        //PrintProfiling(); // FIXME: Use option to turn on and off 
         Clear(); // Delete all modules
         needs_reload = true;
     }
@@ -4514,6 +4555,19 @@ bool operator==(Request & r, const std::string s)
 
 
     void
+    Kernel::DoProfiling(Request &)
+    {
+        dictionary header({
+            {"Content-Type", "application/json; charset=utf-8"},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"}
+        });
+        SendStringResponse(header, GetProfilingJSON());
+    }
+
+
+
+    void
     Kernel::DoCommand(Request & request)
     {
         try
@@ -4857,6 +4911,8 @@ bool operator==(Request & r, const std::string s)
             DoCSV(request);
         else if(request == "image")
             DoImage(request);
+        else if(request == "profiling")
+            DoProfiling(request);
 
         // Control commands
 
@@ -4941,6 +4997,8 @@ Kernel::CalculateCPUUsage() // In percent
             }
             catch(const std::exception& e)
             {
+                if(shutdown.load(std::memory_order_acquire))
+                    break;
                 std::cerr << "HTTP request failed: " << e.what() << '\n';
                 if(socket != nullptr)
                     socket->Close();

@@ -579,6 +579,7 @@ public:
 
     void CalculateCheckSum();
     dictionary GetModuleInstantiationInfo(); // Used for profiling
+    std::string GetProfilingJSON() const;
 
     void DoNew(Request & request);
     void DoOpen(Request & request);
@@ -595,6 +596,7 @@ public:
     void DoJSON(Request & request);
     void DoCSV(Request & request);
     void DoImage(Request & request);
+    void DoProfiling(Request & request);
 
     void DoCommand(Request & request);
     void DoControl(Request & request);

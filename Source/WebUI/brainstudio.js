@@ -1827,6 +1827,8 @@ const inspector =
     resize_active: false,
     default_width: 300,
     last_selected_signature: "",
+    profiling_window: null,
+    profiling_timer: null,
 
     init()
     {
@@ -1852,6 +1854,239 @@ const inspector =
 
         inspector.setupResizeForPanel(inspector.component);
         inspector.setupResizeForPanel(inspector.library);
+    },
+
+    openProfilingWindow()
+    {
+        if(!inspector.profiling_window || inspector.profiling_window.closed)
+        {
+            inspector.profiling_window = window.open("", "ikaros_profiling", "width=980,height=620,resizable=yes,scrollbars=yes");
+            if(!inspector.profiling_window)
+                return;
+            inspector.initializeProfilingWindow();
+        }
+        else
+            inspector.profiling_window.focus();
+
+        inspector.refreshProfilingWindow();
+
+        if(inspector.profiling_timer)
+            clearInterval(inspector.profiling_timer);
+
+        inspector.profiling_timer = setInterval(() =>
+        {
+            if(!inspector.profiling_window || inspector.profiling_window.closed)
+            {
+                clearInterval(inspector.profiling_timer);
+                inspector.profiling_timer = null;
+                inspector.profiling_window = null;
+                return;
+            }
+            inspector.refreshProfilingWindow();
+        }, 1000);
+    },
+
+    initializeProfilingWindow()
+    {
+        if(!inspector.profiling_window || inspector.profiling_window.closed)
+            return;
+
+        const doc = inspector.profiling_window.document;
+        doc.open();
+        doc.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Profiling</title>
+<style>
+body {
+    margin: 0;
+    padding: 16px;
+    background: #151515;
+    color: #e7e7e7;
+    font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+h1 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 600;
+}
+.profiling-meta {
+    margin-bottom: 14px;
+    color: #a8a8a8;
+}
+.profiling-error {
+    color: #ff9f9f;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+thead th {
+    position: sticky;
+    top: 0;
+    background: #202020;
+    z-index: 1;
+}
+th, td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #313131;
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+tbody tr:nth-child(even) {
+    background: #1a1a1a;
+}
+td.number {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+td.path {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+}
+</style>
+</head>
+<body>
+<h1>Profiling</h1>
+<div class="profiling-meta" id="profiling_meta">Loading...</div>
+<table>
+<thead>
+<tr>
+<th style="width: 23%;">path</th>
+<th style="width: 14%;">class</th>
+<th style="width: 7%;">samples</th>
+<th style="width: 11%;">cpu mean (ms)</th>
+<th style="width: 11%;">cpu last (ms)</th>
+<th style="width: 11%;">wall mean (ms)</th>
+<th style="width: 11%;">wall last (ms)</th>
+<th style="width: 12%;">wall stddev (ms)</th>
+</tr>
+</thead>
+<tbody id="profiling_rows">
+<tr><td colspan="8">Loading...</td></tr>
+</tbody>
+</table>
+</body>
+</html>`);
+        doc.close();
+    },
+
+    profilingFormatMilliseconds(seconds)
+    {
+        const value = Number(seconds);
+        if(!Number.isFinite(value))
+            return "-";
+        return (value * 1000).toFixed(3);
+    },
+
+    renderProfilingWindow(data)
+    {
+        if(!inspector.profiling_window || inspector.profiling_window.closed)
+            return;
+
+        const doc = inspector.profiling_window.document;
+        const meta = doc.getElementById("profiling_meta");
+        const rows = doc.getElementById("profiling_rows");
+        if(!meta || !rows)
+            return;
+
+        const components = Array.isArray(data && data.components) ? [...data.components] : [];
+        components.sort((a, b) =>
+        {
+            const aValue = Number(a && a.profiling && a.profiling.cpu && a.profiling.cpu.mean);
+            const bValue = Number(b && b.profiling && b.profiling.cpu && b.profiling.cpu.mean);
+            const aScore = Number.isFinite(aValue) ? aValue : -1;
+            const bScore = Number.isFinite(bValue) ? bValue : -1;
+            return bScore - aScore;
+        });
+
+        meta.textContent = `tick ${Number.isFinite(data && data.tick) ? data.tick : "-"} | updated ${new Date().toLocaleTimeString()}`;
+
+        if(components.length === 0)
+        {
+            rows.innerHTML = '<tr><td colspan="8">No profiling data available.</td></tr>';
+            return;
+        }
+
+        rows.innerHTML = components.map((component) =>
+        {
+            const profiling = component.profiling || {};
+            const cpu = profiling.cpu || {};
+            const wall = profiling.wall || {};
+            const className = component.class || component.name || "-";
+            const sampleCount = Number.isFinite(cpu.count) ? cpu.count : (Number.isFinite(wall.count) ? wall.count : 0);
+            return `<tr>
+<td class="path">${inspector.escapeHTML(component.path || "-")}</td>
+<td>${inspector.escapeHTML(className)}</td>
+<td class="number">${sampleCount}</td>
+<td class="number">${inspector.profilingFormatMilliseconds(cpu.mean)}</td>
+<td class="number">${inspector.profilingFormatMilliseconds(profiling.last_cpu_seconds)}</td>
+<td class="number">${inspector.profilingFormatMilliseconds(wall.mean)}</td>
+<td class="number">${inspector.profilingFormatMilliseconds(profiling.last_wall_seconds)}</td>
+<td class="number">${inspector.profilingFormatMilliseconds(wall.standard_deviation)}</td>
+</tr>`;
+        }).join("");
+    },
+
+    showProfilingError(message)
+    {
+        if(!inspector.profiling_window || inspector.profiling_window.closed)
+            return;
+
+        const doc = inspector.profiling_window.document;
+        const meta = doc.getElementById("profiling_meta");
+        const rows = doc.getElementById("profiling_rows");
+        if(meta)
+        {
+            meta.textContent = message;
+            meta.className = "profiling-meta profiling-error";
+        }
+        if(rows)
+            rows.innerHTML = '<tr><td colspan="8">Unable to load profiling data.</td></tr>';
+    },
+
+    refreshProfilingWindow()
+    {
+        if(!inspector.profiling_window || inspector.profiling_window.closed)
+            return;
+
+        fetch('/profiling', {
+            method: 'GET',
+            headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id},
+            cache: 'no-store'
+        })
+        .then((response) =>
+        {
+            if(!response.ok)
+                throw new Error(`Profiling request failed (${response.status})`);
+            return response.json();
+        })
+        .then((data) =>
+        {
+            const doc = inspector.profiling_window && !inspector.profiling_window.closed ? inspector.profiling_window.document : null;
+            const meta = doc ? doc.getElementById("profiling_meta") : null;
+            if(meta)
+                meta.className = "profiling-meta";
+            inspector.renderProfilingWindow(data);
+        })
+        .catch((error) =>
+        {
+            console.log("profiling update failed", error);
+            inspector.showProfilingError("Profiling update failed.");
+        });
+    },
+
+    escapeHTML(value)
+    {
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
     },
 
     setupResizeForPanel(panel)
