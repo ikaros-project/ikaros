@@ -104,3 +104,7 @@ The top group can define a few parameters that affect WebUI update behavior:
 - `gray_quality`
   JPEG quality used for grayscale and pseudocolor images included in snapshot-backed `/update` responses.
   Default: `70`
+
+- `webui_log_buffer_limit`
+  Maximum number of pending log messages kept for the next `/update` response before older entries are dropped.
+  Default: `500`

@@ -36,6 +36,12 @@ The top group can define these parameters:
 
 These settings affect snapshot-backed `/update` image data. They do not change the ordinary image endpoint behavior.
 
+Related top-group parameter:
+
+- `webui_log_buffer_limit`
+  Maximum number of pending log messages kept for the next `/update` response before older entries are dropped.
+  Default: `500`
+
 ## Why This Helps
 
 - `/update` latency stays very low.

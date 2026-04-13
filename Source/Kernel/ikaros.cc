@@ -14,6 +14,8 @@ namespace ikaros
 {
     namespace
     {
+        constexpr size_t default_max_pending_webui_log_messages = 500;
+
         bool try_parse_matrix_literal(matrix & out, const std::string & value)
         {
             try
@@ -159,6 +161,17 @@ namespace ikaros
             interval_param["default"] = 0.1;
             interval_param["description"] = "WebUI update request interval in seconds.";
             return interval_param;
+        }
+
+        dictionary make_webui_log_buffer_limit_parameter()
+        {
+            dictionary limit_param;
+            limit_param["_tag"] = "parameter";
+            limit_param["name"] = "webui_log_buffer_limit";
+            limit_param["type"] = "number";
+            limit_param["default"] = static_cast<int>(default_max_pending_webui_log_messages);
+            limit_param["description"] = "Maximum number of pending log messages kept for the next WebUI update before older messages are dropped.";
+            return limit_param;
         }
 
         void ensure_list(dictionary & info, const std::string & key)
@@ -1499,7 +1512,7 @@ namespace ikaros
         for(auto & d : info_["parameters"])
         {
             std::string parameter_name = d["name"].as_string();
-            if(parameter_name == "log_level" || parameter_name == "color" || parameter_name == "rgb_quality" || parameter_name == "gray_quality" || parameter_name == "snapshot_interval" || parameter_name == "webui_req_int")
+            if(parameter_name == "log_level" || parameter_name == "color" || parameter_name == "rgb_quality" || parameter_name == "gray_quality" || parameter_name == "snapshot_interval" || parameter_name == "webui_req_int" || parameter_name == "webui_log_buffer_limit")
                 continue;
 
             parameter p;
@@ -2192,9 +2205,11 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::PrintLog()
     {
+        std::lock_guard<std::mutex> lock(log_mutex);
         for(auto & s : log)
             std::cout << "ikaros: " << s.level_ << ": " << s.message_ << '\n';
         log.clear();
+        dropped_webui_log_messages = 0;
     }
 
 
@@ -2315,6 +2330,7 @@ bool operator==(Request & r, const std::string s)
             bool has_gray_quality = false;
             bool has_snapshot_interval = false;
             bool has_webui_req_int = false;
+            bool has_webui_log_buffer_limit = false;
             for(auto parameter : info["parameters"])
             {
                 std::string parameter_name = parameter["name"];
@@ -2328,6 +2344,8 @@ bool operator==(Request & r, const std::string s)
                     has_snapshot_interval = true;
                 else if(parameter_name == "webui_req_int")
                     has_webui_req_int = true;
+                else if(parameter_name == "webui_log_buffer_limit")
+                    has_webui_log_buffer_limit = true;
             }
 
             if(!has_color)
@@ -2340,6 +2358,8 @@ bool operator==(Request & r, const std::string s)
                 info["parameters"].push_back(make_snapshot_interval_parameter().copy());
             if(!has_webui_req_int)
                 info["parameters"].push_back(make_webui_request_interval_parameter().copy());
+            if(!has_webui_log_buffer_limit)
+                info["parameters"].push_back(make_webui_log_buffer_limit_parameter().copy());
         }
 
         current_component_info = info;
@@ -3288,12 +3308,17 @@ bool operator==(Request & r, const std::string s)
         bool
         Kernel::Notify(int msg, std::string message, std::string path)
         {
-            static std::mutex mtx;
-            std::lock_guard<std::mutex> lock(mtx); // Lock the mutex
-
             const std::string timestamped_message = "[" + TimeString(GetTime()) + "] " + message;
-
-            log.push_back(Message(msg, timestamped_message, path));
+            {
+                std::lock_guard<std::mutex> lock(log_mutex);
+                const size_t max_pending_webui_log_messages = MaxPendingWebUILogMessages();
+                if(log.size() >= max_pending_webui_log_messages)
+                {
+                    log.erase(log.begin());
+                    ++dropped_webui_log_messages;
+                }
+                log.push_back(Message(msg, timestamped_message, path));
+            }
 
         std::cout << timestamped_message;
         if(!path.empty())
@@ -3592,6 +3617,23 @@ bool operator==(Request & r, const std::string s)
     }
 
 
+    size_t
+    Kernel::MaxPendingWebUILogMessages() const
+    {
+        if(parameters.count("webui_log_buffer_limit"))
+        {
+            try
+            {
+                return std::max<size_t>(1, static_cast<size_t>(parameters.at("webui_log_buffer_limit").as_int()));
+            }
+            catch(const std::exception &)
+            {
+            }
+        }
+        return default_max_pending_webui_log_messages;
+    }
+
+
     int
     Kernel::SnapshotJPEGQualityForFormat(const std::string & format) const
     {
@@ -3720,14 +3762,26 @@ bool operator==(Request & r, const std::string s)
     {
         std::string response = ",\n\"log\": [";
         std::string sep;
+        std::lock_guard<std::mutex> lock(log_mutex);
+        if(dropped_webui_log_messages > 0)
+        {
+            const std::string dropped_message =
+                "WebUI log truncated. Dropped " + std::to_string(dropped_webui_log_messages) +
+                " older log message" + (dropped_webui_log_messages == 1 ? "" : "s") + ".";
+            response += Message(msg_warning, dropped_message).json();
+            sep = ",";
+        }
         for(auto line : log)
         {
             response += sep + line.json();
             sep = ",";
         }
         response += "]";
-        if(clear_pending_log && !log.empty())
+        if(clear_pending_log)
+        {
             log.clear();
+            dropped_webui_log_messages = 0;
+        }
         return response;
     }
 

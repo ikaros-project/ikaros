@@ -1415,6 +1415,8 @@ let controller =
             if(!logElement)
                 return;
 
+            const fragment = document.createDocumentFragment();
+            let shouldScrollLog = false;
             response.log.forEach((element) => 
             {
                 let message_class = ["inherit", "quiet","exception","end_of_file","terminate","fatal_error","warning","print","debug","trace"][element[0]];
@@ -1433,13 +1435,16 @@ let controller =
                     };
                     p.appendChild(a);
                 }
-                logElement.appendChild(p);
+                fragment.appendChild(p);
                 if(element[0]<=6)
                 {
                     log.showView(true);
-                    logElement.scrollTop = logElement.scrollHeight; // FIXME: Only when needed
+                    shouldScrollLog = true;
                 }
             });
+            logElement.appendChild(fragment);
+            if(shouldScrollLog)
+                logElement.scrollTop = logElement.scrollHeight; // FIXME: Only when needed
         }
 
         // NETWORK

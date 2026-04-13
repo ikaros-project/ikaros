@@ -450,7 +450,9 @@ public:
     double                                  lag_sum;        // Sum |lag|
 
     std::unique_ptr<ServerSocket>           socket;
+    std::mutex                              log_mutex;
     std::vector<Message>                    log;
+    size_t                                  dropped_webui_log_messages = 0;
     std::thread                             httpThread;
 
     struct RequestedUIValue
@@ -603,6 +605,7 @@ public:
     std::string DoSendDataStatus();
     std::string NormalizeUIRoot(const std::string & component_path) const;
     double SnapshotInterval() const;
+    size_t MaxPendingWebUILogMessages() const;
     int SnapshotJPEGQualityForFormat(const std::string & format) const;
     std::vector<RequestedUIValue> ParseRequestedUIValues(Request & request);
     RequestedUIValue ParseSubscribedUIValue(const std::string & subscription_key) const;
