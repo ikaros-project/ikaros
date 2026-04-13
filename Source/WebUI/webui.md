@@ -83,3 +83,24 @@ Inspector for selected item:
     - table (i_table)
         - atribute-value
         - filled from dict
+
+## Top Group WebUI Parameters
+
+The top group can define a few parameters that affect WebUI update behavior:
+
+- `webui_req_int`
+  Browser polling interval for `/update`, in seconds.
+  Default: `0.1`
+
+- `snapshot_interval`
+  Minimum interval in seconds between image refreshes in update snapshots.
+  Scalar values may still update every tick.
+  Default: `0.1`
+
+- `rgb_quality`
+  JPEG quality used for RGB images included in snapshot-backed `/update` responses.
+  Default: `75`
+
+- `gray_quality`
+  JPEG quality used for grayscale and pseudocolor images included in snapshot-backed `/update` responses.
+  Default: `70`

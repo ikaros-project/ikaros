@@ -1359,9 +1359,11 @@ let controller =
             document.querySelector("#cpu_cores").innerText = response.cpu_cores;
             document.querySelector("#time_usage").value = response.time_usage;
             document.querySelector("#usage").value = response.cpu_usage;
+            if(Number.isFinite(response.webui_req_int))
+                controller.webui_req_int = Math.max(1, Math.round(response.webui_req_int * 1000));
             document.querySelector("#webui_updates_per_s").innerText = (1000/controller.webui_interval).toFixed(1) + (response.has_data ? "": " (no data)");
             document.querySelector("#webui_interval").innerText = controller.webui_interval+" ms";
-            document.querySelector("#webui_req_int").innerText = controller.webui_req_int+" ms";
+            document.querySelector("#webui_req_int").innerText = (controller.webui_req_int / 1000)+" s";
             document.querySelector("#webui_ping").innerText = controller.ping+" ms";
             document.querySelector("#webui_lag").innerText = (Date.now()-response.timestamp)+" ms";
             

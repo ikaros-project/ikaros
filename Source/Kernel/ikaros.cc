@@ -117,6 +117,50 @@ namespace ikaros
             return color_param;
         }
 
+        dictionary make_ui_snapshot_rgb_quality_parameter()
+        {
+            dictionary quality_param;
+            quality_param["_tag"] = "parameter";
+            quality_param["name"] = "rgb_quality";
+            quality_param["type"] = "number";
+            quality_param["default"] = 75;
+            quality_param["description"] = "JPEG quality used for RGB images in WebUI update snapshots.";
+            return quality_param;
+        }
+
+        dictionary make_ui_snapshot_gray_quality_parameter()
+        {
+            dictionary quality_param;
+            quality_param["_tag"] = "parameter";
+            quality_param["name"] = "gray_quality";
+            quality_param["type"] = "number";
+            quality_param["default"] = 70;
+            quality_param["description"] = "JPEG quality used for grayscale and pseudocolor images in WebUI update snapshots.";
+            return quality_param;
+        }
+
+        dictionary make_snapshot_interval_parameter()
+        {
+            dictionary interval_param;
+            interval_param["_tag"] = "parameter";
+            interval_param["name"] = "snapshot_interval";
+            interval_param["type"] = "number";
+            interval_param["default"] = 0.1;
+            interval_param["description"] = "Minimum interval in seconds between image refreshes in WebUI update snapshots.";
+            return interval_param;
+        }
+
+        dictionary make_webui_request_interval_parameter()
+        {
+            dictionary interval_param;
+            interval_param["_tag"] = "parameter";
+            interval_param["name"] = "webui_req_int";
+            interval_param["type"] = "number";
+            interval_param["default"] = 0.1;
+            interval_param["description"] = "WebUI update request interval in seconds.";
+            return interval_param;
+        }
+
         void ensure_list(dictionary & info, const std::string & key)
         {
             if(!info.contains_non_null(key) || !info[key].is_list())
@@ -142,6 +186,21 @@ namespace ikaros
             std::string prefix;
             std::string value;
         };
+
+        constexpr char ui_subscription_separator = '\n';
+        constexpr double ui_subscription_timeout_seconds = 10.0;
+        constexpr int ui_snapshot_rgb_jpeg_quality = 75;
+        constexpr int ui_snapshot_gray_jpeg_quality = 70;
+
+        bool is_snapshot_image_format(const std::string & format)
+        {
+            return format=="rgb" || format=="gray" || format=="red" || format=="green" || format=="blue" || format=="spectrum" || format=="fire";
+        }
+
+        int snapshot_jpeg_quality_for_format(const std::string & format)
+        {
+            return format == "rgb" ? ui_snapshot_rgb_jpeg_quality : ui_snapshot_gray_jpeg_quality;
+        }
     }
 
     std::string  validate_identifier(std::string s)
@@ -1440,7 +1499,7 @@ namespace ikaros
         for(auto & d : info_["parameters"])
         {
             std::string parameter_name = d["name"].as_string();
-            if(parameter_name == "log_level" || parameter_name == "color")
+            if(parameter_name == "log_level" || parameter_name == "color" || parameter_name == "rgb_quality" || parameter_name == "gray_quality" || parameter_name == "snapshot_interval" || parameter_name == "webui_req_int")
                 continue;
 
             parameter p;
@@ -1700,6 +1759,7 @@ bool operator==(Request & r, const std::string s)
         lag_sum = 0;
         session_logging_active = false;
         shutdown = false;
+        ResetUISnapshotCache();
     }
 
 
@@ -1730,9 +1790,11 @@ bool operator==(Request & r, const std::string s)
 
         run_mode = run_mode_stop;
         session_id = new_session_id();
+        ResetUISnapshotCache();
         try
         {
             SetUp();
+            BuildUISnapshot();
             needs_reload = false;
         }
         catch(const setup_failed & e)
@@ -2243,6 +2305,43 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::AddGroup(dictionary info, std::string path)
     {
+        if(info["parameters"].is_null())
+            info["parameters"] = list();
+
+        if(path.empty())
+        {
+            bool has_color = false;
+            bool has_rgb_quality = false;
+            bool has_gray_quality = false;
+            bool has_snapshot_interval = false;
+            bool has_webui_req_int = false;
+            for(auto parameter : info["parameters"])
+            {
+                std::string parameter_name = parameter["name"];
+                if(parameter_name == "color")
+                    has_color = true;
+                else if(parameter_name == "rgb_quality")
+                    has_rgb_quality = true;
+                else if(parameter_name == "gray_quality")
+                    has_gray_quality = true;
+                else if(parameter_name == "snapshot_interval")
+                    has_snapshot_interval = true;
+                else if(parameter_name == "webui_req_int")
+                    has_webui_req_int = true;
+            }
+
+            if(!has_color)
+                info["parameters"].push_back(make_color_parameter().copy());
+            if(!has_rgb_quality)
+                info["parameters"].push_back(make_ui_snapshot_rgb_quality_parameter().copy());
+            if(!has_gray_quality)
+                info["parameters"].push_back(make_ui_snapshot_gray_quality_parameter().copy());
+            if(!has_snapshot_interval)
+                info["parameters"].push_back(make_snapshot_interval_parameter().copy());
+            if(!has_webui_req_int)
+                info["parameters"].push_back(make_webui_request_interval_parameter().copy());
+        }
+
         current_component_info = info;
         current_component_path = path;
 
@@ -2569,9 +2668,11 @@ bool operator==(Request & r, const std::string s)
                     BuildGroup(d);
                     info_ = d;
                     session_id = new_session_id(); 
+                    ResetUISnapshotCache();
                     Notify(msg_print, u8"Loaded "s+options_.full_path());
                     SetUp();
                     CalculateCheckSum();
+                    BuildUISnapshot();
                     needs_reload = false;
                     Pause(); // Reset clocks
                 }
@@ -3165,6 +3266,7 @@ bool operator==(Request & r, const std::string s)
                     {
                         std::lock_guard<std::recursive_mutex> lock(kernelLock);
                         Tick();
+                        BuildUISnapshot();
                     }
                     catch(std::exception & e)
                     {
@@ -3256,53 +3358,32 @@ bool operator==(Request & r, const std::string s)
     //
 
     std::string
-    Kernel::SendImage(matrix & image, const std::string & format) // Compress image to jpg and return a base64 data URI
+    Kernel::SendImage(matrix & image, const std::string & format, int quality) // Compress image to jpg and return a base64 data URI
     {
-        auto total_start = steady_clock::now();
         long size = 0;
         unsigned char * jpeg = nullptr;
         size_t output_length = 0 ;
-        auto jpeg_start = steady_clock::now();
 
         if(format=="rgb" && image.rank() == 3 && image.size(0) == 3)
-            jpeg = (unsigned char *)create_color_jpeg(size, image, 90);
+            jpeg = (unsigned char *)create_color_jpeg(size, image, quality);
 
         else if(format=="gray" && image.rank() == 2)
-            jpeg = (unsigned char *)create_gray_jpeg(size, image, 0, 1, 90);
+            jpeg = (unsigned char *)create_gray_jpeg(size, image, 0, 1, quality);
 
         else if(image.rank() == 2) // taking our chances with the format...
-            jpeg = (unsigned char *)create_pseudocolor_jpeg(size, image, 0, 1, format, 90);
-
-        auto jpeg_done = steady_clock::now();
+            jpeg = (unsigned char *)create_pseudocolor_jpeg(size, image, 0, 1, format, quality);
 
             if(!jpeg)
             {
                 return "\"\"";
             }
 
-        auto base64_start = steady_clock::now();
         char * jpeg_base64 = base64_encode(jpeg, size, &output_length);
-        auto base64_done = steady_clock::now();
         std::string result = "\"data:image/jpeg;base64,";
         result.append(jpeg_base64, output_length);
         result += "\"";
         destroy_jpeg(jpeg);
         free(jpeg_base64);
-        auto total_done = steady_clock::now();
-
-        auto jpeg_us = duration_cast<microseconds>(jpeg_done - jpeg_start).count();
-        auto base64_us = duration_cast<microseconds>(base64_done - base64_start).count();
-        auto total_us = duration_cast<microseconds>(total_done - total_start).count();
-        if(total_us >= 1000)
-        {
-            std::cerr << "HTTP image timing format=" << format
-                      << " rank=" << image.rank()
-                      << " size=" << size
-                      << " jpeg=" << (double(jpeg_us) / 1000.0) << "ms"
-                      << " base64=" << (double(base64_us) / 1000.0) << "ms"
-                      << " total=" << (double(total_us) / 1000.0) << "ms"
-                      << "\n";
-        }
         return result;
     }
 
@@ -3404,6 +3485,18 @@ bool operator==(Request & r, const std::string s)
         if(!nm.empty())
             nm = std::filesystem::path(nm).filename().string();
 
+        double webui_request_interval = 0.1;
+        if(parameters.count("webui_req_int"))
+        {
+            try
+            {
+                webui_request_interval = std::max(0.001, parameters.at("webui_req_int").as_double());
+            }
+            catch(const std::exception &)
+            {
+            }
+        }
+
         response << "\t\"file\": " << value(nm).json() << ",\n";
 
 #if DEBUG
@@ -3431,6 +3524,7 @@ bool operator==(Request & r, const std::string s)
         response << "\t\"timestamp\": " << GetTimeStamp() << ",\n";
         response << "\t\"uptime\": " << uptime << ",\n";
         response << "\t\"tick_duration\": " << tick_duration << ",\n";
+        response << "\t\"webui_req_int\": " << webui_request_interval << ",\n";
         response << "\t\"cpu_cores\": " << cpu_cores << ",\n";
     
         switch(run_mode)
@@ -3472,7 +3566,157 @@ bool operator==(Request & r, const std::string s)
 
 
     std::string
-    Kernel::DoSendLog(Request &)
+    Kernel::NormalizeUIRoot(const std::string & component_path) const
+    {
+        std::string root = component_path;
+        if(!root.empty() && root[0] == '.')
+            root = root.substr(1);
+        return root;
+    }
+
+
+    double
+    Kernel::SnapshotInterval() const
+    {
+        if(parameters.count("snapshot_interval"))
+        {
+            try
+            {
+                return std::max(0.0, parameters.at("snapshot_interval").as_double());
+            }
+            catch(const std::exception &)
+            {
+            }
+        }
+        return 0.1;
+    }
+
+
+    int
+    Kernel::SnapshotJPEGQualityForFormat(const std::string & format) const
+    {
+        const char * parameter_name = format == "rgb" ? "rgb_quality" : "gray_quality";
+        if(parameters.count(parameter_name))
+        {
+            try
+            {
+                int quality = parameters.at(parameter_name).as_int();
+                return std::clamp(quality, 1, 100);
+            }
+            catch(const std::exception &)
+            {
+            }
+        }
+        return snapshot_jpeg_quality_for_format(format);
+    }
+
+
+    std::vector<Kernel::RequestedUIValue>
+    Kernel::ParseRequestedUIValues(Request & request)
+    {
+        std::vector<RequestedUIValue> requested_values;
+        std::string data;
+        if(request.parameters.contains("data"))
+            data = std::string(request.parameters["data"]);
+
+        std::string root = NormalizeUIRoot(request.component_path);
+        while(!data.empty())
+        {
+            std::string token = head(data, ",");
+            if(token.empty())
+                continue;
+
+            std::string source = token;
+            std::string format = rtail(source, ":");
+
+            requested_values.push_back({
+                root,
+                token,
+                token,
+                source,
+                format
+            });
+        }
+
+        return requested_values;
+    }
+
+
+    Kernel::RequestedUIValue
+    Kernel::ParseSubscribedUIValue(const std::string & subscription_key) const
+    {
+        RequestedUIValue requested_value;
+        auto separator = subscription_key.find(ui_subscription_separator);
+        if(separator == std::string::npos)
+            requested_value.token = subscription_key;
+        else
+        {
+            requested_value.root = subscription_key.substr(0, separator);
+            requested_value.token = subscription_key.substr(separator + 1);
+        }
+
+        requested_value.key = requested_value.token;
+        requested_value.source = requested_value.token;
+        requested_value.format = rtail(requested_value.source, ":");
+        return requested_value;
+    }
+
+
+    std::string
+    Kernel::SubscriptionKeyFor(const RequestedUIValue & requested_value) const
+    {
+        return requested_value.root + ui_subscription_separator + requested_value.token;
+    }
+
+
+    bool
+    Kernel::SerializeRequestedValue(RequestedUIValue requested_value, std::string & serialized_value, long long * compute_us, long long * value_us)
+    {
+        auto value_start = steady_clock::now();
+        if((requested_value.source.find('@') != std::string::npos || requested_value.source.find('{') != std::string::npos) && components.count(requested_value.root) > 0)
+        {
+            auto compute_start = steady_clock::now();
+            Component * component = components[requested_value.root].get();
+            requested_value.source = component->ComputeValue(requested_value.source);
+            if(compute_us)
+                *compute_us += duration_cast<microseconds>(steady_clock::now() - compute_start).count();
+        }
+
+        std::string source_with_root = requested_value.root + "." + requested_value.source;
+        if(!requested_value.key.empty() && requested_value.key[0] == '.')
+            source_with_root = requested_value.key.substr(1);
+
+        std::string component_path = peek_rhead(source_with_root, ".");
+        std::string attribute = peek_rtail(source_with_root, ".");
+
+        bool found_value = false;
+        if(buffers.count(source_with_root))
+        {
+            if(requested_value.format.empty())
+                serialized_value = buffers[source_with_root].json();
+            else if(is_snapshot_image_format(requested_value.format))
+                serialized_value = SendImage(buffers[source_with_root], requested_value.format, SnapshotJPEGQualityForFormat(requested_value.format));
+            found_value = !serialized_value.empty();
+        }
+        else if(parameters.count(source_with_root))
+        {
+            serialized_value = parameters[source_with_root].json();
+            found_value = true;
+        }
+        else if(components.count(component_path))
+        {
+            serialized_value = components[component_path]->json(attribute);
+            found_value = !serialized_value.empty();
+        }
+
+        if(value_us)
+            *value_us += duration_cast<microseconds>(steady_clock::now() - value_start).count();
+        return found_value;
+    }
+
+
+    std::string
+    Kernel::SerializePendingLog(bool clear_pending_log)
     {
         std::string response = ",\n\"log\": [";
         std::string sep;
@@ -3482,190 +3726,239 @@ bool operator==(Request & r, const std::string s)
             sep = ",";
         }
         response += "]";
-        if(!log.empty() )
+        if(clear_pending_log && !log.empty())
             log.clear();
         return response;
     }
 
 
     void
+    Kernel::ResetUISnapshotCache()
+    {
+        {
+            std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
+            current_ui_snapshot.reset();
+        }
+        {
+            std::lock_guard<std::mutex> lock(ui_subscriptions_mutex);
+            ui_session_subscriptions.clear();
+        }
+    }
+
+
+    void
+    Kernel::BuildUISnapshot()
+    {
+        std::unordered_set<std::string> subscriptions;
+        double now = GetRealTime();
+        {
+            std::lock_guard<std::mutex> lock(ui_subscriptions_mutex);
+            for(auto it = ui_session_subscriptions.begin(); it != ui_session_subscriptions.end();)
+            {
+                if(now - it->second.last_seen_time > ui_subscription_timeout_seconds)
+                    it = ui_session_subscriptions.erase(it);
+                else
+                {
+                    subscriptions.insert(it->second.keys.begin(), it->second.keys.end());
+                    ++it;
+                }
+            }
+        }
+
+        std::shared_ptr<const UISnapshot> previous_snapshot;
+        {
+            std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
+            previous_snapshot = current_ui_snapshot;
+        }
+
+        bool refresh_images = previous_snapshot == nullptr || now - previous_snapshot->image_timestamp >= SnapshotInterval();
+        auto snapshot = std::make_shared<UISnapshot>();
+        snapshot->session_id = session_id;
+        snapshot->tick = tick;
+        snapshot->image_timestamp = refresh_images ? now : (previous_snapshot ? previous_snapshot->image_timestamp : now);
+        snapshot->status_json = DoSendDataStatus();
+        snapshot->log_json = SerializePendingLog(true);
+
+        std::vector<std::future<std::pair<std::string, std::string>>> image_futures;
+        for(const auto & subscription_key : subscriptions)
+        {
+            RequestedUIValue requested_value = ParseSubscribedUIValue(subscription_key);
+            if(is_snapshot_image_format(requested_value.format))
+            {
+                if(!refresh_images && previous_snapshot != nullptr)
+                {
+                    auto it = previous_snapshot->serialized_values.find(subscription_key);
+                    if(it != previous_snapshot->serialized_values.end())
+                    {
+                        snapshot->serialized_values[subscription_key] = it->second;
+                        continue;
+                    }
+                }
+
+                image_futures.push_back(std::async(std::launch::async, [this, subscription_key, requested_value]() mutable
+                {
+                    std::string serialized_value;
+                    if(SerializeRequestedValue(requested_value, serialized_value))
+                        return std::make_pair(subscription_key, std::move(serialized_value));
+                    return std::make_pair(std::string(), std::string());
+                }));
+            }
+            else
+            {
+                try
+                {
+                    std::string serialized_value;
+                    if(SerializeRequestedValue(requested_value, serialized_value))
+                        snapshot->serialized_values[subscription_key] = std::move(serialized_value);
+                }
+                catch(const std::exception & e)
+                {
+                    Notify(msg_warning, "Could not build UI snapshot for \"" + requested_value.token + "\": " + std::string(e.what()));
+                }
+            }
+        }
+
+        for(auto & future : image_futures)
+        {
+            try
+            {
+                auto result = future.get();
+                if(!result.first.empty())
+                    snapshot->serialized_values[result.first] = std::move(result.second);
+            }
+            catch(const std::exception & e)
+            {
+                Notify(msg_warning, "Could not build UI image snapshot: " + std::string(e.what()));
+            }
+        }
+
+        std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
+        current_ui_snapshot = std::move(snapshot);
+    }
+
+
+    std::string
+    Kernel::DoSendLog(Request &)
+    {
+        return SerializePendingLog(true);
+    }
+
+
+    void
     Kernel::DoSendData(Request & request)
     {
-        auto do_send_data_start = steady_clock::now();
+        auto requested_values = ParseRequestedUIValues(request);
+        std::unordered_set<std::string> requested_subscriptions;
+        requested_subscriptions.reserve(requested_values.size());
+        for(const auto & requested_value : requested_values)
+            requested_subscriptions.insert(SubscriptionKeyFor(requested_value));
+        {
+            std::lock_guard<std::mutex> lock(ui_subscriptions_mutex);
+            auto & session_subscription = ui_session_subscriptions[request.session_id];
+            session_subscription.keys = std::move(requested_subscriptions);
+            session_subscription.last_seen_time = GetRealTime();
+        }
+
+        std::shared_ptr<const UISnapshot> snapshot;
+        {
+            std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
+            snapshot = current_ui_snapshot;
+        }
+
+        long response_session_id = 0;
+        std::string status;
+        std::string log_json;
+        if(snapshot != nullptr)
+        {
+            response_session_id = snapshot->session_id;
+            status = snapshot->status_json;
+            log_json = snapshot->log_json;
+        }
+
+        std::vector<DataSnapshotItem> response_items;
+        std::vector<std::pair<size_t, RequestedUIValue>> fallback_items;
+        response_items.reserve(requested_values.size());
+
+        for(const auto & requested_value : requested_values)
+        {
+            response_items.push_back({
+                "\t\t\"" + escape_json_string(requested_value.key) + "\": ",
+                ""
+            });
+
+            if(snapshot != nullptr)
+            {
+                auto it = snapshot->serialized_values.find(SubscriptionKeyFor(requested_value));
+                if(it != snapshot->serialized_values.end())
+                {
+                    response_items.back().value = it->second;
+                    continue;
+                }
+            }
+
+            fallback_items.emplace_back(response_items.size() - 1, requested_value);
+        }
+
+        if(!fallback_items.empty() || snapshot == nullptr)
+        {
+            std::lock_guard<std::recursive_mutex> lock(kernelLock);
+            response_session_id = session_id;
+            if(snapshot == nullptr)
+            {
+                status = DoSendDataStatus();
+                log_json = SerializePendingLog(true);
+            }
+
+            for(const auto & fallback_item : fallback_items)
+            {
+                if(run_mode == run_mode_realtime && tick_duration > 0 && intra_tick_timer.GetTime() >= tick_duration)
+                {
+                    Notify(msg_warning, "Stopped sending data before next realtime tick.");
+                    break;
+                }
+
+                try
+                {
+                    std::string serialized_value;
+                    if(SerializeRequestedValue(fallback_item.second, serialized_value))
+                        response_items[fallback_item.first].value = std::move(serialized_value);
+                }
+                catch(const std::exception & e)
+                {
+                    Notify(msg_warning, "Could not send data for \"" + fallback_item.second.key + "\": " + std::string(e.what()));
+                }
+            }
+        }
+
         dictionary header({
-            {"Session-Id", std::to_string(session_id)},
+            {"Session-Id", std::to_string(response_session_id)},
             {"Package-Type", "data"},
             {"Content-Type", "application/json"},
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"},
             {"Expires", "0"}
         });
-        auto status_start = steady_clock::now();
-        std::string status = DoSendDataStatus();
-        auto status_done = steady_clock::now();
 
-        std::string data;
-        if(request.parameters.contains("data"))
-            data = std::string(request.parameters["data"]);
-        std::string root = request.component_path;
-        if(!root.empty() && root[0] == '.')
-            root = root.substr(1); // Global path prefix should not be part of buffer or parameter names
+        std::string response = "{\n";
+        response += status;
+        response += "\t\"data\":\n\t{\n";
 
-        std::vector<DataSnapshotItem> snapshot_items;
-        long long compute_value_us = 0;
-        long long value_snapshot_us = 0;
-        int resolved_items = 0;
-        auto snapshot_start = steady_clock::now();
-
-        while(!data.empty()) // FIXME: Check that we do not run out of time here and break if next tick is about to start.
+        std::string sep;
+        for(auto & item : response_items)
         {
-            if(run_mode == run_mode_realtime && tick_duration > 0 && intra_tick_timer.GetTime() >= tick_duration)
-            {
-                Notify(msg_warning, "Stopped sending data before next realtime tick.");
-                break;
-            }
-
-            std::string source = head(data, ",");
-            if(source.empty())
+            if(item.value.empty())
                 continue;
-
-            std::string key = source;
-            std::string format = rtail(source, ":");
-
-            try
-            {
-                if((source.find('@') != std::string::npos || source.find('{') != std::string::npos) && components.count(root) > 0)
-                {
-                    auto compute_start = steady_clock::now();
-                    Component * c = components[root].get();
-                    source = c->ComputeValue(source);
-                    compute_value_us += duration_cast<microseconds>(steady_clock::now() - compute_start).count();
-                }
-
-                std::string source_with_root = root +"."+source;
-
-                if(!key.empty() && key[0] == '.')
-                    source_with_root = key.substr(1); // Global path (keep `key` intact)
-
-                std::string component_path = peek_rhead(source_with_root, ".");
-                
-                std::string attribute = peek_rtail(source_with_root, ".");
-
-                auto snapshot_value_start = steady_clock::now();
-                if(buffers.count(source_with_root))
-                {
-                    if(format.empty())
-                    {
-                        snapshot_items.push_back({
-                            "\t\t\"" + escape_json_string(key) + "\": ",
-                            buffers[source_with_root].json()
-                        });
-                    }
-                    else if(format=="rgb")
-                    { 
-                        snapshot_items.push_back({
-                            "\t\t\"" + escape_json_string(key) + "\": ",
-                            SendImage(buffers[source_with_root], format)
-                        });
-                    }
-                    else if(format=="gray" || format=="red" || format=="green" || format=="blue" || format=="spectrum" || format=="fire")
-                    { 
-                        snapshot_items.push_back({
-                            "\t\t\"" + escape_json_string(key) + "\": ",
-                            SendImage(buffers[source_with_root], format)
-                        });
-                    }
-                }
-                else if(parameters.count(source_with_root))
-                {
-                    snapshot_items.push_back({
-                        "\t\t\"" + escape_json_string(key) + "\": ",
-                        parameters[source_with_root].json()
-                    });
-                }
-
-                else if(components.count(component_path)) // Use module function to get value
-                {
-                    std::string json_data = components[component_path]->json(attribute);
-
-                    if(!json_data.empty())
-                    {
-                        snapshot_items.push_back({
-                            "\t\t\"" + escape_json_string(source) + "\": ",
-                            json_data
-                        });
-                    }
-                }
-                else
-                {
-                    // ERROR: No such buffer or parameter
-                }
-                value_snapshot_us += duration_cast<microseconds>(steady_clock::now() - snapshot_value_start).count();
-                ++resolved_items;
-            }
-            catch(const std::exception & e)
-            {
-                Notify(msg_warning, "Could not send data for \""+key+"\": "+std::string(e.what()));
-            }
+            response += sep;
+            response += item.prefix;
+            response += item.value;
+            sep = ",\n";
         }
-        auto snapshot_done = steady_clock::now();
 
-        auto log_start = steady_clock::now();
-        std::string log_json = DoSendLog(request);
-        auto log_done = steady_clock::now();
-
-        kernelLock.unlock();
-        try
-        {
-            auto assemble_start = steady_clock::now();
-            std::string response = "{\n";
-            response += status;
-            response += "\t\"data\":\n\t{\n";
-
-            std::string sep;
-            for(auto & item : snapshot_items)
-            {
-                response += sep;
-                response += item.prefix;
-                response += item.value;
-                sep = ",\n";
-            }
-
-            response += "\n\t}";
-            response += log_json;
-            response += ",\n\t\"has_data\": 1\n";
-            response += "}\n";
-            auto assemble_done = steady_clock::now();
-            SendStringResponse(header, response);
-            auto do_send_data_done = steady_clock::now();
-
-            auto status_us = duration_cast<microseconds>(status_done - status_start).count();
-            auto snapshot_total_us = duration_cast<microseconds>(snapshot_done - snapshot_start).count();
-            auto log_us = duration_cast<microseconds>(log_done - log_start).count();
-            auto assemble_us = duration_cast<microseconds>(assemble_done - assemble_start).count();
-            auto total_us = duration_cast<microseconds>(do_send_data_done - do_send_data_start).count();
-            if(total_us >= 1000)
-            {
-                std::cerr << "HTTP update timing"
-                          << " total=" << (double(total_us) / 1000.0) << "ms"
-                          << " status=" << (double(status_us) / 1000.0) << "ms"
-                          << " snapshot=" << (double(snapshot_total_us) / 1000.0) << "ms"
-                          << " compute=" << (double(compute_value_us) / 1000.0) << "ms"
-                          << " values=" << (double(value_snapshot_us) / 1000.0) << "ms"
-                          << " log=" << (double(log_us) / 1000.0) << "ms"
-                          << " assemble=" << (double(assemble_us) / 1000.0) << "ms"
-                          << " items=" << resolved_items
-                          << '\n';
-            }
-        }
-        catch(...)
-        {
-            kernelLock.lock();
-            throw;
-        }
-        kernelLock.lock();
-
-        //sending_ui_data = false;
+        response += "\n\t}";
+        response += log_json.empty() ? ",\n\"log\": []" : log_json;
+        response += ",\n\t\"has_data\": 1\n";
+        response += "}\n";
+        SendStringResponse(header, response);
     }
 
 
@@ -4266,9 +4559,24 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoUpdate(Request & request)
     {
-        if(request.session_id != session_id)
+        long current_session_id = 0;
+        {
+            std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
+            if(current_ui_snapshot)
+                current_session_id = current_ui_snapshot->session_id;
+        }
+        if(current_session_id == 0)
+        {
+            std::lock_guard<std::recursive_mutex> lock(kernelLock);
+            current_session_id = session_id;
+        }
+
+        if(request.session_id != current_session_id)
+        {
+            std::lock_guard<std::recursive_mutex> lock(kernelLock);
             DoSendNetwork(request);
-        else 
+        }
+        else
             DoSendData(request);
     }
 
@@ -4537,8 +4845,6 @@ Kernel::CalculateCPUUsage() // In percent
     void
     Kernel::HandleHTTPThread()
     {
-        constexpr long long http_timing_log_threshold_us = 5000;
-
         while(!shutdown)
         {
             try
@@ -4549,50 +4855,34 @@ Kernel::CalculateCPUUsage() // In percent
                     if(!socket->PopRequest(queued_request, false))
                         continue;
 
-                    auto request_start = steady_clock::now();
-                    auto lock_wait_start = request_start;
-                    std::lock_guard<std::recursive_mutex> lock(kernelLock); // Lock the mutex to ensure thread safety
-                    auto activate_start = steady_clock::now();
                     socket->ActivateRequest(queued_request);
-                    auto dispatch_start = steady_clock::now();
-                    if(socket->header.contains_non_null("method") && std::string(socket->header["method"]) == "GET")
-                    {
-                        HandleHTTPRequest();
-                    }
-                    else if(socket->header.contains_non_null("method") && std::string(socket->header["method"]) == "PUT") // JSON Data
-                    {
-                        HandleHTTPRequest();
-                    }
-                    auto flush_start = steady_clock::now();
-                    socket->Flush();
-                    auto finish_start = steady_clock::now();
-                    socket->FinishActiveRequest();
-                    auto request_done = steady_clock::now();
-
-                    long long lock_wait_duration_us = duration_cast<microseconds>(activate_start - lock_wait_start).count();
-                    long long activate_duration_us = duration_cast<microseconds>(dispatch_start - activate_start).count();
-                    long long dispatch_duration_us = duration_cast<microseconds>(flush_start - dispatch_start).count();
-                    long long flush_duration_us = duration_cast<microseconds>(finish_start - flush_start).count();
-                    long long finish_duration_us = duration_cast<microseconds>(request_done - finish_start).count();
-                    long long total_duration_us = queued_request.parse_duration_us +
-                        duration_cast<microseconds>(request_done - request_start).count();
-
-                    std::string method = socket->header.contains_non_null("method") ? std::string(socket->header["method"]) : "?";
-                    std::string uri = socket->header.contains_non_null("uri") ? std::string(socket->header["uri"]) : "?";
+                    std::string method = queued_request.header.contains_non_null("method") ? std::string(queued_request.header["method"]) : "";
+                    std::string uri = queued_request.header.contains_non_null("uri") ? std::string(queued_request.header["uri"]) : "";
                     bool is_update_request = uri.find("/update") != std::string::npos;
-                    if(is_update_request || total_duration_us >= http_timing_log_threshold_us)
+
+                    if(is_update_request && (method == "GET" || method == "PUT"))
                     {
-                        std::cerr
-                            << "HTTP timing " << method << " " << uri
-                            << " total=" << total_duration_us / 1000.0 << "ms"
-                            << " parse=" << queued_request.parse_duration_us / 1000.0 << "ms"
-                            << " wait_lock=" << lock_wait_duration_us / 1000.0 << "ms"
-                            << " activate=" << activate_duration_us / 1000.0 << "ms"
-                            << " dispatch=" << dispatch_duration_us / 1000.0 << "ms"
-                            << " flush=" << flush_duration_us / 1000.0 << "ms"
-                            << " finish=" << finish_duration_us / 1000.0 << "ms"
-                            << '\n';
+                        HandleHTTPRequest();
                     }
+                    else
+                    {
+                        std::lock_guard<std::recursive_mutex> lock(kernelLock); // Lock the mutex to ensure thread safety
+                        if(socket->header.contains_non_null("method") && std::string(socket->header["method"]) == "GET")
+                        {
+                            HandleHTTPRequest();
+                        }
+                        else if(socket->header.contains_non_null("method") && std::string(socket->header["method"]) == "PUT") // JSON Data
+                        {
+                            HandleHTTPRequest();
+                        }
+                        auto flush_start = steady_clock::now();
+                        socket->Flush();
+                        auto finish_start = steady_clock::now();
+                        socket->FinishActiveRequest();
+                        continue;
+                    }
+                    socket->Flush();
+                    socket->FinishActiveRequest();
                 }
             }
             catch(const std::exception& e)

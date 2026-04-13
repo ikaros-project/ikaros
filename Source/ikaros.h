@@ -11,6 +11,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <stack>
 #include <string>
@@ -452,6 +453,36 @@ public:
     std::vector<Message>                    log;
     std::thread                             httpThread;
 
+    struct RequestedUIValue
+    {
+        std::string root;
+        std::string token;
+        std::string key;
+        std::string source;
+        std::string format;
+    };
+
+    struct UISnapshot
+    {
+        long session_id = 0;
+        tick_count tick = -1;
+        double image_timestamp = 0;
+        std::string status_json;
+        std::string log_json;
+        std::unordered_map<std::string, std::string> serialized_values;
+    };
+
+    struct UISubscriptionState
+    {
+        std::unordered_set<std::string> keys;
+        double last_seen_time = 0;
+    };
+
+    std::shared_ptr<const UISnapshot>       current_ui_snapshot;
+    std::mutex                              ui_snapshot_mutex;
+    std::unordered_map<long, UISubscriptionState> ui_session_subscriptions;
+    std::mutex                              ui_subscriptions_mutex;
+
     Kernel();
     ~Kernel();
 
@@ -570,6 +601,16 @@ public:
 
     void SendStringResponse(ikaros::dictionary header, const std::string & body, const char * response=nullptr);
     std::string DoSendDataStatus();
+    std::string NormalizeUIRoot(const std::string & component_path) const;
+    double SnapshotInterval() const;
+    int SnapshotJPEGQualityForFormat(const std::string & format) const;
+    std::vector<RequestedUIValue> ParseRequestedUIValues(Request & request);
+    RequestedUIValue ParseSubscribedUIValue(const std::string & subscription_key) const;
+    std::string SubscriptionKeyFor(const RequestedUIValue & requested_value) const;
+    bool SerializeRequestedValue(RequestedUIValue requested_value, std::string & serialized_value, long long * compute_us = nullptr, long long * value_us = nullptr);
+    std::string SerializePendingLog(bool clear_pending_log);
+    void ResetUISnapshotCache();
+    void BuildUISnapshot();
 
     void DoSendData(Request & request);
     void DoUpdate(Request & request);
@@ -585,7 +626,7 @@ public:
     SendFileResult SendFileIfSafe(const std::filesystem::path & root, const std::string & file);
     void DoSendFile(std::string file);
     void DoSendError(const std::string & status = "404 Not Found", const std::string & message = "404 Not Found\n");
-    std::string SendImage(matrix & image, const std::string & format);
+    std::string SendImage(matrix & image, const std::string & format, int quality=90);
 
     void HandleHTTPRequest();
     void HandleHTTPThread();

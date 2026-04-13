@@ -7,6 +7,8 @@
 #include <errno.h>
 #include <algorithm> // For std::min
 #include <string_view>
+#include <sstream>
+#include <vector>
 
 
 #define BACKLOG		10 		// how many pending connections queue will hold
@@ -17,6 +19,7 @@ namespace
 {
     constexpr int MAX_HTTP_HEADER_SIZE = 64 * 1024;
     constexpr size_t MAX_HTTP_BODY_SIZE = 10 * 1024 * 1024;
+    constexpr auto KEEP_ALIVE_IDLE_TIMEOUT = std::chrono::seconds(10);
 
     std::string
     to_lower_copy(std::string value)
@@ -271,7 +274,7 @@ ServerSocket::Poll(bool block)
     if(accepted_fd == -1)
         return false;
 
-    connections.emplace(next_connection_id++, ConnectionState{accepted_fd, {}});
+    connections.emplace(next_connection_id++, ConnectionState{accepted_fd, {}, {}, std::chrono::steady_clock::now()});
     return true;
 }
 
@@ -297,6 +300,7 @@ ServerSocket::Read(char *buffer, int maxSize, bool fill)
             if(n > 0) 
             {
                 total_read += n;
+                connection->last_activity = std::chrono::steady_clock::now();
             } 
             else if(n == 0) 
             {
@@ -326,6 +330,7 @@ ServerSocket::Read(char *buffer, int maxSize, bool fill)
         if(n > 0) 
         {
             total_read = n;
+            connection->last_activity = std::chrono::steady_clock::now();
         } 
         else if(n == -1) 
         {
@@ -572,81 +577,72 @@ bool
 ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
 {
     body.clear();
+    ConnectionState * connection = ConnectionFor(current_read_connection_id);
+    if(connection == nullptr)
+        return false;
 
- 	// Loop until CRLF CRLF is found which marks the end of the HTTP request
-	
-    request[0] = '\0';
-    int read_count = 0;
-    while(!strstr(request, "\r\n\r\n")) // check border condition ***
+    constexpr size_t read_chunk_size = 4096;
+    while(connection->input_buffer.find("\r\n\r\n") == std::string::npos)
     {
-        long rr = Read(&(request[read_count]), request_allocated_size-read_count);
-        if(rr == 0)         // the connections has been closed since the beginning of the request
+        char buffer[read_chunk_size];
+        long rr = Read(buffer, sizeof(buffer));
+        if(rr == 0)
         {
             CloseConnection(current_read_connection_id);
-            return false;   // this can occur when a view is changed; return and ignore the request
+            return false;
         }
-        
-        read_count += rr;
-        request[read_count] = '\0';
-        if(read_count >= request_allocated_size-1) {
-            if(request_allocated_size >= MAX_HTTP_HEADER_SIZE)
-                return false;
 
-            int new_request_size = std::min(request_allocated_size + 1024, MAX_HTTP_HEADER_SIZE);
-            char *new_request = (char *)realloc(request, new_request_size);
-            if(new_request == nullptr) 
-                throw std::system_error(errno, std::system_category(), "Failed to allocate memory");
-
-            request = new_request;
-            request_allocated_size = new_request_size;
+        connection->input_buffer.append(buffer, rr);
+        if(connection->input_buffer.size() > MAX_HTTP_HEADER_SIZE)
+        {
+            CloseConnection(current_read_connection_id);
+            return false;
         }
     }
-    	
-	// Parse request and header [TODO: handle that arguments in theory can span several lines accoding to the HTTP specification; although it never happens]
-	
-	char * p = request;	
-	if(!p)
-	{
-		printf("ERROR: Empty HTTP request.");
-		return false;
-	}
-	
+
+    size_t header_end = connection->input_buffer.find("\r\n\r\n");
+    if(header_end == std::string::npos)
+        return false;
+
+    std::string header_text = connection->input_buffer.substr(0, header_end);
+    std::istringstream request_stream(header_text);
+    std::string request_line;
+    if(!std::getline(request_stream, request_line))
+        return false;
+    if(!request_line.empty() && request_line.back() == '\r')
+        request_line.pop_back();
+
+    auto request_line_parts = split(request_line, " ");
+    if(request_line_parts.size() < 3)
+        return false;
+
     queued_request.header = dictionary();
     queued_request.body.clear();
-    queued_request.close_after_response = true; // Keep current close-after-response behavior for now.
+    queued_request.close_after_response = true;
     queued_request.connection_id = current_read_connection_id;
 
-    char * method = strsep(&p, " ");
-    char * uri = strsep(&p, " ");
-    char * http_version = strsep(&p, "\r");
-    if(method == nullptr || uri == nullptr || http_version == nullptr || p == nullptr)
-        return false;
+    queued_request.header["method"] = request_line_parts[0];
+	queued_request.header["uri"] = UriDecode(request_line_parts[1]);
+	queued_request.header["http-version"] = request_line_parts[2];
 
-    queued_request.header["method"] = method;
-	queued_request.header["uri"] = UriDecode(uri);
-	queued_request.header["http-version"] = http_version;
-	strsep(&p, "\n");
-	while(p && *p != '\r')
-	{
-        char * key = strsep(&p, ":");
-        char * value = strsep(&p, "\r");
-        if(key == nullptr || value == nullptr)
+    for(std::string line; std::getline(request_stream, line);)
+    {
+        if(!line.empty() && line.back() == '\r')
+            line.pop_back();
+        if(line.empty())
+            continue;
+
+        auto separator = line.find(':');
+        if(separator == std::string::npos)
             return false;
 
-        char * k = strip(key);
-        char * v = strip(value);
-        if(k == nullptr || v == nullptr || *k == '\0')
+        std::string key = trim(line.substr(0, separator));
+        std::string value = trim(line.substr(separator + 1));
+        if(key.empty())
             return false;
 
-			queued_request.header[to_lower_copy(k)] = v;
-			strsep(&p, "\n");
-	}
-    if(p == nullptr)
-        return false;
-    if(*p=='\r')
-        p++;
-    if(*p=='\n')
-        p++;
+        queued_request.header[to_lower_copy(key)] = value;
+    }
 
     std::string http_version_string = std::string(queued_request.header["http-version"]);
     bool close_after_response = (http_version_string != "HTTP/1.1");
@@ -662,6 +658,7 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
 		
     if(queued_request.header.contains_non_null("method") && std::string(queued_request.header["method"]) == "PUT")
     {
+        size_t body_start = header_end + 4;
         if(queued_request.header.contains_non_null("content-length")) {
             size_t content_length = 0;
             try {
@@ -673,19 +670,30 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
             if(content_length > MAX_HTTP_BODY_SIZE)
                 return false;
 
-            if (content_length > 0) {
-                std::vector<char> buffer(content_length);
-                size_t buffered_size = 0;
-                if(p >= request && p <= request + read_count)
-                    buffered_size = std::min(content_length, static_cast<size_t>(request + read_count - p));
-
-                std::copy_n(p, buffered_size, buffer.data());
-
-                size_t bytes_read = buffered_size + Read(buffer.data() + buffered_size, content_length - buffered_size, true);
-                queued_request.body = std::string(buffer.data(), bytes_read);
+            while(connection->input_buffer.size() < body_start + content_length)
+            {
+                char buffer[read_chunk_size];
+                long rr = Read(buffer, sizeof(buffer));
+                if(rr == 0)
+                {
+                    CloseConnection(current_read_connection_id);
+                    return false;
+                }
+                connection->input_buffer.append(buffer, rr);
+                if(connection->input_buffer.size() - body_start > MAX_HTTP_BODY_SIZE)
+                {
+                    CloseConnection(current_read_connection_id);
+                    return false;
+                }
             }
+
+            if(content_length > 0)
+                queued_request.body = connection->input_buffer.substr(body_start, content_length);
         }
     }
+
+    size_t total_consumed = header_end + 4 + queued_request.body.size();
+    connection->input_buffer.erase(0, total_consumed);
     return true;
 }
 
@@ -755,6 +763,8 @@ ServerSocket::SendData(const char * buffer, long size)
         CloseConnection(active_connection_id);	// Close the socket and ignore further data
         return false;
     }
+
+    connection->last_activity = std::chrono::steady_clock::now();
 	
     return true;
 }
@@ -972,6 +982,8 @@ ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
 
     while(true)
     {
+        CloseIdleConnections();
+
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(sockfd, &readfds);
@@ -1025,6 +1037,27 @@ ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
             }
         }
     }
+}
+
+
+
+void
+ServerSocket::CloseIdleConnections()
+{
+    auto now = std::chrono::steady_clock::now();
+    std::vector<int> idle_connections;
+    for(const auto & [id, connection] : connections)
+    {
+        if(connection.fd == -1)
+            continue;
+        if(active_connection_id == id || current_read_connection_id == id)
+            continue;
+        if(now - connection.last_activity > KEEP_ALIVE_IDLE_TIMEOUT)
+            idle_connections.push_back(id);
+    }
+
+    for(int connection_id : idle_connections)
+        CloseConnection(connection_id);
 }
 
 

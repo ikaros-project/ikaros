@@ -29,6 +29,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <map>
+#include <chrono>
 
 #include "utilities.h"
 #include "dictionary.h"
@@ -81,7 +82,9 @@ class ServerSocket
 		struct ConnectionState
 		{
 			int					fd = -1;
+			std::string			input_buffer;
 			std::string			output_buffer;
+			std::chrono::steady_clock::time_point last_activity = std::chrono::steady_clock::now();
 		};
 
 		explicit ServerSocket(int port=PORTNO);		// Create server socket on port
@@ -129,12 +132,11 @@ class ServerSocket
 		int				active_connection_id = 0;
 		bool			active_close_after_response = true;
 		int				block_flags;				// Original flags for blocking I/O
-		int             request_allocated_size = 1024;
-		char *		 	request = (char *)malloc(sizeof(char)*request_allocated_size);
 		struct sockaddr_in	my_addr; 					// My address information
 		struct sockaddr_in	their_addr;					// Connector's address information
 		bool				Poll(bool block=false);                 // Accept a new connection if available
 		bool				WaitForReadyConnection(bool block, int & connection_id);
+		void				CloseIdleConnections();
 		bool				CloseConnection(int connection_id);
 		ConnectionState *	ConnectionFor(int connection_id);
 		bool				ReadCurrentRequest(QueuedRequest & request);
