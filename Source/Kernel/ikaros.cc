@@ -2985,7 +2985,7 @@ bool operator==(Request & r, const std::string s)
  *************************/
 
     bool 
-    Kernel::dfsCycleCheck(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::unordered_set<std::string>& recStack) 
+    Kernel::DFSCycleCheck(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::unordered_set<std::string>& recStack) 
     {
         if(recStack.find(node) != recStack.end())
             return true;
@@ -2998,7 +2998,7 @@ bool operator==(Request & r, const std::string s)
 
         if(graph.find(node) != graph.end()) 
             for (const std::string& neighbor : graph.at(node)) 
-                if(dfsCycleCheck(neighbor, graph, visited, recStack)) 
+                if(DFSCycleCheck(neighbor, graph, visited, recStack)) 
                     return true;
         recStack.erase(node);
         return false;
@@ -3007,7 +3007,7 @@ bool operator==(Request & r, const std::string s)
 
 
     bool 
-    Kernel::hasCycle(const std::vector<std::string>& nodes, const std::vector<std::pair<std::string, std::string>>& edges) 
+    Kernel::HasCycle(const std::vector<std::string>& nodes, const std::vector<std::pair<std::string, std::string>>& edges) 
     {
         std::unordered_map<std::string, std::vector<std::string>> graph;
         for (const auto& edge : edges)
@@ -3017,14 +3017,14 @@ bool operator==(Request & r, const std::string s)
         std::unordered_set<std::string> recStack;
 
         for (const std::string& node : nodes)
-            if(visited.find(node) == visited.end() &&  (dfsCycleCheck(node, graph, visited, recStack)))
+            if(visited.find(node) == visited.end() &&  (DFSCycleCheck(node, graph, visited, recStack)))
                     return true;
 
         return false;
     }
 
     void 
-    Kernel::dfsSubgroup(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::vector<std::string>& component) 
+    Kernel::DFSSubgroup(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::vector<std::string>& component) 
     {
         visited.insert(node);
         component.push_back(node);
@@ -3034,14 +3034,14 @@ bool operator==(Request & r, const std::string s)
             for (const std::string& neighbor : graph.at(node)) 
             {
                 if(visited.find(neighbor) == visited.end()) 
-                    dfsSubgroup(neighbor, graph, visited, component);
+                    DFSSubgroup(neighbor, graph, visited, component);
             }
         }
     }
 
 
     std::vector<std::vector<std::string>> 
-    Kernel::findSubgraphs(const std::vector<std::string>& nodes, const std::vector<std::pair<std::string, std::string>>& edges) 
+    Kernel::FindSubgraphs(const std::vector<std::string>& nodes, const std::vector<std::pair<std::string, std::string>>& edges) 
     {
         std::unordered_map<std::string, std::vector<std::string>> graph;
         for (const auto& edge : edges) 
@@ -3058,7 +3058,7 @@ bool operator==(Request & r, const std::string s)
             if(visited.find(node) == visited.end()) 
             {
                 std::vector<std::string> component;
-                dfsSubgroup(node, graph, visited, component);
+                DFSSubgroup(node, graph, visited, component);
                 components.push_back(component);
             }
         }
@@ -3068,7 +3068,7 @@ bool operator==(Request & r, const std::string s)
 
 
     void 
-    Kernel::topologicalSortUtil(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::stack<std::string>& Stack) 
+    Kernel::TopologicalSortUtil(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::stack<std::string>& Stack) 
     {
         visited.insert(node);
 
@@ -3077,7 +3077,7 @@ bool operator==(Request & r, const std::string s)
             for (const std::string& neighbor : graph.at(node)) 
             {
                 if(visited.find(neighbor) == visited.end())
-                    topologicalSortUtil(neighbor, graph, visited, Stack);
+                    TopologicalSortUtil(neighbor, graph, visited, Stack);
             }
         }
         Stack.push(node);
@@ -3086,14 +3086,14 @@ bool operator==(Request & r, const std::string s)
 
 
     std::vector<std::string> 
-    Kernel::topologicalSort(const std::vector<std::string>& component, const std::unordered_map<std::string, std::vector<std::string>>& graph) 
+    Kernel::TopologicalSort(const std::vector<std::string>& component, const std::unordered_map<std::string, std::vector<std::string>>& graph) 
     {
         std::unordered_set<std::string> visited;
         std::stack<std::string> Stack;
 
         for (const std::string& node : component) 
             if(visited.find(node) == visited.end())
-                topologicalSortUtil(node, graph, visited, Stack);
+                TopologicalSortUtil(node, graph, visited, Stack);
 
         std::vector<std::string> sortedSubgraph;
         while (!Stack.empty()) 
@@ -3107,14 +3107,14 @@ bool operator==(Request & r, const std::string s)
 
 
     std::vector<std::vector<std::string>>
-    Kernel::sort(std::vector<std::string> nodes, std::vector<std::pair<std::string, std::string>> edges)
+    Kernel::Sort(std::vector<std::string> nodes, std::vector<std::pair<std::string, std::string>> edges)
     {
-        if(hasCycle(nodes, edges)) 
+        if(HasCycle(nodes, edges)) 
             throw setup_failed("Network has zero-delay loops");
         else 
         {
 
-            std::vector<std::vector<std::string>> components = findSubgraphs(nodes, edges);
+            std::vector<std::vector<std::string>> components = FindSubgraphs(nodes, edges);
 
             // Rebuild the original graph for directed edges
             std::unordered_map<std::string, std::vector<std::string>> graph;
@@ -3125,7 +3125,7 @@ bool operator==(Request & r, const std::string s)
             std::vector<std::vector<std::string>>  result;
 
             for (const auto& component : components) {
-                std::vector<std::string> sortedSubgraph = topologicalSort(component, graph);
+                std::vector<std::string> sortedSubgraph = TopologicalSort(component, graph);
                 result.push_back(sortedSubgraph);
             }
 
@@ -3161,7 +3161,7 @@ bool operator==(Request & r, const std::string s)
                 task_map[cc] = &c; // Save in task map
             }
 
-        auto r = sort(nodes, arcs);
+        auto r = Sort(nodes, arcs);
 
         // Fill task list
 
