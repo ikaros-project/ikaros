@@ -1187,6 +1187,23 @@ let controller =
         controller.commandQueue.push([command, path, dictionary]);
     },
 
+    getSelectedGroupProxyPath()
+    {
+        const groupPath = selector.selected_background || "";
+        if(groupPath === "" || !network || !network.dict || !network.dict[groupPath])
+            return "";
+
+        const proxyPath = network.dict[groupPath].proxy;
+        if(typeof proxyPath !== "string")
+            return "";
+
+        const trimmedProxyPath = proxyPath.trim();
+        if(trimmedProxyPath === "")
+            return "";
+
+        return trimmedProxyPath[0] === "." ? trimmedProxyPath.substring(1) : trimmedProxyPath;
+    },
+
     clearQueue()
     {
         controller.commandQueue = [];
@@ -1540,6 +1557,7 @@ let controller =
             }
 
         group_path = selector.selected_background || "";
+        const group_proxy_path = controller.getSelectedGroupProxyPath();
         data_string = ""; // should be added to names to support multiple clients
         let sep = "";
         for(s of data_set)
@@ -1559,6 +1577,8 @@ let controller =
             const dict = cmd_dict[2];
             if(data_string !== "")
                 dict.data = data_string;
+            if(s == "update" && group_proxy_path !== "")
+                dict.proxy = group_proxy_path;
             //dict.root = group_path;
             const url_params = toURLParams(dict);
 
@@ -3731,6 +3751,8 @@ td.path {
         const orderedPriorityRows = [];
         if(priorityRowTemplates.has("auto_routing"))
             orderedPriorityRows.push(priorityRowTemplates.get("auto_routing"));
+        if(!rowTemplate.some((row) => row.name == "proxy"))
+            orderedPriorityRows.push({'name': 'proxy', 'control':'textedit', 'type':'source'});
         rowTemplate.unshift(...orderedPriorityRows);
         for(const key of countRowKeys)
             if(!countRows.some((r) => r.key == key))

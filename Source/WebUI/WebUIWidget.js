@@ -583,7 +583,7 @@ class WebUIWidget extends HTMLElement
         this.updateAll();
     }
 
-    getControlScopePath()
+    getWidgetGroupPath()
     {
         if(typeof selector !== "undefined" && selector && selector.selected_background)
             return selector.selected_background;
@@ -595,19 +595,56 @@ class WebUIWidget extends HTMLElement
         return "";
     }
 
+    getControlScopePath()
+    {
+        const groupPath = this.getWidgetGroupPath();
+        if(
+            typeof network !== "undefined" &&
+            network &&
+            network.dict &&
+            groupPath &&
+            network.dict[groupPath] &&
+            typeof network.dict[groupPath].proxy === "string"
+        )
+        {
+            const proxyPath = network.dict[groupPath].proxy.trim();
+            if(proxyPath !== "")
+                return proxyPath[0] === "." ? proxyPath.substring(1) : proxyPath;
+        }
+
+        return groupPath;
+    }
+
+    resolveControlPath(path)
+    {
+        if(typeof path !== "string")
+            return path;
+
+        const trimmedPath = path.trim();
+        if(trimmedPath === "" || trimmedPath[0] === ".")
+            return trimmedPath;
+
+        const scopePath = this.getControlScopePath();
+        if(scopePath === "")
+            return trimmedPath;
+
+        return `.${scopePath}.${trimmedPath}`;
+    }
+
     send_control_change(parameter, value=0, index_x=0, index_y=0)
     {
         if(main.edit_mode)
             return;
-        controller.queueCommand("control", parameter, {"x":index_x, "y":index_y, "value":value});
+        controller.queueCommand("control", this.resolveControlPath(parameter), {"x":index_x, "y":index_y, "value":value});
         // controller.queueCommand("control", parameter.substring(0, parameter.lastIndexOf('.')), {"x":index_x, "y":index_y, "value":value});     
 
     }
 
     send_command(command, value=0, index_x=0, index_y=0)
     {
-        let path =  command.substring(0, command.lastIndexOf('.'));
-        let name = command.substring(command.lastIndexOf('.') + 1);
+        const resolvedCommand = this.resolveControlPath(command);
+        let path =  resolvedCommand.substring(0, resolvedCommand.lastIndexOf('.'));
+        let name = resolvedCommand.substring(resolvedCommand.lastIndexOf('.') + 1);
         controller.queueCommand("command", path, {"command":name, "x":index_x, "y":index_y, "value":value}); 
     }
 
