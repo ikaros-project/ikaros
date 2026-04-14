@@ -3824,6 +3824,19 @@ bool operator==(Request & r, const std::string s)
     }
 
 
+    std::string
+    Kernel::ConsumeSnapshotLogForSession(long ui_session_id, const UISnapshot & snapshot)
+    {
+        std::lock_guard<std::mutex> lock(ui_subscriptions_mutex);
+        auto & session_subscription = ui_session_subscriptions[ui_session_id];
+        if(session_subscription.delivered_log_snapshot_id == snapshot.snapshot_id)
+            return "";
+        session_subscription.delivered_log_snapshot_id =
+            std::max(session_subscription.delivered_log_snapshot_id, snapshot.snapshot_id);
+        return snapshot.log_json;
+    }
+
+
     void
     Kernel::ResetUISnapshotCache()
     {
@@ -3865,6 +3878,7 @@ bool operator==(Request & r, const std::string s)
 
         bool refresh_images = previous_snapshot == nullptr || now - previous_snapshot->image_timestamp >= SnapshotInterval();
         auto snapshot = std::make_shared<UISnapshot>();
+        snapshot->snapshot_id = next_ui_snapshot_id++;
         snapshot->session_id = session_id;
         snapshot->tick = tick;
         snapshot->image_timestamp = refresh_images ? now : (previous_snapshot ? previous_snapshot->image_timestamp : now);
@@ -3964,7 +3978,7 @@ bool operator==(Request & r, const std::string s)
         {
             response_session_id = snapshot->session_id;
             status = snapshot->status_json;
-            log_json = snapshot->log_json;
+            log_json = ConsumeSnapshotLogForSession(request.session_id, *snapshot);
         }
 
         std::vector<DataSnapshotItem> response_items;

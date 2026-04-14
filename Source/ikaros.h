@@ -6,6 +6,7 @@
 #include <atomic>
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -466,6 +467,7 @@ public:
 
     struct UISnapshot
     {
+        uint64_t snapshot_id = 0;
         long session_id = 0;
         tick_count tick = -1;
         double image_timestamp = 0;
@@ -478,8 +480,10 @@ public:
     {
         std::unordered_set<std::string> keys;
         double last_seen_time = 0;
+        uint64_t delivered_log_snapshot_id = 0;
     };
 
+    uint64_t                                next_ui_snapshot_id = 1;
     std::shared_ptr<const UISnapshot>       current_ui_snapshot;
     std::mutex                              ui_snapshot_mutex;
     std::unordered_map<long, UISubscriptionState> ui_session_subscriptions;
@@ -614,6 +618,7 @@ public:
     std::string SubscriptionKeyFor(const RequestedUIValue & requested_value) const;
     bool SerializeRequestedValue(RequestedUIValue requested_value, std::string & serialized_value, long long * compute_us = nullptr, long long * value_us = nullptr);
     std::string SerializePendingLog(bool clear_pending_log);
+    std::string ConsumeSnapshotLogForSession(long ui_session_id, const UISnapshot & snapshot);
     void ResetUISnapshotCache();
     void BuildUISnapshot();
 
