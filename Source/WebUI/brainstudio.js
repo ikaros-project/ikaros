@@ -2976,6 +2976,7 @@ td.class-column {
         cell2.contentEditable = true;
         const commitOnInput = !(
             p.name === "name" ||
+            p.name === "grid_spacing" ||
             (inspector.item && inspector.item._tag == "connection")
         );
         const commitTextEditValue = function(evt)
@@ -3762,6 +3763,19 @@ td.class-column {
             const tickDuration = Number.isFinite(parsed) ? parsed : 0;
             inspector.item.tick_duration = tickDuration;
             controller.tick_duration = tickDuration;
+            return;
+        }
+
+        if(
+            inspector.item &&
+            inspector.item._tag == "group" &&
+            selector.selected_foreground.length == 0 &&
+            p &&
+            p.name == "grid_spacing"
+        )
+        {
+            network.tainted = true;
+            main.applyBackgroundGridSpacing();
             return;
         }
 
