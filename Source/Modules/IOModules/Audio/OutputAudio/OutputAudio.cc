@@ -15,9 +15,9 @@ public:
     parameter sampleRate;
     parameter bufferSize;
 
-    AudioQueueRef queue;
+    AudioQueueRef queue = nullptr;
     AudioStreamBasicDescription asbd;
-    std::atomic<bool> isPlaying;
+    std::atomic<bool> isPlaying{false};
     
     std::thread playbackThread;
     std::mutex inputMutex; // Mutex to protect the input matrix
@@ -108,11 +108,15 @@ public:
 
     ~OutputAudio()
     {
+        isPlaying = false;
+        if (queue != nullptr)
+            AudioQueueStop(queue, true);
         if (playbackThread.joinable())
         {
             playbackThread.join();
         }
-        AudioQueueDispose(queue, true);
+        if (queue != nullptr)
+            AudioQueueDispose(queue, true);
     }
 };
 
