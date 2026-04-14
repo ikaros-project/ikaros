@@ -837,8 +837,7 @@ namespace ikaros
             return info_[key];
         if(parent_)
             return parent_->GetValue(key);
-        else
-            return ""; // throw exception("Name not found"); // throw not_found_exception instead
+        return kernel().GetTopLevelDefaultAttribute(key);
     }
 
 
@@ -2635,12 +2634,9 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::SetCommandLineParameters(dictionary & d) // Add explicit command line overrides without clobbering file values with defaults
     {
-    
         for(auto & x : options_.d)
             if(options_.is_explicitly_set(x.first))
                 d[x.first] = x.second;
-
-        d["filename"] = options_.stem();
 
         if(d.contains("stop"))
             stop_after = d["stop"];
@@ -2666,6 +2662,32 @@ bool operator==(Request & r, const std::string s)
 
             thread_pool = std::make_unique<ThreadPool>(requested_threads);
         }
+    }
+
+
+    std::string
+    Kernel::GetTopLevelDefaultAttribute(const std::string & key) const
+    {
+        if(key == "tick_duration")
+            return std::to_string(tick_duration);
+        if(key == "stop")
+            return std::to_string(stop_after);
+        if(key == "filename")
+            return options_.stem();
+        if(key == "batch_mode")
+            return options_.is_explicitly_set("batch_mode") ? "true" : "false";
+        if(key == "info")
+            return options_.is_explicitly_set("info") ? "true" : "false";
+        if(key == "real_time")
+            return options_.is_explicitly_set("real_time") ? "true" : "false";
+        if(key == "start")
+            return options_.is_explicitly_set("start") ? "true" : "false";
+
+        auto it = options_.d.find(key);
+        if(it != options_.d.end())
+            return it->second;
+
+        return "";
     }
 
 

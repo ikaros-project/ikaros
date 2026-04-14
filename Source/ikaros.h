@@ -559,6 +559,7 @@ public:
     void RunTasksInSingleThread();
     void SetUp();
     void SetCommandLineParameters(dictionary & d);
+    std::string GetTopLevelDefaultAttribute(const std::string & key) const;
     void LoadFile();
     void Save();
 

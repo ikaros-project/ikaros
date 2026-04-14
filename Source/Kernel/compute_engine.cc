@@ -335,6 +335,13 @@ ComputeEngine::LookupLocal(EvalContext & context, const std::string & name) cons
         }).first->second;
     }
 
+    std::string default_value = kernel().GetTopLevelDefaultAttribute(name);
+    if(!default_value.empty())
+        return context.lookup_cache.emplace(name, LookupResult{
+            LookupResult::Source::inherited_value,
+            default_value
+        }).first->second;
+
     return context.lookup_cache.emplace(name, LookupResult{}).first->second;
 }
 
