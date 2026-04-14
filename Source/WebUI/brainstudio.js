@@ -1849,6 +1849,8 @@ const inspector =
     last_selected_signature: "",
     profiling_window: null,
     profiling_timer: null,
+    profiling_sort_key: "cpu_mean",
+    profiling_sort_direction: "desc",
 
     init()
     {
@@ -1880,7 +1882,7 @@ const inspector =
     {
         if(!inspector.profiling_window || inspector.profiling_window.closed)
         {
-            inspector.profiling_window = window.open("", "ikaros_profiling", "width=980,height=620,resizable=yes,scrollbars=yes");
+            inspector.profiling_window = window.open("", "ikaros_profiling", "width=800,height=620,resizable=yes,scrollbars=yes");
             if(!inspector.profiling_window)
                 return;
             inspector.initializeProfilingWindow();
@@ -1941,13 +1943,51 @@ h1 {
 table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: auto;
 }
 thead th {
     position: sticky;
     top: 0;
     background: #202020;
     z-index: 1;
+}
+thead tr:nth-child(2) th {
+    top: 33px;
+}
+.profiling-sort-button {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.profiling-sort-button:hover {
+    color: #ffffff;
+}
+.profiling-sort-button.active {
+    color: #ffffff;
+}
+.profiling-sort-button::after {
+    content: "";
+    display: inline-block;
+    margin-left: 6px;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    opacity: 0;
+    vertical-align: middle;
+}
+.profiling-sort-button.active.sort-asc::after {
+    opacity: 1;
+    border-bottom: 6px solid currentColor;
+}
+.profiling-sort-button.active.sort-desc::after {
+    opacity: 1;
+    border-top: 6px solid currentColor;
 }
 th, td {
     padding: 8px 10px;
@@ -1963,9 +2003,16 @@ td.number {
     text-align: right;
     font-variant-numeric: tabular-nums;
 }
-td.path {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12px;
+th.path-column,
+td.path-column {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+th.class-column,
+td.class-column {
+    white-space: nowrap;
+    width: 1%;
 }
 </style>
 </head>
@@ -1973,25 +2020,45 @@ td.path {
 <h1>Profiling</h1>
 <div class="profiling-meta" id="profiling_meta">Loading...</div>
 <table>
+<colgroup>
+<col style="width: auto;">
+<col style="width: 1%;">
+<col style="width: 82px;">
+<col style="width: 82px;">
+<col style="width: 82px;">
+<col style="width: 82px;">
+<col style="width: 82px;">
+</colgroup>
 <thead>
 <tr>
-<th style="width: 23%;">path</th>
-<th style="width: 14%;">class</th>
-<th style="width: 7%;">samples</th>
-<th style="width: 11%;">cpu mean (ms)</th>
-<th style="width: 11%;">cpu last (ms)</th>
-<th style="width: 11%;">wall mean (ms)</th>
-<th style="width: 11%;">wall last (ms)</th>
-<th style="width: 12%;">wall stddev (ms)</th>
+<th rowspan="2" class="path-column"><button type="button" class="profiling-sort-button" data-sort-key="path">path</button></th>
+<th rowspan="2" class="class-column"><button type="button" class="profiling-sort-button" data-sort-key="class">class</button></th>
+<th rowspan="2"><button type="button" class="profiling-sort-button" data-sort-key="samples">samples</button></th>
+<th colspan="2">CPU (ms)</th>
+<th colspan="2">WALL (ms)</th>
+</tr>
+<tr>
+<th><button type="button" class="profiling-sort-button" data-sort-key="cpu_mean">mean</button></th>
+<th><button type="button" class="profiling-sort-button" data-sort-key="cpu_stddev">stddev</button></th>
+<th><button type="button" class="profiling-sort-button" data-sort-key="wall_mean">mean</button></th>
+<th><button type="button" class="profiling-sort-button" data-sort-key="wall_stddev">stddev</button></th>
 </tr>
 </thead>
 <tbody id="profiling_rows">
-<tr><td colspan="8">Loading...</td></tr>
+<tr><td colspan="7">Loading...</td></tr>
 </tbody>
 </table>
 </body>
 </html>`);
         doc.close();
+        doc.querySelectorAll(".profiling-sort-button").forEach((button) =>
+        {
+            button.addEventListener("click", () =>
+            {
+                inspector.setProfilingSort(button.dataset.sortKey);
+            });
+        });
+        inspector.updateProfilingSortIndicators();
     },
 
     profilingFormatMilliseconds(seconds)
@@ -2000,6 +2067,89 @@ td.path {
         if(!Number.isFinite(value))
             return "-";
         return (value * 1000).toFixed(3);
+    },
+
+    getProfilingSortValue(component, sortKey)
+    {
+        const profiling = component && component.profiling ? component.profiling : {};
+        const cpu = profiling.cpu || {};
+        const wall = profiling.wall || {};
+
+        switch(sortKey)
+        {
+            case "path":
+                return String(component && component.path ? component.path : "");
+            case "class":
+                return String((component && (component.class || component.name)) || "");
+            case "samples":
+                return Number.isFinite(cpu.count) ? cpu.count : (Number.isFinite(wall.count) ? wall.count : 0);
+            case "cpu_stddev":
+                return Number(cpu.standard_deviation);
+            case "cpu_last":
+                return Number(profiling.last_cpu_seconds);
+            case "wall_mean":
+                return Number(wall.mean);
+            case "wall_last":
+                return Number(profiling.last_wall_seconds);
+            case "wall_stddev":
+                return Number(wall.standard_deviation);
+            case "cpu_mean":
+            default:
+                return Number(cpu.mean);
+        }
+    },
+
+    sortProfilingComponents(components)
+    {
+        const direction = inspector.profiling_sort_direction === "asc" ? 1 : -1;
+        const sortKey = inspector.profiling_sort_key || "cpu_mean";
+
+        components.sort((a, b) =>
+        {
+            const aValue = inspector.getProfilingSortValue(a, sortKey);
+            const bValue = inspector.getProfilingSortValue(b, sortKey);
+
+            if(typeof aValue === "string" || typeof bValue === "string")
+                return String(aValue).localeCompare(String(bValue)) * direction;
+
+            const aScore = Number.isFinite(aValue) ? aValue : -Infinity;
+            const bScore = Number.isFinite(bValue) ? bValue : -Infinity;
+            if(aScore === bScore)
+                return String(a && a.path ? a.path : "").localeCompare(String(b && b.path ? b.path : ""));
+            return (aScore - bScore) * direction;
+        });
+    },
+
+    setProfilingSort(sortKey)
+    {
+        if(inspector.profiling_sort_key === sortKey)
+            inspector.profiling_sort_direction = inspector.profiling_sort_direction === "asc" ? "desc" : "asc";
+        else
+        {
+            inspector.profiling_sort_key = sortKey;
+            inspector.profiling_sort_direction = (sortKey === "path" || sortKey === "class") ? "asc" : "desc";
+        }
+
+        inspector.updateProfilingSortIndicators();
+        inspector.refreshProfilingWindow();
+    },
+
+    updateProfilingSortIndicators()
+    {
+        if(!inspector.profiling_window || inspector.profiling_window.closed)
+            return;
+
+        const doc = inspector.profiling_window.document;
+        doc.querySelectorAll(".profiling-sort-button").forEach((button) =>
+        {
+            const isActive = button.dataset.sortKey === inspector.profiling_sort_key;
+            button.classList.toggle("active", isActive);
+            button.classList.toggle("sort-asc", isActive && inspector.profiling_sort_direction === "asc");
+            button.classList.toggle("sort-desc", isActive && inspector.profiling_sort_direction === "desc");
+            const baseLabel = button.dataset.label || button.textContent;
+            button.dataset.label = baseLabel;
+            button.textContent = baseLabel;
+        });
     },
 
     renderProfilingWindow(data)
@@ -2014,20 +2164,14 @@ td.path {
             return;
 
         const components = Array.isArray(data && data.components) ? [...data.components] : [];
-        components.sort((a, b) =>
-        {
-            const aValue = Number(a && a.profiling && a.profiling.cpu && a.profiling.cpu.mean);
-            const bValue = Number(b && b.profiling && b.profiling.cpu && b.profiling.cpu.mean);
-            const aScore = Number.isFinite(aValue) ? aValue : -1;
-            const bScore = Number.isFinite(bValue) ? bValue : -1;
-            return bScore - aScore;
-        });
+        inspector.sortProfilingComponents(components);
+        inspector.updateProfilingSortIndicators();
 
         meta.textContent = `tick ${Number.isFinite(data && data.tick) ? data.tick : "-"} | updated ${new Date().toLocaleTimeString()}`;
 
         if(components.length === 0)
         {
-            rows.innerHTML = '<tr><td colspan="8">No profiling data available.</td></tr>';
+            rows.innerHTML = '<tr><td colspan="7">No profiling data available.</td></tr>';
             return;
         }
 
@@ -2039,13 +2183,12 @@ td.path {
             const className = component.class || component.name || "-";
             const sampleCount = Number.isFinite(cpu.count) ? cpu.count : (Number.isFinite(wall.count) ? wall.count : 0);
             return `<tr>
-<td class="path">${inspector.escapeHTML(component.path || "-")}</td>
-<td>${inspector.escapeHTML(className)}</td>
+<td class="path path-column" title="${inspector.escapeHTML(component.path || "-")}">${inspector.escapeHTML(component.path || "-")}</td>
+<td class="class-column">${inspector.escapeHTML(className)}</td>
 <td class="number">${sampleCount}</td>
 <td class="number">${inspector.profilingFormatMilliseconds(cpu.mean)}</td>
-<td class="number">${inspector.profilingFormatMilliseconds(profiling.last_cpu_seconds)}</td>
+<td class="number">${inspector.profilingFormatMilliseconds(cpu.standard_deviation)}</td>
 <td class="number">${inspector.profilingFormatMilliseconds(wall.mean)}</td>
-<td class="number">${inspector.profilingFormatMilliseconds(profiling.last_wall_seconds)}</td>
 <td class="number">${inspector.profilingFormatMilliseconds(wall.standard_deviation)}</td>
 </tr>`;
         }).join("");
@@ -2065,7 +2208,7 @@ td.path {
             meta.className = "profiling-meta profiling-error";
         }
         if(rows)
-            rows.innerHTML = '<tr><td colspan="8">Unable to load profiling data.</td></tr>';
+            rows.innerHTML = '<tr><td colspan="7">Unable to load profiling data.</td></tr>';
     },
 
     refreshProfilingWindow()
