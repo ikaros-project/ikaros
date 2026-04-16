@@ -1,0 +1,7 @@
+<group filename="AudioIn_test.ikg" name="AudioInput_test">
+   <connection delay="1" source="audioin.OUTPUT[0:10]" source_range="[0:10]" target="Scale.INPUT[]" target_range="[]"/>
+   <module _x="240" _y="120" class="Scale" description="scale the input with a factor" factor="0.5" name="Scale"/>
+   <module _x="72" _y="264" buffersize="4096" class="AudioInput" description="records sound from the default input device" name="audioin" samplingrate="44100"/>
+   <widget _index_="0" _x="384" _y="96" class="table" colorize="true" decimals="4" direction="normal" frame-style="" height="200" label_x="" label_y="" max="1" min="" name="Widget_3" scrollable="false" select="" show_frame="true" show_title="true" source="Scale.OUTPUT" style="" title="Widget_3" width="200"/>
+   <widget _index_="2" _x="360" _y="312" auto="true" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200" labels="" lineCap="" lineJoin="" lineWidth="1" max="1" min="0" name="Widget_6" show_frame="false" show_title="true" source="Scale.OUTPUT" style="" title="Widget_6" transpose="false" width="200"/>
+</group>
