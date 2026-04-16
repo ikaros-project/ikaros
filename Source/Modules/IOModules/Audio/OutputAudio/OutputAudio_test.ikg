@@ -1,7 +1,0 @@
-<group filename="audiooutput_test.ikg" name="OutputAudio_test" real_time="true">
-   <connection delay="1" source="func.OUTPUT" target="audio.INPUT"/>
-   <module _x="100" _y="100" class="FunctionGenerator" description="Generates functions" frequency="880" name="func" size="4096" type=""/>
-   <module _x="336" _y="96" class="OutputAudio" description="Plays audio received as input" name="audio"/>
-   <widget _index_="0" _x="264" _y="168" auto="false" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200" labels="" lineCap="" lineJoin="" lineWidth="1" max="1" min="0" name="Widget_5" show_frame="false" show_title="true" source="func.OUTPUT" style="" title="Widget_5" transpose="false" width="200"/>
-   <widget _index_="2" _x="96" _y="360" class="slider-horizontal" count="1" frame-style="" height="200" labels="" max="1500" min="440" name="Widget_6" parameter="func.frequency" show_frame="false" show_title="true" show_values="true" source="" step="10" style="" title="freq" width="200"/>
-</group>
