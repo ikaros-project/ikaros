@@ -1,7 +1,0 @@
-<group filename="/Users/cba/ikaros-3/Source/Modules/UtilityModules/Oscillator/Oscillator_audio_test.fm.ikg" info="true" name="OscTest" stop="-1" tick_duration="0.1" webui_port="8000">
-   <connection source="Modulator.OUTPUT" target="Oscillator.INPUT"/>
-   <connection source="Oscillator.OUTPUT[0][0:2205]" target="audio.INPUT[0:2205]"/>
-   <module class="Oscillator" description="basic sin oscillator; one output per frequency value" frequency="440" name="Oscillator" sample_rate="22050" type="sin"/>
-   <module class="Oscillator" description="basic sin oscillator; one output per frequency value" frequency="2" name="Modulator" type="square"/>
-   <module _x="336" _y="96" buffer_size="2205" class="OutputAudio" description="Plays audio received as input" name="audio" sample_rate="22050"/>
-</group>
