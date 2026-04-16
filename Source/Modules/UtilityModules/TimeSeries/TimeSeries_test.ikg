@@ -1,0 +1,6 @@
+<group name="Test">
+	<module class="TimeSeries" name="TimeSeries" data="1, 2; 3, 4; 5, 6" base_duration="1" first_column_duration="true"	loop = "true"/>
+	<module class="Print" name="Print" />
+
+	<connection source="TimeSeries.OUTPUT" target="Print.INPUT" delay="0" />
+</group>

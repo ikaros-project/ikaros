@@ -1,0 +1,8 @@
+<class name="TimeSeries" description="outputs a time series one sample at a time">
+	<parameter name="data" type="matrix" default="1, 2, 3; 4, 5, 6; 7, 8, 9" description="Rows of samples to emit over time" />
+	<parameter name="base_duration" type="number" default="1" description="Base duration in seconds for a step with duration multiplier 1" />
+	<parameter name="loop" type="bool" default="false" description="Wrap to the first sample after the last sample" />
+	<parameter name="first_column_duration" type="bool" default="false" description="Interpret the first column as the step duration multiplier" />
+	<output name="OUTPUT" description="Current sample from the time series" size="data.cols-@first_column_duration"/>
+	<output name="TRIG" description="One-tick pulse when the active sample advances" size="1"/>
+</class>

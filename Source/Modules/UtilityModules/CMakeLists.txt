@@ -3,6 +3,7 @@ add_subdirectory(EnergyMeter)
 add_subdirectory(Logger)
 add_subdirectory(Idle)
 add_subdirectory(Constant)
+add_subdirectory(TimeSeries)
 add_subdirectory(Randomizer)
 
 add_subdirectory(CombineFunctions)
