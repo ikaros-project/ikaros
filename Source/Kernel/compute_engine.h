@@ -70,6 +70,8 @@ private:
     std::string EvalMath(EvalContext & context, const std::string & s, int depth=0);
     std::string ExpandSegment(EvalContext & context, const std::string & s, int depth=0);
     LookupResult LookupLocal(EvalContext & context, const std::string & name) const;
+    std::optional<matrix> LookupMatrixValue(const std::string & name) const;
+    std::string MatrixSizeFunctionValue(const matrix & m, const std::string & function_name) const;
 
     bool HasExplicitSyntax(EvalContext & context, const std::string & s) const;
     bool IsPathLike(EvalContext & context, const std::string & s) const;

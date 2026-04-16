@@ -79,6 +79,29 @@ matrix::operator=(std::string & data_string)
 
     auto & rows = split(sanitized, ";");
     auto & row = split(rows.at(0), ",");
+    auto parse_value_at = [](const std::string & token, int row_index, int column_index) -> float
+    {
+        std::string trimmed = trim(token);
+        if(trimmed.empty())
+            throw std::invalid_argument(
+                "Invalid matrix value at row " + std::to_string(row_index + 1) +
+                ", column " + std::to_string(column_index + 1) +
+                ": empty value."
+            );
+
+        try
+        {
+            return parse_matrix_token(token);
+        }
+        catch(const std::invalid_argument & e)
+        {
+            throw std::invalid_argument(
+                "Invalid matrix value at row " + std::to_string(row_index + 1) +
+                ", column " + std::to_string(column_index + 1) +
+                ": " + std::string(e.what())
+            );
+        }
+    };
 
     int x = row.size();
     int y = rows.size();
@@ -87,7 +110,7 @@ matrix::operator=(std::string & data_string)
     {
         realloc(x);
         for(std::size_t i = 0; i < row.size(); ++i)
-            (*this)(i) = parse_matrix_token(row.at(i));
+            (*this)(i) = parse_value_at(row.at(i), 0, static_cast<int>(i));
     }
     else
     {
@@ -96,7 +119,7 @@ matrix::operator=(std::string & data_string)
         {
             auto r = split(rows.at(j), ",");
             for(std::size_t i = 0; i < r.size(); ++i)
-                (*this)(static_cast<int>(j), static_cast<int>(i)) = parse_matrix_token(r.at(i));
+                (*this)(static_cast<int>(j), static_cast<int>(i)) = parse_value_at(r.at(i), static_cast<int>(j), static_cast<int>(i));
         }
     }
 }
@@ -113,6 +136,29 @@ matrix::matrix(const std::string & data_string)
 
         auto & rows = split(sanitized, ";");
         auto & row = split(rows.at(0), ",");
+        auto parse_value_at = [](const std::string & token, int row_index, int column_index) -> float
+        {
+            std::string trimmed = trim(token);
+            if(trimmed.empty())
+                throw std::invalid_argument(
+                    "Invalid matrix value at row " + std::to_string(row_index + 1) +
+                    ", column " + std::to_string(column_index + 1) +
+                    ": empty value."
+                );
+
+            try
+            {
+                return parse_matrix_token(token);
+            }
+            catch(const std::invalid_argument & e)
+            {
+                throw std::invalid_argument(
+                    "Invalid matrix value at row " + std::to_string(row_index + 1) +
+                    ", column " + std::to_string(column_index + 1) +
+                    ": " + std::string(e.what())
+                );
+            }
+        };
 
         int x = row.size();
         int y = rows.size();
@@ -126,7 +172,7 @@ matrix::matrix(const std::string & data_string)
             data_ = std::make_shared<std::vector<float>>(info_->calculate_size());
 
             for(std::size_t i = 0; i < row.size(); ++i)
-                (*this)(i) = parse_matrix_token(row.at(i));
+                (*this)(i) = parse_value_at(row.at(i), 0, static_cast<int>(i));
         }
         else
         {
@@ -137,17 +183,17 @@ matrix::matrix(const std::string & data_string)
             {
                 auto r = split(rows.at(j), ",");
                 for(std::size_t i = 0; i < row.size(); ++i)
-                    (*this)(j, static_cast<int>(i)) = parse_matrix_token(r.at(i));
+                    (*this)(j, static_cast<int>(i)) = parse_value_at(r.at(i), j, static_cast<int>(i));
             }
         }
     }
     catch(std::out_of_range &)
     {
-        throw std::invalid_argument("Invalid matrix string");
+        throw std::invalid_argument("Invalid matrix string: inconsistent number of values in rows.");
     }
     catch(std::invalid_argument &)
     {
-        throw std::invalid_argument("Invalid matrix string");
+        throw;
     }
 }
 

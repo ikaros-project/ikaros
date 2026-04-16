@@ -232,7 +232,7 @@ bool
 ComputeEngine::IsFunction(const std::string & s) const
 {
     return ends_with(s, ".size_x") || ends_with(s, ".size_y") || ends_with(s, ".size_z")
-        || ends_with(s, ".rows") || ends_with(s, ".cols");
+        || ends_with(s, ".rows") || ends_with(s, ".cols") || ends_with(s, ".size");
 }
 
 
@@ -301,7 +301,7 @@ ComputeEngine::LookupLocal(EvalContext & context, const std::string & name) cons
     if(component_.info_.contains(name))
         return context.lookup_cache.emplace(name, LookupResult{LookupResult::Source::local_attribute, std::string(component_.info_[name])}).first->second;
 
-    if(kernel().parameters.count(component_.path_+'.'+name) && kernel().parameters.at(component_.path_+'.'+name).resolved)
+    if(kernel().parameters.count(component_.path_+'.'+name) && *(kernel().parameters.at(component_.path_+'.'+name).resolved))
     {
         std::string value = kernel().parameters.at(component_.path_+'.'+name).as_string();
         if(!value.empty())
@@ -440,24 +440,65 @@ ComputeEngine::EvalFunction(EvalContext &, const std::string & s, int depth)
 {
     CheckDepth(depth);
 
-    std::string ss = s;
+    std::string function_path = s;
+    std::string function_name = rtail(function_path, ".");
+    std::string matrix_name = rhead(function_path, ".");
 
-    if(ends_with(s, ".size_x"))
-        return std::to_string(component_.GetBuffer(rhead(ss, ".")).size_x());
-
-    if(ends_with(s, ".size_y"))
-        return std::to_string(component_.GetBuffer(rhead(ss, ".")).size_y());
-
-    if(ends_with(s, ".size_z"))
-        return std::to_string(component_.GetBuffer(rhead(ss, ".")).size_z());
-
-    if(ends_with(s, ".rows"))
-        return std::to_string(component_.GetBuffer(rhead(ss, ".")).rows());
-
-    if(ends_with(s, ".cols"))
-        return std::to_string(component_.GetBuffer(rhead(ss, ".")).cols());
+    if(auto m = LookupMatrixValue(matrix_name))
+        return MatrixSizeFunctionValue(*m, function_name);
 
     throw exception("Unknown compute function \""+s+"\".", component_.path_);
+}
+
+
+std::optional<matrix>
+ComputeEngine::LookupMatrixValue(const std::string & name) const
+{
+    try
+    {
+        matrix m;
+        const_cast<Component &>(component_).Bind(m, name);
+        return m;
+    }
+    catch(...)
+    {
+        return std::nullopt;
+    }
+}
+
+
+std::string
+ComputeEngine::MatrixSizeFunctionValue(const matrix & m, const std::string & function_name) const
+{
+    if(function_name == "size_x")
+        return std::to_string(m.size_x());
+
+    if(function_name == "size_y")
+        return std::to_string(m.size_y());
+
+    if(function_name == "size_z")
+        return std::to_string(m.size_z());
+
+    if(function_name == "rows")
+        return std::to_string(m.rows());
+
+    if(function_name == "cols")
+        return std::to_string(m.cols());
+
+    if(function_name == "size")
+    {
+        std::string result;
+        const auto shape = m.shape();
+        for(size_t i = 0; i < shape.size(); ++i)
+        {
+            if(i > 0)
+                result += ",";
+            result += std::to_string(shape[i]);
+        }
+        return result;
+    }
+
+    throw exception("Unknown matrix size function \""+function_name+"\".", component_.path_);
 }
 
 

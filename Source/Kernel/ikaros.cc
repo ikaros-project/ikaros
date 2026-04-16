@@ -1055,39 +1055,129 @@ namespace ikaros
     Component::EvaluateSizeList(std::string & s) // return list of size from size list in string
     {
         std::vector<int> shape;
+        auto resolve_matrix_size_function = [&](const std::string & token) -> std::optional<std::string>
+        {
+            static const std::vector<std::string> size_functions = {"size_x", "size_y", "size_z", "rows", "cols", "size"};
+            std::string function_name;
+            std::string matrix_path;
+
+            for(const auto & fn : size_functions)
+                if(ends_with(token, "." + fn))
+                {
+                    function_name = fn;
+                    matrix_path = token.substr(0, token.size() - fn.size() - 1);
+                    break;
+                }
+
+            if(function_name.empty() || matrix_path.empty())
+                return std::nullopt;
+
+            Component * current = this;
+            std::string local_path = matrix_path;
+            if(!local_path.empty() && local_path[0] == '.')
+            {
+                std::string root_path = peek_head(path_, ".");
+                current = kernel().components.at(root_path).get();
+                local_path = local_path.substr(1);
+            }
+
+            const auto & segments = ComputeEngine::SplitTopLevel(local_path, '.');
+            if(segments.empty())
+                return std::nullopt;
+
+            for(size_t i = 0; i + 1 < segments.size(); ++i)
+                current = current->GetComponent(segments[i]);
+
+            matrix m;
+            current->Bind(m, segments.back());
+
+            if(function_name == "size_x")
+                return std::to_string(m.size_x());
+            if(function_name == "size_y")
+                return std::to_string(m.size_y());
+            if(function_name == "size_z")
+                return std::to_string(m.size_z());
+            if(function_name == "rows")
+                return std::to_string(m.rows());
+            if(function_name == "cols")
+                return std::to_string(m.cols());
+            if(function_name == "size")
+            {
+                std::string result;
+                for(size_t i = 0; i < m.shape().size(); ++i)
+                {
+                    if(i > 0)
+                        result += ",";
+                    result += std::to_string(m.shape()[i]);
+                }
+                return result;
+            }
+
+            return std::nullopt;
+        };
+        auto replace_all = [](std::string & target, const std::string & needle, const std::string & replacement)
+        {
+            if(needle.empty())
+                return;
+
+            size_t pos = 0;
+            while((pos = target.find(needle, pos)) != std::string::npos)
+            {
+                target.replace(pos, needle.size(), replacement);
+                pos += replacement.size();
+            }
+        };
+
         for(std::string e : ComputeEngine::SplitTopLevel(s, ','))
         {
             e = trim(e);
             if(e.empty())
                 continue;
 
-            if(ends_with(e, ".size")) // special case: use shape function on input and push each dimension on list
+            std::string rewritten = e;
+            expression expr(e);
+            for(const auto & var : expr.variables())
             {
-                auto & x = rsplit(e, ".", 1);
-                std::string buffer_name = ComputeValue(x.at(0));
-                matrix m;
-                Bind(m, buffer_name);
-                for(auto d : m.shape())
-                    shape.push_back(d);
-            }
-            else
-            {
-                std::string computed = ComputeValue(e);
-                if(computed.find(';') != std::string::npos)
-                    throw std::invalid_argument("Size expression \""+e+"\" evaluated to a matrix.");
-
-                for(std::string item : ComputeEngine::SplitTopLevel(computed, ','))
+                if(auto replacement = resolve_matrix_size_function(var))
+                    replace_all(rewritten, var, *replacement);
+                else if(!var.empty() && var[0] == '@')
                 {
-                    item = trim(item);
-                    if(item.empty())
-                        continue;
-
-                    int d = ComputeInt(item);
-                    if(d>0)
-                        shape.push_back(d);
-                    // else
-                    //     throw std::invalid_argument("Value of "+e+" is non-positive or not found."); // Does not work since function can be called multiple times duing SetSizes
+                    std::string replacement = ComputeValue(var);
+                    if(replacement == "true")
+                        replacement = "1";
+                    else if(replacement == "false")
+                        replacement = "0";
+                    replace_all(rewritten, var, replacement);
                 }
+            }
+
+            bool purely_numeric_expression = std::none_of(rewritten.begin(), rewritten.end(), [](unsigned char c)
+            {
+                return std::isalpha(c) || c == '@' || c == '_';
+            });
+            bool contains_top_level_comma = ComputeEngine::SplitTopLevel(rewritten, ',').size() > 1;
+
+            std::string computed;
+            if(purely_numeric_expression && !contains_top_level_comma)
+                computed = formatNumber(expression(rewritten).evaluate());
+            else if(purely_numeric_expression)
+                computed = rewritten;
+            else
+                computed = ComputeValue(rewritten);
+            if(computed.find(';') != std::string::npos)
+                throw std::invalid_argument("Size expression \""+e+"\" evaluated to a matrix.");
+
+            for(std::string item : ComputeEngine::SplitTopLevel(computed, ','))
+            {
+                item = trim(item);
+                if(item.empty())
+                    continue;
+
+                int d = ComputeInt(item);
+                if(d>0)
+                    shape.push_back(d);
+                // else
+                //     throw std::invalid_argument("Value of "+e+" is non-positive or not found."); // Does not work since function can be called multiple times duing SetSizes
             }
         }
         return shape;
