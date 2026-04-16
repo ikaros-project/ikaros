@@ -1,0 +1,18 @@
+<group name="ADSRTest" sample_rate="10000" tick_duration="0.1">
+   <module class="TimeSeries" name="Notes" base_duration="0.25" loop="true" data="440; 523.251131; 659.255114; 587.329536" />
+   <module class="TimeSeries" name="Gate" base_duration="0.25" loop="true" data="1; 0; 1; 0" />
+   <module class="AudioOscillator" name="Oscillator" sample_rate="10000" wave_shape="sine" />
+   <module class="ADSREnvelope" name="Envelope" sample_rate="10000" attack="0.01" decay="0.08" sustain="0.6" release="0.18" />
+   <module class="Multiply" name="VCA" />
+
+   <connection source="Notes.OUTPUT" target="Oscillator.INPUT" delay="0" />
+   <connection source="Gate.OUTPUT" target="Envelope.GATE" delay="0" />
+   <connection source="Gate.TRIG" target="Envelope.TRIG" delay="0" />
+   <connection source="Oscillator.OUTPUT" target="VCA.INPUT1" delay="0" />
+   <connection source="Envelope.OUTPUT" target="VCA.INPUT2" delay="0" />
+
+   <widget name="EnvelopePlot" class="plot" source="Envelope.OUTPUT" width="250" height="180" _x="120" _y="340" title="Envelope" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
+   <widget name="SignalPlot" class="plot" source="VCA.OUTPUT" width="250" height="180" _x="400" _y="340" title="Signal" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
+   <widget name="NotePlot" class="plot" source="Notes.OUTPUT" width="250" height="180" _x="680" _y="340" title="Note" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
+   <widget name="TrigPlot" class="plot" source="Gate.TRIG" width="250" height="180" _x="960" _y="340" title="Trig" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
+</group>

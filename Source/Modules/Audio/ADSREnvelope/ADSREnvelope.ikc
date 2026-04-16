@@ -1,0 +1,18 @@
+<class name="ADSREnvelope" description="Audio-rate attack-decay-sustain-release envelope generator">
+    <description>
+        ADSREnvelope generates an audio-rate control buffer that follows the classic
+        attack-decay-sustain-release shape. It is intended to modulate the amplitude of
+        audio signals from modules such as AudioOscillator, but it can also shape filters
+        or any other audio-rate control path.
+    </description>
+
+    <parameter name="sample_rate" type="number" default="0" description="samples/s; default 0 means 1/tick_duration. Set this in the top group to make it the same for all audio modules." />
+    <parameter name="attack" type="number" default="0.01" description="Attack time in seconds" />
+    <parameter name="decay" type="number" default="0.1" description="Decay time in seconds" />
+    <parameter name="sustain" type="number" default="0.7" description="Sustain level in range 0..1" />
+    <parameter name="release" type="number" default="0.2" description="Release time in seconds" />
+
+    <input name="GATE" optional="true" description="Gate signal; values above zero hold the envelope open" />
+    <input name="TRIG" optional="true" description="Trigger signal; a positive sample retriggers the attack" />
+    <output name="OUTPUT" description="Audio-rate envelope buffer" size="@sample_rate*@tick_duration" />
+</class>
