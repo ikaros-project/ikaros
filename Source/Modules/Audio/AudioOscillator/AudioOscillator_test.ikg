@@ -1,6 +1,147 @@
-<group  name="OscTest">
-   <module class="Oscillator"  frequency="1, 2, 3" name="Oscillator" type="sin" sample_rate="400" />
-   <module class="Print" name="Print" />
+<group  name="OscTest"  sample_rate="10000" tick_duration="0.1" >
+   <module class="AudioOscillator"  frequency="440" name="Oscillator" wave_shape="sine" />
+   <module class="AudioOutput" name="AudioOutput" />
 
-   <connection alias="signal" source="Oscillator.OUTPUT" target="Print.INPUT" />
+	<module
+      class="TimeSeries" 
+      name="TimeSeries"
+      base_duration="0.1" 
+      first_column_duration="true"	
+      loop = "true"
+      data="
+#duration  frequency_hz  midi note lyric
+2, 587.329536; # 74 D5 There
+2, 554.365262; # 73 C#5 is
+2, 587.329536; # 74 D5 a
+2, 493.883301; # 71 B4 flow-
+2, 440; # 69 A4 er
+2, 391.995436; # 67 G4 with-
+4, 440; # 69 A4 in
+2, 369.994423; # 66 F#4 my
+4, 293.664768; # 62 D4 heart,
+2, 0; #  Rest 
+6, 440; # 69 A4 Dai-
+6, 293.664768; # 62 D4 sy,
+6, 587.329536; # 74 D5 Dai-
+4, 493.883301; # 71 B4 sy.
+2, 0; #  Rest 
+2, 587.329536; # 74 D5 Plant-
+2, 554.365262; # 73 C#5 ed
+2, 587.329536; # 74 D5 one
+2, 493.883301; # 71 B4 day
+2, 440; # 69 A4 by
+2, 391.995436; # 67 G4 a
+4, 440; # 69 A4 glanc-
+2, 369.994423; # 66 F#4 ing
+4, 293.664768; # 62 D4 dart,
+2, 0; #  Rest 
+2, 391.995436; # 67 G4 plant-
+2, 587.329536; # 74 D5 ed
+2, 391.995436; # 67 G4 by
+2, 369.994423; # 66 F#4 Dai-
+2, 293.664768; # 62 D4 sy
+2, 440; # 69 A4 Bell.
+8, 391.995436; # 67 G4 
+4, 0; #  Rest 
+2, 493.883301; # 71 B4 Whe-
+2, 523.251131; # 72 C5 ther
+2, 493.883301; # 71 B4 she
+2, 440; # 69 A4 loves
+2, 391.995436; # 67 G4 me
+2, 369.994423; # 66 F#4 or
+4, 493.883301; # 71 B4 loves
+2, 391.995436; # 67 G4 me
+4, 329.627557; # 64 E4 not,
+2, 0; #  Rest 
+2, 587.329536; # 74 D5 some-
+2, 523.251131; # 72 C5 times
+2, 493.883301; # 71 B4 it's
+4, 440; # 69 A4 hard
+2, 466.163762; # 70 A#4 to
+8, 493.883301; # 71 B4 tell.
+4, 0; #  Rest 
+2, 493.883301; # 71 B4 Yet
+2, 523.251131; # 72 C5 I
+2, 493.883301; # 71 B4 am
+2, 440; # 69 A4 long-
+2, 391.995436; # 67 G4 ing
+2, 369.994423; # 66 F#4 to
+4, 493.883301; # 71 B4 share
+2, 391.995436; # 67 G4 the
+4, 329.627557; # 64 E4 lot
+2, 493.883301; # 71 B4 of
+2, 440; # 69 A4 beau-
+2, 659.255114; # 76 E5 ti-
+2, 554.365262; # 73 C#5 ful
+4, 493.883301; # 71 B4 Dai-
+2, 440; # 69 A4 sy
+8, 587.329536; # 74 D5 Bell.
+4, 0; #  Rest 
+6, 587.329536; # 74 D5 Dai-
+6, 493.883301; # 71 B4 sy,
+6, 391.995436; # 67 G4 Dai-
+6, 293.664768; # 62 D4 sy,
+2, 329.627557; # 64 E4 give
+2, 369.994423; # 66 F#4 me
+2, 391.995436; # 67 G4 your
+4, 329.627557; # 64 E4 an-
+2, 391.995436; # 67 G4 swer,
+8, 293.664768; # 62 D4 do.
+2, 0; #  Rest 
+6, 440; # 69 A4 I'm
+6, 587.329536; # 74 D5 half
+6, 493.883301; # 71 B4 cra-
+6, 391.995436; # 67 G4 zy,
+2, 329.627557; # 64 E4 all
+2, 369.994423; # 66 F#4 for
+2, 391.995436; # 67 G4 the
+4, 440; # 69 A4 love
+2, 493.883301; # 71 B4 of
+8, 440; # 69 A4 you.
+2, 0; #  Rest 
+2, 493.883301; # 71 B4 
+2, 523.251131; # 72 C5 won't
+2, 493.883301; # 71 B4 be
+2, 440; # 69 A4 a
+4, 587.329536; # 74 D5 styl-
+2, 493.883301; # 71 B4 ish
+2, 440; # 69 A4 mar-
+6, 391.995436; # 67 G4 riage,
+2, 0; #  Rest 
+2, 440; # 69 A4 can't
+4, 493.883301; # 71 B4 af-
+2, 391.995436; # 67 G4 ford
+4, 329.627557; # 64 E4 a
+2, 391.995436; # 67 G4 car-
+2, 329.627557; # 64 E4 riage,
+6, 293.664768; # 62 D4 But
+2, 0; #  Rest 
+2, 293.664768; # 62 D4 
+4, 391.995436; # 67 G4 you'll
+2, 493.883301; # 71 B4 look
+2, 440; # 69 A4 sweet
+4, 0; #  Rest 
+4, 391.995436; # 67 G4 on
+2, 493.883301; # 71 B4 the
+2, 440; # 69 A4 seat
+2, 0; #  Rest 
+1, 493.883301; # 71 B4 of
+1, 523.251131; # 72 C5 a
+2, 587.329536; # 74 D5 bi-
+2, 493.883301; # 71 B4 cy-
+2, 391.995436; # 67 G4 cle
+4, 440; # 69 A4 built
+2, 293.664768; # 62 D4 for
+8, 391.995436; # 67 G4 two.
+4, 0 #  Rest 
+" 
+      />
+
+
+   <connection alias="control" source="TimeSeries.OUTPUT" target="Oscillator.INPUT" />
+   <connection alias="signal" source="Oscillator.OUTPUT" target="AudioOutput.INPUT" />
+
+   <widget name="Widget_1" title="Note" _y="336" _index_="0" width="193" show_title="true" _x="408" max="1" auto="true" style="" color="" include_zero="true" frame_width="1" class="plot" source="TimeSeries.OUTPUT" select="" background="" direction="vertical" frame_color="" min="0" height="193" show_frame="true" buffer_size="50" frame-style=""/>
+   <widget name="Widget_11" title="Trig" _y="336" _index_="2" width="193" show_title="true" _x="168" max="1" auto="true" style="" color="" include_zero="true" frame_width="1" class="plot" source="TimeSeries.TRIG" select="" background="" direction="vertical" frame_color="" min="0" height="193" show_frame="true" buffer_size="50" frame-style=""/>
+
 </group>

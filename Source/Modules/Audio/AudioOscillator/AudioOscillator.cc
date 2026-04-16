@@ -4,78 +4,87 @@
 
 using namespace ikaros;
 
-class Oscillator: public Module
+class AudioOscillator: public Module
 {
-    parameter   osc_type;
-    matrix      frequency;
+    parameter   wave_shape;
+    parameter   frequency;
     parameter   sample_rate;
+    parameter   multiplier;
+    parameter   detune;
+    parameter   volume;
+    parameter   modulation_gain;
+    parameter   duty_cycle;
     matrix      input;
+    matrix      modulation;
     matrix      output;
-    double       modulator = 0;
+    double      phase = 0.0;
 
     void Init()
     {
-        Bind(osc_type, "type");
+        Bind(wave_shape, "wave_shape");
         Bind(frequency, "frequency");
         Bind(sample_rate, "sample_rate");
+        Bind(multiplier, "multiplier"); 
+        Bind(detune, "detune");
+        Bind(volume, "volume");
+        Bind(modulation_gain, "modulation_gain");
+        Bind(duty_cycle, "duty_cycle");
         Bind(input, "INPUT");
+        Bind(modulation, "MODULATION");
         Bind(output, "OUTPUT");
 
-        //if(input.connected() && frequency.shape() != output.shape())
-        //    throw exception("INPUT must have the same size as frequency");
-
+        phase = 0.0;
     }
 
 
-    float func(float time, float freq)
+    float func(double phase_position) const
     {
-        if(input.connected())
-            freq += 50*input(0);
-    
-        switch(osc_type.as_int())
+        double wrapped_phase = phase_position - floor(phase_position);
+        double duty = std::clamp(duty_cycle.as_double(), 0.0, 1.0);
+
+        switch(wave_shape.as_int())
         {
-            case 0: return sin(2*M_PI*time*freq);
-            case 1: return sin(2*M_PI*time*freq) > 0 ? 1 : 0;
+            case 0: return sin(2 * M_PI * wrapped_phase);
+            case 1: return sin(2 * M_PI * wrapped_phase) > 0 ? 1 : -1;
+            case 2: return static_cast<float>(2.0 * wrapped_phase - 1.0);                    // saw
+            case 3: return static_cast<float>(4.0 * fabs(wrapped_phase - 0.5) - 1.0);        // triangle
+            case 4: return static_cast<float>(1.0 - 2.0 * wrapped_phase);                    // ramp
+            case 5: return wrapped_phase < duty ? 1.0f : -1.0f;                               // pulse
             default: return 0;
         }
     }
 
     void Tick()
     {
-        float time = GetNominalTime();
-
-        // If no buffer is used, apply function to every element of the output
-
-        if(sample_rate==0)
-        {
-            output.apply(frequency, [=](float x, float f) {return func(time, f);});
-            return;
-        }
-
-        // // Iterate over all parameters and fill the buffer for each
-
         double sr = sample_rate;
-        double sx = output.size_x();
-        double time_increment = GetTickDuration()/double(output.size_x()); // Dimension of the last dimension that holds the buffer
+        if(sr <= 0)
+            sr = 1.0 / GetTickDuration();
 
-        if(output.rank() == 2)
-        {
-            for(int row=0; row<output.size_y(); row++) // Iterate over fist dimension
-                for(int i=0; i<output.size_x(); i++) // Fill buffer
-                    output(row, i) = func(time+double(i)*time_increment, frequency(row));
+        if(output.rank() != 1)
             return;
-        }
-        
-        if(output.rank() == 3)
+
+        auto read_sample = [](const matrix & m, int index) -> double
         {
-            for(int row=0; row<output.size(0); row++) // Iterate over fist dimension
-                for(int col=0; col<output.size(1); col++) // Iterate over second dimension
-                for(int i=0; i<output.size(2); i++) // Fill buffer
-                    output(row, col, i) = func(time+double(i)*time_increment, frequency(row, col));
-            return;
+            if(!m.connected() || m.size() == 0)
+                return 0.0;
+            if(m.rank() == 1 && index < m.size_x())
+                return m(index);
+            return m(0);
+        };
+
+        for(int i = 0; i < output.size_x(); ++i)
+        {
+            double base_frequency = input.connected() ? read_sample(input, i) : static_cast<double>(frequency);
+            double mod = modulation.connected() ? modulation_gain.as_double() * read_sample(modulation, i) : 0.0;
+            double instant_frequency = base_frequency * multiplier.as_double() + detune.as_double() + mod;
+            if(instant_frequency < 0.0)
+                instant_frequency = 0.0;
+
+            output(i) = volume.as_double() * func(phase);
+            phase += instant_frequency / sr;
+            phase -= floor(phase);
         }
     }
 };
 
-INSTALL_CLASS(Oscillator)
-
+INSTALL_CLASS(AudioOscillator)

@@ -1,5 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="780" viewBox="0 0 1200 780">
   <rect width="100%" height="100%" fill="white"/>
+
+  <line x1="70" y1="170.0" x2="308" y2="170.0" stroke="#333333" stroke-width="5"/>
+  <polygon points="308,160.0 328,170.0 308,180.0" fill="#333333"/>
 
   <line x1="70" y1="250.0" x2="308" y2="250.0" stroke="#333333" stroke-width="5"/>
   <polygon points="308,240.0 328,250.0 308,260.0" fill="#333333"/>
@@ -7,10 +10,62 @@
   <line x1="862" y1="250.0" x2="1040" y2="250.0" stroke="#333333" stroke-width="5"/>
   <polygon points="1040,240.0 1060,250.0 1040,260.0" fill="#333333"/>
 
+  <text x="100" y="145.0" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#141414">MODULATION</text>
+
   <text x="120" y="225.0" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#141414">INPUT</text>
 
   <text x="900" y="225.0" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#141414">OUTPUT</text>
 
   <rect x="340" y="70" width="520" height="360" rx="20" ry="20" fill="#E8F0FF" stroke="#3C5AB4" stroke-width="4"/>
-  <text x="600.0" y="250.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="700" fill="#141414">Oscillator</text>
+  <text x="600.0" y="250.0" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="700" fill="#141414">AudioOscillator</text>
+
+  <text x="600" y="500" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#141414">Wave Shapes</text>
+
+  <g transform="translate(90,530)">
+    <rect x="0" y="0" width="300" height="90" rx="14" ry="14" fill="#F7F9FC" stroke="#B9C4DD" stroke-width="2"/>
+    <text x="150" y="24" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#141414">sine</text>
+    <line x1="20" y1="52" x2="280" y2="52" stroke="#C9D3E8" stroke-width="2"/>
+    <polyline fill="none" stroke="#3C5AB4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+      points="20,52 32,40 44,30 56,24 68,24 80,30 92,40 104,52 116,64 128,74 140,80 152,80 164,74 176,64 188,52 200,40 212,30 224,24 236,24 248,30 260,40 272,52"/>
+  </g>
+
+  <g transform="translate(450,530)">
+    <rect x="0" y="0" width="300" height="90" rx="14" ry="14" fill="#F7F9FC" stroke="#B9C4DD" stroke-width="2"/>
+    <text x="150" y="24" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#141414">square</text>
+    <line x1="20" y1="52" x2="280" y2="52" stroke="#C9D3E8" stroke-width="2"/>
+    <polyline fill="none" stroke="#3C5AB4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+      points="20,30 90,30 90,78 170,78 170,30 250,30 250,78 280,78"/>
+  </g>
+
+  <g transform="translate(810,530)">
+    <rect x="0" y="0" width="300" height="90" rx="14" ry="14" fill="#F7F9FC" stroke="#B9C4DD" stroke-width="2"/>
+    <text x="150" y="24" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#141414">saw</text>
+    <line x1="20" y1="52" x2="280" y2="52" stroke="#C9D3E8" stroke-width="2"/>
+    <polyline fill="none" stroke="#3C5AB4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+      points="20,78 140,30 140,78 260,30 260,78 280,70"/>
+  </g>
+
+  <g transform="translate(90,650)">
+    <rect x="0" y="0" width="300" height="90" rx="14" ry="14" fill="#F7F9FC" stroke="#B9C4DD" stroke-width="2"/>
+    <text x="150" y="24" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#141414">triangle</text>
+    <line x1="20" y1="52" x2="280" y2="52" stroke="#C9D3E8" stroke-width="2"/>
+    <polyline fill="none" stroke="#3C5AB4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+      points="20,52 80,30 140,78 200,30 260,78 280,70"/>
+  </g>
+
+  <g transform="translate(450,650)">
+    <rect x="0" y="0" width="300" height="90" rx="14" ry="14" fill="#F7F9FC" stroke="#B9C4DD" stroke-width="2"/>
+    <text x="150" y="24" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#141414">ramp</text>
+    <line x1="20" y1="52" x2="280" y2="52" stroke="#C9D3E8" stroke-width="2"/>
+    <polyline fill="none" stroke="#3C5AB4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+      points="20,30 140,78 140,30 260,78 260,30 280,38"/>
+  </g>
+
+  <g transform="translate(810,650)">
+    <rect x="0" y="0" width="300" height="90" rx="14" ry="14" fill="#F7F9FC" stroke="#B9C4DD" stroke-width="2"/>
+    <text x="150" y="24" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#141414">pulse</text>
+    <line x1="20" y1="52" x2="280" y2="52" stroke="#C9D3E8" stroke-width="2"/>
+    <polyline fill="none" stroke="#3C5AB4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+      points="20,30 65,30 65,78 140,78 140,30 185,30 185,78 260,78 260,30 280,30"/>
+  </g>
 </svg>

@@ -4,7 +4,7 @@
    <connection delay="1" source="freq.OUTPUT" target="synth.FREQUENCY"/>
    <connection delay="1" source="ampl.OUTPUT" target="synth.AMPLITUDE"/>
    <module _x="384" _y="240" class="AudioSynth" description="A versatile audio synthesizer module" name="synth"/>
-   <module _x="648" _y="240" class="OutputAudio" description="Plays audio received as input" name="out"/>
+   <module _x="648" _y="240" class="AudioOutput" description="Plays audio received as input" name="out"/>
    <module _x="120" _y="216" class="Constant" data="0.5" description="outputs a constant value" name="shape"/>
    <module _x="120" _y="264" class="Constant" data="0.5" description="outputs a constant value" name="freq"/>
    <module _x="120" _y="336" class="Constant" description="outputs a constant value" name="ampl"/>
