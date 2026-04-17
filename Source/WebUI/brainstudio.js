@@ -1229,10 +1229,11 @@ let controller =
 
     save() 
     {
-    if(network.network.filename=="")
-        controller.saveas();
-    else
-        controller.saveNetwork();
+        const filename = network.network.filename;
+        if(filename == null || filename === "" || filename === "null")
+            controller.saveas();
+        else
+            controller.saveNetwork();
     },
 
     saveas() 

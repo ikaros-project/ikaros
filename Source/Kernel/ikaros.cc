@@ -3111,6 +3111,7 @@ bool operator==(Request & r, const std::string s)
                     dictionary d;
                     d.load_xml(options_.full_path());
                     SetCommandLineParameters(d);
+                    d["filename"] = options_.stem();
                     BuildGroup(d);
                     info_ = d;
                     session_id = new_session_id(); 
@@ -4029,7 +4030,12 @@ bool operator==(Request & r, const std::string s)
     Kernel::DoSendDataStatus()
     {
         std::ostringstream response;
-        std::string nm = std::string(info_["filename"]);
+        std::string nm;
+        if(info_.contains_non_null("filename"))
+            nm = std::string(info_["filename"]);
+        else
+            nm = options_.stem();
+
         if(!nm.empty())
             nm = std::filesystem::path(nm).filename().string();
 
