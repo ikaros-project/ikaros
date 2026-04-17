@@ -1,0 +1,15 @@
+<group
+    name="TestFirstTick"
+    description="Test component module_start scheduling for absolute and startup-derived values"
+    start="true"
+    stop="2"
+    expected_output_contains="TestFirstTick.Absolute2 tick=2||TestFirstTick.FirstReal tick=1||TestFirstTick.AllReal tick=2">
+    <module class="Constant" name="Source" data="1" />
+    <module class="FirstTickReporter" name="Absolute2" module_start="0" start_tick="2" />
+    <module class="FirstTickReporter" name="FirstReal" module_start="1" />
+    <module class="FirstTickReporter" name="AllReal" module_start="2" />
+
+    <connection source="Source.OUTPUT" target="FirstReal.INPUT_A" delay="1" />
+    <connection source="Source.OUTPUT" target="AllReal.INPUT_A" delay="0" />
+    <connection source="Source.OUTPUT" target="AllReal.INPUT_B" delay="2" />
+</group>

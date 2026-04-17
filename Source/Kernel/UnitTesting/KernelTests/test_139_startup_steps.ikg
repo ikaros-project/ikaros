@@ -1,0 +1,18 @@
+<group
+    name="TestStartupSteps"
+    description="Test startup-step analysis for first and fully real module inputs"
+    start="true"
+    stop="0"
+    expected_output_contains="TestStartupSteps.Immediate first=0 all=0||TestStartupSteps.Delayed first=1 all=1||TestStartupSteps.Mixed first=0 all=2||TestStartupSteps.Window first=0 all=2">
+    <module class="Constant" name="Source" data="1" />
+    <module class="StartupStepReporter" name="Immediate" />
+    <module class="StartupStepReporter" name="Delayed" />
+    <module class="StartupStepReporter" name="Mixed" />
+    <module class="StartupStepReporter" name="Window" />
+
+    <connection source="Source.OUTPUT" target="Immediate.INPUT_A" delay="0" />
+    <connection source="Source.OUTPUT" target="Delayed.INPUT_A" delay="1" />
+    <connection source="Source.OUTPUT" target="Mixed.INPUT_A" delay="0" />
+    <connection source="Source.OUTPUT" target="Mixed.INPUT_B" delay="2" />
+    <connection source="Source.OUTPUT" target="Window.INPUT_A" delay="[0:3]" />
+</group>

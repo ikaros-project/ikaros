@@ -13,6 +13,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <limits>
 #include <set>
 #include <stack>
 #include <string>
@@ -202,6 +203,10 @@ public:
     Component *     parent_;
     dictionary      info_;
     std::string     path_;
+    int             module_start;
+    int             start_tick;
+    int             startup_first_real_input_step;
+    int             startup_all_real_inputs_step;
 
     Component();
 
@@ -220,6 +225,7 @@ public:
     bool Trace(std::string message, std::string path="") { return Notify(msg_trace, message, path); }
 
     void AddLogLevel();
+    void AddFirstTick();
     void AddInput(dictionary parameters);
     void AddOutput(dictionary parameters);
     void AddOutput(std::string name, int size, std::string description=""); // Must be called from creator function and not from Init
@@ -249,6 +255,11 @@ public:
     std::string json() const;  // json representation of the component
     virtual std::string json(const std::string &) { return ""; }; // json representation for name of component
     std::string xml();
+    bool ShouldTick() const override;
+    int EffectiveFirstTick() const;
+    void SyncFirstTickFromParameter();
+    std::string StartupFirstRealInputStepString() const;
+    std::string StartupAllRealInputsStepString() const;
 
     bool KeyExists(const std::string & key) const;  // Check if a key exist here or in any parent; this means that GetValue will succeed
     std::string GetValue(const std::string & key) const; // Look up value in dictionary with inheritance
@@ -522,6 +533,7 @@ public:
     void ResolveParameters(); // Find and evaluate value or default
     void CalculateSizes();
     void CalculateDelays();
+    void CalculateStartupSteps();
     void InitCircularBuffers();
     void RotateBuffers();
     void ListComponents();
@@ -585,6 +597,7 @@ public:
     void CalculateCheckSum();
     dictionary GetModuleInstantiationInfo(); // Used for profiling
     std::string GetProfilingJSON() const;
+    std::string GetStartupStepsJSON() const;
 
     void DoNew(Request & request);
     void DoOpen(Request & request);
@@ -602,6 +615,7 @@ public:
     void DoCSV(Request & request);
     void DoImage(Request & request);
     void DoProfiling(Request & request);
+    void DoStartupSteps(Request & request);
 
     void DoCommand(Request & request);
     void DoControl(Request & request);

@@ -64,7 +64,7 @@ class WebUIWidgetText extends WebUIWidgetControl
         if(!content)
             return;
 
-        const nextText = (content.textContent ?? "").replace(/\n/g, "").trim();
+        const nextText = this.normalizeEditedText(content);
         content.contentEditable = "false";
         content.removeAttribute("contenteditable");
         content.classList.remove("inline-widget-text-edit");
@@ -93,6 +93,14 @@ class WebUIWidgetText extends WebUIWidgetControl
             this.firstChild.textContent = value ?? "";
         else
             this.textContent = value ?? "";
+    }
+
+    normalizeEditedText(content)
+    {
+        return String(content?.innerText ?? content?.textContent ?? "")
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n")
+            .replace(/\u200B/g, "");
     }
 
     updateFrame()
@@ -145,7 +153,7 @@ class WebUIWidgetText extends WebUIWidgetControl
             {
                 if(!this.inline_text_edit)
                     return;
-                if(evt.key === "Enter")
+                if(evt.key === "Enter" && (evt.metaKey || evt.ctrlKey))
                 {
                     evt.preventDefault();
                     this.finishInlineTextEdit(true);

@@ -898,6 +898,8 @@ ServerSocket::SendFile(const std::filesystem::path & filename, dictionary & hdr)
     std::string length = std::to_string((size_t)len);
     hdr["Content-Length"] = length;
     hdr["Server"] = "Ikaros/3.0";
+    hdr["Cache-Control"] = "no-cache, no-store";
+    hdr["Pragma"] = "no-cache";
 	
     const std::string extension = resolved_filename.extension().string();
     if(extension == ".html")

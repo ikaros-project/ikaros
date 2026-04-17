@@ -18,6 +18,7 @@ class Task {
 public:
     virtual void Tick() = 0;
     virtual std::string Info() const = 0;
+    virtual bool ShouldTick() const { return true; }
     virtual bool Priority() { return false; }
     virtual void ProfilingBegin() {};
     virtual void ProfilingEnd()  {};
@@ -113,6 +114,8 @@ protected:
         {
             if(task == nullptr)
                 continue; // FIXME: Should not happen - task list may not have been correctky deleted ******
+            if(!task->ShouldTick())
+                continue;
             task->ProfilingBegin();
             task->Tick();
             task->ProfilingEnd();

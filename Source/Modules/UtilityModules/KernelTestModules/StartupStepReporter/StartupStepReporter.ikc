@@ -1,0 +1,4 @@
+<class name="StartupStepReporter" description="Prints the kernel startup-step analysis for the module">
+    <input name="INPUT_A" optional="yes" />
+    <input name="INPUT_B" optional="yes" />
+</class>

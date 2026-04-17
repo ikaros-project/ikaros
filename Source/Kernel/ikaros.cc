@@ -107,6 +107,28 @@ namespace ikaros
             return log_param;
         }
 
+        dictionary make_module_start_parameter()
+        {
+            dictionary module_start_param;
+            module_start_param["_tag"] = "parameter";
+            module_start_param["name"] = "module_start";
+            module_start_param["type"] = "number";
+            module_start_param["control"] = "menu";
+            module_start_param["options"] = "at_tick,first_data,all_data";
+            module_start_param["default"] = 0;
+            return module_start_param;
+        }
+
+        dictionary make_start_tick_parameter()
+        {
+            dictionary start_tick_param;
+            start_tick_param["_tag"] = "parameter";
+            start_tick_param["name"] = "start_tick";
+            start_tick_param["type"] = "number";
+            start_tick_param["default"] = 0;
+            return start_tick_param;
+        }
+
         dictionary make_color_parameter()
         {
             dictionary color_param;
@@ -719,6 +741,52 @@ namespace ikaros
         std::cout << "Component: " << info_["name"]  << '\n';
     }
 
+
+    int
+    Component::EffectiveFirstTick() const
+    {
+        if(module_start == 1)
+            return startup_first_real_input_step == std::numeric_limits<int>::max() ? std::numeric_limits<int>::max() : startup_first_real_input_step;
+        if(module_start == 2)
+            return startup_all_real_inputs_step == std::numeric_limits<int>::max() ? std::numeric_limits<int>::max() : startup_all_real_inputs_step;
+        return start_tick;
+    }
+
+
+    bool
+    Component::ShouldTick() const
+    {
+        int scheduled_start_tick = EffectiveFirstTick();
+        if(scheduled_start_tick == std::numeric_limits<int>::max())
+            return false;
+        return kernel().GetTick() >= scheduled_start_tick;
+    }
+
+
+    void
+    Component::SyncFirstTickFromParameter()
+    {
+        module_start = GetParameter("module_start").as_int();
+        start_tick = GetParameter("start_tick").as_int();
+
+        if(module_start < 0 || module_start > 2)
+            throw exception("Invalid module_start value \"" + std::to_string(module_start) + "\". Expected 0 (at_tick), 1 (first_data), or 2 (all_data).");
+    }
+
+
+    std::string
+    Component::StartupFirstRealInputStepString() const
+    {
+        return startup_first_real_input_step == std::numeric_limits<int>::max() ? "unknown" : std::to_string(startup_first_real_input_step);
+    }
+
+
+    std::string
+    Component::StartupAllRealInputsStepString() const
+    {
+        return startup_all_real_inputs_step == std::numeric_limits<int>::max() ? "unknown" : std::to_string(startup_all_real_inputs_step);
+    }
+
         void 
         Component::info() const
         {
@@ -1193,18 +1261,46 @@ namespace ikaros
         info_["parameters"].push_back(make_log_level_parameter().copy());
     }
 
+    void
+    Component::AddFirstTick()
+    {
+        for(auto p: info_["parameters"])
+            if(p["name"].as_string()=="module_start")
+            {
+                bool has_start_tick = false;
+                for(auto q: info_["parameters"])
+                    if(q["name"].as_string()=="start_tick")
+                    {
+                        has_start_tick = true;
+                        break;
+                    }
+
+                if(!has_start_tick)
+                    info_["parameters"].push_back(make_start_tick_parameter().copy());
+                return;
+            }
+
+        info_["parameters"].push_back(make_module_start_parameter().copy());
+        info_["parameters"].push_back(make_start_tick_parameter().copy());
+    }
+
 
 
     Component::Component():
         parent_(nullptr),
         info_(kernel().current_component_info),
-        path_(kernel().current_component_path)
+        path_(kernel().current_component_path),
+        module_start(0),
+        start_tick(0),
+        startup_first_real_input_step(std::numeric_limits<int>::max()),
+        startup_all_real_inputs_step(std::numeric_limits<int>::max())
     {
         ensure_component_collections(info_);
 
         // Add log_level parameter to all components
 
         AddLogLevel();
+        AddFirstTick();
 
         for(auto p: info_["parameters"])
             AddParameter(p);
@@ -1601,7 +1697,7 @@ namespace ikaros
         for(auto & d : info_["parameters"])
         {
             std::string parameter_name = d["name"].as_string();
-            if(parameter_name == "log_level" || parameter_name == "color" || parameter_name == "rgb_quality" || parameter_name == "gray_quality" || parameter_name == "snapshot_interval" || parameter_name == "webui_req_int" || parameter_name == "webui_log_buffer_limit")
+            if(parameter_name == "log_level" || parameter_name == "module_start" || parameter_name == "start_tick" || parameter_name == "color" || parameter_name == "rgb_quality" || parameter_name == "gray_quality" || parameter_name == "snapshot_interval" || parameter_name == "webui_req_int" || parameter_name == "webui_log_buffer_limit")
                 continue;
 
             parameter p;
@@ -1969,18 +2065,30 @@ bool operator==(Request & r, const std::string s)
                     ensure_list(classes[name].info_, "parameters");
 
                     bool has_log_level = false;
+                    bool has_module_start = false;
+                    bool has_start_tick = false;
                     bool has_color = false;
                     for(auto parameter : classes[name].info_["parameters"])
                     {
                         std::string parameter_name = parameter["name"];
                         if(parameter_name == "log_level")
                             has_log_level = true;
+                        else if(parameter_name == "module_start")
+                            has_module_start = true;
+                        else if(parameter_name == "start_tick")
+                            has_start_tick = true;
                         else if(parameter_name == "color")
                             has_color = true;
                     }
 
                     if(!has_log_level)
                         classes[name].info_["parameters"].push_back(make_log_level_parameter().copy());
+
+                    if(!has_module_start)
+                        classes[name].info_["parameters"].push_back(make_module_start_parameter().copy());
+
+                    if(!has_start_tick)
+                        classes[name].info_["parameters"].push_back(make_start_tick_parameter().copy());
 
                     if(!has_color)
                         classes[name].info_["parameters"].push_back(make_color_parameter().copy());
@@ -2065,6 +2173,13 @@ bool operator==(Request & r, const std::string s)
             std::string parameter_name = p->first.substr(i+1, p->first.size());
             ok &= c->ResolveParameter(p->second, parameter_name);
         }
+
+        for(auto & [name, component] : components)
+        {
+            (void)name;
+            component->SyncFirstTickFromParameter();
+        }
+
         if(!ok)
         {
             for(auto & p : parameters)
@@ -2190,6 +2305,193 @@ bool operator==(Request & r, const std::string s)
             matrix image;
             std::string image_format;
         };
+    }
+
+    namespace
+    {
+        constexpr int unresolved_startup_step = std::numeric_limits<int>::max();
+
+        int
+        ConnectionDelayMin(const Connection & connection)
+        {
+            range delays = connection.delay_range_;
+            if(delays.empty())
+                return 1;
+
+            int min_delay = unresolved_startup_step;
+            for(auto delay = delays; delay.more(); delay++)
+                min_delay = std::min(min_delay, delay.index()[0]);
+
+            return min_delay == unresolved_startup_step ? 1 : min_delay;
+        }
+
+
+        int
+        ConnectionDelayMax(const Connection & connection)
+        {
+            range delays = connection.delay_range_;
+            if(delays.empty())
+                return 1;
+
+            int max_delay = 0;
+            for(auto delay = delays; delay.more(); delay++)
+                max_delay = std::max(max_delay, delay.index()[0]);
+
+            return max_delay;
+        }
+
+    }
+
+
+    void
+    Kernel::CalculateStartupSteps()
+    {
+        std::map<std::string, std::vector<Connection *>> incoming_connections;
+        std::map<std::string, int> buffer_first_real_step;
+
+        for(auto & [buffer_name, buffer] : buffers)
+        {
+            (void)buffer;
+            buffer_first_real_step[buffer_name] = unresolved_startup_step;
+        }
+
+        for(auto & connection : connections)
+            incoming_connections[connection.target].push_back(&connection);
+
+        for(auto & [path, component] : components)
+        {
+            if(dynamic_cast<Module *>(component.get()) == nullptr)
+                continue;
+
+            bool has_connected_input = false;
+            if(component->info_.contains("inputs") && component->info_["inputs"].is_list())
+                for(auto & input : component->info_["inputs"])
+                {
+                    std::string input_name = path + "." + std::string(input["name"]);
+                    if(incoming_connections.count(input_name))
+                    {
+                        has_connected_input = true;
+                        break;
+                    }
+                }
+
+            if(has_connected_input)
+                continue;
+
+            if(component->info_.contains("outputs") && component->info_["outputs"].is_list())
+                for(auto & output : component->info_["outputs"])
+                {
+                    std::string output_name = path + "." + std::string(output["name"]);
+                    buffer_first_real_step[output_name] = 0;
+                }
+        }
+
+        size_t max_iterations = std::max<size_t>(1, buffers.size() + components.size() + connections.size());
+        for(size_t iteration = 0; iteration < max_iterations; ++iteration)
+        {
+            bool changed = false;
+
+            for(auto & [path, component] : components)
+            {
+                auto * module = dynamic_cast<Module *>(component.get());
+                if(module == nullptr)
+                    continue;
+
+                int first_input_step = unresolved_startup_step;
+                bool has_connected_input = false;
+
+                if(component->info_.contains("inputs") && component->info_["inputs"].is_list())
+                    for(auto & input : component->info_["inputs"])
+                    {
+                        std::string input_name = path + "." + std::string(input["name"]);
+                        if(!incoming_connections.count(input_name))
+                            continue;
+
+                        has_connected_input = true;
+                        first_input_step = std::min(first_input_step, buffer_first_real_step[input_name]);
+                    }
+
+                int first_output_step = has_connected_input ? first_input_step : 0;
+                if(first_output_step == unresolved_startup_step)
+                    continue;
+
+                if(component->info_.contains("outputs") && component->info_["outputs"].is_list())
+                    for(auto & output : component->info_["outputs"])
+                    {
+                        std::string output_name = path + "." + std::string(output["name"]);
+                        if(first_output_step < buffer_first_real_step[output_name])
+                        {
+                            buffer_first_real_step[output_name] = first_output_step;
+                            changed = true;
+                        }
+                    }
+            }
+
+            for(auto & connection : connections)
+            {
+                auto source_it = buffer_first_real_step.find(connection.source);
+                if(source_it == buffer_first_real_step.end() || source_it->second == unresolved_startup_step)
+                    continue;
+
+                int candidate_step = source_it->second + ConnectionDelayMin(connection);
+                int & target_step = buffer_first_real_step[connection.target];
+                if(candidate_step < target_step)
+                {
+                    target_step = candidate_step;
+                    changed = true;
+                }
+            }
+
+            if(!changed)
+                break;
+        }
+
+        for(auto & [path, component] : components)
+        {
+            int first_real_input_step = unresolved_startup_step;
+            int all_real_inputs_step = 0;
+            bool has_connected_input = false;
+            bool all_inputs_resolved = true;
+
+            if(component->info_.contains("inputs") && component->info_["inputs"].is_list())
+                for(auto & input : component->info_["inputs"])
+                {
+                    std::string input_name = path + "." + std::string(input["name"]);
+                    if(!incoming_connections.count(input_name))
+                        continue;
+
+                    for(auto * connection : incoming_connections[input_name])
+                    {
+                        has_connected_input = true;
+
+                        auto source_it = buffer_first_real_step.find(connection->source);
+                        if(source_it == buffer_first_real_step.end() || source_it->second == unresolved_startup_step)
+                        {
+                            all_inputs_resolved = false;
+                            continue;
+                        }
+
+                        int connection_first_step = source_it->second + ConnectionDelayMin(*connection);
+                        int connection_all_step = source_it->second + ConnectionDelayMax(*connection);
+
+                        first_real_input_step = std::min(first_real_input_step, connection_first_step);
+                        all_real_inputs_step = std::max(all_real_inputs_step, connection_all_step);
+                    }
+                }
+
+            if(!has_connected_input)
+            {
+                first_real_input_step = 0;
+                all_real_inputs_step = 0;
+            }
+            else if(!all_inputs_resolved)
+            {
+                all_real_inputs_step = unresolved_startup_step;
+            }
+
+            component->startup_first_real_input_step = first_real_input_step;
+            component->startup_all_real_inputs_step = all_real_inputs_step;
+        }
     }
 
 
@@ -2577,12 +2879,18 @@ bool operator==(Request & r, const std::string s)
             info["parameters"] = list();
 
         bool has_log_level = false;
+        bool has_module_start = false;
+        bool has_start_tick = false;
         bool has_color = false;
         for(auto parameter : info["parameters"])
         {
             std::string parameter_name = parameter["name"];
             if(parameter_name == "log_level")
                 has_log_level = true;
+            else if(parameter_name == "module_start")
+                has_module_start = true;
+            else if(parameter_name == "start_tick")
+                has_start_tick = true;
             else if(parameter_name == "color")
                 has_color = true;
         }
@@ -2598,6 +2906,12 @@ bool operator==(Request & r, const std::string s)
             log_param["default"] = 0;
             info["parameters"].push_back(log_param);
         }
+
+        if(!has_module_start)
+            info["parameters"].push_back(make_module_start_parameter().copy());
+
+        if(!has_start_tick)
+            info["parameters"].push_back(make_start_tick_parameter().copy());
 
         if(!has_color)
         {
@@ -2931,6 +3245,59 @@ bool operator==(Request & r, const std::string s)
                 body << "\"" << escape_json_string(class_name) << "\"";
             body << ", ";
             body << "\"profiling\": " << component->profiler_.json();
+            body << "}";
+            separator = ", ";
+        }
+
+        body << "]";
+        body << "}";
+        return body.str();
+    }
+
+
+    std::string
+    Kernel::GetStartupStepsJSON() const
+    {
+        std::ostringstream body;
+        body << "{";
+        body << "\"tick\": " << tick << ", ";
+        body << "\"run_mode\": " << run_mode.load() << ", ";
+        body << "\"components\": [";
+
+        std::string separator;
+        for(const auto & [path, component] : components)
+        {
+            if(component == nullptr)
+                continue;
+
+            body << separator;
+            body << "{";
+            body << "\"path\": \"" << escape_json_string(path) << "\", ";
+            body << "\"name\": \"" << escape_json_string(component->Info()) << "\", ";
+
+            std::string class_name;
+            if(component->info_.contains_non_null("class"))
+                class_name = std::string(component->info_["class"]);
+
+            body << "\"class\": ";
+            if(class_name.empty())
+                body << "null";
+            else
+                body << "\"" << escape_json_string(class_name) << "\"";
+            body << ", ";
+            body << "\"module_start\": " << component->module_start << ", ";
+            body << "\"start_tick\": " << component->start_tick << ", ";
+            body << "\"startup_first_real_input_step\": ";
+            if(component->startup_first_real_input_step == std::numeric_limits<int>::max())
+                body << "null";
+            else
+                body << component->startup_first_real_input_step;
+            body << ", ";
+            body << "\"startup_all_real_inputs_step\": ";
+            if(component->startup_all_real_inputs_step == std::numeric_limits<int>::max())
+                body << "null";
+            else
+                body << component->startup_all_real_inputs_step;
             body << "}";
             separator = ", ";
         }
@@ -3338,7 +3705,8 @@ bool operator==(Request & r, const std::string s)
     {
         for(auto & task_group : tasks)
             for(auto & task: task_group)
-                task->Tick();
+                if(task->ShouldTick())
+                    task->Tick();
     }
 
 
@@ -3350,6 +3718,7 @@ bool operator==(Request & r, const std::string s)
         {
             PruneConnections();
             SortTasks();
+            CalculateStartupSteps();
             ResolveParameters();
             CalculateDelays();
             CalculateSizes();
@@ -4689,6 +5058,18 @@ bool operator==(Request & r, const std::string s)
     }
 
 
+    void
+    Kernel::DoStartupSteps(Request &)
+    {
+        dictionary header({
+            {"Content-Type", "application/json; charset=utf-8"},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"}
+        });
+        SendStringResponse(header, GetStartupStepsJSON());
+    }
+
+
 
     void
     Kernel::DoCommand(Request & request)
@@ -5036,6 +5417,8 @@ bool operator==(Request & r, const std::string s)
             DoImage(request);
         else if(request == "profiling")
             DoProfiling(request);
+        else if(request == "startupsteps")
+            DoStartupSteps(request);
 
         // Control commands
 

@@ -72,6 +72,28 @@ namespace ikaros
                 throw std::runtime_error("Invalid Unicode code point");
         }
 
+        static std::string escape_xml_attribute(const std::string & value)
+        {
+            std::string escaped;
+            escaped.reserve(value.size());
+            for(unsigned char c : value)
+            {
+                switch(c)
+                {
+                    case '&': escaped += "&amp;"; break;
+                    case '<': escaped += "&lt;"; break;
+                    case '>': escaped += "&gt;"; break;
+                    case '"': escaped += "&quot;"; break;
+                    case '\'': escaped += "&apos;"; break;
+                    case '\n': escaped += "&#10;"; break;
+                    case '\r': escaped += "&#13;"; break;
+                    case '\t': escaped += "&#9;"; break;
+                    default: escaped += static_cast<char>(c); break;
+                }
+            }
+            return escaped;
+        }
+
     // null
 
     null::operator std::string () const
@@ -359,9 +381,9 @@ namespace ikaros
             if(exclude.count(name+"."+a.first))
                 continue;
             else if(!a.second.is_list())
-                if(!a.second.is_null()) // Do not include null attributes - but include empty strings
+                    if(!a.second.is_null()) // Do not include null attributes - but include empty strings
                     if(a.first != "_tag") // Do not include tag attributes since the are used as element name
-                        s += " "+a.first + "=\"" +std::string(a.second)+"\"";
+                        s += " "+a.first + "=\"" + escape_xml_attribute(std::string(a.second)) + "\"";
 
         std::string sep = ">\n";
         for(auto & e : *dict_)

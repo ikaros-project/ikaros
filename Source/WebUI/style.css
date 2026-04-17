@@ -1719,6 +1719,10 @@ webui-widget-text > div.inline-widget-text-edit {
     outline-offset: -1px;
 }
 
+webui-widget-text > div {
+    white-space: pre-wrap;
+}
+
 .dragged, .resized {
     border-color: black;
 }

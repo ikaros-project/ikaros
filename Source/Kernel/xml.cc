@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <cctype>
 #include <stdexcept>
 
 
@@ -27,6 +28,85 @@ static void
 destroy_string(char * c)
 {
     delete [] c;
+}
+
+
+static std::string
+decode_xml_entities(const char * text)
+{
+    std::string decoded;
+    if(!text)
+        return decoded;
+
+    for(size_t i = 0; text[i] != 0; ++i)
+    {
+        if(text[i] != '&')
+        {
+            decoded += text[i];
+            continue;
+        }
+
+        size_t entity_end = i + 1;
+        while(text[entity_end] != 0 && text[entity_end] != ';')
+            ++entity_end;
+
+        if(text[entity_end] != ';')
+        {
+            decoded += '&';
+            continue;
+        }
+
+        std::string entity(text + i + 1, entity_end - i - 1);
+        if(entity == "amp")
+            decoded += '&';
+        else if(entity == "lt")
+            decoded += '<';
+        else if(entity == "gt")
+            decoded += '>';
+        else if(entity == "quot")
+            decoded += '"';
+        else if(entity == "apos")
+            decoded += '\'';
+        else if(!entity.empty() && entity[0] == '#')
+        {
+            int base = 10;
+            size_t number_pos = 1;
+            if(entity.size() > 2 && (entity[1] == 'x' || entity[1] == 'X'))
+            {
+                base = 16;
+                number_pos = 2;
+            }
+
+            try
+            {
+                unsigned long code = std::stoul(entity.substr(number_pos), nullptr, base);
+                if(code <= 0x7F)
+                    decoded += static_cast<char>(code);
+                else
+                {
+                    decoded += '&';
+                    decoded += entity;
+                    decoded += ';';
+                }
+            }
+            catch(const std::exception &)
+            {
+                decoded += '&';
+                decoded += entity;
+                decoded += ';';
+            }
+        }
+        else
+        {
+            decoded += '&';
+            decoded += entity;
+            decoded += ';';
+        }
+
+        i = entity_end;
+    }
+
+    return decoded;
 }
 
 
@@ -860,7 +940,10 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
     if(c != 0)
         throw "unterminated entity";
 
-    return new XMLAttribute(name, value, q[0], ParseAttribute(element_name, empty));
+    std::string decoded_value = decode_xml_entities(value);
+    destroy_string(value);
+
+    return new XMLAttribute(name, create_string(decoded_value.c_str()), q[0], ParseAttribute(element_name, empty));
 }
 
 

@@ -11,6 +11,7 @@
 #include <cassert>
 #include <cmath>
 #include <limits>
+#include <fstream>
 
 #include "../../dictionary.h"
 #include "../../xml.h"
@@ -91,6 +92,18 @@ main()
     assert(control_json == "{\"nul\": \"a\\u0000b\"}");
     value reparsed_control = parse_json(control_json);
     assert(reparsed_control["nul"].as_string() == std::string("a\0b", 3));
+
+    dictionary xml_roundtrip;
+    xml_roundtrip["title"] = "line 1\nline \"2\" & <3>\t";
+    const std::string xml_text = xml_roundtrip.xml("group");
+    assert(xml_text.find("title=\"line 1&#10;line &quot;2&quot; &amp; &lt;3&gt;&#9;\"") != std::string::npos);
+    {
+        std::ofstream xml_file("/tmp/test_dictionary_multiline.xml");
+        xml_file << xml_text;
+    }
+    XMLDocument xml_document("/tmp/test_dictionary_multiline.xml");
+    dictionary reparsed_xml(xml_document.xml);
+    assert(reparsed_xml["title"].as_string() == "line 1\nline \"2\" & <3>\t");
 
     dictionary non_finite;
     non_finite["nan"] = std::nan("");

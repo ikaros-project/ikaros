@@ -1851,6 +1851,10 @@ const inspector =
     profiling_timer: null,
     profiling_sort_key: "cpu_mean",
     profiling_sort_direction: "desc",
+    startup_steps_window: null,
+    startup_steps_timer: null,
+    startup_steps_sort_key: "path",
+    startup_steps_sort_direction: "asc",
 
     init()
     {
@@ -2239,6 +2243,379 @@ td.class-column {
         {
             console.log("profiling update failed", error);
             inspector.showProfilingError("Profiling update failed.");
+        });
+    },
+
+    openStartupStepsWindow()
+    {
+        if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
+        {
+            inspector.startup_steps_window = window.open("", "ikaros_startup_steps", "width=800,height=620,resizable=yes,scrollbars=yes");
+            if(!inspector.startup_steps_window)
+                return;
+            inspector.initializeStartupStepsWindow();
+        }
+        else
+            inspector.startup_steps_window.focus();
+
+        inspector.refreshStartupStepsWindow();
+
+        if(inspector.startup_steps_timer)
+            clearInterval(inspector.startup_steps_timer);
+
+        inspector.startup_steps_timer = setInterval(() =>
+        {
+            if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
+            {
+                clearInterval(inspector.startup_steps_timer);
+                inspector.startup_steps_timer = null;
+                inspector.startup_steps_window = null;
+                return;
+            }
+            inspector.refreshStartupStepsWindow();
+        }, 1000);
+    },
+
+    initializeStartupStepsWindow()
+    {
+        if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
+            return;
+
+        const doc = inspector.startup_steps_window.document;
+        doc.open();
+        doc.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Startup Steps</title>
+<style>
+body {
+    margin: 0;
+    padding: 16px;
+    background: #151515;
+    color: #e7e7e7;
+    font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+h1 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 600;
+}
+.startup-steps-meta {
+    margin-bottom: 14px;
+    color: #a8a8a8;
+}
+.startup-steps-error {
+    color: #ff9f9f;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+thead th {
+    position: sticky;
+    top: 0;
+    background: #202020;
+    z-index: 1;
+}
+.startup-steps-sort-button {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.startup-steps-sort-button:hover {
+    color: #ffffff;
+}
+.startup-steps-sort-button.active {
+    color: #ffffff;
+}
+.startup-steps-sort-button::after {
+    content: "";
+    display: inline-block;
+    margin-left: 6px;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    opacity: 0;
+    vertical-align: middle;
+}
+.startup-steps-sort-button.active.sort-asc::after {
+    opacity: 1;
+    border-bottom: 6px solid currentColor;
+}
+.startup-steps-sort-button.active.sort-desc::after {
+    opacity: 1;
+    border-top: 6px solid currentColor;
+}
+th, td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #313131;
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+tbody tr:nth-child(even) {
+    background: #1a1a1a;
+}
+td.number {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+th.path-column,
+td.path-column {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+th.class-column,
+td.class-column {
+    white-space: nowrap;
+    width: 1%;
+}
+</style>
+</head>
+<body>
+<h1>Startup Steps</h1>
+<div class="startup-steps-meta" id="startup_steps_meta">Loading...</div>
+<table>
+<colgroup>
+<col style="width: auto;">
+<col style="width: 1%;">
+<col style="width: 110px;">
+<col style="width: 110px;">
+<col style="width: 160px;">
+<col style="width: 160px;">
+</colgroup>
+<thead>
+<tr>
+<th class="path-column"><button type="button" class="startup-steps-sort-button" data-sort-key="path">path</button></th>
+<th class="class-column"><button type="button" class="startup-steps-sort-button" data-sort-key="class">class</button></th>
+<th><button type="button" class="startup-steps-sort-button" data-sort-key="module_start">module_start</button></th>
+<th><button type="button" class="startup-steps-sort-button" data-sort-key="start_tick">start_tick</button></th>
+<th><button type="button" class="startup-steps-sort-button" data-sort-key="startup_first_real_input_step">first real input step</button></th>
+<th><button type="button" class="startup-steps-sort-button" data-sort-key="startup_all_real_inputs_step">all real inputs step</button></th>
+</tr>
+</thead>
+<tbody id="startup_steps_rows">
+<tr><td colspan="6">Loading...</td></tr>
+</tbody>
+</table>
+</body>
+</html>`);
+        doc.close();
+        doc.querySelectorAll(".startup-steps-sort-button").forEach((button) =>
+        {
+            button.addEventListener("click", () =>
+            {
+                inspector.setStartupStepsSort(button.dataset.sortKey);
+            });
+        });
+        inspector.updateStartupStepsSortIndicators();
+    },
+
+    formatStartupStep(value)
+    {
+        if(value === null || value === undefined || value === "")
+            return "unknown";
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? String(numericValue) : "unknown";
+    },
+
+    normalizeModuleStartValue(value)
+    {
+        if(value === null || value === undefined || value === "")
+            return null;
+
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? numericValue : null;
+    },
+
+    formatModuleStart(value)
+    {
+        const normalizedValue = inspector.normalizeModuleStartValue(value);
+        if(normalizedValue === 0)
+            return "at_tick";
+        if(normalizedValue === 1)
+            return "first_data";
+        if(normalizedValue === 2)
+            return "all_data";
+        return normalizedValue === null ? "unknown" : String(normalizedValue);
+    },
+
+    getStartupStepsSortValue(component, sortKey)
+    {
+        switch(sortKey)
+        {
+            case "path":
+                return String(component && component.path ? component.path : "");
+            case "class":
+                return String((component && (component.class || component.name)) || "");
+            case "module_start":
+            {
+                const normalizedValue = inspector.normalizeModuleStartValue(component ? component.module_start : null);
+                return normalizedValue === null ? Infinity : normalizedValue;
+            }
+            case "start_tick":
+            {
+                const value = component ? component.start_tick : null;
+                return value === null || value === undefined || value === "" ? Infinity : Number(value);
+            }
+            case "startup_all_real_inputs_step":
+            {
+                const value = component ? component.startup_all_real_inputs_step : null;
+                return value === null || value === undefined || value === "" ? Infinity : Number(value);
+            }
+            case "startup_first_real_input_step":
+            default:
+            {
+                const value = component ? component.startup_first_real_input_step : null;
+                return value === null || value === undefined || value === "" ? Infinity : Number(value);
+            }
+        }
+    },
+
+    sortStartupStepsComponents(components)
+    {
+        const direction = inspector.startup_steps_sort_direction === "asc" ? 1 : -1;
+        const sortKey = inspector.startup_steps_sort_key || "path";
+
+        components.sort((a, b) =>
+        {
+            const aValue = inspector.getStartupStepsSortValue(a, sortKey);
+            const bValue = inspector.getStartupStepsSortValue(b, sortKey);
+
+            if(typeof aValue === "string" || typeof bValue === "string")
+                return String(aValue).localeCompare(String(bValue)) * direction;
+
+            const aScore = Number.isFinite(aValue) ? aValue : Infinity;
+            const bScore = Number.isFinite(bValue) ? bValue : Infinity;
+            if(aScore === bScore)
+                return String(a && a.path ? a.path : "").localeCompare(String(b && b.path ? b.path : ""));
+            return (aScore - bScore) * direction;
+        });
+    },
+
+    setStartupStepsSort(sortKey)
+    {
+        if(inspector.startup_steps_sort_key === sortKey)
+            inspector.startup_steps_sort_direction = inspector.startup_steps_sort_direction === "asc" ? "desc" : "asc";
+        else
+        {
+            inspector.startup_steps_sort_key = sortKey;
+            inspector.startup_steps_sort_direction = (sortKey === "path" || sortKey === "class") ? "asc" : "desc";
+        }
+
+        inspector.updateStartupStepsSortIndicators();
+        inspector.refreshStartupStepsWindow();
+    },
+
+    updateStartupStepsSortIndicators()
+    {
+        if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
+            return;
+
+        const doc = inspector.startup_steps_window.document;
+        doc.querySelectorAll(".startup-steps-sort-button").forEach((button) =>
+        {
+            const isActive = button.dataset.sortKey === inspector.startup_steps_sort_key;
+            button.classList.toggle("active", isActive);
+            button.classList.toggle("sort-asc", isActive && inspector.startup_steps_sort_direction === "asc");
+            button.classList.toggle("sort-desc", isActive && inspector.startup_steps_sort_direction === "desc");
+            const baseLabel = button.dataset.label || button.textContent;
+            button.dataset.label = baseLabel;
+            button.textContent = baseLabel;
+        });
+    },
+
+    renderStartupStepsWindow(data)
+    {
+        if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
+            return;
+
+        const doc = inspector.startup_steps_window.document;
+        const meta = doc.getElementById("startup_steps_meta");
+        const rows = doc.getElementById("startup_steps_rows");
+        if(!meta || !rows)
+            return;
+
+        const components = Array.isArray(data && data.components) ? [...data.components] : [];
+        inspector.sortStartupStepsComponents(components);
+        inspector.updateStartupStepsSortIndicators();
+
+        meta.textContent = `tick ${Number.isFinite(data && data.tick) ? data.tick : "-"} | updated ${new Date().toLocaleTimeString()}`;
+
+        if(components.length === 0)
+        {
+            rows.innerHTML = '<tr><td colspan="6">No startup-step data available.</td></tr>';
+            return;
+        }
+
+        rows.innerHTML = components.map((component) =>
+        {
+            const className = component.class || component.name || "-";
+            return `<tr>
+<td class="path path-column" title="${inspector.escapeHTML(component.path || "-")}">${inspector.escapeHTML(component.path || "-")}</td>
+<td class="class-column">${inspector.escapeHTML(className)}</td>
+<td class="number">${inspector.escapeHTML(inspector.formatModuleStart(component.module_start))}</td>
+<td class="number">${inspector.escapeHTML(inspector.formatStartupStep(component.start_tick))}</td>
+<td class="number">${inspector.escapeHTML(inspector.formatStartupStep(component.startup_first_real_input_step))}</td>
+<td class="number">${inspector.escapeHTML(inspector.formatStartupStep(component.startup_all_real_inputs_step))}</td>
+</tr>`;
+        }).join("");
+    },
+
+    showStartupStepsError(message)
+    {
+        if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
+            return;
+
+        const doc = inspector.startup_steps_window.document;
+        const meta = doc.getElementById("startup_steps_meta");
+        const rows = doc.getElementById("startup_steps_rows");
+        if(meta)
+        {
+            meta.textContent = message;
+            meta.className = "startup-steps-meta startup-steps-error";
+        }
+        if(rows)
+            rows.innerHTML = '<tr><td colspan="6">Unable to load startup-step data.</td></tr>';
+    },
+
+    refreshStartupStepsWindow()
+    {
+        if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
+            return;
+
+        fetch('/startupsteps', {
+            method: 'GET',
+            headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id},
+            cache: 'no-store'
+        })
+        .then((response) =>
+        {
+            if(!response.ok)
+                throw new Error(`Startup steps request failed (${response.status})`);
+            return response.json();
+        })
+        .then((data) =>
+        {
+            const doc = inspector.startup_steps_window && !inspector.startup_steps_window.closed ? inspector.startup_steps_window.document : null;
+            const meta = doc ? doc.getElementById("startup_steps_meta") : null;
+            if(meta)
+                meta.className = "startup-steps-meta";
+            inspector.renderStartupStepsWindow(data);
+        })
+        .catch((error) =>
+        {
+            console.log("startup steps update failed", error);
+            inspector.showStartupStepsError("Startup steps update failed.");
         });
     },
 
@@ -2926,6 +3303,14 @@ td.class-column {
         return value;
     },
 
+    normalizeTextEditValue(target)
+    {
+        return String(target?.innerText ?? target?.textContent ?? "")
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n")
+            .replace(/\u200B/g, "");
+    },
+
     /* [{type, name, control}] */
 
     acreateHeaderRow(item, template)
@@ -2981,8 +3366,9 @@ td.class-column {
         );
         const commitTextEditValue = function(evt)
         {
-            let newValue = evt.target.innerText.replace(String.fromCharCode(10), "").replace(String.fromCharCode(13), "");
-            newValue = newValue.replace(/\u200B/g, "");
+            let newValue = inspector.normalizeTextEditValue(evt.target);
+            if(p.type != "string")
+                newValue = newValue.replace(/\n/g, "");
             if(!inspector.checkValueForType(newValue, p.type))
                 return;
             item[p.name] = inspector.parseValueForType(newValue, p.type, item[p.name]);
@@ -2993,7 +3379,7 @@ td.class-column {
         };
         cell2.addEventListener("keypress", function(evt) 
         {
-            if(evt.keyCode == 13)
+            if(evt.keyCode == 13 && p.type != "string")
             {
                 evt.target.blur();
                 evt.preventDefault();
@@ -3003,7 +3389,7 @@ td.class-column {
 
         cell2.addEventListener("input", function(evt)
         {
-            updateDefaultPlaceholderState(evt.target, evt.target.innerText.trim() === "");
+            updateDefaultPlaceholderState(evt.target, inspector.normalizeTextEditValue(evt.target).trim() === "");
             if(commitOnInput)
                 commitTextEditValue(evt);
         });
@@ -3011,7 +3397,7 @@ td.class-column {
         cell2.addEventListener("blur", function(evt) 
         {
             commitTextEditValue(evt);
-            updateDefaultPlaceholderState(evt.target, evt.target.innerText.trim() === "");
+            updateDefaultPlaceholderState(evt.target, inspector.normalizeTextEditValue(evt.target).trim() === "");
         });
     },
 
@@ -4178,7 +4564,6 @@ td.class-column {
         const nameOnlyDataRow = [
             {'name': 'name', 'control': 'textedit', 'type': 'source'}
         ];
-    
         switch (item._tag) {
             case "module":
                 inspector.addHeader("MODULE");
