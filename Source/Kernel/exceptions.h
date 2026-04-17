@@ -31,6 +31,12 @@ namespace ikaros {
         fatal_runtime_error(std::string message, std::string path="") : exception(message, path) {}
     };
 
+    class socket_startup_error : public exception
+    {
+    public:
+        socket_startup_error(std::string message, std::string path="") : exception(message, path) {}
+    };
+
 
     class load_failed : public exception 
     {
@@ -80,5 +86,4 @@ namespace ikaros {
         serial_error(std::string message, std::string path="") : exception(message, path) {}
     };
 };
-
 

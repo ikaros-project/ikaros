@@ -70,6 +70,12 @@ namespace
             return Shutdown(code, false);
         }
 
+        int HandleLoopException(const socket_startup_error & e)
+        {
+            LogLoopError("Ikaros error: " + e.message(), e.path());
+            return FailFast(1);
+        }
+
         int HandleLoopException(const exception & e)
         {
             return RecoverOrExit("Ikaros error: " + e.message(), e.path());
@@ -92,6 +98,10 @@ namespace
             {
                 fn();
                 return -1;
+            }
+            catch(const socket_startup_error & e)
+            {
+                return HandleLoopException(e);
             }
             catch(const exception & e)
             {

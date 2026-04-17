@@ -3417,7 +3417,11 @@ bool operator==(Request & r, const std::string s)
         }
         catch (const exception& e)
         {
-            throw fatal_error("Ikaros is unable to start a webserver on port "+std::to_string(port)+". Make sure no other ikaros process is running and try again.");
+            throw socket_startup_error("Ikaros is unable to start the webserver on port " + std::to_string(port) + ": " + e.message(), e.path());
+        }
+        catch (const std::exception& e)
+        {
+            throw socket_startup_error("Ikaros is unable to start the webserver on port " + std::to_string(port) + ": " + std::string(e.what()));
         }
 
         httpThread = std::thread(Kernel::StartHTTPThread, this);
