@@ -4,8 +4,8 @@
 	<module class = "OutputFile" name = "OutputFile" filename="protocol_output.tsv"  format="tsv" />
 	<module class = "Logger" name = "Logger" />	
 
-	<connection  source = "Protocol.STIMULUS" target = "OutputFile.INPUT" alias="CS" />
-	<connection  source = "Protocol.REWARD" target = "OutputFile.INPUT"  alias="Rew" />
+	<connection  source = "Protocol.STIMULUS" target = "OutputFile.INPUT" label="CS" />
+	<connection  source = "Protocol.REWARD" target = "OutputFile.INPUT"  label="Rew" />
 
 	<group name="Subgroup">
 
@@ -17,4 +17,3 @@
 
 	</group>
 </group>
-

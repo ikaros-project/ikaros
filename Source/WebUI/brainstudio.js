@@ -4688,7 +4688,7 @@ td.class-column {
                     {'name':'source_range', 'label':'source range', 'control':'range-editor', 'type':'range'},
                     {'name':'target_range', 'label':'target range', 'control':'range-editor', 'type':'range'},
                     {'name':'delay', 'control':'textedit', 'type':'delay'},
-                    {'name':'alias', 'control':'textedit', 'type':'source'}     
+                    {'name':'label', 'control':'textedit', 'type':'source'}     
                 ], this);
                 const connectionRows = [];
                 connectionRows.push({
@@ -4707,7 +4707,7 @@ td.class-column {
             else
             {
                 inspector.addAttributeValue("delay_range", item.delay_range);
-                inspector.addAttributeValue("alias", item.alias);
+                inspector.addAttributeValue("label", item.label);
             }
     },
 

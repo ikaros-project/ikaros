@@ -2,7 +2,7 @@
 
 ## Description
 
-Prints its input to the console each tick; alias is used as label if set on connetion.
+Prints its input to the console each tick; the connection label is used if set on the connection.
 
 It receives INPUT. A meaningful use case is to place the module inside a larger sensorimotor or
 cognitive architecture where it helps transform, summarize, or route signals between neural

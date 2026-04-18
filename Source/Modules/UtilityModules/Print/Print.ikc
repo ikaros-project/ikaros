@@ -1,3 +1,3 @@
-<class name="Add" description="prints its input to the console each tick; alias is used as label if set on connetion">
-	<input name="INPUT" description="The input to be printed." flatten="no"  use_alias="yes" optional="yes" />
+<class name="Add" description="prints its input to the console each tick; the connection label is used if set on the connection">
+	<input name="INPUT" description="The input to be printed." flatten="no"  use_label="yes" optional="yes" />
 </class>

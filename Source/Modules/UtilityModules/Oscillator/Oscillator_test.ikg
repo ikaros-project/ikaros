@@ -2,5 +2,5 @@
    <module class="Oscillator"  frequency="1, 2, 3" name="Oscillator" type="sin" />
    <module class="Print" name="Print" />
 
-   <connection alias="signal" source="Oscillator.OUTPUT" target="Print.INPUT" />
+   <connection label="signal" source="Oscillator.OUTPUT" target="Print.INPUT" />
 </group>

@@ -1426,16 +1426,16 @@ namespace ikaros
           Trace("\t\t\tComponent::SetInputSize_Index Alloc "+std::to_string(flattened_input_size), path_);
         }
 
-        if(d.is_set("use_alias"))
+        if(d.is_set("use_label"))
         {
             begin_index = 0;
             for(auto & c : ingoing_connections.at(full_name))
             {
                 int s = c->source_range.size() * std::max(1, c->delay_range_.trim().size());
-                if(c->alias_.empty())
+                if(c->label_.empty())
                     kernel().buffers[full_name].push_label(0, c->source, s); // WAS: kernel().buffers[d.at(full_name)].push_label(0, c->source, s);
                 else
-                    kernel().buffers[full_name].push_label(0, c->alias_, s); // WAS: kernel().buffers[d.at(full_name)].push_label(0, c->alias_, s);
+                    kernel().buffers[full_name].push_label(0, c->label_, s); // WAS: kernel().buffers[d.at(full_name)].push_label(0, c->label_, s);
             }
         }
         return 0;
@@ -1479,13 +1479,13 @@ namespace ikaros
         kernel().buffers[full_name].realloc(input_size.extent());
         Trace("\t\t\tComponent::SetInputSize Alloc" + std::string(input_size), full_name);
 
-        // Set alias if requested and there is only a single input
+        // Set label if requested and there is only a single input
 
-        if(d.is_set("use_alias"))
+        if(d.is_set("use_label"))
         {
             auto ic = ingoing_connections.at(full_name);
-            if(ic.size() == 1 && !ic[0]->alias_.empty())
-                kernel().buffers[name].set_name(ic[0]->alias_);
+            if(ic.size() == 1 && !ic[0]->label_.empty())
+                kernel().buffers[name].set_name(ic[0]->label_);
         }
 
         return 1;
@@ -1722,7 +1722,7 @@ namespace ikaros
 
     // Connection
 
-    Connection::Connection(std::string s, std::string t, range & delay_range, std::string alias)
+    Connection::Connection(std::string s, std::string t, range & delay_range, std::string label)
     {
         source = peek_head(s, "[");
         source_range = range(peek_tail(s, "[", true));
@@ -1730,7 +1730,7 @@ namespace ikaros
         target_range = range(peek_tail(t, "[", true));
         delay_range_ = delay_range;
         flatten_ = false;
-        alias_ = alias;
+        label_ = label;
     }
 
 
@@ -1848,8 +1848,8 @@ namespace ikaros
     Connection::Print() const
     {
         std::cout << "\t" << source <<  delay_range_.curly() <<  std::string(source_range) << " => " << target  << std::string(target_range);
-        if(!alias_.empty())
-            std::cout << " \"" << alias_ << "\"";
+        if(!label_.empty())
+            std::cout << " \"" << label_ << "\"";
         std::cout << '\n'; 
     }
 
@@ -1858,8 +1858,8 @@ std::string
 Connection::Info() const
 {
     std::string s = source + delay_range_.curly() +  std::string(source_range) + " => " + target  + std::string(target_range);
-        if(!alias_.empty())
-            s+=  " \"" + alias_ + "\"";
+        if(!label_.empty())
+            s+=  " \"" + label_ + "\"";
     return s;
 }
 
@@ -2939,14 +2939,14 @@ bool operator==(Request & r, const std::string s)
          std::string target = path + "." + std::string(info["target"]);
 
          std::string delay_range = info.contains_non_null("delay") ? info["delay"] : "";
-         std::string alias = info.contains_non_null("alias") ? info["alias"] : "";
+         std::string label = info.contains_non_null("label") ? info["label"] : "";
 
         if(delay_range.empty() || delay_range=="null")
             delay_range = "[1]";
         else if(delay_range[0] != '[')
             delay_range = "["+delay_range+"]";
         range r(delay_range);
-        connections.push_back(Connection(source, target, r, alias));
+        connections.push_back(Connection(source, target, r, label));
     }
 
 

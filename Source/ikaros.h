@@ -344,10 +344,10 @@ public:
     std::string target;
     range       target_range;
     range       delay_range_;
-    std::string alias_;
+    std::string label_;
     bool        flatten_;
 
-    Connection(std::string s, std::string t, range & delay_range, std::string alias="");
+    Connection(std::string s, std::string t, range & delay_range, std::string label="");
     virtual ~Connection() = default;
 
     range Resolve(const range & source_output);
