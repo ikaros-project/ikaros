@@ -1,0 +1,20 @@
+<class name="AudioFilter" description="24 dB/oct low-pass audio filter with audio-rate envelope modulation">
+    <description>
+        AudioFilter is a buffered four-stage low-pass filter intended to pair with modules such as
+        AudioOscillator and ADSREnvelope. It processes one audio buffer per tick, supports
+        per-sample cutoff modulation, and can use ADSR output to open the filter dynamically over
+        time.
+    </description>
+
+    <parameter name="sample_rate" type="number" default="0" description="samples/s; default 0 means 1/tick_duration. Set this in the top group to make it the same for all audio modules." />
+    <parameter name="cutoff" type="number" default="200" description="Base cutoff in Hz when CUTOFF is not connected" />
+    <parameter name="resonance" type="number" default="0" description="Feedback amount; internally limited to a stable range around 0..1.2" />
+    <parameter name="envelope_amount" type="number" default="4" description="Cutoff modulation depth in octaves for CUTOFF_MOD" />
+
+    <input name="INPUT" description="Audio input buffer" />
+    <input name="CUTOFF" optional="true" description="Optional base cutoff in Hz" />
+    <input name="CUTOFF_MOD" optional="true" description="Audio-rate cutoff modulation, typically from ADSREnvelope" />
+    <input name="RESONANCE_MOD" optional="true" description="Optional resonance modulation added to the resonance parameter" />
+
+    <output name="OUTPUT" description="Filtered audio buffer" size="@sample_rate*@tick_duration" />
+</class>
