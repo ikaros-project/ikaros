@@ -3,43 +3,25 @@
 <class name="InputVideoFile" description="reads a video file using FFmpeg">
 
 	<description type="text">
-		Module that reads a movie using the FFMpeg library. The movie can be optionally scaled by setting the parameters size_x and size_y.
+		Module that reads a movie using the FFmpeg library. The movie can be scaled by setting the size_x and size_y parameters.
 	</description>
 
+	<parameter name="filename" type="string" description="File or URL to read the video from." />
+	<parameter name="size_x" type="number" default="0" description="Width of the output image. Set to 0 to use the movie's native width." />
+	<parameter name="size_y" type="number" default="0" description="Height of the output image. Set to 0 to use the movie's native height." />
+	<parameter name="loop" type="bool" default="no" description="Loop playback when the movie reaches the end." />
+	<parameter name="info" type="bool" default="no" description="Print information about the video stream." />
 
-    
-    <parameter name="filename" type="string" description="File or url to read the data from." />
-	<parameter name="size_x" type="number" default="original movie size" description="Size to scale the movie to" />
-	<parameter name="size_y" type="number" default="original movie size" description="Size to scale the movie to" />
-	<parameter name="loop" type="bool" default="no" description="Loop playback" />
-	<parameter name="info" type="bool" default="no" description="Printing information about the video stream" />
+	<output name="RED" description="The red channel." alias="OUTPUT[0]"/>
+	<output name="GREEN" description="The green channel." alias="OUTPUT[1]"/>
+	<output name="BLUE" description="The blue channel." alias="OUTPUT[2]"/>
+	<output name="INTENSITY" description="The intensity channel." size="@size_y,@size_x" />
+	<output name="OUTPUT" description="RGB image." size="3,@size_y,@size_x"/>
+	<output name="RESTART" size="1" description="This output is 1 on the first frame of the movie and when playback restarts." />
 
-    <_output name="RED" description="The red channel." size="@size_y,@size_x"/>
-	<_output name="GREEN" description="The green channel." size="@size_y,@size_x" />
-	<_output name="BLUE" description="The blue channel." size="@size_y,@size_x" />
-	<_output name="INTENSITY" description="The intensity channel." size="@size_y,@size_x" />
-	<_output name="RESTART" size = "1" description="This output is 1 on the first frame of the movie." />
-
-	<output name="RED" description="The red channel." size="108,148"/>
-	<output name="GREEN" description="The green channel." size="108,148"/>
-	<output name="BLUE" description="The blue channel." size="108,148"/>
-	<output name="INTENSITY" description="The intensity channel." size="108,148" />
-	<output name="OUTPUT" description="RGB image." size="3, 108,148"/>
-
-	<__output name="RED" description="The red channel." size="@size_y,@size_x"/>
-	<__output name="GREEN" description="The green channel." size="@size_y,@size_x"/>
-	<__output name="BLUE" description="The blue channel." size="@size_y,@size_x"/>
-	<__output name="INTENSITY" description="The intensity channel." siz__="@size_y,@size_x" />
-	<__output name="OUTPUT" description="RGB image." size="3,@size_y,@s__ze_x"/>
-
-	<output name="RESTART" size = "1" description="This output is 1 on the first frame of the movie." />
-
-    
-
-   <files>
-   		<file>InputVideoFile.h</file>
-   		<file>InputVideoFile.cc</file>
-   		<file>InputVideoFile.ikc</file>
-   </files>
+	<files>
+		<file>InputVideoFile.cc</file>
+		<file>InputVideoFile.ikc</file>
+	</files>
 
 </class>
