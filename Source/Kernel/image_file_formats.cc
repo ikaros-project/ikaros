@@ -16,9 +16,6 @@ extern "C"
 #include "jpeglib.h"
 #include <setjmp.h>
 #include <png.h>
-#include <png.h>
-
-
 }
 namespace ikaros
 {
