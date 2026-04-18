@@ -20,6 +20,7 @@ class AudioDelay: public Module
     std::vector<float> delay_buffer;
     size_t      write_index = 0;
     double      filtered_delay_state = 0.0;
+    bool        warned_buffer_size = false;
 
     void Init()
     {
@@ -40,6 +41,20 @@ class AudioDelay: public Module
     {
         double sr = sample_rate;
         return sr > 0.0 ? sr : 1.0 / GetTickDuration();
+    }
+
+    void WarnIfBufferGeometryIsFractional(double sr)
+    {
+        if(warned_buffer_size || sr <= 0.0)
+            return;
+
+        const double exact_samples = sr * GetTickDuration();
+        const double rounded_samples = std::round(exact_samples);
+        if(std::abs(exact_samples - rounded_samples) > 1e-6)
+        {
+            Warning("AudioDelay sample_rate * tick_duration is not an integer number of samples (" + std::to_string(exact_samples) + "). Audio buffers may not match timing exactly.");
+            warned_buffer_size = true;
+        }
     }
 
     double ReadSample(const matrix & m, int index, double fallback = 0.0) const
@@ -70,6 +85,7 @@ class AudioDelay: public Module
             return;
 
         const double sr = EffectiveSampleRate();
+        WarnIfBufferGeometryIsFractional(sr);
         const double clamped_delay_time = std::max(delay_time.as_double(), 0.0);
         const size_t delay_samples = static_cast<size_t>(std::max(1.0, std::round(clamped_delay_time * sr)));
         const double feedback = std::clamp(feedback_gain.as_double(), -0.999, 0.999);

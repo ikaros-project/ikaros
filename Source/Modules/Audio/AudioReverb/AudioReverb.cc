@@ -54,11 +54,26 @@ class AudioReverb: public Module
     std::array<DelayLine, 4> comb_lines;
     std::array<double, 4> comb_filters = {0.0, 0.0, 0.0, 0.0};
     std::array<DelayLine, 2> allpass_lines;
+    bool        warned_buffer_size = false;
 
     double EffectiveSampleRate() const
     {
         double sr = sample_rate;
         return sr > 0.0 ? sr : 1.0 / GetTickDuration();
+    }
+
+    void WarnIfBufferGeometryIsFractional(double sr)
+    {
+        if(warned_buffer_size || sr <= 0.0)
+            return;
+
+        const double exact_samples = sr * GetTickDuration();
+        const double rounded_samples = std::round(exact_samples);
+        if(std::abs(exact_samples - rounded_samples) > 1e-6)
+        {
+            Warning("AudioReverb sample_rate * tick_duration is not an integer number of samples (" + std::to_string(exact_samples) + "). Audio buffers may not match timing exactly.");
+            warned_buffer_size = true;
+        }
     }
 
     double ReadSample(const matrix & m, int index, double fallback = 0.0) const
@@ -119,6 +134,7 @@ class AudioReverb: public Module
             return;
 
         const double sr = EffectiveSampleRate();
+        WarnIfBufferGeometryIsFractional(sr);
         const size_t wanted_predelay = SamplesFromSeconds(pre_delay.as_double(), sr);
         if(predelay_line.buffer.size() != wanted_predelay)
             predelay_line.resize(wanted_predelay);

@@ -32,6 +32,7 @@ private:
     //float timeStep;
     std::default_random_engine generator;
     std::uniform_real_distribution<float> distribution;
+    bool warned_buffer_size;
 
     // Input/Output
     matrix waveshape;
@@ -55,11 +56,24 @@ void AudioSynth::Init()
     phase = 0.0f;
     //updateTimeStep();
     distribution = std::uniform_real_distribution<float>(-1.0f, 1.0f);
+    warned_buffer_size = false;
 }
 
 
 void AudioSynth::Tick()
 {
+    const double sr_for_check = sampleRate.as_double();
+    if (!warned_buffer_size && sr_for_check > 0.0)
+    {
+        const double exact_samples = sr_for_check * GetTickDuration();
+        const double rounded_samples = std::round(exact_samples);
+        if (std::abs(exact_samples - rounded_samples) > 1e-6)
+        {
+            Warning("AudioSynth sample_rate * tick_duration is not an integer number of samples (" + std::to_string(exact_samples) + "). Audio buffers may not match timing exactly.");
+            warned_buffer_size = true;
+        }
+    }
+
     float time = GetNominalTime();
     double sr = sampleRate;
     double sx = output.size_x();
@@ -146,4 +160,3 @@ float AudioSynth::interpolateWaves(float w1, float w2, float t)
 
 
 INSTALL_CLASS(AudioSynth)
-

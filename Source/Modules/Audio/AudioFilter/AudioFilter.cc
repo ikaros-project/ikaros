@@ -22,6 +22,7 @@ class AudioFilter: public Module
     double      z2 = 0.0;
     double      z3 = 0.0;
     double      z4 = 0.0;
+    bool        warned_buffer_size = false;
 
     void ResetState()
     {
@@ -55,6 +56,20 @@ class AudioFilter: public Module
         return sr > 0.0 ? sr : 1.0 / GetTickDuration();
     }
 
+    void WarnIfBufferGeometryIsFractional(double sr)
+    {
+        if(warned_buffer_size || sr <= 0.0)
+            return;
+
+        const double exact_samples = sr * GetTickDuration();
+        const double rounded_samples = std::round(exact_samples);
+        if(std::abs(exact_samples - rounded_samples) > 1e-6)
+        {
+            Warning("AudioFilter sample_rate * tick_duration is not an integer number of samples (" + std::to_string(exact_samples) + "). Audio buffers may not match timing exactly.");
+            warned_buffer_size = true;
+        }
+    }
+
     double ReadSample(const matrix & m, int index, double fallback = 0.0) const
     {
         if(!m.connected() || m.size() == 0)
@@ -73,6 +88,7 @@ class AudioFilter: public Module
             ResetState();
 
         const double sr = EffectiveSampleRate();
+        WarnIfBufferGeometryIsFractional(sr);
         const double min_cutoff = 20.0;
         const double max_cutoff = 0.45 * sr;
         const double max_feedback = 1.2;

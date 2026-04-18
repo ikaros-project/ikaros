@@ -4510,7 +4510,7 @@ bool operator==(Request & r, const std::string s)
             {
                 if(run_mode == run_mode_realtime && tick_duration > 0 && intra_tick_timer.GetTime() >= tick_duration)
                 {
-                    Notify(msg_warning, "Stopped sending data before next realtime tick.");
+                    Notify(msg_debug, "Stopped sending data before next realtime tick.");
                     break;
                 }
 

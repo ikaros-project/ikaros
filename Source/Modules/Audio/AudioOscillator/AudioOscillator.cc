@@ -18,6 +18,21 @@ class AudioOscillator: public Module
     matrix      modulation;
     matrix      output;
     double      phase = 0.0;
+    bool        warned_buffer_size = false;
+
+    void WarnIfBufferGeometryIsFractional(double sr)
+    {
+        if(warned_buffer_size || sr <= 0.0)
+            return;
+
+        const double exact_samples = sr * GetTickDuration();
+        const double rounded_samples = std::round(exact_samples);
+        if(std::abs(exact_samples - rounded_samples) > 1e-6)
+        {
+            Warning("AudioOscillator sample_rate * tick_duration is not an integer number of samples (" + std::to_string(exact_samples) + "). Audio buffers may not match timing exactly.");
+            warned_buffer_size = true;
+        }
+    }
 
     void Init()
     {
@@ -59,6 +74,8 @@ class AudioOscillator: public Module
         double sr = sample_rate;
         if(sr <= 0)
             sr = 1.0 / GetTickDuration();
+
+        WarnIfBufferGeometryIsFractional(sr);
 
         if(output.rank() != 1)
             return;

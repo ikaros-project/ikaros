@@ -29,6 +29,21 @@ class ADSREnvelope: public Module
     double      level = 0.0;
     double      release_start = 0.0;
     bool        previous_gate_high = false;
+    bool        warned_buffer_size = false;
+
+    void WarnIfBufferGeometryIsFractional(double sr)
+    {
+        if(warned_buffer_size || sr <= 0.0)
+            return;
+
+        const double exact_samples = sr * GetTickDuration();
+        const double rounded_samples = std::round(exact_samples);
+        if(std::abs(exact_samples - rounded_samples) > 1e-6)
+        {
+            Warning("ADSREnvelope sample_rate * tick_duration is not an integer number of samples (" + std::to_string(exact_samples) + "). Audio buffers may not match timing exactly.");
+            warned_buffer_size = true;
+        }
+    }
 
     void Init()
     {
@@ -81,6 +96,7 @@ class ADSREnvelope: public Module
     void Tick()
     {
         double sr = EffectiveSampleRate();
+        WarnIfBufferGeometryIsFractional(sr);
         double dt = 1.0 / sr;
 
         double a = std::max(attack.as_double(), 0.0);
