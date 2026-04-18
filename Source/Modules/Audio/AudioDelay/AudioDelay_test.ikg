@@ -1,0 +1,26 @@
+<group name="AudioDelayTest" sample_rate="10000" tick_duration="0.1" real_time="true">
+   <module class="TimeSeries" name="Notes" base_duration="0.25" loop="true" data="220; 277.182631; 329.627557; 440" />
+   <module class="TimeSeries" name="Gate" base_duration="0.25" loop="true" data="1; 0; 1; 0" />
+   <module class="AudioOscillator" name="Oscillator" sample_rate="10000" wave_shape="saw" />
+   <module class="ADSREnvelope" name="Envelope" sample_rate="10000" attack="0.01" decay="0.08" sustain="0.4" release="0.16" />
+   <module class="Multiply" name="VCA" />
+   <module class="AudioDelay" name="Delay" sample_rate="10000" delay_time="0.22" feedback_gain="0.45" mix="0.45" lowpass_cutoff="2500" />
+   <module class="AudioOutput" name="AudioOutput" />
+
+   <connection source="Notes.OUTPUT" target="Oscillator.INPUT" delay="0" />
+   <connection source="Gate.OUTPUT" target="Envelope.GATE" delay="0" />
+   <connection source="Gate.TRIG" target="Envelope.TRIG" delay="0" />
+   <connection source="Oscillator.OUTPUT" target="VCA.INPUT1" delay="0" />
+   <connection source="Envelope.OUTPUT" target="VCA.INPUT2" delay="0" />
+   <connection source="VCA.OUTPUT" target="Delay.INPUT" delay="0" />
+   <connection source="Delay.OUTPUT" target="AudioOutput.INPUT" delay="0" />
+
+   <widget name="DryPlot" class="plot" source="VCA.OUTPUT" width="250" height="180" _x="40" _y="40" title="Dry" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
+   <widget name="DelayPlot" class="plot" source="Delay.OUTPUT" width="250" height="180" _x="320" _y="40" title="Delay" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
+   <widget name="EnvPlot" class="plot" source="Envelope.OUTPUT" width="250" height="180" _x="600" _y="40" title="Envelope" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
+
+   <widget name="DelayTime" class="slider-horizontal" parameter="Delay.delay_time" title="Delay Time" labels="" source="" select="0" count="1" min="0.01" max="1.0" step="0.01" show_title="true" show_values="true" show_frame="false" frame-style="" style="" width="260" height="49" _x="40" _y="280" />
+   <widget name="DelayFeedback" class="slider-horizontal" parameter="Delay.feedback_gain" title="Feedback" labels="" source="" select="0" count="1" min="0" max="0.95" step="0.01" show_title="true" show_values="true" show_frame="false" frame-style="" style="" width="260" height="49" _x="320" _y="280" />
+   <widget name="DelayMix" class="slider-horizontal" parameter="Delay.mix" title="Mix" labels="" source="" select="0" count="1" min="0" max="1.0" step="0.01" show_title="true" show_values="true" show_frame="false" frame-style="" style="" width="260" height="49" _x="600" _y="280" />
+   <widget name="DelayLowpass" class="slider-horizontal" parameter="Delay.lowpass_cutoff" title="Lowpass" labels="" source="" select="0" count="1" min="20" max="4000" step="1" show_title="true" show_values="true" show_frame="false" frame-style="" style="" width="260" height="49" _x="880" _y="280" />
+</group>

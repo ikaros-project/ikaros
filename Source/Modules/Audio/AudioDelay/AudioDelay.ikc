@@ -1,0 +1,16 @@
+<class name="AudioDelay" description="Single-tap audio delay with feedback">
+    <description>
+        AudioDelay is a buffered audio delay line with one tap and a feedback loop. It is intended
+        for use with audio-rate modules such as AudioOscillator, ADSREnvelope, AudioFilter, and
+        AudioOutput.
+    </description>
+
+    <parameter name="sample_rate" type="number" default="0" description="samples/s; default 0 means 1/tick_duration. Set this in the top group to make it the same for all audio modules." />
+    <parameter name="delay_time" type="number" default="0.25" description="Delay time in seconds" />
+    <parameter name="feedback_gain" type="number" default="0.35" description="Feedback gain; internally limited to the stable range -0.999..0.999" />
+    <parameter name="mix" type="number" default="0.5" description="Dry/wet mix in the range 0..1" />
+    <parameter name="lowpass_cutoff" type="number" default="4000" description="Low-pass cutoff in Hz for the delayed path" />
+
+    <input name="INPUT" description="Audio input buffer" />
+    <output name="OUTPUT" description="Delayed audio buffer" size="@sample_rate*@tick_duration" />
+</class>
