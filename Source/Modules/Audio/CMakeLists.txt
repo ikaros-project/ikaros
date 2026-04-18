@@ -8,6 +8,7 @@ add_subdirectory(ADSREnvelope)
 add_subdirectory(AudioFilter)
 add_subdirectory(AudioDelay)
 add_subdirectory(AudioReverb)
+add_subdirectory(OutputAudioFile)
 
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)

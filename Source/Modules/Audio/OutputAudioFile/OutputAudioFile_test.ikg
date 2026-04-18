@@ -1,0 +1,8 @@
+<group name="OutputAudioFileTest" sample_rate="10000" tick_duration="0.1">
+   <module class="AudioOscillator" name="Oscillator" sample_rate="10000" frequency="440" wave_shape="sine" />
+   <module class="OutputAudioFile" name="FileOut" sample_rate="10000" filename="/tmp/output_audio_file_test.wav" bits_per_sample="16" />
+
+   <connection source="Oscillator.OUTPUT" target="FileOut.INPUT" delay="0" />
+
+   <widget name="SignalPlot" class="plot" source="Oscillator.OUTPUT" width="250" height="180" _x="120" _y="220" title="Signal" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
+</group>

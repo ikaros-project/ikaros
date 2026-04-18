@@ -1,0 +1,13 @@
+<class name="OutputAudioFile" description="Writes buffered audio to a WAV file">
+    <description>
+        OutputAudioFile records incoming audio buffers to a WAV file on disk. It supports mono 1D
+        buffers and simple 2D channel-by-frame buffers, writes samples continuously across ticks,
+        and finalizes the WAV header when the module is destroyed.
+    </description>
+
+    <parameter name="filename" type="string" default="output.wav" description="Destination WAV filename" />
+    <parameter name="sample_rate" type="number" default="0" description="samples/s; default 0 means 1/tick_duration. Set this in the top group to make it the same for all audio modules." />
+    <parameter name="bits_per_sample" type="number" default="16" description="WAV sample format. Supported values are 16 (PCM) and 32 (float)." />
+
+    <input name="INPUT" description="Audio buffer to write" />
+</class>
