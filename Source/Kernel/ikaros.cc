@@ -1531,6 +1531,9 @@ namespace ikaros
     {
        Trace("\t\t\tComponent::SetOutputSize " , path_ + "." + std::string(d["name"]));
 
+        if(d.contains_non_null("alias"))
+            return 0;
+
         if(d.contains("size"))
             throw setup_failed(u8"Output \""+std::string(d["name"])+"\"+in group \""+path_+"\" can not have size attribute.", path_);
 
@@ -1557,12 +1560,87 @@ namespace ikaros
     }
 
 
+    int
+    Component::ApplyOutputAliases()
+    {
+        Kernel & k = kernel();
+
+        for(auto & output_value : info_["outputs"])
+        {
+            dictionary d = output_value;
+            if(!d.contains_non_null("alias"))
+                continue;
+
+            std::string output_name = d["name"].as_string();
+            std::string full_output_name = path_ + "." + output_name;
+            std::string alias_spec = trim(d["alias"].as_string());
+
+            if(alias_spec.empty())
+                throw setup_failed("Output \"" + output_name + "\" has an empty alias.", path_);
+
+            if(d.contains("size"))
+                throw setup_failed("Aliased output \"" + output_name + "\" can not also specify a size.", path_);
+
+            std::string alias_source_name = peek_head(alias_spec, "[");
+            std::string alias_selector = peek_tail(alias_spec, "[", true);
+            if(alias_source_name.empty())
+                throw setup_failed("Output \"" + output_name + "\" has malformed alias \"" + alias_spec + "\".", path_);
+
+            if(alias_source_name.find('.') == std::string::npos)
+                alias_source_name = path_ + "." + alias_source_name;
+
+            if(alias_source_name == full_output_name)
+                throw setup_failed("Output \"" + output_name + "\" can not alias itself.", path_);
+
+            if(!k.buffers.count(alias_source_name))
+                throw setup_failed("Output \"" + output_name + "\" aliases unknown output \"" + alias_source_name + "\".", path_);
+
+            matrix aliased_output = k.buffers[alias_source_name];
+            if(aliased_output.empty())
+                return 0;
+
+            try
+            {
+                if(!alias_selector.empty())
+                {
+                    range selector(alias_selector);
+                    for(int i = 0; i < selector.rank(); ++i)
+                    {
+                        bool is_single_index = !selector.empty(i) && selector.inc_[i] == 1 && selector.b_[i] == selector.a_[i] + 1;
+                        if(!is_single_index)
+                            throw setup_failed("Output \"" + output_name + "\" alias must use single indices only.", path_);
+
+                        if(aliased_output.rank() == 0)
+                            throw setup_failed("Output \"" + output_name + "\" alias indexes deeper than its source output.", path_);
+
+                        aliased_output = aliased_output[selector.a_[i]];
+                    }
+                }
+            }
+            catch(const setup_failed &)
+            {
+                throw;
+            }
+            catch(const std::exception & e)
+            {
+                throw setup_failed("Output \"" + output_name + "\" has invalid alias \"" + alias_spec + "\". " + std::string(e.what()), path_);
+            }
+
+            aliased_output.set_name(output_name);
+            k.buffers[full_output_name] = aliased_output;
+        }
+
+        return 1;
+    }
+
+
     int 
     Component::SetOutputSizes(input_map ingoing_connections)
     {
         Trace("\t\tComponent::SetOutputSizes", path_);
         for(auto & d : info_["outputs"])
             SetOutputSize(d, ingoing_connections);
+        ApplyOutputAliases();
 
         return 0;
     }
@@ -1615,6 +1693,9 @@ namespace ikaros
     {
         try
         {
+            if(d.contains_non_null("alias"))
+                return 0;
+
             std::string size;
             if(d.contains("size"))
                 size = std::string(d.at("size"));
@@ -1655,6 +1736,7 @@ namespace ikaros
 
         for(auto & d : info_["outputs"])
             SetOutputSize(d, ingoing_connections);
+        ApplyOutputAliases();
 
         return 0;
     }

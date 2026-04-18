@@ -291,6 +291,7 @@ public:
 
     virtual int SetOutputSize(dictionary d, input_map ingoing_connections);
     virtual int SetOutputSizes(input_map & ingoing_connections); // Uses the size attribute
+    int ApplyOutputAliases();
 
     virtual int SetSizes(input_map ingoing_connections); // Sets input and output if possible
     void CheckRequiredInputs();

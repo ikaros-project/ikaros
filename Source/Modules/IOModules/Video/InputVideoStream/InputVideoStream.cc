@@ -112,10 +112,6 @@ class InputVideoStream : public Module
 			*intensity_data++ = (red_value + green_value + blue_value) * one_third;
 		}
 #endif
-
-		output[0].copy(red);
-		output[1].copy(green);
-		output[2].copy(blue);
 	}
 
 	void

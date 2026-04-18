@@ -9,9 +9,9 @@
 	<parameter name="synchronized_tick" default="true" type="bool" description="Ikaros waits until a new frame is given by the framegrabber. If set to false, Ikaros does not care whether the input is new or not. This can give the module a faster tick time but could potentially feed unnecessary data into Ikaros (false is not recommended)."/>
 	<parameter name="uv4l" type="bool" default="false" description="Forces the system to decode the stream as H.264. This is useful when receiving a raw H.264 stream from a UV4L server on a Raspberry Pi." />
 	
-	<output name="RED" description="The red channel." size="@size_y,@size_x"/>
-	<output name="GREEN" description="The green channel." size="@size_y,@size_x"/>
-	<output name="BLUE" description="The blue channel." size="@size_y,@size_x"/>
+	<output name="RED" description="The red channel." alias="OUTPUT[0]"/>
+	<output name="GREEN" description="The green channel." alias="OUTPUT[1]"/>
+	<output name="BLUE" description="The blue channel." alias="OUTPUT[2]"/>
 
 	<output name="INTENSITY" description="The intensity channel." size="@size_y,@size_x"/>
 	<output name="OUTPUT" description="RGB image." size="3,@size_y,@size_x"/>
