@@ -2,38 +2,18 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <limits.h>
-#include <time.h>
-#include <arpa/inet.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
-#include <sys/wait.h>
-#include <netdb.h>
-#include <stddef.h>
 
 #include <string>
-#include <system_error>
-#include <cstring>
-#include <csignal>
 #include <filesystem>
 #include <chrono>
 #include <queue>
 #include <mutex>
 #include <condition_variable>
 #include <map>
-#include <chrono>
 
-#include "utilities.h"
 #include "dictionary.h"
-#include "deprecated.h"
 
 inline constexpr int PORTNO = 8000; // the default port clients will be connecting to
 

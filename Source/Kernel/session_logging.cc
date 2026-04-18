@@ -1,6 +1,8 @@
 #include "session_logging.h"
 #include "ikaros.h"
 
+#include <unistd.h>
+
 namespace ikaros
 {
     namespace
