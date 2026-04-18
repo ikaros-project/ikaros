@@ -27,36 +27,28 @@
 // https://blogs.gentoo.org/lu_zero/2016/03/29/new-avcodec-api/
 // And enormous amount of googleing...
 
-// #define DEBUGTIMER
-
-#define __STDC_CONSTANT_MACROS
-extern "C"
-{
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
-#include <libavdevice/avdevice.h>
-#include <libavutil/imgutils.h>
-}
-
 #include "FFMpegGrab.h"
-
 #include "ikaros.h"
+
+#if defined(MAC_OS_X)
+#include <vecLib/vDSP.h>
+#endif
+
+#include <algorithm>
+#include <memory>
+#include <vector>
 
 using namespace ikaros;
 
 class InputVideoStream : public Module
 {
-	// parameter frameRate;
-	parameter id;
 	parameter size_x;
 	parameter size_y;
-	parameter listDevices;
 	parameter printInfo;
 	parameter url;
 	parameter uv4l;
-	parameter syncronized_framegrabber;
-	parameter syncronized_tick;
+	parameter synchronized_framegrabber;
+	parameter synchronized_tick;
 
 	matrix intensity;
 	matrix red;
@@ -64,149 +56,129 @@ class InputVideoStream : public Module
 	matrix blue;
 	matrix output;
 
-	// FFmpeg related
-	AVFormatContext *input_format_context;
-	int videoStreamId;
-	AVCodecContext *avctx;
-	AVFrame *inputFrame;
-	AVFrame *outputFrame;
-	AVPacket packet;
-	SwsContext *img_convert_ctx;
-	AVDictionary *options = NULL;
+	std::unique_ptr<FFMpegGrab> framegrabber;
+	std::vector<uint8_t> newFrame;
 
-	FFMpegGrab *framegrabber;
-	uint8_t *newFrame;
-	float convertIntToFloat[256];
+	bool
+	InitializeFrameGrabber()
+	{
+		framegrabber = std::make_unique<FFMpegGrab>();
+		framegrabber->SetUv4l(uv4l);
+		framegrabber->SetUrl(url.c_str());
+		framegrabber->SetPrintInfo(printInfo);
+		framegrabber->SetOutputSize(size_x.as_int(), size_y.as_int());
+		framegrabber->SetSynchronized(synchronized_framegrabber);
+		return framegrabber->Init();
+	}
+
+	void
+	ConvertFrameToOutputs(const uint8_t * data, int width, int height)
+	{
+		const int pixel_count = width * height;
+		float * r = red.data();
+		float * g = green.data();
+		float * b = blue.data();
+		float * intensity_data = intensity.data();
+
+#if defined(MAC_OS_X)
+		const vDSP_Length count = static_cast<vDSP_Length>(pixel_count);
+		const float byte_to_float_scale = 1.0f / 255.0f;
+		const float one_third = 1.0f / 3.0f;
+
+		vDSP_vfltu8(data, 3, r, 1, count);
+		vDSP_vfltu8(data + 1, 3, g, 1, count);
+		vDSP_vfltu8(data + 2, 3, b, 1, count);
+
+		vDSP_vsmul(r, 1, &byte_to_float_scale, r, 1, count);
+		vDSP_vsmul(g, 1, &byte_to_float_scale, g, 1, count);
+		vDSP_vsmul(b, 1, &byte_to_float_scale, b, 1, count);
+
+		std::copy_n(r, pixel_count, intensity_data);
+		vDSP_vadd(intensity_data, 1, g, 1, intensity_data, 1, count);
+		vDSP_vadd(intensity_data, 1, b, 1, intensity_data, 1, count);
+		vDSP_vsmul(intensity_data, 1, &one_third, intensity_data, 1, count);
+#else
+		const float byte_to_float_scale = 1.0f / 255.0f;
+		const float one_third = 1.0f / 3.0f;
+		for (int pixel = 0; pixel < pixel_count; ++pixel)
+		{
+			const float red_value = static_cast<float>(*data++) * byte_to_float_scale;
+			const float green_value = static_cast<float>(*data++) * byte_to_float_scale;
+			const float blue_value = static_cast<float>(*data++) * byte_to_float_scale;
+
+			*r++ = red_value;
+			*g++ = green_value;
+			*b++ = blue_value;
+			*intensity_data++ = (red_value + green_value + blue_value) * one_third;
+		}
+#endif
+
+		output[0].copy(red);
+		output[1].copy(green);
+		output[2].copy(blue);
+	}
 
 	void
 	Init()
 	{
+		Bind(size_x, "size_x");
+		Bind(size_y, "size_y");
+		Bind(url, "url");
+		Bind(printInfo, "info");
+		Bind(uv4l, "uv4l");
+		Bind(synchronized_framegrabber, "synchronized_framegrabber");
+		Bind(synchronized_tick, "synchronized_tick");
+
+		if (size_x.as_int() <= 0 || size_y.as_int() <= 0)
+		{
+			Notify(msg_fatal_error, "InputVideoStream requires positive size_x and size_y.");
+			return;
+		}
+
+		if (url.empty())
+		{
+			Notify(msg_fatal_error, "InputVideoStream requires a non-empty url.");
+			return;
+		}
+
 		Bind(intensity, "INTENSITY");
 		Bind(red, "RED");
 		Bind(green, "GREEN");
 		Bind(blue, "BLUE");
 		Bind(output, "OUTPUT");
 
-		Bind(size_x, "size_x");
-		Bind(size_y, "size_y");
-		Bind(url, "url");
-		Bind(printInfo, "info");
-		Bind(uv4l, "uv4l");
-		Bind(syncronized_framegrabber, "syncronized_framegrabber");
-		Bind(syncronized_tick, "syncronized_tick");
-
-		// Create a int to float table to speed up int to float cast.
-		for (int i = 0; i <= 255; i++)
-			convertIntToFloat[i] = 1.0 / 255.0 * i;
-
-		// Create a grabber
 		try
 		{
-			framegrabber = new FFMpegGrab();
+			if (!InitializeFrameGrabber())
+			{
+				Notify(msg_fatal_error, "Can not start frame grabber");
+				return;
+			}
 		}
-		catch (const std::exception &e)
+		catch (const std::exception &)
 		{
 			Notify(msg_fatal_error, "Can not create frame grabber");
+			return;
 		}
 
-		// Set parameters
-		framegrabber->uv4l = uv4l;
-		framegrabber->url = url.c_str(); // copy string?
-		framegrabber->printInfo = printInfo;
-		framegrabber->outputSizeX = size_x;
-		framegrabber->outputSizeY = size_y;
-		framegrabber->syncronized = syncronized_framegrabber;
-
-		// Init grabber
-		if (!framegrabber->Init())
-			Notify(msg_fatal_error, "Can not start frame grabber");
-
-		// Create memory
-		newFrame = new uint8_t[size_x * size_y * 3 * sizeof(uint8_t)];
+		newFrame.resize(static_cast<std::size_t>(size_x.as_int()) *
+						static_cast<std::size_t>(size_y.as_int()) * 3);
 	}
 
 	void
 	Tick()
 	{
-		std::mutex mtx; // mutex for critical section
-		Timer timer;
-
-		// Modes
-		// Get all frames (waitForNewData + syncronized)
-		// Get latest frame	(waitForNewData + !syncronized)
-		// Get a frame every tick (could be the same as last tick) 	(!waitForNewData + !syncronized)
-
-		bool waitForNewData = syncronized_tick;
-		bool gotNewData = false;
-
-		mtx.lock();
-		gotNewData = framegrabber->freshData;
-		mtx.unlock();
-
-		if (!gotNewData and waitForNewData) // No new data
-			while (!gotNewData)				// wait until new data
-			{
-				mtx.lock();
-				gotNewData = framegrabber->freshData;
-				mtx.unlock();
-				usleep(1000);
-			}
-
-#ifdef DEBUGTIMER
-		if (gotNewData)
-		{
-			printf("InputVideoStream:We got an new image Time %f sec\n", timer.GetTime());
-			timer.Restart();
-		}
-#endif
-
-		if (!gotNewData) // No need to int->float convert again. Use last output.
+		if (!framegrabber)
 			return;
 
-		mtx.lock();
-		memcpy(newFrame, framegrabber->frame, size_x * size_y * 3 * sizeof(uint8_t));
-		framegrabber->freshData = 0;
-		mtx.unlock();
-#ifdef DEBUGTIMER
-		printf("InputVideoStream: memcpy %f\n", timer.GetTime());
-		timer.Restart();
-#endif
-		unsigned char *data = newFrame;
+		const bool wait_for_new_data = synchronized_tick;
+		if (!framegrabber->ReadFrame(newFrame.data(), newFrame.size(), wait_for_new_data))
+			return;
 
-		float *r = red;
-		float *g = green;
-		float *b = blue;
-		float *inte = intensity;
-		int t = 0;
-
-		const float c13 = 1.0 / 3.0;
-
-		// Singel core
-		while (t++ < size_x * size_y)
-		{
-			*r = convertIntToFloat[*data++];
-			*g = convertIntToFloat[*data++];
-			*b = convertIntToFloat[*data++];
-			*inte++ = (*r++ + *g++ + *b++) * c13;
-			
-		}
-
-		// Fill output
-		output[0].copy(red);
-		output[1].copy(green);
-		output[2].copy(blue);
-
-#ifdef DEBUGTIMER
-		printf("InputVideoStream: float convert %f\n", timer.GetTime());
-		timer.Restart();
-#endif
+		ConvertFrameToOutputs(newFrame.data(), size_x.as_int(), size_y.as_int());
 	}
 
-	~InputVideoStream()
-	{
-		delete newFrame;
-		delete framegrabber;
-	}
+	~InputVideoStream() = default;
 };
 
 INSTALL_CLASS(InputVideoStream)

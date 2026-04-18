@@ -3,8 +3,8 @@
 	<module
 		class = "InputVideoStream"
 		name = "InputVideoStream"
-        url = "http://lefteye.local:8080/stream/video.h264"
-        uv4l = "true"
+        url = "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8"
+        uv4l = "false"
 		info = "false"
 	/>
 
@@ -14,4 +14,3 @@
 </group>
  
 '
-

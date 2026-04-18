@@ -23,23 +23,9 @@
 #ifndef FFMpegGrab_h
 #define FFMpegGrab_h
 
-//#define FFMPEG_FPS	// FPS for debugging
-//#define FFMPEG_TIMER  // Timer for debugging
-
-#include "ikaros.h"
-
-
-#include <stdio.h>
-#include <unistd.h>		// usleep
-#include <thread>		// std::thread
-#include <mutex>		// std::mutex
-
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
-#include <libavutil/imgutils.h>
-}
+#include <cstddef>
+#include <cstdint>
+#include <memory>
 
 class FFMpegGrab
 {
@@ -47,38 +33,24 @@ class FFMpegGrab
 	
 	FFMpegGrab();
 	~FFMpegGrab();
+
+	FFMpegGrab(const FFMpegGrab &) = delete;
+	FFMpegGrab & operator=(const FFMpegGrab &) = delete;
+
+	void SetOutputSize(int width, int height);
+	void SetUrl(const char * stream_url);
+	void SetPrintInfo(bool enabled);
+	void SetUv4l(bool enabled);
+	void SetSynchronized(bool enabled);
 	bool Init();
-	void loop();
+	bool ReadFrame(uint8_t * destination, std::size_t bytes, bool wait_for_new_frame);
 
-	// FFmpeg related
-	AVFormatContext *input_format_context;
-	int             videoStreamId;
-	const AVCodec   *input_codec;
-	AVCodecContext  *avctx;
-	AVFrame         *inputFrame;
-	AVFrame         *outputFrame;
-	AVPacket        packet;
-	int 			outputSizeX;
-	int 			outputSizeY;
-    SwsContext      *img_convert_ctx;
-	
-	uint8_t			*frame; // the framed used to store the image. Used by ikaros to grab data.
-
-	int decode(AVCodecContext *avctx, AVFrame *frame, int *got_frame, AVPacket *pkt);
-	
-	bool 			uv4l;
-	const char *	url;
-	bool 			printInfo;
-	bool 			syncronized; // Syncing with tick
-	bool 			freshData = false;
-	
-	float 			FPS;
-	Timer 			timer;
-	
-	
 	private:
-	bool 			shutdown = false;
-	bool 			shutdownComplete = false;
+	void loop();
+	void resetDecoderState();
+
+	struct Impl;
+	std::unique_ptr<Impl> impl_;
 };
 
 #endif

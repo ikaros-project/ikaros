@@ -3,7 +3,7 @@
 <br><br>
 ## Short description
 
-Grabs video using ffmpeg
+Grabs video using FFmpeg.
 
 <br><br>
 
@@ -33,11 +33,11 @@ Grabs video using ffmpeg
 |:----|:-----------|:----|:-------------|
 |size_x|Size of the image|int|640|
 |size_y|Size of the image|int|480|
-|url|Stream adress|string||
-|info|Print info about stream|string||
-|syncronized_framegrabber|The framegrabber (grabs and decodes frame) is either syncronized with the tick or run as fast/slow as it can. this is usefull when grabbing live streams where the last frame is more important than get all frames.|bool|false|
-|syncronized_tick|Ikaros wait until a new frame is given by the framegrabber. if set to false ikaros does not care of the input is new or not. this can give the module a faster tick time but could potentially feed unnecessarily data into ikaros (false is not recomended).|bool|true|
-|uv4l|Forces system to decode stream as h264. this is usefull when receiving raw h264 stream from vu4l server on a raspberry.|bool|false|
+|url|Stream address|string||
+|info|Print information about the stream|bool|false|
+|synchronized_framegrabber|The framegrabber (grabs and decodes frames) is either synchronized with the tick or runs as fast or slow as it can. This is useful when grabbing live streams where the latest frame is more important than keeping every frame.|bool|false|
+|synchronized_tick|Ikaros waits until a new frame is given by the framegrabber. If set to false, Ikaros does not care whether the input is new or not. This can give the module a faster tick time but could potentially feed unnecessary data into Ikaros (false is not recommended).|bool|true|
+|uv4l|Forces the system to decode the stream as H.264. This is useful when receiving a raw H.264 stream from a UV4L server on a Raspberry Pi.|bool|false|
 
 <br><br>
 ## Long description
