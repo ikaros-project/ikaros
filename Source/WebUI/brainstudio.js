@@ -1129,6 +1129,9 @@ let controller =
                 // SUCCESS
                 main.setViewMode(); // Pressing edit mode again will taint the network
                 network.tainted = false;    // Only place to prevent saving again
+                controller.data_package = data;
+                controller.setSystemInfo(data);
+                controller.get("update", controller.update);
                 //alert(data);
                 //console.log('Success:', data);
                 // Now request network!
@@ -1364,7 +1367,11 @@ let controller =
             else
                 document.querySelector("#debug_row").style.display="none";
 
-            document.querySelector("#file").innerText = response.file;
+            const displayedFile =
+                (network && network.network && network.network.filename != null && network.network.filename !== "" && network.network.filename !== "null") ? network.network.filename :
+                (response.filename != null && response.filename !== "" && response.filename !== "null") ? response.filename :
+                "-";
+            document.querySelector("#file").innerText = displayedFile;
             document.querySelector("#tick").innerText = (Number.isInteger(response.tick) && response.tick >= 0 ?  response.tick : "-");
             document.querySelector("#state").innerHTML = controller.run_mode + (network.tainted ? " <span style='color:red'>&#9679;</span>" : "");
 
@@ -4256,7 +4263,7 @@ td.class-column {
         const countRowKeys = ["groups", "modules", "connections", "widgets", "inputs", "outputs"];
         const countRows = [];
         const allAttributes = Object.keys(item || {});
-        const hiddenTopGroupAttributes = new Set(["filename", "webui_port", "info", "stop"]);
+        const hiddenTopGroupAttributes = new Set(["webui_port", "info", "stop"]);
         const priorityRowTemplates = new Map();
         for(const key of allAttributes)
         {
