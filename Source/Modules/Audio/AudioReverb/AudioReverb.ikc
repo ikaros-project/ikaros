@@ -1,0 +1,17 @@
+<class name="AudioReverb" description="Minimal Schroeder-style audio reverb with pre-delay">
+    <description>
+        AudioReverb is a compact buffered reverb effect built from a short pre-delay, several
+        parallel comb filters, and a small diffusion stage. It is intended as a minimal room-style
+        reverb for audio-rate patches using modules such as AudioOscillator, ADSREnvelope,
+        AudioFilter, AudioDelay, and AudioOutput.
+    </description>
+
+    <parameter name="sample_rate" type="number" default="0" description="samples/s; default 0 means 1/tick_duration. Set this in the top group to make it the same for all audio modules." />
+    <parameter name="mix" type="number" default="0.25" description="Dry/wet mix in the range 0..1" />
+    <parameter name="decay" type="number" default="0.7" description="Feedback amount controlling tail length; internally clamped to 0..0.98" />
+    <parameter name="damping" type="number" default="0.4" description="High-frequency damping in the comb feedback paths in the range 0..1" />
+    <parameter name="pre_delay" type="number" default="0.03" description="Pre-delay in seconds before the reverb tail starts" />
+
+    <input name="INPUT" description="Audio input buffer" />
+    <output name="OUTPUT" description="Reverberated audio buffer" size="@sample_rate*@tick_duration" />
+</class>
