@@ -24,14 +24,13 @@
 #ifndef InputVideoFile_
 #define InputVideoFile_
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
-#include <libavutil/imgutils.h>
-}
-
 #include "ikaros.h"
+
+struct AVFormatContext;
+struct AVCodecContext;
+struct AVFrame;
+struct AVPacket;
+struct SwsContext;
 
 class InputVideoFile: public Module
 {
@@ -67,7 +66,7 @@ public:
     AVCodecContext  *avctx;
     AVFrame         *inputFrame;
     AVFrame         *outputFrame;
-    AVPacket        packet;
+    AVPacket        *packet;
     int             numBytes;
     uint8_t         *buffer;
     SwsContext      *img_convert_ctx;
@@ -76,4 +75,3 @@ public:
 };
 
 #endif
-
