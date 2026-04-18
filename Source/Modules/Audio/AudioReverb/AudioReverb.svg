@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620">
+  <rect width="100%" height="100%" fill="white"/>
+
+  <line x1="70" y1="250" x2="308" y2="250" stroke="#333333" stroke-width="5"/>
+  <polygon points="308,240 328,250 308,260" fill="#333333"/>
+
+  <line x1="862" y1="250" x2="1040" y2="250" stroke="#333333" stroke-width="5"/>
+  <polygon points="1040,240 1060,250 1040,260" fill="#333333"/>
+
+  <text x="120" y="225" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#141414">INPUT</text>
+  <text x="900" y="225" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#141414">OUTPUT</text>
+
+  <rect x="340" y="70" width="520" height="300" rx="20" ry="20" fill="#E8F0FF" stroke="#3C5AB4" stroke-width="4"/>
+  <text x="600" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="700" fill="#141414">AudioReverb</text>
+
+  <text x="600" y="430" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#141414">Minimal Schroeder-Style Room Reverb</text>
+
+  <g transform="translate(70,470)">
+    <rect x="0" y="0" width="1060" height="100" rx="18" ry="18" fill="#F7F9FC" stroke="#B9C4DD" stroke-width="2"/>
+
+    <rect x="25" y="34" width="150" height="32" rx="12" ry="12" fill="#EAF1FF" stroke="#8EA7E6" stroke-width="2"/>
+    <line x1="175" y1="50" x2="235" y2="50" stroke="#5E6F9F" stroke-width="4"/>
+    <polygon points="235,42 249,50 235,58" fill="#5E6F9F"/>
+
+    <rect x="250" y="18" width="120" height="26" rx="11" ry="11" fill="#EAF1FF" stroke="#8EA7E6" stroke-width="2"/>
+    <rect x="250" y="56" width="120" height="26" rx="11" ry="11" fill="#EAF1FF" stroke="#8EA7E6" stroke-width="2"/>
+    <rect x="390" y="18" width="120" height="26" rx="11" ry="11" fill="#EAF1FF" stroke="#8EA7E6" stroke-width="2"/>
+    <rect x="390" y="56" width="120" height="26" rx="11" ry="11" fill="#EAF1FF" stroke="#8EA7E6" stroke-width="2"/>
+
+    <line x1="510" y1="50" x2="610" y2="50" stroke="#5E6F9F" stroke-width="4"/>
+    <polygon points="610,42 624,50 610,58" fill="#5E6F9F"/>
+
+    <rect x="625" y="19" width="135" height="32" rx="12" ry="12" fill="#EAF1FF" stroke="#8EA7E6" stroke-width="2"/>
+    <line x1="760" y1="35" x2="815" y2="35" stroke="#5E6F9F" stroke-width="4"/>
+    <polygon points="815,27 829,35 815,43" fill="#5E6F9F"/>
+    <rect x="830" y="19" width="135" height="32" rx="12" ry="12" fill="#EAF1FF" stroke="#8EA7E6" stroke-width="2"/>
+
+    <text x="100" y="55" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#141414">Pre-Delay</text>
+    <text x="310" y="37" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#141414">Comb 1</text>
+    <text x="310" y="75" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#141414">Comb 2</text>
+    <text x="450" y="37" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#141414">Comb 3</text>
+    <text x="450" y="75" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#141414">Comb 4</text>
+    <text x="692" y="41" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#141414">All-Pass 1</text>
+    <text x="897" y="41" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#141414">All-Pass 2</text>
+  </g>
+</svg>
