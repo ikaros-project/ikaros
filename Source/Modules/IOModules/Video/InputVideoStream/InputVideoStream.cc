@@ -115,7 +115,7 @@ class InputVideoStream : public Module
 	}
 
 	void
-	Init()
+	Init() override
 	{
 		Bind(size_x, "size_x");
 		Bind(size_y, "size_y");
@@ -162,7 +162,7 @@ class InputVideoStream : public Module
 	}
 
 	void
-	Tick()
+	Tick() override
 	{
 		if (!framegrabber)
 			return;
