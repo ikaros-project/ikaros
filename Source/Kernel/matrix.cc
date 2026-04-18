@@ -4,6 +4,20 @@
 #define ACCELERATE_NEW_LAPACK
 #endif
 
+#if defined(__APPLE__)
+#include <vecLib/vDSP.h>
+#include <vecLib/vForce.h>
+#include <vecLib/cblas_new.h>
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnullability-completeness"
+#endif
+#include <vecLib/lapack.h>
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+#endif
+
 #include "matrix.h"
 
 namespace ikaros {

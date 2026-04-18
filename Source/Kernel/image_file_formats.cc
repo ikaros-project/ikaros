@@ -6,6 +6,11 @@
 #include "color_tables.h"
 #include <new>
 
+#if defined(__APPLE__) && defined(USE_VIMAGE)
+#include <vImage/vImage_Types.h>
+#include <vImage/Conversion.h>
+#endif
+
 extern "C"
 {
 #include "jpeglib.h"

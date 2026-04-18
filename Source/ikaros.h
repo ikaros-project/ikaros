@@ -212,7 +212,7 @@ public:
 
     virtual ~Component() {};
 
-    std::string Info() const { return info_["name"]; }
+    std::string Info() const override { return info_["name"]; }
 
     bool Notify(int msg, std::string message, std::string path=""); // Path to componenet with problem
 
@@ -240,7 +240,7 @@ public:
 
     parameter & GetParameter(std::string name);
     virtual void SetParameters() {} // Can be overridden in modules to set parmeter values in code rather than from the ikc/ikg file; called before Init()
-    virtual void Tick() {}
+    void Tick() override {}
     virtual void Init() {}
 
     virtual void Command(std::string command_name, dictionary & parameters)

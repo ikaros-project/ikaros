@@ -19,13 +19,6 @@
 #include <limits>
 #include <algorithm>
 
-#if defined(__APPLE__)
-#ifndef ACCELERATE_NEW_LAPACK
-#define ACCELERATE_NEW_LAPACK
-#endif
-#include <Accelerate/Accelerate.h>
-#endif
-
 #include "exceptions.h"
 #include "utilities.h"
 #include "range.h"
