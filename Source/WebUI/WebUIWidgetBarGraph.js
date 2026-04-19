@@ -40,12 +40,6 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'auto', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'include_zero', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            
-            {'name': "FRAME", 'control':'header'},
-            {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]};
 
     init()

@@ -10,7 +10,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
             {'name': "STYLE", 'control':'header'},
             {'name':'color', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'background', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'button_background', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'icon', 'default':"", 'type':'string', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
@@ -30,15 +30,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {'name':'value', 'default':1, 'type':'string', 'control': 'textedit'},
             {'name':'valueUp', 'default':0, 'type':'string', 'control': 'textedit'},
  
-            {'name':'xindex', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name':'yindex', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'select_x', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'select_y', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'enableSource', 'default':"", 'type':'source', 'control': 'textedit'},
-                
-            {'name': "FRAME", 'control':'header'},
-            {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]};
 
     static html()
@@ -57,6 +51,36 @@ class WebUIWidgetButton extends WebUIWidgetControl
             data_set.add(this.parameters.enableSource);
     }
 
+    getSelectX()
+    {
+        if(this.parameters.select_x !== undefined && this.parameters.select_x !== "")
+            return Number(this.parameters.select_x);
+        return Number(this.parameters.xindex ?? 0);
+    }
+
+    getSelectY()
+    {
+        if(this.parameters.select_y !== undefined && this.parameters.select_y !== "")
+            return Math.trunc(Number(this.parameters.select_y));
+        return Math.trunc(Number(this.parameters.yindex ?? 0));
+    }
+
+    getButtonBackground()
+    {
+        if(this.parameters.button_background !== undefined && this.parameters.button_background !== "")
+            return this.parameters.button_background;
+        return this.parameters.background ?? "";
+    }
+
+    usesLegacyButtonBackground()
+    {
+        return (
+            (this.parameters.button_background === undefined || this.parameters.button_background === "") &&
+            this.parameters.background !== undefined &&
+            this.parameters.background !== ""
+        );
+    }
+
 
 
     button_down(evt)
@@ -66,13 +90,15 @@ class WebUIWidgetButton extends WebUIWidgetControl
             evt.stopPropagation();
         let thisbutton = this;
         let p = this.parentElement.parameters;
+        const selectX = this.parentElement.getSelectX();
+        const selectY = this.parentElement.getSelectY();
 
         if(p.type == "push")
         {
             if(p.parameter)
-                this.parentElement.send_control_change(p.parameter, p.value, p.xindex, p.yindex);
+                this.parentElement.send_control_change(p.parameter, p.value, selectX, selectY);
             if(p.command)
-                this.parentElement.send_command(p.command, p.value, p.xindex, p.yindex);
+                this.parentElement.send_command(p.command, p.value, selectX, selectY);
         }
 
         else if(p.type=="toggle")
@@ -81,18 +107,18 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {
                 this.setAttribute("class","button-selected");
                 if(p.parameter)
-                    this.parentElement.send_control_change(p.parameter, p.value, p.xindex, p.yindex);
+                    this.parentElement.send_control_change(p.parameter, p.value, selectX, selectY);
                 if(p.command)
-                    this.parentElement.send_command(p.command, p.value, p.xindex, p.yindex);
+                    this.parentElement.send_command(p.command, p.value, selectX, selectY);
 
             }
             else
             {
                 this.setAttribute("class","");
                 if(p.parameter)
-                    this.parentElement.send_control_change(p.parameter, p.valueUp, p.xindex, p.yindex);
+                    this.parentElement.send_control_change(p.parameter, p.valueUp, selectX, selectY);
                 if(p.commandUp)
-                    this.parentElement.send_command(p.commandUp, p.value, p.xindex, p.yindex);
+                    this.parentElement.send_command(p.commandUp, p.value, selectX, selectY);
 
             }
         }
@@ -108,15 +134,15 @@ class WebUIWidgetButton extends WebUIWidgetControl
                         b.firstChild.setAttribute("class", "")
                         let q = b.parameters;
                         if(q.parameter)
-                            this.parentElement.send_control_change(q.parameter, q.valueUp, q.xindex, q.yindex);
+                            this.parentElement.send_control_change(q.parameter, q.valueUp, b.getSelectX(), b.getSelectY());
                     }
                 }
                 this.setAttribute("class", "button-selected")
 
                 if(p.parameter)
-                    this.parentElement.send_control_change(p.parameter, p.value, p.xindex, p.yindex);
+                    this.parentElement.send_control_change(p.parameter, p.value, selectX, selectY);
                 if(p.command)
-                    this.parentElement.send_command(p.command, p.value, p.xindex, p.yindex);
+                    this.parentElement.send_command(p.command, p.value, selectX, selectY);
             }
 
             else if(p.type=="multi")
@@ -135,7 +161,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {
                 let text = prompt(p.title);
                 if(text)
-                    this.parentElement.send_command(p.command, text, p.xindex, p.yindex);
+                    this.parentElement.send_command(p.command, text, selectX, selectY);
             }
 
 
@@ -146,7 +172,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
                 let callback = function (selected_item)
                 {
-                    thisbutton.parentElement.send_command(p.command, selected_item, p.xindex, p.yindex);
+                    thisbutton.parentElement.send_command(p.command, selected_item, selectX, selectY);
                 }
 
                 if(this.file_names)
@@ -165,15 +191,17 @@ class WebUIWidgetButton extends WebUIWidgetControl
         if(main.edit_mode)
             return;
         let p = this.parentElement.parameters;
+        const selectX = this.parentElement.getSelectX();
+        const selectY = this.parentElement.getSelectY();
 
         if(p.type == "push")
         {
             if(p.parameter)
             {
-                this.parentElement.send_control_change(p.parameter, p.valueUp, p.xindex, p.yindex);
+                this.parentElement.send_control_change(p.parameter, p.valueUp, selectX, selectY);
             }
             if(p.commandUp)
-                this.parentElement.send_command(p.commandUp, p.value, p.xindex, p.yindex);
+                this.parentElement.send_command(p.commandUp, p.value, selectX, selectY);
         }
 
         else if(p.type=="toggle")
@@ -202,11 +230,16 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
     update(d)
     {
+        this.parameters.select_x = this.getSelectX();
+        this.parameters.select_y = this.getSelectY();
+
         if(this.parameters.color)
             this.firstChild.style.color = this.parameters.color;
 
-        if(this.parameters.background)
-            this.firstChild.style.background = this.parameters.background;
+        const buttonBackground = this.getButtonBackground();
+        this.firstChild.style.background = buttonBackground || "";
+        if(this.usesLegacyButtonBackground())
+            this.parentElement.style.background = "";
 
         if(this.parameters.file_names)
             this.firstChild.file_names = this.getSource("file_names");
@@ -234,9 +267,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
                     if(!Array.isArray(parameterSource))
                         return;
                     const matrix = Array.isArray(parameterSource[0]) ? parameterSource : [parameterSource];
-                    if(!Array.isArray(matrix[this.parameters.yindex]))
+                    if(!Array.isArray(matrix[this.parameters.select_y]))
                         return;
-                    let v = matrix[this.parameters.yindex][this.parameters.xindex]
+                    let v = matrix[this.parameters.select_y][this.parameters.select_x]
 
                     if(v == value)
 

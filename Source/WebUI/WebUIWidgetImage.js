@@ -10,7 +10,6 @@ class WebUIWidgetImage extends WebUIWidgetGraph
 
             {'name':'file', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'index', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'index', 'default':"", 'type':'opacity_source', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
                 
@@ -34,13 +33,6 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
             {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
             {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            
-            {'name': "FRAME", 'control':'header'},
-            
-            {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]};
 
     init()

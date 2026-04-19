@@ -25,13 +25,6 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			{ 'name': 'look_at_X', 'default': "0", 'type': 'float', 'control': 'textedit' },
 			{ 'name': 'look_at_Y', 'default': "0.8", 'type': 'float', 'control': 'textedit' },
 			{ 'name': 'look_at_Z', 'default': "0", 'type': 'float', 'control': 'textedit' },
-
-			{ 'name': "FRAME", 'control': 'header' },
-            { 'name': 'show_title', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-            { 'name': 'show_frame', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-            { 'name': 'style', 'default': "", 'type': 'string', 'control': 'textedit' },
-            { 'name': 'frame-style', 'default': "", 'type': 'string', 'control': 'textedit' },
-
 		]
 	};
 	static html() {

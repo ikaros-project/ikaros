@@ -7,17 +7,10 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
 
             { name: "CONTROL", control: "header" },
             { name: "parameter", default: "", type: "source", control: "textedit" },
-            { name: "single_trig", default: true, type: "bool", control: "checkbox" },
             { name: "value", default: 1, type: "int", control: "textedit" },
             { name: "select_x", default: 0, type: "int", control: "textedit" },
             { name: "select_y", default: "", type: "string", control: "textedit" },
-            { name: "count", default: 1, type: "int", control: "textedit" },
-
-            { name: "FRAME", control: "header" },
-            { name: "show_title", default: false, type: "bool", control: "checkbox" },
-            { name: "show_frame", default: false, type: "bool", control: "checkbox" },
-            { name: "style", default: "", type: "string", control: "textedit" },
-            { name: "frame-style", default: "", type: "string", control: "textedit" }
+            { name: "count", default: 1, type: "int", control: "textedit" }
         ];
     }
 

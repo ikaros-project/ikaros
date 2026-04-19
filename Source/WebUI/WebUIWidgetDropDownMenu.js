@@ -6,7 +6,8 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             {'name': "DROP DOWN MENU", 'control':'header'},
             {'name':'title', 'default':"Menu", 'type':'string', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'index', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'select_x', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'select_y', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'list_parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter_type', 'default':"number", 'type':'string', 'control': 'menu', 'options': "number,string"},
             {'name':'list', 'default':"X,Y,Z", 'type':'string', 'control': 'textedit'},
@@ -14,12 +15,6 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             {'name': "STYLE", 'control':'header'},
             {'name':'label', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'labelWidth', 'default':50, 'type':'int', 'control': 'textedit'},
-
-            {'name': "FRAME", 'control':'header'},
-            {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]};
 
     static html()
@@ -42,7 +37,28 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             if(this.parameters.parameter_type=='string')
                 this.send_control_change(this.parameters.parameter, text);
             else
-                this.send_control_change(this.parameters.parameter, value);
+            {
+                const x = this.getSelectX();
+                const y = this.getSelectY();
+                if(y === "")
+                    this.send_control_change(this.parameters.parameter, value, x);
+                else
+                    this.send_control_change(this.parameters.parameter, value, x, Math.trunc(Number(y)));
+            }
+    }
+
+    getSelectX()
+    {
+        if(this.parameters.select_x !== undefined && this.parameters.select_x !== "")
+            return Number(this.parameters.select_x);
+        return Number(this.parameters.index ?? 0);
+    }
+
+    getSelectY()
+    {
+        if(this.parameters.select_y === undefined || this.parameters.select_y === null)
+            return "";
+        return this.parameters.select_y;
     }
 
 
@@ -74,7 +90,7 @@ updateAll() {
         e.preventDefault();  // Prevent default action
         e.stopPropagation(); // Stop event bubbling
         const selectedText = e.target.selectedOptions?.[0]?.innerText ?? "";
-        this.option_selected(this.parameters.index, e.target.value, selectedText);
+        this.option_selected(this.getSelectX(), e.target.value, selectedText);
     }, true);  // Use capture phase
 
     selector.addEventListener('mousedown', (e) => {
@@ -103,10 +119,16 @@ updateAll() {
 
                 if(this.parameters.parameter_type=='number')
             {
-                const index = Number(this.parameters.index) || 0;
+                const selectX = this.getSelectX();
+                const selectY = this.getSelectY();
                 let value = d;
                 if(Array.isArray(d))
-                    value = Array.isArray(d[0]) ? d[0][index] : d[index];
+                {
+                    if(selectY !== "" && Array.isArray(d[0]))
+                        value = d[Math.trunc(Number(selectY))]?.[selectX];
+                    else
+                        value = Array.isArray(d[0]) ? d[0][selectX] : d[selectX];
+                }
                 selectElement.value = value ?? selectElement.value;
                 return;
             }

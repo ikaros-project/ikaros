@@ -11,7 +11,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
 //            {'name':'length_module', 'default':"", 'type':'source', 'control': 'textedit'},
 //            {'name':'length_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'order', 'default':"col", 'type':'string', 'control': 'menu', 'options': "col,row"},
-            {'name':'select', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'select_x', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'count', 'default':0, 'type':'int', 'control': 'textedit'},
 
              {'name': "STYLE", 'control':'header'},
@@ -37,13 +37,6 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
             {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
             {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-
-            {'name': "FRAME", 'control':'header'},
-
-            {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]
     }
 
@@ -66,9 +59,17 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         };
     }
 
+    getSelectX()
+    {
+        if(this.parameters.select_x !== undefined && this.parameters.select_x !== "")
+            return Number(this.parameters.select_x);
+        return Number(this.parameters.select ?? 0);
+    }
+
     drawRows(width, height, index, transform)
     {
         let d = this.data;
+        const selectX = this.getSelectX();
         if(!Array.isArray(d) || d.length === 0 || !Array.isArray(d[0]))
             return;
         let rows = this.data.length;
@@ -76,23 +77,23 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         this.canvas.lineCap = this.format.lineCap;
         this.canvas.lineJoin = this.format.lineJoin;
 
-        let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
+        let xx = (this.parameters.count ? selectX+2*this.parameters.count : d[0].length);
         xx = Math.min(xx, d[0].length);
         
         for(var i=0; i<rows; i++)
         {
-            if(!Array.isArray(d[i]) || d[i].length < this.parameters.select + 2)
+            if(!Array.isArray(d[i]) || d[i].length < selectX + 2)
                 continue;
             this.setColor(i);
             this.canvas.beginPath();
             
             let lx = 0;
             let ly = 0;
-            let x = (d[i][this.parameters.select+0]-this.parameters.min_x)*this.parameters.scale_x * width;
-            let y = (d[i][this.parameters.select+1]-this.parameters.min_y)*this.parameters.scale_y * height;
+            let x = (d[i][selectX+0]-this.parameters.min_x)*this.parameters.scale_x * width;
+            let y = (d[i][selectX+1]-this.parameters.min_y)*this.parameters.scale_y * height;
             this.canvas.moveTo(...transform(x, y));
             
-            for(var j=this.parameters.select+2; j<xx;)
+            for(var j=selectX+2; j<xx;)
             {
                 if(typeof d[i][j] === "undefined" || typeof d[i][j+1] === "undefined")
                     break;
@@ -117,17 +118,18 @@ class WebUIWidgetPath extends WebUIWidgetGraph
     drawCols(width, height, index, transform)
     {
         let d = this.data;
-        if(!Array.isArray(d) || d.length === 0 || !Array.isArray(d[0]) || d[0].length < this.parameters.select + 2)
+        const selectX = this.getSelectX();
+        if(!Array.isArray(d) || d.length === 0 || !Array.isArray(d[0]) || d[0].length < selectX + 2)
             return;
         let rows = this.data.length;
         this.canvas.lineWidth = this.format.lineWidth;
         this.canvas.lineCap = this.format.lineCap;
         this.canvas.lineJoin = this.format.lineJoin;
 
-        let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
+        let xx = (this.parameters.count ? selectX+2*this.parameters.count : d[0].length);
         xx = Math.min(xx, d[0].length);
         let c = 0;
-        for(var i=this.parameters.select; i<xx; i+=2)
+        for(var i=selectX; i<xx; i+=2)
         {
             if(i+1 >= d[0].length)
                 break;
@@ -177,7 +179,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         // update parameters
         // FIXME: should be moved to graph later for all graphs
         
-        this.parameters.select = (this.parameters.select ? this.parameters.select : 0);
+        this.parameters.select_x = this.getSelectX();
 
         this.parameters.min_x = (typeof this.parameters.min_x !== 'undefined' ? this.parameters.min_x : this.parameters.min);
         this.parameters.max_x = (typeof this.parameters.max_x !== 'undefined' ? this.parameters.max_x : this.parameters.max);

@@ -20,11 +20,6 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
       { name: "STYLE", control: "header" },
       { name: "color", default: "black", type: "string", control: "textedit" },
       { name: "fill", default: "white", type: "string", control: "textedit" },
-      { name: "FRAME", control: "header" },
-      { name: "show_title", default: false, type: "bool", control: "checkbox" },
-      { name: "show_frame", default: false, type: "bool", control: "checkbox" },
-      { name: "style", default: "", type: "string", control: "textedit" },
-      { name: "frame-style", default: "", type: "string", control: "textedit" },
     ];
   }
 

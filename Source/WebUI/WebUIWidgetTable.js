@@ -11,13 +11,7 @@ class WebUIWidgetTable extends WebUIWidget {
             { 'name': 'direction', 'default': "normal", 'type': 'string', 'control': 'menu', 'options': "normal,flip x/y" },
             { 'name': 'decimals', 'default': 4, 'type': 'int', 'control': 'textedit' },
             { 'name': 'colorize', 'default': true, 'type': 'bool', 'control': 'checkbox' },
-            { 'name': 'scrollable', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-
-            { 'name': "FRAME", 'control': 'header' },
-            { 'name': 'show_title', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-            { 'name': 'show_frame', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-            { 'name': 'style', 'default': "", 'type': 'string', 'control': 'textedit' },
-            { 'name': 'frame-style', 'default': "", 'type': 'string', 'control': 'textedit' }
+            { 'name': 'scrollable', 'default': false, 'type': 'bool', 'control': 'checkbox' }
         ]
     };
 

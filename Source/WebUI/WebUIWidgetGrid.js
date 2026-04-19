@@ -10,6 +10,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name':'red', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'green', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'blue', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'order', 'default':"row", 'type':'string', 'control': 'menu', 'options': "row,col"},
             {'name':'min', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'max', 'default':2, 'type':'float', 'control': 'textedit'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
@@ -43,13 +44,6 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
             {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
             {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-
-            {'name': "FRAME", 'control':'header'},
-
-            {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
         ]
     }
 
@@ -57,12 +51,13 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
     {
         super.init();
         this.data = [];
+        this.displayData = [];
 
         this.onclick = function (evt)
         {
             if(main.edit_mode)
                 return;
-            if(!Array.isArray(this.data) || !Array.isArray(this.data[0]) || this.data.length === 0 || this.data[0].length === 0)
+            if(!Array.isArray(this.displayData) || !Array.isArray(this.displayData[0]) || this.displayData.length === 0 || this.displayData[0].length === 0)
                 return;
             
             if(!this.parameters.command && !this.parameters.parameter)
@@ -81,10 +76,10 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             const hasLabels = String(this.parameters.labels ?? "").trim() !== "";
             let lw = hasLabels ? parseInt(this.parameters.labelWidth) : 0;
             let r = this.canvasElement.getBoundingClientRect();
-            let x = Math.floor(this.data[0].length*(evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw));
-            let y = Math.floor(this.data.length*(evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom));
+            let x = Math.floor(this.displayData[0].length*(evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw));
+            let y = Math.floor(this.displayData.length*(evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom));
 
-            if(x < 0 || x >= this.data[0].length || y < 0 || y >= this.data.length)
+            if(x < 0 || x >= this.displayData[0].length || y < 0 || y >= this.displayData.length)
                 return;
 
             if(this.parameters.command)
@@ -93,7 +88,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             
             else if(this.parameters.parameter)
             {
-                if(this.data[y][x] < this.parameters.valueHigh)
+                if(this.displayData[y][x] < this.parameters.valueHigh)
                     this.send_control_change(this.parameters.parameter, this.parameters.valueHigh, x, y);
                 else
                     this.send_control_change(this.parameters.parameter, this.parameters.valueLow, x, y);
@@ -101,9 +96,38 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         }
     }
 
+    transposeMatrix(matrix)
+    {
+        if(!Array.isArray(matrix) || matrix.length === 0 || !Array.isArray(matrix[0]))
+            return matrix;
+
+        const rows = matrix.length;
+        const cols = matrix[0].length;
+        const transposed = Array.from({length: cols}, () => Array(rows));
+        for(let y = 0; y < rows; y++)
+            for(let x = 0; x < cols; x++)
+                transposed[x][y] = matrix[y][x];
+        return transposed;
+    }
+
+    getDisplayData(data)
+    {
+        if(this.parameters.order !== "col")
+            return data;
+
+        if(this.parameters.fill == "rgb")
+        {
+            if(!Array.isArray(data))
+                return data;
+            return data.map((channel) => this.transposeMatrix(channel));
+        }
+
+        return this.transposeMatrix(data);
+    }
+
     drawPlotHorizontal(width, height, index, transform)
     {
-        let d = this.data;
+        let d = this.displayData;
         let rows = 0;
         let cols = 0;
         if (!Array.isArray(d) || d.length === 0)
@@ -190,7 +214,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
                         if(this.element_labels)
                         {
-                            let lbl = this.element_labels[i*rows+j];
+                            let lbl = this.element_labels[i*cols+j];
                             if(lbl)
                             {
                                 this.canvas.fillStyle = "black";
@@ -235,7 +259,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
                     if(this.element_labels)
                     {
-                        let lbl = this.element_labels[i*rows+j];
+                        let lbl = this.element_labels[i*cols+j];
                         if(lbl)
                         {
                             this.canvas.fillStyle = "black";
@@ -261,6 +285,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                 return;
             if(this.data[0].length != this.data[1].length || this.data[1].length != this.data[2].length)
                 return;
+            this.displayData = this.getDisplayData(this.data);
             this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
             this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
@@ -268,6 +293,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         }
         else if(this.data = this.getSource('source'))
         {
+            this.displayData = this.getDisplayData(this.data);
             this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
             this.canvas.translate(this.format.marginLeft, this.format.marginTop); //

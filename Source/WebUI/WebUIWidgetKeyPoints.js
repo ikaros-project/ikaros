@@ -21,11 +21,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             {'name':'sequence', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'ranges', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name': "STYLE", 'control':'header'},
-            {'name':'color', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'show_title', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
+            {'name':'color', 'default':"", 'type':'string', 'control': 'textedit'}
         ]
     };
 

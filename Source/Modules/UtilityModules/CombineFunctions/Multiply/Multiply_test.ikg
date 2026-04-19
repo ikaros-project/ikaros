@@ -65,7 +65,7 @@
 			min = "0" 
 			style = "" 
 			labels = "" 
-			select = "0" 
+			select_x = "0" 
 			count = "1" 
 			parameter = "Constant1.data" 
 			title = "Sliders" 

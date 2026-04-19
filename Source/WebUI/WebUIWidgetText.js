@@ -11,15 +11,7 @@ class WebUIWidgetText extends WebUIWidgetControl
             {'name':'postfix', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'separator', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'strings', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'select_source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name': "FRAME", 'control':'header'},
-            {'name':'background', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'frame_color', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'frame_width', 'default':"1", 'type':'int', 'control': 'textedit'},
-            {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
+            {'name':'select_source', 'default':"", 'type':'source', 'control': 'textedit'}
         ]};
 
     static html()

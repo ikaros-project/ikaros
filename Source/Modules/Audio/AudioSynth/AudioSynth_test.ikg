@@ -8,7 +8,7 @@
    <module _x="120" _y="216" class="Constant" data="0.5" description="outputs a constant value" name="shape"/>
    <module _x="120" _y="264" class="Constant" data="0.5" description="outputs a constant value" name="freq"/>
    <module _x="120" _y="336" class="Constant" description="outputs a constant value" name="ampl"/>
-   <widget _index_="0" _x="144" _y="408" class="slider-horizontal" count="1" frame-style="" height="200" labels="" max="1" min="0" name="Widget_11" parameter="shape.data" select="0" show_frame="false" show_title="true" show_values="true" source="" step="0.01" style="" title="shape" width="200"/>
-   <widget _index_="2" _x="360" _y="408" class="slider-horizontal" count="1" frame-style="" height="200" labels="" max="1" min="0" name="Widget_12" parameter="freq.data" select="0" show_frame="false" show_title="true" show_values="true" source="freq.data" step="0.01" style="" title="freq" width="200"/>
-   <widget _index_="4" _x="576" _y="408" class="slider-horizontal" count="1" frame-style="" height="200" labels="" max="1" min="0" name="Widget_13" parameter="ampl.data" select="0" show_frame="false" show_title="true" show_values="true" source="" step="0.01" style="" title="amp" width="200"/>
+   <widget _index_="0" _x="144" _y="408" class="slider-horizontal" count="1" frame-style="" height="200" labels="" max="1" min="0" name="Widget_11" parameter="shape.data" select_x="0" show_frame="false" show_title="true" show_values="true" source="" step="0.01" style="" title="shape" width="200"/>
+   <widget _index_="2" _x="360" _y="408" class="slider-horizontal" count="1" frame-style="" height="200" labels="" max="1" min="0" name="Widget_12" parameter="freq.data" select_x="0" show_frame="false" show_title="true" show_values="true" source="freq.data" step="0.01" style="" title="freq" width="200"/>
+   <widget _index_="4" _x="576" _y="408" class="slider-horizontal" count="1" frame-style="" height="200" labels="" max="1" min="0" name="Widget_13" parameter="ampl.data" select_x="0" show_frame="false" show_title="true" show_values="true" source="" step="0.01" style="" title="amp" width="200"/>
 </group>

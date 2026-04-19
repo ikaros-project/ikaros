@@ -15,13 +15,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
             { name: "min", default: 0, type: "float", control: "textedit" },
             { name: "max", default: 1, type: "float", control: "textedit" },
             { name: "step", default: 0.01, type: "float", control: "textedit" },
-            { name: "show_values", default: false, type: "bool", control: "checkbox" },
-
-            { name: "FRAME", control: "header" },
-            { name: "show_title", default: false, type: "bool", control: "checkbox" },
-            { name: "show_frame", default: false, type: "bool", control: "checkbox" },
-            { name: "style", default: "", type: "string", control: "textedit" },
-            { name: "frame-style", default: "", type: "string", control: "textedit" }
+            { name: "show_values", default: false, type: "bool", control: "checkbox" }
         ];
     }
 
@@ -98,14 +92,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
         );
     }
 
-    slider_moved(value, index = 0) {
-        this.is_active = true;
-        this._sendControlValue(value, index);
-
-        if (!this.sync) {
-            return;
-        }
-
+    _syncAllSliders(value) {
         const sliders = this._getSliders();
         const count = Number(this.parameters.count);
 
@@ -115,6 +102,25 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
                 sliders[i].value = value;
             }
         }
+
+        if (this.parameters.show_values) {
+            this._updateValueLabels();
+        }
+    }
+
+    slider_moved(value, index = 0, shiftPressed = false) {
+        this.is_active = true;
+        const shouldSync = Number(this.parameters.count) > 1 && (shiftPressed || this.sync);
+
+        if (!shouldSync) {
+            this._sendControlValue(value, index);
+            if (this.parameters.show_values) {
+                this._updateValueLabels();
+            }
+            return;
+        }
+
+        this._syncAllSliders(value);
     }
 
     updateAll() {
@@ -176,8 +182,8 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
         this._bindKeyHandlersOnce();
 
         sliders.forEach((slider, index) => {
-            slider.oninput = () => {
-                this.slider_moved(slider.value, index);
+            slider.oninput = (event) => {
+                this.slider_moved(slider.value, index, event.shiftKey);
             };
 
             const stopWidgetPropagation = (event) => {
