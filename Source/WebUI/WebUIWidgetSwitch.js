@@ -1,81 +1,195 @@
-class WebUIWidgetSwitch extends WebUIWidgetControl
-{
-    static template()
-    {
+class WebUIWidgetSwitch extends WebUIWidgetControl {
+    static template() {
         return [
-            {'name': "SWITCH", 'control':'header'},
-            {'name':'title', 'default':"Switch Title", 'type':'string', 'control': 'textedit'},
-            {'name':'label', 'default':"Press", 'type':'string', 'control': 'textedit'},
+            { name: "SWITCH", control: "header" },
+            { name: "title", default: "Switch Title", type: "string", control: "textedit" },
+            { name: "labels", default: "Press", type: "string", control: "textedit" },
 
-            {'name': "CONTROL", 'control':'header'},
-            {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'single_trig', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'value', 'default':1, 'type':'int', 'control': 'textedit'},
-            {'name':'xindex', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name':'yindex', 'default':0, 'type':'int', 'control': 'textedit'},
+            { name: "CONTROL", control: "header" },
+            { name: "parameter", default: "", type: "source", control: "textedit" },
+            { name: "single_trig", default: true, type: "bool", control: "checkbox" },
+            { name: "value", default: 1, type: "int", control: "textedit" },
+            { name: "select_x", default: 0, type: "int", control: "textedit" },
+            { name: "select_y", default: "", type: "string", control: "textedit" },
+            { name: "count", default: 1, type: "int", control: "textedit" },
 
-            {'name': "FRAME", 'control':'header'},
-            {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
-        ]};
-
-    static html()
-    {
-        return "<div><input type='checkbox'/><label></label></div>";
+            { name: "FRAME", control: "header" },
+            { name: "show_title", default: false, type: "bool", control: "checkbox" },
+            { name: "show_frame", default: false, type: "bool", control: "checkbox" },
+            { name: "style", default: "", type: "string", control: "textedit" },
+            { name: "frame-style", default: "", type: "string", control: "textedit" }
+        ];
     }
 
-    requestData(data_set)
-    {
+    static html() {
+        return '<div class="switch-list"></div>';
+    }
+
+    requestData(data_set) {
         data_set.add(this.parameters.parameter);
     }
 
-    button_up()
-    {
-        let s = this.querySelector("input");
-        let p = this.parameters;
-        if(p.parameter)
-        {
-            if(s.checked)
-                this.send_control_change(p.parameter, 0, p.xindex, p.yindex);
-            else
-                this.send_control_change(p.parameter, 1, p.xindex, p.yindex);
-        }
+    _getRows() {
+        return this.querySelectorAll(".switch-row");
     }
 
-    init()
-    {
-        super.init();
-        this.querySelector('input').onmouseup = function (){
-            this.parentElement.parentElement.button_up();
-        }
+    _getBaseSelectX() {
+        return Number(this.parameters.select_x ?? 0);
     }
 
-    update()
-    {
-         try {
-            this.querySelector('label').innerText = this.parameters.label;
+    _getSelectY() {
+        if (this.parameters.select_y === undefined || this.parameters.select_y === null) {
+            return "";
+        }
+        return this.parameters.select_y;
+    }
 
-            let d = this.getSource("parameter");
-            if(d)
-            {
-                if(!Array.isArray(d))
-                    return;
-                if(!Array.isArray(d[0]))
-                    d = [d];
-                if(!Array.isArray(d[this.parameters.yindex]))
-                    return;
-                let s = this.querySelector("input");
-                s.checked = ((d[this.parameters.yindex][this.parameters.xindex] ?? 0) > 0);
+    _sendControlValue(checked, index) {
+        if (!this.parameters.parameter) {
+            return;
+        }
+
+        const x = this._getBaseSelectX() + index;
+        const y = this._getSelectY();
+        const onValue = this.parameters.value;
+        const offValue = 0;
+        const value = checked ? onValue : offValue;
+
+        if (y === "") {
+            this.send_control_change(this.parameters.parameter, value, x);
+            return;
+        }
+
+        this.send_control_change(
+            this.parameters.parameter,
+            value,
+            x,
+            Math.trunc(Number(y))
+        );
+    }
+
+    _handleRowInput(rowIndex, event) {
+        if (main.edit_mode) {
+            const component = this.parentElement;
+            const componentName = component?.dataset?.name || component?.id;
+            if (componentName) {
+                selector.selectItems([componentName], null, event.shiftKey);
             }
+            if (event.detail === 2 || event.type === "dblclick") {
+                inspector.toggleComponent();
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            return;
         }
-        catch(err)
-        {
 
+        this._sendControlValue(event.target.checked, rowIndex);
+        event.stopPropagation();
+    }
+
+    updateAll() {
+        super.updateAll();
+
+        const container = this.firstChild;
+        const count = Math.max(1, Number(this.parameters.count) || 1);
+
+        while (container.childElementCount > count) {
+            container.removeChild(container.lastElementChild);
+        }
+
+        while (container.childElementCount < count) {
+            const row = document.createElement("label");
+            row.className = "switch-row";
+
+            const input = document.createElement("input");
+            input.type = "checkbox";
+
+            const text = document.createElement("span");
+            text.className = "switch-label";
+
+            row.append(input, text);
+            container.appendChild(row);
+        }
+
+        const rawLabels = String(this.parameters.labels ?? "").trim();
+        const labelParts = rawLabels === "" ? [] : rawLabels.split(",").map((item) => item.trim());
+        const rows = this._getRows();
+
+        rows.forEach((row, index) => {
+            const input = row.querySelector("input");
+            const text = row.querySelector(".switch-label");
+            const fallbackLabel = count > 1 ? `${index}` : "";
+
+            text.innerText = labelParts[index] ?? (labelParts[0] ?? fallbackLabel);
+
+            input.oninput = (event) => {
+                this._handleRowInput(index, event);
+            };
+
+            input.onmousedown = (event) => {
+                if (main.edit_mode) {
+                    const component = this.parentElement;
+                    const componentName = component?.dataset?.name || component?.id;
+                    if (componentName) {
+                        selector.selectItems([componentName], null, event.shiftKey);
+                    }
+                    event.stopPropagation();
+                }
+            };
+
+            input.ondblclick = (event) => {
+                if (main.edit_mode) {
+                    const component = this.parentElement;
+                    const componentName = component?.dataset?.name || component?.id;
+                    if (componentName) {
+                        selector.selectItems([componentName], null, event.shiftKey);
+                    }
+                    inspector.toggleComponent();
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            };
+        });
+    }
+
+    update() {
+        try {
+            let data = this.getSource("parameter");
+            if (!data) {
+                return;
+            }
+
+            if (Array.isArray(data) && !Array.isArray(data[0])) {
+                data = [data];
+            }
+
+            const rows = this._getRows();
+            const selectedY = this._getSelectY();
+            let x = this._getBaseSelectX();
+
+            if (selectedY !== "") {
+                const y = Math.trunc(Number(selectedY));
+                if (!Array.isArray(data[y])) {
+                    return;
+                }
+
+                rows.forEach((row) => {
+                    const input = row.querySelector("input");
+                    input.checked = ((data[y][x] ?? 0) > 0);
+                    x += 1;
+                });
+                return;
+            }
+
+            rows.forEach((row) => {
+                const input = row.querySelector("input");
+                input.checked = ((data[x] ?? 0) > 0);
+                x += 1;
+            });
+        }
+        catch (err) {
         }
     }
-};
+}
 
-
-webui_widgets.add('webui-widget-switch', WebUIWidgetSwitch);
+webui_widgets.add("webui-widget-switch", WebUIWidgetSwitch);

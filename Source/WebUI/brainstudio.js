@@ -15,6 +15,8 @@ const widget_classes =
     "rectangle",
     "button",
     "slider-horizontal",
+    "slider-vertical",
+    "switch",
     "drop-down-menu",
     "control-grid",
     "canvas3d",

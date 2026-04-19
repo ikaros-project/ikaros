@@ -70,6 +70,17 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
         return this.querySelectorAll("input");
     }
 
+    _updateValueLabels() {
+        const rows = this.firstChild?.children ?? [];
+        for (const row of rows) {
+            const value = row.querySelector(".slider_value");
+            const slider = row.querySelector("input");
+            if (value && slider) {
+                value.innerText = slider.value;
+            }
+        }
+    }
+
     _sendControlValue(value, index) {
         const x = Number(this.parameters.select_x) + index;
         const y = this.parameters.select_y;
@@ -160,6 +171,8 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
             value.style.display = this.parameters.show_values ? "block" : "none";
         }
 
+        this._updateValueLabels();
+
         this._bindKeyHandlersOnce();
 
         sliders.forEach((slider, index) => {
@@ -200,9 +213,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
 
     update() {
         if (this.parameters.show_values) {
-            for (const value of this.querySelectorAll(".slider_value")) {
-                value.innerText = value.parentNode.children[1].value;
-            }
+            this._updateValueLabels();
         }
 
         if (this.is_active) {
@@ -237,6 +248,10 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
             for (const slider of sliders) {
                 slider.value = data[x] ?? slider.value;
                 x += 1;
+            }
+
+            if (this.parameters.show_values) {
+                this._updateValueLabels();
             }
         }
         catch (err) {

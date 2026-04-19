@@ -1,125 +1,318 @@
-class WebUIWidgetSliderVertical extends WebUIWidgetControl
-{
-    static template()
-    {
+class WebUIWidgetSliderVertical extends WebUIWidgetControl {
+    static template() {
         return [
-            {'name': "SLIDER VERTICAL", 'control':'header'},
-            {'name':'title', 'default':"Sliders", 'type':'string', 'control': 'textedit'},
+            { name: "SLIDER VERTICAL", control: "header" },
+            { name: "title", default: "Sliders", type: "string", control: "textedit" },
 
-            {'name': "CONTROL", 'control':'header'},
-            {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'select', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name':'count', 'default':1, 'type':'int', 'control': 'textedit'},
-            
-            {'name': "STYLE", 'control':'header'},
-            {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'step', 'default':0.01, 'type':'float', 'control': 'textedit'},
-            {'name':'show_values', 'default':false, 'type':'bool', 'control': 'checkbox'},
+            { name: "CONTROL", control: "header" },
+            { name: "parameter", default: "", type: "source", control: "textedit" },
+            { name: "select_x", default: 0, type: "int", control: "textedit" },
+            { name: "select_y", default: "", type: "string", control: "textedit" },
+            { name: "count", default: 1, type: "int", control: "textedit" },
 
-            {'name': "FRAME", 'control':'header'},
-            {'name':'show_title', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_frame', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'style', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'frame-style', 'default':"", 'type':'string', 'control': 'textedit'}
-        ]};
+            { name: "STYLE", control: "header" },
+            { name: "labels", default: "", type: "string", control: "textedit" },
+            { name: "min", default: 0, type: "float", control: "textedit" },
+            { name: "max", default: 1, type: "float", control: "textedit" },
+            { name: "step", default: 0.01, type: "float", control: "textedit" },
+            { name: "show_values", default: false, type: "bool", control: "checkbox" },
 
-    static html()
-    {
-         return `<div class="vranger"></div>`;
+            { name: "FRAME", control: "header" },
+            { name: "show_title", default: false, type: "bool", control: "checkbox" },
+            { name: "show_frame", default: false, type: "bool", control: "checkbox" },
+            { name: "style", default: "", type: "string", control: "textedit" },
+            { name: "frame-style", default: "", type: "string", control: "textedit" }
+        ];
     }
 
-    slider_moved(value, index=0)
-    {
-        this.send_control_change(this.parameters.parameter, value, this.parameters.select + index);
+    static html() {
+        return '<div class="vranger"></div>';
     }
 
-    updateAll()
-    {
+    disconnectedCallback() {
+        if (typeof super.disconnectedCallback === "function") {
+            super.disconnectedCallback();
+        }
+
+        if (this._keyDownHandler) {
+            document.removeEventListener("keydown", this._keyDownHandler);
+            this._keyDownHandler = null;
+        }
+
+        if (this._keyUpHandler) {
+            document.removeEventListener("keyup", this._keyUpHandler);
+            this._keyUpHandler = null;
+        }
+    }
+
+    _bindKeyHandlersOnce() {
+        if (this._keyDownHandler || this._keyUpHandler) {
+            return;
+        }
+
+        this._keyDownHandler = (event) => {
+            if (event.shiftKey) {
+                this.sync = true;
+            }
+        };
+
+        this._keyUpHandler = (event) => {
+            if (!event.shiftKey) {
+                this.sync = false;
+            }
+        };
+
+        document.addEventListener("keydown", this._keyDownHandler);
+        document.addEventListener("keyup", this._keyUpHandler);
+    }
+
+    _getSliders() {
+        return this.querySelectorAll("input");
+    }
+
+    _layoutSliders() {
+        const columns = this.firstChild?.children;
+        if (!columns || columns.length === 0) {
+            return;
+        }
+
+        for (const column of columns) {
+            const label = column.querySelector(".slider_label");
+            const slot = column.querySelector(".slider_slot");
+            const slider = column.querySelector("input");
+            const value = column.querySelector(".slider_value");
+
+            if (!slider || !slot) {
+                continue;
+            }
+
+            const labelHeight = label && getComputedStyle(label).display !== "none"
+                ? label.getBoundingClientRect().height
+                : 0;
+            const valueHeight = value && getComputedStyle(value).display !== "none"
+                ? value.getBoundingClientRect().height
+                : 0;
+
+            const slotStyle = getComputedStyle(slot);
+            const slotPaddingTop = parseFloat(slotStyle.paddingTop) || 0;
+            const slotPaddingBottom = parseFloat(slotStyle.paddingBottom) || 0;
+            const slotHeight = slot.getBoundingClientRect().height;
+            const fallbackHeight = column.getBoundingClientRect().height - labelHeight - valueHeight;
+            const availableHeight = Math.max(
+                24,
+                (slotHeight || fallbackHeight) - slotPaddingTop - slotPaddingBottom
+            );
+
+            slider.style.width = `${availableHeight}px`;
+        }
+    }
+
+    _updateValueLabels() {
+        const columns = this.firstChild?.children ?? [];
+        for (const column of columns) {
+            const value = column.querySelector(".slider_value");
+            const slider = column.querySelector("input");
+            if (value && slider) {
+                value.innerText = slider.value;
+            }
+        }
+    }
+
+    _getBaseSelectX() {
+        return Number(this.parameters.select_x ?? 0);
+    }
+
+    _getSelectY() {
+        if (this.parameters.select_y === undefined || this.parameters.select_y === null) {
+            return "";
+        }
+        return this.parameters.select_y;
+    }
+
+    _sendControlValue(value, index) {
+        const x = this._getBaseSelectX() + index;
+        const y = this._getSelectY();
+
+        if (y === "") {
+            this.send_control_change(this.parameters.parameter, value, x);
+            return;
+        }
+
+        this.send_control_change(
+            this.parameters.parameter,
+            value,
+            x,
+            Math.trunc(Number(y))
+        );
+    }
+
+    slider_moved(value, index = 0) {
+        this.is_active = true;
+        this._sendControlValue(value, index);
+
+        if (!this.sync) {
+            return;
+        }
+
+        const sliders = this._getSliders();
+        const count = Number(this.parameters.count);
+
+        for (let i = 0; i < count; i += 1) {
+            this._sendControlValue(value, i);
+            if (sliders[i]) {
+                sliders[i].value = value;
+            }
+        }
+    }
+
+    updateAll() {
         super.updateAll();
 
-        // add or remove sliders
-        
-        while(this.firstChild.childElementCount > this.parameters.count)
-            this.firstChild.removeChild(this.firstChild.children[this.firstChild.childElementCount-1]);
+        const container = this.firstChild;
+        const count = Number(this.parameters.count);
 
-        while(this.firstChild.childElementCount < this.parameters.count)
-        {
-            let d = document.createElement("div");
-            d.innerHTML = '<span class="slider_label"></span><input type="range"><span class="slider_value">0</span>';
-            this.firstChild.insertBefore(d, null);
+        while (container.childElementCount > count) {
+            container.removeChild(container.lastElementChild);
         }
-        
-        // This should only be done on change
-        
-        for(let slider of this.querySelectorAll("input"))
-        {
-            slider.min = this.parameters.min;
-            slider.max = this.parameters.max;
-            slider.step = this.parameters.step;
+
+        while (container.childElementCount < count) {
+            const column = document.createElement("div");
+
+            const label = document.createElement("span");
+            label.className = "slider_label";
+
+            const slot = document.createElement("div");
+            slot.className = "slider_slot";
+
+            const input = document.createElement("input");
+            input.type = "range";
+
+            const value = document.createElement("span");
+            value.className = "slider_value";
+            value.innerText = "0";
+
+            slot.appendChild(input);
+            column.append(label, slot, value);
+            container.appendChild(column);
+        }
+
+        const sliders = this._getSliders();
+        const labels = this.querySelectorAll(".slider_label");
+        const values = this.querySelectorAll(".slider_value");
+
+        const min = Number(this.parameters.min);
+        const max = Number(this.parameters.max);
+        const step = Number(this.parameters.step);
+
+        for (const slider of sliders) {
+            slider.min = min;
+            slider.max = max;
+            slider.step = step;
         }
 
         const rawLabels = String(this.parameters.labels ?? "").trim();
-        const labels = rawLabels === "" ? [] : rawLabels.split(",").map((item) => item.trim());
-        const showLabels = labels.length > 0;
-        let i = 0;
-        for(let label of this.querySelectorAll(".slider_label"))
-        {
+        const labelParts = rawLabels === "" ? [] : rawLabels.split(",").map((item) => item.trim());
+        const showLabels = labelParts.length > 0;
+
+        labels.forEach((label, index) => {
             label.style.display = showLabels ? "block" : "none";
-            label.innerText = labels[i++] ?? "";
+            label.innerText = labelParts[index] ?? "";
+        });
+
+        for (const value of values) {
+            value.style.display = this.parameters.show_values ? "block" : "none";
         }
 
-        for(let value of this.querySelectorAll(".slider_value"))
-        {
-            value.style.display = this.parameters.show_values ? 'block' : 'none';
-        }
-        
-        // set-up event handlers
+        this._layoutSliders();
+        this._updateValueLabels();
 
-        let sliderIndex = 0;
-        for(let slider of this.querySelectorAll("input"))
-        {
-            slider.index = sliderIndex++;
-            slider.oninput = function (){
-                this.parentElement.parentElement.parentElement.slider_moved(this.value, this.index);
-            }
-        }
-    }
+        this._bindKeyHandlersOnce();
 
-    update()
-    {
-         try {
-            let d = this.getSource("parameter");
-            if(d)
-            {
-                if (!Array.isArray(d))
+        sliders.forEach((slider, index) => {
+            slider.oninput = () => {
+                this.slider_moved(slider.value, index);
+            };
+
+            const stopWidgetPropagation = (event) => {
+                if (main.edit_mode) {
+                    const component = this.parentElement;
+                    const componentName = component?.dataset?.name || component?.id;
+
+                    if (event.type === "mousedown") {
+                        if (componentName) {
+                            selector.selectItems([componentName], null, event.shiftKey);
+                        }
+                    }
+
+                    if (event.detail === 2 && (event.type === "mousedown" || event.type === "click")) {
+                        if (componentName) {
+                            selector.selectItems([componentName], null, event.shiftKey);
+                        }
+                        inspector.toggleComponent();
+                    }
+                    this.is_active = false;
+                    event.stopPropagation();
                     return;
-                if (!Array.isArray(d[0]))
-                    d = [d];
-                if (!Array.isArray(d[0]))
-                    return;
-                
-                let i = this.parameters.select;
-                for(let slider of this.querySelectorAll("input"))
-                {
-                    if (typeof d[0][i] !== "undefined")
-                        slider.value = d[0][i];
-                    i++;
                 }
+                this.is_active = false;
+                event.stopPropagation();
+            };
+
+            slider.onmousedown = stopWidgetPropagation;
+            slider.onmouseup = stopWidgetPropagation;
+            slider.onclick = stopWidgetPropagation;
+        });
+    }
+
+    update() {
+        if (this.parameters.show_values) {
+            this._updateValueLabels();
+        }
+
+        if (this.is_active) {
+            return;
+        }
+
+        try {
+            let data = this.getSource("parameter");
+
+            if (Array.isArray(data) && !Array.isArray(data[0])) {
+                data = [data];
             }
 
-            if(this.parameters.show_values)
-                for(let value of this.querySelectorAll(".slider_value"))
-                    value.innerText = value.parentNode.children[1].value;
+            if (!data || !data.length) {
+                return;
+            }
+
+            const sliders = this._getSliders();
+            const selectedY = this._getSelectY();
+
+            if (selectedY !== "") {
+                const y = Math.trunc(Number(selectedY));
+                let x = this._getBaseSelectX();
+
+                for (const slider of sliders) {
+                    slider.value = data[y]?.[x] ?? slider.value;
+                    x += 1;
+                }
+                if (this.parameters.show_values) {
+                    this._updateValueLabels();
+                }
+                return;
+            }
+
+            let x = this._getBaseSelectX();
+            for (const slider of sliders) {
+                slider.value = data[x] ?? slider.value;
+                x += 1;
+            }
+            if (this.parameters.show_values) {
+                this._updateValueLabels();
+            }
         }
-        catch(err)
-        {
-        
+        catch (err) {
         }
     }
-};
+}
 
-
-
-webui_widgets.add('webui-widget-slider-vertical', WebUIWidgetSliderVertical);
+webui_widgets.add("webui-widget-slider-vertical", WebUIWidgetSliderVertical);
