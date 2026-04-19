@@ -4,24 +4,143 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <cstring>
+#include <vector>
 #include <spawn.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 using namespace ikaros;
 namespace fs = std::filesystem;
 
 static std::string
-shell_quote(const std::string & value)
+normalize_executable_name(const std::string & value)
 {
-    std::string quoted = "'";
-    for(char c : value)
+    return fs::path(value).filename().string();
+}
+
+
+static std::string
+ResolvePlaybackCommand(const std::string & requested_command)
+{
+    std::string normalized = normalize_executable_name(requested_command);
+    if(normalized.empty() || normalized == "afplay")
+        return "/usr/bin/afplay";
+    if(normalized == "play")
+        return "/usr/bin/play";
+    throw exception("EpiSpeech only allows the playback commands \"/usr/bin/afplay\" and \"/usr/bin/play\".");
+}
+
+
+static std::string
+ResolveSpeechCommand(const std::string & requested_command)
+{
+    std::string normalized = normalize_executable_name(requested_command);
+    if(normalized.empty() || normalized == "say")
+        return "/usr/bin/say";
+    throw exception("EpiSpeech only allows the speech synthesis command \"/usr/bin/say\".");
+}
+
+
+static std::string
+ResolveFFProbeCommand()
+{
+    constexpr const char * candidates[] = {
+        "/usr/bin/ffprobe",
+        "/opt/homebrew/bin/ffprobe",
+        "/usr/local/bin/ffprobe"
+    };
+
+    for(const char * candidate : candidates)
+        if(fs::exists(candidate))
+            return candidate;
+
+    return "";
+}
+
+
+static void
+RunCommandOrThrow(const std::string & executable, char * const argv[], const std::string & error_context)
+{
+    pid_t pid = 0;
+    int status = posix_spawn(&pid, executable.c_str(), nullptr, nullptr, argv, nullptr);
+    if(status != 0)
+        throw exception(error_context + ": " + std::string(std::strerror(status)));
+
+    int wait_status = 0;
+    if(waitpid(pid, &wait_status, 0) == -1)
+        throw exception(error_context + ": could not wait for child process.");
+
+    if(!WIFEXITED(wait_status) || WEXITSTATUS(wait_status) != 0)
+        throw exception(error_context + ": command exited with status " + std::to_string(WEXITSTATUS(wait_status)) + ".");
+}
+
+
+static bool
+RunCommandCaptureOutput(const std::string & executable, char * const argv[], std::string & output)
+{
+    int pipe_fds[2];
+    if(pipe(pipe_fds) != 0)
+        return false;
+
+    int null_fd = open("/dev/null", O_WRONLY);
+    if(null_fd == -1)
     {
-        if(c == '\'')
-            quoted += "'\\''";
-        else
-            quoted += c;
+        close(pipe_fds[0]);
+        close(pipe_fds[1]);
+        return false;
     }
-    quoted += "'";
-    return quoted;
+
+    posix_spawn_file_actions_t file_actions;
+    if(posix_spawn_file_actions_init(&file_actions) != 0)
+    {
+        close(pipe_fds[0]);
+        close(pipe_fds[1]);
+        close(null_fd);
+        return false;
+    }
+
+    bool configured =
+        posix_spawn_file_actions_adddup2(&file_actions, pipe_fds[1], STDOUT_FILENO) == 0 &&
+        posix_spawn_file_actions_adddup2(&file_actions, null_fd, STDERR_FILENO) == 0 &&
+        posix_spawn_file_actions_addclose(&file_actions, pipe_fds[0]) == 0 &&
+        posix_spawn_file_actions_addclose(&file_actions, pipe_fds[1]) == 0 &&
+        posix_spawn_file_actions_addclose(&file_actions, null_fd) == 0;
+
+    if(!configured)
+    {
+        posix_spawn_file_actions_destroy(&file_actions);
+        close(pipe_fds[0]);
+        close(pipe_fds[1]);
+        close(null_fd);
+        return false;
+    }
+
+    pid_t pid = 0;
+    int spawn_status = posix_spawn(&pid, executable.c_str(), &file_actions, nullptr, argv, nullptr);
+    posix_spawn_file_actions_destroy(&file_actions);
+    close(pipe_fds[1]);
+    close(null_fd);
+
+    if(spawn_status != 0)
+    {
+        close(pipe_fds[0]);
+        return false;
+    }
+
+    output.clear();
+    char buffer[4096];
+    ssize_t bytes_read = 0;
+    while((bytes_read = read(pipe_fds[0], buffer, sizeof(buffer))) > 0)
+        output.append(buffer, static_cast<size_t>(bytes_read));
+    close(pipe_fds[0]);
+
+    int wait_status = 0;
+    if(waitpid(pid, &wait_status, 0) == -1)
+        return false;
+
+    return WIFEXITED(wait_status) && WEXITSTATUS(wait_status) == 0;
 }
 
 static std::string
@@ -83,9 +202,10 @@ public:
     float   lag;
 
     parameter  command;
-    parameter  speech_command;
     parameter  voice;
     parameter text;
+    std::string playback_command;
+    std::string synthesis_command;
     
     std::vector<SpeechSound> sound;
 
@@ -143,12 +263,12 @@ EpiSpeech::CreateSound(std::string text)
     fs::path cache_dir = fs::current_path() / "EpiSpeechCache";
     fs::create_directories(cache_dir);
 
-    std::string key = cache_key_for_text(text, std::string(voice), std::string(speech_command));
+    std::string key = cache_key_for_text(text, std::string(voice), synthesis_command);
     fs::path sound_path = cache_dir / (key + ".aiff");
     fs::path analysis_path = cache_dir / (key + ".rms");
     SpeechSound sound(sound_path.string());
 
-    int err = 0;
+    int err = 1;
 
     if(fs::exists(sound_path) && fs::exists(analysis_path))
     {
@@ -168,29 +288,64 @@ EpiSpeech::CreateSound(std::string text)
     // Synthesize speech only when the cached audio file is missing.
     if(!fs::exists(sound_path))
     {
-        std::string com = std::string(speech_command) +
-            " -v " + shell_quote(std::string(voice)) +
-            " -o " + shell_quote(sound_path.string()) +
-            " -- " + shell_quote(text);
-        system(com.c_str());
+        std::string voice_name = std::string(voice);
+        std::string output_path = sound_path.string();
+        char * argv[] = {
+            const_cast<char *>(synthesis_command.c_str()),
+            const_cast<char *>("-v"),
+            const_cast<char *>(voice_name.c_str()),
+            const_cast<char *>("-o"),
+            const_cast<char *>(output_path.c_str()),
+            const_cast<char *>("--"),
+            const_cast<char *>(text.c_str()),
+            nullptr
+        };
+        RunCommandOrThrow(synthesis_command, argv, "EpiSpeech could not synthesize speech");
     }
 
     // Calculate volume  using ffprobe
 
-    std::string command_line =
-        "ffprobe -f lavfi -i amovie=" + sound_path.string() +
-        ",astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0 2>/dev/null";
+    std::string ffprobe_command = ResolveFFProbeCommand();
+    std::string ffprobe_input =
+        "amovie=" + sound_path.string() +
+        ",astats=metadata=1:reset=1";
+    std::string ffprobe_entries =
+        "frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level";
     float t, l, r;
-    FILE * fp = popen(command_line.c_str(), "r"); 
-    if(fp != NULL)
+    std::string ffprobe_output;
+    if(!ffprobe_command.empty())
     {
-        while(fscanf(fp, "%f,%f,%f\n", &t, &l, &r) == 3)
+        char * argv[] = {
+            const_cast<char *>(ffprobe_command.c_str()),
+            const_cast<char *>("-f"),
+            const_cast<char *>("lavfi"),
+            const_cast<char *>("-i"),
+            const_cast<char *>(ffprobe_input.c_str()),
+            const_cast<char *>("-show_entries"),
+            const_cast<char *>(ffprobe_entries.c_str()),
+            const_cast<char *>("-of"),
+            const_cast<char *>("csv=p=0"),
+            nullptr
+        };
+        if(RunCommandCaptureOutput(ffprobe_command, argv, ffprobe_output))
         {
-            sound.time.push_back(t);
-            sound.left.push_back(l);
-            sound.right.push_back(r);
+            std::istringstream ffprobe_stream(ffprobe_output);
+            std::string line;
+            while(std::getline(ffprobe_stream, line))
+            {
+                if(std::sscanf(line.c_str(), "%f,%f,%f", &t, &l, &r) == 3)
+                {
+                    sound.time.push_back(t);
+                    sound.left.push_back(l);
+                    sound.right.push_back(r);
+                }
+            }
+            err = 0;
         }
-        err = pclose(fp);
+        else
+        {
+            err = 1;
+        }
     }
     if(err != 0) // Command failed - fake 1s output
     {
@@ -236,11 +391,13 @@ EpiSpeech::Init()
        Bind(volume, "VOLUME");
     
        Bind(command, "command");
-       Bind(speech_command, "speech_command");
        Bind(voice, "voice");
 
     Bind(scale_volume, "scale_volume");
     Bind(text, "text");
+
+    playback_command = ResolvePlaybackCommand(std::string(command));
+    synthesis_command = ResolveSpeechCommand(info_.contains_non_null("speech_command") ? std::string(info_["speech_command"]) : "");
 
     for(auto t: split(std::string(text), ","))
         sound.push_back(CreateSound(trim(t)));
@@ -264,7 +421,7 @@ EpiSpeech::Tick()
         {
             current_sound = queued_sound;
             queued_sound = -1;
-            sound[current_sound].Play(std::string(command));
+            sound[current_sound].Play(playback_command);
         }
 
     // Update volume
@@ -317,4 +474,3 @@ EpiSpeech::Tick()
 
 
 INSTALL_CLASS(EpiSpeech)
-

@@ -16,8 +16,8 @@
 		will play after each other.
 	</description>
 
-    <parameter name="command" type="string" default="/usr/bin/afplay" description="the command to use to play sounds, The dafult is the OS X command afplay" />
-    <parameter name="speech_command" type="string" default="/usr/bin/say" description="the command used to produce a sound file from a text, The dafult is the OS X command say" />
+	    <parameter name="command" type="string" default="/usr/bin/afplay" description="Playback command. For safety EpiSpeech only accepts afplay or play." />
+	    <parameter name="speech_command" type="string" default="/usr/bin/say" description="Speech synthesis command. For safety EpiSpeech only accepts Apple's say command." />
     <parameter name="voice" type="string" default="Noelle (Enhanced)" description="voice to be used. This voice must be installed and the module will silently fail if it is not." />
     <parameter name="text" type="string" default="hello there,yes,no" description="comma separated list of texts to say." />
     <parameter name="scale_volume" type="number" default="1.0" description="factor for scaling the volume output (not the actual volume)." />
@@ -48,5 +48,4 @@
    </files>
 
 </class>
-
 
