@@ -3059,9 +3059,12 @@ bool operator==(Request & r, const std::string s)
 
     void Kernel::LoadExternalGroup(dictionary & d)
     {
-        std::string path = d["external"];
+        std::filesystem::path sanitized_path;
+        if(!SanitizeImportPath(std::string(d["external"]), sanitized_path))
+            throw build_failed("External group path must stay within the project root or user data directory.");
+
         dictionary external;
-        external.load_xml(path);
+        external.load_xml(sanitized_path.string());
         external["name"] = d["name"];
         d.merge(external);
         d.erase("external");
@@ -4817,6 +4820,57 @@ bool operator==(Request & r, const std::string s)
                 return false;
 
         if(root_it != root_end)
+            return false;
+
+        sanitized_path = resolved_path;
+        return true;
+    }
+
+
+    bool
+    Kernel::SanitizeImportPath(const std::filesystem::path & candidate_path, std::filesystem::path & sanitized_path) const
+    {
+        if(candidate_path.empty())
+            return false;
+
+        std::error_code ec;
+        std::filesystem::path project_root = std::filesystem::weakly_canonical(options_.ikaros_root, ec);
+        if(ec)
+            return false;
+
+        std::filesystem::path user_root = std::filesystem::weakly_canonical(user_dir, ec);
+        if(ec)
+            return false;
+
+        std::filesystem::path base_path = candidate_path;
+        if(candidate_path.is_relative())
+        {
+            std::filesystem::path current_network = options_.full_path();
+            if(!current_network.empty())
+                base_path = current_network.parent_path() / candidate_path;
+            else
+                base_path = std::filesystem::current_path() / candidate_path;
+        }
+
+        std::filesystem::path resolved_path = std::filesystem::weakly_canonical(base_path, ec);
+        if(ec)
+            return false;
+
+        auto is_within_root = [](const std::filesystem::path & root, const std::filesystem::path & path)
+        {
+            auto root_it = root.begin();
+            auto root_end = root.end();
+            auto path_it = path.begin();
+            auto path_end = path.end();
+
+            for(; root_it != root_end && path_it != path_end; ++root_it, ++path_it)
+                if(*root_it != *path_it)
+                    return false;
+
+            return root_it == root_end;
+        };
+
+        if(!is_within_root(project_root, resolved_path) && !is_within_root(user_root, resolved_path))
             return false;
 
         sanitized_path = resolved_path;

@@ -649,6 +649,7 @@ public:
     void DoSendFileList(Request & request);
     enum class SendFileResult { sent, forbidden, not_found };
     bool SanitizeProjectPath(const std::filesystem::path & candidate_path, std::filesystem::path & sanitized_path) const;
+    bool SanitizeImportPath(const std::filesystem::path & candidate_path, std::filesystem::path & sanitized_path) const;
     SendFileResult SendFileIfSafe(const std::filesystem::path & root, const std::string & file);
     void DoSendFile(std::string file);
     void DoSendError(const std::string & status = "404 Not Found", const std::string & message = "404 Not Found\n");
