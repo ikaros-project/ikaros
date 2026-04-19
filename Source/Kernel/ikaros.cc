@@ -2863,6 +2863,7 @@ bool operator==(Request & r, const std::string s)
     {
         std::filesystem::path class_path = classes[classname].path;
         std::filesystem::path class_directory = class_path.parent_path();
+        bool using_inferred_python_path = false;
 
         bool is_python_backed = info.contains_non_null("python") && !std::string(info["python"]).empty();
         if(!is_python_backed)
@@ -2872,11 +2873,17 @@ bool operator==(Request & r, const std::string s)
             {
                 info["python"] = inferred_python_path.lexically_normal().string();
                 is_python_backed = true;
+                using_inferred_python_path = true;
             }
         }
 
         if(!is_python_backed)
             return false;
+
+        std::error_code ec;
+        std::filesystem::path canonical_class_directory = std::filesystem::weakly_canonical(class_directory, ec);
+        if(ec)
+            throw build_failed("Could not resolve python class directory for class \"" + classname + "\".");
 
         if(classes.count("PythonModule"))
         {
@@ -2904,9 +2911,26 @@ bool operator==(Request & r, const std::string s)
         }
 
         std::filesystem::path python_path = std::string(info["python"]);
-        if(python_path.is_relative())
+        if(python_path.is_absolute() && !using_inferred_python_path)
+            throw build_failed("Python-backed class \"" + classname + "\" must use a script path relative to its class directory.");
+
+        if(!python_path.is_absolute())
             python_path = class_directory / python_path;
-        info["python"] = python_path.lexically_normal().string();
+        std::filesystem::path canonical_python_path = std::filesystem::weakly_canonical(python_path, ec);
+        if(ec)
+            throw build_failed("Python script for class \"" + classname + "\" could not be resolved: " + python_path.string());
+
+        auto class_it = canonical_class_directory.begin();
+        auto class_end = canonical_class_directory.end();
+        auto python_it = canonical_python_path.begin();
+        auto python_end = canonical_python_path.end();
+        for(; class_it != class_end && python_it != python_end; ++class_it, ++python_it)
+            if(*class_it != *python_it)
+                throw build_failed("Python script for class \"" + classname + "\" must stay within its class directory.");
+        if(class_it != class_end)
+            throw build_failed("Python script for class \"" + classname + "\" must stay within its class directory.");
+
+        info["python"] = canonical_python_path.string();
         return true;
     }
 

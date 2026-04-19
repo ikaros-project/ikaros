@@ -275,9 +275,6 @@ class PythonModule: public Module
 
     std::string ResolvePythonExecutable()
     {
-        if(!python_executable_.empty())
-            return python_executable_;
-
         if(kernel().info_.contains_non_null("python_executable"))
         {
             std::string kernel_python_executable = std::string(kernel().info_["python_executable"]);
@@ -811,7 +808,6 @@ public:
 
         process_mode_ = GetParameter("process_mode").as_string();
         execution_mode_ = GetParameter("execution_mode").as_string();
-        python_executable_ = GetParameter("python_executable").as_string();
         timeout_ms_ = GetParameter("timeout_ms").as_int();
         on_error_ = GetParameter("on_error").as_string();
         restart_on_crash_ = GetParameter("restart_on_crash").as_bool();
