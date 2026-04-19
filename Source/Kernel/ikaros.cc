@@ -3120,9 +3120,14 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::SetCommandLineParameters(dictionary & d) // Add explicit command line overrides without clobbering file values with defaults
     {
+        // user_data is intentionally CLI-only and must never be sourced from a model file.
+        if(d.contains("user_data"))
+            d.erase("user_data");
+
         for(auto & x : options_.d)
             if(options_.is_explicitly_set(x.first))
-                d[x.first] = x.second;
+                if(x.first != "user_data")
+                    d[x.first] = x.second;
 
         if(d.contains("stop"))
             stop_after = d["stop"];
@@ -5395,7 +5400,7 @@ bool operator==(Request & r, const std::string s)
         system_files.clear();
         user_files.clear();
         ScanFiles(options_.ikaros_root+"/Source/Modules");
-        ScanFiles(options_.ikaros_root+"/UserData", false);
+        ScanFiles(user_dir, false);
 
         // Send result
 

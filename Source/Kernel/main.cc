@@ -10,6 +10,17 @@ extern std::atomic<bool> global_terminate;
 
 namespace
 {
+    std::string ResolveUserDirectory(const options & o)
+    {
+        std::filesystem::path user_path = o.ikaros_root + "/UserData/";
+        if(o.is_explicitly_set("user_data"))
+            user_path = std::filesystem::absolute(o.get("user_data"));
+
+        user_path = user_path.lexically_normal();
+        std::filesystem::create_directories(user_path);
+        return user_path.string();
+    }
+
     void ConfigureOptions(options & o)
     {
         o.add_option("b", "batch_mode", "start automatically and quit when execution terminates; no WebUI unless explicitly set with -w");
@@ -20,6 +31,7 @@ namespace
         o.add_option("s", "stop", "stop Ikaros after this tick", "-1");
         o.add_option("p", "python_executable", "default Python interpreter for python-backed classes");
         o.add_option("t", "threads", "number of worker threads for the kernel thread pool");
+        o.add_option("u", "user_data", "alternative directory for user data files");
         o.add_option("w", "webui_port", "port for ikaros WebUI", "8000");
         o.add_option("h", "help", "list command line options");
     }
@@ -27,7 +39,7 @@ namespace
     void InitializeKernelPaths(Kernel & k, const options & o)
     {
         k.webui_dir = o.ikaros_root+"/Source/WebUI/";
-        k.user_dir = o.ikaros_root+"/UserData/";
+        k.user_dir = ResolveUserDirectory(o);
         k.ScanClasses(o.ikaros_root+"/Source/Modules");
         k.ScanClasses(o.ikaros_root+"/Source/UserModules");
 

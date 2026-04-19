@@ -1,0 +1,5 @@
+<group name="TestCliUserDataDir" description="Test CLI-only user_data override changes the working user directory" start="true" stop="1" cli_args="-u/tmp/ikaros_cli_user_data_test" expected_file_exists="/tmp/ikaros_cli_user_data_test/cli_user_data_output.csv">
+    <module name="Output" class="OutputFile" filename="cli_user_data_output.csv" format="csv" />
+    <module name="Data" class="Constant" data="1,2,3" />
+    <connection source="Data.OUTPUT" target="Output.INPUT" />
+</group>

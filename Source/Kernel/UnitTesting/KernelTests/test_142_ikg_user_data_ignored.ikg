@@ -1,0 +1,5 @@
+<group name="TestIkgUserDataIgnored" description="Test top-level user_data in ikg is ignored for security" start="true" stop="1" user_data="/tmp/ikaros_ikg_user_data_should_be_ignored" expected_file_exists="/Users/cba/ikaros/UserData/ikg_user_data_ignored_output.csv">
+    <module name="Output" class="OutputFile" filename="ikg_user_data_ignored_output.csv" format="csv" />
+    <module name="Data" class="Constant" data="4,5,6" />
+    <connection source="Data.OUTPUT" target="Output.INPUT" />
+</group>

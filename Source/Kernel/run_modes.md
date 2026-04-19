@@ -18,6 +18,7 @@ Attributes that can be set in the ikg file are show within parantheses below:
     -h (help): list command line options [true]
     -r (real_time): run in real-time mode
     -s (stop): stop Ikaros after this tick [-1]
+    -u (user_data): alternative directory for user data files
     -w (webui_port): port for ikaros WebUI [8000]
 
 # Modes
@@ -43,4 +44,3 @@ Start in real-time mode:
 # Setings Origins
 
 # Mode Switching
-
