@@ -1,0 +1,13 @@
+<group
+    name="Test_144"
+    description="Test startup failure when a connection exceeds a fixed input size"
+    expected_exit="1"
+    expected_output_contains="writes outside fixed size of input &quot;INPUT&quot;"
+>
+
+    <module class="Constant" name="Const" data="1,2,3,4,5" />
+    <module class="KernelSizedInputTestModule" name="Sized" />
+
+    <connection source="Const.OUTPUT" target="Sized.INPUT" />
+
+</group>

@@ -1375,6 +1375,9 @@ namespace ikaros
     bool
     Component::InputsReady(dictionary d,  input_map ingoing_connections)
     {
+        if(d.contains("size"))
+            return true;
+
         if(d.contains("inputs") && d["inputs"].is_list())
             return true;
 
@@ -1399,9 +1402,39 @@ namespace ikaros
 
         std::string name = d.at("name");
         std::string full_name = path_ +"."+ name;
+        bool has_fixed_size = d.contains("size");
+
+        auto shape_string = [](const std::vector<int> & shape) -> std::string
+        {
+            std::vector<std::string> parts;
+            parts.reserve(shape.size());
+            for(int dim : shape)
+                parts.push_back(std::to_string(dim));
+            return join(",", parts, false);
+        };
+
+        auto validate_fixed_target = [&](const Connection & connection, const range & target_range)
+        {
+            const matrix & input_buffer = kernel().buffers.at(full_name);
+            const std::vector<int> & shape = input_buffer.shape();
+            if(input_buffer.rank() != 1)
+                throw setup_failed("Input \"" + name + "\" in \"" + path_ + "\" uses flatten and must have a one-dimensional fixed size, got \"" + shape_string(shape) + "\".", path_);
+
+            if(target_range.rank() != 1 || target_range.inc_[0] <= 0 || target_range.a_[0] < 0 || target_range.b_[0] > input_buffer.size())
+                throw setup_failed("Connection \"" + connection.Info() + "\" writes outside fixed size of input \"" + name + "\" in \"" + path_ + "\" (" + shape_string(shape) + ").", path_);
+        };
+
+        if(has_fixed_size)
+        {
+            std::string size = std::string(d.at("size"));
+            if(size.empty())
+                throw setup_failed("Input \""+name+"\" must have a value for \"size\".", path_);
+            std::vector<int> shape = EvaluateSizeList(size);
+            kernel().buffers[full_name].realloc(shape);
+        }
         
         if(!ingoing_connections.count(full_name)) // Not connected
-            return 1;
+            return has_fixed_size ? 0 : 1;
 
         int begin_index = 0;
         int end_index = 0;
@@ -1416,11 +1449,13 @@ namespace ikaros
             int s = c->source_range.size() * std::max(1, c->delay_range_.trim().size());
             end_index = begin_index + s;
             c->target_range = range(begin_index, end_index);
+            if(has_fixed_size)
+                validate_fixed_target(*c, c->target_range);
             begin_index += s;
             flattened_input_size += s;
         }
     
-        if(flattened_input_size != 0)
+        if(!has_fixed_size && flattened_input_size != 0)
         {
             kernel().buffers[full_name].realloc(flattened_input_size); 
           Trace("\t\t\tComponent::SetInputSize_Index Alloc "+std::to_string(flattened_input_size), path_);
@@ -1450,13 +1485,44 @@ namespace ikaros
         range input_size;
         std::string name = d.at("name");
         std::string full_name = path_ +"."+ name;
+        bool has_fixed_size = d.contains("size");
+
+        auto shape_string = [](const std::vector<int> & shape) -> std::string
+        {
+            std::vector<std::string> parts;
+            parts.reserve(shape.size());
+            for(int dim : shape)
+                parts.push_back(std::to_string(dim));
+            return join(",", parts, false);
+        };
+
+        auto validate_fixed_target = [&](const Connection & connection, const range & target_range)
+        {
+            const matrix & input_buffer = kernel().buffers.at(full_name);
+            const std::vector<int> & shape = input_buffer.shape();
+            if(target_range.rank() != input_buffer.rank())
+                throw setup_failed("Connection \"" + connection.Info() + "\" writes outside fixed size of input \"" + name + "\" in \"" + path_ + "\" (" + shape_string(shape) + ").", path_);
+
+            for(int i = 0; i < target_range.rank(); ++i)
+                if(target_range.inc_[i] <= 0 || target_range.a_[i] < 0 || target_range.a_[i] > target_range.b_[i] || target_range.b_[i] > input_buffer.size(i))
+                    throw setup_failed("Connection \"" + connection.Info() + "\" writes outside fixed size of input \"" + name + "\" in \"" + path_ + "\" (" + shape_string(shape) + ").", path_);
+        };
+
+        if(has_fixed_size)
+        {
+            std::string size = std::string(d.at("size"));
+            if(size.empty())
+                throw setup_failed("Input \""+name+"\" must have a value for \"size\".", path_);
+            std::vector<int> shape = EvaluateSizeList(size);
+            kernel().buffers[full_name].realloc(shape);
+        }
 
         if(!ingoing_connections.count(full_name)) // Not connected
             return 1;
 
         // Handle single connection without inidices - do not collapse dimensions
 
-        if(ingoing_connections.size() == 1 && ingoing_connections.begin()->second[0]->source_range.empty() && ingoing_connections.begin()->second[0]->target_range.empty())
+        if(!has_fixed_size && ingoing_connections.size() == 1 && ingoing_connections.begin()->second[0]->source_range.empty() && ingoing_connections.begin()->second[0]->target_range.empty())
         {
             range output_matrix = kernel().buffers[ingoing_connections.begin()->second[0]->source];
             if(output_matrix.empty())
@@ -1474,10 +1540,17 @@ namespace ikaros
             range output_matrix = kernel().buffers[c->source];
             if(output_matrix.empty())
                 return 0;
-            input_size.extend(c->Resolve(output_matrix));
+            range resolved_target = c->Resolve(output_matrix);
+            if(has_fixed_size)
+                validate_fixed_target(*c, resolved_target);
+            else
+                input_size.extend(resolved_target);
         }
-        kernel().buffers[full_name].realloc(input_size.extent());
-        Trace("\t\t\tComponent::SetInputSize Alloc" + std::string(input_size), full_name);
+        if(!has_fixed_size)
+        {
+            kernel().buffers[full_name].realloc(input_size.extent());
+            Trace("\t\t\tComponent::SetInputSize Alloc" + std::string(input_size), full_name);
+        }
 
         // Set label if requested and there is only a single input
 
@@ -1519,9 +1592,14 @@ namespace ikaros
         // Set input sizes (if possible)
 
         for(auto d : info_["inputs"])
-            if(k.buffers[path_+"."+std::string(d["name"])].empty())
-                if(InputsReady(d, ingoing_connections))
-                    SetInputSize(d, ingoing_connections);
+        {
+            dictionary input = d;
+            std::string full_name = path_+"."+std::string(input["name"]);
+            bool has_fixed_size = input.contains("size");
+            if(has_fixed_size || k.buffers[full_name].empty())
+                if(InputsReady(input, ingoing_connections))
+                    SetInputSize(input, ingoing_connections);
+        }
         return 0;
     }
 

@@ -1,0 +1,11 @@
+<group
+    name="Test_143"
+    description="Test fixed input size attributes in .ikc files"
+>
+
+    <module class="Constant" name="Const" data="10,20" />
+    <module class="KernelSizedInputTestModule" name="Sized" />
+
+    <connection source="Const.OUTPUT" target="Sized.INPUT[0:2]" />
+
+</group>
