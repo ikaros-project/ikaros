@@ -10,16 +10,16 @@ Version 3 is completely rewritten in modern C++ and includes a number of new fea
 
 Up to date information is available in the [wiki](https://github.com/ikaros-project/ikaros/wiki).
 
-## Ikaros Status - 10 February, 2026
+## Ikaros Status - 21 April, 2026
 
 | Component | State | Comments |
 | ----|----|----|
 | CMake             |<div style="color:green">🟢 OK |   |
-| Matrices          |<div style="color:green">🟢 OK | not optimized |
+| Matrices          |<div style="color:green">🟢 OK | |
 | Ranges            |<div style="color:green">🟢 OK | no enumerated ranges |
 | Dictionary        |<div style="color:green">🟢 OK |  |
 | Options           |<div style="color:green">🟢 OK |
-| Maths             |<div style="color:#c60">🟡 Partial | only essential functions |
+| Maths             |<div style="color:green">🟢 OK |  |
 | Parameters        |<div style="color:green">🟢 OK | |
 | Expressions       |<div style="color:green">🟢 OK |  |
 | XML               |<div style="color:green">🟢 OK | |
@@ -39,7 +39,7 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
 | Log               |<div style="color:green">🟢 OK | |
 | Editing           |<div style="color:green">🟢 OK  | |
 | Sockets           |<div style="color:green">🟢 OK |  |
-| UtilityModules    |<div style="color:#c60">🟡 Partial | 47 modules |
+| UtilityModules    |<div style="color:#green">🟢 OK | 70 modules |
 | Named Dimensions  |<div style="color:green">🟢 OK |  |
 
 ## Basic Start-up Parameters
@@ -50,12 +50,12 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
 
             -S (start):  start-up automatically without waiting for commands from WebUI
             -b (batch_mode): start automatically and quit when execution terminates
-            -d (tick_duration): duration of each tick
+            -d (tick_duration): duration of each tick in seconds
             -h (help): list command line options [true]
             -r (real_time): run in real-time mode
-            -s (stop): stop Ikaros after this tick [-1]
-            -w (webui_port): port for ikaros WebUI [8000]
-            -x: activate experimental features
+            -s####(stop): stop Ikaros after this tick [-1]
+            -w#### (webui_port): port for ikaros WebUI [8000]
+
 
         filename :   ikg-file to load
 
