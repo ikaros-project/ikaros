@@ -2000,6 +2000,14 @@ footer .log-messages p {
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 52px;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+.log-messages,
+.log-messages * {
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 .log-resize-handle {

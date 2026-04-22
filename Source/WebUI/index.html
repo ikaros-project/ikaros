@@ -25,6 +25,14 @@
     </div>
 
     <script src="brainstudio.js" ></script>
+    <script src="dialog.js" defer></script>
+    <script src="breadcrumbs.js" defer></script>
+    <script src="nav.js" defer></script>
+    <script src="log.js" defer></script>
+    <script src="selector.js" defer></script>
+    <script src="inspector.js" defer></script>
+    <script src="main.js" defer></script>
+    <script src="controller.js" defer></script>
     <script src="color_tables.js" defer ></script>
     <script src="WebUIWidget.js" defer ></script>
     <script src="WebUIWidgetControl.js" defer ></script>
@@ -706,7 +714,7 @@
 	                    <tr>
 	                        <td colspan="2" class="system-inspector-button-row">
 	                            <button type="button" class="system-inspector-button" onclick="inspector.openProfilingWindow()">profiling</button>
-                                <button type="button" class="system-inspector-button" onclick="inspector.openStartupStepsWindow()">startup steps</button>
+                                <button type="button" class="system-inspector-button" onclick="inspector.openStartupStepsWindow()">module start</button>
 	                        </td>
 	                    </tr>
 	             </tbody>
@@ -768,7 +776,7 @@
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", (event) => { setTimeout("brainstudio.init()", 500); });
+        document.addEventListener("DOMContentLoaded", () => { setTimeout(() => { brainstudio.init(); }, 500); });
     </script>
 
 </body>
