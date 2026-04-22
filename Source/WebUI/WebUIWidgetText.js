@@ -71,7 +71,7 @@ class WebUIWidgetText extends WebUIWidgetControl
                 this.text = nextText;
                 if(inspector && typeof inspector.showInspectorForSelection === "function")
                     inspector.showInspectorForSelection();
-                network.tainted = true;
+                controller.setTainted(true, "WebUIWidgetText.finishInlineTextEdit");
             }
             this.setDisplayedText(nextText);
         }
