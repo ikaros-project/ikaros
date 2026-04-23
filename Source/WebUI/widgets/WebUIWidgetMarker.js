@@ -12,7 +12,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
 //            {'name':'length_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'order', 'default':"col", 'type':'string', 'control': 'menu', 'options': "col,row"},
             {'name':'select_x', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name':'selectValue', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'select_value_column', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'count', 'default':0, 'type':'int', 'control': 'textedit'},
 
             {'name': "MARKER STYLE", 'control':'header'},
@@ -79,14 +79,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             return Number(this.parameters.select_x);
         return Number(this.parameters.select ?? 0);
     }
-/*
-    requestData(data_set)
-    {
-        data_set.add(this.parameters['module']+"."+this.parameters['source']);
-        if(this.parameters['length_module'])
-            data_set.add(this.parameters['length_module']+"."+this.parameters['length_source']);
-    }
-*/
+
     drawRows(width, height, index, transform)
     {
         let s = this.parameters.size*(width+height)/2
@@ -117,8 +110,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             let x = (d[i][selectX+0]-this.parameters.min_x)*this.parameters.scale_x * width;
             let y = (d[i][selectX+1]-this.parameters.min_y)*this.parameters.scale_y * height;
             
-            //for(var j=this.parameters.select+2; j<xx;)
-            for(var j=0; j<2;)
+            for(var j=selectX; j<selectX+2;)
             {
                 lx = x;
                 ly = y;
@@ -221,7 +213,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
                     else if(this.parameters.labelType == "z_value")
                          lbl = d[j][i+2].toFixed(this.parameters.labelDecimals);
                     else if(this.parameters.labelType == "value")
-                        lbl = d[j][this.parameters.selectValue].toFixed(this.parameters.labelDecimals);
+                        lbl = d[j][this.parameters.select_value_column].toFixed(this.parameters.labelDecimals);
 
                     this.canvas.fillText(this.parameters.labelPrefix+lbl+this.parameters.labelPostfix, ...transform(x+this.parameters.labelOffsetX, y+this.parameters.labelOffsetY));
                 }
@@ -255,7 +247,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             return;
         
         try {
-            this.data = d[this.parameters['source']];
+            this.data = this.getSource('source');
 
             if(!this.data)
                 return;
