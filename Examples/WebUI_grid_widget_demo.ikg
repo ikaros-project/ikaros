@@ -1,0 +1,160 @@
+<group
+    name="WebUIGridWidgetDemo"
+    description="Demo of the WebUI grid widget with scalar and RGB inputs"
+
+>
+    <module
+        class="Constant"
+        name="GridValues"
+        data="0.0, 0.2, 0.4, 0.6; 0.1, 0.3, 0.5, 0.7; 0.2, 0.4, 0.6, 0.8; 0.3, 0.5, 0.7, 1.0"
+    />
+
+    <module
+        class="Constant"
+        name="GridRed"
+        data="1.0, 0.8, 0.6, 0.4; 1.0, 0.8, 0.6, 0.4; 1.0, 0.8, 0.6, 0.4; 1.0, 0.8, 0.6, 0.4"
+    />
+
+    <module
+        class="Constant"
+        name="GridGreen"
+        data="0.2, 0.4, 0.6, 0.8; 0.2, 0.4, 0.6, 0.8; 0.2, 0.4, 0.6, 0.8; 0.2, 0.4, 0.6, 0.8"
+    />
+
+    <module
+        class="Constant"
+        name="GridBlue"
+        data="0.1, 0.1, 0.1, 0.1; 0.3, 0.3, 0.3, 0.3; 0.5, 0.5, 0.5, 0.5; 0.7, 0.7, 0.7, 0.7"
+    />
+
+    <module
+        class="Constant"
+        name="GridToggle"
+        data="1, 0, 1, 0; 0, 1, 0, 1; 1, 1, 0, 0; 0, 0, 1, 1"
+    />
+
+    <module
+        class="Constant"
+        name="GridSlider"
+        data="0.15, 0.35, 0.55, 0.75; 0.25, 0.45, 0.65, 0.85; 0.10, 0.30, 0.50, 0.70; 0.20, 0.40, 0.60, 0.80"
+    />
+
+    <widget
+        _index_="0"
+        _x="24"
+        _y="24"
+        class="grid"
+        color=""
+        fill="fire"
+        frame-style=""
+        height="260"
+        labelWidth="36"
+        labels="A,B,C,D"
+        lineWidth="1"
+        max="1"
+        min="0"
+        name="GridWidgetScalar"
+        order="row"
+        scales="no"
+        shape="square"
+        show_frame="true"
+        show_title="true"
+        size="0.9"
+        source="GridValues.OUTPUT"
+        style=""
+        title="Scalar Grid"
+        width="260"
+    />
+
+    <widget
+        _index_="2"
+        _x="336"
+        _y="24"
+        class="grid"
+        blue="GridBlue.OUTPUT"
+        color=""
+        fill="rgb"
+        frame-style=""
+        green="GridGreen.OUTPUT"
+        height="260"
+        labelWidth="36"
+        labels="R1,R2,R3,R4"
+        lineWidth="1"
+        max="1"
+        min="0"
+        name="GridWidgetRGB"
+        order="row"
+        red="GridRed.OUTPUT"
+        scales="no"
+        shape="square"
+        show_frame="true"
+        show_title="true"
+        size="0.9"
+        style=""
+        title="RGB Grid"
+        width="260"
+    />
+
+    <widget
+        _index_="4"
+        _x="648"
+        _y="24"
+        class="grid"
+        color=""
+        colorTable="#2b2b2b,#ff5a36"
+        fill="custom"
+        frame-style=""
+        height="260"
+        labelWidth="36"
+        labels="T1,T2,T3,T4"
+        lineWidth="1"
+        max="1"
+        min="0"
+        name="GridWidgetInteractive"
+        order="row"
+        parameter="GridToggle.data"
+        scales="no"
+        shape="circle"
+        show_frame="true"
+        show_title="true"
+        size="0.75"
+        source="GridToggle.data"
+        style=""
+        title="Interactive Grid"
+        valueHigh="1"
+        valueLow="0"
+        width="260"
+    />
+
+    <widget
+        _index_="6"
+        _x="24"
+        _y="320"
+        class="grid"
+        color=""
+        colorTable="#1f3b73,#3e8ed0,#6bc4a5,#f4d35e,#ee964b"
+        fill="custom"
+        frame-style=""
+        height="260"
+        interaction="slider"
+        labelWidth="36"
+        labels="S1,S2,S3,S4"
+        lineWidth="1"
+        max="1"
+        min="0"
+        name="GridWidgetSlider"
+        order="row"
+        parameter="GridSlider.data"
+        scales="no"
+        shape="square"
+        show_frame="true"
+        show_title="true"
+        size="0.85"
+        source="GridSlider.data"
+        style=""
+        title="Slider Grid"
+        valueHigh="1"
+        valueLow="0"
+        width="260"
+    />
+</group>

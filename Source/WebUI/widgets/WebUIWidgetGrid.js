@@ -21,6 +21,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             
             {'name':'command', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'interaction', 'default':"toggle", 'type':'string', 'control': 'menu', 'options': "toggle,slider"},
             {'name':'valueHigh', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'valueLow', 'default':0, 'type':'float', 'control': 'textedit'},
             
@@ -52,35 +53,121 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         super.init();
         this.data = [];
         this.displayData = [];
+        this.sliderInteraction = null;
 
         this.onclick = function (evt)
         {
+            if(this.parameters.interaction === "slider")
+                return;
+            this.handleGridClick(evt);
+        }
+
+        this.onpointerdown = (evt) =>
+        {
+            if(this.parameters.interaction !== "slider")
+                return;
+            this.beginSliderInteraction(evt);
+        };
+
+        this._boundSliderMove = (evt) =>
+        {
+            this.updateSliderInteraction(evt);
+        };
+
+        this._boundSliderEnd = () =>
+        {
+            this.endSliderInteraction();
+        };
+
+        this._boundSliderClickSuppressor = (evt) =>
+        {
+            evt.preventDefault();
+            evt.stopPropagation();
+        };
+    }
+
+    disconnectedCallback()
+    {
+        if (typeof super.disconnectedCallback === "function")
+            super.disconnectedCallback();
+        this.endSliderInteraction();
+    }
+
+    hasDrawableGrid()
+    {
+        return Array.isArray(this.displayData) && Array.isArray(this.displayData[0]) && this.displayData.length > 0 && this.displayData[0].length > 0;
+    }
+
+    getGridMetrics()
+    {
+        if(!this.hasDrawableGrid())
+            return null;
+
+        const hasLabels = String(this.parameters.labels ?? "").trim() !== "";
+        const labelWidth = hasLabels ? parseInt(this.parameters.labelWidth) : 0;
+        const rect = this.canvasElement.getBoundingClientRect();
+        const rows = this.displayData.length;
+        const cols = this.displayData[0].length;
+        const usableWidth = rect.width - this.format.spaceLeft - this.format.spaceRight - labelWidth;
+        const usableHeight = rect.height - this.format.spaceTop - this.format.spaceBottom;
+        if(usableWidth <= 0 || usableHeight <= 0 || rows <= 0 || cols <= 0)
+            return null;
+
+        return {
+            rect,
+            rows,
+            cols,
+            labelWidth,
+            usableWidth,
+            usableHeight,
+            cellWidth: usableWidth / cols,
+            cellHeight: usableHeight / rows
+        };
+    }
+
+    getGridCellFromEvent(evt)
+    {
+        const metrics = this.getGridMetrics();
+        if(!metrics)
+            return null;
+
+        const x = Math.floor(metrics.cols * (evt.clientX - metrics.rect.left - this.format.spaceLeft - metrics.labelWidth) / metrics.usableWidth);
+        const y = Math.floor(metrics.rows * (evt.clientY - metrics.rect.top - this.format.spaceTop) / metrics.usableHeight);
+        if(x < 0 || x >= metrics.cols || y < 0 || y >= metrics.rows)
+            return null;
+
+        return {x, y, metrics};
+    }
+
+    showGridValues()
+    {
+        let s = "";
+        for(let r of this.data)
+        {
+            for(let c of r)
+                s += c+"\t";
+            s += "\n"
+        }
+        alert(s);
+    }
+
+    handleGridClick(evt)
+    {
             if(main.edit_mode)
                 return;
-            if(!Array.isArray(this.displayData) || !Array.isArray(this.displayData[0]) || this.displayData.length === 0 || this.displayData[0].length === 0)
+            if(!this.hasDrawableGrid())
                 return;
             
             if(!this.parameters.command && !this.parameters.parameter)
             {
-                let s = "";
-                for(let r of this.data)
-                {
-                    for(let c of r)
-                        s += c+"\t";
-                    s += "\n"
-                }
-                alert(s);
+                this.showGridValues();
                 return;
             }
-            
-            const hasLabels = String(this.parameters.labels ?? "").trim() !== "";
-            let lw = hasLabels ? parseInt(this.parameters.labelWidth) : 0;
-            let r = this.canvasElement.getBoundingClientRect();
-            let x = Math.floor(this.displayData[0].length*(evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw));
-            let y = Math.floor(this.displayData.length*(evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom));
 
-            if(x < 0 || x >= this.displayData[0].length || y < 0 || y >= this.displayData.length)
+            const cell = this.getGridCellFromEvent(evt);
+            if(!cell)
                 return;
+            const {x, y} = cell;
 
             if(this.parameters.command)
                 this.send_command(this.parameters.command, this.parameters.valueHigh, x, y)
@@ -94,6 +181,107 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                     this.send_control_change(this.parameters.parameter, this.parameters.valueLow, x, y);
             }
         }
+
+    getSliderStartValue(x, y)
+    {
+        const currentValue = Number(this.displayData?.[y]?.[x]);
+        if(Number.isFinite(currentValue))
+            return currentValue;
+        const low = Number(this.parameters.valueLow);
+        return Number.isFinite(low) ? low : 0;
+    }
+
+    beginSliderInteraction(evt)
+    {
+        if(main.edit_mode)
+            return;
+        if(this.parameters.command || !this.parameters.parameter)
+            return;
+
+        const cell = this.getGridCellFromEvent(evt);
+        if(!cell)
+            return;
+
+        evt.preventDefault();
+        evt.stopPropagation();
+
+        const {x, y, metrics} = cell;
+        this.sliderInteraction = {
+            x,
+            y,
+            pointerId: evt.pointerId,
+            startClientY: evt.clientY,
+            startValue: this.getSliderStartValue(x, y),
+            dragRange: Math.max(1, metrics.cellHeight * 2.0)
+        };
+
+        if(this.setPointerCapture && evt.pointerId !== undefined)
+        {
+            try {
+                this.setPointerCapture(evt.pointerId);
+            } catch (error) {
+            }
+        }
+
+        window.addEventListener("pointermove", this._boundSliderMove, true);
+        window.addEventListener("pointerup", this._boundSliderEnd, true);
+        window.addEventListener("pointercancel", this._boundSliderEnd, true);
+        window.addEventListener("click", this._boundSliderClickSuppressor, true);
+        this.updateSliderInteraction(evt);
+    }
+
+    updateSliderInteraction(evt)
+    {
+        if(!this.sliderInteraction || !this.parameters.parameter)
+            return;
+
+        evt.preventDefault();
+        evt.stopPropagation();
+
+        const low = Number(this.parameters.valueLow);
+        const high = Number(this.parameters.valueHigh);
+        const rangeMin = Math.min(Number.isFinite(low) ? low : 0, Number.isFinite(high) ? high : 1);
+        const rangeMax = Math.max(Number.isFinite(low) ? low : 0, Number.isFinite(high) ? high : 1);
+        const span = rangeMax - rangeMin;
+        const delta = (this.sliderInteraction.startClientY - evt.clientY) / this.sliderInteraction.dragRange;
+        const nextValue = Math.max(rangeMin, Math.min(rangeMax, this.sliderInteraction.startValue + delta * span));
+
+        if(Array.isArray(this.displayData?.[this.sliderInteraction.y]))
+            this.displayData[this.sliderInteraction.y][this.sliderInteraction.x] = nextValue;
+
+        this.send_control_change(this.parameters.parameter, nextValue, this.sliderInteraction.x, this.sliderInteraction.y);
+        this.redrawGrid();
+    }
+
+    endSliderInteraction()
+    {
+        if(!this.sliderInteraction)
+            return;
+
+        const pointerId = this.sliderInteraction.pointerId;
+        window.removeEventListener("pointermove", this._boundSliderMove, true);
+        window.removeEventListener("pointerup", this._boundSliderEnd, true);
+        window.removeEventListener("pointercancel", this._boundSliderEnd, true);
+        setTimeout(() =>
+        {
+            window.removeEventListener("click", this._boundSliderClickSuppressor, true);
+        }, 0);
+        if(this.releasePointerCapture && pointerId !== undefined)
+        {
+            try {
+                this.releasePointerCapture(pointerId);
+            } catch (error) {
+            }
+        }
+        this.sliderInteraction = null;
+    }
+
+    redrawGrid()
+    {
+        this.resetCanvasTransform(-0.5, -0.5);
+        this.canvas.clearRect(0, 0, this.width, this.height);
+        this.canvas.translate(this.format.marginLeft, this.format.marginTop);
+        this.drawHorizontal(1, 1);
     }
 
     transposeMatrix(matrix)
@@ -123,6 +311,13 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         }
 
         return this.transposeMatrix(data);
+    }
+
+    channelToHex(value)
+    {
+        const numeric = Number(value);
+        const byte = Math.max(0, Math.min(255, Math.round(255 * (Number.isFinite(numeric) ? numeric : 0))));
+        return byte.toString(16).padStart(2, "0");
     }
 
     drawPlotHorizontal(width, height, index, transform)
@@ -196,9 +391,9 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                         this.setColor(i+j);
                         this.canvas.beginPath();
                         try {
-                            let r = (255*d[0][i][j]).toString(16);
-                            let g = (255*d[1][i][j]).toString(16);
-                            let b = (255*d[2][i][j]).toString(16);
+                            let r = this.channelToHex(d[0][i][j]);
+                            let g = this.channelToHex(d[1][i][j]);
+                            let b = this.channelToHex(d[2][i][j]);
                             
                             this.canvas.fillStyle = '#'+r+g+b;
                         }  catch (error) {
