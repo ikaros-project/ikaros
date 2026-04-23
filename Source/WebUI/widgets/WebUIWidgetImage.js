@@ -56,11 +56,11 @@ class WebUIWidgetImage extends WebUIWidgetGraph
     requestData(data_set)
     {
         if(!this.parameters.file)
-            data_set.add(this.parameters.source+":"+this.parameters.format);
+            data_set.add(this.resolveControlPath(this.parameters.source)+":"+this.parameters.format);
         if(this.parameters.index)
-            data_set.add(this.parameters.index);
+            this.addSource(data_set, this.parameters.index);
         if(this.parameters.opacity_source)
-            data_set.add(this.parameters.opacity_source);
+            this.addSource(data_set, this.parameters.opacity_source);
     }
 
     updateFrame()
@@ -96,7 +96,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
     {
         if(this.parameters.source)
         {
-            let d = data[this.parameters.source+":"+this.parameters.format];
+            let d = data[this.resolveControlPath(this.parameters.source)+":"+this.parameters.format];
             if(!d) return;
             this.imageObj.onload = function ()
             {

@@ -22,14 +22,12 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
          return "<label></label><select></select>";
     }
 
-    /*
-    requestData(data_set)   // TODO: Remove - is automatic now
+    requestData(data_set)
     {
-        data_set.add(this.parameters.parameter);
+        this.addSource(data_set, this.parameters.parameter);
         if(this.parameters.list_parameter)
-            data_set.add(this.parameters.list_parameter);
+            this.addSource(data_set, this.parameters.list_parameter);
     }
-*/
 
     option_selected(index, value, text)
     {

@@ -119,13 +119,12 @@ class WebUIWidgetText extends WebUIWidgetControl
 
         super.updateFrame();
     }
-/*
     requestData(data_set)
     {
         if(!this.parameters.text)
-            data_set.add(this.parameters.parameter);
+            this.addSource(data_set, this.parameters.parameter);
+        this.addSource(data_set, this.parameters.select_source);
     }
-*/
 /*
     text_edited(index, value)
     {

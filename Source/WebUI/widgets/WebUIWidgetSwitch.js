@@ -19,7 +19,7 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
     }
 
     requestData(data_set) {
-        data_set.add(this.parameters.parameter);
+        this.addSource(data_set, this.parameters.parameter);
     }
 
     _getRows() {

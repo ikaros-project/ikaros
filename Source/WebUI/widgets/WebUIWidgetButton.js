@@ -44,11 +44,11 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
     requestData(data_set)
     {
-        data_set.add(this.parameters.parameter);
+        this.addSource(data_set, this.parameters.parameter);
         if(this.parameters.file_names)
-        data_set.add(this.parameters.file_names);
+            this.addSource(data_set, this.parameters.file_names);
         if(this.parameters.enableSource)
-            data_set.add(this.parameters.enableSource);
+            this.addSource(data_set, this.parameters.enableSource);
     }
 
     getSelectX()

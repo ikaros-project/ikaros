@@ -189,7 +189,7 @@ class WebUIWidget extends HTMLElement
     getSource(source, default_data=undefined)
     {
         try {
-            let v = this.receivedData[this.parameters[source]];
+            let v = this.receivedData[this.resolveControlPath(this.parameters[source])];
 
             // FIXME: This code should be in individual Widgets if necessary
             //if(v != undefined && typeof v[0] != "object") // FIXME: Temporary fix for arrays
@@ -219,7 +219,7 @@ class WebUIWidget extends HTMLElement
     addSource(data_set, source) // this will be default function for all widgets later
     {
         if(source)
-            data_set.add(source);
+            data_set.add(this.resolveControlPath(source));
     }
 
 
