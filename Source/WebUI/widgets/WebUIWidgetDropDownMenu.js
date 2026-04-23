@@ -33,18 +33,16 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
 
     option_selected(index, value, text)
     {
-        if(this.parameters.parameter)
-            if(this.parameters.parameter_type=='string')
-                this.send_control_change(this.parameters.parameter, text);
-            else
-            {
-                const x = this.getSelectX();
-                const y = this.getSelectY();
-                if(y === "")
-                    this.send_control_change(this.parameters.parameter, value, x);
-                else
-                    this.send_control_change(this.parameters.parameter, value, x, Math.trunc(Number(y)));
-            }
+        if(!this.parameters.parameter)
+            return;
+
+        const x = this.getSelectX();
+        const y = this.getSelectY();
+        const selectedValue = this.parameters.parameter_type=='string' ? text : value;
+        if(y === "")
+            this.send_control_change(this.parameters.parameter, selectedValue, x);
+        else
+            this.send_control_change(this.parameters.parameter, selectedValue, x, Math.trunc(Number(y)));
     }
 
     getSelectX()
@@ -82,25 +80,24 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
         }
     }
     
-updateAll() {
-    super.updateAll();
- 
-    let selector = this.querySelector("select");
-    selector.addEventListener('change', (e) => {
-        e.preventDefault();  // Prevent default action
-        e.stopPropagation(); // Stop event bubbling
-        const selectedText = e.target.selectedOptions?.[0]?.innerText ?? "";
-        this.option_selected(this.getSelectX(), e.target.value, selectedText);
-    }, true);  // Use capture phase
+    updateAll() {
+        super.updateAll();
+    
+        let selector = this.querySelector("select");
+        selector.onchange = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const selectedText = e.target.selectedOptions?.[0]?.innerText ?? "";
+            this.option_selected(this.getSelectX(), e.target.value, selectedText);
+        };
 
-    selector.addEventListener('mousedown', (e) => {
-        //e.preventDefault();  // Prevent default action
-        e.stopPropagation(); // Stop event bubbling
-    }, true);  // Use capture phase
+        selector.onmousedown = (e) => {
+            e.stopPropagation();
+        };
 
-    this.changeOptions(this.parameters.list);
-    this.querySelector("label").innerText = this.parameters.label;
-}
+        this.changeOptions(this.parameters.list);
+        this.querySelector("label").innerText = this.parameters.label;
+    }
     update()
     {
          try

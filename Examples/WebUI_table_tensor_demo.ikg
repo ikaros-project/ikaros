@@ -1,0 +1,146 @@
+<group
+    name="WebUITableTensorDemo"
+    description="Demo of table widgets displaying 2D to 5D matrices with slice selectors for higher-rank tensors"
+    start="true"
+    webui_port="8000"
+>
+    <module
+        class="Constant"
+        name="Matrix2D"
+        data="1, 2, 3, 4; 5, 6, 7, 8; 9, 10, 11, 12"
+    />
+
+    <module
+        class="Constant"
+        name="Matrix3D"
+        data="[[[101, 102, 103, 104], [105, 106, 107, 108], [109, 110, 111, 112]], [[201, 202, 203, 204], [205, 206, 207, 208], [209, 210, 211, 212]]]"
+    />
+
+    <module
+        class="Constant"
+        name="Matrix4D"
+        data="[[[[1001, 1002, 1003, 1004], [1005, 1006, 1007, 1008], [1009, 1010, 1011, 1012]], [[1101, 1102, 1103, 1104], [1105, 1106, 1107, 1108], [1109, 1110, 1111, 1112]]], [[[2001, 2002, 2003, 2004], [2005, 2006, 2007, 2008], [2009, 2010, 2011, 2012]], [[2101, 2102, 2103, 2104], [2105, 2106, 2107, 2108], [2109, 2110, 2111, 2112]]]]"
+    />
+
+    <module
+        class="Constant"
+        name="Matrix5D"
+        data="[[[[[10001, 10002, 10003, 10004], [10005, 10006, 10007, 10008], [10009, 10010, 10011, 10012]], [[10101, 10102, 10103, 10104], [10105, 10106, 10107, 10108], [10109, 10110, 10111, 10112]]], [[[11001, 11002, 11003, 11004], [11005, 11006, 11007, 11008], [11009, 11010, 11011, 11012]], [[11101, 11102, 11103, 11104], [11105, 11106, 11107, 11108], [11109, 11110, 11111, 11112]]]], [[[[20001, 20002, 20003, 20004], [20005, 20006, 20007, 20008], [20009, 20010, 20011, 20012]], [[20101, 20102, 20103, 20104], [20105, 20106, 20107, 20108], [20109, 20110, 20111, 20112]]], [[[21001, 21002, 21003, 21004], [21005, 21006, 21007, 21008], [21009, 21010, 21011, 21012]], [[21101, 21102, 21103, 21104], [21105, 21106, 21107, 21108], [21109, 21110, 21111, 21112]]]]]"
+    />
+
+    <module
+        class="Constant"
+        name="LongMatrix2D"
+        data="1, 2, 3, 4; 5, 6, 7, 8; 9, 10, 11, 12; 13, 14, 15, 16; 17, 18, 19, 20; 21, 22, 23, 24; 25, 26, 27, 28; 29, 30, 31, 32; 33, 34, 35, 36; 37, 38, 39, 40; 41, 42, 43, 44; 45, 46, 47, 48"
+    />
+
+    <widget
+        _index_="0"
+        _x="24"
+        _y="24"
+        class="table"
+        colorize="true"
+        decimals="0"
+        direction="normal"
+        frame-style=""
+        height="180"
+        label_x=""
+        label_y=""
+        name="Widget_2D"
+        scrollable="false"
+        show_frame="true"
+        show_title="true"
+        source="Matrix2D.OUTPUT"
+        style=""
+        title="2D Matrix (3x4)"
+        width="280"
+    />
+
+    <widget
+        _index_="2"
+        _x="336"
+        _y="24"
+        class="table"
+        colorize="true"
+        decimals="0"
+        direction="normal"
+        frame-style=""
+        height="180"
+        label_x=""
+        label_y=""
+        name="Widget_3D"
+        scrollable="false"
+        show_frame="true"
+        show_title="true"
+        source="Matrix3D.OUTPUT"
+        style=""
+        title="3D Matrix (2x3x4)"
+        width="280"
+    />
+
+    <widget
+        _index_="4"
+        _x="24"
+        _y="240"
+        class="table"
+        colorize="true"
+        decimals="0"
+        direction="normal"
+        frame-style=""
+        height="180"
+        label_x=""
+        label_y=""
+        name="Widget_4D"
+        scrollable="false"
+        show_frame="true"
+        show_title="true"
+        source="Matrix4D.OUTPUT"
+        style=""
+        title="4D Matrix (2x2x3x4)"
+        width="280"
+    />
+
+    <widget
+        _index_="6"
+        _x="336"
+        _y="240"
+        class="table"
+        colorize="true"
+        decimals="0"
+        direction="normal"
+        frame-style=""
+        height="180"
+        label_x=""
+        label_y=""
+        name="Widget_5D"
+        scrollable="false"
+        show_frame="true"
+        show_title="true"
+        source="Matrix5D.OUTPUT"
+        style=""
+        title="5D Matrix (2x2x2x3x4)"
+        width="280"
+    />
+
+    <widget
+        _index_="8"
+        _x="648"
+        _y="24"
+        class="table"
+        colorize="true"
+        decimals="0"
+        direction="normal"
+        frame-style=""
+        height="180"
+        label_x=""
+        label_y=""
+        name="Widget_Long2D"
+        scrollable="true"
+        show_frame="true"
+        show_title="true"
+        source="LongMatrix2D.OUTPUT"
+        style=""
+        title="Scrollable 2D Matrix (12x4)"
+        width="280"
+    />
+</group>

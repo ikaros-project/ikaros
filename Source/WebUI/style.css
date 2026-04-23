@@ -900,7 +900,7 @@ aside {
 
 #component_inspector
 {
-    padding-right:6px;
+    padding-right:0;
     position: relative;
 }
 
@@ -996,7 +996,7 @@ aside {
 #library_inspector .library-inspector-actions {
     flex: 0 0 auto;
     margin-top: auto;
-    padding: 0 14px 12px 14px;
+    padding: 0 14px 24px 14px;
     text-align: right;
 }
 
@@ -1188,15 +1188,50 @@ aside {
 
 #component_inspector table td + td {
     width: auto;
+    padding-left: 5px;
+    padding-right: 0;
+    text-align: left;
+    vertical-align: top;
+    border-top: 1px solid #585858;
+    border-bottom: 1px solid #171717;
 }
 
-#component_inspector td + td select,
+#component_inspector td + td.inspector-menu-cell,
+#component_inspector td + td.inspector-checkbox-cell,
+#component_inspector td + td.ui-color-cell,
+#component_inspector td + td.inspector-rgb-color-cell {
+    padding-left: 0 !important;
+}
+
+#component_inspector td + td.inspector-menu-cell select {
+    margin-left: 0;
+    padding-left: 0;
+}
+
 #component_inspector td + td input[type="text"],
 #component_inspector td + td input[type="number"] {
     width: 100%;
     max-width: 100%;
     display: block;
     box-sizing: border-box;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#component_inspector td + td.textedit {
+    padding-right: 0;
+}
+
+#component_inspector td + td select {
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    display: inline-block;
+    box-sizing: border-box;
+    margin-left: 0;
+    margin-right: auto;
+    position: relative;
+    top: -1px;
 }
 
 #component_inspector td + td .range-editor-fields {
@@ -1237,12 +1272,16 @@ aside {
 
 #component_inspector td + td.ui-color-cell {
     overflow: visible;
+    text-align: left;
 }
 
 #component_inspector .inspector-ui-color-display {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    justify-content: flex-start;
+    margin-left: 0;
+    margin-right: auto;
 }
 
 #component_inspector .inspector-ui-color-swatch {
@@ -1260,6 +1299,7 @@ aside {
 
 #component_inspector td + td.inspector-rgb-color-cell {
     overflow: visible;
+    text-align: left;
 }
 
 #component_inspector .inspector-rgb-color-editor {
@@ -1268,6 +1308,7 @@ aside {
     gap: 6px;
     width: 100%;
     padding-bottom: 2px;
+    align-items: flex-start;
 }
 
 #component_inspector .inspector-rgb-color-preview-row {
@@ -1293,6 +1334,7 @@ aside {
     flex-direction: column;
     gap: 4px;
     width: 100%;
+    align-items: stretch;
 }
 
 #component_inspector .inspector-rgb-slider-row {
@@ -1300,6 +1342,13 @@ aside {
     align-items: center;
     gap: 8px;
     width: 100%;
+    justify-content: flex-start;
+}
+
+#component_inspector td + td input[type="checkbox"] {
+    display: inline-block;
+    margin: 0;
+    vertical-align: middle;
 }
 
 #component_inspector .inspector-rgb-slider-label {
@@ -1538,6 +1587,10 @@ td.inspector-removable-value-cell {
     padding-right: 26px;
 }
 
+#component_inspector td.inspector-action-cell {
+    padding-right: 8px;
+}
+
 .inspector-minus-button {
     position: absolute;
     right: 4px;
@@ -1602,8 +1655,8 @@ aside #classes {
 }
 
 
-webui-widget-table div {
-    height: 35px;
+webui-widget-table .table-widget-root {
+    height: 100%;
     padding: 0;
 }
 /*

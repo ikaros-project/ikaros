@@ -4,6 +4,58 @@ const dialog =
     callback: null,
     infoDialogBound: false,
 
+    fetchFileList()
+    {
+        return fetch('/files', {method: 'GET', headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id}})
+        .then(response => {
+            if(!response.ok) {
+                alert("Could not get file list from server.");
+                throw new Error("HTTP error " + response.status);
+            }
+            return response.json();
+        })
+        .then(json => {
+            controller.filelist = json;
+            return json;
+        })
+        .catch(function(error) {
+            alert("Could not get file list from server.");
+            console.log("Could not get file list from server.");
+            throw error;
+        });
+    },
+
+    setActiveFileSource(prefix, activeType)
+    {
+        const systemButton = document.getElementById(`${prefix}_system_file_button`);
+        const userButton = document.getElementById(`${prefix}_user_file_button`);
+        const systemItems = document.getElementById(`${prefix}_dialog_system_items`);
+        const userItems = document.getElementById(`${prefix}_dialog_user_items`);
+
+        if(systemButton)
+            systemButton.classList.toggle("selected", activeType === "system");
+        if(userButton)
+            userButton.classList.toggle("selected", activeType === "user");
+        if(systemItems)
+            systemItems.style.display = activeType === "system" ? "block" : "none";
+        if(userItems)
+            userItems.style.display = activeType === "user" ? "block" : "none";
+    },
+
+    populateDialogOptions(items, files, confirmHandler)
+    {
+        if(!items)
+            return;
+        items.innerHTML = '';
+        files.forEach(file => {
+            const opt = document.createElement('option');
+            opt.value = file;
+            opt.text = file;
+            opt.addEventListener('dblclick', confirmHandler, false);
+            items.appendChild(opt);
+        });
+    },
+
     confirmOpen()
     {
         try {
@@ -28,42 +80,22 @@ const dialog =
 
     showOpenDialog(callback, message)
     {
-        fetch('/files', {method: 'GET', headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id}})
-        .then(response => {
-            if(!response.ok) {
-                alert("Could not get file list from server.");
-                throw new Error("HTTP error " + response.status);
-            }
-            return response.json();
-        })
+        dialog.fetchFileList()
         .then(json => {
-            controller.filelist = json;
             this.setupDialog(callback);
-            this.populateFileList(controller.filelist);
+            this.populateFileList(json);
             this.displayMessage(message);
             this.window.showModal();
-        })
-        .catch(function() {
-            alert("Could not get file list from server.");
-            console.log("Could not get file list from server.");
         });
     },
 
     showSaveDialog(callback, message)
     {
-        fetch('/files', {method: 'GET', headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id}})
-        .then(response => {
-            if(!response.ok) {
-                alert("Could not get file list from server.");
-                throw new Error("HTTP error " + response.status);
-            }
-            return response.json();
-        })
+        dialog.fetchFileList()
         .then(json => {
-            controller.filelist = json;
             this.callback = callback;
             this.window = document.getElementById('save_dialog');
-            this.populateSaveFileList(controller.filelist);
+            this.populateSaveFileList(json);
             if(message)
             {
                 const saveTitle = document.getElementById('save_dialog_title');
@@ -93,10 +125,6 @@ const dialog =
                     filenameInput.select();
                 }, 0);
             }
-        })
-        .catch(function() {
-            alert("Could not get file list from server.");
-            console.log("Could not get file list from server.");
         });
     },
 
@@ -121,19 +149,11 @@ const dialog =
     populateOptions(type, files)
     {
         if(files)
-        {
-            let items = document.getElementById(`open_dialog_${type}_items`);
-            items.innerHTML = '';
-            files.forEach(file => {
-                const opt = document.createElement('option');
-                opt.value = file;
-                opt.text = file;
-                opt.addEventListener('dblclick', function() {
-                    dialog.confirmOpen();
-                }, false);
-                items.appendChild(opt);
-            });
-        }
+            this.populateDialogOptions(
+                document.getElementById(`open_dialog_${type}_items`),
+                files,
+                function() { dialog.confirmOpen(); }
+            );
     },
 
     populateSaveFileList(file_list)
@@ -147,16 +167,7 @@ const dialog =
         const items = document.getElementById(`save_dialog_${type}_items`);
         if(!items)
             return;
-        items.innerHTML = '';
-        files.forEach(file => {
-            const opt = document.createElement('option');
-            opt.value = file;
-            opt.text = file;
-            opt.addEventListener('dblclick', function() {
-                dialog.confirmSave();
-            }, false);
-            items.appendChild(opt);
-        });
+        this.populateDialogOptions(items, files, function() { dialog.confirmSave(); });
         items.selectedIndex = -1;
         items.oninput = dialog.syncSaveFilenameFromSelection;
         items.onchange = dialog.syncSaveFilenameFromSelection;
@@ -186,19 +197,13 @@ const dialog =
 
     showSystemSaveFileList()
     {
-        document.getElementById('save_system_file_button').classList.add("selected");
-        document.getElementById('save_user_file_button').classList.remove("selected");
-        document.getElementById('save_dialog_system_items').style.display='block';
-        document.getElementById('save_dialog_user_items').style.display='none';
+        this.setActiveFileSource("save", "system");
         this.syncSaveFilenameFromSelection();
     },
 
     showUserSaveFileList()
     {
-        document.getElementById('save_system_file_button').classList.remove("selected");
-        document.getElementById('save_user_file_button').classList.add("selected");
-        document.getElementById('save_dialog_system_items').style.display='none';
-        document.getElementById('save_dialog_user_items').style.display='block';
+        this.setActiveFileSource("save", "user");
         this.syncSaveFilenameFromSelection();
     },
 
@@ -241,18 +246,12 @@ const dialog =
 
     showSystemFileList()
     {
-        document.getElementById('system_file_button').classList.add("selected");
-        document.getElementById('user_file_button').classList.remove("selected");
-        document.getElementById('open_dialog_system_items').style.display='block';
-        document.getElementById('open_dialog_user_items').style.display='none';
+        this.setActiveFileSource("open", "system");
     },
 
     showUserFileList()
     {
-        document.getElementById('system_file_button').classList.remove("selected");
-        document.getElementById('user_file_button').classList.add("selected");
-        document.getElementById('open_dialog_system_items').style.display='none';
-        document.getElementById('open_dialog_user_items').style.display='block';
+        this.setActiveFileSource("open", "user");
     },
 
     confirmListSelect()

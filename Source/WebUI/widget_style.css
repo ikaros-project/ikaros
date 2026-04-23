@@ -18,6 +18,25 @@ webui-widget-table table {
     width: 100%;
 }
 
+webui-widget-table .table-slice-controls {
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+}
+
+webui-widget-table .table-slice-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+webui-widget-table .table-slice-control span {
+    white-space: nowrap;
+    font-size: 0.7em;
+}
+
 webui-widget-table td {
     border-top: none;
     border-bottom: 1px solid gray;

@@ -118,7 +118,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
                 if(p.parameter)
                     this.parentElement.send_control_change(p.parameter, p.valueUp, selectX, selectY);
                 if(p.commandUp)
-                    this.parentElement.send_command(p.commandUp, p.value, selectX, selectY);
+                    this.parentElement.send_command(p.commandUp, p.valueUp, selectX, selectY);
 
             }
         }
@@ -201,7 +201,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
                 this.parentElement.send_control_change(p.parameter, p.valueUp, selectX, selectY);
             }
             if(p.commandUp)
-                this.parentElement.send_command(p.commandUp, p.value, selectX, selectY);
+                this.parentElement.send_command(p.commandUp, p.valueUp, selectX, selectY);
         }
 
         else if(p.type=="toggle")

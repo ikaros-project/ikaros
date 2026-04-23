@@ -24,6 +24,7 @@ const inspector =
     startup_steps_sort_key: "path",
     startup_steps_sort_direction: "asc",
 
+    // Initialization and top-level inspector setup.
     init()
     {
         inspector.system = document.querySelector('#system_inspector');
@@ -50,6 +51,7 @@ const inspector =
         inspector.setupResizeForPanel(inspector.library);
     },
 
+    // Popup window template loading and profiling/module-start windows.
     loadWindowTemplate(targetWindow, templatePath, onReady)
     {
         if(!targetWindow || targetWindow.closed)
@@ -92,52 +94,85 @@ const inspector =
         });
     },
 
-    openProfilingWindow()
+    getPopupWindowDocument(windowProperty)
     {
-        if(!inspector.profiling_window || inspector.profiling_window.closed)
+        const targetWindow = inspector[windowProperty];
+        if(!targetWindow || targetWindow.closed)
+            return null;
+        return targetWindow.document;
+    },
+
+    initializeSortablePopupWindow(windowProperty, templatePath, buttonSelector, sortHandler, updateIndicators)
+    {
+        const targetWindow = inspector[windowProperty];
+        if(!targetWindow || targetWindow.closed)
+            return;
+
+        inspector.loadWindowTemplate(targetWindow, templatePath, (doc) =>
         {
-            inspector.profiling_window = window.open("", "ikaros_profiling", "width=800,height=620,resizable=yes,scrollbars=yes");
-            if(!inspector.profiling_window)
-                return;
-            inspector.initializeProfilingWindow();
+            doc.querySelectorAll(buttonSelector).forEach((button) =>
+            {
+                button.addEventListener("click", () =>
+                {
+                    sortHandler(button.dataset.sortKey);
+                });
+            });
+            updateIndicators();
+        });
+    },
+
+    openPollingPopupWindow(windowProperty, timerProperty, windowName, initializeWindow, refreshWindow)
+    {
+        if(!inspector[windowProperty] || inspector[windowProperty].closed)
+        {
+            inspector[windowProperty] = window.open("", windowName, "width=800,height=620,resizable=yes,scrollbars=yes");
+            if(!inspector[windowProperty])
+                return false;
+            initializeWindow();
         }
         else
-            inspector.profiling_window.focus();
+            inspector[windowProperty].focus();
 
-        inspector.refreshProfilingWindow();
+        refreshWindow();
 
-        if(inspector.profiling_timer)
-            clearInterval(inspector.profiling_timer);
+        if(inspector[timerProperty])
+            clearInterval(inspector[timerProperty]);
 
-        inspector.profiling_timer = setInterval(() =>
+        inspector[timerProperty] = setInterval(() =>
         {
-            if(!inspector.profiling_window || inspector.profiling_window.closed)
+            if(!inspector[windowProperty] || inspector[windowProperty].closed)
             {
-                clearInterval(inspector.profiling_timer);
-                inspector.profiling_timer = null;
-                inspector.profiling_window = null;
+                clearInterval(inspector[timerProperty]);
+                inspector[timerProperty] = null;
+                inspector[windowProperty] = null;
                 return;
             }
-            inspector.refreshProfilingWindow();
+            refreshWindow();
         }, 1000);
+
+        return true;
+    },
+
+    openProfilingWindow()
+    {
+        inspector.openPollingPopupWindow(
+            "profiling_window",
+            "profiling_timer",
+            "ikaros_profiling",
+            () => inspector.initializeProfilingWindow(),
+            () => inspector.refreshProfilingWindow()
+        );
     },
 
     initializeProfilingWindow()
     {
-        if(!inspector.profiling_window || inspector.profiling_window.closed)
-            return;
-
-        inspector.loadWindowTemplate(inspector.profiling_window, "profiling_window.html", (doc) =>
-        {
-            doc.querySelectorAll(".profiling-sort-button").forEach((button) =>
-            {
-                button.addEventListener("click", () =>
-                {
-                    inspector.setProfilingSort(button.dataset.sortKey);
-                });
-            });
-            inspector.updateProfilingSortIndicators();
-        });
+        inspector.initializeSortablePopupWindow(
+            "profiling_window",
+            "profiling_window.html",
+            ".profiling-sort-button",
+            (sortKey) => inspector.setProfilingSort(sortKey),
+            () => inspector.updateProfilingSortIndicators()
+        );
     },
 
     profilingFormatMilliseconds(seconds)
@@ -215,10 +250,9 @@ const inspector =
 
     updateProfilingSortIndicators()
     {
-        if(!inspector.profiling_window || inspector.profiling_window.closed)
+        const doc = inspector.getPopupWindowDocument("profiling_window");
+        if(!doc)
             return;
-
-        const doc = inspector.profiling_window.document;
         doc.querySelectorAll(".profiling-sort-button").forEach((button) =>
         {
             const isActive = button.dataset.sortKey === inspector.profiling_sort_key;
@@ -233,10 +267,9 @@ const inspector =
 
     renderProfilingWindow(data)
     {
-        if(!inspector.profiling_window || inspector.profiling_window.closed)
+        const doc = inspector.getPopupWindowDocument("profiling_window");
+        if(!doc)
             return;
-
-        const doc = inspector.profiling_window.document;
         const meta = doc.getElementById("profiling_meta");
         const rows = doc.getElementById("profiling_rows");
         if(!meta || !rows)
@@ -277,10 +310,9 @@ const inspector =
 
     showProfilingError(message)
     {
-        if(!inspector.profiling_window || inspector.profiling_window.closed)
+        const doc = inspector.getPopupWindowDocument("profiling_window");
+        if(!doc)
             return;
-
-        const doc = inspector.profiling_window.document;
         const meta = doc.getElementById("profiling_meta");
         const rows = doc.getElementById("profiling_rows");
         if(meta)
@@ -294,7 +326,7 @@ const inspector =
 
     refreshProfilingWindow()
     {
-        if(!inspector.profiling_window || inspector.profiling_window.closed)
+        if(!inspector.getPopupWindowDocument("profiling_window"))
             return;
 
         fetch('/profiling', {
@@ -310,7 +342,7 @@ const inspector =
         })
         .then((data) =>
         {
-            const doc = inspector.profiling_window && !inspector.profiling_window.closed ? inspector.profiling_window.document : null;
+            const doc = inspector.getPopupWindowDocument("profiling_window");
             const meta = doc ? doc.getElementById("profiling_meta") : null;
             if(meta)
                 meta.className = "profiling-meta";
@@ -325,50 +357,24 @@ const inspector =
 
     openStartupStepsWindow()
     {
-        if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
-        {
-            inspector.startup_steps_window = window.open("", "ikaros_startup_steps", "width=800,height=620,resizable=yes,scrollbars=yes");
-            if(!inspector.startup_steps_window)
-                return;
-            inspector.initializeStartupStepsWindow();
-        }
-        else
-            inspector.startup_steps_window.focus();
-
-        inspector.refreshStartupStepsWindow();
-
-        if(inspector.startup_steps_timer)
-            clearInterval(inspector.startup_steps_timer);
-
-        inspector.startup_steps_timer = setInterval(() =>
-        {
-            if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
-            {
-                clearInterval(inspector.startup_steps_timer);
-                inspector.startup_steps_timer = null;
-                inspector.startup_steps_window = null;
-                return;
-            }
-            inspector.refreshStartupStepsWindow();
-        }, 1000);
+        inspector.openPollingPopupWindow(
+            "startup_steps_window",
+            "startup_steps_timer",
+            "ikaros_startup_steps",
+            () => inspector.initializeStartupStepsWindow(),
+            () => inspector.refreshStartupStepsWindow()
+        );
     },
 
     initializeStartupStepsWindow()
     {
-        if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
-            return;
-
-        inspector.loadWindowTemplate(inspector.startup_steps_window, "startup_steps_window.html", (doc) =>
-        {
-            doc.querySelectorAll(".startup-steps-sort-button").forEach((button) =>
-            {
-                button.addEventListener("click", () =>
-                {
-                    inspector.setStartupStepsSort(button.dataset.sortKey);
-                });
-            });
-            inspector.updateStartupStepsSortIndicators();
-        });
+        inspector.initializeSortablePopupWindow(
+            "startup_steps_window",
+            "startup_steps_window.html",
+            ".startup-steps-sort-button",
+            (sortKey) => inspector.setStartupStepsSort(sortKey),
+            () => inspector.updateStartupStepsSortIndicators()
+        );
     },
 
     formatStartupStep(value)
@@ -469,10 +475,9 @@ const inspector =
 
     updateStartupStepsSortIndicators()
     {
-        if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
+        const doc = inspector.getPopupWindowDocument("startup_steps_window");
+        if(!doc)
             return;
-
-        const doc = inspector.startup_steps_window.document;
         doc.querySelectorAll(".startup-steps-sort-button").forEach((button) =>
         {
             const isActive = button.dataset.sortKey === inspector.startup_steps_sort_key;
@@ -487,10 +492,9 @@ const inspector =
 
     renderStartupStepsWindow(data)
     {
-        if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
+        const doc = inspector.getPopupWindowDocument("startup_steps_window");
+        if(!doc)
             return;
-
-        const doc = inspector.startup_steps_window.document;
         const meta = doc.getElementById("startup_steps_meta");
         const rows = doc.getElementById("startup_steps_rows");
         if(!meta || !rows)
@@ -524,10 +528,9 @@ const inspector =
 
     showStartupStepsError(message)
     {
-        if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
+        const doc = inspector.getPopupWindowDocument("startup_steps_window");
+        if(!doc)
             return;
-
-        const doc = inspector.startup_steps_window.document;
         const meta = doc.getElementById("startup_steps_meta");
         const rows = doc.getElementById("startup_steps_rows");
         if(meta)
@@ -541,7 +544,7 @@ const inspector =
 
     refreshStartupStepsWindow()
     {
-        if(!inspector.startup_steps_window || inspector.startup_steps_window.closed)
+        if(!inspector.getPopupWindowDocument("startup_steps_window"))
             return;
 
         fetch('/startupsteps', {
@@ -557,7 +560,7 @@ const inspector =
         })
         .then((data) =>
         {
-            const doc = inspector.startup_steps_window && !inspector.startup_steps_window.closed ? inspector.startup_steps_window.document : null;
+            const doc = inspector.getPopupWindowDocument("startup_steps_window");
             const meta = doc ? doc.getElementById("startup_steps_meta") : null;
             if(meta)
                 meta.className = "startup-steps-meta";
@@ -570,6 +573,7 @@ const inspector =
         });
     },
 
+    // Panel sizing and visibility management.
     escapeHTML(value)
     {
         return String(value)
@@ -670,87 +674,82 @@ const inspector =
         inspector.resize_target = null;
     },
 
+    hideAllPanels()
+    {
+        if(inspector.system)
+            inspector.system.style.display = "none";
+        if(inspector.component)
+            inspector.component.style.display = "none";
+        if(inspector.library)
+            inspector.library.style.display = "none";
+    },
+
+    showPanel(panel, options = {})
+    {
+        if(!panel)
+            return;
+
+        inspector.hideAllPanels();
+        panel.style.display = options.display || "block";
+
+        if(options.resetWidth)
+            inspector.resetPanelWidth(panel);
+        if(options.renderLibrary)
+            inspector.renderLibraryClassList();
+        if(options.updateLibraryAddButtonState)
+            inspector.updateLibraryAddButtonState();
+
+        inspector.updateLibraryButtonState();
+    },
+
+    togglePanel(panel, options = {})
+    {
+        if(!panel)
+            return;
+
+        if(inspector.isPanelVisible(panel))
+        {
+            inspector.hideAllPanels();
+            inspector.updateLibraryButtonState();
+            return;
+        }
+
+        inspector.showPanel(panel, options);
+    },
+
     toggleSystem()
     {
-        if (window.getComputedStyle(inspector.system, null).display === 'none')
-        {
-            inspector.system.style.display = 'block';
-            inspector.component.style.display = 'none';
-            if(inspector.library)
-                inspector.library.style.display = 'none';
-        }
-        else
-        {
-            inspector.system.style.display = 'none';
-            inspector.component.style.display = 'none';
-            if(inspector.library)
-                inspector.library.style.display = 'none';
-        }
-        inspector.updateLibraryButtonState();
+        inspector.togglePanel(inspector.system, {display: "block"});
     },
 
     toggleComponent()
     {
-        if(window.getComputedStyle(inspector.component, null).display === 'none')
-        {
-            inspector.component.style.display = "block";
-            inspector.system.style.display = "none";
-            if(inspector.library)
-                inspector.library.style.display = "none";
-            inspector.resetPanelWidth(inspector.component);
-        }
-        else
-        {
-            inspector.system.style.display = "none";
-            inspector.component.style.display = "none";
-            if(inspector.library)
-                inspector.library.style.display = "none";
-        }
-        inspector.updateLibraryButtonState();
+        inspector.togglePanel(inspector.component, {display: "block", resetWidth: true});
     },
 
     toggleLibrary()
     {
-        if(!inspector.library)
-            return;
-        if(window.getComputedStyle(inspector.library, null).display === 'none')
-        {
-            inspector.library.style.display = "flex";
-            inspector.system.style.display = "none";
-            inspector.component.style.display = "none";
-            inspector.resetPanelWidth(inspector.library);
-            inspector.renderLibraryClassList();
-        }
-        else
-        {
-            inspector.library.style.display = "none";
-            inspector.system.style.display = "none";
-            inspector.component.style.display = "none";
-        }
-        inspector.updateLibraryButtonState();
+        inspector.togglePanel(inspector.library, {
+            display: "flex",
+            resetWidth: true,
+            renderLibrary: true,
+            updateLibraryAddButtonState: true
+        });
     },
 
     showComponent()
     {
-        inspector.component.style.display = "block";
-        inspector.system.style.display = "none";
-        if(inspector.library)
-            inspector.library.style.display = "none";
-        inspector.resetPanelWidth(inspector.component);
-        inspector.updateLibraryButtonState();
+        inspector.showPanel(inspector.component, {display: "block", resetWidth: true});
     },
 
     showLibrary()
     {
-        if(!inspector.library)
-            return;
-        inspector.library.style.display = "flex";
-        inspector.system.style.display = "none";
-        inspector.component.style.display = "none";
-        inspector.resetPanelWidth(inspector.library);
-        inspector.renderLibraryClassList();
-        inspector.updateLibraryButtonState();
-        inspector.updateLibraryAddButtonState();
+        inspector.showPanel(inspector.library, {
+            display: "flex",
+            resetWidth: true,
+            renderLibrary: true,
+            updateLibraryAddButtonState: true
+        });
     },
 
     showLibraryForClass(className)
@@ -808,6 +807,7 @@ const inspector =
         inspector.resetPanelWidth(inspector.component);
     },
 
+    // Library browser and markdown/documentation rendering.
     renderLibraryClassList()
     {
         if(!inspector.libraryClassList)
@@ -1132,6 +1132,7 @@ const inspector =
         });
     },
 
+    // Inspector table and row-building helpers.
     hideSubviews()
     {
         Object.entries(inspector.subview).forEach(([key, value]) => { value.style.display = 'none'; });
@@ -1150,6 +1151,12 @@ const inspector =
         const cell2 = row.insertCell(1);
         cell1.innerText = label;
         cell2.innerHTML = content;
+        const firstElement = cell2.firstElementChild;
+        if(firstElement && firstElement.tagName == "SELECT")
+        {
+            cell2.classList.add("inspector-menu-cell");
+            cell2.style.paddingLeft = "0";
+        }
         return cell2.firstElementChild;
     },
 
@@ -1253,6 +1260,17 @@ const inspector =
         return value;
     },
 
+    syncNotifiedParameter(item, p, nextValue, options = {})
+    {
+        const shouldNotify = options.notify !== false;
+        item[p.name] = nextValue;
+        if(inspector.notify && inspector.notify.parameters)
+            inspector.notify.parameters[p.name] = item[p.name];
+        if(shouldNotify && inspector.notify)
+            inspector.notify.parameterChangeNotification(p);
+        return item[p.name];
+    },
+
     normalizeTextEditValue(target)
     {
         return String(target?.innerText ?? target?.textContent ?? "")
@@ -1315,11 +1333,7 @@ const inspector =
                 newValue = newValue.replace(/\n/g, "");
             if(!inspector.checkValueForType(newValue, p.type))
                 return;
-            item[p.name] = inspector.parseValueForType(newValue, p.type, item[p.name]);
-            if(inspector.notify && inspector.notify.parameters)
-                inspector.notify.parameters[p.name] = item[p.name];
-            if(inspector.notify)
-                inspector.notify.parameterChangeNotification(p);
+            inspector.syncNotifiedParameter(item, p, inspector.parseValueForType(newValue, p.type, item[p.name]));
         };
         cell2.addEventListener("keypress", function(evt) 
         {
@@ -1354,11 +1368,7 @@ const inspector =
         const commitRangeRows = function()
         {
             const serialized = serializeBracketRangeParts(displayRows);
-            item[p.name] = serialized;
-            if(inspector.notify && inspector.notify.parameters)
-                inspector.notify.parameters[p.name] = item[p.name];
-            if(inspector.notify)
-                inspector.notify.parameterChangeNotification(p);
+            inspector.syncNotifiedParameter(item, p, serialized);
         };
 
         const buildRangePlaceholder = function(axis)
@@ -1405,9 +1415,7 @@ const inspector =
                 const updateFieldValue = function(evt)
                 {
                     rangeRow[field.key] = evt.target.value;
-                    item[p.name] = serializeBracketRangeParts(displayRows);
-                    if(inspector.notify && inspector.notify.parameters)
-                        inspector.notify.parameters[p.name] = item[p.name];
+                    inspector.syncNotifiedParameter(item, p, serializeBracketRangeParts(displayRows), {notify: false});
                 };
                 const commitFieldValue = function(evt)
                 {
@@ -1480,11 +1488,7 @@ const inspector =
                 const updatedRows = parseBracketRangeString(item[p.name]);
                 if(i < updatedRows.length)
                     updatedRows.splice(i, 1);
-                item[p.name] = serializeBracketRangeParts(updatedRows);
-                if(inspector.notify && inspector.notify.parameters)
-                    inspector.notify.parameters[p.name] = item[p.name];
-                if(inspector.notify)
-                    inspector.notify.parameterChangeNotification(p);
+                inspector.syncNotifiedParameter(item, p, serializeBracketRangeParts(updatedRows));
             });
             editorCell.appendChild(removeButton);
         }
@@ -1493,6 +1497,7 @@ const inspector =
         const actionCellLeft = actionRow.insertCell(0);
         const actionCellRight = actionRow.insertCell(1);
         actionCellLeft.innerText = displayRows.length === 0 ? (p.label || p.name) : "";
+        actionCellRight.className = "inspector-action-cell";
         actionCellRight.style.textAlign = "right";
         actionCellRight.innerHTML = '<button type="button" class="inspector-plus-button" aria-label="Add range">+</button>';
 
@@ -1503,10 +1508,8 @@ const inspector =
             {
                 const updatedRows = parseBracketRangeString(item[p.name]);
                 updatedRows.push({start:"", end:"", step:""});
-                item[p.name] = serializeBracketRangeParts(updatedRows);
+                inspector.syncNotifiedParameter(item, p, serializeBracketRangeParts(updatedRows), {notify: false});
                 item._range_editor_focus = {name: p.name, index: updatedRows.length - 1, key: "start"};
-                if(inspector.notify && inspector.notify.parameters)
-                    inspector.notify.parameters[p.name] = item[p.name];
                 if(inspector.notify)
                     inspector.notify.parameterChangeNotification(p);
             };
@@ -1529,11 +1532,12 @@ const inspector =
     createMenuRow(item, p)
     {
         const row = current_t_body.insertRow(-1);
-        const value = item[p.name];
         const cell1 = row.insertCell(0);
         const cell2 = row.insertCell(1);
 
         cell1.innerText = p.name;
+        cell2.className = "inspector-menu-cell";
+        cell2.style.paddingLeft = "0";
 
         let opts = p.options.split(',').map(o=>o.trim());
                         
@@ -1555,11 +1559,7 @@ const inspector =
         s += '</select>';
         cell2.innerHTML= s;
         cell2.addEventListener("input", function(evt) { 
-                item[p.name] = evt.target.value.trim();
-                if(inspector.notify && inspector.notify.parameters)
-                    inspector.notify.parameters[p.name] = item[p.name];
-                if(inspector.notify)
-                inspector.notify.parameterChangeNotification(p);
+                inspector.syncNotifiedParameter(item, p, evt.target.value.trim());
             });
     },
 
@@ -1571,6 +1571,7 @@ const inspector =
 
         cell1.innerText = p.name;
         cell2.className = "ui-color-cell";
+        cell2.style.paddingLeft = "0";
 
         const colorName = item[p.name] || "black";
         const wrapper = document.createElement("div");
@@ -1629,6 +1630,7 @@ const inspector =
 
         cell1.innerText = p.name;
         cell2.className = "inspector-rgb-color-cell";
+        cell2.style.paddingLeft = "0";
 
         const wrapper = document.createElement("div");
         wrapper.className = "inspector-rgb-color-editor";
@@ -1660,13 +1662,9 @@ const inspector =
         const commitColor = function()
         {
             const nextValue = formatInspectorRGBColor(sliders.r.value, sliders.g.value, sliders.b.value);
-            item[p.name] = nextValue;
+            inspector.syncNotifiedParameter(item, p, nextValue);
             swatch.style.backgroundColor = nextValue;
             valueLabel.textContent = nextValue;
-            if(inspector.notify && inspector.notify.parameters)
-                inspector.notify.parameters[p.name] = item[p.name];
-            if(inspector.notify)
-                inspector.notify.parameterChangeNotification(p);
         };
 
         for(const channel of channels)
@@ -1707,17 +1705,15 @@ const inspector =
         const cell2 = row.insertCell(1);
 
         cell1.innerText = p.name;
+        cell2.className = "inspector-checkbox-cell";
+        cell2.style.paddingLeft = "0";
         if(value)
             cell2.innerHTML= '<input type="checkbox" checked />';
         else
             cell2.innerHTML= '<input type="checkbox" />';
         const commitCheckBoxValue = function(evt)
         {
-            item[p.name] = evt.target.checked;
-            if(inspector.notify && inspector.notify.parameters)
-                inspector.notify.parameters[p.name] = item[p.name];
-            if(inspector.notify)
-                inspector.notify.parameterChangeNotification(p);
+            inspector.syncNotifiedParameter(item, p, evt.target.checked);
         };
         cell2.addEventListener("input", commitCheckBoxValue);
         cell2.addEventListener("change", commitCheckBoxValue);
@@ -1729,6 +1725,32 @@ const inspector =
         this.createTextEditRow(item, p);
     },
 
+    getRowBuilder(control)
+    {
+        switch(control)
+        {
+            case "header":
+                return inspector.acreateHeaderRow;
+            case "textedit":
+                return inspector.createTextEditRow;
+            case "range-editor":
+                return inspector.createRangeEditorRows;
+            case "color":
+                return inspector.createColorRow;
+            case "ui_color":
+                return inspector.createUIColorRow;
+            case "menu":
+                return inspector.createMenuRow;
+            case "checkbox":
+                return inspector.createCheckBoxRow;
+            case "slider":
+                return inspector.createSliderRow;
+            default:
+                return null;
+        }
+    },
+
+    // Input controls and editable inspector rows.
     addDataRows(item, template, notify=null)
     {
         try{
@@ -1755,26 +1777,10 @@ const inspector =
                     else
                         p.control = "textedit";
                 }
-    
-                switch(p.control)
-                {
-                    case 'header':
-                        this.acreateHeaderRow(item, p); break;
-                    case 'textedit':
-                        this.createTextEditRow(item, p); break;
-                    case 'range-editor':
-                        this.createRangeEditorRows(item, p); break;
-                    case 'color':
-                        this.createColorRow(item, p); break;
-                    case 'ui_color':
-                        this.createUIColorRow(item, p); break;
-                    case 'menu':
-                        this.createMenuRow(item, p); break;
-                    case 'checkbox':
-                        this.createCheckBoxRow(item, p); break;
-                    case 'slider':
-                        this.createSliderRow(item, p); break;
-                }
+
+                const rowBuilder = inspector.getRowBuilder(p.control);
+                if(rowBuilder)
+                    rowBuilder.call(this, item, p);
             }
         }
         catch(err)
@@ -1802,6 +1808,7 @@ const inspector =
         return s;
     },
 
+    // Data application and selection-specific inspector rendering.
     parameterChangeNotification(p)
     {
         const isTopGroupBackground = (
@@ -2057,6 +2064,7 @@ const inspector =
             const actionCellLeft = actionRow.insertCell(0);
             const actionCellRight = actionRow.insertCell(1);
             actionCellLeft.innerHTML = "";
+            actionCellRight.className = "inspector-action-cell";
             actionCellRight.style.textAlign = "right";
             actionCellRight.innerHTML = '<button type="button" class="inspector-plus-button" aria-label="Add">+</button>';
 

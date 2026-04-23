@@ -19,6 +19,7 @@ const main =
     new_position_x: 100,
     new_position_y: 100,
 
+    // Initialization and top-level UI setup.
     init()
     {
         main.main = document.querySelector("#main");
@@ -36,6 +37,7 @@ const main =
         main.view.addEventListener("contextmenu", main.showBackgroundContextMenu, false);
     },
 
+    // Reconnect overlay state.
     createReconnectOverlay()
     {
         if(main.reconnect_overlay && main.reconnect_overlay.parentElement)
@@ -70,6 +72,97 @@ const main =
             main.reconnect_overlay.classList.remove("visible");
     },
 
+    // Context and component/widget menus.
+    stopMenuPointerPropagation(menu)
+    {
+        if(!menu)
+            return;
+        menu.addEventListener("mousedown", function(evt)
+        {
+            evt.stopPropagation();
+        }, true);
+    },
+
+    hideMenu(menu, visibleProperty, onHide=null)
+    {
+        if(!menu)
+            return;
+        menu.style.display = "none";
+        main[visibleProperty] = false;
+        if(onHide)
+            onHide();
+    },
+
+    showMenuAt(menu, visibleProperty, clientX, clientY, onShow=null)
+    {
+        if(!menu)
+            return;
+
+        if(onShow)
+            onShow();
+
+        menu.style.display = "block";
+        const rect = menu.getBoundingClientRect();
+        const maxLeft = Math.max(0, window.innerWidth - rect.width - 4);
+        const maxTop = Math.max(0, window.innerHeight - rect.height - 4);
+        const left = Math.max(0, Math.min(clientX, maxLeft));
+        const top = Math.max(0, Math.min(clientY, maxTop));
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+        main[visibleProperty] = true;
+    },
+
+    hideAllMenus(exceptMenu=null)
+    {
+        if(main.context_menu && main.context_menu !== exceptMenu)
+            main.hideContextMenu();
+        if(main.component_color_menu && main.component_color_menu !== exceptMenu)
+            main.hideComponentColorMenu();
+        if(main.widget_menu && main.widget_menu !== exceptMenu)
+            main.hideWidgetMenu();
+    },
+
+    registerGlobalMenuDismissHandlers()
+    {
+        if(main.global_menu_handlers_registered)
+            return;
+        main.global_menu_handlers_registered = true;
+
+        document.addEventListener("mousedown", function(evt)
+        {
+            if(
+                evt.target &&
+                evt.target.closest &&
+                evt.target.closest(".main-context-menu")
+            )
+                return;
+            main.hideAllMenus();
+        }, true);
+
+        document.addEventListener("keydown", function(evt)
+        {
+            if(evt.key === "Escape")
+                main.hideAllMenus();
+        }, true);
+
+        document.addEventListener("scroll", function(evt)
+        {
+            const target = evt ? evt.target : null;
+            if(
+                target &&
+                target.closest &&
+                target.closest(".main-context-menu")
+            )
+                return;
+            main.hideAllMenus();
+        }, true);
+
+        window.addEventListener("blur", function()
+        {
+            main.hideAllMenus();
+        }, false);
+    },
+
     createContextMenu()
     {
         if(main.context_menu && main.context_menu.parentElement)
@@ -86,11 +179,8 @@ const main =
         `;
         document.body.appendChild(menu);
         main.context_menu = menu;
-
-        menu.addEventListener("mousedown", function(evt)
-        {
-            evt.stopPropagation();
-        }, true);
+        main.stopMenuPointerPropagation(menu);
+        main.registerGlobalMenuDismissHandlers();
 
         menu.addEventListener("click", function(evt)
         {
@@ -102,47 +192,6 @@ const main =
             evt.preventDefault();
             evt.stopPropagation();
         }, false);
-
-        document.addEventListener("mousedown", function(evt)
-        {
-            if(main.context_menu_visible && main.context_menu && !main.context_menu.contains(evt.target))
-                main.hideContextMenu();
-            if(main.component_color_menu_visible && main.component_color_menu && !main.component_color_menu.contains(evt.target))
-                main.hideComponentColorMenu();
-            if(main.widget_menu_visible && main.widget_menu && !main.widget_menu.contains(evt.target))
-                main.hideWidgetMenu();
-        }, true);
-
-        document.addEventListener("keydown", function(evt)
-        {
-            if(evt.key === "Escape")
-            {
-                main.hideContextMenu();
-                main.hideComponentColorMenu();
-                main.hideWidgetMenu();
-            }
-        }, true);
-
-        document.addEventListener("scroll", function(evt)
-        {
-            const target = evt ? evt.target : null;
-            if(
-                target &&
-                target.closest &&
-                target.closest(".main-context-menu")
-            )
-                return;
-            main.hideContextMenu();
-            main.hideComponentColorMenu();
-            main.hideWidgetMenu();
-        }, true);
-
-        window.addEventListener("blur", function()
-        {
-            main.hideContextMenu();
-            main.hideComponentColorMenu();
-            main.hideWidgetMenu();
-        }, false);
     },
 
     showContextMenuAt(clientX, clientY)
@@ -150,24 +199,13 @@ const main =
         if(!main.context_menu)
             return;
 
-        main.hideComponentColorMenu();
-        main.context_menu.style.display = "block";
-        const rect = main.context_menu.getBoundingClientRect();
-        const maxLeft = Math.max(0, window.innerWidth - rect.width - 4);
-        const maxTop = Math.max(0, window.innerHeight - rect.height - 4);
-        const left = Math.max(0, Math.min(clientX, maxLeft));
-        const top = Math.max(0, Math.min(clientY, maxTop));
-        main.context_menu.style.left = `${left}px`;
-        main.context_menu.style.top = `${top}px`;
-        main.context_menu_visible = true;
+        main.hideAllMenus(main.context_menu);
+        main.showMenuAt(main.context_menu, "context_menu_visible", clientX, clientY);
     },
 
     hideContextMenu()
     {
-        if(!main.context_menu)
-            return;
-        main.context_menu.style.display = "none";
-        main.context_menu_visible = false;
+        main.hideMenu(main.context_menu, "context_menu_visible");
     },
 
     createComponentColorMenu()
@@ -210,11 +248,7 @@ const main =
         main.component_color_menu = menu;
         main.component_class_submenu = menu.querySelector(".component-class-submenu");
         main.component_class_submenu_panel = menu.querySelector(".main-context-class-submenu-panel");
-
-        menu.addEventListener("mousedown", function(evt)
-        {
-            evt.stopPropagation();
-        }, true);
+        main.stopMenuPointerPropagation(menu);
 
         menu.addEventListener("click", function(evt)
         {
@@ -459,59 +493,51 @@ const main =
         if(!main.component_color_menu || !componentFullName)
             return;
 
-        main.hideContextMenu();
-        main.populateComponentClassSubmenu(componentFullName);
-        main.component_color_target = componentFullName;
-        main.component_color_property = propertyName || "color";
-        const item = network.dict[componentFullName];
-        const documentationButton = main.component_color_menu.querySelector('.main-context-menu-item[data-action="show-documentation"]');
-        const documentationSeparator = main.component_color_menu.querySelector('.component-documentation-separator');
-        const canShowDocumentation = !!(item && item._tag === "module" && item.class);
-        if(documentationButton)
-            documentationButton.style.display = canShowDocumentation ? "" : "none";
-        if(documentationSeparator)
-            documentationSeparator.style.display = canShowDocumentation ? "" : "none";
-        if(preferredSubmenu === "class")
+        main.hideAllMenus(main.component_color_menu);
+        main.showMenuAt(main.component_color_menu, "component_color_menu_visible", clientX, clientY, function()
         {
-            main.component_color_menu.classList.add("open-class-submenu");
-            main.component_color_menu.classList.add("open-class-only");
-            main.component_color_menu.classList.remove("open-color-only");
-        }
-        else if(preferredSubmenu === "color-only")
-        {
-            main.component_color_menu.classList.remove("open-class-submenu");
-            main.component_color_menu.classList.remove("open-class-only");
-            main.component_color_menu.classList.add("open-color-only");
-        }
-        else
-        {
-            main.component_color_menu.classList.remove("open-class-submenu");
-            main.component_color_menu.classList.remove("open-class-only");
-            main.component_color_menu.classList.remove("open-color-only");
-        }
-        main.component_color_menu.style.display = "block";
-
-        const rect = main.component_color_menu.getBoundingClientRect();
-        const maxLeft = Math.max(0, window.innerWidth - rect.width - 4);
-        const maxTop = Math.max(0, window.innerHeight - rect.height - 4);
-        const left = Math.max(0, Math.min(clientX, maxLeft));
-        const top = Math.max(0, Math.min(clientY, maxTop));
-        main.component_color_menu.style.left = `${left}px`;
-        main.component_color_menu.style.top = `${top}px`;
-        main.component_color_menu_visible = true;
+            main.populateComponentClassSubmenu(componentFullName);
+            main.component_color_target = componentFullName;
+            main.component_color_property = propertyName || "color";
+            const item = network.dict[componentFullName];
+            const documentationButton = main.component_color_menu.querySelector('.main-context-menu-item[data-action="show-documentation"]');
+            const documentationSeparator = main.component_color_menu.querySelector('.component-documentation-separator');
+            const canShowDocumentation = !!(item && item._tag === "module" && item.class);
+            if(documentationButton)
+                documentationButton.style.display = canShowDocumentation ? "" : "none";
+            if(documentationSeparator)
+                documentationSeparator.style.display = canShowDocumentation ? "" : "none";
+            if(preferredSubmenu === "class")
+            {
+                main.component_color_menu.classList.add("open-class-submenu");
+                main.component_color_menu.classList.add("open-class-only");
+                main.component_color_menu.classList.remove("open-color-only");
+            }
+            else if(preferredSubmenu === "color-only")
+            {
+                main.component_color_menu.classList.remove("open-class-submenu");
+                main.component_color_menu.classList.remove("open-class-only");
+                main.component_color_menu.classList.add("open-color-only");
+            }
+            else
+            {
+                main.component_color_menu.classList.remove("open-class-submenu");
+                main.component_color_menu.classList.remove("open-class-only");
+                main.component_color_menu.classList.remove("open-color-only");
+            }
+        });
     },
 
     hideComponentColorMenu()
     {
-        if(!main.component_color_menu)
-            return;
-        main.component_color_menu.style.display = "none";
-        main.component_color_menu.classList.remove("open-class-submenu");
-        main.component_color_menu.classList.remove("open-class-only");
-        main.component_color_menu.classList.remove("open-color-only");
-        main.component_color_menu_visible = false;
-        main.component_color_target = null;
-        main.component_color_property = "color";
+        main.hideMenu(main.component_color_menu, "component_color_menu_visible", function()
+        {
+            main.component_color_menu.classList.remove("open-class-submenu");
+            main.component_color_menu.classList.remove("open-class-only");
+            main.component_color_menu.classList.remove("open-color-only");
+            main.component_color_target = null;
+            main.component_color_property = "color";
+        });
     },
 
     showWidgetMenuAt(clientX, clientY, widgetFullName)
@@ -519,29 +545,20 @@ const main =
         if(!main.widget_menu || !widgetFullName)
             return;
 
-        main.hideContextMenu();
-        main.hideComponentColorMenu();
-        main.populateWidgetClassSubmenu(widgetFullName);
-        main.widget_menu_target = widgetFullName;
-        main.widget_menu.style.display = "block";
-
-        const rect = main.widget_menu.getBoundingClientRect();
-        const maxLeft = Math.max(0, window.innerWidth - rect.width - 4);
-        const maxTop = Math.max(0, window.innerHeight - rect.height - 4);
-        const left = Math.max(0, Math.min(clientX, maxLeft));
-        const top = Math.max(0, Math.min(clientY, maxTop));
-        main.widget_menu.style.left = `${left}px`;
-        main.widget_menu.style.top = `${top}px`;
-        main.widget_menu_visible = true;
+        main.hideAllMenus(main.widget_menu);
+        main.showMenuAt(main.widget_menu, "widget_menu_visible", clientX, clientY, function()
+        {
+            main.populateWidgetClassSubmenu(widgetFullName);
+            main.widget_menu_target = widgetFullName;
+        });
     },
 
     hideWidgetMenu()
     {
-        if(!main.widget_menu)
-            return;
-        main.widget_menu.style.display = "none";
-        main.widget_menu_visible = false;
-        main.widget_menu_target = null;
+        main.hideMenu(main.widget_menu, "widget_menu_visible", function()
+        {
+            main.widget_menu_target = null;
+        });
     },
 
     setWidgetClass(className)
@@ -994,6 +1011,7 @@ const main =
         main.grid_canvas_dpr = dpr;
     },
 
+    // Background interaction, grid drawing, and canvas layout.
     drawGrid()
     {
         main.ensureGridCanvasSize();
@@ -2618,6 +2636,7 @@ const main =
         return !!(group && group.auto_routing && connection && connection.line_type === "auto_route");
     },
 
+    // Main view rendering for groups, modules, inputs, outputs, and widgets.
     addGroup(g,path)
         {
         const fullName = `${path}.${g.name}`;
@@ -2827,6 +2846,7 @@ const main =
         selector.selectItems([], evt.currentTarget.dataset.name);
     },
 
+    // Connection debug geometry and routing helpers.
     collectComponentRectangles()
     {
         main.component_rectangles = [];
@@ -3528,6 +3548,7 @@ const main =
         return `${path}.${source}*${path}.${target}`;
     },
 
+    // Inline editing for component names and widget titles.
     commitInlineRename(fullName, newName)
     {
         const item = network.dict[fullName];
@@ -3747,6 +3768,7 @@ const main =
         main.startInlineNameEdit(syntheticEvent);
     },
 
+    // Rendered connection selection and refresh.
     selectConnection(connection)
     {
         const c = document.getElementById(connection);
@@ -3926,6 +3948,7 @@ const main =
         main.updateComponentStates();
     },
 
+    // Selection rendering and edit/view mode transitions.
     cancelEditMode()
     {
         this.setViewMode();
@@ -3999,6 +4022,7 @@ const main =
         selector.selectItems(components.map((component) => background + '.' + component.name), null, false, true);
     },
 
+    // Keyboard shortcuts and command help.
     keydown(evt)
     {
         const key = (evt.key || "").toLowerCase();
