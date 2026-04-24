@@ -248,11 +248,19 @@ The following suffix functions are supported:
 - `.size_z`
 - `.rows`
 - `.cols`
+- `.rank`
+- `.shape`
+- `.shape[...]`
+- `.size`
+- `.size[...]`
 
 Examples:
 
 - `input.rows`
 - `buffer.cols`
+- `input.rank`
+- `input.shape[0]`
+- `buffer.shape[1:]`
 
 ### Math
 

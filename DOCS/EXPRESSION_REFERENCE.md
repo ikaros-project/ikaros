@@ -49,7 +49,7 @@ Supports:
 - `@` indirection
 - `{...}` substitution
 - numeric arithmetic
-- matrix size functions like `.rows` and `.size`
+- matrix size functions like `.rows`, `.rank`, `.shape`, and `.shape[1:]`
 
 ### Size-list expressions
 
@@ -226,13 +226,21 @@ The compute engine supports these suffix functions on bound matrices:
 - `.size_z`
 - `.rows`
 - `.cols`
+- `.rank`
+- `.shape`
+- `.shape[...]`
 - `.size`
+- `.size[...]`
 
 Examples:
 
 - `child.input.rows`
+- `INPUT.shape`
+- `INPUT.rank`
+- `data.shape`
+- `INPUT.shape[0]`
+- `INPUT.shape[1:]`
 - `INPUT.size`
-- `data.size`
 
 ### Meaning
 
@@ -242,8 +250,14 @@ Examples:
   - number of rows
 - `cols`
   - number of columns
+- `rank`
+  - number of dimensions
 - `size`
+  - compatibility alias for full shape
+- `shape`
   - comma-separated full shape, for example `3,64,64`
+- `shape[...]`
+  - dimension indexing and slicing, for example `shape[0]` or `shape[1:]`
 
 ## Lists And Matrices
 
@@ -273,13 +287,14 @@ Examples:
 - `size="2,3"`
 - `size="5*@a+1,2+@b*3"`
 - `size="@a,@b"`
-- `size="INPUT.size"`
+- `size="INPUT.shape"`
+- `size="INPUT.shape[1:]"`
 
 ### Extra behavior in size expressions
 
 When evaluating sizes:
 
-- matrix size functions are expanded first
+- matrix size functions and shape slices are expanded first
 - boolean results are converted to `1` or `0`
 - the final result must be positive integers
 - matrix-valued results are not allowed as a single dimension expression
@@ -475,8 +490,8 @@ data="{base}{i}.@value"
 
 ```xml
 <output name="OUTPUT" size="@sample_rate*@tick_duration" />
-<output name="RGB" size="3,@size_y,@size_x" />
-<output name="COPY" size="INPUT.size" />
+<output name="RGB" shape="3,@size_y,@size_x" />
+<output name="COPY" shape="INPUT.shape" />
 ```
 
 ## Safe Authoring Guidelines
@@ -507,6 +522,7 @@ data="{base}{i}.@value"
 - `.size_z`
 - `.rows`
 - `.cols`
+- `.rank`
 - `.size`
 
 ### Separators
@@ -523,4 +539,3 @@ This reference is based on the current implementation in:
 - `/Users/cba/ikaros/Source/Kernel/expression.h`
 - `/Users/cba/ikaros/Source/Kernel/ikaros.cc`
 - `/Users/cba/ikaros/Source/Kernel/UnitTesting/UtilityTests/test_compute.cc`
-

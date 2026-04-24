@@ -4,6 +4,8 @@
 #include "compute_engine.h"
 #include "session_logging.h"
 
+#include <cctype>
+
 using namespace ikaros;
 using namespace std::chrono;
 using namespace std::literals;
@@ -93,6 +95,123 @@ namespace ikaros
             {
                 throw exception("String \"" + value + "\" is out of range for " + conversion_name + ".");
             }
+        }
+
+        bool parse_shape_selector(const std::string & function_name, std::string & base_name, std::string & selector)
+        {
+            const std::size_t bracket = function_name.find('[');
+            if(bracket == std::string::npos || function_name.empty() || function_name.back() != ']')
+                return false;
+
+            base_name = function_name.substr(0, bracket);
+            selector = function_name.substr(bracket + 1, function_name.size() - bracket - 2);
+            return base_name == "shape" || base_name == "size";
+        }
+
+        bool parse_non_negative_index(const std::string & text, int & value)
+        {
+            const std::string trimmed = trim(text);
+            if(trimmed.empty())
+                return false;
+
+            value = 0;
+            for(char c : trimmed)
+            {
+                if(!std::isdigit(static_cast<unsigned char>(c)))
+                    return false;
+                value = value * 10 + (c - '0');
+            }
+            return true;
+        }
+
+        std::string shape_string(const std::vector<int> & shape)
+        {
+            std::string result;
+            for(size_t i = 0; i < shape.size(); ++i)
+            {
+                if(i > 0)
+                    result += ",";
+                result += std::to_string(shape[i]);
+            }
+            return result;
+        }
+
+        std::optional<std::string> matrix_shape_expression_value(const matrix & m, const std::string & function_name, const std::string & path)
+        {
+            const auto shape = m.shape();
+
+            if(function_name == "size_x")
+                return std::to_string(m.size_x());
+            if(function_name == "size_y")
+                return std::to_string(m.size_y());
+            if(function_name == "size_z")
+                return std::to_string(m.size_z());
+            if(function_name == "rows")
+                return std::to_string(m.rows());
+            if(function_name == "cols")
+                return std::to_string(m.cols());
+            if(function_name == "rank")
+                return std::to_string(m.rank());
+            if(function_name == "size" || function_name == "shape")
+                return shape_string(shape);
+
+            std::string base_name;
+            std::string selector;
+            if(!parse_shape_selector(function_name, base_name, selector))
+                return std::nullopt;
+
+            const std::size_t colon = selector.find(':');
+            if(colon == std::string::npos)
+            {
+                int index = 0;
+                if(!parse_non_negative_index(selector, index))
+                    throw exception("Invalid shape index \"" + function_name + "\".", path);
+                if(index < 0 || static_cast<std::size_t>(index) >= shape.size())
+                    throw exception("Shape index out of range in \"" + function_name + "\".", path);
+                return std::to_string(shape[static_cast<std::size_t>(index)]);
+            }
+
+            int start = 0;
+            int end = static_cast<int>(shape.size());
+            const std::string start_text = selector.substr(0, colon);
+            const std::string end_text = selector.substr(colon + 1);
+            if(!start_text.empty() && !parse_non_negative_index(start_text, start))
+                throw exception("Invalid shape slice \"" + function_name + "\".", path);
+            if(!end_text.empty() && !parse_non_negative_index(end_text, end))
+                throw exception("Invalid shape slice \"" + function_name + "\".", path);
+
+            start = std::clamp(start, 0, static_cast<int>(shape.size()));
+            end = std::clamp(end, 0, static_cast<int>(shape.size()));
+            if(end < start)
+                end = start;
+            return shape_string(std::vector<int>(shape.begin() + start, shape.begin() + end));
+        }
+
+        std::string canonicalize_shape_aliases(const std::string & xml)
+        {
+            std::string out;
+            out.reserve(xml.size());
+
+            for(size_t i = 0; i < xml.size();)
+            {
+                if(i + 5 <= xml.size() && xml.compare(i, 5, ".size") == 0)
+                {
+                    const char next = (i + 5 < xml.size()) ? xml[i + 5] : '\0';
+                    const bool is_alias = next == '[' || next == '\0'
+                        || (!std::isalnum(static_cast<unsigned char>(next)) && next != '_');
+                    if(is_alias)
+                    {
+                        out += ".shape";
+                        i += 5;
+                        continue;
+                    }
+                }
+
+                out.push_back(xml[i]);
+                ++i;
+            }
+
+            return out;
         }
 
         dictionary make_log_level_parameter()
@@ -1125,19 +1244,26 @@ namespace ikaros
         std::vector<int> shape;
         auto resolve_matrix_size_function = [&](const std::string & token) -> std::optional<std::string>
         {
-            static const std::vector<std::string> size_functions = {"size_x", "size_y", "size_z", "rows", "cols", "size"};
+            static const std::vector<std::string> size_functions = {"size_x", "size_y", "size_z", "rows", "cols", "size", "shape", "rank"};
             std::string function_name;
             std::string matrix_path;
 
-            for(const auto & fn : size_functions)
-                if(ends_with(token, "." + fn))
-                {
-                    function_name = fn;
-                    matrix_path = token.substr(0, token.size() - fn.size() - 1);
-                    break;
-                }
+            const std::size_t dot = token.rfind('.');
+            if(dot == std::string::npos || dot == token.size() - 1)
+                return std::nullopt;
 
-            if(function_name.empty() || matrix_path.empty())
+            function_name = token.substr(dot + 1);
+            matrix_path = token.substr(0, dot);
+
+            bool recognized = std::find(size_functions.begin(), size_functions.end(), function_name) != size_functions.end();
+            if(!recognized)
+            {
+                std::string base_name;
+                std::string selector;
+                recognized = parse_shape_selector(function_name, base_name, selector);
+            }
+
+            if(!recognized || matrix_path.empty())
                 return std::nullopt;
 
             Component * current = this;
@@ -1158,30 +1284,7 @@ namespace ikaros
 
             matrix m;
             current->Bind(m, segments.back());
-
-            if(function_name == "size_x")
-                return std::to_string(m.size_x());
-            if(function_name == "size_y")
-                return std::to_string(m.size_y());
-            if(function_name == "size_z")
-                return std::to_string(m.size_z());
-            if(function_name == "rows")
-                return std::to_string(m.rows());
-            if(function_name == "cols")
-                return std::to_string(m.cols());
-            if(function_name == "size")
-            {
-                std::string result;
-                for(size_t i = 0; i < m.shape().size(); ++i)
-                {
-                    if(i > 0)
-                        result += ",";
-                    result += std::to_string(m.shape()[i]);
-                }
-                return result;
-            }
-
-            return std::nullopt;
+            return matrix_shape_expression_value(m, function_name, path_);
         };
         auto replace_all = [](std::string & target, const std::string & needle, const std::string & replacement)
         {
@@ -1656,8 +1759,8 @@ namespace ikaros
             if(alias_spec.empty())
                 throw setup_failed("Output \"" + output_name + "\" has an empty alias.", path_);
 
-            if(d.contains("size"))
-                throw setup_failed("Aliased output \"" + output_name + "\" can not also specify a size.", path_);
+            if(d.contains("size") || d.contains("shape"))
+                throw setup_failed("Aliased output \"" + output_name + "\" can not also specify a size or shape.", path_);
 
             std::string alias_source_name = peek_head(alias_spec, "[");
             std::string alias_selector = peek_tail(alias_spec, "[", true);
@@ -1777,13 +1880,15 @@ namespace ikaros
             std::string size;
             if(d.contains("size"))
                 size = std::string(d.at("size"));
+            else if(d.contains("shape"))
+                size = std::string(d.at("shape"));
             else if(info_.contains("size"))
                 size = std::string(info_.at("size"));
             else
-                throw setup_failed("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".", path_);
+                throw setup_failed("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\" or \"shape\".", path_);
             
             if(size.empty())
-                throw setup_failed("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\".", path_);
+                throw setup_failed("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\" or \"shape\".", path_);
             std::vector<int> shape = EvaluateSizeList(size);
             matrix o;
             Bind(o, d.at("name"));
@@ -4074,7 +4179,7 @@ bool operator==(Request & r, const std::string s)
     std::string 
     Component::xml()
     {
-        return info_.xml("group");
+        return canonicalize_shape_aliases(info_.xml("group"));
     }
 
 
@@ -4837,7 +4942,7 @@ bool operator==(Request & r, const std::string s)
         std::string filename = path.filename();
 
         d.erase("filename");
-        std::string data = d.xml("group", {"module/parameters","module/inputs","module/outputs", "module/authors","module/descriptions", "group/views", "module.description"});
+        std::string data = canonicalize_shape_aliases(d.xml("group", {"module/parameters","module/inputs","module/outputs", "module/authors","module/descriptions", "group/views", "module.description"}));
         std::ofstream file;
         file.open (filename);
         file << data;

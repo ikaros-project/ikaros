@@ -2,8 +2,39 @@
 
 #include "compute_engine.h"
 
+#include <cctype>
+
 namespace ikaros
 {
+namespace
+{
+bool ParseShapeSelector(const std::string & function_name, std::string & base_name, std::string & selector)
+{
+    const std::size_t bracket = function_name.find('[');
+    if(bracket == std::string::npos || function_name.back() != ']')
+        return false;
+
+    base_name = function_name.substr(0, bracket);
+    selector = function_name.substr(bracket + 1, function_name.size() - bracket - 2);
+    return base_name == "shape" || base_name == "size";
+}
+
+bool ParseNonNegativeIndex(const std::string & text, int & value)
+{
+    const std::string trimmed = trim(text);
+    if(trimmed.empty())
+        return false;
+
+    value = 0;
+    for(char c : trimmed)
+    {
+        if(!std::isdigit(static_cast<unsigned char>(c)))
+            return false;
+        value = value * 10 + (c - '0');
+    }
+    return true;
+}
+}
 
 ComputeEngine::ComputeEngine(Component & component):
     component_(component)
@@ -80,6 +111,7 @@ ComputeEngine::SplitTopLevel(const std::string & s, char separator)
     std::string current;
     int paren_depth = 0;
     int brace_depth = 0;
+    int bracket_depth = 0;
 
     for(char c : s)
     {
@@ -91,8 +123,12 @@ ComputeEngine::SplitTopLevel(const std::string & s, char separator)
             brace_depth++;
         else if(c == '}')
             brace_depth--;
+        else if(c == '[')
+            bracket_depth++;
+        else if(c == ']')
+            bracket_depth--;
 
-        if(c == separator && paren_depth == 0 && brace_depth == 0)
+        if(c == separator && paren_depth == 0 && brace_depth == 0 && bracket_depth == 0)
         {
             items.push_back(trim(current));
             current.clear();
@@ -231,8 +267,21 @@ ComputeEngine::ShouldReturnLiteral(EvalContext & context, const std::string & s,
 bool
 ComputeEngine::IsFunction(const std::string & s) const
 {
-    return ends_with(s, ".size_x") || ends_with(s, ".size_y") || ends_with(s, ".size_z")
-        || ends_with(s, ".rows") || ends_with(s, ".cols") || ends_with(s, ".size");
+    if(ends_with(s, ".shape"))
+        return true;
+    if(ends_with(s, ".size_x") || ends_with(s, ".size_y") || ends_with(s, ".size_z")
+        || ends_with(s, ".rows") || ends_with(s, ".cols") || ends_with(s, ".size")
+        || ends_with(s, ".rank"))
+        return true;
+
+    std::string function_path = s;
+    std::string function_name = rtail(function_path, ".");
+    std::string base_name;
+    std::string selector;
+    if(ParseShapeSelector(function_name, base_name, selector))
+        return true;
+
+    return false;
 }
 
 
@@ -245,6 +294,7 @@ ComputeEngine::HasTopLevelMath(EvalContext & context, const std::string & s) con
 
     int paren_depth = 0;
     int brace_depth = 0;
+    int bracket_depth = 0;
     bool has_top_level_math = false;
 
     for(size_t i = 0; i < s.size(); i++)
@@ -258,8 +308,12 @@ ComputeEngine::HasTopLevelMath(EvalContext & context, const std::string & s) con
             brace_depth++;
         else if(c == '}')
             brace_depth--;
+        else if(c == '[')
+            bracket_depth++;
+        else if(c == ']')
+            bracket_depth--;
 
-        if(paren_depth != 0 || brace_depth != 0)
+        if(paren_depth != 0 || brace_depth != 0 || bracket_depth != 0)
             continue;
 
         if(c == '+' || c == '*' || c == '/')
@@ -470,6 +524,8 @@ ComputeEngine::LookupMatrixValue(const std::string & name) const
 std::string
 ComputeEngine::MatrixSizeFunctionValue(const matrix & m, const std::string & function_name) const
 {
+    const auto shape = m.shape();
+
     if(function_name == "size_x")
         return std::to_string(m.size_x());
 
@@ -485,20 +541,58 @@ ComputeEngine::MatrixSizeFunctionValue(const matrix & m, const std::string & fun
     if(function_name == "cols")
         return std::to_string(m.cols());
 
-    if(function_name == "size")
+    if(function_name == "rank")
+        return std::to_string(m.rank());
+
+    if(function_name == "size" || function_name == "shape")
+        return ShapeString(shape);
+
+    std::string base_name;
+    std::string selector;
+    if(ParseShapeSelector(function_name, base_name, selector))
     {
-        std::string result;
-        const auto shape = m.shape();
-        for(size_t i = 0; i < shape.size(); ++i)
+        const std::size_t colon = selector.find(':');
+        if(colon == std::string::npos)
         {
-            if(i > 0)
-                result += ",";
-            result += std::to_string(shape[i]);
+            int index = 0;
+            if(!ParseNonNegativeIndex(selector, index))
+                throw exception("Invalid shape index \"" + function_name + "\".", component_.path_);
+            if(index < 0 || static_cast<std::size_t>(index) >= shape.size())
+                throw exception("Shape index out of range in \"" + function_name + "\".", component_.path_);
+            return std::to_string(shape[static_cast<std::size_t>(index)]);
         }
-        return result;
+
+        int start = 0;
+        int end = static_cast<int>(shape.size());
+        const std::string start_text = selector.substr(0, colon);
+        const std::string end_text = selector.substr(colon + 1);
+        if(!start_text.empty() && !ParseNonNegativeIndex(start_text, start))
+            throw exception("Invalid shape slice \"" + function_name + "\".", component_.path_);
+        if(!end_text.empty() && !ParseNonNegativeIndex(end_text, end))
+            throw exception("Invalid shape slice \"" + function_name + "\".", component_.path_);
+
+        start = std::clamp(start, 0, static_cast<int>(shape.size()));
+        end = std::clamp(end, 0, static_cast<int>(shape.size()));
+        if(end < start)
+            end = start;
+        return ShapeString(std::vector<int>(shape.begin() + start, shape.begin() + end));
     }
 
     throw exception("Unknown matrix size function \""+function_name+"\".", component_.path_);
+}
+
+
+std::string
+ComputeEngine::ShapeString(const std::vector<int> & shape) const
+{
+    std::string result;
+    for(size_t i = 0; i < shape.size(); ++i)
+    {
+        if(i > 0)
+            result += ",";
+        result += std::to_string(shape[i]);
+    }
+    return result;
 }
 
 

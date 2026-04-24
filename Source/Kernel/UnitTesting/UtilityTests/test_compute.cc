@@ -63,6 +63,7 @@ main()
     root->info_["base"] = "child";
     root->info_["i"] = "1";
     root->info_["EpiName"] = "EpiBlue";
+    root->info_["shape_expr"] = "child.input.size[1:]";
 
     child->info_["value"] = "7";
     child->info_["expr"] = "1+2*3";
@@ -87,6 +88,14 @@ main()
     assert(child->ComputeValue("{expr}") == "7");
     assert(root->ComputeValue("child.input.rows") == "2");
     assert(root->ComputeValue("child.input.rows*2") == "4");
+    assert(root->ComputeValue("child.input.shape") == "2,3");
+    assert(root->ComputeValue("child.input.rank") == "2");
+    assert(root->ComputeValue("child.input.shape[0]") == "2");
+    assert(root->ComputeValue("child.input.shape[1:]") == "3");
+    assert(root->ComputeValue("child.input.shape[0]*2") == "4");
+    assert(root->ComputeValue("child.input.rank+1") == "3");
+    assert(root->ComputeValue("child.input.size[0]") == "2");
+    assert(root->ComputeValue("child.input.size[1:]") == "3");
     assert(root->ComputeValue("child.@value,@target.@value,child.input.rows*2") == "7,7,4");
     assert(root->ComputeValue("child.@value,@target.@value;child.input.rows*2,{child.expr};") == "7,7;4,7");
     assert(settings->ComputeValue("type") == "type");
@@ -97,6 +106,21 @@ main()
     assert(root->ComputeValue(".Epi.Settings.{type}.{Body_L1_T1_data}") == "88");
     assert(root->ComputeValue("@i+1") == "2");
     assert(throws_compute([&](){ root->ComputeValue("i+1"); }));
+
+    std::string first_dim = "child.input.shape[0]";
+    std::vector<int> first_shape = root->EvaluateSizeList(first_dim);
+    assert(first_shape.size() == 1 && first_shape[0] == 2);
+
+    std::string tail_dims = "child.input.shape[1:]";
+    std::vector<int> tail_shape = root->EvaluateSizeList(tail_dims);
+    assert(tail_shape.size() == 1 && tail_shape[0] == 3);
+
+    std::string rank_dim = "child.input.rank";
+    std::vector<int> rank_shape = root->EvaluateSizeList(rank_dim);
+    assert(rank_shape.size() == 1 && rank_shape[0] == 2);
+
+    std::string saved_xml = root->xml();
+    assert(saved_xml.find("shape_expr=\"child.input.shape[1:]\"") != std::string::npos);
 
     std::cout << "test_compute passed\n";
     return 0;

@@ -151,6 +151,7 @@ Declares a named output buffer.
 - `size`
   - Output size expression.
   - Required for module outputs unless `alias` is used or a class-level `size` fallback exists.
+  - `shape` is accepted as an alias with the same meaning.
 - `alias`
   - Makes this output a view of another output.
   - Example: `alias="OUTPUT[0]"`.
@@ -158,8 +159,8 @@ Declares a named output buffer.
 
 #### Notes
 
-- Group outputs are sized from incoming connections and cannot declare `size`.
-- Aliased outputs cannot also declare `size`.
+- Group outputs are sized from incoming connections and cannot declare `size` or `shape`.
+- Aliased outputs cannot also declare `size` or `shape`.
 
 ## Generic Extra Elements
 
@@ -255,7 +256,7 @@ This is the safest subset to use for new `.ikc` files:
 <class name="ClassName" description="Short summary" python="OptionalScript.py">
     <parameter name="param" type="number" default="1" description="..." control="menu" options="A,B,C" />
     <input name="INPUT" description="..." optional="true" size="4" flatten="false" use_label="false" />
-    <output name="OUTPUT" description="..." size="INPUT.size" />
+    <output name="OUTPUT" description="..." shape="INPUT.shape" />
     <output name="RED" description="..." alias="OUTPUT[0]" />
 </class>
 ```
@@ -320,4 +321,3 @@ This reference is based on the current implementation in:
 - `/Users/cba/ikaros/Source/Kernel/ikaros.cc`
 - `/Users/cba/ikaros/Source/ikaros.h`
 - `/Users/cba/ikaros/Source/Kernel/dictionary.cc`
-

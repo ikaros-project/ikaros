@@ -7,7 +7,7 @@
 // - unary minus
 // - parentheses
 // - variables beginning with a letter, '_' or '@', optionally followed by
-//   letters, digits, '_' and dots
+//   letters, digits, '_', dots, and shape-index brackets
 //
 // expression e(s) parses an expression string.
 // e.variables() returns the variables referenced by the expression.
@@ -175,7 +175,8 @@ private:
 
     bool identifier_char(char c) const
     {
-        return initial_identifier_char(c)  || (c=='.')   || (c >= '0' && c <= '9');
+        return initial_identifier_char(c) || c == '.' || c == '[' || c == ']' || c == ':'
+            || (c >= '0' && c <= '9');
     }
 
     void
@@ -208,13 +209,18 @@ private:
             return false;
 
         int p_count = 0;
+        int bracket_count = 0;
         for(int i=static_cast<int>(s.size())-1; i>=0 ; i--)
         {
             if(s[i]=='(')
                 p_count++;
             if(s[i]==')')
                 p_count--;
-            if(p_count==0 && s[i]==token)
+            if(s[i]=='[')
+                bracket_count++;
+            if(s[i]==']')
+                bracket_count--;
+            if(p_count==0 && bracket_count==0 && s[i]==token)
             {
                 bool match = true;
                 std::string not_after = "+(*/";

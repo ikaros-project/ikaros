@@ -247,7 +247,7 @@ Common kernel-recognized attributes:
 Important note:
 
 - Group outputs are sized from incoming connections.
-- Group outputs cannot declare `size`.
+- Group outputs cannot declare `size` or `shape`.
 
 ## `<widget>`
 
@@ -500,7 +500,7 @@ This is the safest subset for hand-authored `.ikg` files:
 - Root must be `<group>`.
 - Group and module names must be valid identifiers.
 - `delay` defaults to `1` if omitted.
-- Group outputs cannot declare `size`.
+- Group outputs cannot declare `size` or `shape`.
 - Current files should prefer direct group-level `<widget>` entries over legacy `<view>`.
 - Many `.ikg` attributes are intentionally open-ended because they participate in inheritance and expression lookup.
 
@@ -512,4 +512,3 @@ This reference is based on the current implementation in:
 - `/Users/cba/ikaros/Source/ikaros.h`
 - `/Users/cba/ikaros/Source/WebUI/brainstudio.js`
 - `/Users/cba/ikaros/Source/WebUI/WebUIWidget.js`
-

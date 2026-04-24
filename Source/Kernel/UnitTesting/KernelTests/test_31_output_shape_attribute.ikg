@@ -1,0 +1,10 @@
+<group
+    name="Test_31"
+    description="Test output shape attribute on module outputs"
+    stop="1"
+    expected_output_contains="DIFF: 0 0"
+>
+    <module name="Const" class="Constant" data="9" />
+    <module name="Test" class="KernelTestModule" />
+    <connection source="Const.OUTPUT" target="Test.INPUT" />
+</group>

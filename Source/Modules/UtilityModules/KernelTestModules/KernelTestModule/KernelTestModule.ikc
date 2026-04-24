@@ -31,7 +31,7 @@
 
 	<!-- Test different froms of simple size expressions -->
 
-	<output name="OUTPUT" description="The output. Copy of input." size="INPUT.size"/>
+	<output name="OUTPUT" description="The output. Copy of input." shape="INPUT.shape"/>
 
 	<output name="OUTPUT1" description="The output" size="13"/>
 	<output name="OUTPUT2" description="The output" size="4,5"/>
@@ -47,4 +47,3 @@
 	<output name="OUTPUT9" description="The output" size="INPUT.size"/>
 -->
 </class>
-
