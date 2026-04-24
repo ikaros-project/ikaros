@@ -32,7 +32,7 @@
 
     <parameter name="no_of_inputs" type="number" default="2" description="The number of inputs"/>
     <parameter name="metric" type="list" values="1/2" default="1" description="The metric use: city block or euclidean"/>
-    <parameter name="arbitration" type="list" values="WTA/hysteresis/softmax/hierarchy" default="WTA" description="The arbitration function"/>
+    <parameter name="arbitration" type="number" options="WTA,hysteresis,softmax,hierarchy" default="WTA" description="The arbitration function"/>
     <parameter name="by_row" type="bool" default="no" description="If set, the effects is equivalent to having one arbiter per row of the input"/>
     <parameter name="softmax_exponent" type="number" default="2" description="The softmax exponent"/>
     <parameter name="hysteresis_threshold" type="number" default="5" description="The value difference that needs to be passed for a switch"/>
@@ -40,14 +40,15 @@
     <parameter name="alpha" type="number" default="1" description="Smoothing constant (set to 1/switch_time if not set)"/>
 	<parameter name="debug" type="bool" default="false" description="Print out debug info"/>
 
-	<input name="*" description="A number of inputs named INPUT_1 and VALUE_1 etc" />
+	<input name="INPUT" description="A number of stacked inputs" />
+	<input name="VALUE" description="A number of stacked value inputs"  optional="yes" />
 
-	<output name="AMPLITUDES" description="The amplitides of the inputs / or values" />
-	<output name="ARBITRATION" description="The state after arbitration" />
-	<output name="SMOOTHED" description="The temporally smoothed arbitration state" />
-	<output name="NORMALIZED" description="The arbitration state after normalization; the weights used to weigh together the inputs" />
+	<output name="AMPLITUDES" shape="INPUT.shape[0]" description="The amplitides of the inputs / or values" />
+	<output name="ARBITRATION" shape="INPUT.shape[0]" description="The state after arbitration" />
+	<output name="SMOOTHED" shape="INPUT.shape[0]" description="The temporally smoothed arbitration state" />
+	<output name="NORMALIZED" shape="INPUT.shape[0]" description="The arbitration state after normalization; the weights used to weigh together the inputs" />
 
-	<output name="OUTPUT" description="The selected output" />
+	<output name="OUTPUT" description="The selected output" shape="INPUT.shape[1:]"/>
 	<output name="VALUE" size="1" description="The value of the current output; norm of the smoothed arbitration state (not implemented yet)"/>
 
 

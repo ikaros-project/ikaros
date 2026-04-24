@@ -3,27 +3,47 @@
 ## Description
 
 Selects between multiple inputs. Module that selects between its inputs based on the values in the
-value inputs or the amplitude of its inputs. The output is a weighted average of the inputs
-depending on the corresponding value inputs. The inputs can be one or two dimensional. All inputs
-must have the same size. When the values are equal, INPUT_1 is selected. If the value inputs are not
-connected, the norms of the inputs are used instead. This is useful for population coded values. The
-number of inputs are selected using the parameter number_of_inputs. There are four arbitration
-methods: WTA: winner take all. Input with maximum value is selected; hysteresis: like WTA, but to
-switch, the new value must be higher than the last value plus the hysteresis threshold; softmax:
-inputs are mixed according to the values to the power of the softmax exponent; hierarchy: input with
-highest index and value > 0 is always selected, this can implement a subsumption architecture; Note
-that changing to hysteresis arbitration during operation may initially select the wrong state. There
-are two types of arbitration: 'all', where the complete input is modulated in the same way, and 'by-
-row', where an individual arbitration is applied to each of the rows of the input. After
-arbitration, the state can be smoothed to avoid abrupt changes of the outputs. The switching time is
-set by the switching_time parameter or directly by the integration constant alpha. Finally, the
-convex combinations of inputs are calculated by first normalizaing the smoothed state and the
-calculating the weighted average of the inputs.
+value inputs or the amplitude of its inputs. 
 
-It receives * and produces AMPLITUDES, ARBITRATION, SMOOTHED, and NORMALIZED while parameters such
-as no_of_inputs, metric, arbitration, by_row, and softmax_exponent shape its behavior. A meaningful
-use case is to place the module inside a larger sensorimotor or cognitive architecture where it
-helps transform, summarize, or route signals between neural subsystems and robot effectors.
+The output is a weighted average of the inputs
+depending on the corresponding value inputs. 
+
+The inputs can be one or two dimensional. 
+
+All inputs must have the same size. 
+
+When the values are equal, INPUT_1 is selected. 
+
+If the value inputs are not
+connected, the norms of the inputs are used instead. This is useful for population coded values. 
+
+The
+number of inputs are selected using the parameter number_of_inputs. 
+
+There are four arbitration methods: 
+
+- WTA: winner take all. Input with maximum value is selected; 
+- hysteresis: like WTA, but to switch, the new value must be higher than the last value plus the hysteresis threshold; 
+- softmax: inputs are mixed according to the values to the power of the softmax exponent; 
+- hierarchy: input with highest index and value > 0 is always selected, this can implement a subsumption architecture; Note
+that changing to hysteresis arbitration during operation may initially select the wrong state. 
+
+There
+are two types of arbitration: 
+
+- 'all', where the complete input is modulated in the same way.
+- 'by-row', where an individual arbitration is applied to each of the rows of the input. 
+
+After arbitration, the state can be smoothed to avoid abrupt changes of the outputs. The switching time is set by the switching_time parameter or directly by the integration constant alpha. Finally, the convex combinations of inputs are calculated by first normalizaing the smoothed state and the calculating the weighted average of the inputs.
+
+It receives INPUT and produces 
+
+- AMPLITUDES
+- ARBITRATION
+- SMOOTHED
+- NORMALIZED
+
+Parameters such as no_of_inputs, metric, arbitration, by_row, and softmax_exponent shape its behavior. A meaningful use case is to place the module inside a larger sensorimotor or cognitive architecture where it helps transform, summarize, or route signals between neural subsystems and robot effectors.
 
 ![Arbiter](Arbiter.svg)
 
@@ -45,7 +65,8 @@ helps transform, summarize, or route signals between neural subsystems and robot
 
 | Name | Description | Optional |
 | --- | --- | --- |
-| * | A number of inputs named INPUT_1 and VALUE_1 etc |  |
+INPUT | A number of inputs stacked together |  |
+VALUE | The value for each of the input patterns |  |
 
 ## Outputs
 
@@ -58,4 +79,4 @@ helps transform, summarize, or route signals between neural subsystems and robot
 | OUTPUT | The selected output |
 | VALUE | The value of the current output; norm of the smoothed arbitration state (not implemented yet) |
 
-*This description was automatically created and may not be an accurate description of the module.*
+*This description is a work in progress and may not be an accurate description of the module.*
