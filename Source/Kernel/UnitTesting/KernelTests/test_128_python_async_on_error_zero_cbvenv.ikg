@@ -1,4 +1,4 @@
-<group name="TestPythonAsyncOnErrorZeroCbVenv" description="Test async on_error=zero using cbvenv shared-memory transport" start="true" stop="40" webui_port="8128" expected_output_contains="INPUT = {5}||INPUT = {0}||async zero failure">
+<group name="TestPythonAsyncOnErrorZeroCbVenv" description="Test async on_error=zero using cbvenv shared-memory transport" start="true" stop="40" webui_port="8128" cli_args="-p/Users/cba/cbvenv/bin/python" expected_output_contains="INPUT = {5}||INPUT = {0}||async zero failure">
     <module class="AsyncErrorZero" name="Async" execution_mode="async" on_error="zero"/>
     <module class="Print" name="Print"/>
 

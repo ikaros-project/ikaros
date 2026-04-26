@@ -1,4 +1,4 @@
-<group name="TestPythonUseGlobalNamesConflict" description="Test that use_global_names reports startup conflicts clearly" start="true" stop="0" webui_port="8132" expected_exit="1" expected_output_contains="Cannot enable use_global_names||Use ctx-based access instead.">
+<group name="TestPythonUseGlobalNamesConflict" description="Test that use_global_names reports startup conflicts clearly" start="true" stop="0" webui_port="8132" cli_args="-p/Users/cba/cbvenv/bin/python" expected_exit="1" expected_output_contains="Cannot enable use_global_names||Use ctx-based access instead.">
     <module class="Constant" name="InputValues" data="1,2,3,4"/>
     <module class="GlobalNameConflict" name="Broken" use_global_names="true"/>
 

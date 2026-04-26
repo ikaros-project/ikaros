@@ -1,4 +1,4 @@
-<group name="TestPythonUseGlobalNamesCbVenv" description="Test use_global_names with cbvenv shared-memory transport" start="true" stop="1" webui_port="8131" expected_output_contains="INPUT = {10}">
+<group name="TestPythonUseGlobalNamesCbVenv" description="Test use_global_names with cbvenv shared-memory transport" start="true" stop="1" webui_port="8131" cli_args="-p/Users/cba/cbvenv/bin/python" expected_output_contains="INPUT = {10}">
     <module class="Constant" name="InputValues" data="1,2,3,4"/>
     <module class="GlobalSumInput" name="Sum" use_global_names="true"/>
     <module class="Print" name="Print"/>

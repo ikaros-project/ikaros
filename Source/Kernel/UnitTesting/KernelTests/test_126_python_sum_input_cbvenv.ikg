@@ -1,4 +1,4 @@
-<group name="TestPythonSumInputCbVenv" description="Test that the python worker can use the cbvenv interpreter with numpy available" start="true" stop="1" webui_port="8126" expected_output_contains="INPUT = {10}">
+<group name="TestPythonSumInputCbVenv" description="Test that the python worker can use the cbvenv interpreter with numpy available" start="true" stop="1" webui_port="8126" cli_args="-p/Users/cba/cbvenv/bin/python" expected_output_contains="INPUT = {10}">
     <module class="Constant" name="InputValues" data="1,2,3,4"/>
     <module class="SumInput" name="Sum"/>
     <module class="Print" name="Print"/>

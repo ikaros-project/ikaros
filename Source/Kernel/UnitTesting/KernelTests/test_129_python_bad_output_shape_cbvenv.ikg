@@ -1,4 +1,4 @@
-<group name="TestPythonBadOutputShapeCbVenv" description="Test malformed python output shape using cbvenv shared-memory transport" start="true" stop="2" webui_port="8129" expected_output_contains="INPUT = {9, 9}||ValueError: could not broadcast input array from shape (3,) into shape (2,)">
+<group name="TestPythonBadOutputShapeCbVenv" description="Test malformed python output shape using cbvenv shared-memory transport" start="true" stop="2" webui_port="8129" cli_args="-p/Users/cba/cbvenv/bin/python" expected_output_contains="INPUT = {9, 9}||ValueError: could not broadcast input array from shape (3,) into shape (2,)">
     <module class="BadOutputShape" name="Broken" on_error="zero"/>
     <module class="Print" name="Print"/>
 
