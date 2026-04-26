@@ -55,10 +55,8 @@ namespace ikaros
             query += UrlEncode(LimitLogValue(value));
         }
 
-        void AddCommonParameters(std::string & path, Kernel & kernel, const std::string & event_name)
+        void AddCommonParameters(std::string & path, Kernel & kernel, const std::string & event_name, const dictionary & module_info)
         {
-            dictionary module_info = kernel.GetModuleInstantiationInfo();
-
             char hostname[256] = {0};
             if(gethostname(hostname, sizeof(hostname)-1) != 0)
                 hostname[0] = '\0';
@@ -67,8 +65,8 @@ namespace ikaros
             AppendQueryParameter(path, "sid", std::to_string(kernel.session_id));
             AppendQueryParameter(path, "timestamp", std::to_string(GetTimeStamp()));
             AppendQueryParameter(path, "session_name", kernel.info_.contains("name") ? std::string(kernel.info_["name"]) : "");
-            AppendQueryParameter(path, "file", kernel.info_.contains("filename") ? std::string(kernel.info_["filename"]) : kernel.options_.filename());
-            AppendQueryParameter(path, "file_path", kernel.options_.full_path());
+            AppendQueryParameter(path, "file", kernel.info_.contains("filename") ? std::string(kernel.info_["filename"]) : kernel.GetOptionFilename());
+            AppendQueryParameter(path, "file_path", kernel.GetOptionFullPath());
             AppendQueryParameter(path, "clock_time", formatNumber(kernel.session_timer.GetTime(), 4));
             AppendQueryParameter(path, "host", hostname);
             AppendQueryParameter(path, "cpu_cores", std::to_string(kernel.cpu_cores));
@@ -96,8 +94,9 @@ namespace ikaros
     {
         try
         {
+            dictionary module_info = kernel.GetModuleInstantiationInfo();
             std::string path = endpoint;
-            AddCommonParameters(path, kernel, event_name);
+            AddCommonParameters(path, kernel, event_name, module_info);
             SendLogRequest(path);
         }
         catch(...)
@@ -111,8 +110,9 @@ namespace ikaros
     {
         try
         {
+            dictionary module_info = kernel.GetModuleInstantiationInfo();
             std::string path = "/process_start3/";
-            AddCommonParameters(path, kernel, "process_start");
+            AddCommonParameters(path, kernel, "process_start", module_info);
             AppendQueryParameter(path, "uptime", formatNumber(kernel.uptime_timer.GetTime(), 4));
             SendLogRequest(path);
         }
@@ -127,8 +127,9 @@ namespace ikaros
     {
         try
         {
+            dictionary module_info = kernel.GetModuleInstantiationInfo();
             std::string path = "/exit3/";
-            AddCommonParameters(path, kernel, "exit");
+            AddCommonParameters(path, kernel, "exit", module_info);
             AppendQueryParameter(path, "uptime", formatNumber(kernel.uptime_timer.GetTime(), 4));
             SendLogRequest(path);
         }
