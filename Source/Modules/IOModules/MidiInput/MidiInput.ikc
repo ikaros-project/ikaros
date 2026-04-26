@@ -1,0 +1,16 @@
+<class name="MidiInput" description="Receives MIDI note-on events on macOS">
+	<description>
+		MidiInput listens to CoreMIDI input sources on macOS and emits the most recent MIDI
+		note number together with a one-tick trigger when a note-on event arrives.
+	</description>
+
+	<parameter name="source_index" type="number" default="-1" description="MIDI source to connect to. Use -1 to listen to all available sources." />
+	<parameter name="trig_hold_ticks" type="number" default="1" description="Number of ticks to hold TRIG high after a note-on event. Default 1 keeps the original one-tick pulse behavior." />
+	<output name="KEY" description="Most recent MIDI note number from a note-on event" size="1"/>
+	<output name="GATE" description="High while at least one MIDI key is held down" size="1"/>
+	<output name="TRIG" description="One-tick pulse when a MIDI note-on event is received" size="1"/>
+	<output name="EVENT_COUNT" description="Count of note-on events received since initialization" size="1"/>
+	<output name="SOURCE_COUNT" description="Number of MIDI sources reported by CoreMIDI during initialization" size="1"/>
+	<output name="CONNECTED" description="1 if the module connected to at least one MIDI source during initialization, otherwise 0" size="1"/>
+	<output name="LAST_BATCH_COUNT" description="Number of note-on events consumed on the most recent tick" size="1"/>
+</class>

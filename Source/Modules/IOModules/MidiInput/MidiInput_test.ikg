@@ -1,0 +1,14 @@
+<group name="MidiInputTest" title="MidiInput Test" tick_duration="0.02">
+   <module class="MidiInput" name="Midi" source_index="-1" trig_hold_ticks="3" _x="80" _y="220" />
+
+   <widget name="Info" class="text" text="Manual test for MidiInput. Connect a MIDI keyboard, run the graph on macOS, and press keys. KEY shows the latest note number, GATE stays high while a key is held, EVENT_COUNT increments on every note-on, and TRIG is held high briefly so the UI can show the event clearly." width="760" height="90" x="40" y="30" show_title="false" show_frame="false" />
+   <widget name="KeyValue" class="table" source="Midi.KEY" title="KEY" width="170" height="90" x="40" y="150" show_title="true" show_frame="true" colorize="true" decimals="0" />
+   <widget name="GateValue" class="table" source="Midi.GATE" title="GATE" width="170" height="90" x="240" y="150" show_title="true" show_frame="true" colorize="true" decimals="0" min="0" max="1" />
+   <widget name="TrigValue" class="table" source="Midi.TRIG" title="TRIG" width="170" height="90" x="440" y="150" show_title="true" show_frame="true" colorize="true" decimals="0" min="0" max="1" />
+   <widget name="EventCount" class="table" source="Midi.EVENT_COUNT" title="EVENT_COUNT" width="170" height="90" x="640" y="150" show_title="true" show_frame="true" colorize="true" decimals="0" />
+   <widget name="SourceCount" class="table" source="Midi.SOURCE_COUNT" title="SOURCE_COUNT" width="170" height="90" x="40" y="270" show_title="true" show_frame="true" colorize="true" decimals="0" />
+   <widget name="Connected" class="table" source="Midi.CONNECTED" title="CONNECTED" width="170" height="90" x="240" y="270" show_title="true" show_frame="true" colorize="true" decimals="0" min="0" max="1" />
+   <widget name="LastBatchCount" class="table" source="Midi.LAST_BATCH_COUNT" title="LAST_BATCH_COUNT" width="170" height="90" x="440" y="270" show_title="true" show_frame="true" colorize="true" decimals="0" />
+   <widget name="TrigPlot" class="plot" source="Midi.TRIG" title="TRIG History" width="520" height="200" x="40" y="400" show_title="true" show_frame="true" auto="false" include_zero="true" min="0" max="1" buffer_size="100" direction="vertical" />
+   <widget name="GatePlot" class="plot" source="Midi.GATE" title="GATE History" width="320" height="200" x="600" y="400" show_title="true" show_frame="true" auto="false" include_zero="true" min="0" max="1" buffer_size="100" direction="vertical" />
+</group>
