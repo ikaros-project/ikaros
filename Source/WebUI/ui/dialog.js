@@ -27,19 +27,25 @@ const dialog =
 
     setActiveFileSource(prefix, activeType)
     {
-        const systemButton = document.getElementById(`${prefix}_system_file_button`);
-        const userButton = document.getElementById(`${prefix}_user_file_button`);
+        const systemButton = document.getElementById(`${prefix}_system_file_button`) || (prefix === "open" ? document.getElementById("system_file_button") : null);
+        const userButton = document.getElementById(`${prefix}_user_file_button`) || (prefix === "open" ? document.getElementById("user_file_button") : null);
+        const examplesButton = document.getElementById(`${prefix}_examples_file_button`) || (prefix === "open" ? document.getElementById("examples_file_button") : null);
         const systemItems = document.getElementById(`${prefix}_dialog_system_items`);
         const userItems = document.getElementById(`${prefix}_dialog_user_items`);
+        const examplesItems = document.getElementById(`${prefix}_dialog_examples_items`);
 
         if(systemButton)
             systemButton.classList.toggle("selected", activeType === "system");
         if(userButton)
             userButton.classList.toggle("selected", activeType === "user");
+        if(examplesButton)
+            examplesButton.classList.toggle("selected", activeType === "examples");
         if(systemItems)
             systemItems.style.display = activeType === "system" ? "block" : "none";
         if(userItems)
             userItems.style.display = activeType === "user" ? "block" : "none";
+        if(examplesItems)
+            examplesItems.style.display = activeType === "examples" ? "block" : "none";
     },
 
     populateDialogOptions(items, files, confirmHandler)
@@ -84,6 +90,10 @@ const dialog =
         .then(json => {
             this.setupDialog(callback);
             this.populateFileList(json);
+            if(json.examples_files && json.examples_files.length > 0)
+                this.showExamplesFileList();
+            else
+                this.showSystemFileList();
             this.displayMessage(message);
             this.window.showModal();
         });
@@ -131,7 +141,12 @@ const dialog =
     getDialogType()
     {
         const sys = document.getElementById("open_dialog_system_items");
-        return sys.style.display === 'block' ? 'system' : 'user';
+        const examples = document.getElementById("open_dialog_examples_items");
+        if(sys && sys.style.display === 'block')
+            return 'system';
+        if(examples && examples.style.display === 'block')
+            return 'examples';
+        return 'user';
     },
 
     setupDialog(callback)
@@ -144,6 +159,7 @@ const dialog =
     {
         this.populateOptions('system', file_list.system_files);
         this.populateOptions('user', file_list.user_files);
+        this.populateOptions('examples', file_list.examples_files);
     },
 
     populateOptions(type, files)
@@ -197,6 +213,9 @@ const dialog =
 
     showSystemSaveFileList()
     {
+        const systemButton = document.getElementById("save_system_file_button");
+        if(systemButton && systemButton.disabled)
+            return;
         this.setActiveFileSource("save", "system");
         this.syncSaveFilenameFromSelection();
     },
@@ -252,6 +271,11 @@ const dialog =
     showUserFileList()
     {
         this.setActiveFileSource("open", "user");
+    },
+
+    showExamplesFileList()
+    {
+        this.setActiveFileSource("open", "examples");
     },
 
     confirmListSelect()
