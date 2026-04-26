@@ -1,6 +1,0 @@
-<group name="TestPythonBadExecutable" description="Test that an invalid python executable fails cleanly during worker startup" start="true" stop="0" webui_port="8113" expected_exit="1">
-    <module class="Constant" name="InputValues" data="1,2,3"/>
-    <module class="SumInput" name="Broken" python_executable="/definitely/not/a/python/interpreter"/>
-
-    <connection source="InputValues.OUTPUT" target="Broken.X" delay="0"/>
-</group>

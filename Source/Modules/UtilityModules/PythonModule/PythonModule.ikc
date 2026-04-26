@@ -4,6 +4,5 @@
     <parameter name="restart_on_crash" type="bool" default="false" description="Restart the python worker after a crash." />
     <parameter name="process_mode" type="string" control="menu" options="worker" default="worker" description="Runtime mode for the python implementation." />
     <parameter name="execution_mode" type="string" control="menu" options="sync,async" default="sync" description="Execution policy for the python implementation." />
-    <parameter name="python_executable" type="string" default="" description="Python interpreter used in worker mode." />
     <parameter name="use_global_names" type="bool" default="true" description="Expose input and output names as bare Python globals when safe." />
 </class>

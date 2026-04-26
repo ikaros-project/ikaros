@@ -275,11 +275,11 @@ class PythonModule: public Module
 
     std::string ResolvePythonExecutable()
     {
-        if(kernel().info_.contains_non_null("python_executable"))
+        if(kernel().options_.is_explicitly_set("python_executable"))
         {
-            std::string kernel_python_executable = std::string(kernel().info_["python_executable"]);
-            if(!kernel_python_executable.empty())
-                return kernel_python_executable;
+            std::string python_executable = kernel().options_.get("python_executable");
+            if(!python_executable.empty())
+                return python_executable;
         }
 
         return "python3";
@@ -597,7 +597,7 @@ class PythonModule: public Module
                 static_cast<char *>(nullptr)
             );
 
-            std::string exec_error = "Failed to execute python interpreter \"" + python_executable_ + "\": " + std::strerror(errno);
+            std::string exec_error = "Failed to execute python interpreter \"" + python_executable_ + "\": " + std::string(std::strerror(errno));
             write(exec_status[1], exec_error.c_str(), exec_error.size());
             close(exec_status[1]);
             _exit(127);
@@ -801,7 +801,7 @@ public:
             python_function_ = "tick";
 
         if(python_script_.empty())
-            throw exception("Python-backed class is missing the \"python\" attribute.", path_);
+            throw exception("Python-backed class is missing its neighboring .py script.", path_);
 
         if(!std::filesystem::exists(python_script_))
             throw exception("Python script \"" + python_script_ + "\" could not be found.", path_);

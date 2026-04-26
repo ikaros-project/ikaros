@@ -1,6 +1,6 @@
 <group name="TestPythonAsyncRestartOnCrashCbVenv" description="Test async restart_on_crash using cbvenv shared-memory transport" start="true" stop="30" webui_port="8130" expected_output_contains="Restarting python worker.||INPUT = {3}" expected_file_exists="/tmp/ikaros_async_crash_restart_marker.txt">
     <module class="Constant" name="InputValues" data="3"/>
-    <module class="AsyncCrashRestart" name="Async" execution_mode="async" restart_on_crash="true" on_error="log" python_executable="/Users/cba/cbvenv/bin/python"/>
+    <module class="AsyncCrashRestart" name="Async" execution_mode="async" restart_on_crash="true" on_error="log"/>
     <module class="Print" name="Print"/>
 
     <connection source="InputValues.OUTPUT" target="Async.X" delay="0"/>

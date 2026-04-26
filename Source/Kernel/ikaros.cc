@@ -3046,19 +3046,9 @@ bool operator==(Request & r, const std::string s)
     {
         std::filesystem::path class_path = classes[classname].path;
         std::filesystem::path class_directory = class_path.parent_path();
-        bool using_inferred_python_path = false;
 
-        bool is_python_backed = info.contains_non_null("python") && !std::string(info["python"]).empty();
-        if(!is_python_backed)
-        {
-            std::filesystem::path inferred_python_path = class_directory / (classname + ".py");
-            if(std::filesystem::exists(inferred_python_path))
-            {
-                info["python"] = inferred_python_path.lexically_normal().string();
-                is_python_backed = true;
-                using_inferred_python_path = true;
-            }
-        }
+        std::filesystem::path python_path = class_directory / (classname + ".py");
+        bool is_python_backed = std::filesystem::exists(python_path);
 
         if(!is_python_backed)
             return false;
@@ -3093,12 +3083,6 @@ bool operator==(Request & r, const std::string s)
             }
         }
 
-        std::filesystem::path python_path = std::string(info["python"]);
-        if(python_path.is_absolute() && !using_inferred_python_path)
-            throw build_failed("Python-backed class \"" + classname + "\" must use a script path relative to its class directory.");
-
-        if(!python_path.is_absolute())
-            python_path = class_directory / python_path;
         std::filesystem::path canonical_python_path = std::filesystem::weakly_canonical(python_path, ec);
         if(ec)
             throw build_failed("Python script for class \"" + classname + "\" could not be resolved: " + python_path.string());

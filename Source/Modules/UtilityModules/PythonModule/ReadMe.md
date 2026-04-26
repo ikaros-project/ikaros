@@ -48,13 +48,7 @@ Example network:
 ```
 
 If a file named `SumInput.py` exists next to `SumInput.ikc`, the class is automatically treated as a
-Python-backed class.
-
-If you want to use a different script name, you can still set it explicitly:
-
-```xml
-<class name="SumInput" python="OtherScriptName.py">
-```
+Python-backed class, and that neighboring file is always the script that will be loaded.
 
 ## How It Works
 
@@ -79,40 +73,7 @@ class file and must match what the script writes.
 | restart_on_crash | Restart the Python worker after a crash. | bool | false |
 | process_mode | Runtime mode for the Python implementation. Currently only `worker` is supported. | string | worker |
 | execution_mode | Execution policy. Options: `sync`, `async`. | string | sync |
-| python_executable | Python interpreter used in worker mode. If empty, Ikaros uses `python3` from the environment. | string |  |
 | use_global_names | Expose input and output names as bare Python globals when safe. | bool | true |
-
-## Selecting The Python Interpreter
-
-The Python interpreter can be selected in three ways.
-
-Module-local override:
-
-```xml
-<module class="SumInput" name="Sum" python_executable="/Users/cba/cbvenv/bin/python"/>
-```
-
-Top-group default:
-
-```xml
-<group name="MySystem" python_executable="/Users/cba/cbvenv/bin/python">
-```
-
-Command-line default:
-
-```bash
-./Bin/ikaros -p/Users/cba/cbvenv/bin/python my_network.ikg
-```
-
-Precedence is:
-
-1. module or class `python_executable`
-2. top-group `python_executable`
-3. CLI `-p...`
-4. `python3`
-
-If portability matters, avoid machine-specific absolute paths in shared `.ikg` files. In that case,
-use the CLI option on each machine instead.
 
 ## Global Name Mode
 
@@ -381,27 +342,25 @@ Use this when:
 
 ## Common Error Messages
 
-### `Python-backed class is missing the "python" attribute.`
+### `Python-backed class is missing its neighboring .py script.`
 
 Meaning:
 
-- this message can appear only when a class explicitly intends to use a custom script name but the
-  metadata is incomplete or inconsistent
+- this message means the runtime did not receive the expected `ClassName.py` path
 
 What to check:
 
-- if you rely on the default convention, make sure `ClassName.py` exists next to `ClassName.ikc`
-- if you want a non-default script name, add `python="MyScript.py"` to the class definition
+- make sure `ClassName.py` exists next to `ClassName.ikc`
 
 ### `Python script "..." could not be found.`
 
 Meaning:
 
-- the script path from the class file could not be resolved
+- the neighboring `ClassName.py` file could not be resolved
 
 What to check:
 
-- confirm the script file exists next to the `.ikc` or at the specified path
+- confirm the script file exists next to the `.ikc`
 - check spelling and letter case
 
 ### `Failed to execute python interpreter "...": ...`
@@ -412,9 +371,8 @@ Meaning:
 
 What to check:
 
-- verify the path in `python_executable`
-- confirm the file exists and is executable
-- test it manually with `.../python --version`
+- verify that `python3` is available in your environment
+- test it manually with `python3 --version`
 
 ### `Python worker timed out.`
 
@@ -489,11 +447,11 @@ What to check:
 Start with these checks:
 
 1. Verify that the class file loads and the Python script path is correct.
-2. Verify that the selected `python_executable` exists and can import the libraries your script needs.
+2. Verify that `python3` exists and can import the libraries your script needs.
 3. If NumPy performance matters, test the interpreter with:
 
 ```bash
-/path/to/python -c "import numpy; print(numpy.__version__)"
+python3 -c "import numpy; print(numpy.__version__)"
 ```
 
 4. If the script is slow, switch to `execution_mode="async"` or increase `timeout_ms`.
@@ -534,10 +492,10 @@ def tick(ctx):
 
 In this mode, outputs change only after a completed Python run.
 
-### Shared Interpreter Default
+### Python Runtime
 
 ```xml
-<group name="MySystem" python_executable="/Users/cba/cbvenv/bin/python">
+<group name="MySystem">
 ```
 
-All Python-backed classes in the group will use that interpreter unless overridden locally.
+All Python-backed classes in the group will use `python3`.
