@@ -3,8 +3,7 @@
 <class name="EpiSpeech" description="reads a text using Apple's speech synthesis">
 
 	<description type="text">
-        Plays one or several named sound files. Requires that a command to play sounds is available that can be started from the posix_spawn() call. The default is the afplay command available in OS X. On Linux, 
-		this can be replaced with the "play" command. There is no way to stop a playing sound so beware of long sound files. If ffmpeg is installed ffproble is used to get the volume of the sounds over time. 
+        Plays one or several named sound files. EpiSpeech uses the built-in /usr/bin/afplay and /usr/bin/say commands on macOS. There is no way to stop a playing sound so beware of long sound files. If ffmpeg is installed ffproble is used to get the volume of the sounds over time. 
 		In this case, the volume is sent to the VOLUME output.
 
 		A sound is triggered when its corresponding input goes from 0 to 1. While a sound is playing, a second sound can be cueued. It will play when the first has completed. If inhibition is 1, no sound will 
@@ -16,8 +15,6 @@
 		will play after each other.
 	</description>
 
-	    <parameter name="command" type="string" default="/usr/bin/afplay" description="Playback command. For safety EpiSpeech only accepts afplay or play." />
-	    <parameter name="speech_command" type="string" default="/usr/bin/say" description="Speech synthesis command. For safety EpiSpeech only accepts Apple's say command." />
     <parameter name="voice" type="string" default="Noelle (Enhanced)" description="voice to be used. This voice must be installed and the module will silently fail if it is not." />
     <parameter name="text" type="string" default="hello there,yes,no" description="comma separated list of texts to say." />
     <parameter name="scale_volume" type="number" default="1.0" description="factor for scaling the volume output (not the actual volume)." />
@@ -48,4 +45,3 @@
    </files>
 
 </class>
-

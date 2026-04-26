@@ -14,33 +14,8 @@
 using namespace ikaros;
 namespace fs = std::filesystem;
 
-static std::string
-normalize_executable_name(const std::string & value)
-{
-    return fs::path(value).filename().string();
-}
-
-
-static std::string
-ResolvePlaybackCommand(const std::string & requested_command)
-{
-    std::string normalized = normalize_executable_name(requested_command);
-    if(normalized.empty() || normalized == "afplay")
-        return "/usr/bin/afplay";
-    if(normalized == "play")
-        return "/usr/bin/play";
-    throw exception("EpiSpeech only allows the playback commands \"/usr/bin/afplay\" and \"/usr/bin/play\".");
-}
-
-
-static std::string
-ResolveSpeechCommand(const std::string & requested_command)
-{
-    std::string normalized = normalize_executable_name(requested_command);
-    if(normalized.empty() || normalized == "say")
-        return "/usr/bin/say";
-    throw exception("EpiSpeech only allows the speech synthesis command \"/usr/bin/say\".");
-}
+static constexpr const char * kPlaybackCommand = "/usr/bin/afplay";
+static constexpr const char * kSpeechCommand = "/usr/bin/say";
 
 
 static std::string
@@ -144,11 +119,11 @@ RunCommandCaptureOutput(const std::string & executable, char * const argv[], std
 }
 
 static std::string
-cache_key_for_text(const std::string & text, const std::string & voice, const std::string & speech_command)
+cache_key_for_text(const std::string & text, const std::string & voice)
 {
     // FNV-1a provides a stable cache key across process restarts.
     uint64_t hash = 1469598103934665603ULL;
-    std::string key_source = speech_command + "\n" + voice + "\n" + text;
+    std::string key_source = std::string(kSpeechCommand) + "\n" + voice + "\n" + text;
     for(unsigned char c : key_source)
     {
         hash ^= c;
@@ -201,11 +176,8 @@ public:
     parameter   scale_volume;
     float   lag;
 
-    parameter  command;
     parameter  voice;
     parameter text;
-    std::string playback_command;
-    std::string synthesis_command;
     
     std::vector<SpeechSound> sound;
 
@@ -263,7 +235,7 @@ EpiSpeech::CreateSound(std::string text)
     fs::path cache_dir = fs::current_path() / "EpiSpeechCache";
     fs::create_directories(cache_dir);
 
-    std::string key = cache_key_for_text(text, std::string(voice), synthesis_command);
+    std::string key = cache_key_for_text(text, std::string(voice));
     fs::path sound_path = cache_dir / (key + ".aiff");
     fs::path analysis_path = cache_dir / (key + ".rms");
     SpeechSound sound(sound_path.string());
@@ -291,7 +263,7 @@ EpiSpeech::CreateSound(std::string text)
         std::string voice_name = std::string(voice);
         std::string output_path = sound_path.string();
         char * argv[] = {
-            const_cast<char *>(synthesis_command.c_str()),
+            const_cast<char *>(kSpeechCommand),
             const_cast<char *>("-v"),
             const_cast<char *>(voice_name.c_str()),
             const_cast<char *>("-o"),
@@ -300,7 +272,7 @@ EpiSpeech::CreateSound(std::string text)
             const_cast<char *>(text.c_str()),
             nullptr
         };
-        RunCommandOrThrow(synthesis_command, argv, "EpiSpeech could not synthesize speech");
+        RunCommandOrThrow(kSpeechCommand, argv, "EpiSpeech could not synthesize speech");
     }
 
     // Calculate volume  using ffprobe
@@ -390,14 +362,10 @@ EpiSpeech::Init()
        Bind(rms, "RMS");
        Bind(volume, "VOLUME");
     
-       Bind(command, "command");
        Bind(voice, "voice");
 
     Bind(scale_volume, "scale_volume");
     Bind(text, "text");
-
-    playback_command = ResolvePlaybackCommand(std::string(command));
-    synthesis_command = ResolveSpeechCommand(info_.contains_non_null("speech_command") ? std::string(info_["speech_command"]) : "");
 
     for(auto t: split(std::string(text), ","))
         sound.push_back(CreateSound(trim(t)));
@@ -421,7 +389,7 @@ EpiSpeech::Tick()
         {
             current_sound = queued_sound;
             queued_sound = -1;
-            sound[current_sound].Play(playback_command);
+            sound[current_sound].Play(kPlaybackCommand);
         }
 
     // Update volume

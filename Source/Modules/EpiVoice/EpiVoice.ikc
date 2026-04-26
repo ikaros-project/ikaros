@@ -3,8 +3,7 @@
 <class name="EpiVoice" description="plays a sound file">
 
 	<description type="text">
-        Plays one or several named sound files. Requires that a command to play sounds is available that can be started from the posix_spawn() call. The default is the afplay command available in OS X. On Linux, 
-		this can be replaced with the "play" command. There is no way to stop a playing sound so beware of long sound files. If ffmpeg is installed ffproble is used to get the volume of the sounds over time. 
+        Plays one or several named sound files. EpiVoice uses the built-in /usr/bin/afplay command on macOS. There is no way to stop a playing sound so beware of long sound files. If ffmpeg is installed ffproble is used to get the volume of the sounds over time. 
 		In this case, the volume is sent to the VOLUME output.
 
 		A sound is triggered when its corresponding input goes from 0 to 1. While a sound is playing, a second sound can be cueued. It will play when the first has completed. If inhibition is 1, no sound will 
@@ -16,7 +15,6 @@
 		will play after each other.
 	</description>
 
-    <parameter name="command" type="string" default="/usr/bin/afplay" description="the command to use to play sounds, The dafult is the OS X command afplay" />
     <parameter name="sounds" type="string" default="" description="comma separated list of sound file names (including path)." />
     <parameter name="scale_volume" type="number" default="1.0" description="factor for scaling the volume output (not the actual volume)." />
     <parameter name="lag" type="number" default="100.0" description="Lag in ms before the sound starts. Used to correct timing of volume output for better animations." />

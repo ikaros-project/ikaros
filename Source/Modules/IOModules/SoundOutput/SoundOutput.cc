@@ -21,9 +21,98 @@
 //
 
 #include "ikaros.h"
+
+#include <fcntl.h>
+#include <sstream>
 #include <spawn.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 using namespace ikaros;
+namespace
+{
+constexpr const char * kPlaybackCommand = "/usr/bin/afplay";
+
+std::string ResolveFFProbeCommand()
+{
+    constexpr const char * candidates[] = {
+        "/usr/bin/ffprobe",
+        "/opt/homebrew/bin/ffprobe",
+        "/usr/local/bin/ffprobe"
+    };
+
+    for(const char * candidate : candidates)
+        if(std::filesystem::exists(candidate))
+            return candidate;
+
+    return "";
+}
+
+bool RunCommandCaptureOutput(const std::string & executable, char * const argv[], std::string & output)
+{
+    int pipe_fds[2];
+    if(pipe(pipe_fds) != 0)
+        return false;
+
+    int null_fd = open("/dev/null", O_WRONLY);
+    if(null_fd == -1)
+    {
+        close(pipe_fds[0]);
+        close(pipe_fds[1]);
+        return false;
+    }
+
+    posix_spawn_file_actions_t file_actions;
+    if(posix_spawn_file_actions_init(&file_actions) != 0)
+    {
+        close(pipe_fds[0]);
+        close(pipe_fds[1]);
+        close(null_fd);
+        return false;
+    }
+
+    bool configured =
+        posix_spawn_file_actions_adddup2(&file_actions, pipe_fds[1], STDOUT_FILENO) == 0 &&
+        posix_spawn_file_actions_adddup2(&file_actions, null_fd, STDERR_FILENO) == 0 &&
+        posix_spawn_file_actions_addclose(&file_actions, pipe_fds[0]) == 0 &&
+        posix_spawn_file_actions_addclose(&file_actions, pipe_fds[1]) == 0 &&
+        posix_spawn_file_actions_addclose(&file_actions, null_fd) == 0;
+
+    if(!configured)
+    {
+        posix_spawn_file_actions_destroy(&file_actions);
+        close(pipe_fds[0]);
+        close(pipe_fds[1]);
+        close(null_fd);
+        return false;
+    }
+
+    pid_t pid = 0;
+    int spawn_status = posix_spawn(&pid, executable.c_str(), &file_actions, nullptr, argv, nullptr);
+    posix_spawn_file_actions_destroy(&file_actions);
+    close(pipe_fds[1]);
+    close(null_fd);
+
+    if(spawn_status != 0)
+    {
+        close(pipe_fds[0]);
+        return false;
+    }
+
+    output.clear();
+    char buffer[4096];
+    ssize_t bytes_read = 0;
+    while((bytes_read = read(pipe_fds[0], buffer, sizeof(buffer))) > 0)
+        output.append(buffer, static_cast<size_t>(bytes_read));
+    close(pipe_fds[0]);
+
+    int wait_status = 0;
+    if(waitpid(pid, &wait_status, 0) == -1)
+        return false;
+
+    return WIFEXITED(wait_status) && WEXITSTATUS(wait_status) == 0;
+}
+}
 
 class Sound
 {
@@ -80,7 +169,6 @@ class SoundOutput : public Module
     matrix active;
     matrix rms;
     matrix volume;
-    parameter command;
     parameter sounds;
     matrix last_trig;
 
@@ -104,7 +192,6 @@ class SoundOutput : public Module
         Bind(active, "ACTIVE");
         Bind(rms, "RMS");
         Bind(volume, "VOLUME");
-        Bind(command, "command");
         Bind(scale_volume, "scale_volume");
         Bind(lag, "lag");
         Bind(sounds, "sounds");
@@ -129,7 +216,7 @@ class SoundOutput : public Module
         {
             current_sound = queued_sound;
             queued_sound = -1;
-            sound[current_sound].Play(command.c_str());
+            sound[current_sound].Play(kPlaybackCommand);
         }
 
         // Update volume
@@ -180,18 +267,43 @@ class SoundOutput : public Module
         // Get amplitudes using ffprobe
 
         int err = 0;
-        std::string command_line = "ffprobe -f lavfi -i amovie=" + sound_path + ",astats=metadata=1:reset=1 -show_entries frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level -of csv=p=0 2>/dev/null";
+        std::string ffprobe_command = ResolveFFProbeCommand();
+        std::string ffprobe_input =
+            "amovie=" + sound_path +
+            ",astats=metadata=1:reset=1";
+        std::string ffprobe_entries =
+            "frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level";
         float t, l, r;
-        FILE *fp = popen(command_line.c_str(), "r");
-        if (fp != NULL)
+        if (!ffprobe_command.empty())
         {
-            while (fscanf(fp, "%f,%f,%f\n", &t, &l, &r) == 3) // Reads output from ffprobe
+            std::string ffprobe_output;
+            char *argv[] = {
+                const_cast<char *>(ffprobe_command.c_str()),
+                const_cast<char *>("-f"),
+                const_cast<char *>("lavfi"),
+                const_cast<char *>("-i"),
+                const_cast<char *>(ffprobe_input.c_str()),
+                const_cast<char *>("-show_entries"),
+                const_cast<char *>(ffprobe_entries.c_str()),
+                const_cast<char *>("-of"),
+                const_cast<char *>("csv=p=0"),
+                nullptr
+            };
+            if (RunCommandCaptureOutput(ffprobe_command, argv, ffprobe_output))
             {
-                sound.time.push_back(t);
-                sound.left.push_back(l);
-                sound.right.push_back(r);
+                std::istringstream ffprobe_stream(ffprobe_output);
+                std::string line;
+                while (std::getline(ffprobe_stream, line))
+                    if (std::sscanf(line.c_str(), "%f,%f,%f", &t, &l, &r) == 3)
+                    {
+                        sound.time.push_back(t);
+                        sound.left.push_back(l);
+                        sound.right.push_back(r);
+                    }
+                err = 0;
             }
-            err = pclose(fp);
+            else
+                err = 1;
         }
         if (err != 0) // Command failed - fake 1s output
         {
