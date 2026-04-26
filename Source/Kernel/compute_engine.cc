@@ -499,7 +499,7 @@ ComputeEngine::EvalFunction(EvalContext &, const std::string & s, int depth)
     std::string matrix_name = rhead(function_path, ".");
 
     if(auto m = LookupMatrixValue(matrix_name))
-        return MatrixSizeFunctionValue(*m, function_name);
+        return MatrixShapeFunctionValue(*m, function_name);
 
     throw exception("Unknown compute function \""+s+"\".", component_.path_);
 }
@@ -522,7 +522,7 @@ ComputeEngine::LookupMatrixValue(const std::string & name) const
 
 
 std::string
-ComputeEngine::MatrixSizeFunctionValue(const matrix & m, const std::string & function_name) const
+ComputeEngine::MatrixShapeFunctionValue(const matrix & m, const std::string & function_name) const
 {
     const auto shape = m.shape();
 

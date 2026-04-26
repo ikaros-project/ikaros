@@ -1239,7 +1239,7 @@ namespace ikaros
 
 
     std::vector<int> 
-    Component::EvaluateSizeList(std::string & s) // return list of size from size list in string
+    Component::EvaluateShapeList(std::string & s) // return shape list from shape expression string
     {
         std::vector<int> shape;
         auto resolve_matrix_size_function = [&](const std::string & token) -> std::optional<std::string>
@@ -1499,9 +1499,9 @@ namespace ikaros
 
 
     int 
-    Component::SetInputSize_Flat(dictionary d, input_map ingoing_connections)
+    Component::SetInputShape_Flat(dictionary d, input_map ingoing_connections)
     {
-        Trace("\t\t\t\t\tComponent::SetInputSize_Flat", path_);
+        Trace("\t\t\t\t\tComponent::SetInputShape_Flat", path_);
 
         std::string name = d.at("name");
         std::string full_name = path_ +"."+ name;
@@ -1529,10 +1529,10 @@ namespace ikaros
 
         if(has_fixed_size)
         {
-            std::string size = std::string(d.at("size"));
-            if(size.empty())
+            std::string shape_expr = std::string(d.at("size"));
+            if(shape_expr.empty())
                 throw setup_failed("Input \""+name+"\" must have a value for \"size\".", path_);
-            std::vector<int> shape = EvaluateSizeList(size);
+            std::vector<int> shape = EvaluateShapeList(shape_expr);
             kernel().buffers[full_name].realloc(shape);
         }
         
@@ -1561,7 +1561,7 @@ namespace ikaros
         if(!has_fixed_size && flattened_input_size != 0)
         {
             kernel().buffers[full_name].realloc(flattened_input_size); 
-          Trace("\t\t\tComponent::SetInputSize_Index Alloc "+std::to_string(flattened_input_size), path_);
+          Trace("\t\t\tComponent::SetInputShape_Index Alloc "+std::to_string(flattened_input_size), path_);
         }
 
         if(d.is_set("use_label"))
@@ -1581,9 +1581,9 @@ namespace ikaros
 
 
     int 
-    Component::SetInputSize_Index(dictionary d, input_map ingoing_connections)
+    Component::SetInputShape_Index(dictionary d, input_map ingoing_connections)
     {
-       Trace("\t\t\tComponent::SetInputSize_Index ", path_ + "." + std::string(d["name"]));
+       Trace("\t\t\tComponent::SetInputShape_Index ", path_ + "." + std::string(d["name"]));
 
         range input_size;
         std::string name = d.at("name");
@@ -1613,10 +1613,10 @@ namespace ikaros
 
         if(has_fixed_size)
         {
-            std::string size = std::string(d.at("size"));
-            if(size.empty())
+            std::string shape_expr = std::string(d.at("size"));
+            if(shape_expr.empty())
                 throw setup_failed("Input \""+name+"\" must have a value for \"size\".", path_);
-            std::vector<int> shape = EvaluateSizeList(size);
+            std::vector<int> shape = EvaluateShapeList(shape_expr);
             kernel().buffers[full_name].realloc(shape);
         }
 
@@ -1633,7 +1633,7 @@ namespace ikaros
     
             kernel().buffers[full_name].realloc(output_matrix.extent());
 
-            Trace("\t\t\tComponent::SetInputSize Simple Alloc" + std::string(input_size), full_name);
+            Trace("\t\t\tComponent::SetInputShape Simple Alloc" + std::string(input_size), full_name);
 
             return 1;
         }
@@ -1652,7 +1652,7 @@ namespace ikaros
         if(!has_fixed_size)
         {
             kernel().buffers[full_name].realloc(input_size.extent());
-            Trace("\t\t\tComponent::SetInputSize Alloc" + std::string(input_size), full_name);
+            Trace("\t\t\tComponent::SetInputShape Alloc" + std::string(input_size), full_name);
         }
 
         // Set label if requested and there is only a single input
@@ -1677,9 +1677,9 @@ namespace ikaros
         Trace("\t\t\tComponent::SetInputSize ", path_ + "."+ std::string(d["name"]));
 
         if(d.is_set("flatten"))
-            SetInputSize_Flat(d, ingoing_connections);
+            SetInputShape_Flat(d, ingoing_connections);
         else
-            SetInputSize_Index(d, ingoing_connections);
+            SetInputShape_Index(d, ingoing_connections);
         return 0;
     }
 
@@ -1708,9 +1708,9 @@ namespace ikaros
 
 
     int 
-    Component::SetOutputSize(dictionary d, input_map ingoing_connections)
+    Component::SetOutputShape(dictionary d, input_map ingoing_connections)
     {
-       Trace("\t\t\tComponent::SetOutputSize " , path_ + "." + std::string(d["name"]));
+       Trace("\t\t\tComponent::SetOutputShape " , path_ + "." + std::string(d["name"]));
 
         if(d.contains_non_null("alias"))
             return 0;
@@ -1816,11 +1816,11 @@ namespace ikaros
 
 
     int 
-    Component::SetOutputSizes(input_map ingoing_connections)
+    Component::SetOutputShapes(input_map ingoing_connections)
     {
-        Trace("\t\tComponent::SetOutputSizes", path_);
+        Trace("\t\tComponent::SetOutputShapes", path_);
         for(auto & d : info_["outputs"])
-            SetOutputSize(d, ingoing_connections);
+            SetOutputShape(d, ingoing_connections);
         ApplyOutputAliases();
 
         return 0;
@@ -1833,7 +1833,7 @@ namespace ikaros
         
         Trace("\tComponent::SetSizes",path_);
         SetInputSizes(ingoing_connections);
-        SetOutputSizes(ingoing_connections);
+        SetOutputShapes(ingoing_connections);
 
         return 0;
     }
@@ -1870,26 +1870,26 @@ namespace ikaros
 // ****************************** MODULE Sizes ******************************
 
     int 
-    Module::SetOutputSize(dictionary d, input_map)
+    Module::SetOutputShape(dictionary d, input_map)
     {
         try
         {
             if(d.contains_non_null("alias"))
                 return 0;
 
-            std::string size;
+            std::string shape_expr;
             if(d.contains("size"))
-                size = std::string(d.at("size"));
+                shape_expr = std::string(d.at("size"));
             else if(d.contains("shape"))
-                size = std::string(d.at("shape"));
+                shape_expr = std::string(d.at("shape"));
             else if(info_.contains("size"))
-                size = std::string(info_.at("size"));
+                shape_expr = std::string(info_.at("size"));
             else
                 throw setup_failed("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\" or \"shape\".", path_);
             
-            if(size.empty())
+            if(shape_expr.empty())
                 throw setup_failed("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\" or \"shape\".", path_);
-            std::vector<int> shape = EvaluateSizeList(size);
+            std::vector<int> shape = EvaluateShapeList(shape_expr);
             matrix o;
             Bind(o, d.at("name"));
             o.realloc(shape);
@@ -1912,13 +1912,13 @@ namespace ikaros
 
 
     int 
-    Module::SetOutputSizes(input_map ingoing_connections)
+    Module::SetOutputShapes(input_map ingoing_connections)
     {
         if(!InputsReady(info_, ingoing_connections))
             return 0; // Cannot set size yet
 
         for(auto & d : info_["outputs"])
-            SetOutputSize(d, ingoing_connections);
+            SetOutputShape(d, ingoing_connections);
         ApplyOutputAliases();
 
         return 0;
@@ -1929,7 +1929,7 @@ namespace ikaros
     Module::SetSizes(input_map ingoing_connections)
     {
         SetInputSizes(ingoing_connections);
-        SetOutputSizes(ingoing_connections);
+        SetOutputShapes(ingoing_connections);
         return 0;
     }   
 

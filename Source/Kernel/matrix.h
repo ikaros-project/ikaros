@@ -355,7 +355,8 @@ namespace ikaros
 
         const std::vector<int>& shape() const;
         int size() const; // Size of full data
-        int size(int dim) const; // Size of one dimension; negative indices means from the back
+        int shape(int dim) const; // Size of one dimension; negative indices means from the back
+        int size(int dim) const; // Compatibility alias for shape(int dim)
         int rows() const;
         int cols() const;
         int size_x() const;

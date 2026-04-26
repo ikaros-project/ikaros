@@ -239,9 +239,9 @@ The top group is accessible:
 - with a leading `.`
 - or by name if it is an ancestor in the current context
 
-### Functions
+### Shape Functions
 
-The following suffix functions are supported:
+The following shape-related suffix functions are supported:
 
 - `.size_x`
 - `.size_y`
@@ -261,6 +261,8 @@ Examples:
 - `input.rank`
 - `input.shape[0]`
 - `buffer.shape[1:]`
+
+Prefer `.shape`, `.shape[...]`, and `.rank` in new expressions. `.size`, `.size[...]`, and `.size_x/.size_y/.size_z` remain supported as compatibility aliases.
 
 ### Math
 

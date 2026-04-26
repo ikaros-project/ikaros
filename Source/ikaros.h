@@ -278,19 +278,19 @@ public:
     bool ComputeBool(const std::string & s);
     bool LookupParameter(parameter & p, const std::string & name);
 
-    std::vector<int> EvaluateSizeList(std::string & s);
+    std::vector<int> EvaluateShapeList(std::string & s);
 
     bool InputsReady(dictionary d, input_map ingoing_connections);
-    int SetInputSize_Flat(dictionary d, input_map ingoing_connections);
-    int SetInputSize_Index(dictionary d, input_map ingoing_connections);
+    int SetInputShape_Flat(dictionary d, input_map ingoing_connections);
+    int SetInputShape_Index(dictionary d, input_map ingoing_connections);
 
     void ResolveConnection(const range & output, range & source, range & target); // Move to connection
 
     virtual int SetInputSize(dictionary d, input_map ingoing_connections);
     virtual int SetInputSizes(input_map & ingoing_connections);
 
-    virtual int SetOutputSize(dictionary d, input_map ingoing_connections);
-    virtual int SetOutputSizes(input_map & ingoing_connections); // Uses the size attribute
+    virtual int SetOutputShape(dictionary d, input_map ingoing_connections);
+    virtual int SetOutputShapes(input_map & ingoing_connections); // Uses the size/shape attribute
     int ApplyOutputAliases();
 
     virtual int SetSizes(input_map ingoing_connections); // Sets input and output if possible
@@ -317,8 +317,8 @@ public:
     Module();
     ~Module() {}
 
-    int SetOutputSize(dictionary d, input_map ingoing_connections);
-    int SetOutputSizes(input_map ingoing_connections); // Uses the size attribute
+    int SetOutputShape(dictionary d, input_map ingoing_connections);
+    int SetOutputShapes(input_map ingoing_connections); // Uses the size/shape attribute
     int SetSizes(input_map  ingoing_connections); // Sets input and output if possible
 
     tick_count GetTick() const;

@@ -71,7 +71,7 @@ private:
     std::string ExpandSegment(EvalContext & context, const std::string & s, int depth=0);
     LookupResult LookupLocal(EvalContext & context, const std::string & name) const;
     std::optional<matrix> LookupMatrixValue(const std::string & name) const;
-    std::string MatrixSizeFunctionValue(const matrix & m, const std::string & function_name) const;
+    std::string MatrixShapeFunctionValue(const matrix & m, const std::string & function_name) const;
     std::string ShapeString(const std::vector<int> & shape) const;
 
     bool HasExplicitSyntax(EvalContext & context, const std::string & s) const;

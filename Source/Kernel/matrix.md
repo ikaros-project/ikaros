@@ -140,10 +140,10 @@ The total number of elements in a matrix is given by the size function:
 int s =  m.size();
 ```
 
-The size of an individual dimension is accessed using the size function with an index:
+The size of an individual dimension is accessed using the shape function with an index:
 
 ```C++
-int s =  m.size(1);
+int s =  m.shape(1);
 ```
 
 There are number of convenience functions to access eth sizes of two dimensional matrices:

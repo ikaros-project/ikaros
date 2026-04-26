@@ -827,7 +827,7 @@ matrix::size() const
 
 
 int
-matrix::size(int dim) const
+matrix::shape(int dim) const
 {
     if(info_->shape_.size() == 0)
         return 0;
@@ -841,12 +841,18 @@ matrix::size(int dim) const
     return info_->shape_.at(dim);
 }
 
+int
+matrix::size(int dim) const
+{
+    return shape(dim);
+}
 
-int matrix::rows() const { return size(-2); }
-int matrix::cols() const { return size(-1); }
+
+int matrix::rows() const { return shape(-2); }
+int matrix::cols() const { return shape(-1); }
 int matrix::size_x() const { return cols(); }
 int matrix::size_y() const { return rows(); }
-int matrix::size_z() const { return size(-3); }
+int matrix::size_z() const { return shape(-3); }
 
 
 matrix &

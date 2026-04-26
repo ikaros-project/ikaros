@@ -217,9 +217,9 @@ That produces an error like:
 
 - `Variables in compute expressions must use @ indirection: "i"`
 
-## Matrix Size Functions
+## Matrix Shape Functions
 
-The compute engine supports these suffix functions on bound matrices:
+The compute engine supports these shape-related suffix functions on bound matrices:
 
 - `.size_x`
 - `.size_y`
@@ -245,19 +245,21 @@ Examples:
 ### Meaning
 
 - `size_x`, `size_y`, `size_z`
-  - size along individual dimensions
+  - compatibility aliases for common dimension extents
 - `rows`
   - number of rows
 - `cols`
   - number of columns
 - `rank`
   - number of dimensions
-- `size`
-  - compatibility alias for full shape
 - `shape`
   - comma-separated full shape, for example `3,64,64`
 - `shape[...]`
-  - dimension indexing and slicing, for example `shape[0]` or `shape[1:]`
+  - canonical dimension indexing and slicing, for example `shape[0]` or `shape[1:]`
+- `size`
+  - compatibility alias for full shape
+- `size[...]`
+  - compatibility alias for `shape[...]`
 
 ## Lists And Matrices
 
@@ -275,24 +277,24 @@ Examples:
 
 This allows expressions to produce vector-like and matrix-like string values.
 
-## Size Expressions
+## Shape Expressions
 
-`size="..."` is special.
+`shape="..."` is the preferred notation for output shape expressions, and `size="..."` remains supported as a compatibility alias.
 
 Each comma-separated top-level item is treated as a dimension expression.
 
 Examples:
 
-- `size="1"`
-- `size="2,3"`
-- `size="5*@a+1,2+@b*3"`
-- `size="@a,@b"`
-- `size="INPUT.shape"`
-- `size="INPUT.shape[1:]"`
+- `shape="1"`
+- `shape="2,3"`
+- `shape="5*@a+1,2+@b*3"`
+- `shape="@a,@b"`
+- `shape="INPUT.shape"`
+- `shape="INPUT.shape[1:]"`
 
 ### Extra behavior in size expressions
 
-When evaluating sizes:
+When evaluating shapes:
 
 - matrix size functions and shape slices are expanded first
 - boolean results are converted to `1` or `0`
@@ -302,10 +304,10 @@ When evaluating sizes:
 ### Examples
 
 ```xml
-<module class="KernelSizeTestModule" name="M5" size="@a" />
-<module class="KernelSizeTestModule" name="M6" size="@a,@b" />
-<module class="KernelSizeTestModule" name="M7" size="5*@a+1,2+@b*3" />
-<module class="KernelSizeTestModule" name="M9" size="@x" />
+<module class="KernelSizeTestModule" name="M5" shape="@a" />
+<module class="KernelSizeTestModule" name="M6" shape="@a,@b" />
+<module class="KernelSizeTestModule" name="M7" shape="5*@a+1,2+@b*3" />
+<module class="KernelSizeTestModule" name="M9" shape="@x" />
 ```
 
 ## Type-Specific Resolution
@@ -489,7 +491,7 @@ data="{base}{i}.@value"
 ### Compute output or input sizes
 
 ```xml
-<output name="OUTPUT" size="@sample_rate*@tick_duration" />
+<output name="OUTPUT" shape="@sample_rate*@tick_duration" />
 <output name="RGB" shape="3,@size_y,@size_x" />
 <output name="COPY" shape="INPUT.shape" />
 ```

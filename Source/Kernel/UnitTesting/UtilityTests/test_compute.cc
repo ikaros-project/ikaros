@@ -108,15 +108,15 @@ main()
     assert(throws_compute([&](){ root->ComputeValue("i+1"); }));
 
     std::string first_dim = "child.input.shape[0]";
-    std::vector<int> first_shape = root->EvaluateSizeList(first_dim);
+    std::vector<int> first_shape = root->EvaluateShapeList(first_dim);
     assert(first_shape.size() == 1 && first_shape[0] == 2);
 
     std::string tail_dims = "child.input.shape[1:]";
-    std::vector<int> tail_shape = root->EvaluateSizeList(tail_dims);
+    std::vector<int> tail_shape = root->EvaluateShapeList(tail_dims);
     assert(tail_shape.size() == 1 && tail_shape[0] == 3);
 
     std::string rank_dim = "child.input.rank";
-    std::vector<int> rank_shape = root->EvaluateSizeList(rank_dim);
+    std::vector<int> rank_shape = root->EvaluateShapeList(rank_dim);
     assert(rank_shape.size() == 1 && rank_shape[0] == 2);
 
     std::string saved_xml = root->xml();

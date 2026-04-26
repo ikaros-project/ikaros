@@ -249,6 +249,8 @@ Important note:
 - Group outputs are sized from incoming connections.
 - Group outputs cannot declare `size` or `shape`.
 
+When a module output declares its own dimensions, prefer `shape="..."`. `size="..."` remains supported as a compatibility alias.
+
 ## `<widget>`
 
 Widgets are WebUI/editor layout objects stored inside the group.

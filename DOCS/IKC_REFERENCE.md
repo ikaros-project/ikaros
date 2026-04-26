@@ -17,7 +17,7 @@ The kernel scans `.ikc` files recursively, indexed by filename stem. For example
 <class name="MyClass" description="Example module">
     <parameter name="gain" type="number" default="1.0" description="Scale factor" />
     <input name="INPUT" description="Input signal" />
-    <output name="OUTPUT" size="INPUT.size" description="Scaled output" />
+    <output name="OUTPUT" shape="INPUT.shape" description="Scaled output" />
 </class>
 ```
 
@@ -149,9 +149,10 @@ Declares a named output buffer.
 - `description`
   - Metadata/UI description.
 - `size`
-  - Output size expression.
+  - Compatibility alias for the output shape expression.
+- `shape`
+  - Preferred output shape expression.
   - Required for module outputs unless `alias` is used or a class-level `size` fallback exists.
-  - `shape` is accepted as an alias with the same meaning.
 - `alias`
   - Makes this output a view of another output.
   - Example: `alias="OUTPUT[0]"`.
@@ -190,14 +191,14 @@ is not part of the active machine-readable `.ikc` structure used by the kernel.
 
 ## Expressions In Attributes
 
-Several attributes, especially `default` and `size`, can use expressions.
+Several attributes, especially `default` and `shape` (or the compatibility alias `size`), can use expressions.
 
 Common patterns seen in the codebase:
 
 - `@parameter_name`
 - `@sample_rate*@tick_duration`
-- `INPUT.size`
-- `data.size`
+- `INPUT.shape`
+- `data.shape`
 - `3*@z+2`
 
 Available values can come from:
