@@ -14,6 +14,33 @@ std::atomic<bool> global_terminate(false);
 
 namespace ikaros
 {
+    parameter::parameter():
+        has_options(false),
+        resolved(std::make_shared<bool>(false)),
+        type(no_type),
+        value(std::make_shared<parameter_value>(std::monostate{}))
+    {
+    }
+
+    bool
+    parameter::compare_string(const std::string & value) const
+    {
+        return as_string() == value;
+    }
+
+    Message::Message(int level, std::string message, std::string path):
+        level_(level),
+        message_(message),
+        path_(path)
+    {
+    }
+
+    std::string
+    Message::json() const
+    {
+        return "[\""+std::to_string(level_)+"\",\""+escape_json_string(message_)+"\",\""+escape_json_string(path_)+"\"]";
+    }
+
     namespace
     {
         constexpr size_t default_max_pending_webui_log_messages = 500;
@@ -1423,6 +1450,70 @@ namespace ikaros
 
 
 
+    std::string
+    Component::Info() const
+    {
+        return info_["name"];
+    }
+
+    bool
+    Component::Print(std::string message, std::string path)
+    {
+        return Notify(msg_print, message, path);
+    }
+
+    bool
+    Component::Error(std::string message, std::string path)
+    {
+        return Notify(msg_fatal_error, message, path);
+    }
+
+    bool
+    Component::Warning(std::string message, std::string path)
+    {
+        return Notify(msg_warning, message, path);
+    }
+
+    bool
+    Component::Debug(std::string message, std::string path)
+    {
+        return Notify(msg_debug, message, path);
+    }
+
+    bool
+    Component::Trace(std::string message, std::string path)
+    {
+        return Notify(msg_trace, message, path);
+    }
+
+    void
+    Component::SetParameters()
+    {
+    }
+
+    void
+    Component::Tick()
+    {
+    }
+
+    void
+    Component::Init()
+    {
+    }
+
+    void
+    Component::Command(std::string command_name, dictionary & parameters)
+    {
+        std::cout << "Received command: " << command_name << "\n";
+        parameters.print();
+    }
+
+    std::string
+    Component::json(const std::string &)
+    {
+        return "";
+    }
+
     bool
     Component::Notify(int msg, std::string message, std::string path)
     {
@@ -1461,6 +1552,22 @@ namespace ikaros
     Module::Module()
     {
 
+    }
+
+    Module::~Module()
+    {
+    }
+
+    void
+    Module::ProfilingBegin()
+    {
+        profiler_.begin();
+    }
+
+    void
+    Module::ProfilingEnd()
+    {
+        profiler_.end();
     }
 
     INSTALL_CLASS(Module)
@@ -2129,8 +2236,11 @@ Connection::Info() const
 }
 
 // Class
+Class::Class() : info_(), module_creator(nullptr), name(), path()
+{
+}
 
-    Class::Class(std::string n, std::string p) : info_(), module_creator(nullptr), name(n), path(p)
+Class::Class(std::string n, std::string p) : info_(), module_creator(nullptr), name(n), path(p)
     {
         info_.load_xml(p);
     }
@@ -2373,7 +2483,7 @@ bool operator==(Request & r, const std::string s)
 
 
     void 
-    Kernel::ScanFiles(std::string path, bool system)
+    Kernel::ScanFiles(std::string path, bool system, bool examples)
     {
         if(!std::filesystem::exists(path))
         {
@@ -2387,6 +2497,8 @@ bool operator==(Request & r, const std::string s)
 
                 if(system)
                      system_files[name] = p.path();
+                else if(examples)
+                     examples_files[name] = p.path();
                 else
                      user_files[name] = p.path(); 
             }
@@ -2889,6 +3001,199 @@ bool operator==(Request & r, const std::string s)
         thread_pool = std::make_unique<ThreadPool>(default_thread_pool_size(cpu_cores));
     }
 
+    tick_count
+    Kernel::GetTick()
+    {
+        return tick;
+    }
+
+    double
+    Kernel::GetTickDuration()
+    {
+        return tick_duration;
+    }
+
+    double
+    Kernel::GetTime()
+    {
+        return (run_mode.load() == run_mode_realtime) ? GetRealTime() : static_cast<double>(tick)*tick_duration;
+    }
+
+    double
+    Kernel::GetRealTime()
+    {
+        return (run_mode.load() == run_mode_realtime) ? timer.GetTime() : static_cast<double>(tick)*tick_duration;
+    }
+
+    double
+    Kernel::GetNominalTime()
+    {
+        return static_cast<double>(tick)*tick_duration;
+    }
+
+    double
+    Kernel::GetLag()
+    {
+        return (run_mode.load() == run_mode_realtime) ? static_cast<double>(tick)*tick_duration - timer.GetTime() : 0;
+    }
+
+    bool
+    Kernel::Print(std::string message)
+    {
+        return Notify(msg_print, message);
+    }
+
+    bool
+    Kernel::Warning(std::string message, std::string path)
+    {
+        return Notify(msg_warning, message, path);
+    }
+
+    bool
+    Kernel::Debug(std::string message)
+    {
+        return Notify(msg_debug, message);
+    }
+
+    bool
+    Kernel::Trace(std::string message)
+    {
+        return Notify(msg_trace, message);
+    }
+
+    void
+    Kernel::SetOptions(const options & opts)
+    {
+        options_ = opts;
+    }
+
+    bool
+    Kernel::HasOption(const std::string & key) const
+    {
+        return options_.is_set(key);
+    }
+
+    bool
+    Kernel::IsOptionExplicitlySet(const std::string & key) const
+    {
+        return options_.is_explicitly_set(key);
+    }
+
+    std::string
+    Kernel::GetOption(const std::string & key) const
+    {
+        return options_.get(key);
+    }
+
+    long
+    Kernel::GetOptionLong(const std::string & key) const
+    {
+        return options_.get_long(key);
+    }
+
+    std::string
+    Kernel::GetOptionFilename() const
+    {
+        return options_.filename();
+    }
+
+    std::string
+    Kernel::GetOptionFullPath() const
+    {
+        return options_.full_path();
+    }
+
+    std::filesystem::path
+    Kernel::GetClassDirectory(const std::string & class_name) const
+    {
+        auto it = classes.find(class_name);
+        if(it == classes.end())
+            return {};
+        return std::filesystem::path(it->second.path).parent_path();
+    }
+
+    bool
+    Kernel::SanitizeReadPath(const std::filesystem::path & candidate_path, std::filesystem::path & sanitized_path) const
+    {
+        if(candidate_path.empty())
+            return false;
+
+        std::error_code ec;
+        std::filesystem::path project_root = std::filesystem::weakly_canonical(options_.ikaros_root, ec);
+        if(ec)
+            return false;
+
+        std::filesystem::path user_root = std::filesystem::weakly_canonical(user_dir, ec);
+        if(ec)
+            return false;
+
+        std::filesystem::path base_path = candidate_path;
+        if(candidate_path.is_relative())
+        {
+            std::filesystem::path current_network = options_.full_path();
+            if(!current_network.empty())
+                base_path = current_network.parent_path() / candidate_path;
+            else
+                base_path = std::filesystem::current_path() / candidate_path;
+        }
+
+        std::filesystem::path resolved_path = std::filesystem::weakly_canonical(base_path, ec);
+        if(ec)
+            return false;
+
+        auto is_within_root = [](const std::filesystem::path & root, const std::filesystem::path & path)
+        {
+            auto root_it = root.begin();
+            auto root_end = root.end();
+            auto path_it = path.begin();
+            auto path_end = path.end();
+
+            for(; root_it != root_end && path_it != path_end; ++root_it, ++path_it)
+                if(*root_it != *path_it)
+                    return false;
+
+            return root_it == root_end;
+        };
+
+        if(!is_within_root(project_root, resolved_path) && !is_within_root(user_root, resolved_path))
+            return false;
+
+        sanitized_path = resolved_path;
+        return true;
+    }
+
+    bool
+    Kernel::SanitizeWritePath(const std::filesystem::path & candidate_path, std::filesystem::path & sanitized_path) const
+    {
+        if(candidate_path.empty())
+            return false;
+
+        std::error_code ec;
+        std::filesystem::path user_root = std::filesystem::weakly_canonical(user_dir, ec);
+        if(ec)
+            return false;
+
+        std::filesystem::path base_path = candidate_path.is_absolute() ? candidate_path : (user_root / candidate_path);
+        std::filesystem::path resolved_path = std::filesystem::weakly_canonical(base_path, ec);
+        if(ec)
+            return false;
+
+        auto root_it = user_root.begin();
+        auto root_end = user_root.end();
+        auto path_it = resolved_path.begin();
+        auto path_end = resolved_path.end();
+
+        for(; root_it != root_end && path_it != path_end; ++root_it, ++path_it)
+            if(*root_it != *path_it)
+                return false;
+
+        if(root_it != root_end)
+            return false;
+
+        sanitized_path = resolved_path;
+        return true;
+    }
+
 
     void
         Kernel::PrintProfiling()
@@ -3373,6 +3678,13 @@ bool operator==(Request & r, const std::string s)
             return it->second;
 
         return "";
+    }
+
+    void
+    Kernel::RegisterClass(const char * name, ModuleCreator mc)
+    {
+        classes[name].name = name;
+        classes[name].module_creator = mc;
     }
 
 
@@ -4535,8 +4847,8 @@ bool operator==(Request & r, const std::string s)
         }
 
         std::string source_with_root = requested_value.root + "." + requested_value.source;
-        if(!requested_value.key.empty() && requested_value.key[0] == '.')
-            source_with_root = requested_value.key.substr(1);
+        if(!requested_value.source.empty() && requested_value.source[0] == '.')
+            source_with_root = requested_value.source.substr(1);
 
         std::string component_path = peek_rhead(source_with_root, ".");
         std::string attribute = peek_rtail(source_with_root, ".");
@@ -4860,7 +5172,10 @@ bool operator==(Request & r, const std::string s)
 
         std::string file = request.parameters["file"];
         std::string where = request.parameters.contains("where") ? std::string(request.parameters["where"]) : "";
-        auto & files = where == "system" ? system_files : user_files;
+        auto & files =
+            where == "system" ? system_files :
+            where == "examples" ? examples_files :
+            user_files;
         auto file_path = files.find(file);
         if(file_path == files.end())
         {
@@ -5643,8 +5958,10 @@ bool operator==(Request & r, const std::string s)
         // Scan for files
 
         system_files.clear();
+        examples_files.clear();
         user_files.clear();
         ScanFiles(options_.ikaros_root+"/Source/Modules");
+        ScanFiles(options_.ikaros_root+"/Examples", false, true);
         ScanFiles(user_dir, false);
 
         // Send result
@@ -5664,6 +5981,16 @@ bool operator==(Request & r, const std::string s)
         }
         body += "\"\n],\n";
     
+        sep = "";
+        body += "\"examples_files\":[\n\t\"";
+        for(auto & f: examples_files)
+        {
+            body += sep;
+            body += escape_json_string(f.first);
+            sep = "\",\n\t\"";
+        }
+        body += "\"\n],\n";
+
         sep = "";
         body += "\"user_files\":[\n\t\"";
         for(auto & f: user_files)
@@ -5861,6 +6188,11 @@ Kernel::CalculateCPUUsage() // In percent
     k->HandleHTTPThread();
     return nullptr;
     }
+
+InitClass::InitClass(const char * name, ModuleCreator mc)
+{
+    kernel().RegisterClass(name, mc);
+}
 
 Kernel::~Kernel()
 {

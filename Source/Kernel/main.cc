@@ -61,7 +61,7 @@ namespace
         MainLoopController(Kernel & kernel, options & opts)
             : k(kernel), o(opts)
         {
-            k.options_ = o;
+            k.SetOptions(o);
             k.notify_stop_requested = false;
             k.process_exit_code = 0;
             k.LogProcessStart();
@@ -144,7 +144,7 @@ namespace
             StartRequestedRunMode();
             k.Run();
 
-            if(k.options_.filename().empty() && o.is_set("batch_mode"))
+            if(k.GetOptionFilename().empty() && o.is_set("batch_mode"))
                 k.run_mode = run_mode_quit;
         }
 
@@ -221,7 +221,7 @@ namespace
 
         void LoadModelIfNeeded()
         {
-            if(k.options_.filename().empty())
+            if(k.GetOptionFilename().empty())
                 k.New();
             else if(k.needs_reload)
                 k.LoadFile();
@@ -237,7 +237,7 @@ namespace
             if(!should_start_socket || socket_initialized)
                 return;
 
-            long port = k.options_.get_long("webui_port");
+            long port = k.GetOptionLong("webui_port");
             if(k.info_.contains("webui_port"))
                 port = long(k.info_["webui_port"]);
             k.InitSocket(port);
@@ -256,7 +256,7 @@ namespace
         bool ShouldQuitEmptyBatchModel() const
         {
             return
-                k.options_.filename().empty()
+                k.GetOptionFilename().empty()
                 && o.is_set("batch_mode")
                 && k.info_.contains("stop")
                 && long(k.info_["stop"]) == 0;

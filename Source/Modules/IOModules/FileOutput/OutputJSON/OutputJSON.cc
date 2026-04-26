@@ -15,6 +15,7 @@ class OutputJSON: public Module
     parameter   JSONL;
 
     std::string output_filename;
+    fs::path output_path;
 
     std::string ComputeOutputFilename()
     {
@@ -101,18 +102,18 @@ public:
         Bind(JSONL,     "JSONL");
 
         output_filename = ComputeOutputFilename();
-
-    const fs::path out_path{ output_filename };
+        if(!kernel().SanitizeWritePath(output_filename, output_path))
+            throw std::runtime_error("OutputJSON can only write files inside UserData.");
 
         // Delete existing file if requested
         if (clear_file) 
         {
             std::error_code ec;
-            if (fs::exists(out_path, ec))
-                    fs::remove(out_path, ec);
+            if (fs::exists(output_path, ec))
+                    fs::remove(output_path, ec);
         }
         if (!JSONL)
-            EnsureArrayFile(out_path);  // If not JSONL, make sure the array wrapper exists
+            EnsureArrayFile(output_path);  // If not JSONL, make sure the array wrapper exists
     }
 
 
@@ -120,11 +121,10 @@ public:
     void 
     Tick()
     {
-        const fs::path out_path = output_filename;
         const std::string obj = MakeFrameJSON();
 
         if (static_cast<bool>(JSONL)) {
-            std::ofstream file(out_path, std::ios::out | std::ios::app);
+            std::ofstream file(output_path, std::ios::out | std::ios::app);
             if (!file.is_open()) {
                 Notify(msg_warning, "JSONStreamer: Could not open '%s' for JSONL append.", output_filename.c_str());
                 return;
@@ -133,8 +133,8 @@ public:
             return;
         }
 
-        EnsureArrayFile(out_path);
-        AppendObjectToArrayFile(out_path, obj);
+        EnsureArrayFile(output_path);
+        AppendObjectToArrayFile(output_path, obj);
     }
 };
 

@@ -275,9 +275,9 @@ class PythonModule: public Module
 
     std::string ResolvePythonExecutable()
     {
-        if(kernel().options_.is_explicitly_set("python_executable"))
+        if(kernel().IsOptionExplicitlySet("python_executable"))
         {
-            std::string python_executable = kernel().options_.get("python_executable");
+            std::string python_executable = kernel().GetOption("python_executable");
             if(!python_executable.empty())
                 return python_executable;
         }
@@ -827,7 +827,7 @@ public:
         if(execution_mode_ != "sync" && execution_mode_ != "async")
             throw exception("execution_mode must be \"sync\" or \"async\".", path_);
 
-        worker_script_ = (std::filesystem::path(kernel().classes["PythonModule"].path).parent_path() / "python_worker.py").string();
+        worker_script_ = (kernel().GetClassDirectory("PythonModule") / "python_worker.py").string();
         if(!std::filesystem::exists(worker_script_))
             throw exception("Python worker helper script could not be found.", path_);
 

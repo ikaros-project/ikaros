@@ -28,3 +28,4 @@ class Scale : public Module
 };
 
 INSTALL_CLASS(Scale)
+

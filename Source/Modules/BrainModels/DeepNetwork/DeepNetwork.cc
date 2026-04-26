@@ -19,6 +19,8 @@ class DeepNetwork: public Module
     matrix loss;
     matrix output;
     matrix effort;
+    std::filesystem::path resolved_spec_filename;
+    std::filesystem::path resolved_weights_filename;
 
     NeuralNetwork *network;
 public:
@@ -49,8 +51,25 @@ public:
         Bind(loss, "LOSS");
         Bind(output, "OUTPUT");
 
+        if(!kernel().SanitizeReadPath(spec_filename.as_string(), resolved_spec_filename))
+            throw std::runtime_error("DeepNetwork can only read specification files from the project directory or UserData.");
+        spec_filename = resolved_spec_filename.string();
+
+        if(do_load_weights)
+        {
+            if(!kernel().SanitizeReadPath(weights_filename.as_string(), resolved_weights_filename))
+                throw std::runtime_error("DeepNetwork can only read weight files from the project directory or UserData.");
+            weights_filename = resolved_weights_filename.string();
+        }
+        else if(do_save_weights)
+        {
+            if(!kernel().SanitizeWritePath(weights_filename.as_string(), resolved_weights_filename))
+                throw std::runtime_error("DeepNetwork can only write weight files inside UserData.");
+            weights_filename = resolved_weights_filename.string();
+        }
+
         // TODO make input to network dynamic 
-        std::string spec = readFileIntoString(spec_filename);
+        std::string spec = readFileIntoString(resolved_spec_filename.string());
         network = new NeuralNetwork(spec);
         if(do_load_weights) network->load_weights(weights_filename);
     }

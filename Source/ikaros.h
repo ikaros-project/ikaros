@@ -74,6 +74,7 @@ class Component;
 class Module;
 class Connection;
 class Kernel;
+class ComputeEngine;
 
 using input_map = const std::map<std::string,std::vector<Connection *>> &;
 
@@ -133,7 +134,7 @@ public:
     parameter_type                  type;
     std::shared_ptr<parameter_value> value;
 
-    parameter(): has_options(false), resolved(std::make_shared<bool>(false)), type(no_type), value(std::make_shared<parameter_value>(std::monostate{})) {}
+    parameter();
     parameter(dictionary info);
     parameter(const std::string type, const std::string options="");
 
@@ -164,9 +165,7 @@ public:
     std::string json() const;    
     
     friend std::ostream& operator<<(std::ostream& os, const parameter & p);
-    bool compare_string(const std::string& value) const {
-        return as_string() == value;
-    }
+    bool compare_string(const std::string& value) const;
 };
 
 //
@@ -181,16 +180,8 @@ class Message
         std::string message_;
         std::string path_;
 
-        Message(int level, std::string message, std::string path=""):
-            level_(level),
-            message_(message),
-            path_(path)
-        {}
-
-        std::string json() const
-        {
-            return "[\""+std::to_string(level_)+"\",\""+escape_json_string(message_)+"\",\""+escape_json_string(path_)+"\"]";
-        }
+        Message(int level, std::string message, std::string path="");
+        std::string json() const;
 };
 
 //
@@ -212,17 +203,17 @@ public:
 
     virtual ~Component() {};
 
-    std::string Info() const override { return info_["name"]; }
+    std::string Info() const override;
 
     bool Notify(int msg, std::string message, std::string path=""); // Path to componenet with problem
 
     // Shortcut function for messages and logging
 
-    bool Print(std::string message, std::string path="") { return Notify(msg_print, message, path); }
-    bool Error(std::string message, std::string path="") { return Notify(msg_fatal_error, message, path); }
-    bool Warning(std::string message, std::string path="") { return Notify(msg_warning, message, path); }
-    bool Debug(std::string message, std::string path="") { return Notify(msg_debug, message, path); }
-    bool Trace(std::string message, std::string path="") { return Notify(msg_trace, message, path); }
+    bool Print(std::string message, std::string path="");
+    bool Error(std::string message, std::string path="");
+    bool Warning(std::string message, std::string path="");
+    bool Debug(std::string message, std::string path="");
+    bool Trace(std::string message, std::string path="");
 
     void AddLogLevel();
     void AddFirstTick();
@@ -239,21 +230,15 @@ public:
     void Bind(matrix & m, std::string n); // Bind to input or output in global parameter table, or matrix parameter
 
     parameter & GetParameter(std::string name);
-    virtual void SetParameters() {} // Can be overridden in modules to set parmeter values in code rather than from the ikc/ikg file; called before Init()
-    void Tick() override {}
-    virtual void Init() {}
-
-    virtual void Command(std::string command_name, dictionary & parameters)
-    {
-        std::cout << "Received command: " << command_name << "\n";
-        parameters.print();
-
-    } // Used to send commands and arbitrary data structures to modules
+    virtual void SetParameters(); // Can be overridden in modules to set parmeter values in code rather than from the ikc/ikg file; called before Init()
+    void Tick() override;
+    virtual void Init();
+    virtual void Command(std::string command_name, dictionary & parameters); // Used to send commands and arbitrary data structures to modules
 
     void print() const;
     void info() const;
     std::string json() const;  // json representation of the component
-    virtual std::string json(const std::string &) { return ""; }; // json representation for name of component
+    virtual std::string json(const std::string &); // json representation for name of component
     std::string xml();
     bool ShouldTick() const override;
     int EffectiveFirstTick() const;
@@ -315,7 +300,7 @@ class Module : public Component
 {
 public:
     Module();
-    ~Module() {}
+    ~Module();
 
     int SetOutputShape(dictionary d, input_map ingoing_connections);
     int SetOutputShapes(input_map ingoing_connections); // Uses the size/shape attribute
@@ -329,8 +314,8 @@ public:
     double GetTimeOfDay() const;      // seconds since midnight
     double GetLag() const;
 
-    void ProfilingBegin() { profiler_.begin(); }
-    void ProfilingEnd()  { profiler_.end();  }
+    void ProfilingBegin();
+    void ProfilingEnd();
 };
 
 //
@@ -372,7 +357,7 @@ public:
     std::string     path;
     // std::map<std::string, std::string>  parameters;
 
-    Class() {};
+    Class();
     Class(std::string n, std::string p);
     Class(std::string n, ModuleCreator mc);
 
@@ -409,21 +394,8 @@ class Kernel
 {
 public:
     dictionary                              info_;
-    options                                 options_;
     std::string                             webui_dir;
     std::string                             user_dir;
-    std::map<std::string, Class>            classes;
-    std::map<std::string, std::string>      system_files; // ikg-files
-    std::map<std::string, std::string>      user_files;   // ikg-files  
-    std::map<std::string, std::unique_ptr<Component>> components;
-    std::vector<Connection>                 connections;
-    std::map<std::string, matrix>           buffers;                // IO-structure    
-    std::map<std::string, int>              max_delays;             // Maximum delay needed for each output
-    std::map<std::string, CircularBuffer>   circular_buffers;       // Circular circular_buffers for delayed buffers
-    std::map<std::string, parameter>        parameters;
-
-    std::vector<std::vector<Task *>>        tasks;                  // Sorted tasks in groups
-    std::unique_ptr<ThreadPool>             thread_pool;
 
     long                                    session_id;
     bool                                    needs_reload;
@@ -508,25 +480,64 @@ public:
 
     static void *   StartHTTPThread(Kernel * k);
 
-    tick_count GetTick() { return tick; }
-    double GetTickDuration() { return tick_duration; } // Time for each tick in seconds (s)
-    double GetTime() { return (run_mode.load() == run_mode_realtime) ? GetRealTime() : static_cast<double>(tick)*tick_duration; }   // Time since start (in real time or simulated (tick) time depending on mode)
-    double GetRealTime() { return (run_mode.load() == run_mode_realtime) ? timer.GetTime() : static_cast<double>(tick)*tick_duration; }
-    double GetNominalTime() { return static_cast<double>(tick)*tick_duration; } 
+    tick_count GetTick();
+    double GetTickDuration(); // Time for each tick in seconds (s)
+    double GetTime();   // Time since start (in real time or simulated (tick) time depending on mode)
+    double GetRealTime();
+    double GetNominalTime(); 
     double GetTimeOfDay();
-    double GetLag() { return (run_mode.load() == run_mode_realtime) ? static_cast<double>(tick)*tick_duration - timer.GetTime() : 0; }
+    double GetLag();
 
     void CalculateCPUUsage();
 
     bool Notify(int msg, std::string message, std::string path="");
-    bool Print(std::string message) { return Notify(msg_print, message); }
-    bool Warning(std::string message, std::string path="") { return Notify(msg_warning, message, path); }
-    bool Debug(std::string message) { return Notify(msg_debug, message); }
-    bool Trace(std::string message) { return Notify(msg_trace, message); }
+    bool Print(std::string message);
+    bool Warning(std::string message, std::string path="");
+    bool Debug(std::string message);
+    bool Trace(std::string message);
 
+    void LogProcessStart();
+    void LogProcessExit();
+    void SetOptions(const options & opts);
+    bool HasOption(const std::string & key) const;
+    bool IsOptionExplicitlySet(const std::string & key) const;
+    std::string GetOption(const std::string & key) const;
+    long GetOptionLong(const std::string & key) const;
+    std::string GetOptionFilename() const;
+    std::string GetOptionFullPath() const;
+    std::filesystem::path GetClassDirectory(const std::string & class_name) const;
+    bool SanitizeReadPath(const std::filesystem::path & candidate_path, std::filesystem::path & sanitized_path) const;
+    bool SanitizeWritePath(const std::filesystem::path & candidate_path, std::filesystem::path & sanitized_path) const;
+
+private:
+    friend class Component;
+    friend class Connection;
+    friend class ComputeEngine;
+    friend void SendSessionLogEvent(Kernel & kernel, const std::string & endpoint, const std::string & event_name);
+    friend void SendProcessStartLogEvent(Kernel & kernel);
+    friend void SendProcessExitLogEvent(Kernel & kernel);
+
+    options                                 options_;
+    std::map<std::string, Class>            classes;
+    std::map<std::string, std::string>      system_files; // ikg-files
+    std::map<std::string, std::string>      examples_files; // ikg-files
+    std::map<std::string, std::string>      user_files;   // ikg-files
+    std::map<std::string, std::unique_ptr<Component>> components;
+    std::vector<Connection>                 connections;
+    std::map<std::string, matrix>           buffers;                // IO-structure
+    std::map<std::string, int>              max_delays;             // Maximum delay needed for each output
+    std::map<std::string, CircularBuffer>   circular_buffers;       // Circular circular_buffers for delayed buffers
+    std::map<std::string, parameter>        parameters;
+
+    std::vector<std::vector<Task *>>        tasks;                  // Sorted tasks in groups
+    std::unique_ptr<ThreadPool>             thread_pool;
+
+public:
     bool Terminate();
     void ScanClasses(std::string path);
-    void ScanFiles(std::string path, bool system=true);
+
+private:
+    void ScanFiles(std::string path, bool system=true, bool examples=false);
 
     void ListClasses();
     void ResolveParameter(parameter & p,  std::string & name);
@@ -573,26 +584,32 @@ public:
     void SetUp();
     void SetCommandLineParameters(dictionary & d);
     std::string GetTopLevelDefaultAttribute(const std::string & key) const;
+
+public:
+    void RegisterClass(const char * name, ModuleCreator mc);
     void LoadFile();
+
+private:
     void Save();
 
     void LogStart();
     void LogStop();
     void LogSessionEvent(const std::string & endpoint, const std::string & event_name);
-    void LogProcessStart();
-    void LogProcessExit();
 
     std::string json();
     std::string xml();
 
+public:
     void InitSocket(long port);
     void StopHTTPServer();
 
     void New();
-    void Pause();
     void Stop();
     void Play();
     void Realtime();
+
+private:
+    void Pause();
     void Restart(); // Save and reload
 
     void CalculateCheckSum();
@@ -659,7 +676,11 @@ public:
     void HandleHTTPThread();
     void Tick();
     void Propagate();
+
+public:
     void Run();
+
+private:
 
     // TASK SORTING
 
@@ -679,11 +700,7 @@ public:
 class InitClass
 {
 public:
-    InitClass(const char * name, ModuleCreator mc)
-    {
-        kernel().classes[name].name = name;
-        kernel().classes[name].module_creator = mc;
-    }
+    InitClass(const char * name, ModuleCreator mc);
 };
 
 }; // namespace ikaros

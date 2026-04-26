@@ -25,14 +25,18 @@ public:
     bool has_header = false;
     matrix data;
     std::vector<matrix> output;
+    std::filesystem::path resolved_filename;
 
     InputFile() : Module()
     {
-        std::ifstream file(info_["filename"]);  // FIXME: Does not inherit value or process @; Enhance GetValue to make this work
+        if(!kernel().SanitizeReadPath(std::string(info_["filename"]), resolved_filename))
+            throw exception("InputFile can only read files from the project directory or UserData.", path_);
+
+        std::ifstream file(resolved_filename);
         std::string line, word;
 
         if(!file.is_open())
-            throw exception("Could not open file: "+filename.as_string());
+            throw exception("Could not open file: " + resolved_filename.string());
     
         if(std::getline(file, line))
         {
@@ -71,17 +75,18 @@ public:
     //    Bind(repetitions, "repetitions");
     //    Bind(extend, "extend");
         Bind(send_end_of_file, "send_end_of_file");
+        filename = resolved_filename.string();
 
         int c = 0;
         for(std::string name : column_name)
             Bind(output[c++], name);
 
-        std::ifstream file(filename);
+        std::ifstream file(resolved_filename);
         std::string line, word;
         int line_number = 1;
 
         if(!file.is_open())
-            throw fatal_error("Could not open file: "+filename.as_string());
+            throw fatal_error("Could not open file: " + resolved_filename.string());
 
         std::getline(file, line); // Skip header line
         try 
@@ -113,7 +118,7 @@ public:
         }
         catch(std::exception & e)
         {
-            throw fatal_error("Could not read file "+filename.as_string()+". Error on line: "+std::to_string(line_number)+". "+e.what());
+            throw fatal_error("Could not read file " + resolved_filename.string() + ". Error on line: " + std::to_string(line_number) + ". " + e.what());
         }
     }
 
@@ -162,4 +167,3 @@ public:
 
 
 INSTALL_CLASS(InputFile)
-

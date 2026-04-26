@@ -24,6 +24,7 @@ class OutputAudioFile: public Module
     int         sample_bits = 16;
     int         audio_format = 1; // PCM int16 by default, 3 for float32
     uint32_t    data_bytes_written = 0;
+    std::filesystem::path resolved_filename;
 
     double EffectiveSampleRate() const
     {
@@ -125,10 +126,16 @@ class OutputAudioFile: public Module
         audio_format = sample_bits == 32 ? 3 : 1;
         data_bytes_written = 0;
 
-        file.open(filename.as_string(), std::ios::binary | std::ios::trunc);
+        if(!kernel().SanitizeWritePath(filename.as_string(), resolved_filename))
+        {
+            Warning("OutputAudioFile can only write files inside UserData.");
+            return false;
+        }
+
+        file.open(resolved_filename, std::ios::binary | std::ios::trunc);
         if(!file.is_open())
         {
-            Warning("OutputAudioFile could not open file \"" + filename.as_string() + "\" for writing.");
+            Warning("OutputAudioFile could not open file \"" + resolved_filename.string() + "\" for writing.");
             return false;
         }
 

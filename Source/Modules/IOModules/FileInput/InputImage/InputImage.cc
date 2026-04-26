@@ -48,6 +48,23 @@ public:
     FILE *file;
 
     bool
+    ResolveCurrentFilename(std::string & resolved_name)
+    {
+        char fn[256];
+        snprintf(fn, 256, std::string(filename).c_str(), cur_image);
+
+        std::filesystem::path sanitized_path;
+        if(!kernel().SanitizeReadPath(fn, sanitized_path))
+        {
+            Notify(msg_fatal_error, "InputImage can only read files from the project directory or UserData.", path_);
+            return false;
+        }
+
+        resolved_name = sanitized_path.string();
+        return true;
+    }
+
+    bool
     GetImageSize(int &x, int &y)
     {
         // Bind(filename, "filename");
@@ -56,10 +73,11 @@ public:
         struct jpeg_decompress_struct cinfo;
         struct my_error_mgr jerr;
         FILE *infile;
-        char fn[256];
-        snprintf(fn, 256, std::string(filename).c_str(), cur_image);
+        std::string fn;
+        if(!ResolveCurrentFilename(fn))
+            return false;
 
-        if ((infile = fopen(fn, "rb")) == NULL)
+        if ((infile = fopen(fn.c_str(), "rb")) == NULL)
         {
             std::string temp = std::string("Could not open image file: ") + fn;
             Notify(msg_fatal_error, temp, path_);
@@ -156,12 +174,13 @@ public:
             FILE *infile;      // source file
             JSAMPARRAY buffer; // Output row buffer
             int row_stride;    // physical row width in output buffer
-            char fn[256];
-            snprintf(fn, 256, filename.c_str(), cur_image);
+            std::string fn;
+            if(!ResolveCurrentFilename(fn))
+                return;
 
-            if ((infile = fopen(fn, "rb")) == NULL)
+            if ((infile = fopen(fn.c_str(), "rb")) == NULL)
             {
-                Notify(msg_fatal_error, "Could not open image file \"%s\" \n", fn);
+                Notify(msg_fatal_error, "Could not open image file \"" + fn + "\".");
                 return;
             }
 
@@ -184,7 +203,7 @@ public:
 
             if (cinfo.output_width != (unsigned int)(size_x) || cinfo.output_height != (unsigned int)(size_y))
             {
-                Notify(msg_fatal_error, "Image \"%s\" has incorrect size\n", fn);
+                Notify(msg_fatal_error, "Image \"" + fn + "\" has incorrect size.");
                 fclose(infile);
                 return;
             }

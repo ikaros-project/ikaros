@@ -161,6 +161,7 @@ private:
     int output_width = 0;
     int output_height = 0;
     bool restart_next_frame = true;
+    std::filesystem::path resolved_filename;
 
     void
     SetParameters() override
@@ -174,13 +175,19 @@ private:
         if(file_to_open.empty())
             return;
 
+        if(!kernel().SanitizeReadPath(file_to_open, resolved_filename))
+        {
+            Notify(msg_fatal_error, "InputVideoFile can only read files from the project directory or UserData.");
+            return;
+        }
+
         if(requested_width > 0 && requested_height > 0)
             return;
 
         int detected_width = 0;
         int detected_height = 0;
         std::string error_message;
-        if(!probe_video_size(file_to_open, detected_width, detected_height, error_message))
+        if(!probe_video_size(resolved_filename.string(), detected_width, detected_height, error_message))
         {
             Notify(msg_fatal_error, error_message.empty() ? "InputVideoFile could not determine the movie size." : error_message);
             return;
@@ -203,10 +210,18 @@ private:
             return false;
         }
 
-        const int open_result = avformat_open_input(&input_format_context, file_to_open.c_str(), nullptr, nullptr);
+        if(!kernel().SanitizeReadPath(file_to_open, resolved_filename))
+        {
+            Notify(msg_fatal_error, "InputVideoFile can only read files from the project directory or UserData.");
+            return false;
+        }
+
+        filename = resolved_filename.string();
+
+        const int open_result = avformat_open_input(&input_format_context, resolved_filename.string().c_str(), nullptr, nullptr);
         if(open_result != 0)
         {
-            Notify(msg_fatal_error, "Could not open file \"" + file_to_open + "\": " + ffmpeg_error_string(open_result));
+            Notify(msg_fatal_error, "Could not open file \"" + resolved_filename.string() + "\": " + ffmpeg_error_string(open_result));
             return false;
         }
 
@@ -218,7 +233,7 @@ private:
         }
 
         if(printInfo)
-            av_dump_format(input_format_context, 0, file_to_open.c_str(), 0);
+            av_dump_format(input_format_context, 0, resolved_filename.string().c_str(), 0);
 
         av_log_set_level(AV_LOG_FATAL);
 

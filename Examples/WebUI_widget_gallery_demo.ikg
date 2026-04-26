@@ -1,0 +1,397 @@
+<group name="WebUIWidgetGalleryDemo" description="Gallery of WebUI widget types" start="true">
+    <module
+        class="Constant"
+        name="Controls"
+        data="0.25, 0.60, 1, 0, 2, 0.40, 0.80, 0.20"
+    />
+    <module
+        class="Constant"
+        name="GridState"
+        data="0, 1, 0, 1; 1, 0, 1, 0; 0, 0.5, 1, 0.5; 1, 0, 0, 1"
+    />
+    <module
+        class="Constant"
+        name="MarkerRows"
+        data="0.12, 0.18, 0.20; 0.30, 0.74, 0.45; 0.55, 0.48, 0.65; 0.76, 0.82, 0.85; 0.88, 0.24, 0.30"
+    />
+    <module
+        class="Constant"
+        name="PathRows"
+        data="0.10, 0.15, 0.28, 0.72, 0.52, 0.30, 0.76, 0.84, 0.90, 0.55"
+    />
+    <module
+        class="Constant"
+        name="Tensor4D"
+        data="[
+            [
+                [[0.10, 0.20, 0.30], [0.40, 0.50, 0.60], [0.70, 0.80, 0.90]],
+                [[0.90, 0.80, 0.70], [0.60, 0.50, 0.40], [0.30, 0.20, 0.10]]
+            ],
+            [
+                [[0.15, 0.25, 0.35], [0.45, 0.55, 0.65], [0.75, 0.85, 0.95]],
+                [[0.95, 0.85, 0.75], [0.65, 0.55, 0.45], [0.35, 0.25, 0.15]]
+            ]
+        ]"
+    />
+    <module
+        class="Constant"
+        name="PoseMatrices"
+        data="1, 0, 0, -0.5, 0, 1, 0, 0.0, 0, 0, 1, 0.0, 0, 0, 0, 1;
+              1, 0, 0, 0.5, 0, 1, 0, 0.2, 0, 0, 1, 0.3, 0, 0, 0, 1;
+              1, 0, 0, 0.0, 0, 1, 0, 0.8, 0, 0, 1, -0.4, 0, 0, 0, 1"
+    />
+    <module
+        class="Constant"
+        name="EyeDirection"
+        data="-10, 12"
+    />
+    <module
+        class="Constant"
+        name="PupilSize"
+        data="10, 12"
+    />
+    <module
+        class="Constant"
+        name="HeadPosition"
+        data="8, -6"
+    />
+    <module
+        class="Oscillator"
+        name="Oscillator"
+        frequency="0.5, 1.0, 1.5, 2.0"
+        type="sin"
+    />
+    <module
+        class="InputJPEG"
+        name="GalleryImage"
+        filename="Media/colorrobot.jpg"
+        iterations="1000"
+    />
+
+    <widget
+        name="SectionTop"
+        class="rectangle"
+        x="20"
+        y="20"
+        width="2020"
+        height="70"
+        show_title="false"
+        show_frame="true"
+        label="WebUI Widget Gallery"
+        style="font-size:28px;font-weight:700;background:linear-gradient(90deg,#e8f4ff,#f9efe1);"
+    />
+
+    <widget
+        name="IntroText"
+        class="text"
+        x="40"
+        y="105"
+        width="420"
+        height="80"
+        show_title="false"
+        show_frame="true"
+        text="One view with interactive controls, graphs, geometry, tables, and image widgets."
+        style="font-size:18px;line-height:1.3;padding:10px;"
+    />
+
+    <widget
+        name="ControlStateTable"
+        class="table"
+        x="40"
+        y="205"
+        width="420"
+        height="150"
+        source="Controls.data"
+        title="Shared Control State"
+        show_title="true"
+        show_frame="true"
+        decimals="2"
+        colorize="true"
+        min="0"
+        max="3"
+    />
+
+    <widget
+        name="MenuWidget"
+        class="drop-down-menu"
+        x="40"
+        y="375"
+        width="220"
+        height="70"
+        title="Mode"
+        label="Preset"
+        parameter="Controls.data"
+        select_x="4"
+        parameter_type="number"
+        list="Off,Low,Medium,High"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="ToggleButton"
+        class="button"
+        x="280"
+        y="375"
+        width="180"
+        height="70"
+        title="Button"
+        label="Arm"
+        type="toggle"
+        parameter="Controls.data"
+        select_x="2"
+        value="1"
+        valueUp="0"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="SwitchWidget"
+        class="switch"
+        x="40"
+        y="465"
+        width="420"
+        height="90"
+        title="Switches"
+        labels="Gate A,Gate B"
+        parameter="Controls.data"
+        select_x="2"
+        count="2"
+        value="1"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="HorizontalSliders"
+        class="slider-horizontal"
+        x="40"
+        y="575"
+        width="420"
+        height="150"
+        title="Horizontal Sliders"
+        labels="Bias,Gain,Mix"
+        parameter="Controls.data"
+        select_x="0"
+        count="3"
+        min="0"
+        max="1"
+        step="0.01"
+        show_values="true"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="VerticalSliders"
+        class="slider-vertical"
+        x="40"
+        y="745"
+        width="420"
+        height="230"
+        title="Vertical Sliders"
+        labels="Lift,Drive,Blend"
+        parameter="Controls.data"
+        select_x="5"
+        count="3"
+        min="0"
+        max="1"
+        step="0.01"
+        show_values="true"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="GridWidget"
+        class="grid"
+        x="500"
+        y="105"
+        width="260"
+        height="260"
+        title="Grid"
+        source="GridState.data"
+        parameter="GridState.data"
+        interaction="toggle"
+        fill="custom"
+        colorTable="#1f2937,#ff6b35,#ffd166,#4ecdc4"
+        min="0"
+        max="1"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="BarGraphWidget"
+        class="bar-graph"
+        x="780"
+        y="105"
+        width="300"
+        height="260"
+        title="Bar Graph"
+        source="Oscillator.OUTPUT"
+        direction="vertical"
+        auto="false"
+        min="-1"
+        max="1"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="PlotWidget"
+        class="plot"
+        x="1100"
+        y="105"
+        width="420"
+        height="260"
+        title="Plot"
+        source="Oscillator.OUTPUT"
+        buffer_size="120"
+        auto="false"
+        include_zero="true"
+        min="-1"
+        max="1"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="ImageWidget"
+        class="image"
+        x="1540"
+        y="105"
+        width="500"
+        height="260"
+        title="Image"
+        source="GalleryImage.OUTPUT"
+        format="rgb"
+        scale="both"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="MarkerWidget"
+        class="marker"
+        x="500"
+        y="395"
+        width="280"
+        height="260"
+        title="Marker"
+        source="MarkerRows.OUTPUT"
+        order="row"
+        select_x="0"
+        select_value_column="2"
+        markerType="circle"
+        fill="#ff7043,#4db6ac,#9575cd,#64b5f6,#ffd54f"
+        color="#111827"
+        labelType="value"
+        labelOffsetY="-12"
+        min_x="0"
+        max_x="1"
+        min_y="0"
+        max_y="1"
+        scales="yes"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="PathWidget"
+        class="path"
+        x="800"
+        y="395"
+        width="280"
+        height="260"
+        title="Path"
+        source="PathRows.OUTPUT"
+        order="row"
+        select_x="0"
+        count="5"
+        arrow="true"
+        lineWidth="2"
+        color="#0f172a"
+        fill="rgba(0,0,0,0)"
+        min_x="0"
+        max_x="1"
+        min_y="0"
+        max_y="1"
+        scales="yes"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="TableWidget"
+        class="table"
+        x="1100"
+        y="395"
+        width="420"
+        height="260"
+        title="Tensor Table"
+        source="Tensor4D.OUTPUT"
+        decimals="2"
+        colorize="true"
+        min="0"
+        max="1"
+        scrollable="true"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="Canvas3DWidget"
+        class="canvas3d"
+        x="1540"
+        y="395"
+        width="500"
+        height="260"
+        title="Canvas 3D"
+        matrix="PoseMatrices.OUTPUT"
+        show_points="true"
+        point_color="#ef4444,#22c55e,#3b82f6"
+        point_size="0.18,0.18,0.18"
+        show_lines="false"
+        show_axis="true"
+        show_ground_grid="true"
+        views="Home"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="EpiHeadWidget"
+        class="epi-head"
+        x="500"
+        y="675"
+        width="340"
+        height="340"
+        title="Epi Head"
+        eyeDirection="EyeDirection.OUTPUT"
+        pupilSize="PupilSize.OUTPUT"
+        headPosition="HeadPosition.OUTPUT"
+        EyeColor="#f59e0b"
+        MouthColor="#ef4444"
+        show_title="true"
+        show_frame="true"
+    />
+
+    <widget
+        name="TestObjectWidget"
+        class="test-object"
+        x="860"
+        y="675"
+        width="660"
+        height="340"
+        title="Test Object"
+        blend="mix"
+        direction="all"
+        red="255"
+        green="150"
+        blue="40"
+        show_title="true"
+        show_frame="true"
+    />
+</group>

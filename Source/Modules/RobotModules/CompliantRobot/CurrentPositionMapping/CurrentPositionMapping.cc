@@ -135,9 +135,12 @@ class CurrentPositionMapping: public Module
         Notify(msg_debug, "Inside SavePositionsJson()");
         std:: cout << "Saving positions in json file" << std::endl;
         std::ofstream file;
-        std::string scriptPath = __FILE__;
-        std::string scriptDirectory = scriptPath.substr(0, scriptPath.find_last_of("/\\"));
-        std::string filePath = scriptDirectory + "/CurrentPositionMapping" + robotType + ".json";
+        std::filesystem::path filePath;
+        if(!kernel().SanitizeWritePath("CurrentPositionMapping" + robotType + ".json", filePath))
+        {
+            Notify(msg_warning, "CurrentPositionMapping can only write files inside UserData.");
+            return;
+        }
         
         // Check if file exists
         std::ifstream checkFile(filePath);
@@ -390,4 +393,3 @@ class CurrentPositionMapping: public Module
 
 
 INSTALL_CLASS(CurrentPositionMapping)
-

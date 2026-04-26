@@ -16,6 +16,7 @@ class OutputFile: public Module
     long		    time;						// Used to generate the time column in the output file
     int             index;
     matrix          input;
+    std::filesystem::path resolved_filename;
 
     void 
     Init()
@@ -28,10 +29,13 @@ class OutputFile: public Module
             column_separator = ", ";
         else
             column_separator = "\t";
-        
-        file.open(filename, std::ios::out);
+
+        if(!kernel().SanitizeWritePath(filename.as_string(), resolved_filename))
+            throw std::runtime_error("OutputFile can only write files inside UserData.");
+
+        file.open(resolved_filename, std::ios::out);
         if (!file)
-            throw std::runtime_error("File could not be opened: "+std::string(filename));
+            throw std::runtime_error("File could not be opened: " + resolved_filename.string());
 
         WriteHeader();
     }
@@ -81,4 +85,3 @@ class OutputFile: public Module
 };
 
 INSTALL_CLASS(OutputFile)
-

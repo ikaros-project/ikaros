@@ -417,8 +417,10 @@ class EpiServos : public Module
         std::string path = __FILE__;
         // Remove the filename from the path
         path = path.substr(0, path.find_last_of("/\\"));
-        filename = path + "/" + filename;
-        return std::filesystem::exists(filename);
+        std::filesystem::path resolved_path;
+        if(!kernel().SanitizeReadPath(path + "/" + filename, resolved_path))
+            return false;
+        return std::filesystem::exists(resolved_path);
     }
     
     matrix ReadJsonToMatrix(int minID, int maxID, std::string robotType, std::string servoChain, std::string controlMode){       
@@ -429,12 +431,17 @@ class EpiServos : public Module
         std::string path = __FILE__;
         // Remove the filename from the path
         path = path.substr(0, path.find_last_of("/\\"));
-        filename = path + "/" + filename;
+        std::filesystem::path resolved_path;
+        if(!kernel().SanitizeReadPath(path + "/" + filename, resolved_path))
+        {
+            Error("Parameter file " + filename + " is outside the allowed read roots.");
+            return matrix();
+        }
         
         // Initialize JSON object
         nlohmann::json jsonData;
 
-        std::ifstream infile(filename);
+        std::ifstream infile(resolved_path);
 
         // Read existing JSON data if the file exists
         if (infile.is_open() && infile.peek() != std::ifstream::traits_type::eof()) {
@@ -442,7 +449,7 @@ class EpiServos : public Module
             infile.close();
         }
         else{
-            Error("Parameter file " + filename + " does not exist.");
+            Error("Parameter file " + resolved_path.string() + " does not exist.");
             return matrix();
         }
        

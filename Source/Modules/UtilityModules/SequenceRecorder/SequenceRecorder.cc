@@ -846,7 +846,7 @@ public:
             return false;
 
         filename = name;
-        auto path = std::string(directory) + "/" + std::string(filename);
+        auto path = resolved_directory / std::string(filename);
 
         if (!fs::exists(path))
         {
@@ -857,7 +857,7 @@ public:
         try
         {
             dictionary data;
-            data.load_json(path);
+            data.load_json(path.string());
 
             // Validate
 
@@ -890,7 +890,7 @@ public:
             filename = name;
         else
             filename = name + ".json";
-        auto path = std::string(directory) + "/" + std::string(filename);
+        auto path = resolved_directory / std::string(filename);
 
         LinkKeypoints(); // FIXME: maybe not necessary here
         StoreChannelMode();
@@ -899,7 +899,7 @@ public:
 
         if (!file.is_open())
         {
-            Notify(msg_warning, "Could not open file for writing: " + path);
+            Notify(msg_warning, "Could not open file for writing: " + path.string());
             return;
         }
 
@@ -961,6 +961,13 @@ public:
 
         file_names = "";
 
+        if(!kernel().SanitizeWritePath(std::string(directory), resolved_directory))
+        {
+            Notify(msg_fatal_error, "SequenceRecorder can only use directories inside UserData.");
+            return;
+        }
+        directory = resolved_directory.string();
+
         left_output.copy(default_output);
         right_output.copy(default_output);
 
@@ -970,7 +977,7 @@ public:
 
         untitled_count = 1;
 
-        fs::create_directory(std::string(directory)); // Only works if not a path // FIXME: make recursive later
+        fs::create_directories(resolved_directory);
 
         // Trick to make module run with too few inputs connected
 
@@ -985,7 +992,7 @@ public:
             right_index[c] = INT_MAX;
         }
 
-        if (!std::string(filename).empty() && fs::exists(std::string(directory) + "/" + std::string(filename)))
+        if (!std::string(filename).empty() && fs::exists(resolved_directory / std::string(filename)))
         {
             if (!Open(std::string(filename)))
                 New();
@@ -996,7 +1003,7 @@ public:
         // Get files in directory
 
         std::string fsep = "";
-        for (auto &p : fs::directory_iterator(std::string(directory))) // was recursive_directory_iterator
+        for (auto &p : fs::directory_iterator(resolved_directory)) // was recursive_directory_iterator
         {
             auto pp = p.path();
             if (pp.extension() == ".json")
@@ -1188,6 +1195,7 @@ public:
 
     parameter directory;
     parameter filename;
+    fs::path resolved_directory;
 
     int untitled_count;
     parameter time_string;

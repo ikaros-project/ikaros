@@ -13,6 +13,7 @@ class InputAudioFile : public Module
     parameter channels;
     matrix output;
     AudioFile *audiofile;
+    std::filesystem::path resolved_filename;
 
     int buffer_count;
 
@@ -26,7 +27,12 @@ public:
         Bind(channels, "channels");
         Bind(output, "OUTPUT"); 
 
-        audiofile = new AudioFile(filename.c_str()); 
+        if(!kernel().SanitizeReadPath(filename.as_string(), resolved_filename))
+            throw exception("InputAudioFile can only read files from the project directory or UserData.", path_);
+
+        filename = resolved_filename.string();
+
+        audiofile = new AudioFile(resolved_filename.string()); 
 
         
     }
