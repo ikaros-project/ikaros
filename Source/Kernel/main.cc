@@ -33,6 +33,7 @@ namespace
         o.add_option("t", "threads", "number of worker threads for the kernel thread pool");
         o.add_option("u", "user_data", "alternative directory for user data files");
         o.add_option("w", "webui_port", "port for ikaros WebUI", "8000");
+        o.add_option("a", "auth_password", "enable optional WebUI/API authentication using the provided password");
         o.add_option("h", "help", "list command line options");
     }
 

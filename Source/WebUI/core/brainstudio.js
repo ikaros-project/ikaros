@@ -387,6 +387,241 @@ function resetCookies()
 {
     setCookie('selected_background', "");
 }
+
+
+const auth =
+{
+    enabled: false,
+    authenticated: false,
+    login_visible: false,
+    fetch_interceptor_installed: false,
+    controller_started: false,
+    login_in_flight: false,
+
+    installFetchInterceptor()
+    {
+        if(auth.fetch_interceptor_installed)
+            return;
+
+        auth.fetch_interceptor_installed = true;
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = function(...args)
+        {
+            return originalFetch(...args).then((response) =>
+            {
+                if(response.status === 401)
+                    auth.handleUnauthorized();
+                return response;
+            });
+        };
+    },
+
+    setLoadMessage(message, showSpinner=true)
+    {
+        const status = document.getElementById("connection_status");
+        const loadbar = document.getElementById("loadbar");
+        if(status)
+            status.innerText = message;
+        if(loadbar)
+            loadbar.style.display = showSpinner ? "" : "none";
+    },
+
+    showLogin(message="Authentication required.")
+    {
+        auth.login_visible = true;
+        const load = document.getElementById("load");
+        const panel = document.getElementById("auth_panel");
+        const username = document.getElementById("auth_username");
+        const password = document.getElementById("auth_password");
+        const error = document.getElementById("auth_error");
+
+        if(load)
+            load.style.display = "flex";
+        if(panel)
+            panel.style.display = "block";
+        if(error)
+            error.innerText = "";
+
+        auth.setLoadMessage(message, false);
+
+        if(password)
+        {
+            if(username && !username.value)
+                username.value = "ikaros";
+            password.focus();
+        }
+    },
+
+    hideLogin()
+    {
+        auth.login_visible = false;
+        const panel = document.getElementById("auth_panel");
+        const error = document.getElementById("auth_error");
+        const username = document.getElementById("auth_username");
+        const password = document.getElementById("auth_password");
+
+        if(panel)
+            panel.style.display = "none";
+        if(error)
+            error.innerText = "";
+        if(username && !username.value)
+            username.value = "ikaros";
+        if(password)
+            password.value = "";
+    },
+
+    startOrResumeController()
+    {
+        if(!auth.controller_started)
+        {
+            controller.init();
+            auth.controller_started = true;
+            return;
+        }
+
+        controller.update_generation++;
+        controller.update_in_flight = false;
+        controller.pending_network_session_id = null;
+        controller.session_id = 0;
+        controller.open_mode = false;
+        controller.clearQueue();
+        controller.getClasses();
+        controller.getClassInfo();
+        controller.requestUpdate();
+    },
+
+    bootstrap()
+    {
+        auth.installFetchInterceptor();
+        fetch("/auth", {method: "GET", cache: "no-store"})
+            .then((response) =>
+            {
+                if(!response.ok)
+                    throw new Error("Auth bootstrap failed.");
+                return response.json();
+            })
+            .then((status) =>
+            {
+                auth.enabled = !!status.enabled;
+                auth.authenticated = !!status.authenticated;
+                if(!auth.enabled || auth.authenticated)
+                {
+                    auth.hideLogin();
+                    auth.setLoadMessage("Connecting to the Ikaros kernel", true);
+                    auth.startOrResumeController();
+                }
+                else
+                    auth.showLogin("Authentication required.");
+            })
+            .catch(() =>
+            {
+                auth.setLoadMessage("Connecting to the Ikaros kernel", true);
+                auth.startOrResumeController();
+            });
+    },
+
+    resumeAfterReconnect()
+    {
+        auth.installFetchInterceptor();
+        fetch("/auth", {method: "GET", cache: "no-store"})
+            .then((response) =>
+            {
+                if(!response.ok)
+                    throw new Error("Reconnect auth probe failed.");
+                return response.json();
+            })
+            .then((status) =>
+            {
+                auth.enabled = !!status.enabled;
+                auth.authenticated = !!status.authenticated;
+                if(!auth.enabled || auth.authenticated)
+                {
+                    auth.hideLogin();
+                    auth.setLoadMessage("Connecting to the Ikaros kernel", true);
+                    auth.startOrResumeController();
+                }
+                else
+                {
+                    controller.defer_reconnect();
+                    if(main && typeof main.hideReconnectOverlay === "function")
+                        main.hideReconnectOverlay();
+                    auth.showLogin("Authentication required.");
+                }
+            })
+            .catch(() =>
+            {
+                controller.setWaitingState();
+            });
+    },
+
+    submitLogin(event)
+    {
+        if(event)
+            event.preventDefault();
+        if(auth.login_in_flight)
+            return false;
+
+        const password = document.getElementById("auth_password");
+        const username = document.getElementById("auth_username");
+        const error = document.getElementById("auth_error");
+        const value = password ? password.value : "";
+        auth.login_in_flight = true;
+        if(error)
+            error.innerText = "";
+
+        fetch("/login", {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                username: username ? username.value : "ikaros",
+                password: value
+            })
+        })
+            .then((response) =>
+            {
+                if(!response.ok)
+                    throw new Error("Unauthorized");
+                return response.json();
+            })
+            .then(() =>
+            {
+                auth.authenticated = true;
+                auth.hideLogin();
+                auth.setLoadMessage("Connecting to the Ikaros kernel", true);
+                auth.startOrResumeController();
+            })
+            .catch(() =>
+            {
+                auth.authenticated = false;
+                if(error)
+                    error.innerText = "Incorrect password.";
+                if(password)
+                    password.focus();
+            })
+            .finally(() =>
+            {
+                auth.login_in_flight = false;
+            });
+
+        return false;
+    },
+
+    handleUnauthorized()
+    {
+        auth.enabled = true;
+        auth.authenticated = false;
+        controller.update_in_flight = false;
+        controller.open_mode = false;
+        clearTimeout(controller.request_timer);
+        controller.request_timer = null;
+        clearInterval(controller.reconnect_timer);
+        controller.reconnect_timer = null;
+        controller.setSystemInfo(null);
+        auth.showLogin("Authentication required.");
+    }
+}
+
+window.auth = auth;
 const network = 
 {
     network: null,
@@ -794,7 +1029,7 @@ const brainstudio =
         nav.init();
         breadcrumbs.init();
         main.init();
-        controller.init();
+        auth.bootstrap();
 
         window.addEventListener("keydown", brainstudio.keydownHandler, true);
 

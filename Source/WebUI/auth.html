@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>BrainStudio Login</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<style>
+html, body {
+    background: #2c2c2c;
+}
+
+#load {
+    background-color: #2c2c2c;
+}
+
+#connection_status {
+    margin-top: 8px;
+}
+
+#auth_panel {
+    margin-top: 16px;
+}
+
+#auth_form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+#password {
+    padding: 10px 12px;
+    min-width: 220px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.12);
+    color: white;
+    font-size: 15px;
+}
+
+#username {
+    padding: 10px 12px;
+    min-width: 220px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.12);
+    color: white;
+    font-size: 15px;
+}
+
+#auth_form button {
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+}
+
+#error {
+    margin-top: 10px;
+    color: #ffd3d3;
+    min-height: 1.2em;
+    font-size: 13px;
+}
+</style>
+</head>
+<body>
+    <div id="load">
+        <div>
+            <img src="images/logo.png" style="height:120px; width:120px" alt="BrainStudio logo"><br />
+            <span id="brainstudio_logo">BrainStudio</span>
+            <div id="connection_status">Authentication required.</div>
+            <div id="auth_panel">
+                <form id="auth_form">
+                    <input id="username" type="text" autocomplete="username" value="ikaros" placeholder="Username" />
+                    <input id="password" type="password" autocomplete="current-password" placeholder="Password" autofocus />
+                    <button type="submit">Unlock</button>
+                </form>
+                <div id="error"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const passwordField = document.getElementById("password");
+    if(passwordField)
+        passwordField.focus();
+
+    document.getElementById("auth_form").addEventListener("submit", async function(event) {
+        event.preventDefault();
+        const error = document.getElementById("error");
+        error.textContent = "";
+        try {
+            const response = await fetch("/login", {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    username: document.getElementById("username").value,
+                    password: passwordField.value
+                })
+            });
+            if(!response.ok)
+                throw new Error("Unauthorized");
+            window.location = "/";
+        }
+        catch (e)
+        {
+            error.textContent = "Incorrect password.";
+            passwordField.focus();
+        }
+    });
+    </script>
+</body>
+</html>

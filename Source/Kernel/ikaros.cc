@@ -5,6 +5,14 @@
 #include "session_logging.h"
 
 #include <cctype>
+#include <fstream>
+#include <random>
+
+#if __has_include(<CommonCrypto/CommonDigest.h>) && __has_include(<CommonCrypto/CommonHMAC.h>)
+#include <CommonCrypto/CommonDigest.h>
+#include <CommonCrypto/CommonHMAC.h>
+#define IKAROS_HAVE_COMMONCRYPTO 1
+#endif
 
 using namespace ikaros;
 using namespace std::chrono;
@@ -77,6 +85,79 @@ namespace ikaros
                 return int(options.size()) - 1;
             return index;
         }
+
+        bool constant_time_equals(const std::string & a, const std::string & b)
+        {
+            const size_t max_length = std::max(a.size(), b.size());
+            unsigned char diff = static_cast<unsigned char>(a.size() ^ b.size());
+            for(size_t i = 0; i < max_length; ++i)
+            {
+                const unsigned char ac = i < a.size() ? static_cast<unsigned char>(a[i]) : 0;
+                const unsigned char bc = i < b.size() ? static_cast<unsigned char>(b[i]) : 0;
+                diff |= static_cast<unsigned char>(ac ^ bc);
+            }
+            return diff == 0;
+        }
+
+        std::string extract_cookie_value(const std::string & cookie_header, const std::string & cookie_name)
+        {
+            for(const auto & cookie : split(cookie_header, ";"))
+            {
+                std::string trimmed_cookie = trim(cookie);
+                auto separator = trimmed_cookie.find('=');
+                if(separator == std::string::npos)
+                    continue;
+
+                std::string key = trim(trimmed_cookie.substr(0, separator));
+                if(key != cookie_name)
+                    continue;
+
+                return trim(trimmed_cookie.substr(separator + 1));
+            }
+            return "";
+        }
+
+        std::string hex_encode(const unsigned char * data, size_t size)
+        {
+            static constexpr char hex[] = "0123456789abcdef";
+            std::string encoded;
+            encoded.reserve(size * 2);
+            for(size_t i = 0; i < size; ++i)
+            {
+                encoded.push_back(hex[(data[i] >> 4) & 0x0F]);
+                encoded.push_back(hex[data[i] & 0x0F]);
+            }
+            return encoded;
+        }
+
+        std::string random_hex_string(size_t byte_count)
+        {
+            std::random_device rd;
+            std::uniform_int_distribution<int> dist(0, 255);
+            std::vector<unsigned char> bytes(byte_count);
+            for(unsigned char & byte : bytes)
+                byte = static_cast<unsigned char>(dist(rd));
+            return hex_encode(bytes.data(), bytes.size());
+        }
+
+        long long unix_time_seconds()
+        {
+            return duration_cast<seconds>(system_clock::now().time_since_epoch()).count();
+        }
+
+#if IKAROS_HAVE_COMMONCRYPTO
+        std::string hmac_sha256_hex(const std::string & key, const std::string & message)
+        {
+            unsigned char digest[CC_SHA256_DIGEST_LENGTH];
+            CCHmac(kCCHmacAlgSHA256,
+                   key.data(),
+                   key.size(),
+                   message.data(),
+                   message.size(),
+                   digest);
+            return hex_encode(digest, sizeof(digest));
+        }
+#endif
 
         matrix * get_parameter_matrix_ptr(parameter::parameter_value * value)
         {
@@ -3065,6 +3146,12 @@ bool operator==(Request & r, const std::string s)
     Kernel::SetOptions(const options & opts)
     {
         options_ = opts;
+        auth_enabled_ = options_.is_explicitly_set("auth_password");
+        auth_password_ = auth_enabled_ ? options_.get("auth_password") : "";
+        if(auth_enabled_ && (auth_password_.empty() || auth_password_ == "true"))
+            throw exception("Authentication requires a non-empty password supplied as -a<password>.");
+        if(auth_enabled_ && !LoadOrCreateAuthCookieSecret())
+            throw exception("Authentication could not initialize its persistent cookie secret in UserData.");
     }
 
     bool
@@ -3110,6 +3197,189 @@ bool operator==(Request & r, const std::string s)
         if(it == classes.end())
             return {};
         return std::filesystem::path(it->second.path).parent_path();
+    }
+
+    bool
+    Kernel::AuthEnabled() const
+    {
+        return auth_enabled_;
+    }
+
+    bool
+    Kernel::CheckPassword(const std::string & candidate) const
+    {
+        return auth_enabled_ && constant_time_equals(candidate, auth_password_);
+    }
+
+    std::string
+    Kernel::CreateSessionToken()
+    {
+        if(!auth_enabled_ || auth_cookie_secret_.empty())
+            return "";
+
+        static constexpr long long auth_cookie_lifetime_seconds = 30LL * 24LL * 60LL * 60LL;
+        const long long expires_at = unix_time_seconds() + auth_cookie_lifetime_seconds;
+        const std::string payload =
+            std::to_string(expires_at) + "." +
+            random_hex_string(16) + "." +
+            PasswordMarker();
+
+#if IKAROS_HAVE_COMMONCRYPTO
+        return payload + "." + hmac_sha256_hex(auth_cookie_secret_, payload);
+#else
+        return "";
+#endif
+    }
+
+    std::string
+    Kernel::PasswordMarker() const
+    {
+#if IKAROS_HAVE_COMMONCRYPTO
+        if(auth_cookie_secret_.empty() || auth_password_.empty())
+            return "";
+        return hmac_sha256_hex(auth_cookie_secret_, "password:" + auth_password_).substr(0, 32);
+#else
+        return "";
+#endif
+    }
+
+    bool
+    Kernel::LoadOrCreateAuthCookieSecret()
+    {
+#if !IKAROS_HAVE_COMMONCRYPTO
+        return false;
+#else
+        std::lock_guard<std::mutex> lock(auth_mutex_);
+        if(!auth_cookie_secret_.empty())
+            return true;
+
+        std::filesystem::path secret_path = std::filesystem::path(user_dir) / ".auth_cookie_secret";
+        std::error_code ec;
+
+        if(std::filesystem::exists(secret_path, ec) && !ec)
+        {
+            std::ifstream secret_file(secret_path);
+            std::string secret;
+            std::getline(secret_file, secret);
+            secret = trim(secret);
+            if(secret.size() >= 32)
+            {
+                auth_cookie_secret_ = secret;
+                return true;
+            }
+        }
+
+        auth_cookie_secret_ = random_hex_string(32);
+        std::ofstream secret_file(secret_path, std::ios::trunc);
+        if(!secret_file.is_open())
+        {
+            auth_cookie_secret_.clear();
+            return false;
+        }
+
+        secret_file << auth_cookie_secret_ << '\n';
+        secret_file.close();
+        if(secret_file.fail())
+        {
+            auth_cookie_secret_.clear();
+            return false;
+        }
+
+        std::filesystem::permissions(
+            secret_path,
+            std::filesystem::perms::owner_read | std::filesystem::perms::owner_write,
+            std::filesystem::perm_options::replace,
+            ec);
+
+        return true;
+#endif
+    }
+
+    bool
+    Kernel::IsRequestAuthenticated() const
+    {
+        if(!auth_enabled_)
+            return true;
+        if(socket == nullptr || !socket->header.contains_non_null("cookie"))
+            return false;
+
+        std::string cookie_value = extract_cookie_value(std::string(socket->header["cookie"]), "ikaros_session");
+        if(cookie_value.empty())
+            return false;
+
+        const auto parts = split(cookie_value, ".");
+        if(parts.size() != 4)
+            return false;
+
+        long long expires_at = 0;
+        try
+        {
+            expires_at = std::stoll(parts[0]);
+        }
+        catch(const std::exception &)
+        {
+            return false;
+        }
+
+        if(expires_at < unix_time_seconds())
+            return false;
+
+        const std::string payload = parts[0] + "." + parts[1] + "." + parts[2];
+        if(!constant_time_equals(parts[2], PasswordMarker()))
+            return false;
+
+#if IKAROS_HAVE_COMMONCRYPTO
+        std::lock_guard<std::mutex> lock(auth_mutex_);
+        if(auth_cookie_secret_.empty())
+            return false;
+        return constant_time_equals(parts[3], hmac_sha256_hex(auth_cookie_secret_, payload));
+#else
+        return false;
+#endif
+    }
+
+    bool
+    Kernel::IsPublicRequest(const Request & request) const
+    {
+        std::string public_url = request.url;
+        if(!public_url.empty() && public_url[0] == '/')
+            public_url.erase(0, 1);
+
+        if(request.command == "auth" || request.command == "login")
+            return true;
+
+        if(request.command.empty() || public_url == "index.html")
+            return true;
+
+        static const std::array<std::string, 8> public_prefixes = {
+            "core/",
+            "ui/",
+            "widgets/",
+            "js/",
+            "Images/",
+            "images/",
+            "Models/",
+            "models/"
+        };
+
+        for(const auto & prefix : public_prefixes)
+            if(starts_with(public_url, prefix))
+                return true;
+
+        static const std::array<std::string, 10> public_files = {
+            "index.html",
+            "style.css",
+            "defaults.css",
+            "widget_style.css",
+            "widget_defaults.css",
+            "info.html",
+            "profiling_window.html",
+            "startup_steps_window.html",
+            "error.glb",
+            "old_style.css"
+        };
+
+        return std::find(public_files.begin(), public_files.end(), public_url) != public_files.end();
     }
 
     bool
@@ -3625,7 +3895,7 @@ bool operator==(Request & r, const std::string s)
 
         for(auto & x : options_.d)
             if(options_.is_explicitly_set(x.first))
-                if(x.first != "user_data")
+                if(x.first != "user_data" && x.first != "auth_password")
                     d[x.first] = x.second;
 
         if(d.contains("stop"))
@@ -5430,6 +5700,35 @@ bool operator==(Request & r, const std::string s)
 
 
     void
+    Kernel::DoSendPublicWebUIFile(std::string file)
+    {
+        if(file.empty() || file == "/")
+            file = "index.html";
+
+        if(file[0] == '/')
+            file = file.erase(0,1);
+
+        if(SendFileIfSafe(webui_dir, file) == SendFileResult::sent)
+            return;
+
+        if(starts_with(file, "images/"))
+        {
+            std::string rewritten = "Images/" + file.substr(7);
+            if(SendFileIfSafe(webui_dir, rewritten) == SendFileResult::sent)
+                return;
+        }
+        else if(starts_with(file, "models/"))
+        {
+            std::string rewritten = "Models/" + file.substr(7);
+            if(SendFileIfSafe(webui_dir, rewritten) == SendFileResult::sent)
+                return;
+        }
+
+        DoSendError("404 Not Found", "404 Not Found\n");
+    }
+
+
+    void
     Kernel::DoSendNetwork(Request &)
     {
         std::string s = json(); 
@@ -6016,6 +6315,85 @@ bool operator==(Request & r, const std::string s)
 
 
     void
+    Kernel::DoUnauthorized()
+    {
+        dictionary header({
+            {"Content-Type", "text/plain"},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"},
+            {"Expires", "0"}
+        });
+        SendStringResponse(header, "401 Unauthorized\n", "401 Unauthorized");
+    }
+
+
+    void
+    Kernel::DoAuthStatus()
+    {
+        dictionary header({
+            {"Content-Type", "application/json"},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"},
+            {"Expires", "0"}
+        });
+        std::string body =
+            "{\n"
+            "\t\"enabled\": " + std::string(auth_enabled_ ? "true" : "false") + ",\n"
+            "\t\"authenticated\": " + std::string((!auth_enabled_ || IsRequestAuthenticated()) ? "true" : "false") + "\n"
+            "}\n";
+        SendStringResponse(header, body);
+    }
+
+
+    void
+    Kernel::DoLogin(Request & request)
+    {
+        if(!auth_enabled_)
+        {
+            DoAuthStatus();
+            return;
+        }
+
+        try
+        {
+            if(!request.HasJsonBody())
+                throw exception("Login request must include a JSON body.");
+            if(!request.json_body.is_dictionary())
+                throw exception("Login request body must be a JSON object.");
+
+            dictionary login_request(request.json_body);
+            std::string candidate_password =
+                login_request.contains_non_null("password") ? std::string(login_request["password"]) : "";
+            if(!CheckPassword(candidate_password))
+            {
+                DoUnauthorized();
+                return;
+            }
+
+            std::string token = CreateSessionToken();
+            if(token.empty())
+            {
+                DoUnauthorized();
+                return;
+            }
+
+            dictionary header({
+                {"Content-Type", "application/json"},
+                {"Set-Cookie", "ikaros_session=" + token + "; Path=/; Max-Age=2592000; HttpOnly; SameSite=Strict"},
+                {"Cache-Control", "no-cache, no-store"},
+                {"Pragma", "no-cache"},
+                {"Expires", "0"}
+            });
+            SendStringResponse(header, "{\n\t\"authenticated\": true\n}\n");
+        }
+        catch(const std::exception &)
+        {
+            DoUnauthorized();
+        }
+    }
+
+
+    void
     Kernel::HandleHTTPRequest()
     {
         long sid = 0;
@@ -6031,7 +6409,29 @@ bool operator==(Request & r, const std::string s)
         if(request.parameters.contains("proxy"))
             request.component_path = std::string(request.parameters["proxy"]);
 
-            // std::cout << "Request: " << request.url << std::endl;
+        if(request == "auth")
+        {
+            DoAuthStatus();
+            return;
+        }
+        else if(request == "login")
+        {
+            DoLogin(request);
+            return;
+        }
+        else if(auth_enabled_ && !IsRequestAuthenticated())
+        {
+            if(IsPublicRequest(request))
+            {
+                DoSendPublicWebUIFile(request.url);
+                return;
+            }
+
+            DoUnauthorized();
+            return;
+        }
+
+        // std::cout << "Request: " << request.url << std::endl;
 
         if(request == "network")
             DoNetwork(request);

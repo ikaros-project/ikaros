@@ -29,9 +29,14 @@ const controller =
 
     reconnect()
     {
-        controller.get("update", controller.update);
-        controller.setSystemInfo(null);
-        controller.setWaitingState();
+        if(window.auth && typeof auth.resumeAfterReconnect === "function")
+            auth.resumeAfterReconnect();
+        else
+        {
+            controller.get("update", controller.update);
+            controller.setSystemInfo(null);
+            controller.setWaitingState();
+        }
     },
 
     defer_reconnect()
@@ -167,6 +172,15 @@ const controller =
         };
         xhr.onload = function(evt)
         {
+              if(xhr.status === 401)
+              {
+                  if(is_update_request)
+                      controller.update_in_flight = false;
+                  controller.open_mode = false;
+                  auth.handleUnauthorized();
+                  return;
+              }
+
               if(is_update_request)
                   controller.update_in_flight = false;
               const artificialDelay = controller.getSlowLinkDelay();

@@ -14,6 +14,7 @@
 #include <memory>
 #include <mutex>
 #include <limits>
+#include <random>
 #include <set>
 #include <stack>
 #include <string>
@@ -396,6 +397,10 @@ public:
     dictionary                              info_;
     std::string                             webui_dir;
     std::string                             user_dir;
+    bool                                    auth_enabled_ = false;
+    std::string                             auth_password_;
+    std::string                             auth_cookie_secret_;
+    mutable std::mutex                      auth_mutex_;
 
     long                                    session_id;
     bool                                    needs_reload;
@@ -657,6 +662,9 @@ private:
 
     void DoSendData(Request & request);
     void DoUpdate(Request & request);
+    void DoAuthStatus();
+    void DoLogin(Request & request);
+    void DoUnauthorized();
 
     void DoNetwork(Request & request);
     std::string DoSendLog(Request & request);
@@ -669,8 +677,16 @@ private:
     bool SanitizeImportPath(const std::filesystem::path & candidate_path, std::filesystem::path & sanitized_path) const;
     SendFileResult SendFileIfSafe(const std::filesystem::path & root, const std::string & file);
     void DoSendFile(std::string file);
+    void DoSendPublicWebUIFile(std::string file);
     void DoSendError(const std::string & status = "404 Not Found", const std::string & message = "404 Not Found\n");
     std::string SendImage(matrix & image, const std::string & format, int quality=90);
+    bool AuthEnabled() const;
+    bool IsRequestAuthenticated() const;
+    bool IsPublicRequest(const Request & request) const;
+    bool CheckPassword(const std::string & candidate) const;
+    std::string CreateSessionToken();
+    std::string PasswordMarker() const;
+    bool LoadOrCreateAuthCookieSecret();
 
     void HandleHTTPRequest();
     void HandleHTTPThread();

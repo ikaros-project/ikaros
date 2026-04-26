@@ -21,6 +21,14 @@
             <span id="loadbar" class="loader"></span><br />
             <span id="brainstudio_logo">BrainStudio</span>
             <div id="connection_status"><blink>Loading</div>
+            <div id="auth_panel" style="display:none; margin-top:16px;">
+                <form id="auth_form" onsubmit="return auth.submitLogin(event);" style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+                    <input id="auth_username" type="text" autocomplete="username" value="ikaros" placeholder="Username" style="padding:10px 12px; min-width:220px; border-radius:10px; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12); color:white;">
+                    <input id="auth_password" type="password" autocomplete="current-password" placeholder="Password" style="padding:10px 12px; min-width:220px; border-radius:10px; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12); color:white;">
+                    <button type="submit" style="padding:10px 16px; border-radius:999px; border:none; cursor:pointer;">Unlock</button>
+                </form>
+                <div id="auth_error" style="margin-top:10px; color:#ffd3d3; min-height:1.2em;"></div>
+            </div>
         </div>
     </div>
 
@@ -776,14 +784,18 @@
         // interaction.initDraggables();
         // controller.init();
         setTimeout(() => {
-            document.getElementById("connection_status").innerText = "Connecting to the Ikaros kernel";
+            if(!(typeof auth !== "undefined" && auth.login_visible))
+                document.getElementById("connection_status").innerText = "Connecting to the Ikaros kernel";
         }, 3000);
         setTimeout(() => {
-            document.getElementById("loadbar").style.display= "none";
-            document.getElementById("connection_status").innerText = "Connection failed. Restart Ikaros. Page will reload in 10s.";
-            setTimeout(() => {
-            //document.location = document.location;
-        }, 10000);
+            if(!(typeof auth !== "undefined" && auth.login_visible))
+            {
+                document.getElementById("loadbar").style.display= "none";
+                document.getElementById("connection_status").innerText = "Connection failed. Restart Ikaros. Page will reload in 10s.";
+                setTimeout(() => {
+                //document.location = document.location;
+            }, 10000);
+            }
         }, 15000);
     </script>
 
