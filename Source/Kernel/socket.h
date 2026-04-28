@@ -67,7 +67,7 @@ class ServerSocket
 			std::chrono::steady_clock::time_point last_activity = std::chrono::steady_clock::now();
 		};
 
-		explicit ServerSocket(int port=PORTNO);		// Create server socket on port
+		explicit ServerSocket(int port=PORTNO, const std::string & bind_address="");		// Create server socket on port
 		ServerSocket(const ServerSocket &) = delete;
 		ServerSocket & operator=(const ServerSocket &) = delete;
 		ServerSocket(ServerSocket &&) = delete;

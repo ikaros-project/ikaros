@@ -4277,7 +4277,7 @@ bool operator==(Request & r, const std::string s)
         try
         {
             shutdown.store(false, std::memory_order_release);
-            socket = std::make_unique<ServerSocket>(port);
+            socket = std::make_unique<ServerSocket>(port, GetOption("bind_address"));
         }
         catch (const exception& e)
         {

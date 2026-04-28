@@ -57,7 +57,25 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
             -w#### (webui_port): port for ikaros WebUI [8000]
 
 
+        Command line options:
+        -A (agent): set the agent identifier included in remote session logging
+        -B (bind_address): bind WebUI/API server to a specific IPv4 address, for example 127.0.0.1
+        -S (start):  start-up automatically without waiting for commands from WebUI
+        -a (auth_password): enable optional WebUI/API authentication using the provided password
+        -b (batch_mode): start automatically and quit when execution terminates; no WebUI unless explicitly set with -w
+        -d (tick_duration): duration of each tick
+        -h (help): list command line options [true]
+        -i (info): print model info
+        -p (python_executable): default Python interpreter for python-backed classes
+        -r (real_time): run in real-time mode; also implies S
+        -s (stop): stop Ikaros after this tick [-1]
+        -t (threads): number of worker threads for the kernel thread pool
+        -u (user_data): alternative directory for user data files
+        -w (webui_port): port for ikaros WebUI [8000]
+
         filename :   ikg-file to load
 
 All parameters can be set in the root element of the ikg-file as well.
+
+
 

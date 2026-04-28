@@ -1,6 +1,7 @@
 <group
     name="WebUIGridWidgetDemo"
     description="Demo of the WebUI grid widget with scalar and RGB inputs"
+    agent="grid_agent"
 
 >
     <module

@@ -33,7 +33,9 @@ namespace
         o.add_option("t", "threads", "number of worker threads for the kernel thread pool");
         o.add_option("u", "user_data", "alternative directory for user data files");
         o.add_option("w", "webui_port", "port for ikaros WebUI", "8000");
+        o.add_option("B", "bind_address", "bind WebUI/API server to a specific IPv4 address, for example 127.0.0.1");
         o.add_option("a", "auth_password", "enable optional WebUI/API authentication using the provided password");
+        o.add_option("A", "agent", "set the agent identifier included in remote session logging");
         o.add_option("h", "help", "list command line options");
     }
 

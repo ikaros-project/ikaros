@@ -61,6 +61,9 @@ namespace ikaros
             if(gethostname(hostname, sizeof(hostname)-1) != 0)
                 hostname[0] = '\0';
 
+            const std::string agent =
+                kernel.info_.contains("agent") ? std::string(kernel.info_["agent"]) : kernel.GetOption("agent");
+
             AppendQueryParameter(path, "event", event_name);
             AppendQueryParameter(path, "sid", std::to_string(kernel.session_id));
             AppendQueryParameter(path, "timestamp", std::to_string(GetTimeStamp()));
@@ -69,6 +72,7 @@ namespace ikaros
             AppendQueryParameter(path, "file_path", kernel.GetOptionFullPath());
             AppendQueryParameter(path, "clock_time", formatNumber(kernel.session_timer.GetTime(), 4));
             AppendQueryParameter(path, "host", hostname);
+            AppendQueryParameter(path, "agent", agent);
             AppendQueryParameter(path, "cpu_cores", std::to_string(kernel.cpu_cores));
             AppendQueryParameter(path, "classes", module_info.contains("classes") ? std::string(module_info["classes"]) : "");
 #if DEBUG
