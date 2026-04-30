@@ -314,6 +314,16 @@ public:
     double GetNominalTime() const;    // nominal time at current tick
     double GetTimeOfDay() const;      // seconds since midnight
     double GetLag() const;
+    double GetUptime() const;
+    double GetActualTickDuration() const;
+    double GetTickTimeUsage() const;
+    double GetCPUUsage() const;
+    double GetIdleTime() const;
+    int GetRunMode() const;
+    int GetCPUCoreCount() const;
+    int GetModuleCount() const;
+    int GetClassCount() const;
+    tick_count GetStopAfter() const;
 
     void ProfilingBegin();
     void ProfilingEnd();
@@ -495,6 +505,16 @@ public:
     double GetNominalTime(); 
     double GetTimeOfDay();
     double GetLag();
+    double GetUptime();
+    double GetActualTickDuration() const;
+    double GetTickTimeUsage() const;
+    double GetCPUUsage() const;
+    double GetIdleTime() const;
+    int GetRunMode() const;
+    int GetCPUCoreCount() const;
+    int GetModuleCount() const;
+    int GetClassCount() const;
+    tick_count GetStopAfter() const;
 
     void CalculateCPUUsage();
 

@@ -1637,6 +1637,16 @@ namespace ikaros
     double Module::GetNominalTime() const     { return kernel().GetNominalTime(); }
     double Module::GetTimeOfDay() const       { return kernel().GetTimeOfDay(); }
     double Module::GetLag() const             { return kernel().GetLag(); }
+    double Module::GetUptime() const          { return kernel().GetUptime(); }
+    double Module::GetActualTickDuration() const { return kernel().GetActualTickDuration(); }
+    double Module::GetTickTimeUsage() const   { return kernel().GetTickTimeUsage(); }
+    double Module::GetCPUUsage() const        { return kernel().GetCPUUsage(); }
+    double Module::GetIdleTime() const        { return kernel().GetIdleTime(); }
+    int Module::GetRunMode() const            { return kernel().GetRunMode(); }
+    int Module::GetCPUCoreCount() const       { return kernel().GetCPUCoreCount(); }
+    int Module::GetModuleCount() const        { return kernel().GetModuleCount(); }
+    int Module::GetClassCount() const         { return kernel().GetClassCount(); }
+    tick_count Module::GetStopAfter() const   { return kernel().GetStopAfter(); }
 
 
     Module::Module()
@@ -3192,6 +3202,66 @@ bool operator==(Request & r, const std::string s)
     Kernel::GetLag()
     {
         return (run_mode.load() == run_mode_realtime) ? static_cast<double>(tick)*tick_duration - timer.GetTime() : 0;
+    }
+
+    double
+    Kernel::GetUptime()
+    {
+        return uptime_timer.GetTime();
+    }
+
+    double
+    Kernel::GetActualTickDuration() const
+    {
+        return actual_tick_duration;
+    }
+
+    double
+    Kernel::GetTickTimeUsage() const
+    {
+        return tick_time_usage;
+    }
+
+    double
+    Kernel::GetCPUUsage() const
+    {
+        return cpu_usage;
+    }
+
+    double
+    Kernel::GetIdleTime() const
+    {
+        return idle_time;
+    }
+
+    int
+    Kernel::GetRunMode() const
+    {
+        return run_mode.load();
+    }
+
+    int
+    Kernel::GetCPUCoreCount() const
+    {
+        return cpu_cores;
+    }
+
+    int
+    Kernel::GetModuleCount() const
+    {
+        return static_cast<int>(components.size());
+    }
+
+    int
+    Kernel::GetClassCount() const
+    {
+        return static_cast<int>(classes.size());
+    }
+
+    tick_count
+    Kernel::GetStopAfter() const
+    {
+        return stop_after;
     }
 
     bool

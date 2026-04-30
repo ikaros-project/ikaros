@@ -1,0 +1,7 @@
+<group
+    name="TestSystemModule"
+    description="Test that the System module instantiates and publishes outputs"
+    start="true"
+    stop="1">
+    <module class="System" name="System" />
+</group>

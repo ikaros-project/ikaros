@@ -1,0 +1,23 @@
+<class name="System" description="exposes kernel status, timing, and load values as module outputs">
+    <output name="TICK" size="1" description="Current kernel tick." />
+    <output name="TIME" size="1" description="Current model time in seconds." />
+    <output name="NOMINAL_TIME" size="1" description="Nominal tick-based time in seconds." />
+    <output name="REAL_TIME" size="1" description="Wall-clock run time in seconds." />
+    <output name="UPTIME" size="1" description="Kernel uptime in seconds." />
+    <output name="RUN_STATE" size="4" description="One-hot run mode: stop, pause, play, realtime." />
+    <output name="STATE" size="1" description="Numeric run mode." />
+    <output name="TICK_DURATION" size="1" description="Target tick duration in seconds." />
+    <output name="ACTUAL_DURATION" size="1" description="Measured duration between ticks in seconds." />
+    <output name="TICK_TIME_USAGE" size="1" description="Time spent executing the previous tick in seconds." />
+    <output name="LAG" size="1" description="Real-time lag in seconds." />
+    <output name="TICKS_PER_S" size="1" description="Average ticks per second." />
+    <output name="CPU_USAGE" size="1" description="Estimated CPU usage." />
+    <output name="TIME_USAGE" size="1" description="Fraction of measured tick duration spent executing tick work." />
+    <output name="IDLE_RATIO" size="1" description="Fraction of target tick duration spent idle." />
+    <output name="OVERLOAD" size="1" description="One when tick work exceeds the target tick duration." />
+    <output name="PROGRESS" size="1" description="Progress toward stop_after when known, otherwise zero." />
+    <output name="STOP_AFTER_KNOWN" size="1" description="One when the network has a finite stop_after value." />
+    <output name="CPU_CORES" size="1" description="Number of CPU cores reported by the system." />
+    <output name="MODULE_COUNT" size="1" description="Number of instantiated components in the network." />
+    <output name="CLASS_COUNT" size="1" description="Number of registered module classes." />
+</class>
