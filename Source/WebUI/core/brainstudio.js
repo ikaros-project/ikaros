@@ -14,6 +14,7 @@ const widget_classes =
     "text",
     "rectangle",
     "button",
+    "joystick",
     "slider-horizontal",
     "slider-vertical",
     "switch",
