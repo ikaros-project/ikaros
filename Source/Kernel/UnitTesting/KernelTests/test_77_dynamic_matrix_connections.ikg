@@ -1,0 +1,12 @@
+<group
+    name="Test_77"
+    description="Exercise dynamic matrix output shape forwarding"
+    start="true"
+    stop="4"
+    expected_output_contains="DYNAMIC MATRIX TEST OK"
+>
+    <module name="Source" class="DynamicMatrixSource" />
+    <module name="Sink" class="DynamicMatrixSink" />
+
+    <connection source="Source.ROWS" target="Sink.ROWS" delay="0" />
+</group>

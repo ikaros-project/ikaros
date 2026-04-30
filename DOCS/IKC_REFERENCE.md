@@ -153,6 +153,13 @@ Declares a named output buffer.
 - `shape`
   - Preferred output shape expression.
   - Required for module outputs unless `alias` is used or a class-level `size` fallback exists.
+- `dynamic`
+  - If truthy, the output has a fixed maximum capacity but a logical shape that can change at runtime.
+  - Dynamic outputs are intended for append-style row or slice stacks.
+  - Dynamic outputs require `capacity`.
+- `capacity`
+  - Capacity shape expression for dynamic outputs.
+  - Example: `capacity="128, 2"` allocates room for 128 rows of width 2 and starts with logical shape `{0, 2}`.
 - `alias`
   - Makes this output a view of another output.
   - Example: `alias="OUTPUT[0]"`.
@@ -161,7 +168,11 @@ Declares a named output buffer.
 #### Notes
 
 - Group outputs are sized from incoming connections and cannot declare `size` or `shape`.
+- Group outputs cannot declare `dynamic`.
 - Aliased outputs cannot also declare `size` or `shape`.
+- Dynamic outputs use `capacity` instead of `size` or `shape`.
+- Dynamic outputs can only be connected as whole matrices. Indexed, ranged, and flattened connections from dynamic outputs are rejected during setup.
+- A whole-matrix input connected to a dynamic output receives the same capacity, and its logical shape is updated when data is copied.
 
 ## Generic Extra Elements
 
@@ -258,6 +269,7 @@ This is the safest subset to use for new `.ikc` files:
     <parameter name="param" type="number" default="1" description="..." control="menu" options="A,B,C" />
     <input name="INPUT" description="..." optional="true" size="4" flatten="false" use_label="false" />
     <output name="OUTPUT" description="..." shape="INPUT.shape" />
+    <output name="ROWS" description="..." dynamic="yes" capacity="128, 2" />
     <output name="RED" description="..." alias="OUTPUT[0]" />
 </class>
 ```
@@ -306,6 +318,9 @@ This is the safest subset to use for new `.ikc` files:
   - `name`
   - `description`
   - `size`
+  - `shape`
+  - `dynamic`
+  - `capacity`
   - `alias`
 
 ## Compatibility Notes

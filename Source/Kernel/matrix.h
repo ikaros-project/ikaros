@@ -90,6 +90,8 @@ namespace ikaros
         std::vector<int> max_size_;                     // shape of allocated memory; same as stride for main matrix
         int size_;                                      // the size of the data, is different from data_.size() for submatrices
         bool continuous;                                // the data is continuous in memory
+        bool dynamic_;                                  // logical shape can change while capacity stays fixed
+        bool fixed_capacity_;                           // append must not grow beyond max_size_
         std::string name_;                              // name of the matrix, used when printing and possibly for access in the future
         std::vector<std::vector<std::string>> labels_;  // label for each 'column' in each dimension; will be used for tables in the future
 
@@ -201,6 +203,9 @@ namespace ikaros
         bool unfilled() const;
         bool is_scalar() const;
         bool connected() const;
+        bool is_dynamic() const;
+        matrix & set_dynamic(bool dynamic=true);
+        matrix & set_fixed_capacity(bool fixed_capacity=true);
 
         bool print_(int depth=0) const;
         std::string json() const; // Generate JSON-representation of matrix
@@ -354,6 +359,7 @@ namespace ikaros
 
 
         const std::vector<int>& shape() const;
+        const std::vector<int>& capacity() const;
         int size() const; // Size of full data
         int shape(int dim) const; // Size of one dimension; negative indices means from the back
         int size(int dim) const; // Compatibility alias for shape(int dim)
@@ -362,6 +368,8 @@ namespace ikaros
         int size_x() const;
         int size_y() const;
         int size_z() const;
+
+        matrix & resize(const std::vector<int> & new_shape);
 
         template <typename... Args>
         matrix & 
@@ -389,6 +397,15 @@ namespace ikaros
         realloc(Args... shape)
         {
             return realloc(std::vector<int>({shape...}));
+        }
+
+        matrix & reserve(const std::vector<int> & capacity_shape);
+
+        template <typename... Args>
+        matrix &
+        reserve(Args... capacity_shape)
+        {
+            return reserve(std::vector<int>({capacity_shape...}));
         }
 
         template <typename... Args>
@@ -428,6 +445,9 @@ namespace ikaros
         }
         // Push & pop
 
+        matrix & clear(); // clear logical first dimension while keeping allocated storage
+        matrix & append(const matrix & m); // append a row/slice, growing first-dimension capacity as needed
+        matrix & append(float v); // append a scalar to a one-dimensional matrix, growing capacity as needed
         matrix & push(const matrix & m, bool extend=false);
         matrix & push(float v); // push a scalar to the end of the matrix
         matrix & pop(matrix & m); // pop the last element from m and copy to the current matrix; sizes must match

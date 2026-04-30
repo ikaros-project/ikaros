@@ -35,7 +35,7 @@ parse_matrix_token(const std::string & token)
 
 
 matrix_info::matrix_info(std::vector<int> shape):
-    offset_(0), shape_(shape), stride_(shape), max_size_(shape), size_(calculate_size()), continuous(true), labels_(shape.size())
+    offset_(0), shape_(shape), stride_(shape), max_size_(shape), size_(calculate_size()), continuous(true), dynamic_(false), fixed_capacity_(false), labels_(shape.size())
 {}
 
 
@@ -49,6 +49,8 @@ matrix_info::print(std::string n) const
     print_attribute_value("max_size", max_size_);
     print_attribute_value("size", size_);
     print_attribute_value("offeset", offset_);
+    print_attribute_value("dynamic", dynamic_);
+    print_attribute_value("fixed_capacity", fixed_capacity_);
     print_attribute_value("labels", labels_);
 }
 
@@ -452,6 +454,29 @@ matrix::connected() const
 
 
 bool
+matrix::is_dynamic() const
+{
+    return info_->dynamic_;
+}
+
+
+matrix &
+matrix::set_dynamic(bool dynamic)
+{
+    info_->dynamic_ = dynamic;
+    return *this;
+}
+
+
+matrix &
+matrix::set_fixed_capacity(bool fixed_capacity)
+{
+    info_->fixed_capacity_ = fixed_capacity;
+    return *this;
+}
+
+
+bool
 matrix::print_(int depth) const
 {
     if(rank() == 0)
@@ -819,6 +844,13 @@ matrix::shape() const
 }
 
 
+const std::vector<int> &
+matrix::capacity() const
+{
+    return info_->max_size_;
+}
+
+
 int
 matrix::size() const
 {
@@ -856,6 +888,22 @@ int matrix::size_z() const { return shape(-3); }
 
 
 matrix &
+matrix::resize(const std::vector<int> & new_shape)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(new_shape.size() != info_->shape_.size())
+        throw std::invalid_argument("Number of indices must match matrix rank (in call to resize).");
+
+    for(std::size_t i = 0; i < info_->shape_.size(); ++i)
+        if(new_shape[i] > info_->max_size_[i])
+            throw std::out_of_range(get_name()+"New size larger than allocated space.");
+#endif
+    info_->shape_ = new_shape;
+    return *this;
+}
+
+
+matrix &
 matrix::realloc(const std::vector<int> & shape)
 {
     for(int dimension : shape)
@@ -878,6 +926,111 @@ matrix &
 matrix::realloc(const range & r)
 {
     return realloc(r.extent());
+}
+
+
+matrix &
+matrix::reserve(const std::vector<int> & capacity_shape)
+{
+    if(capacity_shape.empty())
+        throw std::invalid_argument(get_name() + "Reserve requires at least one dimension.");
+
+    for(int dimension : capacity_shape)
+        if(dimension < 0)
+            throw std::invalid_argument(get_name() + "Matrix capacity cannot be negative.");
+
+    if(is_uninitialized())
+    {
+        realloc(capacity_shape);
+        info_->shape_.front() = 0;
+        return *this;
+    }
+
+    if(rank() != static_cast<int>(capacity_shape.size()))
+        throw std::invalid_argument(get_name() + "Reserved capacity must have the same rank as the matrix.");
+
+    for(std::size_t i = 1; i < capacity_shape.size(); ++i)
+        if(info_->shape_[i] != capacity_shape[i])
+            throw std::invalid_argument(get_name() + "Reserved capacity must match the matrix slice shape.");
+
+    if(capacity_shape.front() < info_->shape_.front())
+        throw std::out_of_range(get_name() + "Reserved capacity cannot be smaller than the current matrix size.");
+
+    if(capacity_shape.front() > info_->max_size_.front())
+    {
+        std::vector<int> logical_shape = info_->shape_;
+        realloc(capacity_shape);
+        info_->shape_ = logical_shape;
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::clear()
+{
+    if(rank() == 0)
+        return *this;
+
+    info_->shape_.front() = 0;
+    return *this;
+}
+
+
+matrix &
+matrix::append(const matrix & m)
+{
+    if(is_uninitialized())
+    {
+        std::vector<int> capacity_shape;
+        capacity_shape.reserve(m.info_->shape_.size() + 1);
+        capacity_shape.push_back(1);
+        capacity_shape.insert(capacity_shape.end(), m.info_->shape_.begin(), m.info_->shape_.end());
+        reserve(capacity_shape);
+    }
+
+    if(rank() != m.rank() + 1)
+        throw std::out_of_range(get_name() + "Incompatible matrix sizes");
+
+    for(std::size_t i = 0; i < m.info_->shape_.size(); ++i)
+        if(info_->shape_[i + 1] != m.info_->shape_[i])
+            throw std::out_of_range(get_name() + "Appended matrix has wrong shape.");
+
+    if(info_->shape_.front() >= info_->max_size_.front())
+    {
+        if(info_->fixed_capacity_)
+            throw std::out_of_range(get_name() + "No room for additional element");
+
+        std::vector<int> capacity_shape = info_->max_size_;
+        capacity_shape.front() = std::max(1, capacity_shape.front() * 2);
+        reserve(capacity_shape);
+    }
+
+    return push(m);
+}
+
+
+matrix &
+matrix::append(float v)
+{
+    if(is_uninitialized())
+        reserve(1);
+
+    if(rank() != 1)
+        throw std::out_of_range(get_name() + "Matrix must be one-dimensional.");
+
+    if(info_->shape_.front() >= info_->max_size_.front())
+    {
+        if(info_->fixed_capacity_)
+            throw std::out_of_range(get_name() + "No room for additional element");
+
+        std::vector<int> capacity_shape = info_->max_size_;
+        capacity_shape.front() = std::max(1, capacity_shape.front() * 2);
+        reserve(capacity_shape);
+    }
+
+    return push(v);
 }
 
 

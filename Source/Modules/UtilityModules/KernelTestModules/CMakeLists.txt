@@ -6,6 +6,7 @@ add_subdirectory(KernelPlayground)
 add_subdirectory(LogTester)
 add_subdirectory(NotifyTester)
 add_subdirectory(MatrixFunctionTestModule)
+add_subdirectory(DynamicMatrixTestModule)
 add_subdirectory(StartupStepReporter)
 add_subdirectory(FirstTickReporter)
 

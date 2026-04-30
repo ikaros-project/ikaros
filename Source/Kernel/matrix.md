@@ -2,9 +2,9 @@
 
 The matrix is the most fundamental data type in Ikaros. It is used for all communication between modules and for computation within every module. A matrix in Ikaros is a multidimensional array of floats.
 
-A matrix is characterised by its rank and its size. The rank describes the dimensionality of the matrix. A normal two-dimensional matrix has rank 2. This can also be called a table. A row of floats has rank 1. And a single scalar value has rank 0. This allows for a matrix algebra over matrices that includes operations that changes the dimensionality of a matrix.
+A matrix is characterised by its rank and its size. The rank describes the dimensionality of the matrix. A normal two-dimensional matrix has rank 2. This can also be called a table. A row of floats has rank 1. And a single scalar value has rank 0. This allows for a matrix algebra over matrices that includes operations that change the dimensionality of a matrix.
 
-The size of a matrix is the number of values in each dimensions. For example, a 2x3 matrix has two rows of three elements each. Its rank is 2.
+The size of a matrix is the number of values in each dimension. For example, a 2x3 matrix has two rows of three elements each. Its rank is 2.
 
 ## Creating a matrix
 
@@ -25,7 +25,7 @@ matrix m(4,2,3);
 This would create a matrix of rank three with the sizes 4, 2 and 3 for the three dimensions.
 
 Matrices can be initialized from an initialization list.
-A two dimensional matrix in Ikaros can be defined inline as
+A two-dimensional matrix in Ikaros can be defined inline as
 
 ```C++
 matrix m = {{1, 2, 3}, {4, 5, 6}};
@@ -40,7 +40,7 @@ matrix o = {{{1}, {2}}; // Column vector
 ```
 
 
-A matrix can be assiged from a string. This only works for one or two-dimensional matrices. A comma is used to separate individual values on a row and a semicolon is used to end a row.
+A matrix can be assigned from a string. This only works for one or two-dimensional matrices. A comma is used to separate individual values on a row and a semicolon is used to end a row.
 
 ```C++
 matrix m = "1, 2; 3 4"; // 2x2 matrix
@@ -59,26 +59,26 @@ m(1,2) = 42;
 x = m(1,2);
 ```
 
-Submatrices are accessed using square brackets. For a two dimensional matrix the following would access the second row:
+Submatrices are accessed using square brackets. For a two-dimensional matrix the following would access the second row:
 
 ```C++
 m[1];
 ```
 
-The same notation works for higher dimensional matrices. This means that elements can also be accessed using square brackets, but this is less efficient and should only be used for backward compatibility with earlier version of Ikaros:
+The same notation works for higher-dimensional matrices. This means that elements can also be accessed using square brackets, but this is less efficient and should only be used for backward compatibility with earlier versions of Ikaros:
 
 ```C++
 m[1][2] = 42;
 x = m[1][2];
 ```
 
-Note that it is possible to access a part of a matrix with the bracked notaion but not using the parantheses notaition. For example, if m is a three dimensional natrix:
+Note that it is possible to access a part of a matrix with the bracket notation but not using the parentheses notation. For example, if m is a three-dimensional matrix:
 
 ```C++
 matrix m = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}};
 
 matrix x = m[1];    // This is ok, x = {{5, 6}, {7, 8}}
-matrix y = m(1);    // This is an error and will throw and exception
+matrix y = m(1);    // This is an error and will throw an exception
 ```
 
 By default matrix data is shared but can be copied using the copy() function.
@@ -93,10 +93,45 @@ o.copy(m);
 n(1) = 5; // Both m and n will now be {1, 5} but o is still {1, 2}
 ```
 
+## Appending rows and slices
+
+Local scratch matrices can be grown with `append()`. If the matrix is empty, the first append allocates it as a stack whose first dimension is the number of appended items.
+
+```C++
+matrix rows;
+rows.append({1, 2});
+rows.append({3, 4});
+// rows has shape {2, 2}
+```
+
+For higher-dimensional data, `append()` adds one slice along the first dimension:
+
+```C++
+matrix frames;
+frames.append(image); // image shape {height, width}; frames shape {1, height, width}
+```
+
+Capacity can be reserved explicitly when the maximum expected size is known. `clear()` resets the logical first dimension to zero while keeping the allocation.
+
+```C++
+matrix rows;
+rows.reserve(128, 2); // capacity {128, 2}, logical shape {0, 2}
+rows.append({1, 2});
+rows.clear();         // logical shape {0, 2}
+```
+
+Module outputs can declare this fixed-capacity dynamic behavior in their `.ikc` file:
+
+```XML
+<output name="ROWS" dynamic="yes" capacity="128, 2" />
+```
+
+When this output is connected as a whole matrix to an input, the input receives the same capacity and its logical shape is updated whenever the connection copies data. Indexed, ranged, and flattened connections from dynamic outputs are rejected during setup.
+
 
 ## Printing a matrix
 
-A matrix  can be printed using
+A matrix can be printed using
 
 ```C++
 std::cout << m << std::endl;
@@ -146,7 +181,7 @@ The size of an individual dimension is accessed using the shape function with an
 int s =  m.shape(1);
 ```
 
-There are number of convenience functions to access eth sizes of two dimensional matrices:
+There are a number of convenience functions to access the sizes of two-dimensional matrices:
 
 ```C++
     m.rows();
@@ -164,7 +199,7 @@ m.set_name ("m")
 m.print();
 ```
 
-Individual elements of a dimensions can also be named:
+Individual elements of a dimension can also be named:
 
 ```C++
 m.set_labels(0, "Row1", "Row2");

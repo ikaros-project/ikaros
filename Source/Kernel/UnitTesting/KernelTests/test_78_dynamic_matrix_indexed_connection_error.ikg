@@ -1,0 +1,11 @@
+<group
+    name="Test_78"
+    description="Reject indexed connections from dynamic matrix outputs"
+    expected_exit="1"
+    expected_output_contains="Dynamic outputs only support whole-matrix connections"
+>
+    <module name="Source" class="DynamicMatrixSource" />
+    <module name="Sink" class="DynamicMatrixSink" />
+
+    <connection source="Source.ROWS[0]" target="Sink.ROWS" />
+</group>

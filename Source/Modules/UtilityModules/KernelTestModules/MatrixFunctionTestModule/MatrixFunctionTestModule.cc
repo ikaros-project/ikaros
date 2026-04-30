@@ -159,6 +159,29 @@ class MatrixFunctionTestModule : public Module
         vector.push(5.0f);
         vector.push(6.0f);
         require_matrix_close(vector, make_matrix("5, 6"), "push(float)");
+
+        matrix dynamic_stack;
+        dynamic_stack.append(first);
+        dynamic_stack.append(second);
+        dynamic_stack.append(make_matrix("5, 6"));
+        require_shape(dynamic_stack, {3, 2}, "append(matrix) grows uninitialized matrix");
+        require_matrix_close(dynamic_stack, make_matrix("1, 2; 3, 4; 5, 6"), "append(matrix)");
+
+        matrix dynamic_vector;
+        dynamic_vector.append(7.0f);
+        dynamic_vector.append(8.0f);
+        dynamic_vector.append(9.0f);
+        require_matrix_close(dynamic_vector, make_matrix("7, 8, 9"), "append(float)");
+
+        matrix reserved;
+        reserved.reserve(4, 2);
+        reserved.append(first);
+        reserved.append(second);
+        reserved.clear();
+        require_shape(reserved, {0, 2}, "clear() preserves slice shape");
+        reserved.append(make_matrix("9, 10"));
+        require_shape(reserved, {1, 2}, "reserve()/clear()/append() shape");
+        require_matrix_close(reserved[0], make_matrix("9, 10"), "reserve()/clear()/append()");
     }
 
     void test_elementwise()

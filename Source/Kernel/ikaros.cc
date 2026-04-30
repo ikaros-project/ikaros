@@ -492,7 +492,14 @@ namespace ikaros
     {
         for(int i=0; i<size;i++)
         {
-            buffer_[i].realloc(m.shape()); // copy(m);
+            if(m.is_dynamic())
+            {
+                buffer_[i].reserve(m.capacity());
+                buffer_[i].set_dynamic().set_fixed_capacity();
+                buffer_[i].resize(m.shape());
+            }
+            else
+                buffer_[i].realloc(m.shape()); // copy(m);
             buffer_[i].reset(); 
         }
     }
@@ -500,6 +507,8 @@ namespace ikaros
     void 
     CircularBuffer::rotate(matrix &  m)
     {
+        if(m.is_dynamic())
+            buffer_[index_].resize(m.shape());
         buffer_[index_].copy(m);
         index_ = ++index_ % buffer_.size();
     }
@@ -1734,7 +1743,11 @@ namespace ikaros
         {
             c->flatten_ = true;
 
-         range output_matrix = kernel().buffers[c->source];
+            matrix & output_buffer = kernel().buffers[c->source];
+            if(output_buffer.is_dynamic())
+                throw setup_failed("Connection \"" + c->Info() + "\" can not flatten dynamic output \"" + c->source + "\".", path_);
+
+            range output_matrix = output_buffer;
             c->Resolve(output_matrix);  //**NEW  
 
             int s = c->source_range.size() * std::max(1, c->delay_range_.trim().size());
@@ -1813,13 +1826,33 @@ namespace ikaros
 
         // Handle single connection without inidices - do not collapse dimensions
 
-        if(!has_fixed_size && ingoing_connections.size() == 1 && ingoing_connections.begin()->second[0]->source_range.empty() && ingoing_connections.begin()->second[0]->target_range.empty())
+        bool old_style_simple_connection =
+            !has_fixed_size &&
+            ingoing_connections.size() == 1 &&
+            ingoing_connections.begin()->second[0]->source_range.empty() &&
+            ingoing_connections.begin()->second[0]->target_range.empty();
+        bool dynamic_simple_connection =
+            !has_fixed_size &&
+            ingoing_connections.at(full_name).size() == 1 &&
+            kernel().buffers[ingoing_connections.at(full_name)[0]->source].is_dynamic() &&
+            ingoing_connections.at(full_name)[0]->IsWholeMatrixConnection();
+
+        if(old_style_simple_connection || dynamic_simple_connection)
         {
-            range output_matrix = kernel().buffers[ingoing_connections.begin()->second[0]->source];
+            Connection * connection = dynamic_simple_connection ? ingoing_connections.at(full_name)[0] : ingoing_connections.begin()->second[0];
+            matrix & output_buffer = kernel().buffers[connection->source];
+            range output_matrix = output_buffer;
             if(output_matrix.empty())
                 return 0;
-    
-            kernel().buffers[full_name].realloc(output_matrix.extent());
+
+            if(output_buffer.is_dynamic())
+            {
+                kernel().buffers[full_name].reserve(output_buffer.capacity());
+                kernel().buffers[full_name].set_dynamic().set_fixed_capacity();
+                kernel().buffers[full_name].resize(output_buffer.shape());
+            }
+            else
+                kernel().buffers[full_name].realloc(output_matrix.extent());
 
             Trace("\t\t\tComponent::SetInputShape Simple Alloc" + std::string(input_size), full_name);
 
@@ -1828,7 +1861,11 @@ namespace ikaros
 
         for(auto c : ingoing_connections.at(full_name))
         {
-            range output_matrix = kernel().buffers[c->source];
+            matrix & output_buffer = kernel().buffers[c->source];
+            if(output_buffer.is_dynamic())
+                throw setup_failed("Connection \"" + c->Info() + "\" uses an indexed or ranged connection from dynamic output \"" + c->source + "\". Dynamic outputs only support whole-matrix connections.", path_);
+
+            range output_matrix = output_buffer;
             if(output_matrix.empty())
                 return 0;
             range resolved_target = c->Resolve(output_matrix);
@@ -1906,6 +1943,9 @@ namespace ikaros
         if(d.contains("size"))
             throw setup_failed(u8"Output \""+std::string(d["name"])+"\"+in group \""+path_+"\" can not have size attribute.", path_);
 
+        if(d.is_set("dynamic"))
+            throw setup_failed("Group output \"" + std::string(d["name"]) + "\" in \"" + path_ + "\" can not be dynamic.", path_);
+
         range output_range;
         std::string name = d.at("name");
         std::string full_name = path_ +"."+ name;
@@ -1915,7 +1955,11 @@ namespace ikaros
 
         for(auto c : ingoing_connections.at(full_name))
         {
-            range output_matrix = kernel().buffers[c->source];
+            matrix & output_buffer = kernel().buffers[c->source];
+            if(output_buffer.is_dynamic())
+                throw setup_failed("Connection \"" + c->Info() + "\" can not map dynamic output \"" + c->source + "\" through group output \"" + full_name + "\".", path_);
+
+            range output_matrix = output_buffer;
             
             if(output_matrix.empty())
                 return 0;
@@ -2065,8 +2109,14 @@ namespace ikaros
             if(d.contains_non_null("alias"))
                 return 0;
 
+            bool dynamic_output = d.is_set("dynamic");
+            if(dynamic_output && !d.contains("capacity"))
+                throw setup_failed("Dynamic output \""+std::string(d.at("name")) +"\" must have a capacity attribute.", path_);
+
             std::string shape_expr;
-            if(d.contains("size"))
+            if(dynamic_output)
+                shape_expr = std::string(d.at("capacity"));
+            else if(d.contains("size"))
                 shape_expr = std::string(d.at("size"));
             else if(d.contains("shape"))
                 shape_expr = std::string(d.at("shape"));
@@ -2080,7 +2130,15 @@ namespace ikaros
             std::vector<int> shape = EvaluateShapeList(shape_expr);
             matrix o;
             Bind(o, d.at("name"));
-            o.realloc(shape);
+            if(dynamic_output)
+            {
+                if(shape.empty())
+                    throw setup_failed("Dynamic output \""+std::string(d.at("name")) +"\" capacity must have at least one dimension.", path_);
+                o.reserve(shape);
+                o.set_dynamic().set_fixed_capacity();
+            }
+            else
+                o.realloc(shape);
             return 0;
         }
         catch(const std::invalid_argument & e)
@@ -2178,12 +2236,16 @@ namespace ikaros
     Connection::Connection(std::string s, std::string t, range & delay_range, std::string label)
     {
         source = peek_head(s, "[");
-        source_range = range(peek_tail(s, "[", true));
+        std::string source_selector = peek_tail(s, "[", true);
+        source_range = range(source_selector);
         target = peek_head(t, "[");
-        target_range = range(peek_tail(t, "[", true));
+        std::string target_selector = peek_tail(t, "[", true);
+        target_range = range(target_selector);
         delay_range_ = delay_range;
         flatten_ = false;
         label_ = label;
+        source_indexed_ = !source_selector.empty();
+        target_indexed_ = !target_selector.empty();
     }
 
 
@@ -2240,11 +2302,25 @@ namespace ikaros
     }
 
 
+    bool
+    Connection::IsWholeMatrixConnection() const
+    {
+        return !source_indexed_ && !target_indexed_ && !flatten_;
+    }
+
+
 
     void 
     Connection::Tick()
     {
         auto & k = kernel();
+
+        if(k.buffers[source].is_dynamic() && IsWholeMatrixConnection())
+        {
+            k.buffers[target].resize(k.buffers[source].shape());
+            k.buffers[target].copy(k.buffers[source]);
+            return;
+        }
 
         if(delay_range_.is_delay_0())
         {
