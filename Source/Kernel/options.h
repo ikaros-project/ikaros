@@ -22,13 +22,15 @@ namespace ikaros {
         std::set<std::string> explicitly_set;
         std::map<std::string, std::string> full;
         std::map<std::string, std::string> description;
+        std::map<std::string, bool> requires_value;
 
         options() = default;
 
-        void add_option(const std::string & short_name, const std::string & full_name, const std::string & desc, const std::string & default_value = "")
+        void add_option(const std::string & short_name, const std::string & full_name, const std::string & desc, bool takes_value = false, const std::string & default_value = "")
         {
             full[short_name] = full_name;
             description[full_name] = desc;
+            requires_value[full_name] = takes_value;
             if(!default_value.empty())
                 d[full_name] = default_value;
         }
@@ -45,8 +47,9 @@ namespace ikaros {
             ikaros_root = std::filesystem::canonical(p.parent_path().string()+"/..");
 
             const std::vector<std::string> args(argv+1, argv+argc);
-            for(auto & s: args)
+            for(std::size_t i = 0; i < args.size(); ++i)
             {
+                const auto & s = args[i];
                 const auto pos = s.find('=');
                 if(pos != std::string::npos && s.front() !='-')
                 {
@@ -63,16 +66,28 @@ namespace ikaros {
                     std::string attr = s.substr(1, 1);
                     if(!full.count(attr))
                         throw std::runtime_error("\"-"+attr + "\" is not a valid command line option");
-                    d[full[attr]] = s.substr(2);  // option with parameter
-                    explicitly_set.insert(full[attr]);
+                    std::string option_name = full[attr];
+                    if(requires_value[option_name])
+                        d[option_name] = s.substr(2);  // option with attached parameter
+                    else
+                        throw std::runtime_error("\"-"+attr + "\" does not accept an attached value");
+                    explicitly_set.insert(option_name);
                 }
                 else if(s.size()>1 && s.front() =='-')
                 {
                     std::string attr = s.substr(1, 1);
                     if(!full.count(attr))
                         throw std::runtime_error("\"-"+attr + "\" is not a valid command line option");
-                    d[full[attr]] = "true";  // option without parameter
-                    explicitly_set.insert(full[attr]);
+                    std::string option_name = full[attr];
+                    if(requires_value[option_name])
+                    {
+                        if(i + 1 >= args.size())
+                            throw std::runtime_error("\"-"+attr + "\" requires a value");
+                        d[option_name] = args[++i];
+                    }
+                    else
+                        d[option_name] = "true";  // option without parameter
+                    explicitly_set.insert(option_name);
                 }
                 else
                 {
