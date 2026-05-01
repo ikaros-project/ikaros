@@ -1,0 +1,32 @@
+<class name="Statistics" description="collects descriptive statistics for each input element">
+	<parameter name="bins" type="number" default="10" description="Number of bins in the histogram output" />
+
+	<input name="INPUT" description="Values to sample" />
+	<input name="SAMPLE" optional="yes" description="Optional sampling mask. When connected, only input elements with corresponding values of 1 or above are sampled." />
+
+	<output name="OUTPUT" description="Descriptive statistics by row: count, mean, median, mode, min, max, variance, standard deviation, skewness, kurtosis" size="10,INPUT.size" />
+	<output name="COUNT" description="Number of collected samples" size="INPUT.size" />
+	<output name="MEAN" description="Mean of collected samples" size="INPUT.size" />
+	<output name="MEDIAN" description="Median of collected samples" size="INPUT.size" />
+	<output name="MODE" description="Mode of collected samples" size="INPUT.size" />
+	<output name="MIN" description="Minimum of collected samples" size="INPUT.size" />
+	<output name="MAX" description="Maximum of collected samples" size="INPUT.size" />
+	<output name="VARIANCE" description="Sample variance of collected samples" size="INPUT.size" />
+	<output name="STANDARD_DEVIATION" description="Sample standard deviation of collected samples" size="INPUT.size" />
+	<output name="SKEWNESS" description="Bias-corrected sample skewness of collected samples" size="INPUT.size" />
+	<output name="KURTOSIS" description="Bias-corrected sample excess kurtosis of collected samples" size="INPUT.size" />
+
+	<output name="Q1" description="First quartile for each input element" size="INPUT.size" />
+	<output name="Q3" description="Third quartile for each input element" size="INPUT.size" />
+	<output name="INTERQUARTILE_RANGE" description="Interquartile range for each input element" size="INPUT.size" />
+	<output name="LOWER_FENCE" description="Lower outlier fence for each input element" size="INPUT.size" />
+	<output name="UPPER_FENCE" description="Upper outlier fence for each input element" size="INPUT.size" />
+	<output name="LOWER_WHISKER" description="Lower box plot whisker for each input element" size="INPUT.size" />
+	<output name="UPPER_WHISKER" description="Upper box plot whisker for each input element" size="INPUT.size" />
+	<output name="BOX_PLOT" description="Box plot values by row: lower whisker, Q1, median, Q3, upper whisker" size="5,INPUT.size" />
+
+	<output name="HISTOGRAM" description="Histogram counts for each input element using a shared range across all elements" size="INPUT.size,@bins" />
+	<output name="HISTOGRAM_MIN" description="Shared lower range of the histogram" size="1" />
+	<output name="HISTOGRAM_MAX" description="Shared upper range of the histogram" size="1" />
+	<output name="T_TEST_P" description="Pairwise two-sided Welch t-test p-values for all input element pairs" size="INPUT.size,INPUT.size" />
+</class>

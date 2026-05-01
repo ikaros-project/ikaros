@@ -1,0 +1,7 @@
+<group name="Noise_test">
+   <connection source="Input.OUTPUT" target="UniformNoise.INPUT"/>
+   <connection source="Input.OUTPUT" target="GaussianNoise.INPUT"/>
+   <module class="Constant" data="1, 2, 3" name="Input"/>
+   <module class="Noise" max="0.1" min="-0.1" name="UniformNoise" type="uniform"/>
+   <module class="Noise" mean="0" name="GaussianNoise" stddev="0.1" type="gaussian"/>
+</group>

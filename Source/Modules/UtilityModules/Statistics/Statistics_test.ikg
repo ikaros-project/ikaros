@@ -1,0 +1,11 @@
+<group name="Statistics_test">
+   <connection source="Values.OUTPUT" target="Noise.INPUT"/>
+   <connection source="Noise.OUTPUT" target="Statistics.INPUT"/>
+   <connection source="Sample.OUTPUT" target="Statistics.SAMPLE"/>
+   <module class="Constant" data="1, 2, 3" name="Values"/>
+   <module class="Noise" max="0.1" min="-0.1" name="Noise" type="uniform"/>
+   <module class="Constant" data="1, 0, 1" name="Sample"/>
+   <module bins="4" class="Statistics" name="Statistics"/>
+   <widget _index_="0" _x="408" _y="96" auto="true" class="boxplot" color="" fill="" frame-style="" height="240" labels="A,B,C" lineWidth="1" max="4" min="0" name="BoxPlot" show_frame="false" show_title="true" source="Statistics.BOX_PLOT" style="" title="Box Plot" width="360" xAxisLabel="Channel" yAxisLabel="Value"/>
+   <widget _index_="2" _x="408" _y="384" auto="true" class="histogram" color="" fill="" frame-style="" height="260" histogramMaxSource="Statistics.HISTOGRAM_MAX" histogramMinSource="Statistics.HISTOGRAM_MIN" labels="A,B,C" lineWidth="1" max="4" meanSource="Statistics.MEAN" min="0" name="Histogram" show_frame="false" show_title="true" source="Statistics.HISTOGRAM" stdevSource="Statistics.STANDARD_DEVIATION" style="" title="Histogram" width="360" xAxisLabel="Value" yAxisLabel="Channel"/>
+</group>

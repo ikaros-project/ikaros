@@ -1,0 +1,10 @@
+<class name="Noise" description="adds random noise to each element of the input">
+	<parameter name="type" type="string" default="uniform" options="uniform,gaussian" description="Noise distribution" />
+	<parameter name="min" type="number" default="-0.1" description="Minimum value for uniform noise" />
+	<parameter name="max" type="number" default="0.1" description="Maximum value for uniform noise" />
+	<parameter name="mean" type="number" default="0" description="Mean for gaussian noise" />
+	<parameter name="stddev" type="number" default="0.1" description="Standard deviation for gaussian noise" />
+
+	<input name="INPUT" description="Input values" />
+	<output name="OUTPUT" description="Input with random noise added element-wise" size="INPUT.size" />
+</class>

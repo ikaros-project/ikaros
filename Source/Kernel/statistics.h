@@ -5,6 +5,7 @@
 #include <limits>
 #include <cmath>
 #include <functional>
+#include <algorithm>
 
 
 
@@ -60,6 +61,91 @@ public:
         if (n & 1) 
             return v[n/2];
         return (v[n/2 - 1] + v[n/2]) * 0.5;
+    }
+
+    double quantile(double q) const noexcept
+    {
+        const std::size_t n = data_.size();
+        if (n == 0)
+            return nan_();
+
+        if (q <= 0.0)
+            return min();
+        if (q >= 1.0)
+            return max();
+
+        std::vector<double> v = data_;
+        std::sort(v.begin(), v.end());
+
+        const double pos = q * static_cast<double>(n - 1);
+        const std::size_t lower = static_cast<std::size_t>(std::floor(pos));
+        const std::size_t upper = static_cast<std::size_t>(std::ceil(pos));
+        const double fraction = pos - static_cast<double>(lower);
+
+        if (lower == upper)
+            return v[lower];
+
+        return v[lower] + (v[upper] - v[lower]) * fraction;
+    }
+
+    double q1() const noexcept
+    {
+        return quantile(0.25);
+    }
+
+    double q3() const noexcept
+    {
+        return quantile(0.75);
+    }
+
+    double interquartile_range() const noexcept
+    {
+        if (data_.empty())
+            return nan_();
+        return q3() - q1();
+    }
+
+    double lower_fence() const noexcept
+    {
+        if (data_.empty())
+            return nan_();
+        return q1() - 1.5 * interquartile_range();
+    }
+
+    double upper_fence() const noexcept
+    {
+        if (data_.empty())
+            return nan_();
+        return q3() + 1.5 * interquartile_range();
+    }
+
+    double lower_whisker() const noexcept
+    {
+        if (data_.empty())
+            return nan_();
+
+        std::vector<double> v = data_;
+        std::sort(v.begin(), v.end());
+        const double fence = lower_fence();
+        auto it = std::lower_bound(v.begin(), v.end(), fence);
+        return it == v.end() ? v.front() : *it;
+    }
+
+    double upper_whisker() const noexcept
+    {
+        if (data_.empty())
+            return nan_();
+
+        std::vector<double> v = data_;
+        std::sort(v.begin(), v.end());
+        const double fence = upper_fence();
+        auto it = std::upper_bound(v.begin(), v.end(), fence);
+        return it == v.begin() ? v.front() : *(it - 1);
+    }
+
+    const std::vector<double> & data() const noexcept
+    {
+        return data_;
     }
 
     double mode() const noexcept 
@@ -398,5 +484,4 @@ private:
     std::cout << "kurtosis(excess) = " << S.kurtosis() << "\n" ;
 
     */
-
 
