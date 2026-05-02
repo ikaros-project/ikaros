@@ -18,6 +18,7 @@ report that shared range, and `HISTOGRAM` contains one row per input element and
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
 | bins | Number of bins in the histogram output | number | 10 |
+| p_adjustment | Multiple-comparison correction used for `T_TEST_P_ADJUSTED`: `none`, `bonferroni`, `holm`, or `bh` | string | holm |
 
 ## Inputs
 
@@ -53,6 +54,7 @@ report that shared range, and `HISTOGRAM` contains one row per input element and
 | HISTOGRAM_MIN | Shared lower range of the histogram |
 | HISTOGRAM_MAX | Shared upper range of the histogram |
 | T_TEST_P | Pairwise two-sided Welch t-test p-values for all input element pairs |
+| T_TEST_P_ADJUSTED | Pairwise Welch t-test p-values after multiple-comparison correction |
 
 ## Notes
 
@@ -60,3 +62,7 @@ report that shared range, and `HISTOGRAM` contains one row per input element and
 `BOX_PLOT` has shape `5,INPUT.size`; each column corresponds to one flattened input element.
 `HISTOGRAM` has shape `INPUT.size,bins`.
 `T_TEST_P` has shape `INPUT.size,INPUT.size`; rows and columns correspond to flattened input elements.
+`T_TEST_P_ADJUSTED` has the same shape as `T_TEST_P`. Its diagonal is 1, and finite off-diagonal
+p-values are corrected across the unique pairwise comparisons. `holm` controls the family-wise error
+rate and is the default; `bonferroni` is more conservative, `bh` controls false discovery rate, and
+`none` copies the raw p-values.

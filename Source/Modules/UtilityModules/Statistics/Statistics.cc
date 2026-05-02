@@ -5,6 +5,7 @@ using namespace ikaros;
 class Statistics: public Module
 {
     parameter bins_;
+    parameter p_adjustment_;
 
     matrix input;
     matrix sample;
@@ -34,12 +35,22 @@ class Statistics: public Module
     matrix histogram_min;
     matrix histogram_max;
     matrix t_test_p;
+    matrix t_test_p_adjusted;
 
     std::vector<statistics> statistics_;
+
+    struct PairwisePValue
+    {
+        int i = 0;
+        int j = 0;
+        double p = std::numeric_limits<double>::quiet_NaN();
+        double adjusted = std::numeric_limits<double>::quiet_NaN();
+    };
 
     void Init()
     {
         Bind(bins_, "bins");
+        Bind(p_adjustment_, "p_adjustment");
 
         Bind(input, "INPUT");
         Bind(sample, "SAMPLE");
@@ -69,6 +80,7 @@ class Statistics: public Module
         Bind(histogram_min, "HISTOGRAM_MIN");
         Bind(histogram_max, "HISTOGRAM_MAX");
         Bind(t_test_p, "T_TEST_P");
+        Bind(t_test_p_adjusted, "T_TEST_P_ADJUSTED");
 
         statistics_.resize(input.size());
     }
@@ -151,6 +163,98 @@ class Statistics: public Module
         for (int i = 0; i < channel_count; ++i)
             for (int j = 0; j < channel_count; ++j)
                 t_test_p(i, j) = static_cast<float>(WelchTTestPValue(statistics_[i], statistics_[j]));
+
+        WriteAdjustedTTestPValues();
+    }
+
+    void WriteAdjustedTTestPValues()
+    {
+        const int channel_count = input.size();
+        for (int i = 0; i < channel_count; ++i)
+            for (int j = 0; j < channel_count; ++j)
+                t_test_p_adjusted(i, j) = t_test_p(i, j);
+
+        std::vector<PairwisePValue> pairs;
+        for (int i = 0; i < channel_count; ++i)
+        {
+            t_test_p_adjusted(i, i) = 1.0f;
+            for (int j = i + 1; j < channel_count; ++j)
+            {
+                const double p = t_test_p(i, j);
+                if (std::isfinite(p))
+                    pairs.push_back({i, j, p, p});
+            }
+        }
+
+        const std::string method = p_adjustment_.as_string();
+        if (method == "none")
+        {
+            // Raw values were copied above.
+        }
+        else if (method == "bonferroni")
+            ApplyBonferroniAdjustment(pairs);
+        else if (method == "holm")
+            ApplyHolmAdjustment(pairs);
+        else if (method == "bh")
+            ApplyBenjaminiHochbergAdjustment(pairs);
+        else
+            throw exception("Statistics: unknown p_adjustment method \"" + method + "\".", path_);
+
+        for (const PairwisePValue & pair : pairs)
+        {
+            const float adjusted = static_cast<float>(pair.adjusted);
+            t_test_p_adjusted(pair.i, pair.j) = adjusted;
+            t_test_p_adjusted(pair.j, pair.i) = adjusted;
+        }
+    }
+
+    void ApplyBonferroniAdjustment(std::vector<PairwisePValue> & pairs) const
+    {
+        const double comparisons = static_cast<double>(pairs.size());
+        for (PairwisePValue & pair : pairs)
+            pair.adjusted = std::clamp(pair.p * comparisons, 0.0, 1.0);
+    }
+
+    void ApplyHolmAdjustment(std::vector<PairwisePValue> & pairs) const
+    {
+        std::vector<int> order = SortedPairOrder(pairs);
+        double previous_adjusted = 0.0;
+
+        for (std::size_t rank = 0; rank < order.size(); ++rank)
+        {
+            PairwisePValue & pair = pairs[order[rank]];
+            const double remaining = static_cast<double>(order.size() - rank);
+            pair.adjusted = std::max(previous_adjusted, std::clamp(pair.p * remaining, 0.0, 1.0));
+            previous_adjusted = pair.adjusted;
+        }
+    }
+
+    void ApplyBenjaminiHochbergAdjustment(std::vector<PairwisePValue> & pairs) const
+    {
+        std::vector<int> order = SortedPairOrder(pairs);
+        double next_adjusted = 1.0;
+
+        for (int rank = static_cast<int>(order.size()) - 1; rank >= 0; --rank)
+        {
+            PairwisePValue & pair = pairs[order[rank]];
+            const double one_based_rank = static_cast<double>(rank + 1);
+            const double adjusted = std::clamp(pair.p * static_cast<double>(order.size()) / one_based_rank, 0.0, 1.0);
+            pair.adjusted = std::min(adjusted, next_adjusted);
+            next_adjusted = pair.adjusted;
+        }
+    }
+
+    std::vector<int> SortedPairOrder(const std::vector<PairwisePValue> & pairs) const
+    {
+        std::vector<int> order(pairs.size());
+        for (std::size_t i = 0; i < order.size(); ++i)
+            order[i] = static_cast<int>(i);
+
+        std::sort(order.begin(), order.end(), [&pairs](int a, int b) {
+            return pairs[a].p < pairs[b].p;
+        });
+
+        return order;
     }
 
     void WriteHistogram()

@@ -1,5 +1,6 @@
 <class name="Statistics" description="collects descriptive statistics for each input element">
 	<parameter name="bins" type="number" default="10" description="Number of bins in the histogram output" />
+	<parameter name="p_adjustment" type="string" default="holm" options="none,bonferroni,holm,bh" description="Multiple-comparison correction used for T_TEST_P_ADJUSTED" />
 
 	<input name="INPUT" description="Values to sample" />
 	<input name="SAMPLE" optional="yes" description="Optional sampling mask. When connected, only input elements with corresponding values of 1 or above are sampled." />
@@ -29,4 +30,5 @@
 	<output name="HISTOGRAM_MIN" description="Shared lower range of the histogram" size="1" />
 	<output name="HISTOGRAM_MAX" description="Shared upper range of the histogram" size="1" />
 	<output name="T_TEST_P" description="Pairwise two-sided Welch t-test p-values for all input element pairs" size="INPUT.size,INPUT.size" />
+	<output name="T_TEST_P_ADJUSTED" description="Pairwise Welch t-test p-values after multiple-comparison correction" size="INPUT.size,INPUT.size" />
 </class>
