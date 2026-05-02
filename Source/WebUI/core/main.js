@@ -1943,7 +1943,7 @@ const main =
 
     deleteComponent()
     {
-        if(selector.selected_connection !== undefined)
+        if(selector.selected_connection != null)
         {
             this.deleteConnection(selector.selected_connection);
         }
@@ -1972,6 +1972,7 @@ const main =
         network.rebuildDict();
         nav.populate();
         selector.selectItems([], selector.selected_background, false, false, true);
+        controller.setTainted(true, "deleteComponent");
     },
 
     uniqueComponentName(baseName, reservedNames=new Set())
@@ -4062,7 +4063,7 @@ const main =
             return;
         }
 
-        if(evt.key== "Backspace")
+        if(evt.key== "Backspace" || evt.key == "Delete")
         {
             if(main.edit_mode && (selector.selected_connection != null || selector.selected_foreground.length > 0))
             {
