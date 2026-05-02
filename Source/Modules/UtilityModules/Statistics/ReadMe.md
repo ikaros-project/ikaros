@@ -18,6 +18,7 @@ report that shared range, and `HISTOGRAM` contains one row per input element and
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
 | bins | Number of bins in the histogram output | number | 10 |
+| max_outliers | Maximum number of box plot outliers stored for each input element | number | 32 |
 | p_adjustment | Multiple-comparison correction used for `T_TEST_P_ADJUSTED`: `none`, `bonferroni`, `holm`, or `bh` | string | holm |
 
 ## Inputs
@@ -50,6 +51,7 @@ report that shared range, and `HISTOGRAM` contains one row per input element and
 | LOWER_WHISKER | Lower box plot whisker for each input element |
 | UPPER_WHISKER | Upper box plot whisker for each input element |
 | BOX_PLOT | Box plot values by row: lower whisker, Q1, median, Q3, upper whisker |
+| BOX_PLOT_OUTLIERS | Box plot outlier values by row and input element column; unused values are `null` in JSON |
 | HISTOGRAM | Histogram counts for each input element using a shared range across all elements |
 | HISTOGRAM_MIN | Shared lower range of the histogram |
 | HISTOGRAM_MAX | Shared upper range of the histogram |
@@ -60,6 +62,8 @@ report that shared range, and `HISTOGRAM` contains one row per input element and
 
 `OUTPUT` has shape `10,INPUT.size`; each column corresponds to one flattened input element.
 `BOX_PLOT` has shape `5,INPUT.size`; each column corresponds to one flattened input element.
+`BOX_PLOT_OUTLIERS` has shape `max_outliers,INPUT.size`; each column corresponds to one flattened
+input element.
 `HISTOGRAM` has shape `INPUT.size,bins`.
 `T_TEST_P` has shape `INPUT.size,INPUT.size`; rows and columns correspond to flattened input elements.
 `T_TEST_P_ADJUSTED` has the same shape as `T_TEST_P`. Its diagonal is 1, and finite off-diagonal

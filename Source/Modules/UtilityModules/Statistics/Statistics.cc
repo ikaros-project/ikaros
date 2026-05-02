@@ -5,6 +5,7 @@ using namespace ikaros;
 class Statistics: public Module
 {
     parameter bins_;
+    parameter max_outliers_;
     parameter p_adjustment_;
 
     matrix input;
@@ -30,6 +31,7 @@ class Statistics: public Module
     matrix lower_whisker;
     matrix upper_whisker;
     matrix box_plot;
+    matrix box_plot_outliers;
 
     matrix histogram;
     matrix histogram_min;
@@ -50,6 +52,7 @@ class Statistics: public Module
     void Init()
     {
         Bind(bins_, "bins");
+        Bind(max_outliers_, "max_outliers");
         Bind(p_adjustment_, "p_adjustment");
 
         Bind(input, "INPUT");
@@ -75,6 +78,7 @@ class Statistics: public Module
         Bind(lower_whisker, "LOWER_WHISKER");
         Bind(upper_whisker, "UPPER_WHISKER");
         Bind(box_plot, "BOX_PLOT");
+        Bind(box_plot_outliers, "BOX_PLOT_OUTLIERS");
 
         Bind(histogram, "HISTOGRAM");
         Bind(histogram_min, "HISTOGRAM_MIN");
@@ -104,6 +108,8 @@ class Statistics: public Module
 
     void WriteStatistics()
     {
+        box_plot_outliers.set(std::numeric_limits<float>::quiet_NaN());
+
         for (int i = 0; i < input.size(); ++i)
         {
             statistics & s = statistics_[i];
@@ -154,6 +160,28 @@ class Statistics: public Module
             box_plot(2, i) = median.data()[i];
             box_plot(3, i) = q3.data()[i];
             box_plot(4, i) = upper_whisker.data()[i];
+
+            WriteBoxPlotOutliers(i, s, lower_fence.data()[i], upper_fence.data()[i]);
+        }
+    }
+
+    void WriteBoxPlotOutliers(int channel, const statistics & s, float lower, float upper)
+    {
+        if (!std::isfinite(lower) || !std::isfinite(upper))
+            return;
+
+        int outlier_index = 0;
+        const int max_outliers = box_plot_outliers.rows();
+        for (double value : s.data())
+        {
+            if (value >= lower && value <= upper)
+                continue;
+
+            if (outlier_index >= max_outliers)
+                break;
+
+            box_plot_outliers(outlier_index, channel) = static_cast<float>(value);
+            ++outlier_index;
         }
     }
 

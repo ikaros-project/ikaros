@@ -1,5 +1,6 @@
 <class name="Statistics" description="collects descriptive statistics for each input element">
 	<parameter name="bins" type="number" default="10" description="Number of bins in the histogram output" />
+	<parameter name="max_outliers" type="number" default="32" description="Maximum number of box plot outliers stored for each input element" />
 	<parameter name="p_adjustment" type="string" default="holm" options="none,bonferroni,holm,bh" description="Multiple-comparison correction used for T_TEST_P_ADJUSTED" />
 
 	<input name="INPUT" description="Values to sample" />
@@ -25,6 +26,7 @@
 	<output name="LOWER_WHISKER" description="Lower box plot whisker for each input element" size="INPUT.size" />
 	<output name="UPPER_WHISKER" description="Upper box plot whisker for each input element" size="INPUT.size" />
 	<output name="BOX_PLOT" description="Box plot values by row: lower whisker, Q1, median, Q3, upper whisker" size="5,INPUT.size" />
+	<output name="BOX_PLOT_OUTLIERS" description="Box plot outlier values by row and input element column; unused values are null in JSON" size="@max_outliers,INPUT.size" />
 
 	<output name="HISTOGRAM" description="Histogram counts for each input element using a shared range across all elements" size="INPUT.size,@bins" />
 	<output name="HISTOGRAM_MIN" description="Shared lower range of the histogram" size="1" />

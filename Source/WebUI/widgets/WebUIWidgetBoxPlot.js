@@ -22,6 +22,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
             {'name': "BOX PLOT", 'control':'header'},
             {'name':'title', 'default':"Box Plot", 'type':'string', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'outlierSource', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'direction', 'default':"vertical", 'type':'string', 'control': 'menu', 'options': "vertical", 'class':'true'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'xAxisLabel', 'default':"", 'type':'string', 'control': 'textedit'},
@@ -32,6 +33,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
             {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},
             {'name':'fill', 'default':'', 'type':'string', 'control': 'textedit'},
             {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'outlierRadius', 'default':3, 'type':'float', 'control': 'textedit'},
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
@@ -50,6 +52,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
     {
         super.init();
         this.data = [];
+        this.outliers = [];
     }
 
     getBoxCount()
@@ -64,6 +67,16 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
         const value = this.data?.[row]?.[column];
         const numeric = parseFloat(value);
         return Number.isFinite(numeric) ? numeric : null;
+    }
+
+    getOutlierValues(column)
+    {
+        if(!Array.isArray(this.outliers))
+            return [];
+
+        return this.outliers
+            .map(row => Array.isArray(row) ? parseFloat(row[column]) : null)
+            .filter(value => Number.isFinite(value));
     }
 
     drawBox(width, height, i)
@@ -115,6 +128,33 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
         this.canvas.moveTo(boxLeft, yMedian);
         this.canvas.lineTo(boxLeft + boxWidth, yMedian);
         this.canvas.stroke();
+
+        this.drawOutliers(width, height, i);
+    }
+
+    drawOutliers(width, height, i)
+    {
+        const values = this.getOutlierValues(i);
+        if(values.length === 0)
+            return;
+
+        const centerX = width / 2;
+        const radius = Math.max(1, parseFloat(this.parameters.outlierRadius) || 3);
+
+        this.canvas.save();
+        this.setColor(i);
+        this.canvas.lineWidth = parseFloat(this.parameters.lineWidth) || 1;
+
+        for(const value of values)
+        {
+            const y = this.getPlotYForValue(value, height);
+            this.canvas.beginPath();
+            this.canvas.arc(centerX, y, radius, 0, 2 * Math.PI);
+            this.canvas.fill();
+            this.canvas.stroke();
+        }
+
+        this.canvas.restore();
     }
 
     drawPlotVertical(width, height)
@@ -215,6 +255,11 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
     {
         if(this.data = this.getSource('source'))
         {
+            const outliers = this.getSource('outlierSource');
+            this.outliers = Array.isArray(outliers) ? outliers : [];
+            if(Array.isArray(this.outliers) && this.outliers.length > 0 && !Array.isArray(this.outliers[0]))
+                this.outliers = [this.outliers];
+
             if(!Array.isArray(this.data))
                 return;
             if(!Array.isArray(this.data[0]))
@@ -224,7 +269,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
 
             if(this.parameters.auto)
             {
-                const values = this.getFiniteValues(this.data);
+                const values = this.getFiniteValues(this.data).concat(this.getFiniteValues(this.outliers));
                 if(values.length > 0)
                 {
                     let nextMax = Math.max(...values);
