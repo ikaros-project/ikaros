@@ -7,6 +7,7 @@ const widget_classes =
     "bar-graph",
     "histogram",
     "boxplot",
+    "scatter-plot",
     "plot",
     "table",
     "marker",

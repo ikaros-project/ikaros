@@ -1,7 +1,11 @@
 <class name="Statistics" description="collects descriptive statistics for each input element">
 	<parameter name="bins" type="number" default="10" description="Number of bins in the histogram output" />
 	<parameter name="max_outliers" type="number" default="32" description="Maximum number of box plot outliers stored for each input element" />
-	<parameter name="p_adjustment" type="string" default="holm" options="none,bonferroni,holm,bh" description="Multiple-comparison correction used for T_TEST_P_ADJUSTED" />
+	<parameter name="group_test" type="string" default="parametric" options="parametric,non_parametric" description="Group test used for GROUP_TEST. parametric is one-way ANOVA; non_parametric is Kruskal-Wallis." />
+	<parameter name="labels" type="string" default="" description="Comma-separated labels for input channels. Empty entries use default channel labels." />
+	<parameter name="normality_test" type="string" default="anderson_darling" options="anderson_darling" description="Normality test used for NORMALITY_TEST" />
+	<parameter name="pairwise_test" type="string" default="parametric" options="parametric,non_parametric" description="Pairwise test used for PAIRWISE_TEST_P. parametric is Welch t-test; non_parametric is Mann-Whitney U test." />
+	<parameter name="p_adjustment" type="string" default="holm" options="none,bonferroni,holm,bh" description="Multiple-comparison correction used for PAIRWISE_TEST_P_ADJUSTED" />
 
 	<input name="INPUT" description="Values to sample" />
 	<input name="SAMPLE" optional="yes" description="Optional sampling mask. When connected, only input elements with corresponding values of 1 or above are sampled." />
@@ -21,16 +25,14 @@
 	<output name="Q1" description="First quartile for each input element" size="INPUT.size" />
 	<output name="Q3" description="Third quartile for each input element" size="INPUT.size" />
 	<output name="INTERQUARTILE_RANGE" description="Interquartile range for each input element" size="INPUT.size" />
-	<output name="LOWER_FENCE" description="Lower outlier fence for each input element" size="INPUT.size" />
-	<output name="UPPER_FENCE" description="Upper outlier fence for each input element" size="INPUT.size" />
-	<output name="LOWER_WHISKER" description="Lower box plot whisker for each input element" size="INPUT.size" />
-	<output name="UPPER_WHISKER" description="Upper box plot whisker for each input element" size="INPUT.size" />
-	<output name="BOX_PLOT" description="Box plot values by row: lower whisker, Q1, median, Q3, upper whisker" size="5,INPUT.size" />
+	<output name="BOX_PLOT" description="Box plot values by row: lower fence, lower whisker, Q1, median, Q3, upper whisker, upper fence" size="7,INPUT.size" />
 	<output name="BOX_PLOT_OUTLIERS" description="Box plot outlier values by row and input element column; unused values are null in JSON" size="@max_outliers,INPUT.size" />
 
 	<output name="HISTOGRAM" description="Histogram counts for each input element using a shared range across all elements" size="INPUT.size,@bins" />
 	<output name="HISTOGRAM_MIN" description="Shared lower range of the histogram" size="1" />
 	<output name="HISTOGRAM_MAX" description="Shared upper range of the histogram" size="1" />
-	<output name="T_TEST_P" description="Pairwise two-sided Welch t-test p-values for all input element pairs" size="INPUT.size,INPUT.size" />
-	<output name="T_TEST_P_ADJUSTED" description="Pairwise Welch t-test p-values after multiple-comparison correction" size="INPUT.size,INPUT.size" />
+	<output name="GROUP_TEST" description="Across-channel group test results by row: p-value, statistic, df1, df2, effect size, groups" size="6,1" />
+	<output name="NORMALITY_TEST" description="Anderson-Darling normality test by row: statistic, p-value, mean, standard deviation" size="4,INPUT.size" />
+	<output name="PAIRWISE_TEST_P" description="Pairwise two-sided p-values for all input element pairs" size="INPUT.size,INPUT.size" />
+	<output name="PAIRWISE_TEST_P_ADJUSTED" description="Pairwise p-values after multiple-comparison correction" size="INPUT.size,INPUT.size" />
 </class>

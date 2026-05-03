@@ -205,6 +205,22 @@ class WebUIWidget extends HTMLElement
             return default_data;
         }
     }
+
+    getSourceMetadata(source, default_data=undefined)
+    {
+        try {
+            const resolvedSource = this.resolveControlPath(this.parameters[source]);
+            if(!resolvedSource)
+                return default_data;
+
+            let v = this.receivedData[`${resolvedSource}:metadata`];
+            return v ? v : default_data;
+        }
+        catch(err)
+        {
+            return default_data;
+        }
+    }
     
     getSourceAsArray(source, default_array=[])
     {
@@ -220,6 +236,12 @@ class WebUIWidget extends HTMLElement
     {
         if(source)
             data_set.add(this.resolveControlPath(source));
+    }
+
+    addSourceMetadata(data_set, source)
+    {
+        if(source)
+            data_set.add(`${this.resolveControlPath(source)}:metadata`);
     }
 
 

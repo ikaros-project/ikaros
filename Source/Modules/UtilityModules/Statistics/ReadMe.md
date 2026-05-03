@@ -19,7 +19,11 @@ report that shared range, and `HISTOGRAM` contains one row per input element and
 | --- | --- | --- | --- |
 | bins | Number of bins in the histogram output | number | 10 |
 | max_outliers | Maximum number of box plot outliers stored for each input element | number | 32 |
-| p_adjustment | Multiple-comparison correction used for `T_TEST_P_ADJUSTED`: `none`, `bonferroni`, `holm`, or `bh` | string | holm |
+| group_test | Group test used for `GROUP_TEST`: `parametric` for one-way ANOVA or `non_parametric` for Kruskal-Wallis | string | parametric |
+| labels | Comma-separated labels for input channels. Empty entries use default channel labels. | string |  |
+| normality_test | Normality test used for `NORMALITY_TEST` | string | anderson_darling |
+| pairwise_test | Pairwise test used for `PAIRWISE_TEST_P`: `parametric` for Welch t-test or `non_parametric` for Mann-Whitney U test | string | parametric |
+| p_adjustment | Multiple-comparison correction used for `PAIRWISE_TEST_P_ADJUSTED`: `none`, `bonferroni`, `holm`, or `bh` | string | holm |
 
 ## Inputs
 
@@ -46,27 +50,33 @@ report that shared range, and `HISTOGRAM` contains one row per input element and
 | Q1 | First quartile for each input element |
 | Q3 | Third quartile for each input element |
 | INTERQUARTILE_RANGE | Interquartile range for each input element |
-| LOWER_FENCE | Lower outlier fence for each input element |
-| UPPER_FENCE | Upper outlier fence for each input element |
-| LOWER_WHISKER | Lower box plot whisker for each input element |
-| UPPER_WHISKER | Upper box plot whisker for each input element |
-| BOX_PLOT | Box plot values by row: lower whisker, Q1, median, Q3, upper whisker |
+| BOX_PLOT | Box plot values by row: lower fence, lower whisker, Q1, median, Q3, upper whisker, upper fence |
 | BOX_PLOT_OUTLIERS | Box plot outlier values by row and input element column; unused values are `null` in JSON |
 | HISTOGRAM | Histogram counts for each input element using a shared range across all elements |
 | HISTOGRAM_MIN | Shared lower range of the histogram |
 | HISTOGRAM_MAX | Shared upper range of the histogram |
-| T_TEST_P | Pairwise two-sided Welch t-test p-values for all input element pairs |
-| T_TEST_P_ADJUSTED | Pairwise Welch t-test p-values after multiple-comparison correction |
+| GROUP_TEST | Across-channel group test results by row: p-value, statistic, df1, df2, effect size, groups |
+| NORMALITY_TEST | Anderson-Darling normality test by row: statistic, p-value, mean, standard deviation |
+| PAIRWISE_TEST_P | Pairwise two-sided p-values for all input element pairs |
+| PAIRWISE_TEST_P_ADJUSTED | Pairwise p-values after multiple-comparison correction |
 
 ## Notes
 
 `OUTPUT` has shape `10,INPUT.size`; each column corresponds to one flattened input element.
-`BOX_PLOT` has shape `5,INPUT.size`; each column corresponds to one flattened input element.
+`BOX_PLOT` has shape `7,INPUT.size`; each column corresponds to one flattened input element.
 `BOX_PLOT_OUTLIERS` has shape `max_outliers,INPUT.size`; each column corresponds to one flattened
 input element.
 `HISTOGRAM` has shape `INPUT.size,bins`.
-`T_TEST_P` has shape `INPUT.size,INPUT.size`; rows and columns correspond to flattened input elements.
-`T_TEST_P_ADJUSTED` has the same shape as `T_TEST_P`. Its diagonal is 1, and finite off-diagonal
-p-values are corrected across the unique pairwise comparisons. `holm` controls the family-wise error
-rate and is the default; `bonferroni` is more conservative, `bh` controls false discovery rate, and
-`none` copies the raw p-values.
+`GROUP_TEST` has shape `6,1` with labeled rows. `parametric` uses one-way ANOVA and reports F,
+between-groups df, within-groups df, and eta-squared. `non_parametric` uses Kruskal-Wallis with tie
+correction and reports H, chi-square df, `null` for df2, and epsilon-squared.
+`NORMALITY_TEST` has shape `4,INPUT.size` with labeled rows. It uses an Anderson-Darling normality
+test with sample mean and standard deviation estimated per channel. The statistic is the adjusted
+Anderson-Darling A-squared value; smaller p-values indicate stronger evidence against normality.
+`PAIRWISE_TEST_P` has shape `INPUT.size,INPUT.size`; rows and columns correspond to flattened input
+elements. `parametric` uses a two-sided Welch t-test. `non_parametric` uses a two-sided Mann-Whitney
+U test with average ranks for ties and a tie-corrected normal approximation.
+`PAIRWISE_TEST_P_ADJUSTED` has the same shape as `PAIRWISE_TEST_P`. Its diagonal is 1, and finite
+off-diagonal p-values are corrected across the unique pairwise comparisons. `holm` controls the
+family-wise error rate and is the default; `bonferroni` is more conservative, `bh` controls false
+discovery rate, and `none` copies the raw p-values.

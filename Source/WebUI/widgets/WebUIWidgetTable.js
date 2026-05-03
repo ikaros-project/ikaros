@@ -19,6 +19,11 @@ class WebUIWidgetTable extends WebUIWidget {
         return `<div class="table-widget-root"><div class="table-slice-controls"></div><table></table><div class="widget-overlay"><div class="widget-overlay-text"></div></div></div>`;
     }
 
+    requestData(data_set) {
+        this.addSource(data_set, this.parameters.source);
+        this.addSourceMetadata(data_set, this.parameters.source);
+    }
+
     reshapeTable(r, c, rLabel, cLabel) {
         this.xHeader = []
         this.yHeader = []
@@ -55,10 +60,18 @@ class WebUIWidgetTable extends WebUIWidget {
             }
         }
     }
+    labelList(labels) {
+        if (Array.isArray(labels))
+            return labels.map((label) => String(label ?? "").trim());
+        return String(labels ?? "").split(',').map((label) => label.trim()).filter((label) => label !== "");
+    }
+    hasLabels(labels) {
+        return this.labelList(labels).some((label) => label !== "");
+    }
     fillLabels(type, label_x, xCells, label_y, yCells) {
-        if (label_x || label_y) {
-            var xLabel = String(label_x ?? "").split(',').map((label) => label.trim()).filter((label) => label !== "");
-            var yLabel = String(label_y ?? "").split(',').map((label) => label.trim()).filter((label) => label !== "");
+        if (this.hasLabels(label_x) || this.hasLabels(label_y)) {
+            var xLabel = this.labelList(label_x).filter((label) => label !== "");
+            var yLabel = this.labelList(label_y).filter((label) => label !== "");
             if (xLabel.length === 0)
                 xLabel = [""];
             if (yLabel.length === 0)
@@ -112,6 +125,7 @@ class WebUIWidgetTable extends WebUIWidget {
         this.overlay = false;
         this._tableShapeKey = "";
         this.sliceSelections = [];
+        this.metadata = null;
     }
     getMatrixShape(data) {
         const shape = [];
@@ -164,11 +178,33 @@ class WebUIWidgetTable extends WebUIWidget {
             size_x
         };
     }
+    getMetadataDimensionLabels(dimension) {
+        const labels = this.metadata?.labels;
+        if (!Array.isArray(labels) || !Array.isArray(labels[dimension]))
+            return [];
+        return labels[dimension].map((label) => String(label ?? "").trim());
+    }
+    getDisplayLabels(displayState) {
+        if (!displayState)
+            return { x: [], y: [] };
+
+        const explicitX = this.labelList(this.parameters.label_x);
+        const explicitY = this.labelList(this.parameters.label_y);
+        const rank = displayState.shape.length;
+        const rowDimension = rank === 1 ? null : rank - 2;
+        const columnDimension = rank === 1 ? 0 : rank - 1;
+
+        return {
+            x: explicitX.length > 0 ? explicitX : this.getMetadataDimensionLabels(columnDimension),
+            y: explicitY.length > 0 ? explicitY : (rowDimension === null ? [] : this.getMetadataDimensionLabels(rowDimension))
+        };
+    }
     getShapeKey(displayState) {
         if (!displayState)
             return "";
 
-        return `${this.parameters.direction}:${displayState.shape.join("x")}:${displayState.size_y}x${displayState.size_x}:${this.parameters.label_x}:${this.parameters.label_y}`;
+        const labels = this.getDisplayLabels(displayState);
+        return `${this.parameters.direction}:${displayState.shape.join("x")}:${displayState.size_y}x${displayState.size_x}:${JSON.stringify(labels)}`;
     }
     renderSliceControls(displayState) {
         if (!this.sliceControls)
@@ -181,6 +217,7 @@ class WebUIWidgetTable extends WebUIWidget {
             return;
 
         leadingShape.forEach((dimensionSize, dimensionIndex) => {
+            const dimensionLabels = this.getMetadataDimensionLabels(dimensionIndex);
             const control = document.createElement("label");
             control.className = "table-slice-control";
 
@@ -191,7 +228,8 @@ class WebUIWidgetTable extends WebUIWidget {
             for (let optionIndex = 0; optionIndex < dimensionSize; optionIndex++) {
                 const option = document.createElement("option");
                 option.value = String(optionIndex);
-                option.textContent = String(optionIndex);
+                const label = dimensionLabels[optionIndex] ?? "";
+                option.textContent = label === "" ? String(optionIndex) : label;
                 select.appendChild(option);
             }
             select.value = String(this.sliceSelections[dimensionIndex] ?? 0);
@@ -215,6 +253,7 @@ class WebUIWidgetTable extends WebUIWidget {
     updateAll() {
         this.updateFrame();
         const source = this.getSource('source');
+        this.metadata = this.getSourceMetadata('source', null);
         const displayState = this.getDisplayState(source);
         this.renderSliceControls(displayState);
         if (!displayState) {
@@ -227,12 +266,13 @@ class WebUIWidgetTable extends WebUIWidget {
         this.data = displayState.matrix;
         this.loaded = true;
         this._tableShapeKey = this.getShapeKey(displayState);
+        const labels = this.getDisplayLabels(displayState);
 
         if (this.parameters.direction == "normal")
-            this.reshapeTable(displayState.size_y, displayState.size_x, this.parameters.label_x, this.parameters.label_y);
+            this.reshapeTable(displayState.size_y, displayState.size_x, this.hasLabels(labels.x), this.hasLabels(labels.y));
         else
-            this.reshapeTable(displayState.size_x, displayState.size_y, this.parameters.label_y, this.parameters.label_x);
-        this.fillLabels(this.parameters.direction, this.parameters.label_x, this.xHeader, this.parameters.label_y, this.yHeader)
+            this.reshapeTable(displayState.size_x, displayState.size_y, this.hasLabels(labels.y), this.hasLabels(labels.x));
+        this.fillLabels(this.parameters.direction, labels.x, this.xHeader, labels.y, this.yHeader)
         this.scrollable()
     }
     update() {
@@ -242,6 +282,7 @@ class WebUIWidgetTable extends WebUIWidget {
 
         else {
             const source = this.getSource('source');
+            this.metadata = this.getSourceMetadata('source', null);
             const displayState = this.getDisplayState(source);
             if (!displayState) {
                 this.loaded = false;

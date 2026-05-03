@@ -53,6 +53,13 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
         super.init();
         this.data = [];
         this.outliers = [];
+        this.metadata = null;
+    }
+
+    requestData(data_set)
+    {
+        super.requestData(data_set);
+        this.addSourceMetadata(data_set, this.parameters.source);
     }
 
     getBoxCount()
@@ -69,6 +76,26 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
         return Number.isFinite(numeric) ? numeric : null;
     }
 
+    getBoxRows()
+    {
+        if(Array.isArray(this.data) && this.data.length >= 7)
+            return {
+                lowerWhisker: 1,
+                q1: 2,
+                median: 3,
+                q3: 4,
+                upperWhisker: 5
+            };
+
+        return {
+            lowerWhisker: 0,
+            q1: 1,
+            median: 2,
+            q3: 3,
+            upperWhisker: 4
+        };
+    }
+
     getOutlierValues(column)
     {
         if(!Array.isArray(this.outliers))
@@ -79,13 +106,27 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
             .filter(value => Number.isFinite(value));
     }
 
+    getLabels()
+    {
+        const explicitLabels = String(this.parameters.labels || "").split(",").map(label => label.trim());
+        if(explicitLabels.some(label => label !== ""))
+            return explicitLabels;
+
+        const metadataLabels = this.metadata?.labels;
+        if(Array.isArray(metadataLabels) && Array.isArray(metadataLabels[1]))
+            return metadataLabels[1].map(label => String(label ?? "").trim());
+
+        return [];
+    }
+
     drawBox(width, height, i)
     {
-        const lowerWhisker = this.getBoxValue(0, i);
-        const q1 = this.getBoxValue(1, i);
-        const median = this.getBoxValue(2, i);
-        const q3 = this.getBoxValue(3, i);
-        const upperWhisker = this.getBoxValue(4, i);
+        const rows = this.getBoxRows();
+        const lowerWhisker = this.getBoxValue(rows.lowerWhisker, i);
+        const q1 = this.getBoxValue(rows.q1, i);
+        const median = this.getBoxValue(rows.median, i);
+        const q3 = this.getBoxValue(rows.q3, i);
+        const upperWhisker = this.getBoxValue(rows.upperWhisker, i);
 
         if([lowerWhisker, q1, median, q3, upperWhisker].some(v => v === null))
             return;
@@ -180,7 +221,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
         if(!this.format.drawLabelsX)
             return;
 
-        const labels = String(this.parameters.labels || "").split(",");
+        const labels = this.getLabels();
         if(labels.length === 0 || labels.every(label => label.trim() === ""))
             return;
 
@@ -255,6 +296,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
     {
         if(this.data = this.getSource('source'))
         {
+            this.metadata = this.getSourceMetadata('source', null);
             const outliers = this.getSource('outlierSource');
             this.outliers = Array.isArray(outliers) ? outliers : [];
             if(Array.isArray(this.outliers) && this.outliers.length > 0 && !Array.isArray(this.outliers[0]))
