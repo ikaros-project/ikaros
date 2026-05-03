@@ -1,10 +1,32 @@
-<group name="RegressionStatistics_test">
-	<connection source="System.TICK" target="Regression.X"/>
-	<connection source="Values.OUTPUT" target="Regression.Y"/>
-
-	<module class="System" name="System"/>
-	<module class="Constant" data="1, 2" name="Values"/>
-	<module class="RegressionStatistics" labels="A,B" max_samples="16" name="Regression"/>
-	<widget name="ScatterPlot" class="scatter-plot" sourceX="Regression.SCATTER_X" sourceY="Regression.SCATTER_Y" regressionSource="Regression.LINEAR_REGRESSION" labels="" xAxisLabel="X" yAxisLabel="Y" width="520" height="360" _x="360" _y="48" show_title="true" title="Regression Scatter Plot" show_frame="true" auto="true" drawLines="true" drawLegend="true" color="" fill="red" pointRadius="3" lineWidth="2"/>
-	<widget name="ModelComparison" class="table" source="Regression.MODEL_COMPARISON" width="520" height="180" _x="360" _y="432" show_title="true" title="Model Comparison" show_frame="true" decimals="4" colorize="true" label_x="" label_y=""/>
+<group auto_routing="false" log_level="6" name="RegressionStatistics_test" info="true" tick_duration="1" grid_spacing="24">
+   <connection line_type="auto_route" color="black" source_range="" delay="1" target="Regression.X" target_range="" source="X.OUTPUT"/>
+   <connection line_type="auto_route" color="black" source_range="" delay="1" target="Noise1.INPUT" target_range="" source="X.OUTPUT"/>
+   <connection line_type="auto_route" color="black" source_range="" delay="1" target="Noise2.INPUT" target_range="" source="X.OUTPUT"/>
+   <connection line_type="auto_route" color="black" source_range="" delay="1" target="Noise3.INPUT" target_range="" source="X.OUTPUT"/>
+   <connection line_type="auto_route" color="black" source_range="" delay="1" target="Scale1.INPUT" target_range="" source="Noise1.OUTPUT"/>
+   <connection line_type="auto_route" color="black" source_range="" delay="1" target="Scale2.INPUT" target_range="" source="Noise2.OUTPUT"/>
+   <connection line_type="auto_route" color="black" source_range="" delay="1" target="Scale3.INPUT" target_range="" source="Noise3.OUTPUT"/>
+   <connection line_type="auto_route" color="black" source_range="" delay="1" target="Add.INPUT1" target_range="" source="Scale3.OUTPUT"/>
+   <connection line_type="auto_route" color="black" source_range="" delay="1" target="Add.INPUT2" target_range="" source="Constant.OUTPUT"/>
+   <connection line_type="auto_route" color="black" source_range="" delay="1" target="Regression.Y" target_range="" source="Scale1.OUTPUT"/>
+   <connection line_type="auto_route" color="black" source_range="" delay="1" target="Regression.Y" target_range="" source="Scale2.OUTPUT"/>
+   <connection line_type="auto_route" color="black" source_range="" delay="1" target="Regression.Y" target_range="" source="Add.OUTPUT"/>
+   <widget frame-style="" frame_color="" decimals="4" class="table" source="Regression.LINEAR_REGRESSION" select="" colorize="true" background="" label_y="" min="0" direction="normal" scrollable="false" show_frame="true" height="217" _x="936" max="1" _y="816" _index_="0" style="" frame_width="1" title="Regression.LINEAR_REGRESSION" label_x="" width="697" show_title="true" name="Widget_1"/>
+   <widget color="red,blue,green&#10;&#10;" labels="" style="" auto="true" height="721" show_frame="true" marginBottom="4" _index_="2" title="Scatter Plot&#10;" marginRight="4" _y="72" _x="936" spaceRight="8" max="1" min="0" drawLegend="true" name="Widget_2" fill="" xAxisLabel="" lineWidth="1" drawLines="true" spaceBottom="34" regressionSource="Regression.LINEAR_REGRESSION" bottomTickMarks="5" show_title="true" marginLeft="4" leftScale="5" spaceLeft="42" pointRadius="3" yAxisLabel="" spaceTop="8" frame-style="" minX="0" decimals="2" source="" sourceX="Regression.SCATTER_X" bottomScale="5" maxX="1" sourceY="Regression.SCATTER_Y" class="scatter-plot" include_zero="false" width="697" horizontalGridlines="5" verticalGridlines="5" frame_width="1" maxY="1" marginTop="4" select="" xAxis="true" leftTickMarks="5" background="" yAxis="true" minY="0" frame_color=""/>
+   <widget frame-style="" frame_color="" decimals="4" class="table" source="Regression.SCATTER_X" select="" colorize="true" background="" label_y="" min="0" direction="normal" scrollable="true" show_frame="true" height="433" _x="24" max="1" _y="648" _index_="4" style="" frame_width="1" title="Regression.SCATTER_X" label_x="" width="433" show_title="true" name="Widget_111"/>
+   <widget frame-style="" frame_color="" decimals="4" class="table" source="Regression.SCATTER_Y" select="" colorize="true" background="" label_y="" min="0" direction="normal" scrollable="true" show_frame="true" height="433" _x="480" max="1" _y="648" _index_="6" style="" frame_width="1" title="Regression.SCATTER_Y" label_x="" width="433" show_title="true" name="Widget_1111"/>
+   <widget frame-style="" frame_color="" decimals="4" class="table" source="Regression.MODEL_COMPARISON" select="" colorize="true" background="" label_y="" min="0" direction="normal" scrollable="false" show_frame="true" height="241" _x="936" max="1" _y="1056" _index_="8" style="" frame_width="1" title="Regression.MODEL_COMPARISON" label_x="" width="697" show_title="true" name="Widget_1112"/>
+   <module _y="48" class="FunctionGenerator" _x="24" frequency="0.1" offset="1" name="X" amplitude="1" type="sine"/>
+   <module max_samples="1000" _x="720" class="RegressionStatistics" _y="72" labels="A,B,C" name="Regression"/>
+   <module _y="120" color="" stddev="0.1" class="Noise" type="gaussian" _x="192" path="/Users/cba/ikaros/Source/Modules/UtilityModules/Noise" name="Noise1"/>
+   <module _y="264" color="" stddev="0.1" class="Noise" type="gaussian" _x="192" name="Noise2" path="/Users/cba/ikaros/Source/Modules/UtilityModules/Noise"/>
+   <module class="Constant" _x="384" data="2" path="/Users/cba/ikaros/Source/Modules/UtilityModules/Constant" color="" name="Constant" _y="552"/>
+   <module _y="408" color="" stddev="0.1" class="Noise" type="gaussian" _x="192" name="Noise3" path="/Users/cba/ikaros/Source/Modules/UtilityModules/Noise"/>
+   <module color="" _y="120" class="Scale" _x="360" path="/Users/cba/ikaros/Source/Modules/UtilityModules/Scale" name="Scale1"/>
+   <module factor="2" class="Scale" _y="264" color="" name="Scale2" path="/Users/cba/ikaros/Source/Modules/UtilityModules/Scale" _x="360"/>
+   <module factor="-1.8" class="Scale" _y="408" color="" name="Scale3" path="/Users/cba/ikaros/Source/Modules/UtilityModules/Scale" _x="360"/>
+   <module color="" _y="408" class="Add" _x="528" path="/Users/cba/ikaros/Source/Modules/UtilityModules/CombineFunctions/Add" name="Add"/>
+   <parameter default="0" options="inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace" control="menu" type="number" value="6" name="log_level"/>
+   <parameter default="0" options="at_tick,first_data,all_data" control="menu" type="number" value="0" name="module_start"/>
+   <parameter type="number" default="0" name="start_tick" value="0"/>
 </group>
