@@ -1734,6 +1734,9 @@ namespace ikaros
                 throw setup_failed("Connection \"" + connection.Info() + "\" writes outside fixed size of input \"" + name + "\" in \"" + path_ + "\" (" + shape_string(shape) + ").", path_);
         };
 
+        if(!ingoing_connections.count(full_name)) // Not connected
+            return has_fixed_size ? 0 : 1;
+
         if(has_fixed_size)
         {
             std::string shape_expr = std::string(d.at("size"));
@@ -1742,9 +1745,6 @@ namespace ikaros
             std::vector<int> shape = EvaluateShapeList(shape_expr);
             kernel().buffers[full_name].realloc(shape);
         }
-        
-        if(!ingoing_connections.count(full_name)) // Not connected
-            return has_fixed_size ? 0 : 1;
 
         int begin_index = 0;
         int end_index = 0;
@@ -1822,6 +1822,9 @@ namespace ikaros
                     throw setup_failed("Connection \"" + connection.Info() + "\" writes outside fixed size of input \"" + name + "\" in \"" + path_ + "\" (" + shape_string(shape) + ").", path_);
         };
 
+        if(!ingoing_connections.count(full_name)) // Not connected
+            return 1;
+
         if(has_fixed_size)
         {
             std::string shape_expr = std::string(d.at("size"));
@@ -1830,9 +1833,6 @@ namespace ikaros
             std::vector<int> shape = EvaluateShapeList(shape_expr);
             kernel().buffers[full_name].realloc(shape);
         }
-
-        if(!ingoing_connections.count(full_name)) // Not connected
-            return 1;
 
         // Handle single connection without inidices - do not collapse dimensions
 
@@ -5274,13 +5274,21 @@ bool operator==(Request & r, const std::string s)
         {
             if(requested_value.format.empty())
                 serialized_value = buffers[source_with_root].json();
+            else if(requested_value.format == "metadata")
+                serialized_value = buffers[source_with_root].metadata_json();
             else if(is_snapshot_image_format(requested_value.format))
                 serialized_value = SendImage(buffers[source_with_root], requested_value.format, SnapshotJPEGQualityForFormat(requested_value.format));
             found_value = !serialized_value.empty();
         }
         else if(parameters.count(source_with_root))
         {
-            serialized_value = parameters[source_with_root].json();
+            if(requested_value.format == "metadata" && parameters[source_with_root].type == matrix_type)
+            {
+                if(auto matrix_value = get_parameter_matrix_ptr(parameters[source_with_root].value.get()))
+                    serialized_value = matrix_value->metadata_json();
+            }
+            else
+                serialized_value = parameters[source_with_root].json();
             found_value = true;
         }
         else if(components.count(component_path))
@@ -5994,6 +6002,7 @@ bool operator==(Request & r, const std::string s)
         std::string key = request.component_path;
         if(!key.empty() && key[0] == '.')
             key = key.substr(1); // Global path
+        std::string format = rtail(key, ":");
 
         dictionary header({
             {"Content-Type", "application/json; charset=utf-8"},
@@ -6023,7 +6032,7 @@ bool operator==(Request & r, const std::string s)
 
         if(buffers.count(key))
         {
-            send_json_response(buffers[key].json(), buffers[key].shape());
+            send_json_response(format == "metadata" ? buffers[key].metadata_json() : buffers[key].json(), buffers[key].shape());
             SendStringResponse(header, body);
             return;
         }
@@ -6033,7 +6042,7 @@ bool operator==(Request & r, const std::string s)
             if(parameters[key].type == matrix_type)
             {
                 if(auto matrix_value = get_parameter_matrix_ptr(parameters[key].value.get()))
-                    send_json_response(parameters[key].json(), matrix_value->shape());
+                    send_json_response(format == "metadata" ? matrix_value->metadata_json() : parameters[key].json(), matrix_value->shape());
                 else
                     send_json_response(parameters[key].json(), {});
             }

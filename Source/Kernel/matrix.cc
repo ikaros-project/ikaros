@@ -528,6 +528,41 @@ matrix::json() const
 
 
 std::string
+matrix::metadata_json() const
+{
+    std::string s = "{";
+    s += "\"name\": " + value(info_->name_).json();
+    s += ", \"rank\": " + std::to_string(rank());
+    s += ", \"shape\": [";
+
+    std::string sep;
+    for(int dim : info_->shape_)
+    {
+        s += sep + std::to_string(dim);
+        sep = ", ";
+    }
+
+    s += "], \"labels\": [";
+    sep.clear();
+    for(const auto & dimension_labels : info_->labels_)
+    {
+        s += sep + "[";
+        std::string label_sep;
+        for(const auto & label : dimension_labels)
+        {
+            s += label_sep + value(label).json();
+            label_sep = ", ";
+        }
+        s += "]";
+        sep = ", ";
+    }
+
+    s += "]}";
+    return s;
+}
+
+
+std::string
 matrix::csv(std::string separator) const
 {
     std::string sep;

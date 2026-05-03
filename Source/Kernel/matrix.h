@@ -209,6 +209,7 @@ namespace ikaros
 
         bool print_(int depth=0) const;
         std::string json() const; // Generate JSON-representation of matrix
+        std::string metadata_json() const; // Generate JSON-representation of matrix metadata
         std::string csv(std::string separator=",") const; // Generate CSV representation of matrix
         void print(std::string n="") const; // print matrix; n overrides name if set (useful during debugging)
 
