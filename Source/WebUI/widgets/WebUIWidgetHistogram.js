@@ -71,6 +71,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
     {
         super.init();
         this.data = [];
+        this.metadata = null;
 
         this.onclick = function () {
             if(main.edit_mode)
@@ -86,6 +87,12 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             }
             alert(s);
         };
+    }
+
+    requestData(data_set)
+    {
+        super.requestData(data_set);
+        this.addSourceMetadata(data_set, this.parameters.source);
     }
 
     drawBarHorizontal(width, height, i)
@@ -264,7 +271,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
 
     getHistogramLabelWidth()
     {
-        const labels = String(this.parameters.labels || "").split(",");
+        const labels = this.getHistogramLabels();
         if(labels.length === 0 || labels.every(label => label.trim() === "") || !this.canvas)
             return 0;
 
@@ -325,7 +332,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
 
     drawLabelsHorizontal(width, height, n)
     {
-        const labels = String(this.parameters.labels || "").split(",");
+        const labels = this.getHistogramLabels();
         if(labels.length === 0 || labels.every(label => label.trim() === ""))
             return;
 
@@ -349,6 +356,20 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
         }
 
         this.canvas.restore();
+    }
+
+    getHistogramLabels()
+    {
+        const explicitLabels = String(this.parameters.labels || "").split(",").map(label => label.trim());
+        if(explicitLabels.some(label => label !== ""))
+            return explicitLabels;
+
+        const metadataLabels = this.metadata?.labels;
+        const dimension = this.toBool(this.parameters.transpose) ? 1 : 0;
+        if(Array.isArray(metadataLabels) && Array.isArray(metadataLabels[dimension]))
+            return metadataLabels[dimension].map(label => String(label ?? "").trim());
+
+        return [];
     }
 
     getHistogramXRange()
@@ -645,6 +666,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
     {
         if(this.data = this.getSource('source'))
         {
+            this.metadata = this.getSourceMetadata('source', null);
             if(!Array.isArray(this.data))
                 return;
             if(typeof this.data[0] != "object") // FIXME: Fix for arbitrary matrix sizes
