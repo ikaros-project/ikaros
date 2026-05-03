@@ -1,0 +1,10 @@
+<group name="RegressionStatistics_test">
+	<connection source="System.TICK" target="Regression.X"/>
+	<connection source="Values.OUTPUT" target="Regression.Y"/>
+
+	<module class="System" name="System"/>
+	<module class="Constant" data="1, 2" name="Values"/>
+	<module class="RegressionStatistics" labels="A,B" max_samples="16" name="Regression"/>
+	<widget name="ScatterPlot" class="scatter-plot" sourceX="Regression.SCATTER_X" sourceY="Regression.SCATTER_Y" regressionSource="Regression.LINEAR_REGRESSION" labels="" xAxisLabel="X" yAxisLabel="Y" width="520" height="360" _x="360" _y="48" show_title="true" title="Regression Scatter Plot" show_frame="true" auto="true" drawLines="true" drawLegend="true" color="" fill="red" pointRadius="3" lineWidth="2"/>
+	<widget name="ModelComparison" class="table" source="Regression.MODEL_COMPARISON" width="520" height="180" _x="360" _y="432" show_title="true" title="Model Comparison" show_frame="true" decimals="4" colorize="true" label_x="" label_y=""/>
+</group>

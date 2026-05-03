@@ -1,0 +1,14 @@
+<class name="RegressionStatistics" description="collects paired X/Y samples for scatter plots and regression analysis">
+	<parameter name="max_samples" type="number" default="1024" description="Maximum number of stored samples per Y channel" />
+	<parameter name="labels" type="string" default="" description="Comma-separated labels for Y channels. Empty entries use default channel labels." />
+
+	<input name="X" description="X values to sample. Size must be 1 or match Y." flatten="yes" />
+	<input name="Y" description="Y values to sample. Each element is stored as a separate channel." flatten="yes" />
+	<input name="SAMPLE" optional="yes" description="Optional sampling mask. When connected, only Y elements with corresponding values of 1 or above are sampled." />
+
+	<output name="SCATTER_X" description="Stored X samples by sample row and Y channel column; unused values are null in JSON" size="@max_samples,Y.size" />
+	<output name="SCATTER_Y" description="Stored Y samples by sample row and Y channel column; unused values are null in JSON" size="@max_samples,Y.size" />
+	<output name="SAMPLE_COUNT" description="Number of stored samples for each Y channel" size="Y.size" />
+	<output name="LINEAR_REGRESSION" description="Linear regression by row: slope, intercept, r, r-squared, p-value, slope standard error" size="6,Y.size" />
+	<output name="MODEL_COMPARISON" description="Nested linear model comparison by row: p-value, F, df1, df2, effect size, groups, samples. Columns: intercept difference, slope difference." size="7,2" />
+</class>
