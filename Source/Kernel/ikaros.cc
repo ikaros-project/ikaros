@@ -3545,13 +3545,7 @@ bool operator==(Request & r, const std::string s)
 
         std::filesystem::path base_path = candidate_path;
         if(candidate_path.is_relative())
-        {
-            std::filesystem::path current_network = options_.full_path();
-            if(!current_network.empty())
-                base_path = current_network.parent_path() / candidate_path;
-            else
-                base_path = std::filesystem::current_path() / candidate_path;
-        }
+            base_path = std::filesystem::path(user_dir) / candidate_path;
 
         std::filesystem::path resolved_path = std::filesystem::weakly_canonical(base_path, ec);
         if(ec)

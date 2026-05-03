@@ -28,6 +28,7 @@ find_path(DLIB_INCLUDE_DIRS
   NAMES
     dlib/image_processing.h
   PATHS
+    /opt/homebrew/include/  # Homebrew on Apple Silicon
     /usr/local/include/     # Homebrew
   )
 
@@ -35,6 +36,7 @@ find_path(DLIB_INCLUDE_DIRS
   NAMES
     dlib
   PATHS
+    /opt/homebrew/lib/      # Homebrew on Apple Silicon
     /usr/local/lib/          # Homebrew
     /usr/lib
   )

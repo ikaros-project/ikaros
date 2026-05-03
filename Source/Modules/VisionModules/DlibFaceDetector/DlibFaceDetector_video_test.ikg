@@ -1,0 +1,19 @@
+<group name="DlibFaceDetector_Video_Test" start="true">
+    <module class="InputVideo" name="Camera"
+        id="0"
+        list_devices="no"
+        size_x="640"
+        size_y="480"
+        frame_rate="15" />
+    <module class="DlibFaceDetector" name="Detector" max_faces="4" upsample="0" />
+    <module class="Print" name="PrintBoxes" />
+    <module class="Print" name="PrintCenterBox" />
+    <module class="Print" name="PrintFaceCenters" />
+    <module class="Print" name="PrintCount" />
+
+    <connection source="Camera.OUTPUT" target="Detector.INPUT" />
+    <connection source="Detector.BOXES" target="PrintBoxes.INPUT" />
+    <connection source="Detector.CENTER_BOX" target="PrintCenterBox.INPUT" />
+    <connection source="Detector.FACE_CENTERS" target="PrintFaceCenters.INPUT" />
+    <connection source="Detector.COUNT" target="PrintCount.INPUT" />
+</group>

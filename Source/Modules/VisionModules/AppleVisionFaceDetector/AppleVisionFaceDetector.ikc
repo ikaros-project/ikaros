@@ -1,0 +1,9 @@
+<class name="AppleVisionFaceDetector" description="Detects faces using Apple's Vision framework">
+    <input name="INPUT" description="Grayscale image, or RGB image with shape 3,height,width" />
+    <output name="BOXES" dynamic="yes" capacity="@max_faces,5" description="Detected faces as centered coordinate rows: x, y, width, height, confidence" />
+    <output name="CENTER_BOX" dynamic="yes" capacity="1,5" description="Detected face closest to image center as one centered coordinate row: x, y, width, height, confidence" />
+    <output name="FACE_CENTERS" dynamic="yes" capacity="@max_faces,3" description="Face center rows: center_x, center_y, width in centered image coordinates" />
+    <output name="COUNT" size="1" description="Number of detected faces emitted in BOXES" />
+    <parameter name="max_faces" type="number" default="16" min="1" description="Maximum number of faces to emit" />
+    <parameter name="downsample" type="number" default="1" min="0" description="Number of 2x Ikaros downsample passes before Vision detection" />
+</class>

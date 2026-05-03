@@ -1,0 +1,18 @@
+<group name="DlibFaceRecognizer_Test" start="true">
+    <module class="InputJPEG" name="Image" filename="faces/test.jpg" iterations="0" read_once="yes" />
+    <module class="DlibFaceDetector" name="Detector" max_faces="8" upsample="1" />
+    <module class="DlibFaceRecognizer" name="Recognizer"
+        max_faces="8"
+        shape_predictor="models/shape_predictor_5_face_landmarks.dat"
+        recognition_model="models/dlib_face_recognition_resnet_model_v1.dat" />
+    <module class="Print" name="PrintBoxes" />
+    <module class="Print" name="PrintDescriptorCount" />
+    <module class="Print" name="PrintDescriptors" />
+
+    <connection source="Image.OUTPUT" target="Detector.INPUT" />
+    <connection source="Image.OUTPUT" target="Recognizer.INPUT" />
+    <connection source="Detector.CENTER_BOX" target="Recognizer.BOXES" />
+    <connection source="Detector.CENTER_BOX" target="PrintBoxes.INPUT" />
+    <connection source="Recognizer.COUNT" target="PrintDescriptorCount.INPUT" />
+    <connection source="Recognizer.DESCRIPTORS" target="PrintDescriptors.INPUT" />
+</group>

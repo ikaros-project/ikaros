@@ -936,7 +936,19 @@ const webui_widgets =
 {
     constructors: {},
     add: function(element_name, class_object) {
-        customElements.define(element_name, class_object);
+        if(!customElements.get(element_name))
+        {
+            try
+            {
+                customElements.define(element_name, class_object);
+            }
+            catch(err)
+            {
+                if(err && err.name !== "NotSupportedError")
+                    throw err;
+                console.warn(`Widget custom element ${element_name} was already registered.`);
+            }
+        }
         webui_widgets.constructors[element_name] = class_object;
     }
 };

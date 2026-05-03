@@ -29,6 +29,10 @@ endif()
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    # Mac OS X specific code
    	message( STATUS "Detected APPLE system")
+    enable_language(OBJCXX)
+    set(CMAKE_OBJCXX_STANDARD 17)
+    set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
+    set(CMAKE_OBJCXX_EXTENSIONS OFF)
 	add_definitions(-DMAC_OS_X)
 
   # Detect if the system using x86 or arm64 (intel or apple silicon)
@@ -118,6 +122,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
 
 elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -stdlib=libc++")
+    set(CMAKE_OBJCXX_FLAGS "${CMAKE_OBJCXX_FLAGS} -std=c++17 -stdlib=libc++")
 else ()
     message(FATAL_ERROR "Your C++ compiler does not support C++17.")
 endif ()

@@ -1,0 +1,34 @@
+<group name="DlibFaceDetector_Test" start="true">
+    <module class="Constant" name="BlankImage" data="
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" />
+    <module class="DlibFaceDetector" name="Detector" max_faces="4" upsample="0" />
+    <module class="Print" name="PrintCount" />
+    <module class="Print" name="PrintBoxes" />
+    <module class="Print" name="PrintCenterBox" />
+    <module class="Print" name="PrintFaceCenters" />
+
+    <connection source="BlankImage.OUTPUT" target="Detector.INPUT" />
+    <connection source="Detector.COUNT" target="PrintCount.INPUT" />
+    <connection source="Detector.BOXES" target="PrintBoxes.INPUT" />
+    <connection source="Detector.CENTER_BOX" target="PrintCenterBox.INPUT" />
+    <connection source="Detector.FACE_CENTERS" target="PrintFaceCenters.INPUT" />
+</group>

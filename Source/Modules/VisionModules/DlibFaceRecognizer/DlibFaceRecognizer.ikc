@@ -1,0 +1,10 @@
+<class name="DlibFaceRecognizer" description="Computes dlib 128D face descriptors for detected faces">
+    <input name="INPUT" description="Grayscale image, or RGB image with shape 3,height,width" />
+    <input name="BOXES" description="Centered coordinate face boxes as rows: x, y, width, height, optional score" />
+    <output name="DESCRIPTORS" dynamic="yes" capacity="@max_faces,128" description="One 128D face descriptor per emitted face" />
+    <output name="BOXES_OUT" dynamic="yes" capacity="@max_faces,5" description="Centered coordinate boxes that produced descriptors: x, y, width, height, source row" />
+    <output name="COUNT" size="1" description="Number of descriptors emitted" />
+    <parameter name="max_faces" type="number" default="16" min="1" description="Maximum number of faces to recognize" />
+    <parameter name="shape_predictor" type="string" description="Path to dlib shape_predictor_5_face_landmarks.dat" />
+    <parameter name="recognition_model" type="string" description="Path to dlib_face_recognition_resnet_model_v1.dat" />
+</class>

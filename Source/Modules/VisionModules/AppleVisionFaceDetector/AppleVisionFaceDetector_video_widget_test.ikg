@@ -1,0 +1,35 @@
+<group name="AppleVisionFaceDetector_Video_Widget_Test" start="true">
+    <module class="InputVideo" name="Camera"
+        id="0"
+        list_devices="no"
+        size_x="640"
+        size_y="480"
+        frame_rate="15" />
+    <module class="AppleVisionFaceDetector" name="Detector" max_faces="4" downsample="1" />
+
+    <connection source="Camera.OUTPUT" target="Detector.INPUT" />
+
+    <widget class="image"
+        name="LiveImage"
+        _x="40"
+        _y="40"
+        width="640"
+        height="480"
+        source="Camera.OUTPUT"
+        format="rgb"
+        scale="both"
+        show_title="false"
+        show_frame="false" />
+    <widget class="faceboxes"
+        name="FaceBoxes"
+        _x="40"
+        _y="40"
+        width="640"
+        height="480"
+        source="Detector.BOXES"
+        color="#00ff66"
+        line_width="3"
+        show_score="yes"
+        show_title="false"
+        show_frame="false" />
+</group>

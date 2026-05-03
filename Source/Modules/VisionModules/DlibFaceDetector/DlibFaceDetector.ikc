@@ -1,0 +1,9 @@
+<class name="DlibFaceDetector" description="Detects frontal faces using dlib">
+    <input name="INPUT" description="Grayscale image, or RGB image with shape 3,height,width" />
+    <output name="BOXES" dynamic="yes" capacity="@max_faces,5" description="Detected faces as centered coordinate rows: x, y, width, height, score" />
+    <output name="CENTER_BOX" dynamic="yes" capacity="1,5" description="Detected face closest to image center as one centered coordinate row: x, y, width, height, score" />
+    <output name="FACE_CENTERS" dynamic="yes" capacity="@max_faces,3" description="Face center rows: center_x, center_y, width in centered image coordinates" />
+    <output name="COUNT" size="1" description="Number of detected faces emitted in BOXES" />
+    <parameter name="max_faces" type="number" default="16" min="1" description="Maximum number of faces to emit" />
+    <parameter name="upsample" type="number" default="0" min="0" description="Number of image pyramid upsampling passes before detection" />
+</class>

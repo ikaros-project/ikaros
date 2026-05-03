@@ -1,0 +1,14 @@
+<group name="AppleVisionFaceDetector_Image_Test" start="true">
+    <module class="InputJPEG" name="Image" filename="faces/test.jpg" iterations="0" read_once="yes" />
+    <module class="AppleVisionFaceDetector" name="Detector" max_faces="16" downsample="1" />
+    <module class="Print" name="PrintCount" />
+    <module class="Print" name="PrintBoxes" />
+    <module class="Print" name="PrintCenterBox" />
+    <module class="Print" name="PrintFaceCenters" />
+
+    <connection source="Image.OUTPUT" target="Detector.INPUT" />
+    <connection source="Detector.COUNT" target="PrintCount.INPUT" />
+    <connection source="Detector.BOXES" target="PrintBoxes.INPUT" />
+    <connection source="Detector.CENTER_BOX" target="PrintCenterBox.INPUT" />
+    <connection source="Detector.FACE_CENTERS" target="PrintFaceCenters.INPUT" />
+</group>
