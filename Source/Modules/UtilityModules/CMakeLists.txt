@@ -8,6 +8,7 @@ add_subdirectory(TimeSeries)
 add_subdirectory(Randomizer)
 add_subdirectory(Noise)
 add_subdirectory(Statistics)
+add_subdirectory(RegressionStatistics)
 
 add_subdirectory(CombineFunctions)
 add_subdirectory(ReduceFunctions)
