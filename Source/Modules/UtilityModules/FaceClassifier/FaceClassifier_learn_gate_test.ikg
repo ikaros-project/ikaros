@@ -1,0 +1,14 @@
+<group name="FaceClassifier_Learn_Gate_Test" start="true">
+    <module class="Constant" name="Descriptor" data="1,0,0" />
+    <module class="Constant" name="Learn" data="0" />
+    <module class="FaceClassifier" name="Classifier" capacity="4" threshold="0.5" confirmation_count="1" k="3" vectors_per_class="5" />
+    <module class="Print" name="PrintOutput" />
+    <module class="Print" name="PrintNovelty" />
+    <module class="Print" name="PrintClasses" />
+
+    <connection source="Descriptor.OUTPUT" target="Classifier.INPUT" />
+    <connection source="Learn.OUTPUT" target="Classifier.LEARN" />
+    <connection source="Classifier.OUTPUT" target="PrintOutput.INPUT" />
+    <connection source="Classifier.NOVELTY" target="PrintNovelty.INPUT" />
+    <connection source="Classifier.CLASSES" target="PrintClasses.INPUT" />
+</group>

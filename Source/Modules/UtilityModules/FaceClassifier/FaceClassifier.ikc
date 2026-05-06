@@ -1,0 +1,15 @@
+<class name="FaceClassifier" description="Online face descriptor classifier">
+    <input name="INPUT" description="Descriptor vector, or first row of a descriptor matrix" />
+    <input name="LEARN" optional="yes" description="Optional scalar learning gate; nonzero enables storing new classes" />
+    <output name="OUTPUT" description="One-hot representation of the matched or newly stored class" size="@capacity" />
+    <output name="NOVELTY" description="1 when a new class is stored on this tick, otherwise 0" size="1" />
+    <output name="DISTANCE" description="Distance to the selected nearest neighbor, or 0 when a new class is stored" size="1" />
+    <output name="CLASSES" description="Number of currently stored classes" size="1" />
+    <output name="COUNT" description="Selection count for each class" size="@capacity" />
+    <output name="VECTORS" description="Stored descriptor vector count for each class" size="@capacity" />
+    <parameter name="capacity" type="number" default="16" min="1" description="Maximum number of classes to store and output size" />
+    <parameter name="threshold" type="number" default="0.6" min="0" description="Store a new class when nearest-neighbor distance is greater than this value" />
+    <parameter name="confirmation_count" type="number" default="3" min="1" description="Number of similar unknown inputs required before storing a new class" />
+    <parameter name="k" type="number" default="3" min="1" description="Number of nearest stored vectors used for voting" />
+    <parameter name="vectors_per_class" type="number" default="5" min="1" description="Maximum stored descriptor vectors per class" />
+</class>

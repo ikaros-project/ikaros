@@ -1,0 +1,20 @@
+<group name="FaceClassifier_Test" start="true">
+    <module class="Constant" name="Descriptor" data="1,0,0" />
+    <module class="Constant" name="Learn" data="1" />
+    <module class="FaceClassifier" name="Classifier" capacity="4" threshold="0.5" confirmation_count="3" k="3" vectors_per_class="5" />
+    <module class="Print" name="PrintOutput" />
+    <module class="Print" name="PrintNovelty" />
+    <module class="Print" name="PrintDistance" />
+    <module class="Print" name="PrintClasses" />
+    <module class="Print" name="PrintCount" />
+    <module class="Print" name="PrintVectors" />
+
+    <connection source="Descriptor.OUTPUT" target="Classifier.INPUT" />
+    <connection source="Learn.OUTPUT" target="Classifier.LEARN" />
+    <connection source="Classifier.OUTPUT" target="PrintOutput.INPUT" />
+    <connection source="Classifier.NOVELTY" target="PrintNovelty.INPUT" />
+    <connection source="Classifier.DISTANCE" target="PrintDistance.INPUT" />
+    <connection source="Classifier.CLASSES" target="PrintClasses.INPUT" />
+    <connection source="Classifier.COUNT" target="PrintCount.INPUT" />
+    <connection source="Classifier.VECTORS" target="PrintVectors.INPUT" />
+</group>
