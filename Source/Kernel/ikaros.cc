@@ -4190,11 +4190,14 @@ bool operator==(Request & r, const std::string s)
     {
         dictionary d;
         std::map<std::string, int> class_counts;
+        int module_count = 0;
 
         for(const auto & [path, component] : components)
         {
             (void)path;
             if(component == nullptr)
+                continue;
+            if(dynamic_cast<Group *>(component.get()) != nullptr)
                 continue;
 
             std::string class_name = component->info_.contains_non_null("class") ? std::string(component->info_["class"]) : "";
@@ -4204,6 +4207,7 @@ bool operator==(Request & r, const std::string s)
                 class_name = "unknown";
 
             class_counts[class_name]++;
+            module_count++;
         }
 
         std::vector<std::string> summary_entries;
@@ -4211,7 +4215,7 @@ bool operator==(Request & r, const std::string s)
         for(const auto & [class_name, count] : class_counts)
             summary_entries.push_back(class_name + ":" + std::to_string(count));
 
-        d["module_count"] = static_cast<int>(components.size());
+        d["module_count"] = module_count;
         d["class_count"] = static_cast<int>(class_counts.size());
         d["classes"] = join(",", summary_entries, false);
         return d;
