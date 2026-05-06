@@ -23,6 +23,8 @@ add_subdirectory(RotationConverter)
 add_subdirectory(Transform)
 add_subdirectory(MatrixMultiply)
 add_subdirectory(OneHotVector)
+add_subdirectory(FaceClassifier)
+add_subdirectory(PointsToSalience)
 
 
 add_subdirectory(AmbientLight)
