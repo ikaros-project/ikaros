@@ -1,0 +1,8 @@
+<group name="PointsToSalience_No_Widths_Test" start="true">
+    <module class="Constant" name="Points" data="0,0" />
+    <module class="PointsToSalience" name="Salience" size_x="5" size_y="5" standard_deviation="0.5" />
+    <module class="Print" name="PrintOutput" />
+
+    <connection source="Points.OUTPUT" target="Salience.POINTS" />
+    <connection source="Salience.OUTPUT" target="PrintOutput.INPUT" />
+</group>

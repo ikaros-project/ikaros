@@ -1,0 +1,8 @@
+<class name="PointsToSalience" description="Creates a salience map from centered coordinate points">
+    <input name="POINTS" description="Point rows in centered coordinates: x, y" />
+    <input name="WIDTHS" optional="yes" description="Optional per-point Gaussian standard deviations in centered coordinate scale" />
+    <output name="OUTPUT" description="Salience map" size="@size_y,@size_x" />
+    <parameter name="size_x" type="number" default="64" min="1" description="Output width in pixels" />
+    <parameter name="size_y" type="number" default="64" min="1" description="Output height in pixels" />
+    <parameter name="standard_deviation" type="number" default="0.2" min="0" description="Fallback Gaussian standard deviation in centered coordinate scale" />
+</class>
