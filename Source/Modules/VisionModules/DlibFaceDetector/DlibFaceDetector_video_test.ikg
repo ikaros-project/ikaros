@@ -9,11 +9,13 @@
     <module class="Print" name="PrintBoxes" />
     <module class="Print" name="PrintCenterBox" />
     <module class="Print" name="PrintFaceCenters" />
+    <module class="Print" name="PrintFaceWidths" />
     <module class="Print" name="PrintCount" />
 
     <connection source="Camera.OUTPUT" target="Detector.INPUT" />
     <connection source="Detector.BOXES" target="PrintBoxes.INPUT" />
     <connection source="Detector.CENTER_BOX" target="PrintCenterBox.INPUT" />
     <connection source="Detector.FACE_CENTERS" target="PrintFaceCenters.INPUT" />
+    <connection source="Detector.FACE_WIDTHS" target="PrintFaceWidths.INPUT" />
     <connection source="Detector.COUNT" target="PrintCount.INPUT" />
 </group>

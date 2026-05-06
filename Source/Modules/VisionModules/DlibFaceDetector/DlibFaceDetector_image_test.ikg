@@ -5,10 +5,12 @@
     <module class="Print" name="PrintBoxes" />
     <module class="Print" name="PrintCenterBox" />
     <module class="Print" name="PrintFaceCenters" />
+    <module class="Print" name="PrintFaceWidths" />
 
     <connection source="Image.OUTPUT" target="Detector.INPUT" />
     <connection source="Detector.COUNT" target="PrintCount.INPUT" />
     <connection source="Detector.BOXES" target="PrintBoxes.INPUT" />
     <connection source="Detector.CENTER_BOX" target="PrintCenterBox.INPUT" />
     <connection source="Detector.FACE_CENTERS" target="PrintFaceCenters.INPUT" />
+    <connection source="Detector.FACE_WIDTHS" target="PrintFaceWidths.INPUT" />
 </group>

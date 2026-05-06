@@ -27,6 +27,9 @@ center_x, center_y, width
 These values use the same centered coordinate scale. `center_x` and `center_y` describe the center
 of the face box, and `width` describes the face-box width where a full image width is `2`.
 
+`FACE_WIDTHS` contains one row per detected face with only the face-box width in the same centered
+coordinate scale.
+
 The current dlib detector does not expose calibrated confidence scores through this simple API, so
 `score` is currently `1`.
 
