@@ -129,6 +129,7 @@ class AppleVisionFaceDetector : public Module
     matrix boxes_;
     matrix center_box_;
     matrix face_centers_;
+    matrix face_widths_;
     matrix count_;
     parameter max_faces_;
     parameter downsample_;
@@ -156,6 +157,7 @@ public:
         Bind(boxes_, "BOXES");
         Bind(center_box_, "CENTER_BOX");
         Bind(face_centers_, "FACE_CENTERS");
+        Bind(face_widths_, "FACE_WIDTHS");
         Bind(count_, "COUNT");
         Bind(max_faces_, "max_faces");
         Bind(downsample_, "downsample");
@@ -173,6 +175,7 @@ public:
         boxes_.clear();
         center_box_.clear();
         face_centers_.clear();
+        face_widths_.clear();
         count_.reset();
 
         @autoreleasepool
@@ -226,6 +229,10 @@ public:
                 center_row(1) = center_y;
                 center_row(2) = row(2);
                 face_centers_.append(center_row);
+
+                matrix width_row(1);
+                width_row(0) = row(2);
+                face_widths_.append(width_row);
 
                 float distance = center_x * center_x + center_y * center_y;
                 if(distance < best_distance)
