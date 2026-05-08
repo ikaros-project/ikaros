@@ -1,0 +1,8 @@
+<group name="SalienceIntegrator_Decay_Test" start="true">
+    <module class="Constant" name="Map" data="1, 0; 0, 1" />
+    <module class="SalienceIntegrator" name="Integrator" factors="1" decay="0.5" />
+    <module class="Print" name="PrintOutput" />
+
+    <connection source="Map.OUTPUT" target="Integrator.INPUT[0][][]" />
+    <connection source="Integrator.OUTPUT" target="PrintOutput.INPUT" />
+</group>

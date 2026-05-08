@@ -1,0 +1,10 @@
+<group name="SalienceIntegrator_Test" start="true">
+    <module class="Constant" name="MapA" data="1, 0; 0, 1" />
+    <module class="Constant" name="MapB" data="0, 1; 1, 0" />
+    <module class="SalienceIntegrator" name="Integrator" factors="2, 3" decay="0" />
+    <module class="Print" name="PrintOutput" />
+
+    <connection source="MapA.OUTPUT" target="Integrator.INPUT[0][][]" />
+    <connection source="MapB.OUTPUT" target="Integrator.INPUT[1][][]" />
+    <connection source="Integrator.OUTPUT" target="PrintOutput.INPUT" />
+</group>

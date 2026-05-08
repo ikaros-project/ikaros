@@ -25,6 +25,7 @@ add_subdirectory(MatrixMultiply)
 add_subdirectory(OneHotVector)
 add_subdirectory(FaceClassifier)
 add_subdirectory(PointsToSalience)
+add_subdirectory(SalienceIntegrator)
 
 
 add_subdirectory(AmbientLight)
