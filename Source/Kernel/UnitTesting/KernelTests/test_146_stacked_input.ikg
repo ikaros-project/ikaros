@@ -1,0 +1,20 @@
+<group
+    name="Test_146"
+    description="Test stacked input connections"
+    stop="3"
+    expected_output_contains="{1, 2}||{5, 6}||{7, 8}"
+>
+
+    <module class="Constant" name="Const1" data="1,2;3,4" />
+    <module class="Constant" name="Const2" data="5,6;7,8" />
+
+    <group name="Stacked">
+        <input name="INPUT" stack="yes" size="2,2,2" />
+        <module class="Print" name="Print" />
+        <connection source="INPUT" target="Print.INPUT" delay="0" />
+    </group>
+
+    <connection source="Const1.OUTPUT" target="Stacked.INPUT" delay="0" />
+    <connection source="Const2.OUTPUT" target="Stacked.INPUT" delay="0" />
+
+</group>

@@ -345,6 +345,8 @@ public:
     bool        flatten_;
     bool        source_indexed_;
     bool        target_indexed_;
+    bool        stacked_;
+    bool        shared_memory_;
 
     Connection(std::string s, std::string t, range & delay_range, std::string label="");
     virtual ~Connection() = default;
@@ -574,6 +576,7 @@ private:
     void CalculateSizes();
     void CalculateDelays();
     void CalculateStartupSteps();
+    void ShareZeroDelayConnectionBuffers();
     void InitCircularBuffers();
     void RotateBuffers();
     void ListComponents();

@@ -1800,6 +1800,7 @@ namespace ikaros
         std::string name = d.at("name");
         std::string full_name = path_ +"."+ name;
         bool has_fixed_size = d.contains("size");
+        bool stack = d.is_set("stack");
 
         auto shape_string = [](const std::vector<int> & shape) -> std::string
         {
@@ -1832,6 +1833,61 @@ namespace ikaros
                 throw setup_failed("Input \""+name+"\" must have a value for \"size\".", path_);
             std::vector<int> shape = EvaluateShapeList(shape_expr);
             kernel().buffers[full_name].realloc(shape);
+        }
+
+        // Handle stacked inputs by assigning each connection to one slice along a new first dimension.
+
+        if(stack)
+        {
+            auto connections = ingoing_connections.at(full_name);
+            int target_rank = 0;
+            if(has_fixed_size)
+                target_rank = kernel().buffers[full_name].rank();
+
+            for(int stack_index = 0; stack_index < static_cast<int>(connections.size()); ++stack_index)
+            {
+                Connection * c = connections[stack_index];
+                matrix & output_buffer = kernel().buffers[c->source];
+                if(output_buffer.is_dynamic())
+                    throw setup_failed("Connection \"" + c->Info() + "\" can not feed stacked input \"" + name + "\" from dynamic output \"" + c->source + "\".", path_);
+
+                if(!c->stacked_)
+                {
+                    range output_matrix = output_buffer;
+                    if(output_matrix.empty())
+                        return 0;
+
+                    range resolved_target = c->Resolve(output_matrix);
+                    resolved_target.push_front(stack_index, stack_index + 1);
+                    c->target_range = resolved_target;
+                    c->stacked_ = true;
+                }
+                target_rank = std::max(target_rank, c->target_range.rank());
+            }
+
+            if(target_rank == 0)
+                return 0;
+
+            for(Connection * c : connections)
+            {
+                while(c->target_range.rank() < target_rank)
+                    c->target_range.push(0, 1);
+
+                if(has_fixed_size)
+                    validate_fixed_target(*c, c->target_range);
+                else if(input_size.empty())
+                    input_size = c->target_range;
+                else
+                    input_size.extend(c->target_range);
+            }
+
+            if(!has_fixed_size)
+            {
+                kernel().buffers[full_name].realloc(input_size.extent());
+                Trace("\t\t\tComponent::SetInputShape Stacked Alloc" + std::string(input_size), full_name);
+            }
+
+            return 1;
         }
 
         // Handle single connection without inidices - do not collapse dimensions
@@ -2256,6 +2312,8 @@ namespace ikaros
         label_ = label;
         source_indexed_ = !source_selector.empty();
         target_indexed_ = !target_selector.empty();
+        stacked_ = false;
+        shared_memory_ = false;
     }
 
 
@@ -2323,6 +2381,9 @@ namespace ikaros
     void 
     Connection::Tick()
     {
+        if(shared_memory_)
+            return;
+
         auto & k = kernel();
 
         if(k.buffers[source].is_dynamic() && IsWholeMatrixConnection())
@@ -2818,6 +2879,46 @@ bool operator==(Request & r, const std::string s)
         catch(...)
         {
             throw setup_failed("Could not calculate input and output sizes.");
+        }
+    }
+
+
+    void
+    Kernel::ShareZeroDelayConnectionBuffers()
+    {
+        std::map<std::string, std::vector<Connection *>> incoming_connections;
+        for(auto & connection : connections)
+            incoming_connections[connection.target].push_back(&connection);
+
+        for(auto & connection : connections)
+        {
+            connection.shared_memory_ = false;
+
+            if(!connection.delay_range_.is_delay_0())
+                continue;
+
+            if(!connection.IsWholeMatrixConnection() || connection.stacked_)
+                continue;
+
+            if(incoming_connections[connection.target].size() != 1)
+                continue;
+
+            auto source_buffer = buffers.find(connection.source);
+            auto target_buffer = buffers.find(connection.target);
+            if(source_buffer == buffers.end() || target_buffer == buffers.end())
+                continue;
+
+            if(connection.source == connection.target)
+                continue;
+
+            if(source_buffer->second.is_dynamic() || target_buffer->second.is_dynamic())
+                continue;
+
+            if(source_buffer->second.shape() != target_buffer->second.shape())
+                continue;
+
+            target_buffer->second.data_ = source_buffer->second.data_;
+            connection.shared_memory_ = true;
         }
     }
 
@@ -4734,6 +4835,7 @@ bool operator==(Request & r, const std::string s)
             ResolveParameters();
             CalculateDelays();
             CalculateSizes();
+            ShareZeroDelayConnectionBuffers();
 
             InitCircularBuffers();
             InitComponents();

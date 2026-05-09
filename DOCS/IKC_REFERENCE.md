@@ -128,6 +128,10 @@ Declares a named input buffer.
   - If present, incoming connections must fit within this fixed shape.
 - `flatten`
   - If truthy, multiple incoming ranges are flattened into one extent rather than combined by index shape.
+- `stack`
+  - If truthy, each incoming connection is written into a separate slice along a new first dimension.
+  - For example, two incoming `2,3` matrices produce an input shape of `2,2,3`.
+  - When incoming structures differ in size, the input uses the maximum extent in each original dimension.
 - `use_label`
   - If truthy and exactly one labeled connection feeds the input, the input buffer inherits that label.
 
@@ -253,7 +257,7 @@ Even if you do not declare them, the kernel adds these to every class:
 
 ## Truthy/Falsey Attributes
 
-Boolean-style attributes such as `optional`, `flatten`, and `use_label` are interpreted through the dictionary truthiness rules. In practice, use:
+Boolean-style attributes such as `optional`, `flatten`, `stack`, and `use_label` are interpreted through the dictionary truthiness rules. In practice, use:
 
 - `true` or `false`
 - `yes` or `no`
@@ -267,7 +271,7 @@ This is the safest subset to use for new `.ikc` files:
 <?xml version="1.0"?>
 <class name="ClassName" description="Short summary" python="OptionalScript.py">
     <parameter name="param" type="number" default="1" description="..." control="menu" options="A,B,C" />
-    <input name="INPUT" description="..." optional="true" size="4" flatten="false" use_label="false" />
+    <input name="INPUT" description="..." optional="true" size="4" flatten="false" stack="false" use_label="false" />
     <output name="OUTPUT" description="..." shape="INPUT.shape" />
     <output name="ROWS" description="..." dynamic="yes" capacity="128, 2" />
     <output name="RED" description="..." alias="OUTPUT[0]" />

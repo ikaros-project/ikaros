@@ -176,6 +176,8 @@ Declares a connection between a source buffer and a target buffer.
 - `label`
   - Optional connection label.
 
+Stacked inputs are declared on the target `<input ... />`, not on individual connections. When an input has `stack="yes"`, multiple connections to that input are stored in separate slices along a new first dimension instead of overwriting the same target range.
+
 ### Common editor/UI-only attributes
 
 - `color`
@@ -232,6 +234,7 @@ Common kernel-recognized attributes:
 - `optional`
 - `size`
 - `flatten`
+- `stack`
 - `use_label`
 
 These behave the same way as in `.ikc` declarations.
