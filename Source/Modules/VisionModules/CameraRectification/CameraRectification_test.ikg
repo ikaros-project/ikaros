@@ -1,0 +1,13 @@
+<group name="CameraRectification_Test">
+    <module class="Constant" name="Image" data="0.0, 0.1, 0.2, 0.3; 0.4, 0.5, 0.6, 0.7; 0.8, 0.9, 1.0, 0.9; 0.7, 0.6, 0.5, 0.4" />
+    <module class="Constant" name="CameraMatrix" data="100.0, 0.0, 1.5; 0.0, 100.0, 1.5; 0.0, 0.0, 1.0" />
+    <module class="Constant" name="Distortion" data="0.0, 0.0, 0.0, 0.0, 0.0" />
+    <module class="CameraRectification" name="Rectifier" />
+
+    <connection source="Image.OUTPUT" target="Rectifier.INPUT" />
+    <connection source="CameraMatrix.OUTPUT" target="Rectifier.CAMERA_MATRIX" />
+    <connection source="Distortion.OUTPUT" target="Rectifier.DISTORTION" />
+
+    <widget class="image" source="Image.OUTPUT" title="Input" format="gray" min="0" max="1" />
+    <widget class="image" source="Rectifier.OUTPUT" title="Rectified" format="gray" min="0" max="1" />
+</group>

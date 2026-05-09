@@ -1,0 +1,7 @@
+<class name="CameraRectification" description="Rectifies grayscale or RGB camera images using OpenCV-compatible camera calibration parameters">
+    <input name="INPUT" description="Grayscale image [rows, cols] or RGB image [3, rows, cols]" />
+    <input name="CAMERA_MATRIX" description="OpenCV camera matrix K, size 3x3" />
+    <input name="DISTORTION" description="OpenCV distortion coefficients k1,k2,p1,p2[,k3[,k4,k5,k6[,s1,s2,s3,s4[,tauX,tauY]]]]" />
+    <output name="OUTPUT" description="Rectified image with the same shape as INPUT" size="INPUT.size" />
+    <parameter name="border_value" type="number" default="0.0" description="Value used for rectified pixels that sample outside the source image" />
+</class>
