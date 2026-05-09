@@ -461,6 +461,7 @@ namespace ikaros
         matrix & add(float c);
         matrix & subtract(float c);
         matrix & scale(float c);
+        matrix & multiply_and_accumulate(const matrix & A, float c);
         matrix & divide(float c);
 
         matrix & add(const matrix & A);

@@ -1719,6 +1719,23 @@ matrix::scale(float c)
 
 
 matrix &
+matrix::multiply_and_accumulate(const matrix & A, float c)
+{
+    check_same_size(A);
+
+#if defined(__APPLE__)
+    if(info_->continuous && A.info_->continuous)
+    {
+        cblas_saxpy(size(), c, A.data(), 1, data(), 1);
+        return *this;
+    }
+#endif
+
+    return apply(A, [c](float x, float y)->float { return x + c * y; });
+}
+
+
+matrix &
 matrix::divide(float c)
 {
 #if defined(__APPLE__)

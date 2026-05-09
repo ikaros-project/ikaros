@@ -699,6 +699,33 @@ namespace ikaros
     }
 
 
+    int
+    parameter::size() const
+    {
+        if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
+            return matrix_value->size();
+        throw exception("Not a matrix value.");
+    }
+
+
+    float
+    parameter::get(int index, float default_value) const
+    {
+        if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
+            return index < matrix_value->size() ? matrix_value->data()[index] : default_value;
+        throw exception("Not a matrix value.");
+    }
+
+
+    float
+    parameter::operator[](int index) const
+    {
+        if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
+            return matrix_value->data()[index];
+        throw exception("Not a matrix value.");
+    }
+
+
     parameter::operator std::string() const
     {
         if(has_options)

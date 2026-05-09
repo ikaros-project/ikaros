@@ -130,6 +130,7 @@ Declares a named input buffer.
   - If truthy, multiple incoming ranges are flattened into one extent rather than combined by index shape.
 - `stack`
   - If truthy, each incoming connection is written into a separate slice along a new first dimension.
+  - This new first dimension is added even when there is only one incoming connection.
   - For example, two incoming `2,3` matrices produce an input shape of `2,2,3`.
   - When incoming structures differ in size, the input uses the maximum extent in each original dimension.
 - `use_label`

@@ -160,6 +160,9 @@ public:
     std::string as_int_string() const; // as_int() converted to string
     std::string as_string() const;
     bool empty() const;
+    int size() const;
+    float get(int index, float default_value) const;
+    float operator[](int index) const;
 
     const char* c_str() const noexcept;
 
