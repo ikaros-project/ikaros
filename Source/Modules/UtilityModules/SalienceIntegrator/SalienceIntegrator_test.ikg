@@ -4,7 +4,7 @@
     <module class="SalienceIntegrator" name="Integrator" factors="2, 3" decay="0" />
     <module class="Print" name="PrintOutput" />
 
-    <connection source="MapA.OUTPUT" target="Integrator.INPUT[0][][]" />
-    <connection source="MapB.OUTPUT" target="Integrator.INPUT[1][][]" />
+    <connection source="MapA.OUTPUT" target="Integrator.INPUT" />
+    <connection source="MapB.OUTPUT" target="Integrator.INPUT" />
     <connection source="Integrator.OUTPUT" target="PrintOutput.INPUT" />
 </group>

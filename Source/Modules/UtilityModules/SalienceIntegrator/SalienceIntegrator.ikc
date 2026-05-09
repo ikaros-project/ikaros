@@ -1,5 +1,5 @@
 <class name="SalienceIntegrator" description="Integrates stacked salience maps with per-map scale factors and temporal decay">
-    <input name="INPUT" description="A single salience map or stacked salience maps; stacked maps use the first dimension as the map index" />
+    <input name="INPUT" description="One or more salience maps; stack adds the first dimension as the map index" stack="yes"/>
     <output name="OUTPUT" description="Integrated salience map" shape="INPUT.shape[1:]" />
     <parameter name="factors" type="matrix" default="1" description="Scale factor for each input map; missing factors default to 1" />
     <parameter name="decay" type="number" default="0.9" min="0" description="Factor applied to the previous OUTPUT before adding the current inputs" />

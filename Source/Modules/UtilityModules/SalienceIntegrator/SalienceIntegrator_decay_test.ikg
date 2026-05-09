@@ -3,6 +3,6 @@
     <module class="SalienceIntegrator" name="Integrator" factors="1" decay="0.5" />
     <module class="Print" name="PrintOutput" />
 
-    <connection source="Map.OUTPUT" target="Integrator.INPUT[0][][]" />
+    <connection source="Map.OUTPUT" target="Integrator.INPUT" />
     <connection source="Integrator.OUTPUT" target="PrintOutput.INPUT" />
 </group>

@@ -2,7 +2,8 @@
     name="TestFirstTick"
     description="Test component module_start scheduling for absolute and startup-derived values"
     start="true"
-    stop="2"
+    stop="3"
+    threads="1"
     expected_output_contains="TestFirstTick.Absolute2 tick=2||TestFirstTick.FirstReal tick=1||TestFirstTick.AllReal tick=2">
     <module class="Constant" name="Source" data="1" />
     <module class="FirstTickReporter" name="Absolute2" module_start="0" start_tick="2" />

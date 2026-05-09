@@ -1,0 +1,18 @@
+<group
+    name="Test_147"
+    description="Test stack input adds a dimension for one connection"
+    stop="1"
+    check_sum="341"
+>
+
+    <module class="Constant" name="Const" data="1,2;3,4" />
+
+    <group name="Stacked">
+        <input name="INPUT" stack="yes" />
+        <module class="Print" name="Print" />
+        <connection source="INPUT" target="Print.INPUT" delay="0" />
+    </group>
+
+    <connection source="Const.OUTPUT" target="Stacked.INPUT" delay="0" />
+
+</group>
