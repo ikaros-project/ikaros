@@ -2459,12 +2459,13 @@ namespace ikaros
         {
             //std::cout << source << " =DD=> " << target << std::endl;
             int target_ix = 0;
+            int delay_dimension = stacked_ ? 1 : 0;
             for(auto delay = delay_range_; delay.more(); delay++, target_ix++)
             {   
                 matrix s = k.circular_buffers[source].get(delay.index()[0]);
-                range tr = target_range.tail();
-                matrix t = k.buffers[target][target_ix];
-                t.copy(s, tr, source_range);
+                range tr = target_range;
+                tr.set(delay_dimension, target_ix, target_ix + 1, 1);
+                k.buffers[target].copy(s, tr, source_range);
 
             }
         }
