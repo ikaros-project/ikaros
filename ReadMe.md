@@ -39,25 +39,14 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
 | Log               |<div style="color:green">🟢 OK | |
 | Editing           |<div style="color:green">🟢 OK  | |
 | Sockets           |<div style="color:green">🟢 OK |  |
-| UtilityModules    |<div style="color:#green">🟢 OK | 70 modules |
+| UtilityModules    |<div style="color:#green">🟢 OK | 79 modules |
 | Named Dimensions  |<div style="color:green">🟢 OK |  |
 
 ## Basic Start-up Parameters
 
     usage: ikaros [options] [variable=value] [filename]
 
-            Command line options:
-
-            -S (start):  start-up automatically without waiting for commands from WebUI
-            -b (batch_mode): start automatically and quit when execution terminates
-            -d (tick_duration): duration of each tick in seconds
-            -h (help): list command line options [true]
-            -r (real_time): run in real-time mode
-            -s####(stop): stop Ikaros after this tick [-1]
-            -w#### (webui_port): port for ikaros WebUI [8000]
-
-
-        Command line options:
+    Command line options:
         -A (agent): set the agent identifier included in remote session logging
         -B (bind_address): bind WebUI/API server to a specific IPv4 address, for example 127.0.0.1
         -S (start):  start-up automatically without waiting for commands from WebUI
