@@ -397,9 +397,11 @@ const controller =
             {
                 document.querySelector("#file").innerText = "-";
                 document.querySelector("#tick").innerText = "-";
+                document.querySelector("#top_tick").innerText = "-";
                 document.querySelector("#state").innerText = "-";
                 document.querySelector("#uptime").innerText = "-";
                 document.querySelector("#time").innerText = "-";
+                document.querySelector("#top_time").innerText = "-";
                 document.querySelector("#ticks_per_s").innerText = "-";
                 document.querySelector("#tick_duration").innerText = "-";
                 document.querySelector("#actual_duration").innerText =  "-";
@@ -427,11 +429,15 @@ const controller =
                 (response.filename != null && response.filename !== "" && response.filename !== "null") ? response.filename :
                 "-";
             document.querySelector("#file").innerText = displayedFile;
-            document.querySelector("#tick").innerText = (Number.isInteger(response.tick) && response.tick >= 0 ?  response.tick : "-");
+            const displayedTick = (Number.isInteger(response.tick) && response.tick >= 0 ?  response.tick : "-");
+            document.querySelector("#tick").innerText = displayedTick;
+            document.querySelector("#top_tick").innerText = displayedTick;
             document.querySelector("#state").innerHTML = controller.run_mode + (network.tainted ? " <span style='color:red'>&#9679;</span>" : "");
 
             document.querySelector("#uptime").innerText = secondsToHMS(response.uptime);
-            document.querySelector("#time").innerText = secondsToHMS(response.time);
+            const displayedTime = secondsToHMS(response.time);
+            document.querySelector("#time").innerText = displayedTime;
+            document.querySelector("#top_time").innerText = displayedTime;
             document.querySelector("#ticks_per_s").innerText = response.ticks_per_s;
             document.querySelector("#tick_duration").innerHTML = formatTime(response.tick_duration);
             document.querySelector("#actual_duration").innerHTML = formatTime(response.actual_duration);

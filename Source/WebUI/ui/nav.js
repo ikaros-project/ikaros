@@ -3,17 +3,31 @@ const nav =
     init()
     {
         nav.navigator = document.getElementById('navigator');
+        nav.content = document.getElementById('navigator_content');
+        nav.button = document.getElementById('main_nav_toggle_button');
         if(nav.navigator)
             nav.navigator.addEventListener('click', nav.handleClick, false);
     },
 
     toggle()
     {
-        const s = window.getComputedStyle(nav.navigator, null);
-        if(s.display === 'none')
-            nav.navigator.style.display = 'block';
-        else
-            nav.navigator.style.display = 'none';
+        if(nav.navigator.classList.contains("open"))
+        {
+            nav.navigator.classList.add("closing");
+            window.setTimeout(() =>
+            {
+                nav.navigator.classList.remove("open", "closing");
+                if(nav.button)
+                    nav.button.innerHTML = "&#8801;";
+            }, 140);
+            return;
+        }
+
+        nav.navigator.classList.add("open");
+        if(nav.button)
+            nav.button.innerHTML = "&times;";
+        nav.revealSelection();
+        nav.resizeToContent();
     },
 
     toggleGroup(e)
@@ -23,12 +37,15 @@ const nav =
         else if(e.target.classList.contains("group-closed"))
             e.target.classList.replace("group-closed", "group-open");
 
+        nav.resizeToContent();
         e.stopPropagation();
     },
 
     openGroup(item)
     {
-        let g = nav.navigator.querySelector("[data-name='" + item + "']");
+        let g = nav.content.querySelector("[data-name='" + item + "']");
+        if(!g)
+            return;
         g = g.parentElement;
         while(g)
         {
@@ -36,12 +53,14 @@ const nav =
             g.classList.add("group-open");
             g = g.parentElement;
         }
+        nav.resizeToContent();
     },
 
     selectItem(item)
     {
-        nav.traverseAndSelect(nav.navigator, item);
-        nav.traverseAndOpen(nav.navigator, item);
+        nav.selected_item = item;
+        nav.traverseAndSelect(nav.content, item);
+        nav.traverseAndOpen(nav.content, item);
     },
 
     selectModule(evt)
@@ -58,14 +77,14 @@ const nav =
     handleClick(e)
     {
         const label = e.target.closest("span");
-        if(label && nav.navigator.contains(label))
+        if(label && nav.content.contains(label))
         {
             nav.navClick(e);
             return;
         }
 
         const groupItem = e.target.closest("li[data-name]");
-        if(groupItem && nav.navigator.contains(groupItem) && !groupItem.classList.contains("group-empty"))
+        if(groupItem && nav.content.contains(groupItem) && !groupItem.classList.contains("group-empty"))
             nav.toggleGroup({target: groupItem, stopPropagation: () => e.stopPropagation()});
     },
 
@@ -101,8 +120,42 @@ const nav =
     {
     },
 
+    revealSelection()
+    {
+        const selectedItem = nav.selected_item || (selector && selector.selected_background);
+        if(!selectedItem || !nav.content)
+            return;
+
+        nav.openGroup(selectedItem);
+        nav.traverseAndSelect(nav.content, selectedItem);
+        window.requestAnimationFrame(() =>
+        {
+            const selectedElement = nav.content.querySelector("[data-name='" + selectedItem + "']");
+            if(selectedElement)
+                selectedElement.scrollIntoView({block: "nearest", inline: "nearest"});
+        });
+    },
+
+    resizeToContent()
+    {
+        if(!nav.navigator || !nav.content)
+            return;
+
+        const rect = nav.navigator.getBoundingClientRect();
+        const style = window.getComputedStyle(nav.navigator);
+        const borderHeight = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+        const paddingHeight = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+        const contentStyle = window.getComputedStyle(nav.content);
+        const contentTop = parseFloat(contentStyle.marginTop);
+        const maxHeight = Math.max(120, window.innerHeight - rect.top - 12);
+        const measuredHeight = Math.ceil(nav.content.scrollHeight + contentTop + paddingHeight + borderHeight);
+
+        nav.navigator.style.setProperty("--navigator-open-height", Math.min(measuredHeight, maxHeight) + "px");
+    },
+
     populate()
     {
-        nav.navigator.innerHTML = "<ul>" + nav.buildList(network.network, "") + "</ul>";
+        nav.content.innerHTML = "<ul>" + nav.buildList(network.network, "") + "</ul>";
+        nav.resizeToContent();
     }
 };

@@ -36,6 +36,7 @@
     <script src="ui/dialog.js" defer></script>
     <script src="ui/breadcrumbs.js" defer></script>
     <script src="ui/nav.js" defer></script>
+    <script src="ui/menu.js" defer></script>
     <script src="ui/log.js" defer></script>
     <script src="core/selector.js" defer></script>
     <script src="ui/inspector.js" defer></script>
@@ -168,7 +169,37 @@
 
 	<header style="display:none">
         <div  class="breadcrumbs" id="breadcrumbs">
-            <div class="button" onclick="nav.toggle()" id="nav">&#8801;</div>
+            <div class="button" id="menu">&#8801;</div>
+            <menu id="menu_dropdown" class="top-menu-dropdown">
+                <button type="button" onclick="app_menu.choose('new')">New</button>
+                <button type="button" onclick="app_menu.choose('open')">Open...</button>
+                <button type="button" onclick="app_menu.choose('save')">Save</button>
+                <button type="button" onclick="app_menu.choose('saveas')">Save As...</button>
+                <button type="button" onclick="app_menu.choose('quit')">Quit</button>
+            </menu>
+            <div class="top_transport_controls">
+                <span id="top_tick" class="top_transport_status" title="Current tick">-</span>
+                <button type="button" onmousedown="controller.stop()" aria-label="Stop" title="Stop">
+                    <svg class="transport_icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10"/></svg>
+                </button>
+                <button type="button" onmousedown="controller.pause()" aria-label="Pause" title="Pause">
+                    <svg class="transport_icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="6" width="3.5" height="12"/><rect x="13.5" y="6" width="3.5" height="12"/></svg>
+                </button>
+                <button type="button" onmousedown="controller.step()" aria-label="Step" title="Step">
+                    <svg class="transport_icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6 L15 12 L7 18 Z"/><rect x="16.5" y="6" width="2" height="12"/></svg>
+                </button>
+                <button type="button" onmousedown="controller.play()" aria-label="Play" title="Play">
+                    <svg class="transport_icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5 L18 12 L8 18.5 Z"/></svg>
+                </button>
+                <button type="button" onmousedown="controller.realtime()" aria-label="Realtime" title="Realtime">
+                    <svg class="transport_icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12.5" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 8.5 V12.5 L15.5 14.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <rect x="9" y="3" width="6" height="2" rx="1"/>
+                    </svg>
+                </button>
+                <span id="top_time" class="top_transport_status" title="Current time">-</span>
+            </div>
             <div class="stretch" ></div>
             <div class="button" onclick="main.toggleEditMode()" style="font-family:Arial">&#9998;</div>
             <div class="button" id="library_inspector_button" onclick="inspector.toggleLibrary()" aria-label="Open library inspector" title="Open library inspector">
@@ -183,6 +214,16 @@
 
 	<section>
         <main id="main" class="view_mode">
+            <!-- NAVIGATOR -->
+
+		    <nav id="navigator">
+                <button id="main_nav_toggle_button" onclick="nav.toggle()">&#8801;</button>
+                <div id="navigator_content">
+                </div>
+		    </nav>
+
+            <div class="breadcrumbs main_breadcrumbs" id="main_breadcrumbs">
+            </div>
 
             <div id="main_grid" >
 
@@ -210,11 +251,6 @@
             <div id="connections"> </div>
             <div id="main_view"  style="position:absolute;z-index: 400;height:3000px;width:3000px;top:0px;left:0px" > </div>
 		</main>
-
-        <!-- NAVIGATOR -->
-
-		<nav id="navigator">
-		</nav>
 
         <!-- COMPONENT INSPECTOR -->
 
@@ -645,12 +681,14 @@
             <table id="i_table">
                  <tbody>
                     <tr>
-                        <td colspan="2"  style="text-align: center;">
-                            <button onmousedown="controller.new()">New</button>
-                            <button onmousedown="controller.open()">Open...</button>
-                            <button onmousedown="controller.save()">Save</button>
-                            <button onmousedown="controller.saveas()">Save As...</button>
-                            <button onmousedown="controller.quit()">Quit</button>
+                        <td colspan="2" class="system-file-button-cell">
+                            <div class="system-file-button-group">
+                                <button onmousedown="controller.new()">New</button>
+                                <button onmousedown="controller.open()">Open...</button>
+                                <button onmousedown="controller.save()">Save</button>
+                                <button onmousedown="controller.saveas()">Save As...</button>
+                                <button onmousedown="controller.quit()">Quit</button>
+                            </div>
                         </td>
                     </tr>
                     <tr>

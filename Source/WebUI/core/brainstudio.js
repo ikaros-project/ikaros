@@ -1043,6 +1043,7 @@ const brainstudio =
         log.init();
         inspector.init();
         nav.init();
+        app_menu.init();
         breadcrumbs.init();
         main.init();
         auth.bootstrap();

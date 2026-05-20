@@ -1025,10 +1025,9 @@ const main =
         ctx.lineWidth = 1 / dpr;
         ctx.strokeStyle = "gray";
         const maxDim = Math.max(width, height);
-        const pixelAlign = 0.5 / dpr;
-        for(let x = main.grid_spacing; x < maxDim; x += main.grid_spacing)
+        for(let x = 0; x < maxDim; x += main.grid_spacing)
         {
-            const xx = x + pixelAlign;
+            const xx = x;
             ctx.beginPath();
             ctx.moveTo(xx, 0);
             ctx.lineTo(xx, height);

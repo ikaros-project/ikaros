@@ -2,32 +2,26 @@ const breadcrumbs =
 {
     init()
     {
-        breadcrumbs.breadcrumbs = document.querySelector("#breadcrumbs");
+        breadcrumbs.main_breadcrumbs = document.querySelector("#main_breadcrumbs");
     },
 
     selectItem(item)
     {
-        const crum = breadcrumbs.breadcrumbs.querySelectorAll('.dynamic');
-        crum.forEach((crumb) => { crumb.remove(); });
         let path = "";
         let sep = "";
         let h = "";
-        for(const g of item.split('.'))
+        const groups = item.split('.');
+        groups.forEach((g, index) =>
         {
             path += sep + g;
             sep = ".";
-            let styleStr = "";
-            if(path == item)
-            {
-                styleStr = "style='--breadcrumb-element-color: var(--breadcrumb-active-color); border-radius: 5px;'";
-                h += "<div class='dynamic' " + styleStr + " onclick='selector.selectItems([], \"" + path + "\")'>" + g + "</div>";
-            }
-            else
-            {
-                h += "<div class='bread dynamic' " + styleStr + " onclick='selector.selectItems([], \"" + path + "\")'>" + g + "</div>";
-            }
-        }
-        h += "</div>";
-        document.querySelector("#nav").insertAdjacentHTML('afterend', h);
+            if(index > 0)
+                h += "<span class='breadcrumb_separator'>&rsaquo;</span>";
+            const currentClass = index === groups.length - 1 ? " current" : "";
+            h += "<span class='breadcrumb_text" + currentClass + "' onclick='selector.selectItems([], \"" + path + "\")'>" + g + "</span>";
+        });
+
+        if(breadcrumbs.main_breadcrumbs)
+            breadcrumbs.main_breadcrumbs.innerHTML = h;
     }
 };
