@@ -3,10 +3,34 @@ const nav =
     init()
     {
         nav.navigator = document.getElementById('navigator');
-        nav.content = document.getElementById('navigator_content');
-        nav.button = document.getElementById('main_nav_toggle_button');
+        nav.content = document.getElementById('navigator_tree');
+        nav.button = document.getElementById('navigator_toggle_button');
         if(nav.navigator)
             nav.navigator.addEventListener('click', nav.handleClick, false);
+    },
+
+    positionAtButton(button)
+    {
+        if(!nav.navigator || !button)
+            return;
+        const r = button.getBoundingClientRect();
+        nav.navigator.style.left = `${Math.round(r.left)}px`;
+        nav.navigator.style.top = `${Math.round(r.top)}px`;
+    },
+
+    toggleFromButton(button)
+    {
+        nav.positionAtButton(button);
+        if(button && main && typeof main.getPaneFromSource === "function")
+        {
+            const pane = main.getPaneFromSource(button);
+            if(pane)
+            {
+                nav.target_pane = pane;
+                main.activatePane(pane, false);
+            }
+        }
+        nav.toggle();
     },
 
     toggle()
@@ -70,6 +94,8 @@ const nav =
     navClick(e)
     {
         const bg = e.target.parentElement.dataset.name;
+        if(nav.target_pane && main && typeof main.activatePane === "function")
+            main.activatePane(nav.target_pane, false);
         selector.selectItems([], bg);
         e.stopPropagation();
     },

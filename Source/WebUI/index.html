@@ -168,7 +168,7 @@
 
 
 	<header style="display:none">
-        <div  class="breadcrumbs" id="breadcrumbs">
+        <div class="top_toolbar" id="top_toolbar">
             <div class="button" id="menu">&#8801;</div>
             <menu id="menu_dropdown" class="top-menu-dropdown">
                 <button type="button" onclick="app_menu.choose('new')">New</button>
@@ -217,39 +217,39 @@
             <!-- NAVIGATOR -->
 
 		    <nav id="navigator">
-                <button id="main_nav_toggle_button" onclick="nav.toggle()">&#8801;</button>
-                <div id="navigator_content">
+                <button id="navigator_toggle_button" onclick="nav.toggle()">&#8801;</button>
+                <div id="navigator_tree">
                 </div>
 		    </nav>
 
-            <div class="breadcrumbs main_breadcrumbs" id="main_breadcrumbs">
+            <div id="main_workspace" class="split_node">
+                <section class="main_pane active" id="main_pane_1">
+                    <div class="main_breadcrumb_strip">
+                    </div>
+
+                    <div class="main_pane_surface" >
+                        <div class="main_grid_controls">
+                            <button onclick="main.decreaseGrid()" style="border-radius:15px 0 0 15px; margin-left: 0">-</button>
+                            <button onclick="main.increaseGrid()" >+</button>
+                            <button onclick="main.arrangeComponents()">arrange</button>
+                            <button class="auto_routing_toggle_button" onclick="main.toggleBackgroundAutoRouting()">auto route</button>
+                            <button class="command_info_button" onclick="main.showCommandInfo()" style="border-radius:0 15px 15px 0;"><span class="info-glyph">i</span></button>
+                        </div>
+
+                        <div class="component_create_controls">
+                            <button onclick="main.newModule()" style="border-radius:15px 0 0 15px; margin-left: 0">Module</button>
+                            <button onclick="main.newGroup()" >Group</button>
+                            <button onclick="main.newInput()">Input</button>
+                            <button onclick="main.newOutput()">Output</button>
+                            <button onclick="main.newWidget()" style="border-radius:0 15px 15px 0;" >Widget</button>
+                        </div>
+
+                        <canvas class="main_pane_grid_canvas" width="3000" height="3000" ></canvas>
+                    </div>
+                    <div class="main_pane_connections_layer"> </div>
+                    <div class="main_pane_component_layer"> </div>
+                </section>
             </div>
-
-            <div id="main_grid" >
-
-
-              
-
-                <div class="grid_commands">
-                    <button onclick="main.decreaseGrid()" style="border-radius:15px 0 0 15px; margin-left: 0">-</button>
-                    <button onclick="main.increaseGrid()" >+</button>
-                    <button onclick="main.arrangeComponents()">arrange</button>
-                    <button id="auto_routing_toggle_button" onclick="main.toggleBackgroundAutoRouting()">auto route</button>
-                    <button id="command_info_button" onclick="main.showCommandInfo()" style="border-radius:0 15px 15px 0;"><span class="info-glyph">i</span></button>
-                </div>
-
-                <div class="group_commands" id="group_commands">
-                    <button onclick="main.newModule()" style="border-radius:15px 0 0 15px; margin-left: 0">Module</button>
-                    <button onclick="main.newGroup()" >Group</button>
-                    <button onclick="main.newInput()">Input</button>
-                    <button onclick="main.newOutput()">Output</button>
-                    <button onclick="main.newWidget()" style="border-radius:0 15px 15px 0;" >Widget</button>
-                </div>
-
-                <canvas id="main_grid_canvas" width="3000" height="3000" ></canvas>
-            </div>
-            <div id="connections"> </div>
-            <div id="main_view"  style="position:absolute;z-index: 400;height:3000px;width:3000px;top:0px;left:0px" > </div>
 		</main>
 
         <!-- COMPONENT INSPECTOR -->

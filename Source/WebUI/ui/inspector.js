@@ -2302,7 +2302,8 @@ const inspector =
                 break;
             
             case "widget":
-                const widgetContainer = document.getElementById(`${selector.selected_background}.${item.name}`);
+                const widgetName = `${selector.selected_background}.${item.name}`;
+                const widgetContainer = main && typeof main.getPaneElement === "function" ? main.getPaneElement(widgetName) : document.getElementById(widgetName);
                 inspector.addHeader("WIDGET");
                 if (editMode) {
                     const widgetClassMenu = inspector.addMenu("class", item.class, widget_classes);
@@ -2312,8 +2313,12 @@ const inspector =
                     };
                     widgetClassMenu.addEventListener('input', applyWidgetClass);
                     widgetClassMenu.addEventListener('change', applyWidgetClass);
-                    const template = widgetContainer.widget.parameter_template;
-                    inspector.addDataRows(item, template, widgetContainer.widget);
+                    const widgetElement = main.getFrameWidget(widgetContainer);
+                    if(widgetElement)
+                    {
+                        const template = widgetElement.parameter_template;
+                        inspector.addDataRows(item, template, widgetElement);
+                    }
                 } else {
                     inspector.addAttributeValue("name", item.name);
                 }

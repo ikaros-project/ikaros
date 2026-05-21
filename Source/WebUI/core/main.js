@@ -23,18 +23,403 @@ const main =
     init()
     {
         main.main = document.querySelector("#main");
-        main.view = document.querySelector("#main_view");
-        main.grid = document.querySelector("#main_grid");
-        main.grid_canvas = document.querySelector("#main_grid_canvas");
-        main.auto_routing_toggle_button = document.getElementById("auto_routing_toggle_button");
+        main.workspace = document.querySelector("#main_workspace");
+        main.active_pane = main.getPaneElements(document.querySelector(".main_pane.active"));
+        main.applyActivePaneReferences();
         main.createContextMenu();
         main.createComponentColorMenu();
         main.createWidgetMenu();
         main.createReconnectOverlay();
         main.drawGrid();
-        window.addEventListener("resize", main.drawGrid, false);
-        main.view.addEventListener("mousedown", main.startBackgroundSelection, false);
-        main.view.addEventListener("contextmenu", main.showBackgroundContextMenu, false);
+        window.addEventListener("resize", () => main.refreshAllPaneGeometry(), false);
+        main.installPaneEvents(main.active_pane.root);
+    },
+
+    getPaneElements(pane)
+    {
+        main.ensurePaneId(pane);
+        return {
+            root: pane,
+            breadcrumb_strip: pane ? pane.querySelector(".main_breadcrumb_strip") : null,
+            surface: pane ? pane.querySelector(".main_pane_surface") : null,
+            grid_canvas: pane ? pane.querySelector(".main_pane_grid_canvas") : null,
+            connections_layer: pane ? pane.querySelector(".main_pane_connections_layer") : null,
+            component_layer: pane ? pane.querySelector(".main_pane_component_layer") : null,
+            auto_routing_toggle_button: pane ? pane.querySelector(".auto_routing_toggle_button") : null
+        };
+    },
+
+    ensurePaneId(pane)
+    {
+        if(!pane)
+            return "";
+        if(!main.pane_sequence)
+            main.pane_sequence = 1;
+        if(!pane.id)
+            pane.id = `main_pane_${++main.pane_sequence}`;
+        return pane.id;
+    },
+
+    getPaneDomId(logicalId, pane=main.active_pane)
+    {
+        const root = pane && pane.root ? pane.root : (pane && pane.classList ? pane : null);
+        const paneId = main.ensurePaneId(root);
+        return `${paneId}__${logicalId}`;
+    },
+
+    getPaneElement(logicalId, pane=main.active_pane)
+    {
+        if(!logicalId)
+            return null;
+        const root = pane && pane.root ? pane.root : (pane && pane.classList ? pane : null);
+        if(root && typeof CSS !== "undefined" && typeof CSS.escape === "function")
+            return root.querySelector(`[data-logical-id="${CSS.escape(logicalId)}"]`);
+        return document.getElementById(logicalId);
+    },
+
+    getElementLogicalId(element)
+    {
+        return element && element.dataset && element.dataset.logicalId ? element.dataset.logicalId : (element ? element.id : "");
+    },
+
+    getFrameWidget(frame)
+    {
+        if(!frame)
+            return null;
+        if(typeof frame.querySelector === "function")
+            return frame.querySelector(":scope > .widget");
+        return null;
+    },
+
+    updatePaneWidgetFrames(pane=null)
+    {
+        const root = pane || document;
+        const frames = root.querySelectorAll ? root.querySelectorAll(".frame") : [];
+        frames.forEach((frame) =>
+        {
+            const widgetElement = main.getFrameWidget(frame);
+            if(widgetElement && typeof widgetElement.updateFrame === "function")
+                widgetElement.updateFrame();
+        });
+    },
+
+    applyActivePaneReferences()
+    {
+        if(!main.active_pane)
+            return;
+        main.view = main.active_pane.component_layer;
+        main.grid = main.active_pane.surface;
+        main.grid_canvas = main.active_pane.grid_canvas;
+        main.auto_routing_toggle_button = main.active_pane.auto_routing_toggle_button;
+    },
+
+    installPaneEvents(pane)
+    {
+        const elements = main.getPaneElements(pane);
+        if(elements.root && elements.root.dataset.mainPaneEventsInstalled !== "true")
+        {
+            elements.root.addEventListener("mousedown", main.activatePaneFromEvent, true);
+            elements.root.dataset.mainPaneEventsInstalled = "true";
+        }
+        if(!elements.component_layer || elements.component_layer.dataset.mainEventsInstalled === "true")
+            return;
+        elements.component_layer.addEventListener("mousedown", main.startBackgroundSelection, false);
+        elements.component_layer.addEventListener("contextmenu", main.showBackgroundContextMenu, false);
+        elements.component_layer.dataset.mainEventsInstalled = "true";
+    },
+
+    activatePaneFromEvent(evt)
+    {
+        const pane = evt.currentTarget;
+        if(!pane || pane.classList.contains("active"))
+            return;
+        main.activatePane(pane, false);
+    },
+
+    createPane()
+    {
+        const pane = document.createElement("section");
+        main.ensurePaneId(pane);
+        pane.className = "main_pane";
+        pane.innerHTML = `
+            <div class="main_breadcrumb_strip"></div>
+            <div class="main_pane_surface">
+                <div class="main_grid_controls">
+                    <button onclick="main.decreaseGrid()" style="border-radius:15px 0 0 15px; margin-left: 0">-</button>
+                    <button onclick="main.increaseGrid()">+</button>
+                    <button onclick="main.arrangeComponents()">arrange</button>
+                    <button class="auto_routing_toggle_button" onclick="main.toggleBackgroundAutoRouting()">auto route</button>
+                    <button class="command_info_button" onclick="main.showCommandInfo()" style="border-radius:0 15px 15px 0;"><span class="info-glyph">i</span></button>
+                </div>
+                <div class="component_create_controls">
+                    <button onclick="main.newModule()" style="border-radius:15px 0 0 15px; margin-left: 0">Module</button>
+                    <button onclick="main.newGroup()">Group</button>
+                    <button onclick="main.newInput()">Input</button>
+                    <button onclick="main.newOutput()">Output</button>
+                    <button onclick="main.newWidget()" style="border-radius:0 15px 15px 0;">Widget</button>
+                </div>
+                <canvas class="main_pane_grid_canvas" width="3000" height="3000"></canvas>
+            </div>
+            <div class="main_pane_connections_layer"></div>
+            <div class="main_pane_component_layer"></div>
+        `;
+        main.installPaneEvents(pane);
+        return pane;
+    },
+
+    resetSplitLayout()
+    {
+        if(!main.workspace)
+            return;
+
+        const currentPane = main.active_pane && main.active_pane.root ? main.active_pane.root : document.querySelector(".main_pane");
+        const pane = currentPane || main.createPane();
+        document.querySelectorAll(".main_pane.active").forEach((p) => p.classList.remove("active"));
+        pane.classList.add("active");
+
+        if(pane.parentElement !== main.workspace || main.workspace.children.length !== 1)
+        {
+            main.workspace.innerHTML = "";
+            main.workspace.className = "split_node";
+            main.workspace.appendChild(pane);
+        }
+
+        main.active_pane = main.getPaneElements(pane);
+        main.applyActivePaneReferences();
+        main.installPaneEvents(pane);
+        main.drawGrid();
+    },
+
+    activatePane(pane, render=true)
+    {
+        if(!pane)
+            return;
+        const paneChanged = !(main.active_pane && main.active_pane.root === pane);
+        document.querySelectorAll(".main_pane.active").forEach((p) => p.classList.remove("active"));
+        pane.classList.add("active");
+        main.active_pane = main.getPaneElements(pane);
+        main.applyActivePaneReferences();
+        main.installPaneEvents(pane);
+        main.drawGrid();
+        if(selector && pane.dataset.background)
+        {
+            if(pane.dataset.background !== selector.selected_background || paneChanged)
+            {
+                selector.selected_background = pane.dataset.background;
+                selector.selected_foreground = [];
+                selector.selected_connection = null;
+            }
+            setCookie("selected_background", selector.selected_background);
+            nav.selectItem(selector.selected_background);
+        }
+        if(selector && selector.selected_background)
+        {
+            breadcrumbs.selectItem(selector.selected_background);
+            if(render)
+                main.selectItem(selector.selected_foreground, selector.selected_background);
+            else
+            {
+                main.updateComponentStates();
+                main.updateAutoRoutingButtonState();
+            }
+            if(inspector && typeof inspector.showInspectorForSelection === "function")
+                inspector.showInspectorForSelection(false);
+        }
+    },
+
+    getPaneFromSource(source)
+    {
+        if(source && typeof source.closest === "function")
+            return source.closest(".main_pane");
+        return main.active_pane ? main.active_pane.root : null;
+    },
+
+    splitHorizontal(source=null)
+    {
+        main.splitPane("horizontal", main.getPaneFromSource(source));
+    },
+
+    splitVertical(source=null)
+    {
+        main.splitPane("vertical", main.getPaneFromSource(source));
+    },
+
+    splitMirror(source=null)
+    {
+        main.splitPane("vertical", main.getPaneFromSource(source), "mirror");
+    },
+
+    isMirrorPane(pane)
+    {
+        return !!(pane && pane.closest && pane.closest(".split_mirror"));
+    },
+
+    splitPane(direction, pane=null, splitType="split")
+    {
+        if(!pane)
+            return;
+        if(main.isMirrorPane(pane))
+            return;
+        const wasActive = pane.classList.contains("active");
+        const splitNode = document.createElement("div");
+        splitNode.className = `split_node split_${direction}`;
+        if(splitType === "mirror")
+            splitNode.classList.add("split_mirror");
+        splitNode.dataset.splitType = splitType;
+        splitNode.style.setProperty("--split-ratio", "50");
+        const newPane = main.createPane();
+        const handle = main.createSplitHandle(direction);
+        pane.replaceWith(splitNode);
+        splitNode.appendChild(pane);
+        splitNode.appendChild(newPane);
+        splitNode.appendChild(handle);
+        main.installPaneEvents(pane);
+        main.drawGrid(main.getPaneElements(newPane));
+        if(selector && selector.selected_background)
+        {
+            newPane.dataset.background = selector.selected_background;
+            breadcrumbs.selectItem(selector.selected_background, newPane);
+        }
+        if(selector && selector.selected_background)
+            main.renderIntoPane(newPane, selector.selected_background, []);
+        if(wasActive)
+            main.activatePane(pane, false);
+        if(controller && typeof controller.forceNextUpdate === "function" && controller.run_mode !== "stop")
+        {
+            requestAnimationFrame(() =>
+            {
+                main.refreshAllPaneGeometry();
+                main.updatePaneWidgetFrames(splitNode);
+                const latestData = controller.g_data || (controller.data_package ? controller.data_package.data : null);
+                if(latestData)
+                    controller.updateImages(latestData);
+                controller.forceNextUpdate();
+            });
+        }
+        else
+            requestAnimationFrame(() => main.updatePaneWidgetFrames(splitNode));
+    },
+
+    createSplitHandle(direction)
+    {
+        const handle = document.createElement("div");
+        handle.className = `split_resize_handle split_resize_handle_${direction}`;
+        handle.dataset.direction = direction;
+        handle.addEventListener("mousedown", main.startSplitResize, false);
+        return handle;
+    },
+
+    startSplitResize(evt)
+    {
+        const handle = evt.currentTarget;
+        const splitNode = handle ? handle.parentElement : null;
+        if(!splitNode)
+            return;
+
+        evt.preventDefault();
+        evt.stopPropagation();
+        main.split_resize = {
+            splitNode,
+            direction: handle.dataset.direction
+        };
+        document.addEventListener("mousemove", main.resizeSplit, true);
+        document.addEventListener("mouseup", main.finishSplitResize, true);
+    },
+
+    resizeSplit(evt)
+    {
+        const session = main.split_resize;
+        if(!session || !session.splitNode)
+            return;
+
+        const rect = session.splitNode.getBoundingClientRect();
+        const isVertical = session.direction === "vertical";
+        const size = isVertical ? rect.width : rect.height;
+        if(size <= 0)
+            return;
+
+        const pointer = isVertical ? evt.clientX - rect.left : evt.clientY - rect.top;
+        const minPixels = 80;
+        const minRatio = Math.min(45, Math.max(5, (minPixels / size) * 100));
+        const ratio = Math.max(minRatio, Math.min(100 - minRatio, (pointer / size) * 100));
+
+        main.setSplitRatio(session.splitNode, session.direction, ratio);
+        main.refreshAllPaneGeometry();
+    },
+
+    finishSplitResize()
+    {
+        document.removeEventListener("mousemove", main.resizeSplit, true);
+        document.removeEventListener("mouseup", main.finishSplitResize, true);
+        main.split_resize = null;
+        main.refreshAllPaneGeometry();
+        main.updatePaneWidgetFrames();
+        if(controller && controller.g_data)
+            controller.updateImages(controller.g_data);
+    },
+
+    setSplitRatio(splitNode, direction, ratio)
+    {
+        splitNode.style.setProperty("--split-ratio", String(ratio));
+        if(direction === "vertical")
+            splitNode.style.gridTemplateColumns = `minmax(0, ${ratio}fr) minmax(0, ${100 - ratio}fr)`;
+        else
+            splitNode.style.gridTemplateRows = `minmax(0, ${ratio}fr) minmax(0, ${100 - ratio}fr)`;
+    },
+
+    refreshAllPaneGeometry()
+    {
+        const previousPane = main.active_pane;
+        document.querySelectorAll(".main_pane").forEach((pane) =>
+        {
+            const elements = main.getPaneElements(pane);
+            main.drawGrid(elements);
+            if(pane.dataset.background)
+            {
+                main.active_pane = elements;
+                main.applyActivePaneReferences();
+                main.addConnections();
+            }
+        });
+        main.active_pane = previousPane;
+        main.applyActivePaneReferences();
+    },
+
+    getFirstPane(node)
+    {
+        if(!node)
+            return null;
+        if(node.classList && node.classList.contains("main_pane"))
+            return node;
+        return node.querySelector ? node.querySelector(".main_pane") : null;
+    },
+
+    closePane(source=null)
+    {
+        const pane = main.getPaneFromSource(source);
+        if(!pane || !main.workspace)
+            return;
+
+        const allPanes = Array.from(main.workspace.querySelectorAll(".main_pane"));
+        if(allPanes.length <= 1)
+            return;
+
+        const splitNode = pane.parentElement;
+        if(!splitNode || !splitNode.classList || !splitNode.classList.contains("split_node"))
+            return;
+
+        const sibling = Array.from(splitNode.children).find((child) => child !== pane && !child.classList.contains("split_resize_handle"));
+        if(!sibling)
+            return;
+
+        const nextActivePane = main.getFirstPane(sibling);
+        const splitParent = splitNode.parentElement;
+        if(!splitParent)
+            return;
+
+        splitNode.replaceWith(sibling);
+        if(nextActivePane)
+            main.activatePane(nextActivePane, false);
     },
 
     // Reconnect overlay state.
@@ -581,15 +966,16 @@ const main =
         if(!fullName || !parameterName)
             return;
         const item = network.dict[fullName];
-        const widgetFrame = document.getElementById(fullName);
-        if(!item || item._tag !== "widget" || !widgetFrame || !widgetFrame.widget)
+        const widgetFrame = main.getPaneElement(fullName);
+        const widgetElement = main.getFrameWidget(widgetFrame);
+        if(!item || item._tag !== "widget" || !widgetElement)
             return;
 
-        item[parameterName] = !widgetFrame.widget.toBool(item[parameterName]);
-        widgetFrame.widget.parameters[parameterName] = item[parameterName];
+        item[parameterName] = !widgetElement.toBool(item[parameterName]);
+        widgetElement.parameters[parameterName] = item[parameterName];
         try
         {
-            widgetFrame.widget.updateAll();
+            widgetElement.updateAll();
         }
         catch(err)
         {
@@ -597,6 +983,7 @@ const main =
         }
         if(inspector && typeof inspector.showInspectorForSelection === "function")
             inspector.showInspectorForSelection();
+        main.refreshMatchingBackgroundPanes(selector.selected_background, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
         controller.setTainted(true, "toggleWidgetParameter");
     },
 
@@ -641,6 +1028,8 @@ const main =
                 selector.selectConnection(selector.selected_connection);
             if(inspector && typeof inspector.showInspectorForSelection === "function")
                 inspector.showInspectorForSelection();
+            main.addConnections();
+            main.refreshMatchingBackgroundPanes(selector.selected_background, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
             return;
         }
         if(selector.selected_background != null)
@@ -990,35 +1379,40 @@ const main =
         evt.stopPropagation();
     },
 
-    ensureGridCanvasSize()
+    ensureGridCanvasSize(pane=main.active_pane)
     {
-        if(!main.grid_canvas || !main.main || !main.view)
+        const gridCanvas = pane ? pane.grid_canvas : null;
+        const componentLayer = pane ? pane.component_layer : null;
+        if(!gridCanvas || !main.main || !componentLayer)
             return;
         const dpr = window.devicePixelRatio || 1;
         const minSize = 3000;
-        const targetWidth = Math.max(minSize, main.main.clientWidth, main.view.clientWidth);
-        const targetHeight = Math.max(minSize, main.main.clientHeight, main.view.clientHeight);
+        const targetWidth = Math.max(minSize, main.main.clientWidth, componentLayer.clientWidth);
+        const targetHeight = Math.max(minSize, main.main.clientHeight, componentLayer.clientHeight);
         const backingWidth = Math.floor(targetWidth * dpr);
         const backingHeight = Math.floor(targetHeight * dpr);
-        if(main.grid_canvas.width !== backingWidth)
-            main.grid_canvas.width = backingWidth;
-        if(main.grid_canvas.height !== backingHeight)
-            main.grid_canvas.height = backingHeight;
-        main.grid_canvas.style.width = `${targetWidth}px`;
-        main.grid_canvas.style.height = `${targetHeight}px`;
-        main.grid_canvas_css_width = targetWidth;
-        main.grid_canvas_css_height = targetHeight;
-        main.grid_canvas_dpr = dpr;
+        if(gridCanvas.width !== backingWidth)
+            gridCanvas.width = backingWidth;
+        if(gridCanvas.height !== backingHeight)
+            gridCanvas.height = backingHeight;
+        gridCanvas.style.width = `${targetWidth}px`;
+        gridCanvas.style.height = `${targetHeight}px`;
+        pane.grid_canvas_css_width = targetWidth;
+        pane.grid_canvas_css_height = targetHeight;
+        pane.grid_canvas_dpr = dpr;
     },
 
     // Background interaction, grid drawing, and canvas layout.
-    drawGrid()
+    drawGrid(pane=main.active_pane)
     {
-        main.ensureGridCanvasSize();
-        const ctx = main.grid_canvas.getContext("2d");
-        const width = main.grid_canvas_css_width || main.grid_canvas.width;
-        const height = main.grid_canvas_css_height || main.grid_canvas.height;
-        const dpr = main.grid_canvas_dpr || 1;
+        main.ensureGridCanvasSize(pane);
+        const gridCanvas = pane ? pane.grid_canvas : null;
+        if(!gridCanvas)
+            return;
+        const ctx = gridCanvas.getContext("2d");
+        const width = pane.grid_canvas_css_width || gridCanvas.width;
+        const height = pane.grid_canvas_css_height || gridCanvas.height;
+        const dpr = pane.grid_canvas_dpr || 1;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, width, height);
@@ -1095,7 +1489,7 @@ const main =
             if(!localName || !object)
                 return;
             const fullName = `${selector.selected_background}.${localName}`;
-            const element = document.getElementById(fullName);
+            const element = main.getPaneElement(fullName);
             let width = element ? element.offsetWidth : 0;
             let height = element ? element.offsetHeight : 0;
             if(width <= 0 || height <= 0)
@@ -1210,6 +1604,7 @@ const main =
         if(inspector && typeof inspector.showInspectorForSelection === "function" && selector.selected_foreground.length === 0)
             inspector.showInspectorForSelection();
         main.addConnections();
+        main.refreshMatchingBackgroundPanes(selector.selected_background, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
     },
 
     arrangeComponents()
@@ -2093,7 +2488,7 @@ const main =
 
     changeComponentPosition(c, dx,dy, snap_to_grid=true)
     {
-        const e = document.getElementById(c);
+        const e = main.getPaneElement(c);
         if(!e)
             return;
 
@@ -2124,7 +2519,9 @@ const main =
     changeComponentSize(dX, dY)
     {
         const w_id = selector.selected_foreground[0];
-        const w = document.getElementById(w_id);
+        const w = main.getPaneElement(w_id);
+        if(!w)
+            return;
         const newWidth = main.grid_spacing*Math.round((main.startX + dX)/main.grid_spacing)+1;
         const newHeight = main.grid_spacing*Math.round((main.startY + dY)/main.grid_spacing)+1;
 
@@ -2133,7 +2530,9 @@ const main =
         network.dict[w_id].width = newWidth;
         network.dict[w_id].height = newHeight;
 
-        w.widget.parameterChangeNotification(network.dict[w_id]);
+        const widgetElement = main.getFrameWidget(w);
+        if(widgetElement)
+            widgetElement.parameterChangeNotification(network.dict[w_id]);
     },
 
     moveComponents(evt)
@@ -2148,6 +2547,7 @@ const main =
         for(let c of selector.selected_foreground)
             main.changeComponentPosition(c, dx,dy);
         main.addConnections();
+        main.refreshMatchingBackgroundPanes(selector.selected_background, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
     },
 
     releaseComponents(evt)
@@ -2159,15 +2559,17 @@ const main =
         main_view.removeEventListener('mouseup',main.releaseComponents, false);
         for(const c of selector.selected_foreground)
         {
-            const e = document.getElementById(c);
+            const e = main.getPaneElement(c);
             if(e)
                 e.classList.remove("dragged");
         }
         main.map = {};
+        main.refreshMatchingBackgroundPanes(selector.selected_background, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
     },
 
     releaseResizeComponent(evt)
     {
+        const main_view = main.view;
         main_view.removeEventListener('mousemove',main.resizeComponent, true);
         main_view.removeEventListener('mouseup',main.releaseResizeComponent, true);
         main_view.removeEventListener('mousemove',main.resizeComponent, false);
@@ -2179,7 +2581,9 @@ const main =
         main.changeComponentSize(dX,dY);
 
         const w_id = selector.selected_foreground[0];
-        const w = document.getElementById(w_id);
+        const w = main.getPaneElement(w_id);
+        if(!w)
+            return;
         const newWidth = main.grid_spacing*Math.round((main.startX + dX)/main.grid_spacing)+1;
         const newHeight = main.grid_spacing*Math.round((main.startY + dY)/main.grid_spacing)+1;
 
@@ -2188,6 +2592,7 @@ const main =
         network.dict[w_id].width = newWidth;
         network.dict[w_id].height = newHeight;
         w.classList.remove("resized");
+        main.refreshMatchingBackgroundPanes(selector.selected_background, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
     },
 
     startResize(evt)
@@ -2195,7 +2600,7 @@ const main =
         evt.stopPropagation();
         main.startX = this.offsetLeft;
         main.startY = this.offsetTop;
-        selector.selectItemsAndReveal([this.parentElement.id]);
+        selector.selectItemsAndReveal([this.parentElement.dataset.name]);
         this.parentElement.classList.add("resized");
 
         main.initialMouseX = evt.clientX;
@@ -2249,8 +2654,9 @@ const main =
         main.map = {};
         for(let c of selector.selected_foreground)
         {
-            const e = document.getElementById(c);
-            main.map[c] = [e.offsetLeft, e.offsetTop];
+            const e = main.getPaneElement(c);
+            if(e)
+                main.map[c] = [e.offsetLeft, e.offsetTop];
         }
 
         main.view.addEventListener('mousemove',main.moveComponents, true);
@@ -2266,8 +2672,8 @@ const main =
         this.style.backgroundColor="orange";
         evt.stopPropagation();
 
-        const id = this.id;
-        const e = document.getElementById(id);
+        const id = main.getElementLogicalId(this);
+        const e = main.getPaneElement(id);
         const viewRect = main.view.getBoundingClientRect();
         const elementRect = e.getBoundingClientRect();
         const x = elementRect.left-viewRect.left+4.5;
@@ -2279,7 +2685,7 @@ const main =
             y1: y, 
             x2: x, 
             y2: y, 
-            source: id.split(':')[0], 
+            source: id.replace(/:out$/, ""),
             target: null, 
             source_element: e,
             target_element: null
@@ -2301,7 +2707,7 @@ const main =
 
         if(tracked.target)
         {
-            const targetElement = document.getElementById(tracked.target);
+            const targetElement = main.getPaneElement(tracked.target);
             if(targetElement)
                 targetElement.style.backgroundColor = "";
         }
@@ -2325,25 +2731,25 @@ const main =
         if(!element)
             return null;
 
-        if(element.matches && element.matches(".i_spot") && element.id)
-            return element.id;
+        if(element.matches && element.matches(".i_spot") && main.getElementLogicalId(element))
+            return main.getElementLogicalId(element);
 
         if(element.matches && element.matches(".widget"))
         {
-            if(element.id)
-                return element.id;
+            if(main.getElementLogicalId(element))
+                return main.getElementLogicalId(element);
             const frame = element.closest(".gi.widget");
-            if(frame && frame.id)
-                return frame.id;
+            if(frame && main.getElementLogicalId(frame))
+                return main.getElementLogicalId(frame);
         }
 
         const socket = element.closest ? element.closest(".i_spot") : null;
-        if(socket && socket.id)
-            return socket.id;
+        if(socket && main.getElementLogicalId(socket))
+            return main.getElementLogicalId(socket);
 
         const widgetFrame = element.closest ? element.closest(".gi.widget") : null;
-        if(widgetFrame && widgetFrame.id)
-            return widgetFrame.id;
+        if(widgetFrame && main.getElementLogicalId(widgetFrame))
+            return main.getElementLogicalId(widgetFrame);
 
         return null;
     },
@@ -2369,7 +2775,7 @@ const main =
         const { source } = tracked;
         let target = null;
 
-        const connectionsLayer = document.getElementById("connections");
+        const connectionsLayer = main.active_pane ? main.active_pane.connections_layer : null;
         let previousPointerEvents = null;
         if(connectionsLayer)
         {
@@ -2424,15 +2830,16 @@ const main =
             if(shouldUpdateTitle)
                 network.dict[target].title = cleanSource;
 
-            const widgetFrame = document.getElementById(target);
-            if(widgetFrame && widgetFrame.widget)
+            const widgetFrame = main.getPaneElement(target);
+            const widgetElement = main.getFrameWidget(widgetFrame);
+            if(widgetElement)
             {
-                widgetFrame.widget.parameters.source = cleanSource;
+                widgetElement.parameters.source = cleanSource;
                 if(shouldUpdateTitle)
-                    widgetFrame.widget.parameters.title = cleanSource;
+                    widgetElement.parameters.title = cleanSource;
                 try
                 {
-                    widgetFrame.widget.updateAll();
+                    widgetElement.updateAll();
                 }
                 catch(err)
                 {
@@ -2456,6 +2863,7 @@ const main =
         document.removeEventListener('mousemove',main.moveTrackedConnection, true);
         document.removeEventListener('mouseup',main.releaseTrackedConnection,true);
         main.addConnections();
+        main.refreshMatchingBackgroundPanes(selector.selected_background, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
     },
 
     
@@ -2640,16 +3048,23 @@ const main =
     addGroup(g,path)
         {
         const fullName = `${path}.${g.name}`;
+        const domId = main.getPaneDomId(fullName);
         let s = "";
-        s += `<div class='gi module group' style='${main.getPositionedComponentStyle(g)}'  id='${fullName}' data-name='${fullName}'>`;
+        s += `<div class='gi module group' style='${main.getPositionedComponentStyle(g)}' id='${domId}' data-logical-id='${fullName}' data-name='${fullName}'>`;
         s += `<table>`;
         s += `<tr><td class='title' colspan='3'><span class='component-title-text' data-component='${fullName}'>${g.name}</span></td></tr>`;
 
         for(let i of g.inputs || [])
-            s += `<tr><td class='input'><div class='i_spot' id='${path}.${g.name}.${i.name}:in' onclick='alert(this.id)'></div></td><td>${i.name}</td><td></td></tr>`;
+        {
+            const spotId = `${path}.${g.name}.${i.name}:in`;
+            s += `<tr><td class='input'><div class='i_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td><td>${i.name}</td><td></td></tr>`;
+        }
 
         for(let o of g.outputs || [])
-            s += `<tr><td></td><td>${o.name}</td><td class='output'><div  class='o_spot' id='${path}.${g.name}.${o.name}:out'></div></td></tr>`;
+        {
+            const spotId = `${path}.${g.name}.${o.name}:out`;
+            s += `<tr><td></td><td>${o.name}</td><td class='output'><div class='o_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td></tr>`;
+        }
 
         s += `</table>`;
         s += `</div>`;
@@ -2658,31 +3073,42 @@ const main =
 
     addInput(i,path)
     {
-        main.view.innerHTML += `<div class='gi group_input' id='${path}.${i.name}' data-name='${path}.${i.name}' style='${main.getPositionedComponentStyle(i)}'>
-        <span class='component-title-text' data-component='${path}.${i.name}'>${i.name}</span>
-        <div class='o_spot'  id='${path}.${i.name}:out'></div>
+        const fullName = `${path}.${i.name}`;
+        const spotId = `${fullName}:out`;
+        main.view.innerHTML += `<div class='gi group_input' id='${main.getPaneDomId(fullName)}' data-logical-id='${fullName}' data-name='${fullName}' style='${main.getPositionedComponentStyle(i)}'>
+        <span class='component-title-text' data-component='${fullName}'>${i.name}</span>
+        <div class='o_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div>
         </div>`;
     },
 
     addOutput(o,path)
     {
-        main.view.innerHTML += `<div class='gi group_output'  id='${path}.${o.name}' data-name='${path}.${o.name}'  style='${main.getPositionedComponentStyle(o)}'><div class='i_spot' id='${path}.${o.name}:in'></div><span class='component-title-text' data-component='${path}.${o.name}'>${o.name}</span></div>`;
+        const fullName = `${path}.${o.name}`;
+        const spotId = `${fullName}:in`;
+        main.view.innerHTML += `<div class='gi group_output' id='${main.getPaneDomId(fullName)}' data-logical-id='${fullName}' data-name='${fullName}' style='${main.getPositionedComponentStyle(o)}'><div class='i_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div><span class='component-title-text' data-component='${fullName}'>${o.name}</span></div>`;
     },
 
     addModule(m,path)
     {
+         const fullName = `${path}.${m.name}`;
          let s = "";
-         s += `<div class='gi module' style='${main.getPositionedComponentStyle(m)}'   id='${path}.${m.name}' data-name='${path}.${m.name}'>`;
+         s += `<div class='gi module' style='${main.getPositionedComponentStyle(m)}' id='${main.getPaneDomId(fullName)}' data-logical-id='${fullName}' data-name='${fullName}'>`;
          s += `<table>`;
-         s += `<tr><td class='title' colspan='3'><span class='component-title-text' data-component='${path}.${m.name}'>${m.name}</span><button type='button' class='module-title-menu-button' aria-label='Module menu' title='Module menu' data-component='${path}.${m.name}'>&#9776;</button></td></tr>`;
+         s += `<tr><td class='title' colspan='3'><span class='component-title-text' data-component='${fullName}'>${m.name}</span><button type='button' class='module-title-menu-button' aria-label='Module menu' title='Module menu' data-component='${fullName}'>&#9776;</button></td></tr>`;
 
-             s += `<tr><td  colspan='3' class='class_line'>${m.class}<button type='button' class='module-class-menu-button' aria-label='Class menu' title='Class menu' data-component='${path}.${m.name}'>&#9776;</button></td></tr>`;
+             s += `<tr><td  colspan='3' class='class_line'>${m.class}<button type='button' class='module-class-menu-button' aria-label='Class menu' title='Class menu' data-component='${fullName}'>&#9776;</button></td></tr>`;
   
         for(let i of m.inputs || [])
-            s += `<tr><td class='input'><div class='i_spot' id='${path}.${m.name}.${i.name}:in' onclick='alert(this.id)'></div></td ><td>${i.name}</td><td class='output'></td></tr>`;
+        {
+            const spotId = `${fullName}.${i.name}:in`;
+            s += `<tr><td class='input'><div class='i_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td ><td>${i.name}</td><td class='output'></td></tr>`;
+        }
   
         for(let o of m.outputs || [])
-            s += `<tr><td class='output'></td><td>${o.name}</td><td class='output'><div class='o_spot' id='${path}.${m.name}.${o.name}:out'></div></td></tr>`;
+        {
+            const spotId = `${fullName}.${o.name}:out`;
+            s += `<tr><td class='output'></td><td>${o.name}</td><td class='output'><div class='o_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td></tr>`;
+        }
 
          s += `</table>`;
          s += `</div>`;
@@ -2693,6 +3119,16 @@ const main =
         const fullName = `${path}.${w.name}`;
         const newObject = document.createElement("div");
         newObject.setAttribute("class", "frame visible gi widget");
+        newObject.setAttribute("id", main.getPaneDomId(fullName));
+        newObject.setAttribute("data-logical-id", fullName);
+        newObject.setAttribute("data-name", fullName);
+
+        // Set style and position before the custom widget connects; several widgets
+        // read their parent frame during initialization.
+        newObject.style.top = `${w._y}px`;
+        newObject.style.left = `${w._x}px`;
+        newObject.style.width = `${w.width || 200}px`;
+        newObject.style.height = `${w.height || 200}px`;
     
         const newTitle = document.createElement("div");
         newTitle.setAttribute("class", "title");
@@ -2719,43 +3155,38 @@ const main =
         menuButton.innerHTML = "&#9776;";
         newObject.appendChild(menuButton);
     
-        const index = main.view.querySelectorAll(".widget").length;
+        const index = main.view.querySelectorAll(".frame").length;
         main.view.appendChild(newObject);
         //newObject.addEventListener('mousedown', main.startDragComponents, false);
     
         const widgetClass = `webui-widget-${w.class}`;
         let constr = webui_widgets.constructors[widgetClass];
+        let widgetElement;
     
         if (!constr) {
             console.log(`Internal Error: No constructor found for ${widgetClass}`);
-            newObject.widget = new webui_widgets.constructors['webui-widget-text'];
-            newObject.widget.element = newObject;
-            newObject.widget.parameters['text'] = `"${widgetClass}" not found. Is it included in index.html?`;
-            newObject.widget.parameters['_index_'] = index;
+            widgetElement = new webui_widgets.constructors['webui-widget-text'];
+            widgetElement.element = newObject;
+            widgetElement.parameters['text'] = `"${widgetClass}" not found. Is it included in index.html?`;
+            widgetElement.parameters['_index_'] = index;
         } else {
-            newObject.widget = new webui_widgets.constructors[widgetClass];
-            for (let k in newObject.widget.parameters) {
+            widgetElement = new webui_widgets.constructors[widgetClass];
+            for (let k in widgetElement.parameters) {
                 if (w[k] === undefined) {
-                    w[k] = newObject.widget.parameters[k];
+                    w[k] = widgetElement.parameters[k];
                 } else {
-                    let tp = newObject.widget.param_types[k];
+                    let tp = widgetElement.param_types[k];
                     w[k] = setType(w[k], tp);
                 }
             }
             if(w.show_frame === undefined)
                 w.show_frame = true;
-            newObject.widget.parameters = w;
-            newObject.widget.parameters['_index_'] = index;
+            widgetElement.parameters = w;
+            widgetElement.parameters['_index_'] = index;
         }
     
-        newObject.widget.setAttribute('class', 'widget');
-        newObject.appendChild(newObject.widget); 
-    
-        // Set style and position
-        newObject.style.top = `${w._y}px`;
-        newObject.style.left = `${w._x}px`;
-        newObject.style.width = `${w.width || 200}px`;
-        newObject.style.height = `${w.height || 200}px`;
+        widgetElement.setAttribute('class', 'widget');
+        newObject.appendChild(widgetElement);
     
         // Add handle for resizing
         const handle = document.createElement("div");
@@ -2763,12 +3194,8 @@ const main =
         handle.addEventListener('mousedown', main.startResize, false);
         newObject.appendChild(handle);
     
-        // Set attributes for the new object
-        newObject.setAttribute("id", fullName);
-        newObject.setAttribute("data-name", fullName);
-    
         try {
-            newObject.widget.updateAll();
+            widgetElement.updateAll();
         } catch (err) {
             console.log(err);
         }
@@ -2777,9 +3204,11 @@ const main =
     addConnection(c,path, routedPoints=null)
     {
         const source = getStringUpToBracket(c.source);
-        const target = getStringUpToBracket(c.target);       
-        const source_point = document.getElementById(`${path}.${source}:out`);
-        const target_point = document.getElementById(`${path}.${target}:in`);
+        const target = getStringUpToBracket(c.target);
+        const connectionId = `${path}.${source}*${path}.${target}`;
+        const connectionDomId = main.getPaneDomId(connectionId);
+        const source_point = main.getPaneElement(`${path}.${source}:out`);
+        const target_point = main.getPaneElement(`${path}.${target}:in`);
 
         if(!source_point || !target_point)
             return;
@@ -2797,20 +3226,20 @@ const main =
         if(Array.isArray(routedPoints) && routedPoints.length >= 2)
         {
             const d = main.buildRoundedOrthogonalPath(routedPoints, 10);
-            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")'/>`;
+            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${connectionDomId}" data-logical-id="${connectionId}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${connectionId}")' ondblclick='selector.selectConnectionAndReveal("${connectionId}")'/>`;
         }
         else if(lineType === "orthogonal")
         {
             const mx = Math.round((x1 + x2) / 2);
             const points = `${x1},${y1} ${mx},${y1} ${mx},${y2} ${x2},${y2}`;
-            cc = `<polyline points='${points}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")'/>`;
+            cc = `<polyline points='${points}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${connectionDomId}" data-logical-id="${connectionId}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${connectionId}")' ondblclick='selector.selectConnectionAndReveal("${connectionId}")'/>`;
         }
         else if(lineType === "orthagonal rounded" || lineType === "orthogonal rounded")
         {
             const mx = Math.round((x1 + x2) / 2);
             const points = [{x:x1,y:y1}, {x:mx,y:y1}, {x:mx,y:y2}, {x:x2,y:y2}];
             const d = main.buildRoundedOrthogonalPath(points, 10);
-            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")'/>`;
+            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${connectionDomId}" data-logical-id="${connectionId}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${connectionId}")' ondblclick='selector.selectConnectionAndReveal("${connectionId}")'/>`;
         }
         else if(lineType === "spline")
         {
@@ -2821,10 +3250,10 @@ const main =
             const c2x = x2 - bend;
             const c2y = y2;
             const d = `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
-            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")'/>`;
+            cc = `<path d='${d}' fill='none' class='connection_line'${styleAttr} data-source='${c.source}' id="${connectionDomId}" data-logical-id="${connectionId}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${connectionId}")' ondblclick='selector.selectConnectionAndReveal("${connectionId}")'/>`;
         }
         else
-            cc = `<line x1='${x1}' y1='${y1}' x2='${x2}' y2='${y2}' class='connection_line'${styleAttr} data-source='${c.source}' id="${path}.${source}*${path}.${target}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")' ondblclick='selector.selectConnectionAndReveal("${path}.${source}*${path}.${target}")'/>`;
+            cc = `<line x1='${x1}' y1='${y1}' x2='${x2}' y2='${y2}' class='connection_line'${styleAttr} data-source='${c.source}' id="${connectionDomId}" data-logical-id="${connectionId}" data-target='${target}' onclick='selector.selectConnectionAndReveal("${connectionId}")' ondblclick='selector.selectConnectionAndReveal("${connectionId}")'/>`;
         main.connections += cc;
     },
 
@@ -2865,7 +3294,7 @@ const main =
             const width = Math.round(rect.width + margin * 2);
             const height = Math.round(rect.height + margin * 2);
             main.component_rectangles.push({
-                id: element.id || "",
+                id: main.getElementLogicalId(element),
                 x,
                 y,
                 width,
@@ -2887,10 +3316,11 @@ const main =
 
     getOutputOwnerId(outputSpot)
     {
-        if(!outputSpot || !outputSpot.id)
+        const logicalId = main.getElementLogicalId(outputSpot);
+        if(!logicalId)
             return "";
-        const outputId = outputSpot.id.replace(/:out$/, "");
-        if(document.getElementById(outputId))
+        const outputId = logicalId.replace(/:out$/, "");
+        if(main.getPaneElement(outputId))
             return outputId;
         return parentPath(outputId);
     },
@@ -2927,7 +3357,7 @@ const main =
             }
 
             main.output_debug_lines.push({
-                id: outputSpot.id,
+                id: main.getElementLogicalId(outputSpot),
                 ownerId,
                 x1,
                 y1: y,
@@ -2950,10 +3380,11 @@ const main =
 
     getInputOwnerId(inputSpot)
     {
-        if(!inputSpot || !inputSpot.id)
+        const logicalId = main.getElementLogicalId(inputSpot);
+        if(!logicalId)
             return "";
-        const inputId = inputSpot.id.replace(/:in$/, "");
-        if(document.getElementById(inputId))
+        const inputId = logicalId.replace(/:in$/, "");
+        if(main.getPaneElement(inputId))
             return inputId;
         return parentPath(inputId);
     },
@@ -2990,7 +3421,7 @@ const main =
             }
 
             main.input_debug_lines.push({
-                id: inputSpot.id,
+                id: main.getElementLogicalId(inputSpot),
                 ownerId,
                 x1: xStart,
                 y1: y,
@@ -3602,13 +4033,14 @@ const main =
             return;
 
         item.title = trimmedTitle;
-        const widgetFrame = document.getElementById(fullName);
-        if(widgetFrame && widgetFrame.widget)
+        const widgetFrame = main.getPaneElement(fullName);
+        const widgetElement = main.getFrameWidget(widgetFrame);
+        if(widgetElement)
         {
-            widgetFrame.widget.parameters.title = trimmedTitle;
+            widgetElement.parameters.title = trimmedTitle;
             try
             {
-                widgetFrame.widget.updateAll();
+                widgetElement.updateAll();
             }
             catch(err)
             {
@@ -3617,6 +4049,7 @@ const main =
         }
         if(inspector && typeof inspector.showInspectorForSelection === "function")
             inspector.showInspectorForSelection();
+        main.refreshMatchingBackgroundPanes(selector.selected_background, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
         controller.setTainted(true, "commitInlineTitleEdit");
     },
 
@@ -3771,13 +4204,13 @@ const main =
     // Rendered connection selection and refresh.
     selectConnection(connection)
     {
-        const c = document.getElementById(connection);
-        if(c !== undefined) // FIXME: Use exception above instead
+        const c = main.getPaneElement(connection);
+        if(c)
         {
             c.classList.add("selected");
             const st = connection.split('*');
-            const s = document.getElementById(st[0]+":out");
-            const t = document.getElementById(st[1]+":in");
+            const s = main.getPaneElement(st[0]+":out");
+            const t = main.getPaneElement(st[1]+":in");
             if(s)
                 s.style.backgroundColor = "orange";
             if(t)
@@ -3787,14 +4220,14 @@ const main =
 
     deselectConnection(connection)
     {
-        const c = document.getElementById(connection);
-        if(c !== undefined) // FIXME: Use exception above instead
+        const c = main.getPaneElement(connection);
+        if(c)
         {
             c.classList.remove("selected");
 
             const st = connection.split('*');
-            const s = document.getElementById(st[0]+":out");
-            const t = document.getElementById(st[1]+":in");
+            const s = main.getPaneElement(st[0]+":out");
+            const t = main.getPaneElement(st[1]+":in");
             if(s)
                 s.style.backgroundColor = "rgb(177, 177, 177)";
             if(t)
@@ -3804,9 +4237,9 @@ const main =
 
     addConnections()
     {
-        const path = selector.selected_background;
+        const path = main.active_pane && main.active_pane.root && main.active_pane.root.dataset.background ? main.active_pane.root.dataset.background : selector.selected_background;
         const group = network.dict[path];
-        const s = document.getElementById("connections");
+        const s = main.active_pane ? main.active_pane.connections_layer : null;
         if(!s || !group)
             return;
 
@@ -3906,7 +4339,7 @@ const main =
                     o.addEventListener('dblclick', function (evt) 
                         {
 
-                            window.open("http://localhost:8000/data/"+this.id.replace(/:out$/, ''), "_blank", "width=800,height=600");
+                            window.open("http://localhost:8000/data/"+main.getElementLogicalId(this).replace(/:out$/, ''), "_blank", "width=800,height=600");
                         }, false);
 
                     // Set selection class if selected
@@ -3946,6 +4379,34 @@ const main =
 
         main.addConnections();
         main.updateComponentStates();
+    },
+
+    renderIntoPane(pane, background, foreground=[])
+    {
+        if(!pane || !background)
+            return;
+        const previousPane = main.active_pane;
+        pane.dataset.background = background;
+        main.active_pane = main.getPaneElements(pane);
+        main.applyActivePaneReferences();
+        main.drawGrid();
+        breadcrumbs.selectItem(background, pane);
+        main.addComponents(network.dict[background], foreground, background);
+        main.active_pane = previousPane;
+        main.applyActivePaneReferences();
+    },
+
+    refreshMatchingBackgroundPanes(background, foreground=[], excludePane=null)
+    {
+        if(!background)
+            return;
+        const panes = document.querySelectorAll(".main_pane");
+        panes.forEach((pane) =>
+        {
+            if(pane === excludePane || pane.dataset.background !== background)
+                return;
+            main.renderIntoPane(pane, background, foreground);
+        });
     },
 
     // Selection rendering and edit/view mode transitions.
@@ -3989,7 +4450,10 @@ const main =
         if(background != null)
         {
             let group = network.dict[background];
+            if(main.active_pane && main.active_pane.root)
+                main.active_pane.root.dataset.background = background;
             main.addComponents(group, foreground, background);
+            main.refreshMatchingBackgroundPanes(background, foreground, main.active_pane ? main.active_pane.root : null);
         }
         main.updateAutoRoutingButtonState();
     },
@@ -4050,6 +4514,7 @@ const main =
                 for(let c of selector.selected_foreground)
                     main.changeComponentPosition(c, move[0], move[1], false);
                 main.addConnections();
+                main.refreshMatchingBackgroundPanes(selector.selected_background, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
                 controller.setTainted(true, "keydown moveComponents");
                 return;
             }

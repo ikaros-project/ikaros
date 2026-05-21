@@ -607,12 +607,12 @@ class WebUIWidget extends HTMLElement
 
     getWidgetGroupPath()
     {
-        if(typeof selector !== "undefined" && selector && selector.selected_background)
-            return selector.selected_background;
-
         const fullName = this.parentElement && this.parentElement.dataset ? this.parentElement.dataset.name : "";
         if(fullName.includes("."))
             return fullName.substring(0, fullName.lastIndexOf("."));
+
+        if(typeof selector !== "undefined" && selector && selector.selected_background)
+            return selector.selected_background;
 
         return "";
     }

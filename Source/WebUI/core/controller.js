@@ -22,6 +22,7 @@ const controller =
     pending_network_session_id: null,
     open_mode: false,
     preserve_clean_open: false,
+    reset_layout_on_network: false,
     slow_ui_delay_ms: 0,
     slow_ui_jitter_ms: 0,
     drop_update_rate: 0,
@@ -248,6 +249,22 @@ const controller =
         return trimmedProxyPath[0] === "." ? trimmedProxyPath.substring(1) : trimmedProxyPath;
     },
 
+    getUpdateGroupPath()
+    {
+        const paneCount = typeof document !== "undefined" ? document.querySelectorAll(".main_pane").length : 0;
+        if(paneCount > 1 && network && network.network && network.network.name)
+            return network.network.name;
+        return selector.selected_background || "";
+    },
+
+    getUpdateProxyPath()
+    {
+        const paneCount = typeof document !== "undefined" ? document.querySelectorAll(".main_pane").length : 0;
+        if(paneCount > 1)
+            return "";
+        return controller.getSelectedGroupProxyPath();
+    },
+
     clearQueue()
     {
         controller.commandQueue = [];
@@ -261,11 +278,22 @@ const controller =
         controller.queueCommand('update');
     },
 
+    forceNextUpdate()
+    {
+        controller.commandQueue = controller.commandQueue.filter((command) => command[0] !== "update");
+        controller.queueCommand('update');
+        clearTimeout(controller.request_timer);
+        controller.request_timer = null;
+        if(!controller.update_in_flight)
+            controller.requestUpdate();
+    },
+
     new() 
     {
         controller.update_generation++;
         controller.update_in_flight = false;
         controller.pending_network_session_id = null;
+        controller.reset_layout_on_network = true;
         controller.clearQueue();
         controller.get("new", controller.update);
     },
@@ -282,6 +310,7 @@ const controller =
         controller.pending_network_session_id = null;
         controller.open_mode = true;
         controller.preserve_clean_open = true;
+        controller.reset_layout_on_network = true;
         dialog.showOpenDialog(controller.openCallback, "Select file to open");
     },
 
@@ -375,7 +404,7 @@ const controller =
             let w = document.getElementsByClassName('frame')
             for(let i=0; i<w.length; i++)
             {
-                const widgetElement = w[i].widget;
+                const widgetElement = main.getFrameWidget(w[i]);
                 if(widgetElement && widgetElement.loadData)
                     controller.load_count += widgetElement.loadData(data);
             }
@@ -549,6 +578,10 @@ const controller =
    
             controller.tick = response.tick;
             network.init(response);
+            const shouldResetLayout = wasOpenRequest || controller.reset_layout_on_network;
+            controller.reset_layout_on_network = false;
+            if(shouldResetLayout && main && typeof main.resetSplitLayout === "function")
+                main.resetSplitLayout();
             if(wasOpenRequest && main.main)
             {
                 main.main.classList.add("view_mode");
@@ -643,12 +676,11 @@ const controller =
         let data_string = "";
 
         let data_set = new Set();
-        const w = document.getElementsByClassName('widget');
+        const w = document.getElementsByClassName('frame');
         for(let i=0; i<w.length; i++)
             try
             {
-                const frame = w[i].closest('.frame');
-                const widgetElement = frame ? frame.widget : null;
+                const widgetElement = main.getFrameWidget(w[i]);
                 if(widgetElement && 'requestData' in widgetElement)
                     widgetElement.requestData(data_set);
             }
@@ -657,8 +689,8 @@ const controller =
                 console.log("requestData failed: "+err);
             }
 
-        group_path = selector.selected_background || "";
-        const group_proxy_path = controller.getSelectedGroupProxyPath();
+        group_path = controller.getUpdateGroupPath();
+        const group_proxy_path = controller.getUpdateProxyPath();
         data_string = "";
         let sep = "";
         for(const s of data_set)
@@ -766,7 +798,7 @@ const controller =
         for(let i=0; i<w.length; i++)
             try
             {
-                const widgetElement = w[i].widget;
+                const widgetElement = main.getFrameWidget(w[i]);
                 if(!widgetElement)
                     continue;
                 widgetElement.receivedData = data;

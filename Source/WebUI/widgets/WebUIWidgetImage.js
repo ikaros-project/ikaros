@@ -97,12 +97,24 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         if(this.parameters.source)
         {
             let d = data[this.resolveControlPath(this.parameters.source)+":"+this.parameters.format];
-            if(!d) return;
-            this.imageObj.onload = function ()
+            if(!d)
+                return 0;
+            const image = this.imageObj;
+            const loadToken = (this.image_load_token || 0) + 1;
+            this.image_load_token = loadToken;
+            let completed = false;
+            const finishLoad = () =>
             {
+                if(completed || this.image_load_token !== loadToken)
+                    return;
+                completed = true;
                 controller.load_count--;
             };
-            this.imageObj.src = d;
+            image.onload = finishLoad;
+            image.onerror = finishLoad;
+            if(image.src === d && image.complete)
+                return 0;
+            image.src = d;
             return 1;
         }
 

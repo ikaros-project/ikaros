@@ -74,7 +74,7 @@ const selector =
             return;
         }
 
-        const needs_rebuild = selector.selected_foreground.some((name) => !document.getElementById(name));
+        const needs_rebuild = selector.selected_foreground.some((name) => !(main && typeof main.getPaneElement === "function" ? main.getPaneElement(name) : document.getElementById(name)));
         if(needs_rebuild)
         {
             selector.showForegroundSelection(reveal_inspector, true);
