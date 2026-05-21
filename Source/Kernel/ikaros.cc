@@ -699,6 +699,14 @@ namespace ikaros
     }
 
 
+    parameter::operator const matrix & () const
+    {
+        if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
+            return *matrix_value;
+        throw exception("Not a matrix value.");
+    }
+
+
     int
     parameter::size() const
     {

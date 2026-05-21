@@ -145,6 +145,7 @@ public:
     void set_matrix(const matrix & v);
 
     operator matrix & ();
+    operator const matrix & () const;
     operator std::string() const;
     operator double() const;
     explicit operator bool() const;
