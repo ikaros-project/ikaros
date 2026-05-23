@@ -36,6 +36,7 @@ namespace
         o.add_option("B", "bind_address", "bind WebUI/API server to a specific IPv4 address, for example 127.0.0.1", true);
         o.add_option("a", "auth_password", "enable optional WebUI/API authentication using the provided password", true);
         o.add_option("A", "agent", "set the agent identifier included in remote session logging", true);
+        o.add_option("H", "hide_toolbar", "hide the WebUI top toolbar and breadcrumbs on startup");
         o.add_option("h", "help", "list command line options");
     }
 

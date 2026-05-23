@@ -201,6 +201,8 @@ const main =
         main.applyActivePaneReferences();
         main.installPaneEvents(pane);
         main.drawGrid();
+        if(nav && typeof nav.setTargetPane === "function")
+            nav.setTargetPane(pane);
         if(selector && pane.dataset.background)
         {
             if(pane.dataset.background !== selector.selected_background || paneChanged)
@@ -210,7 +212,7 @@ const main =
                 selector.selected_connection = null;
             }
             setCookie("selected_background", selector.selected_background);
-            nav.selectItem(selector.selected_background);
+            nav.selectItem(selector.selected_background, pane);
         }
         if(selector && selector.selected_background)
         {
@@ -505,6 +507,36 @@ const main =
             main.hideComponentColorMenu();
         if(main.widget_menu && main.widget_menu !== exceptMenu)
             main.hideWidgetMenu();
+    },
+
+    setTopChromeVisible(visible)
+    {
+        document.body.classList.toggle("top_chrome_hidden", !visible);
+    },
+
+    toggleTopChrome()
+    {
+        const hidden = document.body.classList.toggle("top_chrome_hidden");
+        return !hidden;
+    },
+
+    isTrueAttributeValue(value)
+    {
+        if(value === true)
+            return true;
+        if(typeof value === "number")
+            return value !== 0;
+        if(typeof value !== "string")
+            return false;
+
+        const normalized = value.trim().toLowerCase();
+        return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
+    },
+
+    applyStartupTopChromeVisibility()
+    {
+        const hideToolbar = network && network.network ? main.isTrueAttributeValue(network.network.hide_toolbar) : false;
+        main.setTopChromeVisible(!hideToolbar);
     },
 
     registerGlobalMenuDismissHandlers()
@@ -1258,8 +1290,8 @@ const main =
         main.selection_box.style.height = "0px";
         main.selection_box.style.display = "block";
 
-        main.view.addEventListener("mousemove", main.updateBackgroundSelection, true);
-        main.view.addEventListener("mouseup", main.finishBackgroundSelection, true);
+        document.addEventListener("mousemove", main.updateBackgroundSelection, true);
+        document.addEventListener("mouseup", main.finishBackgroundSelection, true);
         evt.preventDefault();
         evt.stopPropagation();
     },
@@ -1344,8 +1376,8 @@ const main =
         if(!main.selection_drag_active)
             return;
 
-        main.view.removeEventListener("mousemove", main.updateBackgroundSelection, true);
-        main.view.removeEventListener("mouseup", main.finishBackgroundSelection, true);
+        document.removeEventListener("mousemove", main.updateBackgroundSelection, true);
+        document.removeEventListener("mouseup", main.finishBackgroundSelection, true);
 
         if(main.selection_box)
             main.selection_box.style.display = "none";
@@ -4522,7 +4554,7 @@ const main =
 
         if(evt.key== "Escape")
         {
-            inspector.toggleSystem();
+            main.toggleTopChrome();
             evt.preventDefault();
             return;
         }
@@ -4641,7 +4673,7 @@ const main =
     <tbody>
         <tr><td>Arrow keys</td><td>Move selected components by 1 px (edit mode).</td></tr>
         <tr><td>Backspace</td><td>Delete selected components/connections (edit mode).</td></tr>
-        <tr><td>Escape</td><td>Toggle system inspector.</td></tr>
+        <tr><td>Escape</td><td>Toggle top toolbar and breadcrumbs.</td></tr>
         <tr><td>&#8984; + A</td><td>Select all components/widgets in current group.</td></tr>
         <tr><td>&#8984; + &#8679; + A</td><td>Select all non-widget components in current group.</td></tr>
         <tr><td>&#8984; + &#8997; + A</td><td>Select widgets only in current group.</td></tr>

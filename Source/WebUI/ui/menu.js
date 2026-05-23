@@ -43,14 +43,25 @@ const app_menu =
 
     show()
     {
+        if(typeof view_menu !== "undefined")
+            view_menu.hide();
         if(app_menu.dropdown)
+        {
+            app_menu.positionDropdown();
             app_menu.dropdown.classList.add("visible");
+        }
     },
 
     hide()
     {
         if(app_menu.dropdown)
             app_menu.dropdown.classList.remove("visible");
+    },
+
+    positionDropdown()
+    {
+        if(app_menu.button && app_menu.dropdown)
+            app_menu.dropdown.style.left = app_menu.button.offsetLeft + "px";
     },
 
     choose(action)
@@ -67,5 +78,79 @@ const app_menu =
             controller.saveas();
         else if(action === "quit")
             controller.quit();
+    }
+};
+
+const view_menu =
+{
+    init()
+    {
+        view_menu.button = document.getElementById("view_menu");
+        view_menu.dropdown = document.getElementById("view_menu_dropdown");
+
+        if(view_menu.button)
+            view_menu.button.addEventListener("click", view_menu.toggle, false);
+
+        document.addEventListener("mousedown", function(evt)
+        {
+            if(!view_menu.dropdown || !view_menu.button)
+                return;
+            if(view_menu.button.contains(evt.target) || view_menu.dropdown.contains(evt.target))
+                return;
+            view_menu.hide();
+        }, true);
+
+        document.addEventListener("keydown", function(evt)
+        {
+            if(evt.key === "Escape")
+                view_menu.hide();
+        }, true);
+    },
+
+    toggle(evt)
+    {
+        if(evt)
+        {
+            evt.preventDefault();
+            evt.stopPropagation();
+        }
+
+        if(!view_menu.dropdown)
+            return;
+
+        if(view_menu.dropdown.classList.contains("visible"))
+            view_menu.hide();
+        else
+            view_menu.show();
+    },
+
+    show()
+    {
+        app_menu.hide();
+        if(view_menu.dropdown)
+        {
+            view_menu.positionDropdown();
+            view_menu.dropdown.classList.add("visible");
+        }
+    },
+
+    hide()
+    {
+        if(view_menu.dropdown)
+            view_menu.dropdown.classList.remove("visible");
+    },
+
+    positionDropdown()
+    {
+        if(view_menu.button && view_menu.dropdown)
+            view_menu.dropdown.style.left = view_menu.button.offsetLeft + "px";
+    },
+
+    choose(action)
+    {
+        view_menu.hide();
+
+        if(action === "hide_toolbar" && main && typeof main.setTopChromeVisible === "function")
+            main.setTopChromeVisible(false);
     }
 };

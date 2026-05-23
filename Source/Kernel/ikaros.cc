@@ -5110,7 +5110,10 @@ bool operator==(Request & r, const std::string s)
     {
         if(needs_reload)
         {
-            LoadFile();
+            if(GetOptionFilename().empty())
+                New();
+            else
+                LoadFile();
             run_mode = run_mode_pause;
         }
         else
@@ -5126,7 +5129,12 @@ bool operator==(Request & r, const std::string s)
     Kernel::Realtime()
     {
         if(needs_reload)
-            LoadFile();
+        {
+            if(GetOptionFilename().empty())
+                New();
+            else
+                LoadFile();
+        }
     
         Pause();
 #if !defined(LOGGING_OFF)
@@ -5147,7 +5155,12 @@ bool operator==(Request & r, const std::string s)
     Kernel::Play()
     {
         if(needs_reload)
-            LoadFile();
+        {
+            if(GetOptionFilename().empty())
+                New();
+            else
+                LoadFile();
+        }
 
 #if !defined(LOGGING_OFF)
         if(!session_logging_active)
@@ -5616,12 +5629,11 @@ bool operator==(Request & r, const std::string s)
         }
 
         long response_session_id = 0;
-        std::string status;
+        std::string status = DoSendDataStatus();
         std::string log_json;
         if(snapshot != nullptr)
         {
             response_session_id = snapshot->session_id;
-            status = snapshot->status_json;
             log_json = ConsumeSnapshotLogForSession(request.session_id, *snapshot);
         }
 
@@ -5655,7 +5667,6 @@ bool operator==(Request & r, const std::string s)
             response_session_id = session_id;
             if(snapshot == nullptr)
             {
-                status = DoSendDataStatus();
                 log_json = SerializePendingLog(true);
             }
 
@@ -6061,6 +6072,7 @@ bool operator==(Request & r, const std::string s)
             Pause();
             run_mode = run_mode_pause;
             Tick();
+            BuildUISnapshot();
             timer.SetPauseTime(GetTime()+tick_duration);
         }
         catch(const exception& e)

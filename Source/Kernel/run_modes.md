@@ -16,6 +16,7 @@ Attributes that can be set in the ikg file are show within parantheses below:
     -S (start):  start-up automatically without waiting for commands from WebUI
     -d (tick_duration): duration of each tick
     -h (help): list command line options [true]
+    -H (hide_toolbar): hide the WebUI top toolbar and breadcrumbs on startup
     -r (real_time): run in real-time mode
     -s (stop): stop Ikaros after this tick [-1]
     -u (user_data): alternative directory for user data files

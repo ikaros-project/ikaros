@@ -1953,6 +1953,12 @@ const inspector =
                 priorityRowTemplates.set(key, {'name': key, 'control':'checkbox', 'type':'bool'});
                 continue;
             }
+            if(isTopGroup && key == "hide_toolbar")
+            {
+                item.hide_toolbar = main && typeof main.isTrueAttributeValue === "function" ? main.isTrueAttributeValue(value) : !!value;
+                priorityRowTemplates.set(key, {'name': key, 'control':'checkbox', 'type':'bool'});
+                continue;
+            }
             if(typeof value == "number")
                 rowTemplate.push({'name': key, 'control':'textedit', 'type': Number.isInteger(value) ? 'int' : 'float'});
             else if(typeof value == "boolean")
@@ -1965,6 +1971,14 @@ const inspector =
         const orderedPriorityRows = [];
         if(priorityRowTemplates.has("auto_routing"))
             orderedPriorityRows.push(priorityRowTemplates.get("auto_routing"));
+        if(priorityRowTemplates.has("hide_toolbar"))
+            orderedPriorityRows.push(priorityRowTemplates.get("hide_toolbar"));
+        else if(isTopGroup && !rowTemplate.some((row) => row.name == "hide_toolbar"))
+        {
+            if(item.hide_toolbar === undefined)
+                item.hide_toolbar = false;
+            orderedPriorityRows.push({'name': 'hide_toolbar', 'control':'checkbox', 'type':'bool'});
+        }
         if(!rowTemplate.some((row) => row.name == "proxy"))
             orderedPriorityRows.push({'name': 'proxy', 'control':'textedit', 'type':'source'});
         rowTemplate.unshift(...orderedPriorityRows);

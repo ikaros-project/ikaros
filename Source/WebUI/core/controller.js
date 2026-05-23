@@ -22,6 +22,8 @@ const controller =
     pending_network_session_id: null,
     open_mode: false,
     preserve_clean_open: false,
+    preserve_clean_new: false,
+    clean_new_session_id: null,
     reset_layout_on_network: false,
     slow_ui_delay_ms: 0,
     slow_ui_jitter_ms: 0,
@@ -70,6 +72,8 @@ const controller =
     setTainted(nextValue, reason = "")
     {
         network.tainted = !!nextValue;
+        if(network.tainted)
+            controller.clean_new_session_id = null;
     },
 
     // Dev-only URL params for resilience testing, e.g.
@@ -185,10 +189,16 @@ const controller =
               if(is_update_request)
                   controller.update_in_flight = false;
               const artificialDelay = controller.getSlowLinkDelay();
-              if(artificialDelay > 0)
-                  setTimeout(finalizeResponse, artificialDelay);
-              else
+              const finishResponse = function()
+              {
                   finalizeResponse();
+                  if(is_update_request && controller.commandQueue.length > 0)
+                      controller.flushCommandQueue();
+              };
+              if(artificialDelay > 0)
+                  setTimeout(finishResponse, artificialDelay);
+              else
+                  finishResponse();
         }
         
         xhr.ontimeout = function() 
@@ -228,8 +238,18 @@ const controller =
         controller.requestUpdate();
     },
     
-    queueCommand(command, path="", dictionary={}) {
+    queueCommand(command, path="", dictionary={}, flush=false) {
         controller.commandQueue.push([command, path, dictionary]);
+        if(flush)
+            controller.flushCommandQueue();
+    },
+
+    flushCommandQueue()
+    {
+        clearTimeout(controller.request_timer);
+        controller.request_timer = null;
+        if(!controller.open_mode && !controller.update_in_flight)
+            controller.requestUpdate();
     },
 
     getSelectedGroupProxyPath()
@@ -293,6 +313,8 @@ const controller =
         controller.update_generation++;
         controller.update_in_flight = false;
         controller.pending_network_session_id = null;
+        controller.clean_new_session_id = null;
+        controller.preserve_clean_new = true;
         controller.reset_layout_on_network = true;
         controller.clearQueue();
         controller.get("new", controller.update);
@@ -308,6 +330,7 @@ const controller =
         controller.update_generation++;
         controller.update_in_flight = false;
         controller.pending_network_session_id = null;
+        controller.clean_new_session_id = null;
         controller.open_mode = true;
         controller.preserve_clean_open = true;
         controller.reset_layout_on_network = true;
@@ -333,31 +356,44 @@ const controller =
 
     quit() {
         controller.run_mode = 'quit';
-        controller.get("quit", controller.update);
+        controller.sendRunModeCommand("quit");
      },
 
     stop() {
         controller.run_mode = 'stop';
-        controller.get("stop", controller.update);
+        controller.syncTransportButtons();
+        controller.sendRunModeCommand("stop");
      },
+
+    sendRunModeCommand(command)
+    {
+        controller.update_generation++;
+        clearTimeout(controller.request_timer);
+        controller.request_timer = null;
+        const requestedData = controller.getRequestedDataString();
+        const params = {};
+        if(requestedData !== "")
+            params.data = requestedData;
+        const url_params = toURLParams(params);
+        controller.get(command + (url_params !== "" ? "?" + url_params : ""), controller.update);
+    },
     
     pause()
     {
-        if(network.tainted)
-            return;
-
+        controller.run_mode = 'pause';
+        controller.syncTransportButtons();
+        document.querySelector("#state").innerText = "pause";
         main.setViewMode();
-        controller.queueCommand('pause');
+        controller.sendRunModeCommand("pause");
     },
     
     step()
     {
-        if(network.tainted)
-            return;
-        
+        controller.run_mode = 'step';
+        controller.syncTransportButtons();
         document.querySelector("#state").innerText = "step";
         main.setViewMode();
-        controller.queueCommand('step');
+        controller.sendRunModeCommand("step");
     },
     
     play()
@@ -365,8 +401,10 @@ const controller =
         if(network.tainted)
             return;
     
+        controller.run_mode = 'play';
+        controller.syncTransportButtons();
         main.setViewMode()
-        controller.queueCommand('play');
+        controller.sendRunModeCommand("play");
     },
     
     realtime()
@@ -374,8 +412,10 @@ const controller =
         if(network.tainted)
             return;
             
+        controller.run_mode = 'realtime';
+        controller.syncTransportButtons();
         main.setViewMode();
-        controller.queueCommand('realtime');
+        controller.sendRunModeCommand("realtime");
     },
 
     clear_wait()
@@ -457,6 +497,9 @@ const controller =
                 (network && network.network && network.network.filename != null && network.network.filename !== "" && network.network.filename !== "null") ? network.network.filename :
                 (response.filename != null && response.filename !== "" && response.filename !== "null") ? response.filename :
                 "-";
+            const responseRunMode = ['quit', 'stop','pause','play','realtime','restart'][response.state];
+            if(responseRunMode)
+                controller.run_mode = responseRunMode;
             document.querySelector("#file").innerText = displayedFile;
             const displayedTick = (Number.isInteger(response.tick) && response.tick >= 0 ?  response.tick : "-");
             document.querySelector("#tick").innerText = displayedTick;
@@ -492,8 +535,6 @@ const controller =
                 p.style.display = "none";
 
             controller.tick = response.tick;
-            controller.run_mode = ['quit', 'stop','pause','play','realtime','restart'][response.state];
-
             controller.syncTransportButtons();
         }
         catch(err)
@@ -504,9 +545,12 @@ const controller =
 
     syncTransportButtons()
     {
+        const activeMode = controller.run_mode === "restart" ? "play" : controller.run_mode;
         document.querySelectorAll(".transport_button").forEach((button) =>
         {
-            button.disabled = !!network.tainted;
+            button.disabled = false;
+            const mode = button.dataset ? button.dataset.transportMode : "";
+            button.classList.toggle("transport-active", mode === activeMode);
         });
     },
 
@@ -568,7 +612,9 @@ const controller =
         if(package_type == "network")
         {
             const wasOpenRequest = controller.open_mode;
+            const wasNewRequest = controller.preserve_clean_new;
             controller.open_mode = false;
+            controller.preserve_clean_new = false;
             controller.update_in_flight = false;
             controller.pending_network_session_id = null;
             controller.clearQueue();
@@ -578,11 +624,13 @@ const controller =
    
             controller.tick = response.tick;
             network.init(response);
+            if(main && typeof main.applyStartupTopChromeVisibility === "function")
+                main.applyStartupTopChromeVisibility();
             const shouldResetLayout = wasOpenRequest || controller.reset_layout_on_network;
             controller.reset_layout_on_network = false;
             if(shouldResetLayout && main && typeof main.resetSplitLayout === "function")
                 main.resetSplitLayout();
-            if(wasOpenRequest && main.main)
+            if((wasOpenRequest || wasNewRequest) && main.main)
             {
                 main.main.classList.add("view_mode");
                 main.main.classList.remove("edit_mode");
@@ -602,8 +650,11 @@ const controller =
 
             if(shouldAutoArrange)
                 main.arrangeComponents();
-            if(wasOpenRequest || controller.preserve_clean_open)
-                controller.setTainted(false, wasOpenRequest ? "network package from explicit open" : "network package during preserved explicit open");
+            if(wasNewRequest)
+                controller.clean_new_session_id = session_id;
+            const isCleanNewSession = controller.clean_new_session_id === session_id;
+            if(wasOpenRequest || isCleanNewSession || controller.preserve_clean_open)
+                controller.setTainted(false, isCleanNewSession ? "network package from explicit new" : (wasOpenRequest ? "network package from explicit open" : "network package during preserved explicit open"));
             else
             {
                 const resolvedFilename =
@@ -616,7 +667,7 @@ const controller =
                 );
                 controller.setTainted(!hasOpenedFilename, "network package filename heuristic");
             }
-            if((wasOpenRequest || controller.preserve_clean_open) && !network.tainted)
+            if((wasOpenRequest || isCleanNewSession || controller.preserve_clean_open) && !network.tainted)
                 main.setViewMode();
             controller.syncTransportButtons();
        }
@@ -673,34 +724,10 @@ const controller =
         controller.last_request_time = Date.now();
 
         let group_path ="";
-        let data_string = "";
-
-        let data_set = new Set();
-        const w = document.getElementsByClassName('frame');
-        for(let i=0; i<w.length; i++)
-            try
-            {
-                const widgetElement = main.getFrameWidget(w[i]);
-                if(widgetElement && 'requestData' in widgetElement)
-                    widgetElement.requestData(data_set);
-            }
-            catch(err)
-            {
-                console.log("requestData failed: "+err);
-            }
 
         group_path = controller.getUpdateGroupPath();
         const group_proxy_path = controller.getUpdateProxyPath();
-        data_string = "";
-        let sep = "";
-        for(const s of data_set)
-        {
-            if(s !== "")
-            {
-                data_string += (sep + s);
-                sep = ","
-            }
-         }
+        const data_string = controller.getRequestedDataString();
 
          while(controller.commandQueue.length>0)
         {
@@ -736,6 +763,35 @@ const controller =
         }
 
         controller.ensureUpdateQueued();
+    },
+
+    getRequestedDataString()
+    {
+        let data_set = new Set();
+        const w = document.getElementsByClassName('frame');
+        for(let i=0; i<w.length; i++)
+            try
+            {
+                const widgetElement = main.getFrameWidget(w[i]);
+                if(widgetElement && 'requestData' in widgetElement)
+                    widgetElement.requestData(data_set);
+            }
+            catch(err)
+            {
+                console.log("requestData failed: "+err);
+            }
+
+        let data_string = "";
+        let sep = "";
+        for(const s of data_set)
+        {
+            if(s !== "")
+            {
+                data_string += (sep + s);
+                sep = ",";
+            }
+        }
+        return data_string;
     },
 
     getClasses()

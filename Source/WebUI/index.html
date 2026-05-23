@@ -177,23 +177,33 @@
                 <button type="button" onclick="app_menu.choose('open')">Open...</button>
                 <button type="button" onclick="app_menu.choose('save')">Save</button>
                 <button type="button" onclick="app_menu.choose('saveas')">Save As...</button>
+                <hr class="top-menu-divider">
                 <button type="button" onclick="app_menu.choose('quit')">Quit</button>
+            </menu>
+            <div class="button" id="view_menu" aria-label="View menu" title="View menu">
+                <svg class="top_menu_icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M2.5 12S6.2 5.5 12 5.5 21.5 12 21.5 12 17.8 18.5 12 18.5 2.5 12 2.5 12Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </div>
+            <menu id="view_menu_dropdown" class="top-menu-dropdown">
+                <button type="button" onclick="view_menu.choose('hide_toolbar')">Hide toolbar</button>
             </menu>
             <div class="top_transport_controls">
                 <span id="top_tick" class="top_transport_status" title="Current tick">-</span>
-                <button type="button" onmousedown="controller.stop()" aria-label="Stop" title="Stop">
+                <button class="transport_button" data-transport-mode="stop" type="button" onmousedown="controller.stop()" aria-label="Stop" title="Stop">
                     <svg class="transport_icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10"/></svg>
                 </button>
-                <button type="button" onmousedown="controller.pause()" aria-label="Pause" title="Pause">
+                <button class="transport_button" data-transport-mode="pause" type="button" onmousedown="controller.pause()" aria-label="Pause" title="Pause">
                     <svg class="transport_icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="6" width="3.5" height="12"/><rect x="13.5" y="6" width="3.5" height="12"/></svg>
                 </button>
-                <button type="button" onmousedown="controller.step()" aria-label="Step" title="Step">
+                <button class="transport_button" data-transport-mode="step" type="button" onmousedown="controller.step()" aria-label="Step" title="Step">
                     <svg class="transport_icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6 L15 12 L7 18 Z"/><rect x="16.5" y="6" width="2" height="12"/></svg>
                 </button>
-                <button type="button" onmousedown="controller.play()" aria-label="Play" title="Play">
+                <button class="transport_button" data-transport-mode="play" type="button" onmousedown="controller.play()" aria-label="Play" title="Play">
                     <svg class="transport_icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5 L18 12 L8 18.5 Z"/></svg>
                 </button>
-                <button type="button" onmousedown="controller.realtime()" aria-label="Realtime" title="Realtime">
+                <button class="transport_button" data-transport-mode="realtime" type="button" onmousedown="controller.realtime()" aria-label="Realtime" title="Realtime">
                     <svg class="transport_icon" viewBox="0 0 24 24" aria-hidden="true">
                         <circle cx="12" cy="12.5" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
                         <path d="M12 8.5 V12.5 L15.5 14.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -216,14 +226,6 @@
 
 	<section>
         <main id="main" class="view_mode">
-            <!-- NAVIGATOR -->
-
-		    <nav id="navigator">
-                <button id="navigator_toggle_button" onclick="nav.toggle()">&#8801;</button>
-                <div id="navigator_tree">
-                </div>
-		    </nav>
-
             <div id="main_workspace" class="split_node">
                 <section class="main_pane active" id="main_pane_1">
                     <div class="main_breadcrumb_strip">
@@ -702,11 +704,11 @@
 
                     <tr>
                         <td colspan="2"  style="text-align: center;">
-                            <button class="transport_button" onmousedown="controller.stop()">Stop</button>
-                            <button class="transport_button" onmousedown="controller.pause()">Pause</button>
-                            <button class="transport_button" onmousedown="controller.step()">Step</button>
-                            <button class="transport_button" onmousedown="controller.play()">Play</button>
-                            <button class="transport_button" onmousedown="controller.realtime()">Realtime</button>
+                            <button class="transport_button" data-transport-mode="stop" onmousedown="controller.stop()">Stop</button>
+                            <button class="transport_button" data-transport-mode="pause" onmousedown="controller.pause()">Pause</button>
+                            <button class="transport_button" data-transport-mode="step" onmousedown="controller.step()">Step</button>
+                            <button class="transport_button" data-transport-mode="play" onmousedown="controller.play()">Play</button>
+                            <button class="transport_button" data-transport-mode="realtime" onmousedown="controller.realtime()">Realtime</button>
                         </td>
                     </tr>
 
