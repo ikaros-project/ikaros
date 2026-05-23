@@ -20,8 +20,8 @@
         scale="both"
         show_title="false"
         show_frame="false" />
-    <widget class="faceboxes"
-        name="FaceBoxes"
+    <widget class="target-boxes"
+        name="TargetBoxes"
         _x="40"
         _y="40"
         width="640"

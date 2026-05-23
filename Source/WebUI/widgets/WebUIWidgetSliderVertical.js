@@ -158,6 +158,7 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
 
     slider_moved(value, index = 0, shiftPressed = false) {
         this.is_active = true;
+        this.active_until = Date.now() + 500;
         const shouldSync = Number(this.parameters.count) > 1 && (shiftPressed || this.sync);
 
         if (!shouldSync) {
@@ -257,10 +258,12 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
                         inspector.toggleComponent();
                     }
                     this.is_active = false;
+                    this.active_until = 0;
                     event.stopPropagation();
                     return;
                 }
                 this.is_active = false;
+                this.active_until = Date.now() + 500;
                 event.stopPropagation();
             };
 
@@ -275,25 +278,26 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
             this._updateValueLabels();
         }
 
-        if (this.is_active) {
+        if (this.is_active || Date.now() < (this.active_until || 0)) {
             return;
         }
 
         try {
             let data = this.getSource("parameter");
 
-            if (Array.isArray(data) && !Array.isArray(data[0])) {
-                data = [data];
-            }
-
-            if (!data || !data.length) {
+            if (data === undefined || data === null) {
                 return;
             }
 
             const sliders = this._getSliders();
             const selectedY = this._getSelectY();
+            const isMatrix = Array.isArray(data) && Array.isArray(data[0]);
 
             if (selectedY !== "") {
+                if (!isMatrix) {
+                    return;
+                }
+
                 const y = Math.trunc(Number(selectedY));
                 let x = this._getBaseSelectX();
 
@@ -307,9 +311,10 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
                 return;
             }
 
+            const values = isMatrix ? data[0] : (Array.isArray(data) ? data : [data]);
             let x = this._getBaseSelectX();
             for (const slider of sliders) {
-                slider.value = data[x] ?? slider.value;
+                slider.value = values[x] ?? slider.value;
                 x += 1;
             }
             if (this.parameters.show_values) {

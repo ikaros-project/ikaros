@@ -40,15 +40,20 @@
     <script src="ui/log.js" defer></script>
     <script src="core/selector.js" defer></script>
     <script src="ui/inspector.js" defer></script>
-    <script src="core/main.js" defer></script>
-    <script src="core/controller.js" defer></script>
     <script src="core/color_tables.js" defer ></script>
+
+    <!-- three.js -->
+    <script src="js/three.min.js" defer></script>
+    <script src="js/controls/OrbitControls.js" defer></script>
+    <script src="js/loaders/GLTFLoader.js" defer></script>
+    <script src="js/libs/stats.min.js" defer></script>
+
     <script src="widgets/WebUIWidget.js" defer ></script>
     <script src="widgets/WebUIWidgetControl.js" defer ></script>
     <script src="widgets/WebUIWidgetCanvas.js" defer ></script>
     <script src="widgets/WebUIWidgetGraph.js" defer ></script>
     <script src="widgets/WebUIWidgetImage.js" defer ></script>
-    <script src="widgets/WebUIWidgetFaceBoxes.js" defer ></script>
+    <script src="widgets/WebUIWidgetTargetBoxes.js" defer ></script>
     <script src="widgets/WebUIWidgetBarGraph.js" defer ></script>
     <script src="widgets/WebUIWidgetHistogram.js" defer ></script>
     <script src="widgets/WebUIWidgetBoxPlot.js" defer ></script>
@@ -56,6 +61,7 @@
     <script src="widgets/WebUIWidgetPlot.js" defer ></script>
     <script src="widgets/WebUIWidgetPath.js" defer ></script>
     <script src="widgets/WebUIWidgetMarker.js" defer ></script>
+    <script src="widgets/WebUIWidgetWorld2D.js" defer ></script>
     <script src="widgets/WebUIWidgetGrid.js" defer ></script>
     <script src="widgets/WebUIWidgetText.js" defer ></script>
     <script src="widgets/WebUIWidgetRectangle.js" defer ></script>
@@ -69,12 +75,8 @@
     <script src="widgets/WebUIWidgetCanvas3D.js" defer ></script>
     <script src="widgets/WebUIWidgetKeyPoints.js" defer ></script>
     <script src="widgets/WebUIWidgetEpiHead.js" defer ></script>
-
-    <!-- three.js -->
-    <script src="js/three.min.js" defer></script>
-    <script src="js/controls/OrbitControls.js" defer></script>
-    <script src="js/loaders/GLTFLoader.js" defer></script>
-    <script src="js/libs/stats.min.js" defer></script>
+    <script src="core/main.js" defer></script>
+    <script src="core/controller.js" defer></script>
 
     <dialog id="open_dialog">
         <div class="open-dialog-layout">
@@ -632,7 +634,7 @@
                                 <option value="path">Path</option>
                                 <option value="grid">Grid</option>
                                 <option value="image">Image</option>
-                                <option value="faceboxes">Face Boxes</option>
+                                <option value="target-boxes">Target Boxes</option>
                                 <option value="text">Text</option>
                                 <option value="rectangle">Rectangle</option>
                                 <option value="button">Button</option>
