@@ -14,6 +14,7 @@ const widget_classes =
     "path",
     "grid",
     "image",
+    "target-boxes",
     "text",
     "rectangle",
     "button",
