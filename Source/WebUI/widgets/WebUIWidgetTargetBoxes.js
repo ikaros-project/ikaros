@@ -1,10 +1,10 @@
-class WebUIWidgetFaceBoxes extends WebUIWidgetCanvas
+class WebUIWidgetTargetBoxes extends WebUIWidgetCanvas
 {
     static template()
     {
         return [
-            {'name': "FACE BOXES", 'control':'header'},
-            {'name':'title', 'default':"Face Boxes", 'type':'string', 'control': 'textedit'},
+            {'name': "TARGET BOXES", 'control':'header'},
+            {'name':'title', 'default':"Target Boxes", 'type':'string', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
@@ -114,4 +114,4 @@ class WebUIWidgetFaceBoxes extends WebUIWidgetCanvas
     }
 }
 
-webui_widgets.add('webui-widget-faceboxes', WebUIWidgetFaceBoxes);
+webui_widgets.add('webui-widget-target-boxes', WebUIWidgetTargetBoxes);
