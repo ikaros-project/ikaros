@@ -1,0 +1,20 @@
+<group name="World2D_Test" start="true" stop="-1" tick_duration="0.05" webui_port="8022">
+    <module name="Motor" class="Constant" data="0.04, 0.07" />
+    <module name="World" class="World2D"
+        aversive="210,85,10,-1,0.85,0.20,0.18,0; 112,120,12,-1,0.48,0.48,0.50,0; 172,160,16,-1,0.48,0.48,0.50,0; 95,220,14,-1,0.48,0.48,0.50,0; 245,150,11,-1,0.48,0.48,0.50,0"
+        walls="50,45,250,45,0.18,0.18,0.18,1,2,1; 50,255,250,255,0.18,0.18,0.18,1,2,1; 50,45,50,255,0.18,0.18,0.18,1,2,1; 250,45,250,255,0.18,0.18,0.18,1,2,1; 125,75,125,185,0.18,0.18,0.18,1,3,1; 175,115,230,115,0.18,0.18,0.18,1,3,1" />
+
+    <connection source="Motor.OUTPUT" target="World.MOTOR" />
+
+    <widget name="WorldView" class="world2d" creature_source="World.CREATURE" objects_source="World.OBJECTS" walls_source="World.WALLS" whiskers_source="World.WHISKERS" whisker_length_parameter="World.whisker_length" whisker_angle_parameter="World.whisker_angle" width="560" height="560" x="520" y="60" _x="520" _y="60" title="World2D" show_title="true" show_frame="true" world_width="300" world_height="300" whisker_length="5" whisker_angle="0.7853981633974483" />
+    <widget name="WheelSpeed" class="slider-horizontal" parameter="Motor.data" select_x="0" count="2" labels="Left wheel, Right wheel" min="-0.25" max="0.25" step="0.01" show_values="true" show_title="true" show_frame="false" title="Wheel speeds" width="420" height="80" x="60" y="640" _x="60" _y="640" />
+    <widget name="Pose" class="table" source="World.POSE" width="220" height="90" x="1100" y="60" _x="1100" _y="60" title="POSE" show_title="true" show_frame="true" decimals="2" />
+    <widget name="Contact" class="table" source="World.CONTACT" width="220" height="90" x="1100" y="180" _x="1100" _y="180" title="CONTACT" show_title="true" show_frame="true" decimals="0" />
+    <widget name="Whiskers" class="table" source="World.WHISKERS" width="220" height="90" x="1100" y="300" _x="1100" _y="300" title="WHISKERS" show_title="true" show_frame="true" decimals="2" />
+    <widget name="Reinforcement" class="table" source="World.REINFORCEMENT" width="220" height="90" x="1100" y="420" _x="1100" _y="420" title="REINFORCEMENT" show_title="true" show_frame="true" decimals="2" />
+    <widget name="Reward" class="table" source="World.REWARD" width="220" height="90" x="1340" y="420" _x="1340" _y="420" title="REWARD" show_title="true" show_frame="true" decimals="2" />
+    <widget name="Punishment" class="table" source="World.PUNISHMENT" width="220" height="90" x="1580" y="420" _x="1580" _y="420" title="PUNISHMENT" show_title="true" show_frame="true" decimals="2" />
+    <widget name="Creature" class="table" source="World.CREATURE" width="360" height="90" x="1100" y="540" _x="1100" _y="540" title="CREATURE" show_title="true" show_frame="true" decimals="2" />
+    <widget name="Objects" class="table" source="World.OBJECTS" width="520" height="180" x="1100" y="660" _x="1100" _y="660" title="OBJECTS" show_title="true" show_frame="true" decimals="2" />
+    <widget name="Walls" class="table" source="World.WALLS" width="620" height="180" x="1100" y="860" _x="1100" _y="860" title="WALLS" show_title="true" show_frame="true" decimals="2" />
+</group>
