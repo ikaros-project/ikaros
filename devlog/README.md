@@ -1,10 +1,6 @@
 # Ikaros devlog
 
-This directory contains weekly development summaries for the Ikaros repository, reconstructed from the project history.
-
-Entries use calendar weeks. Weeks with no repository activity are omitted.
-
-The preferred format is narrative-first, followed by highlights, contributor credit, and a short list of major commits or updates. Contributor names or account names are included without email addresses.
+This directory contains weekly development summaries for the Ikaros repository, reconstructed from the project history as well as yearly summaries.
 
 ## Yearly Summaries
 
