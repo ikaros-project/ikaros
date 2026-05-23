@@ -1,6 +1,6 @@
 # Ikaros devlog
 
-This directory contains weekly development summaries for the Ikaros repository, reconstructed from the project history as well as yearly summaries.
+This directory contains weekly development summaries for the Ikaros repository, reconstructed from the project history, as well as yearly summaries.
 
 ## Yearly Summaries
 
