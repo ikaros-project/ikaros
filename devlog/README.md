@@ -1,10 +1,30 @@
-# Ikaros Devlog
+# Ikaros devlog
 
 This directory contains weekly development summaries for the Ikaros repository, reconstructed from the project history.
 
 Entries use calendar weeks. Weeks with no repository activity are omitted.
 
 The preferred format is narrative-first, followed by highlights, contributor credit, and a short list of major commits or updates. Contributor names or account names are included without email addresses.
+
+## Yearly Summaries
+
+| Year | Summary |
+| --- | --- |
+| 2012 | [Public repository launch and build-system groundwork](2012/README.md) |
+| 2013 | [Filters, Windows support, and WebUI stability](2013/README.md) |
+| 2014 | [Depth processing, WebUI resilience, and module growth](2014/README.md) |
+| 2015 | [Parameter binding, WebUI work, and issue cleanup](2015/README.md) |
+| 2016 | [Hardware integrations, audio modules, and runtime expansion](2016/README.md) |
+| 2017 | [Robotics, pupil models, and kernel refinement](2017/README.md) |
+| 2018 | [WebUI maturation and data-flow editing](2018/README.md) |
+| 2019 | [WebUI, data transport, and model support](2019/README.md) |
+| 2020 | [Runtime data handling, audio, and WebUI maintenance](2020/README.md) |
+| 2021 | [Vision examples, documentation, and WebUI maintenance](2021/README.md) |
+| 2022 | [Robotics, WebUI tools, and brain visualization](2022/README.md) |
+| 2023 | [Sparse maintenance and targeted integration](2023/README.md) |
+| 2024 | [Sequence tooling, tests, and documentation](2024/README.md) |
+| 2025 | [Video, tests, WebUI, and module modernization](2025/README.md) |
+| 2026 | [New UI, safety hardening, statistics, and vision modules](2026/README.md) |
 
 ## Entries
 
