@@ -631,8 +631,8 @@ header > button:first-child {
 }
 
 .top_toolbar .top_transport_controls {
-    position: absolute;
-    top: 0;
+    position: fixed;
+    top: 5px;
     left: 50%;
     z-index: 2;
     display: flex;
@@ -657,6 +657,7 @@ header > button:first-child {
 
 .top_transport_controls button {
     display: inline-flex;
+    position: relative;
     align-items: center;
     justify-content: center;
     height: var(--breadcrumb-height);
@@ -2522,7 +2523,8 @@ header button:active, aside button:active {
     object-fit: contain;
 }
 
-.transport_button:disabled {
+.transport_button:disabled,
+.transport_button.transport-blocked {
 
     cursor: not-allowed;
     color: #555;
@@ -2530,9 +2532,40 @@ header button:active, aside button:active {
     background-color: #00000000;
 }
 
-.transport_button:disabled:active {
+.transport_button:disabled:active,
+.transport_button.transport-blocked:active {
 
     cursor: not-allowed;
+}
+
+.top_transport_controls.transport-controls-blocked {
+    position: fixed;
+}
+
+.top_transport_controls.transport-controls-blocked:hover button {
+    visibility: hidden;
+}
+
+.top_transport_controls.transport-controls-blocked::before {
+    content: "\26D4  Save before continuing";
+    display: none;
+    position: absolute;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    border-radius: 5px;
+    background: #1f1f1f;
+    color: #fff;
+    font-family: "Didact Gothic", Arial, sans-serif;
+    font-size: 13px;
+    line-height: var(--breadcrumb-height);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.top_transport_controls.transport-controls-blocked:hover::before {
+    display: inline-flex;
 }
 /*
  * Footers

@@ -449,6 +449,29 @@ namespace ikaros
             std::string value;
         };
 
+        bool log_json_empty(const std::string & log_json)
+        {
+            return log_json.empty() || log_json == ",\n\"log\": []";
+        }
+
+        std::string merge_log_json(std::string first, const std::string & second)
+        {
+            if(log_json_empty(first))
+                return second;
+            if(log_json_empty(second))
+                return first;
+
+            const std::string first_suffix = "]";
+            const std::string second_prefix = ",\n\"log\": [";
+            if(!ends_with(first, first_suffix) || second.rfind(second_prefix, 0) != 0)
+                return first;
+
+            first.pop_back();
+            first += ",";
+            first += second.substr(second_prefix.size());
+            return first;
+        }
+
         constexpr char ui_subscription_separator = '\n';
         constexpr double ui_subscription_timeout_seconds = 10.0;
         constexpr int ui_snapshot_rgb_jpeg_quality = 75;
@@ -5636,6 +5659,7 @@ bool operator==(Request & r, const std::string s)
             response_session_id = snapshot->session_id;
             log_json = ConsumeSnapshotLogForSession(request.session_id, *snapshot);
         }
+        log_json = merge_log_json(std::move(log_json), SerializePendingLog(true));
 
         std::vector<DataSnapshotItem> response_items;
         std::vector<std::pair<size_t, RequestedUIValue>> fallback_items;
@@ -5666,9 +5690,7 @@ bool operator==(Request & r, const std::string s)
             std::lock_guard<std::recursive_mutex> lock(kernelLock);
             response_session_id = session_id;
             if(snapshot == nullptr)
-            {
-                log_json = SerializePendingLog(true);
-            }
+                log_json = merge_log_json(std::move(log_json), SerializePendingLog(true));
 
             for(const auto & fallback_item : fallback_items)
             {
@@ -6032,7 +6054,24 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoSendNetwork(Request &)
     {
-        std::string s = json(); 
+        std::string s = json();
+        std::string log_json = SerializePendingLog(true);
+        if(log_json_empty(log_json))
+        {
+            std::shared_ptr<const UISnapshot> snapshot;
+            {
+                std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
+                snapshot = current_ui_snapshot;
+            }
+            if(snapshot != nullptr && snapshot->session_id == session_id && !log_json_empty(snapshot->log_json))
+                log_json = snapshot->log_json;
+        }
+        if(s.size() > 0 && s.back() == '}')
+        {
+            s.pop_back();
+            s += log_json;
+            s += "\n}";
+        }
 
         //std::cout << s << std::endl;
 

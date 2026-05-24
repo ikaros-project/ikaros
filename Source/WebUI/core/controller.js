@@ -74,6 +74,7 @@ const controller =
         network.tainted = !!nextValue;
         if(network.tainted)
             controller.clean_new_session_id = null;
+        controller.syncTransportButtons();
     },
 
     // Dev-only URL params for resilience testing, e.g.
@@ -145,6 +146,16 @@ const controller =
             console.error('Error:', error);
             alert("Save failed");
         });
+    },
+
+    commitActiveEditBeforeSave()
+    {
+        if(main && main.inline_name_edit)
+            main.finishInlineNameEdit(true);
+
+        const activeElement = document.activeElement;
+        if(activeElement && activeElement !== document.body && typeof activeElement.blur === "function")
+            activeElement.blur();
     },
 
     get (url, callback)
@@ -339,6 +350,7 @@ const controller =
 
     save() 
     {
+        controller.commitActiveEditBeforeSave();
         const filename = network.network.filename;
         if(filename == null || filename === "" || filename === "null")
             controller.saveas();
@@ -348,6 +360,7 @@ const controller =
 
     saveas() 
     {
+        controller.commitActiveEditBeforeSave();
         dialog.showSaveDialog(function(filename) {
             network.network.filename = filename;
             controller.save();
@@ -367,6 +380,12 @@ const controller =
 
     sendRunModeCommand(command)
     {
+        if(controller.isRunModeBlockedByTaintedNetwork(command))
+        {
+            controller.syncTransportButtons();
+            return;
+        }
+
         controller.update_generation++;
         clearTimeout(controller.request_timer);
         controller.request_timer = null;
@@ -380,6 +399,9 @@ const controller =
     
     pause()
     {
+        if(controller.isRunModeBlockedByTaintedNetwork("pause"))
+            return;
+
         controller.run_mode = 'pause';
         controller.syncTransportButtons();
         document.querySelector("#state").innerText = "pause";
@@ -389,6 +411,9 @@ const controller =
     
     step()
     {
+        if(controller.isRunModeBlockedByTaintedNetwork("step"))
+            return;
+
         controller.run_mode = 'step';
         controller.syncTransportButtons();
         document.querySelector("#state").innerText = "step";
@@ -398,7 +423,7 @@ const controller =
     
     play()
     {
-        if(network.tainted)
+        if(controller.isRunModeBlockedByTaintedNetwork("play"))
             return;
     
         controller.run_mode = 'play';
@@ -409,7 +434,7 @@ const controller =
     
     realtime()
     {
-        if(network.tainted)
+        if(controller.isRunModeBlockedByTaintedNetwork("realtime"))
             return;
             
         controller.run_mode = 'realtime';
@@ -548,10 +573,50 @@ const controller =
         const activeMode = controller.run_mode === "restart" ? "play" : controller.run_mode;
         document.querySelectorAll(".transport_button").forEach((button) =>
         {
-            button.disabled = false;
             const mode = button.dataset ? button.dataset.transportMode : "";
+            const blocked = controller.isRunModeBlockedByTaintedNetwork(mode);
+            if(button.dataset && button.dataset.defaultTitle === undefined)
+                button.dataset.defaultTitle = button.getAttribute("title") || "";
+            button.classList.toggle("transport-blocked", blocked);
+            if(blocked)
+            {
+                button.disabled = false;
+                button.removeAttribute("title");
+                button.setAttribute("aria-disabled", "true");
+                button.setAttribute("aria-label", "Save before continuing");
+                button.dataset.disabledReason = "Save before continuing";
+            }
+            else
+            {
+                button.disabled = false;
+                button.removeAttribute("aria-disabled");
+                button.setAttribute("title", button.dataset ? button.dataset.defaultTitle : "");
+                button.removeAttribute("data-disabled-reason");
+            }
             button.classList.toggle("transport-active", mode === activeMode);
         });
+        document.querySelectorAll(".top_transport_controls").forEach((controls) =>
+        {
+            const blocked = !!(network && network.tainted);
+            controls.classList.toggle("transport-controls-blocked", blocked);
+            if(!controls.dataset.saveBlockedHandlerInstalled)
+            {
+                controls.addEventListener("click", function(evt)
+                {
+                    if(!controls.classList.contains("transport-controls-blocked"))
+                        return;
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    controller.save();
+                }, true);
+                controls.dataset.saveBlockedHandlerInstalled = "true";
+            }
+        });
+    },
+
+    isRunModeBlockedByTaintedNetwork(command)
+    {
+        return !!(network && network.tainted && ["pause", "step", "play", "realtime"].includes(command));
     },
 
     update(response, session_id, package_type)
@@ -562,7 +627,8 @@ const controller =
             return;
         }
 
-        const sessionChanged = (package_type !== "network" && controller.session_id != session_id);
+        const isNetworkPackage = package_type == "network" || response._tag == "group";
+        const sessionChanged = (!isNetworkPackage && controller.session_id != session_id);
 
         if(main && typeof main.hideReconnectOverlay === "function")
             main.hideReconnectOverlay();
@@ -571,7 +637,7 @@ const controller =
         if(controller.request_timer === null && !controller.open_mode)
             controller.requestUpdate();
 
-        if(response.log && !sessionChanged)
+        if(response.log)
         {
             let logElement = log.getMessagesElement();
             if(logElement)
@@ -609,7 +675,7 @@ const controller =
             }
         }
 
-        if(package_type == "network")
+        if(isNetworkPackage)
         {
             const wasOpenRequest = controller.open_mode;
             const wasNewRequest = controller.preserve_clean_new;

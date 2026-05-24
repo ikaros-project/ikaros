@@ -980,6 +980,20 @@ const brainstudio =
             return;
         }
 
+        if(isModifier && !evt.altKey && (key === "s" || code === "KeyS"))
+        {
+            if(evt.cancelable)
+                evt.preventDefault();
+            evt.stopPropagation();
+            if(evt.stopImmediatePropagation)
+                evt.stopImmediatePropagation();
+            if(evt.shiftKey)
+                controller.saveas();
+            else
+                controller.save();
+            return;
+        }
+
         if(isModifier && evt.altKey && (key === "t" || code === "KeyT"))
         {
             if(evt.cancelable)
