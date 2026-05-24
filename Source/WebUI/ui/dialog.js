@@ -101,40 +101,44 @@ const dialog =
 
     showSaveDialog(callback, message)
     {
+        this.callback = callback;
+        this.window = document.getElementById('save_dialog');
+        this.populateSaveFileList(controller.filelist || {});
+        if(message)
+        {
+            const saveTitle = document.getElementById('save_dialog_title');
+            if(saveTitle)
+                saveTitle.innerText = message;
+        }
+        const filenameInput = document.getElementById("save_dialog_filename");
+        if(filenameInput)
+        {
+            filenameInput.value = "Untitled";
+            filenameInput.onkeydown = function(evt)
+            {
+                if(evt.key == "Enter")
+                {
+                    evt.preventDefault();
+                    dialog.confirmSave();
+                }
+            };
+        }
+        this.showUserSaveFileList();
+        if(this.window && !this.window.open)
+            this.window.showModal();
+        if(filenameInput)
+        {
+            setTimeout(function()
+            {
+                filenameInput.focus();
+                filenameInput.select();
+            }, 0);
+        }
+
         dialog.fetchFileList()
         .then(json => {
-            this.callback = callback;
-            this.window = document.getElementById('save_dialog');
             this.populateSaveFileList(json);
-            if(message)
-            {
-                const saveTitle = document.getElementById('save_dialog_title');
-                if(saveTitle)
-                    saveTitle.innerText = message;
-            }
-            const filenameInput = document.getElementById("save_dialog_filename");
-            if(filenameInput)
-            {
-                filenameInput.value = "Untitled";
-                filenameInput.onkeydown = function(evt)
-                {
-                    if(evt.key == "Enter")
-                    {
-                        evt.preventDefault();
-                        dialog.confirmSave();
-                    }
-                };
-            }
             this.showUserSaveFileList();
-            this.window.showModal();
-            if(filenameInput)
-            {
-                setTimeout(function()
-                {
-                    filenameInput.focus();
-                    filenameInput.select();
-                }, 0);
-            }
         });
     },
 
