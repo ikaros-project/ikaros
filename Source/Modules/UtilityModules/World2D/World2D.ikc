@@ -1,6 +1,6 @@
 <class name="World2D" description="Small 2D world simulator with one differential-drive artificial creature and circular objects">
     <description>
-        World2D is an initial Ikaros implementation inspired by the BERRY III environment. It simulates one circular creature in a bounded two-dimensional plane and emits separate matrices for the creature, circular objects, and walls. CREATURE is x, y, radius, heading, red, green, blue, solid, opaque. OBJECTS rows are type, id, x, y, radius, value, red, green, blue, solid, where type 2 is food and 3 is aversive. WALLS rows are id, x1, y1, x2, y2, red, green, blue, solid, line_width, opaque. Translation uses swept collision checks against solid circles and wall segments, so fast creatures cannot tunnel through them between ticks. WHISKERS contains left and right solid-contact sensor values from 0 to 1. REINFORCEMENT contains the sum of contacted circular object values. REWARD is positive reinforcement and PUNISHMENT is the absolute value of negative reinforcement.
+        World2D is an initial Ikaros implementation inspired by the BERRY III environment. It simulates one circular creature in a bounded two-dimensional plane and emits separate matrices for the creature, circular objects, and walls. CREATURE is x, y, radius, heading, red, green, blue, solid, opaque. OBJECTS rows are id, type, x, y, radius, value, red, green, blue, solid, smell_1, smell_2, smell_3, smell_4, smell_5, smell_6, smell_7, smell_8, where type 2 is food and 3 is aversive. WALLS rows are id, opaque, x1, y1, x2, y2, red, green, blue, solid, line_width. Food, aversive, and wall parameter rows start with a stable scene id; the default scene uses a continuous id range over food objects, aversive objects, and walls. Translation uses swept collision checks against solid circles and wall segments, so fast creatures cannot tunnel through them between ticks. WHISKERS contains left and right solid-contact sensor values from 0 to 1. ODOUR contains the eight perceived smell receptor values at the left and right whisker tips, attenuated by 1 / (1 + odour_decay * distance^2) and blocked by opaque walls. REINFORCEMENT contains the sum of contacted circular object values. REWARD is positive reinforcement and PUNISHMENT is the absolute value of negative reinforcement.
     </description>
 
     <parameter name="world_width" type="number" default="300" description="World width in length units." />
@@ -8,25 +8,36 @@
     <parameter name="creature_x" type="number" default="150" description="Initial creature x position." />
     <parameter name="creature_y" type="number" default="150" description="Initial creature y position." />
     <parameter name="creature_heading" type="number" default="0" description="Initial creature heading in radians." />
-    <parameter name="creature_radius" type="number" default="3" description="Creature body radius in length units. The BERRY III default body diameter is 6 LU." />
+    <parameter name="creature_radius" type="number" default="4" description="Creature body radius in length units." />
     <parameter name="wheel_radius" type="number" default="1" description="Wheel radius used to convert motor rotations per tick to distance. The BERRY III default wheel diameter is 2 LU." />
     <parameter name="wheel_base" type="number" default="6" description="Distance between the two wheels." />
     <parameter name="max_motor_rpt" type="number" default="0.25" description="Absolute maximum motor speed in rotations per tick." />
-    <parameter name="whisker_length" type="number" default="5" description="Length of each whisker sensor in world units." />
+    <parameter name="whisker_length" type="number" default="10" description="Length of each whisker sensor in world units." />
     <parameter name="whisker_angle" type="number" default="0.7853981633974483" description="Whisker angle relative to creature heading in radians." />
-    <parameter name="food" type="matrix" default="70,70,5,1,0.20,0.70,0.25,0; 225,215,7,1,0.95,0.70,0.15,0" description="Food rows: x, y, radius, value, red, green, blue, solid." />
-    <parameter name="aversive" type="matrix" default="210,85,10,-1,0.85,0.20,0.18,1; 112,120,12,-1,0.48,0.48,0.50,1; 172,160,16,-1,0.48,0.48,0.50,1; 95,220,14,-1,0.48,0.48,0.50,1; 245,150,11,-1,0.48,0.48,0.50,1" description="Aversive or obstacle rows: x, y, radius, value, red, green, blue, solid." />
-    <parameter name="walls" type="matrix" default="50,45,250,45,0.18,0.18,0.18,1,2,1; 50,255,250,255,0.18,0.18,0.18,1,2,1; 50,45,50,255,0.18,0.18,0.18,1,2,1; 250,45,250,255,0.18,0.18,0.18,1,2,1; 125,75,125,185,0.18,0.18,0.18,1,3,1; 175,115,230,115,0.18,0.18,0.18,1,3,1" description="Wall rows: x1, y1, x2, y2, red, green, blue, solid, line_width, opaque." />
+    <parameter name="odour_decay" type="number" default="0.01" description="Smell diffusion constant c in I(d) = 1 / (1 + c * d^2)." />
+    <parameter name="edit_tool" type="matrix" default="0" description="Selected editing tool: 0 select, 1 add object, 2 add wall, 3 delete." />
+    <parameter name="edit_type" type="matrix" default="0" description="Object type used when editing circular objects: 0 food, 1 aversive." />
+    <parameter name="edit_value" type="matrix" default="0" description="Reinforcement value used when editing circular objects." />
+    <parameter name="edit_opaque" type="matrix" default="1" description="Opacity value used when editing walls." />
+    <parameter name="edit_smell" type="matrix" default="0,0,0,0,0,0,0,0" description="Eight smell values used when editing circular objects." />
+    <parameter name="edit_color" type="matrix" default="0,0,0" description="Red, green, and blue values used when editing circular objects or walls." />
+    <parameter name="food" type="matrix" default="1,70,70,5,1,0.20,0.70,0.25,0,1,0,0,0,0,0,0,0; 2,225,215,7,1,0.95,0.70,0.15,0,0,1,0,0,0,0,0,0" description="Food rows: id, x, y, radius, value, red, green, blue, solid, smell_1, ..., smell_8." />
+    <parameter name="aversive" type="matrix" default="3,210,85,10,-1,0.85,0.20,0.18,1,0,0,0,0,0,0,0,1; 4,112,120,12,-1,0.48,0.48,0.50,1,0,0,0,0,0,0,0,1; 5,172,160,16,-1,0.48,0.48,0.50,1,0,0,0,0,0,0,0,1; 6,95,220,14,-1,0.48,0.48,0.50,1,0,0,0,0,0,0,0,1; 7,245,150,11,-1,0.48,0.48,0.50,1,0,0,0,0,0,0,0,1" description="Aversive or obstacle rows: id, x, y, radius, value, red, green, blue, solid, smell_1, ..., smell_8." />
+    <parameter name="walls" type="matrix" default="8,50,45,250,45,0.18,0.18,0.18,1,2,1; 9,50,255,250,255,0.18,0.18,0.18,1,2,1; 10,50,45,50,255,0.18,0.18,0.18,1,2,1; 11,250,45,250,255,0.18,0.18,0.18,1,2,1; 12,125,75,125,185,0.18,0.18,0.18,1,3,1; 13,175,115,230,115,0.18,0.18,0.18,1,3,1" description="Wall rows: id, x1, y1, x2, y2, red, green, blue, solid, line_width, opaque." />
 
     <input name="MOTOR" optional="yes" size="2" description="Left and right wheel speeds in rotations per tick." />
 
     <output name="CREATURE" size="9" description="Creature row: x, y, radius, heading, red, green, blue, solid, opaque." />
-    <output name="OBJECTS" dynamic="yes" capacity="64,10" description="Circular object rows: type, id, x, y, radius, value, red, green, blue, solid. Type 2 is food and 3 is aversive." />
-    <output name="WALLS" dynamic="yes" capacity="64,11" description="Wall rows: id, x1, y1, x2, y2, red, green, blue, solid, line_width, opaque." />
+    <output name="OBJECTS" dynamic="yes" capacity="64,18" description="Circular object rows: scene id, type, x, y, radius, value, red, green, blue, solid, smell_1, smell_2, smell_3, smell_4, smell_5, smell_6, smell_7, smell_8. Type 2 is food and 3 is aversive." />
+    <output name="WALLS" dynamic="yes" capacity="64,11" description="Wall rows: scene id, opaque, x1, y1, x2, y2, red, green, blue, solid, line_width." />
     <output name="POSE" size="3" description="Creature x, y, and heading." />
     <output name="CONTACT" size="2" description="Food contact and aversive contact flags." />
     <output name="WHISKERS" size="2" description="Left and right whisker solid-contact sensor values. 0 means no contact; 1 means contact starts at the whisker base." />
+    <output name="ODOUR" size="2,8" description="Rows are left and right whisker tips; columns are perceived smell receptor values smell_1 through smell_8 in the range 0..1." />
     <output name="REINFORCEMENT" size="1" description="Sum of circular object values currently contacted by the creature." />
     <output name="REWARD" size="1" description="Positive reinforcement value, or 0 when reinforcement is not positive." />
     <output name="PUNISHMENT" size="1" description="Absolute value of negative reinforcement, or 0 when reinforcement is not negative." />
+    <output name="EDIT_OBJECT_ENABLE" size="1" description="1 when a circular object is selected and object-only edit controls should be enabled, otherwise 0." />
+    <output name="EDIT_WALL_ENABLE" size="1" description="1 when a wall is selected and wall-only edit controls should be enabled, otherwise 0." />
+    <output name="EDIT_COLOR_ENABLE" size="1" description="1 when color editing applies to the current selection or wall drawing tool, otherwise 0." />
 </class>
