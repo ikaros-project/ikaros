@@ -6,6 +6,7 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
 
             { name: "CONTROL", control: "header" },
             { name: "parameter", default: "", type: "source", control: "textedit" },
+            { name: "enableSource", default: "", type: "source", control: "textedit" },
             { name: "select_x", default: 0, type: "int", control: "textedit" },
             { name: "select_y", default: "", type: "string", control: "textedit" },
             { name: "count", default: 1, type: "int", control: "textedit" },
@@ -21,6 +22,15 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
 
     static html() {
         return '<div class="vranger"></div>';
+    }
+
+    requestData(data_set) {
+        if (this.parameters.parameter) {
+            this.addSource(data_set, this.parameters.parameter);
+        }
+        if (this.parameters.enableSource) {
+            this.addSource(data_set, this.parameters.enableSource);
+        }
     }
 
     disconnectedCallback() {
@@ -62,6 +72,27 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
 
     _getSliders() {
         return this.querySelectorAll("input");
+    }
+
+    _isEnabled() {
+        if (!this.parameters.enableSource) {
+            return true;
+        }
+
+        const enableSource = this.getSource("enableSource", 1);
+        const enableValue = Array.isArray(enableSource)
+            ? (Array.isArray(enableSource[0]) ? enableSource[0][0] : enableSource[0])
+            : enableSource;
+        return Number(enableValue) !== 0;
+    }
+
+    _syncEnabledState() {
+        const enabled = this._isEnabled();
+        this.classList.toggle("widget-control-disabled", !enabled);
+        for (const slider of this._getSliders()) {
+            slider.disabled = !enabled;
+            slider.closest("div")?.classList.toggle("widget-control-disabled", !enabled);
+        }
     }
 
     _layoutSliders() {
@@ -232,6 +263,7 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
 
         this._layoutSliders();
         this._updateValueLabels();
+        this._syncEnabledState();
 
         this._bindKeyHandlersOnce();
 
@@ -277,6 +309,7 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
         if (this.parameters.show_values) {
             this._updateValueLabels();
         }
+        this._syncEnabledState();
 
         if (this.is_active || Date.now() < (this.active_until || 0)) {
             return;

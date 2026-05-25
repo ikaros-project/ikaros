@@ -7,6 +7,7 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
 
             { name: "CONTROL", control: "header" },
             { name: "parameter", default: "", type: "source", control: "textedit" },
+            { name: "enableSource", default: "", type: "source", control: "textedit" },
             { name: "value", default: 1, type: "int", control: "textedit" },
             { name: "select_x", default: 0, type: "int", control: "textedit" },
             { name: "select_y", default: "", type: "string", control: "textedit" },
@@ -20,10 +21,34 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
 
     requestData(data_set) {
         this.addSource(data_set, this.parameters.parameter);
+        if (this.parameters.enableSource) {
+            this.addSource(data_set, this.parameters.enableSource);
+        }
     }
 
     _getRows() {
         return this.querySelectorAll(".switch-row");
+    }
+
+    _isEnabled() {
+        if (!this.parameters.enableSource) {
+            return true;
+        }
+
+        const enableSource = this.getSource("enableSource", 1);
+        const enableValue = Array.isArray(enableSource)
+            ? (Array.isArray(enableSource[0]) ? enableSource[0][0] : enableSource[0])
+            : enableSource;
+        return Number(enableValue) !== 0;
+    }
+
+    _syncEnabledState() {
+        const enabled = this._isEnabled();
+        this.classList.toggle("widget-control-disabled", !enabled);
+        for (const input of this.querySelectorAll("input")) {
+            input.disabled = !enabled;
+            input.closest(".switch-row")?.classList.toggle("widget-control-disabled", !enabled);
+        }
     }
 
     _getBaseSelectX() {
@@ -143,10 +168,13 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
                 }
             };
         });
+
+        this._syncEnabledState();
     }
 
     update() {
         try {
+            this._syncEnabledState();
             let data = this.getSource("parameter");
             if (!data) {
                 return;

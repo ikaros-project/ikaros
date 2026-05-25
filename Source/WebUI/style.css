@@ -2523,6 +2523,10 @@ header button:active, aside button:active {
     object-fit: contain;
 }
 
+.button-selected .button-icon {
+    filter: invert(1);
+}
+
 .transport_button:disabled,
 .transport_button.transport-blocked {
 

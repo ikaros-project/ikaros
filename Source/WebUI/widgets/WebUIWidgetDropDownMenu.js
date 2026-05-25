@@ -6,6 +6,7 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             {'name': "DROP DOWN MENU", 'control':'header'},
             {'name':'title', 'default':"Menu", 'type':'string', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'enableSource', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'select_x', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'select_y', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'list_parameter', 'default':"", 'type':'source', 'control': 'textedit'},
@@ -25,8 +26,29 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
     requestData(data_set)
     {
         this.addSource(data_set, this.parameters.parameter);
+        if(this.parameters.enableSource)
+            this.addSource(data_set, this.parameters.enableSource);
         if(this.parameters.list_parameter)
             this.addSource(data_set, this.parameters.list_parameter);
+    }
+
+    isEnabled()
+    {
+        if(!this.parameters.enableSource)
+            return true;
+
+        const enableSource = this.getSource('enableSource', 1);
+        const enableValue = Array.isArray(enableSource) ? (Array.isArray(enableSource[0]) ? enableSource[0][0] : enableSource[0]) : enableSource;
+        return Number(enableValue) !== 0;
+    }
+
+    syncEnabledState()
+    {
+        const selector = this.querySelector("select");
+        const enabled = this.isEnabled();
+        this.classList.toggle("widget-control-disabled", !enabled);
+        if(selector)
+            selector.disabled = !enabled;
     }
 
     option_selected(index, value, text)
@@ -95,11 +117,13 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
 
         this.changeOptions(this.parameters.list);
         this.querySelector("label").innerText = this.parameters.label;
+        this.syncEnabledState();
     }
     update()
     {
          try
          {
+            this.syncEnabledState();
             let d = this.getSource('parameter');
             if(!d)
                 return;
