@@ -5645,6 +5645,12 @@ bool operator==(Request & r, const std::string s)
             session_subscription.last_seen_time = GetRealTime();
         }
 
+        if(run_mode.load() == run_mode_pause)
+        {
+            std::lock_guard<std::recursive_mutex> lock(kernelLock);
+            BuildUISnapshot();
+        }
+
         std::shared_ptr<const UISnapshot> snapshot;
         {
             std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
@@ -5777,11 +5783,31 @@ bool operator==(Request & r, const std::string s)
             return;
         }
 
+        bool opened_file_requests_start = false;
+        try
+        {
+            dictionary requested_file_info;
+            requested_file_info.load_xml(file_path->second);
+            opened_file_requests_start = requested_file_info.is_set("start") || requested_file_info.is_set("real_time");
+        }
+        catch(...)
+        {
+            // LoadFile will report the detailed error below.
+        }
+
         Stop();
         options_.path_ = file_path->second;
             try
             {
                 LoadFile();
+                if(!opened_file_requests_start)
+                {
+                    info_.erase("start");
+                    info_.erase("real_time");
+                    run_mode = run_mode_stop;
+                    timer.Pause();
+                    timer.SetPauseTime(0);
+                }
             }
             catch(const setup_failed& e)
             {
@@ -6373,29 +6399,27 @@ bool operator==(Request & r, const std::string s)
     Kernel::DoCommand(Request & request)
     {
         try
-       {
+        {
             request.MergeJsonBodyIntoParameters();
 
             std::string key = request.component_path;
             if(key[0] == '.')
                 key = key.substr(1); // Global path
 
+            std::lock_guard<std::recursive_mutex> lock(kernelLock);
 
             if(!components.count(key))
             {
                 Notify(msg_warning, "Component '"+request.component_path+"' could not be found.");
-                DoSendData(request);
-                return;
             }
-   
-            if(!request.parameters.contains("command"))
+            else if(!request.parameters.contains("command"))
             {
-                    Notify(msg_warning, "No command specified for  '"+request.component_path+"'.");
-                    DoSendData(request);
-                    return;
+                Notify(msg_warning, "No command specified for  '"+request.component_path+"'.");
             }
-
-            components.at(key)->Command(request.parameters["command"], request.parameters);
+            else
+            {
+                components.at(key)->Command(request.parameters["command"], request.parameters);
+            }
         }
         catch(const std::exception& e)
         {
@@ -6417,44 +6441,46 @@ bool operator==(Request & r, const std::string s)
             if(key[0] == '.')
                 key = key.substr(1); // Global path
 
+            std::lock_guard<std::recursive_mutex> lock(kernelLock);
+
             if(!parameters.count(key))
             {
                 Notify(msg_warning, "Parameter '"+request.component_path+"' could not be found.");
-                DoSendData(request);
-                return;
-            }
-
-            parameter & p = parameters.at(key);
-            if(p.type == matrix_type)
-            {
-                int x = 0;
-                int y = 0;
-                double value = 1;
-
-                if(request.parameters.contains("x"))
-                    x = request.parameters["x"];
-
-                if(request.parameters.contains("y"))
-                    y = request.parameters["y"];
-                
-                if(request.parameters.contains("value"))
-                    value = request.parameters["value"];
-
-                if(auto matrix_value = get_parameter_matrix_ptr(p.value.get()))
-                {
-                    if(matrix_value->rank() == 1)
-                        (*matrix_value)(x)= value;
-                    else if(matrix_value->rank() == 2)
-                        (*matrix_value)(y,x)= value; // Is this correct?
-                    else
-                        throw exception("Higher-dimensional matrix parameters are not supported by /control.");
-                }
-                else
-                    throw exception("Parameter is not a matrix.");
             }
             else
             {
-                p = std::string(request.parameters["value"]);
+                parameter & p = parameters.at(key);
+                if(p.type == matrix_type)
+                {
+                    int x = 0;
+                    int y = 0;
+                    double value = 1;
+
+                    if(request.parameters.contains("x"))
+                        x = request.parameters["x"];
+
+                    if(request.parameters.contains("y"))
+                        y = request.parameters["y"];
+                    
+                    if(request.parameters.contains("value"))
+                        value = request.parameters["value"];
+
+                    if(auto matrix_value = get_parameter_matrix_ptr(p.value.get()))
+                    {
+                        if(matrix_value->rank() == 1)
+                            (*matrix_value)(x)= value;
+                        else if(matrix_value->rank() == 2)
+                            (*matrix_value)(y,x)= value; // Is this correct?
+                        else
+                            throw exception("Higher-dimensional matrix parameters are not supported by /control.");
+                    }
+                    else
+                        throw exception("Parameter is not a matrix.");
+                }
+                else
+                {
+                    p = std::string(request.parameters["value"]);
+                }
             }
         }
         catch(const std::exception& e)
@@ -6462,7 +6488,7 @@ bool operator==(Request & r, const std::string s)
             std::cerr << e.what() << '\n';
 
         }
-    DoSendData(request);
+        DoSendData(request);
     }
 
 
