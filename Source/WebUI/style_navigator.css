@@ -1,0 +1,156 @@
+nav.pane_navigator {
+    position: fixed;
+    top: calc(var(--breadcrumb-height) + 31px);
+    left: 15px;
+    z-index: 1200;
+    width: 30px;
+    height: var(--breadcrumb-height);
+    display: block;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid #b8b8b8;
+    border-radius: 15px;
+    overflow: hidden;
+    transform-origin: top left;
+}
+
+nav.pane_navigator:not(.open):not(.closing) {
+    display: none;
+}
+
+nav.pane_navigator.open {
+    width: max-content;
+    max-width: calc(100vw - 27px);
+    height: var(--navigator-open-height, auto);
+    max-height: calc(100vh - var(--breadcrumb-height) - 34px);
+    resize: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 10px 10px 10px;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+nav.pane_navigator.open:not(.closing) {
+    animation: navigator-open 160ms ease-out;
+}
+
+nav.pane_navigator.open.closing {
+    animation: navigator-close 140ms ease-in forwards;
+}
+
+@keyframes navigator-open {
+    from {
+        clip-path: inset(0 calc(100% - 30px) calc(100% - var(--breadcrumb-height)) 0 round 15px);
+    }
+    to {
+        clip-path: inset(0 0 0 0 round 15px);
+    }
+}
+
+@keyframes navigator-close {
+    from {
+        clip-path: inset(0 0 0 0 round 15px);
+    }
+    to {
+        clip-path: inset(0 calc(100% - 30px) calc(100% - var(--breadcrumb-height)) 0 round 15px);
+    }
+}
+
+nav.pane_navigator.open {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    font-size: 11px;
+    color: #222;
+}
+
+.navigator_toggle_button {
+    width: 28px;
+    padding: 3px 0;
+    margin: 0;
+    font-size: 12px;
+    border-radius: 15px;
+    background-color: transparent;
+    border: 0;
+    display: block;
+    text-align: center;
+}
+
+nav.pane_navigator.open .navigator_toggle_button {
+    align-self: flex-start;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+nav.pane_navigator:hover .navigator_toggle_button {
+    background-color: transparent;
+}
+
+.navigator_toggle_button:active {
+    background-color: #222;
+    color: #ccc;
+}
+
+.navigator_tree {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease 60ms;
+}
+
+nav.pane_navigator.open .navigator_tree {
+    flex: 1 1 auto;
+    margin-top: var(--breadcrumb-height);
+    opacity: 1;
+    pointer-events: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: max-content;
+    max-width: 100%;
+}
+
+
+nav.pane_navigator li:hover {
+    color: #222;
+    background: transparent;
+}
+
+nav.pane_navigator li.selected {
+    color: var(--accent-color);
+}
+
+nav.pane_navigator li {
+    overflow-x: visible;
+    white-space: nowrap;
+    padding:1px 1px 1px 20px;
+    color: #222;
+}
+
+nav.pane_navigator > .navigator_tree > ul > li {
+    padding-left: 0;
+}
+
+
+
+nav.pane_navigator li.group-open::before {
+    content: "\0025BD\0020";
+}
+
+nav.pane_navigator li.group-closed::before {
+    content: "\0025B7\0020";
+}
+
+nav.pane_navigator li.group-closed > ul {
+    display: none;
+}
+
+nav.pane_navigator li.group-empty {
+    padding-left: 34px;
+}
+
+nav.pane_navigator > .navigator_tree > ul > li.group-empty {
+    padding-left: 14px;
+}

@@ -1,0 +1,15 @@
+section {
+    background:white;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    height: 500px;
+}
+
+main {
+    flex: 1;
+    overflow: scroll;   /* allow main area to scroll */
+    position: relative;
+ }
+

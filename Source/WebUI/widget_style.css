@@ -15,7 +15,13 @@ webui-widget-drop-down-menu>label {
 
 webui-widget-table table {
     border-top: 1px solid gray;
+    border-collapse: collapse;
+    border-spacing: 0;
     width: 100%;
+}
+
+webui-widget-table tr {
+    border-bottom: 1px solid gray;
 }
 
 webui-widget-table .table-slice-controls {
@@ -39,8 +45,9 @@ webui-widget-table .table-slice-control span {
 
 webui-widget-table td {
     border-top: none;
-    border-bottom: 1px solid gray;
+    border-bottom: none;
     text-align: right;
+    font-size: 9pt;
     padding-left: 10px;
     padding-right: 10px;
 }

@@ -1,0 +1,176 @@
+webui-widget-table .table-widget-root {
+    height: 100%;
+    padding: 0;
+}
+
+webui-widget-button button {
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+}
+
+.main_pane_component_layer .frame {
+    position: absolute;
+    top: 10;
+    left: 10;
+    z-index: 50;
+    width: 101px;
+    height: 101px;
+    overflow: hidden;
+    border: none;
+    flex-direction: column;
+}
+
+.main_pane_component_layer .frame.visible {
+    border: 1px solid var(--widget-frame-color);
+    background: var(--widget-background);
+}
+
+.main_pane_component_layer .frame .title {
+    flex:none;
+    color: var(--widget-title-color);
+    background-color: var(--widget-title-background);
+    font-family: var(--widget-title-font);
+    font-size: calc(var(--widget-title-height) - 8px);
+    text-align: var( --widget-title-align);
+    height: var(--widget-title-height);
+    line-height: calc(var(--widget-title-height) - 2px);
+    vertical-align: middle;
+}
+
+.main_pane_component_layer .widget {
+    flex-grow:1;
+    display: flex;
+    flex-direction: column;
+    border: none;
+    background-color: var(--widget-background);
+ }
+
+.main_pane_component_layer .widget * {
+    flex-grow:1;
+}
+
+main[data-mode="edit"] .main_pane_component_layer .widget {
+    background-color: #eeeeee88;
+    pointer-events: none;
+}
+
+main[data-mode="edit"] .main_pane_component_layer webui-widget-text {
+    pointer-events: auto;
+}
+
+main[data-mode="run"] .main_pane_component_layer .widget {
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+webui-widget-text > div.inline-widget-text-edit {
+    user-select: text;
+    -webkit-user-select: text;
+    cursor: text;
+    outline: 1px solid rgba(96, 165, 250, 0.8);
+    outline-offset: -1px;
+}
+
+webui-widget-text > div {
+    white-space: pre-wrap;
+}
+
+.main_pane_component_layer .dragged,
+.main_pane_component_layer .resized {
+    border-color: black;
+    box-shadow: 4px 4px 4px lightgray;
+}
+
+
+.main_pane_component_layer .selected {
+    border: 1px solid var(--accent-color);
+}
+
+.main_pane_component_layer .visible.selected {
+    border: 1px solid var(--accent-color);
+}
+
+
+.main_pane_component_layer .selected .handle,
+.main_pane_component_layer .dragged .handle,
+.main_pane_component_layer .resized .handle {
+    display: block;
+}
+
+
+.main_pane_component_layer .handle {
+    position:absolute;
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    height: 10px;
+    display: none;
+    background-color: gray;
+}
+
+.main_pane_component_layer .input {
+    padding: 3px 20px 3px 0px;
+    text-align: left;
+    overflow: hidden;
+    white-space: nowrap;    
+}
+
+.main_pane_component_layer .iconnector {
+    background-color: #A44;
+    border-radius: 0 5px 5px 0;
+    width: 10px;
+    height: 10px;
+    margin-right: 10px;
+    margin-top: 0px;
+    float: left;
+}
+
+.main_pane_component_layer .output {
+    padding: 3px 0px 3px 20px;
+    text-align: left;
+    overflow: hidden;
+    white-space: nowrap;
+    position:relative;
+}
+
+
+.main_pane_component_layer .oconnector {
+    background-color: #44A;
+    border-radius: 5px 0 0  5px;
+    width: 10px;
+    height: 10px;
+    margin-left: 10px;
+    margin-top: 0px;
+    position:absolute;
+    left:97px;
+}
+
+.main_pane_component_layer .oconnector:hover {
+    background-color: lightskyblue;
+}
+
+
+
+.button-selected {
+    background-color: #444;
+    border-left: 1px solid #222;
+    border-top: 1px solid #222;
+    border-right:1px solid #bbb;
+    border-bottom: 1px solid #bbb;
+    color: white;
+    font-weight: bold;
+}
+
+
+
+.button-icon {
+    pointer-events: none;
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+}
+
+.button-selected .button-icon {
+    filter: invert(1);
+}

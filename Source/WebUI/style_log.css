@@ -1,0 +1,140 @@
+/*
+ * Footers
+ */
+
+ footer {
+    border-top: 1px solid black;
+    flex: 0 0 100px;
+    position: relative;
+    
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    overflow-y: hidden;
+    overflow-x: hidden;
+
+    display: none;
+
+    padding-top: 2px;
+}
+
+footer .log-messages p {
+    padding-left:5px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.log-clear-button {
+    position: absolute;
+    top: 2px;
+    right: 20px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0;
+    line-height: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: #808080;
+    cursor: pointer;
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.log-clear-button:hover {
+    background: transparent;
+    color: #000;
+}
+
+.log-clear-button svg {
+    display: block;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+}
+
+.log-close-button {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: 0;
+    font-size: 12px;
+    line-height: 18px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: #b0b0b0;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.log-close-button:hover {
+    color: #000;
+    background: transparent;
+}
+
+.log-messages {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 52px;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+.log-messages,
+.log-messages * {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+.log-resize-handle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 12px;
+    cursor: row-resize;
+    z-index: 9;
+    background: transparent;
+}
+
+footer.log .log-resize-handle:hover {
+    cursor: row-resize;
+}
+
+
+body.log-resizing,
+body.log-resizing * {
+    cursor: row-resize !important;
+}
+p.inherit     { color: lightgray; }
+p.quiet     { color: lightgray; }
+p.exception { color: black; }
+p.end_of_file { color: blue; }
+p.terminate { color: blue; }
+p.fatal_error { color: red; }
+p.warning { color: red; }
+p.print { color: darkgray; }
+p.debug { color: darkgray; }
+p.trace { color: darkgray; }
+
+
+a {
+    color: black;
+    text-decoration: none;
+}
+
+
+a:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+

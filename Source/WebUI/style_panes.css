@@ -1,0 +1,423 @@
+main {
+    padding: 0px;
+    background: var(--main-background);
+    position: relative;
+    --main-breadcrumb-strip-height: 15px;
+    --main-grid-left-offset: 0px;
+}
+
+body.top_chrome_hidden header,
+body.top_chrome_hidden .main_breadcrumb_strip {
+    display: none !important;
+}
+
+body.top_chrome_hidden main {
+    --main-breadcrumb-strip-height: 0px;
+}
+
+main[data-mode="edit"] {
+    background: white; /* lightyellow */
+}
+
+main[data-mode="run"] div#grid {
+    display: none;
+}
+
+main[data-mode="edit"] div#grid {
+    display: block;
+}
+
+.vgrid {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    border-left: 1px solid lightgray;
+}
+
+.hgrid {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    border-top: 1px solid lightgray;
+}
+
+.split_node {
+    display: grid;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+}
+
+.split_node.split_vertical {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.split_node.split_vertical > :nth-child(2) {
+    border-left: 1px solid gray;
+}
+
+.split_node.split_mirror > :nth-child(2) {
+    border-left-style: dashed;
+}
+
+.split_node.split_horizontal {
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.split_node.split_horizontal > :nth-child(2) {
+    border-top: 1px solid gray;
+}
+
+.split_resize_handle {
+    position: absolute;
+    z-index: 1100;
+    background: transparent;
+}
+
+.split_resize_handle_vertical {
+    top: 0;
+    bottom: 0;
+    left: calc(var(--split-ratio, 50) * 1%);
+    width: 7px;
+    transform: translateX(-3px);
+    cursor: col-resize;
+}
+
+.split_resize_handle_horizontal {
+    left: 0;
+    right: 0;
+    top: calc(var(--split-ratio, 50) * 1%);
+    height: 7px;
+    transform: translateY(-3px);
+    cursor: row-resize;
+}
+
+.split_resize_handle:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.main_pane {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.main_pane_surface
+{
+    width: 100%;
+    height: 100%;
+    display:none;
+}
+
+#main.edit_mode .main_pane_surface
+{
+    display:block;
+}
+
+.reconnect-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: var(--main-background);
+    pointer-events: all;
+}
+
+.reconnect-overlay.visible {
+    display: flex;
+}
+
+.reconnect-overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    color: #5d6770;
+    text-align: center;
+}
+
+.reconnect-spinner {
+    width: 72px;
+    height: 72px;
+    margin-left: 0;
+    border-width: 8px;
+    vertical-align: middle;
+}
+
+.reconnect-overlay-label {
+    font-family: "Didact Gothic", sans-serif;
+    font-size: 28px;
+    letter-spacing: 0.02em;
+    text-transform: lowercase;
+}
+
+.main_pane_grid_canvas
+{
+    position:absolute;
+    top:var(--main-breadcrumb-strip-height);
+    left:var(--main-grid-left-offset);
+    width: 3000;
+    height: 3000;
+    display:block;
+}
+
+.main_pane_component_layer {
+    position: absolute;
+    z-index: 400;
+    width: 3000px;
+    height: 3000px;
+    top: var(--main-breadcrumb-strip-height) !important;
+    left: var(--main-grid-left-offset) !important;
+}
+
+.main_breadcrumb_strip {
+    display: flex;
+    align-items: center;
+    position:absolute;
+    z-index: 1000;
+    top: 0;
+    left:0;
+    right:0;
+    height: auto;
+    max-width: none;
+    padding: 0 0 0 6px;
+    background: white;
+    border-top: 0;
+    border-bottom: 0;
+    overflow: visible;
+}
+
+.main_breadcrumb_strip .breadcrumb_path {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.pane_navigator_toggle_button {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 15px;
+    padding: 0;
+    margin: 0 3px 0 0;
+    border: 0;
+    background: transparent;
+    color: #222;
+    font-size: 12px;
+    line-height: 15px;
+    text-align: center;
+}
+
+.pane_navigator_toggle_button:hover {
+    background: transparent;
+}
+
+.pane_navigator_toggle_button:active {
+    background: #222;
+    color: #ccc;
+}
+
+.main_breadcrumb_strip .breadcrumb_text,
+.main_breadcrumb_strip .breadcrumb_separator {
+    flex: 0 0 auto;
+    height: 15px;
+    color: gray;
+    line-height: 13px;
+    font-size: 10px;
+    transform: translateY(1px);
+    white-space: nowrap;
+}
+
+.main_breadcrumb_strip .breadcrumb_text {
+    cursor: default;
+}
+
+.main_breadcrumb_strip .breadcrumb_text.current {
+    color: #222;
+    font-weight: bold;
+}
+
+.main_pane:not(.active) .main_breadcrumb_strip .breadcrumb_text,
+.main_pane:not(.active) .main_breadcrumb_strip .breadcrumb_separator {
+    color: #b8b8b8;
+}
+
+.main_pane:not(.active) .main_breadcrumb_strip .breadcrumb_text.current {
+    color: #9a9a9a;
+}
+
+.main_pane:not(.active) .pane_navigator_toggle_button,
+.main_pane:not(.active) .breadcrumb_split_controls button {
+    visibility: hidden;
+}
+
+.main_breadcrumb_strip .breadcrumb_separator {
+    padding: 0 4px;
+}
+
+.breadcrumb_split_controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+    padding-right: 6px;
+}
+
+.breadcrumb_split_controls button {
+    height: 15px;
+    min-width: 17px;
+    padding: 0 4px;
+    border: 0;
+    background: transparent;
+    color: #222;
+    font-size: 12px;
+    line-height: 15px;
+}
+
+.breadcrumb_split_icon {
+    width: 14px;
+    height: 14px;
+    display: block;
+    position: static;
+    left: auto;
+    top: auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.breadcrumb_split_controls button:hover {
+    background: transparent;
+}
+
+.breadcrumb_split_controls button:active {
+    background: transparent;
+    color: #222;
+}
+
+.breadcrumb_split_controls button:disabled {
+    visibility: hidden;
+    color: transparent;
+    background: transparent;
+    border-color: transparent;
+}
+
+.main_pane:not(.active) .breadcrumb_split_controls button:disabled,
+.breadcrumb_split_controls button:disabled .breadcrumb_split_icon,
+.breadcrumb_split_controls button:disabled .breadcrumb_split_icon * {
+    color: transparent;
+    stroke: transparent;
+}
+
+.breadcrumb_split_controls .breadcrumb_icon_button {
+    min-width: 17px;
+    padding: 0 2px;
+}
+
+.breadcrumb_split_controls .breadcrumb_close_button {
+    min-width: 16px;
+    padding: 0 1px;
+    font-size: 15px;
+    line-height: 14px;
+}
+
+.main_grid_controls {
+    position:absolute;
+    z-index: 1000;
+    top: calc(var(--main-breadcrumb-strip-height) + 16px);
+    right:15px;
+    left:auto;
+
+}
+
+
+.main_grid_controls button,
+.component_create_controls button{
+    float: left;
+    padding: 3px 10px 3px 10px;
+    margin: 20;
+    margin-left: -1px;
+    font-size: 12px;
+    border-radius: 0px;
+    background-color: white;
+    border: 1px solid gray;
+}
+
+.main_grid_controls button{
+    box-sizing: border-box;
+    height: 23px;
+}
+
+
+.main_grid_controls button:hover,
+.component_create_controls button:hover {
+    background-color: lightgray;
+}
+
+.main_grid_controls button:active,
+.main_grid_controls button.selected,
+.component_create_controls button:active,
+.component_create_controls button.selected {
+    background-color: #222;
+    color: #ccc;
+    border-color: black;
+}
+
+.component_create_controls {
+    position:absolute;
+    z-index: 1000;
+    top: calc(var(--main-breadcrumb-strip-height) + 16px);
+    left: calc(50% - 150px);
+    transform: translateX(-50%);
+
+}
+
+#delete_commands {
+    position:absolute;
+    z-index: 1000;
+    top:12px;
+    left:515px;
+}
+
+.command_info_button {
+    height: 23px;
+    min-width: 28px;
+    padding: 0 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.command_info_button .info-glyph {
+    display: inline-block;
+    font-family: "CharterBlackLocal", "Charter", "Times New Roman", Times, serif !important;
+    font-weight: 900;
+    font-size: 16px;
+    line-height: 14px;
+}
+
+#library_inspector_button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 31px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    line-height: 1;
+}
+
+#library_inspector_button .book-glyph {
+    display: inline-block;
+    font-size: 16px;
+    line-height: 1;
+}
