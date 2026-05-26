@@ -4625,6 +4625,8 @@ const main =
         else if (key=="s" || code=="KeyS")
         {
             evt.preventDefault();
+            if(evt.shiftKey)
+                return;
             controller.save();
             return;
         }

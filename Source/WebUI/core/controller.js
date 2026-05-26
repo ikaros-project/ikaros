@@ -24,11 +24,21 @@ const controller =
     preserve_clean_open: false,
     preserve_clean_new: false,
     clean_new_session_id: null,
+    save_in_flight: false,
+    save_pending: false,
     reset_layout_on_network: false,
     slow_ui_delay_ms: 0,
     slow_ui_jitter_ms: 0,
     drop_update_rate: 0,
     data_package: {},
+
+    cloneNetworkForStorage(source)
+    {
+        const clone = deepCopy(source);
+        if(clone && typeof clone === "object")
+            delete clone.log;
+        return clone;
+    },
 
     reconnect()
     {
@@ -118,34 +128,122 @@ const controller =
 
     saveNetwork()
     {
-        const jsonString = JSON.stringify(network.network,null,2);
+        if(controller.save_in_flight)
+        {
+            controller.save_pending = true;
+            return;
+        }
 
-        fetch("save", {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Session-Id': controller.session_id,
-                'Client-Id': controller.client_id
-            },
-            body: jsonString
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok ' + response.statusText);
+        controller.save_in_flight = true;
+        let jsonString = "";
+        try
+        {
+            jsonString = JSON.stringify(controller.cloneNetworkForStorage(network.network),null,2);
+        }
+        catch(error)
+        {
+            controller.save_in_flight = false;
+            const message = error && error.message ? error.message : String(error);
+            console.error("Save serialization failed:", error);
+            alert("Save failed: " + message);
+            return;
+        }
+
+        const finish = function()
+        {
+            controller.save_in_flight = false;
+            if(controller.save_pending)
+            {
+                controller.save_pending = false;
+                controller.save();
             }
-            return response.json();
-        })
-        .then(data => {
+        };
+
+        const saveSucceeded = function(data)
+        {
+            if(data && data.filename && network && network.network)
+                network.network.filename = data.filename;
             main.setViewMode();
             controller.setTainted(false, "saveNetwork success");
             controller.data_package = data;
-            controller.setSystemInfo(data);
-            controller.get("update", controller.update);
-        })
-        .catch(error => {
+            controller.get("network", controller.update);
+            finish();
+        };
+
+        const saveFailed = function(error)
+        {
             console.error('Error:', error);
-            alert("Save failed");
-        });
+            const message = error && error.message ? error.message : String(error);
+            alert("Save failed: " + message);
+            finish();
+        };
+
+        const maxSaveAttempts = 5;
+        const saveRetryDelays = [150, 350, 800, 1600];
+        const sendSaveRequest = function(attempt)
+        {
+            const xhr = new XMLHttpRequest();
+            xhr.open("PUT", "/save?request=" + Date.now() + "-" + attempt, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Session-Id", controller.session_id);
+            xhr.setRequestHeader("Client-Id", controller.client_id);
+            xhr.timeout = 10000;
+
+            xhr.onload = function()
+            {
+                if(xhr.status === 0)
+                {
+                    retryOrFail(new Error("Network error while saving."));
+                    return;
+                }
+                if(xhr.status < 200 || xhr.status >= 300)
+                {
+                    saveFailed(new Error(`Save failed with HTTP ${xhr.status} ${xhr.statusText}: ${xhr.responseText}`));
+                    return;
+                }
+
+                try
+                {
+                    saveSucceeded(JSON.parse(xhr.responseText));
+                }
+                catch(error)
+                {
+                    saveFailed(new Error(`Save response was not JSON: ${xhr.responseText}`));
+                }
+            };
+
+            const retryOrFail = function(error)
+            {
+                if(attempt + 1 < maxSaveAttempts)
+                {
+                    const delay = saveRetryDelays[Math.min(attempt, saveRetryDelays.length - 1)];
+                    setTimeout(function() { sendSaveRequest(attempt + 1); }, delay);
+                    return;
+                }
+                saveFailed(error);
+            };
+
+            xhr.onerror = function()
+            {
+                retryOrFail(new Error("Network error while saving."));
+            };
+
+            xhr.ontimeout = function()
+            {
+                retryOrFail(new Error("Save request timed out."));
+            };
+
+            try
+            {
+                xhr.send(jsonString);
+            }
+            catch(error)
+            {
+                retryOrFail(error);
+            }
+        };
+
+        sendSaveRequest(0);
     },
 
     commitActiveEditBeforeSave()
@@ -351,7 +449,7 @@ const controller =
     save() 
     {
         controller.commitActiveEditBeforeSave();
-        const filename = network.network.filename;
+        const filename = network && network.network ? network.network.filename : null;
         if(filename == null || filename === "" || filename === "null")
             controller.saveas();
         else
@@ -689,7 +787,7 @@ const controller =
             document.querySelector("#load").style.display="none";
    
             controller.tick = response.tick;
-            network.init(response);
+            network.init(controller.cloneNetworkForStorage(response));
             if(main && typeof main.applyStartupTopChromeVisibility === "function")
                 main.applyStartupTopChromeVisibility();
             const shouldResetLayout = wasOpenRequest || controller.reset_layout_on_network;

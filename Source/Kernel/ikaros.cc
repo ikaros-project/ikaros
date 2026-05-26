@@ -5856,22 +5856,59 @@ bool operator==(Request & r, const std::string s)
 
         // Sanitize file name
 
+        if(!d.contains_non_null("filename") || std::string(d["filename"]).empty())
+        {
+            DoSendError("400 Bad Request", "Save request must include a filename.");
+            return;
+        }
+
         std::filesystem::path path = add_extension(std::string(d["filename"]), ".ikg");
-        std::string filename = path.filename();
+        std::filesystem::path filename = path.filename();
+        std::filesystem::path target_path = std::filesystem::path(user_dir) / filename;
 
         d.erase("filename");
         std::string data = canonicalize_shape_aliases(d.xml("group", {"module/parameters","module/inputs","module/outputs", "module/authors","module/descriptions", "group/views", "module.description"}));
-        std::ofstream file;
-        file.open (filename);
+        std::error_code ec;
+        std::filesystem::create_directories(target_path.parent_path(), ec);
+        if(ec)
+        {
+            DoSendError("500 Internal Server Error", "Could not create save directory \"" + target_path.parent_path().string() + "\".");
+            return;
+        }
+
+        std::ofstream file(target_path);
+        if(!file)
+        {
+            DoSendError("500 Internal Server Error", "Could not save file \"" + target_path.string() + "\".");
+            return;
+        }
         file << data;
         file.close();
-        options_.path_ = filename;
+        if(!file)
+        {
+            DoSendError("500 Internal Server Error", "Could not finish writing file \"" + target_path.string() + "\".");
+            return;
+        }
+
+        options_.path_ = target_path.string();
         needs_reload = true;
 
         d["filename"] = options_.stem();
         info_ = d;
 
-        DoUpdate(request);
+        std::cout << "Saved file \"" << target_path.string() << "\".\n";
+        std::string response = "{\n";
+        response += "\t\"ok\": true,\n";
+        response += "\t\"filename\": " + value(options_.stem()).json() + "\n";
+        response += "}\n";
+        dictionary header({
+            {"Session-Id", std::to_string(session_id)},
+            {"Package-Type", "save"},
+            {"Content-Type", "application/json"},
+            {"Cache-Control", "no-cache, no-store"},
+            {"Pragma", "no-cache"}
+        });
+        SendStringResponse(header, response);
     }
 
 

@@ -761,12 +761,26 @@ ServerSocket::SendData(const char * buffer, long size)
      while (total < size)
     {
         n = send(connection->fd, buffer+total, bytesleft, MSG_NOSIGNAL);
-        if(n == -1)
+        if(n > 0)
         {
-            break;
+            total += n;
+            bytesleft -= n;
+            continue;
         }
-        total += n;
-        bytesleft -= n;
+
+        if(n == -1 && errno == EINTR)
+            continue;
+
+        if(n == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
+        {
+            fd_set write_fds;
+            FD_ZERO(&write_fds);
+            FD_SET(connection->fd, &write_fds);
+            if(select(connection->fd + 1, nullptr, &write_fds, nullptr, nullptr) > 0)
+                continue;
+        }
+
+        break;
     }
 	
     if(n == -1 || bytesleft > 0) // We failed to send all data

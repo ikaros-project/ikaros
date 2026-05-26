@@ -987,10 +987,9 @@ const brainstudio =
             evt.stopPropagation();
             if(evt.stopImmediatePropagation)
                 evt.stopImmediatePropagation();
-            if(evt.shiftKey)
-                controller.saveas();
-            else
-                controller.save();
+            if(evt.repeat || evt.shiftKey)
+                return;
+            controller.save();
             return;
         }
 
