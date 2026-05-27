@@ -26,12 +26,16 @@ const main =
         main.workspace = document.querySelector("#main_workspace");
         main.active_pane = main.getPaneElements(document.querySelector(".main_pane.active"));
         main.applyActivePaneReferences();
+        main.createWorkspaceConnectionLayer();
+        main.observeWorkspaceLayout();
         main.createContextMenu();
         main.createComponentColorMenu();
         main.createWidgetMenu();
         main.createReconnectOverlay();
         main.drawGrid();
         window.addEventListener("resize", () => main.refreshAllPaneGeometry(), false);
+        document.addEventListener("click", main.handleWorkspaceConnectionClick, true);
+        document.addEventListener("dblclick", main.handleWorkspaceConnectionClick, true);
         main.installPaneEvents(main.active_pane.root);
     },
 
@@ -80,6 +84,528 @@ const main =
     getElementLogicalId(element)
     {
         return element && element.dataset && element.dataset.logicalId ? element.dataset.logicalId : (element ? element.id : "");
+    },
+
+    getAllPanes(root=main.workspace || document)
+    {
+        return root && root.querySelectorAll ? Array.from(root.querySelectorAll(".main_pane")) : [];
+    },
+
+    getPaneBackground(pane)
+    {
+        return pane && pane.dataset ? pane.dataset.background || "" : "";
+    },
+
+    getCurrentPaneRoot()
+    {
+        return main.active_pane && main.active_pane.root ? main.active_pane.root : null;
+    },
+
+    isActivePane(pane)
+    {
+        return !!(pane && pane.classList && pane.classList.contains("active"));
+    },
+
+    clearSelectionsOutsidePane(activePane=null)
+    {
+        const selectedPane = activePane || main.getCurrentPaneRoot();
+        for(const pane of main.getAllPanes())
+        {
+            if(pane === selectedPane)
+                continue;
+            for(const element of pane.querySelectorAll(".gi.selected"))
+                element.classList.remove("selected");
+        }
+    },
+
+    setPaneBackground(pane, background)
+    {
+        if(pane && pane.dataset && background)
+            pane.dataset.background = background;
+    },
+
+    getPanesForBackground(background, excludePane=null)
+    {
+        if(!background)
+            return [];
+        return main.getAllPanes().filter((pane) => pane !== excludePane && main.getPaneBackground(pane) === background);
+    },
+
+    getPanesShowingBackground(background)
+    {
+        return main.getPanesForBackground(background);
+    },
+
+    getPaneComponentElement(pane, logicalId)
+    {
+        if(!pane || !logicalId)
+            return null;
+        return main.getPaneElement(logicalId, pane);
+    },
+
+    getElementsByLogicalId(logicalId, root=document)
+    {
+        if(!logicalId || !root || !root.querySelectorAll)
+            return [];
+        return Array.from(root.querySelectorAll("[data-logical-id]")).filter((element) => element.dataset.logicalId === logicalId);
+    },
+
+    getEndpointViewportPosition(endpointId, pane)
+    {
+        const element = main.getPaneComponentElement(pane, endpointId);
+        if(!element)
+            return null;
+
+        const rect = element.getBoundingClientRect();
+        return {
+            pane,
+            element,
+            endpointId,
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+            rect
+        };
+    },
+
+    getVisibleEndpointPlacements(endpointId, panes=null)
+    {
+        const candidatePanes = panes || main.getAllPanes();
+        const placements = [];
+        for(const pane of candidatePanes)
+        {
+            const placement = main.getEndpointViewportPosition(endpointId, pane);
+            if(placement)
+                placements.push(placement);
+            else
+            {
+                const boundaryPlacement = main.getBoundaryEndpointViewportPosition(endpointId, pane);
+                if(boundaryPlacement)
+                    placements.push(boundaryPlacement);
+            }
+        }
+        return placements;
+    },
+
+    getBoundaryEndpointViewportPosition(endpointId, pane)
+    {
+        const paneBackground = main.getPaneBackground(pane);
+        if(!endpointId || !paneBackground || !endpointId.startsWith(`${paneBackground}.`))
+            return null;
+
+        const suffix = endpointId.endsWith(":out") ? ":out" : (endpointId.endsWith(":in") ? ":in" : "");
+        if(!suffix)
+            return null;
+
+        const baseEndpoint = endpointId.slice(0, -suffix.length);
+        const relativeEndpoint = baseEndpoint.slice(paneBackground.length + 1);
+        if(!relativeEndpoint || relativeEndpoint.includes("."))
+            return null;
+
+        const boundarySuffix = suffix === ":out" ? ":in" : ":out";
+        const boundaryEndpointId = `${baseEndpoint}${boundarySuffix}`;
+        const placement = main.getEndpointViewportPosition(boundaryEndpointId, pane);
+        if(!placement)
+            return null;
+
+        placement.endpointId = endpointId;
+        placement.boundaryEndpointId = boundaryEndpointId;
+        placement.isBoundaryEndpoint = true;
+        return placement;
+    },
+
+    getConnectionEndpointIds(path, connection)
+    {
+        const sockets = main.getConnectionSocketIds(path, connection);
+        return {
+            sourceEndpointId: sockets.sourceSocketId,
+            targetEndpointId: sockets.targetSocketId
+        };
+    },
+
+    getConnectionEndpointBase(endpointId)
+    {
+        return getStringUpToBracket((endpointId || "").split(":")[0] || "");
+    },
+
+    getConnectionOwnerPath(sourceEndpointId, targetEndpointId)
+    {
+        const sourceParts = main.getConnectionEndpointBase(sourceEndpointId).split(".").filter(Boolean);
+        const targetParts = main.getConnectionEndpointBase(targetEndpointId).split(".").filter(Boolean);
+        const commonParts = [];
+        for(let i = 0; i < Math.min(sourceParts.length, targetParts.length); i++)
+        {
+            if(sourceParts[i] !== targetParts[i])
+                break;
+            commonParts.push(sourceParts[i]);
+        }
+
+        while(commonParts.length > 0)
+        {
+            const path = commonParts.join(".");
+            const item = network && network.dict ? network.dict[path] : null;
+            if(item && item._tag === "group")
+                return path;
+            commonParts.pop();
+        }
+
+        return selector ? selector.selected_background : "";
+    },
+
+    getRelativeConnectionEndpoint(endpointId, ownerPath)
+    {
+        const endpointBase = main.getConnectionEndpointBase(endpointId);
+        return removeStringFromStart(endpointBase, `${ownerPath}.`);
+    },
+
+    resolveConnectionId(connectionId)
+    {
+        if(!connectionId || !network || !network.dict)
+            return null;
+
+        const parts = connectionId.split("*");
+        if(parts.length !== 2)
+            return null;
+
+        for(const path in network.dict)
+        {
+            const group = network.dict[path];
+            if(!group || group._tag !== "group" || !Array.isArray(group.connections))
+                continue;
+
+            for(const connection of group.connections)
+            {
+                if(main.getConnectionKey(path, connection) === connectionId)
+                {
+                    const endpoints = main.getConnectionEndpointIds(path, connection);
+                    return {
+                        id: connectionId,
+                        path,
+                        group,
+                        connection,
+                        source: connection.source,
+                        target: connection.target,
+                        sourceEndpointId: endpoints.sourceEndpointId,
+                        targetEndpointId: endpoints.targetEndpointId
+                    };
+                }
+            }
+        }
+
+        const fallbackPath = main.getConnectionOwnerPath(parts[0], parts[1]);
+        return {
+            id: connectionId,
+            path: fallbackPath,
+            group: null,
+            connection: null,
+            source: main.getRelativeConnectionEndpoint(parts[0], fallbackPath),
+            target: main.getRelativeConnectionEndpoint(parts[1], fallbackPath),
+            sourceEndpointId: `${parts[0]}:out`,
+            targetEndpointId: `${parts[1]}:in`
+        };
+    },
+
+    getPanesForConnectionPath(path)
+    {
+        if(!path)
+            return [];
+        return main.getAllPanes().filter((pane) =>
+        {
+            const background = main.getPaneBackground(pane);
+            return background === path || background.startsWith(`${path}.`);
+        });
+    },
+
+    getVisibleConnectionEndpoints(path, connection, panes=null)
+    {
+        const endpointIds = main.getConnectionEndpointIds(path, connection);
+        const candidatePanes = panes || main.getPanesForConnectionPath(path);
+        return {
+            source: main.getVisibleEndpointPlacements(endpointIds.sourceEndpointId, candidatePanes),
+            target: main.getVisibleEndpointPlacements(endpointIds.targetEndpointId, candidatePanes),
+            ...endpointIds
+        };
+    },
+
+    classifyConnectionVisibility(path, connection, panes=null)
+    {
+        const endpoints = main.getVisibleConnectionEndpoints(path, connection, panes);
+        const samePanes = endpoints.source
+            .map((sourcePlacement) => sourcePlacement.pane)
+            .filter((pane) => endpoints.target.some((targetPlacement) => targetPlacement.pane === pane));
+
+        let classification = "hidden";
+        if(samePanes.length > 0)
+            classification = "same-pane";
+        else if(endpoints.source.length > 0 && endpoints.target.length > 0)
+            classification = "cross-pane";
+
+        return {
+            classification,
+            samePanes,
+            ...endpoints
+        };
+    },
+
+    findCrossPaneEndpointPair(visibility)
+    {
+        if(!visibility || visibility.classification !== "cross-pane")
+            return null;
+        for(const source of visibility.source || [])
+        {
+            for(const target of visibility.target || [])
+            {
+                if(source.pane !== target.pane)
+                    return {source, target};
+            }
+        }
+        return null;
+    },
+
+    findCrossPaneEndpointPairs(visibility)
+    {
+        if(!visibility)
+            return [];
+
+        const pairs = [];
+        for(const source of visibility.source || [])
+        {
+            for(const target of visibility.target || [])
+            {
+                if(source.pane !== target.pane)
+                    pairs.push({source, target});
+            }
+        }
+        return pairs;
+    },
+
+    withPane(pane, callback)
+    {
+        if(!pane || typeof callback !== "function")
+            return null;
+
+        const previousPane = main.active_pane;
+        main.active_pane = main.getPaneElements(pane);
+        main.applyActivePaneReferences();
+
+        try
+        {
+            return callback(main.active_pane);
+        }
+        finally
+        {
+            main.active_pane = previousPane;
+            main.applyActivePaneReferences();
+        }
+    },
+
+    createWorkspaceConnectionLayer()
+    {
+        if(main.workspace_connection_layer && main.workspace_connection_layer.parentElement)
+            return main.workspace_connection_layer;
+        if(!main.main)
+            return null;
+
+        const layer = document.createElement("div");
+        layer.className = "main_workspace_connection_layer";
+        layer.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' class='workspace_connections_svg'></svg>";
+        main.main.appendChild(layer);
+        main.workspace_connection_layer = layer;
+        main.workspace_connection_svg = layer.querySelector(".workspace_connections_svg");
+        return layer;
+    },
+
+    observeWorkspaceLayout()
+    {
+        if(main.workspace_resize_observer || typeof ResizeObserver === "undefined")
+            return;
+
+        main.workspace_resize_observer = new ResizeObserver(() => main.scheduleWorkspaceConnectionUpdate());
+        if(main.main)
+            main.workspace_resize_observer.observe(main.main);
+        if(main.workspace)
+            main.workspace_resize_observer.observe(main.workspace);
+    },
+
+    scheduleWorkspaceConnectionUpdate()
+    {
+        if(main.workspace_connection_update_frame)
+            cancelAnimationFrame(main.workspace_connection_update_frame);
+        main.workspace_connection_update_frame = requestAnimationFrame(() =>
+        {
+            main.workspace_connection_update_frame = null;
+            main.updateWorkspaceConnections();
+        });
+    },
+
+    getWorkspaceConnectionLayer()
+    {
+        return main.workspace_connection_layer && main.workspace_connection_layer.parentElement
+            ? main.workspace_connection_layer
+            : main.createWorkspaceConnectionLayer();
+    },
+
+    getWorkspaceConnectionSvg()
+    {
+        const layer = main.getWorkspaceConnectionLayer();
+        if(!layer)
+            return null;
+        if(!main.workspace_connection_svg || !layer.contains(main.workspace_connection_svg))
+            main.workspace_connection_svg = layer.querySelector(".workspace_connections_svg");
+        return main.workspace_connection_svg;
+    },
+
+    clearWorkspaceConnections()
+    {
+        const svg = main.getWorkspaceConnectionSvg();
+        if(svg)
+            svg.innerHTML = "";
+    },
+
+    drawWorkspaceConnectionLine(path, connection, sourcePlacement, targetPlacement, options={})
+    {
+        const svg = main.getWorkspaceConnectionSvg();
+        if(!svg || !sourcePlacement || !targetPlacement || !main.main)
+            return;
+
+        const mainRect = main.main.getBoundingClientRect();
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        const connectionId = main.getConnectionKey(path, connection);
+        const connectionColor = main.getConnectionColorValue(connection);
+        const occurrenceIndex = Number.isFinite(options.occurrenceIndex) ? options.occurrenceIndex : 0;
+        const occurrenceCount = Number.isFinite(options.occurrenceCount) ? options.occurrenceCount : 1;
+        line.setAttribute("x1", String(sourcePlacement.x - mainRect.left));
+        line.setAttribute("y1", String(sourcePlacement.y - mainRect.top));
+        line.setAttribute("x2", String(targetPlacement.x - mainRect.left));
+        line.setAttribute("y2", String(targetPlacement.y - mainRect.top));
+        line.setAttribute("class", "connection_line workspace_connection_line");
+        line.setAttribute("data-logical-id", connectionId);
+        line.setAttribute("data-source", connection.source || "");
+        line.setAttribute("data-target", connection.target || "");
+        line.setAttribute("data-occurrence-index", String(occurrenceIndex));
+        line.setAttribute("data-occurrence-count", String(occurrenceCount));
+        if(selector && selector.selected_connection === connectionId)
+            line.classList.add("selected");
+        line.addEventListener("click", () => selector.selectConnectionAndReveal(connectionId), false);
+        line.addEventListener("dblclick", () => selector.selectConnectionAndReveal(connectionId), false);
+        if(connectionColor)
+            line.style.setProperty("--connection-color", connectionColor);
+        svg.appendChild(line);
+    },
+
+    drawTrackedWorkspaceConnection()
+    {
+        const tracked = main.tracked_connection;
+        const svg = main.getWorkspaceConnectionSvg();
+        if(!tracked || !svg || !main.main)
+            return;
+
+        const mainRect = main.main.getBoundingClientRect();
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", String(tracked.client_x1 - mainRect.left));
+        line.setAttribute("y1", String(tracked.client_y1 - mainRect.top));
+        line.setAttribute("x2", String(tracked.client_x2 - mainRect.left));
+        line.setAttribute("y2", String(tracked.client_y2 - mainRect.top));
+        line.setAttribute("class", "connection_line workspace_connection_line tracked");
+        svg.appendChild(line);
+    },
+
+    getDistanceToSegment(px, py, x1, y1, x2, y2)
+    {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        if(dx === 0 && dy === 0)
+            return Math.hypot(px - x1, py - y1);
+
+        const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy)));
+        const x = x1 + t * dx;
+        const y = y1 + t * dy;
+        return Math.hypot(px - x, py - y);
+    },
+
+    getWorkspaceConnectionAtPoint(clientX, clientY)
+    {
+        if(!main.main)
+            return null;
+
+        const mainRect = main.main.getBoundingClientRect();
+        let closest = null;
+        let closestDistance = Infinity;
+        for(const line of document.querySelectorAll(".workspace_connection_line:not(.tracked)"))
+        {
+            const x1 = mainRect.left + Number(line.getAttribute("x1"));
+            const y1 = mainRect.top + Number(line.getAttribute("y1"));
+            const x2 = mainRect.left + Number(line.getAttribute("x2"));
+            const y2 = mainRect.top + Number(line.getAttribute("y2"));
+            const distance = main.getDistanceToSegment(clientX, clientY, x1, y1, x2, y2);
+            if(distance < closestDistance)
+            {
+                closestDistance = distance;
+                closest = line;
+            }
+        }
+        return closestDistance <= 6 ? closest : null;
+    },
+
+    handleWorkspaceConnectionClick(evt)
+    {
+        if(!evt || evt.defaultPrevented || main.tracked_connection)
+            return;
+
+        const line = main.getWorkspaceConnectionAtPoint(evt.clientX, evt.clientY);
+        if(!line || !line.dataset.logicalId)
+            return;
+
+        evt.preventDefault();
+        evt.stopPropagation();
+        selector.selectConnectionAndReveal(line.dataset.logicalId);
+    },
+
+    updateWorkspaceConnections()
+    {
+        main.clearWorkspaceConnections();
+        if(!network || !network.dict)
+            return;
+
+        const visibleConnections = [];
+        const occurrenceCounts = new Map();
+        for(const path in network.dict)
+        {
+            const group = network.dict[path];
+            if(!group || group._tag !== "group" || !Array.isArray(group.connections))
+                continue;
+
+            for(const connection of group.connections)
+            {
+                const visibility = main.classifyConnectionVisibility(path, connection);
+                for(const pair of main.findCrossPaneEndpointPairs(visibility))
+                {
+                    const id = main.getConnectionKey(path, connection);
+                    visibleConnections.push({id, path, connection, source: pair.source, target: pair.target});
+                    occurrenceCounts.set(id, (occurrenceCounts.get(id) || 0) + 1);
+                }
+            }
+        }
+
+        const occurrenceIndexes = new Map();
+        const sortedConnections = visibleConnections.sort((a, b) =>
+        {
+            const aSelected = selector && selector.selected_connection === a.id;
+            const bSelected = selector && selector.selected_connection === b.id;
+            if(aSelected === bSelected)
+                return 0;
+            return aSelected ? 1 : -1;
+        });
+
+        for(const entry of sortedConnections)
+        {
+            const occurrenceIndex = occurrenceIndexes.get(entry.id) || 0;
+            occurrenceIndexes.set(entry.id, occurrenceIndex + 1);
+            main.drawWorkspaceConnectionLine(entry.path, entry.connection, entry.source, entry.target, {
+                occurrenceIndex,
+                occurrenceCount: occurrenceCounts.get(entry.id) || 1
+            });
+        }
+        main.drawTrackedWorkspaceConnection();
     },
 
     getFrameWidget(frame)
@@ -188,6 +714,191 @@ const main =
         main.applyActivePaneReferences();
         main.installPaneEvents(pane);
         main.drawGrid();
+        main.savePaneLayout();
+    },
+
+    getPaneLayoutStorageKey()
+    {
+        const networkName = network && network.network && network.network.name ? network.network.name : "default";
+        return `ikaros_pane_layout:${networkName}`;
+    },
+
+    getPaneLayoutBackground(background)
+    {
+        if(background && network && network.dict && network.dict[background])
+            return background;
+        if(selector && selector.selected_background && network && network.dict && network.dict[selector.selected_background])
+            return selector.selected_background;
+        return network && network.network && network.network.name ? network.network.name : "";
+    },
+
+    serializePaneLayoutNode(node)
+    {
+        if(!node)
+            return null;
+        if(node.classList && node.classList.contains("main_pane"))
+        {
+            return {
+                type: "pane",
+                background: main.getPaneBackground(node),
+                active: node.classList.contains("active")
+            };
+        }
+        if(node.classList && node.classList.contains("split_node"))
+        {
+            const children = Array.from(node.children).filter((child) => !child.classList.contains("split_resize_handle"));
+            if(children.length === 1)
+                return main.serializePaneLayoutNode(children[0]);
+            if(children.length !== 2)
+                return null;
+            const direction = node.classList.contains("split_horizontal") ? "horizontal" : "vertical";
+            const ratio = parseFloat(node.style.getPropertyValue("--split-ratio")) || 50;
+            return {
+                type: "split",
+                direction,
+                splitType: main.getSplitType(node),
+                ratio,
+                children: children.map((child) => main.serializePaneLayoutNode(child))
+            };
+        }
+        return null;
+    },
+
+    serializePaneLayout()
+    {
+        if(!main.workspace)
+            return null;
+        const root = Array.from(main.workspace.children).find((child) => child.classList && (child.classList.contains("main_pane") || child.classList.contains("split_node")));
+        const tree = main.serializePaneLayoutNode(root);
+        if(!tree)
+            return null;
+        return {
+            version: 1,
+            network: network && network.network ? network.network.name : "",
+            tree
+        };
+    },
+
+    savePaneLayout()
+    {
+        if(main.restoring_pane_layout)
+            return;
+        try
+        {
+            const layout = main.serializePaneLayout();
+            if(layout)
+                localStorage.setItem(main.getPaneLayoutStorageKey(), JSON.stringify(layout));
+        }
+        catch(err)
+        {
+            console.log("pane layout save failed", err);
+        }
+    },
+
+    clearSavedPaneLayout()
+    {
+        try
+        {
+            localStorage.removeItem(main.getPaneLayoutStorageKey());
+        }
+        catch(err)
+        {
+            console.log("pane layout clear failed", err);
+        }
+    },
+
+    buildPaneLayoutNode(layoutNode)
+    {
+        if(!layoutNode || !network || !network.dict)
+            return null;
+
+        if(layoutNode.type === "pane")
+        {
+            const pane = main.createPane();
+            const background = main.getPaneLayoutBackground(layoutNode.background);
+            if(background)
+            {
+                main.setPaneBackground(pane, background);
+                main.renderIntoPane(pane, background, []);
+            }
+            if(layoutNode.active)
+                pane.classList.add("active");
+            return pane;
+        }
+
+        if(layoutNode.type === "split" && Array.isArray(layoutNode.children) && layoutNode.children.length === 2)
+        {
+            const firstChild = main.buildPaneLayoutNode(layoutNode.children[0]);
+            const secondChild = main.buildPaneLayoutNode(layoutNode.children[1]);
+            if(!firstChild || !secondChild)
+                return firstChild || secondChild;
+
+            const direction = layoutNode.direction === "horizontal" ? "horizontal" : "vertical";
+            const splitNode = document.createElement("div");
+            splitNode.className = `split_node split_${direction}`;
+            if(layoutNode.splitType === "mirror")
+                splitNode.classList.add("split_mirror");
+            splitNode.dataset.splitType = layoutNode.splitType || "split";
+            splitNode.appendChild(firstChild);
+            splitNode.appendChild(secondChild);
+            splitNode.appendChild(main.createSplitHandle(direction));
+            main.setSplitRatio(splitNode, direction, Number.isFinite(layoutNode.ratio) ? layoutNode.ratio : 50);
+            return splitNode;
+        }
+
+        return null;
+    },
+
+    restorePaneLayout()
+    {
+        if(!main.workspace || !network || !network.dict)
+            return false;
+
+        let layout = null;
+        try
+        {
+            const raw = localStorage.getItem(main.getPaneLayoutStorageKey());
+            layout = raw ? JSON.parse(raw) : null;
+        }
+        catch(err)
+        {
+            console.log("pane layout restore failed", err);
+            return false;
+        }
+
+        if(!layout || layout.version !== 1 || !layout.tree)
+            return false;
+
+        main.restoring_pane_layout = true;
+        try
+        {
+            const root = main.buildPaneLayoutNode(layout.tree);
+            if(!root)
+                return false;
+
+            main.workspace.innerHTML = "";
+            main.workspace.className = "split_node";
+            main.workspace.appendChild(root);
+
+            let activePane = main.workspace.querySelector(".main_pane.active") || main.workspace.querySelector(".main_pane");
+            document.querySelectorAll(".main_pane.active").forEach((pane) =>
+            {
+                if(pane !== activePane)
+                    pane.classList.remove("active");
+            });
+            if(activePane)
+                activePane.classList.add("active");
+            main.getAllPanes().forEach((pane) => main.installPaneEvents(pane));
+            if(activePane)
+                main.activatePane(activePane, false);
+            main.refreshAllPaneGeometry();
+            main.updatePaneWidgetFrames();
+            return !!activePane;
+        }
+        finally
+        {
+            main.restoring_pane_layout = false;
+        }
     },
 
     activatePane(pane, render=true)
@@ -203,13 +914,14 @@ const main =
         main.drawGrid();
         if(nav && typeof nav.setTargetPane === "function")
             nav.setTargetPane(pane);
-        if(selector && pane.dataset.background)
+        const paneBackground = main.getPaneBackground(pane);
+        if(selector && paneBackground)
         {
-            if(pane.dataset.background !== selector.selected_background || paneChanged)
+            if(paneBackground !== selector.selected_background || paneChanged)
             {
-                selector.selected_background = pane.dataset.background;
+                selector.selected_background = paneBackground;
                 selector.selected_foreground = [];
-                selector.selected_connection = null;
+                selector.clearConnectionSelection();
             }
             setCookie("selected_background", selector.selected_background);
             nav.selectItem(selector.selected_background, pane);
@@ -227,6 +939,7 @@ const main =
             if(inspector && typeof inspector.showInspectorForSelection === "function")
                 inspector.showInspectorForSelection(false);
         }
+        main.savePaneLayout();
     },
 
     getPaneFromSource(source)
@@ -251,9 +964,20 @@ const main =
         main.splitPane("vertical", main.getPaneFromSource(source), "mirror");
     },
 
+    getSplitType(splitNode)
+    {
+        return splitNode && splitNode.dataset ? splitNode.dataset.splitType || "split" : "split";
+    },
+
+    isMirrorSplitNode(splitNode)
+    {
+        return main.getSplitType(splitNode) === "mirror";
+    },
+
     isMirrorPane(pane)
     {
-        return !!(pane && pane.closest && pane.closest(".split_mirror"));
+        const splitNode = pane && pane.closest ? pane.closest(".split_node") : null;
+        return main.isMirrorSplitNode(splitNode);
     },
 
     splitPane(direction, pane=null, splitType="split")
@@ -279,7 +1003,7 @@ const main =
         main.drawGrid(main.getPaneElements(newPane));
         if(selector && selector.selected_background)
         {
-            newPane.dataset.background = selector.selected_background;
+            main.setPaneBackground(newPane, selector.selected_background);
             breadcrumbs.selectItem(selector.selected_background, newPane);
         }
         if(selector && selector.selected_background)
@@ -300,6 +1024,7 @@ const main =
         }
         else
             requestAnimationFrame(() => main.updatePaneWidgetFrames(splitNode));
+        main.savePaneLayout();
     },
 
     createSplitHandle(direction)
@@ -358,6 +1083,7 @@ const main =
         main.updatePaneWidgetFrames();
         if(controller && controller.g_data)
             controller.updateImages(controller.g_data);
+        main.savePaneLayout();
     },
 
     setSplitRatio(splitNode, direction, ratio)
@@ -371,20 +1097,14 @@ const main =
 
     refreshAllPaneGeometry()
     {
-        const previousPane = main.active_pane;
-        document.querySelectorAll(".main_pane").forEach((pane) =>
+        main.getAllPanes().forEach((pane) =>
         {
             const elements = main.getPaneElements(pane);
             main.drawGrid(elements);
-            if(pane.dataset.background)
-            {
-                main.active_pane = elements;
-                main.applyActivePaneReferences();
-                main.addConnections();
-            }
+            if(main.getPaneBackground(pane))
+                main.withPane(pane, () => main.addConnections());
         });
-        main.active_pane = previousPane;
-        main.applyActivePaneReferences();
+        main.updateWorkspaceConnections();
     },
 
     getFirstPane(node)
@@ -402,7 +1122,7 @@ const main =
         if(!pane || !main.workspace)
             return;
 
-        const allPanes = Array.from(main.workspace.querySelectorAll(".main_pane"));
+        const allPanes = main.getAllPanes();
         if(allPanes.length <= 1)
             return;
 
@@ -422,6 +1142,11 @@ const main =
         splitNode.replaceWith(sibling);
         if(nextActivePane)
             main.activatePane(nextActivePane, false);
+        requestAnimationFrame(() =>
+        {
+            main.refreshAllPaneGeometry();
+            main.savePaneLayout();
+        });
     },
 
     // Reconnect overlay state.
@@ -1251,10 +1976,15 @@ const main =
 
     ensureSelectionBox()
     {
-        if(main.selection_box && main.selection_box.parentElement)
+        if(!main.view)
             return;
-        main.selection_box = document.createElement("div");
-        main.selection_box.className = "selection-rectangle";
+        if(main.selection_box && main.selection_box.parentElement === main.view)
+            return;
+        if(!main.selection_box)
+        {
+            main.selection_box = document.createElement("div");
+            main.selection_box.className = "selection-rectangle";
+        }
         main.selection_box.style.display = "none";
         main.view.appendChild(main.selection_box);
     },
@@ -1284,8 +2014,9 @@ const main =
         main.selection_start_y = evt.clientY;
         main.selection_moved = false;
 
-        main.selection_box.style.left = `${evt.offsetX}px`;
-        main.selection_box.style.top = `${evt.offsetY}px`;
+        const viewRect = main.view.getBoundingClientRect();
+        main.selection_box.style.left = `${Math.max(0, evt.clientX - viewRect.left)}px`;
+        main.selection_box.style.top = `${Math.max(0, evt.clientY - viewRect.top)}px`;
         main.selection_box.style.width = "0px";
         main.selection_box.style.height = "0px";
         main.selection_box.style.display = "block";
@@ -2358,20 +3089,20 @@ const main =
 
     deleteConnection(c)
     {
-        const connection = network.dict[c];
-        const s_t = c.split('*');
-        const source = selector.getLocalPath(s_t[0]);
-        const target = selector.getLocalPath(s_t[1]);
-        const group = network.dict[selector.selected_background];
+        const resolved = main.resolveConnectionId(c);
+        if(!resolved || !resolved.group || !Array.isArray(resolved.group.connections))
+            return null;
 
-        group.connections = group.connections.filter(con => !(selector.getLocalPath(con.source)==source && selector.getLocalPath(con.target)==target));
+        resolved.group.connections = resolved.group.connections.filter((connection) => connection !== resolved.connection);
+        return resolved.path;
     },
 
     deleteComponent()
     {
+        let changedBackground = selector.selected_background;
         if(selector.selected_connection != null)
         {
-            this.deleteConnection(selector.selected_connection);
+            changedBackground = this.deleteConnection(selector.selected_connection) || changedBackground;
         }
         else
             for(let c of selector.selected_foreground)
@@ -2398,6 +3129,8 @@ const main =
         network.rebuildDict();
         nav.populate();
         selector.selectItems([], selector.selected_background, false, false, true);
+        main.refreshMatchingBackgroundPanes(changedBackground, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
+        main.refreshAllPaneGeometry();
         controller.setTainted(true, "deleteComponent");
     },
 
@@ -2710,6 +3443,8 @@ const main =
         const elementRect = e.getBoundingClientRect();
         const x = elementRect.left-viewRect.left+4.5;
         const y = elementRect.top-viewRect.top+4.5;
+        const clientX = elementRect.left + 4.5;
+        const clientY = elementRect.top + 4.5;
 
         main.tracked_connection =  
         { 
@@ -2717,6 +3452,10 @@ const main =
             y1: y, 
             x2: x, 
             y2: y, 
+            client_x1: clientX,
+            client_y1: clientY,
+            client_x2: clientX,
+            client_y2: clientY,
             source: id.replace(/:out$/, ""),
             target: null, 
             source_element: e,
@@ -2755,6 +3494,8 @@ const main =
         const oy = viewRect.top;
         main.tracked_connection.x2 = evt.clientX - ox;
         main.tracked_connection.y2 = evt.clientY - oy;
+        main.tracked_connection.client_x2 = evt.clientX;
+        main.tracked_connection.client_y2 = evt.clientY;
         main.addConnections();
     },
 
@@ -2851,10 +3592,12 @@ const main =
         }
     
         const isTargetWidget = target in network.dict && network.dict[target]._tag === 'widget';
+        const connectionPath = main.getConnectionOwnerPath(source, target);
     
         if (isTargetWidget) 
         {
-            const cleanSource = removeStringFromStart(source.split(':')[0], selector.selected_background + ".");
+            const widgetParentPath = parentPath(target);
+            const cleanSource = main.getRelativeConnectionEndpoint(source, widgetParentPath || connectionPath);
             const currentTitle = typeof network.dict[target].title === "string" ? network.dict[target].title : "";
             const currentSource = typeof network.dict[target].source === "string" ? network.dict[target].source : "";
             const shouldUpdateTitle = currentTitle.startsWith("Widget") || (currentTitle !== "" && currentTitle === currentSource);
@@ -2884,18 +3627,19 @@ const main =
         } 
         else 
         {
-            const cleanSource = removeStringFromStart(source.split(':')[0], selector.selected_background + ".");
-            const cleanTarget = removeStringFromStart(target.split(':')[0], selector.selected_background + ".");
-            network.newConnection(selector.selected_background, cleanSource, cleanTarget);
+            const cleanSource = main.getRelativeConnectionEndpoint(source, connectionPath);
+            const cleanTarget = main.getRelativeConnectionEndpoint(target, connectionPath);
+            network.newConnection(connectionPath, cleanSource, cleanTarget);
             main.clearTrackedConnectionHighlights(tracked);
             main.tracked_connection = null;
-            selector.selectConnection(`${selector.selected_background}.${cleanSource}*${selector.selected_background}.${cleanTarget}`);
+            selector.selectConnection(`${connectionPath}.${cleanSource}*${connectionPath}.${cleanTarget}`);
         }
 
         document.removeEventListener('mousemove',main.moveTrackedConnection, true);
         document.removeEventListener('mouseup',main.releaseTrackedConnection,true);
         main.addConnections();
-        main.refreshMatchingBackgroundPanes(selector.selected_background, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
+        main.refreshMatchingBackgroundPanes(connectionPath, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
+        main.refreshAllPaneGeometry();
     },
 
     
@@ -3235,6 +3979,11 @@ const main =
 
     addConnection(c,path, routedPoints=null)
     {
+        const activePaneRoot = main.active_pane ? main.active_pane.root : null;
+        const visibility = main.classifyConnectionVisibility(path, c, activePaneRoot ? [activePaneRoot] : null);
+        if(visibility.samePanes.length === 0)
+            return;
+
         const source = getStringUpToBracket(c.source);
         const target = getStringUpToBracket(c.target);
         const connectionId = `${path}.${source}*${path}.${target}`;
@@ -3291,15 +4040,6 @@ const main =
 
     addTrackedConnection()
     {
-        if(!main.tracked_connection)
-            return;
-        const con = main.tracked_connection;
-        const x1 = con.x1;
-        const y1 = con.y1;
-        const x2 = con.x2;
-        const y2 = con.y2;
-        const cc = `<line x1='${x1}' y1='${y1}' x2='${x2}' y2='${y2}' class='connection_line tracked'/>`; 
-        main.connections += cc;
     },
 
     handleGroupDoubleClick(evt)
@@ -4236,40 +4976,41 @@ const main =
     // Rendered connection selection and refresh.
     selectConnection(connection)
     {
-        const c = main.getPaneElement(connection);
-        if(c)
+        const resolved = main.resolveConnectionId(connection);
+        if(!resolved)
+            return;
+
+        for(const c of main.getElementsByLogicalId(connection))
         {
             c.classList.add("selected");
-            const st = connection.split('*');
-            const s = main.getPaneElement(st[0]+":out");
-            const t = main.getPaneElement(st[1]+":in");
-            if(s)
-                s.style.backgroundColor = "orange";
-            if(t)
-                t.style.backgroundColor = "orange";
         }
+
+        for(const s of main.getElementsByLogicalId(resolved.sourceEndpointId))
+            s.style.backgroundColor = "orange";
+        for(const t of main.getElementsByLogicalId(resolved.targetEndpointId))
+            t.style.backgroundColor = "orange";
     },
 
     deselectConnection(connection)
     {
-        const c = main.getPaneElement(connection);
-        if(c)
+        const resolved = main.resolveConnectionId(connection);
+        for(const c of main.getElementsByLogicalId(connection))
         {
             c.classList.remove("selected");
-
-            const st = connection.split('*');
-            const s = main.getPaneElement(st[0]+":out");
-            const t = main.getPaneElement(st[1]+":in");
-            if(s)
-                s.style.backgroundColor = "rgb(177, 177, 177)";
-            if(t)
-                t.style.backgroundColor = "rgb(177, 177, 177)";
         }
+
+        if(!resolved)
+            return;
+
+        for(const s of main.getElementsByLogicalId(resolved.sourceEndpointId))
+            s.style.backgroundColor = "rgb(177, 177, 177)";
+        for(const t of main.getElementsByLogicalId(resolved.targetEndpointId))
+            t.style.backgroundColor = "rgb(177, 177, 177)";
     },
 
     addConnections()
     {
-        const path = main.active_pane && main.active_pane.root && main.active_pane.root.dataset.background ? main.active_pane.root.dataset.background : selector.selected_background;
+        const path = main.active_pane && main.active_pane.root && main.getPaneBackground(main.active_pane.root) ? main.getPaneBackground(main.active_pane.root) : selector.selected_background;
         const group = network.dict[path];
         const s = main.active_pane ? main.active_pane.connections_layer : null;
         if(!s || !group)
@@ -4288,13 +5029,15 @@ const main =
         main.addTrackedConnection();
         main.connections += "</svg>";
         s.innerHTML = main.connections;
+        main.updateWorkspaceConnections();
     },
 
     updateComponentStates()
     {
     // Add object handlers for all visible elements in main view depending on mode and tyep
 
-    const selectionList = selector.selected_foreground;
+    const currentPane = main.getCurrentPaneRoot();
+    const selectionList = main.isActivePane(currentPane) ? selector.selected_foreground : [];
 
         if(main.edit_mode)
         {
@@ -4385,6 +5128,8 @@ const main =
             for(const t of main.view.querySelectorAll(".component-title-text"))
                 t.addEventListener('dblclick', main.startInlineNameEdit, false);
         }
+        if(main.isActivePane(currentPane))
+            main.clearSelectionsOutsidePane(currentPane);
     },
 
     addComponents(group, selectionList, path)
@@ -4417,28 +5162,20 @@ const main =
     {
         if(!pane || !background)
             return;
-        const previousPane = main.active_pane;
-        pane.dataset.background = background;
-        main.active_pane = main.getPaneElements(pane);
-        main.applyActivePaneReferences();
-        main.drawGrid();
-        breadcrumbs.selectItem(background, pane);
-        main.addComponents(network.dict[background], foreground, background);
-        main.active_pane = previousPane;
-        main.applyActivePaneReferences();
+        main.setPaneBackground(pane, background);
+        main.withPane(pane, () =>
+        {
+            main.drawGrid();
+            breadcrumbs.selectItem(background, pane);
+            main.addComponents(network.dict[background], foreground, background);
+        });
     },
 
     refreshMatchingBackgroundPanes(background, foreground=[], excludePane=null)
     {
         if(!background)
             return;
-        const panes = document.querySelectorAll(".main_pane");
-        panes.forEach((pane) =>
-        {
-            if(pane === excludePane || pane.dataset.background !== background)
-                return;
-            main.renderIntoPane(pane, background, foreground);
-        });
+        main.getPanesForBackground(background, excludePane).forEach((pane) => main.renderIntoPane(pane, background, foreground));
     },
 
     // Selection rendering and edit/view mode transitions.
@@ -4483,11 +5220,12 @@ const main =
         {
             let group = network.dict[background];
             if(main.active_pane && main.active_pane.root)
-                main.active_pane.root.dataset.background = background;
+                main.setPaneBackground(main.active_pane.root, background);
             main.addComponents(group, foreground, background);
             main.refreshMatchingBackgroundPanes(background, foreground, main.active_pane ? main.active_pane.root : null);
         }
         main.updateAutoRoutingButtonState();
+        main.savePaneLayout();
     },
 
     selectCurrentGroupComponents(options = {})

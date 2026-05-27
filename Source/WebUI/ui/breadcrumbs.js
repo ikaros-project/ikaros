@@ -39,7 +39,7 @@ const breadcrumbs =
             h += "<span class='breadcrumb_text" + currentClass + "' onclick='selector.selectItems([], \"" + path + "\")'>" + g + "</span>";
         });
         h += "</span>";
-        const canClose = document.querySelectorAll(".main_pane").length > 1;
+        const canClose = main && typeof main.getAllPanes === "function" ? main.getAllPanes().length > 1 : document.querySelectorAll(".main_pane").length > 1;
         const closeDisabled = canClose ? "" : " disabled";
         const inMirror = pane && main && typeof main.isMirrorPane === "function" && main.isMirrorPane(pane);
         const splitDisabled = inMirror ? " disabled" : "";

@@ -42,8 +42,7 @@ const selector =
     selectItems(foreground=[], background=null, toggle=false, extend=false, force_rebuild=false, reveal_inspector=false)
     {
         const previous_background = selector.selected_background;
-        const previous_connection = selector.selected_connection;
-        selector.selected_connection = null;
+        selector.clearConnectionSelection();
 
         if(background !== null)
             selector.selected_background = background;
@@ -81,13 +80,18 @@ const selector =
             return;
         }
 
-        if(previous_connection && previous_connection !== selector.selected_connection)
-            main.deselectConnection(previous_connection);
-
         if(selector.selected_foreground.length == 0)
             selector.showBackgroundSelection(reveal_inspector, false);
         else
             selector.showForegroundSelection(reveal_inspector, false);
+    },
+
+    clearConnectionSelection()
+    {
+        const previous_connection = selector.selected_connection;
+        selector.selected_connection = null;
+        if(previous_connection)
+            main.deselectConnection(previous_connection);
     },
 
     selectConnection(connection, reveal_inspector=false)

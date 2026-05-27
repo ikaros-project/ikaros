@@ -1,0 +1,13 @@
+<group name="CrossPaneConnectionsDemo" description="Minimal example for showing a connection between groups opened in separate panes" start="true">
+
+    <group name="A" _x="120" _y="120">
+        <module class="Constant" name="Producer" data="1" _x="120" _y="120" />
+    </group>
+
+    <group name="B" _x="440" _y="120">
+        <module class="Print" name="Consumer" _x="120" _y="120" />
+    </group>
+
+    <connection source="A.Producer.OUTPUT" target="B.Consumer.INPUT" />
+
+</group>

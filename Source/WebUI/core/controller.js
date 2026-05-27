@@ -792,8 +792,8 @@ const controller =
                 main.applyStartupTopChromeVisibility();
             const shouldResetLayout = wasOpenRequest || controller.reset_layout_on_network;
             controller.reset_layout_on_network = false;
-            if(shouldResetLayout && main && typeof main.resetSplitLayout === "function")
-                main.resetSplitLayout();
+            if(wasNewRequest && main && typeof main.clearSavedPaneLayout === "function")
+                main.clearSavedPaneLayout();
             if((wasOpenRequest || wasNewRequest) && main.main)
             {
                 main.main.classList.add("view_mode");
@@ -805,8 +805,13 @@ const controller =
             const shouldAutoArrange = !network.hasAnyComponentPosition();
             nav.populate();
             let top = network.network.name;
+            let restoredPaneLayout = false;
+            if(!wasNewRequest && main && typeof main.restorePaneLayout === "function")
+                restoredPaneLayout = main.restorePaneLayout();
+            if(shouldResetLayout && !restoredPaneLayout && main && typeof main.resetSplitLayout === "function")
+                main.resetSplitLayout();
 
-            let v = getCookie('selected_background');
+            let v = restoredPaneLayout && main && main.active_pane && main.active_pane.root ? main.getPaneBackground(main.active_pane.root) : getCookie('selected_background');
             if(v && network.dict[v])
                 selector.selectItems([], v, false, false, true);
             else

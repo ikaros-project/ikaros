@@ -653,6 +653,8 @@ const inspector =
         const newWidth = Math.max(inspector.min_width, Math.min(maxWidth, inspector.resize_start_width + deltaX));
         inspector.resize_target.style.flex = `0 0 ${newWidth}px`;
         inspector.resize_target.style.width = `${newWidth}px`;
+        if(typeof main !== "undefined" && typeof main.scheduleWorkspaceConnectionUpdate === "function")
+            main.scheduleWorkspaceConnectionUpdate();
         evt.preventDefault();
     },
 
@@ -672,6 +674,8 @@ const inspector =
                 setCookie(cookieName, String(w));
         }
         inspector.resize_target = null;
+        if(typeof main !== "undefined" && typeof main.scheduleWorkspaceConnectionUpdate === "function")
+            main.scheduleWorkspaceConnectionUpdate();
     },
 
     hideAllPanels()
@@ -682,6 +686,8 @@ const inspector =
             inspector.component.style.display = "none";
         if(inspector.library)
             inspector.library.style.display = "none";
+        if(typeof main !== "undefined" && typeof main.scheduleWorkspaceConnectionUpdate === "function")
+            main.scheduleWorkspaceConnectionUpdate();
     },
 
     showPanel(panel, options = {})
@@ -700,6 +706,8 @@ const inspector =
             inspector.updateLibraryAddButtonState();
 
         inspector.updateLibraryButtonState();
+        if(typeof main !== "undefined" && typeof main.scheduleWorkspaceConnectionUpdate === "function")
+            main.scheduleWorkspaceConnectionUpdate();
     },
 
     togglePanel(panel, options = {})
@@ -2347,7 +2355,10 @@ const inspector =
 
     showConnection(connection)
     {
-        const item = network.dict[connection];
+        const resolved = main && typeof main.resolveConnectionId === "function" ? main.resolveConnectionId(connection) : null;
+        const item = resolved ? resolved.connection : network.dict[connection];
+        if(!item)
+            return;
         item.source_range = getStringAfterBracket(item.source || "");
         item.target_range = getStringAfterBracket(item.target || "");
 

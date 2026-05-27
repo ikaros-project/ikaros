@@ -59,9 +59,10 @@ const nav =
         const r = button.getBoundingClientRect();
         const controls = pane ? pane.querySelector(".component_create_controls") : null;
         const firstControlButton = controls ? controls.querySelector("button") : null;
-        const controlsRect = firstControlButton ? firstControlButton.getBoundingClientRect() : null;
+        const controlsRect = firstControlButton && firstControlButton.getClientRects().length > 0 ? firstControlButton.getBoundingClientRect() : null;
+        const topOffset = controlsRect ? 60 : 25;
         navigator.style.left = `${Math.round(r.left)}px`;
-        navigator.style.top = `${Math.round((controlsRect ? controlsRect.top : r.top) + 60)}px`;
+        navigator.style.top = `${Math.round((controlsRect ? controlsRect.top : r.top) + topOffset)}px`;
         return navigator;
     },
 
@@ -159,7 +160,8 @@ const nav =
         document.querySelectorAll("nav.pane_navigator").forEach((navigator) =>
         {
             const paneForNavigator = nav.getPaneFromNavigator(navigator);
-            nav.selectItemInNavigator(navigator, paneForNavigator && paneForNavigator.dataset.background ? paneForNavigator.dataset.background : item);
+            const paneItem = main && typeof main.getPaneBackground === "function" ? main.getPaneBackground(paneForNavigator) : (paneForNavigator && paneForNavigator.dataset ? paneForNavigator.dataset.background : "");
+            nav.selectItemInNavigator(navigator, paneItem || item);
         });
     },
 
@@ -246,7 +248,8 @@ const nav =
     {
         const pane = nav.getPaneFromNavigator(navigator);
         const content = nav.getContent(navigator);
-        const selectedItem = (pane && pane.dataset.background) || nav.selected_item || (selector && selector.selected_background);
+        const paneItem = main && typeof main.getPaneBackground === "function" ? main.getPaneBackground(pane) : (pane && pane.dataset ? pane.dataset.background : "");
+        const selectedItem = paneItem || nav.selected_item || (selector && selector.selected_background);
         if(!selectedItem || !content)
             return;
 
