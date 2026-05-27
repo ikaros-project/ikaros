@@ -2113,6 +2113,8 @@ const inspector =
                         const attrName = labelCell.innerText.trim();
                         if(attrName === "")
                             return;
+                        if(attrName.startsWith("_"))
+                            return;
                         const rawValue = valueCell.innerText.trim();
                         let parsedValue = rawValue;
                         if(rawValue === "true")

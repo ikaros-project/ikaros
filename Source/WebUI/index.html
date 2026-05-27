@@ -77,6 +77,7 @@
     <script src="widgets/WebUIWidgetKeyPoints.js" defer ></script>
     <script src="widgets/WebUIWidgetEpiHead.js" defer ></script>
     <script src="core/main.js" defer></script>
+    <script src="core/pane_connections.js" defer></script>
     <script src="core/controller.js" defer></script>
 
     <dialog id="open_dialog">
@@ -189,6 +190,8 @@
             </div>
             <menu id="view_menu_dropdown" class="top-menu-dropdown">
                 <button type="button" onclick="view_menu.choose('hide_toolbar')">Hide toolbar</button>
+                <hr class="top-menu-divider">
+                <button type="button" onclick="view_menu.choose('reset_panes')">Reset panes</button>
             </menu>
             <div class="top_transport_controls">
                 <span id="top_tick" class="top_transport_status" title="Current tick">-</span>

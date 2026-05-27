@@ -152,5 +152,7 @@ const view_menu =
 
         if(action === "hide_toolbar" && main && typeof main.setTopChromeVisible === "function")
             main.setTopChromeVisible(false);
+        else if(action === "reset_panes" && main && typeof main.resetSavedPaneLayout === "function")
+            main.resetSavedPaneLayout();
     }
 };

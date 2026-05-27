@@ -121,6 +121,13 @@ main[data-mode="edit"] div#grid {
     pointer-events: stroke;
 }
 
+.workspace_connections_svg .workspace_connection_hit_line {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 12;
+    pointer-events: stroke;
+}
+
 .main_pane {
     position: relative;
     width: 100%;
@@ -137,9 +144,16 @@ main[data-mode="edit"] div#grid {
     display:none;
 }
 
-#main.edit_mode .main_pane_surface
+#main.edit_mode .main_pane.active .main_pane_surface
 {
     display:block;
+}
+
+#main.edit_mode .main_pane:not(.active) .main_pane_grid_canvas,
+#main.edit_mode .main_pane:not(.active) .main_grid_controls,
+#main.edit_mode .main_pane:not(.active) .component_create_controls
+{
+    display:none;
 }
 
 .reconnect-overlay {

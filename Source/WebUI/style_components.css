@@ -369,7 +369,8 @@
     stroke-width:3;
 }
 
-.connection_line:hover {
+.connection_line:hover,
+.connection_line.hover {
     stroke:rgb(180, 117, 0);
     stroke-width:3;
 }
@@ -433,7 +434,8 @@
     z-index: 1500;
 }
 
-.connection_line .selected:hover {
+.connection_line.selected:hover,
+.connection_line.selected.hover {
     stroke:black;
     stroke-width:3;
 }

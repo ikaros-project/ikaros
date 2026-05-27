@@ -138,6 +138,8 @@ const controller =
         let jsonString = "";
         try
         {
+            if(main && typeof main.savePaneLayout === "function")
+                main.savePaneLayout();
             jsonString = JSON.stringify(controller.cloneNetworkForStorage(network.network),null,2);
         }
         catch(error)
