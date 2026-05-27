@@ -577,6 +577,8 @@ const main =
             for(const connection of group.connections)
             {
                 const visibility = main.classifyConnectionVisibility(path, connection);
+                if(visibility.samePanes.length > 0)
+                    continue;
                 for(const pair of main.findCrossPaneEndpointPairs(visibility))
                 {
                     const id = main.getConnectionKey(path, connection);
