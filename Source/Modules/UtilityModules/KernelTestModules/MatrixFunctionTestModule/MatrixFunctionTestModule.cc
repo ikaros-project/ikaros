@@ -263,6 +263,17 @@ class MatrixFunctionTestModule : public Module
         matrix c9(2, 2);
         c9.logical_xor(l1, l2);
         require_matrix_close(c9, make_matrix("0, 1; 1, 0"), "logical_xor(matrix, matrix)");
+
+        matrix relu_backward_result;
+        relu_backward_result.relu_backward(make_matrix("1, 2; 3, 4"), make_matrix("-1, 0; 0.5, 2"));
+        require_matrix_close(relu_backward_result, make_matrix("0, 0; 3, 4"), "relu_backward()");
+
+        matrix adam_values = make_matrix("1, 2");
+        matrix adam_gradients = make_matrix("0.1, -0.2");
+        matrix adam_m(2);
+        matrix adam_v(2);
+        adam_values.adam_update(adam_gradients, adam_m, adam_v, 0.001f, 0.9f, 0.999f, 0.1f, 0.001f, 1e-8f);
+        require_matrix_close(adam_values, make_matrix("0.999, 2.001"), "adam_update()", 1e-5f);
     }
 
     void test_linalg()
@@ -286,6 +297,20 @@ class MatrixFunctionTestModule : public Module
         mmul.matmul(left, right);
         require_matrix_close(mmul, make_matrix("58, 64; 139, 154"), "matmul()");
 
+        matrix outer_product_result;
+        outer_product_result.outer_product(make_matrix("1, 2, 3"), make_matrix("4, 5"));
+        require_matrix_close(outer_product_result, make_matrix("4, 5; 8, 10; 12, 15"), "outer_product()");
+
+        matrix dense_weights = make_matrix("3, 4, 5; 6, 7, 8");
+
+        matrix dense_forward_result;
+        dense_forward_result.dense_forward(make_matrix("1, 2"), dense_weights);
+        require_matrix_close(dense_forward_result, make_matrix("15, 18, 21"), "dense_forward()");
+
+        matrix dense_backward_input_result;
+        dense_backward_input_result.dense_backward_input(dense_weights, make_matrix("1, 2, 3"));
+        require_matrix_close(dense_backward_input_result, make_matrix("26, 44"), "dense_backward_input()");
+
         matrix inverse = make_matrix("4, 7; 2, 6");
         inverse.inv();
         require_matrix_close(inverse, make_matrix("0.6, -0.7; -0.2, 0.4"), "inv()", 1e-3f);
@@ -308,6 +333,88 @@ class MatrixFunctionTestModule : public Module
         matrix conv(2, 2);
         conv.conv_slow(image, kernel);
         require_matrix_close(conv, make_matrix("4, 4; 4, 4"), "conv_slow()");
+
+        matrix filters(std::vector<int>{2, 2, 2});
+        filters(0, 0, 0) = 1.0f;
+        filters(0, 0, 1) = 0.0f;
+        filters(0, 1, 0) = 0.0f;
+        filters(0, 1, 1) = -1.0f;
+        filters(1, 0, 0) = 1.0f;
+        filters(1, 0, 1) = 1.0f;
+        filters(1, 1, 0) = 1.0f;
+        filters(1, 1, 1) = 1.0f;
+
+        matrix filter_bias = make_matrix("1, -2");
+        matrix filterbank;
+        filterbank.conv2_valid_filterbank(image, filters, filter_bias);
+        matrix expected_filterbank(std::vector<int>{2, 2, 2});
+        expected_filterbank(0, 0, 0) = -3.0f;
+        expected_filterbank(0, 0, 1) = 10.0f;
+        expected_filterbank(0, 1, 0) = -3.0f;
+        expected_filterbank(0, 1, 1) = 14.0f;
+        expected_filterbank(1, 0, 0) = -3.0f;
+        expected_filterbank(1, 0, 1) = 22.0f;
+        expected_filterbank(1, 1, 0) = -3.0f;
+        expected_filterbank(1, 1, 1) = 26.0f;
+        require_matrix_close(filterbank, expected_filterbank, "conv2_valid_filterbank()");
+
+        matrix dY(std::vector<int>{2, 2, 2});
+        for(int y = 0; y < 2; ++y)
+            for(int x = 0; x < 2; ++x)
+            {
+                dY(y, x, 0) = 1.0f;
+                dY(y, x, 1) = 2.0f;
+            }
+
+        matrix d_filters;
+        d_filters.conv2_valid_filterbank_backward_filters(image, dY, 2, 2);
+        matrix expected_d_filters(std::vector<int>{2, 2, 2});
+        expected_d_filters(0, 0, 0) = 12.0f;
+        expected_d_filters(0, 0, 1) = 16.0f;
+        expected_d_filters(0, 1, 0) = 24.0f;
+        expected_d_filters(0, 1, 1) = 28.0f;
+        expected_d_filters(1, 0, 0) = 24.0f;
+        expected_d_filters(1, 0, 1) = 32.0f;
+        expected_d_filters(1, 1, 0) = 48.0f;
+        expected_d_filters(1, 1, 1) = 56.0f;
+        require_matrix_close(d_filters, expected_d_filters, "conv2_valid_filterbank_backward_filters()");
+
+        matrix pre_activation(std::vector<int>{2, 2, 2});
+        pre_activation.set(1.0f);
+        pre_activation(0, 0, 0) = -1.0f;
+        pre_activation(1, 1, 1) = -1.0f;
+
+        matrix d_filters_relu;
+        d_filters_relu.conv2_valid_filterbank_backward_filters_relu(image, dY, pre_activation, 2, 2);
+        matrix expected_d_filters_relu(std::vector<int>{2, 2, 2});
+        expected_d_filters_relu(0, 0, 0) = 11.0f;
+        expected_d_filters_relu(0, 0, 1) = 14.0f;
+        expected_d_filters_relu(0, 1, 0) = 20.0f;
+        expected_d_filters_relu(0, 1, 1) = 23.0f;
+        expected_d_filters_relu(1, 0, 0) = 14.0f;
+        expected_d_filters_relu(1, 0, 1) = 20.0f;
+        expected_d_filters_relu(1, 1, 0) = 32.0f;
+        expected_d_filters_relu(1, 1, 1) = 38.0f;
+        require_matrix_close(d_filters_relu, expected_d_filters_relu, "conv2_valid_filterbank_backward_filters_relu()");
+
+        matrix one_filter(std::vector<int>{1, 2, 2});
+        one_filter(0, 0, 0) = 1.0f;
+        one_filter(0, 0, 1) = 2.0f;
+        one_filter(0, 1, 0) = 3.0f;
+        one_filter(0, 1, 1) = 4.0f;
+        matrix one_dY(std::vector<int>{2, 2, 1});
+        one_dY.set(1.0f);
+        matrix d_input;
+        d_input.conv2_valid_filterbank_backward_input(one_dY, one_filter, 3, 3);
+        require_matrix_close(d_input, make_matrix("1, 3, 2; 4, 10, 6; 3, 7, 4"), "conv2_valid_filterbank_backward_input()");
+
+        matrix reduced;
+        reduced.sum_first_two_dimensions(dY);
+        require_matrix_close(reduced, make_matrix("4, 8"), "sum_first_two_dimensions()");
+
+        matrix reduced_relu;
+        reduced_relu.sum_first_two_dimensions_relu(dY, pre_activation);
+        require_matrix_close(reduced_relu, make_matrix("3, 6"), "sum_first_two_dimensions_relu()");
 
         matrix small = make_matrix("1, 2; 3, 4");
         matrix up;

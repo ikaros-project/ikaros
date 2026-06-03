@@ -1,0 +1,28 @@
+<group name="ConvolutionalVariationalAutoEncoder_profile_test" title="Convolutional VAE Profiling Test">
+	<module
+		class="InputVideoFile"
+		name="Movie"
+		filename="../Source/Modules/IOModules/FileInput/InputVideoFile/ikaros.mp4"
+		loop="true"
+		size_x="32"
+		size_y="24"
+	/>
+
+	<module
+		class="ConvolutionalVariationalAutoEncoder"
+		name="CVAE"
+		latent_size="32"
+		feature_maps="12"
+		kernel_size="3"
+		learning_rate="0.001"
+		beta="0.001"
+		train="true"
+		train_interval="4"
+		dense_train_interval="2"
+		profile="true"
+		profile_interval="10"
+		sample="false"
+	/>
+
+	<connection source="Movie.INTENSITY" target="CVAE.INPUT" />
+</group>

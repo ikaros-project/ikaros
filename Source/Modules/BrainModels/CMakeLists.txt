@@ -7,6 +7,7 @@ add_subdirectory(LeakyIntegrator)
 add_subdirectory(Cerebellum)
 add_subdirectory(Concentration)
 add_subdirectory(DeepNetwork)
+add_subdirectory(ConvolutionalVariationalAutoEncoder)
 add_subdirectory(Delta)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)

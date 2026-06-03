@@ -1,0 +1,7 @@
+<group name="ConvolutionalVariationalAutoEncoder_test">
+	<module class="Constant" name="Image" data="0, 0.2, 0.4, 0.6; 0.2, 0.4, 0.6, 0.8; 0.4, 0.6, 0.8, 1; 0.6, 0.8, 1, 0.8" />
+	<module class="ConvolutionalVariationalAutoEncoder" name="CVAE" latent_size="2" feature_maps="2" kernel_size="2" learning_rate="0.001" beta="0.1" train="yes" sample="no" />
+	<module class="Print" name="PrintLoss" />
+	<connection source="Image.OUTPUT" target="CVAE.INPUT" />
+	<connection source="CVAE.LOSS" target="PrintLoss.INPUT" />
+</group>

@@ -1280,6 +1280,350 @@ matrix::conv_slow(const matrix & I, const matrix & K)
 
 
 matrix &
+matrix::conv2_valid_filterbank(const matrix & I, const matrix & K)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(I.rank() != 2 || K.rank() != 3)
+        throw std::invalid_argument("Filter-bank valid convolution requires input [H,W] and filters [F,KH,KW].");
+
+    if(K.shape(1) <= 0 || K.shape(2) <= 0 || I.rows() < K.shape(1) || I.cols() < K.shape(2))
+        throw std::invalid_argument("Filter kernel must fit in input.");
+#endif
+
+    const int filters = K.shape(0);
+    const int kernel_rows = K.shape(1);
+    const int kernel_cols = K.shape(2);
+    const int output_rows = I.rows() - kernel_rows + 1;
+    const int output_cols = I.cols() - kernel_cols + 1;
+
+    if(is_uninitialized())
+        realloc(output_rows, output_cols, filters);
+
+    if(rank() != 3 || shape(0) != output_rows || shape(1) != output_cols || shape(2) != filters)
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(output_rows) + "x" + std::to_string(output_cols) + "x" + std::to_string(filters) + ".");
+
+    if(this == &I || this == &K)
+        throw std::invalid_argument("Result cannot be assigned to I or K.");
+
+    float * output = data();
+    const float * input = I.data();
+    const float * filters_data = K.data();
+
+    for(int y = 0; y < output_rows; ++y)
+    {
+        for(int x = 0; x < output_cols; ++x)
+        {
+            const int output_base = (y * output_cols + x) * filters;
+            for(int f = 0; f < filters; ++f)
+            {
+                const float * filter = filters_data + f * kernel_rows * kernel_cols;
+                float sum = 0.0f;
+                for(int ky = 0; ky < kernel_rows; ++ky)
+                {
+                    const float * input_row = input + (y + ky) * I.cols() + x;
+                    const float * filter_row = filter + ky * kernel_cols;
+                    for(int kx = 0; kx < kernel_cols; ++kx)
+                        sum += input_row[kx] * filter_row[kx];
+                }
+                output[output_base + f] = sum;
+            }
+        }
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv2_valid_filterbank(const matrix & I, const matrix & K, const matrix & B)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(B.rank() != 1 || B.size() != K.shape(0))
+        throw std::invalid_argument("Filter-bank bias must be a vector with one value per filter.");
+#endif
+
+    conv2_valid_filterbank(I, K);
+
+    float * output = data();
+    const float * bias = B.data();
+    const int filters = shape(2);
+    const int output_pixels = shape(0) * shape(1);
+
+    for(int pixel = 0; pixel < output_pixels; ++pixel)
+    {
+        float * output_pixel = output + pixel * filters;
+        for(int f = 0; f < filters; ++f)
+            output_pixel[f] += bias[f];
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv2_valid_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(I.rank() != 2 || dY.rank() != 3)
+        throw std::invalid_argument("Filter-bank filter-gradient requires input [H,W] and output gradient [OH,OW,F].");
+
+    if(kernel_rows <= 0 || kernel_cols <= 0 || I.rows() < kernel_rows || I.cols() < kernel_cols)
+        throw std::invalid_argument("Filter kernel size must fit in input.");
+
+    if(dY.shape(0) != I.rows() - kernel_rows + 1 || dY.shape(1) != I.cols() - kernel_cols + 1)
+        throw std::invalid_argument("Output gradient shape does not match input and kernel size.");
+#endif
+
+    const int filters = dY.shape(2);
+
+    if(is_uninitialized())
+        realloc(filters, kernel_rows, kernel_cols);
+
+    if(rank() != 3 || shape(0) != filters || shape(1) != kernel_rows || shape(2) != kernel_cols)
+        throw std::invalid_argument("Filter-gradient result matrix does not have size " + std::to_string(filters) + "x" + std::to_string(kernel_rows) + "x" + std::to_string(kernel_cols) + ".");
+
+    if(this == &I || this == &dY)
+        throw std::invalid_argument("Result cannot be assigned to I or dY.");
+
+    reset();
+
+    float * d_filters = data();
+    const float * input = I.data();
+    const float * d_output = dY.data();
+    const int input_cols = I.cols();
+    const int output_rows = dY.shape(0);
+    const int output_cols = dY.shape(1);
+
+    for(int y = 0; y < output_rows; ++y)
+    {
+        for(int x = 0; x < output_cols; ++x)
+        {
+            const float * d_output_pixel = d_output + (y * output_cols + x) * filters;
+            for(int f = 0; f < filters; ++f)
+            {
+                const float gradient = d_output_pixel[f];
+                float * d_filter = d_filters + f * kernel_rows * kernel_cols;
+                for(int ky = 0; ky < kernel_rows; ++ky)
+                {
+                    const float * input_row = input + (y + ky) * input_cols + x;
+                    float * d_filter_row = d_filter + ky * kernel_cols;
+                    for(int kx = 0; kx < kernel_cols; ++kx)
+                        d_filter_row[kx] += input_row[kx] * gradient;
+                }
+            }
+        }
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv2_valid_filterbank_backward_filters_relu(const matrix & I, const matrix & dY, const matrix & pre_activation, int kernel_rows, int kernel_cols)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(I.rank() != 2 || dY.rank() != 3 || pre_activation.rank() != 3)
+        throw std::invalid_argument("Fused filter-bank filter-gradient requires input [H,W], output gradient [OH,OW,F], and pre-activation [OH,OW,F].");
+
+    if(dY.shape() != pre_activation.shape())
+        throw std::invalid_argument("Output gradient and pre-activation shapes must match.");
+
+    if(kernel_rows <= 0 || kernel_cols <= 0 || I.rows() < kernel_rows || I.cols() < kernel_cols)
+        throw std::invalid_argument("Filter kernel size must fit in input.");
+
+    if(dY.shape(0) != I.rows() - kernel_rows + 1 || dY.shape(1) != I.cols() - kernel_cols + 1)
+        throw std::invalid_argument("Output gradient shape does not match input and kernel size.");
+#endif
+
+    const int filters = dY.shape(2);
+
+    if(is_uninitialized())
+        realloc(filters, kernel_rows, kernel_cols);
+
+    if(rank() != 3 || shape(0) != filters || shape(1) != kernel_rows || shape(2) != kernel_cols)
+        throw std::invalid_argument("Filter-gradient result matrix does not have size " + std::to_string(filters) + "x" + std::to_string(kernel_rows) + "x" + std::to_string(kernel_cols) + ".");
+
+    if(this == &I || this == &dY || this == &pre_activation)
+        throw std::invalid_argument("Result cannot be assigned to I, dY, or pre_activation.");
+
+    reset();
+
+    float * d_filters = data();
+    const float * input = I.data();
+    const float * d_output = dY.data();
+    const float * pre = pre_activation.data();
+    const int input_cols = I.cols();
+    const int output_rows = dY.shape(0);
+    const int output_cols = dY.shape(1);
+
+    for(int y = 0; y < output_rows; ++y)
+    {
+        for(int x = 0; x < output_cols; ++x)
+        {
+            const int output_base = (y * output_cols + x) * filters;
+            for(int f = 0; f < filters; ++f)
+            {
+                if(pre[output_base + f] <= 0.0f)
+                    continue;
+
+                const float gradient = d_output[output_base + f];
+                float * d_filter = d_filters + f * kernel_rows * kernel_cols;
+                for(int ky = 0; ky < kernel_rows; ++ky)
+                {
+                    const float * input_row = input + (y + ky) * input_cols + x;
+                    float * d_filter_row = d_filter + ky * kernel_cols;
+                    for(int kx = 0; kx < kernel_cols; ++kx)
+                        d_filter_row[kx] += input_row[kx] * gradient;
+                }
+            }
+        }
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv2_valid_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(dY.rank() != 3 || K.rank() != 3)
+        throw std::invalid_argument("Filter-bank input-gradient requires output gradient [OH,OW,F] and filters [F,KH,KW].");
+
+    if(input_rows <= 0 || input_cols <= 0)
+        throw std::invalid_argument("Input-gradient dimensions must be positive.");
+
+    if(dY.shape(2) != K.shape(0))
+        throw std::invalid_argument("Output-gradient filter count does not match filters.");
+
+    if(dY.shape(0) != input_rows - K.shape(1) + 1 || dY.shape(1) != input_cols - K.shape(2) + 1)
+        throw std::invalid_argument("Output gradient shape does not match requested input size and filters.");
+#endif
+
+    if(is_uninitialized())
+        realloc(input_rows, input_cols);
+
+    if(rank() != 2 || rows() != input_rows || cols() != input_cols)
+        throw std::invalid_argument("Input-gradient result matrix does not have size " + std::to_string(input_rows) + "x" + std::to_string(input_cols) + ".");
+
+    if(this == &dY || this == &K)
+        throw std::invalid_argument("Result cannot be assigned to dY or K.");
+
+    reset();
+
+    const int filters = K.shape(0);
+    const int kernel_rows = K.shape(1);
+    const int kernel_cols = K.shape(2);
+    const int output_rows = dY.shape(0);
+    const int output_cols = dY.shape(1);
+    float * d_input = data();
+    const float * d_output = dY.data();
+    const float * filters_data = K.data();
+
+    for(int y = 0; y < output_rows; ++y)
+    {
+        for(int x = 0; x < output_cols; ++x)
+        {
+            const float * d_output_pixel = d_output + (y * output_cols + x) * filters;
+            for(int f = 0; f < filters; ++f)
+            {
+                const float gradient = d_output_pixel[f];
+                const float * filter = filters_data + f * kernel_rows * kernel_cols;
+                for(int ky = 0; ky < kernel_rows; ++ky)
+                {
+                    float * d_input_row = d_input + (y + ky) * input_cols + x;
+                    const float * filter_row = filter + ky * kernel_cols;
+                    for(int kx = 0; kx < kernel_cols; ++kx)
+                        d_input_row[kx] += gradient * filter_row[kx];
+                }
+            }
+        }
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::sum_first_two_dimensions(const matrix & A)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(A.rank() != 3)
+        throw std::invalid_argument("sum_first_two_dimensions requires a rank-3 matrix [H,W,F].");
+#endif
+
+    const int first = A.shape(0);
+    const int second = A.shape(1);
+    const int third = A.shape(2);
+
+    if(is_uninitialized())
+        realloc(third);
+
+    if(rank() != 1 || size() != third)
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(third) + ".");
+
+    if(this == &A)
+        throw std::invalid_argument("Result cannot be assigned to A.");
+
+    reset();
+
+    const float * input = A.data();
+    float * output = data();
+    const int rows = first * second;
+
+    for(int row = 0; row < rows; ++row)
+    {
+        const float * input_row = input + row * third;
+        for(int i = 0; i < third; ++i)
+            output[i] += input_row[i];
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::sum_first_two_dimensions_relu(const matrix & A, const matrix & pre_activation)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(A.rank() != 3 || pre_activation.rank() != 3)
+        throw std::invalid_argument("sum_first_two_dimensions_relu requires rank-3 matrices [H,W,F].");
+
+    if(A.shape() != pre_activation.shape())
+        throw std::invalid_argument("Input and pre-activation shapes must match.");
+#endif
+
+    const int third = A.shape(2);
+
+    if(is_uninitialized())
+        realloc(third);
+
+    if(rank() != 1 || size() != third)
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(third) + ".");
+
+    if(this == &A || this == &pre_activation)
+        throw std::invalid_argument("Result cannot be assigned to A or pre_activation.");
+
+    reset();
+
+    const float * input = A.data();
+    const float * pre = pre_activation.data();
+    float * output = data();
+    const int rows = A.shape(0) * A.shape(1);
+
+    for(int row = 0; row < rows; ++row)
+    {
+        const int base = row * third;
+        for(int i = 0; i < third; ++i)
+            if(pre[base + i] > 0.0f)
+                output[i] += input[base + i];
+    }
+
+    return *this;
+}
+
+
+matrix &
 matrix::fillReflect101Border(int wx, int wy)
 {
     float * image = data();
@@ -1736,6 +2080,59 @@ matrix::multiply_and_accumulate(const matrix & A, float c)
 
 
 matrix &
+matrix::relu_backward(const matrix & gradients, const matrix & pre_activation)
+{
+    gradients.check_same_size(pre_activation);
+
+    if(is_uninitialized())
+        realloc(gradients.shape());
+
+    check_same_size(gradients);
+
+    if(this == &pre_activation)
+        throw std::invalid_argument("Result cannot be assigned to pre_activation.");
+
+    const float * gradient_values = gradients.data();
+    const float * pre = pre_activation.data();
+    float * output = data();
+
+    for(int i = 0; i < size(); ++i)
+        output[i] = pre[i] > 0.0f ? gradient_values[i] : 0.0f;
+
+    return *this;
+}
+
+
+matrix &
+matrix::adam_update(const matrix & gradients, matrix & first_moment, matrix & second_moment, float learning_rate, float beta1, float beta2, float beta1_correction, float beta2_correction, float epsilon)
+{
+    check_same_size(gradients);
+    check_same_size(first_moment);
+    check_same_size(second_moment);
+
+    float * values = data();
+    const float * gradient_values = gradients.data();
+    float * first = first_moment.data();
+    float * second = second_moment.data();
+    const float one_minus_beta1 = 1.0f - beta1;
+    const float one_minus_beta2 = 1.0f - beta2;
+    const float update_scale = learning_rate / beta1_correction;
+    const float inv_beta2_correction = 1.0f / beta2_correction;
+
+    for(int i = 0; i < size(); ++i)
+    {
+        const float gradient = gradient_values[i];
+        first[i] = beta1 * first[i] + one_minus_beta1 * gradient;
+        second[i] = beta2 * second[i] + one_minus_beta2 * gradient * gradient;
+
+        values[i] -= update_scale * first[i] / (std::sqrt(second[i] * inv_beta2_correction) + epsilon);
+    }
+
+    return *this;
+}
+
+
+matrix &
 matrix::divide(float c)
 {
 #if defined(__APPLE__)
@@ -2165,6 +2562,135 @@ matrix::matmul(const matrix & A, const matrix & B)
         for(int i = 0; i < B.cols(); ++i)
             for(int k = 0; k < B.rows(); ++k)
                 (*this)(j, i) += A(j, k) * B(k, i);
+#endif
+
+    return *this;
+}
+
+
+matrix &
+matrix::outer_product(const matrix & left, const matrix & right)
+{
+    if(is_uninitialized())
+        realloc(left.size(), right.size());
+
+#ifndef NO_MATRIX_CHECKS
+    if(rank() != 2 || left.rank() != 1 || right.rank() != 1)
+        throw std::invalid_argument("Outer product requires two vectors and a two-dimensional result.");
+#endif
+
+    if(rows() != left.size() || cols() != right.size())
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(left.size()) + "x" + std::to_string(right.size()) + ".");
+
+    if(this == &left || this == &right)
+        throw std::invalid_argument("Result cannot be assigned to left or right.");
+
+    reset();
+
+#if defined(__APPLE__)
+    cblas_sger(CblasRowMajor, left.size(), right.size(), 1.0f, left.data(), 1, right.data(), 1, data(), info_->stride_[1]);
+#else
+    const float * left_values = left.data();
+    const float * right_values = right.data();
+    float * output = data();
+    const int output_cols = cols();
+
+    for(int row = 0; row < left.size(); ++row)
+    {
+        float * output_row = output + row * output_cols;
+        for(int col = 0; col < right.size(); ++col)
+            output_row[col] = left_values[row] * right_values[col];
+    }
+#endif
+
+    return *this;
+}
+
+
+matrix &
+matrix::dense_forward(const matrix & input, const matrix & weights)
+{
+    if(is_uninitialized())
+        realloc(weights.cols());
+
+#ifndef NO_MATRIX_CHECKS
+    if(rank() != 1 || input.rank() != 1 || weights.rank() != 2)
+        throw std::invalid_argument("Dense forward requires input [I], weights [I,O], and result [O].");
+
+    if(input.size() != weights.rows())
+        throw std::invalid_argument("Input vector and dense weights are not compatible.");
+#endif
+
+    if(size() != weights.cols())
+        throw std::invalid_argument("Result vector does not have size " + std::to_string(weights.cols()) + ".");
+
+    if(this == &input || this == &weights)
+        throw std::invalid_argument("Result cannot be assigned to input or weights.");
+
+#if defined(__APPLE__)
+    cblas_sgemv(CblasRowMajor, CblasTrans,
+                weights.rows(), weights.cols(), 1.0f,
+                weights.data(), weights.info_->stride_[1],
+                input.data(), 1, 0.0f, data(), 1);
+#else
+    reset();
+    const float * input_values = input.data();
+    const float * weight_values = weights.data();
+    float * output = data();
+    const int output_size = weights.cols();
+
+    for(int row = 0; row < weights.rows(); ++row)
+    {
+        const float input_value = input_values[row];
+        const float * weight_row = weight_values + row * output_size;
+        for(int col = 0; col < output_size; ++col)
+            output[col] += input_value * weight_row[col];
+    }
+#endif
+
+    return *this;
+}
+
+
+matrix &
+matrix::dense_backward_input(const matrix & weights, const matrix & output_gradient)
+{
+    if(is_uninitialized())
+        realloc(weights.rows());
+
+#ifndef NO_MATRIX_CHECKS
+    if(rank() != 1 || weights.rank() != 2 || output_gradient.rank() != 1)
+        throw std::invalid_argument("Dense backward input requires weights [I,O], output_gradient [O], and result [I].");
+
+    if(output_gradient.size() != weights.cols())
+        throw std::invalid_argument("Output gradient vector and dense weights are not compatible.");
+#endif
+
+    if(size() != weights.rows())
+        throw std::invalid_argument("Result vector does not have size " + std::to_string(weights.rows()) + ".");
+
+    if(this == &weights || this == &output_gradient)
+        throw std::invalid_argument("Result cannot be assigned to weights or output_gradient.");
+
+#if defined(__APPLE__)
+    cblas_sgemv(CblasRowMajor, CblasNoTrans,
+                weights.rows(), weights.cols(), 1.0f,
+                weights.data(), weights.info_->stride_[1],
+                output_gradient.data(), 1, 0.0f, data(), 1);
+#else
+    const float * weight_values = weights.data();
+    const float * gradient_values = output_gradient.data();
+    float * output = data();
+    const int output_size = weights.cols();
+
+    for(int row = 0; row < weights.rows(); ++row)
+    {
+        const float * weight_row = weight_values + row * output_size;
+        float gradient = 0.0f;
+        for(int col = 0; col < output_size; ++col)
+            gradient += weight_row[col] * gradient_values[col];
+        output[row] = gradient;
+    }
 #endif
 
     return *this;

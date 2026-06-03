@@ -7,6 +7,7 @@ add_subdirectory(BrainModels)
 add_subdirectory(RobotModules)
 add_subdirectory(IOModules)
 add_subdirectory(ImageProcessing)
+add_subdirectory(Balkenius1995)
 
 add_subdirectory(EpiVoice)
 add_subdirectory(EpiSpeech)

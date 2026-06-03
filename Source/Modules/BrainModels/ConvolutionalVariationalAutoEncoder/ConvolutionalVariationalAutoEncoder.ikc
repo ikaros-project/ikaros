@@ -1,0 +1,30 @@
+<class name="ConvolutionalVariationalAutoEncoder" description="learns a compact latent representation with a convolutional variational auto-encoder">
+	<parameter name="latent_size" type="number" default="8" min="1" description="Number of latent variables" />
+	<parameter name="feature_maps" type="number" default="4" min="1" description="Number of convolutional feature maps" />
+	<parameter name="kernel_size" type="number" default="3" min="1" description="Convolution kernel size" />
+	<parameter name="learning_rate" type="number" default="0.001" min="0" description="Learning rate used when training" />
+	<parameter name="optimizer" type="string" default="adam" options="adam,sgd" description="Optimizer used for training" />
+	<parameter name="adam_beta1" type="number" default="0.9" min="0" max="1" description="Adam first moment decay" />
+	<parameter name="adam_beta2" type="number" default="0.999" min="0" max="1" description="Adam second moment decay" />
+	<parameter name="adam_epsilon" type="number" default="0.00000001" min="0" description="Adam numerical stability term" />
+	<parameter name="beta" type="number" default="1" min="0" description="Weight of the KL-divergence term" />
+	<parameter name="train" type="bool" default="yes" description="Enable online training" />
+	<parameter name="train_interval" type="number" default="1" min="1" description="Run a training update every N ticks" />
+	<parameter name="dense_train_interval" type="number" default="1" min="1" description="Update dense VAE weights every N training updates" />
+	<parameter name="profile" type="bool" default="no" description="Print average timing information for the module" />
+	<parameter name="profile_interval" type="number" default="100" min="1" description="Number of processed ticks between timing reports" />
+	<parameter name="sample" type="bool" default="yes" description="Sample from the latent distribution instead of using the mean" />
+	<parameter name="weights_filename" type="string" default="cvae_weights.dat" description="Network weights file" />
+	<parameter name="load_weights" type="bool" default="no" description="Load weights during initialization" />
+	<parameter name="save_weights" type="bool" default="no" description="Save weights after each training update" />
+
+	<input name="INPUT" description="Input image or matrix" />
+	<input name="EFFORT" optional="yes" description="Training effort gate; values less than or equal to zero skip processing" />
+	<output name="OUTPUT" size="INPUT.size" description="Reconstructed input" />
+	<output name="LATENT_MEAN" size="@latent_size" description="Latent Gaussian mean" />
+	<output name="LATENT_LOG_VARIANCE" size="@latent_size" description="Latent Gaussian log variance" />
+	<output name="LATENT_SAMPLE" size="@latent_size" description="Latent sample used by the decoder" />
+	<output name="LOSS" size="1" description="Total VAE loss" />
+	<output name="RECONSTRUCTION_LOSS" size="1" description="Mean squared reconstruction loss" />
+	<output name="KL_LOSS" size="1" description="KL divergence from the unit Gaussian prior" />
+</class>

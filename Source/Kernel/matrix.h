@@ -508,6 +508,9 @@ namespace ikaros
 
 
         matrix & matmul(const matrix & A, const matrix & B); // Compute matrix multiplication A*B and put result in current matrix
+        matrix & outer_product(const matrix & left, const matrix & right); // left [M], right [N] -> result [M,N]
+        matrix & dense_forward(const matrix & input, const matrix & weights); // input [I], weights [I,O] -> result [O]
+        matrix & dense_backward_input(const matrix & weights, const matrix & output_gradient); // weights [I,O], output_gradient [O] -> result [I]
 
 
         matrix & inv(); // Invert matrix in place
@@ -578,6 +581,16 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
 
     matrix &conv(const matrix &I, const matrix &K); // Convolution of I and K; border; result same size as input image
 
+    // Valid 2D filter-bank correlation used by trainable convolutional layers.
+    // Shape convention: I [H,W], K [F,KH,KW], B [F], Y/dY [H-KH+1,W-KW+1,F].
+    matrix & conv2_valid_filterbank(const matrix & I, const matrix & K); // Y from I and K
+    matrix & conv2_valid_filterbank(const matrix & I, const matrix & K, const matrix & B); // Y from I, K, and per-filter bias B
+    matrix & conv2_valid_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols); // dK [F,KH,KW]
+    matrix & conv2_valid_filterbank_backward_filters_relu(const matrix & I, const matrix & dY, const matrix & pre_activation, int kernel_rows, int kernel_cols); // dK using dY * (pre_activation > 0)
+    matrix & conv2_valid_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols); // dI [H,W]
+    matrix & sum_first_two_dimensions(const matrix & A); // A [H,W,F] -> result [F]
+    matrix & sum_first_two_dimensions_relu(const matrix & A, const matrix & pre_activation); // Sum A * (pre_activation > 0) over H,W
+
 
     matrix & fillReflect101Border(int wx, int wy);
     matrix & fillExtendBorder(int wx, int wy);
@@ -594,6 +607,9 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
         bool changed();     // Has matrix changed since last save
 
         // Math Functions
+
+        matrix & relu_backward(const matrix & gradients, const matrix & pre_activation); // gradients * (pre_activation > 0)
+        matrix & adam_update(const matrix & gradients, matrix & first_moment, matrix & second_moment, float learning_rate, float beta1, float beta2, float beta1_correction, float beta2_correction, float epsilon);
 
         // Reduce functions
 
