@@ -436,7 +436,7 @@
 
 .connection_line.selected:hover,
 .connection_line.selected.hover {
-    stroke:black;
+    stroke:orange;
     stroke-width:3;
 }
 
@@ -483,6 +483,12 @@
     background-color: rgb(177, 177, 177);
 }
 
+.main_pane.mirror_right .main_pane_component_layer .o_spot {
+    float: left;
+    margin-left: 7px;
+    margin-right: 8px;
+}
+
 .main_pane_component_layer .o_spot:hover {
     background-color: orange;
     pointer-events: auto;
@@ -497,6 +503,12 @@
     margin-top: 1px;
     border-radius: 5px;
     background-color: rgb(177, 177, 177);
+}
+
+.main_pane.mirror_right .main_pane_component_layer .i_spot {
+    float: right;
+    margin-left: 8px;
+    margin-right: 4px;
 }
 
 

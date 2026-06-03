@@ -1276,6 +1276,16 @@ const inspector =
             inspector.notify.parameters[p.name] = item[p.name];
         if(shouldNotify && inspector.notify)
             inspector.notify.parameterChangeNotification(p);
+        if(main && typeof main.syncLockedMirrorItemProperties === "function")
+        {
+            let fullName = "";
+            if(selector.selected_foreground.length == 1 && network.dict[selector.selected_foreground[0]] === item)
+                fullName = selector.selected_foreground[0];
+            else if(selector.selected_foreground.length == 0 && selector.selected_background && network.dict[selector.selected_background] === item)
+                fullName = selector.selected_background;
+            if(fullName)
+                main.syncLockedMirrorItemProperties(fullName, [p.name]);
+        }
         return item[p.name];
     },
 
