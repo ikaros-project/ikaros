@@ -1,0 +1,15 @@
+<group name="BalkeniusReactiveControl_World2D_Test" start="true" stop="-1" tick_duration="0.05" webui_port="8023">
+    <module name="World" class="World2D" />
+    <module name="Control" class="BalkeniusReactiveControl" behavior="0" odour_channel="0" a="0.20" b="0.08" c="0.04" theta="0.05" gain="1" max_motor="0.25" />
+
+    <connection source="World.ODOUR" target="Control.ODOUR" />
+    <connection source="Control.MOTOR" target="World.MOTOR" />
+
+    <widget name="WorldView" class="world2d" creature_source="World.CREATURE" objects_source="World.OBJECTS" walls_source="World.WALLS" whiskers_source="World.WHISKERS" tool_parameter="World.edit_tool" whisker_length_parameter="World.whisker_length" whisker_angle_parameter="World.whisker_angle" width="560" height="560" x="40" y="40" title="World2D" show_title="true" show_frame="true" world_width="300" world_height="300" grid_step="10" whisker_length="10" whisker_angle="0.7853981633974483" />
+    <widget name="Behavior" class="drop-down-menu" parameter="Control.behavior" parameter_type="number" list="approach_accelerating,approach_decelerating,approach_combined_accelerating,approach_combined_decelerating,approach_bis,avoidance_accelerating,avoidance_decelerating,avoidance_combined_accelerating,avoidance_combined_decelerating,avoidance_passive,orienting_toward,orienting_away,custom" label="Behavior" labelWidth="75" show_title="false" show_frame="false" width="360" height="40" x="640" y="40" />
+    <widget name="Sensory" class="table" source="Control.SENSORY" width="220" height="90" x="640" y="110" title="SENSORY" show_title="true" show_frame="true" decimals="3" />
+    <widget name="Nodes" class="table" source="Control.NODES" width="220" height="90" x="880" y="110" title="NODES" show_title="true" show_frame="true" decimals="3" />
+    <widget name="Weights" class="table" source="Control.WEIGHT_OUTPUT" width="360" height="90" x="640" y="230" title="WEIGHTS m,n,o,p,q,r" show_title="true" show_frame="true" decimals="3" />
+    <widget name="Motor" class="table" source="Control.MOTOR" width="220" height="90" x="640" y="350" title="MOTOR" show_title="true" show_frame="true" decimals="3" />
+    <widget name="Reward" class="table" source="World.REWARD" width="180" height="90" x="880" y="350" title="REWARD" show_title="true" show_frame="true" decimals="3" />
+</group>

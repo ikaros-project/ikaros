@@ -1,0 +1,25 @@
+<class name="BalkeniusReactiveControl" description="Reactive two-sensor control system after Balkenius (1995/2026), Figure 4.10 and Table 4.2.11">
+    <description>
+        BalkeniusReactiveControl implements the olfactory two-sensor, two-motor control circuit from Figure 4.10 using the behavior weight presets summarized in Table 4.2.11. It can read either SENSORS as left/right values or World2D.ODOUR as a 2 by N matrix and select one odour channel. The output MOTOR is left and right wheel speed and can be connected directly to World2D.MOTOR.
+    </description>
+
+    <parameter name="behavior" type="matrix" default="0" description="Behavior preset index: 0 approach_accelerating, 1 approach_decelerating, 2 approach_combined_accelerating, 3 approach_combined_decelerating, 4 approach_bis, 5 avoidance_accelerating, 6 avoidance_decelerating, 7 avoidance_combined_accelerating, 8 avoidance_combined_decelerating, 9 avoidance_passive, 10 orienting_toward, 11 orienting_away, 12 custom." />
+    <parameter name="a" type="number" default="0.20" description="Larger behavior weight from Table 4.2.11." />
+    <parameter name="b" type="number" default="0.08" description="Smaller behavior weight from Table 4.2.11, with 0 &lt; b &lt; a." />
+    <parameter name="c" type="number" default="0.04" description="Resting motor activity used by decelerating and passive behaviors." />
+    <parameter name="theta" type="number" default="0.05" description="Threshold for the semi-linear interneurons." />
+    <parameter name="motor_threshold" type="number" default="0" description="Output threshold subtracted before rectifying motor activity." />
+    <parameter name="gain" type="number" default="1" description="Final gain applied to MOTOR." />
+    <parameter name="max_motor" type="number" default="0.25" description="Absolute clipping limit for each motor output." />
+    <parameter name="odour_channel" type="number" default="0" description="Zero-based odour channel used when ODOUR is connected." />
+
+    <input name="SENSORS" optional="yes" size="2" description="Left and right sensory values." />
+    <input name="ODOUR" optional="yes" description="World2D odour matrix. Rows are left and right sensors; columns are odour channels." />
+    <input name="WEIGHTS" optional="yes" size="6" description="Custom weights m,n,o,p,q,r used when behavior is custom." />
+
+    <output name="MOTOR" size="2" description="Left and right wheel speeds." />
+    <output name="SENSORY" size="2" description="Left and right sensory values used by the circuit." />
+    <output name="NODES" size="3" description="Thresholded left, center/BIS, and right interneuron activities." />
+    <output name="WEIGHT_OUTPUT" size="6" description="Active weights m,n,o,p,q,r." />
+    <output name="RAW_MOTOR" size="2" description="Unclipped left and right motor activities before gain and max_motor clipping." />
+</class>
