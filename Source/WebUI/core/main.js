@@ -121,7 +121,20 @@ const main =
     setPaneBackground(pane, background)
     {
         if(pane && pane.dataset && background)
+        {
             pane.dataset.background = background;
+            const side = main.getMirrorSideForBackground(background);
+            if(side)
+            {
+                pane.dataset.mirrorSide = side;
+                pane.classList.toggle("mirror_right", side === "right");
+            }
+            else
+            {
+                delete pane.dataset.mirrorSide;
+                pane.classList.remove("mirror_right");
+            }
+        }
     },
 
     getPanesForBackground(background, excludePane=null)
@@ -280,6 +293,7 @@ const main =
     {
         if(!network || !network.network)
             return;
+        // UI metadata saved with the network file; pane layout changes do not taint the model.
         if(layout)
             network.network._pane_layout = JSON.stringify(layout);
         else
@@ -340,6 +354,14 @@ const main =
         return network && network.network && network.network.name ? network.network.name : "";
     },
 
+    clampPaneLayoutRatio(ratio)
+    {
+        const value = Number(ratio);
+        if(!Number.isFinite(value))
+            return 50;
+        return Math.max(5, Math.min(95, value));
+    },
+
     serializePaneLayoutNode(node)
     {
         if(!node)
@@ -366,6 +388,7 @@ const main =
                 direction,
                 splitType: main.getSplitType(node),
                 ratio,
+                mirrorLocked: main.isMirrorLocked(node),
                 children: children.map((child) => main.serializePaneLayoutNode(child))
             };
         }
@@ -479,7 +502,9 @@ const main =
             splitNode.appendChild(firstChild);
             splitNode.appendChild(secondChild);
             splitNode.appendChild(main.createSplitHandle(direction));
-            main.setSplitRatio(splitNode, direction, Number.isFinite(layoutNode.ratio) ? layoutNode.ratio : 50);
+            if(layoutNode.splitType === "mirror")
+                main.setMirrorLocked(splitNode, layoutNode.mirrorLocked !== false);
+            main.setSplitRatio(splitNode, direction, main.clampPaneLayoutRatio(layoutNode.ratio));
             return splitNode;
         }
 
@@ -517,6 +542,12 @@ const main =
             if(activePane)
                 activePane.classList.add("active");
             main.getAllPanes().forEach((pane) => main.installPaneEvents(pane));
+            main.getAllPanes().forEach((pane) =>
+            {
+                const background = main.getPaneBackground(pane);
+                if(background)
+                    main.renderIntoPane(pane, background, []);
+            });
             if(activePane)
                 main.activatePane(activePane, false);
             main.refreshAllPaneGeometry();
@@ -595,6 +626,450 @@ const main =
         main.splitPane("vertical", main.getPaneFromSource(source), "mirror");
     },
 
+    getMirrorSideForBackground(background)
+    {
+        const rootPath = main.getMirrorRootPathForBackground(background);
+        const group = rootPath && network && network.dict ? network.dict[rootPath] : null;
+        return group && (group._mirror_side === "left" || group._mirror_side === "right") ? group._mirror_side : "";
+    },
+
+    getMirrorRootPathForBackground(background)
+    {
+        let path = background || "";
+        while(path && network && network.dict)
+        {
+            const group = network.dict[path];
+            if(group && (group._mirror_side === "left" || group._mirror_side === "right"))
+                return path;
+            const parent = parentPath(path);
+            if(!parent || parent === path)
+                break;
+            path = parent;
+        }
+        return "";
+    },
+
+    getPaneMirrorSide(pane=null)
+    {
+        const root = pane || (main.active_pane ? main.active_pane.root : null);
+        return root && root.dataset ? root.dataset.mirrorSide || "" : "";
+    },
+
+    isMirrorBackground(background)
+    {
+        return !!main.getMirrorSideForBackground(background);
+    },
+
+    isRightMirrorBackground(background)
+    {
+        return main.getMirrorSideForBackground(background) === "right";
+    },
+
+    getMirrorPaneWidth()
+    {
+        const root = main.active_pane && main.active_pane.root ? main.active_pane.root : null;
+        return root ? root.getBoundingClientRect().width : 0;
+    },
+
+    modelXToPaneX(x, background=null)
+    {
+        const side = main.getMirrorSideForBackground(background || (selector ? selector.selected_background : ""));
+        const value = Number(x) || 0;
+        if(side === "left")
+            return main.getMirrorPaneWidth() + value;
+        return value;
+    },
+
+    getPositionedXStyle(x, background=null)
+    {
+        const resolvedBackground = background || (selector ? selector.selected_background : "");
+        const side = main.getMirrorSideForBackground(resolvedBackground);
+        const value = main.modelXToPaneX(x, resolvedBackground);
+        if(side === "right")
+            return `right:calc(100% - ${value}px);left:auto;`;
+        return `left:${value}px;`;
+    },
+
+    paneXToModelX(x, background=null)
+    {
+        const side = main.getMirrorSideForBackground(background || (selector ? selector.selected_background : ""));
+        const value = Number(x) || 0;
+        if(side === "left")
+            return Math.min(0, value - main.getMirrorPaneWidth());
+        if(side === "right")
+            return Math.max(0, value);
+        return Math.max(0, value);
+    },
+
+    normalizeNewComponentX(x)
+    {
+        const side = main.getMirrorSideForBackground(selector ? selector.selected_background : "");
+        const value = Number(x) || 0;
+        if(side === "left")
+            return value <= 0 ? value : -value;
+        if(side === "right")
+            return Math.max(0, value);
+        return value;
+    },
+
+    getUniqueChildName(parentPath, baseName)
+    {
+        if(!parentPath || !baseName)
+            return baseName;
+        let name = baseName;
+        let index = 1;
+        while(network && network.dict && network.dict[`${parentPath}.${name}`])
+            name = `${baseName}${++index}`;
+        return name;
+    },
+
+    ensureMirrorChildGroup(parentPath, baseName, side)
+    {
+        const parent = parentPath && network && network.dict ? network.dict[parentPath] : null;
+        if(!parent)
+            return "";
+
+        const requestedPath = `${parentPath}.${baseName}`;
+        const existing = network.dict[requestedPath];
+        if(existing && existing._tag === "group")
+        {
+            existing._mirror_side = side;
+            return requestedPath;
+        }
+
+        if(!parent.groups)
+            parent.groups = [];
+        const name = existing ? main.getUniqueChildName(parentPath, baseName) : baseName;
+        const group = {
+            name,
+            color: "",
+            _tag: "group",
+            _x: side === "left" ? -140 : 140,
+            _y: 100,
+            _mirror_side: side,
+            inputs: [],
+            outputs: [],
+            parameters: [],
+            modules: [],
+            groups: [],
+            widgets: [],
+            connections: []
+        };
+        parent.groups.push(group);
+        return `${parentPath}.${name}`;
+    },
+
+    ensureMirrorSplitGroups(parentPath)
+    {
+        if(!parentPath)
+            return null;
+        const leftPath = main.ensureMirrorChildGroup(parentPath, "Left", "left");
+        const rightPath = main.ensureMirrorChildGroup(parentPath, "Right", "right");
+        if(!leftPath || !rightPath)
+            return null;
+        network.rebuildDict();
+        nav.populate();
+        return {leftPath, rightPath};
+    },
+
+    getMirrorCounterpartBackground(background)
+    {
+        const mirrorRootPath = main.getMirrorRootPathForBackground(background);
+        const group = mirrorRootPath && network && network.dict ? network.dict[mirrorRootPath] : null;
+        const side = group && group._mirror_side;
+        if(side !== "left" && side !== "right")
+            return "";
+        const parent = parentPath(mirrorRootPath);
+        const parentGroup = parent && network.dict ? network.dict[parent] : null;
+        const counterpartSide = side === "left" ? "right" : "left";
+        const child = (parentGroup && parentGroup.groups || []).find((candidate) => candidate && candidate._mirror_side === counterpartSide);
+        if(!child)
+            return "";
+        const counterpartRootPath = `${parent}.${child.name}`;
+        if(background === mirrorRootPath)
+            return counterpartRootPath;
+        const relativePath = removeStringFromStart(background, `${mirrorRootPath}.`);
+        const counterpartPath = `${counterpartRootPath}.${relativePath}`;
+        return network.dict && network.dict[counterpartPath] ? counterpartPath : "";
+    },
+
+    mirrorComponentX(value, targetSide)
+    {
+        const x = Number(value) || 0;
+        return targetSide === "left" ? -Math.abs(x) : Math.abs(x);
+    },
+
+    mirrorComponentForSide(component, targetSide)
+    {
+        const clone = deepCopy(component);
+        if(clone && clone._x !== undefined)
+            clone._x = main.mirrorComponentX(clone._x, targetSide);
+        if(clone && clone._tag === "group")
+        {
+            clone.inputs = (clone.inputs || []).map((item) => main.mirrorComponentForSide(item, targetSide));
+            clone.outputs = (clone.outputs || []).map((item) => main.mirrorComponentForSide(item, targetSide));
+            clone.modules = (clone.modules || []).map((item) => main.mirrorComponentForSide(item, targetSide));
+            clone.widgets = (clone.widgets || []).map((item) => main.mirrorComponentForSide(item, targetSide));
+            clone.groups = (clone.groups || []).map((item) => main.mirrorComponentForSide(item, targetSide));
+        }
+        return clone;
+    },
+
+    mirrorConnectionEndpoint(endpoint, sourcePath, targetPath)
+    {
+        if(typeof endpoint !== "string" || !sourcePath || !targetPath)
+            return endpoint;
+        const base = getStringUpToBracket(endpoint);
+        const suffix = endpoint.substring(base.length);
+        if(base === sourcePath)
+            return targetPath + suffix;
+        if(base.startsWith(sourcePath + "."))
+            return base.substring(sourcePath.length + 1) + suffix;
+        if(base.startsWith(targetPath + "."))
+            return base.substring(targetPath.length + 1) + suffix;
+        return endpoint;
+    },
+
+    mirrorConnectionForBackground(connection, sourcePath, targetPath)
+    {
+        const clone = deepCopy(connection);
+        if(!clone)
+            return clone;
+        clone.source = main.mirrorConnectionEndpoint(clone.source, sourcePath, targetPath);
+        clone.target = main.mirrorConnectionEndpoint(clone.target, sourcePath, targetPath);
+        return clone;
+    },
+
+    getMirroredEndpointBaseForLockedMirror(endpointBase)
+    {
+        const mirrorRootPath = main.getMirrorRootPathForBackground(endpointBase);
+        if(!mirrorRootPath || !main.isLockedMirrorBackground(mirrorRootPath))
+            return "";
+        const counterpartRootPath = main.getMirrorCounterpartBackground(mirrorRootPath);
+        if(!counterpartRootPath)
+            return "";
+        if(endpointBase === mirrorRootPath)
+            return counterpartRootPath;
+        if(!endpointBase.startsWith(`${mirrorRootPath}.`))
+            return "";
+        const relativePath = endpointBase.substring(mirrorRootPath.length + 1);
+        return `${counterpartRootPath}.${relativePath}`;
+    },
+
+    addMirroredConnectionForEndpoints(sourceEndpointId, targetEndpointId, sourceConnection=null)
+    {
+        if(main.mirror_syncing)
+            return "";
+        const sourceBase = main.getConnectionEndpointBase(sourceEndpointId);
+        const targetBase = main.getConnectionEndpointBase(targetEndpointId);
+        const mirroredSourceBase = main.getMirroredEndpointBaseForLockedMirror(sourceBase) || sourceBase;
+        const mirroredTargetBase = main.getMirroredEndpointBaseForLockedMirror(targetBase) || targetBase;
+        if(mirroredSourceBase === sourceBase && mirroredTargetBase === targetBase)
+            return "";
+        if(!network || !network.dict)
+            return "";
+
+        const mirroredConnectionPath = main.getConnectionOwnerPath(mirroredSourceBase, mirroredTargetBase);
+        const mirroredGroup = mirroredConnectionPath && network && network.dict ? network.dict[mirroredConnectionPath] : null;
+        if(!mirroredGroup || mirroredGroup._tag !== "group")
+            return "";
+
+        const cleanSource = main.getRelativeConnectionEndpoint(mirroredSourceBase, mirroredConnectionPath);
+        const cleanTarget = main.getRelativeConnectionEndpoint(mirroredTargetBase, mirroredConnectionPath);
+        if(!mirroredGroup.connections)
+            mirroredGroup.connections = [];
+        const alreadyExists = mirroredGroup.connections.some((connection) =>
+            connection && connection.source === cleanSource && connection.target === cleanTarget
+        );
+        if(alreadyExists)
+            return mirroredConnectionPath;
+
+        const mirrorConnection = sourceConnection ? deepCopy(sourceConnection) : {
+            _tag: "connection",
+            delay: "1",
+            color: "black",
+            line_type: "auto_route"
+        };
+        mirrorConnection.source = cleanSource;
+        mirrorConnection.target = cleanTarget;
+        mirroredGroup.connections.push(mirrorConnection);
+        network.rebuildDict();
+        return mirroredConnectionPath;
+    },
+
+    updateLockedMirrorComponentPosition(sourceFullName)
+    {
+        if(main.mirror_syncing || !sourceFullName || !network || !network.dict)
+            return;
+        const sourceComponent = network.dict[sourceFullName];
+        if(!sourceComponent)
+            return;
+        const mirrorRootPath = main.getMirrorRootPathForBackground(sourceFullName);
+        if(!mirrorRootPath || !main.isLockedMirrorBackground(mirrorRootPath))
+            return;
+        const counterpartRootPath = main.getMirrorCounterpartBackground(mirrorRootPath);
+        if(!counterpartRootPath || !sourceFullName.startsWith(`${mirrorRootPath}.`))
+            return;
+        const relativePath = sourceFullName.substring(mirrorRootPath.length + 1);
+        const targetFullName = `${counterpartRootPath}.${relativePath}`;
+        const targetComponent = network.dict[targetFullName];
+        if(!targetComponent)
+            return;
+
+        targetComponent._x = main.mirrorComponentX(sourceComponent._x, targetComponent._mirror_side || main.getMirrorSideForBackground(targetFullName));
+        targetComponent._y = sourceComponent._y;
+        const targetBackground = parentPath(targetFullName);
+        for(const pane of main.getPanesForBackground(targetBackground))
+        {
+            const element = main.getPaneElement(targetFullName, pane);
+            main.applyPositionedComponentStyle(element, targetComponent, targetBackground);
+        }
+    },
+
+    getLockedMirrorCounterpartPath(sourceFullName)
+    {
+        if(!sourceFullName || !network || !network.dict)
+            return "";
+        const mirrorRootPath = main.getMirrorRootPathForBackground(sourceFullName);
+        if(!mirrorRootPath || !main.isLockedMirrorBackground(mirrorRootPath))
+            return "";
+        const counterpartRootPath = main.getMirrorCounterpartBackground(mirrorRootPath);
+        if(!counterpartRootPath || !sourceFullName.startsWith(`${mirrorRootPath}.`))
+            return "";
+        const relativePath = sourceFullName.substring(mirrorRootPath.length + 1);
+        const targetFullName = `${counterpartRootPath}.${relativePath}`;
+        return network.dict[targetFullName] ? targetFullName : "";
+    },
+
+    syncLockedMirrorItemProperties(sourceFullName, propertyNames)
+    {
+        if(main.mirror_syncing || !sourceFullName || !Array.isArray(propertyNames) || propertyNames.length === 0)
+            return;
+        const source = network && network.dict ? network.dict[sourceFullName] : null;
+        const targetFullName = main.getLockedMirrorCounterpartPath(sourceFullName);
+        const target = targetFullName ? network.dict[targetFullName] : null;
+        if(!source || !target)
+            return;
+
+        for(const propertyName of propertyNames)
+        {
+            if(propertyName === "name" || propertyName === "_tag" || propertyName === "_mirror_side")
+                continue;
+            target[propertyName] = deepCopy(source[propertyName]);
+        }
+        const targetBackground = parentPath(targetFullName);
+        main.refreshMatchingBackgroundPanes(targetBackground, [], main.active_pane ? main.active_pane.root : null);
+        main.refreshAllPaneGeometry();
+    },
+
+    getComponentCollectionName(tag)
+    {
+        return {
+            group: "groups",
+            module: "modules",
+            input: "inputs",
+            output: "outputs",
+            widget: "widgets"
+        }[tag] || "";
+    },
+
+    addLockedMirrorComponent(sourceFullName)
+    {
+        if(main.mirror_syncing || !sourceFullName || !network || !network.dict)
+            return;
+        const source = network.dict[sourceFullName];
+        if(!source)
+            return;
+        const sourceBackground = parentPath(sourceFullName);
+        const targetBackground = main.getMirrorCounterpartBackground(sourceBackground);
+        const targetGroup = targetBackground ? network.dict[targetBackground] : null;
+        const collectionName = main.getComponentCollectionName(source._tag);
+        if(!targetGroup || !collectionName)
+            return;
+        const targetFullName = `${targetBackground}.${source.name}`;
+        if(network.dict[targetFullName])
+            return;
+        if(!targetGroup[collectionName])
+            targetGroup[collectionName] = [];
+        targetGroup[collectionName].push(main.mirrorComponentForSide(source, main.getMirrorSideForBackground(targetBackground)));
+        network.rebuildDict();
+        main.refreshMatchingBackgroundPanes(targetBackground, [], main.active_pane ? main.active_pane.root : null);
+        main.refreshAllPaneGeometry();
+    },
+
+    deleteLockedMirrorComponent(sourceFullName)
+    {
+        const targetFullName = main.getLockedMirrorCounterpartPath(sourceFullName);
+        const target = targetFullName ? network.dict[targetFullName] : null;
+        if(!target)
+            return;
+        const targetBackground = parentPath(targetFullName);
+        const targetGroup = network.dict[targetBackground];
+        const collectionName = main.getComponentCollectionName(target._tag);
+        if(!targetGroup || !collectionName || !Array.isArray(targetGroup[collectionName]))
+            return;
+        targetGroup[collectionName] = targetGroup[collectionName].filter((item) => item && item.name !== target.name);
+        if(targetGroup.connections)
+            main.deleteConnectionsForComponent(target.name, targetGroup);
+        network.rebuildDict();
+        main.refreshMatchingBackgroundPanes(targetBackground, [], main.active_pane ? main.active_pane.root : null);
+        main.refreshAllPaneGeometry();
+    },
+
+    renameLockedMirrorComponent(sourceFullName, newName)
+    {
+        const targetFullName = main.getLockedMirrorCounterpartPath(sourceFullName);
+        const target = targetFullName ? network.dict[targetFullName] : null;
+        if(!target || !newName)
+            return;
+        target.name = newName;
+        network.rebuildDict();
+        const targetBackground = parentPath(targetFullName);
+        main.refreshMatchingBackgroundPanes(targetBackground, [], main.active_pane ? main.active_pane.root : null);
+        main.refreshAllPaneGeometry();
+    },
+
+    syncLockedMirrorCounterpart(background)
+    {
+        if(main.mirror_syncing || !main.isLockedMirrorBackground(background))
+            return;
+        const source = network && network.dict ? network.dict[background] : null;
+        const targetPath = main.getMirrorCounterpartBackground(background);
+        const target = targetPath ? network.dict[targetPath] : null;
+        if(!source || !target)
+            return;
+
+        const targetName = target.name;
+        const targetSide = target._mirror_side;
+        const targetX = target._x;
+        const targetY = target._y;
+        main.mirror_syncing = true;
+        try
+        {
+            target.color = source.color || "";
+            target.inputs = (source.inputs || []).map((item) => main.mirrorComponentForSide(item, targetSide));
+            target.outputs = (source.outputs || []).map((item) => main.mirrorComponentForSide(item, targetSide));
+            target.modules = (source.modules || []).map((item) => main.mirrorComponentForSide(item, targetSide));
+            target.widgets = (source.widgets || []).map((item) => main.mirrorComponentForSide(item, targetSide));
+            target.groups = (source.groups || []).map((item) => main.mirrorComponentForSide(item, targetSide));
+            target.connections = (source.connections || []).map((connection) => main.mirrorConnectionForBackground(connection, background, targetPath));
+            target.parameters = deepCopy(source.parameters || []);
+            target.name = targetName;
+            target._tag = "group";
+            target._mirror_side = targetSide;
+            target._x = targetX;
+            target._y = targetY;
+            network.rebuildDict();
+            nav.populate();
+            main.refreshMatchingBackgroundPanes(targetPath, []);
+            main.refreshAllPaneGeometry();
+        }
+        finally
+        {
+            main.mirror_syncing = false;
+        }
+    },
+
     getSplitType(splitNode)
     {
         return splitNode && splitNode.dataset ? splitNode.dataset.splitType || "split" : "split";
@@ -603,6 +1078,65 @@ const main =
     isMirrorSplitNode(splitNode)
     {
         return main.getSplitType(splitNode) === "mirror";
+    },
+
+    isMirrorLocked(splitNode)
+    {
+        return !splitNode || !splitNode.dataset ? true : splitNode.dataset.mirrorLocked !== "false";
+    },
+
+    getMirrorLockSymbol(locked)
+    {
+        return locked ? "=" : "\u2260";
+    },
+
+    setMirrorLocked(splitNode, locked)
+    {
+        if(!splitNode || !splitNode.dataset)
+            return;
+        splitNode.dataset.mirrorLocked = locked ? "true" : "false";
+        splitNode.classList.toggle("mirror_locked", !!locked);
+        splitNode.classList.toggle("mirror_unlocked", !locked);
+        const button = splitNode.querySelector(":scope > .split_resize_handle .mirror_lock_toggle");
+        if(button)
+        {
+            button.textContent = main.getMirrorLockSymbol(locked);
+            button.title = locked ? "Mirror locked" : "Mirror unlocked";
+            button.setAttribute("aria-label", button.title);
+        }
+    },
+
+    toggleMirrorLock(source)
+    {
+        const splitNode = source && source.closest ? source.closest(".split_node") : null;
+        if(!main.isMirrorSplitNode(splitNode))
+            return;
+        const locked = !main.isMirrorLocked(splitNode);
+        main.setMirrorLocked(splitNode, locked);
+        main.savePaneLayout();
+    },
+
+    getMirrorSplitForPane(pane=null)
+    {
+        const root = pane || (main.active_pane ? main.active_pane.root : null);
+        const splitNode = root && root.parentElement && root.parentElement.classList && root.parentElement.classList.contains("split_node") ? root.parentElement : null;
+        return main.isMirrorSplitNode(splitNode) ? splitNode : null;
+    },
+
+    isLockedMirrorBackground(background)
+    {
+        if(!main.isMirrorBackground(background))
+            return false;
+        const mirrorRootPath = main.getMirrorRootPathForBackground(background);
+        const pane = main.getAllPanes().find((candidate) =>
+        {
+            const paneBackground = main.getPaneBackground(candidate);
+            return paneBackground === background ||
+                paneBackground === mirrorRootPath ||
+                (paneBackground && paneBackground.startsWith(`${mirrorRootPath}.`));
+        });
+        const splitNode = main.getMirrorSplitForPane(pane);
+        return main.isMirrorLocked(splitNode);
     },
 
     isMirrorPane(pane)
@@ -618,6 +1152,10 @@ const main =
         if(main.isMirrorPane(pane))
             return;
         const wasActive = pane.classList.contains("active");
+        const paneBackground = main.getPaneBackground(pane) || (selector ? selector.selected_background : "");
+        const mirrorGroups = splitType === "mirror" ? main.ensureMirrorSplitGroups(paneBackground) : null;
+        if(splitType === "mirror" && !mirrorGroups)
+            return;
         const splitNode = document.createElement("div");
         splitNode.className = `split_node split_${direction}`;
         if(splitType === "mirror")
@@ -630,17 +1168,30 @@ const main =
         splitNode.appendChild(pane);
         splitNode.appendChild(newPane);
         splitNode.appendChild(handle);
+        if(splitType === "mirror")
+            main.setMirrorLocked(splitNode, true);
         main.installPaneEvents(pane);
         main.drawGrid(main.getPaneElements(newPane));
-        if(selector && selector.selected_background)
+        if(splitType === "mirror")
+        {
+            pane.dataset.mirrorSide = "left";
+            newPane.dataset.mirrorSide = "right";
+            pane.classList.remove("mirror_right");
+            newPane.classList.add("mirror_right");
+            main.renderIntoPane(pane, mirrorGroups.leftPath, []);
+            main.renderIntoPane(newPane, mirrorGroups.rightPath, []);
+        }
+        else if(selector && selector.selected_background)
         {
             main.setPaneBackground(newPane, selector.selected_background);
             breadcrumbs.selectItem(selector.selected_background, newPane);
         }
-        if(selector && selector.selected_background)
+        if(splitType !== "mirror" && selector && selector.selected_background)
             main.renderIntoPane(newPane, selector.selected_background, []);
         if(wasActive)
             main.activatePane(pane, false);
+        if(splitType === "mirror")
+            selector.selectItems([], mirrorGroups.leftPath, false, false, true);
         if(controller && typeof controller.forceNextUpdate === "function" && controller.run_mode !== "stop")
         {
             requestAnimationFrame(() =>
@@ -663,12 +1214,32 @@ const main =
         const handle = document.createElement("div");
         handle.className = `split_resize_handle split_resize_handle_${direction}`;
         handle.dataset.direction = direction;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "mirror_lock_toggle";
+        button.title = "Mirror locked";
+        button.setAttribute("aria-label", "Mirror locked");
+        button.textContent = main.getMirrorLockSymbol(true);
+        button.addEventListener("mousedown", function(evt)
+        {
+            evt.preventDefault();
+            evt.stopPropagation();
+        }, false);
+        button.addEventListener("click", function(evt)
+        {
+            evt.preventDefault();
+            evt.stopPropagation();
+            main.toggleMirrorLock(button);
+        }, false);
+        handle.appendChild(button);
         handle.addEventListener("mousedown", main.startSplitResize, false);
         return handle;
     },
 
     startSplitResize(evt)
     {
+        if(evt.target && evt.target.closest && evt.target.closest(".mirror_lock_toggle"))
+            return;
         const handle = evt.currentTarget;
         const splitNode = handle ? handle.parentElement : null;
         if(!splitNode)
@@ -1345,6 +1916,7 @@ const main =
 
         network.changeWidgetClass(fullName, className);
         selector.selectItems([fullName], null, false, false, true);
+        main.syncLockedMirrorItemProperties(fullName, ["class"]);
         controller.setTainted(true, "setWidgetClass");
     },
 
@@ -1372,6 +1944,7 @@ const main =
         if(inspector && typeof inspector.showInspectorForSelection === "function")
             inspector.showInspectorForSelection();
         main.refreshMatchingBackgroundPanes(selector.selected_background, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
+        main.syncLockedMirrorItemProperties(fullName, [parameterName]);
         controller.setTainted(true, "toggleWidgetParameter");
     },
 
@@ -1424,6 +1997,7 @@ const main =
             main.selectItem(selector.selected_foreground, selector.selected_background);
         if(inspector && typeof inspector.showInspectorForSelection === "function")
             inspector.showInspectorForSelection();
+        main.syncLockedMirrorItemProperties(fullName, [propertyName]);
         controller.setTainted(true, "setComponentColor");
     },
 
@@ -1466,6 +2040,7 @@ const main =
 
         network.changeModuleClass(fullName, className);
         selector.selectItems([fullName], null, false, false, true);
+        main.syncLockedMirrorItemProperties(fullName, ["class", "inputs", "outputs", "parameters"]);
         controller.setTainted(true, "setComponentClass");
     },
 
@@ -1527,7 +2102,7 @@ const main =
         const g = main.grid_spacing || 1;
         x = g * Math.round(x / g);
         y = g * Math.round(y / g);
-        return {x, y};
+        return {x: main.paneXToModelX(x), y};
     },
 
     isBackgroundEventTarget(target)
@@ -2507,13 +3082,14 @@ const main =
     newModule(moduleClass = "Module")
     {
         const name = network.uniqueID("Untitled_");
+        const x = main.normalizeNewComponentX(main.new_position_x);
         const m =
         {
             name:name,
             class:moduleClass,
             color:"",
             _tag:"module",
-            _x:main.new_position_x,
+            _x:x,
             _y:main.new_position_y,
             inputs: [],
             outputs: [],
@@ -2535,18 +3111,20 @@ const main =
         nav.populate();
         selector.selectItems([full_name]);
         main.beginRenameAfterSelection(full_name);
+        main.addLockedMirrorComponent(full_name);
         return full_name;
     },
 
     newGroup() // FIXME: Move to network
     {
         const name = network.uniqueID("Group_");
+        const x = main.normalizeNewComponentX(main.new_position_x);
         const m =
         {
             name:name,
             color:"",
             _tag:"group",
-            _x:main.new_position_x,
+            _x:x,
             _y:main.new_position_y,
             inputs: [],
             outputs: [],
@@ -2570,17 +3148,19 @@ const main =
         nav.populate();
         selector.selectItems([full_name]);
         main.beginRenameAfterSelection(full_name);
+        main.addLockedMirrorComponent(full_name);
     },
 
     newInput() // FIXME: Move to network
     {
         const name = network.uniqueID("Input_");
+        const x = main.normalizeNewComponentX(main.new_position_x);
         const m =
         {
             name:name,
             color:"",
             _tag:"input",
-            _x:main.new_position_x,
+            _x:x,
             _y:main.new_position_y
         };
         let full_name = selector.selected_background+'.'+name;
@@ -2596,18 +3176,20 @@ const main =
         }
         selector.selectItems([full_name]);
         main.beginRenameAfterSelection(full_name);
+        main.addLockedMirrorComponent(full_name);
     },
 
     newOutput() // FIXME: Move to network
     {
         const name = network.uniqueID("Output_");
+        const x = main.normalizeNewComponentX(main.new_position_x);
         const m =
         {
             name:name,
             color:"",
             //size:"1",
             _tag:"output",
-            _x:main.new_position_x,
+            _x:x,
             _y:main.new_position_y
         };
         const full_name = selector.selected_background+'.'+name;
@@ -2623,19 +3205,21 @@ const main =
         }
         selector.selectItems([full_name]);
         main.beginRenameAfterSelection(full_name);
+        main.addLockedMirrorComponent(full_name);
     },
 
     newWidget()
     {
         const name = network.uniqueID("Widget_");
         const defaultWidgetSize = main.grid_spacing * 8 + 1;
+        const x = main.normalizeNewComponentX(main.new_position_x);
         const w = {
             "_tag": "widget",
             "name": name,
             "title": name,
             "class": "bar-graph",
             "show_frame": true,
-            _x:main.new_position_x,
+            _x:x,
             _y:main.new_position_y,
             width: defaultWidgetSize,
             height: defaultWidgetSize
@@ -2646,6 +3230,7 @@ const main =
         network.dict[full_name]=w;
         selector.selectItems([full_name]);
         main.beginRenameAfterSelection(full_name);
+        main.addLockedMirrorComponent(full_name);
         main.new_position_x += 30;
         main.new_position_y += 30;
 
@@ -2738,6 +3323,7 @@ const main =
         else
             for(let c of selector.selected_foreground)
             {
+                main.deleteLockedMirrorComponent(c);
                 switch(network.dict[c]._tag)
                 {
                     case 'module':
@@ -2880,6 +3466,8 @@ const main =
         network.rebuildDict();
         nav.populate();
         selector.selectItems(duplicatedFullNames, background, false, false, true);
+        for(const fullName of duplicatedFullNames)
+            main.addLockedMirrorComponent(fullName);
     },
 
     changeComponentPosition(c, dx,dy, snap_to_grid=true)
@@ -2891,9 +3479,13 @@ const main =
         const base = main.map[c] || [e.offsetLeft, e.offsetTop];
         let new_x = base[0] + dx;
         let new_y = base[1] + dy;
+        const background = selector ? selector.selected_background : "";
+        const mirrorSide = main.getMirrorSideForBackground(background);
 
         if(new_x < 0)
                 new_x = 0;
+        if(mirrorSide === "left")
+            new_x = Math.min(new_x, main.getMirrorPaneWidth());
 
             if(new_y < 0)
                 new_y = 0;
@@ -2906,10 +3498,12 @@ const main =
         }
 
         e.style.left = new_x+"px";
+        e.style.right = "auto";
         e.style.top = new_y+"px";
 
-        network.dict[c]._x = new_x;
+        network.dict[c]._x = mirrorSide === "right" ? new_x + e.offsetWidth : main.paneXToModelX(new_x, background);
         network.dict[c]._y = new_y;
+        main.updateLockedMirrorComponentPosition(c);
     },
 
     changeComponentSize(dX, dY)
@@ -3224,6 +3818,7 @@ const main =
     
         const isTargetWidget = target in network.dict && network.dict[target]._tag === 'widget';
         const connectionPath = main.getConnectionOwnerPath(source, target);
+        let mirroredConnectionPath = "";
     
         if (isTargetWidget) 
         {
@@ -3261,6 +3856,8 @@ const main =
             const cleanSource = main.getRelativeConnectionEndpoint(source, connectionPath);
             const cleanTarget = main.getRelativeConnectionEndpoint(target, connectionPath);
             network.newConnection(connectionPath, cleanSource, cleanTarget);
+            const sourceConnection = network.dict[`${connectionPath}.${cleanSource}*${connectionPath}.${cleanTarget}`];
+            mirroredConnectionPath = main.addMirroredConnectionForEndpoints(source, target, sourceConnection);
             main.clearTrackedConnectionHighlights(tracked);
             main.tracked_connection = null;
             selector.selectConnection(`${connectionPath}.${cleanSource}*${connectionPath}.${cleanTarget}`);
@@ -3270,6 +3867,8 @@ const main =
         document.removeEventListener('mouseup',main.releaseTrackedConnection,true);
         main.addConnections();
         main.refreshMatchingBackgroundPanes(connectionPath, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
+        if(mirroredConnectionPath && mirroredConnectionPath !== connectionPath)
+            main.refreshMatchingBackgroundPanes(mirroredConnectionPath, [], main.active_pane ? main.active_pane.root : null);
         main.refreshAllPaneGeometry();
     },
 
@@ -3335,10 +3934,29 @@ const main =
         return `--component-bg:${p.bg};--component-title-bg:${p.titleBg};--component-row-bg:${p.rowBg};--component-class-bg:${p.classBg};--component-separator:${p.separator};--component-title-fg:${p.titleFg};--component-row-fg:${p.rowFg};${borderVar}`;
     },
 
-    getPositionedComponentStyle(component)
+    getPositionedComponentStyle(component, background=null)
     {
         const vars = main.getComponentStyleVars(component);
-        return `top:${component._y}px;left:${component._x}px;${vars}`;
+        return `top:${component._y}px;${main.getPositionedXStyle(component._x, background)}${vars}`;
+    },
+
+    applyPositionedComponentStyle(element, component, background=null)
+    {
+        if(!element || !component)
+            return;
+        element.style.top = `${component._y}px`;
+        const side = main.getMirrorSideForBackground(background || (selector ? selector.selected_background : ""));
+        const x = main.modelXToPaneX(component._x, background);
+        if(side === "right")
+        {
+            element.style.right = `calc(100% - ${x}px)`;
+            element.style.left = "auto";
+        }
+        else
+        {
+            element.style.left = `${x}px`;
+            element.style.right = "auto";
+        }
     },
 
     applyComponentColorToElement(element, component)
@@ -3456,21 +4074,28 @@ const main =
         {
         const fullName = `${path}.${g.name}`;
         const domId = main.getPaneDomId(fullName);
+        const mirrorRight = main.isRightMirrorBackground(path);
         let s = "";
-        s += `<div class='gi module group' style='${main.getPositionedComponentStyle(g)}' id='${domId}' data-logical-id='${fullName}' data-name='${fullName}'>`;
+        s += `<div class='gi module group' style='${main.getPositionedComponentStyle(g, path)}' id='${domId}' data-logical-id='${fullName}' data-name='${fullName}'>`;
         s += `<table>`;
         s += `<tr><td class='title' colspan='3'><span class='component-title-text' data-component='${fullName}'>${g.name}</span></td></tr>`;
 
         for(let i of g.inputs || [])
         {
             const spotId = `${path}.${g.name}.${i.name}:in`;
-            s += `<tr><td class='input'><div class='i_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td><td>${i.name}</td><td></td></tr>`;
+            if(mirrorRight)
+                s += `<tr><td></td><td>${i.name}</td><td class='input'><div class='i_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td></tr>`;
+            else
+                s += `<tr><td class='input'><div class='i_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td><td>${i.name}</td><td></td></tr>`;
         }
 
         for(let o of g.outputs || [])
         {
             const spotId = `${path}.${g.name}.${o.name}:out`;
-            s += `<tr><td></td><td>${o.name}</td><td class='output'><div class='o_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td></tr>`;
+            if(mirrorRight)
+                s += `<tr><td class='output'><div class='o_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td><td>${o.name}</td><td></td></tr>`;
+            else
+                s += `<tr><td></td><td>${o.name}</td><td class='output'><div class='o_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td></tr>`;
         }
 
         s += `</table>`;
@@ -3482,24 +4107,34 @@ const main =
     {
         const fullName = `${path}.${i.name}`;
         const spotId = `${fullName}:out`;
-        main.view.innerHTML += `<div class='gi group_input' id='${main.getPaneDomId(fullName)}' data-logical-id='${fullName}' data-name='${fullName}' style='${main.getPositionedComponentStyle(i)}'>
-        <span class='component-title-text' data-component='${fullName}'>${i.name}</span>
-        <div class='o_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div>
-        </div>`;
+        if(main.isRightMirrorBackground(path))
+            main.view.innerHTML += `<div class='gi group_input' id='${main.getPaneDomId(fullName)}' data-logical-id='${fullName}' data-name='${fullName}' style='${main.getPositionedComponentStyle(i, path)}'>
+            <div class='o_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div>
+            <span class='component-title-text' data-component='${fullName}'>${i.name}</span>
+            </div>`;
+        else
+            main.view.innerHTML += `<div class='gi group_input' id='${main.getPaneDomId(fullName)}' data-logical-id='${fullName}' data-name='${fullName}' style='${main.getPositionedComponentStyle(i, path)}'>
+            <span class='component-title-text' data-component='${fullName}'>${i.name}</span>
+            <div class='o_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div>
+            </div>`;
     },
 
     addOutput(o,path)
     {
         const fullName = `${path}.${o.name}`;
         const spotId = `${fullName}:in`;
-        main.view.innerHTML += `<div class='gi group_output' id='${main.getPaneDomId(fullName)}' data-logical-id='${fullName}' data-name='${fullName}' style='${main.getPositionedComponentStyle(o)}'><div class='i_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div><span class='component-title-text' data-component='${fullName}'>${o.name}</span></div>`;
+        if(main.isRightMirrorBackground(path))
+            main.view.innerHTML += `<div class='gi group_output' id='${main.getPaneDomId(fullName)}' data-logical-id='${fullName}' data-name='${fullName}' style='${main.getPositionedComponentStyle(o, path)}'><span class='component-title-text' data-component='${fullName}'>${o.name}</span><div class='i_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></div>`;
+        else
+            main.view.innerHTML += `<div class='gi group_output' id='${main.getPaneDomId(fullName)}' data-logical-id='${fullName}' data-name='${fullName}' style='${main.getPositionedComponentStyle(o, path)}'><div class='i_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div><span class='component-title-text' data-component='${fullName}'>${o.name}</span></div>`;
     },
 
     addModule(m,path)
     {
          const fullName = `${path}.${m.name}`;
+         const mirrorRight = main.isRightMirrorBackground(path);
          let s = "";
-         s += `<div class='gi module' style='${main.getPositionedComponentStyle(m)}' id='${main.getPaneDomId(fullName)}' data-logical-id='${fullName}' data-name='${fullName}'>`;
+         s += `<div class='gi module' style='${main.getPositionedComponentStyle(m, path)}' id='${main.getPaneDomId(fullName)}' data-logical-id='${fullName}' data-name='${fullName}'>`;
          s += `<table>`;
          s += `<tr><td class='title' colspan='3'><span class='component-title-text' data-component='${fullName}'>${m.name}</span><button type='button' class='module-title-menu-button' aria-label='Module menu' title='Module menu' data-component='${fullName}'>&#9776;</button></td></tr>`;
 
@@ -3508,13 +4143,19 @@ const main =
         for(let i of m.inputs || [])
         {
             const spotId = `${fullName}.${i.name}:in`;
-            s += `<tr><td class='input'><div class='i_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td ><td>${i.name}</td><td class='output'></td></tr>`;
+            if(mirrorRight)
+                s += `<tr><td class='output'></td><td>${i.name}</td><td class='input'><div class='i_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td></tr>`;
+            else
+                s += `<tr><td class='input'><div class='i_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td ><td>${i.name}</td><td class='output'></td></tr>`;
         }
   
         for(let o of m.outputs || [])
         {
             const spotId = `${fullName}.${o.name}:out`;
-            s += `<tr><td class='output'></td><td>${o.name}</td><td class='output'><div class='o_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td></tr>`;
+            if(mirrorRight)
+                s += `<tr><td class='output'><div class='o_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td><td>${o.name}</td><td class='output'></td></tr>`;
+            else
+                s += `<tr><td class='output'></td><td>${o.name}</td><td class='output'><div class='o_spot' id='${main.getPaneDomId(spotId)}' data-logical-id='${spotId}'></div></td></tr>`;
         }
 
          s += `</table>`;
@@ -3533,7 +4174,13 @@ const main =
         // Set style and position before the custom widget connects; several widgets
         // read their parent frame during initialization.
         newObject.style.top = `${w._y}px`;
-        newObject.style.left = `${w._x}px`;
+        if(main.isRightMirrorBackground(path))
+        {
+            newObject.style.right = `calc(100% - ${main.modelXToPaneX(w._x, path)}px)`;
+            newObject.style.left = "auto";
+        }
+        else
+            newObject.style.left = `${main.modelXToPaneX(w._x, path)}px`;
         newObject.style.width = `${w.width || 200}px`;
         newObject.style.height = `${w.height || 200}px`;
     
@@ -4398,6 +5045,7 @@ const main =
         if(newFullName !== fullName && network.dict[newFullName])
             return;
 
+        main.renameLockedMirrorComponent(fullName, trimmedName);
         item.name = trimmedName;
         if(item._tag == "input")
         {
@@ -4453,6 +5101,7 @@ const main =
         if(inspector && typeof inspector.showInspectorForSelection === "function")
             inspector.showInspectorForSelection();
         main.refreshMatchingBackgroundPanes(selector.selected_background, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
+        main.syncLockedMirrorItemProperties(fullName, ["title"]);
         controller.setTainted(true, "commitInlineTitleEdit");
     },
 
