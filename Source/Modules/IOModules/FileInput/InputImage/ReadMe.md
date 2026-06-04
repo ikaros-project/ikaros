@@ -33,7 +33,7 @@ Reads jpeg files
 |:----|:-----------|:----|:-------------|
 |filename|File to read the image from. if a sequence will be produced %d must be included in the name. it will be replaced with the sequence number of each file. standard c formats can be used, e. g. %02d will insert the number with two figures and an initial '0'.|string||
 |filecount|Number of files to read|int|1|
-|iterations|Number of times to read the image(s)|int|inf|
+|iterations|Number of times to read the image(s); 0 means unlimited|int|0|
 |read_once|Makes the module only read each jpeg image once.|bool|yes|
 
 <br><br>
