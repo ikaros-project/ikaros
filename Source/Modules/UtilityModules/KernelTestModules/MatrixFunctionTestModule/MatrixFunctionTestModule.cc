@@ -416,6 +416,157 @@ class MatrixFunctionTestModule : public Module
         reduced_relu.sum_first_two_dimensions_relu(dY, pre_activation);
         require_matrix_close(reduced_relu, make_matrix("3, 6"), "sum_first_two_dimensions_relu()");
 
+        matrix map_input(std::vector<int>{2, 2, 2});
+        map_input(0, 0, 0) = 1.0f;
+        map_input(0, 0, 1) = 2.0f;
+        map_input(0, 1, 0) = 3.0f;
+        map_input(0, 1, 1) = 4.0f;
+        map_input(1, 0, 0) = 5.0f;
+        map_input(1, 0, 1) = 6.0f;
+        map_input(1, 1, 0) = 7.0f;
+        map_input(1, 1, 1) = 8.0f;
+
+        matrix map_weights = make_matrix("1, 2; -1, 0.5; 0, 3");
+        matrix map_bias = make_matrix("0.5, -1, 2");
+        matrix map_output;
+        map_output.conv1x1_map(map_input, map_weights, map_bias);
+        matrix expected_map_output(std::vector<int>{2, 2, 3});
+        expected_map_output(0, 0, 0) = 5.5f;
+        expected_map_output(0, 0, 1) = -1.0f;
+        expected_map_output(0, 0, 2) = 8.0f;
+        expected_map_output(0, 1, 0) = 11.5f;
+        expected_map_output(0, 1, 1) = -2.0f;
+        expected_map_output(0, 1, 2) = 14.0f;
+        expected_map_output(1, 0, 0) = 17.5f;
+        expected_map_output(1, 0, 1) = -3.0f;
+        expected_map_output(1, 0, 2) = 20.0f;
+        expected_map_output(1, 1, 0) = 23.5f;
+        expected_map_output(1, 1, 1) = -4.0f;
+        expected_map_output(1, 1, 2) = 26.0f;
+        require_matrix_close(map_output, expected_map_output, "conv1x1_map()");
+
+        matrix map_dY(std::vector<int>{2, 2, 3});
+        for(int y = 0; y < 2; ++y)
+            for(int x = 0; x < 2; ++x)
+            {
+                map_dY(y, x, 0) = 1.0f;
+                map_dY(y, x, 1) = 2.0f;
+                map_dY(y, x, 2) = -1.0f;
+            }
+
+        matrix map_dW;
+        map_dW.conv1x1_map_backward_weights(map_input, map_dY);
+        require_matrix_close(map_dW, make_matrix("16, 20; 32, 40; -16, -20"), "conv1x1_map_backward_weights()");
+
+        matrix map_dInput;
+        map_dInput.conv1x1_map_backward_input(map_weights, map_dY);
+        matrix expected_map_dInput(std::vector<int>{2, 2, 2});
+        for(int y = 0; y < 2; ++y)
+            for(int x = 0; x < 2; ++x)
+            {
+                expected_map_dInput(y, x, 0) = -1.0f;
+                expected_map_dInput(y, x, 1) = 0.0f;
+            }
+        require_matrix_close(map_dInput, expected_map_dInput, "conv1x1_map_backward_input()");
+
+        matrix fused_dInput;
+        matrix fused_dW;
+        matrix fused_dB;
+        fused_dInput.conv1x1_map_backward(map_input, map_weights, map_dY, fused_dW, fused_dB);
+        require_matrix_close(fused_dInput, expected_map_dInput, "conv1x1_map_backward() dI");
+        require_matrix_close(fused_dW, make_matrix("16, 20; 32, 40; -16, -20"), "conv1x1_map_backward() dW");
+        require_matrix_close(fused_dB, make_matrix("4, 8, -4"), "conv1x1_map_backward() dB");
+
+        matrix channel_input(std::vector<int>{3, 3, 2});
+        for(int y = 0; y < 3; ++y)
+            for(int x = 0; x < 3; ++x)
+            {
+                channel_input(y, x, 0) = static_cast<float>(y * 3 + x + 1);
+                channel_input(y, x, 1) = static_cast<float>(y * 3 + x + 10);
+            }
+
+        matrix channel_filters(std::vector<int>{2, 2, 2, 2});
+        channel_filters.reset();
+        for(int ky = 0; ky < 2; ++ky)
+            for(int kx = 0; kx < 2; ++kx)
+                channel_filters(0, ky, kx, 0) = 1.0f;
+        channel_filters(1, 0, 0, 1) = 1.0f;
+        channel_filters(1, 1, 1, 0) = -1.0f;
+
+        matrix channel_bias = make_matrix("0.5, -1");
+        matrix channel_output;
+        channel_output.conv2_valid_channel_filterbank(channel_input, channel_filters, channel_bias);
+        matrix expected_channel_output(std::vector<int>{2, 2, 2});
+        expected_channel_output(0, 0, 0) = 12.5f;
+        expected_channel_output(0, 0, 1) = 4.0f;
+        expected_channel_output(0, 1, 0) = 16.5f;
+        expected_channel_output(0, 1, 1) = 4.0f;
+        expected_channel_output(1, 0, 0) = 24.5f;
+        expected_channel_output(1, 0, 1) = 4.0f;
+        expected_channel_output(1, 1, 0) = 28.5f;
+        expected_channel_output(1, 1, 1) = 4.0f;
+        require_matrix_close(channel_output, expected_channel_output, "conv2_valid_channel_filterbank()");
+
+        matrix channel_dY(std::vector<int>{2, 2, 2});
+        for(int y = 0; y < 2; ++y)
+            for(int x = 0; x < 2; ++x)
+            {
+                channel_dY(y, x, 0) = 1.0f;
+                channel_dY(y, x, 1) = 2.0f;
+            }
+
+        matrix channel_dK;
+        channel_dK.conv2_valid_channel_filterbank_backward_filters(channel_input, channel_dY, 2, 2);
+        matrix expected_channel_dK(std::vector<int>{2, 2, 2, 2});
+        expected_channel_dK(0, 0, 0, 0) = 12.0f;
+        expected_channel_dK(0, 0, 0, 1) = 48.0f;
+        expected_channel_dK(0, 0, 1, 0) = 16.0f;
+        expected_channel_dK(0, 0, 1, 1) = 52.0f;
+        expected_channel_dK(0, 1, 0, 0) = 24.0f;
+        expected_channel_dK(0, 1, 0, 1) = 60.0f;
+        expected_channel_dK(0, 1, 1, 0) = 28.0f;
+        expected_channel_dK(0, 1, 1, 1) = 64.0f;
+        expected_channel_dK(1, 0, 0, 0) = 24.0f;
+        expected_channel_dK(1, 0, 0, 1) = 96.0f;
+        expected_channel_dK(1, 0, 1, 0) = 32.0f;
+        expected_channel_dK(1, 0, 1, 1) = 104.0f;
+        expected_channel_dK(1, 1, 0, 0) = 48.0f;
+        expected_channel_dK(1, 1, 0, 1) = 120.0f;
+        expected_channel_dK(1, 1, 1, 0) = 56.0f;
+        expected_channel_dK(1, 1, 1, 1) = 128.0f;
+        require_matrix_close(channel_dK, expected_channel_dK, "conv2_valid_channel_filterbank_backward_filters()");
+
+        matrix channel_dInput;
+        channel_dInput.conv2_valid_channel_filterbank_backward_input(channel_dY, channel_filters, 3, 3);
+        matrix expected_channel_dInput(std::vector<int>{3, 3, 2});
+        expected_channel_dInput(0, 0, 0) = 1.0f;
+        expected_channel_dInput(0, 0, 1) = 2.0f;
+        expected_channel_dInput(0, 1, 0) = 2.0f;
+        expected_channel_dInput(0, 1, 1) = 2.0f;
+        expected_channel_dInput(0, 2, 0) = 1.0f;
+        expected_channel_dInput(0, 2, 1) = 0.0f;
+        expected_channel_dInput(1, 0, 0) = 2.0f;
+        expected_channel_dInput(1, 0, 1) = 2.0f;
+        expected_channel_dInput(1, 1, 0) = 2.0f;
+        expected_channel_dInput(1, 1, 1) = 2.0f;
+        expected_channel_dInput(1, 2, 0) = 0.0f;
+        expected_channel_dInput(1, 2, 1) = 0.0f;
+        expected_channel_dInput(2, 0, 0) = 1.0f;
+        expected_channel_dInput(2, 0, 1) = 0.0f;
+        expected_channel_dInput(2, 1, 0) = 0.0f;
+        expected_channel_dInput(2, 1, 1) = 0.0f;
+        expected_channel_dInput(2, 2, 0) = -1.0f;
+        expected_channel_dInput(2, 2, 1) = 0.0f;
+        require_matrix_close(channel_dInput, expected_channel_dInput, "conv2_valid_channel_filterbank_backward_input()");
+
+        matrix fused_channel_dInput;
+        matrix fused_channel_dK;
+        matrix fused_channel_dB;
+        fused_channel_dInput.conv2_valid_channel_filterbank_backward(channel_input, channel_filters, channel_dY, fused_channel_dK, fused_channel_dB);
+        require_matrix_close(fused_channel_dInput, expected_channel_dInput, "conv2_valid_channel_filterbank_backward() dI");
+        require_matrix_close(fused_channel_dK, expected_channel_dK, "conv2_valid_channel_filterbank_backward() dK");
+        require_matrix_close(fused_channel_dB, make_matrix("4, 8"), "conv2_valid_channel_filterbank_backward() dB");
+
         matrix small = make_matrix("1, 2; 3, 4");
         matrix up;
         up.upsample(small);

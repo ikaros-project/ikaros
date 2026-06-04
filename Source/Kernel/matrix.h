@@ -590,6 +590,20 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
     matrix & conv2_valid_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols); // dI [H,W]
     matrix & sum_first_two_dimensions(const matrix & A); // A [H,W,F] -> result [F]
     matrix & sum_first_two_dimensions_relu(const matrix & A, const matrix & pre_activation); // Sum A * (pre_activation > 0) over H,W
+    // 1x1 map projection used by spatial latent layers.
+    // Shape convention: I/dI [H,W,C], W/dW [O,C], B/dB [O], Y/dY [H,W,O].
+    matrix & conv1x1_map(const matrix & I, const matrix & W); // Y from I and W
+    matrix & conv1x1_map(const matrix & I, const matrix & W, const matrix & B); // Y from I, W, and bias B
+    matrix & conv1x1_map_backward_weights(const matrix & I, const matrix & dY); // dW [O,C]
+    matrix & conv1x1_map_backward_input(const matrix & W, const matrix & dY); // dI [H,W,C]
+    matrix & conv1x1_map_backward(const matrix & I, const matrix & W, const matrix & dY, matrix & dW, matrix & dB); // dI, dW, dB
+    // Multi-channel valid 2D filter-bank correlation used by spatial latent layers.
+    // Shape convention: I/dI [H,W,C], K/dK [O,KH,KW,C], B/dB [O], Y/dY [H-KH+1,W-KW+1,O].
+    matrix & conv2_valid_channel_filterbank(const matrix & I, const matrix & K); // Y from I and K
+    matrix & conv2_valid_channel_filterbank(const matrix & I, const matrix & K, const matrix & B); // Y from I, K, and per-filter bias B
+    matrix & conv2_valid_channel_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols); // dK [O,KH,KW,C]
+    matrix & conv2_valid_channel_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols); // dI [H,W,C]
+    matrix & conv2_valid_channel_filterbank_backward(const matrix & I, const matrix & K, const matrix & dY, matrix & dK, matrix & dB); // dI, dK, dB
 
 
     matrix & fillReflect101Border(int wx, int wy);

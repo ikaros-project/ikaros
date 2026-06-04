@@ -1241,6 +1241,7 @@ matrix::corr(const matrix & I, const matrix & K)
     return *this;
 }
 
+// conv_slow is a fallback funtion. Use conv() instead of conv_slow() for better performance.
 
 matrix &
 matrix::conv_slow(const matrix & I, const matrix & K)
@@ -1617,6 +1618,572 @@ matrix::sum_first_two_dimensions_relu(const matrix & A, const matrix & pre_activ
         for(int i = 0; i < third; ++i)
             if(pre[base + i] > 0.0f)
                 output[i] += input[base + i];
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv1x1_map(const matrix & I, const matrix & W)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(I.rank() != 3 || W.rank() != 2)
+        throw std::invalid_argument("1x1 map projection requires input [H,W,C] and weights [O,C].");
+
+    if(I.shape(2) != W.shape(1))
+        throw std::invalid_argument("Input channel count must match 1x1 weight input count.");
+#endif
+
+    const int rows = I.shape(0);
+    const int cols = I.shape(1);
+    const int input_channels = I.shape(2);
+    const int output_channels = W.shape(0);
+
+    if(is_uninitialized())
+        realloc(rows, cols, output_channels);
+
+    if(rank() != 3 || shape(0) != rows || shape(1) != cols || shape(2) != output_channels)
+        throw std::invalid_argument("1x1 map projection result matrix has wrong shape.");
+
+    if(this == &I || this == &W)
+        throw std::invalid_argument("Result cannot be assigned to I or W.");
+
+    const float * input = I.data();
+    const float * weights = W.data();
+    float * output = data();
+    const int positions = rows * cols;
+
+    for(int p = 0; p < positions; ++p)
+    {
+        const float * input_position = input + p * input_channels;
+        float * output_position = output + p * output_channels;
+        for(int o = 0; o < output_channels; ++o)
+        {
+            const float * weight_row = weights + o * input_channels;
+            float value = 0.0f;
+            for(int c = 0; c < input_channels; ++c)
+                value += input_position[c] * weight_row[c];
+            output_position[o] = value;
+        }
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv1x1_map(const matrix & I, const matrix & W, const matrix & B)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(B.rank() != 1 || B.size() != W.shape(0))
+        throw std::invalid_argument("1x1 map bias must be a vector with one value per output channel.");
+#endif
+
+    conv1x1_map(I, W);
+
+    float * output = data();
+    const float * bias = B.data();
+    const int output_channels = shape(2);
+    const int positions = shape(0) * shape(1);
+
+    for(int p = 0; p < positions; ++p)
+    {
+        float * output_position = output + p * output_channels;
+        for(int o = 0; o < output_channels; ++o)
+            output_position[o] += bias[o];
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv1x1_map_backward_weights(const matrix & I, const matrix & dY)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(I.rank() != 3 || dY.rank() != 3)
+        throw std::invalid_argument("1x1 map weight-gradient requires input [H,W,C] and output gradient [H,W,O].");
+
+    if(I.shape(0) != dY.shape(0) || I.shape(1) != dY.shape(1))
+        throw std::invalid_argument("Input and output gradient spatial shapes must match.");
+#endif
+
+    const int input_channels = I.shape(2);
+    const int output_channels = dY.shape(2);
+
+    if(is_uninitialized())
+        realloc(output_channels, input_channels);
+
+    if(rank() != 2 || rows() != output_channels || cols() != input_channels)
+        throw std::invalid_argument("1x1 map weight-gradient result matrix has wrong shape.");
+
+    if(this == &I || this == &dY)
+        throw std::invalid_argument("Result cannot be assigned to I or dY.");
+
+    reset();
+
+    const float * input = I.data();
+    const float * output_gradient = dY.data();
+    float * weight_gradient = data();
+    const int positions = I.shape(0) * I.shape(1);
+
+    for(int p = 0; p < positions; ++p)
+    {
+        const float * input_position = input + p * input_channels;
+        const float * gradient_position = output_gradient + p * output_channels;
+        for(int o = 0; o < output_channels; ++o)
+        {
+            const float gradient = gradient_position[o];
+            float * weight_gradient_row = weight_gradient + o * input_channels;
+            for(int c = 0; c < input_channels; ++c)
+                weight_gradient_row[c] += gradient * input_position[c];
+        }
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv1x1_map_backward_input(const matrix & W, const matrix & dY)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(W.rank() != 2 || dY.rank() != 3)
+        throw std::invalid_argument("1x1 map input-gradient requires weights [O,C] and output gradient [H,W,O].");
+
+    if(dY.shape(2) != W.shape(0))
+        throw std::invalid_argument("Output gradient channel count must match 1x1 weight output count.");
+#endif
+
+    const int rows = dY.shape(0);
+    const int cols = dY.shape(1);
+    const int output_channels = W.shape(0);
+    const int input_channels = W.shape(1);
+
+    if(is_uninitialized())
+        realloc(rows, cols, input_channels);
+
+    if(rank() != 3 || shape(0) != rows || shape(1) != cols || shape(2) != input_channels)
+        throw std::invalid_argument("1x1 map input-gradient result matrix has wrong shape.");
+
+    if(this == &W || this == &dY)
+        throw std::invalid_argument("Result cannot be assigned to W or dY.");
+
+    reset();
+
+    const float * weights = W.data();
+    const float * output_gradient = dY.data();
+    float * input_gradient = data();
+    const int positions = rows * cols;
+
+    for(int p = 0; p < positions; ++p)
+    {
+        const float * gradient_position = output_gradient + p * output_channels;
+        float * input_gradient_position = input_gradient + p * input_channels;
+        for(int o = 0; o < output_channels; ++o)
+        {
+            const float gradient = gradient_position[o];
+            const float * weight_row = weights + o * input_channels;
+            for(int c = 0; c < input_channels; ++c)
+                input_gradient_position[c] += gradient * weight_row[c];
+        }
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv1x1_map_backward(const matrix & I, const matrix & W, const matrix & dY, matrix & dW, matrix & dB)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(I.rank() != 3 || W.rank() != 2 || dY.rank() != 3)
+        throw std::invalid_argument("1x1 map backward requires input [H,W,C], weights [O,C], and output gradient [H,W,O].");
+
+    if(I.shape(0) != dY.shape(0) || I.shape(1) != dY.shape(1))
+        throw std::invalid_argument("Input and output gradient spatial shapes must match.");
+
+    if(I.shape(2) != W.shape(1) || dY.shape(2) != W.shape(0))
+        throw std::invalid_argument("1x1 map backward channel counts do not match.");
+#endif
+
+    const int rows = I.shape(0);
+    const int cols = I.shape(1);
+    const int input_channels = W.shape(1);
+    const int output_channels = W.shape(0);
+
+    if(is_uninitialized())
+        realloc(rows, cols, input_channels);
+    if(dW.is_uninitialized())
+        dW.realloc(output_channels, input_channels);
+    if(dB.is_uninitialized())
+        dB.realloc(output_channels);
+
+    if(rank() != 3 || shape(0) != rows || shape(1) != cols || shape(2) != input_channels)
+        throw std::invalid_argument("1x1 map input-gradient result matrix has wrong shape.");
+    if(dW.rank() != 2 || dW.rows() != output_channels || dW.cols() != input_channels)
+        throw std::invalid_argument("1x1 map weight-gradient result matrix has wrong shape.");
+    if(dB.rank() != 1 || dB.size() != output_channels)
+        throw std::invalid_argument("1x1 map bias-gradient result matrix has wrong shape.");
+
+    if(this == &I || this == &W || this == &dY || this == &dW || this == &dB || &dW == &dB)
+        throw std::invalid_argument("1x1 map backward results must not alias inputs or each other.");
+
+    reset();
+    dW.reset();
+    dB.reset();
+
+    const float * input = I.data();
+    const float * weights = W.data();
+    const float * output_gradient = dY.data();
+    float * input_gradient = data();
+    float * weight_gradient = dW.data();
+    float * bias_gradient = dB.data();
+    const int positions = rows * cols;
+
+    for(int p = 0; p < positions; ++p)
+    {
+        const float * input_position = input + p * input_channels;
+        const float * gradient_position = output_gradient + p * output_channels;
+        float * input_gradient_position = input_gradient + p * input_channels;
+
+        for(int o = 0; o < output_channels; ++o)
+        {
+            const float gradient = gradient_position[o];
+            const float * weight_row = weights + o * input_channels;
+            float * weight_gradient_row = weight_gradient + o * input_channels;
+
+            bias_gradient[o] += gradient;
+            for(int c = 0; c < input_channels; ++c)
+            {
+                weight_gradient_row[c] += gradient * input_position[c];
+                input_gradient_position[c] += gradient * weight_row[c];
+            }
+        }
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv2_valid_channel_filterbank(const matrix & I, const matrix & K)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(I.rank() != 3 || K.rank() != 4)
+        throw std::invalid_argument("Channel filter-bank valid convolution requires input [H,W,C] and filters [O,KH,KW,C].");
+
+    if(K.shape(1) <= 0 || K.shape(2) <= 0 || I.shape(0) < K.shape(1) || I.shape(1) < K.shape(2))
+        throw std::invalid_argument("Channel filter kernel must fit in input.");
+
+    if(I.shape(2) != K.shape(3))
+        throw std::invalid_argument("Input channel count must match channel filter input count.");
+#endif
+
+    const int input_rows = I.shape(0);
+    const int input_cols = I.shape(1);
+    const int input_channels = I.shape(2);
+    const int filters = K.shape(0);
+    const int kernel_rows = K.shape(1);
+    const int kernel_cols = K.shape(2);
+    const int output_rows = input_rows - kernel_rows + 1;
+    const int output_cols = input_cols - kernel_cols + 1;
+
+    if(is_uninitialized())
+        realloc(output_rows, output_cols, filters);
+
+    if(rank() != 3 || shape(0) != output_rows || shape(1) != output_cols || shape(2) != filters)
+        throw std::invalid_argument("Channel filter-bank result matrix has wrong shape.");
+
+    if(this == &I || this == &K)
+        throw std::invalid_argument("Result cannot be assigned to I or K.");
+
+    const float * input = I.data();
+    const float * filters_data = K.data();
+    float * output = data();
+    const int input_row_stride = input_cols * input_channels;
+    const int kernel_plane = kernel_rows * kernel_cols * input_channels;
+
+    for(int y = 0; y < output_rows; ++y)
+    {
+        for(int x = 0; x < output_cols; ++x)
+        {
+            float * output_pixel = output + (y * output_cols + x) * filters;
+            for(int f = 0; f < filters; ++f)
+            {
+                const float * filter = filters_data + f * kernel_plane;
+                float sum = 0.0f;
+                for(int ky = 0; ky < kernel_rows; ++ky)
+                {
+                    const float * input_pixel = input + (y + ky) * input_row_stride + x * input_channels;
+                    const float * filter_pixel = filter + ky * kernel_cols * input_channels;
+                    for(int kx = 0; kx < kernel_cols; ++kx)
+                    {
+                        for(int c = 0; c < input_channels; ++c)
+                            sum += input_pixel[c] * filter_pixel[c];
+                        input_pixel += input_channels;
+                        filter_pixel += input_channels;
+                    }
+                }
+                output_pixel[f] = sum;
+            }
+        }
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv2_valid_channel_filterbank(const matrix & I, const matrix & K, const matrix & B)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(B.rank() != 1 || B.size() != K.shape(0))
+        throw std::invalid_argument("Channel filter-bank bias must be a vector with one value per filter.");
+#endif
+
+    conv2_valid_channel_filterbank(I, K);
+
+    float * output = data();
+    const float * bias = B.data();
+    const int filters = shape(2);
+    const int output_pixels = shape(0) * shape(1);
+
+    for(int pixel = 0; pixel < output_pixels; ++pixel)
+    {
+        float * output_pixel = output + pixel * filters;
+        for(int f = 0; f < filters; ++f)
+            output_pixel[f] += bias[f];
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv2_valid_channel_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(I.rank() != 3 || dY.rank() != 3)
+        throw std::invalid_argument("Channel filter-bank filter-gradient requires input [H,W,C] and output gradient [OH,OW,O].");
+
+    if(kernel_rows <= 0 || kernel_cols <= 0 || I.shape(0) < kernel_rows || I.shape(1) < kernel_cols)
+        throw std::invalid_argument("Channel filter kernel size must fit in input.");
+
+    if(dY.shape(0) != I.shape(0) - kernel_rows + 1 || dY.shape(1) != I.shape(1) - kernel_cols + 1)
+        throw std::invalid_argument("Output gradient shape does not match input and channel kernel size.");
+#endif
+
+    const int input_cols = I.shape(1);
+    const int input_channels = I.shape(2);
+    const int filters = dY.shape(2);
+    const int output_rows = dY.shape(0);
+    const int output_cols = dY.shape(1);
+
+    if(is_uninitialized())
+        realloc(filters, kernel_rows, kernel_cols, input_channels);
+
+    if(rank() != 4 || shape(0) != filters || shape(1) != kernel_rows || shape(2) != kernel_cols || shape(3) != input_channels)
+        throw std::invalid_argument("Channel filter-gradient result matrix has wrong shape.");
+
+    if(this == &I || this == &dY)
+        throw std::invalid_argument("Result cannot be assigned to I or dY.");
+
+    reset();
+
+    const float * input = I.data();
+    const float * output_gradient = dY.data();
+    float * filter_gradient = data();
+    const int input_row_stride = input_cols * input_channels;
+    const int kernel_plane = kernel_rows * kernel_cols * input_channels;
+
+    for(int y = 0; y < output_rows; ++y)
+    {
+        for(int x = 0; x < output_cols; ++x)
+        {
+            const float * gradient_pixel = output_gradient + (y * output_cols + x) * filters;
+            for(int f = 0; f < filters; ++f)
+            {
+                const float gradient = gradient_pixel[f];
+                float * filter = filter_gradient + f * kernel_plane;
+                for(int ky = 0; ky < kernel_rows; ++ky)
+                {
+                    const float * input_pixel = input + (y + ky) * input_row_stride + x * input_channels;
+                    float * filter_pixel = filter + ky * kernel_cols * input_channels;
+                    for(int kx = 0; kx < kernel_cols; ++kx)
+                    {
+                        for(int c = 0; c < input_channels; ++c)
+                            filter_pixel[c] += input_pixel[c] * gradient;
+                        input_pixel += input_channels;
+                        filter_pixel += input_channels;
+                    }
+                }
+            }
+        }
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv2_valid_channel_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(dY.rank() != 3 || K.rank() != 4)
+        throw std::invalid_argument("Channel filter-bank input-gradient requires output gradient [OH,OW,O] and filters [O,KH,KW,C].");
+
+    if(input_rows <= 0 || input_cols <= 0)
+        throw std::invalid_argument("Channel input-gradient dimensions must be positive.");
+
+    if(dY.shape(2) != K.shape(0))
+        throw std::invalid_argument("Output-gradient filter count does not match channel filters.");
+
+    if(dY.shape(0) != input_rows - K.shape(1) + 1 || dY.shape(1) != input_cols - K.shape(2) + 1)
+        throw std::invalid_argument("Output gradient shape does not match requested channel input size and filters.");
+#endif
+
+    const int input_channels = K.shape(3);
+
+    if(is_uninitialized())
+        realloc(input_rows, input_cols, input_channels);
+
+    if(rank() != 3 || shape(0) != input_rows || shape(1) != input_cols || shape(2) != input_channels)
+        throw std::invalid_argument("Channel input-gradient result matrix has wrong shape.");
+
+    if(this == &dY || this == &K)
+        throw std::invalid_argument("Result cannot be assigned to dY or K.");
+
+    reset();
+
+    const int filters = K.shape(0);
+    const int kernel_rows = K.shape(1);
+    const int kernel_cols = K.shape(2);
+    const int output_rows = dY.shape(0);
+    const int output_cols = dY.shape(1);
+    const int input_row_stride = input_cols * input_channels;
+    const int kernel_plane = kernel_rows * kernel_cols * input_channels;
+    const float * output_gradient = dY.data();
+    const float * filters_data = K.data();
+    float * input_gradient = data();
+
+    for(int y = 0; y < output_rows; ++y)
+    {
+        for(int x = 0; x < output_cols; ++x)
+        {
+            const float * gradient_pixel = output_gradient + (y * output_cols + x) * filters;
+            for(int f = 0; f < filters; ++f)
+            {
+                const float gradient = gradient_pixel[f];
+                const float * filter = filters_data + f * kernel_plane;
+                for(int ky = 0; ky < kernel_rows; ++ky)
+                {
+                    float * input_pixel = input_gradient + (y + ky) * input_row_stride + x * input_channels;
+                    const float * filter_pixel = filter + ky * kernel_cols * input_channels;
+                    for(int kx = 0; kx < kernel_cols; ++kx)
+                    {
+                        for(int c = 0; c < input_channels; ++c)
+                            input_pixel[c] += gradient * filter_pixel[c];
+                        input_pixel += input_channels;
+                        filter_pixel += input_channels;
+                    }
+                }
+            }
+        }
+    }
+
+    return *this;
+}
+
+
+matrix &
+matrix::conv2_valid_channel_filterbank_backward(const matrix & I, const matrix & K, const matrix & dY, matrix & dK, matrix & dB)
+{
+#ifndef NO_MATRIX_CHECKS
+    if(I.rank() != 3 || K.rank() != 4 || dY.rank() != 3)
+        throw std::invalid_argument("Channel filter-bank backward requires input [H,W,C], filters [O,KH,KW,C], and output gradient [OH,OW,O].");
+
+    if(I.shape(2) != K.shape(3) || dY.shape(2) != K.shape(0))
+        throw std::invalid_argument("Channel filter-bank backward channel counts do not match.");
+
+    if(dY.shape(0) != I.shape(0) - K.shape(1) + 1 || dY.shape(1) != I.shape(1) - K.shape(2) + 1)
+        throw std::invalid_argument("Channel filter-bank backward spatial shapes do not match.");
+#endif
+
+    const int input_rows = I.shape(0);
+    const int input_cols = I.shape(1);
+    const int input_channels = I.shape(2);
+    const int filters = K.shape(0);
+    const int kernel_rows = K.shape(1);
+    const int kernel_cols = K.shape(2);
+    const int output_rows = dY.shape(0);
+    const int output_cols = dY.shape(1);
+
+    if(is_uninitialized())
+        realloc(input_rows, input_cols, input_channels);
+    if(dK.is_uninitialized())
+        dK.realloc(filters, kernel_rows, kernel_cols, input_channels);
+    if(dB.is_uninitialized())
+        dB.realloc(filters);
+
+    if(rank() != 3 || shape(0) != input_rows || shape(1) != input_cols || shape(2) != input_channels)
+        throw std::invalid_argument("Channel input-gradient result matrix has wrong shape.");
+    if(dK.rank() != 4 || dK.shape(0) != filters || dK.shape(1) != kernel_rows || dK.shape(2) != kernel_cols || dK.shape(3) != input_channels)
+        throw std::invalid_argument("Channel filter-gradient result matrix has wrong shape.");
+    if(dB.rank() != 1 || dB.size() != filters)
+        throw std::invalid_argument("Channel bias-gradient result matrix has wrong shape.");
+
+    if(this == &I || this == &K || this == &dY || this == &dK || this == &dB || &dK == &dB)
+        throw std::invalid_argument("Channel filter-bank backward results must not alias inputs or each other.");
+
+    reset();
+    dK.reset();
+    dB.reset();
+
+    const float * input = I.data();
+    const float * filters_data = K.data();
+    const float * output_gradient = dY.data();
+    float * input_gradient = data();
+    float * filter_gradient = dK.data();
+    float * bias_gradient = dB.data();
+    const int input_row_stride = input_cols * input_channels;
+    const int kernel_plane = kernel_rows * kernel_cols * input_channels;
+
+    for(int y = 0; y < output_rows; ++y)
+    {
+        for(int x = 0; x < output_cols; ++x)
+        {
+            const float * gradient_pixel = output_gradient + (y * output_cols + x) * filters;
+            for(int f = 0; f < filters; ++f)
+            {
+                const float gradient = gradient_pixel[f];
+                const float * filter = filters_data + f * kernel_plane;
+                float * filter_grad = filter_gradient + f * kernel_plane;
+                bias_gradient[f] += gradient;
+
+                for(int ky = 0; ky < kernel_rows; ++ky)
+                {
+                    const float * input_pixel = input + (y + ky) * input_row_stride + x * input_channels;
+                    const float * filter_pixel = filter + ky * kernel_cols * input_channels;
+                    float * filter_grad_pixel = filter_grad + ky * kernel_cols * input_channels;
+                    float * input_grad_pixel = input_gradient + (y + ky) * input_row_stride + x * input_channels;
+
+                    for(int kx = 0; kx < kernel_cols; ++kx)
+                    {
+                        for(int c = 0; c < input_channels; ++c)
+                        {
+                            filter_grad_pixel[c] += input_pixel[c] * gradient;
+                            input_grad_pixel[c] += gradient * filter_pixel[c];
+                        }
+                        input_pixel += input_channels;
+                        filter_pixel += input_channels;
+                        filter_grad_pixel += input_channels;
+                        input_grad_pixel += input_channels;
+                    }
+                }
+            }
+        }
     }
 
     return *this;
