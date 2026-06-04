@@ -26,7 +26,7 @@ class EnergyMeter: public Module
             // auto data = socket.HTTPGet("192.168.50.59/status");
             //std::cout << "address: " << address << "\n";
             auto data = socket.HTTPGet(address);
-            measured_power[0] = std::stof(split(data, "\"power\":", 1).at(1)); // Not exactly JSON parsing but it will do.
+            measured_power[0] = parse_float(split(data, "\"power\":", 1).at(1)); // Not exactly JSON parsing but it will do.
             //std::cout << "measured power: \n" << split(data, "\"power\":", 1).at(1);
             //std::cout << "1\n";
         }
@@ -44,4 +44,3 @@ class EnergyMeter: public Module
 };
 
 INSTALL_CLASS(EnergyMeter)
-

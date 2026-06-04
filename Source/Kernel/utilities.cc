@@ -1,7 +1,9 @@
 // utilities.cc
 
 #include "utilities.h"
+#include <charconv>
 #include <cmath>
+#include <system_error>
 
 namespace ikaros
 {
@@ -394,21 +396,87 @@ bool is_true(const std::string & s)
 
 
 
-bool is_number(const std::string& s) 
+bool
+parse_double(const std::string & s, double & value)
 {
-    char* endPtr = nullptr;
-    errno = 0;
-    double val = std::strtod(s.c_str(), &endPtr);
-    if (endPtr == s.c_str() || *endPtr != '\0') 
+    std::string trimmed = trim(s);
+    if(trimmed.empty())
         return false;
 
-    if (errno == ERANGE)
+    bool negative = false;
+    if(trimmed.front() == '+' || trimmed.front() == '-')
+    {
+        negative = trimmed.front() == '-';
+        trimmed = trimmed.substr(1);
+        if(trimmed.empty())
+            return false;
+    }
+
+    double parsed = 0;
+    const char * begin = trimmed.data();
+    const char * end = begin + trimmed.size();
+    auto result = std::from_chars(begin, end, parsed);
+    if(result.ec != std::errc() || result.ptr != end)
         return false;
 
-    if (val == std::numeric_limits<double>::infinity() || val == -std::numeric_limits<double>::infinity())
-        return false;
-
+    value = negative ? -parsed : parsed;
     return true;
+}
+
+
+bool
+parse_float(const std::string & s, float & value)
+{
+    std::string trimmed = trim(s);
+    if(trimmed.empty())
+        return false;
+
+    bool negative = false;
+    if(trimmed.front() == '+' || trimmed.front() == '-')
+    {
+        negative = trimmed.front() == '-';
+        trimmed = trimmed.substr(1);
+        if(trimmed.empty())
+            return false;
+    }
+
+    float parsed = 0;
+    const char * begin = trimmed.data();
+    const char * end = begin + trimmed.size();
+    auto result = std::from_chars(begin, end, parsed);
+    if(result.ec != std::errc() || result.ptr != end)
+        return false;
+
+    value = negative ? -parsed : parsed;
+    return true;
+}
+
+
+double
+parse_double(const std::string & s)
+{
+    double value = 0;
+    if(!parse_double(s, value))
+        throw std::invalid_argument("Invalid decimal number \"" + s + "\".");
+    return value;
+}
+
+
+float
+parse_float(const std::string & s)
+{
+    float value = 0;
+    if(!parse_float(s, value))
+        throw std::invalid_argument("Invalid decimal number \"" + s + "\".");
+    return value;
+}
+
+
+bool
+is_number(const std::string& s) 
+{
+    double value = 0;
+    return parse_double(s, value);
 }
 
 

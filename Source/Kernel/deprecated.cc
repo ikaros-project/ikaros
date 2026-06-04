@@ -20,6 +20,7 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 #include "deprecated.h"
+#include "utilities.h"
 
 //#include "IKAROS_System.h"
 
@@ -32,6 +33,37 @@
 #include <cstring>
 #include <algorithm>
 #include <stdexcept>
+#include <string>
+
+namespace
+{
+    bool read_legacy_float_token(const char *& text, float & value, const char * separators)
+    {
+        while(*text && isspace(static_cast<unsigned char>(*text)))
+            text++;
+
+        if(!*text)
+            return false;
+
+        const char * start = text;
+        while(*text && !isspace(static_cast<unsigned char>(*text)) && !strchr(separators, *text))
+            text++;
+
+        if(start == text)
+            return false;
+
+        return ikaros::parse_float(std::string(start, text - start), value);
+    }
+
+    bool read_file_float(FILE * file, float & value)
+    {
+        char token[256];
+        if(fscanf(file, "%255s", token) != 1)
+            return false;
+
+        return ikaros::parse_float(token, value);
+    }
+}
 
 #if 0
 char *
@@ -460,10 +492,10 @@ create_array(const char * s, int & size, bool fixed_size)
     
     const char * v = s;
     for (; isspace(*v) && *v != '\0'; v++) ;
-    while(sscanf(v, "%*f")!=-1)
+    float scanned_value = 0;
+    while(read_legacy_float_token(v, scanned_value, ","))
     {
         sz++;
-        for (; !isspace(*v) && *v != ',' && *v != '\0'; v++) ;
         if(*v==',') v++;
         for (; isspace(*v) && *v != '\0'; v++) ;
     }
@@ -480,14 +512,12 @@ create_array(const char * s, int & size, bool fixed_size)
 
     v = s;
     int i=0;
-    float scanned_value;
     for (; isspace(*v) && *v != '\0'; v++) ;
-    while(sscanf(v, "%f", &scanned_value)!=-1)
+    while(read_legacy_float_token(v, scanned_value, ","))
     {
         if(i<size)
             a[i] = scanned_value;
         i++;
-        for (; !isspace(*v) && *v != ',' && *v != '\0'; v++) ;
         if(*v==',') v++;
         for (; isspace(*v) && *v != '\0'; v++) ;
     }
@@ -568,10 +598,10 @@ create_matrix(const char * s, int & sizex, int & sizey, bool fixed_size)
         
     for (; isspace(*v) && *v != '\0'; v++) ;
 
-    while(sscanf(v, "%*f")!=-1)
+    float scanned_value = 0;
+    while(read_legacy_float_token(v, scanned_value, ",;"))
     {
         row_elements++;
-        for (; !isspace(*v) && *v != ',' && *v != ';' && *v != '\0'; v++) ;
         if(*v==',') v++;
         for (; isspace(*v) && *v != '\0'; v++) ;
         if(*v==';')
@@ -597,14 +627,12 @@ create_matrix(const char * s, int & sizex, int & sizey, bool fixed_size)
     v = ss;
     int j=0;
     int i=0;
-    float scanned_value;
-    while(sscanf(v, "%f", &scanned_value)!=-1)
+    while(read_legacy_float_token(v, scanned_value, ",;"))
     {
         if(j*sizex+i<sizex*sizey) // this condition makes sure that the matrix can also be filled (but not overfilled) from array 
             m[j][i] = scanned_value;
         
         i++;
-        for (; !isspace(*v) && *v != ',' && *v != ';' && *v != '\0'; v++) ;
         if(*v==',') v++;
         for (; isspace(*v) && *v != '\0'; v++) ;
         if(*v==';')
@@ -927,7 +955,8 @@ load_array(const char * path, const char * name, float * a, int size)
     }
     
     for(int i=0; i<size; i++)
-        fscanf(f, "%f ", &a[i]);
+        if(!read_file_float(f, a[i]))
+            return false;
 
     return true;
 }
@@ -957,7 +986,8 @@ load_matrix(const char * path, const char * name, float ** m, int size_x, int si
     for(int j=0; j<size_y; j++)
     {
         for(int i=0; i<size_x; i++)
-            fscanf(f, "%f ", &m[j][i]);
+            if(!read_file_float(f, m[j][i]))
+                return false;
         fprintf(f, "\n");
     }
 
@@ -986,7 +1016,7 @@ Deserialize2d(FILE *afile, float **adata, int si, int sj)
 {
     for (int i=0; i<si; i++)
         for (int j=0; j<sj; j++)
-            fscanf(afile, "%f", &adata[i][j]);
+            read_file_float(afile, adata[i][j]);
 }
 
 void 

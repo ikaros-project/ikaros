@@ -246,11 +246,16 @@ EpiSpeech::CreateSound(std::string text)
     {
         std::ifstream analysis(analysis_path);
         float t, l, r;
-        while(analysis >> t >> l >> r)
+        std::string line;
+        while(std::getline(analysis, line))
         {
-            sound.time.push_back(t);
-            sound.left.push_back(l);
-            sound.right.push_back(r);
+            const auto fields = split(line, "");
+            if(fields.size() == 3 && parse_float(fields[0], t) && parse_float(fields[1], l) && parse_float(fields[2], r))
+            {
+                sound.time.push_back(t);
+                sound.left.push_back(l);
+                sound.right.push_back(r);
+            }
         }
 
         if(!sound.time.empty())
@@ -305,7 +310,8 @@ EpiSpeech::CreateSound(std::string text)
             std::string line;
             while(std::getline(ffprobe_stream, line))
             {
-                if(std::sscanf(line.c_str(), "%f,%f,%f", &t, &l, &r) == 3)
+                const auto fields = split(line, ",");
+                if(fields.size() == 3 && parse_float(fields[0], t) && parse_float(fields[1], l) && parse_float(fields[2], r))
                 {
                     sound.time.push_back(t);
                     sound.left.push_back(l);

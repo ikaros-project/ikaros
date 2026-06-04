@@ -20,8 +20,6 @@
 
 #include "matrix.h"
 
-#include <charconv>
-
 namespace ikaros {
 
 float
@@ -29,10 +27,7 @@ parse_matrix_token(const std::string & token)
 {
     std::string trimmed = trim(token);
     float value = 0;
-    const char * begin = trimmed.data();
-    const char * end = begin + trimmed.size();
-    auto result = std::from_chars(begin, end, value);
-    if(result.ec != std::errc() || result.ptr != end)
+    if(!parse_float(trimmed, value))
         throw std::invalid_argument("Invalid matrix value \"" + token + "\". Values must be separated by ',' or ';'.");
     return value;
 }

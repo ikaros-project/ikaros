@@ -10,6 +10,8 @@
 #include <filesystem>
 #include <stdexcept>
 
+#include "utilities.h"
+
 namespace ikaros {
 
     class options
@@ -172,7 +174,7 @@ namespace ikaros {
         double get_double(const std::string & o) const
         { 
             if(d.count(o)>0)
-                return std::stod(d.at(o));
+                return parse_double(d.at(o));
             else
                 return 0;
         }

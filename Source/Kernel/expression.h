@@ -122,10 +122,10 @@ public:
                         if(str.empty())
                                 return 0;
                         if(vars.count(str))
-                            return std::stod(vars.at(str));
+                            return ::ikaros::parse_double(vars.at(str));
                         if(initial_identifier_char(str[0]))
                             throw std::invalid_argument("Variable \"" + str + "\" not defined.");
-                        return std::stod(str);
+                        return ::ikaros::parse_double(str);
                 
 
                 case '+':   return left->evaluate(vars) + right->evaluate(vars);

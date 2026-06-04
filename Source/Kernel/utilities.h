@@ -40,6 +40,10 @@ namespace ikaros
 
     [[nodiscard]] bool is_integer(const std::string & s); // is s an interger?
     [[nodiscard]] bool is_number(const std::string &s); // is s an int, float or double?
+    [[nodiscard]] bool parse_double(const std::string & s, double & value);
+    [[nodiscard]] bool parse_float(const std::string & s, float & value);
+    [[nodiscard]] double parse_double(const std::string & s);
+    [[nodiscard]] float parse_float(const std::string & s);
     // is_bool(s):; // Can s be converted to a boolean value?
     [[nodiscard]] bool is_true(const std::string & s); // True if equal to 1 or start with T, t, Y, or y.
 

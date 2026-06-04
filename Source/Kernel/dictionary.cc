@@ -644,7 +644,7 @@ namespace ikaros
             if(std::holds_alternative<double>(value_))
                 return std::get<double>(value_);
             if(std::holds_alternative<std::string>(value_))
-                return std::stod(std::get<std::string>(value_));
+                return parse_double(std::get<std::string>(value_));
             else  if(std::holds_alternative<null>(value_))
                 return 0;
 
@@ -893,7 +893,7 @@ namespace ikaros
                 ++pos;
         }
 
-        return value(std::stod(s.substr(start, pos - start)));
+        return value(parse_double(s.substr(start, pos - start)));
     }
 
 

@@ -189,11 +189,7 @@ namespace ikaros
         {
             try
             {
-                std::size_t consumed = 0;
-                double parsed = std::stod(value, &consumed);
-                if(consumed != value.size())
-                    throw exception("Could not convert string \"" + value + "\" to " + conversion_name + ".");
-                return parsed;
+                return parse_double(value);
             }
             catch(const std::invalid_argument &)
             {

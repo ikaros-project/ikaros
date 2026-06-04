@@ -105,7 +105,7 @@ public:
                 std::istringstream iss(line);
                 while (iss >> word)
                     if(row.size_x() < column_count)
-                        row.push(std::stof(word));
+                        row.push(parse_float(word));
                     else
                         throw fatal_error("Row has too many columns");
 

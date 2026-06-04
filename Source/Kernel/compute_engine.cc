@@ -75,7 +75,7 @@ ComputeEngine::ComputeDouble(const std::string & s)
     std::string value = trim(EvalMatrix(context, s, 0));
     if(!LooksLikeNumber(context, value))
         throw exception("ComputeDouble could not convert \""+value+"\" to number.", component_.path_);
-    return std::stod(value);
+    return parse_double(value);
 }
 
 
@@ -639,7 +639,7 @@ ComputeEngine::EvalFinalSegment(EvalContext & context, const std::string & s, in
         if(evaluate_final)
             return "";
         if(LooksLikeNumber(context, segment))
-            return formatNumber(std::stod(segment));
+            return formatNumber(parse_double(segment));
         return segment;
     }
 
@@ -755,7 +755,7 @@ ComputeEngine::EvalScalar(EvalContext & context, const std::string & s, int dept
         std::string previous = current;
 
         if(LooksLikeNumber(context, current))
-            return formatNumber(std::stod(current));
+            return formatNumber(parse_double(current));
 
         if(ShouldReturnLiteral(context, current, evaluate_final))
             return current;
