@@ -8,6 +8,25 @@ namespace ikaros
 {
 namespace
 {
+bool LooksLikeMatrixLiteralValue(const std::string & value)
+{
+    const std::string trimmed = trim(value);
+    if(trimmed.find(',') == std::string::npos &&
+       trimmed.find(';') == std::string::npos &&
+       (trimmed.empty() || trimmed.front() != '['))
+        return false;
+
+    try
+    {
+        matrix literal(trimmed);
+        return true;
+    }
+    catch(...)
+    {
+        return false;
+    }
+}
+
 bool ParseShapeSelector(const std::string & function_name, std::string & base_name, std::string & selector)
 {
     const std::size_t bracket = function_name.find('[');
@@ -755,6 +774,11 @@ ComputeEngine::EvalScalar(EvalContext & context, const std::string & s, int dept
         // resolved literal string rather than re-evaluating punctuation inside it
         // as math or another lookup. This keeps values such as "abc/def:ghi"
         // returned from "@name" intact for string parameters.
+        if(current != previous &&
+           !HasExplicitSyntax(context, current) &&
+           LooksLikeMatrixLiteralValue(current))
+            return current;
+
         if(current != previous &&
            !HasExplicitSyntax(context, current) &&
            !IsPathLike(context, current) &&

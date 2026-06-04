@@ -1,0 +1,18 @@
+<group name="TestRedirectedMatrixDecimalValue" description="Test redirected matrix values with decimal fractions" start="true" stop="2" expected_output_contains="{0.1, 0, 0, 0}">
+    <group name="Epi">
+        <group name="ForwardModel">
+            <group name="Body">
+                <module name="L1_T1" class="Constant" data=".Epi.Settings.@type.@Body_L1_T1_data" />
+            </group>
+        </group>
+
+        <group name="EpiBlue" robotType="Full" />
+
+        <group name="Settings" type=".Epi.EpiBlue.@robotType">
+            <group name="Full" Body_L1_T1_data="0.1,0,0,0; 0,1,0,0; 0,0,1,0; 0,0,0,1" />
+        </group>
+
+        <module name="PrintBody" class="Print" />
+        <connection source="ForwardModel.Body.L1_T1.OUTPUT[0]" target="PrintBody.INPUT" />
+    </group>
+</group>
