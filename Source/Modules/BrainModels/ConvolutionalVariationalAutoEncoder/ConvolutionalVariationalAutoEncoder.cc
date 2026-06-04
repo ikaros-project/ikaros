@@ -60,11 +60,39 @@ namespace
         if(!stream)
             throw std::runtime_error("ConvolutionalVariationalAutoEncoder: could not read weight data.");
     }
+
+    void
+    add_channel_bias(matrix & values, const matrix & bias)
+    {
+        if(values.rank() != 3 || bias.rank() != 1 || values.shape(2) != bias.size())
+            throw std::runtime_error("ConvolutionalVariationalAutoEncoder: channel bias shape mismatch.");
+
+        float * output = values.data();
+        const float * bias_values = bias.data();
+        const int channels = values.shape(2);
+        const int positions = values.shape(0) * values.shape(1);
+
+        for(int position = 0; position < positions; ++position)
+        {
+            float * output_position = output + position * channels;
+            for(int channel = 0; channel < channels; ++channel)
+                output_position[channel] += bias_values[channel];
+        }
+    }
 }
 
 class ConvolutionalVariationalAutoEncoder: public Module
 {
+    enum class LatentMode
+    {
+        Dense,
+        Spatial
+    };
+
+    parameter latent_mode_;
     parameter latent_size_;
+    parameter latent_maps_;
+    parameter latent_kernel_size_;
     parameter feature_maps_;
     parameter kernel_size_;
     parameter learning_rate_;
@@ -97,8 +125,13 @@ class ConvolutionalVariationalAutoEncoder: public Module
     int input_width_ = 0;
     int encoded_height_ = 0;
     int encoded_width_ = 0;
+    int latent_height_ = 0;
+    int latent_width_ = 0;
     int encoded_size_ = 0;
+    LatentMode latent_mode_value_ = LatentMode::Dense;
     int latent_size_value_ = 0;
+    int latent_maps_value_ = 1;
+    int latent_kernel_size_value_ = 1;
     int feature_maps_value_ = 0;
     int kernel_size_value_ = 0;
     int train_interval_value_ = 1;
@@ -161,6 +194,13 @@ class ConvolutionalVariationalAutoEncoder: public Module
     matrix kl_terms_;
     matrix exp_log_variance_;
 
+    matrix spatial_mean_filters_;
+    matrix spatial_mean_bias_;
+    matrix spatial_log_variance_filters_;
+    matrix spatial_log_variance_bias_;
+    matrix spatial_decoder_filters_;
+    matrix spatial_decoder_bias_;
+
     matrix d_output_;
     matrix d_decoder_filters_;
     matrix d_decoder_activation_;
@@ -177,6 +217,12 @@ class ConvolutionalVariationalAutoEncoder: public Module
     matrix d_encoder_activation_;
     matrix d_encoder_filters_;
     matrix d_encoder_bias_;
+    matrix d_spatial_mean_filters_;
+    matrix d_spatial_mean_bias_;
+    matrix d_spatial_log_variance_filters_;
+    matrix d_spatial_log_variance_bias_;
+    matrix d_spatial_decoder_filters_;
+    matrix d_spatial_decoder_bias_;
 
     matrix encoder_filters_m_;
     matrix encoder_filters_v_;
@@ -196,6 +242,18 @@ class ConvolutionalVariationalAutoEncoder: public Module
     matrix decoder_bias_v_;
     matrix decoder_filters_m_;
     matrix decoder_filters_v_;
+    matrix spatial_mean_filters_m_;
+    matrix spatial_mean_filters_v_;
+    matrix spatial_mean_bias_m_;
+    matrix spatial_mean_bias_v_;
+    matrix spatial_log_variance_filters_m_;
+    matrix spatial_log_variance_filters_v_;
+    matrix spatial_log_variance_bias_m_;
+    matrix spatial_log_variance_bias_v_;
+    matrix spatial_decoder_filters_m_;
+    matrix spatial_decoder_filters_v_;
+    matrix spatial_decoder_bias_m_;
+    matrix spatial_decoder_bias_v_;
     int adam_step_ = 0;
     int dense_adam_step_ = 0;
     float output_bias_m_ = 0.0f;
@@ -210,7 +268,10 @@ class ConvolutionalVariationalAutoEncoder: public Module
     void
     Init()
     {
+        Bind(latent_mode_, "latent_mode");
         Bind(latent_size_, "latent_size");
+        Bind(latent_maps_, "latent_maps");
+        Bind(latent_kernel_size_, "latent_kernel_size");
         Bind(feature_maps_, "feature_maps");
         Bind(kernel_size_, "kernel_size");
         Bind(learning_rate_, "learning_rate");
@@ -239,7 +300,10 @@ class ConvolutionalVariationalAutoEncoder: public Module
         Bind(reconstruction_loss_, "RECONSTRUCTION_LOSS");
         Bind(kl_loss_, "KL_LOSS");
 
+        latent_mode_value_ = parse_latent_mode(latent_mode_.as_string());
         latent_size_value_ = std::max(1, latent_size_.as_int());
+        latent_maps_value_ = std::max(1, latent_maps_.as_int());
+        latent_kernel_size_value_ = std::max(1, latent_kernel_size_.as_int());
         feature_maps_value_ = std::max(1, feature_maps_.as_int());
         kernel_size_value_ = std::max(1, kernel_size_.as_int());
         train_interval_value_ = std::max(1, train_interval_.as_int());
@@ -259,6 +323,17 @@ class ConvolutionalVariationalAutoEncoder: public Module
         }
     }
 
+    LatentMode
+    parse_latent_mode(const std::string & mode) const
+    {
+        if(mode == "dense")
+            return LatentMode::Dense;
+        if(mode == "spatial")
+            return LatentMode::Spatial;
+
+        throw exception("ConvolutionalVariationalAutoEncoder: latent_mode must be dense or spatial.", path_);
+    }
+
     void
     initialize_for_input()
     {
@@ -275,10 +350,107 @@ class ConvolutionalVariationalAutoEncoder: public Module
         encoded_width_ = input_width_ - kernel_size_value_ + 1;
         encoded_size_ = encoded_height_ * encoded_width_ * feature_maps_value_;
 
+        if(latent_mode_value_ == LatentMode::Spatial)
+        {
+            if(encoded_height_ < latent_kernel_size_value_ || encoded_width_ < latent_kernel_size_value_)
+                throw exception("ConvolutionalVariationalAutoEncoder: latent_kernel_size must fit inside the encoded feature map.", path_);
+
+            latent_height_ = encoded_height_ - latent_kernel_size_value_ + 1;
+            latent_width_ = encoded_width_ - latent_kernel_size_value_ + 1;
+        }
+
         encoder_filters_.realloc(feature_maps_value_, kernel_size_value_, kernel_size_value_);
         encoder_bias_.realloc(feature_maps_value_);
         encoder_pre_activation_.realloc(encoded_height_, encoded_width_, feature_maps_value_);
         encoder_activation_.realloc(encoded_height_, encoded_width_, feature_maps_value_);
+
+        decoder_filters_.realloc(feature_maps_value_, kernel_size_value_, kernel_size_value_);
+        decoder_activation_.realloc(encoded_size_);
+        decoder_pre_activation_.realloc(encoded_size_);
+        reconstruction_error_.realloc(input_.shape());
+
+        if(latent_mode_value_ == LatentMode::Spatial)
+        {
+            spatial_mean_filters_.realloc(latent_maps_value_, latent_kernel_size_value_, latent_kernel_size_value_, feature_maps_value_);
+            spatial_mean_bias_.realloc(latent_maps_value_);
+            spatial_log_variance_filters_.realloc(latent_maps_value_, latent_kernel_size_value_, latent_kernel_size_value_, feature_maps_value_);
+            spatial_log_variance_bias_.realloc(latent_maps_value_);
+            spatial_decoder_filters_.realloc(latent_maps_value_, latent_kernel_size_value_, latent_kernel_size_value_, feature_maps_value_);
+            spatial_decoder_bias_.realloc(feature_maps_value_);
+
+            latent_mean_values_.realloc(latent_height_, latent_width_, latent_maps_value_);
+            latent_log_variance_values_.realloc(latent_height_, latent_width_, latent_maps_value_);
+            latent_stddev_.realloc(latent_height_, latent_width_, latent_maps_value_);
+            latent_epsilon_.realloc(latent_height_, latent_width_, latent_maps_value_);
+            latent_values_.realloc(latent_height_, latent_width_, latent_maps_value_);
+            kl_terms_.realloc(latent_height_, latent_width_, latent_maps_value_);
+            exp_log_variance_.realloc(latent_height_, latent_width_, latent_maps_value_);
+
+            d_output_.realloc(input_.shape());
+            d_decoder_filters_.realloc(decoder_filters_.shape());
+            d_decoder_activation_.realloc(encoded_height_, encoded_width_, feature_maps_value_);
+            d_decoder_pre_activation_.realloc(encoded_height_, encoded_width_, feature_maps_value_);
+            d_latent_.realloc(latent_height_, latent_width_, latent_maps_value_);
+            d_mean_.realloc(latent_height_, latent_width_, latent_maps_value_);
+            d_log_variance_.realloc(latent_height_, latent_width_, latent_maps_value_);
+            d_log_variance_kl_.realloc(latent_height_, latent_width_, latent_maps_value_);
+            d_encoder_activation_.realloc(encoded_height_, encoded_width_, feature_maps_value_);
+            d_encoder_filters_.realloc(encoder_filters_.shape());
+            d_encoder_bias_.realloc(feature_maps_value_);
+            d_spatial_mean_filters_.realloc(spatial_mean_filters_.shape());
+            d_spatial_mean_bias_.realloc(spatial_mean_bias_.shape());
+            d_spatial_log_variance_filters_.realloc(spatial_log_variance_filters_.shape());
+            d_spatial_log_variance_bias_.realloc(spatial_log_variance_bias_.shape());
+            d_spatial_decoder_filters_.realloc(spatial_decoder_filters_.shape());
+            d_spatial_decoder_bias_.realloc(spatial_decoder_bias_.shape());
+
+            encoder_filters_m_.realloc(encoder_filters_.shape());
+            encoder_filters_v_.realloc(encoder_filters_.shape());
+            encoder_bias_m_.realloc(encoder_bias_.shape());
+            encoder_bias_v_.realloc(encoder_bias_.shape());
+            decoder_filters_m_.realloc(decoder_filters_.shape());
+            decoder_filters_v_.realloc(decoder_filters_.shape());
+            spatial_mean_filters_m_.realloc(spatial_mean_filters_.shape());
+            spatial_mean_filters_v_.realloc(spatial_mean_filters_.shape());
+            spatial_mean_bias_m_.realloc(spatial_mean_bias_.shape());
+            spatial_mean_bias_v_.realloc(spatial_mean_bias_.shape());
+            spatial_log_variance_filters_m_.realloc(spatial_log_variance_filters_.shape());
+            spatial_log_variance_filters_v_.realloc(spatial_log_variance_filters_.shape());
+            spatial_log_variance_bias_m_.realloc(spatial_log_variance_bias_.shape());
+            spatial_log_variance_bias_v_.realloc(spatial_log_variance_bias_.shape());
+            spatial_decoder_filters_m_.realloc(spatial_decoder_filters_.shape());
+            spatial_decoder_filters_v_.realloc(spatial_decoder_filters_.shape());
+            spatial_decoder_bias_m_.realloc(spatial_decoder_bias_.shape());
+            spatial_decoder_bias_v_.realloc(spatial_decoder_bias_.shape());
+
+            spatial_mean_bias_.reset();
+            spatial_log_variance_bias_.reset();
+            spatial_decoder_bias_.reset();
+            encoder_bias_.reset();
+            latent_stddev_.set(1.0f);
+            latent_epsilon_.reset();
+            latent_values_.reset();
+            reset_adam_state();
+
+            fill_uniform(encoder_filters_, rng_, kernel_size_value_ * kernel_size_value_);
+            fill_uniform(spatial_mean_filters_, rng_, latent_kernel_size_value_ * latent_kernel_size_value_ * feature_maps_value_);
+            fill_uniform(spatial_log_variance_filters_, rng_, latent_kernel_size_value_ * latent_kernel_size_value_ * feature_maps_value_);
+            fill_uniform(spatial_decoder_filters_, rng_, latent_kernel_size_value_ * latent_kernel_size_value_ * latent_maps_value_);
+            fill_uniform(decoder_filters_, rng_, kernel_size_value_ * kernel_size_value_);
+
+            output_.realloc(input_.shape());
+            latent_mean_.realloc(latent_mean_values_.shape());
+            latent_log_variance_.realloc(latent_log_variance_values_.shape());
+            latent_sample_.realloc(latent_values_.shape());
+
+            initialized_ = true;
+            train_tick_ = 0;
+            dense_train_tick_ = 0;
+
+            if(load_weights_.as_bool())
+                load_weights();
+            return;
+        }
 
         mean_weights_.realloc(encoded_size_, latent_size_value_);
         mean_bias_.realloc(latent_size_value_);
@@ -292,13 +464,9 @@ class ConvolutionalVariationalAutoEncoder: public Module
 
         decoder_weights_.realloc(latent_size_value_, encoded_size_);
         decoder_bias_.realloc(encoded_size_);
-        decoder_pre_activation_.realloc(encoded_size_);
-        decoder_activation_.realloc(encoded_size_);
-        decoder_filters_.realloc(feature_maps_value_, kernel_size_value_, kernel_size_value_);
         latent_mean_projection_.realloc(latent_size_value_);
         latent_log_variance_projection_.realloc(latent_size_value_);
         decoder_projection_.realloc(encoded_size_);
-        reconstruction_error_.realloc(input_.shape());
         kl_terms_.realloc(latent_size_value_);
         exp_log_variance_.realloc(latent_size_value_);
 
@@ -372,6 +540,12 @@ class ConvolutionalVariationalAutoEncoder: public Module
         encoder_pre_activation_.conv2_valid_filterbank(input_, encoder_filters_, encoder_bias_);
         encoder_activation_.copy(encoder_pre_activation_).apply([](float value) { return std::max(0.0f, value); });
 
+        if(latent_mode_value_ == LatentMode::Spatial)
+        {
+            encode_spatial_latent();
+            return;
+        }
+
         encoder_activation_.reshape(encoded_size_);
         latent_mean_projection_.dense_forward(encoder_activation_, mean_weights_);
         latent_log_variance_projection_.dense_forward(encoder_activation_, log_variance_weights_);
@@ -393,12 +567,48 @@ class ConvolutionalVariationalAutoEncoder: public Module
     void
     decode()
     {
+        if(latent_mode_value_ == LatentMode::Spatial)
+        {
+            decode_spatial_latent();
+            return;
+        }
+
         decoder_projection_.dense_forward(latent_values_, decoder_weights_);
         decoder_pre_activation_.copy(decoder_projection_).add(decoder_bias_);
         decoder_activation_.copy(decoder_pre_activation_).apply([](float value) { return std::max(0.0f, value); });
 
         decoder_activation_.reshape(encoded_height_, encoded_width_, feature_maps_value_);
         output_.conv2_valid_filterbank_backward_input(decoder_activation_, decoder_filters_, input_height_, input_width_).add(output_bias_);
+        decoder_activation_.reshape(encoded_size_);
+    }
+
+    void
+    encode_spatial_latent()
+    {
+        latent_mean_values_.conv2_valid_channel_filterbank(encoder_activation_, spatial_mean_filters_, spatial_mean_bias_);
+        latent_log_variance_values_.conv2_valid_channel_filterbank(encoder_activation_, spatial_log_variance_filters_, spatial_log_variance_bias_);
+        latent_log_variance_values_.apply([](float value) { return std::clamp(value, -20.0f, 10.0f); });
+        latent_stddev_.copy(latent_log_variance_values_).scale(0.5f).apply([](float value) { return std::exp(value); });
+
+        if(sample_.as_bool())
+            latent_epsilon_.apply([this](float) { return normal_(rng_); });
+        else
+            latent_epsilon_.reset();
+
+        latent_values_.copy(latent_epsilon_).multiply(latent_stddev_).add(latent_mean_values_);
+    }
+
+    void
+    decode_spatial_latent()
+    {
+        decoder_pre_activation_.reshape(encoded_height_, encoded_width_, feature_maps_value_);
+        decoder_activation_.reshape(encoded_height_, encoded_width_, feature_maps_value_);
+
+        decoder_pre_activation_.conv2_valid_channel_filterbank_backward_input(latent_values_, spatial_decoder_filters_, encoded_height_, encoded_width_);
+        add_channel_bias(decoder_pre_activation_, spatial_decoder_bias_);
+        decoder_activation_.copy(decoder_pre_activation_).apply([](float value) { return std::max(0.0f, value); });
+        output_.conv2_valid_filterbank_backward_input(decoder_activation_, decoder_filters_, input_height_, input_width_).add(output_bias_);
+        decoder_pre_activation_.reshape(encoded_size_);
         decoder_activation_.reshape(encoded_size_);
     }
 
@@ -420,7 +630,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         kl_terms_.copy(latent_mean_values_).multiply(latent_mean_values_);
         exp_log_variance_.copy(latent_log_variance_values_).apply([](float value) { return std::exp(value); });
         kl_terms_.add(exp_log_variance_).subtract(latent_log_variance_values_).subtract(1.0f);
-        const float kl = 0.5f * kl_terms_.sum() / std::max(1, latent_size_value_);
+        const float kl = 0.5f * kl_terms_.sum() / std::max(1, latent_values_.size());
 
         reconstruction_loss_(0) = reconstruction;
         kl_loss_(0) = kl;
@@ -430,6 +640,12 @@ class ConvolutionalVariationalAutoEncoder: public Module
     void
     train_step()
     {
+        if(latent_mode_value_ == LatentMode::Spatial)
+        {
+            train_step_spatial();
+            return;
+        }
+
         const float learning_rate = learning_rate_.as_float();
         if(learning_rate <= 0.0f)
             return;
@@ -529,6 +745,125 @@ class ConvolutionalVariationalAutoEncoder: public Module
     }
 
     void
+    train_step_spatial()
+    {
+        const float learning_rate = learning_rate_.as_float();
+        if(learning_rate <= 0.0f)
+            return;
+
+        const bool profiling = profile_.as_bool();
+        auto step_start = clock_type::now();
+
+        const float output_scale = 1.0f / std::max(1, input_.size());
+        d_output_.subtract(output_, input_).scale(output_scale);
+        const float d_output_bias = d_output_.sum();
+        if(profiling)
+        {
+            profile_counters_.output_gradient += elapsed_ms(step_start);
+            step_start = clock_type::now();
+        }
+
+        decoder_activation_.reshape(encoded_height_, encoded_width_, feature_maps_value_);
+        d_decoder_filters_.conv2_valid_filterbank_backward_filters(d_output_, decoder_activation_, kernel_size_value_, kernel_size_value_);
+        if(profiling)
+        {
+            profile_counters_.decoder_filter_gradient += elapsed_ms(step_start);
+            step_start = clock_type::now();
+        }
+
+        d_decoder_activation_.reshape(encoded_height_, encoded_width_, feature_maps_value_);
+        d_decoder_activation_.conv2_valid_filterbank(d_output_, decoder_filters_);
+        if(profiling)
+        {
+            profile_counters_.decoder_activation_gradient += elapsed_ms(step_start);
+            step_start = clock_type::now();
+        }
+
+        decoder_pre_activation_.reshape(encoded_height_, encoded_width_, feature_maps_value_);
+        d_decoder_pre_activation_.reshape(encoded_height_, encoded_width_, feature_maps_value_);
+        d_decoder_pre_activation_.relu_backward(d_decoder_activation_, decoder_pre_activation_);
+        decoder_pre_activation_.reshape(encoded_size_);
+
+        compute_spatial_decoder_gradients();
+        if(profiling)
+        {
+            profile_counters_.decoder_relu_dense += elapsed_ms(step_start);
+            step_start = clock_type::now();
+        }
+
+        compute_spatial_latent_gradients();
+        if(profiling)
+        {
+            profile_counters_.latent_gradients += elapsed_ms(step_start);
+            step_start = clock_type::now();
+        }
+
+        compute_spatial_encoder_activation_gradient();
+        if(profiling)
+        {
+            profile_counters_.encoder_activation_gradient += elapsed_ms(step_start);
+            step_start = clock_type::now();
+        }
+
+        d_encoder_filters_.conv2_valid_filterbank_backward_filters_relu(input_, d_encoder_activation_, encoder_pre_activation_, kernel_size_value_, kernel_size_value_);
+        d_encoder_bias_.sum_first_two_dimensions_relu(d_encoder_activation_, encoder_pre_activation_);
+        if(profiling)
+        {
+            profile_counters_.encoder_filter_gradient += elapsed_ms(step_start);
+            step_start = clock_type::now();
+        }
+
+        apply_spatial_optimizer_update(learning_rate, d_output_bias);
+        if(profiling)
+            profile_counters_.optimizer += elapsed_ms(step_start);
+
+        d_decoder_pre_activation_.reshape(encoded_size_);
+        decoder_activation_.reshape(encoded_size_);
+    }
+
+    void
+    compute_spatial_decoder_gradients()
+    {
+        d_decoder_pre_activation_.reshape(encoded_height_, encoded_width_, feature_maps_value_);
+        d_latent_.conv2_valid_channel_filterbank(d_decoder_pre_activation_, spatial_decoder_filters_);
+        d_spatial_decoder_filters_.conv2_valid_channel_filterbank_backward_filters(d_decoder_pre_activation_, latent_values_, latent_kernel_size_value_, latent_kernel_size_value_);
+        d_spatial_decoder_bias_.sum_first_two_dimensions(d_decoder_pre_activation_);
+        d_decoder_pre_activation_.reshape(encoded_size_);
+    }
+
+    void
+    compute_spatial_latent_gradients()
+    {
+        const float beta = beta_.as_float();
+        const float kl_scale = beta / std::max(1, latent_values_.size());
+
+        const float * latent_gradient = d_latent_.data();
+        const float * mean = latent_mean_values_.data();
+        const float * log_variance = latent_log_variance_values_.data();
+        const float * epsilon = latent_epsilon_.data();
+        const float * stddev = latent_stddev_.data();
+        float * d_mean = d_mean_.data();
+        float * d_log_variance = d_log_variance_.data();
+
+        for(int i = 0; i < latent_values_.size(); ++i)
+        {
+            d_mean[i] = latent_gradient[i] + kl_scale * mean[i];
+            d_log_variance[i] = 0.5f * latent_gradient[i] * epsilon[i] * stddev[i] +
+                                0.5f * kl_scale * (std::exp(log_variance[i]) - 1.0f);
+        }
+    }
+
+    void
+    compute_spatial_encoder_activation_gradient()
+    {
+        d_encoder_activation_.conv2_valid_channel_filterbank_backward(encoder_activation_, spatial_mean_filters_, d_mean_, d_spatial_mean_filters_, d_spatial_mean_bias_);
+        d_spatial_log_variance_filters_.conv2_valid_channel_filterbank_backward_filters(encoder_activation_, d_log_variance_, latent_kernel_size_value_, latent_kernel_size_value_);
+        d_spatial_log_variance_bias_.sum_first_two_dimensions(d_log_variance_);
+        d_decoder_activation_.conv2_valid_channel_filterbank_backward_input(d_log_variance_, spatial_log_variance_filters_, encoded_height_, encoded_width_);
+        d_encoder_activation_.add(d_decoder_activation_);
+    }
+
+    void
     apply_optimizer_update(float learning_rate, float d_output_bias, const matrix & d_decoder_bias)
     {
         const bool update_dense = should_update_dense_this_training_step();
@@ -585,6 +920,62 @@ class ConvolutionalVariationalAutoEncoder: public Module
     }
 
     void
+    apply_spatial_optimizer_update(float learning_rate, float d_output_bias)
+    {
+        const bool update_latent = should_update_dense_this_training_step();
+        if(update_latent)
+            ++profile_counters_.dense_updates;
+
+        if(optimizer_.compare_string("adam"))
+        {
+            ++adam_step_;
+            const float beta1 = std::clamp(adam_beta1_.as_float(), 0.0f, 0.999999f);
+            const float beta2 = std::clamp(adam_beta2_.as_float(), 0.0f, 0.999999f);
+            const float epsilon = std::max(adam_epsilon_.as_float(), 1e-12f);
+            const float beta1_correction = 1.0f - std::pow(beta1, static_cast<float>(adam_step_));
+            const float beta2_correction = 1.0f - std::pow(beta2, static_cast<float>(adam_step_));
+
+            encoder_filters_.adam_update(d_encoder_filters_, encoder_filters_m_, encoder_filters_v_, learning_rate, beta1, beta2, beta1_correction, beta2_correction, epsilon);
+            encoder_bias_.adam_update(d_encoder_bias_, encoder_bias_m_, encoder_bias_v_, learning_rate, beta1, beta2, beta1_correction, beta2_correction, epsilon);
+            decoder_filters_.adam_update(d_decoder_filters_, decoder_filters_m_, decoder_filters_v_, learning_rate, beta1, beta2, beta1_correction, beta2_correction, epsilon);
+            apply_adam_scalar_update(output_bias_, d_output_bias, output_bias_m_, output_bias_v_, learning_rate, beta1, beta2, beta1_correction, beta2_correction, epsilon);
+
+            if(update_latent)
+            {
+                ++dense_adam_step_;
+                const float latent_beta1_correction = 1.0f - std::pow(beta1, static_cast<float>(dense_adam_step_));
+                const float latent_beta2_correction = 1.0f - std::pow(beta2, static_cast<float>(dense_adam_step_));
+
+                spatial_mean_filters_.adam_update(d_spatial_mean_filters_, spatial_mean_filters_m_, spatial_mean_filters_v_, learning_rate, beta1, beta2, latent_beta1_correction, latent_beta2_correction, epsilon);
+                spatial_mean_bias_.adam_update(d_spatial_mean_bias_, spatial_mean_bias_m_, spatial_mean_bias_v_, learning_rate, beta1, beta2, latent_beta1_correction, latent_beta2_correction, epsilon);
+                spatial_log_variance_filters_.adam_update(d_spatial_log_variance_filters_, spatial_log_variance_filters_m_, spatial_log_variance_filters_v_, learning_rate, beta1, beta2, latent_beta1_correction, latent_beta2_correction, epsilon);
+                spatial_log_variance_bias_.adam_update(d_spatial_log_variance_bias_, spatial_log_variance_bias_m_, spatial_log_variance_bias_v_, learning_rate, beta1, beta2, latent_beta1_correction, latent_beta2_correction, epsilon);
+                spatial_decoder_filters_.adam_update(d_spatial_decoder_filters_, spatial_decoder_filters_m_, spatial_decoder_filters_v_, learning_rate, beta1, beta2, latent_beta1_correction, latent_beta2_correction, epsilon);
+                spatial_decoder_bias_.adam_update(d_spatial_decoder_bias_, spatial_decoder_bias_m_, spatial_decoder_bias_v_, learning_rate, beta1, beta2, latent_beta1_correction, latent_beta2_correction, epsilon);
+            }
+            return;
+        }
+
+        if(!optimizer_.compare_string("sgd"))
+            throw exception("ConvolutionalVariationalAutoEncoder: optimizer must be adam or sgd.", path_);
+
+        apply_sgd_update(encoder_filters_, d_encoder_filters_, learning_rate);
+        apply_sgd_update(encoder_bias_, d_encoder_bias_, learning_rate);
+        apply_sgd_update(decoder_filters_, d_decoder_filters_, learning_rate);
+        output_bias_ -= learning_rate * d_output_bias;
+
+        if(update_latent)
+        {
+            apply_sgd_update(spatial_mean_filters_, d_spatial_mean_filters_, learning_rate);
+            apply_sgd_update(spatial_mean_bias_, d_spatial_mean_bias_, learning_rate);
+            apply_sgd_update(spatial_log_variance_filters_, d_spatial_log_variance_filters_, learning_rate);
+            apply_sgd_update(spatial_log_variance_bias_, d_spatial_log_variance_bias_, learning_rate);
+            apply_sgd_update(spatial_decoder_filters_, d_spatial_decoder_filters_, learning_rate);
+            apply_sgd_update(spatial_decoder_bias_, d_spatial_decoder_bias_, learning_rate);
+        }
+    }
+
+    void
     apply_sgd_update(matrix & values, const matrix & gradients, float learning_rate)
     {
         values.multiply_and_accumulate(gradients, -learning_rate);
@@ -627,6 +1018,18 @@ class ConvolutionalVariationalAutoEncoder: public Module
         decoder_bias_v_.reset();
         decoder_filters_m_.reset();
         decoder_filters_v_.reset();
+        spatial_mean_filters_m_.reset();
+        spatial_mean_filters_v_.reset();
+        spatial_mean_bias_m_.reset();
+        spatial_mean_bias_v_.reset();
+        spatial_log_variance_filters_m_.reset();
+        spatial_log_variance_filters_v_.reset();
+        spatial_log_variance_bias_m_.reset();
+        spatial_log_variance_bias_v_.reset();
+        spatial_decoder_filters_m_.reset();
+        spatial_decoder_filters_v_.reset();
+        spatial_decoder_bias_m_.reset();
+        spatial_decoder_bias_v_.reset();
     }
 
     void
@@ -659,25 +1062,43 @@ class ConvolutionalVariationalAutoEncoder: public Module
         if(!stream.is_open())
             throw std::runtime_error("ConvolutionalVariationalAutoEncoder: could not open weight file for writing.");
 
-        const int version = 1;
+        const int version = 2;
+        const int latent_mode = latent_mode_value_ == LatentMode::Spatial ? 1 : 0;
         stream.write(reinterpret_cast<const char *>(&version), sizeof(version));
+        stream.write(reinterpret_cast<const char *>(&latent_mode), sizeof(latent_mode));
         stream.write(reinterpret_cast<const char *>(&input_height_), sizeof(input_height_));
         stream.write(reinterpret_cast<const char *>(&input_width_), sizeof(input_width_));
         stream.write(reinterpret_cast<const char *>(&encoded_height_), sizeof(encoded_height_));
         stream.write(reinterpret_cast<const char *>(&encoded_width_), sizeof(encoded_width_));
+        stream.write(reinterpret_cast<const char *>(&latent_height_), sizeof(latent_height_));
+        stream.write(reinterpret_cast<const char *>(&latent_width_), sizeof(latent_width_));
         stream.write(reinterpret_cast<const char *>(&latent_size_value_), sizeof(latent_size_value_));
+        stream.write(reinterpret_cast<const char *>(&latent_maps_value_), sizeof(latent_maps_value_));
         stream.write(reinterpret_cast<const char *>(&feature_maps_value_), sizeof(feature_maps_value_));
         stream.write(reinterpret_cast<const char *>(&kernel_size_value_), sizeof(kernel_size_value_));
+        stream.write(reinterpret_cast<const char *>(&latent_kernel_size_value_), sizeof(latent_kernel_size_value_));
         stream.write(reinterpret_cast<const char *>(&output_bias_), sizeof(output_bias_));
 
         write_matrix(stream, encoder_filters_);
         write_matrix(stream, encoder_bias_);
-        write_matrix(stream, mean_weights_);
-        write_matrix(stream, mean_bias_);
-        write_matrix(stream, log_variance_weights_);
-        write_matrix(stream, log_variance_bias_);
-        write_matrix(stream, decoder_weights_);
-        write_matrix(stream, decoder_bias_);
+        if(latent_mode_value_ == LatentMode::Spatial)
+        {
+            write_matrix(stream, spatial_mean_filters_);
+            write_matrix(stream, spatial_mean_bias_);
+            write_matrix(stream, spatial_log_variance_filters_);
+            write_matrix(stream, spatial_log_variance_bias_);
+            write_matrix(stream, spatial_decoder_filters_);
+            write_matrix(stream, spatial_decoder_bias_);
+        }
+        else
+        {
+            write_matrix(stream, mean_weights_);
+            write_matrix(stream, mean_bias_);
+            write_matrix(stream, log_variance_weights_);
+            write_matrix(stream, log_variance_bias_);
+            write_matrix(stream, decoder_weights_);
+            write_matrix(stream, decoder_bias_);
+        }
         write_matrix(stream, decoder_filters_);
     }
 
@@ -689,38 +1110,100 @@ class ConvolutionalVariationalAutoEncoder: public Module
             throw std::runtime_error("ConvolutionalVariationalAutoEncoder: could not open weight file for reading.");
 
         int version = 0;
+        int latent_mode = 0;
         int input_height = 0;
         int input_width = 0;
         int encoded_height = 0;
         int encoded_width = 0;
+        int latent_height = 0;
+        int latent_width = 0;
         int latent_size = 0;
+        int latent_maps = 0;
         int feature_maps = 0;
         int kernel_size = 0;
+        int latent_kernel_size = 1;
 
         stream.read(reinterpret_cast<char *>(&version), sizeof(version));
+        if(version == 1)
+        {
+            stream.read(reinterpret_cast<char *>(&input_height), sizeof(input_height));
+            stream.read(reinterpret_cast<char *>(&input_width), sizeof(input_width));
+            stream.read(reinterpret_cast<char *>(&encoded_height), sizeof(encoded_height));
+            stream.read(reinterpret_cast<char *>(&encoded_width), sizeof(encoded_width));
+            stream.read(reinterpret_cast<char *>(&latent_size), sizeof(latent_size));
+            stream.read(reinterpret_cast<char *>(&feature_maps), sizeof(feature_maps));
+            stream.read(reinterpret_cast<char *>(&kernel_size), sizeof(kernel_size));
+            stream.read(reinterpret_cast<char *>(&output_bias_), sizeof(output_bias_));
+
+            if(latent_mode_value_ != LatentMode::Dense ||
+               input_height != input_height_ || input_width != input_width_ ||
+               encoded_height != encoded_height_ || encoded_width != encoded_width_ ||
+               latent_size != latent_size_value_ || feature_maps != feature_maps_value_ ||
+               kernel_size != kernel_size_value_)
+                throw std::runtime_error("ConvolutionalVariationalAutoEncoder: weight file shape does not match module parameters or input.");
+
+            read_matrix(stream, encoder_filters_);
+            read_matrix(stream, encoder_bias_);
+            read_matrix(stream, mean_weights_);
+            read_matrix(stream, mean_bias_);
+            read_matrix(stream, log_variance_weights_);
+            read_matrix(stream, log_variance_bias_);
+            read_matrix(stream, decoder_weights_);
+            read_matrix(stream, decoder_bias_);
+            read_matrix(stream, decoder_filters_);
+            return;
+        }
+
+        stream.read(reinterpret_cast<char *>(&latent_mode), sizeof(latent_mode));
         stream.read(reinterpret_cast<char *>(&input_height), sizeof(input_height));
         stream.read(reinterpret_cast<char *>(&input_width), sizeof(input_width));
         stream.read(reinterpret_cast<char *>(&encoded_height), sizeof(encoded_height));
         stream.read(reinterpret_cast<char *>(&encoded_width), sizeof(encoded_width));
+        stream.read(reinterpret_cast<char *>(&latent_height), sizeof(latent_height));
+        stream.read(reinterpret_cast<char *>(&latent_width), sizeof(latent_width));
         stream.read(reinterpret_cast<char *>(&latent_size), sizeof(latent_size));
+        stream.read(reinterpret_cast<char *>(&latent_maps), sizeof(latent_maps));
         stream.read(reinterpret_cast<char *>(&feature_maps), sizeof(feature_maps));
         stream.read(reinterpret_cast<char *>(&kernel_size), sizeof(kernel_size));
+        stream.read(reinterpret_cast<char *>(&latent_kernel_size), sizeof(latent_kernel_size));
         stream.read(reinterpret_cast<char *>(&output_bias_), sizeof(output_bias_));
 
-        if(version != 1 || input_height != input_height_ || input_width != input_width_ ||
-           encoded_height != encoded_height_ || encoded_width != encoded_width_ ||
-           latent_size != latent_size_value_ || feature_maps != feature_maps_value_ ||
-           kernel_size != kernel_size_value_)
+        const int expected_latent_mode = latent_mode_value_ == LatentMode::Spatial ? 1 : 0;
+        bool shape_mismatch = version != 2 || latent_mode != expected_latent_mode ||
+            input_height != input_height_ || input_width != input_width_ ||
+            encoded_height != encoded_height_ || encoded_width != encoded_width_ ||
+            feature_maps != feature_maps_value_ || kernel_size != kernel_size_value_;
+
+        if(latent_mode_value_ == LatentMode::Spatial)
+            shape_mismatch = shape_mismatch ||
+                latent_height != latent_height_ || latent_width != latent_width_ ||
+                latent_maps != latent_maps_value_ || latent_kernel_size != latent_kernel_size_value_;
+        else
+            shape_mismatch = shape_mismatch || latent_size != latent_size_value_;
+
+        if(shape_mismatch)
             throw std::runtime_error("ConvolutionalVariationalAutoEncoder: weight file shape does not match module parameters or input.");
 
         read_matrix(stream, encoder_filters_);
         read_matrix(stream, encoder_bias_);
-        read_matrix(stream, mean_weights_);
-        read_matrix(stream, mean_bias_);
-        read_matrix(stream, log_variance_weights_);
-        read_matrix(stream, log_variance_bias_);
-        read_matrix(stream, decoder_weights_);
-        read_matrix(stream, decoder_bias_);
+        if(latent_mode_value_ == LatentMode::Spatial)
+        {
+            read_matrix(stream, spatial_mean_filters_);
+            read_matrix(stream, spatial_mean_bias_);
+            read_matrix(stream, spatial_log_variance_filters_);
+            read_matrix(stream, spatial_log_variance_bias_);
+            read_matrix(stream, spatial_decoder_filters_);
+            read_matrix(stream, spatial_decoder_bias_);
+        }
+        else
+        {
+            read_matrix(stream, mean_weights_);
+            read_matrix(stream, mean_bias_);
+            read_matrix(stream, log_variance_weights_);
+            read_matrix(stream, log_variance_bias_);
+            read_matrix(stream, decoder_weights_);
+            read_matrix(stream, decoder_bias_);
+        }
         read_matrix(stream, decoder_filters_);
     }
 

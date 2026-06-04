@@ -1,5 +1,8 @@
 <class name="ConvolutionalVariationalAutoEncoder" description="learns a compact latent representation with a convolutional variational auto-encoder">
-	<parameter name="latent_size" type="number" default="8" min="1" description="Number of latent variables" />
+	<parameter name="latent_mode" type="string" default="dense" options="dense,spatial" description="Latent bottleneck architecture" />
+	<parameter name="latent_size" type="number" default="8" min="1" description="Number of latent variables in dense mode" />
+	<parameter name="latent_maps" type="number" default="4" min="1" description="Number of latent feature maps in spatial mode" />
+	<parameter name="latent_kernel_size" type="number" default="1" min="1" description="Encoder neighborhood size used to form spatial latent maps" />
 	<parameter name="feature_maps" type="number" default="4" min="1" description="Number of convolutional feature maps" />
 	<parameter name="kernel_size" type="number" default="3" min="1" description="Convolution kernel size" />
 	<parameter name="learning_rate" type="number" default="0.001" min="0" description="Learning rate used when training" />
