@@ -83,17 +83,14 @@ namespace
 
 class ConvolutionalVariationalAutoEncoder: public Module
 {
+    static constexpr int reconstruction_source_sample = 0;
+    static constexpr int reconstruction_source_mean = 1;
+    static constexpr int reconstruction_source_top_down = 2;
+
     enum class LatentMode
     {
         Dense,
         Spatial
-    };
-
-    enum class ReconstructionSource
-    {
-        Sample,
-        Mean,
-        TopDown
     };
 
     parameter latent_mode_;
@@ -139,7 +136,6 @@ class ConvolutionalVariationalAutoEncoder: public Module
     int latent_width_ = 0;
     int encoded_size_ = 0;
     LatentMode latent_mode_value_ = LatentMode::Dense;
-    ReconstructionSource reconstruction_source_value_ = ReconstructionSource::Sample;
     int latent_size_value_ = 0;
     int latent_maps_value_ = 1;
     int latent_kernel_size_value_ = 1;
@@ -150,6 +146,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
     int train_tick_ = 0;
     int dense_train_tick_ = 0;
     bool initialized_ = false;
+    bool training_reconstruction_ = false;
 
     struct ProfileCounters
     {
@@ -204,6 +201,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
     matrix reconstruction_error_;
     matrix kl_terms_;
     matrix exp_log_variance_;
+    matrix displayed_output_;
 
     matrix spatial_mean_filters_;
     matrix spatial_mean_bias_;
@@ -314,7 +312,6 @@ class ConvolutionalVariationalAutoEncoder: public Module
         Bind(kl_loss_, "KL_LOSS");
 
         latent_mode_value_ = parse_latent_mode(latent_mode_.as_string());
-        reconstruction_source_value_ = parse_reconstruction_source(reconstruction_source_.as_string());
         latent_size_value_ = std::max(1, latent_size_.as_int());
         latent_maps_value_ = std::max(1, latent_maps_.as_int());
         latent_kernel_size_value_ = std::max(1, latent_kernel_size_.as_int());
@@ -337,16 +334,26 @@ class ConvolutionalVariationalAutoEncoder: public Module
         }
     }
 
-    ReconstructionSource
-    parse_reconstruction_source(const std::string & source) const
+    bool
+    reconstruction_source_is(int source) const
     {
-        if(source == "sample")
-            return ReconstructionSource::Sample;
-        if(source == "mean")
-            return ReconstructionSource::Mean;
-        if(source == "top_down")
-            return ReconstructionSource::TopDown;
+        return reconstruction_source_.as_int() == source;
+    }
 
+    bool
+    effective_reconstruction_source_is(int source) const
+    {
+        if(training_reconstruction_ && reconstruction_source_is(reconstruction_source_top_down))
+            return source == reconstruction_source_mean;
+        return reconstruction_source_is(source);
+    }
+
+    void
+    validate_reconstruction_source() const
+    {
+        const int source = reconstruction_source_.as_int();
+        if(source >= reconstruction_source_sample && source <= reconstruction_source_top_down)
+            return;
         throw exception("ConvolutionalVariationalAutoEncoder: reconstruction_source must be sample, mean, or top_down.", path_);
     }
 
@@ -669,9 +676,9 @@ class ConvolutionalVariationalAutoEncoder: public Module
     const matrix &
     decoder_latent_input() const
     {
-        if(reconstruction_source_value_ == ReconstructionSource::Mean)
+        if(effective_reconstruction_source_is(reconstruction_source_mean))
             return latent_mean_values_;
-        if(reconstruction_source_value_ == ReconstructionSource::TopDown)
+        if(effective_reconstruction_source_is(reconstruction_source_top_down))
         {
             if(!top_down_.connected() || top_down_.is_uninitialized() || top_down_.empty())
                 return latent_mean_values_;
@@ -768,13 +775,15 @@ class ConvolutionalVariationalAutoEncoder: public Module
 
         const float beta = beta_.as_float();
         const float kl_scale = beta / std::max(1, latent_size_value_);
+        const bool source_sample = effective_reconstruction_source_is(reconstruction_source_sample);
+        const bool source_mean = effective_reconstruction_source_is(reconstruction_source_mean);
 
-        if(reconstruction_source_value_ == ReconstructionSource::Sample)
+        if(source_sample)
         {
             d_mean_.copy(d_latent_).multiply_and_accumulate(latent_mean_values_, kl_scale);
             d_log_variance_.copy(d_latent_).multiply(latent_epsilon_).multiply(latent_stddev_).scale(0.5f);
         }
-        else if(reconstruction_source_value_ == ReconstructionSource::Mean)
+        else if(source_mean)
         {
             d_mean_.copy(d_latent_).multiply_and_accumulate(latent_mean_values_, kl_scale);
             d_log_variance_.reset();
@@ -957,15 +966,17 @@ class ConvolutionalVariationalAutoEncoder: public Module
         const float * stddev = latent_stddev_.data();
         float * d_mean = d_mean_.data();
         float * d_log_variance = d_log_variance_.data();
+        const bool source_sample = effective_reconstruction_source_is(reconstruction_source_sample);
+        const bool source_mean = effective_reconstruction_source_is(reconstruction_source_mean);
 
         for(int i = 0; i < latent_values_.size(); ++i)
         {
-            if(reconstruction_source_value_ == ReconstructionSource::Sample)
+            if(source_sample)
             {
                 d_mean[i] = latent_gradient[i] + kl_scale * mean[i];
                 d_log_variance[i] = 0.5f * latent_gradient[i] * epsilon[i] * stddev[i];
             }
-            else if(reconstruction_source_value_ == ReconstructionSource::Mean)
+            else if(source_mean)
             {
                 d_mean[i] = latent_gradient[i] + kl_scale * mean[i];
                 d_log_variance[i] = 0.0f;
@@ -1394,6 +1405,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
     void
     Tick()
     {
+        validate_reconstruction_source();
+
         if(effort_.connected() && !effort_.empty() && effort_.sum() <= 0.0f)
             return;
 
@@ -1441,7 +1454,21 @@ class ConvolutionalVariationalAutoEncoder: public Module
 
         if(train_.as_bool() && should_train_this_tick())
         {
+            const bool use_teacher_forced_reconstruction = reconstruction_source_is(reconstruction_source_top_down);
+            if(use_teacher_forced_reconstruction)
+            {
+                displayed_output_.copy(output_);
+                training_reconstruction_ = true;
+                decode();
+            }
+
             train_step();
+            if(use_teacher_forced_reconstruction)
+            {
+                training_reconstruction_ = false;
+                output_.copy(displayed_output_);
+            }
+
             if(profiling)
             {
                 ++profile_counters_.train_ticks;
