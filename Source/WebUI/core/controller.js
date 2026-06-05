@@ -40,6 +40,29 @@ const controller =
         return clone;
     },
 
+    normalizeSaveFilename(filename)
+    {
+        if(filename == null)
+            return "";
+
+        let text = String(filename).trim();
+        if(text === "" || text === "null" || text === "undefined")
+            return "";
+
+        text = text.replace(/\\/g, "/");
+        const parts = text.split("/").filter(part => part.length > 0);
+        text = parts.length > 0 ? parts[parts.length - 1] : text;
+        text = text.trim();
+
+        if(text === "" || text === "." || text === "..")
+            return "";
+
+        if(text.toLowerCase().endsWith(".ikg"))
+            text = text.slice(0, -4);
+
+        return text.trim();
+    },
+
     reconnect()
     {
         if(window.auth && typeof auth.resumeAfterReconnect === "function")
@@ -140,7 +163,14 @@ const controller =
         {
             if(main && typeof main.savePaneLayout === "function")
                 main.savePaneLayout();
-            jsonString = JSON.stringify(controller.cloneNetworkForStorage(network.network),null,2);
+            const networkCopy = controller.cloneNetworkForStorage(network.network);
+            const filename = controller.normalizeSaveFilename(networkCopy ? networkCopy.filename : "");
+            if(filename === "")
+                throw new Error("No valid filename is set.");
+            networkCopy.filename = filename;
+            if(network && network.network)
+                network.network.filename = filename;
+            jsonString = JSON.stringify(networkCopy,null,2);
         }
         catch(error)
         {
@@ -451,18 +481,24 @@ const controller =
     save() 
     {
         controller.commitActiveEditBeforeSave();
-        const filename = network && network.network ? network.network.filename : null;
-        if(filename == null || filename === "" || filename === "null")
+        const filename = controller.normalizeSaveFilename(network && network.network ? network.network.filename : null);
+        if(filename === "")
             controller.saveas();
         else
+        {
+            network.network.filename = filename;
             controller.saveNetwork();
+        }
     },
 
     saveas() 
     {
         controller.commitActiveEditBeforeSave();
         dialog.showSaveDialog(function(filename) {
-            network.network.filename = filename;
+            const normalized = controller.normalizeSaveFilename(filename);
+            if(normalized === "")
+                return;
+            network.network.filename = normalized;
             controller.save();
         }, null);
     },
