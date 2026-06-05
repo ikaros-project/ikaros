@@ -271,6 +271,8 @@ namespace ikaros
                 int index = 0;
                 if(!parse_non_negative_index(selector, index))
                     throw exception("Invalid shape index \"" + function_name + "\".", path);
+                if(shape.empty())
+                    return "0";
                 if(index < 0 || static_cast<std::size_t>(index) >= shape.size())
                     throw exception("Shape index out of range in \"" + function_name + "\".", path);
                 return std::to_string(shape[static_cast<std::size_t>(index)]);
