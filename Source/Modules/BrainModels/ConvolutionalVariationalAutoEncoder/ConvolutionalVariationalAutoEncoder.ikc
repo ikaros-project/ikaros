@@ -17,16 +17,18 @@
 	<parameter name="profile" type="bool" default="no" description="Print average timing information for the module" />
 	<parameter name="profile_interval" type="number" default="100" min="1" description="Number of processed ticks between timing reports" />
 	<parameter name="sample" type="bool" default="yes" description="Sample from the latent distribution instead of using the mean" />
+	<parameter name="reconstruction_source" type="string" default="sample" options="sample,mean,top_down" description="Latent source used by the decoder reconstruction path" />
 	<parameter name="weights_filename" type="string" default="cvae_weights.dat" description="Network weights file" />
 	<parameter name="load_weights" type="bool" default="no" description="Load weights during initialization" />
 	<parameter name="save_weights" type="bool" default="no" description="Save weights after each training update" />
 
 	<input name="INPUT" description="Input image or matrix" />
+	<input name="TOP_DOWN" optional="yes" description="Optional top-down latent target used when reconstruction_source is top_down" />
 	<input name="EFFORT" optional="yes" description="Training effort gate; values less than or equal to zero skip processing" />
-	<output name="OUTPUT" size="INPUT.size" description="Reconstructed input" />
-	<output name="LATENT_MEAN" size="@latent_size" description="Latent Gaussian mean" />
-	<output name="LATENT_LOG_VARIANCE" size="@latent_size" description="Latent Gaussian log variance" />
-	<output name="LATENT_SAMPLE" size="@latent_size" description="Latent sample used by the decoder" />
+	<output name="OUTPUT" shape="INPUT.shape" description="Reconstructed input" />
+	<output name="LATENT_MEAN" size="INPUT.rows-@kernel_size-@latent_kernel_size+2,INPUT.cols-@kernel_size-@latent_kernel_size+2,@latent_maps" description="Latent Gaussian mean" />
+	<output name="LATENT_LOG_VARIANCE" size="INPUT.rows-@kernel_size-@latent_kernel_size+2,INPUT.cols-@kernel_size-@latent_kernel_size+2,@latent_maps" description="Latent Gaussian log variance" />
+	<output name="LATENT_SAMPLE" size="INPUT.rows-@kernel_size-@latent_kernel_size+2,INPUT.cols-@kernel_size-@latent_kernel_size+2,@latent_maps" description="Latent sample used by the decoder" />
 	<output name="LOSS" size="1" description="Total VAE loss" />
 	<output name="RECONSTRUCTION_LOSS" size="1" description="Mean squared reconstruction loss" />
 	<output name="KL_LOSS" size="1" description="KL divergence from the unit Gaussian prior" />

@@ -1,8 +1,10 @@
 <group name="ConvolutionalVariationalAutoEncoder_spatial_training_test">
-	<module class="Constant" name="Image" data="0, 0.2, 0.4, 0.6; 0.2, 0.4, 0.6, 0.8; 0.4, 0.6, 0.8, 1; 0.6, 0.8, 1, 0.8" />
+	<module class="Constant" name="Image" _x="40" _y="40" data="0, 0.2, 0.4, 0.6; 0.2, 0.4, 0.6, 0.8; 0.4, 0.6, 0.8, 1; 0.6, 0.8, 1, 0.8" />
 	<module
 		class="ConvolutionalVariationalAutoEncoder"
 		name="CVAE"
+		_x="300"
+		_y="40"
 		latent_mode="spatial"
 		latent_maps="2"
 		latent_kernel_size="1"
@@ -14,4 +16,11 @@
 		sample="no"
 	/>
 	<connection source="Image.OUTPUT" target="CVAE.INPUT" />
+	<widget class="image" name="InputImage" title="Input" source="Image.OUTPUT" format="gray" x="40" y="200" width="260" height="220" min="0" max="1" scale="both" show_title="true" show_frame="true"  _x="40" _y="200" />
+	<widget class="image" name="ReconstructionImage" title="Reconstruction" source="CVAE.OUTPUT" format="gray" x="340" y="200" width="260" height="220" min="0" max="1" scale="both" show_title="true" show_frame="true"  _x="340" _y="200" />
+	<widget class="table" name="LatentMeanTable" title="Latent Mean" source="CVAE.LATENT_MEAN" x="640" y="200" width="260" height="140" decimals="3" show_title="true" show_frame="true" colorize="true"  _x="640" _y="200" />
+	<widget class="table" name="LatentSampleTable" title="Latent Sample" source="CVAE.LATENT_SAMPLE" x="640" y="360" width="260" height="140" decimals="3" show_title="true" show_frame="true" colorize="true"  _x="640" _y="360" />
+	<widget class="plot" name="LossPlot" title="Loss" source="CVAE.LOSS" x="40" y="540" width="260" height="160" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100"  _x="40" _y="540" />
+	<widget class="plot" name="ReconstructionLossPlot" title="Reconstruction Loss" source="CVAE.RECONSTRUCTION_LOSS" x="340" y="540" width="260" height="160" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100"  _x="340" _y="540" />
+	<widget class="plot" name="KLLossPlot" title="KL Loss" source="CVAE.KL_LOSS" x="640" y="540" width="260" height="160" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100"  _x="640" _y="540" />
 </group>

@@ -1,0 +1,64 @@
+<group name="ConvolutionalVariationalAutoEncoder_hierarchical_movie_test" title="Hierarchical Convolutional VAE Movie Example">
+	<module
+		class="InputVideoFile"
+		name="Movie"
+		_x="40"
+		_y="40"
+		filename="../Source/Modules/IOModules/FileInput/InputVideoFile/ikaros.mp4"
+		loop="true"
+		size_x="32"
+		size_y="24"
+	/>
+
+	<module
+		class="ConvolutionalVariationalAutoEncoder"
+		name="CVAE_Level1"
+		_x="340"
+		_y="40"
+		latent_mode="spatial"
+		latent_maps="4"
+		latent_kernel_size="2"
+		feature_maps="8"
+		kernel_size="3"
+		learning_rate="0.001"
+		beta="0.001"
+		train="yes"
+		train_interval="4"
+		dense_train_interval="2"
+		reconstruction_source="top_down"
+		sample="no"
+	/>
+
+	<module
+		class="ConvolutionalVariationalAutoEncoder"
+		name="CVAE_Level2"
+		_x="680"
+		_y="40"
+		latent_mode="spatial"
+		latent_maps="3"
+		latent_kernel_size="2"
+		feature_maps="6"
+		kernel_size="3"
+		learning_rate="0.001"
+		beta="0.001"
+		train="yes"
+		train_interval="8"
+		dense_train_interval="2"
+		reconstruction_source="mean"
+		sample="no"
+	/>
+
+	<connection source="Movie.INTENSITY" target="CVAE_Level1.INPUT" />
+	<connection source="CVAE_Level1.LATENT_MEAN" target="CVAE_Level2.INPUT" delay="1" />
+	<connection source="CVAE_Level2.OUTPUT" target="CVAE_Level1.TOP_DOWN" delay="1" />
+
+	<widget class="image" name="InputImage" title="Movie Input" source="Movie.INTENSITY" format="gray" x="40" y="220" width="300" height="225" min="0" max="1" scale="both" show_title="true" show_frame="true"  _x="40" _y="220" />
+	<widget class="image" name="Level1Image" title="Level 1 Reconstruction" source="CVAE_Level1.OUTPUT" format="gray" x="380" y="220" width="300" height="225" min="0" max="1" scale="both" show_title="true" show_frame="true"  _x="380" _y="220" />
+	<widget class="image" name="Level2Image" title="Level 2 Reconstruction" source="CVAE_Level2.OUTPUT" format="gray" x="720" y="220" width="300" height="225" min="0" max="1" scale="both" show_title="true" show_frame="true"  _x="720" _y="220" />
+	<widget class="plot" name="Level1KL" title="Level 1 KL Loss" source="CVAE_Level1.KL_LOSS" x="1060" y="220" width="300" height="140" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100"  _x="1060" _y="220" />
+	<widget class="plot" name="Level2KL" title="Level 2 KL Loss" source="CVAE_Level2.KL_LOSS" x="1060" y="380" width="300" height="140" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100"  _x="1060" _y="380" />
+	<widget class="plot" name="Level1Loss" title="Level 1 Loss" source="CVAE_Level1.LOSS" x="40" y="560" width="300" height="170" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100"  _x="40" _y="560" />
+	<widget class="plot" name="Level2Loss" title="Level 2 Loss" source="CVAE_Level2.LOSS" x="380" y="560" width="300" height="170" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100"  _x="380" _y="560" />
+	<widget class="plot" name="Level1ReconstructionLoss" title="Level 1 Reconstruction Loss" source="CVAE_Level1.RECONSTRUCTION_LOSS" x="720" y="560" width="300" height="170" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100"  _x="720" _y="560" />
+	<widget class="plot" name="Level2ReconstructionLoss" title="Level 2 Reconstruction Loss" source="CVAE_Level2.RECONSTRUCTION_LOSS" x="1060" y="560" width="300" height="170" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100"  _x="1060" _y="560" />
+</group>
