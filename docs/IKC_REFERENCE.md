@@ -158,6 +158,7 @@ Declares a named output buffer.
 - `shape`
   - Preferred output shape expression.
   - Required for module outputs unless `alias` is used or a class-level `size` fallback exists.
+  - Use `optional(...)` around a whole dimension item to explicitly drop that dimension when it evaluates to `0`, for example `shape="optional(INPUT.size_z),INPUT.rows,INPUT.cols"`.
 - `dynamic`
   - If truthy, the output has a fixed maximum capacity but a logical shape that can change at runtime.
   - Dynamic outputs are intended for append-style row or slice stacks.

@@ -291,6 +291,7 @@ Examples:
 - `shape="@a,@b"`
 - `shape="INPUT.shape"`
 - `shape="INPUT.shape[1:]"`
+- `shape="optional(INPUT.size_z),INPUT.rows,INPUT.cols"`
 
 ### Extra behavior in size expressions
 
@@ -300,6 +301,31 @@ When evaluating shapes:
 - boolean results are converted to `1` or `0`
 - the final result must be positive integers
 - matrix-valued results are not allowed as a single dimension expression
+
+### Optional dimensions
+
+Use `optional(...)` to explicitly drop one dimension when it evaluates to `0`.
+
+`optional(...)` is a shape-list modifier, not a general expression function. It is recognized only when it wraps an entire top-level dimension item.
+
+Example:
+
+```xml
+<output name="OUTPUT" shape="optional(INPUT.size_z),INPUT.rows/2,INPUT.cols/2" />
+```
+
+For a 2D input, `INPUT.size_z` evaluates to `0`, so the optional dimension is dropped and the output shape becomes `INPUT.rows/2,INPUT.cols/2`. For a 3D input, `INPUT.size_z` is kept as the leading dimension.
+
+Only explicitly optional dimensions are dropped. A non-optional dimension that evaluates to `0` leaves the shape unresolved during setup instead of silently producing a partial shape.
+
+Allowed:
+
+- `shape="optional(INPUT.size_z),INPUT.rows,INPUT.cols"`
+
+Not valid as an optional dimension:
+
+- `shape="optional(INPUT.size_z)+1,INPUT.rows,INPUT.cols"`
+- `shape="2*optional(INPUT.size_z),INPUT.rows,INPUT.cols"`
 
 ### Examples
 

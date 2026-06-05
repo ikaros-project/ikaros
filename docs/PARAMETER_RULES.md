@@ -264,6 +264,16 @@ Examples:
 
 Prefer `.shape`, `.shape[...]`, and `.rank` in new expressions. `.size`, `.size[...]`, and `.size_x/.size_y/.size_z` remain supported as compatibility aliases.
 
+### Optional Shape Dimensions
+
+In `shape="..."` and `size="..."` lists, a dimension can be explicitly marked optional:
+
+```xml
+shape="optional(INPUT.size_z),INPUT.rows,INPUT.cols"
+```
+
+If the wrapped dimension evaluates to `0`, it is dropped from the shape list. If it evaluates to a positive integer, it is kept. `optional(...)` is recognized only as a whole top-level shape-list item; it is not a general expression function.
+
 ### Math
 
 Top-level math operators currently recognized are:

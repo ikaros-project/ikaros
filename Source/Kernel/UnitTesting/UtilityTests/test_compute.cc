@@ -119,6 +119,18 @@ main()
     std::vector<int> rank_shape = root->EvaluateShapeList(rank_dim);
     assert(rank_shape.size() == 1 && rank_shape[0] == 2);
 
+    std::string optional_missing_dim = "optional(child.input.size_z), child.input.rows, child.input.cols";
+    std::vector<int> optional_missing_shape = root->EvaluateShapeList(optional_missing_dim);
+    assert(optional_missing_shape.size() == 2 && optional_missing_shape[0] == 2 && optional_missing_shape[1] == 3);
+
+    std::string optional_present_dim = "optional(child.input.rows), child.input.cols";
+    std::vector<int> optional_present_shape = root->EvaluateShapeList(optional_present_dim);
+    assert(optional_present_shape.size() == 2 && optional_present_shape[0] == 2 && optional_present_shape[1] == 3);
+
+    std::string nonoptional_zero_dim = "child.input.size_z, child.input.rows, child.input.cols";
+    std::vector<int> nonoptional_zero_shape = root->EvaluateShapeList(nonoptional_zero_dim);
+    assert(nonoptional_zero_shape.empty());
+
     std::string saved_xml = root->xml();
     assert(saved_xml.find("shape_expr=\"child.input.shape[1:]\"") != std::string::npos);
 

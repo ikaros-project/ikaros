@@ -1470,12 +1470,38 @@ namespace ikaros
                 pos += replacement.size();
             }
         };
+        auto unwrap_optional_dimension = [](std::string & item)
+        {
+            const std::string optional_prefix = "optional(";
+            if(item.size() <= optional_prefix.size() || !starts_with(item, std::string(optional_prefix)) || item.back() != ')')
+                return false;
+
+            int depth = 0;
+            for(size_t i = 0; i < item.size(); ++i)
+            {
+                if(item[i] == '(')
+                    ++depth;
+                else if(item[i] == ')')
+                {
+                    --depth;
+                    if(depth == 0 && i != item.size() - 1)
+                        return false;
+                }
+            }
+
+            item = trim(item.substr(optional_prefix.size(), item.size() - optional_prefix.size() - 1));
+            return true;
+        };
 
         for(std::string e : ComputeEngine::SplitTopLevel(s, ','))
         {
             e = trim(e);
             if(e.empty())
                 continue;
+
+            bool optional_dimension = unwrap_optional_dimension(e);
+            if(optional_dimension && e.empty())
+                throw std::invalid_argument("optional() requires a size expression.");
 
             std::string rewritten = e;
             expression expr(e);
@@ -1510,17 +1536,24 @@ namespace ikaros
             if(computed.find(';') != std::string::npos)
                 throw std::invalid_argument("Size expression \""+e+"\" evaluated to a matrix.");
 
+            bool had_dimension = false;
             for(std::string item : ComputeEngine::SplitTopLevel(computed, ','))
             {
                 item = trim(item);
                 if(item.empty())
                     continue;
+                if(optional_dimension && had_dimension)
+                    throw std::invalid_argument("optional() must resolve to a single dimension.");
+                had_dimension = true;
 
                 int d = ComputeInt(item);
-                if(d>0)
-                    shape.push_back(d);
-                // else
-                //     throw std::invalid_argument("Value of "+e+" is non-positive or not found."); // Does not work since function can be called multiple times duing SetSizes
+                if(d < 0)
+                    return {};
+                if(d == 0 && optional_dimension)
+                    continue;
+                if(d == 0)
+                    return {};
+                shape.push_back(d);
             }
         }
         return shape;
@@ -2428,7 +2461,7 @@ namespace ikaros
     bool
     Connection::IsWholeMatrixConnection() const
     {
-        return !source_indexed_ && !target_indexed_ && !flatten_;
+        return !source_indexed_ && !target_indexed_ && !flatten_ && !stacked_;
     }
 
 
@@ -2441,9 +2474,12 @@ namespace ikaros
 
         auto & k = kernel();
 
-        if(k.buffers[source].is_dynamic() && IsWholeMatrixConnection())
+        if(IsWholeMatrixConnection() &&
+            (delay_range_.is_delay_0() || delay_range_.empty() || delay_range_.is_delay_1()) &&
+            (k.buffers[target].is_dynamic() || k.buffers[target].shape() == k.buffers[source].shape()))
         {
-            k.buffers[target].resize(k.buffers[source].shape());
+            if(k.buffers[target].is_dynamic())
+                k.buffers[target].resize(k.buffers[source].shape());
             k.buffers[target].copy(k.buffers[source]);
             return;
         }
