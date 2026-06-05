@@ -1,6 +1,5 @@
 <class name="Downsample" description="Downsamples an image by 2x using averaging">
     <input name="INPUT" description="2D input image" />
-    <output name="OUTPUT" description="Downsampled image (1/2x)" size="INPUT.size_z,INPUT.rows/2, INPUT.cols/2" />
+    <output name="OUTPUT" description="Downsampled image (1/2x)" size="optional(INPUT.size_z),INPUT.rows/2, INPUT.cols/2" />
 </class>
-
 

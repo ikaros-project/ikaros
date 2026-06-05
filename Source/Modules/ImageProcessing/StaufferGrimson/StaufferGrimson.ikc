@@ -19,8 +19,8 @@ Implementation of the Stauffer-Grimson forground/background segmentation for gra
 
 <output name="OUTPUT" size="INPUT.size_y, INPUT.size_x" description="The processed image" />
 
-<output name="WEIGHTS" size="INPUT.size_z, INPUT.size_y, INPUT.size_x,@max_gaussians" description="The weights" />
-<output name="MEANS" size="INPUT.size_z, INPUT.size_y, INPUT.size_x,@max_gaussians" description="The mean of each gaussian" />
-<output name="VARIANCES" size="INPUT.size_z, INPUT.size_y, INPUT.size_x,@max_gaussians" description="The variance of each gaussian" />
+<output name="WEIGHTS" size="optional(INPUT.size_z), INPUT.size_y, INPUT.size_x,@max_gaussians" description="The weights" />
+<output name="MEANS" size="optional(INPUT.size_z), INPUT.size_y, INPUT.size_x,@max_gaussians" description="The mean of each gaussian" />
+<output name="VARIANCES" size="optional(INPUT.size_z), INPUT.size_y, INPUT.size_x,@max_gaussians" description="The variance of each gaussian" />
 
 </class>
