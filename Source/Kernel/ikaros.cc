@@ -1460,6 +1460,28 @@ namespace ikaros
             current->Bind(m, segments.back());
             return matrix_shape_expression_value(m, function_name, path_);
         };
+        auto resolve_parameter_for_shape = [&](const std::string & token) -> std::optional<std::string>
+        {
+            if(token.empty() || token[0] != '@')
+                return std::nullopt;
+
+            const std::string parameter_name = token.substr(1);
+            if(parameter_name.empty() || parameter_name.find('.') != std::string::npos || parameter_name.find('@') != std::string::npos)
+                return std::nullopt;
+
+            parameter p;
+            if(!LookupParameter(p, parameter_name))
+                return std::nullopt;
+
+            if(p.has_options && (p.type == number_type || p.type == rate_type))
+                return p.as_int_string();
+            if(p.type == number_type || p.type == rate_type)
+                return formatNumber(p.as_double());
+            if(p.type == bool_type)
+                return p.as_bool() ? "1" : "0";
+
+            return std::nullopt;
+        };
         auto replace_all = [](std::string & target, const std::string & needle, const std::string & replacement)
         {
             if(needle.empty())
@@ -1513,7 +1535,8 @@ namespace ikaros
                     replace_all(rewritten, var, *replacement);
                 else if(!var.empty() && var[0] == '@')
                 {
-                    std::string replacement = ComputeValue(var);
+                    std::optional<std::string> shape_parameter = resolve_parameter_for_shape(var);
+                    std::string replacement = shape_parameter ? *shape_parameter : ComputeValue(var);
                     if(replacement == "true")
                         replacement = "1";
                     else if(replacement == "false")
@@ -2922,6 +2945,29 @@ bool operator==(Request & r, const std::string s)
                 return pending;
             };
 
+            auto pending_size_names = [&]() -> std::vector<std::string>
+            {
+                std::vector<std::string> pending;
+                for(auto & [name, component] : components)
+                {
+                    for(dictionary d : component->info_["inputs"])
+                    {
+                        std::string full_name = name + "." + d["name"].as_string();
+                        if(!d.is_set("optional") && ingoing_connections.count(full_name) && buffers[full_name].empty())
+                            pending.push_back(full_name);
+                    }
+
+                    bool is_module = dynamic_cast<Module *>(component.get()) != nullptr;
+                    for(dictionary d : component->info_["outputs"])
+                    {
+                        std::string full_name = name + "." + d["name"].as_string();
+                        if((is_module || ingoing_connections.count(full_name)) && buffers[full_name].empty())
+                            pending.push_back(full_name);
+                    }
+                }
+                return pending;
+            };
+
             auto size_signature = [&]() -> std::size_t
             {
                 std::size_t signature = 0;
@@ -2956,7 +3002,7 @@ bool operator==(Request & r, const std::string s)
 
             std::size_t pending = count_pending_sizes();
             if(pending != 0)
-                throw setup_failed("Could not resolve all input and output sizes. " + std::to_string(pending) + " buffers remain unresolved.");
+                throw setup_failed("Could not resolve all input and output sizes. " + std::to_string(pending) + " buffers remain unresolved: " + join(", ", pending_size_names(), false) + ".");
         }
         catch(fatal_error & e)
         {

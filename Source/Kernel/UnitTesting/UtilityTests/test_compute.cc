@@ -77,6 +77,8 @@ main()
 
     k.buffers["root.child.input"] = matrix().set_name("input");
     k.buffers["root.child.input"].realloc(2, 3);
+    root->AddParameter(dictionary({{"name", "padding"}, {"type", "number"}, {"options", "valid,same"}, {"default", "valid"}}));
+    root->SetParameter("padding", "same");
 
     assert(root->ComputeValue("value") == "value");
     assert(root->ComputeValue("child.value") == "value");
@@ -96,6 +98,7 @@ main()
     assert(root->ComputeValue("child.input.rank+1") == "3");
     assert(root->ComputeValue("child.input.size[0]") == "2");
     assert(root->ComputeValue("child.input.size[1:]") == "3");
+    assert(root->ComputeValue("@padding") == "same");
     assert(root->ComputeValue("child.@value,@target.@value,child.input.rows*2") == "7,7,4");
     assert(root->ComputeValue("child.@value,@target.@value;child.input.rows*2,{child.expr};") == "7,7;4,7");
     assert(settings->ComputeValue("type") == "type");
@@ -118,6 +121,10 @@ main()
     std::string rank_dim = "child.input.rank";
     std::vector<int> rank_shape = root->EvaluateShapeList(rank_dim);
     assert(rank_shape.size() == 1 && rank_shape[0] == 2);
+
+    std::string numeric_option_dim = "child.input.rows+@padding";
+    std::vector<int> numeric_option_shape = root->EvaluateShapeList(numeric_option_dim);
+    assert(numeric_option_shape.size() == 1 && numeric_option_shape[0] == 3);
 
     std::string optional_missing_dim = "optional(child.input.size_z), child.input.rows, child.input.cols";
     std::vector<int> optional_missing_shape = root->EvaluateShapeList(optional_missing_dim);

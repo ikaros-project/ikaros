@@ -1,0 +1,41 @@
+<group name="ConvolutionalVariationalAutoEncoder_rgb_movie_test" title="Convolutional VAE RGB Movie Example">
+	<module
+		class="InputVideoFile"
+		name="Movie"
+		_x="40"
+		_y="40"
+		filename="../Source/Modules/IOModules/FileInput/InputVideoFile/ikaros.mp4"
+		loop="true"
+		size_x="32"
+		size_y="24"
+	/>
+
+	<module
+		class="ConvolutionalVariationalAutoEncoder"
+		name="CVAE"
+		_x="380"
+		_y="40"
+		latent_mode="spatial"
+		latent_maps="4"
+		latent_kernel_size="2"
+		feature_maps="10"
+		kernel_size="3"
+		learning_rate="0.001"
+		beta="0.001"
+		train="yes"
+		train_interval="4"
+		dense_train_interval="2"
+		reconstruction_source="mean"
+		output_activation="sigmoid"
+		sample="no"
+	/>
+
+	<connection source="Movie.OUTPUT" target="CVAE.INPUT" />
+
+	<widget class="image" name="InputImage" title="RGB Movie Input" source="Movie.OUTPUT" format="rgb" x="40" y="220" width="320" height="240" min="0" max="1" scale="both" show_title="true" show_frame="true" _x="40" _y="220" />
+	<widget class="image" name="ReconstructionImage" title="RGB CVAE Reconstruction" source="CVAE.OUTPUT" format="rgb" x="400" y="220" width="320" height="240" min="0" max="1" scale="both" show_title="true" show_frame="true" _x="400" _y="220" />
+	<widget class="plot" name="LossPlot" title="Loss" source="CVAE.LOSS" x="760" y="220" width="320" height="140" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100" _x="760" _y="220" />
+	<widget class="plot" name="ReconstructionLossPlot" title="Reconstruction Loss" source="CVAE.RECONSTRUCTION_LOSS" x="760" y="380" width="320" height="140" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100" _x="760" _y="380" />
+	<widget class="plot" name="KLLossPlot" title="KL Loss" source="CVAE.KL_LOSS" x="40" y="520" width="320" height="140" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100" _x="40" _y="520" />
+	<widget class="bar-graph" name="LatentMean" title="Latent Mean" source="CVAE.LATENT_MEAN" x="400" y="520" width="320" height="180" min="-2" max="2" show_title="true" show_frame="true" _x="400" _y="520" />
+</group>

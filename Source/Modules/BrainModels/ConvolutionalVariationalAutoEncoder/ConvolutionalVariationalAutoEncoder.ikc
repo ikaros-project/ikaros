@@ -1,10 +1,11 @@
-<class name="ConvolutionalVariationalAutoEncoder" description="learns a compact latent representation with a convolutional variational auto-encoder">
-	<parameter name="latent_mode" type="string" default="dense" options="dense,spatial" description="Latent bottleneck architecture" />
+<class name="ConvolutionalVariationalAutoEncoder" description="learns a compact latent representation with a convolutional variational auto-encoder" shape_latent_rows_valid="INPUT.rows-@kernel_size-@latent_kernel_size+2" shape_latent_cols_valid="INPUT.cols-@kernel_size-@latent_kernel_size+2" shape_latent_same_extra="@kernel_size+@latent_kernel_size-2">
+	<parameter name="latent_mode" type="number" default="dense" options="dense,spatial" description="Latent bottleneck architecture" />
 	<parameter name="latent_size" type="number" default="8" min="1" description="Number of latent variables in dense mode" />
 	<parameter name="latent_maps" type="number" default="4" min="1" description="Number of latent feature maps in spatial mode" />
 	<parameter name="latent_kernel_size" type="number" default="1" min="1" description="Encoder neighborhood size used to form spatial latent maps" />
 	<parameter name="feature_maps" type="number" default="4" min="1" description="Number of convolutional feature maps" />
 	<parameter name="kernel_size" type="number" default="3" min="1" description="Convolution kernel size" />
+	<parameter name="padding" type="number" default="valid" options="valid,same" description="Convolution padding mode" />
 	<parameter name="learning_rate" type="number" default="0.001" min="0" description="Learning rate used when training" />
 	<parameter name="optimizer" type="string" default="adam" options="adam,sgd" description="Optimizer used for training" />
 	<parameter name="adam_beta1" type="number" default="0.9" min="0" max="1" description="Adam first moment decay" />
@@ -18,6 +19,7 @@
 	<parameter name="profile_interval" type="number" default="100" min="1" description="Number of processed ticks between timing reports" />
 	<parameter name="sample" type="bool" default="yes" description="Sample from the latent distribution instead of using the mean" />
 	<parameter name="reconstruction_source" type="number" default="sample" options="sample,mean,top_down" description="Latent source used by the decoder reconstruction path" />
+	<parameter name="output_activation" type="number" default="linear" options="linear,sigmoid" description="Activation applied to the reconstructed output" />
 	<parameter name="weights_filename" type="string" default="cvae_weights.dat" description="Network weights file" />
 	<parameter name="load_weights" type="bool" default="no" description="Load weights during initialization" />
 	<parameter name="save_weights" type="bool" default="no" description="Save weights after each training update" />
@@ -26,9 +28,9 @@
 	<input name="TOP_DOWN" optional="yes" description="Optional top-down latent target used when reconstruction_source is top_down" />
 	<input name="EFFORT" optional="yes" description="Training effort gate; values less than or equal to zero skip processing" />
 	<output name="OUTPUT" shape="INPUT.shape" description="Reconstructed input" />
-	<output name="LATENT_MEAN" size="INPUT.shape[0]-@kernel_size-@latent_kernel_size+2,INPUT.shape[1]-@kernel_size-@latent_kernel_size+2,@latent_maps" description="Latent Gaussian mean" />
-	<output name="LATENT_LOG_VARIANCE" size="INPUT.shape[0]-@kernel_size-@latent_kernel_size+2,INPUT.shape[1]-@kernel_size-@latent_kernel_size+2,@latent_maps" description="Latent Gaussian log variance" />
-	<output name="LATENT_SAMPLE" size="INPUT.shape[0]-@kernel_size-@latent_kernel_size+2,INPUT.shape[1]-@kernel_size-@latent_kernel_size+2,@latent_maps" description="Latent sample used by the decoder" />
+	<output name="LATENT_MEAN" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(@shape_latent_rows_valid+@padding*@shape_latent_same_extra)),optional(@latent_mode*(@shape_latent_cols_valid+@padding*@shape_latent_same_extra))" description="Latent Gaussian mean" />
+	<output name="LATENT_LOG_VARIANCE" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(@shape_latent_rows_valid+@padding*@shape_latent_same_extra)),optional(@latent_mode*(@shape_latent_cols_valid+@padding*@shape_latent_same_extra))" description="Latent Gaussian log variance" />
+	<output name="LATENT_SAMPLE" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(@shape_latent_rows_valid+@padding*@shape_latent_same_extra)),optional(@latent_mode*(@shape_latent_cols_valid+@padding*@shape_latent_same_extra))" description="Latent sample used by the decoder" />
 	<output name="LOSS" size="1" description="Total VAE loss" />
 	<output name="RECONSTRUCTION_LOSS" size="1" description="Mean squared reconstruction loss" />
 	<output name="KL_LOSS" size="1" description="KL divergence from the unit Gaussian prior" />

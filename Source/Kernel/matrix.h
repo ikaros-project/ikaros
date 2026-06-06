@@ -113,6 +113,11 @@ namespace ikaros
     class matrix 
     {
     public:
+        enum class convolution_padding
+        {
+            valid,
+            same
+        };
 
         struct iterator
         {
@@ -462,6 +467,13 @@ namespace ikaros
         matrix & subtract(float c);
         matrix & scale(float c);
         matrix & multiply_and_accumulate(const matrix & A, float c);
+        matrix & relu(const matrix & A);
+        matrix & scale(const matrix & A, float scale);
+        matrix & exp_scaled(const matrix & A, float scale);
+        matrix & exp_minus_one_scaled(const matrix & A, float scale);
+        matrix & add_scaled(const matrix & A, const matrix & B, float scale);
+        matrix & sample_gaussian(const matrix & mean, const matrix & stddev, const matrix & epsilon);
+        matrix & latent_log_variance_gradient(const matrix & latent_gradient, const matrix & epsilon, const matrix & stddev, const matrix & log_variance, float kl_scale);
         matrix & divide(float c);
 
         matrix & add(const matrix & A);
@@ -581,31 +593,22 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
 
     matrix &conv(const matrix &I, const matrix &K); // Convolution of I and K; border; result same size as input image
 
-    // Valid 2D filter-bank correlation used by trainable convolutional layers.
-    // Shape convention: I [H,W], K [F,KH,KW], B [F], Y/dY [H-KH+1,W-KW+1,F].
-    matrix & conv2_valid_filterbank(const matrix & I, const matrix & K); // I [H,W], K [F,KH,KW] -> Y [F,OH,OW]
-    matrix & conv2_valid_filterbank(const matrix & I, const matrix & K, const matrix & B); // Y from I, K, and per-filter bias B
-    matrix & conv2_valid_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols); // dK [F,KH,KW]
-    matrix & conv2_valid_filterbank_backward_filters_relu(const matrix & I, const matrix & dY, const matrix & pre_activation, int kernel_rows, int kernel_cols); // dK using dY * (pre_activation > 0)
-    matrix & conv2_valid_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols); // dI [H,W]
-    matrix & sum_first_two_dimensions(const matrix & A); // A [H,W,F] -> result [F]
-    matrix & sum_first_two_dimensions_relu(const matrix & A, const matrix & pre_activation); // Sum A * (pre_activation > 0) over H,W
+    // 2D filter-bank correlation used by trainable convolutional layers.
+    // Shape convention with valid padding: I [H,W], K [F,KH,KW], B [F], Y/dY [F,H-KH+1,W-KW+1].
+    matrix & conv2_filterbank(const matrix & I, const matrix & K, convolution_padding padding); // I [H,W], K [F,KH,KW] -> Y [F,OH,OW]
+    matrix & conv2_filterbank(const matrix & I, const matrix & K, const matrix & B, convolution_padding padding); // Y from I, K, and per-filter bias B
+    matrix & conv2_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols, convolution_padding padding); // dK [F,KH,KW]
+    matrix & conv2_filterbank_backward_filters_relu(const matrix & I, const matrix & dY, const matrix & pre_activation, int kernel_rows, int kernel_cols, convolution_padding padding); // dK using dY * (pre_activation > 0)
+    matrix & conv2_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols, convolution_padding padding); // dI [H,W]
     matrix & sum_last_two_dimensions(const matrix & A); // A [C,H,W] -> result [C]
     matrix & sum_last_two_dimensions_relu(const matrix & A, const matrix & pre_activation); // Sum A * (pre_activation > 0) over H,W
-    // 1x1 map projection used by spatial latent layers.
-    // Shape convention: I/dI [H,W,C], W/dW [O,C], B/dB [O], Y/dY [H,W,O].
-    matrix & conv1x1_map(const matrix & I, const matrix & W); // Y from I and W
-    matrix & conv1x1_map(const matrix & I, const matrix & W, const matrix & B); // Y from I, W, and bias B
-    matrix & conv1x1_map_backward_weights(const matrix & I, const matrix & dY); // dW [O,C]
-    matrix & conv1x1_map_backward_input(const matrix & W, const matrix & dY); // dI [H,W,C]
-    matrix & conv1x1_map_backward(const matrix & I, const matrix & W, const matrix & dY, matrix & dW, matrix & dB); // dI, dW, dB
-    // Multi-channel valid 2D filter-bank correlation used by spatial latent layers.
+    // Multi-channel 2D filter-bank correlation used by spatial latent layers.
     // Shape convention: I/dI [C,H,W], K/dK [O,C,KH,KW], B/dB [O], Y/dY [O,H-KH+1,W-KW+1].
-    matrix & conv2_valid_channel_filterbank(const matrix & I, const matrix & K); // Y from I and K
-    matrix & conv2_valid_channel_filterbank(const matrix & I, const matrix & K, const matrix & B); // Y from I, K, and per-filter bias B
-    matrix & conv2_valid_channel_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols); // dK [O,C,KH,KW]
-    matrix & conv2_valid_channel_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols); // dI [C,H,W]
-    matrix & conv2_valid_channel_filterbank_backward(const matrix & I, const matrix & K, const matrix & dY, matrix & dK, matrix & dB); // dI, dK, dB
+    matrix & conv2_channel_filterbank(const matrix & I, const matrix & K, convolution_padding padding); // Y from I and K
+    matrix & conv2_channel_filterbank(const matrix & I, const matrix & K, const matrix & B, convolution_padding padding); // Y from I, K, and per-filter bias B
+    matrix & conv2_channel_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols, convolution_padding padding); // dK [O,C,KH,KW]
+    matrix & conv2_channel_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols, convolution_padding padding); // dI [C,H,W]
+    matrix & conv2_channel_filterbank_backward(const matrix & I, const matrix & K, const matrix & dY, matrix & dK, matrix & dB, convolution_padding padding); // dI, dK, dB
 
 
     matrix & fillReflect101Border(int wx, int wy);

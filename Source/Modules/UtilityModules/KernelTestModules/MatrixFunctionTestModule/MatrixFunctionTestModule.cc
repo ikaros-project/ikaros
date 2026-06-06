@@ -346,28 +346,28 @@ class MatrixFunctionTestModule : public Module
 
         matrix filter_bias = make_matrix("1, -2");
         matrix filterbank;
-        filterbank.conv2_valid_filterbank(image, filters, filter_bias);
+        filterbank.conv2_filterbank(image, filters, filter_bias, matrix::convolution_padding::valid);
         matrix expected_filterbank(std::vector<int>{2, 2, 2});
         expected_filterbank(0, 0, 0) = -3.0f;
-        expected_filterbank(0, 0, 1) = 10.0f;
+        expected_filterbank(0, 0, 1) = -3.0f;
         expected_filterbank(0, 1, 0) = -3.0f;
-        expected_filterbank(0, 1, 1) = 14.0f;
-        expected_filterbank(1, 0, 0) = -3.0f;
-        expected_filterbank(1, 0, 1) = 22.0f;
-        expected_filterbank(1, 1, 0) = -3.0f;
+        expected_filterbank(0, 1, 1) = -3.0f;
+        expected_filterbank(1, 0, 0) = 10.0f;
+        expected_filterbank(1, 0, 1) = 14.0f;
+        expected_filterbank(1, 1, 0) = 22.0f;
         expected_filterbank(1, 1, 1) = 26.0f;
-        require_matrix_close(filterbank, expected_filterbank, "conv2_valid_filterbank()");
+        require_matrix_close(filterbank, expected_filterbank, "conv2_filterbank()");
 
         matrix dY(std::vector<int>{2, 2, 2});
         for(int y = 0; y < 2; ++y)
             for(int x = 0; x < 2; ++x)
             {
-                dY(y, x, 0) = 1.0f;
-                dY(y, x, 1) = 2.0f;
+                dY(0, y, x) = 1.0f;
+                dY(1, y, x) = 2.0f;
             }
 
         matrix d_filters;
-        d_filters.conv2_valid_filterbank_backward_filters(image, dY, 2, 2);
+        d_filters.conv2_filterbank_backward_filters(image, dY, 2, 2, matrix::convolution_padding::valid);
         matrix expected_d_filters(std::vector<int>{2, 2, 2});
         expected_d_filters(0, 0, 0) = 12.0f;
         expected_d_filters(0, 0, 1) = 16.0f;
@@ -377,7 +377,7 @@ class MatrixFunctionTestModule : public Module
         expected_d_filters(1, 0, 1) = 32.0f;
         expected_d_filters(1, 1, 0) = 48.0f;
         expected_d_filters(1, 1, 1) = 56.0f;
-        require_matrix_close(d_filters, expected_d_filters, "conv2_valid_filterbank_backward_filters()");
+        require_matrix_close(d_filters, expected_d_filters, "conv2_filterbank_backward_filters()");
 
         matrix pre_activation(std::vector<int>{2, 2, 2});
         pre_activation.set(1.0f);
@@ -385,7 +385,7 @@ class MatrixFunctionTestModule : public Module
         pre_activation(1, 1, 1) = -1.0f;
 
         matrix d_filters_relu;
-        d_filters_relu.conv2_valid_filterbank_backward_filters_relu(image, dY, pre_activation, 2, 2);
+        d_filters_relu.conv2_filterbank_backward_filters_relu(image, dY, pre_activation, 2, 2, matrix::convolution_padding::valid);
         matrix expected_d_filters_relu(std::vector<int>{2, 2, 2});
         expected_d_filters_relu(0, 0, 0) = 11.0f;
         expected_d_filters_relu(0, 0, 1) = 14.0f;
@@ -395,150 +395,154 @@ class MatrixFunctionTestModule : public Module
         expected_d_filters_relu(1, 0, 1) = 20.0f;
         expected_d_filters_relu(1, 1, 0) = 32.0f;
         expected_d_filters_relu(1, 1, 1) = 38.0f;
-        require_matrix_close(d_filters_relu, expected_d_filters_relu, "conv2_valid_filterbank_backward_filters_relu()");
+        require_matrix_close(d_filters_relu, expected_d_filters_relu, "conv2_filterbank_backward_filters_relu()");
 
         matrix one_filter(std::vector<int>{1, 2, 2});
         one_filter(0, 0, 0) = 1.0f;
         one_filter(0, 0, 1) = 2.0f;
         one_filter(0, 1, 0) = 3.0f;
         one_filter(0, 1, 1) = 4.0f;
-        matrix one_dY(std::vector<int>{2, 2, 1});
+        matrix one_dY(std::vector<int>{1, 2, 2});
         one_dY.set(1.0f);
         matrix d_input;
-        d_input.conv2_valid_filterbank_backward_input(one_dY, one_filter, 3, 3);
-        require_matrix_close(d_input, make_matrix("1, 3, 2; 4, 10, 6; 3, 7, 4"), "conv2_valid_filterbank_backward_input()");
+        d_input.conv2_filterbank_backward_input(one_dY, one_filter, 3, 3, matrix::convolution_padding::valid);
+        require_matrix_close(d_input, make_matrix("1, 3, 2; 4, 10, 6; 3, 7, 4"), "conv2_filterbank_backward_input()");
 
-        matrix reduced;
-        reduced.sum_first_two_dimensions(dY);
-        require_matrix_close(reduced, make_matrix("4, 8"), "sum_first_two_dimensions()");
+        matrix same_padding_output;
+        same_padding_output.conv2_filterbank(image, filters, filter_bias, matrix::convolution_padding::same);
+        matrix expected_same_padding_output(std::vector<int>{2, 3, 3});
+        expected_same_padding_output(0, 0, 0) = -3.0f;
+        expected_same_padding_output(0, 0, 1) = -3.0f;
+        expected_same_padding_output(0, 0, 2) = 4.0f;
+        expected_same_padding_output(0, 1, 0) = -3.0f;
+        expected_same_padding_output(0, 1, 1) = -3.0f;
+        expected_same_padding_output(0, 1, 2) = 7.0f;
+        expected_same_padding_output(0, 2, 0) = 8.0f;
+        expected_same_padding_output(0, 2, 1) = 9.0f;
+        expected_same_padding_output(0, 2, 2) = 10.0f;
+        expected_same_padding_output(1, 0, 0) = 10.0f;
+        expected_same_padding_output(1, 0, 1) = 14.0f;
+        expected_same_padding_output(1, 0, 2) = 7.0f;
+        expected_same_padding_output(1, 1, 0) = 22.0f;
+        expected_same_padding_output(1, 1, 1) = 26.0f;
+        expected_same_padding_output(1, 1, 2) = 13.0f;
+        expected_same_padding_output(1, 2, 0) = 13.0f;
+        expected_same_padding_output(1, 2, 1) = 15.0f;
+        expected_same_padding_output(1, 2, 2) = 7.0f;
+        require_matrix_close(same_padding_output, expected_same_padding_output, "conv2_filterbank() same padding");
 
-        matrix reduced_relu;
-        reduced_relu.sum_first_two_dimensions_relu(dY, pre_activation);
-        require_matrix_close(reduced_relu, make_matrix("3, 6"), "sum_first_two_dimensions_relu()");
-
-        matrix map_input(std::vector<int>{2, 2, 2});
-        map_input(0, 0, 0) = 1.0f;
-        map_input(0, 0, 1) = 2.0f;
-        map_input(0, 1, 0) = 3.0f;
-        map_input(0, 1, 1) = 4.0f;
-        map_input(1, 0, 0) = 5.0f;
-        map_input(1, 0, 1) = 6.0f;
-        map_input(1, 1, 0) = 7.0f;
-        map_input(1, 1, 1) = 8.0f;
-
-        matrix map_weights = make_matrix("1, 2; -1, 0.5; 0, 3");
-        matrix map_bias = make_matrix("0.5, -1, 2");
-        matrix map_output;
-        map_output.conv1x1_map(map_input, map_weights, map_bias);
-        matrix expected_map_output(std::vector<int>{2, 2, 3});
-        expected_map_output(0, 0, 0) = 5.5f;
-        expected_map_output(0, 0, 1) = -1.0f;
-        expected_map_output(0, 0, 2) = 8.0f;
-        expected_map_output(0, 1, 0) = 11.5f;
-        expected_map_output(0, 1, 1) = -2.0f;
-        expected_map_output(0, 1, 2) = 14.0f;
-        expected_map_output(1, 0, 0) = 17.5f;
-        expected_map_output(1, 0, 1) = -3.0f;
-        expected_map_output(1, 0, 2) = 20.0f;
-        expected_map_output(1, 1, 0) = 23.5f;
-        expected_map_output(1, 1, 1) = -4.0f;
-        expected_map_output(1, 1, 2) = 26.0f;
-        require_matrix_close(map_output, expected_map_output, "conv1x1_map()");
-
-        matrix map_dY(std::vector<int>{2, 2, 3});
-        for(int y = 0; y < 2; ++y)
-            for(int x = 0; x < 2; ++x)
-            {
-                map_dY(y, x, 0) = 1.0f;
-                map_dY(y, x, 1) = 2.0f;
-                map_dY(y, x, 2) = -1.0f;
-            }
-
-        matrix map_dW;
-        map_dW.conv1x1_map_backward_weights(map_input, map_dY);
-        require_matrix_close(map_dW, make_matrix("16, 20; 32, 40; -16, -20"), "conv1x1_map_backward_weights()");
-
-        matrix map_dInput;
-        map_dInput.conv1x1_map_backward_input(map_weights, map_dY);
-        matrix expected_map_dInput(std::vector<int>{2, 2, 2});
-        for(int y = 0; y < 2; ++y)
-            for(int x = 0; x < 2; ++x)
-            {
-                expected_map_dInput(y, x, 0) = -1.0f;
-                expected_map_dInput(y, x, 1) = 0.0f;
-            }
-        require_matrix_close(map_dInput, expected_map_dInput, "conv1x1_map_backward_input()");
-
-        matrix fused_dInput;
-        matrix fused_dW;
-        matrix fused_dB;
-        fused_dInput.conv1x1_map_backward(map_input, map_weights, map_dY, fused_dW, fused_dB);
-        require_matrix_close(fused_dInput, expected_map_dInput, "conv1x1_map_backward() dI");
-        require_matrix_close(fused_dW, make_matrix("16, 20; 32, 40; -16, -20"), "conv1x1_map_backward() dW");
-        require_matrix_close(fused_dB, make_matrix("4, 8, -4"), "conv1x1_map_backward() dB");
-
-        matrix channel_input(std::vector<int>{3, 3, 2});
+        matrix same_dY(std::vector<int>{2, 3, 3});
         for(int y = 0; y < 3; ++y)
             for(int x = 0; x < 3; ++x)
             {
-                channel_input(y, x, 0) = static_cast<float>(y * 3 + x + 1);
-                channel_input(y, x, 1) = static_cast<float>(y * 3 + x + 10);
+                same_dY(0, y, x) = 1.0f;
+                same_dY(1, y, x) = 2.0f;
+            }
+        matrix same_pre_activation(std::vector<int>{2, 3, 3});
+        same_pre_activation.set(1.0f);
+        same_pre_activation(0, 0, 0) = -1.0f;
+        same_pre_activation(1, 1, 1) = -1.0f;
+
+        matrix same_d_filters;
+        same_d_filters.conv2_filterbank_backward_filters(image, same_dY, 2, 2, matrix::convolution_padding::same);
+        matrix expected_same_d_filters(std::vector<int>{2, 2, 2});
+        expected_same_d_filters(0, 0, 0) = 45.0f;
+        expected_same_d_filters(0, 0, 1) = 33.0f;
+        expected_same_d_filters(0, 1, 0) = 39.0f;
+        expected_same_d_filters(0, 1, 1) = 28.0f;
+        expected_same_d_filters(1, 0, 0) = 90.0f;
+        expected_same_d_filters(1, 0, 1) = 66.0f;
+        expected_same_d_filters(1, 1, 0) = 78.0f;
+        expected_same_d_filters(1, 1, 1) = 56.0f;
+        require_matrix_close(same_d_filters, expected_same_d_filters, "conv2_filterbank_backward_filters() same padding");
+
+        matrix same_d_filters_relu;
+        same_d_filters_relu.conv2_filterbank_backward_filters_relu(image, same_dY, same_pre_activation, 2, 2, matrix::convolution_padding::same);
+        matrix expected_same_d_filters_relu(std::vector<int>{2, 2, 2});
+        expected_same_d_filters_relu(0, 0, 0) = 44.0f;
+        expected_same_d_filters_relu(0, 0, 1) = 31.0f;
+        expected_same_d_filters_relu(0, 1, 0) = 35.0f;
+        expected_same_d_filters_relu(0, 1, 1) = 23.0f;
+        expected_same_d_filters_relu(1, 0, 0) = 80.0f;
+        expected_same_d_filters_relu(1, 0, 1) = 54.0f;
+        expected_same_d_filters_relu(1, 1, 0) = 62.0f;
+        expected_same_d_filters_relu(1, 1, 1) = 38.0f;
+        require_matrix_close(same_d_filters_relu, expected_same_d_filters_relu, "conv2_filterbank_backward_filters_relu() same padding");
+
+        matrix same_d_input;
+        same_d_input.conv2_filterbank_backward_input(same_dY, filters, 3, 3, matrix::convolution_padding::same);
+        require_matrix_close(same_d_input, make_matrix("3, 5, 5; 5, 8, 8; 5, 8, 8"), "conv2_filterbank_backward_input() same padding");
+
+        matrix reduced_last;
+        reduced_last.sum_last_two_dimensions(dY);
+        require_matrix_close(reduced_last, make_matrix("4, 8"), "sum_last_two_dimensions()");
+
+        matrix reduced_last_relu;
+        reduced_last_relu.sum_last_two_dimensions_relu(dY, pre_activation);
+        require_matrix_close(reduced_last_relu, make_matrix("3, 6"), "sum_last_two_dimensions_relu()");
+
+        matrix channel_input(std::vector<int>{2, 3, 3});
+        for(int y = 0; y < 3; ++y)
+            for(int x = 0; x < 3; ++x)
+            {
+                channel_input(0, y, x) = static_cast<float>(y * 3 + x + 1);
+                channel_input(1, y, x) = static_cast<float>(y * 3 + x + 10);
             }
 
         matrix channel_filters(std::vector<int>{2, 2, 2, 2});
         channel_filters.reset();
         for(int ky = 0; ky < 2; ++ky)
             for(int kx = 0; kx < 2; ++kx)
-                channel_filters(0, ky, kx, 0) = 1.0f;
-        channel_filters(1, 0, 0, 1) = 1.0f;
-        channel_filters(1, 1, 1, 0) = -1.0f;
+                channel_filters(0, 0, ky, kx) = 1.0f;
+        channel_filters(1, 1, 0, 0) = 1.0f;
+        channel_filters(1, 0, 1, 1) = -1.0f;
 
         matrix channel_bias = make_matrix("0.5, -1");
         matrix channel_output;
-        channel_output.conv2_valid_channel_filterbank(channel_input, channel_filters, channel_bias);
+        channel_output.conv2_channel_filterbank(channel_input, channel_filters, channel_bias, matrix::convolution_padding::valid);
         matrix expected_channel_output(std::vector<int>{2, 2, 2});
         expected_channel_output(0, 0, 0) = 12.5f;
-        expected_channel_output(0, 0, 1) = 4.0f;
-        expected_channel_output(0, 1, 0) = 16.5f;
-        expected_channel_output(0, 1, 1) = 4.0f;
-        expected_channel_output(1, 0, 0) = 24.5f;
+        expected_channel_output(0, 0, 1) = 16.5f;
+        expected_channel_output(0, 1, 0) = 24.5f;
+        expected_channel_output(0, 1, 1) = 28.5f;
+        expected_channel_output(1, 0, 0) = 4.0f;
         expected_channel_output(1, 0, 1) = 4.0f;
-        expected_channel_output(1, 1, 0) = 28.5f;
+        expected_channel_output(1, 1, 0) = 4.0f;
         expected_channel_output(1, 1, 1) = 4.0f;
-        require_matrix_close(channel_output, expected_channel_output, "conv2_valid_channel_filterbank()");
+        require_matrix_close(channel_output, expected_channel_output, "conv2_channel_filterbank()");
 
         matrix channel_dY(std::vector<int>{2, 2, 2});
         for(int y = 0; y < 2; ++y)
             for(int x = 0; x < 2; ++x)
             {
-                channel_dY(y, x, 0) = 1.0f;
-                channel_dY(y, x, 1) = 2.0f;
+                channel_dY(0, y, x) = 1.0f;
+                channel_dY(1, y, x) = 2.0f;
             }
 
         matrix channel_dK;
-        channel_dK.conv2_valid_channel_filterbank_backward_filters(channel_input, channel_dY, 2, 2);
+        channel_dK.conv2_channel_filterbank_backward_filters(channel_input, channel_dY, 2, 2, matrix::convolution_padding::valid);
         matrix expected_channel_dK(std::vector<int>{2, 2, 2, 2});
         expected_channel_dK(0, 0, 0, 0) = 12.0f;
-        expected_channel_dK(0, 0, 0, 1) = 48.0f;
-        expected_channel_dK(0, 0, 1, 0) = 16.0f;
-        expected_channel_dK(0, 0, 1, 1) = 52.0f;
-        expected_channel_dK(0, 1, 0, 0) = 24.0f;
-        expected_channel_dK(0, 1, 0, 1) = 60.0f;
-        expected_channel_dK(0, 1, 1, 0) = 28.0f;
+        expected_channel_dK(0, 0, 0, 1) = 16.0f;
+        expected_channel_dK(0, 0, 1, 0) = 24.0f;
+        expected_channel_dK(0, 0, 1, 1) = 28.0f;
+        expected_channel_dK(0, 1, 0, 0) = 48.0f;
+        expected_channel_dK(0, 1, 0, 1) = 52.0f;
+        expected_channel_dK(0, 1, 1, 0) = 60.0f;
         expected_channel_dK(0, 1, 1, 1) = 64.0f;
         expected_channel_dK(1, 0, 0, 0) = 24.0f;
-        expected_channel_dK(1, 0, 0, 1) = 96.0f;
-        expected_channel_dK(1, 0, 1, 0) = 32.0f;
-        expected_channel_dK(1, 0, 1, 1) = 104.0f;
-        expected_channel_dK(1, 1, 0, 0) = 48.0f;
-        expected_channel_dK(1, 1, 0, 1) = 120.0f;
-        expected_channel_dK(1, 1, 1, 0) = 56.0f;
+        expected_channel_dK(1, 0, 0, 1) = 32.0f;
+        expected_channel_dK(1, 0, 1, 0) = 48.0f;
+        expected_channel_dK(1, 0, 1, 1) = 56.0f;
+        expected_channel_dK(1, 1, 0, 0) = 96.0f;
+        expected_channel_dK(1, 1, 0, 1) = 104.0f;
+        expected_channel_dK(1, 1, 1, 0) = 120.0f;
         expected_channel_dK(1, 1, 1, 1) = 128.0f;
-        require_matrix_close(channel_dK, expected_channel_dK, "conv2_valid_channel_filterbank_backward_filters()");
+        require_matrix_close(channel_dK, expected_channel_dK, "conv2_channel_filterbank_backward_filters()");
 
         matrix channel_dInput;
-        channel_dInput.conv2_valid_channel_filterbank_backward_input(channel_dY, channel_filters, 3, 3);
-        matrix expected_channel_dInput(std::vector<int>{3, 3, 2});
+        channel_dInput.conv2_channel_filterbank_backward_input(channel_dY, channel_filters, 3, 3, matrix::convolution_padding::valid);
+        matrix expected_channel_dInput(std::vector<int>{2, 3, 3});
         expected_channel_dInput(0, 0, 0) = 1.0f;
         expected_channel_dInput(0, 0, 1) = 2.0f;
         expected_channel_dInput(0, 1, 0) = 2.0f;
@@ -551,21 +555,104 @@ class MatrixFunctionTestModule : public Module
         expected_channel_dInput(1, 1, 1) = 2.0f;
         expected_channel_dInput(1, 2, 0) = 0.0f;
         expected_channel_dInput(1, 2, 1) = 0.0f;
-        expected_channel_dInput(2, 0, 0) = 1.0f;
-        expected_channel_dInput(2, 0, 1) = 0.0f;
-        expected_channel_dInput(2, 1, 0) = 0.0f;
-        expected_channel_dInput(2, 1, 1) = 0.0f;
-        expected_channel_dInput(2, 2, 0) = -1.0f;
-        expected_channel_dInput(2, 2, 1) = 0.0f;
-        require_matrix_close(channel_dInput, expected_channel_dInput, "conv2_valid_channel_filterbank_backward_input()");
+        expected_channel_dInput(0, 0, 2) = 1.0f;
+        expected_channel_dInput(0, 1, 2) = 0.0f;
+        expected_channel_dInput(0, 2, 2) = -1.0f;
+        expected_channel_dInput(1, 0, 2) = 0.0f;
+        expected_channel_dInput(1, 1, 2) = 0.0f;
+        expected_channel_dInput(1, 2, 2) = 0.0f;
+        require_matrix_close(channel_dInput, expected_channel_dInput, "conv2_channel_filterbank_backward_input()");
+
+        matrix same_padding_channel_output;
+        same_padding_channel_output.conv2_channel_filterbank(channel_input, channel_filters, channel_bias, matrix::convolution_padding::same);
+        matrix expected_same_padding_channel_output(std::vector<int>{2, 3, 3});
+        expected_same_padding_channel_output(0, 0, 0) = 12.5f;
+        expected_same_padding_channel_output(0, 0, 1) = 16.5f;
+        expected_same_padding_channel_output(0, 0, 2) = 9.5f;
+        expected_same_padding_channel_output(0, 1, 0) = 24.5f;
+        expected_same_padding_channel_output(0, 1, 1) = 28.5f;
+        expected_same_padding_channel_output(0, 1, 2) = 15.5f;
+        expected_same_padding_channel_output(0, 2, 0) = 15.5f;
+        expected_same_padding_channel_output(0, 2, 1) = 17.5f;
+        expected_same_padding_channel_output(0, 2, 2) = 9.5f;
+        expected_same_padding_channel_output(1, 0, 0) = 4.0f;
+        expected_same_padding_channel_output(1, 0, 1) = 4.0f;
+        expected_same_padding_channel_output(1, 0, 2) = 11.0f;
+        expected_same_padding_channel_output(1, 1, 0) = 4.0f;
+        expected_same_padding_channel_output(1, 1, 1) = 4.0f;
+        expected_same_padding_channel_output(1, 1, 2) = 14.0f;
+        expected_same_padding_channel_output(1, 2, 0) = 15.0f;
+        expected_same_padding_channel_output(1, 2, 1) = 16.0f;
+        expected_same_padding_channel_output(1, 2, 2) = 17.0f;
+        require_matrix_close(same_padding_channel_output, expected_same_padding_channel_output, "conv2_channel_filterbank() same padding");
+
+        matrix same_channel_dY(std::vector<int>{2, 3, 3});
+        for(int y = 0; y < 3; ++y)
+            for(int x = 0; x < 3; ++x)
+            {
+                same_channel_dY(0, y, x) = 1.0f;
+                same_channel_dY(1, y, x) = 2.0f;
+            }
+
+        matrix same_channel_dK;
+        same_channel_dK.conv2_channel_filterbank_backward_filters(channel_input, same_channel_dY, 2, 2, matrix::convolution_padding::same);
+        matrix expected_same_channel_dK(std::vector<int>{2, 2, 2, 2});
+        expected_same_channel_dK(0, 0, 0, 0) = 45.0f;
+        expected_same_channel_dK(0, 0, 0, 1) = 33.0f;
+        expected_same_channel_dK(0, 0, 1, 0) = 39.0f;
+        expected_same_channel_dK(0, 0, 1, 1) = 28.0f;
+        expected_same_channel_dK(0, 1, 0, 0) = 126.0f;
+        expected_same_channel_dK(0, 1, 0, 1) = 87.0f;
+        expected_same_channel_dK(0, 1, 1, 0) = 93.0f;
+        expected_same_channel_dK(0, 1, 1, 1) = 64.0f;
+        expected_same_channel_dK(1, 0, 0, 0) = 90.0f;
+        expected_same_channel_dK(1, 0, 0, 1) = 66.0f;
+        expected_same_channel_dK(1, 0, 1, 0) = 78.0f;
+        expected_same_channel_dK(1, 0, 1, 1) = 56.0f;
+        expected_same_channel_dK(1, 1, 0, 0) = 252.0f;
+        expected_same_channel_dK(1, 1, 0, 1) = 174.0f;
+        expected_same_channel_dK(1, 1, 1, 0) = 186.0f;
+        expected_same_channel_dK(1, 1, 1, 1) = 128.0f;
+        require_matrix_close(same_channel_dK, expected_same_channel_dK, "conv2_channel_filterbank_backward_filters() same padding");
+
+        matrix same_channel_dInput;
+        same_channel_dInput.conv2_channel_filterbank_backward_input(same_channel_dY, channel_filters, 3, 3, matrix::convolution_padding::same);
+        matrix expected_same_channel_dInput(std::vector<int>{2, 3, 3});
+        expected_same_channel_dInput(0, 0, 0) = 1.0f;
+        expected_same_channel_dInput(0, 0, 1) = 2.0f;
+        expected_same_channel_dInput(0, 0, 2) = 2.0f;
+        expected_same_channel_dInput(0, 1, 0) = 2.0f;
+        expected_same_channel_dInput(0, 1, 1) = 2.0f;
+        expected_same_channel_dInput(0, 1, 2) = 2.0f;
+        expected_same_channel_dInput(0, 2, 0) = 2.0f;
+        expected_same_channel_dInput(0, 2, 1) = 2.0f;
+        expected_same_channel_dInput(0, 2, 2) = 2.0f;
+        expected_same_channel_dInput(1, 0, 0) = 2.0f;
+        expected_same_channel_dInput(1, 0, 1) = 2.0f;
+        expected_same_channel_dInput(1, 0, 2) = 2.0f;
+        expected_same_channel_dInput(1, 1, 0) = 2.0f;
+        expected_same_channel_dInput(1, 1, 1) = 2.0f;
+        expected_same_channel_dInput(1, 1, 2) = 2.0f;
+        expected_same_channel_dInput(1, 2, 0) = 2.0f;
+        expected_same_channel_dInput(1, 2, 1) = 2.0f;
+        expected_same_channel_dInput(1, 2, 2) = 2.0f;
+        require_matrix_close(same_channel_dInput, expected_same_channel_dInput, "conv2_channel_filterbank_backward_input() same padding");
+
+        matrix fused_same_channel_dInput;
+        matrix fused_same_channel_dK;
+        matrix fused_same_channel_dB;
+        fused_same_channel_dInput.conv2_channel_filterbank_backward(channel_input, channel_filters, same_channel_dY, fused_same_channel_dK, fused_same_channel_dB, matrix::convolution_padding::same);
+        require_matrix_close(fused_same_channel_dInput, expected_same_channel_dInput, "conv2_channel_filterbank_backward() same padding dI");
+        require_matrix_close(fused_same_channel_dK, expected_same_channel_dK, "conv2_channel_filterbank_backward() same padding dK");
+        require_matrix_close(fused_same_channel_dB, make_matrix("9, 18"), "conv2_channel_filterbank_backward() same padding dB");
 
         matrix fused_channel_dInput;
         matrix fused_channel_dK;
         matrix fused_channel_dB;
-        fused_channel_dInput.conv2_valid_channel_filterbank_backward(channel_input, channel_filters, channel_dY, fused_channel_dK, fused_channel_dB);
-        require_matrix_close(fused_channel_dInput, expected_channel_dInput, "conv2_valid_channel_filterbank_backward() dI");
-        require_matrix_close(fused_channel_dK, expected_channel_dK, "conv2_valid_channel_filterbank_backward() dK");
-        require_matrix_close(fused_channel_dB, make_matrix("4, 8"), "conv2_valid_channel_filterbank_backward() dB");
+        fused_channel_dInput.conv2_channel_filterbank_backward(channel_input, channel_filters, channel_dY, fused_channel_dK, fused_channel_dB, matrix::convolution_padding::valid);
+        require_matrix_close(fused_channel_dInput, expected_channel_dInput, "conv2_channel_filterbank_backward() dI");
+        require_matrix_close(fused_channel_dK, expected_channel_dK, "conv2_channel_filterbank_backward() dK");
+        require_matrix_close(fused_channel_dB, make_matrix("4, 8"), "conv2_channel_filterbank_backward() dB");
 
         matrix small = make_matrix("1, 2; 3, 4");
         matrix up;

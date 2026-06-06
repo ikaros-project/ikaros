@@ -54,7 +54,7 @@
 
 	<widget class="image" name="InputImage" title="Movie Input" source="Movie.INTENSITY" format="gray" x="40" y="220" width="300" height="225" min="0" max="1" scale="both" show_title="true" show_frame="true"  _x="40" _y="220" />
 	<widget class="image" name="Level1Image" title="Level 1 Reconstruction" source="CVAE_Level1.OUTPUT" format="gray" x="380" y="220" width="300" height="225" min="0" max="1" scale="both" show_title="true" show_frame="true"  _x="380" _y="220" />
-	<widget class="image" name="Level2Image" title="Level 2 Reconstruction" source="CVAE_Level2.OUTPUT" format="gray" x="720" y="220" width="300" height="225" min="0" max="1" scale="both" show_title="true" show_frame="true"  _x="720" _y="220" />
+	<widget class="image" name="Level2Image" title="Level 2 Latent Reconstruction" source="CVAE_Level2.OUTPUT" format="gray" x="720" y="220" width="300" height="225" min="-2" max="2" scale="both" show_title="true" show_frame="true"  _x="720" _y="220" />
 	<widget class="plot" name="Level1KL" title="Level 1 KL Loss" source="CVAE_Level1.KL_LOSS" x="1060" y="220" width="300" height="140" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100"  _x="1060" _y="220" />
 	<widget class="plot" name="Level2KL" title="Level 2 KL Loss" source="CVAE_Level2.KL_LOSS" x="1060" y="380" width="300" height="140" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100"  _x="1060" _y="380" />
 	<widget class="plot" name="Level1Loss" title="Level 1 Loss" source="CVAE_Level1.LOSS" x="40" y="560" width="300" height="170" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100"  _x="40" _y="560" />

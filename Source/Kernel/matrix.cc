@@ -22,6 +22,123 @@
 
 namespace ikaros {
 
+namespace
+{
+#if defined(__APPLE__)
+void
+resize_scratch(std::vector<float> & scratch, int size)
+{
+    if(static_cast<int>(scratch.size()) != size)
+        scratch.resize(size);
+}
+
+
+void
+im2row_valid_2d(const matrix & I, int kernel_rows, int kernel_cols, std::vector<float> & patches)
+{
+    const int output_rows = I.rows() - kernel_rows + 1;
+    const int output_cols = I.cols() - kernel_cols + 1;
+    const int output_pixels = output_rows * output_cols;
+    const int patch_size = kernel_rows * kernel_cols;
+    resize_scratch(patches, output_pixels * patch_size);
+
+    const float * input = I.data();
+    float * patch = patches.data();
+    for(int y = 0; y < output_rows; ++y)
+        for(int x = 0; x < output_cols; ++x)
+            for(int ky = 0; ky < kernel_rows; ++ky)
+            {
+                const float * input_row = input + (y + ky) * I.cols() + x;
+                for(int kx = 0; kx < kernel_cols; ++kx)
+                    *patch++ = input_row[kx];
+            }
+}
+
+
+void
+im2row_valid_channels(const matrix & I, int kernel_rows, int kernel_cols, std::vector<float> & patches)
+{
+    const int input_channels = I.shape(0);
+    const int input_rows = I.shape(1);
+    const int input_cols = I.shape(2);
+    const int output_rows = input_rows - kernel_rows + 1;
+    const int output_cols = input_cols - kernel_cols + 1;
+    const int output_pixels = output_rows * output_cols;
+    const int patch_size = input_channels * kernel_rows * kernel_cols;
+    const int input_plane = input_rows * input_cols;
+    resize_scratch(patches, output_pixels * patch_size);
+
+    const float * input = I.data();
+    float * patch = patches.data();
+    for(int y = 0; y < output_rows; ++y)
+        for(int x = 0; x < output_cols; ++x)
+            for(int c = 0; c < input_channels; ++c)
+            {
+                const float * input_channel = input + c * input_plane;
+                for(int ky = 0; ky < kernel_rows; ++ky)
+                {
+                    const float * input_row = input_channel + (y + ky) * input_cols + x;
+                    for(int kx = 0; kx < kernel_cols; ++kx)
+                        *patch++ = input_row[kx];
+                }
+            }
+}
+
+
+void
+col2im_valid_2d_add(matrix & dI, const std::vector<float> & patches, int output_rows, int output_cols, int kernel_rows, int kernel_cols)
+{
+    float * output = dI.data();
+    const float * patch = patches.data();
+    for(int y = 0; y < output_rows; ++y)
+        for(int x = 0; x < output_cols; ++x)
+            for(int ky = 0; ky < kernel_rows; ++ky)
+            {
+                float * output_row = output + (y + ky) * dI.cols() + x;
+                for(int kx = 0; kx < kernel_cols; ++kx)
+                    output_row[kx] += *patch++;
+            }
+}
+
+
+void
+col2im_valid_channels_add(matrix & dI, const std::vector<float> & patches, int output_rows, int output_cols, int kernel_rows, int kernel_cols)
+{
+    const int input_channels = dI.shape(0);
+    const int input_rows = dI.shape(1);
+    const int input_cols = dI.shape(2);
+    const int input_plane = input_rows * input_cols;
+    float * output = dI.data();
+    const float * patch = patches.data();
+
+    for(int y = 0; y < output_rows; ++y)
+        for(int x = 0; x < output_cols; ++x)
+            for(int c = 0; c < input_channels; ++c)
+            {
+                float * output_channel = output + c * input_plane;
+                for(int ky = 0; ky < kernel_rows; ++ky)
+                {
+                    float * output_row = output_channel + (y + ky) * input_cols + x;
+                    for(int kx = 0; kx < kernel_cols; ++kx)
+                        output_row[kx] += *patch++;
+                }
+            }
+}
+#endif
+
+void
+require_valid_padding(matrix::convolution_padding padding, const char * function_name)
+{
+    if(padding == matrix::convolution_padding::valid)
+        return;
+
+    if(padding == matrix::convolution_padding::same)
+        throw std::logic_error(std::string(function_name) + " with same padding is not implemented.");
+
+    throw std::invalid_argument(std::string(function_name) + " received an invalid padding mode.");
+}
+}
+
 float
 parse_matrix_token(const std::string & token)
 {
@@ -1280,21 +1397,24 @@ matrix::conv_slow(const matrix & I, const matrix & K)
 
 
 matrix &
-matrix::conv2_valid_filterbank(const matrix & I, const matrix & K)
+matrix::conv2_filterbank(const matrix & I, const matrix & K, convolution_padding padding)
 {
 #ifndef NO_MATRIX_CHECKS
     if(I.rank() != 2 || K.rank() != 3)
-        throw std::invalid_argument("Filter-bank valid convolution requires input [H,W] and filters [F,KH,KW].");
+        throw std::invalid_argument("Filter-bank convolution requires input [H,W] and filters [F,KH,KW].");
 
-    if(K.shape(1) <= 0 || K.shape(2) <= 0 || I.rows() < K.shape(1) || I.cols() < K.shape(2))
+    if(K.shape(1) <= 0 || K.shape(2) <= 0)
+        throw std::invalid_argument("Filter kernel dimensions must be positive.");
+
+    if(padding == convolution_padding::valid && (I.rows() < K.shape(1) || I.cols() < K.shape(2)))
         throw std::invalid_argument("Filter kernel must fit in input.");
 #endif
 
     const int filters = K.shape(0);
     const int kernel_rows = K.shape(1);
     const int kernel_cols = K.shape(2);
-    const int output_rows = I.rows() - kernel_rows + 1;
-    const int output_cols = I.cols() - kernel_cols + 1;
+    const int output_rows = padding == convolution_padding::same ? I.rows() : I.rows() - kernel_rows + 1;
+    const int output_cols = padding == convolution_padding::same ? I.cols() : I.cols() - kernel_cols + 1;
 
     if(is_uninitialized())
         realloc(filters, output_rows, output_cols);
@@ -1305,6 +1425,60 @@ matrix::conv2_valid_filterbank(const matrix & I, const matrix & K)
     if(this == &I || this == &K)
         throw std::invalid_argument("Result cannot be assigned to I or K.");
 
+    if(padding == convolution_padding::same)
+    {
+        const float * input = I.data();
+        const float * filters_data = K.data();
+        float * output = data();
+        const int pad_top = (kernel_rows - 1) / 2;
+        const int pad_left = (kernel_cols - 1) / 2;
+
+        for(int f = 0; f < filters; ++f)
+        {
+            const float * filter = filters_data + f * kernel_rows * kernel_cols;
+            float * output_filter = output + f * output_rows * output_cols;
+            for(int y = 0; y < output_rows; ++y)
+                for(int x = 0; x < output_cols; ++x)
+                {
+                    float sum = 0.0f;
+                    for(int ky = 0; ky < kernel_rows; ++ky)
+                    {
+                        const int input_y = y + ky - pad_top;
+                        if(input_y < 0 || input_y >= I.rows())
+                            continue;
+
+                        const float * input_row = input + input_y * I.cols();
+                        const float * filter_row = filter + ky * kernel_cols;
+                        for(int kx = 0; kx < kernel_cols; ++kx)
+                        {
+                            const int input_x = x + kx - pad_left;
+                            if(input_x >= 0 && input_x < I.cols())
+                                sum += input_row[input_x] * filter_row[kx];
+                        }
+                    }
+                    output_filter[y * output_cols + x] = sum;
+                }
+        }
+
+        return *this;
+    }
+
+    require_valid_padding(padding, "conv2_filterbank");
+
+#if defined(__APPLE__)
+    const int output_pixels = output_rows * output_cols;
+    const int patch_size = kernel_rows * kernel_cols;
+    static thread_local std::vector<float> patches;
+    im2row_valid_2d(I, kernel_rows, kernel_cols, patches);
+
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+                filters, output_pixels, patch_size,
+                1.0f,
+                K.data(), patch_size,
+                patches.data(), patch_size,
+                0.0f,
+                data(), output_pixels);
+#else
     float * output = data();
     const float * input = I.data();
     const float * filters_data = K.data();
@@ -1329,20 +1503,21 @@ matrix::conv2_valid_filterbank(const matrix & I, const matrix & K)
             }
         }
     }
+#endif
 
     return *this;
 }
 
 
 matrix &
-matrix::conv2_valid_filterbank(const matrix & I, const matrix & K, const matrix & B)
+matrix::conv2_filterbank(const matrix & I, const matrix & K, const matrix & B, convolution_padding padding)
 {
 #ifndef NO_MATRIX_CHECKS
     if(B.rank() != 1 || B.size() != K.shape(0))
         throw std::invalid_argument("Filter-bank bias must be a vector with one value per filter.");
 #endif
 
-    conv2_valid_filterbank(I, K);
+    conv2_filterbank(I, K, padding);
 
     float * output = data();
     const float * bias = B.data();
@@ -1352,8 +1527,12 @@ matrix::conv2_valid_filterbank(const matrix & I, const matrix & K, const matrix 
     for(int f = 0; f < filters; ++f)
     {
         float * output_filter = output + f * output_pixels;
+#if defined(__APPLE__)
+        vDSP_vsadd(output_filter, 1, bias + f, output_filter, 1, static_cast<vDSP_Length>(output_pixels));
+#else
         for(int pixel = 0; pixel < output_pixels; ++pixel)
             output_filter[pixel] += bias[f];
+#endif
     }
 
     return *this;
@@ -1361,16 +1540,21 @@ matrix::conv2_valid_filterbank(const matrix & I, const matrix & K, const matrix 
 
 
 matrix &
-matrix::conv2_valid_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols)
+matrix::conv2_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols, convolution_padding padding)
 {
 #ifndef NO_MATRIX_CHECKS
     if(I.rank() != 2 || dY.rank() != 3)
         throw std::invalid_argument("Filter-bank filter-gradient requires input [H,W] and output gradient [F,OH,OW].");
 
-    if(kernel_rows <= 0 || kernel_cols <= 0 || I.rows() < kernel_rows || I.cols() < kernel_cols)
+    if(kernel_rows <= 0 || kernel_cols <= 0)
+        throw std::invalid_argument("Filter kernel dimensions must be positive.");
+
+    if(padding == convolution_padding::valid && (I.rows() < kernel_rows || I.cols() < kernel_cols))
         throw std::invalid_argument("Filter kernel size must fit in input.");
 
-    if(dY.shape(1) != I.rows() - kernel_rows + 1 || dY.shape(2) != I.cols() - kernel_cols + 1)
+    const int expected_output_rows = padding == convolution_padding::same ? I.rows() : I.rows() - kernel_rows + 1;
+    const int expected_output_cols = padding == convolution_padding::same ? I.cols() : I.cols() - kernel_cols + 1;
+    if(dY.shape(1) != expected_output_rows || dY.shape(2) != expected_output_cols)
         throw std::invalid_argument("Output gradient shape does not match input and kernel size.");
 #endif
 
@@ -1387,6 +1571,61 @@ matrix::conv2_valid_filterbank_backward_filters(const matrix & I, const matrix &
 
     reset();
 
+    if(padding == convolution_padding::same)
+    {
+        float * d_filters = data();
+        const float * input = I.data();
+        const float * d_output = dY.data();
+        const int output_rows = dY.shape(1);
+        const int output_cols = dY.shape(2);
+        const int pad_top = (kernel_rows - 1) / 2;
+        const int pad_left = (kernel_cols - 1) / 2;
+
+        for(int f = 0; f < filters; ++f)
+        {
+            const float * d_output_filter = d_output + f * output_rows * output_cols;
+            float * d_filter = d_filters + f * kernel_rows * kernel_cols;
+            for(int y = 0; y < output_rows; ++y)
+                for(int x = 0; x < output_cols; ++x)
+                {
+                    const float gradient = d_output_filter[y * output_cols + x];
+                    for(int ky = 0; ky < kernel_rows; ++ky)
+                    {
+                        const int input_y = y + ky - pad_top;
+                        if(input_y < 0 || input_y >= I.rows())
+                            continue;
+
+                        const float * input_row = input + input_y * I.cols();
+                        float * d_filter_row = d_filter + ky * kernel_cols;
+                        for(int kx = 0; kx < kernel_cols; ++kx)
+                        {
+                            const int input_x = x + kx - pad_left;
+                            if(input_x >= 0 && input_x < I.cols())
+                                d_filter_row[kx] += input_row[input_x] * gradient;
+                        }
+                    }
+                }
+        }
+
+        return *this;
+    }
+
+    require_valid_padding(padding, "conv2_filterbank_backward_filters");
+
+#if defined(__APPLE__)
+    const int output_pixels = dY.shape(1) * dY.shape(2);
+    const int patch_size = kernel_rows * kernel_cols;
+    static thread_local std::vector<float> patches;
+    im2row_valid_2d(I, kernel_rows, kernel_cols, patches);
+
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                filters, patch_size, output_pixels,
+                1.0f,
+                dY.data(), output_pixels,
+                patches.data(), patch_size,
+                0.0f,
+                data(), patch_size);
+#else
     float * d_filters = data();
     const float * input = I.data();
     const float * d_output = dY.data();
@@ -1413,13 +1652,14 @@ matrix::conv2_valid_filterbank_backward_filters(const matrix & I, const matrix &
             }
         }
     }
+#endif
 
     return *this;
 }
 
 
 matrix &
-matrix::conv2_valid_filterbank_backward_filters_relu(const matrix & I, const matrix & dY, const matrix & pre_activation, int kernel_rows, int kernel_cols)
+matrix::conv2_filterbank_backward_filters_relu(const matrix & I, const matrix & dY, const matrix & pre_activation, int kernel_rows, int kernel_cols, convolution_padding padding)
 {
 #ifndef NO_MATRIX_CHECKS
     if(I.rank() != 2 || dY.rank() != 3 || pre_activation.rank() != 3)
@@ -1428,10 +1668,15 @@ matrix::conv2_valid_filterbank_backward_filters_relu(const matrix & I, const mat
     if(dY.shape() != pre_activation.shape())
         throw std::invalid_argument("Output gradient and pre-activation shapes must match.");
 
-    if(kernel_rows <= 0 || kernel_cols <= 0 || I.rows() < kernel_rows || I.cols() < kernel_cols)
+    if(kernel_rows <= 0 || kernel_cols <= 0)
+        throw std::invalid_argument("Filter kernel dimensions must be positive.");
+
+    if(padding == convolution_padding::valid && (I.rows() < kernel_rows || I.cols() < kernel_cols))
         throw std::invalid_argument("Filter kernel size must fit in input.");
 
-    if(dY.shape(1) != I.rows() - kernel_rows + 1 || dY.shape(2) != I.cols() - kernel_cols + 1)
+    const int expected_output_rows = padding == convolution_padding::same ? I.rows() : I.rows() - kernel_rows + 1;
+    const int expected_output_cols = padding == convolution_padding::same ? I.cols() : I.cols() - kernel_cols + 1;
+    if(dY.shape(1) != expected_output_rows || dY.shape(2) != expected_output_cols)
         throw std::invalid_argument("Output gradient shape does not match input and kernel size.");
 #endif
 
@@ -1448,6 +1693,74 @@ matrix::conv2_valid_filterbank_backward_filters_relu(const matrix & I, const mat
 
     reset();
 
+    if(padding == convolution_padding::same)
+    {
+        float * d_filters = data();
+        const float * input = I.data();
+        const float * d_output = dY.data();
+        const float * pre = pre_activation.data();
+        const int output_rows = dY.shape(1);
+        const int output_cols = dY.shape(2);
+        const int pad_top = (kernel_rows - 1) / 2;
+        const int pad_left = (kernel_cols - 1) / 2;
+
+        for(int f = 0; f < filters; ++f)
+        {
+            const float * d_output_filter = d_output + f * output_rows * output_cols;
+            const float * pre_filter = pre + f * output_rows * output_cols;
+            float * d_filter = d_filters + f * kernel_rows * kernel_cols;
+            for(int y = 0; y < output_rows; ++y)
+                for(int x = 0; x < output_cols; ++x)
+                {
+                    const int output_index = y * output_cols + x;
+                    if(pre_filter[output_index] <= 0.0f)
+                        continue;
+
+                    const float gradient = d_output_filter[output_index];
+                    for(int ky = 0; ky < kernel_rows; ++ky)
+                    {
+                        const int input_y = y + ky - pad_top;
+                        if(input_y < 0 || input_y >= I.rows())
+                            continue;
+
+                        const float * input_row = input + input_y * I.cols();
+                        float * d_filter_row = d_filter + ky * kernel_cols;
+                        for(int kx = 0; kx < kernel_cols; ++kx)
+                        {
+                            const int input_x = x + kx - pad_left;
+                            if(input_x >= 0 && input_x < I.cols())
+                                d_filter_row[kx] += input_row[input_x] * gradient;
+                        }
+                    }
+                }
+        }
+
+        return *this;
+    }
+
+    require_valid_padding(padding, "conv2_filterbank_backward_filters_relu");
+
+#if defined(__APPLE__)
+    const int output_pixels = dY.shape(1) * dY.shape(2);
+    const int patch_size = kernel_rows * kernel_cols;
+    static thread_local std::vector<float> patches;
+    static thread_local std::vector<float> gated_gradient;
+    im2row_valid_2d(I, kernel_rows, kernel_cols, patches);
+    resize_scratch(gated_gradient, dY.size());
+    const float * d_output = dY.data();
+    const float * pre = pre_activation.data();
+
+    for(int i = 0; i < dY.size(); ++i)
+        gated_gradient[i] = pre[i] > 0.0f ? d_output[i] : 0.0f;
+
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                filters, patch_size, output_pixels,
+                1.0f,
+                gated_gradient.data(), output_pixels,
+                patches.data(), patch_size,
+                0.0f,
+                data(), patch_size);
+#else
     float * d_filters = data();
     const float * input = I.data();
     const float * d_output = dY.data();
@@ -1480,13 +1793,14 @@ matrix::conv2_valid_filterbank_backward_filters_relu(const matrix & I, const mat
             }
         }
     }
+#endif
 
     return *this;
 }
 
 
 matrix &
-matrix::conv2_valid_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols)
+matrix::conv2_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols, convolution_padding padding)
 {
 #ifndef NO_MATRIX_CHECKS
     if(dY.rank() != 3 || K.rank() != 3)
@@ -1498,7 +1812,9 @@ matrix::conv2_valid_filterbank_backward_input(const matrix & dY, const matrix & 
     if(dY.shape(0) != K.shape(0))
         throw std::invalid_argument("Output-gradient filter count does not match filters.");
 
-    if(dY.shape(1) != input_rows - K.shape(1) + 1 || dY.shape(2) != input_cols - K.shape(2) + 1)
+    const int expected_output_rows = padding == convolution_padding::same ? input_rows : input_rows - K.shape(1) + 1;
+    const int expected_output_cols = padding == convolution_padding::same ? input_cols : input_cols - K.shape(2) + 1;
+    if(dY.shape(1) != expected_output_rows || dY.shape(2) != expected_output_cols)
         throw std::invalid_argument("Output gradient shape does not match requested input size and filters.");
 #endif
 
@@ -1518,6 +1834,62 @@ matrix::conv2_valid_filterbank_backward_input(const matrix & dY, const matrix & 
     const int kernel_cols = K.shape(2);
     const int output_rows = dY.shape(1);
     const int output_cols = dY.shape(2);
+    const int output_pixels = output_rows * output_cols;
+    const int patch_size = kernel_rows * kernel_cols;
+
+    if(padding == convolution_padding::same)
+    {
+        float * d_input = data();
+        const float * d_output = dY.data();
+        const float * filters_data = K.data();
+        const int pad_top = (kernel_rows - 1) / 2;
+        const int pad_left = (kernel_cols - 1) / 2;
+
+        for(int f = 0; f < filters; ++f)
+        {
+            const float * d_output_filter = d_output + f * output_rows * output_cols;
+            const float * filter = filters_data + f * kernel_rows * kernel_cols;
+            for(int y = 0; y < output_rows; ++y)
+                for(int x = 0; x < output_cols; ++x)
+                {
+                    const float gradient = d_output_filter[y * output_cols + x];
+                    for(int ky = 0; ky < kernel_rows; ++ky)
+                    {
+                        const int input_y = y + ky - pad_top;
+                        if(input_y < 0 || input_y >= input_rows)
+                            continue;
+
+                        float * d_input_row = d_input + input_y * input_cols;
+                        const float * filter_row = filter + ky * kernel_cols;
+                        for(int kx = 0; kx < kernel_cols; ++kx)
+                        {
+                            const int input_x = x + kx - pad_left;
+                            if(input_x >= 0 && input_x < input_cols)
+                                d_input_row[input_x] += gradient * filter_row[kx];
+                        }
+                    }
+                }
+        }
+
+        return *this;
+    }
+
+    require_valid_padding(padding, "conv2_filterbank_backward_input");
+
+#if defined(__APPLE__)
+    static thread_local std::vector<float> patch_gradients;
+    resize_scratch(patch_gradients, output_pixels * patch_size);
+
+    cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
+                output_pixels, patch_size, filters,
+                1.0f,
+                dY.data(), output_pixels,
+                K.data(), patch_size,
+                0.0f,
+                patch_gradients.data(), patch_size);
+
+    col2im_valid_2d_add(*this, patch_gradients, output_rows, output_cols, kernel_rows, kernel_cols);
+#else
     float * d_input = data();
     const float * d_output = dY.data();
     const float * filters_data = K.data();
@@ -1541,85 +1913,7 @@ matrix::conv2_valid_filterbank_backward_input(const matrix & dY, const matrix & 
             }
         }
     }
-
-    return *this;
-}
-
-
-matrix &
-matrix::sum_first_two_dimensions(const matrix & A)
-{
-#ifndef NO_MATRIX_CHECKS
-    if(A.rank() != 3)
-        throw std::invalid_argument("sum_first_two_dimensions requires a rank-3 matrix [H,W,F].");
 #endif
-
-    const int first = A.shape(0);
-    const int second = A.shape(1);
-    const int third = A.shape(2);
-
-    if(is_uninitialized())
-        realloc(third);
-
-    if(rank() != 1 || size() != third)
-        throw std::invalid_argument("Result matrix does not have size " + std::to_string(third) + ".");
-
-    if(this == &A)
-        throw std::invalid_argument("Result cannot be assigned to A.");
-
-    reset();
-
-    const float * input = A.data();
-    float * output = data();
-    const int rows = first * second;
-
-    for(int row = 0; row < rows; ++row)
-    {
-        const float * input_row = input + row * third;
-        for(int i = 0; i < third; ++i)
-            output[i] += input_row[i];
-    }
-
-    return *this;
-}
-
-
-matrix &
-matrix::sum_first_two_dimensions_relu(const matrix & A, const matrix & pre_activation)
-{
-#ifndef NO_MATRIX_CHECKS
-    if(A.rank() != 3 || pre_activation.rank() != 3)
-        throw std::invalid_argument("sum_first_two_dimensions_relu requires rank-3 matrices [H,W,F].");
-
-    if(A.shape() != pre_activation.shape())
-        throw std::invalid_argument("Input and pre-activation shapes must match.");
-#endif
-
-    const int third = A.shape(2);
-
-    if(is_uninitialized())
-        realloc(third);
-
-    if(rank() != 1 || size() != third)
-        throw std::invalid_argument("Result matrix does not have size " + std::to_string(third) + ".");
-
-    if(this == &A || this == &pre_activation)
-        throw std::invalid_argument("Result cannot be assigned to A or pre_activation.");
-
-    reset();
-
-    const float * input = A.data();
-    const float * pre = pre_activation.data();
-    float * output = data();
-    const int rows = A.shape(0) * A.shape(1);
-
-    for(int row = 0; row < rows; ++row)
-    {
-        const int base = row * third;
-        for(int i = 0; i < third; ++i)
-            if(pre[base + i] > 0.0f)
-                output[i] += input[base + i];
-    }
 
     return *this;
 }
@@ -1634,8 +1928,6 @@ matrix::sum_last_two_dimensions(const matrix & A)
 #endif
 
     const int channels = A.shape(0);
-    const int spatial_size = A.shape(1) * A.shape(2);
-
     if(is_uninitialized())
         realloc(channels);
 
@@ -1647,15 +1939,10 @@ matrix::sum_last_two_dimensions(const matrix & A)
 
     reset();
 
-    const float * input = A.data();
     float * output = data();
 
     for(int c = 0; c < channels; ++c)
-    {
-        const float * input_channel = input + c * spatial_size;
-        for(int i = 0; i < spatial_size; ++i)
-            output[c] += input_channel[i];
-    }
+        output[c] = A[c].sum();
 
     return *this;
 }
@@ -1703,256 +1990,16 @@ matrix::sum_last_two_dimensions_relu(const matrix & A, const matrix & pre_activa
 
 
 matrix &
-matrix::conv1x1_map(const matrix & I, const matrix & W)
-{
-#ifndef NO_MATRIX_CHECKS
-    if(I.rank() != 3 || W.rank() != 2)
-        throw std::invalid_argument("1x1 map projection requires input [H,W,C] and weights [O,C].");
-
-    if(I.shape(2) != W.shape(1))
-        throw std::invalid_argument("Input channel count must match 1x1 weight input count.");
-#endif
-
-    const int rows = I.shape(0);
-    const int cols = I.shape(1);
-    const int input_channels = I.shape(2);
-    const int output_channels = W.shape(0);
-
-    if(is_uninitialized())
-        realloc(rows, cols, output_channels);
-
-    if(rank() != 3 || shape(0) != rows || shape(1) != cols || shape(2) != output_channels)
-        throw std::invalid_argument("1x1 map projection result matrix has wrong shape.");
-
-    if(this == &I || this == &W)
-        throw std::invalid_argument("Result cannot be assigned to I or W.");
-
-    const float * input = I.data();
-    const float * weights = W.data();
-    float * output = data();
-    const int positions = rows * cols;
-
-    for(int p = 0; p < positions; ++p)
-    {
-        const float * input_position = input + p * input_channels;
-        float * output_position = output + p * output_channels;
-        for(int o = 0; o < output_channels; ++o)
-        {
-            const float * weight_row = weights + o * input_channels;
-            float value = 0.0f;
-            for(int c = 0; c < input_channels; ++c)
-                value += input_position[c] * weight_row[c];
-            output_position[o] = value;
-        }
-    }
-
-    return *this;
-}
-
-
-matrix &
-matrix::conv1x1_map(const matrix & I, const matrix & W, const matrix & B)
-{
-#ifndef NO_MATRIX_CHECKS
-    if(B.rank() != 1 || B.size() != W.shape(0))
-        throw std::invalid_argument("1x1 map bias must be a vector with one value per output channel.");
-#endif
-
-    conv1x1_map(I, W);
-
-    float * output = data();
-    const float * bias = B.data();
-    const int output_channels = shape(2);
-    const int positions = shape(0) * shape(1);
-
-    for(int p = 0; p < positions; ++p)
-    {
-        float * output_position = output + p * output_channels;
-        for(int o = 0; o < output_channels; ++o)
-            output_position[o] += bias[o];
-    }
-
-    return *this;
-}
-
-
-matrix &
-matrix::conv1x1_map_backward_weights(const matrix & I, const matrix & dY)
-{
-#ifndef NO_MATRIX_CHECKS
-    if(I.rank() != 3 || dY.rank() != 3)
-        throw std::invalid_argument("1x1 map weight-gradient requires input [H,W,C] and output gradient [H,W,O].");
-
-    if(I.shape(0) != dY.shape(0) || I.shape(1) != dY.shape(1))
-        throw std::invalid_argument("Input and output gradient spatial shapes must match.");
-#endif
-
-    const int input_channels = I.shape(2);
-    const int output_channels = dY.shape(2);
-
-    if(is_uninitialized())
-        realloc(output_channels, input_channels);
-
-    if(rank() != 2 || rows() != output_channels || cols() != input_channels)
-        throw std::invalid_argument("1x1 map weight-gradient result matrix has wrong shape.");
-
-    if(this == &I || this == &dY)
-        throw std::invalid_argument("Result cannot be assigned to I or dY.");
-
-    reset();
-
-    const float * input = I.data();
-    const float * output_gradient = dY.data();
-    float * weight_gradient = data();
-    const int positions = I.shape(0) * I.shape(1);
-
-    for(int p = 0; p < positions; ++p)
-    {
-        const float * input_position = input + p * input_channels;
-        const float * gradient_position = output_gradient + p * output_channels;
-        for(int o = 0; o < output_channels; ++o)
-        {
-            const float gradient = gradient_position[o];
-            float * weight_gradient_row = weight_gradient + o * input_channels;
-            for(int c = 0; c < input_channels; ++c)
-                weight_gradient_row[c] += gradient * input_position[c];
-        }
-    }
-
-    return *this;
-}
-
-
-matrix &
-matrix::conv1x1_map_backward_input(const matrix & W, const matrix & dY)
-{
-#ifndef NO_MATRIX_CHECKS
-    if(W.rank() != 2 || dY.rank() != 3)
-        throw std::invalid_argument("1x1 map input-gradient requires weights [O,C] and output gradient [H,W,O].");
-
-    if(dY.shape(2) != W.shape(0))
-        throw std::invalid_argument("Output gradient channel count must match 1x1 weight output count.");
-#endif
-
-    const int rows = dY.shape(0);
-    const int cols = dY.shape(1);
-    const int output_channels = W.shape(0);
-    const int input_channels = W.shape(1);
-
-    if(is_uninitialized())
-        realloc(rows, cols, input_channels);
-
-    if(rank() != 3 || shape(0) != rows || shape(1) != cols || shape(2) != input_channels)
-        throw std::invalid_argument("1x1 map input-gradient result matrix has wrong shape.");
-
-    if(this == &W || this == &dY)
-        throw std::invalid_argument("Result cannot be assigned to W or dY.");
-
-    reset();
-
-    const float * weights = W.data();
-    const float * output_gradient = dY.data();
-    float * input_gradient = data();
-    const int positions = rows * cols;
-
-    for(int p = 0; p < positions; ++p)
-    {
-        const float * gradient_position = output_gradient + p * output_channels;
-        float * input_gradient_position = input_gradient + p * input_channels;
-        for(int o = 0; o < output_channels; ++o)
-        {
-            const float gradient = gradient_position[o];
-            const float * weight_row = weights + o * input_channels;
-            for(int c = 0; c < input_channels; ++c)
-                input_gradient_position[c] += gradient * weight_row[c];
-        }
-    }
-
-    return *this;
-}
-
-
-matrix &
-matrix::conv1x1_map_backward(const matrix & I, const matrix & W, const matrix & dY, matrix & dW, matrix & dB)
-{
-#ifndef NO_MATRIX_CHECKS
-    if(I.rank() != 3 || W.rank() != 2 || dY.rank() != 3)
-        throw std::invalid_argument("1x1 map backward requires input [H,W,C], weights [O,C], and output gradient [H,W,O].");
-
-    if(I.shape(0) != dY.shape(0) || I.shape(1) != dY.shape(1))
-        throw std::invalid_argument("Input and output gradient spatial shapes must match.");
-
-    if(I.shape(2) != W.shape(1) || dY.shape(2) != W.shape(0))
-        throw std::invalid_argument("1x1 map backward channel counts do not match.");
-#endif
-
-    const int rows = I.shape(0);
-    const int cols = I.shape(1);
-    const int input_channels = W.shape(1);
-    const int output_channels = W.shape(0);
-
-    if(is_uninitialized())
-        realloc(rows, cols, input_channels);
-    if(dW.is_uninitialized())
-        dW.realloc(output_channels, input_channels);
-    if(dB.is_uninitialized())
-        dB.realloc(output_channels);
-
-    if(rank() != 3 || shape(0) != rows || shape(1) != cols || shape(2) != input_channels)
-        throw std::invalid_argument("1x1 map input-gradient result matrix has wrong shape.");
-    if(dW.rank() != 2 || dW.rows() != output_channels || dW.cols() != input_channels)
-        throw std::invalid_argument("1x1 map weight-gradient result matrix has wrong shape.");
-    if(dB.rank() != 1 || dB.size() != output_channels)
-        throw std::invalid_argument("1x1 map bias-gradient result matrix has wrong shape.");
-
-    if(this == &I || this == &W || this == &dY || this == &dW || this == &dB || &dW == &dB)
-        throw std::invalid_argument("1x1 map backward results must not alias inputs or each other.");
-
-    reset();
-    dW.reset();
-    dB.reset();
-
-    const float * input = I.data();
-    const float * weights = W.data();
-    const float * output_gradient = dY.data();
-    float * input_gradient = data();
-    float * weight_gradient = dW.data();
-    float * bias_gradient = dB.data();
-    const int positions = rows * cols;
-
-    for(int p = 0; p < positions; ++p)
-    {
-        const float * input_position = input + p * input_channels;
-        const float * gradient_position = output_gradient + p * output_channels;
-        float * input_gradient_position = input_gradient + p * input_channels;
-
-        for(int o = 0; o < output_channels; ++o)
-        {
-            const float gradient = gradient_position[o];
-            const float * weight_row = weights + o * input_channels;
-            float * weight_gradient_row = weight_gradient + o * input_channels;
-
-            bias_gradient[o] += gradient;
-            for(int c = 0; c < input_channels; ++c)
-            {
-                weight_gradient_row[c] += gradient * input_position[c];
-                input_gradient_position[c] += gradient * weight_row[c];
-            }
-        }
-    }
-
-    return *this;
-}
-
-
-matrix &
-matrix::conv2_valid_channel_filterbank(const matrix & I, const matrix & K)
+matrix::conv2_channel_filterbank(const matrix & I, const matrix & K, convolution_padding padding)
 {
 #ifndef NO_MATRIX_CHECKS
     if(I.rank() != 3 || K.rank() != 4)
-        throw std::invalid_argument("Channel filter-bank valid convolution requires input [C,H,W] and filters [O,C,KH,KW].");
+        throw std::invalid_argument("Channel filter-bank convolution requires input [C,H,W] and filters [O,C,KH,KW].");
 
-    if(K.shape(2) <= 0 || K.shape(3) <= 0 || I.shape(1) < K.shape(2) || I.shape(2) < K.shape(3))
+    if(K.shape(2) <= 0 || K.shape(3) <= 0)
+        throw std::invalid_argument("Channel filter kernel dimensions must be positive.");
+
+    if(padding == convolution_padding::valid && (I.shape(1) < K.shape(2) || I.shape(2) < K.shape(3)))
         throw std::invalid_argument("Channel filter kernel must fit in input.");
 
     if(I.shape(0) != K.shape(1))
@@ -1965,8 +2012,8 @@ matrix::conv2_valid_channel_filterbank(const matrix & I, const matrix & K)
     const int filters = K.shape(0);
     const int kernel_rows = K.shape(2);
     const int kernel_cols = K.shape(3);
-    const int output_rows = input_rows - kernel_rows + 1;
-    const int output_cols = input_cols - kernel_cols + 1;
+    const int output_rows = padding == convolution_padding::same ? input_rows : input_rows - kernel_rows + 1;
+    const int output_cols = padding == convolution_padding::same ? input_cols : input_cols - kernel_cols + 1;
 
     if(is_uninitialized())
         realloc(filters, output_rows, output_cols);
@@ -1977,6 +2024,69 @@ matrix::conv2_valid_channel_filterbank(const matrix & I, const matrix & K)
     if(this == &I || this == &K)
         throw std::invalid_argument("Result cannot be assigned to I or K.");
 
+    if(padding == convolution_padding::same)
+    {
+        const float * input = I.data();
+        const float * filters_data = K.data();
+        float * output = data();
+        const int input_plane = input_rows * input_cols;
+        const int output_plane = output_rows * output_cols;
+        const int kernel_channel_plane = kernel_rows * kernel_cols;
+        const int kernel_filter_plane = input_channels * kernel_channel_plane;
+        const int pad_top = (kernel_rows - 1) / 2;
+        const int pad_left = (kernel_cols - 1) / 2;
+
+        for(int f = 0; f < filters; ++f)
+        {
+            const float * filter = filters_data + f * kernel_filter_plane;
+            float * output_filter = output + f * output_plane;
+            for(int y = 0; y < output_rows; ++y)
+                for(int x = 0; x < output_cols; ++x)
+                {
+                    float sum = 0.0f;
+                    for(int c = 0; c < input_channels; ++c)
+                    {
+                        const float * input_channel = input + c * input_plane;
+                        const float * filter_channel = filter + c * kernel_channel_plane;
+                        for(int ky = 0; ky < kernel_rows; ++ky)
+                        {
+                            const int input_y = y + ky - pad_top;
+                            if(input_y < 0 || input_y >= input_rows)
+                                continue;
+
+                            const float * input_row = input_channel + input_y * input_cols;
+                            const float * filter_row = filter_channel + ky * kernel_cols;
+                            for(int kx = 0; kx < kernel_cols; ++kx)
+                            {
+                                const int input_x = x + kx - pad_left;
+                                if(input_x >= 0 && input_x < input_cols)
+                                    sum += input_row[input_x] * filter_row[kx];
+                            }
+                        }
+                    }
+                    output_filter[y * output_cols + x] = sum;
+                }
+        }
+
+        return *this;
+    }
+
+    require_valid_padding(padding, "conv2_channel_filterbank");
+
+#if defined(__APPLE__)
+    const int output_pixels = output_rows * output_cols;
+    const int patch_size = input_channels * kernel_rows * kernel_cols;
+    static thread_local std::vector<float> patches;
+    im2row_valid_channels(I, kernel_rows, kernel_cols, patches);
+
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+                filters, output_pixels, patch_size,
+                1.0f,
+                K.data(), patch_size,
+                patches.data(), patch_size,
+                0.0f,
+                data(), output_pixels);
+#else
     const float * input = I.data();
     const float * filters_data = K.data();
     float * output = data();
@@ -2010,20 +2120,21 @@ matrix::conv2_valid_channel_filterbank(const matrix & I, const matrix & K)
             }
         }
     }
+#endif
 
     return *this;
 }
 
 
 matrix &
-matrix::conv2_valid_channel_filterbank(const matrix & I, const matrix & K, const matrix & B)
+matrix::conv2_channel_filterbank(const matrix & I, const matrix & K, const matrix & B, convolution_padding padding)
 {
 #ifndef NO_MATRIX_CHECKS
     if(B.rank() != 1 || B.size() != K.shape(0))
         throw std::invalid_argument("Channel filter-bank bias must be a vector with one value per filter.");
 #endif
 
-    conv2_valid_channel_filterbank(I, K);
+    conv2_channel_filterbank(I, K, padding);
 
     float * output = data();
     const float * bias = B.data();
@@ -2033,8 +2144,12 @@ matrix::conv2_valid_channel_filterbank(const matrix & I, const matrix & K, const
     for(int f = 0; f < filters; ++f)
     {
         float * output_filter = output + f * output_pixels;
+#if defined(__APPLE__)
+        vDSP_vsadd(output_filter, 1, bias + f, output_filter, 1, static_cast<vDSP_Length>(output_pixels));
+#else
         for(int pixel = 0; pixel < output_pixels; ++pixel)
             output_filter[pixel] += bias[f];
+#endif
     }
 
     return *this;
@@ -2042,16 +2157,21 @@ matrix::conv2_valid_channel_filterbank(const matrix & I, const matrix & K, const
 
 
 matrix &
-matrix::conv2_valid_channel_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols)
+matrix::conv2_channel_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols, convolution_padding padding)
 {
 #ifndef NO_MATRIX_CHECKS
     if(I.rank() != 3 || dY.rank() != 3)
         throw std::invalid_argument("Channel filter-bank filter-gradient requires input [C,H,W] and output gradient [O,OH,OW].");
 
-    if(kernel_rows <= 0 || kernel_cols <= 0 || I.shape(1) < kernel_rows || I.shape(2) < kernel_cols)
+    if(kernel_rows <= 0 || kernel_cols <= 0)
+        throw std::invalid_argument("Channel filter kernel dimensions must be positive.");
+
+    if(padding == convolution_padding::valid && (I.shape(1) < kernel_rows || I.shape(2) < kernel_cols))
         throw std::invalid_argument("Channel filter kernel size must fit in input.");
 
-    if(dY.shape(1) != I.shape(1) - kernel_rows + 1 || dY.shape(2) != I.shape(2) - kernel_cols + 1)
+    const int expected_output_rows = padding == convolution_padding::same ? I.shape(1) : I.shape(1) - kernel_rows + 1;
+    const int expected_output_cols = padding == convolution_padding::same ? I.shape(2) : I.shape(2) - kernel_cols + 1;
+    if(dY.shape(1) != expected_output_rows || dY.shape(2) != expected_output_cols)
         throw std::invalid_argument("Output gradient shape does not match input and channel kernel size.");
 #endif
 
@@ -2073,6 +2193,68 @@ matrix::conv2_valid_channel_filterbank_backward_filters(const matrix & I, const 
 
     reset();
 
+    if(padding == convolution_padding::same)
+    {
+        const float * input = I.data();
+        const float * output_gradient = dY.data();
+        float * filter_gradient = data();
+        const int input_plane = input_rows * input_cols;
+        const int output_plane = output_rows * output_cols;
+        const int kernel_channel_plane = kernel_rows * kernel_cols;
+        const int kernel_filter_plane = input_channels * kernel_channel_plane;
+        const int pad_top = (kernel_rows - 1) / 2;
+        const int pad_left = (kernel_cols - 1) / 2;
+
+        for(int f = 0; f < filters; ++f)
+        {
+            const float * gradient_filter = output_gradient + f * output_plane;
+            float * filter = filter_gradient + f * kernel_filter_plane;
+            for(int y = 0; y < output_rows; ++y)
+                for(int x = 0; x < output_cols; ++x)
+                {
+                    const float gradient = gradient_filter[y * output_cols + x];
+                    for(int c = 0; c < input_channels; ++c)
+                    {
+                        const float * input_channel = input + c * input_plane;
+                        float * filter_channel = filter + c * kernel_channel_plane;
+                        for(int ky = 0; ky < kernel_rows; ++ky)
+                        {
+                            const int input_y = y + ky - pad_top;
+                            if(input_y < 0 || input_y >= input_rows)
+                                continue;
+
+                            const float * input_row = input_channel + input_y * input_cols;
+                            float * filter_row = filter_channel + ky * kernel_cols;
+                            for(int kx = 0; kx < kernel_cols; ++kx)
+                            {
+                                const int input_x = x + kx - pad_left;
+                                if(input_x >= 0 && input_x < input_cols)
+                                    filter_row[kx] += input_row[input_x] * gradient;
+                            }
+                        }
+                    }
+                }
+        }
+
+        return *this;
+    }
+
+    require_valid_padding(padding, "conv2_channel_filterbank_backward_filters");
+
+#if defined(__APPLE__)
+    const int output_pixels = output_rows * output_cols;
+    const int patch_size = input_channels * kernel_rows * kernel_cols;
+    static thread_local std::vector<float> patches;
+    im2row_valid_channels(I, kernel_rows, kernel_cols, patches);
+
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                filters, patch_size, output_pixels,
+                1.0f,
+                dY.data(), output_pixels,
+                patches.data(), patch_size,
+                0.0f,
+                data(), patch_size);
+#else
     const float * input = I.data();
     const float * output_gradient = dY.data();
     float * filter_gradient = data();
@@ -2105,13 +2287,14 @@ matrix::conv2_valid_channel_filterbank_backward_filters(const matrix & I, const 
             }
         }
     }
+#endif
 
     return *this;
 }
 
 
 matrix &
-matrix::conv2_valid_channel_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols)
+matrix::conv2_channel_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols, convolution_padding padding)
 {
 #ifndef NO_MATRIX_CHECKS
     if(dY.rank() != 3 || K.rank() != 4)
@@ -2123,7 +2306,9 @@ matrix::conv2_valid_channel_filterbank_backward_input(const matrix & dY, const m
     if(dY.shape(0) != K.shape(0))
         throw std::invalid_argument("Output-gradient filter count does not match channel filters.");
 
-    if(dY.shape(1) != input_rows - K.shape(2) + 1 || dY.shape(2) != input_cols - K.shape(3) + 1)
+    const int expected_output_rows = padding == convolution_padding::same ? input_rows : input_rows - K.shape(2) + 1;
+    const int expected_output_cols = padding == convolution_padding::same ? input_cols : input_cols - K.shape(3) + 1;
+    if(dY.shape(1) != expected_output_rows || dY.shape(2) != expected_output_cols)
         throw std::invalid_argument("Output gradient shape does not match requested channel input size and filters.");
 #endif
 
@@ -2145,6 +2330,71 @@ matrix::conv2_valid_channel_filterbank_backward_input(const matrix & dY, const m
     const int kernel_cols = K.shape(3);
     const int output_rows = dY.shape(1);
     const int output_cols = dY.shape(2);
+    const int output_pixels = output_rows * output_cols;
+    const int patch_size = input_channels * kernel_rows * kernel_cols;
+
+    if(padding == convolution_padding::same)
+    {
+        const int input_plane = input_rows * input_cols;
+        const int output_plane = output_rows * output_cols;
+        const int kernel_channel_plane = kernel_rows * kernel_cols;
+        const int kernel_filter_plane = input_channels * kernel_channel_plane;
+        const int pad_top = (kernel_rows - 1) / 2;
+        const int pad_left = (kernel_cols - 1) / 2;
+        const float * output_gradient = dY.data();
+        const float * filters_data = K.data();
+        float * input_gradient = data();
+
+        for(int f = 0; f < filters; ++f)
+        {
+            const float * gradient_filter = output_gradient + f * output_plane;
+            const float * filter = filters_data + f * kernel_filter_plane;
+            for(int y = 0; y < output_rows; ++y)
+                for(int x = 0; x < output_cols; ++x)
+                {
+                    const float gradient = gradient_filter[y * output_cols + x];
+                    for(int c = 0; c < input_channels; ++c)
+                    {
+                        float * input_channel = input_gradient + c * input_plane;
+                        const float * filter_channel = filter + c * kernel_channel_plane;
+                        for(int ky = 0; ky < kernel_rows; ++ky)
+                        {
+                            const int input_y = y + ky - pad_top;
+                            if(input_y < 0 || input_y >= input_rows)
+                                continue;
+
+                            float * input_row = input_channel + input_y * input_cols;
+                            const float * filter_row = filter_channel + ky * kernel_cols;
+                            for(int kx = 0; kx < kernel_cols; ++kx)
+                            {
+                                const int input_x = x + kx - pad_left;
+                                if(input_x >= 0 && input_x < input_cols)
+                                    input_row[input_x] += gradient * filter_row[kx];
+                            }
+                        }
+                    }
+                }
+        }
+
+        return *this;
+    }
+
+    require_valid_padding(padding, "conv2_channel_filterbank_backward_input");
+
+#if defined(__APPLE__)
+    static thread_local std::vector<float> patch_gradients;
+    resize_scratch(patch_gradients, output_pixels * patch_size);
+
+    cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
+                output_pixels, patch_size, filters,
+                1.0f,
+                dY.data(), output_pixels,
+                K.data(), patch_size,
+                0.0f,
+                patch_gradients.data(), patch_size);
+
+    col2im_valid_channels_add(*this, patch_gradients, output_rows, output_cols, kernel_rows, kernel_cols);
+#else
     const int input_plane = input_rows * input_cols;
     const int output_plane = output_rows * output_cols;
     const int kernel_channel_plane = kernel_rows * kernel_cols;
@@ -2177,13 +2427,14 @@ matrix::conv2_valid_channel_filterbank_backward_input(const matrix & dY, const m
             }
         }
     }
+#endif
 
     return *this;
 }
 
 
 matrix &
-matrix::conv2_valid_channel_filterbank_backward(const matrix & I, const matrix & K, const matrix & dY, matrix & dK, matrix & dB)
+matrix::conv2_channel_filterbank_backward(const matrix & I, const matrix & K, const matrix & dY, matrix & dK, matrix & dB, convolution_padding padding)
 {
 #ifndef NO_MATRIX_CHECKS
     if(I.rank() != 3 || K.rank() != 4 || dY.rank() != 3)
@@ -2192,7 +2443,9 @@ matrix::conv2_valid_channel_filterbank_backward(const matrix & I, const matrix &
     if(I.shape(0) != K.shape(1) || dY.shape(0) != K.shape(0))
         throw std::invalid_argument("Channel filter-bank backward channel counts do not match.");
 
-    if(dY.shape(1) != I.shape(1) - K.shape(2) + 1 || dY.shape(2) != I.shape(2) - K.shape(3) + 1)
+    const int expected_output_rows = padding == convolution_padding::same ? I.shape(1) : I.shape(1) - K.shape(2) + 1;
+    const int expected_output_cols = padding == convolution_padding::same ? I.shape(2) : I.shape(2) - K.shape(3) + 1;
+    if(dY.shape(1) != expected_output_rows || dY.shape(2) != expected_output_cols)
         throw std::invalid_argument("Channel filter-bank backward spatial shapes do not match.");
 #endif
 
@@ -2226,6 +2479,21 @@ matrix::conv2_valid_channel_filterbank_backward(const matrix & I, const matrix &
     dK.reset();
     dB.reset();
 
+    if(padding == convolution_padding::same)
+    {
+        conv2_channel_filterbank_backward_input(dY, K, input_rows, input_cols, padding);
+        dK.conv2_channel_filterbank_backward_filters(I, dY, kernel_rows, kernel_cols, padding);
+        dB.sum_last_two_dimensions(dY);
+        return *this;
+    }
+
+    require_valid_padding(padding, "conv2_channel_filterbank_backward");
+
+#if defined(__APPLE__)
+    conv2_channel_filterbank_backward_input(dY, K, input_rows, input_cols, padding);
+    dK.conv2_channel_filterbank_backward_filters(I, dY, kernel_rows, kernel_cols, padding);
+    dB.sum_last_two_dimensions(dY);
+#else
     const float * input = I.data();
     const float * filters_data = K.data();
     const float * output_gradient = dY.data();
@@ -2271,6 +2539,7 @@ matrix::conv2_valid_channel_filterbank_backward(const matrix & I, const matrix &
             }
         }
     }
+#endif
 
     return *this;
 }
@@ -2729,6 +2998,148 @@ matrix::multiply_and_accumulate(const matrix & A, float c)
 #endif
 
     return apply(A, [c](float x, float y)->float { return x + c * y; });
+}
+
+
+matrix &
+matrix::relu(const matrix & A)
+{
+    if(is_uninitialized())
+        realloc(A.shape());
+
+    check_same_size(A);
+
+    const float * input = A.data();
+    float * output = data();
+
+    for(int i = 0; i < size(); ++i)
+        output[i] = std::max(0.0f, input[i]);
+
+    return *this;
+}
+
+
+matrix &
+matrix::scale(const matrix & A, float scale)
+{
+    if(is_uninitialized())
+        realloc(A.shape());
+
+    check_same_size(A);
+
+    const float * input = A.data();
+    float * output = data();
+
+    for(int i = 0; i < size(); ++i)
+        output[i] = scale * input[i];
+
+    return *this;
+}
+
+
+matrix &
+matrix::exp_scaled(const matrix & A, float scale)
+{
+    if(is_uninitialized())
+        realloc(A.shape());
+
+    check_same_size(A);
+
+    const float * input = A.data();
+    float * output = data();
+
+    for(int i = 0; i < size(); ++i)
+        output[i] = std::exp(scale * input[i]);
+
+    return *this;
+}
+
+
+matrix &
+matrix::exp_minus_one_scaled(const matrix & A, float scale)
+{
+    if(is_uninitialized())
+        realloc(A.shape());
+
+    check_same_size(A);
+
+    const float * input = A.data();
+    float * output = data();
+
+    for(int i = 0; i < size(); ++i)
+        output[i] = scale * (std::exp(input[i]) - 1.0f);
+
+    return *this;
+}
+
+
+matrix &
+matrix::add_scaled(const matrix & A, const matrix & B, float scale)
+{
+    A.check_same_size(B);
+
+    if(is_uninitialized())
+        realloc(A.shape());
+
+    check_same_size(A);
+
+    const float * a = A.data();
+    const float * b = B.data();
+    float * output = data();
+
+    for(int i = 0; i < size(); ++i)
+        output[i] = a[i] + scale * b[i];
+
+    return *this;
+}
+
+
+matrix &
+matrix::sample_gaussian(const matrix & mean, const matrix & stddev, const matrix & epsilon)
+{
+    mean.check_same_size(stddev);
+    mean.check_same_size(epsilon);
+
+    if(is_uninitialized())
+        realloc(mean.shape());
+
+    check_same_size(mean);
+
+    const float * mean_values = mean.data();
+    const float * stddev_values = stddev.data();
+    const float * epsilon_values = epsilon.data();
+    float * output = data();
+
+    for(int i = 0; i < size(); ++i)
+        output[i] = mean_values[i] + epsilon_values[i] * stddev_values[i];
+
+    return *this;
+}
+
+
+matrix &
+matrix::latent_log_variance_gradient(const matrix & latent_gradient, const matrix & epsilon, const matrix & stddev, const matrix & log_variance, float kl_scale)
+{
+    latent_gradient.check_same_size(epsilon);
+    latent_gradient.check_same_size(stddev);
+    latent_gradient.check_same_size(log_variance);
+
+    if(is_uninitialized())
+        realloc(latent_gradient.shape());
+
+    check_same_size(latent_gradient);
+
+    const float * latent_gradient_values = latent_gradient.data();
+    const float * epsilon_values = epsilon.data();
+    const float * stddev_values = stddev.data();
+    const float * log_variance_values = log_variance.data();
+    float * output = data();
+
+    for(int i = 0; i < size(); ++i)
+        output[i] = 0.5f * latent_gradient_values[i] * epsilon_values[i] * stddev_values[i] +
+            0.5f * kl_scale * (std::exp(log_variance_values[i]) - 1.0f);
+
+    return *this;
 }
 
 

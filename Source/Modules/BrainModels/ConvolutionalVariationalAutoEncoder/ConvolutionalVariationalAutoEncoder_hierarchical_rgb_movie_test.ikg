@@ -1,0 +1,67 @@
+<group name="ConvolutionalVariationalAutoEncoder_hierarchical_rgb_movie_test" title="Hierarchical Convolutional VAE RGB Movie Example">
+	<module
+		class="InputVideoFile"
+		name="Movie"
+		_x="40"
+		_y="40"
+		filename="../Source/Modules/IOModules/FileInput/InputVideoFile/ikaros.mp4"
+		loop="true"
+		size_x="32"
+		size_y="24"
+	/>
+
+	<!-- Level 1 reconstructs image values in [0,1], so sigmoid keeps the RGB output bounded. -->
+	<module
+		class="ConvolutionalVariationalAutoEncoder"
+		name="CVAE_Level1"
+		_x="340"
+		_y="40"
+		latent_mode="spatial"
+		latent_maps="4"
+		latent_kernel_size="2"
+		feature_maps="10"
+		kernel_size="3"
+		learning_rate="0.001"
+		beta="0.001"
+		train="yes"
+		train_interval="4"
+		dense_train_interval="2"
+		reconstruction_source="top_down"
+		output_activation="sigmoid"
+		sample="no"
+	/>
+
+	<!-- Level 2 reconstructs signed latent means, so its output activation must stay linear. -->
+	<module
+		class="ConvolutionalVariationalAutoEncoder"
+		name="CVAE_Level2"
+		_x="680"
+		_y="40"
+		latent_mode="spatial"
+		latent_maps="3"
+		latent_kernel_size="2"
+		feature_maps="8"
+		kernel_size="3"
+		learning_rate="0.001"
+		beta="0.001"
+		train="yes"
+		train_interval="8"
+		dense_train_interval="2"
+		reconstruction_source="mean"
+		output_activation="linear"
+		sample="no"
+	/>
+
+	<connection source="Movie.OUTPUT" target="CVAE_Level1.INPUT" />
+	<connection source="CVAE_Level1.LATENT_MEAN" target="CVAE_Level2.INPUT" delay="1" />
+	<connection source="CVAE_Level2.OUTPUT" target="CVAE_Level1.TOP_DOWN" delay="1" />
+
+	<widget class="image" name="InputImage" title="RGB Movie Input" source="Movie.OUTPUT" format="rgb" x="40" y="220" width="300" height="225" min="0" max="1" scale="both" show_title="true" show_frame="true" _x="40" _y="220" />
+	<widget class="image" name="Level1Image" title="Level 1 RGB Reconstruction" source="CVAE_Level1.OUTPUT" format="rgb" x="380" y="220" width="300" height="225" min="0" max="1" scale="both" show_title="true" show_frame="true" _x="380" _y="220" />
+	<widget class="bar-graph" name="Level1LatentMean" title="Level 1 Latent Mean" source="CVAE_Level1.LATENT_MEAN" x="720" y="220" width="300" height="225" min="-2" max="2" show_title="true" show_frame="true" _x="720" _y="220" />
+	<widget class="bar-graph" name="Level2Output" title="Level 2 Latent Reconstruction" source="CVAE_Level2.OUTPUT" x="1060" y="220" width="300" height="225" min="-2" max="2" show_title="true" show_frame="true" _x="1060" _y="220" />
+	<widget class="plot" name="Level1Loss" title="Level 1 Loss" source="CVAE_Level1.LOSS" x="40" y="500" width="300" height="150" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100" _x="40" _y="500" />
+	<widget class="plot" name="Level2Loss" title="Level 2 Loss" source="CVAE_Level2.LOSS" x="380" y="500" width="300" height="150" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100" _x="380" _y="500" />
+	<widget class="plot" name="Level1ReconstructionLoss" title="Level 1 Reconstruction Loss" source="CVAE_Level1.RECONSTRUCTION_LOSS" x="720" y="500" width="300" height="150" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100" _x="720" _y="500" />
+	<widget class="plot" name="Level2ReconstructionLoss" title="Level 2 Reconstruction Loss" source="CVAE_Level2.RECONSTRUCTION_LOSS" x="1060" y="500" width="300" height="150" min="0" max="1" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="100" _x="1060" _y="500" />
+</group>
