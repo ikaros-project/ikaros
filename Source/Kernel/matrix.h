@@ -214,7 +214,7 @@ namespace ikaros
         void print(std::string n="") const; // print matrix; n overrides name if set (useful during debugging)
 
 
-        matrix & reduce(std::function< void(float) > f); // Apply a lambda over elements of a matrix
+        const matrix & reduce(std::function< void(float) > f) const; // Apply a lambda over elements of a matrix
         matrix & apply(std::function< float(float) > f); // Apply a lambda to elements of a matrix
         matrix & apply(const matrix & A, std::function<float(float, float)> f); // e = f(A[], x)
         matrix & apply(const matrix & A, const matrix & B, std::function<float(float, float)> f); // e[] = f(A[], B[])
@@ -583,13 +583,15 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
 
     // Valid 2D filter-bank correlation used by trainable convolutional layers.
     // Shape convention: I [H,W], K [F,KH,KW], B [F], Y/dY [H-KH+1,W-KW+1,F].
-    matrix & conv2_valid_filterbank(const matrix & I, const matrix & K); // Y from I and K
+    matrix & conv2_valid_filterbank(const matrix & I, const matrix & K); // I [H,W], K [F,KH,KW] -> Y [F,OH,OW]
     matrix & conv2_valid_filterbank(const matrix & I, const matrix & K, const matrix & B); // Y from I, K, and per-filter bias B
     matrix & conv2_valid_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols); // dK [F,KH,KW]
     matrix & conv2_valid_filterbank_backward_filters_relu(const matrix & I, const matrix & dY, const matrix & pre_activation, int kernel_rows, int kernel_cols); // dK using dY * (pre_activation > 0)
     matrix & conv2_valid_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols); // dI [H,W]
     matrix & sum_first_two_dimensions(const matrix & A); // A [H,W,F] -> result [F]
     matrix & sum_first_two_dimensions_relu(const matrix & A, const matrix & pre_activation); // Sum A * (pre_activation > 0) over H,W
+    matrix & sum_last_two_dimensions(const matrix & A); // A [C,H,W] -> result [C]
+    matrix & sum_last_two_dimensions_relu(const matrix & A, const matrix & pre_activation); // Sum A * (pre_activation > 0) over H,W
     // 1x1 map projection used by spatial latent layers.
     // Shape convention: I/dI [H,W,C], W/dW [O,C], B/dB [O], Y/dY [H,W,O].
     matrix & conv1x1_map(const matrix & I, const matrix & W); // Y from I and W
@@ -598,11 +600,11 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
     matrix & conv1x1_map_backward_input(const matrix & W, const matrix & dY); // dI [H,W,C]
     matrix & conv1x1_map_backward(const matrix & I, const matrix & W, const matrix & dY, matrix & dW, matrix & dB); // dI, dW, dB
     // Multi-channel valid 2D filter-bank correlation used by spatial latent layers.
-    // Shape convention: I/dI [H,W,C], K/dK [O,KH,KW,C], B/dB [O], Y/dY [H-KH+1,W-KW+1,O].
+    // Shape convention: I/dI [C,H,W], K/dK [O,C,KH,KW], B/dB [O], Y/dY [O,H-KH+1,W-KW+1].
     matrix & conv2_valid_channel_filterbank(const matrix & I, const matrix & K); // Y from I and K
     matrix & conv2_valid_channel_filterbank(const matrix & I, const matrix & K, const matrix & B); // Y from I, K, and per-filter bias B
-    matrix & conv2_valid_channel_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols); // dK [O,KH,KW,C]
-    matrix & conv2_valid_channel_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols); // dI [H,W,C]
+    matrix & conv2_valid_channel_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols); // dK [O,C,KH,KW]
+    matrix & conv2_valid_channel_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols); // dI [C,H,W]
     matrix & conv2_valid_channel_filterbank_backward(const matrix & I, const matrix & K, const matrix & dY, matrix & dK, matrix & dB); // dI, dK, dB
 
 
@@ -627,10 +629,10 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
 
         // Reduce functions
 
-        float sum();
+        float sum() const;
         float product();
-        float min();
-        float max();
+        float min() const;
+        float max() const;
         float average();
         float median();
 
