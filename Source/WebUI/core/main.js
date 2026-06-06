@@ -5574,6 +5574,8 @@ const main =
         if(evt.key== "Escape")
         {
             main.toggleTopChrome();
+            if(typeof inspector !== "undefined" && typeof inspector.hideAllPanels === "function")
+                inspector.hideAllPanels();
             evt.preventDefault();
             return;
         }

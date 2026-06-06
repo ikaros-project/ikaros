@@ -146,12 +146,37 @@ const view_menu =
             view_menu.dropdown.style.left = view_menu.button.offsetLeft + "px";
     },
 
+    toggleFullscreen()
+    {
+        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
+        if(fullscreenElement)
+        {
+            if(document.exitFullscreen)
+                document.exitFullscreen();
+            else if(document.webkitExitFullscreen)
+                document.webkitExitFullscreen();
+            return;
+        }
+
+        const target = document.documentElement;
+        if(target.requestFullscreen)
+            target.requestFullscreen();
+        else if(target.webkitRequestFullscreen)
+            target.webkitRequestFullscreen();
+    },
+
     choose(action)
     {
         view_menu.hide();
 
-        if(action === "hide_toolbar" && main && typeof main.setTopChromeVisible === "function")
-            main.setTopChromeVisible(false);
+        if(action === "hide_toolbar" && main && typeof main.toggleTopChrome === "function")
+            main.toggleTopChrome();
+        else if(action === "fullscreen")
+            view_menu.toggleFullscreen();
+        else if(action === "show_profiling" && typeof inspector !== "undefined" && typeof inspector.openProfilingWindow === "function")
+            inspector.openProfilingWindow();
+        else if(action === "show_module_start" && typeof inspector !== "undefined" && typeof inspector.openStartupStepsWindow === "function")
+            inspector.openStartupStepsWindow();
         else if(action === "reset_panes" && main && typeof main.resetSavedPaneLayout === "function")
             main.resetSavedPaneLayout();
     }

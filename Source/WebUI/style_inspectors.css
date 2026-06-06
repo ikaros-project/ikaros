@@ -4,6 +4,7 @@
 aside {
     display: none;
     flex: 0 0 300px;
+    width: 300px;
     position: relative;
     z-index: 1300;
     overflow-y: auto;
@@ -678,12 +679,38 @@ aside table td.header {
 }
 
 #system_inspector #i_table {
+    table-layout: fixed;
     width: 100%;
 }
 
+#system_inspector {
+    flex: 0 0 300px;
+    width: 300px;
+    min-width: 300px;
+}
+
+#system_inspector .system-inspector-label-column {
+    width: 100px;
+}
+
+#system_inspector .system-inspector-value-column {
+    width: 200px;
+}
+
+#system_inspector #i_table td {
+    box-sizing: border-box;
+}
+
+#system_inspector #i_table td[colspan="2"] {
+    width: 300px;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    text-align: center;
+}
+
 #system_inspector .system-file-button-cell {
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
 }
 
 #system_inspector .system-file-button-group {
@@ -691,12 +718,12 @@ aside table td.header {
     justify-content: center;
     gap: 2px;
     width: 100%;
-    transform: translateX(-5px);
 }
 
+#system_inspector #i_table td[colspan="2"] > button,
 #system_inspector .system-file-button-group > button {
     flex: 0 0 auto;
-    margin: 5px 0;
+    margin: 5px 2px;
     padding-left: 4px;
     padding-right: 4px;
 }
@@ -704,7 +731,7 @@ aside table td.header {
 #system_inspector .system-inspector-button {
     padding: 4px 10px;
     border: 1px solid #8e8e8e;
-    border-radius: 999px;
+    border-radius: 5px;
     background: transparent;
     color: #d5d5d5;
     font-size: 11px;

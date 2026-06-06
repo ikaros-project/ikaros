@@ -17,10 +17,12 @@ const inspector =
     last_selected_signature: "",
     profiling_window: null,
     profiling_timer: null,
+    profiling_data: null,
     profiling_sort_key: "cpu_mean",
     profiling_sort_direction: "desc",
     startup_steps_window: null,
     startup_steps_timer: null,
+    startup_steps_data: null,
     startup_steps_sort_key: "path",
     startup_steps_sort_direction: "asc",
 
@@ -102,7 +104,7 @@ const inspector =
         return targetWindow.document;
     },
 
-    initializeSortablePopupWindow(windowProperty, templatePath, buttonSelector, sortHandler, updateIndicators)
+    initializeSortablePopupWindow(windowProperty, templatePath, buttonSelector, sortHandler, updateIndicators, onReady = null)
     {
         const targetWindow = inspector[windowProperty];
         if(!targetWindow || targetWindow.closed)
@@ -118,14 +120,18 @@ const inspector =
                 });
             });
             updateIndicators();
+            if(onReady)
+                onReady();
         });
     },
 
-    openPollingPopupWindow(windowProperty, timerProperty, windowName, initializeWindow, refreshWindow)
+    openPollingPopupWindow(windowProperty, timerProperty, windowName, initializeWindow, refreshWindow, features = {})
     {
         if(!inspector[windowProperty] || inspector[windowProperty].closed)
         {
-            inspector[windowProperty] = window.open("", windowName, "width=800,height=620,resizable=yes,scrollbars=yes");
+            const width = features.width || 800;
+            const height = features.height || 620;
+            inspector[windowProperty] = window.open("", windowName, `width=${width},height=${height},resizable=yes,scrollbars=yes`);
             if(!inspector[windowProperty])
                 return false;
             initializeWindow();
@@ -153,6 +159,23 @@ const inspector =
         return true;
     },
 
+    openStaticPopupWindow(windowProperty, windowName, initializeWindow, refreshWindow, features = {})
+    {
+        if(!inspector[windowProperty] || inspector[windowProperty].closed)
+        {
+            const width = features.width || 800;
+            const height = features.height || 620;
+            inspector[windowProperty] = window.open("", windowName, `width=${width},height=${height},resizable=yes,scrollbars=yes`);
+            if(!inspector[windowProperty])
+                return false;
+            initializeWindow(refreshWindow);
+        }
+        else
+            inspector[windowProperty].focus();
+
+        return true;
+    },
+
     openProfilingWindow()
     {
         inspector.openPollingPopupWindow(
@@ -160,7 +183,8 @@ const inspector =
             "profiling_timer",
             "ikaros_profiling",
             () => inspector.initializeProfilingWindow(),
-            () => inspector.refreshProfilingWindow()
+            () => inspector.refreshProfilingWindow(),
+            {width: 1200}
         );
     },
 
@@ -245,7 +269,10 @@ const inspector =
         }
 
         inspector.updateProfilingSortIndicators();
-        inspector.refreshProfilingWindow();
+        if(inspector.profiling_data)
+            inspector.renderProfilingWindow(inspector.profiling_data);
+        else
+            inspector.refreshProfilingWindow();
     },
 
     updateProfilingSortIndicators()
@@ -342,6 +369,10 @@ const inspector =
         })
         .then((data) =>
         {
+            const runMode = Number(data && data.run_mode);
+            if(runMode === 1 && inspector.profiling_data)
+                return;
+            inspector.profiling_data = data;
             const doc = inspector.getPopupWindowDocument("profiling_window");
             const meta = doc ? doc.getElementById("profiling_meta") : null;
             if(meta)
@@ -357,23 +388,24 @@ const inspector =
 
     openStartupStepsWindow()
     {
-        inspector.openPollingPopupWindow(
+        inspector.openStaticPopupWindow(
             "startup_steps_window",
-            "startup_steps_timer",
             "ikaros_startup_steps",
-            () => inspector.initializeStartupStepsWindow(),
-            () => inspector.refreshStartupStepsWindow()
+            (onReady) => inspector.initializeStartupStepsWindow(onReady),
+            () => inspector.refreshStartupStepsWindow(),
+            {width: 1280}
         );
     },
 
-    initializeStartupStepsWindow()
+    initializeStartupStepsWindow(onReady = null)
     {
         inspector.initializeSortablePopupWindow(
             "startup_steps_window",
             "startup_steps_window.html",
             ".startup-steps-sort-button",
             (sortKey) => inspector.setStartupStepsSort(sortKey),
-            () => inspector.updateStartupStepsSortIndicators()
+            () => inspector.updateStartupStepsSortIndicators(),
+            onReady
         );
     },
 
@@ -470,7 +502,8 @@ const inspector =
         }
 
         inspector.updateStartupStepsSortIndicators();
-        inspector.refreshStartupStepsWindow();
+        if(inspector.startup_steps_data)
+            inspector.renderStartupStepsWindow(inspector.startup_steps_data);
     },
 
     updateStartupStepsSortIndicators()
@@ -504,7 +537,7 @@ const inspector =
         inspector.sortStartupStepsComponents(components);
         inspector.updateStartupStepsSortIndicators();
 
-        meta.textContent = `tick ${Number.isFinite(data && data.tick) ? data.tick : "-"} | updated ${new Date().toLocaleTimeString()}`;
+        meta.textContent = "";
 
         if(components.length === 0)
         {
@@ -560,6 +593,7 @@ const inspector =
         })
         .then((data) =>
         {
+            inspector.startup_steps_data = data;
             const doc = inspector.getPopupWindowDocument("startup_steps_window");
             const meta = doc ? doc.getElementById("startup_steps_meta") : null;
             if(meta)
@@ -686,6 +720,7 @@ const inspector =
             inspector.component.style.display = "none";
         if(inspector.library)
             inspector.library.style.display = "none";
+        inspector.updateLibraryButtonState();
         if(typeof main !== "undefined" && typeof main.scheduleWorkspaceConnectionUpdate === "function")
             main.scheduleWorkspaceConnectionUpdate();
     },

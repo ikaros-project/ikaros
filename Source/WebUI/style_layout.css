@@ -8,8 +8,8 @@ section {
 }
 
 main {
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: 0;
     overflow: scroll;   /* allow main area to scroll */
     position: relative;
  }
-

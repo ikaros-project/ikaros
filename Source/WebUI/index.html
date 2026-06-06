@@ -175,9 +175,9 @@
         <div class="top_toolbar" id="top_toolbar">
             <div class="button" id="menu">&#8801;</div>
             <menu id="menu_dropdown" class="top-menu-dropdown">
-                <button type="button" onclick="app_menu.choose('new')">New</button>
-                <button type="button" onclick="app_menu.choose('open')">Open...</button>
-                <button type="button" onclick="app_menu.choose('save')">Save</button>
+                <button type="button" onclick="app_menu.choose('new')"><span>New</span><span class="menu-shortcut">&#8984;&#8997;N</span></button>
+                <button type="button" onclick="app_menu.choose('open')"><span>Open...</span><span class="menu-shortcut">&#8984;&#8997;O</span></button>
+                <button type="button" onclick="app_menu.choose('save')"><span>Save</span><span class="menu-shortcut">&#8984;S</span></button>
                 <button type="button" onclick="app_menu.choose('saveas')">Save As...</button>
                 <hr class="top-menu-divider">
                 <button type="button" onclick="app_menu.choose('quit')">Quit</button>
@@ -189,9 +189,14 @@
                 </svg>
             </div>
             <menu id="view_menu_dropdown" class="top-menu-dropdown">
-                <button type="button" onclick="view_menu.choose('hide_toolbar')">Hide toolbar</button>
+                <button type="button" onclick="view_menu.choose('hide_toolbar')"><span>Toggle toolbar</span><span class="menu-shortcut">Esc</span></button>
+                <hr class="top-menu-divider">
+                <button type="button" onclick="view_menu.choose('show_profiling')">Show profiling</button>
+                <button type="button" onclick="view_menu.choose('show_module_start')">Show module start</button>
                 <hr class="top-menu-divider">
                 <button type="button" onclick="view_menu.choose('reset_panes')">Reset pane layout</button>
+                <hr class="top-menu-divider">
+                <button type="button" onclick="view_menu.choose('fullscreen')">Full screen</button>
             </menu>
             <div class="top_transport_controls">
                 <span id="top_tick" class="top_transport_status" title="Current tick">-</span>
@@ -687,6 +692,10 @@
     
 		<aside id="system_inspector">
             <table id="i_table">
+                <colgroup>
+                    <col class="system-inspector-label-column">
+                    <col class="system-inspector-value-column">
+                </colgroup>
                  <tbody>
                     <tr>
                         <td colspan="2" class="system-file-button-cell">
