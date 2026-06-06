@@ -253,6 +253,9 @@ Important note:
 - Group outputs cannot declare `size` or `shape`.
 
 When a module output declares its own dimensions, prefer `shape="..."`. `size="..."` remains supported as a compatibility alias.
+Shape expressions support `optional(...)` for deliberate dimension dropping. Numeric option
+parameters are evaluated as their option index in shape arithmetic, while ordinary parameter
+expansion still uses their label.
 
 ## `<widget>`
 
