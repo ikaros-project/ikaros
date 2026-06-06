@@ -159,12 +159,14 @@ Declares a named output buffer.
   - Preferred output shape expression.
   - Required for module outputs unless `alias` is used or a class-level `size` fallback exists.
   - Use `optional(...)` around a whole dimension item to explicitly drop that dimension when it evaluates to `0`, for example `shape="optional(INPUT.size_z),INPUT.rows,INPUT.cols"`.
+  - Numeric option parameters resolve as their option index inside shape expressions, so `type="number" options="valid,same"` can be used as `0` or `1` for startup-size arithmetic.
 - `dynamic`
   - If truthy, the output has a fixed maximum capacity but a logical shape that can change at runtime.
   - Dynamic outputs are intended for append-style row or slice stacks.
   - Dynamic outputs require `capacity`.
 - `capacity`
   - Capacity shape expression for dynamic outputs.
+  - Uses the same shape-expression conventions as `shape`, including `optional(...)` and numeric option parameters.
   - Example: `capacity="128, 2"` allocates room for 128 rows of width 2 and starts with logical shape `{0, 2}`.
 - `alias`
   - Makes this output a view of another output.
@@ -217,6 +219,8 @@ Common patterns seen in the codebase:
 - `INPUT.shape`
 - `data.shape`
 - `3*@z+2`
+- `optional(INPUT.size_z),INPUT.rows,INPUT.cols`
+- `INPUT.rows-@kernel_size+1+@padding*(@kernel_size-1)`
 
 Available values can come from:
 

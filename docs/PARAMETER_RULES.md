@@ -274,6 +274,22 @@ shape="optional(INPUT.size_z),INPUT.rows,INPUT.cols"
 
 If the wrapped dimension evaluates to `0`, it is dropped from the shape list. If it evaluates to a positive integer, it is kept. `optional(...)` is recognized only as a whole top-level shape-list item; it is not a general expression function.
 
+### Numeric Option Parameters In Shapes
+
+In ordinary compute expressions, a parameter with `type="number"` and `options="..."` resolves to
+its selected option label. In `shape="..."`, `size="..."`, and dynamic output `capacity="..."`
+expressions, the same parameter resolves to its numeric option index. This lets module classes use
+readable options in the UI while still using the parameter algebraically for startup shapes.
+
+Example:
+
+```xml
+<parameter name="padding" type="number" default="valid" options="valid,same" />
+<output name="OUTPUT" shape="INPUT.rows-@kernel_size+1+@padding*(@kernel_size-1),INPUT.cols" />
+```
+
+Here `@padding` is `0` for `valid` and `1` for `same` in the shape expression.
+
 ### Math
 
 Top-level math operators currently recognized are:

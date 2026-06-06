@@ -10,10 +10,24 @@
 
 - Use `rg` or `rg --files` for code and file search.
 - Read nearby `.cc`, `.h`, `.ikc`, `.ikg`, and CMake files before changing module behavior.
-- When creating or editing `.ikg` files, keep component and widget positions in the view non-overlapping.
+- When creating or editing `.ikg` files, keep component and widget positions in the view non-overlapping; widgets should not overlap components such as modules or groups.
 - Do not revert or clean up unrelated worktree changes.
 - Avoid changing generated, build, cache, or user-data artifacts unless the task explicitly requires it.
 - Keep comments short and useful; avoid restating obvious code.
+
+## Ikaros Programming Rules
+
+- Treat module outputs as setup-owned buffers. Declare output `size` or `shape` in `.ikc` and do not `realloc()` public outputs from module code.
+- Use `.ikc` shape expressions as the source of truth for startup-resolvable sizes, including mode- or parameter-dependent shapes.
+- Use dynamic outputs only for genuinely runtime-varying shapes, not as a workaround for static mode-dependent sizes.
+- For shape expressions, numeric option parameters may be used algebraically as their numeric option index while still displaying labels in the UI.
+- Use `optional(...)` in shape expressions when a dimension should be deliberately dropped; do not rely on accidental zero dimensions.
+- Check public output shapes and fail clearly if setup produced an unexpected size instead of hiding the problem by reallocating.
+- Allocate internal work buffers during initialization when shapes become known, but avoid per-tick allocation or reallocation in processing paths.
+- Prefer internal work buffers when matrix helper functions resize their destination; copy results into already-sized outputs.
+- Matrix helper functions used in per-tick paths should avoid unconditional `realloc()` when the destination already has the expected shape.
+- Follow the Ikaros rank convention for image-like tensors: channel first, then height and width.
+- Hierarchical models and delayed feedback loops should have all connection shapes resolved at startup whenever the architecture is static.
 
 ## Build And Run
 

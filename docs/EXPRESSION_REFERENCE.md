@@ -21,6 +21,7 @@ Common places include:
 - parameter values in `.ikg`
 - parameter defaults in `.ikc`
 - `size="..."`
+- `shape="..."`
 - `class="..."`
 - arbitrary inherited attributes on groups and modules
 
@@ -51,9 +52,9 @@ Supports:
 - numeric arithmetic
 - matrix size functions like `.rows`, `.rank`, `.shape`, and `.shape[1:]`
 
-### Size-list expressions
+### Shape-list expressions
 
-Used specifically for `size="..."`.
+Used specifically for `shape="..."`, `size="..."`, and dynamic output `capacity="..."`.
 
 This adds list handling so a single expression can produce one or more dimensions.
 
@@ -298,9 +299,28 @@ Examples:
 When evaluating shapes:
 
 - matrix size functions and shape slices are expanded first
+- local and inherited numeric parameters are expanded as numeric values
+- numeric option parameters are expanded as their numeric option index
 - boolean results are converted to `1` or `0`
 - the final result must be positive integers
 - matrix-valued results are not allowed as a single dimension expression
+
+Numeric option parameters keep their label behavior in general compute expressions, but use their
+index in shape arithmetic. For example:
+
+```xml
+<parameter name="padding" type="number" default="valid" options="valid,same" />
+```
+
+In ordinary expressions, `@padding` resolves to `valid` or `same`. In a shape expression, it
+resolves to `0` or `1`, so it can be used algebraically:
+
+```xml
+<output name="FEATURES" shape="@maps,INPUT.rows-@kernel_size+1+@padding*(@kernel_size-1),INPUT.cols-@kernel_size+1+@padding*(@kernel_size-1)" />
+```
+
+With `padding=valid`, the spatial dimensions shrink by `kernel_size-1`. With `padding=same`, the
+subtraction is canceled and the spatial dimensions match the input.
 
 ### Optional dimensions
 
@@ -326,6 +346,22 @@ Not valid as an optional dimension:
 
 - `shape="optional(INPUT.size_z)+1,INPUT.rows,INPUT.cols"`
 - `shape="2*optional(INPUT.size_z),INPUT.rows,INPUT.cols"`
+
+`optional(...)` is useful for mode-dependent startup shapes when combined with numeric option
+parameters. For example, if `latent_mode` is declared as `type="number"` with
+`options="dense,spatial"`, dense mode has index `0` and spatial mode has index `1`:
+
+```xml
+<output
+    name="LATENT"
+    shape="optional((1-@latent_mode)*@latent_size),
+           optional(@latent_mode*@latent_maps),
+           optional(@latent_mode*INPUT.rows),
+           optional(@latent_mode*INPUT.cols)"
+/>
+```
+
+This produces a vector in dense mode and `[latent_maps,rows,cols]` in spatial mode.
 
 ### Examples
 
