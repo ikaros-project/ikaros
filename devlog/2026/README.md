@@ -54,4 +54,4 @@ The module surface also expands. AudioInput/Output moves are followed by ADSR, f
 | 2026-W20 | 2026-05-11 to 2026-05-17 | [Docs Updates](2026-05-11-week-17.md) |
 | 2026-W21 | 2026-05-18 to 2026-05-24 | [WebUI and Math Updates](2026-05-18-week-18.md) |
 | 2026-W22 | 2026-05-25 to 2026-05-31 | [WebUI and World2D Updates](2026-05-25-week-19.md) |
-| 2026-W23 | 2026-06-01 to 2026-06-07 | [CVAE, Locale Parsing, and Optional Dimensions](2026-06-01-week-20.md) |
+| 2026-W23 | 2026-06-01 to 2026-06-08 | [CVAE, Locale Parsing, and State Handling](2026-06-01-week-20.md) |
