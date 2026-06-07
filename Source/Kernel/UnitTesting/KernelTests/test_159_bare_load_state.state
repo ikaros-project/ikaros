@@ -1,0 +1,32 @@
+{
+  "format": "ikaros-state-v1",
+  "tick": 1,
+  "saved_at_utc": "2026-06-07T00:00:00Z",
+  "items": {
+    "TestScalarStateSave.Memory.active": {
+      "kind": "state",
+      "type": "bool",
+      "value": false
+    },
+    "TestScalarStateSave.Memory.bias": {
+      "kind": "state",
+      "type": "float",
+      "value": 0.25
+    },
+    "TestScalarStateSave.Memory.gain": {
+      "kind": "state",
+      "type": "double",
+      "value": 1.5
+    },
+    "TestScalarStateSave.Memory.label": {
+      "kind": "state",
+      "type": "string",
+      "value": "trained"
+    },
+    "TestScalarStateSave.Memory.steps": {
+      "kind": "state",
+      "type": "int",
+      "value": 42
+    }
+  }
+}

@@ -226,6 +226,7 @@ public:
     void AddOutput(dictionary parameters);
     void AddOutput(std::string name, int size, std::string description=""); // Must be called from creator function and not from Init
     void ClearOutputs();    // Must be called from creator function and not from Init
+    void AddState(dictionary parameters);
     void AddParameter(dictionary parameters);
     void SetParameter(std::string name, std::string value);
     void SetParameter(std::string name, const matrix & value, const std::string & source_value="");
@@ -233,6 +234,11 @@ public:
     bool ResolveParameter(parameter & p,  std::string & name);
     void Bind(parameter & p, std::string n);   // Bind to parameter in global parameter table
     void Bind(matrix & m, std::string n); // Bind to input or output in global parameter table, or matrix parameter
+    void Bind(float & v, std::string n);
+    void Bind(double & v, std::string n);
+    void Bind(int & v, std::string n);
+    void Bind(bool & v, std::string n);
+    void Bind(std::string & v, std::string n);
 
     parameter & GetParameter(std::string name);
     virtual void SetParameters(); // Can be overridden in modules to set parmeter values in code rather than from the ikc/ikg file; called before Init()
@@ -282,6 +288,8 @@ public:
     virtual int SetOutputShape(dictionary d, input_map ingoing_connections);
     virtual int SetOutputShapes(input_map & ingoing_connections); // Uses the size/shape attribute
     int ApplyOutputAliases();
+    virtual int SetStateShape(dictionary d);
+    virtual int SetStateShapes(input_map ingoing_connections);
 
     virtual int SetSizes(input_map ingoing_connections); // Sets input and output if possible
     void CheckRequiredInputs();
@@ -309,6 +317,7 @@ public:
 
     int SetOutputShape(dictionary d, input_map ingoing_connections);
     int SetOutputShapes(input_map ingoing_connections); // Uses the size/shape attribute
+    int SetStateShapes(input_map ingoing_connections);
     int SetSizes(input_map  ingoing_connections); // Sets input and output if possible
 
     tick_count GetTick() const;
@@ -559,6 +568,25 @@ private:
     std::map<std::string, std::unique_ptr<Component>> components;
     std::vector<Connection>                 connections;
     std::map<std::string, matrix>           buffers;                // IO-structure
+    std::set<std::string>                   state_buffers;
+    std::set<std::string>                   persistent_outputs;
+    std::set<std::string>                   persistent_state_buffers;
+    struct ScalarState
+    {
+        std::string type;
+        bool persistent = false;
+        float float_value = 0;
+        double double_value = 0;
+        int int_value = 0;
+        bool bool_value = false;
+        std::string string_value;
+        float * float_ptr = nullptr;
+        double * double_ptr = nullptr;
+        int * int_ptr = nullptr;
+        bool * bool_ptr = nullptr;
+        std::string * string_ptr = nullptr;
+    };
+    std::map<std::string, ScalarState>       scalar_states;
     std::map<std::string, int>              max_delays;             // Maximum delay needed for each output
     std::map<std::string, CircularBuffer>   circular_buffers;       // Circular circular_buffers for delayed buffers
     std::map<std::string, parameter>        parameters;
@@ -598,6 +626,7 @@ private:
 
     void AddInput(std::string name, dictionary parameters=dictionary());
     void AddOutput(std::string name, dictionary parameters=dictionary());
+    void AddState(std::string name, dictionary parameters=dictionary());
     void AddParameter(std::string name, dictionary params=dictionary());
     void SetParameter(std::string name, std::string value);
     void SetParameter(std::string name, const matrix & value, const std::string & source_value="");
@@ -626,6 +655,8 @@ public:
 
 private:
     void Save();
+    void SaveState(const std::string & filename);
+    void LoadState(const std::string & filename);
 
     void LogStart();
     void LogStop();
@@ -655,6 +686,8 @@ private:
     void DoNew(Request & request);
     void DoOpen(Request & request);
     void DoSave(Request & request);
+    void DoSaveState(Request & request);
+    void DoLoadState(Request & request);
 
     void DoQuit(Request & request);
     void DoStop(Request & request);

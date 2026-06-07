@@ -1,0 +1,10 @@
+<group
+    name="TestPersistentOutputSave"
+    description="Test persistent output state shape mismatch"
+    stop="1"
+    cli_args="-L/tmp/ikaros_persistent_output_state.json"
+    expected_exit="1"
+    expected_output_contains="has shape {3} but target output has shape {2}"
+>
+    <module name="Memory" class="PersistentStateTestModule" data="1, 2" write="false" />
+</group>

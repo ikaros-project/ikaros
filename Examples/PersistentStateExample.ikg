@@ -1,0 +1,12 @@
+<group
+    name="PersistentStateExample"
+    description="Example of persistent matrix and scalar state"
+    stop="1"
+>
+    <module
+        name="Memory"
+        class="PersistentStateTestModule"
+        data="2, 4, 8"
+        use_scalar="true"
+    />
+</group>

@@ -1,0 +1,9 @@
+<group
+    name="TestPrivateMatrixStateSave"
+    description="Test private matrix state load"
+    stop="1"
+    cli_args="-L/tmp/ikaros_private_matrix_state.json"
+    expected_output_contains="Loaded state from /tmp/ikaros_private_matrix_state.json||STATE = {3, 1, 4}"
+>
+    <module name="Memory" class="PersistentStateTestModule" data="1, 2, 3" write="false" use_private="true" />
+</group>

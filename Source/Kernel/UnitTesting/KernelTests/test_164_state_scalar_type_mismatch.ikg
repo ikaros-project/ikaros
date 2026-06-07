@@ -1,0 +1,10 @@
+<group
+    name="TestScalarStateSave"
+    description="Test scalar state type mismatch fails"
+    stop="1"
+    cli_args="-L"
+    expected_exit="1"
+    expected_output_contains="has type &quot;double&quot; but target state has type &quot;float&quot;"
+>
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" write="false" />
+</group>

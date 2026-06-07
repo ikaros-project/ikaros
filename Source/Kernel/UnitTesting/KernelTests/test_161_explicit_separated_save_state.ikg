@@ -1,0 +1,11 @@
+<group
+    name="TestExplicitSeparatedSaveState"
+    description="Test separated save state filename"
+    stop="1"
+    cli_args="-W /tmp/ikaros_explicit_separated_state.json"
+    expected_output_contains="Saved state to /tmp/ikaros_explicit_separated_state.json"
+    expected_file_exists="/tmp/ikaros_explicit_separated_state.json"
+    expected_file_contains="&quot;ikaros_version&quot;: &quot;3.0&quot;||&quot;model_filename&quot;: &quot;test_161_explicit_separated_save_state.ikg&quot;||&quot;model_name&quot;: &quot;TestExplicitSeparatedSaveState&quot;||&quot;scope&quot;: &quot;network&quot;||&quot;item_count&quot;: 7"
+>
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" />
+</group>

@@ -5,9 +5,12 @@
 #include "session_logging.h"
 
 #include <cctype>
+#include <ctime>
 #include <fstream>
+#include <iomanip>
 #include <optional>
 #include <random>
+#include <sstream>
 
 #if __has_include(<CommonCrypto/CommonDigest.h>) && __has_include(<CommonCrypto/CommonHMAC.h>)
 #include <CommonCrypto/CommonDigest.h>
@@ -185,6 +188,75 @@ namespace ikaros
             std::vector<int> zero_index(value.rank(), 0);
             return (*value.data_)[value.compute_index(zero_index)];
         }
+
+        std::string format_shape(const std::vector<int> & shape)
+        {
+            std::string result = "{";
+            std::string separator;
+            for(int dimension : shape)
+            {
+                result += separator + std::to_string(dimension);
+                separator = ", ";
+            }
+            result += "}";
+            return result;
+        }
+
+        bool is_scalar_state_type(const std::string & type)
+        {
+            return type == "float" || type == "double" || type == "int" || type == "bool" || type == "string";
+        }
+
+        std::string resolve_state_filename(const options & opts, const std::string & option_name)
+        {
+            std::string filename = opts.get(option_name);
+            if(!filename.empty() && filename != "true")
+                return filename;
+
+            std::filesystem::path model_path = opts.full_path();
+            if(model_path.empty())
+                throw exception("Can not derive state filename because no model file is loaded.");
+
+            model_path.replace_extension(".state");
+            return model_path.string();
+        }
+
+        std::string resolve_state_filename_from_request(const Request & request, const std::string & user_dir, const options & opts, const std::string & option_name)
+        {
+            std::string requested_filename;
+            if(request.parameters.contains("filename"))
+                requested_filename = std::string(request.parameters["filename"]);
+            else if(request.parameters.contains("file"))
+                requested_filename = std::string(request.parameters["file"]);
+
+            requested_filename = trim(requested_filename);
+            if(requested_filename.empty())
+                return resolve_state_filename(opts, option_name);
+
+            std::filesystem::path path = add_extension(requested_filename, ".state");
+            std::filesystem::path filename = path.filename();
+            if(filename.empty() || filename == "." || filename == ".." || filename.stem().empty())
+                throw exception("State filename is invalid.");
+
+            return (std::filesystem::path(user_dir) / filename).string();
+        }
+
+        std::string current_utc_timestamp()
+        {
+            auto now = system_clock::now();
+            std::time_t now_time = system_clock::to_time_t(now);
+            std::tm utc {};
+#if defined(_WIN32)
+            gmtime_s(&utc, &now_time);
+#else
+            gmtime_r(&now_time, &utc);
+#endif
+            std::ostringstream result;
+            result << std::put_time(&utc, "%Y-%m-%dT%H:%M:%SZ");
+            return result.str();
+        }
+
+        constexpr const char * ikaros_version = "3.0";
 
         double parse_parameter_number(const std::string & value, const std::string & conversion_name)
         {
@@ -435,6 +507,7 @@ namespace ikaros
         {
             ensure_list(info, "inputs");
             ensure_list(info, "outputs");
+            ensure_list(info, "states");
             ensure_list(info, "parameters");
             ensure_list(info, "groups");
             ensure_list(info, "modules");
@@ -1298,6 +1371,76 @@ namespace ikaros
     }
 
 
+    void Component::Bind(float & v, std::string n)
+    {
+        std::string name = path_+"."+n;
+        Kernel & k = kernel();
+        auto it = k.scalar_states.find(name);
+        if(it == k.scalar_states.end())
+            throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
+        if(it->second.type != "float")
+            throw exception("Bind:\"" + name + "\" failed. Expected state type float but got " + it->second.type + ".", path_);
+        v = it->second.float_value;
+        it->second.float_ptr = &v;
+    }
+
+
+    void Component::Bind(double & v, std::string n)
+    {
+        std::string name = path_+"."+n;
+        Kernel & k = kernel();
+        auto it = k.scalar_states.find(name);
+        if(it == k.scalar_states.end())
+            throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
+        if(it->second.type != "double")
+            throw exception("Bind:\"" + name + "\" failed. Expected state type double but got " + it->second.type + ".", path_);
+        v = it->second.double_value;
+        it->second.double_ptr = &v;
+    }
+
+
+    void Component::Bind(int & v, std::string n)
+    {
+        std::string name = path_+"."+n;
+        Kernel & k = kernel();
+        auto it = k.scalar_states.find(name);
+        if(it == k.scalar_states.end())
+            throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
+        if(it->second.type != "int")
+            throw exception("Bind:\"" + name + "\" failed. Expected state type int but got " + it->second.type + ".", path_);
+        v = it->second.int_value;
+        it->second.int_ptr = &v;
+    }
+
+
+    void Component::Bind(bool & v, std::string n)
+    {
+        std::string name = path_+"."+n;
+        Kernel & k = kernel();
+        auto it = k.scalar_states.find(name);
+        if(it == k.scalar_states.end())
+            throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
+        if(it->second.type != "bool")
+            throw exception("Bind:\"" + name + "\" failed. Expected state type bool but got " + it->second.type + ".", path_);
+        v = it->second.bool_value;
+        it->second.bool_ptr = &v;
+    }
+
+
+    void Component::Bind(std::string & v, std::string n)
+    {
+        std::string name = path_+"."+n;
+        Kernel & k = kernel();
+        auto it = k.scalar_states.find(name);
+        if(it == k.scalar_states.end())
+            throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
+        if(it->second.type != "string")
+            throw exception("Bind:\"" + name + "\" failed. Expected state type string but got " + it->second.type + ".", path_);
+        v = it->second.string_value;
+        it->second.string_ptr = &v;
+    }
+
+
     parameter &  
     Component::GetParameter(std::string name)
     {
@@ -1317,6 +1460,12 @@ namespace ikaros
         std::string output_name = path_+"."+validate_identifier(parameters["name"]);
         kernel().AddOutput(output_name, parameters);
       };
+
+    void Component::AddState(dictionary parameters)
+    {
+        std::string state_name = path_+"."+validate_identifier(parameters["name"]);
+        kernel().AddState(state_name, parameters);
+    }
 
     void Component::AddOutput(std::string name, int size, std::string description)
     {
@@ -1653,6 +1802,9 @@ namespace ikaros
 
         for(auto output: info_["outputs"])
             AddOutput(output);
+
+        for(auto state: info_["states"])
+            AddState(state);
 
     // Set parent
 
@@ -2249,12 +2401,67 @@ namespace ikaros
 
 
     int
+    Component::SetStateShape(dictionary d)
+    {
+        Trace("\t\t\tComponent::SetStateShape ", path_ + "." + std::string(d["name"]));
+
+        if(d.contains_non_null("type") && std::string(d["type"]) != "matrix")
+            return 0;
+
+        if(!d.contains_non_null("type") || std::string(d["type"]) != "matrix")
+            throw setup_failed("State \"" + std::string(d["name"]) + "\" in \"" + path_ + "\" must have type=\"matrix\" in this implementation.", path_);
+
+        std::string shape_expr;
+        if(d.contains("size"))
+            shape_expr = std::string(d.at("size"));
+        else if(d.contains("shape"))
+            shape_expr = std::string(d.at("shape"));
+        else
+            throw setup_failed("State \"" + std::string(d["name"]) + "\" in \"" + path_ + "\" must have a value for \"size\" or \"shape\".", path_);
+
+        if(shape_expr.empty())
+            throw setup_failed("State \"" + std::string(d["name"]) + "\" in \"" + path_ + "\" must have a value for \"size\" or \"shape\".", path_);
+
+        try
+        {
+            std::vector<int> shape = EvaluateShapeList(shape_expr);
+            matrix state;
+            Bind(state, d.at("name"));
+            state.realloc(shape);
+        }
+        catch(const std::invalid_argument & e)
+        {
+            Notify(msg_warning, e.what());
+            throw setup_failed("Size expression for state \"" + std::string(d["name"]) + "\" is invalid. " + e.what(), path_);
+        }
+        catch(const std::exception & e)
+        {
+            throw setup_failed("Size expression for state \"" + std::string(d["name"]) + "\" is invalid. " + std::string(e.what()), path_);
+        }
+
+        return 0;
+    }
+
+
+    int
+    Component::SetStateShapes(input_map)
+    {
+        Trace("\t\tComponent::SetStateShapes", path_);
+        for(auto & d : info_["states"])
+            SetStateShape(d);
+
+        return 0;
+    }
+
+
+    int
     Component::SetSizes(input_map ingoing_connections)
     {
         
         Trace("\tComponent::SetSizes",path_);
         SetInputSizes(ingoing_connections);
         SetOutputShapes(ingoing_connections);
+        SetStateShapes(ingoing_connections);
 
         return 0;
     }
@@ -2360,11 +2567,25 @@ namespace ikaros
     }
 
 
+    int
+    Module::SetStateShapes(input_map ingoing_connections)
+    {
+        if(!InputsReady(info_, ingoing_connections))
+            return 0;
+
+        for(auto & d : info_["states"])
+            SetStateShape(d);
+
+        return 0;
+    }
+
+
     int 
     Module::SetSizes(input_map ingoing_connections)
     {
         SetInputSizes(ingoing_connections);
         SetOutputShapes(ingoing_connections);
+        SetStateShapes(ingoing_connections);
         return 0;
     }   
 
@@ -2666,6 +2887,10 @@ bool operator==(Request & r, const std::string s)
 
         connections.clear();
         buffers.clear();   
+        state_buffers.clear();
+        persistent_outputs.clear();
+        persistent_state_buffers.clear();
+        scalar_states.clear();
         max_delays.clear();
         circular_buffers.clear();
         parameters.clear();
@@ -2951,6 +3176,13 @@ bool operator==(Request & r, const std::string s)
                         if((is_module || ingoing_connections.count(full_name)) && buffers[full_name].empty())
                             pending++;
                     }
+
+                    for(dictionary d : component->info_["states"])
+                    {
+                        std::string full_name = name + "." + d["name"].as_string();
+                        if(state_buffers.count(full_name) && buffers[full_name].empty())
+                            pending++;
+                    }
                 }
                 return pending;
             };
@@ -2972,6 +3204,13 @@ bool operator==(Request & r, const std::string s)
                     {
                         std::string full_name = name + "." + d["name"].as_string();
                         if((is_module || ingoing_connections.count(full_name)) && buffers[full_name].empty())
+                            pending.push_back(full_name);
+                    }
+
+                    for(dictionary d : component->info_["states"])
+                    {
+                        std::string full_name = name + "." + d["name"].as_string();
+                        if(state_buffers.count(full_name) && buffers[full_name].empty())
                             pending.push_back(full_name);
                     }
                 }
@@ -3877,6 +4116,53 @@ bool operator==(Request & r, const std::string s)
     Kernel::AddOutput(std::string name, dictionary parameters)
     {
         buffers[name] = matrix().set_name(parameters["name"]);
+        if(parameters.is_set("persistent"))
+            persistent_outputs.insert(name);
+    }
+
+
+    void
+    Kernel::AddState(std::string name, dictionary parameters)
+    {
+        if(!parameters.contains_non_null("type"))
+            throw exception("State \"" + name + "\" must have a type.");
+
+        std::string type = parameters["type"];
+        if(type == "matrix")
+        {
+            buffers[name] = matrix().set_name(parameters["name"]);
+            state_buffers.insert(name);
+            if(parameters.is_set("persistent"))
+                persistent_state_buffers.insert(name);
+            return;
+        }
+
+        if(!is_scalar_state_type(type))
+            throw exception("State \"" + name + "\" has unsupported type \"" + type + "\".");
+
+        ScalarState state;
+        state.type = type;
+        state.persistent = parameters.is_set("persistent");
+        std::string default_value = parameters.contains_non_null("default") ? std::string(parameters["default"]) : "";
+        try
+        {
+            if(type == "float")
+                state.float_value = default_value.empty() ? 0 : static_cast<float>(parse_parameter_number(default_value, "float"));
+            else if(type == "double")
+                state.double_value = default_value.empty() ? 0 : parse_parameter_number(default_value, "double");
+            else if(type == "int")
+                state.int_value = default_value.empty() ? 0 : std::stoi(default_value);
+            else if(type == "bool")
+                state.bool_value = default_value.empty() ? false : ::ikaros::is_true(default_value);
+            else if(type == "string")
+                state.string_value = default_value;
+        }
+        catch(const std::exception & e)
+        {
+            throw exception("State \"" + name + "\" has invalid default value \"" + default_value + "\": " + e.what());
+        }
+
+        scalar_states[name] = state;
     }
 
     void 
@@ -4177,6 +4463,11 @@ bool operator==(Request & r, const std::string s)
          std::string source = path + "." + std::string(info["source"]); 
          std::string target = path + "." + std::string(info["target"]);
 
+        if(state_buffers.count(source) || scalar_states.count(source))
+            throw build_failed("Connection source \"" + source + "\" is private state and can not be connected.", source);
+        if(state_buffers.count(target) || scalar_states.count(target))
+            throw build_failed("Connection target \"" + target + "\" is private state and can not be connected.", target);
+
          std::string delay_range = info.contains_non_null("delay") ? info["delay"] : "";
          std::string label = info.contains_non_null("label") ? info["label"] : "";
 
@@ -4372,6 +4663,8 @@ bool operator==(Request & r, const std::string s)
                     ResetUISnapshotCache();
                     Notify(msg_print, u8"Loaded "s+options_.full_path());
                     SetUp();
+                    if(options_.is_explicitly_set("load_state"))
+                        LoadState(resolve_state_filename(options_, "load_state"));
                     CalculateCheckSum();
                     BuildUISnapshot();
                     needs_reload = false;
@@ -4586,6 +4879,248 @@ bool operator==(Request & r, const std::string s)
 
 
     void
+    Kernel::SaveState(const std::string & filename)
+    {
+        if(filename.empty())
+            throw exception("State filename is empty.");
+
+        std::ofstream file(filename);
+        if(!file)
+            throw exception("Could not open state file \"" + filename + "\" for writing.");
+
+        struct StateItem
+        {
+            std::string path;
+            std::string kind;
+            const matrix * buffer = nullptr;
+            const ScalarState * scalar = nullptr;
+        };
+
+        std::vector<StateItem> items;
+        auto collect_matrix_item = [&](const std::string & path, const std::string & kind)
+        {
+            auto buffer = buffers.find(path);
+            if(buffer == buffers.end())
+                throw exception("Persistent " + kind + " \"" + path + "\" does not exist.");
+            if(buffer->second.empty())
+                throw exception("Persistent " + kind + " \"" + path + "\" has no allocated value.");
+            items.push_back({path, kind, &buffer->second, nullptr});
+        };
+
+        for(const auto & path : persistent_outputs)
+            collect_matrix_item(path, "output");
+        for(const auto & path : persistent_state_buffers)
+            collect_matrix_item(path, "state");
+        for(const auto & [path, state] : scalar_states)
+            if(state.persistent)
+                items.push_back({path, "state", nullptr, &state});
+
+        file << "{\n";
+        file << "  \"format\": \"ikaros-state-v1\",\n";
+        file << "  \"tick\": " << tick << ",\n";
+        file << "  \"saved_at_utc\": \"" << current_utc_timestamp() << "\",\n";
+        file << "  \"ikaros_version\": \"" << ikaros_version << "\",\n";
+        file << "  \"model_filename\": \"" << escape_json_string(options_.filename()) << "\",\n";
+        file << "  \"model_name\": \"" << escape_json_string(info_["name"]) << "\",\n";
+        file << "  \"scope\": \"network\",\n";
+        file << "  \"item_count\": " << items.size() << ",\n";
+        file << "  \"items\": {\n";
+
+        std::string separator;
+        auto write_matrix_item = [&](const StateItem & item)
+        {
+            file << separator;
+            file << "    \"" << escape_json_string(item.path) << "\": {\n";
+            file << "      \"kind\": \"" << item.kind << "\",\n";
+            file << "      \"type\": \"matrix\",\n";
+            file << "      \"shape\": [";
+            std::string shape_separator;
+            for(int dimension : item.buffer->shape())
+            {
+                file << shape_separator << dimension;
+                shape_separator = ", ";
+            }
+            file << "],\n";
+            file << "      \"value\": " << item.buffer->json() << "\n";
+            file << "    }";
+            separator = ",\n";
+        };
+
+        auto write_scalar_item = [&](const StateItem & item)
+        {
+            const ScalarState & state = *item.scalar;
+
+            file << separator;
+            file << "    \"" << escape_json_string(item.path) << "\": {\n";
+            file << "      \"kind\": \"" << item.kind << "\",\n";
+            file << "      \"type\": \"" << state.type << "\",\n";
+            file << "      \"value\": ";
+            if(state.type == "float")
+            {
+                double value = state.float_ptr ? *state.float_ptr : state.float_value;
+                file << format_json_number(value);
+            }
+            else if(state.type == "double")
+            {
+                double value = state.double_ptr ? *state.double_ptr : state.double_value;
+                file << format_json_number(value);
+            }
+            else if(state.type == "int")
+            {
+                int value = state.int_ptr ? *state.int_ptr : state.int_value;
+                file << value;
+            }
+            else if(state.type == "bool")
+            {
+                bool value = state.bool_ptr ? *state.bool_ptr : state.bool_value;
+                file << (value ? "true" : "false");
+            }
+            else if(state.type == "string")
+            {
+                const std::string & value = state.string_ptr ? *state.string_ptr : state.string_value;
+                file << ikaros::value(value).json();
+            }
+            file << "\n";
+            file << "    }";
+            separator = ",\n";
+        };
+
+        for(const auto & item : items)
+        {
+            if(item.buffer)
+                write_matrix_item(item);
+            else
+                write_scalar_item(item);
+        }
+
+        file << "\n";
+        file << "  }\n";
+        file << "}\n";
+
+        if(!file)
+            throw exception("Could not write state file \"" + filename + "\".");
+
+        Notify(msg_print, "Saved state to " + filename);
+    }
+
+
+    void
+    Kernel::LoadState(const std::string & filename)
+    {
+        if(filename.empty())
+            throw exception("State filename is empty.");
+
+        dictionary state;
+        try
+        {
+            state.load_json(filename);
+        }
+        catch(const std::exception & e)
+        {
+            throw exception("Could not load state file \"" + filename + "\": " + e.what());
+        }
+
+        if(std::string(state["format"]) != "ikaros-state-v1")
+            throw exception("State file \"" + filename + "\" has unsupported format \"" + std::string(state["format"]) + "\".");
+        if(!state["items"].is_dictionary())
+            throw exception("State file \"" + filename + "\" does not contain an items object.");
+
+        dictionary items = std::get<dictionary>(state["items"].value_);
+        for(const auto & [path, saved_value] : *items.dict_)
+        {
+            if(!saved_value.is_dictionary())
+                throw exception("State item \"" + path + "\" is not an object.");
+
+            dictionary item = std::get<dictionary>(saved_value.value_);
+            std::string kind = item["kind"];
+            std::string type = item["type"];
+            if(kind != "output" && kind != "state")
+                throw exception("State item \"" + path + "\" has unsupported kind \"" + kind + "\".");
+            if(kind == "output" && type != "matrix")
+                throw exception("State item \"" + path + "\" is an output but does not have type matrix.");
+            if(kind == "output" && !persistent_outputs.count(path))
+                throw exception("State item \"" + path + "\" does not match a persistent output in the loaded model.");
+
+            if(kind == "state" && type != "matrix")
+            {
+                auto scalar = scalar_states.find(path);
+                if(scalar == scalar_states.end() || !scalar->second.persistent)
+                    throw exception("State item \"" + path + "\" does not match a persistent private state in the loaded model.");
+                if(scalar->second.type != type)
+                    throw exception("State item \"" + path + "\" has type \"" + type + "\" but target state has type \"" + scalar->second.type + "\".");
+
+                try
+                {
+                    if(type == "float")
+                    {
+                        double value = item["value"].as_double();
+                        scalar->second.float_value = static_cast<float>(value);
+                        if(scalar->second.float_ptr)
+                            *scalar->second.float_ptr = static_cast<float>(value);
+                    }
+                    else if(type == "double")
+                    {
+                        double value = item["value"].as_double();
+                        scalar->second.double_value = value;
+                        if(scalar->second.double_ptr)
+                            *scalar->second.double_ptr = value;
+                    }
+                    else if(type == "int")
+                    {
+                        int value = item["value"].as_int();
+                        scalar->second.int_value = value;
+                        if(scalar->second.int_ptr)
+                            *scalar->second.int_ptr = value;
+                    }
+                    else if(type == "bool")
+                    {
+                        bool value = item["value"].is_true();
+                        scalar->second.bool_value = value;
+                        if(scalar->second.bool_ptr)
+                            *scalar->second.bool_ptr = value;
+                    }
+                    else if(type == "string")
+                    {
+                        if(!item["value"].is_string())
+                            throw exception("Expected string value.");
+                        std::string value = item["value"].as_string();
+                        scalar->second.string_value = value;
+                        if(scalar->second.string_ptr)
+                            *scalar->second.string_ptr = value;
+                    }
+                    else
+                        throw exception("Unsupported scalar state type \"" + type + "\".");
+                }
+                catch(const exception &)
+                {
+                    throw;
+                }
+                catch(const std::exception & e)
+                {
+                    throw exception("State item \"" + path + "\" has invalid value: " + std::string(e.what()));
+                }
+                continue;
+            }
+
+            if(kind == "state" && !persistent_state_buffers.count(path))
+                throw exception("State item \"" + path + "\" does not match a persistent private state in the loaded model.");
+
+            auto target = buffers.find(path);
+            if(target == buffers.end())
+                throw exception("State item \"" + path + "\" does not match a value in the loaded model.");
+
+            matrix restored(item["value"].json());
+            if(restored.shape() != target->second.shape())
+                throw exception("State item \"" + path + "\" has shape " + format_shape(restored.shape()) + " but target " + kind + " has shape " + format_shape(target->second.shape()) + ".");
+
+            target->second.copy(restored);
+        }
+
+        Notify(msg_print, "Loaded state from " + filename);
+    }
+
+
+    void
     Kernel::LogStart()
     {
 #if defined(LOGGING_OFF)
@@ -4709,6 +5244,12 @@ bool operator==(Request & r, const std::string s)
     {
         for (auto it = connections.begin(); it != connections.end(); ) 
         {
+            if(state_buffers.count(it->source) || state_buffers.count(it->target))
+            {
+                Notify(msg_warning, "Connection \"" + it->Info() + "\" uses private state and can not be connected.");
+                it = connections.erase(it);
+            }
+            else
             if(buffers.count(it->source) && buffers.count(it->target))
                 it++;
             else
@@ -5201,6 +5742,8 @@ bool operator==(Request & r, const std::string s)
     Kernel::Stop()
     {
         notify_stop_requested = false;
+        if(options_.is_explicitly_set("save_state") && !components.empty())
+            SaveState(resolve_state_filename(options_, "save_state"));
         run_mode.store(std::min(run_mode_stop, run_mode.load()));
         tick = -1;
         timer.Pause();
@@ -5533,7 +6076,7 @@ bool operator==(Request & r, const std::string s)
         std::string attribute = peek_rtail(source_with_root, ".");
 
         bool found_value = false;
-        if(buffers.count(source_with_root))
+        if(buffers.count(source_with_root) && !state_buffers.count(source_with_root))
         {
             if(requested_value.format.empty())
                 serialized_value = buffers[source_with_root].json();
@@ -5966,7 +6509,7 @@ bool operator==(Request & r, const std::string s)
             std::filesystem::path target_path = std::filesystem::path(user_dir) / filename;
 
             d.erase("filename");
-            std::string data = canonicalize_shape_aliases(d.xml("group", {"module/parameters","module/inputs","module/outputs", "module/authors","module/descriptions", "group/views", "module.description"}));
+            std::string data = canonicalize_shape_aliases(d.xml("group", {"module/parameters","module/inputs","module/outputs","module/states", "module/authors","module/descriptions", "group/views", "module.description"}));
             std::error_code ec;
             std::filesystem::create_directories(target_path.parent_path(), ec);
             if(ec)
@@ -6012,6 +6555,69 @@ bool operator==(Request & r, const std::string s)
         catch(const std::exception & e)
         {
             DoSendError("500 Internal Server Error", "Could not save file: " + std::string(e.what()));
+        }
+    }
+
+
+    void
+    Kernel::DoSaveState(Request & request)
+    {
+        try
+        {
+            std::string filename = resolve_state_filename_from_request(request, user_dir, options_, "save_state");
+            {
+                std::lock_guard<std::recursive_mutex> lock(kernelLock);
+                SaveState(filename);
+            }
+
+            std::string response = "{\n";
+            response += "\t\"ok\": true,\n";
+            response += "\t\"filename\": " + value(filename).json() + "\n";
+            response += "}\n";
+            dictionary header({
+                {"Session-Id", std::to_string(session_id)},
+                {"Package-Type", "savestate"},
+                {"Content-Type", "application/json"},
+                {"Cache-Control", "no-cache, no-store"},
+                {"Pragma", "no-cache"}
+            });
+            SendStringResponse(header, response);
+        }
+        catch(const std::exception & e)
+        {
+            DoSendError("500 Internal Server Error", "Could not save state: " + std::string(e.what()));
+        }
+    }
+
+
+    void
+    Kernel::DoLoadState(Request & request)
+    {
+        try
+        {
+            std::string filename = resolve_state_filename_from_request(request, user_dir, options_, "load_state");
+            {
+                std::lock_guard<std::recursive_mutex> lock(kernelLock);
+                LoadState(filename);
+                BuildUISnapshot();
+            }
+
+            std::string response = "{\n";
+            response += "\t\"ok\": true,\n";
+            response += "\t\"filename\": " + value(filename).json() + "\n";
+            response += "}\n";
+            dictionary header({
+                {"Session-Id", std::to_string(session_id)},
+                {"Package-Type", "loadstate"},
+                {"Content-Type", "application/json"},
+                {"Cache-Control", "no-cache, no-store"},
+                {"Pragma", "no-cache"}
+            });
+            SendStringResponse(header, response);
+        }
+        catch(const std::exception & e)
+        {
+            DoSendError("500 Internal Server Error", "Could not load state: " + std::string(e.what()));
         }
     }
 
@@ -6333,7 +6939,7 @@ bool operator==(Request & r, const std::string s)
             {"Pragma", "no-cache"}
         });
         std::string body;
-        if(!buffers.count(request.component_path))
+        if(!buffers.count(request.component_path) || state_buffers.count(request.component_path))
         {
             body = "Buffer \""+request.component_path+"\" can not be found";
             SendStringResponse(header, body);
@@ -6384,7 +6990,7 @@ bool operator==(Request & r, const std::string s)
             body += "}";
         };
 
-        if(buffers.count(key))
+        if(buffers.count(key) && !state_buffers.count(key))
         {
             send_json_response(format == "metadata" ? buffers[key].metadata_json() : buffers[key].json(), buffers[key].shape());
             SendStringResponse(header, body);
@@ -6435,7 +7041,7 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        if(!buffers.count(request.component_path))
+        if(!buffers.count(request.component_path) || state_buffers.count(request.component_path))
         {
             SendStringResponse(header, "Buffer \""+request.component_path+"\" can not be found");
             return;
@@ -6459,7 +7065,7 @@ bool operator==(Request & r, const std::string s)
 
         matrix * image = nullptr;
 
-        if(buffers.count(key))
+        if(buffers.count(key) && !state_buffers.count(key))
             image = &buffers[key];
         else if(parameters.count(key) && parameters[key].type == matrix_type)
         {
@@ -6981,6 +7587,10 @@ bool operator==(Request & r, const std::string s)
             DoOpen(request);
         else if(request == "save")
             DoSave(request);
+        else if(request == "savestate" || request == "save_state")
+            DoSaveState(request);
+        else if(request == "loadstate" || request == "load_state")
+            DoLoadState(request);
 
         // Start up commands
 

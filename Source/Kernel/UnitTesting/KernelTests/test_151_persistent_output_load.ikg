@@ -1,0 +1,9 @@
+<group
+    name="TestPersistentOutputSave"
+    description="Test persistent output state load"
+    stop="1"
+    cli_args="-L/tmp/ikaros_persistent_output_state.json"
+    expected_output_contains="Loaded state from /tmp/ikaros_persistent_output_state.json||STATE = {7, 8, 9}"
+>
+    <module name="Memory" class="PersistentStateTestModule" data="1, 2, 3" write="false" />
+</group>

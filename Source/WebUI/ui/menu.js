@@ -76,6 +76,10 @@ const app_menu =
             controller.save();
         else if(action === "saveas")
             controller.saveas();
+        else if(action === "savestate")
+            controller.saveState();
+        else if(action === "loadstate")
+            controller.loadState();
         else if(action === "quit")
             controller.quit();
     }

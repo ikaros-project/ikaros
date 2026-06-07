@@ -1,0 +1,10 @@
+<group
+    name="TestStateMissingItems"
+    description="Test state file requires items object"
+    stop="1"
+    cli_args="-L"
+    expected_exit="1"
+    expected_output_contains="does not contain an items object"
+>
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" write="false" />
+</group>

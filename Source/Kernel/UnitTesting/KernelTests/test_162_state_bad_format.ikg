@@ -1,0 +1,10 @@
+<group
+    name="TestStateBadFormat"
+    description="Test state file rejects unsupported format"
+    stop="1"
+    cli_args="-L"
+    expected_exit="1"
+    expected_output_contains="unsupported format"
+>
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" write="false" />
+</group>

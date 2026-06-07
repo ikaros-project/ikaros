@@ -25,14 +25,16 @@ namespace ikaros {
         std::map<std::string, std::string> full;
         std::map<std::string, std::string> description;
         std::map<std::string, bool> requires_value;
+        std::map<std::string, bool> optional_value;
 
         options() = default;
 
-        void add_option(const std::string & short_name, const std::string & full_name, const std::string & desc, bool takes_value = false, const std::string & default_value = "")
+        void add_option(const std::string & short_name, const std::string & full_name, const std::string & desc, bool takes_value = false, const std::string & default_value = "", bool optional = false)
         {
             full[short_name] = full_name;
             description[full_name] = desc;
             requires_value[full_name] = takes_value;
+            optional_value[full_name] = optional;
             if(!default_value.empty())
                 d[full_name] = default_value;
         }
@@ -69,7 +71,7 @@ namespace ikaros {
                     if(!full.count(attr))
                         throw std::runtime_error("\"-"+attr + "\" is not a valid command line option");
                     std::string option_name = full[attr];
-                    if(requires_value[option_name])
+                    if(requires_value[option_name] || optional_value[option_name])
                         d[option_name] = s.substr(2);  // option with attached parameter
                     else
                         throw std::runtime_error("\"-"+attr + "\" does not accept an attached value");
@@ -81,7 +83,14 @@ namespace ikaros {
                     if(!full.count(attr))
                         throw std::runtime_error("\"-"+attr + "\" is not a valid command line option");
                     std::string option_name = full[attr];
-                    if(requires_value[option_name])
+                    if(optional_value[option_name])
+                    {
+                        if(i + 2 < args.size() && !args[i + 1].empty() && args[i + 1].front() != '-' && args[i + 1].find('=') == std::string::npos)
+                            d[option_name] = args[++i];
+                        else
+                            d[option_name] = "";
+                    }
+                    else if(requires_value[option_name])
                     {
                         if(i + 1 >= args.size())
                             throw std::runtime_error("\"-"+attr + "\" requires a value");
@@ -95,8 +104,9 @@ namespace ikaros {
                 {
                     if (!std::filesystem::exists(s))
                             throw std::runtime_error("File not found: "+std::string(s));
-                    filenames.push_back(s);
-                    path_ = s; // TEST ME
+                    std::filesystem::path filename = std::filesystem::absolute(s).lexically_normal();
+                    filenames.push_back(filename.string());
+                    path_ = filename; // TEST ME
                 }
             }
         }

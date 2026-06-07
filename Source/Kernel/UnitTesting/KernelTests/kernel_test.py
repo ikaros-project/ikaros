@@ -54,14 +54,23 @@ for item in sorted(test_files):
         combined_output = (result.stdout or "") + (result.stderr or "")
         missing_output = [text for text in split_expected_text(root.get("expected_output_contains")) if text not in combined_output]
         missing_files = [str(path) for path in expected_files if not path.exists()]
+        expected_file_text = split_expected_text(root.get("expected_file_contains"))
+        file_contents = "\n".join(path.read_text() for path in expected_files if path.exists())
+        missing_file_text = [text for text in expected_file_text if text not in file_contents]
 
-        if result.returncode == expected_exit and not missing_output and not missing_files:
+        if result.returncode == expected_exit and not missing_output and not missing_files and not missing_file_text:
             print(f"[  OK  ]  {get_description(item)}{item.name}{reset}")
+            if root.get("cleanup_expected_files") == "true":
+                for expected_file in expected_files:
+                    if expected_file.exists():
+                        expected_file.unlink()
         else:
             if missing_output:
                 detail = f"missing output: {missing_output[0]}"
             elif missing_files:
                 detail = f"missing file: {missing_files[0]}"
+            elif missing_file_text:
+                detail = f"missing file content: {missing_file_text[0]}"
             else:
                 output = combined_output.strip().split('\n')
                 detail = output[-1] if output and output[-1] else f"exit={result.returncode}, expected={expected_exit}"

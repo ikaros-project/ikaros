@@ -1,0 +1,11 @@
+<group
+    name="TestScalarStateConnectionError"
+    description="Test scalar private state cannot be connected"
+    stop="1"
+    expected_exit="1"
+    expected_output_contains="is private state and can not be connected"
+>
+    <module name="Memory" class="PersistentStateTestModule" />
+    <module name="Sink" class="Print" />
+    <connection source="Memory.bias" target="Sink.INPUT" />
+</group>

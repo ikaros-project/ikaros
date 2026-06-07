@@ -37,6 +37,8 @@ namespace
         o.add_option("a", "auth_password", "enable optional WebUI/API authentication using the provided password", true);
         o.add_option("A", "agent", "set the agent identifier included in remote session logging", true);
         o.add_option("H", "hide_toolbar", "hide the WebUI top toolbar and breadcrumbs on startup");
+        o.add_option("L", "load_state", "load persistent state after model setup; bare -L uses the model name with .state extension", false, "", true);
+        o.add_option("W", "save_state", "save persistent state when the model stops; bare -W uses the model name with .state extension", false, "", true);
         o.add_option("h", "help", "list command line options");
     }
 

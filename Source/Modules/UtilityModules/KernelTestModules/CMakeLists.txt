@@ -9,6 +9,7 @@ add_subdirectory(MatrixFunctionTestModule)
 add_subdirectory(DynamicMatrixTestModule)
 add_subdirectory(StartupStepReporter)
 add_subdirectory(FirstTickReporter)
+add_subdirectory(PersistentStateTestModule)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)

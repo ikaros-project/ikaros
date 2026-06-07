@@ -1,0 +1,61 @@
+#include "ikaros.h"
+
+using namespace ikaros;
+
+class PersistentStateTestModule: public Module
+{
+    parameter data;
+    parameter write;
+    parameter use_private;
+    parameter use_scalar;
+    matrix memory;
+    matrix output;
+    float bias;
+    double gain;
+    int steps;
+    bool active;
+    std::string label;
+
+    void Init()
+    {
+        Bind(data, "data");
+        Bind(write, "write");
+        Bind(use_private, "use_private");
+        Bind(use_scalar, "use_scalar");
+        Bind(memory, "MEMORY");
+        Bind(output, "STATE");
+        Bind(bias, "bias");
+        Bind(gain, "gain");
+        Bind(steps, "steps");
+        Bind(active, "active");
+        Bind(label, "label");
+    }
+
+    void Tick()
+    {
+        if(use_scalar.as_bool())
+        {
+            if(write.as_bool())
+            {
+                bias = 0.25f;
+                gain = 1.5;
+                steps = 42;
+                active = false;
+                label = "trained";
+            }
+            else
+            {
+                std::cout << "SCALAR_STATE: " << bias << " " << gain << " " << steps << " " << active << " " << label << std::endl;
+            }
+            return;
+        }
+
+        matrix & state = use_private.as_bool() ? memory : output;
+        if(write.as_bool())
+            state.copy(data);
+        else
+            state.print("STATE");
+    }
+};
+
+INSTALL_CLASS(PersistentStateTestModule)

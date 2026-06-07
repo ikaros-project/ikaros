@@ -1,0 +1,10 @@
+<group
+    name="TestScalarStateSave"
+    description="Test scalar state invalid value fails"
+    stop="1"
+    cli_args="-L"
+    expected_exit="1"
+    expected_output_contains="Expected string value"
+>
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" write="false" />
+</group>

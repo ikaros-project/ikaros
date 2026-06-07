@@ -503,6 +503,46 @@ const controller =
         }, null);
     },
 
+    sendStateFileCommand(command, filename)
+    {
+        const query = filename ? "?filename=" + encodeURIComponent(filename) : "";
+        fetch("/" + command + query, {
+            method: "GET",
+            headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id}
+        })
+        .then(function(response) {
+            if(response.status === 401)
+            {
+                auth.handleUnauthorized();
+                return null;
+            }
+            if(!response.ok)
+                return response.text().then(function(text) {
+                    throw new Error(text || response.statusText);
+                });
+            return response.json();
+        })
+        .then(function(result) {
+            if(result)
+                controller.requestUpdate();
+        })
+        .catch(function(error) {
+            window.alert(error.message || String(error));
+        });
+    },
+
+    saveState(filename)
+    {
+        controller.sendStateFileCommand("savestate", filename);
+    },
+
+    loadState(filename)
+    {
+        if(!window.confirm("Load state for this network?"))
+            return;
+        controller.sendStateFileCommand("loadstate", filename);
+    },
+
     quit() {
         controller.run_mode = 'quit';
         controller.sendRunModeCommand("quit");

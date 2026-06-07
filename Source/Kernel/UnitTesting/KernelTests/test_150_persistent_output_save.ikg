@@ -1,0 +1,10 @@
+<group
+    name="TestPersistentOutputSave"
+    description="Test persistent output state save"
+    stop="1"
+    cli_args="-W/tmp/ikaros_persistent_output_state.json"
+    expected_output_contains="Saved state to /tmp/ikaros_persistent_output_state.json"
+    expected_file_exists="/tmp/ikaros_persistent_output_state.json"
+>
+    <module name="Memory" class="PersistentStateTestModule" data="7, 8, 9" />
+</group>

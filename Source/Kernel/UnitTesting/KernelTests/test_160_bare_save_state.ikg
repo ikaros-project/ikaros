@@ -1,0 +1,12 @@
+<group
+    name="TestBareSaveState"
+    description="Test bare save state option uses model basename"
+    stop="1"
+    cli_args="-W"
+    expected_output_contains="test_160_bare_save_state.state"
+    expected_file_exists="Source/Kernel/UnitTesting/KernelTests/test_160_bare_save_state.state"
+    expected_file_contains="&quot;ikaros_version&quot;: &quot;3.0&quot;||&quot;model_filename&quot;: &quot;test_160_bare_save_state.ikg&quot;||&quot;model_name&quot;: &quot;TestBareSaveState&quot;||&quot;scope&quot;: &quot;network&quot;||&quot;item_count&quot;: 7"
+    cleanup_expected_files="true"
+>
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" />
+</group>

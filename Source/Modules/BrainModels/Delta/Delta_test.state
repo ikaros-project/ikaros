@@ -1,0 +1,13 @@
+{
+  "format": "ikaros-state-v1",
+  "tick": -1,
+  "saved_at_utc": "2026-06-07T19:47:52Z",
+  "ikaros_version": "3.0",
+  "model_filename": "Delta_test.ikg",
+  "model_name": "Delta_test",
+  "scope": "network",
+  "item_count": 0,
+  "items": {
+
+  }
+}

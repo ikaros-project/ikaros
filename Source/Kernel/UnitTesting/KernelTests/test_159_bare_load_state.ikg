@@ -1,0 +1,9 @@
+<group
+    name="TestScalarStateSave"
+    description="Test bare load state option uses model basename"
+    stop="1"
+    cli_args="-L"
+    expected_output_contains="test_159_bare_load_state.state||SCALAR_STATE: 0.25 1.5 42 0 trained"
+>
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" write="false" />
+</group>

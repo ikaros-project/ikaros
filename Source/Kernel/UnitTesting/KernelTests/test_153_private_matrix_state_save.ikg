@@ -1,0 +1,10 @@
+<group
+    name="TestPrivateMatrixStateSave"
+    description="Test private matrix state save"
+    stop="1"
+    cli_args="-W/tmp/ikaros_private_matrix_state.json"
+    expected_output_contains="Saved state to /tmp/ikaros_private_matrix_state.json"
+    expected_file_exists="/tmp/ikaros_private_matrix_state.json"
+>
+    <module name="Memory" class="PersistentStateTestModule" data="3, 1, 4" use_private="true" />
+</group>

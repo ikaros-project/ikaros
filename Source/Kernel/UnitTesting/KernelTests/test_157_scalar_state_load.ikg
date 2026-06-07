@@ -1,0 +1,9 @@
+<group
+    name="TestScalarStateSave"
+    description="Test scalar private state load"
+    stop="1"
+    cli_args="-L/tmp/ikaros_scalar_state.json"
+    expected_output_contains="Loaded state from /tmp/ikaros_scalar_state.json||SCALAR_STATE: 0.25 1.5 42 0 trained"
+>
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" write="false" />
+</group>
