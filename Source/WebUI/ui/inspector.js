@@ -221,12 +221,20 @@ const inspector =
                 return String((component && (component.class || component.name)) || "");
             case "samples":
                 return Number.isFinite(cpu.count) ? cpu.count : (Number.isFinite(wall.count) ? wall.count : 0);
+            case "cpu_min":
+                return Number(cpu.min);
+            case "cpu_max":
+                return Number(cpu.max);
             case "cpu_stddev":
                 return Number(cpu.standard_deviation);
             case "cpu_last":
                 return Number(profiling.last_cpu_seconds);
+            case "wall_min":
+                return Number(wall.min);
             case "wall_mean":
                 return Number(wall.mean);
+            case "wall_max":
+                return Number(wall.max);
             case "wall_last":
                 return Number(profiling.last_wall_seconds);
             case "wall_stddev":
@@ -312,7 +320,7 @@ const inspector =
 
         if(components.length === 0)
         {
-            rows.innerHTML = '<tr><td colspan="7">No profiling data available.</td></tr>';
+            rows.innerHTML = '<tr><td colspan="11">No profiling data available.</td></tr>';
             return;
         }
 
@@ -327,9 +335,13 @@ const inspector =
 <td class="path path-column" title="${inspector.escapeHTML(component.path || "-")}">${inspector.escapeHTML(component.path || "-")}</td>
 <td class="class-column">${inspector.escapeHTML(className)}</td>
 <td class="number">${sampleCount}</td>
+<td class="number">${inspector.profilingFormatMilliseconds(cpu.min)}</td>
 <td class="number">${inspector.profilingFormatMilliseconds(cpu.mean)}</td>
+<td class="number">${inspector.profilingFormatMilliseconds(cpu.max)}</td>
 <td class="number">${inspector.profilingFormatMilliseconds(cpu.standard_deviation)}</td>
+<td class="number">${inspector.profilingFormatMilliseconds(wall.min)}</td>
 <td class="number">${inspector.profilingFormatMilliseconds(wall.mean)}</td>
+<td class="number">${inspector.profilingFormatMilliseconds(wall.max)}</td>
 <td class="number">${inspector.profilingFormatMilliseconds(wall.standard_deviation)}</td>
 </tr>`;
         }).join("");
@@ -348,7 +360,7 @@ const inspector =
             meta.className = "profiling-meta profiling-error";
         }
         if(rows)
-            rows.innerHTML = '<tr><td colspan="7">Unable to load profiling data.</td></tr>';
+            rows.innerHTML = '<tr><td colspan="11">Unable to load profiling data.</td></tr>';
     },
 
     refreshProfilingWindow()

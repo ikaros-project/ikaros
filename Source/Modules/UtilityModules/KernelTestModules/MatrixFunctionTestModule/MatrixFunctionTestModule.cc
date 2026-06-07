@@ -405,7 +405,7 @@ class MatrixFunctionTestModule : public Module
         matrix one_dY(std::vector<int>{1, 2, 2});
         one_dY.set(1.0f);
         matrix d_input;
-        d_input.conv2_filterbank_backward_input(one_dY, one_filter, 3, 3, matrix::convolution_padding::valid);
+        d_input.conv2_filterbank_backward_input(one_dY, one_filter, matrix::convolution_padding::valid);
         require_matrix_close(d_input, make_matrix("1, 3, 2; 4, 10, 6; 3, 7, 4"), "conv2_filterbank_backward_input()");
 
         matrix same_padding_output;
@@ -470,7 +470,7 @@ class MatrixFunctionTestModule : public Module
         require_matrix_close(same_d_filters_relu, expected_same_d_filters_relu, "conv2_filterbank_backward_filters_relu() same padding");
 
         matrix same_d_input;
-        same_d_input.conv2_filterbank_backward_input(same_dY, filters, 3, 3, matrix::convolution_padding::same);
+        same_d_input.conv2_filterbank_backward_input(same_dY, filters, matrix::convolution_padding::same);
         require_matrix_close(same_d_input, make_matrix("3, 5, 5; 5, 8, 8; 5, 8, 8"), "conv2_filterbank_backward_input() same padding");
 
         matrix reduced_last;
@@ -541,7 +541,7 @@ class MatrixFunctionTestModule : public Module
         require_matrix_close(channel_dK, expected_channel_dK, "conv2_channel_filterbank_backward_filters()");
 
         matrix channel_dInput;
-        channel_dInput.conv2_channel_filterbank_backward_input(channel_dY, channel_filters, 3, 3, matrix::convolution_padding::valid);
+        channel_dInput.conv2_channel_filterbank_backward_input(channel_dY, channel_filters, matrix::convolution_padding::valid);
         matrix expected_channel_dInput(std::vector<int>{2, 3, 3});
         expected_channel_dInput(0, 0, 0) = 1.0f;
         expected_channel_dInput(0, 0, 1) = 2.0f;
@@ -616,7 +616,7 @@ class MatrixFunctionTestModule : public Module
         require_matrix_close(same_channel_dK, expected_same_channel_dK, "conv2_channel_filterbank_backward_filters() same padding");
 
         matrix same_channel_dInput;
-        same_channel_dInput.conv2_channel_filterbank_backward_input(same_channel_dY, channel_filters, 3, 3, matrix::convolution_padding::same);
+        same_channel_dInput.conv2_channel_filterbank_backward_input(same_channel_dY, channel_filters, matrix::convolution_padding::same);
         matrix expected_same_channel_dInput(std::vector<int>{2, 3, 3});
         expected_same_channel_dInput(0, 0, 0) = 1.0f;
         expected_same_channel_dInput(0, 0, 1) = 2.0f;

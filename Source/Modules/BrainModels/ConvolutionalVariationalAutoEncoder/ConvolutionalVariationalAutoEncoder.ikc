@@ -1,4 +1,4 @@
-<class name="ConvolutionalVariationalAutoEncoder" description="learns a compact latent representation with a convolutional variational auto-encoder" shape_latent_rows_valid="INPUT.rows-@kernel_size-@latent_kernel_size+2" shape_latent_cols_valid="INPUT.cols-@kernel_size-@latent_kernel_size+2" shape_latent_same_extra="@kernel_size+@latent_kernel_size-2">
+<class name="ConvolutionalVariationalAutoEncoder" description="learns a compact latent representation with a convolutional variational auto-encoder">
 	<parameter name="latent_mode" type="number" default="dense" options="dense,spatial" description="Latent bottleneck architecture" />
 	<parameter name="latent_size" type="number" default="8" min="1" description="Number of latent variables in dense mode" />
 	<parameter name="latent_maps" type="number" default="4" min="1" description="Number of latent feature maps in spatial mode" />
@@ -28,9 +28,9 @@
 	<input name="TOP_DOWN" optional="yes" description="Optional top-down latent target used when reconstruction_source is top_down" />
 	<input name="EFFORT" optional="yes" description="Training effort gate; values less than or equal to zero skip processing" />
 	<output name="OUTPUT" shape="INPUT.shape" description="Reconstructed input" />
-	<output name="LATENT_MEAN" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(@shape_latent_rows_valid+@padding*@shape_latent_same_extra)),optional(@latent_mode*(@shape_latent_cols_valid+@padding*@shape_latent_same_extra))" description="Latent Gaussian mean" />
-	<output name="LATENT_LOG_VARIANCE" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(@shape_latent_rows_valid+@padding*@shape_latent_same_extra)),optional(@latent_mode*(@shape_latent_cols_valid+@padding*@shape_latent_same_extra))" description="Latent Gaussian log variance" />
-	<output name="LATENT_SAMPLE" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(@shape_latent_rows_valid+@padding*@shape_latent_same_extra)),optional(@latent_mode*(@shape_latent_cols_valid+@padding*@shape_latent_same_extra))" description="Latent sample used by the decoder" />
+	<output name="LATENT_MEAN" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" description="Latent Gaussian mean" />
+	<output name="LATENT_LOG_VARIANCE" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" description="Latent Gaussian log variance" />
+	<output name="LATENT_SAMPLE" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" description="Latent sample used by the decoder" />
 	<output name="LOSS" size="1" description="Total VAE loss" />
 	<output name="RECONSTRUCTION_LOSS" size="1" description="Mean squared reconstruction loss" />
 	<output name="KL_LOSS" size="1" description="KL divergence from the unit Gaussian prior" />

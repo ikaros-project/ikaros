@@ -18,6 +18,7 @@
 #include <numeric>
 #include <limits>
 #include <algorithm>
+#include <random>
 
 #include "exceptions.h"
 #include "utilities.h"
@@ -224,6 +225,20 @@ namespace ikaros
         matrix & apply(const matrix & A, std::function<float(float, float)> f); // e = f(A[], x)
         matrix & apply(const matrix & A, const matrix & B, std::function<float(float, float)> f); // e[] = f(A[], B[])
         matrix & set(float v); // Set all element of the matrix to a value
+        template <typename RandomGenerator>
+        matrix &
+        fill_uniform(RandomGenerator & rng, float min, float max) // Fill elements with uniform random values in [min, max].
+        {
+            std::uniform_real_distribution<float> distribution(min, max);
+            return apply([&](float) { return distribution(rng); });
+        }
+        template <typename RandomGenerator>
+        matrix &
+        fill_gaussian(RandomGenerator & rng, float mean=0.0f, float stddev=1.0f) // Fill elements with Gaussian random values.
+        {
+            std::normal_distribution<float> distribution(mean, stddev);
+            return apply([&](float) { return distribution(rng); });
+        }
         matrix & copy(const matrix & m);  // assign to matrix or submatrix - copy data
         matrix & copy(const matrix & m, range & target, range & source);
         matrix & submatrix(const matrix & m, const rect & region); // Copy a submatrix from m to this matrix
@@ -467,6 +482,11 @@ namespace ikaros
         matrix & subtract(float c);
         matrix & scale(float c);
         matrix & multiply_and_accumulate(const matrix & A, float c);
+        matrix & clip(float min, float max);
+        matrix & sigmoid();
+        matrix & multiply_sigmoid_derivative(const matrix & output);
+        matrix & add_channel_bias(const matrix & bias); // this [C,H,W] += bias [C]
+        matrix & sgd_update(const matrix & gradients, float learning_rate);
         matrix & relu(const matrix & A);
         matrix & scale(const matrix & A, float scale);
         matrix & exp_scaled(const matrix & A, float scale);
@@ -474,6 +494,9 @@ namespace ikaros
         matrix & add_scaled(const matrix & A, const matrix & B, float scale);
         matrix & sample_gaussian(const matrix & mean, const matrix & stddev, const matrix & epsilon);
         matrix & latent_log_variance_gradient(const matrix & latent_gradient, const matrix & epsilon, const matrix & stddev, const matrix & log_variance, float kl_scale);
+        matrix & latent_sample_gradients(matrix & d_log_variance, const matrix & latent_gradient, const matrix & mean, const matrix & epsilon, const matrix & stddev, const matrix & log_variance, float kl_scale); // this=d_mean
+        matrix & latent_mean_gradients(matrix & d_log_variance, const matrix & latent_gradient, const matrix & mean, const matrix & log_variance, float kl_scale); // this=d_mean
+        matrix & latent_kl_gradients(matrix & d_log_variance, const matrix & mean, const matrix & log_variance, float kl_scale); // this=d_mean
         matrix & divide(float c);
 
         matrix & add(const matrix & A);
@@ -599,7 +622,7 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
     matrix & conv2_filterbank(const matrix & I, const matrix & K, const matrix & B, convolution_padding padding); // Y from I, K, and per-filter bias B
     matrix & conv2_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols, convolution_padding padding); // dK [F,KH,KW]
     matrix & conv2_filterbank_backward_filters_relu(const matrix & I, const matrix & dY, const matrix & pre_activation, int kernel_rows, int kernel_cols, convolution_padding padding); // dK using dY * (pre_activation > 0)
-    matrix & conv2_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols, convolution_padding padding); // dI [H,W]
+    matrix & conv2_filterbank_backward_input(const matrix & dY, const matrix & K, convolution_padding padding); // dI [H,W]
     matrix & sum_last_two_dimensions(const matrix & A); // A [C,H,W] -> result [C]
     matrix & sum_last_two_dimensions_relu(const matrix & A, const matrix & pre_activation); // Sum A * (pre_activation > 0) over H,W
     // Multi-channel 2D filter-bank correlation used by spatial latent layers.
@@ -607,7 +630,7 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
     matrix & conv2_channel_filterbank(const matrix & I, const matrix & K, convolution_padding padding); // Y from I and K
     matrix & conv2_channel_filterbank(const matrix & I, const matrix & K, const matrix & B, convolution_padding padding); // Y from I, K, and per-filter bias B
     matrix & conv2_channel_filterbank_backward_filters(const matrix & I, const matrix & dY, int kernel_rows, int kernel_cols, convolution_padding padding); // dK [O,C,KH,KW]
-    matrix & conv2_channel_filterbank_backward_input(const matrix & dY, const matrix & K, int input_rows, int input_cols, convolution_padding padding); // dI [C,H,W]
+    matrix & conv2_channel_filterbank_backward_input(const matrix & dY, const matrix & K, convolution_padding padding); // dI [C,H,W]
     matrix & conv2_channel_filterbank_backward(const matrix & I, const matrix & K, const matrix & dY, matrix & dK, matrix & dB, convolution_padding padding); // dI, dK, dB
 
 

@@ -26,7 +26,7 @@ h1 {
 table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: auto;
+    table-layout: fixed;
 }
 thead th {
     position: sticky;
@@ -73,7 +73,7 @@ thead tr:nth-child(2) th {
     border-top: 6px solid currentColor;
 }
 th, td {
-    padding: 8px 10px;
+    padding: 6px 7px;
     border-bottom: 1px solid #313131;
     text-align: left;
     vertical-align: top;
@@ -95,7 +95,8 @@ td.path-column {
 th.class-column,
 td.class-column {
     white-space: nowrap;
-    width: 1%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 </style>
 </head>
@@ -105,30 +106,38 @@ td.class-column {
 <table>
 <colgroup>
 <col style="width: auto;">
-<col style="width: 1%;">
-<col style="width: 82px;">
-<col style="width: 82px;">
-<col style="width: 82px;">
-<col style="width: 82px;">
-<col style="width: 82px;">
+<col style="width: 130px;">
+<col style="width: 64px;">
+<col style="width: 68px;">
+<col style="width: 68px;">
+<col style="width: 68px;">
+<col style="width: 72px;">
+<col style="width: 68px;">
+<col style="width: 68px;">
+<col style="width: 68px;">
+<col style="width: 72px;">
 </colgroup>
 <thead>
 <tr>
 <th rowspan="2" class="path-column"><button type="button" class="profiling-sort-button" data-sort-key="path">path</button></th>
 <th rowspan="2" class="class-column"><button type="button" class="profiling-sort-button" data-sort-key="class">class</button></th>
 <th rowspan="2"><button type="button" class="profiling-sort-button" data-sort-key="samples">samples</button></th>
-<th colspan="2">CPU (ms)</th>
-<th colspan="2">WALL (ms)</th>
+<th colspan="4">CPU (ms)</th>
+<th colspan="4">WALL (ms)</th>
 </tr>
 <tr>
+<th><button type="button" class="profiling-sort-button" data-sort-key="cpu_min">min</button></th>
 <th><button type="button" class="profiling-sort-button" data-sort-key="cpu_mean">mean</button></th>
+<th><button type="button" class="profiling-sort-button" data-sort-key="cpu_max">max</button></th>
 <th><button type="button" class="profiling-sort-button" data-sort-key="cpu_stddev">stddev</button></th>
+<th><button type="button" class="profiling-sort-button" data-sort-key="wall_min">min</button></th>
 <th><button type="button" class="profiling-sort-button" data-sort-key="wall_mean">mean</button></th>
+<th><button type="button" class="profiling-sort-button" data-sort-key="wall_max">max</button></th>
 <th><button type="button" class="profiling-sort-button" data-sort-key="wall_stddev">stddev</button></th>
 </tr>
 </thead>
 <tbody id="profiling_rows">
-<tr><td colspan="7">Loading...</td></tr>
+<tr><td colspan="11">Loading...</td></tr>
 </tbody>
 </table>
 </body>

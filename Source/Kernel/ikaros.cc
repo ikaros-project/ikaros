@@ -243,6 +243,9 @@ namespace ikaros
 
         std::optional<std::string> matrix_shape_expression_value(const matrix & m, const std::string & function_name, const std::string & path)
         {
+            if(m.is_uninitialized())
+                return std::nullopt;
+
             const auto shape = m.shape();
 
             if(function_name == "size_x")
@@ -1528,6 +1531,7 @@ namespace ikaros
                 throw std::invalid_argument("optional() requires a size expression.");
 
             std::string rewritten = e;
+            bool unresolved_variable = false;
             expression expr(e);
             for(const auto & var : expr.variables())
             {
@@ -1543,7 +1547,11 @@ namespace ikaros
                         replacement = "0";
                     replace_all(rewritten, var, replacement);
                 }
+                else
+                    unresolved_variable = true;
             }
+            if(unresolved_variable)
+                return {};
 
             bool purely_numeric_expression = std::none_of(rewritten.begin(), rewritten.end(), [](unsigned char c)
             {
@@ -1580,6 +1588,8 @@ namespace ikaros
                     return {};
                 shape.push_back(d);
             }
+            if(optional_dimension && !had_dimension)
+                return {};
         }
         return shape;
     }

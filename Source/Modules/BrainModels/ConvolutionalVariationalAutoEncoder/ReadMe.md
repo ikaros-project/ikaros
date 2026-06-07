@@ -30,7 +30,7 @@ modules.
 | train | Enable online training | bool | yes |
 | train_interval | Run a training update every N ticks | number | 1 |
 | dense_train_interval | Update dense or spatial latent weights every N training updates | number | 1 |
-| sample | Sample from the latent distribution instead of using the mean | bool | yes |
+| sample | Sample from the latent distribution instead of using the mean; when disabled, `LATENT_SAMPLE` is the mean | bool | yes |
 | reconstruction_source | Latent source used by the decoder: `sample`, `mean`, or `top_down` | number | sample |
 | output_activation | Reconstruction activation: `linear` or `sigmoid` | number | linear |
 | weights_filename | Network weights file | string | cvae_weights.dat |
