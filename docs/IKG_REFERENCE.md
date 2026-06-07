@@ -393,6 +393,19 @@ The top group gets some UI/runtime parameters injected if missing:
 - `webui_req_int`
 - `webui_log_buffer_limit`
 
+### State attributes
+
+The top group can request state load/save:
+
+- `load_state`
+  - State file to load after setup.
+  - If set to `true`, Ikaros derives the filename from the model filename with `.state`.
+- `save_state`
+  - State file to save when the model stops.
+  - If set to `true`, Ikaros derives the filename from the model filename with `.state`.
+
+State files and scoped module state are documented in `docs/STATE_FILES.md`.
+
 ## Check Sums
 
 If the top group contains `check_sum`, the kernel computes a checksum after setup and compares it.

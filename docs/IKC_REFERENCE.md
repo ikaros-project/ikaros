@@ -28,6 +28,7 @@ The current kernel directly understands these child elements inside `<class>`:
 - `<parameter>`
 - `<input>`
 - `<output>`
+- `<state>`
 
 It also reads some class-level attributes such as `python`, `name`, and `description`.
 
@@ -172,6 +173,8 @@ Declares a named output buffer.
   - Makes this output a view of another output.
   - Example: `alias="OUTPUT[0]"`.
   - Alias selectors must use single indices only.
+- `persistent`
+  - If truthy, the output is included when saving state files.
 
 #### Notes
 
@@ -181,6 +184,41 @@ Declares a named output buffer.
 - Dynamic outputs use `capacity` instead of `size` or `shape`.
 - Dynamic outputs can only be connected as whole matrices. Indexed, ranged, and flattened connections from dynamic outputs are rejected during setup.
 - A whole-matrix input connected to a dynamic output receives the same capacity, and its logical shape is updated when data is copied.
+
+### `<state ... />`
+
+Declares private module state. State values are setup-owned buffers or scalar values that can be bound by module code but are not published as WebUI data and cannot be used as connection sources or targets.
+
+#### Required attributes
+
+- `name`
+- `type`
+  - Supported state types:
+    - `matrix`
+    - `float`
+    - `double`
+    - `int`
+    - `bool`
+    - `string`
+
+#### Kernel-recognized optional attributes
+
+- `size`
+  - Compatibility alias for matrix state shape.
+- `shape`
+  - Preferred matrix state shape expression.
+  - Required for `type="matrix"` unless `size` is used.
+- `default`
+  - Scalar default value.
+  - Used when the module state is reset.
+- `persistent`
+  - If truthy, the state value is included when saving state files.
+
+#### Notes
+
+- Matrix state is reset to zero by the default module reset behavior.
+- Scalar state is reset to its declared `default`.
+- State files are documented in `docs/STATE_FILES.md`.
 
 ## Generic Extra Elements
 
@@ -279,6 +317,8 @@ This is the safest subset to use for new `.ikc` files:
     <parameter name="param" type="number" default="1" description="..." control="menu" options="A,B,C" />
     <input name="INPUT" description="..." optional="true" size="4" flatten="false" stack="false" use_label="false" />
     <output name="OUTPUT" description="..." shape="INPUT.shape" />
+    <state name="MEMORY" type="matrix" shape="INPUT.shape" persistent="true" />
+    <state name="bias" type="float" default="0" persistent="true" />
     <output name="ROWS" description="..." dynamic="yes" capacity="128, 2" />
     <output name="RED" description="..." alias="OUTPUT[0]" />
 </class>
@@ -298,6 +338,7 @@ This is the safest subset to use for new `.ikc` files:
   - `parameter`
   - `input`
   - `output`
+  - `state`
   - other metadata elements
 
 ### `<parameter>`
@@ -332,6 +373,17 @@ This is the safest subset to use for new `.ikc` files:
   - `dynamic`
   - `capacity`
   - `alias`
+  - `persistent`
+
+### `<state>`
+
+- Common attributes:
+  - `name`
+  - `type`
+  - `size`
+  - `shape`
+  - `default`
+  - `persistent`
 
 ## Compatibility Notes
 

@@ -29,6 +29,8 @@ Common options:
 - `-s N` Stop after tick `N`.
 - `-d SECONDS` Set tick duration.
 - `-w PORT` Start WebUI on `PORT`.
+- `-W [PATH]` Save persistent state on stop. If `PATH` is omitted, use the model filename with `.state`.
+- `-L [PATH]` Load persistent state after setup. If `PATH` is omitted, use the model filename with `.state`.
 - `-u PATH` Use an alternative `UserData` directory.
 - `-t N` Use `N` worker threads.
 - `-p PATH` Set the Python executable for Python-backed classes.
@@ -60,4 +62,10 @@ Bin/ikaros -r -w 8080 model.ikg
 
 # Override model settings without editing the file
 Bin/ikaros stop=200 tick_duration=0.01 model.ikg
+
+# Load and save persistent state using model.state
+Bin/ikaros -b -L -W model.ikg
+
+# Load and save persistent state using explicit files
+Bin/ikaros -b -L initial.state -W final.state model.ikg
 ```
