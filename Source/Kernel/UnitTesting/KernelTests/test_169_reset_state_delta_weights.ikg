@@ -1,0 +1,17 @@
+<group
+    name="TestResetStateDeltaWeights"
+    description="Test reset state clears Delta weights"
+    webui_port="8169"
+    http_start_delay="0.2"
+    http_requests="stop||resetstate?module=TestResetStateDeltaWeights.Delta||savestate?filename=test_169_reset_state_delta_weights||quit"
+    expected_output_contains="Reset state for TestResetStateDeltaWeights.Delta"
+    expected_file_exists="UserData/test_169_reset_state_delta_weights.state"
+    expected_file_contains="&quot;TestResetStateDeltaWeights.Delta.WEIGHTS&quot;||&quot;kind&quot;: &quot;state&quot;||&quot;type&quot;: &quot;matrix&quot;||&quot;shape&quot;: [2]||&quot;value&quot;: [0, 0]"
+    cleanup_expected_files="true"
+>
+    <module class="Constant" name="CS" data="1, 2" />
+    <module class="Constant" name="US" data="1" />
+    <module class="Delta" name="Delta" />
+    <connection source="CS.OUTPUT" target="Delta.CS" />
+    <connection source="US.OUTPUT" target="Delta.US" />
+</group>

@@ -503,10 +503,15 @@ const controller =
         }, null);
     },
 
-    sendStateFileCommand(command, filename)
+    sendStateFileCommand(command, filename, modulePath)
     {
-        const query = filename ? "?filename=" + encodeURIComponent(filename) : "";
-        fetch("/" + command + query, {
+        const query = [];
+        if(filename)
+            query.push("filename=" + encodeURIComponent(filename));
+        if(modulePath)
+            query.push("module=" + encodeURIComponent(modulePath));
+        const queryString = query.length ? "?" + query.join("&") : "";
+        fetch("/" + command + queryString, {
             method: "GET",
             headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id}
         })
@@ -531,16 +536,103 @@ const controller =
         });
     },
 
-    saveState(filename)
+    selectedStateModulePath()
     {
-        controller.sendStateFileCommand("savestate", filename);
+        if(!selector || !Array.isArray(selector.selected_foreground) || selector.selected_foreground.length !== 1)
+            return "";
+        const path = selector.selected_foreground[0];
+        const item = network && network.dict ? network.dict[path] : null;
+        return item && (item._tag === "module" || item._tag === "group") ? path : "";
     },
 
-    loadState(filename)
+    stateModuleDisplayName(modulePath="")
     {
-        if(!window.confirm("Load state for this network?"))
+        return modulePath ? modulePath.split(".").pop() || modulePath : "";
+    },
+
+    defaultStateFilename(modulePath="")
+    {
+        if(modulePath)
+        {
+            const localName = controller.stateModuleDisplayName(modulePath);
+            return localName + ".state";
+        }
+        const base = controller.normalizeSaveFilename(network && network.network ? network.network.filename : null);
+        const filename = base === "" ? "Untitled" : base;
+        return filename.toLowerCase().endsWith(".state") ? filename : filename + ".state";
+    },
+
+    saveState(filename, modulePath)
+    {
+        if(filename !== undefined)
+        {
+            controller.sendStateFileCommand("savestate", filename, modulePath);
             return;
-        controller.sendStateFileCommand("loadstate", filename);
+        }
+
+        const selectedModule = controller.selectedStateModulePath();
+        dialog.showSaveDialog(function(selectedFilename) {
+            const trimmed = selectedFilename ? String(selectedFilename).trim() : "";
+            if(trimmed !== "")
+                controller.saveState(trimmed, selectedModule);
+        }, "Save state as:", {
+            defaultFilename: controller.defaultStateFilename(selectedModule),
+            filesKey: "user_state_files",
+            filenameLabel: "Save state as:",
+            confirmLabel: "Save"
+        });
+    },
+
+    loadState(filename, modulePath)
+    {
+        if(filename !== undefined)
+        {
+            controller.sendStateFileCommand("loadstate", filename, modulePath);
+            return;
+        }
+
+        const selectedModule = controller.selectedStateModulePath();
+        const moduleName = controller.stateModuleDisplayName(selectedModule);
+        dialog.showOpenDialog(function(selectedFilename) {
+            const trimmed = selectedFilename ? String(selectedFilename).trim() : "";
+            if(trimmed !== "")
+                controller.loadState(trimmed, selectedModule);
+        }, selectedModule ? "Select state to load for " + moduleName : "Select State file to load", {
+            defaultFilename: controller.defaultStateFilename(selectedModule),
+            filesKey: "user_state_files",
+            userOnly: true,
+            confirmLabel: "Load"
+        });
+    },
+
+    resetState(modulePath)
+    {
+        if(modulePath === undefined)
+            modulePath = controller.selectedStateModulePath();
+        const query = modulePath ? "?module=" + encodeURIComponent(modulePath) : "";
+        fetch("/resetstate" + query, {
+            method: "GET",
+            headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id}
+        })
+        .then(function(response) {
+            if(response.status === 401)
+            {
+                auth.handleUnauthorized();
+                return null;
+            }
+            if(!response.ok)
+                return response.text().then(function(text) {
+                    throw new Error(text || response.statusText);
+                });
+            return response.json();
+        })
+        .then(function(result) {
+            if(result)
+                controller.requestUpdate();
+        })
+        .catch(function(error) {
+            window.alert(error.message || String(error));
+        });
     },
 
     quit() {
@@ -889,6 +981,8 @@ const controller =
             if(shouldResetLayout && !restoredPaneLayout && main && typeof main.resetSplitLayout === "function")
                 main.resetSplitLayout();
 
+            selector.selected_foreground = [];
+            selector.clearConnectionSelection();
             let v = restoredPaneLayout && main && main.active_pane && main.active_pane.root ? main.getPaneBackground(main.active_pane.root) : getCookie('selected_background');
             if(v && network.dict[v])
                 selector.selectItems([], v, false, false, true);
@@ -896,7 +990,7 @@ const controller =
                 selector.selectItems([], top, false, false, true);
 
             if(shouldAutoArrange)
-                main.arrangeComponents();
+                main.arrangeComponents({selectArranged: false});
             if(wasNewRequest)
                 controller.clean_new_session_id = session_id;
             const isCleanNewSession = controller.clean_new_session_id === session_id;

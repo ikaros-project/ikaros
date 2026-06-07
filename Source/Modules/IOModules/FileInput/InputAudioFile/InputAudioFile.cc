@@ -12,14 +12,28 @@ class InputAudioFile : public Module
     parameter buffersize;
     parameter channels;
     matrix output;
-    AudioFile *audiofile;
+    AudioFile *audiofile = nullptr;
     std::filesystem::path resolved_filename;
 
-    int buffer_count;
+    int buffer_count = 0;
+
+    bool
+    OpenAudioFile()
+    {
+        if(audiofile != nullptr)
+            return true;
+
+        if(!kernel().SanitizeReadPath(filename.as_string(), resolved_filename))
+            throw exception("InputAudioFile can only read files from the project directory or UserData.", path_);
+
+        filename = resolved_filename.string();
+        audiofile = new AudioFile(resolved_filename.string());
+        return true;
+    }
 
 public:
     void
-    Init()
+    Init() override
     {
         Bind(filename, "filename");
         Bind(repeat, "repeat");  
@@ -27,25 +41,28 @@ public:
         Bind(channels, "channels");
         Bind(output, "OUTPUT"); 
 
-        if(!kernel().SanitizeReadPath(filename.as_string(), resolved_filename))
-            throw exception("InputAudioFile can only read files from the project directory or UserData.", path_);
-
-        filename = resolved_filename.string();
-
-        audiofile = new AudioFile(resolved_filename.string()); 
-
-        
+        OpenAudioFile();
     }
 
     ~InputAudioFile()
     {
+        Stop();
+    }
+
+    void
+    Stop() override
+    {
         delete audiofile;
+        audiofile = nullptr;
     }
 
 
     void
-    Tick()
+    Tick() override
     {
+        if(!OpenAudioFile())
+            return;
+
         // channels as rows
         for(int j=0; j< channels.as_int(); ++j)
             for(int i=0; i < buffersize.as_int(); ++i)

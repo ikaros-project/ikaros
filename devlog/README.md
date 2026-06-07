@@ -372,3 +372,5 @@ This directory contains weekly development summaries for the Ikaros repository, 
 | 2026-W19 | 2026-05-04 to 2026-05-10 | [Vision and Math Updates](2026/2026-05-04-week-16.md) |
 | 2026-W20 | 2026-05-11 to 2026-05-17 | [Docs Updates](2026/2026-05-11-week-17.md) |
 | 2026-W21 | 2026-05-18 to 2026-05-24 | [WebUI and Math Updates](2026/2026-05-18-week-18.md) |
+| 2026-W22 | 2026-05-25 to 2026-05-31 | [WebUI and World2D Updates](2026/2026-05-25-week-19.md) |
+| 2026-W23 | 2026-06-01 to 2026-06-07 | [CVAE, Locale Parsing, and Optional Dimensions](2026/2026-06-01-week-20.md) |

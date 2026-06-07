@@ -23,6 +23,23 @@ public:
     std::mutex inputMutex; // Mutex to protect the input matrix
     bool warned_buffer_size = false;
 
+    bool StartPlayback()
+    {
+        if(queue != nullptr)
+            return true;
+
+        AudioQueueNewOutput(&asbd, audioQueueOutputCallback, this, NULL, NULL, 0, &queue);
+        if(queue == nullptr)
+        {
+            Warning("AudioOutput could not create an audio queue.");
+            return false;
+        }
+
+        isPlaying = true;
+        playbackThread = std::thread(&AudioOutput::playAudio, this);
+        return true;
+    }
+
     void WarnIfBufferGeometryIsFractional(double sr)
     {
         if(warned_buffer_size || sr <= 0.0)
@@ -37,7 +54,7 @@ public:
         }
     }
 
-    void Init()
+    void Init() override
     {
         Bind(input, "INPUT");
         Bind(sampleRate, "sample_rate");
@@ -59,19 +76,17 @@ public:
         asbd.mBytesPerFrame = 4;
         asbd.mBytesPerPacket = 4;
 
-        AudioQueueNewOutput(&asbd, audioQueueOutputCallback, this, NULL, NULL, 0, &queue);
-
-        isPlaying = true;
-
-        // Start playback thread during initialization
-        playbackThread = std::thread(&AudioOutput::playAudio, this);
+        StartPlayback();
     }
 
 
     int c = 0;
 
-    void Tick()
+    void Tick() override
     {
+        if(!StartPlayback())
+            return;
+
         std::lock_guard<std::mutex> lock(inputMutex);
         //if(c++< 10)
         buffer.copy(input);
@@ -104,6 +119,9 @@ public:
     static void audioQueueOutputCallback(void* inUserData, AudioQueueRef inAQ, AudioQueueBufferRef inBuffer)
     {
         AudioOutput* audioModule = static_cast<AudioOutput*>(inUserData);
+        if(!audioModule->isPlaying)
+            return;
+
         int framesToCopy = std::min(audioModule->bufferSize.as_int(), static_cast<int>(inBuffer->mAudioDataBytesCapacity / sizeof(float)));
 
         if (framesToCopy > 0)
@@ -125,6 +143,11 @@ public:
 
     ~AudioOutput()
     {
+        Stop();
+    }
+
+    void Stop() override
+    {
         isPlaying = false;
         if (queue != nullptr)
             AudioQueueStop(queue, true);
@@ -133,7 +156,10 @@ public:
             playbackThread.join();
         }
         if (queue != nullptr)
+        {
             AudioQueueDispose(queue, true);
+            queue = nullptr;
+        }
     }
 };
 

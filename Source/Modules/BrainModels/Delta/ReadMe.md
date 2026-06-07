@@ -14,6 +14,7 @@ and updates the internal weights using the prediction error:
 `delta = alpha * (sum(US) - CR)`
 
 When `delta > 0`, the weights are increased in proportion to the active elements in `CS`.
+The learned weights are stored in the persistent private state matrix `WEIGHTS`, so they can be saved and restored with Ikaros state files.
 
 If `inverse="yes"`, the output is reported as `max(0, CR - sum(US))`, which can be used to model a simple inhibitory cerebellar-style response.
 
@@ -38,3 +39,9 @@ If `inverse="yes"`, the output is reported as `max(0, CR - sum(US))`, which can 
 | Name | Description |
 | --- | --- |
 | CR | The conditioned response |
+
+## State
+
+| Name | Type | Persistent | Description |
+| --- | --- | --- | --- |
+| WEIGHTS | matrix | yes | Learned association weights, shaped from `CS.size` |

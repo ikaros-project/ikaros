@@ -1,0 +1,15 @@
+<group
+    name="TestScopedStateSave"
+    description="Test scoped state save excludes other modules"
+    webui_port="8170"
+    http_start_delay="0.2"
+    http_requests="stop||savestate?filename=test_170_scoped_state_save&amp;module=TestScopedStateSave.MemoryA||quit"
+    expected_output_contains="Saved state to /Users/cba/ikaros/UserData/test_170_scoped_state_save.state for TestScopedStateSave.MemoryA"
+    expected_file_exists="UserData/test_170_scoped_state_save.state"
+    expected_file_contains="&quot;scope&quot;: &quot;TestScopedStateSave.MemoryA&quot;||&quot;item_count&quot;: 7||&quot;TestScopedStateSave.MemoryA.bias&quot;||&quot;TestScopedStateSave.MemoryA.MEMORY&quot;||&quot;TestScopedStateSave.MemoryA.STATE&quot;"
+    expected_file_not_contains="TestScopedStateSave.MemoryB"
+    cleanup_expected_files="true"
+>
+    <module name="MemoryA" class="PersistentStateTestModule" use_scalar="true" />
+    <module name="MemoryB" class="PersistentStateTestModule" use_scalar="true" />
+</group>

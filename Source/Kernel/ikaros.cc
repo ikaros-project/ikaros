@@ -241,6 +241,44 @@ namespace ikaros
             return (std::filesystem::path(user_dir) / filename).string();
         }
 
+        std::string component_path_from_request(const Request & request)
+        {
+            std::string component_path;
+            if(request.parameters.contains("module"))
+                component_path = std::string(request.parameters["module"]);
+            else if(request.parameters.contains("path"))
+                component_path = std::string(request.parameters["path"]);
+            else if(request.parameters.contains("component"))
+                component_path = std::string(request.parameters["component"]);
+
+            component_path = trim(component_path);
+            if(!component_path.empty() && component_path[0] == '.')
+                component_path = component_path.substr(1);
+            return component_path;
+        }
+
+        bool path_is_in_scope(const std::string & path, const std::string & scope)
+        {
+            if(scope.empty())
+                return true;
+            return path == scope || (path.size() > scope.size() && path.compare(0, scope.size(), scope) == 0 && path[scope.size()] == '.');
+        }
+
+        std::string remap_scoped_state_path(const std::string & saved_path, const std::string & saved_scope, const std::string & target_scope)
+        {
+            if(target_scope.empty())
+                return saved_path;
+
+            if(!saved_scope.empty() && saved_scope != "network")
+            {
+                if(!path_is_in_scope(saved_path, saved_scope))
+                    return "";
+                return target_scope + saved_path.substr(saved_scope.size());
+            }
+
+            return path_is_in_scope(saved_path, target_scope) ? saved_path : "";
+        }
+
         std::string current_utc_timestamp()
         {
             auto now = system_clock::now();
@@ -1867,6 +1905,61 @@ namespace ikaros
     }
 
     void
+    Component::Stop()
+    {
+    }
+
+    void
+    Component::Reset()
+    {
+        Kernel & k = kernel();
+        for(auto state_info : info_["states"])
+        {
+            std::string state_path = path_ + "." + std::string(state_info["name"]);
+            auto scalar = k.scalar_states.find(state_path);
+            if(scalar != k.scalar_states.end())
+            {
+                Kernel::ScalarState & state = scalar->second;
+                if(state.type == "float")
+                {
+                    state.float_value = state.default_float_value;
+                    if(state.float_ptr)
+                        *state.float_ptr = state.default_float_value;
+                }
+                else if(state.type == "double")
+                {
+                    state.double_value = state.default_double_value;
+                    if(state.double_ptr)
+                        *state.double_ptr = state.default_double_value;
+                }
+                else if(state.type == "int")
+                {
+                    state.int_value = state.default_int_value;
+                    if(state.int_ptr)
+                        *state.int_ptr = state.default_int_value;
+                }
+                else if(state.type == "bool")
+                {
+                    state.bool_value = state.default_bool_value;
+                    if(state.bool_ptr)
+                        *state.bool_ptr = state.default_bool_value;
+                }
+                else if(state.type == "string")
+                {
+                    state.string_value = state.default_string_value;
+                    if(state.string_ptr)
+                        *state.string_ptr = state.default_string_value;
+                }
+                continue;
+            }
+
+            auto buffer = k.buffers.find(state_path);
+            if(buffer != k.buffers.end() && k.state_buffers.count(state_path) && !buffer->second.empty())
+                buffer->second.reset();
+        }
+    }
+
+    void
     Component::Command(std::string command_name, dictionary & parameters)
     {
         std::cout << "Received command: " << command_name << "\n";
@@ -2879,6 +2972,23 @@ bool operator==(Request & r, const std::string s)
 // Kernel
 
     void
+    Kernel::StopComponents()
+    {
+        for(auto & [path, component] : components)
+        {
+            try
+            {
+                component->Stop();
+            }
+            catch(const std::exception & e)
+            {
+                Notify(msg_warning, "Could not stop component \"" + path + "\": " + e.what(), path);
+            }
+        }
+    }
+
+
+    void
     Kernel::Clear()
     {
         // FIXME: retain persistent components
@@ -2920,7 +3030,8 @@ bool operator==(Request & r, const std::string s)
     Kernel::New()
     {
         Notify(msg_print, "New file");
-    
+        if(components.size() > 0)
+            StopComponents();
         Clear();
 
         dictionary d;
@@ -3071,7 +3182,9 @@ bool operator==(Request & r, const std::string s)
             return;
         }
         for(auto& p: std::filesystem::recursive_directory_iterator(path))
-            if(std::string(p.path().extension())==".ikg")
+        {
+            const std::string extension = p.path().extension().string();
+            if(extension==".ikg")
             {
                 std::string name = p.path().stem();
 
@@ -3082,6 +3195,12 @@ bool operator==(Request & r, const std::string s)
                 else
                      user_files[name] = p.path(); 
             }
+            else if(!system && !examples && extension==".state")
+            {
+                std::string name = p.path().filename().string();
+                user_state_files[name] = p.path();
+            }
+        }
     }
 
 
@@ -4147,15 +4266,15 @@ bool operator==(Request & r, const std::string s)
         try
         {
             if(type == "float")
-                state.float_value = default_value.empty() ? 0 : static_cast<float>(parse_parameter_number(default_value, "float"));
+                state.default_float_value = state.float_value = default_value.empty() ? 0 : static_cast<float>(parse_parameter_number(default_value, "float"));
             else if(type == "double")
-                state.double_value = default_value.empty() ? 0 : parse_parameter_number(default_value, "double");
+                state.default_double_value = state.double_value = default_value.empty() ? 0 : parse_parameter_number(default_value, "double");
             else if(type == "int")
-                state.int_value = default_value.empty() ? 0 : std::stoi(default_value);
+                state.default_int_value = state.int_value = default_value.empty() ? 0 : std::stoi(default_value);
             else if(type == "bool")
-                state.bool_value = default_value.empty() ? false : ::ikaros::is_true(default_value);
+                state.default_bool_value = state.bool_value = default_value.empty() ? false : ::ikaros::is_true(default_value);
             else if(type == "string")
-                state.string_value = default_value;
+                state.default_string_value = state.string_value = default_value;
         }
         catch(const std::exception & e)
         {
@@ -4647,7 +4766,10 @@ bool operator==(Request & r, const std::string s)
         try
         {
             if(components.size() > 0)
+            {
+                StopComponents();
                 Clear();
+            }
             if(!std::filesystem::exists(options_.full_path()))
                 throw load_failed(u8"File \""+options_.full_path()+"\" does not exist.");
 
@@ -4879,10 +5001,14 @@ bool operator==(Request & r, const std::string s)
 
 
     void
-    Kernel::SaveState(const std::string & filename)
+    Kernel::SaveState(const std::string & filename, const std::string & component_path)
     {
         if(filename.empty())
             throw exception("State filename is empty.");
+
+        const std::string scope = trim(component_path);
+        if(!scope.empty() && components.find(scope) == components.end())
+            throw exception("Component \"" + scope + "\" could not be found.");
 
         std::ofstream file(filename);
         if(!file)
@@ -4899,6 +5025,8 @@ bool operator==(Request & r, const std::string s)
         std::vector<StateItem> items;
         auto collect_matrix_item = [&](const std::string & path, const std::string & kind)
         {
+            if(!path_is_in_scope(path, scope))
+                return;
             auto buffer = buffers.find(path);
             if(buffer == buffers.end())
                 throw exception("Persistent " + kind + " \"" + path + "\" does not exist.");
@@ -4912,7 +5040,7 @@ bool operator==(Request & r, const std::string s)
         for(const auto & path : persistent_state_buffers)
             collect_matrix_item(path, "state");
         for(const auto & [path, state] : scalar_states)
-            if(state.persistent)
+            if(state.persistent && path_is_in_scope(path, scope))
                 items.push_back({path, "state", nullptr, &state});
 
         file << "{\n";
@@ -4922,7 +5050,7 @@ bool operator==(Request & r, const std::string s)
         file << "  \"ikaros_version\": \"" << ikaros_version << "\",\n";
         file << "  \"model_filename\": \"" << escape_json_string(options_.filename()) << "\",\n";
         file << "  \"model_name\": \"" << escape_json_string(info_["name"]) << "\",\n";
-        file << "  \"scope\": \"network\",\n";
+        file << "  \"scope\": \"" << escape_json_string(scope.empty() ? "network" : scope) << "\",\n";
         file << "  \"item_count\": " << items.size() << ",\n";
         file << "  \"items\": {\n";
 
@@ -5000,15 +5128,19 @@ bool operator==(Request & r, const std::string s)
         if(!file)
             throw exception("Could not write state file \"" + filename + "\".");
 
-        Notify(msg_print, "Saved state to " + filename);
+        Notify(msg_print, "Saved state to " + filename + (scope.empty() ? "" : " for " + scope));
     }
 
 
     void
-    Kernel::LoadState(const std::string & filename)
+    Kernel::LoadState(const std::string & filename, const std::string & component_path)
     {
         if(filename.empty())
             throw exception("State filename is empty.");
+
+        const std::string target_scope = trim(component_path);
+        if(!target_scope.empty() && components.find(target_scope) == components.end())
+            throw exception("Component \"" + target_scope + "\" could not be found.");
 
         dictionary state;
         try
@@ -5025,9 +5157,14 @@ bool operator==(Request & r, const std::string s)
         if(!state["items"].is_dictionary())
             throw exception("State file \"" + filename + "\" does not contain an items object.");
 
+        std::string saved_scope = state["scope"].is_string() ? state["scope"].as_string() : "";
         dictionary items = std::get<dictionary>(state["items"].value_);
         for(const auto & [path, saved_value] : *items.dict_)
         {
+            std::string target_path = remap_scoped_state_path(path, saved_scope, target_scope);
+            if(target_path.empty())
+                continue;
+
             if(!saved_value.is_dictionary())
                 throw exception("State item \"" + path + "\" is not an object.");
 
@@ -5038,12 +5175,12 @@ bool operator==(Request & r, const std::string s)
                 throw exception("State item \"" + path + "\" has unsupported kind \"" + kind + "\".");
             if(kind == "output" && type != "matrix")
                 throw exception("State item \"" + path + "\" is an output but does not have type matrix.");
-            if(kind == "output" && !persistent_outputs.count(path))
+            if(kind == "output" && !persistent_outputs.count(target_path))
                 throw exception("State item \"" + path + "\" does not match a persistent output in the loaded model.");
 
             if(kind == "state" && type != "matrix")
             {
-                auto scalar = scalar_states.find(path);
+                auto scalar = scalar_states.find(target_path);
                 if(scalar == scalar_states.end() || !scalar->second.persistent)
                     throw exception("State item \"" + path + "\" does not match a persistent private state in the loaded model.");
                 if(scalar->second.type != type)
@@ -5102,10 +5239,10 @@ bool operator==(Request & r, const std::string s)
                 continue;
             }
 
-            if(kind == "state" && !persistent_state_buffers.count(path))
+            if(kind == "state" && !persistent_state_buffers.count(target_path))
                 throw exception("State item \"" + path + "\" does not match a persistent private state in the loaded model.");
 
-            auto target = buffers.find(path);
+            auto target = buffers.find(target_path);
             if(target == buffers.end())
                 throw exception("State item \"" + path + "\" does not match a value in the loaded model.");
 
@@ -5116,7 +5253,31 @@ bool operator==(Request & r, const std::string s)
             target->second.copy(restored);
         }
 
-        Notify(msg_print, "Loaded state from " + filename);
+        Notify(msg_print, "Loaded state from " + filename + (target_scope.empty() ? "" : " into " + target_scope));
+    }
+
+
+    void
+    Kernel::ResetState(const std::string & component_path)
+    {
+        if(component_path.empty())
+        {
+            for(auto & [path, component] : components)
+                component->Reset();
+            Notify(msg_print, "Reset state");
+            return;
+        }
+
+        std::string path = component_path;
+        if(!path.empty() && path[0] == '.')
+            path = path.substr(1);
+
+        auto component = components.find(path);
+        if(component == components.end())
+            throw exception("Component \"" + component_path + "\" could not be found.");
+
+        component->second->Reset();
+        Notify(msg_print, "Reset state for " + path);
     }
 
 
@@ -5741,6 +5902,7 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::Stop()
     {
+        std::lock_guard<std::recursive_mutex> lock(kernelLock);
         notify_stop_requested = false;
         if(options_.is_explicitly_set("save_state") && !components.empty())
             SaveState(resolve_state_filename(options_, "save_state"));
@@ -5756,8 +5918,7 @@ bool operator==(Request & r, const std::string s)
         }
 #endif
         //PrintProfiling(); // FIXME: Use option to turn on and off 
-        Clear(); // Delete all modules
-        needs_reload = true;
+        StopComponents();
     }
 
 
@@ -6565,14 +6726,18 @@ bool operator==(Request & r, const std::string s)
         try
         {
             std::string filename = resolve_state_filename_from_request(request, user_dir, options_, "save_state");
+            std::string component_path = component_path_from_request(request);
             {
                 std::lock_guard<std::recursive_mutex> lock(kernelLock);
-                SaveState(filename);
+                if(components.empty())
+                    throw exception("No network is loaded.");
+                SaveState(filename, component_path);
             }
 
             std::string response = "{\n";
             response += "\t\"ok\": true,\n";
-            response += "\t\"filename\": " + value(filename).json() + "\n";
+            response += "\t\"filename\": " + value(filename).json() + ",\n";
+            response += "\t\"module\": " + value(component_path).json() + "\n";
             response += "}\n";
             dictionary header({
                 {"Session-Id", std::to_string(session_id)},
@@ -6596,15 +6761,19 @@ bool operator==(Request & r, const std::string s)
         try
         {
             std::string filename = resolve_state_filename_from_request(request, user_dir, options_, "load_state");
+            std::string component_path = component_path_from_request(request);
             {
                 std::lock_guard<std::recursive_mutex> lock(kernelLock);
-                LoadState(filename);
+                if(components.empty())
+                    throw exception("No network is loaded.");
+                LoadState(filename, component_path);
                 BuildUISnapshot();
             }
 
             std::string response = "{\n";
             response += "\t\"ok\": true,\n";
-            response += "\t\"filename\": " + value(filename).json() + "\n";
+            response += "\t\"filename\": " + value(filename).json() + ",\n";
+            response += "\t\"module\": " + value(component_path).json() + "\n";
             response += "}\n";
             dictionary header({
                 {"Session-Id", std::to_string(session_id)},
@@ -6618,6 +6787,41 @@ bool operator==(Request & r, const std::string s)
         catch(const std::exception & e)
         {
             DoSendError("500 Internal Server Error", "Could not load state: " + std::string(e.what()));
+        }
+    }
+
+
+    void
+    Kernel::DoResetState(Request & request)
+    {
+        try
+        {
+            std::string component_path = component_path_from_request(request);
+
+            {
+                std::lock_guard<std::recursive_mutex> lock(kernelLock);
+                if(components.empty())
+                    throw exception("No network is loaded.");
+                ResetState(component_path);
+                BuildUISnapshot();
+            }
+
+            std::string response = "{\n";
+            response += "\t\"ok\": true,\n";
+            response += "\t\"module\": " + value(component_path).json() + "\n";
+            response += "}\n";
+            dictionary header({
+                {"Session-Id", std::to_string(session_id)},
+                {"Package-Type", "resetstate"},
+                {"Content-Type", "application/json"},
+                {"Cache-Control", "no-cache, no-store"},
+                {"Pragma", "no-cache"}
+            });
+            SendStringResponse(header, response);
+        }
+        catch(const std::exception & e)
+        {
+            DoSendError("500 Internal Server Error", "Could not reset state: " + std::string(e.what()));
         }
     }
 
@@ -7374,6 +7578,7 @@ bool operator==(Request & r, const std::string s)
         system_files.clear();
         examples_files.clear();
         user_files.clear();
+        user_state_files.clear();
         ScanFiles(options_.ikaros_root+"/Source/Modules");
         ScanFiles(options_.ikaros_root+"/Examples", false, true);
         ScanFiles(user_dir, false);
@@ -7408,6 +7613,16 @@ bool operator==(Request & r, const std::string s)
         sep = "";
         body += "\"user_files\":[\n\t\"";
         for(auto & f: user_files)
+        {
+            body += sep;
+            body += escape_json_string(f.first);
+            sep = "\",\n\t\"";
+        }
+        body += "\"\n],\n";
+
+        sep = "";
+        body += "\"user_state_files\":[\n\t\"";
+        for(auto & f: user_state_files)
         {
             body += sep;
             body += escape_json_string(f.first);
@@ -7591,6 +7806,8 @@ bool operator==(Request & r, const std::string s)
             DoSaveState(request);
         else if(request == "loadstate" || request == "load_state")
             DoLoadState(request);
+        else if(request == "resetstate" || request == "reset_state")
+            DoResetState(request);
 
         // Start up commands
 

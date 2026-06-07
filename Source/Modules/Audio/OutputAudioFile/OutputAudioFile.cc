@@ -161,7 +161,7 @@ class OutputAudioFile: public Module
     }
 
 public:
-    void Init()
+    void Init() override
     {
         Bind(filename, "filename");
         Bind(sample_rate, "sample_rate");
@@ -169,7 +169,7 @@ public:
         Bind(input, "INPUT");
     }
 
-    void Tick()
+    void Tick() override
     {
         const double sr = EffectiveSampleRate();
         WarnIfBufferGeometryIsFractional(sr);
@@ -213,9 +213,15 @@ public:
 
     ~OutputAudioFile()
     {
+        Stop();
+    }
+
+    void Stop() override
+    {
         FinalizeHeader();
         if(file.is_open())
             file.close();
+        file_initialized = false;
     }
 };
 

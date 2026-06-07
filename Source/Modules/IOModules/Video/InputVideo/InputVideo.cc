@@ -96,13 +96,13 @@ class InputVideo : public Module
     matrix output;
 
     // FFmpeg related
-    AVFormatContext *input_format_context;
-    int videoStreamId;
-    AVCodecContext *avctx;
-    AVFrame *inputFrame;
-    AVFrame *outputFrame;
+    AVFormatContext *input_format_context = nullptr;
+    int videoStreamId = -1;
+    AVCodecContext *avctx = nullptr;
+    AVFrame *inputFrame = nullptr;
+    AVFrame *outputFrame = nullptr;
     AVPacket * packet = av_packet_alloc();
-    SwsContext *img_convert_ctx;
+    SwsContext *img_convert_ctx = nullptr;
     AVDictionary *options = nullptr;
 
     std::thread capture_thread;
@@ -189,7 +189,7 @@ class InputVideo : public Module
 
 
     void 
-    Init()
+    Init() override
     {
         Bind(intensity, "INTENSITY");
         Bind(red, "RED");
@@ -320,8 +320,11 @@ class InputVideo : public Module
 
 
     void 
-    Tick()
+    Tick() override
     {
+        if(input_format_context == nullptr || avctx == nullptr || outputFrame == nullptr)
+            return;
+
         constexpr float c1_3 = 1.0 / 3.0;
         constexpr float c1_255 = 1.0 / 255.0;
 
@@ -366,6 +369,11 @@ class InputVideo : public Module
 
     ~InputVideo()
     {
+        Stop();
+    }
+
+    void Stop() override
+    {
         StopCaptureThread();
         if (inputFrame)
             av_frame_free(&inputFrame);
@@ -386,7 +394,20 @@ class InputVideo : public Module
             av_dict_free(&options);
 
         if (img_convert_ctx)
+        {
             sws_freeContext(img_convert_ctx);
+            img_convert_ctx = nullptr;
+        }
+
+        if(packet)
+            av_packet_free(&packet);
+
+        {
+            std::lock_guard<std::mutex> lock(frame_mutex);
+            latest_frame_data.clear();
+            latest_frame_linesize = 0;
+            frame_ready = false;
+        }
     }
 };
 

@@ -45,6 +45,7 @@ const app_menu =
     {
         if(typeof view_menu !== "undefined")
             view_menu.hide();
+        app_menu.updateStateLabels();
         if(app_menu.dropdown)
         {
             app_menu.positionDropdown();
@@ -64,6 +65,34 @@ const app_menu =
             app_menu.dropdown.style.left = app_menu.button.offsetLeft + "px";
     },
 
+    updateStateLabels()
+    {
+        const hasModule = !!(controller && typeof controller.selectedStateModulePath === "function" && controller.selectedStateModulePath());
+        const saveLabel = hasModule ? "Save Module State..." : "Save State...";
+        const loadLabel = hasModule ? "Load Module State..." : "Load State...";
+        const resetLabel = hasModule ? "Reset Module State" : "Reset State";
+
+        const saveMenu = document.getElementById("save_state_menu_item");
+        const loadMenu = document.getElementById("load_state_menu_item");
+        const resetMenu = document.getElementById("reset_state_menu_item");
+        const saveButton = document.getElementById("save_state_system_button");
+        const loadButton = document.getElementById("load_state_system_button");
+        const resetButton = document.getElementById("reset_state_system_button");
+
+        if(saveMenu)
+            saveMenu.innerText = saveLabel;
+        if(loadMenu)
+            loadMenu.innerText = loadLabel;
+        if(resetMenu)
+            resetMenu.innerText = resetLabel;
+        if(saveButton)
+            saveButton.innerText = saveLabel;
+        if(loadButton)
+            loadButton.innerText = loadLabel;
+        if(resetButton)
+            resetButton.innerText = resetLabel;
+    },
+
     choose(action)
     {
         app_menu.hide();
@@ -80,6 +109,8 @@ const app_menu =
             controller.saveState();
         else if(action === "loadstate")
             controller.loadState();
+        else if(action === "resetstate")
+            controller.resetState();
         else if(action === "quit")
             controller.quit();
     }

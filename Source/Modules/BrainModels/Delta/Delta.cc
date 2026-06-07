@@ -20,15 +20,13 @@ class Delta: public Module
         Bind(cs, "CS");
         Bind(us, "US");
         Bind(cr, "CR");
+        Bind(weights, "WEIGHTS");
     }
 
     void Tick()
     {
         if (!cs.connected() || !us.connected())
             return;
-
-        if (weights.rank() == 0)
-            weights = matrix(cs.shape());
 
         float us_sum = us.sum();
         float response = dot(cs, weights);

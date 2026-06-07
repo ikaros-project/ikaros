@@ -54,6 +54,8 @@ const dialog =
             return;
         items.innerHTML = '';
         files.forEach(file => {
+            if(file == null || String(file).trim() === "")
+                return;
             const opt = document.createElement('option');
             opt.value = file;
             opt.text = file;
@@ -86,14 +88,20 @@ const dialog =
 
     showOpenDialog(callback, message)
     {
+        const options = arguments.length > 2 && arguments[2] ? arguments[2] : {};
+        this.configureOpenDialogSources(options);
+        this.setOpenDialogButtonText(options.confirmLabel || "Open");
         dialog.fetchFileList()
         .then(json => {
             this.setupDialog(callback);
-            this.populateFileList(json);
-            if(json.examples_files && json.examples_files.length > 0)
+            this.populateFileList(json, options);
+            if(options.userOnly)
+                this.showUserFileList();
+            else if(json.examples_files && json.examples_files.length > 0)
                 this.showExamplesFileList();
             else
                 this.showSystemFileList();
+            this.selectDialogOption("open_dialog_user_items", options.defaultFilename || "");
             this.displayMessage(message);
             this.window.showModal();
         });
@@ -101,9 +109,14 @@ const dialog =
 
     showSaveDialog(callback, message)
     {
+        const options = arguments.length > 2 && arguments[2] ? arguments[2] : {};
         this.callback = callback;
         this.window = document.getElementById('save_dialog');
-        this.populateSaveFileList(controller.filelist || {});
+        this.populateSaveFileList(controller.filelist || {}, options);
+        this.setSaveDialogButtonText(options.confirmLabel || "Save");
+        const filenameLabel = document.querySelector("label[for='save_dialog_filename']");
+        if(filenameLabel)
+            filenameLabel.innerText = options.filenameLabel || "Save as:";
         if(message)
         {
             const saveTitle = document.getElementById('save_dialog_title');
@@ -113,7 +126,7 @@ const dialog =
         const filenameInput = document.getElementById("save_dialog_filename");
         if(filenameInput)
         {
-            filenameInput.value = "Untitled";
+            filenameInput.value = options.defaultFilename || "Untitled";
             filenameInput.onkeydown = function(evt)
             {
                 if(evt.key == "Enter")
@@ -137,9 +150,53 @@ const dialog =
 
         dialog.fetchFileList()
         .then(json => {
-            this.populateSaveFileList(json);
+            this.populateSaveFileList(json, options);
             this.showUserSaveFileList();
+            this.selectDialogOption("save_dialog_user_items", options.defaultFilename || "");
         });
+    },
+
+    configureOpenDialogSources(options)
+    {
+        const examplesButton = document.getElementById("examples_file_button");
+        const systemButton = document.getElementById("system_file_button");
+        const userButton = document.getElementById("user_file_button");
+        const userOnly = options && options.userOnly;
+        if(examplesButton)
+            examplesButton.disabled = !!userOnly;
+        if(systemButton)
+            systemButton.disabled = !!userOnly;
+        if(userButton)
+            userButton.disabled = false;
+    },
+
+    setOpenDialogButtonText(text)
+    {
+        const button = document.querySelector("#open_dialog menu button:last-child");
+        if(button)
+            button.innerText = text;
+    },
+
+    setSaveDialogButtonText(text)
+    {
+        const button = document.querySelector("#save_dialog menu button:last-child");
+        if(button)
+            button.innerText = text;
+    },
+
+    selectDialogOption(selectId, value)
+    {
+        if(!value)
+            return;
+        const sel = document.getElementById(selectId);
+        if(!sel)
+            return;
+        for(let i=0; i<sel.options.length; i++)
+            if(sel.options[i].text === value || sel.options[i].value === value)
+            {
+                sel.selectedIndex = i;
+                return;
+            }
     },
 
     getDialogType()
@@ -159,8 +216,15 @@ const dialog =
         this.window = document.getElementById('open_dialog');
     },
 
-    populateFileList(file_list)
+    populateFileList(file_list, options)
     {
+        if(options && options.filesKey)
+        {
+            this.populateOptions('system', []);
+            this.populateOptions('examples', []);
+            this.populateOptions('user', file_list[options.filesKey] || []);
+            return;
+        }
         this.populateOptions('system', file_list.system_files);
         this.populateOptions('user', file_list.user_files);
         this.populateOptions('examples', file_list.examples_files);
@@ -176,8 +240,14 @@ const dialog =
             );
     },
 
-    populateSaveFileList(file_list)
+    populateSaveFileList(file_list, options)
     {
+        if(options && options.filesKey)
+        {
+            this.populateSaveOptions('system', []);
+            this.populateSaveOptions('user', file_list[options.filesKey] || []);
+            return;
+        }
         this.populateSaveOptions('system', file_list.system_files || []);
         this.populateSaveOptions('user', file_list.user_files || []);
     },

@@ -718,6 +718,20 @@ class PythonModule: public Module
 
     bool EnsureWorkerAvailable()
     {
+        if(worker_pid_ <= 0)
+        {
+            try
+            {
+                SpawnWorker();
+                return true;
+            }
+            catch(const std::exception & e)
+            {
+                HandleWorkerFailure("Python worker restart failed: " + std::string(e.what()));
+                return false;
+            }
+        }
+
         int status = 0;
         if(!WorkerExited(&status))
             return true;
@@ -789,6 +803,11 @@ class PythonModule: public Module
 
 public:
     ~PythonModule() override
+    {
+        ShutdownWorker();
+    }
+
+    void Stop() override
     {
         ShutdownWorker();
     }

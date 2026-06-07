@@ -9,6 +9,7 @@
 
 	<input name="CS" description="The conditioned stimulus input" optional="yes" />
 	<input name="US" description="The unconditioned stimulus input" optional="yes" />
+	<state name="WEIGHTS" type="matrix" size="CS.size" persistent="true" />
 	<output name="CR" description="The conditioned response" size="1"/>
 
 </class>

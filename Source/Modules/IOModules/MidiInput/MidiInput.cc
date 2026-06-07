@@ -18,15 +18,30 @@ class MidiInput: public Module
 public:
     ~MidiInput() override
     {
+        Stop();
+    }
+
+    void Stop() override
+    {
 #ifdef MAC_OS_X
         for(MIDIEndpointRef source : connected_sources_)
             MIDIPortDisconnectSource(input_port_, source);
+        connected_sources_.clear();
 
         if(input_port_ != 0)
+        {
             MIDIPortDispose(input_port_);
+            input_port_ = 0;
+        }
 
         if(client_ != 0)
+        {
             MIDIClientDispose(client_);
+            client_ = 0;
+        }
+
+        using_protocol_port_ = false;
+        running_status_ = 0;
 #endif
     }
 
@@ -50,10 +65,56 @@ public:
         connected_out_ = 0;
         last_batch_count_out_ = 0;
 
+        StartMIDI();
+    }
+
+    void Tick() override
+    {
+        StartMIDI();
+
+        int latest_note = -1;
+        int drained_note_count = 0;
+        bool gate_high = false;
+
+        {
+            std::lock_guard<std::mutex> lock(queue_mutex_);
+            if(!pending_note_ons_.empty())
+            {
+                latest_note = pending_note_ons_.back();
+                drained_note_count = static_cast<int>(pending_note_ons_.size());
+                pending_note_ons_.clear();
+            }
+
+            gate_high = !held_notes_.empty();
+        }
+
+        if(latest_note >= 0)
+        {
+            key_ = latest_note;
+            event_count_ += drained_note_count;
+            event_count_out_ = static_cast<float>(event_count_);
+            last_batch_count_out_ = static_cast<float>(drained_note_count);
+            trig_countdown_ = std::max(1, trig_hold_ticks_.as_int());
+        }
+        else
+            last_batch_count_out_ = 0;
+
+        gate_ = gate_high ? 1.0f : 0.0f;
+        trig_ = trig_countdown_ > 0 ? 1.0f : 0.0f;
+        if(trig_countdown_ > 0)
+            --trig_countdown_;
+    }
+
+private:
+    void StartMIDI()
+    {
 #ifndef MAC_OS_X
         Notify(msg_fatal_error, "MidiInput is only available on macOS.");
         return;
 #else
+        if(client_ != 0)
+            return;
+
         CFStringRef client_name = CFSTR("Ikaros MidiInput");
         OSStatus status = MIDIClientCreate(client_name, nullptr, nullptr, &client_);
         if(status != noErr)
@@ -98,43 +159,6 @@ public:
         connected_out_ = connected_sources_.empty() ? 0.0f : 1.0f;
 #endif
     }
-
-    void Tick() override
-    {
-        int latest_note = -1;
-        int drained_note_count = 0;
-        bool gate_high = false;
-
-        {
-            std::lock_guard<std::mutex> lock(queue_mutex_);
-            if(!pending_note_ons_.empty())
-            {
-                latest_note = pending_note_ons_.back();
-                drained_note_count = static_cast<int>(pending_note_ons_.size());
-                pending_note_ons_.clear();
-            }
-
-            gate_high = !held_notes_.empty();
-        }
-
-        if(latest_note >= 0)
-        {
-            key_ = latest_note;
-            event_count_ += drained_note_count;
-            event_count_out_ = static_cast<float>(event_count_);
-            last_batch_count_out_ = static_cast<float>(drained_note_count);
-            trig_countdown_ = std::max(1, trig_hold_ticks_.as_int());
-        }
-        else
-            last_batch_count_out_ = 0;
-
-        gate_ = gate_high ? 1.0f : 0.0f;
-        trig_ = trig_countdown_ > 0 ? 1.0f : 0.0f;
-        if(trig_countdown_ > 0)
-            --trig_countdown_;
-    }
-
-private:
     parameter source_index_;
     parameter trig_hold_ticks_;
     matrix key_;

@@ -7,13 +7,16 @@ using namespace ikaros;
 class AudioInput: public Module
 {
 public:
-    AudioInput() : isRecording(true) {}
+    AudioInput() : isRecording(false), queue(nullptr), buffer(nullptr) {}
     virtual ~AudioInput();
 
-    void Init();
-    void Tick();
+    void Init() override;
+    void Stop() override;
+    void Tick() override;
 
 private:
+    bool StartRecording();
+
     static void HandleInputBuffer(void* inUserData, 
                                   AudioQueueRef inAQ, 
                                   AudioQueueBufferRef inBuffer, 
@@ -33,9 +36,17 @@ private:
 
 AudioInput::~AudioInput()
 {
+    Stop();
+}
+
+void AudioInput::Stop()
+{
+    isRecording = false;
     if (queue) {
         AudioQueueStop(queue, true);
         AudioQueueDispose(queue, true);
+        queue = nullptr;
+        buffer = nullptr;
     }
 }
 
@@ -46,7 +57,15 @@ void AudioInput::Init()
     std::cout << "outputsize: " << (int)output.size() << "\n";
     outputSize = output.size();
     recordedSamples.reserve(outputSize);
+    StartRecording();
+}
 
+bool AudioInput::StartRecording()
+{
+    if(queue)
+        return true;
+
+    isRecording = true;
     AudioStreamBasicDescription format = {0};
     format.mSampleRate = samplingrate;
     format.mFormatID = kAudioFormatLinearPCM;
@@ -59,31 +78,41 @@ void AudioInput::Init()
     OSStatus status = AudioQueueNewInput(&format, HandleInputBuffer, this, nullptr, nullptr, 0, &queue);
     if (status != noErr) {
         Notify(msg_fatal_error, "Failed to create audio queue");
-        return;
+        queue = nullptr;
+        isRecording = false;
+        return false;
     }
 
     int bufferSize = samplingrate * sizeof(float);  // 1 second buffer
     status = AudioQueueAllocateBuffer(queue, bufferSize, &buffer);
     if (status != noErr) {
         Notify(msg_fatal_error, "Failed to allocate audio buffer");
-        return;
+        Stop();
+        return false;
     }
 
     status = AudioQueueEnqueueBuffer(queue, buffer, 0, nullptr);
     if (status != noErr) {
         Notify(msg_fatal_error, "Failed to enqueue audio buffer");
-        return;
+        Stop();
+        return false;
     }
 
     status = AudioQueueStart(queue, nullptr);
     if (status != noErr) {
         Notify(msg_fatal_error, "Failed to start audio queue");
-        return;
+        Stop();
+        return false;
     }
+
+    return true;
 }
 
 void AudioInput::Tick()
 {
+    if(!StartRecording())
+        return;
+
     int samplesToCopy = std::min(outputSize, (int)recordedSamples.size());
     std::cout << "recorded samples: " << (int)recordedSamples.size() << "\n";
     std::cout << "outputsize: " << (int)output.size() << "\n";

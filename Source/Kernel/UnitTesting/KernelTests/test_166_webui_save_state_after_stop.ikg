@@ -1,0 +1,13 @@
+<group
+    name="TestWebUISaveStateAfterStop"
+    description="Test WebUI state save after stop preserves loaded state"
+    webui_port="8166"
+    http_start_delay="0.2"
+    http_requests="stop||savestate?filename=test_166_webui_save_state_after_stop||quit"
+    expected_output_contains="Saved state to /Users/cba/ikaros/UserData/test_166_webui_save_state_after_stop.state"
+    expected_file_exists="UserData/test_166_webui_save_state_after_stop.state"
+    expected_file_contains="&quot;format&quot;: &quot;ikaros-state-v1&quot;||&quot;model_name&quot;: &quot;TestWebUISaveStateAfterStop&quot;||&quot;item_count&quot;: 7||&quot;TestWebUISaveStateAfterStop.Memory.STATE&quot;||&quot;TestWebUISaveStateAfterStop.Memory.MEMORY&quot;||&quot;type&quot;: &quot;float&quot;||&quot;value&quot;: 0.25"
+    cleanup_expected_files="true"
+>
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" use_private="true" />
+</group>

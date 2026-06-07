@@ -2576,7 +2576,7 @@ const main =
         main.refreshMatchingBackgroundPanes(selector.selected_background, selector.selected_foreground, main.active_pane ? main.active_pane.root : null);
     },
 
-    arrangeComponents()
+    arrangeComponents(options = {})
     {
         const background = selector.selected_background;
         const group = network.dict[background];
@@ -3070,12 +3070,17 @@ const main =
             n.object._y = snap(n.y + dy);
         }
 
-        const selected = nodes
-            .filter((n) => n.object && n.object._tag !== "widget")
-            .map((n) => n.fullName);
         network.rebuildDict();
         nav.populate();
-        selector.selectItems(selected, background, false, false, true);
+        if(options.selectArranged === false)
+            selector.selectItems([], background, false, false, true);
+        else
+        {
+            const selected = nodes
+                .filter((n) => n.object && n.object._tag !== "widget")
+                .map((n) => n.fullName);
+            selector.selectItems(selected, background, false, false, true);
+        }
         main.addConnections();
     },
     
@@ -5318,7 +5323,7 @@ const main =
 
     const currentPane = main.getCurrentPaneRoot();
     // Duplicate panes show live edits, but selection is painted only in the active pane.
-    const selectionList = main.isActivePane(currentPane) ? selector.selected_foreground : [];
+    const selectionList = main.isActivePane(currentPane) && Array.isArray(selector.selected_foreground) ? selector.selected_foreground : [];
 
         if(main.edit_mode)
         {

@@ -42,6 +42,15 @@
       text-align: left;
       padding: 0 10px;
       cursor: pointer;
+      outline: none;
+  }
+
+  #open_dialog .open-dialog-sources .button:focus,
+  #open_dialog .open-dialog-sources .button:focus-visible,
+  #save_dialog .open-dialog-sources .button:focus,
+  #save_dialog .open-dialog-sources .button:focus-visible {
+      outline: none;
+      box-shadow: none;
   }
 
   #open_dialog .open-dialog-sources .button:hover,
@@ -307,6 +316,5 @@
       width: 38%;
       white-space: nowrap;
   }
-
 
 

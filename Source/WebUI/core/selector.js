@@ -41,6 +41,8 @@ const selector =
 
     selectItems(foreground=[], background=null, toggle=false, extend=false, force_rebuild=false, reveal_inspector=false)
     {
+        if(!Array.isArray(foreground))
+            foreground = foreground ? [foreground] : [];
         const previous_background = selector.selected_background;
         selector.clearConnectionSelection();
 
@@ -60,6 +62,9 @@ const selector =
 
         if(selector.selected_background === null)
             return;
+
+        if(typeof app_menu !== "undefined" && typeof app_menu.updateStateLabels === "function")
+            app_menu.updateStateLabels();
 
         if(background_changed)
             main.applyBackgroundGridSpacing();

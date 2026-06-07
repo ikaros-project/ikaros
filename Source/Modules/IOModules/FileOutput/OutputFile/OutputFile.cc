@@ -17,9 +17,22 @@ class OutputFile: public Module
     int             index;
     matrix          input;
     std::filesystem::path resolved_filename;
+    bool            has_opened_file = false;
+
+    void
+    OpenFile(bool append=false)
+    {
+        file.open(resolved_filename, std::ios::out | (append ? std::ios::app : std::ios::trunc));
+        if(!file)
+            throw std::runtime_error("File could not be opened: " + resolved_filename.string());
+
+        if(!append)
+            WriteHeader();
+        has_opened_file = true;
+    }
 
     void 
-    Init()
+    Init() override
     {
         Bind(input, "INPUT");
         Bind(filename, "filename");
@@ -33,11 +46,7 @@ class OutputFile: public Module
         if(!kernel().SanitizeWritePath(filename.as_string(), resolved_filename))
             throw std::runtime_error("OutputFile can only write files inside UserData.");
 
-        file.open(resolved_filename, std::ios::out);
-        if (!file)
-            throw std::runtime_error("File could not be opened: " + resolved_filename.string());
-
-        WriteHeader();
+        OpenFile(false);
     }
 
 
@@ -73,13 +82,22 @@ class OutputFile: public Module
 
     ~OutputFile()
     {
-        file.close();
+        Stop();
+    }
+
+    void
+    Stop() override
+    {
+        if(file.is_open())
+            file.close();
     }
 
 
     void 
-    Tick()
+    Tick() override
     {
+        if(!file.is_open())
+            OpenFile(has_opened_file);
         WriteRow();
     }
 };

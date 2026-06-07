@@ -1,0 +1,17 @@
+<group
+    name="TestDeltaPersistentWeights"
+    description="Test Delta persistent weights state save"
+    start="true"
+    stop="1"
+    cli_args="-W/tmp/ikaros_delta_weights_state.json"
+    expected_output_contains="Saved state to /tmp/ikaros_delta_weights_state.json"
+    expected_file_exists="/tmp/ikaros_delta_weights_state.json"
+    expected_file_contains="&quot;format&quot;: &quot;ikaros-state-v1&quot;||&quot;model_name&quot;: &quot;TestDeltaPersistentWeights&quot;||&quot;item_count&quot;: 1||&quot;TestDeltaPersistentWeights.Delta.WEIGHTS&quot;||&quot;kind&quot;: &quot;state&quot;||&quot;type&quot;: &quot;matrix&quot;||&quot;shape&quot;: [2]"
+    cleanup_expected_files="true"
+>
+    <module class="Constant" name="CS" data="1, 2" />
+    <module class="Constant" name="US" data="1" />
+    <module class="Delta" name="Delta" />
+    <connection source="CS.OUTPUT" target="Delta.CS" />
+    <connection source="US.OUTPUT" target="Delta.US" />
+</group>

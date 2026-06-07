@@ -244,6 +244,8 @@ public:
     virtual void SetParameters(); // Can be overridden in modules to set parmeter values in code rather than from the ikc/ikg file; called before Init()
     void Tick() override;
     virtual void Init();
+    virtual void Stop();
+    virtual void Reset();
     virtual void Command(std::string command_name, dictionary & parameters); // Used to send commands and arbitrary data structures to modules
 
     void print() const;
@@ -565,6 +567,7 @@ private:
     std::map<std::string, std::string>      system_files; // ikg-files
     std::map<std::string, std::string>      examples_files; // ikg-files
     std::map<std::string, std::string>      user_files;   // ikg-files
+    std::map<std::string, std::string>      user_state_files; // state-files
     std::map<std::string, std::unique_ptr<Component>> components;
     std::vector<Connection>                 connections;
     std::map<std::string, matrix>           buffers;                // IO-structure
@@ -576,10 +579,15 @@ private:
         std::string type;
         bool persistent = false;
         float float_value = 0;
+        float default_float_value = 0;
         double double_value = 0;
+        double default_double_value = 0;
         int int_value = 0;
+        int default_int_value = 0;
         bool bool_value = false;
+        bool default_bool_value = false;
         std::string string_value;
+        std::string default_string_value;
         float * float_ptr = nullptr;
         double * double_ptr = nullptr;
         int * int_ptr = nullptr;
@@ -655,8 +663,9 @@ public:
 
 private:
     void Save();
-    void SaveState(const std::string & filename);
-    void LoadState(const std::string & filename);
+    void SaveState(const std::string & filename, const std::string & component_path="");
+    void LoadState(const std::string & filename, const std::string & component_path="");
+    void ResetState(const std::string & component_path="");
 
     void LogStart();
     void LogStop();
@@ -675,6 +684,7 @@ public:
     void Realtime();
 
 private:
+    void StopComponents();
     void Pause();
     void Restart(); // Save and reload
 
@@ -688,6 +698,7 @@ private:
     void DoSave(Request & request);
     void DoSaveState(Request & request);
     void DoLoadState(Request & request);
+    void DoResetState(Request & request);
 
     void DoQuit(Request & request);
     void DoStop(Request & request);

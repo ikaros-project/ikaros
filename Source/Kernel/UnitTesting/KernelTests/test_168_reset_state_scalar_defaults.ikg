@@ -1,0 +1,13 @@
+<group
+    name="TestResetStateScalarDefaults"
+    description="Test reset state restores scalar defaults"
+    webui_port="8168"
+    http_start_delay="0.2"
+    http_requests="stop||resetstate?module=TestResetStateScalarDefaults.Memory||savestate?filename=test_168_reset_state_scalar_defaults||quit"
+    expected_output_contains="Reset state for TestResetStateScalarDefaults.Memory"
+    expected_file_exists="UserData/test_168_reset_state_scalar_defaults.state"
+    expected_file_contains="&quot;TestResetStateScalarDefaults.Memory.bias&quot;||&quot;type&quot;: &quot;float&quot;||&quot;value&quot;: 0||&quot;TestResetStateScalarDefaults.Memory.gain&quot;||&quot;type&quot;: &quot;double&quot;||&quot;TestResetStateScalarDefaults.Memory.steps&quot;||&quot;type&quot;: &quot;int&quot;||&quot;TestResetStateScalarDefaults.Memory.active&quot;||&quot;value&quot;: true||&quot;TestResetStateScalarDefaults.Memory.label&quot;||&quot;value&quot;: &quot;untrained&quot;"
+    cleanup_expected_files="true"
+>
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" />
+</group>

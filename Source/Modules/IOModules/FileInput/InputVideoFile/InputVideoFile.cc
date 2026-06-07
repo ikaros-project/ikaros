@@ -118,12 +118,21 @@ class InputVideoFile : public Module
 public:
     ~InputVideoFile() override
     {
+        Stop();
+    }
+
+    void Stop() override
+    {
         if(image_convert_context != nullptr)
+        {
             sws_freeContext(image_convert_context);
+            image_convert_context = nullptr;
+        }
 
         if(output_frame != nullptr)
         {
-            av_freep(&output_frame->data[0]);
+            if(output_frame->data[0] != nullptr)
+                av_freep(&output_frame->data[0]);
             av_frame_free(&output_frame);
         }
 
@@ -135,6 +144,11 @@ public:
 
         if(input_format_context != nullptr)
             avformat_close_input(&input_format_context);
+
+        video_stream_id = -1;
+        output_width = 0;
+        output_height = 0;
+        restart_next_frame = true;
     }
 
 private:
@@ -203,6 +217,9 @@ private:
     bool
     OpenInput()
     {
+        if(input_format_context != nullptr && codec_context != nullptr && input_frame != nullptr)
+            return true;
+
         const std::string file_to_open = filename.as_string();
         if(file_to_open.empty())
         {
@@ -297,6 +314,16 @@ private:
         }
 
         return true;
+    }
+
+    bool
+    EnsureOpen()
+    {
+        if(input_format_context != nullptr && codec_context != nullptr && input_frame != nullptr && output_frame != nullptr)
+            return true;
+
+        Stop();
+        return OpenInput() && ConfigureOutput();
     }
 
     bool
@@ -483,7 +510,7 @@ private:
         restart[0] = restart_next_frame ? 1.0f : 0.0f;
         restart_next_frame = false;
 
-        if(input_format_context == nullptr || codec_context == nullptr)
+        if(!EnsureOpen())
             return;
 
         if(!DecodeNextFrame())

@@ -180,8 +180,9 @@
                 <button type="button" onclick="app_menu.choose('save')"><span>Save</span><span class="menu-shortcut">&#8984;S</span></button>
                 <button type="button" onclick="app_menu.choose('saveas')">Save As...</button>
                 <hr class="top-menu-divider">
-                <button type="button" onclick="app_menu.choose('savestate')">Save State</button>
-                <button type="button" onclick="app_menu.choose('loadstate')">Load State</button>
+                <button type="button" id="save_state_menu_item" onclick="app_menu.choose('savestate')">Save State...</button>
+                <button type="button" id="load_state_menu_item" onclick="app_menu.choose('loadstate')">Load State...</button>
+                <button type="button" id="reset_state_menu_item" onclick="app_menu.choose('resetstate')">Reset State</button>
                 <hr class="top-menu-divider">
                 <button type="button" onclick="app_menu.choose('quit')">Quit</button>
             </menu>
@@ -707,8 +708,9 @@
                                 <button onmousedown="controller.open()">Open...</button>
                                 <button onmousedown="controller.save()">Save</button>
                                 <button onmousedown="controller.saveas()">Save As...</button>
-                                <button onmousedown="controller.saveState()">Save State</button>
-                                <button onmousedown="controller.loadState()">Load State</button>
+                                <button id="save_state_system_button" onmousedown="controller.saveState()">Save State...</button>
+                                <button id="load_state_system_button" onmousedown="controller.loadState()">Load State...</button>
+                                <button id="reset_state_system_button" onmousedown="controller.resetState()">Reset State</button>
                                 <button onmousedown="controller.quit()">Quit</button>
                             </div>
                         </td>
