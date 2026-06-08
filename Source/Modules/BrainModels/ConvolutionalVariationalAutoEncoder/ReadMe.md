@@ -33,9 +33,9 @@ modules.
 | sample | Sample from the latent distribution instead of using the mean; when disabled, `LATENT_SAMPLE` is the mean | bool | yes |
 | reconstruction_source | Latent source used by the decoder: `sample`, `mean`, or `top_down` | number | sample |
 | output_activation | Reconstruction activation: `linear` or `sigmoid` | number | linear |
-| weights_filename | Network weights file | string | cvae_weights.dat |
-| load_weights | Load weights during initialization | bool | no |
-| save_weights | Save weights after each training update | bool | no |
+
+The learned parameters are persistent private state, so they can be saved and loaded with the Ikaros
+state mechanism, for example with `-W`/`--save_state` and `-L`/`--load_state`.
 
 With `padding="valid"`, convolutional feature maps shrink by `kernel_size-1` pixels per spatial
 dimension. With `padding="same"`, zero padding keeps the spatial dimensions unchanged.

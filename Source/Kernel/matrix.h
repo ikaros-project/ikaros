@@ -19,6 +19,7 @@
 #include <limits>
 #include <algorithm>
 #include <random>
+#include <cmath>
 
 #include "exceptions.h"
 #include "utilities.h"
@@ -231,6 +232,13 @@ namespace ikaros
         {
             std::uniform_real_distribution<float> distribution(min, max);
             return apply([&](float) { return distribution(rng); });
+        }
+        template <typename RandomGenerator>
+        matrix &
+        fill_xavier_uniform(RandomGenerator & rng, int fan_in) // Fill elements with Xavier uniform values in [-sqrt(6/fan_in), sqrt(6/fan_in)].
+        {
+            const float limit = std::sqrt(6.0f / std::max(1, fan_in));
+            return fill_uniform(rng, -limit, limit);
         }
         template <typename RandomGenerator>
         matrix &

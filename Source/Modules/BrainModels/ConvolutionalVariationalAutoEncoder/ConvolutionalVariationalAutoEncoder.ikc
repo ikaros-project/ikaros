@@ -15,14 +15,9 @@
 	<parameter name="train" type="bool" default="yes" description="Enable online training" />
 	<parameter name="train_interval" type="number" default="1" min="1" description="Run a training update every N ticks" />
 	<parameter name="dense_train_interval" type="number" default="1" min="1" description="Update dense VAE weights every N training updates" />
-	<parameter name="profile" type="bool" default="no" description="Print average timing information for the module" />
-	<parameter name="profile_interval" type="number" default="100" min="1" description="Number of processed ticks between timing reports" />
 	<parameter name="sample" type="bool" default="yes" description="Sample from the latent distribution instead of using the mean" />
 	<parameter name="reconstruction_source" type="number" default="sample" options="sample,mean,top_down" description="Latent source used by the decoder reconstruction path" />
 	<parameter name="output_activation" type="number" default="linear" options="linear,sigmoid" description="Activation applied to the reconstructed output" />
-	<parameter name="weights_filename" type="string" default="cvae_weights.dat" description="Network weights file" />
-	<parameter name="load_weights" type="bool" default="no" description="Load weights during initialization" />
-	<parameter name="save_weights" type="bool" default="no" description="Save weights after each training update" />
 
 	<input name="INPUT" description="Input image or matrix" />
 	<input name="TOP_DOWN" optional="yes" description="Optional top-down latent target used when reconstruction_source is top_down" />
@@ -34,4 +29,35 @@
 	<output name="LOSS" size="1" description="Total VAE loss" />
 	<output name="RECONSTRUCTION_LOSS" size="1" description="Mean squared reconstruction loss" />
 	<output name="KL_LOSS" size="1" description="KL divergence from the unit Gaussian prior" />
+
+	<state name="ENCODER_FILTERS" type="matrix" size="@feature_maps,optional((INPUT.rank-2)*INPUT.shape[0]),@kernel_size,@kernel_size" persistent="true" />
+	<state name="ENCODER_BIAS" type="matrix" size="@feature_maps" persistent="true" />
+	<state name="DECODER_FILTERS" type="matrix" size="@feature_maps,optional((INPUT.rank-2)*INPUT.shape[0]),@kernel_size,@kernel_size" persistent="true" />
+	<state name="OUTPUT_BIAS" type="matrix" size="(INPUT.rank-2)*INPUT.shape[0]+(3-INPUT.rank)" persistent="true" />
+
+	<state name="MEAN_WEIGHTS" type="matrix" size="(1-@latent_mode)*(INPUT.rows-(1-@padding)*(@kernel_size-1))*(INPUT.cols-(1-@padding)*(@kernel_size-1))*@feature_maps+@latent_mode,(1-@latent_mode)*@latent_size+@latent_mode" persistent="true" />
+	<state name="MEAN_BIAS" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode" persistent="true" />
+	<state name="LOG_VARIANCE_WEIGHTS" type="matrix" size="(1-@latent_mode)*(INPUT.rows-(1-@padding)*(@kernel_size-1))*(INPUT.cols-(1-@padding)*(@kernel_size-1))*@feature_maps+@latent_mode,(1-@latent_mode)*@latent_size+@latent_mode" persistent="true" />
+	<state name="LOG_VARIANCE_BIAS" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode" persistent="true" />
+	<state name="DECODER_WEIGHTS" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode,(1-@latent_mode)*(INPUT.rows-(1-@padding)*(@kernel_size-1))*(INPUT.cols-(1-@padding)*(@kernel_size-1))*@feature_maps+@latent_mode" persistent="true" />
+	<state name="DECODER_BIAS" type="matrix" size="(1-@latent_mode)*(INPUT.rows-(1-@padding)*(@kernel_size-1))*(INPUT.cols-(1-@padding)*(@kernel_size-1))*@feature_maps+@latent_mode" persistent="true" />
+
+	<state name="SPATIAL_MEAN_FILTERS" type="matrix" size="@latent_mode*@latent_maps+(1-@latent_mode),@latent_mode*@feature_maps+(1-@latent_mode),@latent_mode*@latent_kernel_size+(1-@latent_mode),@latent_mode*@latent_kernel_size+(1-@latent_mode)" persistent="true" />
+	<state name="SPATIAL_MEAN_BIAS" type="matrix" size="@latent_mode*@latent_maps+(1-@latent_mode)" persistent="true" />
+	<state name="SPATIAL_LOG_VARIANCE_FILTERS" type="matrix" size="@latent_mode*@latent_maps+(1-@latent_mode),@latent_mode*@feature_maps+(1-@latent_mode),@latent_mode*@latent_kernel_size+(1-@latent_mode),@latent_mode*@latent_kernel_size+(1-@latent_mode)" persistent="true" />
+	<state name="SPATIAL_LOG_VARIANCE_BIAS" type="matrix" size="@latent_mode*@latent_maps+(1-@latent_mode)" persistent="true" />
+	<state name="SPATIAL_DECODER_FILTERS" type="matrix" size="@latent_mode*@latent_maps+(1-@latent_mode),@latent_mode*@feature_maps+(1-@latent_mode),@latent_mode*@latent_kernel_size+(1-@latent_mode),@latent_mode*@latent_kernel_size+(1-@latent_mode)" persistent="true" />
+	<state name="SPATIAL_DECODER_BIAS" type="matrix" size="@latent_mode*@feature_maps+(1-@latent_mode)" persistent="true" />
+
+	<state name="RECONSTRUCTION_VALUES" type="matrix" shape="INPUT.shape" />
+	<state name="RECONSTRUCTION_ERROR" type="matrix" shape="INPUT.shape" />
+	<state name="D_OUTPUT" type="matrix" shape="INPUT.shape" />
+
+	<state name="LATENT_MEAN_VALUES" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
+	<state name="LATENT_LOG_VARIANCE_VALUES" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
+	<state name="LATENT_STDDEV" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
+	<state name="LATENT_EPSILON" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
+	<state name="LATENT_VALUES" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
+	<state name="KL_TERMS" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
+	<state name="EXP_LOG_VARIANCE" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
 </class>

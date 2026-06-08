@@ -1,6 +1,7 @@
 #include "ikaros.h"
 
 #include <cmath>
+#include <random>
 
 using namespace ikaros;
 
@@ -182,6 +183,17 @@ class MatrixFunctionTestModule : public Module
         reserved.append(make_matrix("9, 10"));
         require_shape(reserved, {1, 2}, "reserve()/clear()/append() shape");
         require_matrix_close(reserved[0], make_matrix("9, 10"), "reserve()/clear()/append()");
+
+        std::mt19937 rng(1234);
+        matrix random_values(32);
+        random_values.fill_xavier_uniform(rng, 6);
+        const float xavier_limit = std::sqrt(6.0f / 6.0f);
+        require_true(random_values.min() >= -xavier_limit && random_values.max() <= xavier_limit, "fill_xavier_uniform() range");
+
+        matrix guarded_values(8);
+        guarded_values.fill_xavier_uniform(rng, 0);
+        const float guarded_limit = std::sqrt(6.0f);
+        require_true(guarded_values.min() >= -guarded_limit && guarded_values.max() <= guarded_limit, "fill_xavier_uniform() fan_in guard");
     }
 
     void test_elementwise()
