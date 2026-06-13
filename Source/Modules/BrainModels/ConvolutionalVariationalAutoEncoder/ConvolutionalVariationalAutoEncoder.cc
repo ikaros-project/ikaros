@@ -390,18 +390,12 @@ class ConvolutionalVariationalAutoEncoder: public Module
         dense_train_tick_ = 0;
     }
 
-    std::vector<int>
-    input_filter_shape() const
-    {
-        if(input_channels_ == 1)
-            return {feature_maps_value_, kernel_size_value_, kernel_size_value_};
-        return {feature_maps_value_, input_channels_, kernel_size_value_, kernel_size_value_};
-    }
-
     void
     require_common_state_shapes()
     {
-        const std::vector<int> filter_shape = input_filter_shape();
+        const std::vector<int> filter_shape = input_channels_ == 1 ?
+            std::vector<int>{feature_maps_value_, kernel_size_value_, kernel_size_value_} :
+            std::vector<int>{feature_maps_value_, input_channels_, kernel_size_value_, kernel_size_value_};
         require_state_shape(encoder_filters_, filter_shape, "ENCODER_FILTERS");
         require_state_shape(encoder_bias_, {feature_maps_value_}, "ENCODER_BIAS");
         require_state_shape(decoder_filters_, filter_shape, "DECODER_FILTERS");
@@ -874,12 +868,14 @@ class ConvolutionalVariationalAutoEncoder: public Module
         }
         else
         {
+            d_decoder_activation_.reshape(feature_maps_value_, encoded_height_, encoded_width_);
             d_decoder_activation_.relu_backward(d_encoder_activation_, encoder_pre_activation_);
             d_encoder_filters_.conv2_channel_filterbank_backward_filters(input_, d_decoder_activation_, kernel_size_value_, kernel_size_value_, convolution_padding());
             d_encoder_bias_.sum_last_two_dimensions(d_decoder_activation_);
         }
 
         d_encoder_activation_.reshape(encoded_size_);
+        d_decoder_activation_.reshape(encoded_size_);
 
         apply_optimizer_update(learning_rate, d_decoder_pre_activation_);
     }
