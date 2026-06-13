@@ -1,35 +1,4 @@
-# Ikaros 2026: New UI, Safety Hardening, Statistics, and Vision Modules
-
-**Year:** 2026  
-**Status:** Draft for review  
-<!-- **Suggested visual:** Screenshot of the new UI. -->
-
-## Year in Brief
-
-The 2026 entries through May form one of the most active periods in the repository history. The work spans WebUI editing, logging, error recovery, generated documentation, library views, Epi/robotics updates, Python modules, C++17 cleanup, matrix work, safer parsing and sockets, audio modules, security restrictions, statistics, face detection and recognition, salience integration, camera rectification, and a new UI. Within the period covered so far, the volume and variety of commits make 2026 one of the most consequential spans in the devlog. The suggested new-UI screenshot is the natural visual anchor for the summary, because it represents the most visible result of many deeper changes recorded in the current 2026 entries.
-
-## Development Notes
-
-The year starts with Epi sequence recorder updates and quickly moves into WebUI, tests, logging, and data changes. March is especially dense: widget editing, selection mechanics, network editing, auto-routing, inspector behavior, group editing, error recovery, module library views, generated module descriptions, and documentation all advance in rapid succession. This work changes the day-to-day feel of the system, making editing, selecting, arranging, inspecting, and recovering from errors central design concerns. The generated documentation and library-view work also make the system more navigable as the module library grows during this period.
-
-Late March and early April add deeper runtime changes. Python modules enter with a minimal implementation and then module-code support. Batch mode, headless behavior, test cleanup, logging, dictionary migration, JSON/XML parsing, parameter resolution, and C++17 cleanup follow. Matrix code becomes a major focus through multidimensional literals, optimized loading, const correctness, unit tests, implementation moves, and safer size handling. The runtime modernization is broad rather than cosmetic: parsing, types, sockets, logging, batch behavior, and matrix operations are all being revisited. Those changes reduce technical debt in the parts of the system that everything else depends on.
-
-Security and robustness become explicit. Socket handling, signal-handler safety, file path sanitization, limited file access, limited spawn behavior, optional authentication, safer Python-backed modules, safer external group import, and IP bind/agent settings all land in the same broader period. This cluster gives 2026 a clear engineering theme: Ikaros is becoming more capable while also becoming more careful about what code and users are allowed to do. The safety work is especially significant because Python modules, external files, sockets, and browser control all increase the need for clear boundaries.
-
-The module surface also expands. AudioInput/Output moves are followed by ADSR, filters, delays, reverb, and output-file support. Statistics and regression modules arrive with widgets, box plots, matrix metadata, and multiple-comparison correction. Face detection and recognition, Apple and Dlib detectors, face classification, PointsToSalience, SalienceIntegrator, stacked inputs, matrix parameter functions, and CameraRectification all enter before the May new-UI work. The result is a period that connects modern interface work with new scientific and analytical modules, giving the platform both a cleaner surface and a broader toolkit. That combination makes 2026 feel like a platform renewal rather than just a feature sprint.
-
-## Milestones
-
-- Major WebUI editing and new UI work.
-- Generated module README/descriptions and library view.
-- Python module support.
-- Logging, dictionary, JSON, XML, and socket modernization.
-- C++17 and matrix-code cleanup.
-- Safety hardening: file access, spawn, auth, signal handling, Python-backed modules.
-- Audio module expansion.
-- Statistics and regression modules with widgets.
-- Face detection/recognition and salience modules.
-- CameraRectification first commit.
+# Ikaros 2026 Weekly Entries
 
 ## Weekly Entries
 

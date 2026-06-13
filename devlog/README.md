@@ -20,7 +20,6 @@ This directory contains weekly development summaries for the Ikaros repository, 
 | 2023 | [Sparse maintenance and targeted integration](2023/README.md) |
 | 2024 | [Sequence tooling, tests, and documentation](2024/README.md) |
 | 2025 | [Video, tests, WebUI, and module modernization](2025/README.md) |
-| 2026 | [New UI, safety hardening, statistics, and vision modules](2026/README.md) |
 
 ## Entries
 
