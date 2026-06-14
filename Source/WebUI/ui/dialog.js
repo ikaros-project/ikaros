@@ -355,6 +355,9 @@ const dialog =
     confirmListSelect()
     {
         let sel = document.getElementById("listSelectDialogItems");
+        if(sel.selectedIndex < 0)
+            return;
+
         let text = sel.options[sel.selectedIndex].text;
         dialog.window.close(text);
         if(dialog.callback)
@@ -375,6 +378,9 @@ const dialog =
         if(list)
             for(const i of list.split(","))
             {
+                if(i === "")
+                    continue;
+
                 const opt = document.createElement('option');
                 opt.value = i;
                 opt.innerHTML = i;
@@ -382,7 +388,15 @@ const dialog =
             }
         if(message)
             document.getElementById('listSelectDialogTitle').innerText = message;
+        sel.selectedIndex = sel.options.length > 0 ? 0 : -1;
+        sel.ondblclick = function() { dialog.confirmListSelect(); };
+        sel.onkeydown = function(event)
+        {
+            if(event.key === "Enter")
+                dialog.confirmListSelect();
+        };
         dialog.window.showModal();
+        setTimeout(function() { sel.focus(); }, 0);
     },
 
     showInfoDialog(message, title="Info", as_html=false)
