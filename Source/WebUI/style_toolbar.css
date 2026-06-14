@@ -85,6 +85,8 @@ header button:active {
 }
 
 #menu,
+#edit_menu,
+#edit_mode_button,
 #view_menu {
     display: flex;
     align-items: center;
@@ -105,6 +107,14 @@ header button:active {
     line-height: 0;
 }
 
+#edit_menu {
+    line-height: 0;
+}
+
+#edit_mode_button {
+    line-height: 0;
+}
+
 .top_menu_icon {
     display: block;
     position: absolute;
@@ -116,6 +126,17 @@ header button:active {
     transform: translate(-50%, -50%);
     fill: none;
     pointer-events: none;
+}
+
+.tools_icon {
+    width: calc(0.82*var(--breadcrumb-height));
+    height: calc(0.82*var(--breadcrumb-height));
+}
+
+.toolbar_mask_icon {
+    background-color: currentColor;
+    -webkit-mask: url("images/edit-tools.svg") center / contain no-repeat;
+    mask: url("images/edit-tools.svg") center / contain no-repeat;
 }
 
 .top-menu-dropdown {

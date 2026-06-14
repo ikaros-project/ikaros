@@ -186,6 +186,18 @@
                 <hr class="top-menu-divider">
                 <button type="button" onclick="app_menu.choose('quit')">Quit</button>
             </menu>
+            <div class="button" id="edit_menu" aria-label="Edit menu" title="Edit menu">
+                <svg class="top_menu_icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 20 L8.5 18.9 L19.3 8.1 C20.2 7.2 20.2 5.8 19.3 4.9 L19.1 4.7 C18.2 3.8 16.8 3.8 15.9 4.7 L5.1 15.5 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M14.6 6 L18 9.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <menu id="edit_menu_dropdown" class="top-menu-dropdown">
+                <button type="button" onclick="edit_menu.choose('select_all')"><span>Select All</span><span class="menu-shortcut">&#8984;A</span></button>
+                <hr class="top-menu-divider">
+                <button type="button" onclick="edit_menu.choose('duplicate')"><span>Duplicate</span><span class="menu-shortcut">&#8984;D</span></button>
+                <button type="button" onclick="edit_menu.choose('delete')"><span>Delete</span><span class="menu-shortcut">Backspace</span></button>
+            </menu>
             <div class="button" id="view_menu" aria-label="View menu" title="View menu">
                 <svg class="top_menu_icon" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M2.5 12S6.2 5.5 12 5.5 21.5 12 21.5 12 17.8 18.5 12 18.5 2.5 12 2.5 12Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -226,7 +238,9 @@
                 <span id="top_time" class="top_transport_status" title="Current time">-</span>
             </div>
             <div class="stretch" ></div>
-            <div class="button" onclick="main.toggleEditMode()" style="font-family:Arial">&#9998;</div>
+            <div class="button" id="edit_mode_button" onclick="main.toggleEditMode()" aria-label="Toggle edit mode" title="Toggle edit mode">
+                <span class="top_menu_icon tools_icon toolbar_mask_icon" aria-hidden="true"></span>
+            </div>
             <div class="button" id="library_inspector_button" onclick="inspector.toggleLibrary()" aria-label="Open library inspector" title="Open library inspector">
                 <span class="book-glyph" aria-hidden="true">&#128214;</span>
             </div>

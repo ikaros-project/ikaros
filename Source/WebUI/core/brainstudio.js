@@ -1058,6 +1058,7 @@ const brainstudio =
         inspector.init();
         nav.init();
         app_menu.init();
+        edit_menu.init();
         view_menu.init();
         breadcrumbs.init();
         main.init();

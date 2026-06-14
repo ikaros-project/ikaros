@@ -45,6 +45,8 @@ const app_menu =
     {
         if(typeof view_menu !== "undefined")
             view_menu.hide();
+        if(typeof edit_menu !== "undefined")
+            edit_menu.hide();
         app_menu.updateStateLabels();
         if(app_menu.dropdown)
         {
@@ -116,6 +118,88 @@ const app_menu =
     }
 };
 
+const edit_menu =
+{
+    init()
+    {
+        edit_menu.button = document.getElementById("edit_menu");
+        edit_menu.dropdown = document.getElementById("edit_menu_dropdown");
+
+        if(edit_menu.button)
+            edit_menu.button.addEventListener("click", edit_menu.toggle, false);
+
+        document.addEventListener("mousedown", function(evt)
+        {
+            if(!edit_menu.dropdown || !edit_menu.button)
+                return;
+            if(edit_menu.button.contains(evt.target) || edit_menu.dropdown.contains(evt.target))
+                return;
+            edit_menu.hide();
+        }, true);
+
+        document.addEventListener("keydown", function(evt)
+        {
+            if(evt.key === "Escape")
+                edit_menu.hide();
+        }, true);
+    },
+
+    toggle(evt)
+    {
+        if(evt)
+        {
+            evt.preventDefault();
+            evt.stopPropagation();
+        }
+
+        if(!edit_menu.dropdown)
+            return;
+
+        if(edit_menu.dropdown.classList.contains("visible"))
+            edit_menu.hide();
+        else
+            edit_menu.show();
+    },
+
+    show()
+    {
+        app_menu.hide();
+        view_menu.hide();
+        if(edit_menu.dropdown)
+        {
+            edit_menu.positionDropdown();
+            edit_menu.dropdown.classList.add("visible");
+        }
+    },
+
+    hide()
+    {
+        if(edit_menu.dropdown)
+            edit_menu.dropdown.classList.remove("visible");
+    },
+
+    positionDropdown()
+    {
+        if(edit_menu.button && edit_menu.dropdown)
+            edit_menu.dropdown.style.left = edit_menu.button.offsetLeft + "px";
+    },
+
+    choose(action)
+    {
+        edit_menu.hide();
+
+        if(!main || !main.edit_mode)
+            return;
+
+        if(action === "select_all")
+            main.selectCurrentGroupComponents({includeWidgets: true});
+        else if(action === "duplicate")
+            main.duplicateSelectedComponents(false);
+        else if(action === "delete" && (selector.selected_connection != null || selector.selected_foreground.length > 0))
+            main.deleteComponent();
+    }
+};
+
 const view_menu =
 {
     init()
@@ -162,6 +246,8 @@ const view_menu =
     show()
     {
         app_menu.hide();
+        if(typeof edit_menu !== "undefined")
+            edit_menu.hide();
         if(view_menu.dropdown)
         {
             view_menu.positionDropdown();
