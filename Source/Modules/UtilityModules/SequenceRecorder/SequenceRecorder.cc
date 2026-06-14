@@ -1,7 +1,7 @@
 //
 //	SequenceRecorder.cc		This file is a part of the IKAROS project
 //
-//    Copyright (C) 2015-2025 Christian Balkenius
+//    Copyright (C) 2015-2026 Christian Balkenius
 //
 #include "ikaros.h"
 

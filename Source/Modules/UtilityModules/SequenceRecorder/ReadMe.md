@@ -22,7 +22,8 @@ Records a sequence
 
 |Name|Description|
 |:----|:-----------|
-|COMPLETED|A single 1 for one tick when a behavior is completed|
+|PLAYING|Element for each sequence set to 1 while that sequence is playing|
+|COMPLETED|Element for each sequence set to 1 for one tick when that sequence is completed|
 |TRIG_OUT|A single 1 for one tick when a behavior is started|
 |MODE|Off/stop/play/record mode for each channel coded as a matrix|
 |OUTPUT|Position data to the servos|
@@ -42,7 +43,7 @@ Records a sequence
 |:----|:-----------|:----|:-------------|
 |positions|Positions of recorder that can be used by for example sliders to control the input.|array||
 |output_size|Requested output size. can be larger than connected input.|int||
-|max_motions|The maximum number of different behaviors that can be recorded|int|10|
+|max_sequences|The maximum number of different behaviors that can be recorded|int|64|
 |current_motion|The behavior that will be recorded|int|0|
 |position_data_max|The maximum number of datapoints that can be stored|int|1000|
 |mode_string|The current mode as a string|string|stop|
