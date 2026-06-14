@@ -278,7 +278,7 @@ public:
 
         // right to left sweep
 
-        for (int i = n - 1; i > 0; i--)
+        for (int i = n - 1; i >= 0; i--)
         {
             for (int c = 0; c < channels.as_int(); c++)
                 if (!keypoints[i]["point"][c].is_null()) // channel has data from this keypoint
@@ -314,8 +314,8 @@ public:
         }
     }
 
-    void
-    StoreChannelMode()
+    list
+    CurrentChannelMode()
     {
         list cm = list();
         for (int c = 0; c < channels.as_int(); c++)
@@ -325,6 +325,13 @@ public:
                 modes.push_back(channel_mode(c, m));
             cm.push_back(modes);
         }
+        return cm;
+    }
+
+    void
+    StoreChannelMode()
+    {
+        list cm = CurrentChannelMode();
         sequence_data["channel_mode"] = cm;
     }
 
@@ -452,8 +459,16 @@ public:
 
         // Retime keypoints
 
-        float start_time = keypoints[0]["time"];
         n = keypoints.size();
+        if (n < 1)
+        {
+            sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = 0;
+            sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = 0;
+            LinkKeypoints();
+            return;
+        }
+
+        float start_time = keypoints[0]["time"];
         for (int i = 0; i < n; i++)
             keypoints[i]["time"] = float(keypoints[i]["time"]) - start_time;
 
@@ -468,6 +483,9 @@ public:
     {
         auto &keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
         int n = keypoints.size();
+        if (n < 1)
+            return;
+
         int i = max(0, find_index_for_time(keypoints, time) - 1);
 
         float t = keypoints[i]["time"];
@@ -486,13 +504,11 @@ public:
             float t = sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i]["time"];
             if (start_mark_time <= t && t <= end_mark_time)
             {
-                int number_of_deleted_points = 0;
                 for (int c = 0; c < channels.as_int(); c++)
                 {
                     if (channel_mode(c, 2) == 1) // record mode
                     {
                         sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i]["point"][c] = null();
-                        number_of_deleted_points++;
                     }
                 }
             }
@@ -549,10 +565,16 @@ public:
     void
     Trig(int id)
     {
-        int m = sequence_data["sequences"].size();
+        int m = max_sequences.as_int();
         if (id < 0 || id >= m)
         {
-            Notify(msg_warning, "Sequence %d does not exist" + std::to_string(id));
+            Notify(msg_warning, "Sequence index is outside max_sequences: " + std::to_string(id));
+            return;
+        }
+
+        if (!sequence_data["sequences"].is_list() || id >= sequence_data["sequences"].size())
+        {
+            Notify(msg_warning, "Sequence data is missing sequence " + std::to_string(id));
             return;
         }
         Stop();
@@ -564,18 +586,34 @@ public:
     Command(std::string command_name, dictionary &parameters)
     {
         std::string s = command_name;
-        std::string value = parameters["value"];
+        std::string value = parameters.contains("value") ? std::string(parameters["value"]) : "";
 
         float x = 0;
         float y = 0;
+        bool has_y = false;
 
         if (parameters.contains("x"))
             x = parameters["x"];
 
         if (parameters.contains("y"))
+        {
             y = parameters["y"];
+            has_y = true;
+        }
 
         std::cout << "COMMAND: " << s << std::endl;
+
+        bool uses_current_sequence =
+            s == "skip_start" || s == "skip_end" ||
+            s == "set_start_mark" || s == "set_end_mark" ||
+            s == "step_forward" || s == "step_backward" ||
+            s == "extend_time" || s == "reduce_time" ||
+            s == "add_keypoint" || s == "delete_keypoint" ||
+            s == "crop" || s == "clear" || s == "delete" ||
+            s == "lock" || s == "rename" || s == "save" || s == "saveas";
+
+        if (uses_current_sequence && !EnsureCurrentSequence())
+            return;
 
         if (s == "stop")
             Stop();
@@ -622,7 +660,18 @@ public:
         else if (s == "lock")
             LockChannel(y);
         else if (s == "trig")
-            Trig(8 * y + x);
+        {
+            if (x < 0 || (has_y && (y < 0 || x >= layout_width.as_int())))
+            {
+                Notify(msg_warning, "Sequence grid coordinate is out of range.");
+                return;
+            }
+
+            int id = int(x);
+            if (has_y)
+                id += layout_width.as_int() * int(y);
+            Trig(id);
+        }
         else if (s == "rename")
             Rename(value);
 
@@ -643,13 +692,17 @@ public:
 
         else if (name == "SEQUENCE")
         {
+            if (!EnsureCurrentSequence())
+                return "{}";
+
             int n = sequence_data["sequences"][current_sequence.as_int()]["keypoints"].size();
             if (n > 400) // 400 = 10 s
             {
                 return "{}"; // Minimal JSON
             }
-            std::string sq = sequence_data["sequences"][current_sequence.as_int()].json();
-            return sq;
+            value sq = sequence_data["sequences"][current_sequence.as_int()].copy();
+            sq["channel_mode"] = CurrentChannelMode();
+            return sq.json();
         }
 
         else
@@ -801,11 +854,11 @@ public:
         }
     }
 
-    static dictionary create_sequence(int index)
+    static dictionary create_sequence(int index, int layout_width)
     {
         dictionary sq;
 
-        sq["name"] = "Sequence " + std::string(1, 65 + index / 8) + std::string(1, 49 + index % 8);
+        sq["name"] = "Sequence " + std::string(1, 65 + index / layout_width) + std::to_string(1 + index % layout_width);
         sq["start_time"] = 0;
         sq["start_mark_time"] = 0;
         sq["end_mark_time"] = 1000;
@@ -815,6 +868,114 @@ public:
         return sq;
     }
 
+    list
+    CreateDefaultRanges()
+    {
+        list ranges;
+        for (int c = 0; c < channels.as_int(); c++)
+        {
+            list range;
+            range.push_back(range_min(c));
+            range.push_back(range_max(c));
+            ranges.push_back(range);
+        }
+        return ranges;
+    }
+
+    void
+    FillMissingSequenceFields(value &sequence, int index)
+    {
+        dictionary defaults = create_sequence(index, layout_width.as_int());
+
+        if (!sequence.is_dictionary())
+        {
+            sequence = defaults;
+            return;
+        }
+
+        if (sequence["name"].is_null())
+            sequence["name"] = defaults["name"];
+        if (sequence["start_time"].is_null())
+            sequence["start_time"] = defaults["start_time"];
+        if (sequence["start_mark_time"].is_null())
+            sequence["start_mark_time"] = defaults["start_mark_time"];
+        if (sequence["end_mark_time"].is_null())
+            sequence["end_mark_time"] = defaults["end_mark_time"];
+        if (sequence["end_time"].is_null())
+            sequence["end_time"] = defaults["end_time"];
+        if (sequence["keypoints"].is_null())
+            sequence["keypoints"] = defaults["keypoints"];
+    }
+
+    bool
+    EnsureCurrentSequence()
+    {
+        if (!sequence_data["sequences"].is_list() || sequence_data["sequences"].size() == 0)
+        {
+            Notify(msg_warning, "Sequence data has no sequences.");
+            return false;
+        }
+
+        int index = current_sequence.as_int();
+        if (0 <= index && index < sequence_data["sequences"].size() && index < max_sequences.as_int())
+            return true;
+
+        Notify(msg_warning, "Current sequence is out of range. Resetting to sequence 0.");
+        current_sequence = 0;
+        Stop();
+        return true;
+    }
+
+    bool
+    NormalizeLoadedSequenceData(dictionary &data)
+    {
+        if (data["sequences"].is_null() || !data["sequences"].is_list())
+        {
+            Notify(msg_warning, "Sequence file has no sequence list. Cannot be opened.");
+            return false;
+        }
+
+        int expected_sequences = max_sequences.as_int();
+        int loaded_sequences = data["sequences"].size();
+
+        if (loaded_sequences > expected_sequences)
+        {
+            Notify(msg_warning, "Sequence file has more sequences than max_sequences. Cannot be opened.");
+            return false;
+        }
+
+        for (int i = 0; i < loaded_sequences; i++)
+            FillMissingSequenceFields(data["sequences"][i], i);
+
+        while (data["sequences"].size() < expected_sequences)
+        {
+            int index = data["sequences"].size();
+            data["sequences"].push_back(create_sequence(index, layout_width.as_int()));
+        }
+
+        if (data["ranges"].is_null())
+            data["ranges"] = CreateDefaultRanges();
+        else if (!data["ranges"].is_list() || data["ranges"].size() != channels.as_int())
+        {
+            Notify(msg_warning, "Sequence file has wrong number of ranges. Cannot be opened.");
+            return false;
+        }
+        else
+        {
+            for (int c = 0; c < channels.as_int(); c++)
+            {
+                if (!data["ranges"][c].is_list() || data["ranges"][c].size() != 2 ||
+                    !data["ranges"][c][0].is_number() || !data["ranges"][c][1].is_number())
+                {
+                    Notify(msg_warning, "Sequence file has invalid range data. Cannot be opened.");
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     void
     New()
     {
@@ -822,18 +983,11 @@ public:
         sequence_data = dictionary(); // in case it is not empty
         sequence_data["type"] = "Ikaros Sequence Data";
         sequence_data["channels"] = channels.as_int();
-        sequence_data["ranges"] = list();
-        for (int c = 0; c < channels.as_int(); c++)
-        {
-            list range = list();
-            range.push_back(range_min(c));
-            range.push_back(range_max(c));
-            sequence_data["ranges"].push_back(range);
-        }
+        sequence_data["ranges"] = CreateDefaultRanges();
         sequence_data["sequences"] = list();
         for (int i = 0; i < max_sequences; i++)
         {
-            sequence_data["sequences"].push_back(create_sequence(i));
+            sequence_data["sequences"].push_back(create_sequence(i, layout_width.as_int()));
         }
 
         UpdateSequenceNames();
@@ -862,10 +1016,19 @@ public:
             // Validate
 
             if (data["type"].is_null() || data["type"].as_string() != u8"Ikaros Sequence Data")
-                return Notify(msg_warning, "File has wrong format. Cannot be opended.");
+            {
+                Notify(msg_warning, "File has wrong format. Cannot be opened.");
+                return false;
+            }
 
             if (data["channels"].is_null() || data["channels"] < channels) // File might include more channels then used.
-                return Notify(msg_warning, "Sequence file has wrong number of channels. Cannot be opended.");
+            {
+                Notify(msg_warning, "Sequence file has wrong number of channels. Cannot be opened.");
+                return false;
+            }
+
+            if (!NormalizeLoadedSequenceData(data))
+                return false;
 
             // Data is ok
 
@@ -878,9 +1041,20 @@ public:
 
         catch (const std::exception &e)
         {
-            return Notify(msg_warning, "Sequence file could not be loaded.");
+            Notify(msg_warning, "Sequence file could not be loaded.");
+            return false;
         }
         return true;
+    }
+
+    bool
+    FileNameIsListed(const std::string &name)
+    {
+        for (auto file_name : split(std::string(file_names), ","))
+            if (file_name == name)
+                return true;
+
+        return false;
     }
 
     void
@@ -905,7 +1079,7 @@ public:
 
         file << sequence_data.json() << std::endl;
 
-        if (std::string(file_names).find(std::string(filename)) == std::string::npos) // ***************** CONTAINS
+        if (!FileNameIsListed(std::string(filename)))
             file_names = std::string(file_names) + "," + std::string(filename);
     }
 
@@ -930,6 +1104,7 @@ public:
         Bind(mark_start, "mark_start");
         Bind(mark_end, "mark_end");
         Bind(max_sequences, "max_sequences");
+        Bind(layout_width, "layout_width");
         Bind(sequence_names, "sequence_names");
         Bind(file_names, "file_names");
         Bind(filename, "filename");
@@ -955,6 +1130,12 @@ public:
 
         if (range_min.size_x() != channels)
             Notify(msg_fatal_error, "Min range not set for correct number of channels.");
+
+        if (max_sequences.as_int() <= 0)
+            Notify(msg_fatal_error, "max_sequences must be greater than zero.");
+
+        if (layout_width.as_int() <= 0)
+            Notify(msg_fatal_error, "layout_width must be greater than zero.");
 
         if (default_output.size_x() != channels)
             Notify(msg_fatal_error, "Incorrect size for default_output; does not match number of channels.");
@@ -1030,6 +1211,9 @@ public:
         long tl = 1000 * GetTickDuration();
         playing.reset();
         completed.reset();
+
+        if (!EnsureCurrentSequence())
+            return;
 
         // Check trig input
 
@@ -1137,6 +1321,7 @@ public:
 
     parameter channels;
     parameter max_sequences;
+    parameter layout_width;
 
     matrix range_min;
     matrix range_max;

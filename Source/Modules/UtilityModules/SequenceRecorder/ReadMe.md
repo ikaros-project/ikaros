@@ -44,6 +44,7 @@ Records a sequence
 |positions|Positions of recorder that can be used by for example sliders to control the input.|array||
 |output_size|Requested output size. can be larger than connected input.|int||
 |max_sequences|The maximum number of different behaviors that can be recorded|int|64|
+|layout_width|Number of sequence buttons per row in WebUI layouts|int|8|
 |current_motion|The behavior that will be recorded|int|0|
 |position_data_max|The maximum number of datapoints that can be stored|int|1000|
 |mode_string|The current mode as a string|string|stop|

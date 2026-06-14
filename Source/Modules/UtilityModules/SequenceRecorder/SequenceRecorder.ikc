@@ -10,6 +10,7 @@
 	<parameter name="filename" type="string" default="sequence.json" description="Default name for sequence file" />
 
 	<parameter name="max_sequences" type="number" default="64" description="The maximum number of different behaviors that can be recorded" />
+	<parameter name="layout_width" type="number" default="8" description="Number of sequence buttons per row in WebUI layouts" />
 
 	<input name="TRIG" description="Start a behavior with a 1 in the column for that behavior; lower number priority" size="@max_sequences" optional="yes" />
 
