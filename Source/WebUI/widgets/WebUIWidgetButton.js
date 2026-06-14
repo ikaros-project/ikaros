@@ -12,6 +12,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {'name':'color', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'button_background', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'icon', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'tooltip', 'default':"", 'type':'string', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
 
@@ -159,6 +160,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
             }
             else if(p.type=="input")
             {
+                if(main.edit_mode)
+                    return;
+
                 let text = prompt(p.title);
                 if(text)
                     this.parentElement.send_command(p.command, text, selectX, selectY);
@@ -235,6 +239,8 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
         if(this.parameters.color)
             this.firstChild.style.color = this.parameters.color;
+
+        this.firstChild.title = this.parameters.tooltip || "";
 
         const buttonBackground = this.getButtonBackground();
         this.firstChild.style.background = buttonBackground || "";
