@@ -187,6 +187,13 @@ public:
     }
 
     void
+    SetMarkRange(float start_time, float end_time)
+    {
+        sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = std::min(start_time, end_time);
+        sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = std::max(start_time, end_time);
+    }
+
+    void
     GoToPreviousKeypoint()
     {
         float t = (1000 * timer.GetTime());
@@ -520,6 +527,135 @@ public:
         LinkKeypoints();
     }
 
+    bool
+    KeypointIsInMarkedRange(value &keypoints, int index, float start_mark_time, float end_mark_time)
+    {
+        float t = keypoints[index]["time"];
+        return start_mark_time <= t && t <= end_mark_time;
+    }
+
+    void
+    KeepDouglasPeuckerPoint(value &keypoints, const std::vector<int> &indices, std::vector<bool> &remove, int left, int right, int channel, float epsilon)
+    {
+        if (right - left < 2)
+            return;
+
+        int left_index = indices[left];
+        int right_index = indices[right];
+        float t_left = keypoints[left_index]["time"];
+        float t_right = keypoints[right_index]["time"];
+        float v_left = keypoints[left_index]["point"][channel];
+        float v_right = keypoints[right_index]["point"][channel];
+
+        float max_error = -1;
+        int max_position = -1;
+
+        for (int p = left + 1; p < right; p++)
+        {
+            if (!remove[p])
+                continue;
+
+            int index = indices[p];
+            float t = keypoints[index]["time"];
+            float actual = keypoints[index]["point"][channel];
+            float expected = t_right == t_left ? v_left : interpolate(t, t_left, t_right, v_left, v_right);
+            float error = std::abs(actual - expected);
+
+            if (error > max_error)
+            {
+                max_error = error;
+                max_position = p;
+            }
+        }
+
+        if (max_position == -1)
+            return;
+
+        if (max_error > epsilon)
+        {
+            remove[max_position] = false;
+            KeepDouglasPeuckerPoint(keypoints, indices, remove, left, max_position, channel, epsilon);
+            KeepDouglasPeuckerPoint(keypoints, indices, remove, max_position, right, channel, epsilon);
+        }
+    }
+
+    void
+    SimplifyChannel(int channel, float start_mark_time, float end_mark_time, float epsilon)
+    {
+        auto &keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
+        int n = keypoints.size();
+
+        std::vector<int> indices;
+        indices.reserve(n);
+        for (int i = 0; i < n; i++)
+            if (!keypoints[i]["point"][channel].is_null())
+                indices.push_back(i);
+
+        int m = indices.size();
+        if (m < 3)
+            return;
+
+        std::vector<bool> remove(m, false);
+
+        int p = 0;
+        while (p < m)
+        {
+            while (p < m && !KeypointIsInMarkedRange(keypoints, indices[p], start_mark_time, end_mark_time))
+                p++;
+
+            if (p >= m)
+                break;
+
+            int run_start = p;
+            while (p < m && KeypointIsInMarkedRange(keypoints, indices[p], start_mark_time, end_mark_time))
+                p++;
+            int run_end = p - 1;
+
+            int left = run_start > 0 ? run_start - 1 : run_start;
+            int right = run_end + 1 < m ? run_end + 1 : run_end;
+
+            if (right - left < 2)
+                continue;
+
+            for (int q = run_start; q <= run_end; q++)
+                if (q != left && q != right)
+                    remove[q] = true;
+
+            KeepDouglasPeuckerPoint(keypoints, indices, remove, left, right, channel, epsilon);
+        }
+
+        for (int i = 0; i < m; i++)
+            if (remove[i])
+                keypoints[indices[i]]["point"][channel] = null();
+    }
+
+    void
+    Simplify()
+    {
+        float start_mark_time = float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]);
+        float end_mark_time = float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]);
+        if (end_mark_time < start_mark_time)
+            std::swap(start_mark_time, end_mark_time);
+
+        float epsilon = std::max(0.0f, simplify_epsilon.as_float());
+
+        for (int c = 0; c < channels.as_int(); c++)
+            if (channel_mode(c, 2) == 1)
+                SimplifyChannel(c, start_mark_time, end_mark_time, epsilon);
+
+        DeleteEmptyKeypoints();
+        LinkKeypoints();
+    }
+
+    void
+    SelectAll()
+    {
+        sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] =
+            sequence_data["sequences"][current_sequence.as_int()]["start_time"];
+        sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] =
+            sequence_data["sequences"][current_sequence.as_int()]["end_time"];
+    }
+
     void
     ClearKeypointAtIndex(int i, bool all = false)
     {
@@ -609,8 +745,9 @@ public:
             s == "step_forward" || s == "step_backward" ||
             s == "extend_time" || s == "reduce_time" ||
             s == "add_keypoint" || s == "delete_keypoint" ||
-            s == "crop" || s == "clear" || s == "delete" ||
-            s == "lock" || s == "rename" || s == "save" || s == "saveas";
+            s == "crop" || s == "clear" || s == "delete" || s == "simplify" ||
+            s == "lock" || s == "set_mark_range" || s == "select_all" ||
+            s == "rename" || s == "save" || s == "saveas";
 
         if (uses_current_sequence && !EnsureCurrentSequence())
             return;
@@ -631,6 +768,10 @@ public:
             SetStartMark();
         else if (s == "set_end_mark")
             SetEndMark();
+        else if (s == "set_mark_range")
+            SetMarkRange(x, y);
+        else if (s == "select_all")
+            SelectAll();
         else if (s == "step_forward")
             GoToNextKeypoint();
         else if (s == "step_backward")
@@ -657,6 +798,8 @@ public:
             ClearSequence();
         else if (s == "delete")
             DeleteKeypoints();
+        else if (s == "simplify")
+            Simplify();
         else if (s == "lock")
             LockChannel(y);
         else if (s == "trig")
@@ -1094,6 +1237,7 @@ public:
         Bind(range_max, "range_max");
         Bind(interpolation, "interpolation");
         Bind(smoothing_time, "smoothing_time");
+        Bind(simplify_epsilon, "simplify_epsilon");
         Bind(state, "state");
         Bind(loop, "loop");
         Bind(shuffle, "shuffle");
@@ -1322,6 +1466,7 @@ public:
     parameter channels;
     parameter max_sequences;
     parameter layout_width;
+    parameter simplify_epsilon;
 
     matrix range_min;
     matrix range_max;
