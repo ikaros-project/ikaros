@@ -431,6 +431,13 @@ namespace ikaros
 
 
     void
+    dictionary::load_xml(const std::string & filename, const std::vector<std::filesystem::path> & include_roots)
+    {
+        *this = dictionary(XMLDocument(filename.c_str(), false, include_roots).xml);
+    }
+
+
+    void
     dictionary::load_json(const std::string & filename)
     {
         std::ifstream file(filename);

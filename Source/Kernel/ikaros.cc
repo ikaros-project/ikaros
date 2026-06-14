@@ -3126,7 +3126,7 @@ bool operator==(Request & r, const std::string s)
                 {
                     std::string name = p.path().stem();
                     classes[name].path = p.path();
-                    classes[name].info_.load_xml(p.path());
+                    LoadXMLWithRestrictedIncludes(classes[name].info_, p.path());
 
                     ensure_list(classes[name].info_, "parameters");
 
@@ -4607,7 +4607,7 @@ bool operator==(Request & r, const std::string s)
             throw build_failed("External group path must stay within the project root or user data directory.");
 
         dictionary external;
-        external.load_xml(sanitized_path.string());
+        LoadXMLWithRestrictedIncludes(external, sanitized_path);
         external["name"] = d["name"];
         d.merge(external);
         d.erase("external");
@@ -4776,7 +4776,7 @@ bool operator==(Request & r, const std::string s)
                 try
                 {
                     dictionary d;
-                    d.load_xml(options_.full_path());
+                    LoadXMLWithRestrictedIncludes(d, options_.full_path());
                     SetCommandLineParameters(d);
                     d["filename"] = options_.stem();
                     BuildGroup(d);
@@ -6582,7 +6582,7 @@ bool operator==(Request & r, const std::string s)
         try
         {
             dictionary requested_file_info;
-            requested_file_info.load_xml(file_path->second);
+            LoadXMLWithRestrictedIncludes(requested_file_info, file_path->second);
             opened_file_requests_start = requested_file_info.is_set("start") || requested_file_info.is_set("real_time");
         }
         catch(...)
@@ -6880,6 +6880,38 @@ bool operator==(Request & r, const std::string s)
 
 
     bool
+    Kernel::SanitizePathUnderRoot(const std::filesystem::path & root, const std::filesystem::path & candidate_path, std::filesystem::path & sanitized_path) const
+    {
+        if(root.empty() || candidate_path.empty() || candidate_path.is_absolute())
+            return false;
+
+        std::error_code ec;
+        std::filesystem::path resolved_root = std::filesystem::weakly_canonical(root, ec);
+        if(ec)
+            return false;
+
+        std::filesystem::path resolved_path = std::filesystem::weakly_canonical(resolved_root / candidate_path, ec);
+        if(ec)
+            return false;
+
+        auto root_it = resolved_root.begin();
+        auto root_end = resolved_root.end();
+        auto path_it = resolved_path.begin();
+        auto path_end = resolved_path.end();
+
+        for(; root_it != root_end && path_it != path_end; ++root_it, ++path_it)
+            if(*root_it != *path_it)
+                return false;
+
+        if(root_it != root_end)
+            return false;
+
+        sanitized_path = resolved_path;
+        return true;
+    }
+
+
+    bool
     Kernel::SanitizeImportPath(const std::filesystem::path & candidate_path, std::filesystem::path & sanitized_path) const
     {
         if(candidate_path.empty())
@@ -6930,11 +6962,42 @@ bool operator==(Request & r, const std::string s)
     }
 
 
+    void
+    Kernel::LoadXMLWithRestrictedIncludes(dictionary & d, const std::filesystem::path & filename) const
+    {
+        std::vector<std::filesystem::path> include_roots;
+        include_roots.push_back(options_.ikaros_root);
+        include_roots.push_back(user_dir);
+
+        std::error_code ec;
+        std::filesystem::path resolved_file = std::filesystem::weakly_canonical(filename, ec);
+        if(!ec && !resolved_file.parent_path().empty())
+            include_roots.push_back(resolved_file.parent_path());
+
+        d.load_xml(filename.string(), include_roots);
+    }
+
+
     Kernel::SendFileResult
     Kernel::SendFileIfSafe(const std::filesystem::path & root, const std::string & file)
     {
         std::filesystem::path sanitized_path;
         if(!SanitizeProjectPath(root / file, sanitized_path))
+            return SendFileResult::forbidden;
+
+        std::error_code ec;
+        if(!std::filesystem::is_regular_file(sanitized_path, ec) || ec)
+            return SendFileResult::not_found;
+
+        return socket->SendFile(sanitized_path) ? SendFileResult::sent : SendFileResult::not_found;
+    }
+
+
+    Kernel::SendFileResult
+    Kernel::SendPublicWebUIFileIfSafe(const std::filesystem::path & root, const std::string & file)
+    {
+        std::filesystem::path sanitized_path;
+        if(!SanitizePathUnderRoot(root, std::filesystem::path(file), sanitized_path))
             return SendFileResult::forbidden;
 
         std::error_code ec;
@@ -7008,23 +7071,35 @@ bool operator==(Request & r, const std::string s)
         if(file[0] == '/')
             file = file.erase(0,1);
 
-        if(SendFileIfSafe(webui_dir, file) == SendFileResult::sent)
+        bool forbidden = false;
+        auto try_send_public_file = [this, &forbidden](const std::filesystem::path & root, const std::string & requested_file)
+        {
+            SendFileResult result = SendPublicWebUIFileIfSafe(root, requested_file);
+            if(result == SendFileResult::forbidden)
+                forbidden = true;
+            return result == SendFileResult::sent;
+        };
+
+        if(try_send_public_file(webui_dir, file))
             return;
 
         if(starts_with(file, "images/"))
         {
             std::string rewritten = "Images/" + file.substr(7);
-            if(SendFileIfSafe(webui_dir, rewritten) == SendFileResult::sent)
+            if(try_send_public_file(webui_dir, rewritten))
                 return;
         }
         else if(starts_with(file, "models/"))
         {
             std::string rewritten = "Models/" + file.substr(7);
-            if(SendFileIfSafe(webui_dir, rewritten) == SendFileResult::sent)
+            if(try_send_public_file(webui_dir, rewritten))
                 return;
         }
 
-        DoSendError("404 Not Found", "404 Not Found\n");
+        if(forbidden)
+            DoSendError("403 Forbidden", "403 Forbidden\n");
+        else
+            DoSendError("404 Not Found", "404 Not Found\n");
     }
 
 

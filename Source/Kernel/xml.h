@@ -31,7 +31,9 @@ inline constexpr bool XML_DEBUG = false;
 
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <string>
+#include <vector>
 
 
 class XMLElement;
@@ -194,8 +196,15 @@ public:
 
     XMLElement * xml;
     XMLNode * prolog;
+    std::filesystem::path filename_;
+    std::filesystem::path base_dir_;
+    std::vector<std::filesystem::path> include_roots_;
+    std::vector<std::filesystem::path> include_stack_;
+    int include_depth_;
 
     XMLDocument(const char * filename, bool included = false);
+    XMLDocument(const char * filename, bool included, const std::vector<std::filesystem::path> & include_roots);
+    XMLDocument(const char * filename, bool included, const std::vector<std::filesystem::path> & include_roots, const std::vector<std::filesystem::path> & include_stack, int include_depth);
     ~XMLDocument();
 
     bool		Match(const char c, bool skip=true);
@@ -209,6 +218,8 @@ public:
     char *		PushName(const char *t);
 
     void		SetAction(const char *);
+    bool        PathIsUnderRoot(const std::filesystem::path & root, const std::filesystem::path & path) const;
+    std::filesystem::path ResolveIncludedFilename(const std::string & filename);
 
     XMLNode *	ParseXMLDeclaration(XMLNode * parent);
     XMLNode *   ParseIncludedFile(XMLNode * parent); // non standard

@@ -14,6 +14,7 @@
 #include <initializer_list>
 #include <iterator>
 #include <iostream>
+#include <filesystem>
 #include <cctype>
 #include <stdexcept>
 
@@ -112,6 +113,7 @@ namespace ikaros
         void print() const { std::cout << this->json() << '\n'; };
 
         void load_xml(const std::string & filename);
+        void load_xml(const std::string & filename, const std::vector<std::filesystem::path> & include_roots);
         void load_json(const std::string & filename);
     };
 
