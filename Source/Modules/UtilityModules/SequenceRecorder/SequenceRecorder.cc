@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <limits>
 
 namespace fs = std::filesystem;
 
@@ -177,13 +178,19 @@ public:
     void
     SetStartMark()
     {
-        sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = (1000 * timer.GetTime());
+        float t = 1000 * timer.GetTime();
+        sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = t;
+        if (float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]) < t)
+            sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = t;
     }
 
     void
     SetEndMark()
     {
-        sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = (1000 * timer.GetTime());
+        float t = 1000 * timer.GetTime();
+        sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = t;
+        if (float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]) > t)
+            sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = t;
     }
 
     void
@@ -457,6 +464,8 @@ public:
             return;
         float start_mark_time = sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"];
         float end_mark_time = sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"];
+        if (end_mark_time < start_mark_time)
+            std::swap(start_mark_time, end_mark_time);
 
         for (int i = 0; i < n; i++)
             if (float(keypoints[i]["time"]) < start_mark_time || float(keypoints[i]["time"]) > end_mark_time)
@@ -505,6 +514,9 @@ public:
     {
         float start_mark_time = float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]);
         float end_mark_time = float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]);
+        if (end_mark_time < start_mark_time)
+            std::swap(start_mark_time, end_mark_time);
+
         int n = sequence_data["sequences"][current_sequence.as_int()]["keypoints"].size();
         for (int i = 0; i < n; i++)
         {
@@ -558,7 +570,9 @@ public:
             int index = indices[p];
             float t = keypoints[index]["time"];
             float actual = keypoints[index]["point"][channel];
-            float expected = t_right == t_left ? v_left : interpolate(t, t_left, t_right, v_left, v_right);
+            float expected = v_left;
+            if (interpolation[channel] != 0 && t_right != t_left)
+                expected = interpolate(t, t_left, t_right, v_left, v_right);
             float error = std::abs(actual - expected);
 
             if (error > max_error)
@@ -838,11 +852,6 @@ public:
             if (!EnsureCurrentSequence())
                 return "{}";
 
-            int n = sequence_data["sequences"][current_sequence.as_int()]["keypoints"].size();
-            if (n > 400) // 400 = 10 s
-            {
-                return "{}"; // Minimal JSON
-            }
             value sq = sequence_data["sequences"][current_sequence.as_int()].copy();
             sq["channel_mode"] = CurrentChannelMode();
             return sq.json();
@@ -1051,6 +1060,38 @@ public:
     }
 
     bool
+    ValidateLoadedKeypoints(value &sequence)
+    {
+        if (!sequence["keypoints"].is_list())
+        {
+            Notify(msg_warning, "Sequence file has invalid keypoint data. Cannot be opened.");
+            return false;
+        }
+
+        float previous_time = -std::numeric_limits<float>::infinity();
+        for (int i = 0; i < sequence["keypoints"].size(); i++)
+        {
+            value &keypoint = sequence["keypoints"][i];
+            if (!keypoint.is_dictionary() || !keypoint["time"].is_number() ||
+                !keypoint["point"].is_list() || keypoint["point"].size() < channels.as_int())
+            {
+                Notify(msg_warning, "Sequence file has invalid keypoint data. Cannot be opened.");
+                return false;
+            }
+
+            float time = keypoint["time"];
+            if (time <= previous_time)
+            {
+                Notify(msg_warning, "Sequence file has unordered keypoints. Cannot be opened.");
+                return false;
+            }
+            previous_time = time;
+        }
+
+        return true;
+    }
+
+    bool
     EnsureCurrentSequence()
     {
         if (!sequence_data["sequences"].is_list() || sequence_data["sequences"].size() == 0)
@@ -1088,7 +1129,11 @@ public:
         }
 
         for (int i = 0; i < loaded_sequences; i++)
+        {
             FillMissingSequenceFields(data["sequences"][i], i);
+            if (!ValidateLoadedKeypoints(data["sequences"][i]))
+                return false;
+        }
 
         while (data["sequences"].size() < expected_sequences)
         {
@@ -1257,7 +1302,9 @@ public:
         Bind(default_output, "default_output");
         Bind(directory, "directory");
         Bind(filename, "filename");
-        Bind(trig, "TRIG"); // trig_last = matrix(trig.size()); // Set in first assignment
+        Bind(trig, "TRIG");
+        trig_last = matrix(trig.size());
+        trig_last.reset();
         Bind(playing, "PLAYING");
         Bind(completed, "COMPLETED");
         Bind(target, "TARGET");
