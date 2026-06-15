@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <cmath>
 #include <limits>
+#include <random>
 
 namespace fs = std::filesystem;
 
@@ -19,7 +20,7 @@ static constexpr int sequence_data_version = 2;
 static constexpr const char *sequence_data_time_unit = "seconds";
 
 static std::string
-make_timestamp(float t) // FIXME: use timer::TimeString instead if it works correctly here
+make_timestamp(double t)
 {
     if (t <= 0)
         return "00:00:000";
@@ -40,12 +41,13 @@ make_timestamp(float t) // FIXME: use timer::TimeString instead if it works corr
     return std::string(buff);
 }
 
-static inline float
+static inline double
 quantize(double time, double q)
 {
     if (q <= 0)
         return time;
-    return q * std::floor(time / q + 0.5);
+    double quantized = q * std::round(time / q);
+    return std::round(quantized * 1000.0) / 1000.0;
 }
 
 float interpolate(float t, float t1, float t2, float p1, float p2) // linear interpolation
@@ -54,8 +56,9 @@ float interpolate(float t, float t1, float t2, float p1, float p2) // linear int
     return p1 + alpha * (p2 - p1);
 }
 
+template <typename KeypointList>
 static int
-find_index_for_time(list keypoints, float t)
+find_index_for_time(KeypointList &keypoints, float t)
 {
     int n = keypoints.size();
 
@@ -92,11 +95,115 @@ set_one_hot(matrix & target, int index, int size)
 class SequenceRecorder : public Module
 {
 public:
+    struct MarkedRange
+    {
+        float start;
+        float end;
+        float epsilon;
+
+        bool
+        Contains(float time) const
+        {
+            return start - epsilon <= time && time <= end + epsilon;
+        }
+
+        bool
+        Excludes(float time) const
+        {
+            return time < start - epsilon || time > end + epsilon;
+        }
+    };
+
     void
     StartRecord()
     {
         last_record_position = timer.GetTime();
         start_record = true;
+    }
+
+    void
+    ResetPlaybackIndex()
+    {
+        playback_sequence = -1;
+        playback_index = 0;
+        playback_keypoint_count = -1;
+        playback_time = -std::numeric_limits<float>::infinity();
+    }
+
+    void
+    MarkSequenceChanged()
+    {
+        sequence_revision++;
+    }
+
+    bool
+    SequenceCanPlay(int index)
+    {
+        if (!sequence_data["sequences"].is_list() || index < 0 || index >= sequence_data["sequences"].size())
+            return false;
+
+        auto &sequence = sequence_data["sequences"][index];
+        return sequence["keypoints"].is_list() && sequence["keypoints"].size() > 0;
+    }
+
+    int
+    RandomPlayableSequence(int exclude_index)
+    {
+        std::vector<int> candidates;
+        int sequence_count = sequence_data["sequences"].is_list() ? int(sequence_data["sequences"].size()) : 0;
+        int n = std::min(max_sequences.as_int(), sequence_count);
+
+        for (int i = 0; i < n; i++)
+            if (i != exclude_index && SequenceCanPlay(i))
+                candidates.push_back(i);
+
+        if (candidates.empty() && SequenceCanPlay(exclude_index))
+            candidates.push_back(exclude_index);
+
+        if (candidates.empty())
+            return -1;
+
+        static thread_local std::mt19937 generator(std::random_device{}());
+        std::uniform_int_distribution<int> distribution(0, candidates.size() - 1);
+        return candidates[distribution(generator)];
+    }
+
+    value &
+    CurrentSequence()
+    {
+        return sequence_data["sequences"][current_sequence.as_int()];
+    }
+
+    MarkedRange
+    CurrentMarkedRange()
+    {
+        auto &sequence = CurrentSequence();
+        float start = float(sequence["start_mark_time"]);
+        float end = float(sequence["end_mark_time"]);
+        if (end < start)
+            std::swap(start, end);
+
+        return {start, end, float(GetTickDuration() / 2)};
+    }
+
+    void
+    SetPausedTime(double time)
+    {
+        auto &sequence = CurrentSequence();
+        double start_time = sequence["start_time"];
+        double end_time = sequence["end_time"];
+        double t = quantize(time, GetTickDuration());
+
+        if (t < start_time)
+            t = start_time;
+        if (t > end_time)
+            t = end_time;
+
+        timer.Pause();
+        timer.SetPauseTime(t);
+        position = end_time > 0 ? t / end_time : 0;
+        last_position = position;
+        ResetPlaybackIndex();
     }
 
     void
@@ -112,7 +219,6 @@ public:
     void
     Play()
     {
-        // if(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] == 0)
         set_one_hot(state, 1, states);
         timer.Continue();
     }
@@ -137,85 +243,92 @@ public:
     void
     SkipStart()
     {
-        timer.Pause();
         set_one_hot(state, 3, states); // Pause
-        if (timer.GetTime() <= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
-            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["start_time"]);
-        else if (timer.GetTime() <= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
-            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]);
+        auto &sequence = CurrentSequence();
+        MarkedRange range = CurrentMarkedRange();
+        double t = quantize(timer.GetTime(), GetTickDuration());
+        if (t <= range.start + range.epsilon)
+            SetPausedTime(sequence["start_time"]);
+        else if (t <= range.end + range.epsilon)
+            SetPausedTime(range.start);
         else
-            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]);
+            SetPausedTime(range.end);
     }
 
     void
     SkipEnd()
     {
-        timer.Pause();
         set_one_hot(state, 3, states);
-        if (timer.GetTime() >= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
-            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
-        else if (timer.GetTime() >= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
-            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]);
+        auto &sequence = CurrentSequence();
+        MarkedRange range = CurrentMarkedRange();
+        double t = quantize(timer.GetTime(), GetTickDuration());
+        if (t >= range.end - range.epsilon)
+            SetPausedTime(sequence["end_time"]);
+        else if (t >= range.start - range.epsilon)
+            SetPausedTime(range.end);
         else
-            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]);
+            SetPausedTime(range.start);
     }
 
     void
     SetStartMark()
     {
-        float t = timer.GetTime();
-        sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = t;
-        if (float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]) < t)
-            sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = t;
+        double t = quantize(timer.GetTime(), GetTickDuration());
+        auto &sequence = CurrentSequence();
+        sequence["start_mark_time"] = t;
+        if (float(sequence["end_mark_time"]) < t)
+            sequence["end_mark_time"] = t;
     }
 
     void
     SetEndMark()
     {
-        float t = timer.GetTime();
-        sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = t;
-        if (float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]) > t)
-            sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = t;
+        double t = quantize(timer.GetTime(), GetTickDuration());
+        auto &sequence = CurrentSequence();
+        sequence["end_mark_time"] = t;
+        if (float(sequence["start_mark_time"]) > t)
+            sequence["start_mark_time"] = t;
     }
 
     void
     SetMarkRange(float start_time, float end_time)
     {
-        sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = std::min(start_time, end_time);
-        sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = std::max(start_time, end_time);
+        auto &sequence = CurrentSequence();
+        sequence["start_mark_time"] = std::min(start_time, end_time);
+        sequence["end_mark_time"] = std::max(start_time, end_time);
     }
 
     void
     GoToPreviousKeypoint()
     {
-        float t = timer.GetTime();
-        float time_epsilon = GetTickDuration() / 2;
-        auto &keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
+        double tick_duration = GetTickDuration();
+        float t = quantize(timer.GetTime(), tick_duration);
+        float time_epsilon = tick_duration / 2;
+        auto &sequence = CurrentSequence();
+        auto &keypoints = sequence["keypoints"];
         int i = find_index_for_time(keypoints, t);
         if (i > 0)
         {
-            float kpt = sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i - 1]["time"];
+            float kpt = keypoints[i - 1]["time"];
             if (std::abs(kpt - t) <= time_epsilon && i > 1)
-                kpt = sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i - 2]["time"];
-            timer.SetPauseTime(kpt);
-            float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-            position = end_time ? kpt / end_time : 0; // Fix me: use set time function
+                kpt = keypoints[i - 2]["time"];
+            SetPausedTime(kpt);
         }
     }
 
     void
     GoToNextKeypoint()
     {
-        float t = timer.GetTime();
-        auto &keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
+        double tick_duration = GetTickDuration();
+        float t = quantize(timer.GetTime(), tick_duration);
+        auto &sequence = CurrentSequence();
+        auto &keypoints = sequence["keypoints"];
         int n = keypoints.size();
         int i = find_index_for_time(keypoints, t);
         if (i < n)
         {
-            float kpt = sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i]["time"];
-            timer.SetPauseTime(kpt);
-            float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-            position = end_time ? kpt / end_time : 0; // Fix me: use set time function
+            float kpt = keypoints[i]["time"];
+            SetPausedTime(kpt);
         }
     }
 
@@ -228,16 +341,18 @@ public:
     void
     ExtendTime() // add one second to the end of the sequence
     {
-        float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-        sequence_data["sequences"][current_sequence.as_int()]["end_time"] = 1.0f + int(end_time);
+        auto &sequence = CurrentSequence();
+        float end_time = sequence["end_time"];
+        sequence["end_time"] = 1.0f + int(end_time);
     }
 
     void
     ReduceTime()
     {
-        float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
+        auto &sequence = CurrentSequence();
+        float end_time = sequence["end_time"];
         end_time = -1.0f + int(end_time + 0.99999);
-        sequence_data["sequences"][current_sequence.as_int()]["end_time"] = end_time > 0 ? end_time : 0;
+        sequence["end_time"] = end_time > 0 ? end_time : 0;
     }
 
     void
@@ -256,8 +371,11 @@ public:
     void
     LinkKeypoints()
     {
-        auto &keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
+        auto &keypoints = CurrentSequence()["keypoints"];
         int n = keypoints.size();
+
+        left_output.copy(default_output);
+        right_output.copy(default_output);
 
         std::vector<int> left_link(channels.as_int(), -1);
         std::vector<int> right_link(channels.as_int(), -1);
@@ -294,7 +412,7 @@ public:
     void
     DeleteEmptyKeypoints()
     {
-        list keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
+        list keypoints = CurrentSequence()["keypoints"];
         auto it = keypoints.begin();
         while (it != keypoints.end())
         {
@@ -314,8 +432,9 @@ public:
         }
     }
 
+    template <typename KeypointList>
     int
-    FindKeypointNearTime(list keypoints, float time, float epsilon)
+    FindKeypointNearTime(KeypointList &keypoints, float time, float epsilon)
     {
         int n = keypoints.size();
         if (n < 1)
@@ -380,12 +499,13 @@ public:
     void
     AddKeypoint(double time)
     {
-        list keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
+        ResetPlaybackIndex();
+        MarkSequenceChanged();
+        list keypoints = CurrentSequence()["keypoints"];
         int n = keypoints.size();
 
-        float qtime = quantize(time, GetTickDuration());
+        double qtime = quantize(time, GetTickDuration());
         float time_epsilon = GetTickDuration() / 2;
-        // printf(">>> add: %f => %f\n", time, qtime);
 
         // Create the point data array
 
@@ -394,13 +514,37 @@ public:
             if (channel_mode[c](0) == 1)      // locked
                 points.push_back(null());     // Do not record locked channel???
             else if (channel_mode(c, 1) == 1) // play - use null to indicate nodata
-                points.push_back(null());     // was target[c]
+                points.push_back(null());
             else if (channel_mode(c, 2) == 1) // record - store current input (or sliders)
                 points.push_back(input(c));
             else if (channel_mode(c, 3) == 1) // copy - do not record this channel but use null
                 points.push_back(null());
             else // default
                 points.push_back(null());
+
+        dictionary keypoint;
+        keypoint["time"] = qtime;
+        keypoint["point"] = points;
+
+        if (n == 0)
+        {
+            keypoints.push_back(keypoint);
+            return;
+        }
+
+        double last_time = keypoints[n - 1]["time"];
+        if (qtime >= last_time)
+        {
+            if (qtime - last_time <= time_epsilon)
+            {
+                for (int c = 0; c < channels.as_int(); c++)
+                    if (!points[c].is_null())
+                        keypoints[n - 1]["point"][c] = points[c];
+            }
+            else
+                keypoints.push_back(keypoint);
+            return;
+        }
 
         int nearby_index = FindKeypointNearTime(keypoints, qtime, time_epsilon);
         if (nearby_index != -1)
@@ -415,9 +559,6 @@ public:
 
         // Insert in time order.
 
-        dictionary keypoint;
-        keypoint["time"] = qtime;
-        keypoint["point"] = points;
         if (i < n)
             keypoints.insert(keypoints.begin() + i, keypoint);
         else
@@ -427,30 +568,31 @@ public:
     void
     ClearSequence()
     {
-        sequence_data["sequences"][current_sequence.as_int()]["keypoints"] = list();
-        sequence_data["sequences"][current_sequence.as_int()]["start_time"] = 0;
-        sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = 0;
-        sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = 1;
-        sequence_data["sequences"][current_sequence.as_int()]["end_time"] = 1;
+        ResetPlaybackIndex();
+        MarkSequenceChanged();
+        auto &sequence = CurrentSequence();
+        sequence["keypoints"] = list();
+        sequence["start_time"] = 0;
+        sequence["start_mark_time"] = 0;
+        sequence["end_mark_time"] = 1;
+        sequence["end_time"] = 1;
     }
 
     void
     Crop()
     {
-        auto &keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
+        ResetPlaybackIndex();
+        MarkSequenceChanged();
+        auto &sequence = CurrentSequence();
+        auto &keypoints = sequence["keypoints"];
         int n = keypoints.size();
 
         if (n < 1)
             return;
-        float start_mark_time = sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"];
-        float end_mark_time = sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"];
-        float time_epsilon = GetTickDuration() / 2;
-        if (end_mark_time < start_mark_time)
-            std::swap(start_mark_time, end_mark_time);
+        MarkedRange range = CurrentMarkedRange();
 
         for (int i = 0; i < n; i++)
-            if (float(keypoints[i]["time"]) < start_mark_time - time_epsilon ||
-                float(keypoints[i]["time"]) > end_mark_time + time_epsilon)
+            if (range.Excludes(float(keypoints[i]["time"])))
                 ClearKeypointAtIndex(i, true);
 
         DeleteEmptyKeypoints();
@@ -460,8 +602,8 @@ public:
         n = keypoints.size();
         if (n < 1)
         {
-            sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = 0;
-            sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = 0;
+            sequence["start_mark_time"] = 0;
+            sequence["end_mark_time"] = 0;
             LinkKeypoints();
             return;
         }
@@ -470,8 +612,8 @@ public:
         for (int i = 0; i < n; i++)
             keypoints[i]["time"] = float(keypoints[i]["time"]) - start_time;
 
-        sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = 0;
-        sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]) - start_time;
+        sequence["start_mark_time"] = 0;
+        sequence["end_mark_time"] = float(sequence["end_mark_time"]) - start_time;
 
         LinkKeypoints();
     }
@@ -479,7 +621,9 @@ public:
     void
     DeleteKeypoint(double time)
     {
-        auto &keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
+        ResetPlaybackIndex();
+        MarkSequenceChanged();
+        auto &keypoints = CurrentSequence()["keypoints"];
         int n = keypoints.size();
         if (n < 1)
             return;
@@ -492,23 +636,22 @@ public:
     void
     DeleteKeypoints()
     {
-        float start_mark_time = float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]);
-        float end_mark_time = float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]);
-        float time_epsilon = GetTickDuration() / 2;
-        if (end_mark_time < start_mark_time)
-            std::swap(start_mark_time, end_mark_time);
+        ResetPlaybackIndex();
+        MarkSequenceChanged();
+        auto &keypoints = CurrentSequence()["keypoints"];
+        MarkedRange range = CurrentMarkedRange();
 
-        int n = sequence_data["sequences"][current_sequence.as_int()]["keypoints"].size();
+        int n = keypoints.size();
         for (int i = 0; i < n; i++)
         {
-            float t = sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i]["time"];
-            if (start_mark_time - time_epsilon <= t && t <= end_mark_time + time_epsilon)
+            float t = keypoints[i]["time"];
+            if (range.Contains(t))
             {
                 for (int c = 0; c < channels.as_int(); c++)
                 {
                     if (channel_mode(c, 2) == 1) // record mode
                     {
-                        sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i]["point"][c] = null();
+                        keypoints[i]["point"][c] = null();
                     }
                 }
             }
@@ -521,11 +664,10 @@ public:
     }
 
     bool
-    KeypointIsInMarkedRange(value &keypoints, int index, float start_mark_time, float end_mark_time)
+    KeypointIsInMarkedRange(value &keypoints, int index, const MarkedRange &range)
     {
         float t = keypoints[index]["time"];
-        float time_epsilon = GetTickDuration() / 2;
-        return start_mark_time - time_epsilon <= t && t <= end_mark_time + time_epsilon;
+        return range.Contains(t);
     }
 
     void
@@ -576,9 +718,9 @@ public:
     }
 
     void
-    SimplifyChannel(int channel, float start_mark_time, float end_mark_time, float epsilon)
+    SimplifyChannel(int channel, const MarkedRange &range, float epsilon)
     {
-        auto &keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
+        auto &keypoints = CurrentSequence()["keypoints"];
         int n = keypoints.size();
 
         std::vector<int> indices;
@@ -596,14 +738,14 @@ public:
         int p = 0;
         while (p < m)
         {
-            while (p < m && !KeypointIsInMarkedRange(keypoints, indices[p], start_mark_time, end_mark_time))
+            while (p < m && !KeypointIsInMarkedRange(keypoints, indices[p], range))
                 p++;
 
             if (p >= m)
                 break;
 
             int run_start = p;
-            while (p < m && KeypointIsInMarkedRange(keypoints, indices[p], start_mark_time, end_mark_time))
+            while (p < m && KeypointIsInMarkedRange(keypoints, indices[p], range))
                 p++;
             int run_end = p - 1;
 
@@ -628,16 +770,15 @@ public:
     void
     Simplify()
     {
-        float start_mark_time = float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]);
-        float end_mark_time = float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]);
-        if (end_mark_time < start_mark_time)
-            std::swap(start_mark_time, end_mark_time);
+        ResetPlaybackIndex();
+        MarkSequenceChanged();
+        MarkedRange range = CurrentMarkedRange();
 
         float epsilon = std::max(0.0f, simplify_epsilon.as_float());
 
         for (int c = 0; c < channels.as_int(); c++)
             if (channel_mode(c, 2) == 1)
-                SimplifyChannel(c, start_mark_time, end_mark_time, epsilon);
+                SimplifyChannel(c, range, epsilon);
 
         DeleteEmptyKeypoints();
         LinkKeypoints();
@@ -646,52 +787,53 @@ public:
     void
     SelectAll()
     {
-        sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] =
-            sequence_data["sequences"][current_sequence.as_int()]["start_time"];
-        sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] =
-            sequence_data["sequences"][current_sequence.as_int()]["end_time"];
+        auto &sequence = CurrentSequence();
+        sequence["start_mark_time"] = sequence["start_time"];
+        sequence["end_mark_time"] = sequence["end_time"];
     }
 
     void
     ClearKeypointAtIndex(int i, bool all = false)
     {
-        //(">>> delete: %d\n", i);
-        auto &keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
+        auto &keypoints = CurrentSequence()["keypoints"];
         int n = keypoints.size();
         if (i < 0 || i >= n)
             return;
 
+        bool changed = false;
         for (int c = 0; c < channels.as_int(); c++)
         {
             if (channel_mode(c, 2) == 1 || all) // record mode or all-flag set
+            {
+                if (!keypoints[i]["point"][c].is_null())
+                    changed = true;
                 keypoints[i]["point"][c] = null();
+            }
         }
+        if (changed)
+            MarkSequenceChanged();
     }
 
     void
-    DeleteKeypointsInRange(float t0, float t1) // FIXME: Needs further testing for different quantizations ***
+    DeleteKeypointsInRange(float t0, float t1)
     {
-        auto &keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
+        auto &keypoints = CurrentSequence()["keypoints"];
         int n = keypoints.size();
 
-        /*
-        for(int i=0; i<n; i++)
-        {
-            float t = float(keypoints[i]["time"]);
-            if(t0 < t && t<t1)
-            {
-                ClearKeypointAtIndex(i);
-                printf("--- Deleting: %d", i);
-            }
-        }
-        */
+        if (n == 0 || t1 <= t0)
+            return;
+
+        if (t0 >= float(keypoints[n - 1]["time"]) || t1 <= float(keypoints[0]["time"]))
+            return;
 
         int i0 = find_index_for_time(keypoints, t0);
         int i1 = find_index_for_time(keypoints, t1);
-        //    printf("%d - %d\n\n", i0, i1);
+
+        if (i0 >= i1)
+            return;
+
         for (int i = i0; i < i1; i++)
             ClearKeypointAtIndex(i);
-        // printf("--- Deleting: %d", i);
     }
 
     void
@@ -711,6 +853,7 @@ public:
         }
         Stop();
         current_sequence = id;
+        ResetPlaybackIndex();
         Play();
     }
 
@@ -786,7 +929,6 @@ public:
             DeleteKeypoint(timer.GetTime());
             DeleteEmptyKeypoints();
             LinkKeypoints();
-            // Cleanup
         }
         else if (s == "crop")
             Crop();
@@ -834,9 +976,15 @@ public:
             if (!EnsureCurrentSequence())
                 return "{}";
 
-            value sq = sequence_data["sequences"][current_sequence.as_int()].copy();
-            sq["channel_mode"] = CurrentChannelMode();
-            return sq.json();
+            return CreateWebUISequence().json();
+        }
+
+        else if (name == "SEQUENCE_STATE")
+        {
+            if (!EnsureCurrentSequence())
+                return "{}";
+
+            return CreateWebUISequenceState().json();
         }
 
         else
@@ -846,9 +994,28 @@ public:
     void
     SetTargetForTime(float t)
     {
-        list keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
+        auto &keypoints = CurrentSequence()["keypoints"];
         int n = keypoints.size();
-        int i = find_index_for_time(keypoints, t);
+        int sequence_index = current_sequence.as_int();
+        int i = 0;
+
+        if (playback_sequence == sequence_index &&
+            playback_keypoint_count == n &&
+            playback_index >= 0 &&
+            playback_index <= n &&
+            t >= playback_time)
+        {
+            i = playback_index;
+            while (i < n && float(keypoints[i]["time"]) <= t)
+                i++;
+        }
+        else
+            i = find_index_for_time(keypoints, t);
+
+        playback_sequence = sequence_index;
+        playback_index = i;
+        playback_keypoint_count = n;
+        playback_time = t;
 
         // Check if no keypoints: use default output as target
 
@@ -970,7 +1137,8 @@ public:
     void
     Rename(const std::string &new_name)
     {
-        sequence_data["sequences"][current_sequence.as_int()]["name"] = new_name;
+        CurrentSequence()["name"] = new_name;
+        MarkSequenceChanged();
         UpdateSequenceNames();
     }
 
@@ -1050,7 +1218,7 @@ public:
             return false;
         }
 
-        float previous_time = -std::numeric_limits<float>::infinity();
+        double previous_time = -std::numeric_limits<double>::infinity();
         for (int i = 0; i < sequence["keypoints"].size(); i++)
         {
             value &keypoint = sequence["keypoints"][i];
@@ -1061,13 +1229,23 @@ public:
                 return false;
             }
 
-            float time = keypoint["time"];
+            for (int c = 0; c < channels.as_int(); c++)
+            {
+                if (!keypoint["point"][c].is_null() && !keypoint["point"][c].is_number())
+                {
+                    Notify(msg_warning, "Sequence file has invalid keypoint data. Cannot be opened.");
+                    return false;
+                }
+            }
+
+            double time = quantize(double(keypoint["time"]), GetTickDuration());
             if (time <= previous_time)
             {
                 Notify(msg_warning, "Sequence file has unordered keypoints. Cannot be opened.");
                 return false;
             }
             previous_time = time;
+            keypoint["time"] = time;
         }
 
         return true;
@@ -1236,9 +1414,53 @@ public:
         return true;
     }
 
+    dictionary
+    CreateWebUISequence()
+    {
+        dictionary sq;
+        int index = current_sequence.as_int();
+        value &source = sequence_data["sequences"][index];
+
+        sq["revision"] = sequence_revision;
+        sq["current_sequence"] = index;
+        sq["name"] = source["name"];
+
+        list keypoints;
+        for (int i = 0; i < source["keypoints"].size(); i++)
+        {
+            list keypoint;
+            keypoint.push_back(source["keypoints"][i]["time"]);
+            for (int c = 0; c < channels.as_int(); c++)
+                keypoint.push_back(source["keypoints"][i]["point"][c]);
+            keypoints.push_back(keypoint);
+        }
+        sq["keypoints"] = keypoints;
+
+        return sq;
+    }
+
+    dictionary
+    CreateWebUISequenceState()
+    {
+        dictionary state;
+        int index = current_sequence.as_int();
+        value &sequence = sequence_data["sequences"][index];
+
+        state["revision"] = sequence_revision;
+        state["current_sequence"] = index;
+        state["start_time"] = sequence["start_time"];
+        state["start_mark_time"] = sequence["start_mark_time"];
+        state["end_mark_time"] = sequence["end_mark_time"];
+        state["end_time"] = sequence["end_time"];
+        state["channel_mode"] = CurrentChannelMode();
+
+        return state;
+    }
+
     void
     New()
     {
+        ResetPlaybackIndex();
         filename = "untitled" + std::to_string(untitled_count++) + ".json";
         sequence_data = dictionary(); // in case it is not empty
         sequence_data["type"] = "Ikaros Sequence Data";
@@ -1253,20 +1475,21 @@ public:
         }
 
         UpdateSequenceNames();
+        MarkSequenceChanged();
     }
 
     bool
     Open(const std::string &name)
     {
-        if (std::string(filename).empty())
+        ResetPlaybackIndex();
+        if (name.empty())
             return false;
 
-        filename = name;
-        auto path = resolved_directory / std::string(filename);
+        auto path = resolved_directory / name;
 
         if (!fs::exists(path))
         {
-            Notify(msg_warning, "File does not exist."); // FIXME: path.c_str()
+            Notify(msg_warning, "File does not exist.");
             return false;
         }
 
@@ -1302,6 +1525,9 @@ public:
             LoadChannelMode();
             LinkKeypoints(); // Just in case...
             current_sequence = 0;
+            filename = name;
+            ResetPlaybackIndex();
+            MarkSequenceChanged();
         }
 
         catch (const std::exception &e)
@@ -1331,7 +1557,7 @@ public:
             filename = name + ".json";
         auto path = resolved_directory / std::string(filename);
 
-        LinkKeypoints(); // FIXME: maybe not necessary here
+        LinkKeypoints();
         StoreChannelMode();
 
         std::ofstream file(path);
@@ -1345,13 +1571,20 @@ public:
         file << sequence_data.json() << std::endl;
 
         if (!FileNameIsListed(std::string(filename)))
-            file_names = std::string(file_names) + "," + std::string(filename);
+        {
+            if (std::string(file_names).empty())
+                file_names = filename;
+            else
+                file_names = std::string(file_names) + "," + std::string(filename);
+        }
     }
 
     void
     Init()
     {
         timer.Stop();
+        sequence_revision = 0;
+        ResetPlaybackIndex();
 
         Bind(channels, "channels");
         Bind(positions, "positions"); // parameter size will be set by the value channels
@@ -1420,7 +1653,7 @@ public:
         left_output.copy(default_output);
         right_output.copy(default_output);
 
-        for (int c = 0; c < channels.as_int(); c++) // FIXME: Rremove as int where not necessary
+        for (int c = 0; c < channels.as_int(); c++)
             if (internal_control(c))
                 positions(c) = default_output(c);
 
@@ -1452,7 +1685,7 @@ public:
         // Get files in directory
 
         std::string fsep = "";
-        for (auto &p : fs::directory_iterator(resolved_directory)) // was recursive_directory_iterator
+        for (auto &p : fs::directory_iterator(resolved_directory))
         {
             auto pp = p.path();
             if (pp.extension() == ".json")
@@ -1465,17 +1698,9 @@ public:
         Stop();
     }
 
-    /*
-    ~SequenceRecorder()
-    {
-    // auto save
-    }
-    */
-
     void
     Tick()
     {
-        // std::cout << timer.GetTime() << std::endl;
         double tl = GetTickDuration();
         playing.reset();
         completed.reset();
@@ -1490,33 +1715,27 @@ public:
                 Trig(s);
 
         trig_last.copy(trig);
+        auto &sequence = CurrentSequence();
         float t = timer.GetTime();
 
         if (start_record) // timer start at tick to increase probability of overlapping keypoint when starting at a keypoint
-        {                 // FIXME: May want to jump to closest keypoint if dense recording is used
+        {
             timer.Continue();
             start_record = false;
         }
 
-        //     // Set initial position if not set already - this is used as output when no data is available
-
-        //     // Check if position has been changed from WebUI - should use command in the future
-
         if (position != last_position)
         {
+            ResetPlaybackIndex();
             Pause();
-            float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
+            float end_time = sequence["end_time"];
             timer.SetPauseTime(position * end_time);
             last_position = position;
         }
 
-        //     // Set position
-
-        float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
+        float end_time = sequence["end_time"];
         position = end_time ? t / end_time : 0;
         last_position = position;
-
-        //     // Set inputs from parameters for internal channels
 
         for (int c = 0; c < channels.as_int(); c++)
             if (internal_control[c])
@@ -1525,31 +1744,49 @@ public:
         if (state[1]) // handle play mode
         {
             set_one_hot(playing, current_sequence, max_sequences);
-            if (loop && t >= float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])) // loop
+            if (loop && t >= float(sequence["end_mark_time"])) // loop
             {
                 timer.Pause();
-                timer.SetPauseTime(float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]));
+                timer.SetPauseTime(float(sequence["start_mark_time"]));
                 timer.Continue();
             }
             else if (position >= 1 || end_time == 0)
             {
-                Pause();
-                timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
-                set_one_hot(completed, current_sequence, max_sequences);
+                int completed_sequence = current_sequence.as_int();
+                set_one_hot(completed, completed_sequence, max_sequences);
+
+                if (shuffle)
+                {
+                    int next_sequence = RandomPlayableSequence(completed_sequence);
+                    if (next_sequence != -1)
+                    {
+                        Trig(next_sequence);
+                        set_one_hot(playing, current_sequence, max_sequences);
+                        return;
+                    }
+                    else
+                    {
+                        Pause();
+                        SetPausedTime(sequence["end_time"]);
+                    }
+                }
+                else
+                {
+                    Pause();
+                    SetPausedTime(sequence["end_time"]);
+                }
             }
         }
 
         else if (state[2]) // handle record mode
         {
             if (position >= 1 || end_time == 0) // extend recoding if at end
-                sequence_data["sequences"][current_sequence.as_int()]["end_time"] = t;
+                sequence["end_time"] = quantize(t, tl);
         }
 
         // Set outputs
 
         GoToTime(t);
-
-        // FIXME: Add smoothing here
 
         for (int c = 0; c < channels.as_int(); c++)
             SetOutputForChannel(c);
@@ -1565,20 +1802,18 @@ public:
 
         // Set position again
 
-        end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
+        end_time = sequence["end_time"];
         position = end_time ? t / end_time : 0;
         last_position = position;
 
-        time_string = make_timestamp(t);
-        end_time_string = make_timestamp(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
+        time_string = make_timestamp(quantize(t, tl));
+        end_time_string = make_timestamp(quantize(double(sequence["end_time"]), tl));
 
-        if (float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]) != 0)
+        if (float(end_time = sequence["end_time"]) != 0)
         {
-            mark_start = float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]) / float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
-            mark_end = float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]) / float(end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
+            mark_start = float(sequence["start_mark_time"]) / end_time;
+            mark_end = float(sequence["end_mark_time"]) / end_time;
         }
-
-        //     // Set positions parameter for externally controlled channels
 
         for (int c = 0; c < channels.as_int(); c++)
             if (internal_control[c] == 0)
@@ -1598,7 +1833,6 @@ public:
 
     matrix trig;
     matrix trig_last;
-    // int             trig_size;  // REMOVE ALL SIZE VARIABLES *********************
 
     matrix playing;
     matrix completed;
@@ -1639,6 +1873,11 @@ public:
 
     float last_time;
     float last_index;
+    int sequence_revision;
+    int playback_sequence;
+    int playback_index;
+    int playback_keypoint_count;
+    float playback_time;
 
     Timer timer;
     parameter position;
@@ -1656,8 +1895,6 @@ public:
     parameter end_time_string;
 
     void SetOutputForTime(float t);
-
-    //  int smoothing_time; // for torque and position
 };
 
 INSTALL_CLASS(SequenceRecorder)

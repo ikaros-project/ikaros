@@ -19,6 +19,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             {'name':'active', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'input', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'sequence', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'sequence_state', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'ranges', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'channel_mode', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name': "STYLE", 'control':'header'},
@@ -31,6 +32,12 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
     {
         super.init();
         this.static_cache = undefined;
+        this.cached_sequence = undefined;
+        this.cached_sequence_revision = undefined;
+        this.cached_sequence_index = undefined;
+        this.need_sequence = true;
+        this.cached_ranges = undefined;
+        this.last_sequence_state = undefined;
         this.drag_selection = undefined;
         this.onclick = function ()
         {
@@ -38,6 +45,126 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
                 return;
         }; // last matrix
         this.addEventListener("mousedown", (event) => this.startTimeSelection(event));
+    }
+
+
+    getSequenceStateSource()
+    {
+        if(this.parameters.sequence_state)
+            return this.parameters.sequence_state;
+
+        if(this.parameters.sequence && this.parameters.sequence.endsWith(".SEQUENCE"))
+            return this.parameters.sequence.substring(0, this.parameters.sequence.length-".SEQUENCE".length) + ".SEQUENCE_STATE";
+
+        return "";
+    }
+
+
+    getSequenceState(default_data=undefined)
+    {
+        try {
+            const source = this.getSequenceStateSource();
+            if(!source)
+                return default_data;
+
+            let v = this.receivedData[this.resolveControlPath(source)];
+            return v ? v : default_data;
+        }
+        catch(err)
+        {
+            return default_data;
+        }
+    }
+
+
+    hasSequenceStateSource()
+    {
+        return this.getSequenceStateSource() != "";
+    }
+
+
+    hasCurrentSequenceFor(sequence_state)
+    {
+        return sequence_state != undefined &&
+            this.cached_sequence != undefined &&
+            this.cached_ranges != undefined &&
+            this.cached_sequence_revision == sequence_state.revision &&
+            this.cached_sequence_index == sequence_state.current_sequence;
+    }
+
+
+    shouldRequestSequence()
+    {
+        if(!this.hasSequenceStateSource() || this.need_sequence || this.cached_sequence == undefined || this.cached_ranges == undefined)
+            return true;
+
+        return !this.hasCurrentSequenceFor(this.last_sequence_state);
+    }
+
+
+    addStaticSequenceSources(data_set)
+    {
+        this.addSource(data_set, this.parameters.sequence);
+        this.addSource(data_set, this.parameters.ranges);
+    }
+
+
+    requestData(data_set)
+    {
+        this.addSource(data_set, this.parameters.position);
+        this.addSource(data_set, this.parameters.target);
+        this.addSource(data_set, this.parameters.output);
+        this.addSource(data_set, this.parameters.active);
+        this.addSource(data_set, this.parameters.input);
+
+        const state_source = this.getSequenceStateSource();
+        this.addSource(data_set, state_source);
+        if(state_source == "")
+            this.addSource(data_set, this.parameters.channel_mode);
+
+        if(this.shouldRequestSequence())
+            this.addStaticSequenceSources(data_set);
+    }
+
+
+    unpackSequencePayload(sequence)
+    {
+        if(sequence == undefined || !Array.isArray(sequence.keypoints))
+            return sequence;
+
+        if(sequence.keypoints.length == 0 || !Array.isArray(sequence.keypoints[0]))
+            return sequence;
+
+        sequence.keypoints = sequence.keypoints.map((keypoint) => ({
+            time: keypoint[0],
+            point: keypoint.slice(1)
+        }));
+
+        return sequence;
+    }
+
+
+    updateSequenceCache(sequence)
+    {
+        sequence = this.unpackSequencePayload(sequence);
+        let sequence_changed =
+            this.cached_sequence_revision != sequence.revision ||
+            this.cached_sequence_index != sequence.current_sequence;
+
+        this.cached_sequence = sequence;
+        this.cached_sequence_revision = sequence.revision;
+        this.cached_sequence_index = sequence.current_sequence;
+        this.need_sequence = false;
+
+        if(sequence_changed)
+            this.static_cache = undefined;
+    }
+
+
+    updateRangesCache(ranges)
+    {
+        this.cached_ranges = ranges;
+        this.static_cache = undefined;
     }
 
 
@@ -557,7 +684,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             }
 
 
-            for(let i=n-1; i>=0; i--) // FIXME:
+            for(let i=n-1; i>=0; i--)
             {
                 if(sequence.keypoints[i].point[c])
                 {
@@ -705,10 +832,28 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             let output = this.getSource("output");
             let input = this.getSource("input");
             let active = this.getSource("active");
-            let sequence = this.getSource("sequence");
-            let ranges = this.getSource("ranges");
-            let channel_mode = this.getSource("channel_mode", sequence.channel_mode);
+            let incoming_sequence = this.getSource("sequence");
+            let sequence_state = this.getSequenceState(incoming_sequence);
+            let incoming_ranges = this.getSource("ranges");
+            let channel_mode = this.getSource("channel_mode", sequence_state ? sequence_state.channel_mode : undefined);
 
+            if(incoming_sequence != undefined)
+                this.updateSequenceCache(incoming_sequence);
+
+            if(incoming_ranges != undefined)
+                this.updateRangesCache(incoming_ranges);
+
+            this.last_sequence_state = sequence_state;
+            if(!this.hasCurrentSequenceFor(sequence_state))
+                this.need_sequence = true;
+
+            let sequence = this.cached_sequence;
+            let ranges = this.cached_ranges;
+            if(sequence == undefined || sequence_state == undefined || ranges == undefined)
+            {
+                this.draw_recordning();
+                return;
+            }
 
             if(Object.keys(sequence).length == 0) // RECORDING
             {
@@ -716,10 +861,10 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
                 return;
             }
             this.data = target;
-            let start_time = sequence["start_time"];
-            let end_time = sequence["end_time"];
-            let start_mark_time = sequence["start_mark_time"];
-            let end_mark_time = sequence["end_mark_time"];
+            let start_time = sequence_state["start_time"];
+            let end_time = sequence_state["end_time"];
+            let start_mark_time = sequence_state["start_mark_time"];
+            let end_mark_time = sequence_state["end_mark_time"];
             let position = f[0];
 
             if(this.drag_selection != undefined)

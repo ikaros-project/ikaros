@@ -26,7 +26,8 @@ const widget_classes =
     "control-grid",
     "canvas3d",
     "epi-head",
-    "key-points"
+    "key-points",
+    "sequence-grid"
 ]
 
 const identifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.0123456789";
