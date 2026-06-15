@@ -30,7 +30,7 @@ Records a sequence
 |TORQUE|Current torque for the motors|
 |ENABLE|Enable the motors|
 |KEYPOINTS|The keypoint vectors|
-|TIMESTAMPS|Timestamp in ms for each keypoint|
+|TIMESTAMPS|Timestamp in seconds for each keypoint in version 2 sequence files|
 |LENGTHS|Lenghts of the recording|
 |STATE|State is 1 when the module records|
 |TIME|Current record or play position|

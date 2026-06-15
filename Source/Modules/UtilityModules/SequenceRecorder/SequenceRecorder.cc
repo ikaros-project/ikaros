@@ -8,59 +8,44 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <cmath>
 #include <limits>
 
 namespace fs = std::filesystem;
 
 using namespace ikaros;
 
-/*
-static std::string
-make_timestamp(float t)
-{
-    char buff[100];
-    int t_ms = int(t) %1000;
-    int t_s = (int(t)/1000) % 60;
-    int t_min = int(t/60000);
-    snprintf(buff, 100, "%02d:%02d:%03d", t_min, t_s, t_ms);
-    return buff;
-}
-*/
+static constexpr int sequence_data_version = 2;
+static constexpr const char *sequence_data_time_unit = "seconds";
 
 static std::string
 make_timestamp(float t) // FIXME: use timer::TimeString instead if it works correctly here
 {
-    // Validate input
     if (t <= 0)
-    {
         return "00:00:000";
-    }
 
-    // Calculate time components with bounds checking
-    const int t_ms = std::max(0, std::min(999, int(t) % 1000));
-    const int t_s = std::max(0, std::min(59, (int(t) / 1000) % 60));
-    const int t_min = std::max(0, std::min(99, int(t / 60000)));
+    const int total_ms = std::max(0, int(std::round(t * 1000)));
+    const int t_ms = total_ms % 1000;
+    const int t_s = (total_ms / 1000) % 60;
+    const int t_min = std::min(99, total_ms / 60000);
 
-    // Use safe string formatting with sufficient buffer
     constexpr size_t BUFF_SIZE = 12; // "MM:SS:mmm\0" needs 11 chars
     char buff[BUFF_SIZE];
 
-    // Format with bounds checking
     const int written = snprintf(buff, BUFF_SIZE, "%02d:%02d:%03d", t_min, t_s, t_ms);
 
-    // Verify formatting succeeded
     if (written < 0 || written >= BUFF_SIZE)
-    {
         return "ERROR";
-    }
 
     return std::string(buff);
 }
 
 static inline float
-quantize(double time, long q)
+quantize(double time, double q)
 {
-    return q * (int(time + q / 2) / q);
+    if (q <= 0)
+        return time;
+    return q * std::floor(time / q + 0.5);
 }
 
 float interpolate(float t, float t1, float t2, float p1, float p2) // linear interpolation
@@ -110,7 +95,7 @@ public:
     void
     StartRecord()
     {
-        last_record_position = position;
+        last_record_position = timer.GetTime();
         start_record = true;
     }
 
@@ -154,12 +139,12 @@ public:
     {
         timer.Pause();
         set_one_hot(state, 3, states); // Pause
-        if ((1000 * timer.GetTime()) <= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
-            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["start_time"] / 1000.0);
-        else if ((1000 * timer.GetTime()) <= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
-            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] / 1000.0);
+        if (timer.GetTime() <= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
+            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["start_time"]);
+        else if (timer.GetTime() <= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
+            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]);
         else
-            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] / 1000.0);
+            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]);
     }
 
     void
@@ -167,18 +152,18 @@ public:
     {
         timer.Pause();
         set_one_hot(state, 3, states);
-        if ((1000 * timer.GetTime()) >= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
-            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"] / 1000.0);
-        else if ((1000 * timer.GetTime()) >= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
-            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] / 1000.0);
+        if (timer.GetTime() >= sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])
+            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
+        else if (timer.GetTime() >= sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"])
+            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]);
         else
-            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] / 1000.0);
+            timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]);
     }
 
     void
     SetStartMark()
     {
-        float t = 1000 * timer.GetTime();
+        float t = timer.GetTime();
         sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = t;
         if (float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]) < t)
             sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = t;
@@ -187,7 +172,7 @@ public:
     void
     SetEndMark()
     {
-        float t = 1000 * timer.GetTime();
+        float t = timer.GetTime();
         sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = t;
         if (float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]) > t)
             sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = t;
@@ -203,15 +188,16 @@ public:
     void
     GoToPreviousKeypoint()
     {
-        float t = (1000 * timer.GetTime());
+        float t = timer.GetTime();
+        float time_epsilon = GetTickDuration() / 2;
         auto &keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
         int i = find_index_for_time(keypoints, t);
         if (i > 0)
         {
             float kpt = sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i - 1]["time"];
-            if (kpt == t && i > 1)
+            if (std::abs(kpt - t) <= time_epsilon && i > 1)
                 kpt = sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i - 2]["time"];
-            timer.SetPauseTime(kpt / 1000.0);
+            timer.SetPauseTime(kpt);
             float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
             position = end_time ? kpt / end_time : 0; // Fix me: use set time function
         }
@@ -220,14 +206,14 @@ public:
     void
     GoToNextKeypoint()
     {
-        float t = (1000 * timer.GetTime());
+        float t = timer.GetTime();
         auto &keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
         int n = keypoints.size();
         int i = find_index_for_time(keypoints, t);
         if (i < n)
         {
             float kpt = sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i]["time"];
-            timer.SetPauseTime(kpt / 1000.0);
+            timer.SetPauseTime(kpt);
             float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
             position = end_time ? kpt / end_time : 0; // Fix me: use set time function
         }
@@ -243,14 +229,14 @@ public:
     ExtendTime() // add one second to the end of the sequence
     {
         float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-        sequence_data["sequences"][current_sequence.as_int()]["end_time"] = 1000.0f + 1000 * int(0.001 * end_time);
+        sequence_data["sequences"][current_sequence.as_int()]["end_time"] = 1.0f + int(end_time);
     }
 
     void
     ReduceTime()
     {
         float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-        end_time = -1000.0f + 1000 * int(0.001 * end_time + 0.99999);
+        end_time = -1.0f + int(end_time + 0.99999);
         sequence_data["sequences"][current_sequence.as_int()]["end_time"] = end_time > 0 ? end_time : 0;
     }
 
@@ -328,6 +314,33 @@ public:
         }
     }
 
+    int
+    FindKeypointNearTime(list keypoints, float time, float epsilon)
+    {
+        int n = keypoints.size();
+        if (n < 1)
+            return -1;
+
+        int i = find_index_for_time(keypoints, time);
+        int best_index = -1;
+        float best_distance = epsilon;
+
+        for (int candidate : {i - 1, i})
+        {
+            if (candidate < 0 || candidate >= n)
+                continue;
+
+            float distance = std::abs(float(keypoints[candidate]["time"]) - time);
+            if (distance <= best_distance)
+            {
+                best_distance = distance;
+                best_index = candidate;
+            }
+        }
+
+        return best_index;
+    }
+
     list
     CurrentChannelMode()
     {
@@ -370,7 +383,8 @@ public:
         list keypoints = sequence_data["sequences"][current_sequence.as_int()]["keypoints"];
         int n = keypoints.size();
 
-        float qtime = quantize(time, 1000 * GetTickDuration());
+        float qtime = quantize(time, GetTickDuration());
+        float time_epsilon = GetTickDuration() / 2;
         // printf(">>> add: %f => %f\n", time, qtime);
 
         // Create the point data array
@@ -388,60 +402,26 @@ public:
             else // default
                 points.push_back(null());
 
-        int i = find_index_for_time(keypoints, qtime);
-        if (n > 0 && i < n)
-        {
-            // Find position in list
-            int i = find_index_for_time(keypoints, qtime);
-
-            if (i == 0) // insert first
-            {
-                dictionary keypoint;
-                keypoint["time"] = qtime;
-                keypoint["point"] = points;
-                keypoints.insert(keypoints.begin(), keypoint);
-                /// printf("INSERT FIRST\n");
-                return;
-            }
-
-            float t = keypoints[i - 1]["time"];
-            if (qtime == t) // merge
-            {
-                for (int c = 0; c < channels.as_int(); c++)
-                    if (!points[c].is_null())
-                        keypoints[i - 1]["point"][c] = points[c];
-                /// printf("MERGED AT %d\n", i-1);
-                return;
-            }
-            else if (qtime < keypoints[i]["time"]) // insert before
-            {
-                dictionary keypoint;
-                keypoint["time"] = qtime;
-                keypoint["point"] = points;
-                keypoints.insert(keypoints.begin() + i, keypoint);
-                /// printf("INSERT BEFORE %d\n", i);
-                return;
-            }
-        }
-
-        // Check if we are editing last - handle that separately
-
-        if (n > 0 && i == n && keypoints[n - 1]["time"] == qtime)
+        int nearby_index = FindKeypointNearTime(keypoints, qtime, time_epsilon);
+        if (nearby_index != -1)
         {
             for (int c = 0; c < channels.as_int(); c++)
                 if (!points[c].is_null())
-                    keypoints[n - 1]["point"][c] = points[c];
-            // printf("MERGED AT LAST\n");
+                    keypoints[nearby_index]["point"][c] = points[c];
             return;
         }
 
-        // insert last - also for first keypoint to be inserted
+        int i = find_index_for_time(keypoints, qtime);
+
+        // Insert in time order.
 
         dictionary keypoint;
         keypoint["time"] = qtime;
         keypoint["point"] = points;
-        keypoints.push_back(keypoint);
-        // printf("INSERT LAST\n");
+        if (i < n)
+            keypoints.insert(keypoints.begin() + i, keypoint);
+        else
+            keypoints.push_back(keypoint);
     }
 
     void
@@ -450,8 +430,8 @@ public:
         sequence_data["sequences"][current_sequence.as_int()]["keypoints"] = list();
         sequence_data["sequences"][current_sequence.as_int()]["start_time"] = 0;
         sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"] = 0;
-        sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = 1000;
-        sequence_data["sequences"][current_sequence.as_int()]["end_time"] = 1000;
+        sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"] = 1;
+        sequence_data["sequences"][current_sequence.as_int()]["end_time"] = 1;
     }
 
     void
@@ -464,11 +444,13 @@ public:
             return;
         float start_mark_time = sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"];
         float end_mark_time = sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"];
+        float time_epsilon = GetTickDuration() / 2;
         if (end_mark_time < start_mark_time)
             std::swap(start_mark_time, end_mark_time);
 
         for (int i = 0; i < n; i++)
-            if (float(keypoints[i]["time"]) < start_mark_time || float(keypoints[i]["time"]) > end_mark_time)
+            if (float(keypoints[i]["time"]) < start_mark_time - time_epsilon ||
+                float(keypoints[i]["time"]) > end_mark_time + time_epsilon)
                 ClearKeypointAtIndex(i, true);
 
         DeleteEmptyKeypoints();
@@ -502,10 +484,8 @@ public:
         if (n < 1)
             return;
 
-        int i = max(0, find_index_for_time(keypoints, time) - 1);
-
-        float t = keypoints[i]["time"];
-        if (abs(t - time) < GetTickDuration() / 2)
+        int i = FindKeypointNearTime(keypoints, time, GetTickDuration() / 2);
+        if (i != -1)
             ClearKeypointAtIndex(i);
     }
 
@@ -514,6 +494,7 @@ public:
     {
         float start_mark_time = float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]);
         float end_mark_time = float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"]);
+        float time_epsilon = GetTickDuration() / 2;
         if (end_mark_time < start_mark_time)
             std::swap(start_mark_time, end_mark_time);
 
@@ -521,7 +502,7 @@ public:
         for (int i = 0; i < n; i++)
         {
             float t = sequence_data["sequences"][current_sequence.as_int()]["keypoints"][i]["time"];
-            if (start_mark_time <= t && t <= end_mark_time)
+            if (start_mark_time - time_epsilon <= t && t <= end_mark_time + time_epsilon)
             {
                 for (int c = 0; c < channels.as_int(); c++)
                 {
@@ -543,7 +524,8 @@ public:
     KeypointIsInMarkedRange(value &keypoints, int index, float start_mark_time, float end_mark_time)
     {
         float t = keypoints[index]["time"];
-        return start_mark_time <= t && t <= end_mark_time;
+        float time_epsilon = GetTickDuration() / 2;
+        return start_mark_time - time_epsilon <= t && t <= end_mark_time + time_epsilon;
     }
 
     void
@@ -796,12 +778,12 @@ public:
             ReduceTime();
         else if (s == "add_keypoint")
         {
-            AddKeypoint((1000 * timer.GetTime()));
+            AddKeypoint(timer.GetTime());
             LinkKeypoints();
         }
         else if (s == "delete_keypoint")
         {
-            DeleteKeypoint((1000 * timer.GetTime()));
+            DeleteKeypoint(timer.GetTime());
             DeleteEmptyKeypoints();
             LinkKeypoints();
             // Cleanup
@@ -1013,8 +995,8 @@ public:
         sq["name"] = "Sequence " + std::string(1, 65 + index / layout_width) + std::to_string(1 + index % layout_width);
         sq["start_time"] = 0;
         sq["start_mark_time"] = 0;
-        sq["end_mark_time"] = 1000;
-        sq["end_time"] = 1000;
+        sq["end_mark_time"] = 1;
+        sq["end_time"] = 1;
         sq["keypoints"] = list();
 
         return sq;
@@ -1087,6 +1069,96 @@ public:
             }
             previous_time = time;
         }
+
+        return true;
+    }
+
+    bool
+    ConvertLoadedSequenceTimes(dictionary &data, double scale)
+    {
+        if (!data["sequences"].is_list())
+            return true;
+
+        for (int i = 0; i < data["sequences"].size(); i++)
+        {
+            value &sequence = data["sequences"][i];
+            if (!sequence.is_dictionary())
+                continue;
+
+            for (const char *field : {"start_time", "start_mark_time", "end_mark_time", "end_time"})
+                if (!sequence[field].is_null())
+                {
+                    if (!sequence[field].is_number())
+                    {
+                        Notify(msg_warning, "Sequence file has invalid time data. Cannot be opened.");
+                        return false;
+                    }
+                    sequence[field] = sequence[field].as_float() * scale;
+                }
+
+            if (sequence["keypoints"].is_null())
+                continue;
+
+            if (!sequence["keypoints"].is_list())
+            {
+                Notify(msg_warning, "Sequence file has invalid keypoint data. Cannot be opened.");
+                return false;
+            }
+
+            for (int k = 0; k < sequence["keypoints"].size(); k++)
+            {
+                value &keypoint = sequence["keypoints"][k];
+                if (!keypoint.is_dictionary() || !keypoint["time"].is_number())
+                {
+                    Notify(msg_warning, "Sequence file has invalid keypoint data. Cannot be opened.");
+                    return false;
+                }
+                keypoint["time"] = keypoint["time"].as_float() * scale;
+            }
+        }
+
+        return true;
+    }
+
+    bool
+    NormalizeLoadedSequenceHeader(dictionary &data)
+    {
+        int version = 1;
+        std::string time_unit = "milliseconds";
+
+        if (!data["version"].is_null())
+        {
+            if (!data["version"].is_number())
+            {
+                Notify(msg_warning, "Sequence file has unsupported version. Cannot be opened.");
+                return false;
+            }
+            version = data["version"].as_int();
+        }
+
+        if (!data["time_unit"].is_null())
+        {
+            if (!data["time_unit"].is_string())
+            {
+                Notify(msg_warning, "Sequence file has unsupported time unit. Cannot be opened.");
+                return false;
+            }
+            time_unit = data["time_unit"].as_string();
+        }
+
+        if (version == 1 && time_unit == "milliseconds")
+        {
+            if (!ConvertLoadedSequenceTimes(data, 0.001))
+                return false;
+        }
+        else if (!(version == sequence_data_version && time_unit == sequence_data_time_unit))
+        {
+            Notify(msg_warning, "Sequence file has unsupported version. Cannot be opened.");
+            return false;
+        }
+
+        data["version"] = sequence_data_version;
+        data["time_unit"] = sequence_data_time_unit;
 
         return true;
     }
@@ -1170,6 +1242,8 @@ public:
         filename = "untitled" + std::to_string(untitled_count++) + ".json";
         sequence_data = dictionary(); // in case it is not empty
         sequence_data["type"] = "Ikaros Sequence Data";
+        sequence_data["version"] = sequence_data_version;
+        sequence_data["time_unit"] = sequence_data_time_unit;
         sequence_data["channels"] = channels.as_int();
         sequence_data["ranges"] = CreateDefaultRanges();
         sequence_data["sequences"] = list();
@@ -1208,6 +1282,9 @@ public:
                 Notify(msg_warning, "File has wrong format. Cannot be opened.");
                 return false;
             }
+
+            if (!NormalizeLoadedSequenceHeader(data))
+                return false;
 
             if (data["channels"].is_null() || data["channels"] < channels) // File might include more channels then used.
             {
@@ -1399,7 +1476,7 @@ public:
     Tick()
     {
         // std::cout << timer.GetTime() << std::endl;
-        long tl = 1000 * GetTickDuration();
+        double tl = GetTickDuration();
         playing.reset();
         completed.reset();
 
@@ -1413,7 +1490,7 @@ public:
                 Trig(s);
 
         trig_last.copy(trig);
-        float t = (1000 * timer.GetTime());
+        float t = timer.GetTime();
 
         if (start_record) // timer start at tick to increase probability of overlapping keypoint when starting at a keypoint
         {                 // FIXME: May want to jump to closest keypoint if dense recording is used
@@ -1429,7 +1506,7 @@ public:
         {
             Pause();
             float end_time = sequence_data["sequences"][current_sequence.as_int()]["end_time"];
-            timer.SetPauseTime(position * end_time / 1000.0);
+            timer.SetPauseTime(position * end_time);
             last_position = position;
         }
 
@@ -1451,13 +1528,13 @@ public:
             if (loop && t >= float(sequence_data["sequences"][current_sequence.as_int()]["end_mark_time"])) // loop
             {
                 timer.Pause();
-                timer.SetPauseTime(float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]) / 1000.0);
+                timer.SetPauseTime(float(sequence_data["sequences"][current_sequence.as_int()]["start_mark_time"]));
                 timer.Continue();
             }
             else if (position >= 1 || end_time == 0)
             {
                 Pause();
-                timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"] / 1000.0);
+                timer.SetPauseTime(sequence_data["sequences"][current_sequence.as_int()]["end_time"]);
                 set_one_hot(completed, current_sequence, max_sequences);
             }
         }
@@ -1578,7 +1655,7 @@ public:
     parameter time_string;
     parameter end_time_string;
 
-    void SetOutputForTime(float t); // time in ms
+    void SetOutputForTime(float t);
 
     //  int smoothing_time; // for torque and position
 };
