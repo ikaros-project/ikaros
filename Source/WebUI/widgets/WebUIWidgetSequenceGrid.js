@@ -10,12 +10,12 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
             {'name':'sequence_names', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'playing', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'layout_width', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'color', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
             {'name':'columns', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'cell_gap', 'default':4, 'type':'int', 'control': 'textedit'},
-            {'name':'color', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'playing_color', 'default':"#67c1ff", 'type':'string', 'control': 'textedit'}
         ]
     }
@@ -59,13 +59,13 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
                 }
 
                 .sequence-grid-cell:hover {
-                    background: #f1f1f1;
+                    filter: brightness(1.06);
                 }
 
                 .sequence-grid-cell.playing {
-                    background: var(--sequence-grid-playing, #67c1ff);
-                    border-color: #21648a;
-                    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.18);
+                    border-color: var(--sequence-grid-playing, #67c1ff);
+                    box-shadow: inset 0 0 0 3px var(--sequence-grid-playing, #67c1ff), 0 0 0 1px rgba(0,0,0,0.22);
+                    filter: brightness(1.12);
                     font-weight: 600;
                 }
 
@@ -96,6 +96,7 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
         this.addSource(data_set, this.parameters.sequence_names);
         this.addSource(data_set, this.parameters.playing);
         this.addSource(data_set, this.parameters.layout_width);
+        this.addSource(data_set, this.parameters.color);
     }
 
     asFlatArray(value)
@@ -124,6 +125,49 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
             .map((value) => Number(value) > 0);
     }
 
+    colorComponentToByte(value)
+    {
+        const number = Number(value);
+        if(!Number.isFinite(number))
+            return 0;
+        if(number <= 1)
+            return Math.round(Math.max(0, Math.min(1, number)) * 255);
+        return Math.round(Math.max(0, Math.min(255, number)));
+    }
+
+    rgbToCss(row)
+    {
+        if(!Array.isArray(row) || row.length < 3)
+            return "";
+        const r = this.colorComponentToByte(row[0]);
+        const g = this.colorComponentToByte(row[1]);
+        const b = this.colorComponentToByte(row[2]);
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    rgbTextColor(row)
+    {
+        if(!Array.isArray(row) || row.length < 3)
+            return "";
+        const r = this.colorComponentToByte(row[0]) / 255;
+        const g = this.colorComponentToByte(row[1]) / 255;
+        const b = this.colorComponentToByte(row[2]) / 255;
+        const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        return luminance > 0.55 ? "#111" : "#fff";
+    }
+
+    getSequenceColors()
+    {
+        const value = this.getSource("color", []);
+        if(!Array.isArray(value))
+            return [];
+        if(value.length == 0)
+            return [];
+        if(Array.isArray(value[0]))
+            return value;
+        return [value];
+    }
+
     getLayoutWidth(sequence_count)
     {
         let width = Number(this.parameters.columns);
@@ -148,13 +192,14 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
         this.update();
     }
 
-    createCell(index, label, playing)
+    createCell(index, label, playing, color)
     {
         const cell = document.createElement("button");
         cell.type = "button";
         cell.className = "sequence-grid-cell";
         if(playing)
             cell.classList.add("playing");
+        this.applyCellColor(cell, color);
         cell.textContent = label;
         cell.title = label;
         cell.addEventListener("pointerdown", (event) =>
@@ -181,12 +226,20 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
         return cell;
     }
 
-    updateCellStates(playing)
+    applyCellColor(cell, color)
+    {
+        const background = this.rgbToCss(color);
+        cell.style.background = background || "";
+        cell.style.color = background ? this.rgbTextColor(color) : "";
+    }
+
+    updateCellStates(playing, colors)
     {
         const cells = this.gridElement.querySelectorAll(".sequence-grid-cell");
         for(let i=0; i<cells.length; i++)
         {
             cells[i].classList.toggle("playing", playing[i] === true);
+            this.applyCellColor(cells[i], colors[i]);
         }
     }
 
@@ -199,14 +252,14 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
 
         const names = this.getSequenceNames();
         const playing = this.getPlaying();
-        const sequence_count = Math.max(names.length, playing.length);
+        const colors = this.getSequenceColors();
+        const sequence_count = Math.max(names.length, playing.length) || colors.length;
         const columns = this.getLayoutWidth(sequence_count);
         const rows = Math.max(1, Math.ceil(sequence_count / columns));
 
         this.gridElement.style.gridTemplateColumns = `repeat(${columns}, minmax(0, 1fr))`;
         this.gridElement.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
         this.gridElement.style.gap = `${Math.max(0, Number(this.parameters.cell_gap) || 0)}px`;
-        this.gridElement.style.color = this.parameters.color || "";
         this.gridElement.style.setProperty("--sequence-grid-playing", this.parameters.playing_color || "#67c1ff");
 
         const signature = JSON.stringify({names, sequence_count, columns, rows});
@@ -214,11 +267,11 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
         {
             this.gridElement.replaceChildren();
             for(let i=0; i<sequence_count; i++)
-                this.gridElement.appendChild(this.createCell(i, names[i] || `Sequence ${i+1}`, playing[i]));
+                this.gridElement.appendChild(this.createCell(i, names[i] || `Sequence ${i+1}`, playing[i], colors[i]));
             this.render_signature = signature;
         }
         else
-            this.updateCellStates(playing);
+            this.updateCellStates(playing, colors);
     }
 };
 
