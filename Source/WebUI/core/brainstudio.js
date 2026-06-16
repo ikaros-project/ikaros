@@ -21,6 +21,7 @@ const widget_classes =
     "joystick",
     "slider-horizontal",
     "slider-vertical",
+    "color-picker",
     "switch",
     "drop-down-menu",
     "control-grid",
