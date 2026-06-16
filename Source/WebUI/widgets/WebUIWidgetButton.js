@@ -82,7 +82,25 @@ class WebUIWidgetButton extends WebUIWidgetControl
         );
     }
 
+    setSelected(selected)
+    {
+        this.firstChild.classList.toggle("button-selected", !!selected);
+    }
 
+    isSelected()
+    {
+        return this.firstChild.classList.contains("button-selected");
+    }
+
+    setPressed(pressed)
+    {
+        this.firstChild.classList.toggle("button-pressed", !!pressed);
+    }
+
+    isPressed()
+    {
+        return this.firstChild.classList.contains("button-pressed");
+    }
 
     button_down(evt)
     {
@@ -96,6 +114,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
         if(p.type == "push")
         {
+            thisbutton.parentElement.setPressed(true);
             if(p.parameter)
                 this.parentElement.send_control_change(p.parameter, p.value, selectX, selectY);
             if(p.command)
@@ -104,9 +123,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
         else if(p.type=="toggle")
         {
-            if(this.getAttribute("class") != "button-selected")
+            if(!thisbutton.parentElement.isSelected())
             {
-                this.setAttribute("class","button-selected");
+                thisbutton.parentElement.setSelected(true);
                 if(p.parameter)
                     this.parentElement.send_control_change(p.parameter, p.value, selectX, selectY);
                 if(p.command)
@@ -115,7 +134,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
             }
             else
             {
-                this.setAttribute("class","");
+                thisbutton.parentElement.setSelected(false);
                 if(p.parameter)
                     this.parentElement.send_control_change(p.parameter, p.valueUp, selectX, selectY);
                 if(p.commandUp)
@@ -130,15 +149,15 @@ class WebUIWidgetButton extends WebUIWidgetControl
                 let buttons = document.getElementsByTagName("webui-widget-button");
                 for(let b of buttons)
                 {
-                    if(b.parameters.radioGroup == p.radioGroup && b.firstChild.getAttribute("class")=="button-selected")
+                    if(b.parameters.radioGroup == p.radioGroup && b.firstChild.classList.contains("button-selected"))
                     {
-                        b.firstChild.setAttribute("class", "")
+                        b.setSelected(false);
                         let q = b.parameters;
                         if(q.parameter)
                             this.parentElement.send_control_change(q.parameter, q.valueUp, b.getSelectX(), b.getSelectY());
                     }
                 }
-                this.setAttribute("class", "button-selected")
+                thisbutton.parentElement.setSelected(true);
 
                 if(p.parameter)
                     this.parentElement.send_control_change(p.parameter, p.value, selectX, selectY);
@@ -148,6 +167,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
             else if(p.type=="multi")
             {
+                thisbutton.parentElement.setPressed(true);
                 let buttons = document.getElementsByTagName("webui-widget-button");
                 for(let b of buttons)
                 {
@@ -163,9 +183,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
                 if(main.edit_mode)
                     return;
 
-                let text = prompt(p.title);
-                if(text)
-                    this.parentElement.send_command(p.command, text, selectX, selectY);
+                thisbutton.parentElement.setPressed(true);
             }
 
 
@@ -174,15 +192,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
                 if(main.edit_mode)
                     return; // TEMPORARY
 
-                let callback = function (selected_item)
-                {
-                    thisbutton.parentElement.send_command(p.command, selected_item, selectX, selectY);
-                }
-
-                if(this.file_names)
-                    dialog.showListSelectDialog(this.file_names, callback, p.title);
-                else
-                    dialog.showListSelectDialog("", callback, p.title);
+                thisbutton.parentElement.setPressed(true);
             }
     }
 
@@ -200,6 +210,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
         if(p.type == "push")
         {
+            this.parentElement.setPressed(false);
             if(p.parameter)
             {
                 this.parentElement.send_control_change(p.parameter, p.valueUp, selectX, selectY);
@@ -217,6 +228,38 @@ class WebUIWidgetButton extends WebUIWidgetControl
         {
 
         }
+
+        else if(p.type=="multi")
+        {
+            this.parentElement.setPressed(false);
+        }
+
+        else if(p.type=="input")
+        {
+            if(!this.parentElement.isPressed())
+                return;
+            this.parentElement.setPressed(false);
+            let text = prompt(p.title);
+            if(text)
+                this.parentElement.send_command(p.command, text, selectX, selectY);
+        }
+
+        else if(p.type=="open")
+        {
+            if(!this.parentElement.isPressed())
+                return;
+            this.parentElement.setPressed(false);
+            let thisbutton = this;
+            let callback = function (selected_item)
+            {
+                thisbutton.parentElement.send_command(p.command, selected_item, selectX, selectY);
+            }
+
+            if(this.file_names)
+                dialog.showListSelectDialog(this.file_names, callback, p.title);
+            else
+                dialog.showListSelectDialog("", callback, p.title);
+        }
     }
 
     init()
@@ -224,6 +267,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
         super.init();
         this.firstChild.addEventListener("mousedown", this.button_down, true);
         this.firstChild.addEventListener("mouseup", this.button_up, true);
+        this.firstChild.addEventListener("mouseleave", () => this.setPressed(false), true);
         this.firstChild.addEventListener('click', e => {
             console.log("button click");
             if(main.edit_mode)
@@ -279,9 +323,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
                     if(v == value)
 
-                        this.firstChild.setAttribute("class", "button-selected")
+                        this.setSelected(true)
                     else
-                        this.firstChild.setAttribute("class", "")
+                        this.setSelected(false)
                 }
 
         }

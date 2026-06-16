@@ -6,6 +6,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
 
             { name: "CONTROL", control: "header" },
             { name: "parameter", default: "", type: "source", control: "textedit" },
+            { name: "command", default: "", type: "string", control: "textedit" },
             { name: "enableSource", default: "", type: "source", control: "textedit" },
             { name: "select_x", default: 0, type: "int", control: "textedit" },
             { name: "select_y", default: "", type: "string", control: "textedit" },
@@ -109,6 +110,17 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
     _sendControlValue(value, index) {
         const x = Number(this.parameters.select_x) + index;
         const y = this.parameters.select_y;
+
+        if (this.parameters.command) {
+            const commandY = y === "" ? x : Math.trunc(Number(y));
+            this.send_command(
+                this.parameters.command,
+                0,
+                Number(value),
+                commandY
+            );
+            return;
+        }
 
         if (y === "") {
             this.send_control_change(this.parameters.parameter, value, x);

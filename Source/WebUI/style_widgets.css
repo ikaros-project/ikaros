@@ -152,13 +152,14 @@ webui-widget-text > div {
 
 
 
-.button-selected {
-    background-color: #444;
+.button-selected,
+.button-pressed {
+    background: #444 !important;
     border-left: 1px solid #222;
     border-top: 1px solid #222;
     border-right:1px solid #bbb;
     border-bottom: 1px solid #bbb;
-    color: white;
+    color: white !important;
     font-weight: bold;
 }
 
@@ -171,6 +172,7 @@ webui-widget-text > div {
     object-fit: contain;
 }
 
-.button-selected .button-icon {
+.button-selected .button-icon,
+.button-pressed .button-icon {
     filter: invert(1);
 }

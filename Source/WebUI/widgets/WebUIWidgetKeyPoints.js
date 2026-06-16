@@ -60,6 +60,15 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
     }
 
 
+    getSequenceCommand(command_name)
+    {
+        if(!this.parameters.sequence || this.parameters.sequence.lastIndexOf('.') == -1)
+            return "";
+
+        return this.parameters.sequence.substring(0, this.parameters.sequence.lastIndexOf('.')) + "." + command_name;
+    }
+
+
     getSequenceState(default_data=undefined)
     {
         try {
@@ -292,7 +301,9 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
         this.drag_selection.current_time = time;
         this.drag_selection.position = fraction;
 
-        this.send_control_change(this.parameters.position, fraction, 0);
+        let seek_command = this.getSequenceCommand("seek");
+        if(seek_command)
+            this.send_command(seek_command, 0, fraction, 0);
 
         if(Math.abs(time-start_time) > end_time*0.002 || finish)
         {
@@ -300,7 +311,9 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             let range_end = Math.max(start_time, time);
             this.drag_selection.mark_start = range_start;
             this.drag_selection.mark_end = range_end;
-            this.send_command(this.parameters.sequence.substring(0, this.parameters.sequence.lastIndexOf('.')) + ".set_mark_range", 0, range_start, range_end);
+            let mark_command = this.getSequenceCommand("set_mark_range");
+            if(mark_command)
+                this.send_command(mark_command, 0, range_start, range_end);
         }
 
         controller.flushCommandQueue();
@@ -356,7 +369,9 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             end_time: end_time
         };
 
-        this.send_control_change(this.parameters.position, fraction, 0);
+        let seek_command = this.getSequenceCommand("seek");
+        if(seek_command)
+            this.send_command(seek_command, 0, fraction, 0);
         controller.flushCommandQueue();
 
         this.drag_move_handler = (move_event) => this.updateTimeSelection(move_event);
