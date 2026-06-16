@@ -66,6 +66,7 @@ The old single trigger output style is not used. Current status outputs are:
 
 - `SR.PLAYING`
 - `SR.COMPLETED`
+- `SR.COLOR`
 - `SR.ACTIVE`
 - `SR.CAN_PLAY`
 - `SR.TARGET`
@@ -218,7 +219,10 @@ Current sequence files are stored as JSON with:
 - `time_unit`: `seconds`
 - `channels`
 - `ranges`
+- `color`
 - `sequences`
+
+`color` is a matrix with one RGB row per sequence. It is saved with the keypoint data and restored when the sequence file is opened. Old files without `color` still load and keep the module's current/default colors.
 
 Files without `version` or `time_unit` are treated as old version 1 files using milliseconds and are converted on load. Loaded keypoints must be ordered by time, and point values must be either numeric or `null`.
 
@@ -236,4 +240,4 @@ The module keeps `max_sequences` constant after startup. Loaded files must not c
 8. Update state buttons to use `SR.state` with correct `select_x`.
 9. Update channel mode buttons to use `SR.channel_mode` with correct `select_x` and `select_y`.
 10. Update open/save/rename buttons to use the current command names.
-11. Check sequence JSON files for version/time-unit compatibility, sequence count, ordered keypoints, and numeric-or-null point values.
+11. Check sequence JSON files for version/time-unit compatibility, sequence count, optional color rows, ordered keypoints, and numeric-or-null point values.

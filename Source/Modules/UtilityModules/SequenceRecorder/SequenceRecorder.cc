@@ -245,6 +245,18 @@ public:
         smoothing_pending = true;
     }
 
+    void
+    ClearPlaybackError()
+    {
+        playback_error(0) = 0;
+    }
+
+    void
+    FlagPlaybackError()
+    {
+        playback_error(0) = 1;
+    }
+
     double
     ChannelRange(int c)
     {
@@ -293,6 +305,38 @@ public:
             if (!std::isfinite(float(values(c))))
             {
                 Notify(msg_fatal_error, name + " has a non-finite value for channel " + std::to_string(c) + ".");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool
+    ValidateVectorInRanges(const matrix &values, const std::string &name)
+    {
+        int channel_count = channels.as_int();
+        for (int c = 0; c < channel_count; c++)
+        {
+            float v = values(c);
+            if (v < range_min[c] || v > range_max[c])
+            {
+                Notify(msg_fatal_error, name + " is outside the configured range for channel " + std::to_string(c) + ".");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool
+    ValidateMaxSpeed()
+    {
+        int channel_count = channels.as_int();
+        for (int c = 0; c < channel_count; c++)
+        {
+            float speed = max_speed(c);
+            if (!std::isfinite(speed) || speed < 0)
+            {
+                Notify(msg_fatal_error, "max_speed must be finite and non-negative for channel " + std::to_string(c) + ".");
                 return false;
             }
         }
@@ -382,6 +426,41 @@ public:
         return start + smoothing_alpha * (end - start);
     }
 
+    void
+    UpdateLimitedOutput(double tick_duration)
+    {
+        int channel_count = channels.as_int();
+        double scale = 1.0;
+        limiting(0) = 0;
+
+        for (int c = 0; c < channel_count; c++)
+        {
+            float smoothed = SmoothedOutputForChannel(c);
+            if (!std::isfinite(smoothed))
+                FlagPlaybackError();
+            limited_output(c) = ClampToChannelRange(c, smoothed);
+
+            float speed = max_speed(c);
+            if (speed <= 0 || tick_duration <= 0)
+                continue;
+
+            double delta = std::abs(double(limited_output(c)) - double(output(c)));
+            double max_delta = double(speed) * tick_duration;
+            if (delta > max_delta && delta > 0)
+                scale = std::min(scale, max_delta / delta);
+        }
+
+        if (scale >= 1)
+            return;
+
+        limiting(0) = 1;
+        for (int c = 0; c < channel_count; c++)
+        {
+            float delta = limited_output(c) - output(c);
+            limited_output(c) = ClampToChannelRange(c, output(c) + float(scale) * delta);
+        }
+    }
+
     bool
     ChannelModeChanged()
     {
@@ -410,6 +489,9 @@ public:
 
             if (count != 1)
             {
+                Notify(msg_warning, "Invalid channel mode for channel " + std::to_string(c) + ". Using lock mode.");
+                if (state[1] > 0)
+                    FlagPlaybackError();
                 for (int m = 0; m < modes; m++)
                     channel_mode(c, m) = m == 0 ? 1 : 0;
                 selected = 0;
@@ -599,9 +681,9 @@ public:
         if (c >= channels)
             return;
         if (internal_control[c])
-            output[c] = positions[c];
+            output[c] = ClampToChannelRange(c, positions[c]);
         else
-            output[c] = input[c]; // Make sure output is at the present servo position
+            output[c] = ClampToChannelRange(c, input[c]); // Make sure output is at the present servo position
     }
 
     void
@@ -830,7 +912,7 @@ public:
             else if (channel_mode_play[c])    // play - use null to indicate nodata
                 points.push_back(null());
             else if (channel_mode_record[c])  // record - store current input (or sliders)
-                points.push_back(input(c));
+                points.push_back(ClampToChannelRange(c, input(c)));
             else if (channel_mode_copy[c])    // copy - do not record this channel but use null
                 points.push_back(null());
             else // default
@@ -1354,7 +1436,7 @@ public:
         if (n == 0)
         {
             for (int c = 0; c < channel_count; c++)
-                target[c] = default_output[c];
+                target[c] = ClampToChannelRange(c, default_output[c]);
             return;
         }
 
@@ -1365,9 +1447,9 @@ public:
             auto &point = keypoints[0]["point"];
             for (int c = 0; c < channel_count; c++)
                 if (point[c].is_null())
-                    target[c] = left_output[c];
+                    target[c] = ClampToChannelRange(c, left_output[c]);
                 else
-                    target[c] = point[c].as_float();
+                    target[c] = ClampToChannelRange(c, point[c].as_float());
 
             return;
         }
@@ -1379,9 +1461,9 @@ public:
             auto &point = keypoints[n - 1]["point"];
             for (int c = 0; c < channel_count; c++)
                 if (point[c].is_null())
-                    target[c] = right_output[c];
+                    target[c] = ClampToChannelRange(c, right_output[c]);
                 else
-                    target[c] = point[c].as_float();
+                    target[c] = ClampToChannelRange(c, point[c].as_float());
 
             return;
         }
@@ -1447,9 +1529,9 @@ public:
             }
 
             if (interpolation[c] == 0)
-                target[c] = point_left;
+                target[c] = ClampToChannelRange(c, point_left);
             else // 1 = linear interpolation
-                target[c] = interpolate(t, time_left, time_right, point_left, point_right);
+                target[c] = ClampToChannelRange(c, interpolate(t, time_left, time_right, point_left, point_right));
         }
     }
 
@@ -1458,20 +1540,22 @@ public:
     {
         if (channel_mode_lock[c]) // locked
         {
-            // Do not change output
+            if (!std::isfinite(float(output(c))))
+                FlagPlaybackError();
+            output(c) = ClampToChannelRange(c, output(c));
             active(c) = 1;
         }
 
         else if (channel_mode_play[c]) // play
         {
-            output(c) = SmoothedOutputForChannel(c);
+            output(c) = limited_output[c];
             positions(c) = output(c);
             active(c) = 1;
         }
 
         else if (channel_mode_record[c]) // record
         {
-            output(c) = SmoothedOutputForChannel(c);
+            output(c) = limited_output[c];
             active(c) = 0;
             if (internal_control(c) == 1)
                 active(c) = 1;
@@ -1479,7 +1563,7 @@ public:
 
         else if (channel_mode_copy[c]) // copy
         {
-            output(c) = SmoothedOutputForChannel(c);
+            output(c) = limited_output[c];
             active(c) = 0;
             if (internal_control(c) == 1)
                 active(c) = 1;
@@ -1573,6 +1657,7 @@ public:
 
         int channel_count = channels.as_int();
         double previous_time = -std::numeric_limits<double>::infinity();
+        bool clamped_keypoints = false;
         for (int i = 0; i < sequence["keypoints"].size(); i++)
         {
             value &keypoint = sequence["keypoints"][i];
@@ -1599,6 +1684,12 @@ public:
             }
 
             double time = quantize(double(keypoint["time"]), GetTickDuration());
+            if (!std::isfinite(time))
+            {
+                Notify(msg_warning, "Sequence file has non-finite keypoint time. Cannot be opened.");
+                return false;
+            }
+
             if (time <= previous_time)
             {
                 Notify(msg_warning, "Sequence file has unordered keypoints. Cannot be opened.");
@@ -1606,7 +1697,30 @@ public:
             }
             previous_time = time;
             keypoint["time"] = time;
+
+            for (int c = 0; c < channel_count; c++)
+            {
+                if (point[c].is_null())
+                    continue;
+
+                float v = point[c].as_float();
+                if (!std::isfinite(v))
+                {
+                    Notify(msg_warning, "Sequence file has non-finite keypoint data. Cannot be opened.");
+                    return false;
+                }
+
+                float clamped = ClampToChannelRange(c, v);
+                if (clamped != v)
+                {
+                    point[c] = clamped;
+                    clamped_keypoints = true;
+                }
+            }
         }
+
+        if (clamped_keypoints)
+            Notify(msg_warning, "Sequence file has keypoint data outside channel ranges. Values were clamped.");
 
         return true;
     }
@@ -1631,7 +1745,13 @@ public:
                         Notify(msg_warning, "Sequence file has invalid time data. Cannot be opened.");
                         return false;
                     }
-                    sequence[field] = sequence[field].as_float() * scale;
+                    double time = sequence[field].as_float() * scale;
+                    if (!std::isfinite(time))
+                    {
+                        Notify(msg_warning, "Sequence file has invalid time data. Cannot be opened.");
+                        return false;
+                    }
+                    sequence[field] = time;
                 }
 
             if (sequence["keypoints"].is_null())
@@ -1651,7 +1771,13 @@ public:
                     Notify(msg_warning, "Sequence file has invalid keypoint data. Cannot be opened.");
                     return false;
                 }
-                keypoint["time"] = keypoint["time"].as_float() * scale;
+                double time = keypoint["time"].as_float() * scale;
+                if (!std::isfinite(time))
+                {
+                    Notify(msg_warning, "Sequence file has invalid keypoint data. Cannot be opened.");
+                    return false;
+                }
+                keypoint["time"] = time;
             }
         }
 
@@ -1707,6 +1833,8 @@ public:
         if (!sequence_data["sequences"].is_list() || sequence_data["sequences"].size() == 0)
         {
             Notify(msg_warning, "Sequence data has no sequences.");
+            if (state[1] > 0)
+                FlagPlaybackError();
             return false;
         }
 
@@ -1715,6 +1843,8 @@ public:
             return true;
 
         Notify(msg_warning, "Current sequence is out of range. Resetting to sequence 0.");
+        if (state[1] > 0)
+            FlagPlaybackError();
         current_sequence = 0;
         Stop();
         return true;
@@ -1765,6 +1895,14 @@ public:
             {
                 if (!data["ranges"][c].is_list() || data["ranges"][c].size() != 2 ||
                     !data["ranges"][c][0].is_number() || !data["ranges"][c][1].is_number())
+                {
+                    Notify(msg_warning, "Sequence file has invalid range data. Cannot be opened.");
+                    return false;
+                }
+
+                float lo = data["ranges"][c][0].as_float();
+                float hi = data["ranges"][c][1].as_float();
+                if (!std::isfinite(lo) || !std::isfinite(hi) || lo > hi)
                 {
                     Notify(msg_warning, "Sequence file has invalid range data. Cannot be opened.");
                     return false;
@@ -1826,6 +1964,7 @@ public:
     {
         ResetPlaybackIndex();
         filename = "untitled" + std::to_string(untitled_count++) + ".json";
+        ClearPlaybackError();
         sequence_data = dictionary(); // in case it is not empty
         sequence_data["type"] = "Ikaros Sequence Data";
         sequence_data["version"] = sequence_data_version;
@@ -1895,6 +2034,7 @@ public:
             LinkKeypoints(); // Just in case...
             current_sequence = 0;
             filename = name;
+            ClearPlaybackError();
             ResetPlaybackIndex();
             MarkSequenceChanged();
         }
@@ -1968,6 +2108,7 @@ public:
         Bind(range_max, "range_max");
         Bind(interpolation, "interpolation");
         Bind(smoothing_time, "smoothing_time");
+        Bind(max_speed, "max_speed");
         Bind(simplify_epsilon, "simplify_epsilon");
         Bind(state, "state");
         Bind(loop, "loop");
@@ -1995,6 +2136,8 @@ public:
         Bind(playing, "PLAYING");
         Bind(completed, "COMPLETED");
         Bind(color_output, "COLOR");
+        Bind(limiting, "LIMITING");
+        Bind(playback_error, "ERROR");
         Bind(target, "TARGET");
         Bind(input, "INPUT");
         Bind(output, "OUTPUT");
@@ -2002,28 +2145,80 @@ public:
         Bind(smoothing_start, "SMOOTHING_START");
 
         if (range_max.size_x() != channels)
+        {
             Notify(msg_fatal_error, "Max range not set for correct number of channels.");
+            return;
+        }
 
         if (interpolation.size_x() != channels)
+        {
             Notify(msg_fatal_error, "Interpolation not set for correct number of channels.");
+            return;
+        }
 
         if (range_min.size_x() != channels)
+        {
             Notify(msg_fatal_error, "Min range not set for correct number of channels.");
+            return;
+        }
 
         if (max_sequences.as_int() <= 0)
+        {
             Notify(msg_fatal_error, "max_sequences must be greater than zero.");
+            return;
+        }
 
         if (layout_width.as_int() <= 0)
+        {
             Notify(msg_fatal_error, "layout_width must be greater than zero.");
+            return;
+        }
 
         if (color_output.shape() != color.shape())
+        {
             Notify(msg_fatal_error, "COLOR output shape does not match color parameter.");
+            return;
+        }
 
         if (default_output.size_x() != channels)
+        {
             Notify(msg_fatal_error, "Incorrect size for default_output; does not match number of channels.");
+            return;
+        }
+
+        if (positions.size_x() != channels)
+        {
+            Notify(msg_fatal_error, "Incorrect size for positions; does not match number of channels.");
+            return;
+        }
+
+        if (max_speed.size_x() != channels)
+        {
+            Notify(msg_fatal_error, "Incorrect size for max_speed; does not match number of channels.");
+            return;
+        }
+
+        if (internal_control.size_x() != channels)
+        {
+            Notify(msg_fatal_error, "Incorrect size for internal_control; does not match number of channels.");
+            return;
+        }
+
+        if (!ValidateChannelRanges())
+            return;
+
+        if (!ValidateFiniteVector(default_output, "default_output") || !ValidateVectorInRanges(default_output, "default_output"))
+            return;
+
+        if (!ValidateFiniteVector(positions, "positions"))
+            return;
+
+        if (!ValidateMaxSpeed())
+            return;
 
         UpdateChannelModeCache();
         UpdateColorOutput();
+        ClearPlaybackError();
 
         file_names = "";
 
@@ -2050,6 +2245,7 @@ public:
         // Trick to make module run with too few inputs connected
 
         input.realloc(channel_count);
+        limited_output = matrix(channel_count);
 
         left_index = matrix(channel_count);
         right_index = matrix(channel_count);
@@ -2139,7 +2335,11 @@ public:
 
         for (int c = 0; c < channel_count; c++)
             if (internal_control[c])
-                input[c] = positions[c];
+            {
+                if (!std::isfinite(float(positions[c])))
+                    FlagPlaybackError();
+                input[c] = ClampToChannelRange(c, positions[c]);
+            }
 
         if (state[1]) // handle play mode
         {
@@ -2188,6 +2388,7 @@ public:
         GoToTime(t);
         StartPendingOutputSmoothing();
         UpdateOutputSmoothing();
+        UpdateLimitedOutput(tl);
 
         for (int c = 0; c < channel_count; c++)
             SetOutputForChannel(c);
@@ -2238,11 +2439,15 @@ public:
 
     matrix playing;
     matrix completed;
+    matrix limiting;
+    matrix playback_error;
 
     matrix positions;
 
     parameter smoothing_time;
+    matrix max_speed;
     matrix smoothing_start;
+    matrix limited_output;
     bool smoothing_active;
     bool smoothing_pending;
     double smoothing_start_clock;
