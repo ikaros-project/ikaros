@@ -1,0 +1,11 @@
+<group name="TestSizedMatrixParameterDefault"
+    description="Test sized matrix parameter default zero-fill"
+    start="true"
+    stop="0"
+    info="true"
+    expected_output_contains="TestSizedMatrixParameterDefault.SR.color: [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]">
+
+    <module name="Input" class="Constant" data="0, 0, 0, 0" />
+    <module name="SR" class="SequenceRecorder" max_sequences="4" channels="4" />
+    <connection source="Input.OUTPUT" target="SR.INPUT" />
+</group>
