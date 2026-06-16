@@ -1224,6 +1224,37 @@ namespace ikaros
         {
             Component * context = owner ? owner : this;
 
+            auto matrix_parameter_shape_expression = [&]() -> std::string
+            {
+                if(p.info_.contains_non_null("shape"))
+                    return std::string(p.info_["shape"]);
+                if(p.info_.contains_non_null("size"))
+                    return std::string(p.info_["size"]);
+                return "";
+            };
+
+            auto apply_sized_matrix_parameter = [&](const matrix & value) -> matrix
+            {
+                std::string shape_expr = matrix_parameter_shape_expression();
+                if(shape_expr.empty())
+                    return value;
+
+                std::vector<int> shape = EvaluateShapeList(shape_expr);
+                if(shape.empty())
+                    throw exception("Matrix parameter shape \"" + shape_expr + "\" did not resolve to a valid shape.");
+
+                matrix shaped(shape);
+                if(!value.is_uninitialized() && !value.empty())
+                {
+                    if(value.size() > shaped.size())
+                        throw exception("Matrix parameter value has " + std::to_string(value.size()) +
+                            " elements but shape \"" + shape_expr + "\" only allows " + std::to_string(shaped.size()) + ".");
+
+                    std::copy_n(value.data(), value.size(), shaped.data());
+                }
+                return shaped;
+            };
+
             if(p.type==number_type && !p.has_options)
             {
                 SetParameter(name, formatNumber(context->ComputeDouble(raw_value)));
@@ -1233,10 +1264,12 @@ namespace ikaros
             if(p.type==matrix_type)
             {
                 matrix literal;
-                if(try_parse_matrix_literal(literal, raw_value))
-                    SetParameter(name, literal, raw_value);
+                if(raw_value.empty() && !matrix_parameter_shape_expression().empty())
+                    SetParameter(name, apply_sized_matrix_parameter(matrix()), raw_value);
+                else if(try_parse_matrix_literal(literal, raw_value))
+                    SetParameter(name, apply_sized_matrix_parameter(literal), raw_value);
                 else
-                    SetParameter(name, context->ComputeValue(raw_value));
+                    SetParameter(name, apply_sized_matrix_parameter(matrix(context->ComputeValue(raw_value))), raw_value);
                 return;
             }
 
@@ -1268,6 +1301,12 @@ namespace ikaros
             {
                 if(!p.info_.contains("default"))
                 {
+                    if(p.type==matrix_type && (p.info_.contains_non_null("size") || p.info_.contains_non_null("shape")))
+                    {
+                        resolve_value("", this);
+                        return true;
+                    }
+
                     Error("Parameter \""+name+"\" has no default value in the ikc file.");   
                     return false;
                 }
@@ -1662,6 +1701,13 @@ namespace ikaros
             parameter p;
             if(!LookupParameter(p, parameter_name))
                 return std::nullopt;
+
+            if(!*(p.resolved))
+            {
+                std::string local_parameter_name = parameter_name;
+                if(!ResolveParameter(p, local_parameter_name))
+                    return std::nullopt;
+            }
 
             if(p.has_options && (p.type == number_type || p.type == rate_type))
                 return p.as_int_string();

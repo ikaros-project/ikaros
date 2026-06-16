@@ -93,6 +93,13 @@ Declares a module parameter.
 - `control`
   - UI hint only.
   - Seen in the repo with values like `menu`, `checkbox`, `slider`, `textedit`, `ui_color`.
+- `shape`
+  - Optional fixed matrix parameter shape expression for `type="matrix"`.
+  - If the matrix parameter has no default or explicit value, it is initialized with zeros.
+  - If a value is supplied, it is copied into the declared shape and must not contain more elements than the shape allows.
+- `size`
+  - Compatibility alias for matrix parameter shape.
+  - `shape` is preferred when both would be equivalent.
 
 #### Notes
 
