@@ -365,11 +365,7 @@ matrix::operator=(std::string & data_string)
     {
         std::string trimmed = trim(token);
         if(trimmed.empty())
-            throw std::invalid_argument(
-                "Invalid matrix value at row " + std::to_string(row_index + 1) +
-                ", column " + std::to_string(column_index + 1) +
-                ": empty value."
-            );
+            return 0;
 
         try
         {
@@ -385,8 +381,13 @@ matrix::operator=(std::string & data_string)
         }
     };
 
-    int x = row.size();
     int y = rows.size();
+    if(!sanitized.empty() && sanitized.back() == ';')
+        y--;
+
+    int x = 0;
+    for(int j = 0; j < y; ++j)
+        x = std::max(x, static_cast<int>(split(rows.at(j), ",").size()));
 
     if(rows.size() == 1)
     {
@@ -397,11 +398,11 @@ matrix::operator=(std::string & data_string)
     else
     {
         realloc(y, x);
-        for(std::size_t j = 0; j < rows.size(); ++j)
+        for(int j = 0; j < y; ++j)
         {
-            auto r = split(rows.at(j), ",");
+            auto & r = split(rows.at(j), ",");
             for(std::size_t i = 0; i < r.size(); ++i)
-                (*this)(static_cast<int>(j), static_cast<int>(i)) = parse_value_at(r.at(i), static_cast<int>(j), static_cast<int>(i));
+                (*this)(j, static_cast<int>(i)) = parse_value_at(r.at(i), j, static_cast<int>(i));
         }
     }
 }
@@ -422,11 +423,7 @@ matrix::matrix(const std::string & data_string)
         {
             std::string trimmed = trim(token);
             if(trimmed.empty())
-                throw std::invalid_argument(
-                    "Invalid matrix value at row " + std::to_string(row_index + 1) +
-                    ", column " + std::to_string(column_index + 1) +
-                    ": empty value."
-                );
+                return 0;
 
             try
             {
@@ -442,11 +439,14 @@ matrix::matrix(const std::string & data_string)
             }
         };
 
-        int x = row.size();
         int y = rows.size();
 
         if(!sanitized.empty() && sanitized.back() == ';')
             y--;
+
+        int x = 0;
+        for(int j = 0; j < y; ++j)
+            x = std::max(x, static_cast<int>(split(rows.at(j), ",").size()));
 
         if(rows.size() == 1)
         {
@@ -463,15 +463,15 @@ matrix::matrix(const std::string & data_string)
 
             for(int j = 0; j < y; ++j)
             {
-                auto r = split(rows.at(j), ",");
-                for(std::size_t i = 0; i < row.size(); ++i)
+                auto & r = split(rows.at(j), ",");
+                for(std::size_t i = 0; i < r.size(); ++i)
                     (*this)(j, static_cast<int>(i)) = parse_value_at(r.at(i), j, static_cast<int>(i));
             }
         }
     }
     catch(std::out_of_range &)
     {
-        throw std::invalid_argument("Invalid matrix string: inconsistent number of values in rows.");
+        throw std::invalid_argument("Invalid matrix string.");
     }
     catch(std::invalid_argument &)
     {

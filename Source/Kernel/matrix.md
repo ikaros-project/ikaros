@@ -43,11 +43,28 @@ matrix o = {{{1}, {2}}; // Column vector
 A matrix can be assigned from a string. This only works for one or two-dimensional matrices. A comma is used to separate individual values on a row and a semicolon is used to end a row.
 
 ```C++
-matrix m = "1, 2; 3 4"; // 2x2 matrix
+matrix m = "1, 2; 3, 4"; // 2x2 matrix
 
 matrix n = "1, 2";  // Row vector
 
 matrix o = "1; 2";  // Column vector
+```
+
+Missing values in matrix strings are interpreted as zero. For two-dimensional matrix strings, rows are padded to the width of the longest row.
+
+```C++
+matrix m = "1, 2; 3";      // [[1, 2], [3, 0]]
+matrix n = "1, 2,, 4";     // [1, 2, 0, 4]
+matrix o = "1, 2, 3,";     // [1, 2, 3, 0]
+```
+
+A single trailing semicolon is treated as a row terminator and does not add an extra row, so `"1,2;3,4"` and `"1,2;3,4;"` produce the same matrix. Additional empty rows are preserved and filled with zero.
+
+```C++
+matrix m = "1,2;3,4";      // [[1, 2], [3, 4]]
+matrix n = "1,2;3,4;";     // [[1, 2], [3, 4]]
+matrix o = ";;1,2,3;;";    // [[0, 0, 0], [0, 0, 0], [1, 2, 3], [0, 0, 0]]
+matrix p = ";;,,,;;";      // 4x4 zero matrix
 ```
 
 ## Accessing the elements of a matrix
