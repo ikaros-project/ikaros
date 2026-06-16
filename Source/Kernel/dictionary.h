@@ -71,8 +71,12 @@ namespace ikaros
 
         //dictionary(const dictionary & d);
     
+        value & operator[](const char * s); // Creates the key on demand if it does not exist.
+        const value & operator[](const char * s) const;
         value & operator[](const std::string & s); // Creates the key on demand if it does not exist.
         const value & operator[](const std::string & s) const;
+        value & at(const char * s);  // throws if s is not in dictionary
+        const value & at(const char * s) const;
         value & at(const std::string & s);  // throws if s is not in dictionary
         const value & at(const std::string & s) const;
         [[nodiscard]]
@@ -195,6 +199,7 @@ namespace ikaros
 
         value & operator[] (const char * s); // Captures literals as argument ***************
         value & operator[] (const std::string & s); // Converts null/non-dictionary values into a dictionary before indexing.
+        value & at(const char * s); // throws if not dictionary or non-existent attribute
         value & at(const std::string & s); // throws if not dictionary or non-existent attribute
         value & operator[] (int i); // Converts null/non-list values into a list and auto-resizes with null values up to i.
         value & operator[] (size_t i); // Converts null/non-list values into a list and auto-resizes with null values up to i.

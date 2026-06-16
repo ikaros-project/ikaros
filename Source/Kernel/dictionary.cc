@@ -213,6 +213,20 @@ namespace ikaros
 
 
     value & 
+    dictionary::operator[](const char * s)
+    {
+        return (*dict_)[s];
+    }
+
+    const value &
+    dictionary::operator[](const char * s) const
+    {
+        static const value null_value;
+        auto it = dict_->find(s);
+        return (it != dict_->end()) ? it->second : null_value;
+    }
+
+    value & 
     dictionary::operator[](const std::string & s)
     {
         return (*dict_)[s];
@@ -224,6 +238,18 @@ namespace ikaros
         static const value null_value;
         auto it = dict_->find(s);
         return (it != dict_->end()) ? it->second : null_value;
+    }
+
+    value & 
+    dictionary::at(const char * s)
+    {
+        return dict_->at(s);
+    }
+
+    const value &
+    dictionary::at(const char * s) const
+    {
+        return dict_->at(s);
     }
 
     value & 
@@ -489,7 +515,9 @@ namespace ikaros
     value & 
     value::operator[] (const char * s) // Captures literals as argument
         {
-            return (*this)[std::string(s)];
+            if(!std::holds_alternative<dictionary>(value_))
+                value_ = dictionary();
+            return std::get<dictionary>(value_)[s];
         }
 
         value & 
@@ -498,6 +526,16 @@ namespace ikaros
             if(!std::holds_alternative<dictionary>(value_))
                 value_ = dictionary();
             return std::get<dictionary>(value_)[s];
+        }
+
+
+        value & 
+        value::at(const char * s)
+        {
+            if(std::holds_alternative<dictionary>(value_))
+                return std::get<dictionary>(value_).at(s);
+            else
+            throw std::out_of_range("Attribute \""+std::string(s)+"\" not found.");  
         }
 
 
