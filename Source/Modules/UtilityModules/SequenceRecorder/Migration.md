@@ -128,6 +128,12 @@ For slider arrays/groups, `min` and `max` may be either:
 - a single scalar used for all sliders, or
 - a list with one value per slider.
 
+The time slider should read `SR.position` for display and send normalized seek commands through `SR.seek`:
+
+```xml
+<widget class="slider-horizontal" parameter="SR.position" command="SR.seek" min="0" max="1"/>
+```
+
 ## State And Channel Mode Buttons
 
 Recorder state buttons should write to `SR.state` as radio buttons:

@@ -186,12 +186,9 @@ public:
         return {start, end, float(GetTickDuration() / 2)};
     }
 
-    void
-    SetPausedTime(double time)
+    double
+    ClampedQuantizedTime(double time, double start_time, double end_time)
     {
-        auto &sequence = CurrentSequence();
-        double start_time = sequence["start_time"];
-        double end_time = sequence["end_time"];
         double t = quantize(time, GetTickDuration());
 
         if (t < start_time)
@@ -199,11 +196,157 @@ public:
         if (t > end_time)
             t = end_time;
 
+        return t;
+    }
+
+    void
+    SyncPositionFromTime(double time, double end_time)
+    {
+        position = end_time > 0 ? time / end_time : 0;
+        last_position = position;
+    }
+
+    void
+    SetPausedTime(double time)
+    {
+        auto &sequence = CurrentSequence();
+        double start_time = sequence["start_time"];
+        double end_time = sequence["end_time"];
+        double t = ClampedQuantizedTime(time, start_time, end_time);
+
         timer.Pause();
         timer.SetPauseTime(t);
-        position = end_time > 0 ? t / end_time : 0;
-        last_position = position;
+        SyncPositionFromTime(t, end_time);
         ResetPlaybackIndex();
+        RequestOutputSmoothing();
+    }
+
+    double
+    ContinueFromTime(double time)
+    {
+        SetPausedTime(time);
+        timer.Continue();
+        return timer.GetTime();
+    }
+
+    bool
+    TimeHasReachedEnd(double time, double end_time, double tick_duration)
+    {
+        if (end_time <= 0)
+            return true;
+
+        double epsilon = std::max(tick_duration, 0.001) * 0.5;
+        return time >= end_time - epsilon;
+    }
+
+    void
+    RequestOutputSmoothing()
+    {
+        smoothing_pending = true;
+    }
+
+    double
+    ChannelRange(int c)
+    {
+        double r = std::abs(double(range_max[c]) - double(range_min[c]));
+        return r > 0 ? r : 0;
+    }
+
+    float
+    DesiredOutputForChannel(int c)
+    {
+        if (channel_mode(c, 0) == 1) // locked
+            return output[c];
+        if (channel_mode(c, 1) == 1) // play
+            return target[c];
+        if (channel_mode(c, 2) == 1 || channel_mode(c, 3) == 1) // record or copy
+            return input[c];
+
+        return output[c];
+    }
+
+    double
+    ComputeSmoothingDuration()
+    {
+        double max_delta = 0;
+
+        for (int c = 0; c < channels.as_int(); c++)
+        {
+            double range = ChannelRange(c);
+            double delta = std::abs(double(DesiredOutputForChannel(c)) - double(output[c]));
+            double normalized_delta = range > 0 ? delta / range : (delta > 0 ? 1 : 0);
+            max_delta = std::max(max_delta, normalized_delta);
+        }
+
+        return std::max(0.0, double(smoothing_time)) * std::min(1.0, max_delta);
+    }
+
+    void
+    StartPendingOutputSmoothing()
+    {
+        if (!smoothing_pending)
+            return;
+
+        smoothing_pending = false;
+        smoothing_start.copy(output);
+        smoothing_duration = ComputeSmoothingDuration();
+
+        if (smoothing_duration <= 0)
+        {
+            smoothing_active = false;
+            smoothing_alpha = 1;
+            return;
+        }
+
+        smoothing_active = true;
+        smoothing_alpha = 0;
+        smoothing_start_clock = GetTime();
+    }
+
+    void
+    UpdateOutputSmoothing()
+    {
+        if (!smoothing_active)
+        {
+            smoothing_alpha = 1;
+            return;
+        }
+
+        smoothing_alpha = (GetTime() - smoothing_start_clock) / smoothing_duration;
+        if (smoothing_alpha >= 1)
+        {
+            smoothing_alpha = 1;
+            smoothing_active = false;
+        }
+        else if (smoothing_alpha < 0)
+            smoothing_alpha = 0;
+    }
+
+    float
+    SmoothedOutputForChannel(int c)
+    {
+        float desired = DesiredOutputForChannel(c);
+        if (!smoothing_active)
+            return desired;
+
+        float start = smoothing_start[c];
+        float end = desired;
+        return start + smoothing_alpha * (end - start);
+    }
+
+    bool
+    ChannelModeChanged()
+    {
+        if (last_channel_mode.size_x() != channel_mode.size_x() ||
+            last_channel_mode.size_y() != channel_mode.size_y())
+            return true;
+
+        for (int c = 0; c < channels.as_int(); c++)
+            for (int m = 0; m < modes; m++)
+                if (channel_mode(c, m) != last_channel_mode(c, m))
+                    return true;
+
+        return false;
     }
 
     void
@@ -296,6 +439,26 @@ public:
         auto &sequence = CurrentSequence();
         sequence["start_mark_time"] = std::min(start_time, end_time);
         sequence["end_mark_time"] = std::max(start_time, end_time);
+    }
+
+    void
+    Seek(float normalized_position)
+    {
+        if (!std::isfinite(normalized_position))
+            return;
+
+        auto &sequence = CurrentSequence();
+        bool was_playing = state[1] > 0;
+        float fraction = std::max(0.0f, std::min(1.0f, normalized_position));
+        SetPausedTime(double(fraction) * double(sequence["end_time"]));
+
+        if (was_playing)
+        {
+            set_one_hot(state, 1, states);
+            timer.Continue();
+        }
+        else if (state[0] == 0 && state[2] == 0)
+            set_one_hot(state, 3, states);
     }
 
     void
@@ -854,6 +1017,7 @@ public:
         Stop();
         current_sequence = id;
         ResetPlaybackIndex();
+        RequestOutputSmoothing();
         Play();
     }
 
@@ -885,7 +1049,7 @@ public:
             s == "extend_time" || s == "reduce_time" ||
             s == "add_keypoint" || s == "delete_keypoint" ||
             s == "crop" || s == "clear" || s == "delete" || s == "simplify" ||
-            s == "lock" || s == "set_mark_range" || s == "select_all" ||
+            s == "lock" || s == "seek" || s == "set_mark_range" || s == "select_all" ||
             s == "rename" || s == "save" || s == "saveas";
 
         if (uses_current_sequence && !EnsureCurrentSequence())
@@ -909,6 +1073,8 @@ public:
             SetEndMark();
         else if (s == "set_mark_range")
             SetMarkRange(x, y);
+        else if (s == "seek")
+            Seek(x);
         else if (s == "select_all")
             SelectAll();
         else if (s == "step_forward")
@@ -1112,14 +1278,14 @@ public:
 
         else if (channel_mode(c, 1) == 1) // play
         {
-            output(c) = target(c); // SMOOTH HERE AS WELL
-            positions(c) = target(c);
+            output(c) = SmoothedOutputForChannel(c);
+            positions(c) = output(c);
             active(c) = 1;
         }
 
         else if (channel_mode(c, 2) == 1) // record
         {
-            output(c) = input(c);
+            output(c) = SmoothedOutputForChannel(c);
             active(c) = 0;
             if (internal_control(c) == 1)
                 active(c) = 1;
@@ -1127,7 +1293,7 @@ public:
 
         else if (channel_mode(c, 3) == 1) // copy
         {
-            output(c) = input(c);
+            output(c) = SmoothedOutputForChannel(c);
             active(c) = 0;
             if (internal_control(c) == 1)
                 active(c) = 1;
@@ -1585,6 +1751,12 @@ public:
         timer.Stop();
         sequence_revision = 0;
         ResetPlaybackIndex();
+        smoothing_active = false;
+        smoothing_pending = false;
+        smoothing_start_clock = 0;
+        smoothing_duration = 0;
+        smoothing_alpha = 1;
+        last_current_sequence = 0;
 
         Bind(channels, "channels");
         Bind(positions, "positions"); // parameter size will be set by the value channels
@@ -1682,6 +1854,9 @@ public:
         else
             New();
 
+        last_current_sequence = current_sequence.as_int();
+        last_channel_mode.copy(channel_mode);
+
         // Get files in directory
 
         std::string fsep = "";
@@ -1708,6 +1883,19 @@ public:
         if (!EnsureCurrentSequence())
             return;
 
+        if (current_sequence.as_int() != last_current_sequence)
+        {
+            ResetPlaybackIndex();
+            RequestOutputSmoothing();
+            last_current_sequence = current_sequence.as_int();
+        }
+
+        if (ChannelModeChanged())
+        {
+            RequestOutputSmoothing();
+            last_channel_mode.copy(channel_mode);
+        }
+
         // Check trig input
 
         for (int s = 0; s < trig.size(); s++)
@@ -1715,6 +1903,7 @@ public:
                 Trig(s);
 
         trig_last.copy(trig);
+        last_current_sequence = current_sequence.as_int();
         auto &sequence = CurrentSequence();
         float t = timer.GetTime();
 
@@ -1722,20 +1911,11 @@ public:
         {
             timer.Continue();
             start_record = false;
-        }
-
-        if (position != last_position)
-        {
-            ResetPlaybackIndex();
-            Pause();
-            float end_time = sequence["end_time"];
-            timer.SetPauseTime(position * end_time);
-            last_position = position;
+            t = timer.GetTime();
         }
 
         float end_time = sequence["end_time"];
-        position = end_time ? t / end_time : 0;
-        last_position = position;
+        SyncPositionFromTime(t, end_time);
 
         for (int c = 0; c < channels.as_int(); c++)
             if (internal_control[c])
@@ -1746,11 +1926,10 @@ public:
             set_one_hot(playing, current_sequence, max_sequences);
             if (loop && t >= float(sequence["end_mark_time"])) // loop
             {
-                timer.Pause();
-                timer.SetPauseTime(float(sequence["start_mark_time"]));
-                timer.Continue();
+                t = ContinueFromTime(sequence["start_mark_time"]);
+                SyncPositionFromTime(t, sequence["end_time"]);
             }
-            else if (position >= 1 || end_time == 0)
+            else if (TimeHasReachedEnd(t, end_time, tl))
             {
                 int completed_sequence = current_sequence.as_int();
                 set_one_hot(completed, completed_sequence, max_sequences);
@@ -1780,13 +1959,15 @@ public:
 
         else if (state[2]) // handle record mode
         {
-            if (position >= 1 || end_time == 0) // extend recoding if at end
+            if (TimeHasReachedEnd(t, end_time, tl)) // extend recoding if at end
                 sequence["end_time"] = quantize(t, tl);
         }
 
         // Set outputs
 
         GoToTime(t);
+        StartPendingOutputSmoothing();
+        UpdateOutputSmoothing();
 
         for (int c = 0; c < channels.as_int(); c++)
             SetOutputForChannel(c);
@@ -1803,8 +1984,7 @@ public:
         // Set position again
 
         end_time = sequence["end_time"];
-        position = end_time ? t / end_time : 0;
-        last_position = position;
+        SyncPositionFromTime(t, end_time);
 
         time_string = make_timestamp(quantize(t, tl));
         end_time_string = make_timestamp(quantize(double(sequence["end_time"]), tl));
@@ -1841,6 +2021,11 @@ public:
 
     parameter smoothing_time;
     matrix smoothing_start;
+    bool smoothing_active;
+    bool smoothing_pending;
+    double smoothing_start_clock;
+    double smoothing_duration;
+    double smoothing_alpha;
 
     matrix target;
     matrix input;
@@ -1862,9 +2047,11 @@ public:
 
     int states = 8;
     int modes = 4;
+    int last_current_sequence;
 
     matrix state; // state of the head controller buttons
     matrix channel_mode;
+    matrix last_channel_mode;
     parameter loop;
     parameter shuffle;
 

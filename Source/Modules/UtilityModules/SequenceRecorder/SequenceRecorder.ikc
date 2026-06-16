@@ -17,7 +17,7 @@
 	<output name="PLAYING" description="Element for each sequence set to 1 while that sequence is playing" size="@max_sequences" />
 	<output name="COMPLETED" description="Element for each sequence set to 1 for one tick when that sequence is completed" size="@max_sequences" />
 
-	   	<parameter name="smoothing_time" type="number" default="200" description="Number of milliseconds to smooth the output position." />
+	   	<parameter name="smoothing_time" type="number" default="1" description="Maximum time in seconds to smooth sudden output position jumps." />
 	   	<parameter name="simplify_epsilon" type="number" default="1" description="Maximum interpolation error allowed when simplifying keypoints." />
 		<parameter name="state" type="matrix" default="1, 0, 0, 0, 0" description="State array used to remember control button state. Only for output to control buttons." />
 	<parameter name="channel_mode" type="matrix" default="0, 0, 0, 0" description="Mode for each channel: lock, play, record, etc." />
