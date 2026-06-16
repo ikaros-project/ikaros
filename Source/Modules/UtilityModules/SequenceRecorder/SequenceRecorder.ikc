@@ -11,11 +11,13 @@
 
 	<parameter name="max_sequences" type="number" default="64" description="The maximum number of different behaviors that can be recorded" />
 	<parameter name="layout_width" type="number" default="8" description="Number of sequence buttons per row in WebUI layouts" />
+	<parameter name="color" type="matrix" shape="@max_sequences,3" description="RGB color for each sequence, with one row per sequence and three columns." />
 
 	<input name="TRIG" description="Start a behavior with a 1 in the column for that behavior; lower number priority" size="@max_sequences" optional="yes" />
 
 	<output name="PLAYING" description="Element for each sequence set to 1 while that sequence is playing" size="@max_sequences" />
 	<output name="COMPLETED" description="Element for each sequence set to 1 for one tick when that sequence is completed" size="@max_sequences" />
+	<output name="COLOR" description="Copy of the RGB color matrix for each sequence" shape="@max_sequences,3" />
 
 	   	<parameter name="smoothing_time" type="number" default="1" description="Maximum time in seconds to smooth sudden output position jumps." />
 	   	<parameter name="simplify_epsilon" type="number" default="1" description="Maximum interpolation error allowed when simplifying keypoints." />
