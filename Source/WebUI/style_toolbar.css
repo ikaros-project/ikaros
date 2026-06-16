@@ -286,7 +286,7 @@ header button:active {
 }
 
 .top_transport_controls.transport-controls-blocked::before {
-    content: "\26D4  Save before continuing";
+    content: "\26D4  Click to save before continuing";
     display: none;
     position: absolute;
     inset: 0;
