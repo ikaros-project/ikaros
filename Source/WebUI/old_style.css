@@ -697,6 +697,11 @@ header button:active, aside button:active {
     filter: invert(1);
 }
 
+.button-selected .button-icon-preserve-color,
+.button-pressed .button-icon-preserve-color {
+    filter: none;
+}
+
 
 /*
  * Footers

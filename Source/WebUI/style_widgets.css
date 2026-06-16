@@ -176,3 +176,8 @@ webui-widget-text > div {
 .button-pressed .button-icon {
     filter: invert(1);
 }
+
+.button-selected .button-icon-preserve-color,
+.button-pressed .button-icon-preserve-color {
+    filter: none;
+}
