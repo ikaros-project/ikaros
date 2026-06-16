@@ -195,10 +195,13 @@
                 </svg>
             </div>
             <menu id="edit_menu_dropdown" class="top-menu-dropdown">
+                <button type="button" onclick="edit_menu.choose('cut')"><span>Cut</span><span class="menu-shortcut">&#8984;X</span></button>
+                <button type="button" onclick="edit_menu.choose('copy')"><span>Copy</span><span class="menu-shortcut">&#8984;C</span></button>
+                <button type="button" onclick="edit_menu.choose('paste')"><span>Paste</span><span class="menu-shortcut">&#8984;V</span></button>
+                <button type="button" onclick="edit_menu.choose('delete')"><span>Delete</span><span class="menu-shortcut">Backspace</span></button>
                 <button type="button" onclick="edit_menu.choose('select_all')"><span>Select All</span><span class="menu-shortcut">&#8984;A</span></button>
                 <hr class="top-menu-divider">
                 <button type="button" onclick="edit_menu.choose('duplicate')"><span>Duplicate</span><span class="menu-shortcut">&#8984;D</span></button>
-                <button type="button" onclick="edit_menu.choose('delete')"><span>Delete</span><span class="menu-shortcut">Backspace</span></button>
             </menu>
             <div class="button" id="view_menu" aria-label="View menu" title="View menu">
                 <svg class="top_menu_icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -213,8 +216,6 @@
                 <button type="button" onclick="view_menu.choose('show_module_start')">Show module start</button>
                 <hr class="top-menu-divider">
                 <button type="button" onclick="view_menu.choose('reset_panes')">Reset pane layout</button>
-                <hr class="top-menu-divider">
-                <button type="button" onclick="view_menu.choose('fullscreen')">Full screen</button>
             </menu>
             <div class="top_transport_controls">
                 <span id="top_tick" class="top_transport_status" title="Current tick">-</span>
@@ -720,47 +721,12 @@
                 </colgroup>
                  <tbody>
                     <tr>
-                        <td colspan="2" class="system-file-button-cell">
-                            <div class="system-file-button-group">
-                                <button onmousedown="controller.new()">New</button>
-                                <button onmousedown="controller.open()">Open...</button>
-                                <button onmousedown="controller.save()">Save</button>
-                                <button onmousedown="controller.saveas()">Save As...</button>
-                                <button id="save_state_system_button" onmousedown="controller.saveState()">Save State...</button>
-                                <button id="load_state_system_button" onmousedown="controller.loadState()">Load State...</button>
-                                <button id="reset_state_system_button" onmousedown="controller.resetState()">Reset State</button>
-                                <button onmousedown="controller.quit()">Quit</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
                         <td colspan="2" style="text-align: center;padding-top:25px;">
                             <img src="images/logo.png" style="height:50px; width: 50px"><br />
                             <span id="brainstudio_logo">BrainStudio</span>
                         </td>
                     </tr>
 
-                    <tr>
-                        <td colspan="2"  style="text-align: center;">
-                            <button class="transport_button" data-transport-mode="stop" onmousedown="controller.stop()">Stop</button>
-                            <button class="transport_button" data-transport-mode="pause" onmousedown="controller.pause()">Pause</button>
-                            <button class="transport_button" data-transport-mode="step" onmousedown="controller.step()">Step</button>
-                            <button class="transport_button" data-transport-mode="play" onmousedown="controller.play()">Play</button>
-                            <button class="transport_button" data-transport-mode="realtime" onmousedown="controller.realtime()">Realtime</button>
-                        </td>
-                    </tr>
-
-
-                    <tr id="debug_row">
-                        <td colspan="2"  style="text-align: center;color:red;background-color: rgb(99, 56, 56);">
-                            DEBUG
-                            <button onclick="network.debug_json()" style="display:inline;border:1px solid red; color:red;">JSON</button>
-                            <button  onclick="network.debug_dict()"style="display:inline;border:1px solid red; color:red;">dict</button>
-                            <button onclick="controller.debug_data()" style="display:inline;border:1px solid red; color:red;">data</button>
-                        </td>
-                    </tr>
-
-                    
                     <tr>
                         <td>filename</td><td id="file">-</td>
                     </tr>
@@ -818,20 +784,25 @@
                     <tr>
                         <td>CPU usage</td><td><progress id="usage"value="0" max="1"></progress></td>
                     </tr>
-	                     <tr>
-	                        <td>time usage</td><td><progress id="time_usage" value="0" max="1"></progress></td>
-	                    </tr>
-	                    <tr>
-	                        <td colspan="2" class="system-inspector-button-row">
-	                            <button type="button" class="system-inspector-button" onclick="inspector.openProfilingWindow()">profiling</button>
-                                <button type="button" class="system-inspector-button" onclick="inspector.openStartupStepsWindow()">module start</button>
-	                        </td>
-	                    </tr>
-	             </tbody>
-	            </table>
-
-            <p id="title"></p>
-		</aside>
+		                     <tr>
+		                        <td>time usage</td><td><progress id="time_usage" value="0" max="1"></progress></td>
+		                    </tr>
+				             </tbody>
+			            </table>
+                <p id="title"></p>
+                <table id="system_debug_table">
+                    <tbody>
+                        <tr id="debug_row">
+                            <td colspan="2"  style="text-align: center;color:red;background-color: rgb(99, 56, 56);">
+                                DEBUG
+                                <button onclick="network.debug_json()" style="display:inline;border:1px solid red; color:red;">JSON</button>
+                                <button  onclick="network.debug_dict()"style="display:inline;border:1px solid red; color:red;">dict</button>
+                                <button onclick="controller.debug_data()" style="display:inline;border:1px solid red; color:red;">data</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+			</aside>
 
         <aside id="library_inspector">
             <table id="library_inspector_table">

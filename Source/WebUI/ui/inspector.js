@@ -774,7 +774,7 @@ const inspector =
 
     toggleSystem()
     {
-        inspector.togglePanel(inspector.system, {display: "block"});
+        inspector.togglePanel(inspector.system, {display: "flex"});
     },
 
     toggleComponent()

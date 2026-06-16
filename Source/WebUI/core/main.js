@@ -15,6 +15,7 @@ const main =
     map: {},
     reconnect_overlay: null,
     component_color_property: "color",
+    component_clipboard: null,
 
     new_position_x: 100,
     new_position_y: 100,
@@ -3356,6 +3357,96 @@ const main =
         controller.setTainted(true, "deleteComponent");
     },
 
+    isTextEditingTarget(target)
+    {
+        if(!target)
+            return false;
+        const tagName = target.tagName;
+        return tagName === "INPUT" ||
+            tagName === "TEXTAREA" ||
+            target.isContentEditable;
+    },
+
+    isFormEditingTarget(target)
+    {
+        if(!target)
+            return false;
+        const tagName = target.tagName;
+        return tagName === "INPUT" ||
+            tagName === "TEXTAREA" ||
+            tagName === "SELECT" ||
+            target.isContentEditable;
+    },
+
+    getTextEditingTarget()
+    {
+        const activeElement = document.activeElement;
+        if(main.isTextEditingTarget(activeElement))
+            return activeElement;
+        return null;
+    },
+
+    insertTextAtTarget(target, text)
+    {
+        if(!target)
+            return false;
+
+        target.focus();
+        if(target.tagName === "INPUT" || target.tagName === "TEXTAREA")
+        {
+            const start = target.selectionStart ?? target.value.length;
+            const end = target.selectionEnd ?? start;
+            if(typeof target.setRangeText === "function")
+            {
+                target.setRangeText(text, start, end, "end");
+                const inputEvent = typeof InputEvent === "function" ?
+                    new InputEvent("input", {bubbles: true, inputType: "insertText", data: text}) :
+                    new Event("input", {bubbles: true});
+                target.dispatchEvent(inputEvent);
+                return true;
+            }
+        }
+
+        return document.execCommand("insertText", false, text);
+    },
+
+    async performTextClipboardCommand(action, target)
+    {
+        if(!target)
+            return false;
+
+        target.focus();
+        if(action === "paste")
+        {
+            if(navigator.clipboard && typeof navigator.clipboard.readText === "function")
+            {
+                try
+                {
+                    const text = await navigator.clipboard.readText();
+                    return main.insertTextAtTarget(target, text);
+                }
+                catch(error)
+                {
+                    console.log("clipboard paste failed", error);
+                }
+            }
+            return document.execCommand("paste");
+        }
+
+        return document.execCommand(action);
+    },
+
+    handleClipboardMenuAction(action)
+    {
+        const target = main.getTextEditingTarget();
+        if(target)
+        {
+            main.performTextClipboardCommand(action, target);
+            return true;
+        }
+        return false;
+    },
+
     uniqueComponentName(baseName, reservedNames=new Set())
     {
         const background = selector.selected_background;
@@ -3374,6 +3465,130 @@ const main =
         if(parts.length > 0 && parts[0] in nameMap)
             parts[0] = nameMap[parts[0]];
         return parts.join('.') + afterBracket;
+    },
+
+    getSelectedComponentClipboardData()
+    {
+        const background = selector.selected_background;
+        const group = network.dict[background];
+        if(!group || selector.selected_foreground.length === 0)
+            return null;
+
+        const selectedFullNames = [...selector.selected_foreground];
+        const selectedLocalNames = new Set();
+        const components = [];
+
+        for(const fullName of selectedFullNames)
+        {
+            const component = network.dict[fullName];
+            if(!component || !component.name || !component._tag)
+                continue;
+            selectedLocalNames.add(component.name);
+            components.push(deepCopy(component));
+        }
+
+        if(components.length === 0)
+            return null;
+
+        const connections = [];
+        for(const c of group.connections || [])
+        {
+            const sourceComponent = getStringUpToBracket(c.source || "").split('.')[0];
+            const targetComponent = getStringUpToBracket(c.target || "").split('.')[0];
+            if(selectedLocalNames.has(sourceComponent) && selectedLocalNames.has(targetComponent))
+                connections.push(deepCopy(c));
+        }
+
+        return {
+            type: "ikaros/components",
+            components,
+            connections
+        };
+    },
+
+    copySelectedComponents()
+    {
+        if(!main.edit_mode)
+            return false;
+
+        const clipboardData = main.getSelectedComponentClipboardData();
+        if(!clipboardData)
+            return false;
+
+        main.component_clipboard = clipboardData;
+        return true;
+    },
+
+    cutSelectedComponents()
+    {
+        if(!main.copySelectedComponents())
+            return false;
+        main.deleteComponent();
+        return true;
+    },
+
+    pasteComponents()
+    {
+        if(!main.edit_mode || !main.component_clipboard || main.component_clipboard.type !== "ikaros/components")
+            return false;
+
+        const background = selector.selected_background;
+        const group = network.dict[background];
+        if(!group)
+            return false;
+
+        const reservedNames = new Set();
+        const nameMap = {};
+        const pastedFullNames = [];
+
+        for(const original of main.component_clipboard.components || [])
+        {
+            if(!original || !original.name || !original._tag)
+                continue;
+
+            const oldName = original.name;
+            const newName = main.uniqueComponentName(oldName, reservedNames);
+            reservedNames.add(newName);
+            nameMap[oldName] = newName;
+
+            const clone = deepCopy(original);
+            clone.name = newName;
+            if(clone._x !== undefined)
+                clone._x = parseInt(clone._x) + 30;
+            if(clone._y !== undefined)
+                clone._y = parseInt(clone._y) + 30;
+
+            const collectionName = main.getComponentCollectionName(clone._tag);
+            if(!collectionName)
+                continue;
+            if(!group[collectionName])
+                group[collectionName] = [];
+            group[collectionName].push(clone);
+            pastedFullNames.push(`${background}.${newName}`);
+        }
+
+        if(pastedFullNames.length === 0)
+            return false;
+
+        if(!group.connections)
+            group.connections = [];
+        for(const c of main.component_clipboard.connections || [])
+        {
+            const cc = deepCopy(c);
+            cc.source = main.remapConnectionEndpoint(c.source, nameMap);
+            cc.target = main.remapConnectionEndpoint(c.target, nameMap);
+            group.connections.push(cc);
+        }
+
+        network.rebuildDict();
+        nav.populate();
+        selector.selectItems(pastedFullNames, background, false, false, true);
+        for(const fullName of pastedFullNames)
+            main.addLockedMirrorComponent(fullName);
+        main.refreshMatchingBackgroundPanes(background, pastedFullNames, main.active_pane ? main.active_pane.root : null);
+        main.refreshAllPaneGeometry();
+        controller.setTainted(true, "pasteComponents");
+        return true;
     },
 
     duplicateSelectedComponents(include_external_connections=false)
@@ -5551,7 +5766,7 @@ const main =
         const isSaveShortcut = isModifier && (key == "s" || code == "KeyS");
 
         const activeElement = document.activeElement;
-        if(!isSaveShortcut && activeElement && (activeElement.tagName === "INPUT" || activeElement.tagName === "TEXTAREA" || activeElement.tagName === "SELECT" || activeElement.isContentEditable))
+        if(!isSaveShortcut && main.isFormEditingTarget(activeElement))
             return;
 
         if(main.edit_mode && selector.selected_foreground.length > 0)
@@ -5609,25 +5824,34 @@ const main =
                 main.selectCurrentGroupComponents({includeWidgets: true});
             return;
         }
-  
-  /*
-  
-        else if (evt.key=="c")
+
+        else if(key=="c" || code=="KeyC")
         {
-            evt.preventDefault();
-            alert("Copy selected items. (NOT IMPLEMENTED YET)");
+            if(main.edit_mode && selector.selected_foreground.length > 0)
+            {
+                evt.preventDefault();
+                main.copySelectedComponents();
+            }
+            return;
         }
-        else if (evt.key=="x")
+        else if(key=="x" || code=="KeyX")
         {
-            evt.preventDefault();
-            alert("Cut selected items. (NOT IMPLEMENTED YET)");
+            if(main.edit_mode && selector.selected_foreground.length > 0)
+            {
+                evt.preventDefault();
+                main.cutSelectedComponents();
+            }
+            return;
         }
-        else if (evt.key=="v")
+        else if(key=="v" || code=="KeyV")
         {
-            evt.preventDefault();
-            alert("Paste copied items. (NOT IMPLEMENTED YET)");
+            if(main.edit_mode && main.component_clipboard && main.component_clipboard.type === "ikaros/components")
+            {
+                evt.preventDefault();
+                main.pasteComponents();
+            }
+            return;
         }
-*/
 
         else if (key=="d" || code=="KeyD")
         {

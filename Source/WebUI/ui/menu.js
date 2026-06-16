@@ -77,9 +77,6 @@ const app_menu =
         const saveMenu = document.getElementById("save_state_menu_item");
         const loadMenu = document.getElementById("load_state_menu_item");
         const resetMenu = document.getElementById("reset_state_menu_item");
-        const saveButton = document.getElementById("save_state_system_button");
-        const loadButton = document.getElementById("load_state_system_button");
-        const resetButton = document.getElementById("reset_state_system_button");
 
         if(saveMenu)
             saveMenu.innerText = saveLabel;
@@ -87,12 +84,6 @@ const app_menu =
             loadMenu.innerText = loadLabel;
         if(resetMenu)
             resetMenu.innerText = resetLabel;
-        if(saveButton)
-            saveButton.innerText = saveLabel;
-        if(loadButton)
-            loadButton.innerText = loadLabel;
-        if(resetButton)
-            resetButton.innerText = resetLabel;
     },
 
     choose(action)
@@ -126,7 +117,20 @@ const edit_menu =
         edit_menu.dropdown = document.getElementById("edit_menu_dropdown");
 
         if(edit_menu.button)
+        {
+            edit_menu.button.addEventListener("mousedown", function(evt)
+            {
+                evt.preventDefault();
+            }, false);
             edit_menu.button.addEventListener("click", edit_menu.toggle, false);
+        }
+
+        if(edit_menu.dropdown)
+            edit_menu.dropdown.addEventListener("mousedown", function(evt)
+            {
+                if(evt.target && evt.target.closest && evt.target.closest("button"))
+                    evt.preventDefault();
+            }, false);
 
         document.addEventListener("mousedown", function(evt)
         {
@@ -188,11 +192,23 @@ const edit_menu =
     {
         edit_menu.hide();
 
-        if(!main || !main.edit_mode)
+        if(!main)
+            return;
+
+        if(["cut", "copy", "paste"].includes(action) && main.handleClipboardMenuAction(action))
+            return;
+
+        if(!main.edit_mode)
             return;
 
         if(action === "select_all")
             main.selectCurrentGroupComponents({includeWidgets: true});
+        else if(action === "cut")
+            main.cutSelectedComponents();
+        else if(action === "copy")
+            main.copySelectedComponents();
+        else if(action === "paste")
+            main.pasteComponents();
         else if(action === "duplicate")
             main.duplicateSelectedComponents(false);
         else if(action === "delete" && (selector.selected_connection != null || selector.selected_foreground.length > 0))
@@ -267,33 +283,12 @@ const view_menu =
             view_menu.dropdown.style.left = view_menu.button.offsetLeft + "px";
     },
 
-    toggleFullscreen()
-    {
-        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
-        if(fullscreenElement)
-        {
-            if(document.exitFullscreen)
-                document.exitFullscreen();
-            else if(document.webkitExitFullscreen)
-                document.webkitExitFullscreen();
-            return;
-        }
-
-        const target = document.documentElement;
-        if(target.requestFullscreen)
-            target.requestFullscreen();
-        else if(target.webkitRequestFullscreen)
-            target.webkitRequestFullscreen();
-    },
-
     choose(action)
     {
         view_menu.hide();
 
         if(action === "hide_toolbar" && main && typeof main.toggleTopChrome === "function")
             main.toggleTopChrome();
-        else if(action === "fullscreen")
-            view_menu.toggleFullscreen();
         else if(action === "show_profiling" && typeof inspector !== "undefined" && typeof inspector.openProfilingWindow === "function")
             inspector.openProfilingWindow();
         else if(action === "show_module_start" && typeof inspector !== "undefined" && typeof inspector.openStartupStepsWindow === "function")
