@@ -37,7 +37,6 @@
 #include "Kernel/h_matrix.h"
 #include "Kernel/socket.h"
 #include "Kernel/timing.h"
-#include "Kernel/deprecated.h"
 #include "Kernel/image_file_formats.h"
 #include "Kernel/serial.h"
 #include "Kernel/thread_pool.h"

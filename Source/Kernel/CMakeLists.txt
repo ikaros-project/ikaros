@@ -8,7 +8,6 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/dictionary.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/range.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/utilities.cc
-	${CMAKE_CURRENT_SOURCE_DIR}/deprecated.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/signal.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/xml.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/thread_pool.cc
@@ -33,7 +32,6 @@ set(SOURCE
 ${CMAKE_CURRENT_SOURCE_DIR}/dictionary.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/range.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/utilities.cc
-${CMAKE_CURRENT_SOURCE_DIR}/deprecated.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/signal.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/xml.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/thread_pool.cc
