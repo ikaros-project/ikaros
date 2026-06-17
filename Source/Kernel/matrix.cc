@@ -1607,7 +1607,31 @@ matrix::operator[](const std::string & n)
 
 
 matrix
+matrix::operator[](const std::string & n) const
+{
+    if(info_->labels_.empty())
+        throw std::out_of_range(get_name() + "No labels found in matrix.");
+
+    int i = 0;
+    for(const auto & l : info_->labels_.at(0))
+    {
+        if(l == n)
+            return (*this)[i];
+        i++;
+    }
+    throw std::out_of_range(get_name() + "Label " + n + " not found.");
+}
+
+
+matrix
 matrix::operator[](const char * n)
+{
+    return (*this)[std::string(n)];
+}
+
+
+matrix
+matrix::operator[](const char * n) const
 {
     return (*this)[std::string(n)];
 }

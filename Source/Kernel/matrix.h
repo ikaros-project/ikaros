@@ -496,7 +496,9 @@ namespace ikaros
         matrix & push(float v); // push a scalar to the end of the matrix
         matrix & pop(matrix & m); // pop the last element from m and copy to the current matrix; sizes must match
         matrix operator[](const std::string & n);
+        matrix operator[](const std::string & n) const;
         matrix operator[](const char * n);
+        matrix operator[](const char * n) const;
         float operator=(float v); // Set the element of the single element matrix to a value
         
         // Element-wise functions

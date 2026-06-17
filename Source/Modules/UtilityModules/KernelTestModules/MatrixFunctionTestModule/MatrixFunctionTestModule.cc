@@ -805,10 +805,17 @@ class MatrixFunctionTestModule : public Module
 
         matrix front = tensor[0];
         matrix back = tensor["back"];
+        matrix const_front = const_tensor[0];
+        const std::string back_label = "back";
+        matrix const_back = const_tensor[back_label];
+        matrix const_back_char = const_tensor["back"];
 
         require_shape(front, {3, 4}, "rank-3 slice shape");
         require_close(front.sum(), 78.0f, "slice sum()");
         require_close(back.sum(), 222.0f, "labeled slice sum()");
+        require_close(const_front.sum(), 78.0f, "const numeric slice sum()");
+        require_close(const_back.sum(), 222.0f, "const labeled slice sum()");
+        require_close(const_back_char.sum(), 222.0f, "const labeled char slice sum()");
         require_close(dot(front, back), 1586.0f, "dot(slice, slice)");
 
         matrix combined;
