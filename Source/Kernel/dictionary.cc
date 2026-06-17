@@ -343,7 +343,7 @@ namespace ikaros
 
         void dictionary::merge(const dictionary & source, bool overwrite) // shallow merge: copy from source to this
         {
-            for(auto p : *(source.dict_))
+            for(const auto & p : *(source.dict_))
                 if(!dict_->count(p.first) || overwrite)
                     (*dict_)[p.first] = p.second;
         }
@@ -560,8 +560,17 @@ namespace ikaros
         {
             if(!std::holds_alternative<list>(value_))
                 value_ = list();
-                std::get<list>(value_). list_->push_back(v);
-                return *this;
+            std::get<list>(value_). list_->push_back(v);
+            return *this;
+        }
+
+        value &
+        value::push_back(value && v)
+        {
+            if(!std::holds_alternative<list>(value_))
+                value_ = list();
+            std::get<list>(value_). list_->push_back(std::move(v));
+            return *this;
         }
 
         size_t  
@@ -709,22 +718,50 @@ namespace ikaros
         }
 
 
-    value value::copy() const
-{
-        if(std::holds_alternative<null>(value_))
-            return value(null());
-        if(std::holds_alternative<bool>(value_))
-            return value(std::get<bool>(value_));
-        if(std::holds_alternative<double>(value_))
-            return value(static_cast<double>(std::get<double>(value_)));
-        if(std::holds_alternative<std::string>(value_))
-            return value(std::get<std::string>(value_));
-        if(std::holds_alternative<list>(value_))
-            return value(std::get<list>(value_).copy());
-        if(std::holds_alternative<dictionary>(value_))
-            return value(std::get<dictionary>(value_).copy());    
-        return value();
-    }
+        list &
+        value::as_list()
+        {
+            return std::get<list>(value_);
+        }
+
+
+        const list &
+        value::as_list() const
+        {
+            return std::get<list>(value_);
+        }
+
+
+        dictionary &
+        value::as_dictionary()
+        {
+            return std::get<dictionary>(value_);
+        }
+
+
+        const dictionary &
+        value::as_dictionary() const
+        {
+            return std::get<dictionary>(value_);
+        }
+
+
+        value value::copy() const
+        {
+            if(std::holds_alternative<null>(value_))
+                return value(null());
+            if(std::holds_alternative<bool>(value_))
+                return value(std::get<bool>(value_));
+            if(std::holds_alternative<double>(value_))
+                return value(static_cast<double>(std::get<double>(value_)));
+            if(std::holds_alternative<std::string>(value_))
+                return value(std::get<std::string>(value_));
+            if(std::holds_alternative<list>(value_))
+                return value(std::get<list>(value_).copy());
+            if(std::holds_alternative<dictionary>(value_))
+                return value(std::get<dictionary>(value_).copy());
+            return value();
+        }
 
     
     std::string parse_string(const std::string& s, size_t& pos)

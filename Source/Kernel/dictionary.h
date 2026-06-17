@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <cctype>
 #include <stdexcept>
+#include <utility>
 
 #include "utilities.h"
 #include "xml.h"
@@ -140,13 +141,16 @@ namespace ikaros
 
         iterator erase(const_iterator pos) { return list_->erase(pos); }
         iterator insert(const_iterator pos, const value & v) { return list_->insert(pos, v); }
+        iterator insert(const_iterator pos, value && v) { return list_->insert(pos, std::move(v)); }
 
         value & operator[] (int i); // Auto-resizes with null values up to i before returning the element.
         value & operator[] (size_t i); // Auto-resizes with null values up to i before returning the element.
         [[nodiscard]] size_t size() const { return list_->size(); };
         [[nodiscard]] bool empty() const { return list_->empty(); }
         list & push_back(const value & v) { list_->push_back(v); return *this; };
+        list & push_back(value && v) { list_->push_back(std::move(v)); return *this; };
         list & insert_front(const value & v) { list_->insert(list_->begin(), v);  return *this; }
+        list & insert_front(value && v) { list_->insert(list_->begin(), std::move(v));  return *this; }
         list & erase(int index);
         list & erase(size_t index);
         operator std::string ()  const;
@@ -171,7 +175,9 @@ namespace ikaros
         value(const char * s)       { value_ = s; }
         value(const std::string & s){ value_ = s; }
         value(const list & v)       { value_ = v; }
+        value(list && v)            { value_ = std::move(v); }
         value(const dictionary & d) { value_ = d; }
+        value(dictionary && d)      { value_ = std::move(d); }
 
         value & operator =(bool v) { value_ = v; return *this; }
         value & operator =(int v) { value_ = double(v); return *this; }
@@ -181,7 +187,9 @@ namespace ikaros
         value & operator =(const std::string & s) { value_ = s; return *this; }
         value & operator =(const char * s) { value_ = s; return *this; }
         value & operator =(const list & v) { value_ = v; return *this; }
+        value & operator =(list && v) { value_ = std::move(v); return *this; }
         value & operator =(const dictionary & d) { value_ = d; return *this; }
+        value & operator =(dictionary && d) { value_ = std::move(d); return *this; }
 
         [[nodiscard]] bool is_dictionary() const { return std::holds_alternative<dictionary>(value_); }
         [[nodiscard]] bool is_list() const { return std::holds_alternative<list>(value_); }
@@ -205,6 +213,7 @@ namespace ikaros
         value & operator[] (size_t i); // Converts null/non-list values into a list and auto-resizes with null values up to i.
 
         value & push_back(const value & v);
+        value & push_back(value && v);
 
         friend std::ostream& operator<<(std::ostream& os, const value & v);
         [[nodiscard]] size_t size() const;
@@ -219,6 +228,10 @@ namespace ikaros
         operator double () const;
         operator list ();
         operator dictionary ();
+        list & as_list();
+        const list & as_list() const;
+        dictionary & as_dictionary();
+        const dictionary & as_dictionary() const;
 
         void print() const { std::cout << this->json() << '\n'; };
 
