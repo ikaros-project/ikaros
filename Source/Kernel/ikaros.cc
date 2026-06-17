@@ -3007,7 +3007,7 @@ Class::Class(std::string n, std::string p) : info_(), module_creator(nullptr), n
             return;
         if(!json_body.is_dictionary())
             throw exception("JSON request body must be an object.");
-        parameters.merge(dictionary(json_body), overwrite);
+        parameters.merge(json_body.as_dictionary(), overwrite);
     }
 
 bool operator==(Request & r, const std::string s)
