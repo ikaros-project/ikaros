@@ -11,6 +11,30 @@
 using namespace ikaros;
 namespace ikaros 
 {
+        const value &
+        null_value()
+        {
+            static const value missing_value;
+            return missing_value;
+        }
+
+
+        const std::vector<value> &
+        empty_values()
+        {
+            static const std::vector<value> values;
+            return values;
+        }
+
+
+        std::vector<value> &
+        mutable_empty_values()
+        {
+            static std::vector<value> values;
+            return values;
+        }
+
+
 
         static void skip_whitespace(const std::string& s, size_t& pos)
         {
@@ -128,6 +152,100 @@ namespace ikaros
     {
     }
 
+    list::iterator
+    list::begin() noexcept
+    {
+        return list_->begin();
+    }
+
+    list::iterator
+    list::end() noexcept
+    {
+        return list_->end();
+    }
+
+    list::const_iterator
+    list::begin() const noexcept
+    {
+        return list_->begin();
+    }
+
+    list::const_iterator
+    list::end() const noexcept
+    {
+        return list_->end();
+    }
+
+    list::const_iterator
+    list::cbegin() const noexcept
+    {
+        return list_->cbegin();
+    }
+
+    list::const_iterator
+    list::cend() const noexcept
+    {
+        return list_->cend();
+    }
+
+    list::iterator
+    list::erase(const_iterator pos)
+    {
+        return list_->erase(pos);
+    }
+
+    list::iterator
+    list::insert(const_iterator pos, const value & v)
+    {
+        return list_->insert(pos, v);
+    }
+
+    list::iterator
+    list::insert(const_iterator pos, value && v)
+    {
+        return list_->insert(pos, std::move(v));
+    }
+
+    size_t
+    list::size() const
+    {
+        return list_->size();
+    }
+
+    bool
+    list::empty() const
+    {
+        return list_->empty();
+    }
+
+    list &
+    list::push_back(const value & v)
+    {
+        list_->push_back(v);
+        return *this;
+    }
+
+    list &
+    list::push_back(value && v)
+    {
+        list_->push_back(std::move(v));
+        return *this;
+    }
+
+    list &
+    list::insert_front(const value & v)
+    {
+        list_->insert(list_->begin(), v);
+        return *this;
+    }
+
+    list &
+    list::insert_front(value && v)
+    {
+        list_->insert(list_->begin(), std::move(v));
+        return *this;
+    }
+
     list::operator std::string () const
     {
         std::string s = "[";
@@ -190,6 +308,36 @@ namespace ikaros
             return  list_->at(i);
         }
 
+       const value &
+       list::operator[] (int i) const
+        {
+            if(i < 0)
+                throw std::out_of_range("List index out of range.");
+            return (*this)[static_cast<size_t>(i)];
+        }
+
+       const value &
+       list::operator[] (size_t i) const
+        {
+            if(i >= list_->size())
+                return null_value();
+            return list_->at(i);
+        }
+
+       const value &
+       list::at(int i) const
+        {
+            if(i < 0)
+                throw std::out_of_range("List index out of range.");
+            return at(static_cast<size_t>(i));
+        }
+
+       const value &
+       list::at(size_t i) const
+        {
+            return list_->at(i);
+        }
+
 
     list list::copy() const
     {
@@ -211,6 +359,42 @@ namespace ikaros
 
 // dictionary
 
+    dictionary::iterator
+    dictionary::begin() noexcept
+    {
+        return dict_->begin();
+    }
+
+    dictionary::iterator
+    dictionary::end() noexcept
+    {
+        return dict_->end();
+    }
+
+    dictionary::const_iterator
+    dictionary::begin() const noexcept
+    {
+        return dict_->begin();
+    }
+
+    dictionary::const_iterator
+    dictionary::end() const noexcept
+    {
+        return dict_->end();
+    }
+
+    dictionary::const_iterator
+    dictionary::cbegin() const noexcept
+    {
+        return dict_->cbegin();
+    }
+
+    dictionary::const_iterator
+    dictionary::cend() const noexcept
+    {
+        return dict_->cend();
+    }
+
 
     value & 
     dictionary::operator[](const char * s)
@@ -221,9 +405,8 @@ namespace ikaros
     const value &
     dictionary::operator[](const char * s) const
     {
-        static const value null_value;
         auto it = dict_->find(s);
-        return (it != dict_->end()) ? it->second : null_value;
+        return (it != dict_->end()) ? it->second : null_value();
     }
 
     value & 
@@ -235,9 +418,8 @@ namespace ikaros
     const value &
     dictionary::operator[](const std::string & s) const
     {
-        static const value null_value;
         auto it = dict_->find(s);
-        return (it != dict_->end()) ? it->second : null_value;
+        return (it != dict_->end()) ? it->second : null_value();
     }
 
     value & 
@@ -528,6 +710,22 @@ namespace ikaros
             return std::get<dictionary>(value_)[s];
         }
 
+        const value &
+        value::operator[] (const char * s) const
+        {
+            if(!std::holds_alternative<dictionary>(value_))
+                return null_value();
+            return std::get<dictionary>(value_)[s];
+        }
+
+        const value &
+        value::operator[] (const std::string & s) const
+        {
+            if(!std::holds_alternative<dictionary>(value_))
+                return null_value();
+            return std::get<dictionary>(value_)[s];
+        }
+
 
         value & 
         value::at(const char * s)
@@ -546,6 +744,25 @@ namespace ikaros
                 return std::get<dictionary>(value_).at(s);
             else
             throw std::out_of_range("Attribute \""+s+"\" not found.");  
+        }
+
+        const value &
+        value::at(const char * s) const
+        {
+            if(std::holds_alternative<dictionary>(value_))
+                return std::get<dictionary>(value_).at(s);
+            else
+                throw std::out_of_range("Attribute \""+std::string(s)+"\" not found.");
+        }
+
+
+        const value &
+        value::at(const std::string & s) const
+        {
+            if(std::holds_alternative<dictionary>(value_))
+                return std::get<dictionary>(value_).at(s);
+            else
+                throw std::out_of_range("Attribute \""+s+"\" not found.");
         }
 
 
@@ -592,7 +809,7 @@ namespace ikaros
             if(std::holds_alternative<list>(value_))
                 return std::get<list>(value_). list_->begin();
             else
-                return empty.begin();
+                return mutable_empty_values().begin();
         }
 
 
@@ -601,7 +818,25 @@ namespace ikaros
             if(std::holds_alternative<list>(value_))
                 return std::get<list>(value_). list_->end();
             else
-                return empty.end();
+                return mutable_empty_values().end();
+        }
+
+
+        std::vector<value>::const_iterator value::begin() const
+        {
+            if(std::holds_alternative<list>(value_))
+                return std::get<list>(value_).list_->begin();
+            else
+                return empty_values().begin();
+        }
+
+
+        std::vector<value>::const_iterator value::end() const
+        {
+            if(std::holds_alternative<list>(value_))
+                return std::get<list>(value_).list_->end();
+            else
+                return empty_values().end();
         }
 
 
@@ -621,6 +856,22 @@ namespace ikaros
             if(std::get<list>(value_). list_->size() < i+1)
                 std::get<list>(value_). list_->resize(i+1);
             return std::get<list>(value_). list_->at(i);
+        }
+
+        const value &
+        value::operator[] (int i) const
+        {
+            if(i < 0)
+                throw std::out_of_range("List index out of range.");
+            return (*this)[static_cast<size_t>(i)];
+        }
+
+        const value &
+        value::operator[] (size_t i) const
+        {
+            if(!std::holds_alternative<list>(value_))
+                return null_value();
+            return std::get<list>(value_)[i];
         }
 
         value::operator std::string () const
@@ -706,13 +957,13 @@ namespace ikaros
         }
 
           
-        value::operator list ()
+        value::operator list () const
         {
             return std::get<list>(value_);
         }
 
   
-        value::operator dictionary ()
+        value::operator dictionary () const
         {
             return std::get<dictionary>(value_);
         }
