@@ -176,6 +176,7 @@ namespace ikaros
         // Initialization
         
             matrix(std::vector<int> shape);
+        ~matrix();
 
 
         template <typename... Args> // Main creator function from matrix sizes as arguments
@@ -213,7 +214,7 @@ namespace ikaros
 
         matrix & clear_labels(int dimension);
         matrix & push_label(int dimension, std::string label, int no_of_columns=1);
-        const std::vector<std::string> labels(int dimension=0) const;
+        const std::vector<std::string> & labels(int dimension=0) const;
         int rank() const;
         bool empty() const;
         bool is_uninitialized() const;
@@ -264,6 +265,7 @@ namespace ikaros
 
 
         operator float & ();
+        operator const float & () const;
         operator float * ();  // Get pointer to data in a row
         operator float ** ();  // Get pointer to data in a row
         float * data(); // Get pointer to the underlying data. Works for all sizes and for submatrices
@@ -667,7 +669,7 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
         void save();
 
         matrix & last();    // Matrix value from last saved state
-        bool changed();     // Has matrix changed since last save
+        bool changed() const;     // Has matrix changed since last save
 
         // Math Functions
 
@@ -677,19 +679,19 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
         // Reduce functions
 
         float sum() const;
-        float product();
+        float product() const;
         float min() const;
         float max() const;
-        float average();
-        float median();
+        float average() const;
+        float median() const;
 
 
-        float matrank();
-        float trace();
-        float det();
+        float matrank() const;
+        float trace() const;
+        float det() const;
         matrix & inv(const matrix & m);
         matrix & pinv(const matrix &);
-        matrix & transpose(matrix &ret);
+        matrix & transpose(matrix &ret) const;
         matrix & eig(const matrix &);
         // lu
         // chol

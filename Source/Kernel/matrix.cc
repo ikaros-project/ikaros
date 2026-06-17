@@ -20,6 +20,8 @@
 
 #include "matrix.h"
 
+#include <mutex>
+
 namespace ikaros {
 
 namespace
@@ -793,7 +795,7 @@ matrix::push_label(int dimension, std::string label, int no_of_columns)
 }
 
 
-const std::vector<std::string>
+const std::vector<std::string> &
 matrix::labels(int dimension) const
 {
     return info_->labels_.at(dimension);
@@ -1241,6 +1243,16 @@ matrix::submatrix(const matrix & m, const rect & region)
 
 
 matrix::operator float & ()
+{
+#ifndef NO_MATRIX_CHECKS
+    if(info_->size_ != 1)
+        throw empty_matrix_error(get_name() + " Not a matrix element.");
+#endif
+    return (*data_)[info_->offset_];
+}
+
+
+matrix::operator const float & () const
 {
 #ifndef NO_MATRIX_CHECKS
     if(info_->size_ != 1)
@@ -3077,9 +3089,9 @@ operator<<(std::ostream & os, const matrix & m)
 }
 
 
-float matrix::matrank() { throw std::logic_error("matrank(). Not implemented."); }
-float matrix::trace() { throw std::logic_error("Not implemented."); }
-float matrix::det() { throw std::logic_error("trace(). Not implemented."); }
+float matrix::matrank() const { throw std::logic_error("matrank(). Not implemented."); }
+float matrix::trace() const { throw std::logic_error("Not implemented."); }
+float matrix::det() const { throw std::logic_error("trace(). Not implemented."); }
 
 
 matrix &
@@ -3098,7 +3110,7 @@ matrix::pinv(const matrix &)
 
 
 matrix &
-matrix::transpose(matrix & ret)
+matrix::transpose(matrix & ret) const
 {
     int rows = this->rows();
     int cols = this->cols();
@@ -3332,7 +3344,7 @@ matrix::sum() const
 
 
 float
-matrix::product()
+matrix::product() const
 {
     float s = 1;
     reduce([&s](float x) { s*=x;});
@@ -3379,7 +3391,7 @@ matrix::max() const
 
 
 float
-matrix::median()
+matrix::median() const
 {
     if(size() == 0)
         throw std::domain_error("Empty matrix has no median");
@@ -3396,7 +3408,7 @@ matrix::median()
 
 
 float
-matrix::average()
+matrix::average() const
 {
     if(size() == 0)
         return 0;
@@ -4939,13 +4951,27 @@ matrix::downsample(const matrix &source)
 
     // Matrix saving list
 
-    std::vector<matrix *> saving_matrices;
+    std::vector<matrix *> &
+    saving_matrices()
+    {
+        static auto * matrices = new std::vector<matrix *>;
+        return *matrices;
+    }
+
+
+    std::mutex &
+    saving_matrices_mutex()
+    {
+        static auto * mutex = new std::mutex;
+        return *mutex;
+    }
 
 
     void
     save_matrix_states()
     {
-        for(auto m : saving_matrices)
+        std::lock_guard<std::mutex> lock(saving_matrices_mutex());
+        for(auto m : saving_matrices())
             m->save();
     }
 
@@ -4953,8 +4979,22 @@ matrix::downsample(const matrix &source)
     void
     clear_matrix_states()
     {
-        saving_matrices.clear();
+        std::lock_guard<std::mutex> lock(saving_matrices_mutex());
+        saving_matrices().clear();
     }
+
+
+        matrix::~matrix()
+        {
+            if(last_==nullptr)
+                return;
+
+            std::lock_guard<std::mutex> lock(saving_matrices_mutex());
+            auto & matrices = saving_matrices();
+            auto i = std::find(matrices.begin(), matrices.end(), this);
+            if(i != matrices.end())
+                matrices.erase(i);
+        }
 
 
 
@@ -4970,7 +5010,10 @@ matrix::downsample(const matrix &source)
         {
             if(last_==nullptr)
             {
-                saving_matrices.push_back(this);
+                std::lock_guard<std::mutex> lock(saving_matrices_mutex());
+                if(last_!=nullptr)
+                    return *last_;
+                saving_matrices().push_back(this);
                 last_ = std::make_shared<matrix>();
                 save();
             }
@@ -4978,7 +5021,7 @@ matrix::downsample(const matrix &source)
         }
 
         bool 
-        matrix::changed()
+        matrix::changed() const
         {
             if(last_==nullptr)
                 return false;

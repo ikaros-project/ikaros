@@ -132,6 +132,14 @@ class MatrixFunctionTestModule : public Module
         require_close(values.average(), 2.5f, "average()");
         require_close(values.median(), 2.5f, "median()");
 
+        const matrix & const_values = values;
+        require_close(const_values.sum(), 10.0f, "const sum()");
+        require_close(const_values.product(), 24.0f, "const product()");
+        require_close(const_values.min(), 1.0f, "const min()");
+        require_close(const_values.max(), 4.0f, "const max()");
+        require_close(const_values.average(), 2.5f, "const average()");
+        require_close(const_values.median(), 2.5f, "const median()");
+
         matrix a = make_matrix("1, 2, 3");
         matrix b = make_matrix("4, 5, 6");
         require_close(dot(a, b), 32.0f, "dot()");
@@ -173,6 +181,26 @@ class MatrixFunctionTestModule : public Module
         matrix transposed;
         original.transpose(transposed);
         require_matrix_close(transposed, make_matrix("1, 3; 2, 4"), "transpose()");
+        const matrix & const_original = original;
+        const_original.transpose(transposed);
+        require_matrix_close(transposed, make_matrix("1, 3; 2, 4"), "const transpose()");
+
+        const matrix & const_scalar = scalar;
+        require_close(static_cast<float>(const_scalar), 0.0f, "const scalar conversion");
+
+        matrix tracked = make_matrix("1, 2");
+        const matrix & const_tracked = tracked;
+        require_true(!const_tracked.changed(), "const changed() is false without saved state");
+        {
+            matrix scoped_tracked = make_matrix("1, 2");
+            scoped_tracked.last();
+            const matrix & const_scoped_tracked = scoped_tracked;
+            require_true(!const_scoped_tracked.changed(), "const changed() is false after save");
+            scoped_tracked(0) = 3.0f;
+            require_true(const_scoped_tracked.changed(), "const changed() detects mutation");
+            scoped_tracked.save();
+            require_true(!const_scoped_tracked.changed(), "const changed() is false after resave");
+        }
 
         matrix stack(3, 2);
         stack.resize(0, 2);
@@ -771,6 +799,9 @@ class MatrixFunctionTestModule : public Module
         matrix tensor(std::vector<int>{2, 3, 4});
         fill_sequence(tensor);
         tensor.set_labels(0, "front", "back");
+        const matrix & const_tensor = tensor;
+        require_equal(const_tensor.labels(0).at(0), "front", "const labels() first label");
+        require_equal(const_tensor.labels(0).at(1), "back", "const labels() second label");
 
         matrix front = tensor[0];
         matrix back = tensor["back"];
