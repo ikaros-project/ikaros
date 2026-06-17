@@ -1,0 +1,8 @@
+<group
+    name="BenchmarkMatrixHotspots"
+    description="Measure matrix hotspot operations"
+    start="true"
+    stop="1"
+>
+    <module name="MatrixFns" class="MatrixFunctionTestModule" suite="benchmark" />
+</group>

@@ -1,5 +1,6 @@
 #include "ikaros.h"
 
+#include <chrono>
 #include <cmath>
 #include <random>
 
@@ -19,6 +20,16 @@ namespace
     {
         if(!condition)
             throw exception("MatrixFunctionTestModule: " + message);
+    }
+
+    void require_equal(const std::string & actual, const std::string & expected, const std::string & message)
+    {
+        if(actual != expected)
+            throw exception(
+                "MatrixFunctionTestModule: " + message +
+                " (expected \"" + expected +
+                "\", got \"" + actual + "\")"
+            );
     }
 
     void require_close(float actual, float expected, const std::string & message, float tolerance = kTolerance)
@@ -76,6 +87,22 @@ namespace
         }
     }
 
+    void fill_sequence(matrix & values)
+    {
+        float value = 1.0f;
+        for(auto ix = values.get_range(); ix.more(); ix++)
+            (*values.data_)[values.compute_index(ix.index())] = value++;
+    }
+
+    template <typename Fn>
+    double measure_ms(Fn && fn)
+    {
+        auto start = std::chrono::steady_clock::now();
+        fn();
+        auto end = std::chrono::steady_clock::now();
+        return std::chrono::duration<double, std::milli>(end - start).count();
+    }
+
     template <typename Fn>
     void require_throws(Fn && fn, const std::string & message)
     {
@@ -112,7 +139,14 @@ class MatrixFunctionTestModule : public Module
 
     void test_scalar_and_shape()
     {
+        matrix uninitialized;
+        require_true(uninitialized.size() == 0, "size() is zero for uninitialized matrix");
+        matrix scalar_source(1);
+        matrix scalar = scalar_source[0];
+        require_true(scalar.size() == 1, "size() is one for scalar matrix");
+
         matrix values = make_matrix("1, 2; 3, 4");
+        require_true(values.size() == 4, "size() is product of shape");
         values.add(1.0f);
         require_matrix_close(values, make_matrix("2, 3; 4, 5"), "add(float)");
         values.subtract(1.0f);
@@ -345,6 +379,26 @@ class MatrixFunctionTestModule : public Module
         matrix conv(2, 2);
         conv.conv_slow(image, kernel);
         require_matrix_close(conv, make_matrix("4, 4; 4, 4"), "conv_slow()");
+
+#if defined(__APPLE__)
+        matrix search_image = make_matrix("0, 0, 0, 0; 0, 1, 2, 0; 0, 3, 9, 0; 0, 0, 0, 0");
+        matrix search_target = make_matrix("1, 2; 3, 9");
+        match contiguous_match = search_image.search(search_target, rect{0, 0, 4, 4});
+        require_close(contiguous_match.x, 1.0f, "search() contiguous x");
+        require_close(contiguous_match.y, 1.0f, "search() contiguous y");
+
+        matrix strided_search_image(4, 8);
+        strided_search_image.set(1000.0f);
+        strided_search_image.resize(4, 4);
+        strided_search_image.copy(search_image);
+        matrix strided_search_target(2, 4);
+        strided_search_target.set(-1000.0f);
+        strided_search_target.resize(2, 2);
+        strided_search_target.copy(search_target);
+        match strided_match = strided_search_image.search(strided_search_target, rect{0, 0, 4, 4});
+        require_close(strided_match.x, contiguous_match.x, "search() row-gapped x");
+        require_close(strided_match.y, contiguous_match.y, "search() row-gapped y");
+#endif
 
         matrix filters(std::vector<int>{2, 2, 2});
         filters(0, 0, 0) = 1.0f;
@@ -712,6 +766,442 @@ class MatrixFunctionTestModule : public Module
         require_matrix_close(div_result, make_matrix("100, 101, 102; 70, 40, 30; 106, 107, 108"), "divide(row, row) honors offset");
     }
 
+    void test_matrix_hotspots()
+    {
+        matrix tensor(std::vector<int>{2, 3, 4});
+        fill_sequence(tensor);
+        tensor.set_labels(0, "front", "back");
+
+        matrix front = tensor[0];
+        matrix back = tensor["back"];
+
+        require_shape(front, {3, 4}, "rank-3 slice shape");
+        require_close(front.sum(), 78.0f, "slice sum()");
+        require_close(back.sum(), 222.0f, "labeled slice sum()");
+        require_close(dot(front, back), 1586.0f, "dot(slice, slice)");
+
+        matrix combined;
+        combined.copy(front);
+        combined.add(back);
+        require_matrix_close(combined, make_matrix("14, 16, 18, 20; 22, 24, 26, 28; 30, 32, 34, 36"), "copy()/add() on slices");
+
+        matrix scaled;
+        scaled.copy(front);
+        scaled.scale(2.0f);
+        require_matrix_close(scaled, make_matrix("2, 4, 6, 8; 10, 12, 14, 16; 18, 20, 22, 24"), "scale() on copied slice");
+
+        matrix row = front[1];
+        require_equal(row.json(), "[5, 6, 7, 8]", "json() on row slice");
+        require_equal(row.csv(), "5.000000,6.000000,7.000000,8.000000\n", "csv() on row slice");
+        require_equal(front.json(), "[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]", "json() on matrix slice");
+
+        back.add(1.0f);
+        require_close(tensor[1].sum(), 234.0f, "labeled slice mutation updates parent");
+
+        matrix reduced;
+        reduced.sum_last_two_dimensions(tensor);
+        require_matrix_close(reduced, make_matrix("78, 234"), "sum_last_two_dimensions() after slice mutation");
+
+        matrix strided_source(2, 4);
+        fill_sequence(strided_source);
+        strided_source.resize(2, 2);
+        require_true(strided_source.size() == 4, "size() is product of logical shape after resize()");
+        matrix strided_target(2, 4);
+        strided_target.resize(2, 2);
+        strided_target.copy(strided_source);
+        require_matrix_close(strided_target, make_matrix("1, 2; 5, 6"), "copy() row blocks with logical row smaller than stride");
+        require_close(strided_source.sum(), 14.0f, "sum() skips row gaps after resize()");
+        require_close(strided_source.average(), 3.5f, "average() uses logical size after resize()");
+        require_close(dot(strided_source, strided_source), 66.0f, "dot() skips row gaps after resize()");
+
+        matrix strided_scaled;
+        strided_scaled.copy(strided_source);
+        strided_scaled.add(1.0f);
+        require_matrix_close(strided_scaled, make_matrix("2, 3; 6, 7"), "add(float) skips row gaps after resize()");
+        strided_scaled.scale(2.0f);
+        require_matrix_close(strided_scaled, make_matrix("4, 6; 12, 14"), "scale(float) skips row gaps after resize()");
+
+        matrix strided_added;
+        strided_added.copy(strided_source);
+        strided_added.add(strided_source);
+        require_matrix_close(strided_added, make_matrix("2, 4; 10, 12"), "add(matrix) skips row gaps after resize()");
+        strided_added.set(3.0f);
+        require_matrix_close(strided_added, make_matrix("3, 3; 3, 3"), "set() skips row gaps after resize()");
+        strided_added.clear();
+        require_true(strided_added.size() == 0, "size() is zero after clear()");
+
+        matrix strided_sum(2, 4);
+        strided_sum.set(100.0f);
+        strided_sum.resize(2, 2);
+        strided_sum.add(strided_source, strided_source);
+        require_matrix_close(strided_sum, make_matrix("2, 4; 10, 12"), "add(A, B) row blocks with logical row smaller than stride");
+        strided_sum.resize(2, 4);
+        require_matrix_close(strided_sum, make_matrix("2, 4, 100, 100; 10, 12, 100, 100"), "add(A, B) leaves row gaps unchanged");
+
+        matrix strided_activation = make_matrix("-1, 2, 100, 100; -5, 6, 100, 100");
+        strided_activation.resize(2, 2);
+        matrix strided_relu(2, 4);
+        strided_relu.set(100.0f);
+        strided_relu.resize(2, 2);
+        strided_relu.relu(strided_activation);
+        require_matrix_close(strided_relu, make_matrix("0, 2; 0, 6"), "relu(A) row blocks with logical row smaller than stride");
+        strided_relu.resize(2, 4);
+        require_matrix_close(strided_relu, make_matrix("0, 2, 100, 100; 0, 6, 100, 100"), "relu(A) leaves row gaps unchanged");
+
+        matrix strided_scaled_output(2, 4);
+        strided_scaled_output.set(100.0f);
+        strided_scaled_output.resize(2, 2);
+        strided_scaled_output.scale(strided_source, 3.0f);
+        require_matrix_close(strided_scaled_output, make_matrix("3, 6; 15, 18"), "scale(A) row blocks with logical row smaller than stride");
+
+        matrix strided_add_scaled(2, 4);
+        strided_add_scaled.set(100.0f);
+        strided_add_scaled.resize(2, 2);
+        strided_add_scaled.add_scaled(strided_source, strided_source, 0.5f);
+        require_matrix_close(strided_add_scaled, make_matrix("1.5, 3; 7.5, 9"), "add_scaled(A, B) row blocks with logical row smaller than stride");
+
+        matrix strided_hypot_x = make_matrix("3, 4, 100, 100; 5, 12, 100, 100");
+        strided_hypot_x.resize(2, 2);
+        matrix strided_hypot_y = make_matrix("4, 3, 100, 100; 12, 5, 100, 100");
+        strided_hypot_y.resize(2, 2);
+        matrix strided_hypot(2, 4);
+        strided_hypot.set(100.0f);
+        strided_hypot.resize(2, 2);
+        strided_hypot.hypot(strided_hypot_x, strided_hypot_y);
+        require_matrix_close(strided_hypot, make_matrix("5, 5; 13, 13"), "hypot() row blocks with logical row smaller than stride");
+        strided_hypot.resize(2, 4);
+        require_matrix_close(strided_hypot, make_matrix("5, 5, 100, 100; 13, 13, 100, 100"), "hypot() leaves row gaps unchanged");
+
+        matrix strided_angle_y = make_matrix("0, 1, 100, 100; 0, -1, 100, 100");
+        strided_angle_y.resize(2, 2);
+        matrix strided_angle_x = make_matrix("1, 0, 100, 100; -1, 0, 100, 100");
+        strided_angle_x.resize(2, 2);
+        matrix strided_angle(2, 4);
+        strided_angle.set(100.0f);
+        strided_angle.resize(2, 2);
+        strided_angle.atan2(strided_angle_y, strided_angle_x);
+        require_matrix_close(strided_angle, make_matrix("0, 1.5707963; 3.1415927, -1.5707963"), "atan2() row blocks with logical row smaller than stride");
+        strided_angle.resize(2, 4);
+        require_matrix_close(strided_angle, make_matrix("0, 1.5707963, 100, 100; 3.1415927, -1.5707963, 100, 100"), "atan2() leaves row gaps unchanged");
+
+        matrix strided_backward(2, 4);
+        strided_backward.set(100.0f);
+        strided_backward.resize(2, 2);
+        strided_backward.relu_backward(strided_source, strided_activation);
+        require_matrix_close(strided_backward, make_matrix("0, 2; 0, 6"), "relu_backward() row blocks with logical row smaller than stride");
+
+        matrix strided_stddev(2, 4);
+        strided_stddev.set(2.0f);
+        strided_stddev.resize(2, 2);
+        matrix strided_epsilon(2, 4);
+        strided_epsilon.set(0.5f);
+        strided_epsilon.resize(2, 2);
+        matrix strided_sample(2, 4);
+        strided_sample.set(100.0f);
+        strided_sample.resize(2, 2);
+        strided_sample.sample_gaussian(strided_source, strided_stddev, strided_epsilon);
+        require_matrix_close(strided_sample, make_matrix("2, 3; 6, 7"), "sample_gaussian() skips row gaps after resize()");
+        strided_sample.resize(2, 4);
+        require_matrix_close(strided_sample, make_matrix("2, 3, 100, 100; 6, 7, 100, 100"), "sample_gaussian() leaves row gaps unchanged");
+
+        matrix strided_mean(2, 4);
+        strided_mean.set(2.0f);
+        strided_mean.resize(2, 2);
+        matrix strided_log_variance(2, 4);
+        strided_log_variance.set(0.0f);
+        strided_log_variance.resize(2, 2);
+
+        matrix strided_log_variance_gradient(2, 4);
+        strided_log_variance_gradient.set(100.0f);
+        strided_log_variance_gradient.resize(2, 2);
+        strided_log_variance_gradient.latent_log_variance_gradient(strided_source, strided_epsilon, strided_stddev, strided_log_variance, 2.0f);
+        require_matrix_close(strided_log_variance_gradient, make_matrix("0.5, 1; 2.5, 3"), "latent_log_variance_gradient() writes row blocks");
+        strided_log_variance_gradient.resize(2, 4);
+        require_matrix_close(strided_log_variance_gradient, make_matrix("0.5, 1, 100, 100; 2.5, 3, 100, 100"), "latent_log_variance_gradient() leaves row gaps unchanged");
+
+        matrix strided_d_mean(2, 4);
+        strided_d_mean.set(100.0f);
+        strided_d_mean.resize(2, 2);
+        matrix strided_d_log_variance(2, 4);
+        strided_d_log_variance.set(100.0f);
+        strided_d_log_variance.resize(2, 2);
+        strided_d_mean.latent_sample_gradients(strided_d_log_variance, strided_source, strided_mean, strided_epsilon, strided_stddev, strided_log_variance, 2.0f);
+        require_matrix_close(strided_d_mean, make_matrix("5, 6; 9, 10"), "latent_sample_gradients() writes d_mean row blocks");
+        require_matrix_close(strided_d_log_variance, make_matrix("0.5, 1; 2.5, 3"), "latent_sample_gradients() writes d_log_variance row blocks");
+        strided_d_mean.resize(2, 4);
+        strided_d_log_variance.resize(2, 4);
+        require_matrix_close(strided_d_mean, make_matrix("5, 6, 100, 100; 9, 10, 100, 100"), "latent_sample_gradients() leaves d_mean row gaps unchanged");
+        require_matrix_close(strided_d_log_variance, make_matrix("0.5, 1, 100, 100; 2.5, 3, 100, 100"), "latent_sample_gradients() leaves d_log_variance row gaps unchanged");
+
+        strided_d_mean.set(100.0f);
+        strided_d_mean.resize(2, 2);
+        strided_d_log_variance.set(100.0f);
+        strided_d_log_variance.resize(2, 2);
+        strided_d_mean.latent_mean_gradients(strided_d_log_variance, strided_source, strided_mean, strided_log_variance, 2.0f);
+        require_matrix_close(strided_d_mean, make_matrix("5, 6; 9, 10"), "latent_mean_gradients() writes d_mean row blocks");
+        require_matrix_close(strided_d_log_variance, make_matrix("0, 0; 0, 0"), "latent_mean_gradients() writes d_log_variance row blocks");
+        strided_d_mean.resize(2, 4);
+        strided_d_log_variance.resize(2, 4);
+        require_matrix_close(strided_d_mean, make_matrix("5, 6, 100, 100; 9, 10, 100, 100"), "latent_mean_gradients() leaves d_mean row gaps unchanged");
+        require_matrix_close(strided_d_log_variance, make_matrix("0, 0, 100, 100; 0, 0, 100, 100"), "latent_mean_gradients() leaves d_log_variance row gaps unchanged");
+
+        strided_d_mean.set(100.0f);
+        strided_d_mean.resize(2, 2);
+        strided_d_log_variance.set(100.0f);
+        strided_d_log_variance.resize(2, 2);
+        strided_d_mean.latent_kl_gradients(strided_d_log_variance, strided_mean, strided_log_variance, 2.0f);
+        require_matrix_close(strided_d_mean, make_matrix("4, 4; 4, 4"), "latent_kl_gradients() writes d_mean row blocks");
+        require_matrix_close(strided_d_log_variance, make_matrix("0, 0; 0, 0"), "latent_kl_gradients() writes d_log_variance row blocks");
+        strided_d_mean.resize(2, 4);
+        strided_d_log_variance.resize(2, 4);
+        require_matrix_close(strided_d_mean, make_matrix("4, 4, 100, 100; 4, 4, 100, 100"), "latent_kl_gradients() leaves d_mean row gaps unchanged");
+        require_matrix_close(strided_d_log_variance, make_matrix("0, 0, 100, 100; 0, 0, 100, 100"), "latent_kl_gradients() leaves d_log_variance row gaps unchanged");
+
+        matrix strided_adam_values(2, 4);
+        strided_adam_values.set(10.0f);
+        strided_adam_values.resize(2, 2);
+        matrix strided_adam_gradient(2, 4);
+        strided_adam_gradient.set(2.0f);
+        strided_adam_gradient.resize(2, 2);
+        matrix strided_first_moment(2, 4);
+        strided_first_moment.set(0.0f);
+        strided_first_moment.resize(2, 2);
+        matrix strided_second_moment(2, 4);
+        strided_second_moment.set(0.0f);
+        strided_second_moment.resize(2, 2);
+        strided_adam_values.adam_update(strided_adam_gradient, strided_first_moment, strided_second_moment, 0.1f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
+        require_matrix_close(strided_adam_values, make_matrix("9.9, 9.9; 9.9, 9.9"), "adam_update() updates values row blocks");
+        require_matrix_close(strided_first_moment, make_matrix("2, 2; 2, 2"), "adam_update() updates first moment row blocks");
+        require_matrix_close(strided_second_moment, make_matrix("4, 4; 4, 4"), "adam_update() updates second moment row blocks");
+        strided_adam_values.resize(2, 4);
+        require_matrix_close(strided_adam_values, make_matrix("9.9, 9.9, 10, 10; 9.9, 9.9, 10, 10"), "adam_update() leaves value row gaps unchanged");
+
+        matrix strided_tensor(std::vector<int>{2, 2, 4});
+        fill_sequence(strided_tensor);
+        strided_tensor.resize(2, 2, 2);
+        matrix strided_reduced;
+        strided_reduced.sum_last_two_dimensions(strided_tensor);
+        require_matrix_close(strided_reduced, make_matrix("14, 46"), "sum_last_two_dimensions() skips row gaps after resize()");
+
+        matrix reserved_clip(4, 2);
+        fill_sequence(reserved_clip);
+        reserved_clip.resize(1, 2);
+        reserved_clip.clip(0.0f, 1.5f);
+        require_matrix_close(reserved_clip[0], make_matrix("1, 1.5"), "clip() uses logical size for contiguous dynamic capacity");
+        reserved_clip.resize(4, 2);
+        require_matrix_close(reserved_clip, make_matrix("1, 1.5; 3, 4; 5, 6; 7, 8"), "clip() leaves capacity outside logical shape unchanged");
+
+        matrix reserved_gradient(4, 2);
+        reserved_gradient.set(10.0f);
+        reserved_gradient.resize(1, 2);
+        matrix reserved_output(4, 2);
+        reserved_output.set(0.5f);
+        reserved_output.resize(1, 2);
+        reserved_gradient.multiply_sigmoid_derivative(reserved_output);
+        require_matrix_close(reserved_gradient[0], make_matrix("2.5, 2.5"), "multiply_sigmoid_derivative() uses logical size for contiguous dynamic capacity");
+        reserved_gradient.resize(4, 2);
+        require_matrix_close(reserved_gradient, make_matrix("2.5, 2.5; 10, 10; 10, 10; 10, 10"), "multiply_sigmoid_derivative() leaves capacity outside logical shape unchanged");
+    }
+
+    void benchmark_hotspots()
+    {
+        constexpr int channels = 8;
+        constexpr int rows = 64;
+        constexpr int cols = 64;
+        constexpr int iterations = 200;
+
+        matrix source(std::vector<int>{channels, rows, cols});
+        fill_sequence(source);
+        matrix target(std::vector<int>{channels, rows, cols});
+        matrix reduced(channels);
+
+        double checksum = 0.0;
+
+        double contiguous_copy_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                target.copy(source);
+            checksum += target(0, 0, 0);
+        });
+
+        double slice_copy_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                target[i % channels].copy(source[(i + 1) % channels]);
+            checksum += target[0].sum();
+        });
+
+        double slice_apply_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                target[i % channels].add(source[(i + 2) % channels]);
+            checksum += target[1].sum();
+        });
+
+        double full_sum_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                checksum += source.sum();
+        });
+
+        double slice_sum_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                checksum += source[i % channels].sum();
+        });
+
+        double sum_last_two_dimensions_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                reduced.sum_last_two_dimensions(source);
+            checksum += reduced.sum();
+        });
+
+        double dot_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                checksum += dot(source[i % channels], source[(i + 3) % channels]);
+        });
+
+        double serialization_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < 20; ++i)
+            {
+                checksum += source[i % channels].json().size();
+                checksum += source[i % channels].csv().size();
+            }
+        });
+
+        matrix row_gapped_source(rows, cols * 2);
+        fill_sequence(row_gapped_source);
+        row_gapped_source.resize(rows, cols);
+        matrix row_gapped_target(rows, cols * 2);
+        row_gapped_target.resize(rows, cols);
+        matrix row_gapped_other(rows, cols * 2);
+        fill_sequence(row_gapped_other);
+        row_gapped_other.scale(0.5f);
+        row_gapped_other.resize(rows, cols);
+        matrix row_gapped_aux(rows, cols * 2);
+        row_gapped_aux.set(0.25f);
+        row_gapped_aux.resize(rows, cols);
+        matrix row_gapped_log_variance(rows, cols * 2);
+        row_gapped_log_variance.set(0.0f);
+        row_gapped_log_variance.resize(rows, cols);
+        matrix row_gapped_d_log_variance(rows, cols * 2);
+        row_gapped_d_log_variance.resize(rows, cols);
+        matrix row_gapped_first_moment(rows, cols * 2);
+        row_gapped_first_moment.set(0.0f);
+        row_gapped_first_moment.resize(rows, cols);
+        matrix row_gapped_second_moment(rows, cols * 2);
+        row_gapped_second_moment.set(0.0f);
+        row_gapped_second_moment.resize(rows, cols);
+        matrix row_gapped_adam_values(rows, cols * 2);
+        row_gapped_adam_values.set(1.0f);
+        row_gapped_adam_values.resize(rows, cols);
+
+        constexpr int row_gap_iterations = 500;
+
+        double row_gapped_copy_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < row_gap_iterations; ++i)
+                row_gapped_target.copy(row_gapped_source);
+            checksum += row_gapped_target.sum();
+        });
+
+        double row_gapped_unary_apply_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < row_gap_iterations; ++i)
+                row_gapped_target.copy(row_gapped_source).scale(1.001f);
+            checksum += row_gapped_target.sum();
+        });
+
+        double row_gapped_binary_apply_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < row_gap_iterations; ++i)
+                row_gapped_target.copy(row_gapped_source).add(row_gapped_other);
+            checksum += row_gapped_target.sum();
+        });
+
+        double row_gapped_ternary_apply_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < row_gap_iterations; ++i)
+                row_gapped_target.add(row_gapped_source, row_gapped_other);
+            checksum += row_gapped_target.sum();
+        });
+
+        double row_gapped_hypot_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < row_gap_iterations; ++i)
+                row_gapped_target.hypot(row_gapped_source, row_gapped_other);
+            checksum += row_gapped_target.sum();
+        });
+
+        double row_gapped_sample_gaussian_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < row_gap_iterations; ++i)
+                row_gapped_target.sample_gaussian(row_gapped_source, row_gapped_other, row_gapped_aux);
+            checksum += row_gapped_target.sum();
+        });
+
+        double row_gapped_latent_log_variance_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < row_gap_iterations; ++i)
+                row_gapped_target.latent_log_variance_gradient(row_gapped_source, row_gapped_aux, row_gapped_other, row_gapped_log_variance, 0.1f);
+            checksum += row_gapped_target.sum();
+        });
+
+        double row_gapped_latent_sample_gradients_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < row_gap_iterations; ++i)
+                row_gapped_target.latent_sample_gradients(row_gapped_d_log_variance, row_gapped_source, row_gapped_other, row_gapped_aux, row_gapped_other, row_gapped_log_variance, 0.1f);
+            checksum += row_gapped_target.sum() + row_gapped_d_log_variance.sum();
+        });
+
+        double row_gapped_latent_mean_gradients_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < row_gap_iterations; ++i)
+                row_gapped_target.latent_mean_gradients(row_gapped_d_log_variance, row_gapped_source, row_gapped_other, row_gapped_log_variance, 0.1f);
+            checksum += row_gapped_target.sum() + row_gapped_d_log_variance.sum();
+        });
+
+        double row_gapped_latent_kl_gradients_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < row_gap_iterations; ++i)
+                row_gapped_target.latent_kl_gradients(row_gapped_d_log_variance, row_gapped_other, row_gapped_log_variance, 0.1f);
+            checksum += row_gapped_target.sum() + row_gapped_d_log_variance.sum();
+        });
+
+        double row_gapped_adam_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < row_gap_iterations; ++i)
+                row_gapped_adam_values.adam_update(row_gapped_aux, row_gapped_first_moment, row_gapped_second_moment, 0.001f, 0.9f, 0.999f, 0.1f, 0.001f, 1e-8f);
+            checksum += row_gapped_adam_values.sum();
+        });
+
+        std::cout << "MATRIX BENCHMARK hotspots"
+                  << " contiguous_copy_ms=" << contiguous_copy_ms
+                  << " slice_copy_ms=" << slice_copy_ms
+                  << " slice_apply_ms=" << slice_apply_ms
+                  << " full_sum_ms=" << full_sum_ms
+                  << " slice_sum_ms=" << slice_sum_ms
+                  << " sum_last_two_dimensions_ms=" << sum_last_two_dimensions_ms
+                  << " dot_ms=" << dot_ms
+                  << " serialization_ms=" << serialization_ms
+                  << " row_gapped_copy_ms=" << row_gapped_copy_ms
+                  << " row_gapped_unary_apply_ms=" << row_gapped_unary_apply_ms
+                  << " row_gapped_binary_apply_ms=" << row_gapped_binary_apply_ms
+                  << " row_gapped_ternary_apply_ms=" << row_gapped_ternary_apply_ms
+                  << " row_gapped_hypot_ms=" << row_gapped_hypot_ms
+                  << " row_gapped_sample_gaussian_ms=" << row_gapped_sample_gaussian_ms
+                  << " row_gapped_latent_log_variance_ms=" << row_gapped_latent_log_variance_ms
+                  << " row_gapped_latent_sample_gradients_ms=" << row_gapped_latent_sample_gradients_ms
+                  << " row_gapped_latent_mean_gradients_ms=" << row_gapped_latent_mean_gradients_ms
+                  << " row_gapped_latent_kl_gradients_ms=" << row_gapped_latent_kl_gradients_ms
+                  << " row_gapped_adam_ms=" << row_gapped_adam_ms
+                  << " checksum=" << checksum
+                  << std::endl;
+    }
+
     void test_output_size_contracts()
     {
         matrix original = make_matrix("1, 2; 3, 4");
@@ -796,6 +1286,10 @@ class MatrixFunctionTestModule : public Module
             test_image();
         else if(suite == "submatrix")
             test_submatrix_views();
+        else if(suite == "hotspots")
+            test_matrix_hotspots();
+        else if(suite == "benchmark")
+            benchmark_hotspots();
         else if(suite == "contracts")
             test_output_size_contracts();
         else

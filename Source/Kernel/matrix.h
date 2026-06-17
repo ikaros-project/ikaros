@@ -90,15 +90,15 @@ namespace ikaros
         std::vector<int> shape_;                        // size of each dimension of the matrix
         std::vector<int> stride_;                       // stride for jumping to the next row - necessary for submatrices
         std::vector<int> max_size_;                     // shape of allocated memory; same as stride for main matrix
-        int size_;                                      // the size of the data, is different from data_.size() for submatrices
-        bool continuous;                                // the data is continuous in memory
+        int size_;                                      // internal storage/span size; rank-0 uses 0 for uninitialized and 1 for scalar
+        bool has_contiguous_logical_storage;             // logical matrix data can be traversed as one contiguous span
         bool dynamic_;                                  // logical shape can change while capacity stays fixed
         bool fixed_capacity_;                           // append must not grow beyond max_size_
         std::string name_;                              // name of the matrix, used when printing and possibly for access in the future
         std::vector<std::vector<std::string>> labels_;  // label for each 'column' in each dimension; will be used for tables in the future
 
 
-        size_t calculate_size() // Calculate the number of elements in the matrix; this can be different from its size in memory
+        size_t calculate_size() const // Calculate the number of elements in the matrix; this can be different from its size in memory
         {
             if(shape_.empty())
                 return 0;
@@ -108,6 +108,16 @@ namespace ikaros
 
         matrix_info() {}
         matrix_info(std::vector<int> shape);
+        void refresh_logical_layout()
+        {
+            has_contiguous_logical_storage = true;
+            for(std::size_t d = 1; d < shape_.size(); ++d)
+                if(stride_[d] != shape_[d])
+                {
+                    has_contiguous_logical_storage = false;
+                    break;
+                }
+        }
         void print(std::string n="") const; // print matrix info; n overrides name if set (useful during debugging)
     };
 
@@ -389,7 +399,7 @@ namespace ikaros
 
         const std::vector<int>& shape() const;
         const std::vector<int>& capacity() const;
-        int size() const; // Size of full data
+        int size() const; // Number of logical elements, i.e. product of shape()
         int shape(int dim) const; // Size of one dimension; negative indices means from the back
         int size(int dim) const; // Compatibility alias for shape(int dim)
         int rows() const;
@@ -415,6 +425,7 @@ namespace ikaros
                     throw std::out_of_range(get_name()+"New size larger than allocated space.");
             #endif
             info_->shape_ = v;
+            info_->refresh_logical_layout();
             return *this;
         }
 
@@ -451,6 +462,7 @@ namespace ikaros
             info_->shape_ = std::vector<int>({new_shape...});
             info_->stride_ = info_->shape_;
             info_->max_size_ = info_->shape_;
+            info_->refresh_logical_layout();
             info_->labels_.resize(info_->shape_.size());
             return *this;
         }
@@ -469,6 +481,7 @@ namespace ikaros
             info_->shape_ = new_shape;
             info_->stride_ = info_->shape_;
             info_->max_size_ = info_->shape_;
+            info_->refresh_logical_layout();
             info_->labels_.resize(info_->shape_.size());
             return *this;
         }
@@ -480,7 +493,7 @@ namespace ikaros
         matrix & push(const matrix & m, bool extend=false);
         matrix & push(float v); // push a scalar to the end of the matrix
         matrix & pop(matrix & m); // pop the last element from m and copy to the current matrix; sizes must match
-        matrix operator[](std::string n);
+        matrix operator[](const std::string & n);
         matrix operator[](const char * n);
         float operator=(float v); // Set the element of the single element matrix to a value
         
