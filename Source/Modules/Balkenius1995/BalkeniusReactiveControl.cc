@@ -10,14 +10,13 @@ class BalkeniusReactiveControl : public Module
 {
     matrix sensors_;
     matrix odour_;
-    matrix custom_weights_;
     matrix motor_;
     matrix sensory_;
     matrix nodes_;
-    matrix weight_output_;
     matrix raw_motor_;
 
     parameter behavior_;
+    parameter weights_;
     parameter a_;
     parameter b_;
     parameter c_;
@@ -31,14 +30,13 @@ class BalkeniusReactiveControl : public Module
     {
         Bind(sensors_, "SENSORS");
         Bind(odour_, "ODOUR");
-        Bind(custom_weights_, "WEIGHTS");
         Bind(motor_, "MOTOR");
         Bind(sensory_, "SENSORY");
         Bind(nodes_, "NODES");
-        Bind(weight_output_, "WEIGHT_OUTPUT");
         Bind(raw_motor_, "RAW_MOTOR");
 
         Bind(behavior_, "behavior");
+        Bind(weights_, "weights");
         Bind(a_, "a");
         Bind(b_, "b");
         Bind(c_, "c");
@@ -54,52 +52,12 @@ class BalkeniusReactiveControl : public Module
         return std::max(0.0f, x);
     }
 
-    std::array<float, 6> PresetWeights()
+    std::array<float, 6> ControlWeights()
     {
-        const float a = a_;
-        const float b = b_;
-        const float c = c_;
-        matrix behavior_matrix = behavior_;
-        const int behavior = behavior_matrix.empty() ? 0 : static_cast<int>(std::round(behavior_matrix(0)));
-
-        // Weight order follows Table 4.2.11: m, n, o, p, q, r.
         std::array<float, 6> w = {0, 0, 0, 0, 0, 0};
-
-        if (behavior == 12)
-        {
-            if (custom_weights_.connected())
-                for (int i = 0; i < 6 && i < custom_weights_.size(); ++i)
-                    w[i] = custom_weights_(i);
-            return w;
-        }
-
-        if (behavior == 0)
-            w = {a, 0, 0, 0, 0, 0};
-        else if (behavior == 1)
-            w = {0, a, 0, 0, 0, c};
-        else if (behavior == 2)
-            w = {a, 0, b, 0, 0, 0};
-        else if (behavior == 3)
-            w = {0, a, 0, 0, b, c};
-        else if (behavior == 4)
-            w = {a, 0, 0, b, 0, 0};
-        else if (behavior == 5)
-            w = {0, 0, a, 0, 0, 0};
-        else if (behavior == 6)
-            w = {0, 0, 0, 0, a, c};
-        else if (behavior == 7)
-            w = {b, 0, a, 0, 0, 0};
-        else if (behavior == 8)
-            w = {0, b, 0, 0, a, c};
-        else if (behavior == 9)
-            w = {0, 0, 0, a, 0, c};
-        else if (behavior == 10)
-            w = {a, a, 0, 0, 0, 0};
-        else if (behavior == 11)
-            w = {0, 0, a, 0, a, 0};
-        else
-            Notify(msg_warning, "Unknown behavior preset; using zero weights.");
-
+        matrix weights = weights_;
+        for (int i = 0; i < 6 && i < weights.size(); ++i)
+            w[i] = weights(i);
         return w;
     }
 
@@ -126,7 +84,7 @@ class BalkeniusReactiveControl : public Module
     void Tick()
     {
         const std::array<float, 2> s = ReadSensors();
-        const std::array<float, 6> w = PresetWeights();
+        const std::array<float, 6> w = ControlWeights();
 
         const float s_left = s[0];
         const float s_right = s[1];
@@ -165,9 +123,6 @@ class BalkeniusReactiveControl : public Module
         nodes_(0) = a_left;
         nodes_(1) = q_passive;
         nodes_(2) = a_right;
-
-        for (int i = 0; i < 6; ++i)
-            weight_output_(i) = w[i];
     }
 };
 
