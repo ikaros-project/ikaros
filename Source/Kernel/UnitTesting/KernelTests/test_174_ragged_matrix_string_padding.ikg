@@ -1,0 +1,9 @@
+<group name="TestRaggedMatrixStringPadding"
+    description="Test ragged matrix strings pad missing values with zero"
+    start="true"
+    stop="0"
+    info="true"
+    expected_output_contains="TestRaggedMatrixStringPadding.Const.data: [[1, 2], [3, 0]]">
+
+    <module name="Const" class="Constant" data="1, 2; 3" />
+</group>

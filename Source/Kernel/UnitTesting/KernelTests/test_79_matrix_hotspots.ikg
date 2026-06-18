@@ -1,0 +1,9 @@
+<group
+    name="Test_79"
+    description="Exercise matrix hotspot operations before view optimizations"
+    start="true"
+    stop="1"
+    expected_output_contains="MATRIX TEST hotspots OK"
+>
+    <module name="MatrixFns" class="MatrixFunctionTestModule" suite="hotspots" />
+</group>

@@ -20,6 +20,8 @@
 
 #include "matrix.h"
 
+#include <mutex>
+
 namespace ikaros {
 
 namespace
@@ -301,7 +303,7 @@ parse_matrix_token(const std::string & token)
 
 
 matrix_info::matrix_info(std::vector<int> shape):
-    offset_(0), shape_(shape), stride_(shape), max_size_(shape), size_(calculate_size()), continuous(true), dynamic_(false), fixed_capacity_(false), labels_(shape.size())
+    offset_(0), shape_(shape), stride_(shape), max_size_(shape), size_(calculate_size()), has_contiguous_logical_storage(true), dynamic_(false), fixed_capacity_(false), labels_(shape.size())
 {}
 
 
@@ -315,9 +317,169 @@ matrix_info::print(std::string n) const
     print_attribute_value("max_size", max_size_);
     print_attribute_value("size", size_);
     print_attribute_value("offeset", offset_);
+    print_attribute_value("has_contiguous_logical_storage", has_contiguous_logical_storage);
     print_attribute_value("dynamic", dynamic_);
     print_attribute_value("fixed_capacity", fixed_capacity_);
     print_attribute_value("labels", labels_);
+}
+
+
+namespace
+{
+int
+compute_index_unchecked(const matrix_info & info, const std::vector<int> & v)
+{
+    int index = info.offset_;
+    int stride = 1;
+    for(int i = static_cast<int>(info.stride_.size()) - 1; i >= 0; --i)
+    {
+        index += v[i] * stride;
+        stride *= info.stride_[i];
+    }
+    return index;
+}
+
+
+template <typename Fn>
+void
+for_each_logical_row(const matrix & m, Fn f)
+{
+    const int matrix_rank = m.rank();
+    const int row_length = m.shape(-1);
+    const int total_size = m.size();
+    if(total_size == 0 || row_length == 0)
+        return;
+
+    const int row_count = total_size / row_length;
+    std::vector<int> index(matrix_rank, 0);
+
+    for(int row = 0; row < row_count; ++row)
+    {
+        int remaining = row;
+        for(int d = matrix_rank - 2; d >= 0; --d)
+        {
+            const int extent = m.shape(d);
+            index[d] = remaining % extent;
+            remaining /= extent;
+        }
+
+        f(index, row_length);
+    }
+}
+
+
+matrix &
+copy_row_blocks(matrix & target, const matrix & source)
+{
+    for_each_logical_row(target, [&](const std::vector<int> & index, int row_length)
+    {
+        const int target_index = compute_index_unchecked(*target.info_, index);
+        const int source_index = compute_index_unchecked(*source.info_, index);
+        std::copy_n(source.data_->begin() + source_index, row_length, target.data_->begin() + target_index);
+    });
+
+    return target;
+}
+
+
+template <typename Fn>
+matrix &
+apply_unary_row_blocks(matrix & target, Fn f)
+{
+    for_each_logical_row(target, [&](const std::vector<int> & index, int row_length)
+    {
+        float * target_values = target.data_->data() + compute_index_unchecked(*target.info_, index);
+        for(int col = 0; col < row_length; ++col)
+            target_values[col] = f(target_values[col]);
+    });
+
+    return target;
+}
+
+
+template <typename Fn>
+matrix &
+apply_binary_row_blocks(matrix & target, const matrix & source, Fn f)
+{
+    for_each_logical_row(target, [&](const std::vector<int> & index, int row_length)
+    {
+        float * target_values = target.data_->data() + compute_index_unchecked(*target.info_, index);
+        const float * source_values = source.data_->data() + compute_index_unchecked(*source.info_, index);
+        for(int col = 0; col < row_length; ++col)
+            target_values[col] = f(target_values[col], source_values[col]);
+    });
+
+    return target;
+}
+
+
+template <typename Fn>
+matrix &
+apply_ternary_row_blocks(matrix & target, const matrix & A, const matrix & B, Fn f)
+{
+    for_each_logical_row(target, [&](const std::vector<int> & index, int row_length)
+    {
+        float * target_values = target.data_->data() + compute_index_unchecked(*target.info_, index);
+        const float * a_values = A.data_->data() + compute_index_unchecked(*A.info_, index);
+        const float * b_values = B.data_->data() + compute_index_unchecked(*B.info_, index);
+        for(int col = 0; col < row_length; ++col)
+            target_values[col] = f(a_values[col], b_values[col]);
+    });
+
+    return target;
+}
+
+
+template <typename Fn>
+matrix &
+apply_quaternary_row_blocks(matrix & target, const matrix & A, const matrix & B, const matrix & C, Fn f)
+{
+    for_each_logical_row(target, [&](const std::vector<int> & index, int row_length)
+    {
+        float * target_values = target.data_->data() + compute_index_unchecked(*target.info_, index);
+        const float * a_values = A.data_->data() + compute_index_unchecked(*A.info_, index);
+        const float * b_values = B.data_->data() + compute_index_unchecked(*B.info_, index);
+        const float * c_values = C.data_->data() + compute_index_unchecked(*C.info_, index);
+        for(int col = 0; col < row_length; ++col)
+            target_values[col] = f(a_values[col], b_values[col], c_values[col]);
+    });
+
+    return target;
+}
+
+
+matrix
+make_slice(const matrix & parent, int i)
+{
+    matrix r(std::vector<int>{});
+    r.data_ = parent.data_;
+    r.info_ = std::make_shared<matrix_info>();
+
+    const auto & parent_info = *parent.info_;
+    int new_offset = i;
+    for(int d = static_cast<int>(parent_info.stride_.size()) - 1; d > 0; --d)
+        new_offset *= parent_info.stride_.at(d);
+
+    r.info_->offset_ = parent_info.offset_ + new_offset;
+    r.info_->shape_ = {parent_info.shape_.begin() + 1, parent_info.shape_.end()};
+    r.info_->stride_ = {parent_info.stride_.begin() + 1, parent_info.stride_.end()};
+    r.info_->max_size_ = {parent_info.max_size_.begin() + 1, parent_info.max_size_.end()};
+    r.info_->size_ = static_cast<int>(r.info_->calculate_size());
+    if(r.info_->size_ == 0)
+        r.info_->size_ = 1;
+    r.info_->refresh_logical_layout();
+    r.info_->dynamic_ = parent_info.dynamic_;
+    r.info_->fixed_capacity_ = parent_info.fixed_capacity_;
+    r.info_->name_ = parent_info.name_;
+    r.info_->labels_ = {parent_info.labels_.begin() + 1, parent_info.labels_.end()};
+
+    if(parent_info.labels_.at(0).size() > static_cast<std::size_t>(i))
+        r.info_->name_ += std::string(".") + parent_info.labels_.at(0).at(i);
+    else
+        r.info_->name_ += "[" + std::to_string(i) + "]";
+
+    return r;
+}
 }
 
 
@@ -365,11 +527,7 @@ matrix::operator=(std::string & data_string)
     {
         std::string trimmed = trim(token);
         if(trimmed.empty())
-            throw std::invalid_argument(
-                "Invalid matrix value at row " + std::to_string(row_index + 1) +
-                ", column " + std::to_string(column_index + 1) +
-                ": empty value."
-            );
+            return 0;
 
         try
         {
@@ -385,8 +543,13 @@ matrix::operator=(std::string & data_string)
         }
     };
 
-    int x = row.size();
     int y = rows.size();
+    if(!sanitized.empty() && sanitized.back() == ';')
+        y--;
+
+    int x = 0;
+    for(int j = 0; j < y; ++j)
+        x = std::max(x, static_cast<int>(split(rows.at(j), ",").size()));
 
     if(rows.size() == 1)
     {
@@ -397,11 +560,11 @@ matrix::operator=(std::string & data_string)
     else
     {
         realloc(y, x);
-        for(std::size_t j = 0; j < rows.size(); ++j)
+        for(int j = 0; j < y; ++j)
         {
-            auto r = split(rows.at(j), ",");
+            auto & r = split(rows.at(j), ",");
             for(std::size_t i = 0; i < r.size(); ++i)
-                (*this)(static_cast<int>(j), static_cast<int>(i)) = parse_value_at(r.at(i), static_cast<int>(j), static_cast<int>(i));
+                (*this)(j, static_cast<int>(i)) = parse_value_at(r.at(i), j, static_cast<int>(i));
         }
     }
 }
@@ -422,11 +585,7 @@ matrix::matrix(const std::string & data_string)
         {
             std::string trimmed = trim(token);
             if(trimmed.empty())
-                throw std::invalid_argument(
-                    "Invalid matrix value at row " + std::to_string(row_index + 1) +
-                    ", column " + std::to_string(column_index + 1) +
-                    ": empty value."
-                );
+                return 0;
 
             try
             {
@@ -442,11 +601,14 @@ matrix::matrix(const std::string & data_string)
             }
         };
 
-        int x = row.size();
         int y = rows.size();
 
         if(!sanitized.empty() && sanitized.back() == ';')
             y--;
+
+        int x = 0;
+        for(int j = 0; j < y; ++j)
+            x = std::max(x, static_cast<int>(split(rows.at(j), ",").size()));
 
         if(rows.size() == 1)
         {
@@ -463,15 +625,15 @@ matrix::matrix(const std::string & data_string)
 
             for(int j = 0; j < y; ++j)
             {
-                auto r = split(rows.at(j), ",");
-                for(std::size_t i = 0; i < row.size(); ++i)
+                auto & r = split(rows.at(j), ",");
+                for(std::size_t i = 0; i < r.size(); ++i)
                     (*this)(j, static_cast<int>(i)) = parse_value_at(r.at(i), j, static_cast<int>(i));
             }
         }
     }
     catch(std::out_of_range &)
     {
-        throw std::invalid_argument("Invalid matrix string: inconsistent number of values in rows.");
+        throw std::invalid_argument("Invalid matrix string.");
     }
     catch(std::invalid_argument &)
     {
@@ -492,26 +654,7 @@ matrix::operator[](int i)
     if(i < 0 || i >= info_->shape_.front())
         throw std::out_of_range("Index out of range");
 #endif
-    matrix r = *this;
-    r.info_ = std::make_shared<matrix_info>(this->info_->shape_);
-    *r.info_ = *info_;
-    int new_offset = i;
-    for(int d = info_->stride_.size() - 1; d > 0; --d)
-        new_offset *= info_->stride_.at(d);
-    r.info_->offset_ += new_offset;
-    r.info_->shape_ = {info_->shape_.begin() + 1, info_->shape_.end()};
-    r.info_->stride_ = {info_->stride_.begin() + 1, info_->stride_.end()};
-    r.info_->max_size_ = {info_->max_size_.begin() + 1, info_->max_size_.end()};
-    r.info_->size_ = r.info_->calculate_size();
-    if(r.info_->size_ == 0)
-        r.info_->size_ = 1;
-
-    if(info_->labels_.at(0).size() > static_cast<std::size_t>(i))
-        r.info_->name_ += std::string(".") + info_->labels_.at(0).at(i);
-    else
-        r.info_->name_ += "[" + std::to_string(i) + "]";
-    r.info_->labels_.erase(r.info_->labels_.begin());
-    return r;
+    return make_slice(*this, i);
 }
 
 
@@ -522,26 +665,7 @@ matrix::operator[](int i) const
     if(i < 0 || i >= info_->shape_.front())
         throw std::out_of_range("Index out of range");
 #endif
-    matrix r = *this;
-    r.info_ = std::make_shared<matrix_info>(this->info_->shape_);
-    *r.info_ = *info_;
-    int new_offset = i;
-    for(int d = info_->stride_.size() - 1; d > 0; --d)
-        new_offset *= info_->stride_.at(d);
-    r.info_->offset_ += new_offset;
-    r.info_->shape_ = {info_->shape_.begin() + 1, info_->shape_.end()};
-    r.info_->stride_ = {info_->stride_.begin() + 1, info_->stride_.end()};
-    r.info_->max_size_ = {info_->max_size_.begin() + 1, info_->max_size_.end()};
-    r.info_->size_ = r.info_->calculate_size();
-    if(r.info_->size_ == 0)
-        r.info_->size_ = 1;
-
-    if(info_->labels_.at(0).size() > static_cast<std::size_t>(i))
-        r.info_->name_ += std::string(".") + info_->labels_.at(0).at(i);
-    else
-        r.info_->name_ += "[" + std::to_string(i) + "]";
-    r.info_->labels_.erase(r.info_->labels_.begin());
-    return r;
+    return make_slice(*this, i);
 }
 
 
@@ -611,6 +735,7 @@ matrix::matrix(std::initializer_list<InitList> list):
     info_->stride_ = info_->shape_;
     info_->max_size_ = info_->shape_;
     info_->size_ = info_->calculate_size();
+    info_->refresh_logical_layout();
     data_->resize(info_->size_);
     info_->labels_.resize(info_->shape_.size());
 }
@@ -670,7 +795,7 @@ matrix::push_label(int dimension, std::string label, int no_of_columns)
 }
 
 
-const std::vector<std::string>
+const std::vector<std::string> &
 matrix::labels(int dimension) const
 {
     return info_->labels_.at(dimension);
@@ -774,11 +899,50 @@ matrix::print_(int depth) const
 std::string
 matrix::json() const
 {
-    if(rank() == 0)
+    const int matrix_rank = rank();
+    if(matrix_rank == 0)
     {
         if(info_->size_ == 0)
             return "[]";
         return format_json_number(data_->at(info_->offset_));
+    }
+
+    if(matrix_rank == 1)
+    {
+        std::string sep;
+        std::string s = "[";
+        s.reserve(static_cast<std::size_t>(size()) * 8 + 2);
+        for(int i = 0; i < shape(0); ++i)
+        {
+            s += sep;
+            s += format_json_number((*this)(i));
+            sep = ", ";
+        }
+        s += "]";
+        return s;
+    }
+
+    if(matrix_rank == 2)
+    {
+        std::string row_sep;
+        std::string s = "[";
+        s.reserve(static_cast<std::size_t>(size()) * 8 + static_cast<std::size_t>(rows()) * 4 + 2);
+        for(int row = 0; row < rows(); ++row)
+        {
+            s += row_sep;
+            s += "[";
+            std::string column_sep;
+            for(int col = 0; col < cols(); ++col)
+            {
+                s += column_sep;
+                s += format_json_number((*this)(row, col));
+                column_sep = ", ";
+            }
+            s += "]";
+            row_sep = ", ";
+        }
+        s += "]";
+        return s;
     }
 
     std::string sep;
@@ -836,9 +1000,11 @@ matrix::csv(std::string separator) const
 
     if(rank() == 1)
     {
-        for(auto value : *this)
+        s.reserve(static_cast<std::size_t>(size()) * 10 + separator.size() * static_cast<std::size_t>(std::max(0, size() - 1)) + 1);
+        for(int i = 0; i < shape(0); ++i)
         {
-            s += sep + std::to_string(value);
+            s += sep;
+            s += std::to_string((*this)(i));
             sep = separator;
         }
         s += "\n";
@@ -857,12 +1023,14 @@ matrix::csv(std::string separator) const
             s += "\n";
         }
 
-        for(auto row : *this)
+        s.reserve(s.size() + static_cast<std::size_t>(size()) * 10 + static_cast<std::size_t>(rows()) * (separator.size() * static_cast<std::size_t>(std::max(0, cols() - 1)) + 1));
+        for(int row = 0; row < rows(); ++row)
         {
             std::string row_sep;
-            for(auto value : row)
+            for(int col = 0; col < cols(); ++col)
             {
-                s += row_sep + std::to_string(value);
+                s += row_sep;
+                s += std::to_string((*this)(row, col));
                 row_sep = separator;
             }
             s += "\n";
@@ -903,10 +1071,10 @@ matrix::reduce(std::function<void(float)> f) const
 {
     if(empty())
         return *this;
-    if(info_->continuous)
+    if(info_->has_contiguous_logical_storage)
     {
         const float * data = data_->data() + info_->offset_;
-        for(int i = 0; i < info_->size_; ++i)
+        for(int i = 0; i < size(); ++i)
             f(data[i]);
         return *this;
     }
@@ -924,15 +1092,17 @@ matrix::apply(std::function<float(float)> f)
 {
     if(empty())
         return *this;
-    if(info_->continuous)
+    if(info_->has_contiguous_logical_storage)
     {
         float * data = data_->data() + info_->offset_;
-        for(int i = 0; i < info_->size_; ++i)
+        for(int i = 0; i < size(); ++i)
             data[i] = f(data[i]);
         return *this;
     }
     if(is_scalar())
         (*data_)[info_->offset_] = f((*data_)[info_->offset_]);
+    else if(rank() >= 2)
+        apply_unary_row_blocks(*this, f);
     else
         for(int i = 0; i < info_->shape_.front(); ++i)
             (*this)[i].apply(f);
@@ -945,16 +1115,18 @@ matrix::apply(const matrix & A, std::function<float(float, float)> f)
 {
     if(empty())
         return *this;
-    else if(info_->continuous && A.info_->continuous)
+    else if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage)
     {
         float * data = data_->data() + info_->offset_;
         const float * a = A.data_->data() + A.info_->offset_;
-        for(int i = 0; i < info_->size_; ++i)
+        for(int i = 0; i < size(); ++i)
             data[i] = f(data[i], a[i]);
         return *this;
     }
     else if(is_scalar())
         (*data_)[info_->offset_] = f((*data_)[info_->offset_], (*A.data_)[info_->offset_]);
+    else if(rank() >= 2)
+        apply_binary_row_blocks(*this, A, f);
     else
         for(int i = 0; i < info_->shape_.front(); ++i)
         {
@@ -970,17 +1142,19 @@ matrix::apply(const matrix & A, const matrix & B, std::function<float(float, flo
 {
     if(empty())
         return *this;
-    else if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    else if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage && B.info_->has_contiguous_logical_storage)
     {
         float * data = data_->data() + info_->offset_;
         const float * a = A.data_->data() + A.info_->offset_;
         const float * b = B.data_->data() + B.info_->offset_;
-        for(int i = 0; i < info_->size_; ++i)
+        for(int i = 0; i < size(); ++i)
             data[i] = f(a[i], b[i]);
         return *this;
     }
     else if(is_scalar())
         (*data_)[info_->offset_] = f((*A.data_)[info_->offset_], (*B.data_)[info_->offset_]);
+    else if(rank() >= 2)
+        apply_ternary_row_blocks(*this, A, B, f);
     else
         for(int i = 0; i < info_->shape_.front(); ++i)
         {
@@ -994,9 +1168,9 @@ matrix::apply(const matrix & A, const matrix & B, std::function<float(float, flo
 matrix &
 matrix::set(float v)
 {
-    if(info_->continuous)
+    if(info_->has_contiguous_logical_storage)
     {
-        std::fill(data_->begin() + info_->offset_, data_->begin() + info_->offset_ + info_->size_, v);
+        std::fill(data_->begin() + info_->offset_, data_->begin() + info_->offset_ + size(), v);
         return *this;
     }
     else
@@ -1013,10 +1187,12 @@ matrix::copy(const matrix & m)
     if(info_->shape_ != m.info_->shape_)
         throw std::out_of_range("Assignment requires matrices of the same size");
 
-    if(info_->continuous && m.info_->continuous)
-        std::copy_n(m.data_->begin() + m.info_->offset_, m.info_->size_, data_->begin() + info_->offset_);
+    if(info_->has_contiguous_logical_storage && m.info_->has_contiguous_logical_storage)
+        std::copy_n(m.data_->begin() + m.info_->offset_, m.size(), data_->begin() + info_->offset_);
     else if(is_scalar())
         (*data_)[info_->offset_] = (*m.data_)[m.info_->offset_];
+    else if(rank() >= 2)
+        copy_row_blocks(*this, m);
     else
         for(int i = 0; i < info_->shape_.front(); ++i)
             (*this)[i].copy(m[i]);
@@ -1027,7 +1203,7 @@ matrix::copy(const matrix & m)
 matrix &
 matrix::copy(const matrix & m, range & target, range & source)
 {
-    if(info_->continuous && m.info_->continuous && source == target && m.info_->shape_ == info_->shape_)
+    if(source == target && m.info_->shape_ == info_->shape_)
         return copy(m);
 
     source.reset();
@@ -1067,6 +1243,16 @@ matrix::submatrix(const matrix & m, const rect & region)
 
 
 matrix::operator float & ()
+{
+#ifndef NO_MATRIX_CHECKS
+    if(info_->size_ != 1)
+        throw empty_matrix_error(get_name() + " Not a matrix element.");
+#endif
+    return (*data_)[info_->offset_];
+}
+
+
+matrix::operator const float & () const
 {
 #ifndef NO_MATRIX_CHECKS
     if(info_->size_ != 1)
@@ -1155,7 +1341,9 @@ matrix::capacity() const
 int
 matrix::size() const
 {
-    return info_->size_;
+    if(info_->shape_.empty())
+        return info_->size_ == 0 ? 0 : 1;
+    return static_cast<int>(info_->calculate_size());
 }
 
 
@@ -1200,6 +1388,7 @@ matrix::resize(const std::vector<int> & new_shape)
             throw std::out_of_range(get_name()+"New size larger than allocated space.");
 #endif
     info_->shape_ = new_shape;
+    info_->refresh_logical_layout();
     return *this;
 }
 
@@ -1216,6 +1405,7 @@ matrix::realloc(const std::vector<int> & shape)
     info_->stride_ = shape;
     info_->max_size_ = shape;
     info_->size_ = info_->calculate_size();
+    info_->refresh_logical_layout();
     info_->labels_.resize(info_->shape_.size());
     data_->resize(info_->size_);
 
@@ -1244,6 +1434,7 @@ matrix::reserve(const std::vector<int> & capacity_shape)
     {
         realloc(capacity_shape);
         info_->shape_.front() = 0;
+        info_->refresh_logical_layout();
         return *this;
     }
 
@@ -1262,6 +1453,7 @@ matrix::reserve(const std::vector<int> & capacity_shape)
         std::vector<int> logical_shape = info_->shape_;
         realloc(capacity_shape);
         info_->shape_ = logical_shape;
+        info_->refresh_logical_layout();
     }
 
     return *this;
@@ -1275,6 +1467,7 @@ matrix::clear()
         return *this;
 
     info_->shape_.front() = 0;
+    info_->refresh_logical_layout();
     return *this;
 }
 
@@ -1346,6 +1539,7 @@ matrix::push(const matrix & m, bool extend)
         info_->shape_.front()++;
         realloc(info_->shape_);
         info_->shape_.front()--;
+        info_->refresh_logical_layout();
     }
     for(std::size_t i = 0; i < m.info_->shape_.size(); ++i)
         if(info_->shape_[i + 1] != m.info_->shape_[i])
@@ -1355,7 +1549,12 @@ matrix::push(const matrix & m, bool extend)
         throw std::out_of_range(get_name() + "No room for additional element");
 #endif
     if(info_->shape_.front() < info_->max_size_.front())
-        return (*this)[info_->shape_.front()++].copy(m);
+    {
+        const int index = info_->shape_.front();
+        info_->shape_.front()++;
+        info_->refresh_logical_layout();
+        return (*this)[index].copy(m);
+    }
     else
         return *this;
 }
@@ -1370,6 +1569,7 @@ matrix::push(float v)
         throw std::out_of_range(get_name() + "No room for additional element");
 
     info_->shape_.front()++;
+    info_->refresh_logical_layout();
     (*this)[info_->shape_.front() - 1] = v;
     return *this;
 }
@@ -1384,18 +1584,36 @@ matrix::pop(matrix & m)
 #endif
     copy(m[m.info_->shape_.front() - 1]);
     m.info_->shape_.front()--;
+    m.info_->refresh_logical_layout();
     return *this;
 }
 
 
 matrix
-matrix::operator[](std::string n)
+matrix::operator[](const std::string & n)
 {
     if(info_->labels_.empty())
         throw std::out_of_range(get_name() + "No labels found in matrix.");
 
     int i = 0;
-    for(auto l : info_->labels_.at(0))
+    for(const auto & l : info_->labels_.at(0))
+    {
+        if(l == n)
+            return (*this)[i];
+        i++;
+    }
+    throw std::out_of_range(get_name() + "Label " + n + " not found.");
+}
+
+
+matrix
+matrix::operator[](const std::string & n) const
+{
+    if(info_->labels_.empty())
+        throw std::out_of_range(get_name() + "No labels found in matrix.");
+
+    int i = 0;
+    for(const auto & l : info_->labels_.at(0))
     {
         if(l == n)
             return (*this)[i];
@@ -1407,6 +1625,13 @@ matrix::operator[](std::string n)
 
 matrix
 matrix::operator[](const char * n)
+{
+    return (*this)[std::string(n)];
+}
+
+
+matrix
+matrix::operator[](const char * n) const
 {
     return (*this)[std::string(n)];
 }
@@ -2163,6 +2388,17 @@ matrix::sum_last_two_dimensions(const matrix & A)
     reset();
 
     float * output = data();
+    const float * input = A.data();
+    const int spatial_size = A.shape(1) * A.shape(2);
+
+#if defined(__APPLE__)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage)
+    {
+        for(int c = 0; c < channels; ++c)
+            vDSP_sve(input + c * spatial_size, 1, output + c, static_cast<vDSP_Length>(spatial_size));
+        return *this;
+    }
+#endif
 
     for(int c = 0; c < channels; ++c)
         output[c] = A[c].sum();
@@ -2877,9 +3113,9 @@ operator<<(std::ostream & os, const matrix & m)
 }
 
 
-float matrix::matrank() { throw std::logic_error("matrank(). Not implemented."); }
-float matrix::trace() { throw std::logic_error("Not implemented."); }
-float matrix::det() { throw std::logic_error("trace(). Not implemented."); }
+float matrix::matrank() const { throw std::logic_error("matrank(). Not implemented."); }
+float matrix::trace() const { throw std::logic_error("Not implemented."); }
+float matrix::det() const { throw std::logic_error("trace(). Not implemented."); }
 
 
 matrix &
@@ -2898,7 +3134,7 @@ matrix::pinv(const matrix &)
 
 
 matrix &
-matrix::transpose(matrix & ret)
+matrix::transpose(matrix & ret) const
 {
     int rows = this->rows();
     int cols = this->cols();
@@ -3086,17 +3322,18 @@ dot(const matrix & A, const matrix & B)
 {
     A.check_same_size(B);
 
-    if(A.info_->continuous && B.info_->continuous)
+    if(A.info_->has_contiguous_logical_storage && B.info_->has_contiguous_logical_storage)
     {
         const float * a = A.data_->data() + A.info_->offset_;
         const float * b = B.data_->data() + B.info_->offset_;
+        const int n = A.size();
 #if defined(__APPLE__)
         float s = 0;
-        vDSP_dotpr(a, 1, b, 1, &s, static_cast<vDSP_Length>(A.info_->size_));
+        vDSP_dotpr(a, 1, b, 1, &s, static_cast<vDSP_Length>(n));
         return s;
 #else
         float s = 0;
-        for(int i = 0; i < A.info_->size_; ++i)
+        for(int i = 0; i < n; ++i)
             s += a[i] * b[i];
         return s;
 #endif
@@ -3114,11 +3351,13 @@ dot(const matrix & A, const matrix & B)
 float
 matrix::sum() const
 {
+    if(size() == 0)
+        return 0;
 #if defined(__APPLE__)
-    if(info_->continuous)
+    if(info_->has_contiguous_logical_storage)
     {
         float s = 0;
-        vDSP_sve(data(), 1, &s, static_cast<vDSP_Length>(info_->size_));
+        vDSP_sve(data(), 1, &s, static_cast<vDSP_Length>(size()));
         return s;
     }
 #endif
@@ -3129,7 +3368,7 @@ matrix::sum() const
 
 
 float
-matrix::product()
+matrix::product() const
 {
     float s = 1;
     reduce([&s](float x) { s*=x;});
@@ -3140,13 +3379,13 @@ matrix::product()
 float
 matrix::min() const
 {
-    if(empty())
+    if(size() == 0)
         throw std::domain_error("Empty matrix has no min");
 #if defined(__APPLE__)
-    if(info_->continuous)
+    if(info_->has_contiguous_logical_storage)
     {
         float s = 0;
-        vDSP_minv(data(), 1, &s, static_cast<vDSP_Length>(info_->size_));
+        vDSP_minv(data(), 1, &s, static_cast<vDSP_Length>(size()));
         return s;
     }
 #endif
@@ -3159,13 +3398,13 @@ matrix::min() const
 float
 matrix::max() const
 {
-    if(empty())
+    if(size() == 0)
         throw std::domain_error("Empty matrix has no max");
 #if defined(__APPLE__)
-    if(info_->continuous)
+    if(info_->has_contiguous_logical_storage)
     {
         float s = 0;
-        vDSP_maxv(data(), 1, &s, static_cast<vDSP_Length>(info_->size_));
+        vDSP_maxv(data(), 1, &s, static_cast<vDSP_Length>(size()));
         return s;
     }
 #endif
@@ -3176,9 +3415,9 @@ matrix::max() const
 
 
 float
-matrix::median()
+matrix::median() const
 {
-    if(empty())
+    if(size() == 0)
         throw std::domain_error("Empty matrix has no median");
     std::vector<float> vec;
     reduce([&vec](float x) { vec.push_back(x);});
@@ -3193,15 +3432,15 @@ matrix::median()
 
 
 float
-matrix::average()
+matrix::average() const
 {
-    if(empty())
+    if(size() == 0)
         return 0;
 #if defined(__APPLE__)
-    if(info_->continuous)
+    if(info_->has_contiguous_logical_storage)
     {
         float s = 0;
-        vDSP_meanv(data(), 1, &s, static_cast<vDSP_Length>(info_->size_));
+        vDSP_meanv(data(), 1, &s, static_cast<vDSP_Length>(size()));
         return s;
     }
 #endif
@@ -3213,9 +3452,9 @@ matrix &
 matrix::add(float c)
 {
 #if defined(__APPLE__)
-    if(info_->continuous)
+    if(info_->has_contiguous_logical_storage)
     {
-        vDSP_vsadd(data(), 1, &c, data(), 1, static_cast<vDSP_Length>(info_->size_));
+        vDSP_vsadd(data(), 1, &c, data(), 1, static_cast<vDSP_Length>(size()));
         return *this;
     }
 #endif
@@ -3227,10 +3466,10 @@ matrix &
 matrix::subtract(float c)
 {
 #if defined(__APPLE__)
-    if(info_->continuous)
+    if(info_->has_contiguous_logical_storage)
     {
         float negated = -c;
-        vDSP_vsadd(data(), 1, &negated, data(), 1, static_cast<vDSP_Length>(info_->size_));
+        vDSP_vsadd(data(), 1, &negated, data(), 1, static_cast<vDSP_Length>(size()));
         return *this;
     }
 #endif
@@ -3242,9 +3481,9 @@ matrix &
 matrix::scale(float c)
 {
 #if defined(__APPLE__)
-    if(info_->continuous)
+    if(info_->has_contiguous_logical_storage)
     {
-        vDSP_vsmul(data(), 1, &c, data(), 1, info_->size_);
+        vDSP_vsmul(data(), 1, &c, data(), 1, size());
         return *this;
     }
 #endif
@@ -3258,7 +3497,7 @@ matrix::multiply_and_accumulate(const matrix & A, float c)
     check_same_size(A);
 
 #if defined(__APPLE__)
-    if(info_->continuous && A.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage)
     {
         cblas_saxpy(size(), c, A.data(), 1, data(), 1);
         return *this;
@@ -3278,7 +3517,7 @@ matrix::clip(float min, float max)
     if(empty())
         return *this;
 
-    if(info_->continuous)
+    if(info_->has_contiguous_logical_storage)
     {
         float * values = data();
         for(int i = 0; i < size(); ++i)
@@ -3314,7 +3553,7 @@ matrix::multiply_sigmoid_derivative(const matrix & output)
 {
     check_same_size(output);
 
-    if(info_->continuous && output.info_->continuous)
+    if(info_->has_contiguous_logical_storage && output.info_->has_contiguous_logical_storage)
     {
         float * gradients = data();
         const float * output_values = output.data();
@@ -3338,7 +3577,7 @@ matrix::add_channel_bias(const matrix & bias)
     const int channels = shape(0);
     const int spatial_size = rows() * cols();
 
-    if(info_->continuous && bias.info_->continuous)
+    if(info_->has_contiguous_logical_storage && bias.info_->has_contiguous_logical_storage)
     {
         float * output = data();
         const float * bias_values = bias.data();
@@ -3377,13 +3616,7 @@ matrix::relu(const matrix & A)
 
     check_same_size(A);
 
-    const float * input = A.data();
-    float * output = data();
-
-    for(int i = 0; i < size(); ++i)
-        output[i] = std::max(0.0f, input[i]);
-
-    return *this;
+    return apply(A, [](float, float input) { return std::max(0.0f, input); });
 }
 
 
@@ -3395,13 +3628,7 @@ matrix::scale(const matrix & A, float scale)
 
     check_same_size(A);
 
-    const float * input = A.data();
-    float * output = data();
-
-    for(int i = 0; i < size(); ++i)
-        output[i] = scale * input[i];
-
-    return *this;
+    return apply(A, [scale](float, float input) { return scale * input; });
 }
 
 
@@ -3413,13 +3640,7 @@ matrix::exp_scaled(const matrix & A, float scale)
 
     check_same_size(A);
 
-    const float * input = A.data();
-    float * output = data();
-
-    for(int i = 0; i < size(); ++i)
-        output[i] = std::exp(scale * input[i]);
-
-    return *this;
+    return apply(A, [scale](float, float input) { return std::exp(scale * input); });
 }
 
 
@@ -3431,13 +3652,7 @@ matrix::exp_minus_one_scaled(const matrix & A, float scale)
 
     check_same_size(A);
 
-    const float * input = A.data();
-    float * output = data();
-
-    for(int i = 0; i < size(); ++i)
-        output[i] = scale * (std::exp(input[i]) - 1.0f);
-
-    return *this;
+    return apply(A, [scale](float, float input) { return scale * (std::exp(input) - 1.0f); });
 }
 
 
@@ -3451,14 +3666,7 @@ matrix::add_scaled(const matrix & A, const matrix & B, float scale)
 
     check_same_size(A);
 
-    const float * a = A.data();
-    const float * b = B.data();
-    float * output = data();
-
-    for(int i = 0; i < size(); ++i)
-        output[i] = a[i] + scale * b[i];
-
-    return *this;
+    return apply(A, B, [scale](float a, float b) { return a + scale * b; });
 }
 
 
@@ -3478,10 +3686,18 @@ matrix::sample_gaussian(const matrix & mean, const matrix & stddev, const matrix
     const float * epsilon_values = epsilon.data();
     float * output = data();
 
-    for(int i = 0; i < size(); ++i)
-        output[i] = mean_values[i] + epsilon_values[i] * stddev_values[i];
+    if(info_->has_contiguous_logical_storage && mean.info_->has_contiguous_logical_storage &&
+        stddev.info_->has_contiguous_logical_storage && epsilon.info_->has_contiguous_logical_storage)
+    {
+        for(int i = 0; i < size(); ++i)
+            output[i] = mean_values[i] + epsilon_values[i] * stddev_values[i];
+        return *this;
+    }
 
-    return *this;
+    return apply_quaternary_row_blocks(*this, mean, epsilon, stddev, [](float mean_value, float epsilon_value, float stddev_value)
+    {
+        return mean_value + epsilon_value * stddev_value;
+    });
 }
 
 
@@ -3503,9 +3719,28 @@ matrix::latent_log_variance_gradient(const matrix & latent_gradient, const matri
     const float * log_variance_values = log_variance.data();
     float * output = data();
 
-    for(int i = 0; i < size(); ++i)
-        output[i] = 0.5f * latent_gradient_values[i] * epsilon_values[i] * stddev_values[i] +
-            0.5f * kl_scale * (std::exp(log_variance_values[i]) - 1.0f);
+    if(info_->has_contiguous_logical_storage && latent_gradient.info_->has_contiguous_logical_storage &&
+        epsilon.info_->has_contiguous_logical_storage && stddev.info_->has_contiguous_logical_storage &&
+        log_variance.info_->has_contiguous_logical_storage)
+    {
+        for(int i = 0; i < size(); ++i)
+            output[i] = 0.5f * latent_gradient_values[i] * epsilon_values[i] * stddev_values[i] +
+                0.5f * kl_scale * (std::exp(log_variance_values[i]) - 1.0f);
+        return *this;
+    }
+
+    for_each_logical_row(*this, [&](const std::vector<int> & index, int row_length)
+    {
+        float * output_row = data_->data() + compute_index_unchecked(*info_, index);
+        const float * latent_gradient_row = latent_gradient.data_->data() + compute_index_unchecked(*latent_gradient.info_, index);
+        const float * epsilon_row = epsilon.data_->data() + compute_index_unchecked(*epsilon.info_, index);
+        const float * stddev_row = stddev.data_->data() + compute_index_unchecked(*stddev.info_, index);
+        const float * log_variance_row = log_variance.data_->data() + compute_index_unchecked(*log_variance.info_, index);
+
+        for(int col = 0; col < row_length; ++col)
+            output_row[col] = 0.5f * latent_gradient_row[col] * epsilon_row[col] * stddev_row[col] +
+                0.5f * kl_scale * (std::exp(log_variance_row[col]) - 1.0f);
+    });
 
     return *this;
 }
@@ -3535,12 +3770,37 @@ matrix::latent_sample_gradients(matrix & d_log_variance, const matrix & latent_g
     float * d_mean_values = data();
     float * d_log_variance_values = d_log_variance.data();
 
-    for(int i = 0; i < size(); ++i)
+    if(info_->has_contiguous_logical_storage && d_log_variance.info_->has_contiguous_logical_storage &&
+        latent_gradient.info_->has_contiguous_logical_storage && mean.info_->has_contiguous_logical_storage &&
+        epsilon.info_->has_contiguous_logical_storage && stddev.info_->has_contiguous_logical_storage &&
+        log_variance.info_->has_contiguous_logical_storage)
     {
-        d_mean_values[i] = latent_gradient_values[i] + kl_scale * mean_values[i];
-        d_log_variance_values[i] = 0.5f * latent_gradient_values[i] * epsilon_values[i] * stddev_values[i] +
-            0.5f * kl_scale * (std::exp(log_variance_values[i]) - 1.0f);
+        for(int i = 0; i < size(); ++i)
+        {
+            d_mean_values[i] = latent_gradient_values[i] + kl_scale * mean_values[i];
+            d_log_variance_values[i] = 0.5f * latent_gradient_values[i] * epsilon_values[i] * stddev_values[i] +
+                0.5f * kl_scale * (std::exp(log_variance_values[i]) - 1.0f);
+        }
+        return *this;
     }
+
+    for_each_logical_row(*this, [&](const std::vector<int> & index, int row_length)
+    {
+        float * d_mean_row = data_->data() + compute_index_unchecked(*info_, index);
+        float * d_log_variance_row = d_log_variance.data_->data() + compute_index_unchecked(*d_log_variance.info_, index);
+        const float * latent_gradient_row = latent_gradient.data_->data() + compute_index_unchecked(*latent_gradient.info_, index);
+        const float * mean_row = mean.data_->data() + compute_index_unchecked(*mean.info_, index);
+        const float * epsilon_row = epsilon.data_->data() + compute_index_unchecked(*epsilon.info_, index);
+        const float * stddev_row = stddev.data_->data() + compute_index_unchecked(*stddev.info_, index);
+        const float * log_variance_row = log_variance.data_->data() + compute_index_unchecked(*log_variance.info_, index);
+
+        for(int col = 0; col < row_length; ++col)
+        {
+            d_mean_row[col] = latent_gradient_row[col] + kl_scale * mean_row[col];
+            d_log_variance_row[col] = 0.5f * latent_gradient_row[col] * epsilon_row[col] * stddev_row[col] +
+                0.5f * kl_scale * (std::exp(log_variance_row[col]) - 1.0f);
+        }
+    });
 
     return *this;
 }
@@ -3566,11 +3826,32 @@ matrix::latent_mean_gradients(matrix & d_log_variance, const matrix & latent_gra
     float * d_mean_values = data();
     float * d_log_variance_values = d_log_variance.data();
 
-    for(int i = 0; i < size(); ++i)
+    if(info_->has_contiguous_logical_storage && d_log_variance.info_->has_contiguous_logical_storage &&
+        latent_gradient.info_->has_contiguous_logical_storage && mean.info_->has_contiguous_logical_storage &&
+        log_variance.info_->has_contiguous_logical_storage)
     {
-        d_mean_values[i] = latent_gradient_values[i] + kl_scale * mean_values[i];
-        d_log_variance_values[i] = 0.5f * kl_scale * (std::exp(log_variance_values[i]) - 1.0f);
+        for(int i = 0; i < size(); ++i)
+        {
+            d_mean_values[i] = latent_gradient_values[i] + kl_scale * mean_values[i];
+            d_log_variance_values[i] = 0.5f * kl_scale * (std::exp(log_variance_values[i]) - 1.0f);
+        }
+        return *this;
     }
+
+    for_each_logical_row(*this, [&](const std::vector<int> & index, int row_length)
+    {
+        float * d_mean_row = data_->data() + compute_index_unchecked(*info_, index);
+        float * d_log_variance_row = d_log_variance.data_->data() + compute_index_unchecked(*d_log_variance.info_, index);
+        const float * latent_gradient_row = latent_gradient.data_->data() + compute_index_unchecked(*latent_gradient.info_, index);
+        const float * mean_row = mean.data_->data() + compute_index_unchecked(*mean.info_, index);
+        const float * log_variance_row = log_variance.data_->data() + compute_index_unchecked(*log_variance.info_, index);
+
+        for(int col = 0; col < row_length; ++col)
+        {
+            d_mean_row[col] = latent_gradient_row[col] + kl_scale * mean_row[col];
+            d_log_variance_row[col] = 0.5f * kl_scale * (std::exp(log_variance_row[col]) - 1.0f);
+        }
+    });
 
     return *this;
 }
@@ -3594,11 +3875,30 @@ matrix::latent_kl_gradients(matrix & d_log_variance, const matrix & mean, const 
     float * d_mean_values = data();
     float * d_log_variance_values = d_log_variance.data();
 
-    for(int i = 0; i < size(); ++i)
+    if(info_->has_contiguous_logical_storage && d_log_variance.info_->has_contiguous_logical_storage &&
+        mean.info_->has_contiguous_logical_storage && log_variance.info_->has_contiguous_logical_storage)
     {
-        d_mean_values[i] = kl_scale * mean_values[i];
-        d_log_variance_values[i] = 0.5f * kl_scale * (std::exp(log_variance_values[i]) - 1.0f);
+        for(int i = 0; i < size(); ++i)
+        {
+            d_mean_values[i] = kl_scale * mean_values[i];
+            d_log_variance_values[i] = 0.5f * kl_scale * (std::exp(log_variance_values[i]) - 1.0f);
+        }
+        return *this;
     }
+
+    for_each_logical_row(*this, [&](const std::vector<int> & index, int row_length)
+    {
+        float * d_mean_row = data_->data() + compute_index_unchecked(*info_, index);
+        float * d_log_variance_row = d_log_variance.data_->data() + compute_index_unchecked(*d_log_variance.info_, index);
+        const float * mean_row = mean.data_->data() + compute_index_unchecked(*mean.info_, index);
+        const float * log_variance_row = log_variance.data_->data() + compute_index_unchecked(*log_variance.info_, index);
+
+        for(int col = 0; col < row_length; ++col)
+        {
+            d_mean_row[col] = kl_scale * mean_row[col];
+            d_log_variance_row[col] = 0.5f * kl_scale * (std::exp(log_variance_row[col]) - 1.0f);
+        }
+    });
 
     return *this;
 }
@@ -3617,14 +3917,7 @@ matrix::relu_backward(const matrix & gradients, const matrix & pre_activation)
     if(this == &pre_activation)
         throw std::invalid_argument("Result cannot be assigned to pre_activation.");
 
-    const float * gradient_values = gradients.data();
-    const float * pre = pre_activation.data();
-    float * output = data();
-
-    for(int i = 0; i < size(); ++i)
-        output[i] = pre[i] > 0.0f ? gradient_values[i] : 0.0f;
-
-    return *this;
+    return apply(gradients, pre_activation, [](float gradient, float pre) { return pre > 0.0f ? gradient : 0.0f; });
 }
 
 
@@ -3644,14 +3937,37 @@ matrix::adam_update(const matrix & gradients, matrix & first_moment, matrix & se
     const float update_scale = learning_rate / beta1_correction;
     const float inv_beta2_correction = 1.0f / beta2_correction;
 
-    for(int i = 0; i < size(); ++i)
+    if(info_->has_contiguous_logical_storage && gradients.info_->has_contiguous_logical_storage &&
+        first_moment.info_->has_contiguous_logical_storage && second_moment.info_->has_contiguous_logical_storage)
     {
-        const float gradient = gradient_values[i];
-        first[i] = beta1 * first[i] + one_minus_beta1 * gradient;
-        second[i] = beta2 * second[i] + one_minus_beta2 * gradient * gradient;
+        for(int i = 0; i < size(); ++i)
+        {
+            const float gradient = gradient_values[i];
+            first[i] = beta1 * first[i] + one_minus_beta1 * gradient;
+            second[i] = beta2 * second[i] + one_minus_beta2 * gradient * gradient;
 
-        values[i] -= update_scale * first[i] / (std::sqrt(second[i] * inv_beta2_correction) + epsilon);
+            values[i] -= update_scale * first[i] / (std::sqrt(second[i] * inv_beta2_correction) + epsilon);
+        }
+        return *this;
     }
+
+    for_each_logical_row(*this, [&](const std::vector<int> & index, int row_length)
+    {
+        float * values_row = data_->data() + compute_index_unchecked(*info_, index);
+        const float * gradient_row = gradients.data_->data() + compute_index_unchecked(*gradients.info_, index);
+        float * first_row = first_moment.data_->data() + compute_index_unchecked(*first_moment.info_, index);
+        float * second_row = second_moment.data_->data() + compute_index_unchecked(*second_moment.info_, index);
+
+        for(int col = 0; col < row_length; ++col)
+        {
+            const float gradient = gradient_row[col];
+            first_row[col] = beta1 * first_row[col] + one_minus_beta1 * gradient;
+            second_row[col] = beta2 * second_row[col] + one_minus_beta2 * gradient * gradient;
+
+            values_row[col] -= update_scale * first_row[col] /
+                (std::sqrt(second_row[col] * inv_beta2_correction) + epsilon);
+        }
+    });
 
     return *this;
 }
@@ -3661,9 +3977,9 @@ matrix &
 matrix::divide(float c)
 {
 #if defined(__APPLE__)
-    if(info_->continuous)
+    if(info_->has_contiguous_logical_storage)
     {
-        vDSP_vsdiv(data(), 1, &c, data(), 1, static_cast<vDSP_Length>(info_->size_));
+        vDSP_vsdiv(data(), 1, &c, data(), 1, static_cast<vDSP_Length>(size()));
         return *this;
     }
 #endif
@@ -3677,7 +3993,7 @@ matrix::add(const matrix & A)
     check_same_size(A);
 
 #if defined(__APPLE__)
-    if(info_->continuous && A.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage)
     {
         vDSP_vadd(data(), 1, A.data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
         return *this;
@@ -3694,7 +4010,7 @@ matrix::subtract(const matrix & A)
     check_same_size(A);
 
 #if defined(__APPLE__)
-    if(info_->continuous && A.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage)
     {
         vDSP_vsub(A.data(), 1, data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
         return *this;
@@ -3711,7 +4027,7 @@ matrix::multiply(const matrix & A)
     check_same_size(A);
 
 #if defined(__APPLE__)
-    if(info_->continuous && A.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage)
     {
         vDSP_vmul(data(), 1, A.data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
         return *this;
@@ -3728,7 +4044,7 @@ matrix::divide(const matrix & A)
     check_same_size(A);
 
 #if defined(__APPLE__)
-    if(info_->continuous && A.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage)
     {
         vDSP_vdiv(A.data(), 1, data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
         return *this;
@@ -3744,7 +4060,7 @@ matrix::logical_and(const matrix & A)
 {
     check_same_size(A);
 
-    if(info_->continuous && A.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage)
     {
         float * lhs = data();
         const float * rhs = A.data();
@@ -3762,7 +4078,7 @@ matrix::logical_or(const matrix & A)
 {
     check_same_size(A);
 
-    if(info_->continuous && A.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage)
     {
         float * lhs = data();
         const float * rhs = A.data();
@@ -3780,7 +4096,7 @@ matrix::logical_xor(const matrix & A)
 {
     check_same_size(A);
 
-    if(info_->continuous && A.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage)
     {
         float * lhs = data();
         const float * rhs = A.data();
@@ -3800,7 +4116,7 @@ matrix::add(const matrix & A, const matrix & B)
     check_same_size(B);
 
 #if defined(__APPLE__)
-    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage && B.info_->has_contiguous_logical_storage)
     {
         const float *a = A.data();
         const float *b = B.data();
@@ -3821,7 +4137,7 @@ matrix::subtract(const matrix & A, const matrix & B)
     check_same_size(B);
 
 #if defined(__APPLE__)
-    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage && B.info_->has_contiguous_logical_storage)
     {
         const float *a = A.data();
         const float *b = B.data();
@@ -3842,7 +4158,7 @@ matrix::multiply(const matrix & A, const matrix & B)
     check_same_size(B);
 
 #if defined(__APPLE__)
-    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage && B.info_->has_contiguous_logical_storage)
     {
         const float *a = A.data();
         const float *b = B.data();
@@ -3863,7 +4179,7 @@ matrix::divide(const matrix & A, const matrix & B)
     check_same_size(B);
 
 #if defined(__APPLE__)
-    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage && B.info_->has_contiguous_logical_storage)
     {
         const float *a = A.data();
         const float *b = B.data();
@@ -3883,7 +4199,7 @@ matrix::maximum(const matrix & A)
     check_same_size(A);
 
 #if defined(__APPLE__)
-    if(info_->continuous && A.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage)
     {
         vDSP_vmax(data(), 1, A.data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
         return *this;
@@ -3900,7 +4216,7 @@ matrix::minimum(const matrix & A)
     check_same_size(A);
 
 #if defined(__APPLE__)
-    if(info_->continuous && A.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage)
     {
         vDSP_vmin(data(), 1, A.data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
         return *this;
@@ -3918,7 +4234,7 @@ matrix::maximum(const matrix & A, const matrix & B)
     check_same_size(B);
 
 #if defined(__APPLE__)
-    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage && B.info_->has_contiguous_logical_storage)
     {
         vDSP_vmax(A.data(), 1, B.data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
         return *this;
@@ -3936,7 +4252,7 @@ matrix::minimum(const matrix & A, const matrix & B)
     check_same_size(B);
 
 #if defined(__APPLE__)
-    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage && B.info_->has_contiguous_logical_storage)
     {
         vDSP_vmin(A.data(), 1, B.data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
         return *this;
@@ -3953,7 +4269,7 @@ matrix::logical_and(const matrix & A, const matrix & B)
     check_same_size(A);
     check_same_size(B);
 
-    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage && B.info_->has_contiguous_logical_storage)
     {
         float * out = data();
         const float * lhs = A.data();
@@ -3973,7 +4289,7 @@ matrix::logical_or(const matrix & A, const matrix & B)
     check_same_size(A);
     check_same_size(B);
 
-    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage && B.info_->has_contiguous_logical_storage)
     {
         float * out = data();
         const float * lhs = A.data();
@@ -3993,7 +4309,7 @@ matrix::logical_xor(const matrix & A, const matrix & B)
     check_same_size(A);
     check_same_size(B);
 
-    if(info_->continuous && A.info_->continuous && B.info_->continuous)
+    if(info_->has_contiguous_logical_storage && A.info_->has_contiguous_logical_storage && B.info_->has_contiguous_logical_storage)
     {
         float * out = data();
         const float * lhs = A.data();
@@ -4020,13 +4336,14 @@ matrix::hypot(const matrix & x, const matrix & y)
         throw std::invalid_argument("Result cannot be assigned to x or y.");
 
 #if defined(__APPLE__)
-    vDSP_vdist(x.data(), 1, y.data(), 1, data(), 1, size());
-#else
-    for(int j = 0; j < size(); ++j)
-        (*this)(j) = std::sqrt(x(j) * x(j) + y(j) * y(j));
+    if(info_->has_contiguous_logical_storage && x.info_->has_contiguous_logical_storage && y.info_->has_contiguous_logical_storage)
+    {
+        vDSP_vdist(x.data(), 1, y.data(), 1, data(), 1, static_cast<vDSP_Length>(size()));
+        return *this;
+    }
 #endif
 
-    return *this;
+    return apply(x, y, [](float x_value, float y_value) { return std::sqrt(x_value * x_value + y_value * y_value); });
 }
 
 
@@ -4043,14 +4360,15 @@ matrix::atan2(const matrix & y, const matrix & x)
         throw std::invalid_argument("Result cannot be assigned to x or y.");
 
 #if defined(__APPLE__)
-    int n = size();
-    vvatan2f(data(), y.data(), x.data(), &n);
-#else
-    for(int j = 0; j < size(); ++j)
-        (*this)(j) = std::atan2(y(j), x(j));
+    if(info_->has_contiguous_logical_storage && x.info_->has_contiguous_logical_storage && y.info_->has_contiguous_logical_storage)
+    {
+        int n = size();
+        vvatan2f(data(), y.data(), x.data(), &n);
+        return *this;
+    }
 #endif
 
-    return *this;
+    return apply(y, x, [](float y_value, float x_value) { return std::atan2(y_value, x_value); });
 }
 
 
@@ -4534,13 +4852,11 @@ matrix::downsample(const matrix &source)
     extract_flat_submatrix(const matrix& src, int y, int x, int h, int w, std::vector<float>& out) 
     {
         float * v = out.data();
-        const float * s = src.data();
-        int cols = src.cols();
         for (int j = 0; j < h; ++j)
         {
-            const float * row = s + (y + j) * cols + x;
-            for (int i = 0; i < w; ++i)
-                *v++ = *row++;
+            const float * row = &src(y + j, x);
+            std::copy_n(row, w, v);
+            v += w;
         }
     }
 
@@ -4613,15 +4929,18 @@ matrix::downsample(const matrix &source)
 
         int target_rows = target.rows();
         int target_cols = target.cols();
-        int target_size = target.size();
+        int target_size = target_rows * target_cols;
 
         // Prepare target data
-       float target_mean = 0.0f;
-        vDSP_meanv(target.data(), 1, &target_mean, target_size);
+        std::vector<float> flat_target(target_size);
+        extract_flat_submatrix(target, 0, 0, target_rows, target_cols, flat_target);
+
+        float target_mean = 0.0f;
+        vDSP_meanv(flat_target.data(), 1, &target_mean, target_size);
         std::vector<float> target_zero_mean(target_size);
         std::vector<float> buffer(target_size);
         float neg_target_mean = -target_mean;
-        vDSP_vsadd(target.data(), 1, &neg_target_mean, target_zero_mean.data(), 1, target_size);
+        vDSP_vsadd(flat_target.data(), 1, &neg_target_mean, target_zero_mean.data(), 1, target_size);
 
         // Compute target norm
         float target_norm2 = 0.0f;
@@ -4630,14 +4949,14 @@ matrix::downsample(const matrix &source)
         if (norm_k < 0.001) 
             return match{0, 0, 0}; // If target has almost zero norm, return zero match
 
-            std::vector<float> flat_submatrix(target_rows*target_cols);
+        std::vector<float> flat_submatrix(target_size);
 
         // Iterate over the search rectangle
         for (int y = search_top; y <= search_bottom - target_rows; ++y) {
             for (int x = search_left; x <= search_right - target_cols; ++x) 
             {                     
                 extract_flat_submatrix(*this, y, x, target_rows, target_cols, flat_submatrix); // Extract the submatrix at the current position
-                float score = half_normalized_correlation(target.data(), flat_submatrix.data(), buffer.data(), flat_submatrix.size());
+                float score = half_normalized_correlation(target_zero_mean.data(), flat_submatrix.data(), buffer.data(), flat_submatrix.size());
 
                 if (score > best_match.score) 
                 {
@@ -4656,13 +4975,27 @@ matrix::downsample(const matrix &source)
 
     // Matrix saving list
 
-    std::vector<matrix *> saving_matrices;
+    std::vector<matrix *> &
+    saving_matrices()
+    {
+        static auto * matrices = new std::vector<matrix *>;
+        return *matrices;
+    }
+
+
+    std::mutex &
+    saving_matrices_mutex()
+    {
+        static auto * mutex = new std::mutex;
+        return *mutex;
+    }
 
 
     void
     save_matrix_states()
     {
-        for(auto m : saving_matrices)
+        std::lock_guard<std::mutex> lock(saving_matrices_mutex());
+        for(auto m : saving_matrices())
             m->save();
     }
 
@@ -4670,8 +5003,22 @@ matrix::downsample(const matrix &source)
     void
     clear_matrix_states()
     {
-        saving_matrices.clear();
+        std::lock_guard<std::mutex> lock(saving_matrices_mutex());
+        saving_matrices().clear();
     }
+
+
+        matrix::~matrix()
+        {
+            if(last_==nullptr)
+                return;
+
+            std::lock_guard<std::mutex> lock(saving_matrices_mutex());
+            auto & matrices = saving_matrices();
+            auto i = std::find(matrices.begin(), matrices.end(), this);
+            if(i != matrices.end())
+                matrices.erase(i);
+        }
 
 
 
@@ -4687,7 +5034,10 @@ matrix::downsample(const matrix &source)
         {
             if(last_==nullptr)
             {
-                saving_matrices.push_back(this);
+                std::lock_guard<std::mutex> lock(saving_matrices_mutex());
+                if(last_!=nullptr)
+                    return *last_;
+                saving_matrices().push_back(this);
                 last_ = std::make_shared<matrix>();
                 save();
             }
@@ -4695,7 +5045,7 @@ matrix::downsample(const matrix &source)
         }
 
         bool 
-        matrix::changed()
+        matrix::changed() const
         {
             if(last_==nullptr)
                 return false;

@@ -21,12 +21,14 @@ const widget_classes =
     "joystick",
     "slider-horizontal",
     "slider-vertical",
+    "color-picker",
     "switch",
     "drop-down-menu",
     "control-grid",
     "canvas3d",
     "epi-head",
-    "key-points"
+    "key-points",
+    "sequence-grid"
 ]
 
 const identifier = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_.0123456789";
@@ -1058,6 +1060,7 @@ const brainstudio =
         inspector.init();
         nav.init();
         app_menu.init();
+        edit_menu.init();
         view_menu.init();
         breadcrumbs.init();
         main.init();

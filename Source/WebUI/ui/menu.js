@@ -45,6 +45,8 @@ const app_menu =
     {
         if(typeof view_menu !== "undefined")
             view_menu.hide();
+        if(typeof edit_menu !== "undefined")
+            edit_menu.hide();
         app_menu.updateStateLabels();
         if(app_menu.dropdown)
         {
@@ -75,9 +77,6 @@ const app_menu =
         const saveMenu = document.getElementById("save_state_menu_item");
         const loadMenu = document.getElementById("load_state_menu_item");
         const resetMenu = document.getElementById("reset_state_menu_item");
-        const saveButton = document.getElementById("save_state_system_button");
-        const loadButton = document.getElementById("load_state_system_button");
-        const resetButton = document.getElementById("reset_state_system_button");
 
         if(saveMenu)
             saveMenu.innerText = saveLabel;
@@ -85,12 +84,6 @@ const app_menu =
             loadMenu.innerText = loadLabel;
         if(resetMenu)
             resetMenu.innerText = resetLabel;
-        if(saveButton)
-            saveButton.innerText = saveLabel;
-        if(loadButton)
-            loadButton.innerText = loadLabel;
-        if(resetButton)
-            resetButton.innerText = resetLabel;
     },
 
     choose(action)
@@ -113,6 +106,113 @@ const app_menu =
             controller.resetState();
         else if(action === "quit")
             controller.quit();
+    }
+};
+
+const edit_menu =
+{
+    init()
+    {
+        edit_menu.button = document.getElementById("edit_menu");
+        edit_menu.dropdown = document.getElementById("edit_menu_dropdown");
+
+        if(edit_menu.button)
+        {
+            edit_menu.button.addEventListener("mousedown", function(evt)
+            {
+                evt.preventDefault();
+            }, false);
+            edit_menu.button.addEventListener("click", edit_menu.toggle, false);
+        }
+
+        if(edit_menu.dropdown)
+            edit_menu.dropdown.addEventListener("mousedown", function(evt)
+            {
+                if(evt.target && evt.target.closest && evt.target.closest("button"))
+                    evt.preventDefault();
+            }, false);
+
+        document.addEventListener("mousedown", function(evt)
+        {
+            if(!edit_menu.dropdown || !edit_menu.button)
+                return;
+            if(edit_menu.button.contains(evt.target) || edit_menu.dropdown.contains(evt.target))
+                return;
+            edit_menu.hide();
+        }, true);
+
+        document.addEventListener("keydown", function(evt)
+        {
+            if(evt.key === "Escape")
+                edit_menu.hide();
+        }, true);
+    },
+
+    toggle(evt)
+    {
+        if(evt)
+        {
+            evt.preventDefault();
+            evt.stopPropagation();
+        }
+
+        if(!edit_menu.dropdown)
+            return;
+
+        if(edit_menu.dropdown.classList.contains("visible"))
+            edit_menu.hide();
+        else
+            edit_menu.show();
+    },
+
+    show()
+    {
+        app_menu.hide();
+        view_menu.hide();
+        if(edit_menu.dropdown)
+        {
+            edit_menu.positionDropdown();
+            edit_menu.dropdown.classList.add("visible");
+        }
+    },
+
+    hide()
+    {
+        if(edit_menu.dropdown)
+            edit_menu.dropdown.classList.remove("visible");
+    },
+
+    positionDropdown()
+    {
+        if(edit_menu.button && edit_menu.dropdown)
+            edit_menu.dropdown.style.left = edit_menu.button.offsetLeft + "px";
+    },
+
+    choose(action)
+    {
+        edit_menu.hide();
+
+        if(!main)
+            return;
+
+        if(["cut", "copy", "paste"].includes(action) && main.handleClipboardMenuAction(action))
+            return;
+
+        if(!main.edit_mode)
+            return;
+
+        if(action === "select_all")
+            main.selectCurrentGroupComponents({includeWidgets: true});
+        else if(action === "cut")
+            main.cutSelectedComponents();
+        else if(action === "copy")
+            main.copySelectedComponents();
+        else if(action === "paste")
+            main.pasteComponents();
+        else if(action === "duplicate")
+            main.duplicateSelectedComponents(false);
+        else if(action === "delete" && (selector.selected_connection != null || selector.selected_foreground.length > 0))
+            main.deleteComponent();
     }
 };
 
@@ -162,6 +262,8 @@ const view_menu =
     show()
     {
         app_menu.hide();
+        if(typeof edit_menu !== "undefined")
+            edit_menu.hide();
         if(view_menu.dropdown)
         {
             view_menu.positionDropdown();
@@ -181,33 +283,12 @@ const view_menu =
             view_menu.dropdown.style.left = view_menu.button.offsetLeft + "px";
     },
 
-    toggleFullscreen()
-    {
-        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement;
-        if(fullscreenElement)
-        {
-            if(document.exitFullscreen)
-                document.exitFullscreen();
-            else if(document.webkitExitFullscreen)
-                document.webkitExitFullscreen();
-            return;
-        }
-
-        const target = document.documentElement;
-        if(target.requestFullscreen)
-            target.requestFullscreen();
-        else if(target.webkitRequestFullscreen)
-            target.webkitRequestFullscreen();
-    },
-
     choose(action)
     {
         view_menu.hide();
 
         if(action === "hide_toolbar" && main && typeof main.toggleTopChrome === "function")
             main.toggleTopChrome();
-        else if(action === "fullscreen")
-            view_menu.toggleFullscreen();
         else if(action === "show_profiling" && typeof inspector !== "undefined" && typeof inspector.openProfilingWindow === "function")
             inspector.openProfilingWindow();
         else if(action === "show_module_start" && typeof inspector !== "undefined" && typeof inspector.openStartupStepsWindow === "function")

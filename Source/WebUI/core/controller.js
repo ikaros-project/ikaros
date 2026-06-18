@@ -851,8 +851,8 @@ const controller =
                 button.disabled = false;
                 button.removeAttribute("title");
                 button.setAttribute("aria-disabled", "true");
-                button.setAttribute("aria-label", "Save before continuing");
-                button.dataset.disabledReason = "Save before continuing";
+                button.setAttribute("aria-label", "Click to save before continuing");
+                button.dataset.disabledReason = "Click to save before continuing";
             }
             else
             {

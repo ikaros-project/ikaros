@@ -1,0 +1,11 @@
+<group name="TestSizedMatrixParameterBounds"
+    description="Test sized matrix parameter rejects overfull values"
+    start="true"
+    stop="0"
+    expected_exit="1"
+    expected_output_contains="Matrix parameter value has 4 elements but shape &quot;@max_sequences,3&quot; only allows 3.">
+
+    <module name="Input" class="Constant" data="0, 0, 0, 0" />
+    <module name="SR" class="SequenceRecorder" max_sequences="1" channels="4" color="1, 2, 3, 4" />
+    <connection source="Input.OUTPUT" target="SR.INPUT" />
+</group>

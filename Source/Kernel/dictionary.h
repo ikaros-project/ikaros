@@ -14,8 +14,10 @@
 #include <initializer_list>
 #include <iterator>
 #include <iostream>
+#include <filesystem>
 #include <cctype>
 #include <stdexcept>
+#include <utility>
 
 #include "utilities.h"
 #include "xml.h"
@@ -33,8 +35,6 @@ namespace ikaros
     using mapPtr = std::shared_ptr<std::unordered_map<std::string, value>>;
     using listPtr = std::shared_ptr<std::vector<value>>;
     using exclude_set = const std::set<std::string> &;      // "a/b" = element b in a; "a.b" attribute b in a
-
-    static std::vector<value> empty;
 
     struct null
     {
@@ -55,12 +55,12 @@ namespace ikaros
         using const_iterator = std::unordered_map<std::string, value>::const_iterator;
 
 
-        iterator begin() noexcept { return dict_->begin(); }
-        iterator end() noexcept { return dict_->end(); }
-        const_iterator begin() const noexcept { return dict_->begin(); }
-        const_iterator end() const noexcept { return dict_->end(); }
-        const_iterator cbegin() const noexcept { return dict_->cbegin(); }
-        const_iterator cend() const noexcept { return dict_->cend(); }
+        iterator begin() noexcept;
+        iterator end() noexcept;
+        const_iterator begin() const noexcept;
+        const_iterator end() const noexcept;
+        const_iterator cbegin() const noexcept;
+        const_iterator cend() const noexcept;
 
         dictionary();
         dictionary(XMLElement * xml);
@@ -70,8 +70,12 @@ namespace ikaros
 
         //dictionary(const dictionary & d);
     
+        value & operator[](const char * s); // Creates the key on demand if it does not exist.
+        const value & operator[](const char * s) const;
         value & operator[](const std::string & s); // Creates the key on demand if it does not exist.
         const value & operator[](const std::string & s) const;
+        value & at(const char * s);  // throws if s is not in dictionary
+        const value & at(const char * s) const;
         value & at(const std::string & s);  // throws if s is not in dictionary
         const value & at(const std::string & s) const;
         [[nodiscard]]
@@ -112,6 +116,7 @@ namespace ikaros
         void print() const { std::cout << this->json() << '\n'; };
 
         void load_xml(const std::string & filename);
+        void load_xml(const std::string & filename, const std::vector<std::filesystem::path> & include_roots);
         void load_json(const std::string & filename);
     };
 
@@ -125,22 +130,29 @@ namespace ikaros
         using iterator = std::vector<value>::iterator;
         using const_iterator = std::vector<value>::const_iterator;
 
-        iterator begin() noexcept { return list_->begin(); }
-        iterator end() noexcept { return list_->end(); }
-        const_iterator begin() const noexcept { return list_->begin(); }
-        const_iterator end() const noexcept { return list_->end(); }
-        const_iterator cbegin() const noexcept { return list_->cbegin(); }
-        const_iterator cend() const noexcept { return list_->cend(); }
+        iterator begin() noexcept;
+        iterator end() noexcept;
+        const_iterator begin() const noexcept;
+        const_iterator end() const noexcept;
+        const_iterator cbegin() const noexcept;
+        const_iterator cend() const noexcept;
 
-        iterator erase(const_iterator pos) { return list_->erase(pos); }
-        iterator insert(const_iterator pos, const value & v) { return list_->insert(pos, v); }
+        iterator erase(const_iterator pos);
+        iterator insert(const_iterator pos, const value & v);
+        iterator insert(const_iterator pos, value && v);
 
         value & operator[] (int i); // Auto-resizes with null values up to i before returning the element.
         value & operator[] (size_t i); // Auto-resizes with null values up to i before returning the element.
-        [[nodiscard]] size_t size() const { return list_->size(); };
-        [[nodiscard]] bool empty() const { return list_->empty(); }
-        list & push_back(const value & v) { list_->push_back(v); return *this; };
-        list & insert_front(const value & v) { list_->insert(list_->begin(), v);  return *this; }
+        const value & operator[] (int i) const;
+        const value & operator[] (size_t i) const;
+        const value & at(int i) const;
+        const value & at(size_t i) const;
+        [[nodiscard]] size_t size() const;
+        [[nodiscard]] bool empty() const;
+        list & push_back(const value & v);
+        list & push_back(value && v);
+        list & insert_front(const value & v);
+        list & insert_front(value && v);
         list & erase(int index);
         list & erase(size_t index);
         operator std::string ()  const;
@@ -165,7 +177,9 @@ namespace ikaros
         value(const char * s)       { value_ = s; }
         value(const std::string & s){ value_ = s; }
         value(const list & v)       { value_ = v; }
+        value(list && v)            { value_ = std::move(v); }
         value(const dictionary & d) { value_ = d; }
+        value(dictionary && d)      { value_ = std::move(d); }
 
         value & operator =(bool v) { value_ = v; return *this; }
         value & operator =(int v) { value_ = double(v); return *this; }
@@ -175,7 +189,9 @@ namespace ikaros
         value & operator =(const std::string & s) { value_ = s; return *this; }
         value & operator =(const char * s) { value_ = s; return *this; }
         value & operator =(const list & v) { value_ = v; return *this; }
+        value & operator =(list && v) { value_ = std::move(v); return *this; }
         value & operator =(const dictionary & d) { value_ = d; return *this; }
+        value & operator =(dictionary && d) { value_ = std::move(d); return *this; }
 
         [[nodiscard]] bool is_dictionary() const { return std::holds_alternative<dictionary>(value_); }
         [[nodiscard]] bool is_list() const { return std::holds_alternative<list>(value_); }
@@ -193,25 +209,39 @@ namespace ikaros
 
         value & operator[] (const char * s); // Captures literals as argument ***************
         value & operator[] (const std::string & s); // Converts null/non-dictionary values into a dictionary before indexing.
+        const value & operator[] (const char * s) const;
+        const value & operator[] (const std::string & s) const;
+        value & at(const char * s); // throws if not dictionary or non-existent attribute
         value & at(const std::string & s); // throws if not dictionary or non-existent attribute
+        const value & at(const char * s) const; // throws if not dictionary or non-existent attribute
+        const value & at(const std::string & s) const; // throws if not dictionary or non-existent attribute
         value & operator[] (int i); // Converts null/non-list values into a list and auto-resizes with null values up to i.
         value & operator[] (size_t i); // Converts null/non-list values into a list and auto-resizes with null values up to i.
+        const value & operator[] (int i) const;
+        const value & operator[] (size_t i) const;
 
         value & push_back(const value & v);
+        value & push_back(value && v);
 
         friend std::ostream& operator<<(std::ostream& os, const value & v);
         [[nodiscard]] size_t size() const;
 
         std::vector<value>::iterator begin();   // value iterator ******* over what?? **********
         std::vector<value>::iterator end();
+        std::vector<value>::const_iterator begin() const;
+        std::vector<value>::const_iterator end() const;
 
         operator std::string () const;
         [[nodiscard]] std::string json() const;
         std::string xml(std::string name, exclude_set exclude={}, int depth=0) const;
 
         operator double () const;
-        operator list ();
-        operator dictionary ();
+        operator list () const;
+        operator dictionary () const;
+        list & as_list();
+        const list & as_list() const;
+        dictionary & as_dictionary();
+        const dictionary & as_dictionary() const;
 
         void print() const { std::cout << this->json() << '\n'; };
 

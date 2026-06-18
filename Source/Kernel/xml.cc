@@ -7,8 +7,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cctype>
+#include <algorithm>
 #include <stdexcept>
 
+
+static constexpr int max_xml_include_depth = 32;
 
 
 static char *
@@ -470,10 +473,52 @@ XMLProcessingInstruction::Print(FILE * f, int d)
  
 
 XMLDocument::XMLDocument(const char * filename, bool included)
+    : XMLDocument(filename, included, std::vector<std::filesystem::path>())
+{
+}
+
+
+XMLDocument::XMLDocument(const char * filename, bool included, const std::vector<std::filesystem::path> & include_roots)
+    : XMLDocument(filename, included, include_roots, std::vector<std::filesystem::path>(), 0)
+{
+}
+
+
+XMLDocument::XMLDocument(const char * filename, bool included, const std::vector<std::filesystem::path> & include_roots, const std::vector<std::filesystem::path> & include_stack, int include_depth)
 {
     debug_mode = XML_DEBUG;
     action = "";
     action_line = 0;
+    include_depth_ = include_depth;
+
+    std::error_code ec;
+    filename_ = std::filesystem::weakly_canonical(std::filesystem::path(filename), ec);
+    if(ec)
+        filename_ = std::filesystem::absolute(std::filesystem::path(filename), ec);
+    if(ec)
+        filename_ = std::filesystem::path(filename);
+
+    base_dir_ = filename_.parent_path();
+
+    for(const auto & root : include_roots)
+    {
+        if(root.empty())
+            continue;
+        std::filesystem::path resolved_root = std::filesystem::weakly_canonical(root, ec);
+        if(!ec)
+            include_roots_.push_back(resolved_root);
+        ec.clear();
+    }
+
+    include_stack_ = include_stack;
+    if(!include_roots_.empty())
+    {
+        if(include_depth_ > max_xml_include_depth)
+            throw std::runtime_error("Maximum XML include depth exceeded");
+        if(std::find(include_stack_.begin(), include_stack_.end(), filename_) != include_stack_.end())
+            throw std::runtime_error("Recursive XML include");
+        include_stack_.push_back(filename_);
+    }
 
     f = fopen(filename, "rb");
 
@@ -536,10 +581,30 @@ XMLDocument::XMLDocument(const char * filename, bool included)
             printf("\n");
 
         if (action_line != 0)
+        {
+            fclose(f);
             throw ikaros::exception(std::string(msg)+ " at line "+std::to_string(line)+" position "+std::to_string(character)+" while "+std::string(action)+" at line "+std::to_string(action_line));
+        }
         else
+        {
+            fclose(f);
             throw ikaros::exception(std::string(msg)+ " at line "+std::to_string(line)+" position "+std::to_string(character));
+        }
         // exit(1);
+    }
+    catch (const std::exception & e)
+    {
+        printf("%s: %s at line %d, position %d", filename, e.what(), line, character);
+        if (action_line != 0)
+            printf(" while %s at line %d\n", action, action_line);
+        else
+            printf("\n");
+
+        fclose(f);
+        if (action_line != 0)
+            throw ikaros::exception(std::string(e.what())+ " at line "+std::to_string(line)+" position "+std::to_string(character)+" while "+std::string(action)+" at line "+std::to_string(action_line));
+        else
+            throw ikaros::exception(std::string(e.what())+ " at line "+std::to_string(line)+" position "+std::to_string(character));
     }
 
     fclose(f);
@@ -747,6 +812,47 @@ XMLDocument::SetAction(const char * s)
 }
 
 
+bool
+XMLDocument::PathIsUnderRoot(const std::filesystem::path & root, const std::filesystem::path & path) const
+{
+    auto root_it = root.begin();
+    auto root_end = root.end();
+    auto path_it = path.begin();
+    auto path_end = path.end();
+
+    for(; root_it != root_end && path_it != path_end; ++root_it, ++path_it)
+        if(*root_it != *path_it)
+            return false;
+
+    return root_it == root_end;
+}
+
+
+std::filesystem::path
+XMLDocument::ResolveIncludedFilename(const std::string & filename)
+{
+    if(filename.empty())
+        throw std::runtime_error("XML include filename is empty");
+    if(include_depth_ >= max_xml_include_depth)
+        throw std::runtime_error("Maximum XML include depth exceeded");
+
+    std::filesystem::path include_path(filename);
+    if(include_path.is_relative())
+        include_path = base_dir_ / include_path;
+
+    std::error_code ec;
+    include_path = std::filesystem::weakly_canonical(include_path, ec);
+    if(ec)
+        throw std::runtime_error("Could not resolve XML include \"" + filename + "\"");
+
+    for(const auto & root : include_roots_)
+        if(PathIsUnderRoot(root, include_path))
+            return include_path;
+
+    throw std::runtime_error("XML include \"" + filename + "\" is outside the allowed include roots");
+}
+
+
 
 XMLNode *
 XMLDocument::ParseXMLDeclaration(XMLNode * parent)
@@ -780,11 +886,28 @@ XMLDocument::ParseIncludedFile(XMLNode * parent)
             throw "'\"' expected";
     PushUntil("FL", "\"");
     char * filename = create_string(buffer);
+    std::string include_filename = filename ? filename : "";
+    destroy_string(filename);
 
     PushUntil("IN", "?>");
     Skip("IN", 2);
 
-    XMLDocument * xml_doc = new XMLDocument(filename, true);
+    if(include_filename.empty())
+        throw std::runtime_error("XML include filename is empty");
+
+    XMLDocument * xml_doc = nullptr;
+    if(include_roots_.empty())
+    {
+        std::filesystem::path resolved_filename(include_filename);
+        if(resolved_filename.is_relative())
+            resolved_filename = base_dir_ / resolved_filename;
+        xml_doc = new XMLDocument(resolved_filename.string().c_str(), true);
+    }
+    else
+    {
+        std::filesystem::path resolved_filename = ResolveIncludedFilename(include_filename);
+        xml_doc = new XMLDocument(resolved_filename.string().c_str(), true, include_roots_, include_stack_, include_depth_+1);
+    }
     
     XMLNode * final_node = xml_doc->xml;
     while(final_node->next)

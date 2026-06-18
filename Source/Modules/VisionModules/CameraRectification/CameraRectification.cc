@@ -45,21 +45,18 @@ class CameraRectification : public Module
     static bool
     MatrixChanged(const matrix & m, std::vector<float> & cache)
     {
-        const int n = m.size();
-        const float * data = m.data();
-
-        if (static_cast<int>(cache.size()) != n)
+        std::vector<float> values;
+        values.reserve(m.size());
+        m.reduce([&values](float value)
         {
-            cache.assign(data, data + n);
+            values.push_back(value);
+        });
+
+        if (cache != values)
+        {
+            cache = std::move(values);
             return true;
         }
-
-        for (int i = 0; i < n; ++i)
-            if (cache[i] != data[i])
-            {
-                cache.assign(data, data + n);
-                return true;
-            }
 
         return false;
     }

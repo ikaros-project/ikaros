@@ -24,14 +24,14 @@ namespace
 {
     constexpr size_t kSharedMemoryAlignment = 64;
 
-    dictionary make_dictionary(value v)
+    dictionary make_dictionary(const value & v)
     {
-        return std::get<dictionary>(v.value_);
+        return v.as_dictionary();
     }
 
-    list make_list(value v)
+    list make_list(const value & v)
     {
-        return std::get<list>(v.value_);
+        return v.as_list();
     }
 
     list shape_to_list(const matrix & m)

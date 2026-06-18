@@ -12,6 +12,103 @@ webui-widget-drop-down-menu>select {
 webui-widget-drop-down-menu>label {
 }
 
+webui-widget-color-picker {
+    padding: 5px;
+}
+
+webui-widget-color-picker .color-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+webui-widget-color-picker .color-picker-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+webui-widget-color-picker .color-picker-native {
+    width: 38px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid #aaa;
+    background: none;
+}
+
+webui-widget-color-picker .color-picker-hex,
+webui-widget-color-picker .color-picker-label,
+webui-widget-color-picker .color-picker-value,
+webui-widget-color-picker .color-picker-error {
+    font: 12px Arial, sans-serif;
+}
+
+webui-widget-color-picker .color-picker-hex {
+    color: #333;
+    min-width: 64px;
+}
+
+webui-widget-color-picker .color-picker-sliders {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+webui-widget-color-picker .color-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+webui-widget-color-picker .color-picker-label {
+    width: 14px;
+    text-align: right;
+    color: #333;
+}
+
+webui-widget-color-picker .color-picker-value {
+    width: 36px;
+    text-align: right;
+    color: #333;
+}
+
+webui-widget-color-picker input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 16px;
+    background: none;
+    min-width: 20px;
+}
+
+webui-widget-color-picker input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 7px;
+    background-image: -webkit-linear-gradient(top, #555, #aaa);
+    border: 1px solid #ddd;
+    border-radius: 13px;
+}
+
+webui-widget-color-picker input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 19px;
+    width: 12px;
+    border-radius: 10%;
+    border: 1px solid #777;
+    background-image: -webkit-linear-gradient(top, #888, #aaa, #555);
+    margin-top: -7px;
+    box-shadow: 2px 2px 5px #888888;
+}
+
+webui-widget-color-picker .color-picker-error {
+    display: none;
+    color: #a33;
+}
+
 
 webui-widget-table table {
     border-top: 1px solid gray;
@@ -117,7 +214,8 @@ webui-widget-table td {
 webui-widget-slider-horizontal.widget-control-disabled,
 webui-widget-slider-vertical.widget-control-disabled,
 webui-widget-switch.widget-control-disabled,
-webui-widget-drop-down-menu.widget-control-disabled {
+webui-widget-drop-down-menu.widget-control-disabled,
+webui-widget-color-picker.widget-control-disabled {
     opacity: 0.48;
 }
 
@@ -126,36 +224,44 @@ webui-widget-drop-down-menu.widget-control-disabled {
 .vranger .widget-control-disabled .slider_label,
 .vranger .widget-control-disabled .slider_value,
 webui-widget-switch .switch-row.widget-control-disabled,
-webui-widget-drop-down-menu.widget-control-disabled label {
+webui-widget-drop-down-menu.widget-control-disabled label,
+webui-widget-color-picker.widget-control-disabled .color-picker-label,
+webui-widget-color-picker.widget-control-disabled .color-picker-value,
+webui-widget-color-picker.widget-control-disabled .color-picker-hex {
     color: #777;
 }
 
 .hranger input[type=range]:disabled,
-.vranger input[type=range]:disabled {
+.vranger input[type=range]:disabled,
+webui-widget-color-picker input[type=range]:disabled {
     cursor: not-allowed;
 }
 
 .hranger input[type=range]:disabled::-webkit-slider-runnable-track,
-.vranger input[type=range]:disabled::-webkit-slider-runnable-track {
+.vranger input[type=range]:disabled::-webkit-slider-runnable-track,
+webui-widget-color-picker input[type=range]:disabled::-webkit-slider-runnable-track {
     background-image: -webkit-linear-gradient(top, #b9b9b9, #d5d5d5);
     border-color: #cfcfcf;
 }
 
 .hranger input[type=range]:disabled::-webkit-slider-thumb,
-.vranger input[type=range]:disabled::-webkit-slider-thumb {
+.vranger input[type=range]:disabled::-webkit-slider-thumb,
+webui-widget-color-picker input[type=range]:disabled::-webkit-slider-thumb {
     border-color: #aaa;
     background-image: -webkit-linear-gradient(top, #d8d8d8, #c6c6c6);
     box-shadow: none;
 }
 
 .hranger input[type=range]:disabled::-moz-range-track,
-.vranger input[type=range]:disabled::-moz-range-track {
+.vranger input[type=range]:disabled::-moz-range-track,
+webui-widget-color-picker input[type=range]:disabled::-moz-range-track {
     background: #d0d0d0;
     border-color: #cfcfcf;
 }
 
 .hranger input[type=range]:disabled::-moz-range-thumb,
-.vranger input[type=range]:disabled::-moz-range-thumb {
+.vranger input[type=range]:disabled::-moz-range-thumb,
+webui-widget-color-picker input[type=range]:disabled::-moz-range-thumb {
     border-color: #aaa;
     background: #c6c6c6;
     box-shadow: none;

@@ -73,6 +73,29 @@ main()
     assert(parsed_json.is_dictionary());
     assert(parsed_json["name"].as_string() == "John");
     assert(parsed_json["scores"][2].as_int() == 3);
+    const value & const_parsed_json = parsed_json;
+    assert(const_parsed_json["name"].as_string() == "John");
+    assert(const_parsed_json["scores"][2].as_int() == 3);
+    assert(const_parsed_json["missing"].is_null());
+    assert(const_parsed_json["scores"][99].is_null());
+    assert(const_parsed_json.at("scores")[1].as_int() == 2);
+    int const_score_sum = 0;
+    for(const auto & score : const_parsed_json["scores"])
+        const_score_sum += score.as_int();
+    assert(const_score_sum == 6);
+
+    const dictionary converted_const_dict = const_parsed_json;
+    const list converted_const_scores = const_parsed_json["scores"];
+    assert(converted_const_dict["name"].as_string() == "John");
+    assert(converted_const_scores[0].as_int() == 1);
+
+    const dictionary const_dict = parsed_json.as_dictionary();
+    assert(const_dict["name"].as_string() == "John");
+    assert(const_dict["missing"].is_null());
+    const list const_scores = const_dict["scores"].as_list();
+    assert(const_scores[1].as_int() == 2);
+    assert(const_scores[99].is_null());
+
     assert(parse_json("-12.5e2").as_double() == -1250.0);
 
     value unicode_json = parse_json(R"({"latin":"\u00E5","emoji":"\uD83D\uDE00"})");

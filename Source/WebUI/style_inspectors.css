@@ -673,20 +673,26 @@ aside table td.header {
     border-radius: 999px;
 }
 
-#system_inspector .system-inspector-button-row {
-    padding-top: 10px;
-    text-align: center;
-}
-
 #system_inspector #i_table {
+    flex: 0 0 auto;
     table-layout: fixed;
     width: 100%;
 }
 
 #system_inspector {
     flex: 0 0 300px;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
     width: 300px;
     min-width: 300px;
+}
+
+#system_inspector #system_debug_table {
+    flex: 0 0 auto;
+    margin-top: auto;
+    table-layout: fixed;
+    width: 100%;
 }
 
 #system_inspector .system-inspector-label-column {
@@ -706,50 +712,6 @@ aside table td.header {
     padding-left: 10px !important;
     padding-right: 10px !important;
     text-align: center;
-}
-
-#system_inspector .system-file-button-cell {
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-}
-
-#system_inspector .system-file-button-group {
-    display: flex;
-    justify-content: center;
-    gap: 2px;
-    width: 100%;
-}
-
-#system_inspector #i_table td[colspan="2"] > button,
-#system_inspector .system-file-button-group > button {
-    flex: 0 0 auto;
-    margin: 5px 2px;
-    padding-left: 4px;
-    padding-right: 4px;
-}
-
-#system_inspector .system-inspector-button {
-    padding: 4px 10px;
-    border: 1px solid #8e8e8e;
-    border-radius: 5px;
-    background: transparent;
-    color: #d5d5d5;
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    text-transform: lowercase;
-    cursor: pointer;
-}
-
-#system_inspector .system-inspector-button:hover {
-    background: #f2f2f2;
-    color: #111;
-    border-color: #f2f2f2;
-}
-
-#system_inspector .system-inspector-button:active {
-    background: #cfcfcf;
-    color: #000;
-    border-color: #cfcfcf;
 }
 
 .inspector-plus-button {
