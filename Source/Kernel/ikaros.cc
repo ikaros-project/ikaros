@@ -1902,7 +1902,7 @@ namespace ikaros
     std::string
     Component::Info() const
     {
-        return info_["name"];
+        return path_;
     }
 
     bool

@@ -11,6 +11,7 @@
 #include <chrono>
 #include <atomic>
 #include <exception>
+#include <stdexcept>
 
 #include "profiler.h"
 
@@ -117,7 +118,20 @@ protected:
             if(!task->ShouldTick())
                 continue;
             task->ProfilingBegin();
-            task->Tick();
+            try
+            {
+                task->Tick();
+            }
+            catch(const std::exception & e)
+            {
+                task->ProfilingEnd();
+                throw std::runtime_error("Error in task \"" + task->Info() + "\": " + e.what());
+            }
+            catch(...)
+            {
+                task->ProfilingEnd();
+                throw std::runtime_error("Error in task \"" + task->Info() + "\": Unknown error.");
+            }
             task->ProfilingEnd();
         }
     }
