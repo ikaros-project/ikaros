@@ -374,3 +374,4 @@ This directory contains weekly development summaries for the Ikaros repository, 
 | 2026-W22 | 2026-05-25 to 2026-05-31 | [WebUI and World2D Updates](2026/2026-05-25-week-19.md) |
 | 2026-W23 | 2026-06-01 to 2026-06-08 | [CVAE, Locale Parsing, and State Handling](2026/2026-06-01-week-20.md) |
 | 2026-W24 | 2026-06-08 to 2026-06-14 | [Sequence Recorder, CVAE, and WebUI Updates](2026/2026-06-08-week-21.md) |
+| 2026-W25 | 2026-06-15 to 2026-06-21 | [Sequence Recorder, Matrix, and WebUI Updates](2026/2026-06-15-week-22.md) |
