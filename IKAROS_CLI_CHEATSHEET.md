@@ -38,6 +38,30 @@ Common options:
 - `-a PASSWORD` Enable WebUI/API authentication.
 - `-A NAME` Set the agent identifier for remote session logging.
 
+Canonical option names:
+
+Use these names with `name=value` when you do not use the one-letter shortcuts.
+
+| Shortcut | Canonical name | Example |
+| --- | --- | --- |
+| `-h` | `help` | `help=true` |
+| `-b` | `batch_mode` | `batch_mode=true` |
+| `-d` | `tick_duration` | `tick_duration=0.025` |
+| `-i` | `info` | `info=true` |
+| `-r` | `real_time` | `real_time=true` |
+| `-S` | `start` | `start=true` |
+| `-s` | `stop` | `stop=500` |
+| `-p` | `python_executable` | `python_executable=/path/to/python` |
+| `-t` | `threads` | `threads=8` |
+| `-u` | `user_data` | `user_data=/tmp/ikaros_data` |
+| `-w` | `webui_port` | `webui_port=8080` |
+| `-B` | `bind_address` | `bind_address=127.0.0.1` |
+| `-a` | `auth_password` | `auth_password=secret` |
+| `-A` | `agent` | `agent=EpiYellow` |
+| `-H` | `hide_toolbar` | `hide_toolbar=true` |
+| `-L` | `load_state` | `load_state=initial.state` |
+| `-W` | `save_state` | `save_state=final.state` |
+
 Notes:
 
 - Options with values accept both attached and spaced forms: `-w8000` and `-w 8000`.
@@ -45,6 +69,7 @@ Notes:
 - Command-line values override values from the `.ikg` file.
 - `user_data` and `auth_password` are CLI-only.
 - `-a` must include a non-empty password.
+- Canonical names use underscores, for example `real_time=true`, not `realtime=true`.
 - No GNU long options like `--help`.
 - No grouped short flags like `-br`.
 
