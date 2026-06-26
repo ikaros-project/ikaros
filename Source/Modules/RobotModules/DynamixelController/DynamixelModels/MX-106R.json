@@ -1,0 +1,15 @@
+{
+    "model": "MX-106R",
+    "manual_url": "https://docs.robotis.com/docs/dxl/model_reference/mx_series/mx-106-2",
+    "protocol_version": 2.0,
+    "control_table": "MXProtocol2ControlTable",
+    "indirect_layout": "MXProtocol2DefaultIndirectLayout",
+    "position": {
+        "unit_degrees": 0.087890625,
+        "min": 0,
+        "max": 4095
+    },
+    "current": {
+        "unit_ma": 3.36
+    }
+}

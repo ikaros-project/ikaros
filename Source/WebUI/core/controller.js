@@ -957,6 +957,13 @@ const controller =
             document.querySelector("#load").style.display="none";
    
             controller.tick = response.tick;
+            if(response.tick_duration !== undefined)
+            {
+                controller.tick_duration = response.tick_duration || 0;
+                const tickDurationElement = document.querySelector("#tick_duration");
+                if(tickDurationElement)
+                    tickDurationElement.innerHTML = formatTime(response.tick_duration);
+            }
             network.init(controller.cloneNetworkForStorage(response));
             if(main && typeof main.applyStartupTopChromeVisibility === "function")
                 main.applyStartupTopChromeVisibility();
@@ -1011,6 +1018,8 @@ const controller =
             if((wasOpenRequest || isCleanNewSession || controller.preserve_clean_open) && !network.tainted)
                 main.setViewMode();
             controller.syncTransportButtons();
+            if(wasOpenRequest || wasNewRequest)
+                controller.forceNextUpdate();
        }
 
         else if(sessionChanged)

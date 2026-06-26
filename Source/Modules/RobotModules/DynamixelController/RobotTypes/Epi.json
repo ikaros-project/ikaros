@@ -1,0 +1,325 @@
+{
+    "format": "DynamixelRobotType/v1",
+    "type": "Epi",
+    "chains": [
+        {
+            "name": "Head",
+            "id_min": 2,
+            "id_max": 5,
+            "io_index": 0,
+            "baud_rate": 3000000,
+            "parameter_chain": true,
+            "communication": "sync_indirect",
+            "defaults": {
+                "p_gain": 850,
+                "i_gain": 0,
+                "d_gain": 0
+            },
+            "servos": {
+                "2": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Neck tilt",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 1300,
+                    "max": 2700,
+                    "goal_offset": 180,
+                    "present_position_offset": -180
+                },
+                "3": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Neck pan",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 1750,
+                    "max": 2500,
+                    "goal_offset": 180,
+                    "present_position_offset": -180
+                },
+                "4": {
+                    "model": "MX-28R",
+                    "unit": "degree",
+                    "label": "Left eye",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 1830,
+                    "max": 2300,
+                    "goal_offset": 180,
+                    "present_position_offset": -180
+                },
+                "5": {
+                    "model": "MX-28R",
+                    "unit": "degree",
+                    "label": "Right eye",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 1780,
+                    "max": 2200,
+                    "goal_offset": 180,
+                    "present_position_offset": -180
+                }
+            }
+        },
+        {
+            "name": "Pupil",
+            "id_min": 2,
+            "id_max": 3,
+            "io_index": 4,
+            "baud_rate": 1000000,
+            "parameter_chain": false,
+            "communication": "direct_position",
+            "startup_writes": {
+                "Moving Speed": 150,
+                "P Gain": 100,
+                "I Gain": 20,
+                "D Gain": 5
+            },
+            "calibration": {
+                "goal_position": 0,
+                "calibrated_position_offset": 5,
+                "calibrated_position_range": 80,
+                "torque_limit": 500,
+                "max_torque_limit": 1023,
+                "full_range_position": 1023,
+                "write_delay": 0.01,
+                "move_delay": 1.5
+            },
+            "servos": {
+                "2": {
+                    "model": "XL-320",
+                    "unit": "mm",
+                    "label": "Pupil left",
+                    "startup_position": 10,
+                    "shutdown_position": 10,
+                    "conversion_factor": 0.66875,
+                    "direct_position": {
+                        "software_min": 5,
+                        "software_max": 16,
+                        "input_min": 4.2,
+                        "input_max": 19.7,
+                        "position_min": 0,
+                        "position_max": 80
+                    }
+                },
+                "3": {
+                    "model": "XL-320",
+                    "unit": "mm",
+                    "label": "Pupil right",
+                    "startup_position": 10,
+                    "shutdown_position": 10,
+                    "conversion_factor": 0.66875,
+                    "direct_position": {
+                        "software_min": 5,
+                        "software_max": 16,
+                        "input_min": 4.2,
+                        "input_max": 19.7,
+                        "position_min": 0,
+                        "position_max": 80
+                    }
+                }
+            }
+        },
+        {
+            "name": "LeftArm",
+            "id_min": 2,
+            "id_max": 7,
+            "io_index": 6,
+            "baud_rate": 3000000,
+            "parameter_chain": true,
+            "communication": "sync_indirect",
+            "defaults": {
+                "p_gain": 850,
+                "i_gain": 0,
+                "d_gain": 0
+            },
+            "servos": {
+                "2": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Left arm joint 1",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 600,
+                    "max": 3200,
+                    "goal_offset": 180,
+                    "present_position_offset": -180
+                },
+                "3": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Left arm joint 2",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 800,
+                    "max": 3200,
+                    "goal_offset": 180,
+                    "present_position_offset": -180
+                },
+                "4": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Left arm joint 3",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 1000,
+                    "max": 3000,
+                    "goal_offset": 180,
+                    "present_position_offset": -180
+                },
+                "5": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Left arm joint 4",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 600,
+                    "max": 2300,
+                    "goal_offset": 180,
+                    "present_position_offset": -180
+                },
+                "6": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Left arm joint 5",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 800,
+                    "max": 3900,
+                    "goal_offset": 225,
+                    "present_position_offset": -225
+                },
+                "7": {
+                    "model": "MX-28R",
+                    "unit": "degree",
+                    "label": "Left hand",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 0,
+                    "max": 4095,
+                    "goal_offset": 180,
+                    "goal_pre_inverted": true,
+                    "present_position_offset": -180,
+                    "present_position_post_inverted": true,
+                    "present_current_post_inverted": true
+                }
+            }
+        },
+        {
+            "name": "RightArm",
+            "id_min": 2,
+            "id_max": 7,
+            "io_index": 12,
+            "baud_rate": 3000000,
+            "parameter_chain": true,
+            "communication": "sync_indirect",
+            "defaults": {
+                "p_gain": 850,
+                "i_gain": 0,
+                "d_gain": 0
+            },
+            "servos": {
+                "2": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Right arm joint 1",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 600,
+                    "max": 3200,
+                    "goal_offset": 180,
+                    "present_position_offset": -180
+                },
+                "3": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Right arm joint 2",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 900,
+                    "max": 3300,
+                    "goal_offset": 180,
+                    "goal_pre_inverted": true,
+                    "present_position_offset": -180,
+                    "present_position_post_inverted": true,
+                    "present_current_post_inverted": true
+                },
+                "4": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Right arm joint 3",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 1000,
+                    "max": 3000,
+                    "goal_offset": 180,
+                    "present_position_offset": -180
+                },
+                "5": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Right arm joint 4",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 1800,
+                    "max": 3600,
+                    "goal_offset": 180,
+                    "present_position_offset": -180
+                },
+                "6": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Right arm joint 5",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 800,
+                    "max": 3900,
+                    "goal_offset": 135,
+                    "present_position_offset": -135
+                },
+                "7": {
+                    "model": "MX-28R",
+                    "unit": "degree",
+                    "label": "Right hand",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 0,
+                    "max": 4095,
+                    "goal_offset": 180,
+                    "present_position_offset": -180
+                }
+            }
+        },
+        {
+            "name": "Body",
+            "id_min": 2,
+            "id_max": 2,
+            "io_index": 18,
+            "baud_rate": 3000000,
+            "parameter_chain": true,
+            "communication": "sync_indirect",
+            "defaults": {
+                "p_gain": 850,
+                "i_gain": 0,
+                "d_gain": 0
+            },
+            "servos": {
+                "2": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Body",
+                    "startup_position": 0,
+                    "shutdown_position": 0,
+                    "min": 100,
+                    "max": 3900,
+                    "goal_offset": 180,
+                    "goal_pre_inverted": true,
+                    "present_position_offset": -180,
+                    "present_position_post_inverted": true,
+                    "present_current_post_inverted": true
+                }
+            }
+        }
+    ]
+}

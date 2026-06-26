@@ -1,0 +1,37 @@
+<class name="DynamixelController" description="Robot servo control module">
+
+	<description type="text">
+	This module connects to configured Dynamixel servo chains using the Dynamixel SDK.
+	It stores configuration settings for each robot (serial port names, robot type, servo labels, units, and communication mode) and uses the appropriate settings depending on the robot parameter.
+	The module also supports simulation of the servos.
+
+	Servo order and output labels are defined by the selected robot type configuration.
+
+	</description>
+
+    <parameter name="robot" type="string" default="" description="Robot configuration entry to connect to. Empty selects the first configured robot." />
+
+
+	<parameter name="Simulate" type="bool" default="False" description="Simulation mode. No connection is made to servos. The PRESENT_POSITION output is calculated from the previous position, goal position, maximum velocity (no acceleration), and the time base of the simulation." />
+	<parameter name="ServoCount" type="number" default="0" min="0" description="Number of configured servos for the selected robot. A value of 0 derives the count from the robot configuration." />
+	<parameter name="SimulationRate" type="rate" default="0.4" description="Maximum simulated position change in degrees/s." />
+	<parameter name="UsePositionLimitParameters" type="bool" default="False" description="Use MinLimitPosition and MaxLimitPosition as runtime overrides instead of the limits in the selected robot type configuration." />
+	<parameter name="MinLimitPosition" type="matrix" description="Runtime override for the minimum position limits in degrees of parameter-chain servos. Used only when UsePositionLimitParameters is true."
+	control="textedit"
+	default="122, 130, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"
+	data="122, 130, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9"
+	/>
+	<parameter name="MaxLimitPosition" type="matrix" description="Runtime override for the maximum position limits in degrees of parameter-chain servos. Used only when UsePositionLimitParameters is true."
+	control="textedit"
+	default="237, 240, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"
+	data="237, 240, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343"
+	/>
+	<parameter name="ServoControlMode" type="string" options="Position,CurrentPosition" default="Position" description="The control mode of the servos."/>
+	<input name="GOAL_POSITION" description="Goal positions in the units defined by the selected robot type configuration." size="@ServoCount" />
+	<input name="GOAL_CURRENT" optional ="true" description="Goal current in mA. This is an optional input and only used if the servo uses current-based position control mode" size="@ServoCount" />
+	<input name="TORQUE_ENABLE" optional ="true" description="Enable servos. This is an optional and not recommended input" size="@ServoCount" />
+	<input name="GOAL_PWM" optional ="true" description="Pulse width modulation in percentage. This is an optional input that can be used to limit PWM and thereby force in position control mode." size="@ServoCount" />
+	<output name="PRESENT_POSITION" description="Present positions in the units defined by the selected robot type configuration." size="@ServoCount" />
+	<output name="PRESENT_CURRENT" description="Present current (if supported by the servo) in mA." size="@ServoCount" />
+	<output name="STATE" description="One-hot controller state: idle, initialization, ramp-up, start-up, shut-down, ramp-down, operation." size="7" />
+</class>

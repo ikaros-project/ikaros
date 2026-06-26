@@ -23,6 +23,7 @@
 #include "ikaros.h"
 
 #include <fcntl.h>
+#include <cstring>
 #include <sstream>
 #include <spawn.h>
 #include <sys/wait.h>
@@ -117,11 +118,12 @@ bool RunCommandCaptureOutput(const std::string & executable, char * const argv[]
 class Sound
 {
 public:
-    Sound(const std::string &s) : sound_path(s) { timer = new Timer(); };
+    Sound(const std::string &s) : requested_path(s), sound_path(s) { timer = new Timer(); };
 
     // void    Play(const char * command);
     // bool    UpdateVolume(float * rms, float lag=0);  // returns true if still playing
 
+    std::string requested_path;
     std::string sound_path;
     std::vector<float> time;
     std::vector<float> left;
@@ -131,14 +133,29 @@ public:
 
     int frame;
     Timer *timer;
-    void Play(const char *command)
+    bool Play(const char *command, std::string & error)
     {
+        if (!std::filesystem::exists(sound_path))
+        {
+            error = "Sound file does not exist: \"" + sound_path + "\"";
+            if (requested_path != sound_path)
+                error += " (configured as \"" + requested_path + "\")";
+            return false;
+        }
+
         timer->Restart();
         frame = 0;
         char *argv[5] = {(char *)command, (char *)sound_path.c_str(), NULL};
         pid_t pid;
 
         int status = posix_spawn(&pid, (char *)command, NULL, NULL, argv, NULL);
+        if (status != 0)
+        {
+            error = "Could not start playback command \"" + std::string(command) + "\" for \"" + sound_path + "\": " + std::strerror(status);
+            return false;
+        }
+
+        return true;
     }
     bool UpdateVolume(float *rms, float lag)
     {
@@ -216,7 +233,12 @@ class SoundOutput : public Module
         {
             current_sound = queued_sound;
             queued_sound = -1;
-            sound[current_sound].Play(kPlaybackCommand);
+            std::string playback_error;
+            if (!sound[current_sound].Play(kPlaybackCommand, playback_error))
+            {
+                Warning(playback_error);
+                current_sound = -1;
+            }
         }
 
         // Update volume
@@ -264,12 +286,18 @@ class SoundOutput : public Module
     {
         Sound sound(sound_path);
 
+        std::filesystem::path resolved_path;
+        if (kernel().SanitizeReadPath(sound_path, resolved_path))
+            sound.sound_path = resolved_path.string();
+        else
+            Notify(msg_warning, "Sound file could not be resolved from project directory or UserData: \"" + sound_path + "\".");
+
         // Get amplitudes using ffprobe
 
         int err = 0;
         std::string ffprobe_command = ResolveFFProbeCommand();
         std::string ffprobe_input =
-            "amovie=" + sound_path +
+            "amovie=" + sound.sound_path +
             ",astats=metadata=1:reset=1";
         std::string ffprobe_entries =
             "frame=pkt_pts_time:frame_tags=lavfi.astats.Overall.RMS_level,lavfi.astats.1.RMS_level,lavfi.astats.2.RMS_level";
@@ -306,7 +334,10 @@ class SoundOutput : public Module
                 err = 0;
             }
             else
+            {
+                Notify(msg_warning, "Could not analyze sound file \"" + sound.sound_path + "\" configured as \"" + sound.requested_path + "\". Using fallback volume envelope.");
                 err = 1;
+            }
         }
         if (err != 0) // Command failed - fake 1s output
         {

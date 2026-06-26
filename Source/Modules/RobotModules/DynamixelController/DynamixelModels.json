@@ -1,0 +1,8 @@
+{
+    "format": "DynamixelModels/v1",
+    "model_files": {
+        "MX-106R": "DynamixelModels/MX-106R.json",
+        "MX-28R": "DynamixelModels/MX-28R.json",
+        "XL-320": "DynamixelModels/XL-320.json"
+    }
+}

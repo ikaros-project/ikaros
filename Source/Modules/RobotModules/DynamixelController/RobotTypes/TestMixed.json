@@ -1,0 +1,77 @@
+{
+    "format": "DynamixelRobotType/v1",
+    "type": "TestMixed",
+    "chains": [
+        {
+            "name": "Main",
+            "id_min": 2,
+            "id_max": 3,
+            "io_index": 0,
+            "baud_rate": 3000000,
+            "parameter_chain": true,
+            "communication": "sync_indirect",
+            "defaults": {
+                "p_gain": 850,
+                "i_gain": 0,
+                "d_gain": 0
+            },
+            "servos": {
+                "2": {
+                    "model": "MX-106R",
+                    "unit": "degree",
+                    "label": "Main 1",
+                    "min": 1000,
+                    "max": 3000
+                },
+                "3": {
+                    "model": "MX-28R",
+                    "unit": "degree",
+                    "label": "Main 2",
+                    "min": 1000,
+                    "max": 3000
+                }
+            }
+        },
+        {
+            "name": "Direct",
+            "id_min": 2,
+            "id_max": 2,
+            "io_index": 2,
+            "baud_rate": 1000000,
+            "parameter_chain": false,
+            "communication": "direct_position",
+            "startup_writes": {
+                "Moving Speed": 150,
+                "P Gain": 100,
+                "I Gain": 20,
+                "D Gain": 5
+            },
+            "calibration": {
+                "goal_position": 0,
+                "calibrated_position_offset": 5,
+                "calibrated_position_range": 80,
+                "torque_limit": 500,
+                "max_torque_limit": 1023,
+                "full_range_position": 1023,
+                "write_delay": 0.01,
+                "move_delay": 1.5
+            },
+            "servos": {
+                "2": {
+                    "model": "XL-320",
+                    "unit": "mm",
+                    "label": "Direct 1",
+                    "conversion_factor": 0.66875,
+                    "direct_position": {
+                        "software_min": 5,
+                        "software_max": 16,
+                        "input_min": 4.2,
+                        "input_max": 19.7,
+                        "position_min": 0,
+                        "position_max": 80
+                    }
+                }
+            }
+        }
+    ]
+}

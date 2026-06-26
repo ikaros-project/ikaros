@@ -1,0 +1,11 @@
+{
+    "model": "XL-320",
+    "manual_url": "https://docs.robotis.com/docs/dxl/model_reference/x_series/xl_series/xl320",
+    "protocol_version": 2.0,
+    "control_table": "XL320ControlTable",
+    "position": {
+        "unit_degrees": 0.29,
+        "min": 0,
+        "max": 1023
+    }
+}

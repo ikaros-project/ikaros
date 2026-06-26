@@ -1,0 +1,125 @@
+{
+    "format": "DynamixelRobotType/v1",
+    "type": "EpiTorso",
+    "chains": [
+        {
+            "id_min": 2,
+            "id_max": 5,
+            "io_index": 0,
+            "name": "Head",
+            "baud_rate": 3000000,
+            "defaults": {
+                "p_gain": 850,
+                "i_gain": 0,
+                "d_gain": 0
+            },
+            "parameter_chain": true,
+            "communication": "sync_indirect",
+            "servos": {
+                "2": {
+                    "label": "Neck tilt",
+                    "unit": "degree",
+                    "min": 1300,
+                    "present_position_offset": -180,
+                    "model": "MX-106R",
+                    "startup_position": 59.94140625,
+                    "shutdown_position": 59.4140625,
+                    "max": 2700,
+                    "goal_offset": 180
+                },
+                "3": {
+                    "label": "Neck pan",
+                    "unit": "degree",
+                    "min": 1750,
+                    "present_position_offset": -180,
+                    "model": "MX-106R",
+                    "startup_position": 0.087890625,
+                    "shutdown_position": 0.17578125,
+                    "max": 2500,
+                    "goal_offset": 180
+                },
+                "4": {
+                    "label": "Left eye",
+                    "unit": "degree",
+                    "min": 1830,
+                    "present_position_offset": -180,
+                    "model": "MX-28R",
+                    "startup_position": 8.96484375,
+                    "shutdown_position": 0.703125,
+                    "max": 2300,
+                    "goal_offset": 180
+                },
+                "5": {
+                    "label": "Right eye",
+                    "unit": "degree",
+                    "min": 1780,
+                    "present_position_offset": -180,
+                    "model": "MX-28R",
+                    "startup_position": 9.404296875,
+                    "shutdown_position": 0.263671875,
+                    "max": 2200,
+                    "goal_offset": 180
+                }
+            }
+        },
+        {
+            "id_min": 2,
+            "id_max": 3,
+            "io_index": 4,
+            "name": "Pupil",
+            "baud_rate": 1000000,
+            "parameter_chain": false,
+            "communication": "direct_position",
+            "servos": {
+                "2": {
+                    "label": "Pupil left",
+                    "unit": "mm",
+                    "direct_position": {
+                        "software_min": 5,
+                        "software_max": 16,
+                        "input_min": 4.2,
+                        "position_min": 0,
+                        "input_max": 19.7,
+                        "position_max": 80
+                    },
+                    "startup_position": 0,
+                    "model": "XL-320",
+                    "conversion_factor": 0.66875,
+                    "shutdown_position": 0
+                },
+                "3": {
+                    "label": "Pupil right",
+                    "unit": "mm",
+                    "direct_position": {
+                        "software_min": 5,
+                        "software_max": 16,
+                        "input_min": 4.2,
+                        "position_min": 0,
+                        "input_max": 19.7,
+                        "position_max": 80
+                    },
+                    "startup_position": 0,
+                    "model": "XL-320",
+                    "conversion_factor": 0.66875,
+                    "shutdown_position": 0
+                }
+            },
+            "startup_writes": {
+                "Moving Speed": 150,
+                "P Gain": 100,
+                "D Gain": 5,
+                "I Gain": 20
+            },
+            "calibration": {
+                "goal_position": 0,
+                "calibrated_position_range": 80,
+                "move_delay": 1.5,
+                "full_range_position": 1023,
+                "max_torque_limit": 1023,
+                "torque_limit": 500,
+                "calibrated_position_offset": 5,
+                "write_delay": 0.01
+            }
+        }
+    ]
+}

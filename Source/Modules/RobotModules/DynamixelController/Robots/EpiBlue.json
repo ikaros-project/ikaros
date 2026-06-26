@@ -1,0 +1,12 @@
+{
+    "format": "DynamixelRobotInstance/v1",
+    "robot": "EpiBlue",
+    "type": "Epi",
+    "serial_ports": {
+        "Head": "/dev/cu.usbserial-FT4THUNJ",
+        "Pupil": "/dev/cu.usbserial-FT66WS1F",
+        "LeftArm": "/dev/cu.usbserial-FT4TFSV0",
+        "RightArm": "/dev/cu.usbserial-FT4TCVTT",
+        "Body": "/dev/cu.usbserial-FT4THV1M"
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "format": "DynamixelRobotInstance/v1",
+    "robot": "EpiBlack",
+    "type": "EpiTorso",
+    "serial_ports": {
+        "Head": "/dev/cu.usbserial-FT3WHSCR",
+        "Pupil": "/dev/cu.usbserial-FT66WIVC"
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "format": "DynamixelControllerConfiguration/v1",
+    "robot_type_files": {
+        "TestMixed": "RobotTypes/TestMixed.json",
+        "EpiTorso": "RobotTypes/EpiTorso.json",
+        "Epi": "RobotTypes/Epi.json"
+    },
+    "robot_files": {
+        "TestMixed": "Robots/TestMixed.json",
+        "EpiPink": "Robots/EpiPink.json",
+        "EpiWhite": "Robots/EpiWhite.json",
+        "EpiRed": "Robots/EpiRed.json",
+        "EpiRedDemo": "Robots/EpiRedDemo.json",
+        "EpiOrange": "Robots/EpiOrange.json",
+        "EpiYellow": "Robots/EpiYellow.json",
+        "EpiGreen": "Robots/EpiGreen.json",
+        "EpiBlue": "Robots/EpiBlue.json",
+        "EpiGray": "Robots/EpiGray.json",
+        "EpiBlack": "Robots/EpiBlack.json"
+    }
+}
