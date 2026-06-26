@@ -63,6 +63,8 @@ main()
     root->info_["base"] = "child";
     root->info_["i"] = "1";
     root->info_["EpiName"] = "EpiBlue";
+    root->info_["agent"] = "@EpiName";
+    root->info_["literal_agent"] = "X";
     root->info_["shape_expr"] = "child.input.size[1:]";
 
     child->info_["value"] = "7";
@@ -107,6 +109,8 @@ main()
     assert(root->ComputeValue(".Epi.Settings.type") == "type");
     assert(root->ComputeValue(".Epi.Settings.{type}") == "FullX");
     assert(root->ComputeValue(".Epi.Settings.{type}.{Body_L1_T1_data}") == "88");
+    assert(root->ComputeValueOf("agent") == "EpiBlue");
+    assert(root->ComputeValueOf("literal_agent") == "X");
     assert(root->ComputeValue("@i+1") == "2");
     assert(throws_compute([&](){ root->ComputeValue("i+1"); }));
 
