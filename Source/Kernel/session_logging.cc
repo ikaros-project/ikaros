@@ -55,14 +55,12 @@ namespace ikaros
             query += UrlEncode(LimitLogValue(value));
         }
 
-        void AddCommonParameters(std::string & path, Kernel & kernel, const std::string & event_name, const dictionary & module_info)
+
+        void AddCommonParameters(std::string & path, Kernel & kernel, const std::string & event_name, const dictionary & module_info, const std::string & agent)
         {
             char hostname[256] = {0};
             if(gethostname(hostname, sizeof(hostname)-1) != 0)
                 hostname[0] = '\0';
-
-            const std::string agent =
-                kernel.info_.contains("agent") ? std::string(kernel.info_["agent"]) : kernel.GetOption("agent");
 
             AppendQueryParameter(path, "event", event_name);
             AppendQueryParameter(path, "sid", std::to_string(kernel.session_id));
@@ -99,8 +97,15 @@ namespace ikaros
         try
         {
             dictionary module_info = kernel.GetModuleInstantiationInfo();
+            std::string agent = kernel.GetOption("agent");
+            if(kernel.info_.contains_non_null("name"))
+            {
+                auto root = kernel.components.find(std::string(kernel.info_["name"]));
+                if(root != kernel.components.end())
+                    agent = root->second->ComputeValueOf("agent");
+            }
             std::string path = endpoint;
-            AddCommonParameters(path, kernel, event_name, module_info);
+            AddCommonParameters(path, kernel, event_name, module_info, agent);
             SendLogRequest(path);
         }
         catch(...)
@@ -116,7 +121,7 @@ namespace ikaros
         {
             dictionary module_info = kernel.GetModuleInstantiationInfo();
             std::string path = "/process_start3/";
-            AddCommonParameters(path, kernel, "process_start", module_info);
+            AddCommonParameters(path, kernel, "process_start", module_info, kernel.GetOption("agent"));
             AppendQueryParameter(path, "uptime", formatNumber(kernel.uptime_timer.GetTime(), 4));
             SendLogRequest(path);
         }
@@ -132,8 +137,15 @@ namespace ikaros
         try
         {
             dictionary module_info = kernel.GetModuleInstantiationInfo();
+            std::string agent = kernel.GetOption("agent");
+            if(kernel.info_.contains_non_null("name"))
+            {
+                auto root = kernel.components.find(std::string(kernel.info_["name"]));
+                if(root != kernel.components.end())
+                    agent = root->second->ComputeValueOf("agent");
+            }
             std::string path = "/exit3/";
-            AddCommonParameters(path, kernel, "exit", module_info);
+            AddCommonParameters(path, kernel, "exit", module_info, agent);
             AppendQueryParameter(path, "uptime", formatNumber(kernel.uptime_timer.GetTime(), 4));
             SendLogRequest(path);
         }
