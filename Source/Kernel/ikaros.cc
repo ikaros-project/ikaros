@@ -6631,12 +6631,12 @@ bool operator==(Request & r, const std::string s)
             return;
         }
 
-        bool opened_file_requests_start = false;
+        bool should_start = false;
         try
         {
             dictionary requested_file_info;
             LoadXMLWithRestrictedIncludes(requested_file_info, file_path->second);
-            opened_file_requests_start = requested_file_info.is_set("start") || requested_file_info.is_set("real_time");
+            should_start = requested_file_info.is_set("start") || requested_file_info.is_set("real_time");
         }
         catch(...)
         {
@@ -6645,39 +6645,36 @@ bool operator==(Request & r, const std::string s)
 
         Stop();
         options_.path_ = file_path->second;
-            try
+        try
+        {
+            LoadFile();
+            if(should_start && info_.is_set("real_time"))
+                Realtime();
+            else if(should_start)
+                Play();
+            else
             {
-                LoadFile();
-                if(!opened_file_requests_start)
-                {
-                    info_.erase("start");
-                    info_.erase("real_time");
-                    run_mode = run_mode_stop;
-                    timer.Pause();
-                    timer.SetPauseTime(0);
-                }
+                info_.erase("start");
+                info_.erase("real_time");
+                run_mode = run_mode_stop;
+                timer.Pause();
+                timer.SetPauseTime(0);
             }
-            catch(const setup_failed& e)
-            {
-                //std::cerr << e.what() << '\n';
-                Notify(msg_warning, "Could not set up file \""+file+"\": "+e.message(), e.path());
-                // New();
-            }
-            catch(const load_failed& e)
-            {
-                Notify(msg_warning, "Could not load file \""+file+"\": "+e.message(), e.path());
-                New();
-            }
-            catch(const std::exception& e)
-            {
-                std::cerr << e.what() << '\n';
-                Notify(msg_warning, "Could not open file \""+file+"\": "+std::string(e.what()));
-                New();
-            }
-            
-        // Great we loaded the file. Check the run_mode in the loaded file and set it accordingly?
-        // if(std::string(info_["real_time"]) == "true")
-        //     Realtime();
+        }
+        catch(const setup_failed& e)
+        {
+            Notify(msg_warning, "Could not set up file \""+file+"\": "+e.message(), e.path());
+        }
+        catch(const load_failed& e)
+        {
+            Notify(msg_warning, "Could not load file \""+file+"\": "+e.message(), e.path());
+            New();
+        }
+        catch(const std::exception& e)
+        {
+            Notify(msg_warning, "Could not open file \""+file+"\": "+std::string(e.what()));
+            New();
+        }
 
         DoSendNetwork(request);
     }
