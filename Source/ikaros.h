@@ -270,6 +270,7 @@ public:
     matrix & GetBuffer(const std::string & s);
 
     std::string ComputeValue(const std::string & s);
+    std::string ComputeValueOf(const std::string & name);
     double ComputeDouble(const std::string & s);
     int ComputeInt(const std::string & s);
     bool ComputeBool(const std::string & s);

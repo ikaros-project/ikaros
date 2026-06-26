@@ -1620,6 +1620,13 @@ namespace ikaros
     }
 
 
+    std::string
+    Component::ComputeValueOf(const std::string & name)
+    {
+        return ComputeValue("@" + name);
+    }
+
+
     double
     Component::ComputeDouble(const std::string & s)
     {
