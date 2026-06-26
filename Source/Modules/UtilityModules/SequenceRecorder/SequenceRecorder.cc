@@ -2131,8 +2131,11 @@ public:
         Bind(directory, "directory");
         Bind(filename, "filename");
         Bind(trig, "TRIG");
-        trig_last = matrix(trig.size());
-        trig_last.reset();
+        if (trig.connected())
+        {
+            trig_last = matrix(trig.size());
+            trig_last.reset();
+        }
         Bind(playing, "PLAYING");
         Bind(completed, "COMPLETED");
         Bind(color_output, "COLOR");
@@ -2314,11 +2317,14 @@ public:
 
         // Check trig input
 
-        for (int s = 0; s < trig.size(); s++)
-            if (trig[s] > 0 && trig_last[s] == 0) // Trig on rising edge
-                Trig(s);
+        if (trig.connected())
+        {
+            for (int s = 0; s < trig.size(); s++)
+                if (trig[s] > 0 && trig_last[s] == 0) // Trig on rising edge
+                    Trig(s);
 
-        trig_last.copy(trig);
+            trig_last.copy(trig);
+        }
         last_current_sequence = current_sequence.as_int();
         auto &sequence = CurrentSequence();
         float t = timer.GetTime();
