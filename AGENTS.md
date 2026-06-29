@@ -32,6 +32,7 @@
 - Allocate internal work buffers during initialization when shapes become known, but avoid per-tick allocation or reallocation in processing paths.
 - Prefer internal work buffers when matrix helper functions resize their destination; copy results into already-sized outputs.
 - Matrix helper functions used in per-tick paths should avoid unconditional `realloc()` when the destination already has the expected shape.
+- For `ikaros::matrix`, use `operator()(...)` for scalar element access. `matrix::operator[](int)` returns a submatrix/view, not a scalar element, and should not be used for scalar reads or writes.
 - Follow the Ikaros rank convention for image-like tensors: channel first, then height and width.
 - Hierarchical models and delayed feedback loops should have all connection shapes resolved at startup whenever the architecture is static.
 
