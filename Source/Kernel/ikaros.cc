@@ -5789,7 +5789,33 @@ bool operator==(Request & r, const std::string s)
             while (!Terminate() && run_mode.load() > run_mode_quit)
             {
                 if(run_mode.load() == run_mode_realtime)
-                    lag = timer.WaitUntil(double(tick+1)*tick_duration);
+                {
+                    const double target_time = double(tick+1)*tick_duration;
+                    lag = timer.WaitUntil(target_time);
+
+                    const bool real_time_catch_up =
+                        !info_.contains("real_time_catch_up") || info_.is_set("real_time_catch_up");
+                    double real_time_resync_lag = 1.0;
+                    if(info_.contains_non_null("real_time_resync_lag"))
+                        real_time_resync_lag = std::max(0.0, info_["real_time_resync_lag"].as_double());
+
+                    const bool resync_lag_exceeded = real_time_resync_lag > 0 && lag > real_time_resync_lag;
+                    const bool should_resync = resync_lag_exceeded || (!real_time_catch_up && lag > 0);
+                    if(should_resync)
+                    {
+                        static Timer resync_warning_timer;
+                        static bool has_warned_about_resync = false;
+                        if(resync_lag_exceeded && (!has_warned_about_resync || resync_warning_timer.GetTime() >= 1.0))
+                        {
+                            Notify(msg_warning, "Realtime lag exceeded " + std::to_string(real_time_resync_lag) +
+                                " seconds. Resynchronizing realtime clock instead of catching up missed ticks.");
+                            resync_warning_timer.Restart();
+                            has_warned_about_resync = true;
+                        }
+                        timer.SetTime(target_time);
+                        lag = 0;
+                    }
+                }
                 else if(run_mode.load() == run_mode_play)
                 {
                     timer.SetStartTime(double(tick+1)*tick_duration); // Fake time increase
@@ -5802,16 +5828,12 @@ bool operator==(Request & r, const std::string s)
 
                 if(run_mode.load() == run_mode_realtime)
                 {
-                if(lag > 1.0)
+                    static Timer lag_warning_timer;
+                    if(lag > 1.0 && lag_warning_timer.GetTime() >= 1.0)
                     {
                         Notify(msg_warning, "Performance warning: System is " + std::to_string(lag) +  " seconds behind real time. Consider increasing tick_duration.");
-                        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Give HTTP thread more time to run
+                        lag_warning_timer.Restart();
                     }
-                    else  if(lag > 0.001)
-                        {
-                            std::cout  << "Ikaros is lagging " << lag << " seconds behind real time.\n";
-                            std::this_thread::sleep_for(std::chrono::milliseconds(1)); // Give HTTP thread a chance to run
-                        }
                 }
 
                 // Run_mode may have changed during the delay - needs to be checked again
