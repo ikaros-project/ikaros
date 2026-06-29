@@ -18,6 +18,10 @@ JSON file under `DynamixelModels/`. Dynamixel control-table addresses and byte s
 `ServoControlTable.json`. Optional per-control-mode servo settings are loaded from
 `ServoParameters/ServoParameters<robot-type>_<mode>.json`.
 
+The bundled Epi configuration uses color names for physical robot instances and separate names for
+robot types. For example, `EpiYellow`, `EpiRed`, and similar entries are individual `EpiHead`
+robots, while `EpiBlue` is currently an `EpiBody` robot.
+
 `GOAL_POSITION` uses the selected robot type's configured servo order. Direct-position chain goals use
 the units defined in the robot type file. Parameter-chain servo goals are clipped to the
 configured position limits before hardware communication. The robot-type JSON files provide the default
@@ -84,6 +88,13 @@ from the goal inputs using a simple first-order approximation.
 | `ServoControlTable.json` | Named Dynamixel control tables and indirect address layouts. |
 | `ServoParameters/*.json` | Optional per-control-mode startup settings for a robot type. |
 
+## Bundled Robot Types
+
+| Type | Description | Current instances |
+| --- | --- | --- |
+| `EpiHead` | Head-only Epi robot on a fixed support/base. | `EpiRed`, `EpiWhite`, `EpiYellow`, `EpiGray`, `EpiBlack`, `EpiGreen`, `EpiRedDemo`, `EpiOrange`, `EpiPink` |
+| `EpiBody` | Epi upper body with arms and body axis; the mobile base is treated as support hardware here. | `EpiBlue` |
+
 ## Bundled Example Servo Order
 
 | Index | Joint |
@@ -108,10 +119,11 @@ from the goal inputs using a simple first-order approximation.
 | 17 | Right hand |
 | 18 | Body |
 
-`direct_position` chains also define `startup_writes`, `calibration`, and per-servo `direct_position`
+`direct_position` chains also define `startup_writes` and per-servo `direct_position`
 dictionaries with software limits, input mapping limits, and initial direct-position limits.
+Chains can optionally define `detect_range` to detect a mechanical end range during initialization.
 
 ## Tests
 
-The `tests/` directory contains simulated smoke models for the bundled 6-servo and 19-servo robot
-types. They exercise automatic `ServoCount` derivation without opening Dynamixel hardware.
+The `tests/` directory contains simulated smoke models for the bundled `EpiHead` and `EpiBody`
+robot types. They exercise automatic `ServoCount` derivation without opening Dynamixel hardware.

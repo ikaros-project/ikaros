@@ -59,14 +59,15 @@ struct DynamixelServoChainSettings
     std::map<int, double> startupPosition;
     std::map<int, double> shutdownPosition;
     std::map<std::string, double> startupWrites;
-    int calibrationGoalPosition = 0;
-    int calibratedPositionOffset = 0;
-    int calibratedPositionRange = 0;
-    int calibrationTorqueLimit = 0;
-    int calibrationMaxTorqueLimit = 0;
-    int calibrationFullRangePosition = 0;
+    bool detectRange = false;
+    int detectRangeGoalPosition = 0;
+    int detectRangePositionOffset = 0;
+    int detectRangePositionRange = 0;
+    int detectRangeTorqueLimit = 0;
+    int detectRangeMaxTorqueLimit = 0;
+    int detectRangeFullRangePosition = 0;
     double writeDelay = 0;
-    double calibrationMoveDelay = 0;
+    double detectRangeMoveDelay = 0;
 };
 
 class DynamixelServoChain
@@ -101,14 +102,15 @@ public:
     std::map<int, double> startupPosition;
     std::map<int, double> shutdownPosition;
     std::map<std::string, double> startupWrites;
-    int calibrationGoalPosition = 0;
-    int calibratedPositionOffset = 0;
-    int calibratedPositionRange = 0;
-    int calibrationTorqueLimit = 0;
-    int calibrationMaxTorqueLimit = 0;
-    int calibrationFullRangePosition = 0;
+    bool detectRange = false;
+    int detectRangeGoalPosition = 0;
+    int detectRangePositionOffset = 0;
+    int detectRangePositionRange = 0;
+    int detectRangeTorqueLimit = 0;
+    int detectRangeMaxTorqueLimit = 0;
+    int detectRangeFullRangePosition = 0;
     double writeDelay = 0;
-    double calibrationMoveDelay = 0;
+    double detectRangeMoveDelay = 0;
 
     std::function<void(const std::string &)> debug;
     std::function<void(const std::string &)> warning;
@@ -183,6 +185,8 @@ public:
     bool
     Write1Byte(int id, int address, uint8_t value, uint8_t & dxl_error);
     bool
+    Read1Byte(int id, int address, uint8_t & value, uint8_t & dxl_error);
+    bool
     Write2Byte(int id, int address, uint16_t value, uint8_t & dxl_error);
     bool
     Write4Byte(int id, int address, uint32_t value, uint8_t & dxl_error);
@@ -233,6 +237,18 @@ public:
     bool
     PowerOnForCommunicationMode(const ikaros::dictionary & controlTable);
     bool
+    PreparePowerOnRampForCommunicationMode(const ikaros::dictionary & controlTable);
+    bool
+    PreparePowerOnRampForCommunicationMode(const ikaros::dictionary & controlTable, const std::vector<bool> & skipServo);
+    bool
+    RampPowerOnForCommunicationMode(const ikaros::dictionary & controlTable, double phase);
+    bool
+    RampPowerOnForCommunicationMode(const ikaros::dictionary & controlTable, double phase, const std::vector<bool> & skipServo);
+    bool
+    RestorePowerOnRampForCommunicationMode(const ikaros::dictionary & controlTable);
+    bool
+    RestorePowerOnRampForCommunicationMode(const ikaros::dictionary & controlTable, const std::vector<bool> & skipServo);
+    bool
     PowerOffForCommunicationMode(const ikaros::dictionary & controlTable);
     bool
     Communicate(ikaros::matrix & goalPosition, ikaros::matrix & goalCurrent, ikaros::matrix & goalPWM, ikaros::matrix & torqueEnable, ikaros::matrix & presentPosition, ikaros::matrix & presentCurrent, const std::string & controlMode);
@@ -261,15 +277,15 @@ public:
     bool
     ApplyStartupForCommunicationMode(const ikaros::dictionary & controlTable);
     bool
-    AutoCalibrateForCommunicationMode(const ikaros::dictionary & controlTable);
+    DetectRangeForCommunicationMode(const ikaros::dictionary & controlTable);
     bool
-    BeginAutoCalibrateDirectPosition(const ikaros::dictionary & controlTable);
+    BeginDetectRangeDirectPosition(const ikaros::dictionary & controlTable);
     bool
-    FinishAutoCalibrateDirectPosition(const ikaros::dictionary & controlTable);
+    FinishDetectRangeDirectPosition(const ikaros::dictionary & controlTable);
     bool
     ApplyDirectPositionStartup(const ikaros::dictionary & controlTable);
     bool
-    AutoCalibrateDirectPosition(const ikaros::dictionary & controlTable);
+    DetectRangeDirectPosition(const ikaros::dictionary & controlTable);
     void
     PrepareFeedbackForCommunicationMode(ikaros::matrix & goalPosition, ikaros::matrix & presentPosition);
     void
@@ -291,6 +307,8 @@ private:
     int syncReadPresentPositionOffset = 0;
     int syncReadPresentCurrentOffset = 0;
     std::map<int, bool> currentSupported;
+    std::vector<uint16_t> powerOnRampTargetValue;
+    std::vector<bool> powerOnRampHasTargetValue;
     std::vector<uint16_t> powerOffRampStartValue;
     std::vector<bool> powerOffRampHasStartValue;
 

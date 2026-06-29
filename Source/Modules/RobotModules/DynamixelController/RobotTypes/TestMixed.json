@@ -46,10 +46,10 @@
                 "I Gain": 20,
                 "D Gain": 5
             },
-            "calibration": {
+            "detect_range": {
                 "goal_position": 0,
-                "calibrated_position_offset": 5,
-                "calibrated_position_range": 80,
+                "position_offset": 5,
+                "position_range": 80,
                 "torque_limit": 500,
                 "max_torque_limit": 1023,
                 "full_range_position": 1023,

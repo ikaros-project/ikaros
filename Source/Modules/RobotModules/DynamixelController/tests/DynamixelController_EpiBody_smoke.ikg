@@ -1,4 +1,4 @@
-<group name="DynamixelControllerEpiSmoke" tick_duration="0.01" stop="2">
+<group name="DynamixelControllerEpiBodySmoke" tick_duration="0.01" stop="2">
    <connection source="Goal.OUTPUT" target="DXL.GOAL_POSITION" />
    <module name="Goal" class="Constant" data="0, 0, 0, 0, 10, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0" />
    <module name="DXL" class="DynamixelController" robot="EpiBlue" Simulate="true" />

@@ -509,13 +509,12 @@ DynamixelServoConfiguration::LoadRobotConfiguration()
             if (chain.communication == "direct_position")
             {
                 const std::string directContext = "Direct-position configuration for chain " + chain.name;
-                if (!RequireKey(chainData, "startup_writes", directContext, error) ||
-                    !RequireKey(chainData, "calibration", directContext, error))
+                if (!RequireKey(chainData, "startup_writes", directContext, error))
                     return false;
 
-                if (!chainData["startup_writes"].is_dictionary() || !chainData["calibration"].is_dictionary())
+                if (!chainData["startup_writes"].is_dictionary())
                 {
-                    error = directContext + " startup_writes and calibration must be dictionaries.";
+                    error = directContext + " startup_writes must be a dictionary.";
                     return false;
                 }
 
@@ -536,35 +535,46 @@ DynamixelServoConfiguration::LoadRobotConfiguration()
 
                     chain.startupWrites[startupWrite.first] = startupWrite.second.as_float();
                 }
+            }
 
-                const dictionary & calibration = chainData["calibration"].as_dictionary();
-                if (!RequireKey(calibration, "goal_position", directContext, error) ||
-                    !RequireKey(calibration, "calibrated_position_offset", directContext, error) ||
-                    !RequireKey(calibration, "calibrated_position_range", directContext, error) ||
-                    !RequireKey(calibration, "torque_limit", directContext, error) ||
-                    !RequireKey(calibration, "max_torque_limit", directContext, error) ||
-                    !RequireKey(calibration, "full_range_position", directContext, error) ||
-                    !RequireKey(calibration, "write_delay", directContext, error) ||
-                    !RequireKey(calibration, "move_delay", directContext, error))
+            if (chainData.contains("detect_range"))
+            {
+                const std::string detectRangeContext = "Detect-range configuration for chain " + chain.name;
+                if (!chainData["detect_range"].is_dictionary())
+                {
+                    error = detectRangeContext + " must be a dictionary.";
+                    return false;
+                }
+
+                const dictionary & detectRange = chainData["detect_range"].as_dictionary();
+                if (!RequireKey(detectRange, "goal_position", detectRangeContext, error) ||
+                    !RequireKey(detectRange, "position_offset", detectRangeContext, error) ||
+                    !RequireKey(detectRange, "position_range", detectRangeContext, error) ||
+                    !RequireKey(detectRange, "torque_limit", detectRangeContext, error) ||
+                    !RequireKey(detectRange, "max_torque_limit", detectRangeContext, error) ||
+                    !RequireKey(detectRange, "full_range_position", detectRangeContext, error) ||
+                    !RequireKey(detectRange, "write_delay", detectRangeContext, error) ||
+                    !RequireKey(detectRange, "move_delay", detectRangeContext, error))
                     return false;
 
-                chain.calibrationGoalPosition = calibration["goal_position"].as_int();
-                chain.calibratedPositionOffset = calibration["calibrated_position_offset"].as_int();
-                chain.calibratedPositionRange = calibration["calibrated_position_range"].as_int();
-                chain.calibrationTorqueLimit = calibration["torque_limit"].as_int();
-                chain.calibrationMaxTorqueLimit = calibration["max_torque_limit"].as_int();
-                chain.calibrationFullRangePosition = calibration["full_range_position"].as_int();
-                chain.writeDelay = calibration["write_delay"].as_float();
-                chain.calibrationMoveDelay = calibration["move_delay"].as_float();
+                chain.detectRange = true;
+                chain.detectRangeGoalPosition = detectRange["goal_position"].as_int();
+                chain.detectRangePositionOffset = detectRange["position_offset"].as_int();
+                chain.detectRangePositionRange = detectRange["position_range"].as_int();
+                chain.detectRangeTorqueLimit = detectRange["torque_limit"].as_int();
+                chain.detectRangeMaxTorqueLimit = detectRange["max_torque_limit"].as_int();
+                chain.detectRangeFullRangePosition = detectRange["full_range_position"].as_int();
+                chain.writeDelay = detectRange["write_delay"].as_float();
+                chain.detectRangeMoveDelay = detectRange["move_delay"].as_float();
 
-                if (chain.calibratedPositionRange <= 0 ||
-                    chain.calibrationTorqueLimit <= 0 ||
-                    chain.calibrationMaxTorqueLimit <= 0 ||
-                    chain.calibrationFullRangePosition <= 0 ||
+                if (chain.detectRangePositionRange <= 0 ||
+                    chain.detectRangeTorqueLimit <= 0 ||
+                    chain.detectRangeMaxTorqueLimit <= 0 ||
+                    chain.detectRangeFullRangePosition <= 0 ||
                     chain.writeDelay < 0 ||
-                    chain.calibrationMoveDelay < 0)
+                    chain.detectRangeMoveDelay < 0)
                 {
-                    error = directContext + " calibration values are invalid.";
+                    error = detectRangeContext + " values are invalid.";
                     return false;
                 }
             }

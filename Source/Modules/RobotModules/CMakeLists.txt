@@ -2,7 +2,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(UM7)
 add_subdirectory(CompliantRobot)
-add_subdirectory(EpiServos)
 add_subdirectory(DynamixelController)
 add_subdirectory(FadeCandy)
 add_subdirectory(ServoControlTuning)

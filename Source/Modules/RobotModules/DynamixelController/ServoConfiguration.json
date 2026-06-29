@@ -2,8 +2,8 @@
     "format": "DynamixelControllerConfiguration/v1",
     "robot_type_files": {
         "TestMixed": "RobotTypes/TestMixed.json",
-        "EpiTorso": "RobotTypes/EpiTorso.json",
-        "Epi": "RobotTypes/Epi.json"
+        "EpiHead": "RobotTypes/EpiHead.json",
+        "EpiBody": "RobotTypes/EpiBody.json"
     },
     "robot_files": {
         "TestMixed": "Robots/TestMixed.json",

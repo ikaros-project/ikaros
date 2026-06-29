@@ -1,63 +1,31 @@
-<group name="DynamixelControllerEpiYellowManualWebUI" tick_duration="0.025" stop="-1" webui_port="8080" real_time="true">
-   <connection source="Goal.OUTPUT" target="DXL.GOAL_POSITION" />
-   <connection source="TorqueEnable.OUTPUT" target="DXL.TORQUE_ENABLE" />
-
-   <module name="Goal" class="Constant" data="0, 0, 0, 0, 10, 10" _x="48" _y="96" />
-   <module name="TorqueEnable" class="Constant" data="1, 1, 1, 1, 1, 1" _x="48" _y="192" />
-   <module name="DXL" class="DynamixelController" robot="EpiYellow" Simulate="false" _x="384" _y="120" />
-
-   <widget name="HeadEyeSliders" class="slider-horizontal" parameter="Goal.data" select_x="0" count="4"
-      labels="Neck tilt, Neck pan, Left eye, Right eye" min="-10" max="10" step="0.5"
-      show_values="true" show_title="true" show_frame="false" title="Head and eyes"
-      width="640" height="130" _x="48" _y="312" />
-   <widget name="PupilSliders" class="slider-horizontal" parameter="Goal.data" select_x="4" count="2"
-      labels="Pupil left, Pupil right" min="5" max="16" step="0.1"
-      show_values="true" show_title="true" show_frame="false" title="Pupils"
-      width="640" height="90" _x="48" _y="456" />
-   <widget name="TorqueSliders" class="slider-horizontal" parameter="TorqueEnable.data" select_x="0" count="6"
-      labels="Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right" min="0" max="1" step="1"
-      show_values="true" show_title="true" show_frame="false" title="Torque"
-      width="640" height="110" _x="48" _y="568" />
-   <widget name="TorqueTable" class="table" source="TorqueEnable.OUTPUT" title="Torque enable"
-      show_title="true" show_frame="false" colorize="true" decimals="0"
-      width="220" height="110" _x="720" _y="312" />
-   <widget name="GoalTable" class="table" source="Goal.OUTPUT" title="Goal"
-      show_title="true" show_frame="false" colorize="true" decimals="1"
-      width="220" height="160" _x="960" _y="312" />
-   <widget name="PresentPositionTable" class="table" source="DXL.PRESENT_POSITION" title="Present position"
-      show_title="true" show_frame="false" colorize="true" decimals="1"
-      width="260" height="160" _x="720" _y="456" />
-   <widget name="PresentCurrentTable" class="table" source="DXL.PRESENT_CURRENT" title="Present current"
-      show_title="true" show_frame="false" colorize="true" decimals="1"
-      width="260" height="160" _x="1008" _y="456" />
-   <widget name="StateTable" class="table" source="DXL.STATE" title="State"
-      show_title="true" show_frame="false" colorize="true" decimals="0"
-      width="220" height="170" _x="1288" _y="456" />
-   <widget name="SaveStartupPositionButton" class="button" type="push" command="DXL.SaveStartupPosition"
-      label="Save startup position" show_title="false" show_frame="false"
-      width="220" height="44" _x="720" _y="648" />
-   <widget name="SaveShutdownPositionButton" class="button" type="push" command="DXL.SaveShutdownPosition"
-      label="Save shutdown position" show_title="false" show_frame="false"
-      width="220" height="44" _x="960" _y="648" />
-   <widget name="ShutDownButton" class="button" type="push" command="DXL.shut_down"
-      label="Shut down" show_title="false" show_frame="false"
-      width="220" height="44" _x="720" _y="708" />
-   <widget name="StartUpButton" class="button" type="push" command="DXL.start_up"
-      label="Start up" show_title="false" show_frame="false"
-      width="220" height="44" _x="960" _y="708" />
-   <widget name="IdleButton" class="button" type="push" command="DXL.idle"
-      label="Idle" show_title="false" show_frame="false"
-      width="160" height="44" _x="720" _y="768" />
-   <widget name="InitializeButton" class="button" type="push" command="DXL.initialize"
-      label="Initialize" show_title="false" show_frame="false"
-      width="160" height="44" _x="900" _y="768" />
-   <widget name="RampUpButton" class="button" type="push" command="DXL.ramp_up"
-      label="Ramp up" show_title="false" show_frame="false"
-      width="160" height="44" _x="1080" _y="768" />
-   <widget name="RampDownButton" class="button" type="push" command="DXL.ramp_down"
-      label="Ramp down" show_title="false" show_frame="false"
-      width="160" height="44" _x="1260" _y="768" />
-   <widget name="OperationButton" class="button" type="push" command="DXL.operate"
-      label="Operate" show_title="false" show_frame="false"
-      width="160" height="44" _x="1440" _y="768" />
+<group log_level="6" auto_routing="false" real_time="true" stop="-1" name="DynamixelControllerEpiYellowManualWebUI" info="true" tick_duration="0.025" _pane_layout="{&quot;version&quot;:1,&quot;network&quot;:&quot;DynamixelControllerEpiYellowManualWebUI&quot;,&quot;tree&quot;:{&quot;type&quot;:&quot;pane&quot;,&quot;background&quot;:&quot;DynamixelControllerEpiYellowManualWebUI&quot;,&quot;active&quot;:true}}" webui_port="8080" grid_spacing="24" hide_toolbar="false">
+   <parameter value="6" type="number" control="menu" name="log_level" options="inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace" default="0"/>
+   <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
+   <parameter value="0" name="start_tick" default="0" type="number"/>
+   <module name="Goal" data="0, 0, 0, 0, 10, 10" _x="48" _y="96" class="Constant"/>
+   <module name="TorqueEnable" data="1, 1, 1, 1, 1, 1" _x="48" _y="192" class="Constant"/>
+   <module Simulate="false" _y="96" _x="408" class="DynamixelController" robot="EpiYellow" name="DXL"/>
+   <widget width="640" name="NeckTiltSlider" show_values="true" enableSource="" max="50" count="1" _x="48" parameter="Goal.data" min="-50" class="slider-horizontal" title="Neck tilt" step="0.5" _index_="0" _y="312" labels="Neck tilt" style="" select_x="0" show_frame="false" height="48" select_y="" frame_width="1" frame_color="" background="" command="" show_title="true" frame-style=""/>
+   <widget width="640" name="NeckPanSlider" show_values="true" enableSource="" max="55" count="1" _x="48" parameter="Goal.data" min="-55" class="slider-horizontal" title="Neck pan" step="0.5" _index_="1" _y="360" labels="Neck pan" style="" select_x="1" show_frame="false" height="48" select_y="" frame_width="1" frame_color="" background="" command="" show_title="true" frame-style=""/>
+   <widget width="640" name="LeftEyeSlider" show_values="true" enableSource="" max="25" count="1" _x="48" parameter="Goal.data" min="-25" class="slider-horizontal" title="Left eye" step="0.5" _index_="2" _y="408" labels="Left eye" style="" select_x="2" show_frame="false" height="48" select_y="" frame_width="1" frame_color="" background="" command="" show_title="true" frame-style=""/>
+   <widget width="640" name="RightEyeSlider" show_values="true" enableSource="" max="25" count="1" _x="48" parameter="Goal.data" min="-25" class="slider-horizontal" title="Right eye" step="0.5" _index_="3" _y="456" labels="Right eye" style="" select_x="3" show_frame="false" height="48" select_y="" frame_width="1" frame_color="" background="" command="" show_title="true" frame-style=""/>
+   <widget width="640" name="PupilSliders" show_values="true" enableSource="" max="20" count="2" _x="48" parameter="Goal.data" min="5" class="slider-horizontal" title="Pupils" step="0.1" _index_="4" _y="520" labels="Pupil left, Pupil right" style="" select_x="4" show_frame="false" height="90" select_y="" frame_width="1" frame_color="" background="" command="" show_title="true" frame-style=""/>
+   <widget width="649" name="TorqueSliders" show_values="true" enableSource="" max="1" count="6" _x="48" parameter="TorqueEnable.data" min="0" class="slider-horizontal" title="Torque" step="1" _index_="5" _y="640" labels="Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right" style="" select_x="0" show_frame="false" height="217" select_y="" frame_width="1" frame_color="" background="" command="" show_title="true" frame-style=""/>
+   <widget _y="96" style="" width="121" label_x="" show_title="true" show_frame="false" height="145" colorize="true" background="" _x="1296" class="table" direction="flip x/y" scrollable="false" name="TorqueTable" label_y="" _index_="6" decimals="0" source="TorqueEnable.OUTPUT" title="Torque enable" frame_width="1" frame_color="" frame-style=""/>
+   <widget _y="96" style="" width="121" label_x="" show_title="true" show_frame="false" height="145" colorize="true" background="" _x="984" class="table" direction="flip x/y" scrollable="false" name="GoalTable" label_y="" _index_="7" decimals="1" source="Goal.OUTPUT" title="Goal" frame_width="1" frame_color="" frame-style=""/>
+   <widget _y="96" style="" width="217" label_x="" show_title="true" show_frame="false" height="145" colorize="true" background="" _x="768" class="table" direction="flip x/y" scrollable="false" name="PresentPositionTable" label_y="" _index_="8" decimals="1" source="DXL.PRESENT_POSITION" title="Present position" frame_width="1" frame_color="" frame-style=""/>
+   <widget _y="96" style="" width="145" label_x="" show_title="true" show_frame="false" height="169" colorize="true" background="" _x="1128" class="table" direction="flip x/y" scrollable="false" name="PresentCurrentTable" label_y="" _index_="9" decimals="1" source="DXL.PRESENT_CURRENT" title="Present current" frame_width="1" frame_color="" frame-style=""/>
+   <widget _y="264" style="" width="145" label_x="" show_title="true" show_frame="false" height="217" colorize="true" background="" _x="768" class="table" direction="flip x/y" scrollable="false" name="StateTable" label_y="" _index_="10" decimals="0" source="DXL.STATE" title="State" frame_width="1" frame_color="" frame-style=""/>
+   <widget _y="264" _index_="11" width="220" height="44" show_frame="false" multiGroup="" label="Save startup position" type="push" command="DXL.SaveStartupPosition" show_title="false" name="SaveStartupPositionButton" icon="" class="button" button_background="" title="Title" radioGroup="" commandUp="" tooltip="" _x="1176" parameter="" color="" frame_width="1" value="1" style="" frame-style="" valueUp="0" select_y="0" frame_color="" file_names="" enableSource="" background="" select_x="0"/>
+   <widget _y="312" _index_="12" width="220" height="44" show_frame="false" multiGroup="" label="Save shutdown position" type="push" command="DXL.SaveShutdownPosition" show_title="false" name="SaveShutdownPositionButton" icon="" class="button" button_background="" title="Title" radioGroup="" commandUp="" tooltip="" _x="1176" parameter="" color="" frame_width="1" value="1" style="" frame-style="" valueUp="0" select_y="0" frame_color="" file_names="" enableSource="" background="" select_x="0"/>
+   <widget _y="504" _index_="13" width="169" height="49" show_frame="false" multiGroup="" label="Shut down" type="push" command="DXL.shut_down" show_title="false" name="ShutDownButton" icon="" class="button" button_background="" title="Title" radioGroup="" commandUp="" tooltip="" _x="960" parameter="" color="" frame_width="1" value="1" style="" frame-style="" valueUp="0" select_y="0" frame_color="" file_names="" enableSource="" background="" select_x="0"/>
+   <widget _y="408" _index_="14" width="169" height="49" show_frame="false" multiGroup="" label="Start up" type="push" command="DXL.start_up" show_title="false" name="StartUpButton" icon="" class="button" button_background="" title="Title" radioGroup="" commandUp="" tooltip="" _x="960" parameter="" color="" frame_width="1" value="1" style="" frame-style="" valueUp="0" select_y="0" frame_color="" file_names="" enableSource="" background="" select_x="0"/>
+   <widget _y="264" _index_="15" width="169" height="49" show_frame="false" multiGroup="" label="Idle" type="push" command="DXL.idle" show_title="false" name="IdleButton" icon="" class="button" button_background="" title="Title" radioGroup="" commandUp="" tooltip="" _x="960" parameter="" color="" frame_width="1" value="1" style="" frame-style="" valueUp="0" select_y="0" frame_color="" file_names="" enableSource="" background="" select_x="0"/>
+   <widget _y="312" _index_="16" width="169" height="49" show_frame="false" multiGroup="" label="Initialize" type="push" command="DXL.initialize" show_title="false" name="InitializeButton" icon="" class="button" button_background="" title="Title" radioGroup="" commandUp="" tooltip="" _x="960" parameter="" color="" frame_width="1" value="1" style="" frame-style="" valueUp="0" select_y="0" frame_color="" file_names="" enableSource="" background="" select_x="0"/>
+   <widget _y="360" _index_="17" width="169" height="49" show_frame="false" multiGroup="" label="Ramp up" type="push" command="DXL.ramp_up" show_title="false" name="RampUpButton" icon="" class="button" button_background="" title="Title" radioGroup="" commandUp="" tooltip="" _x="960" parameter="" color="" frame_width="1" value="1" style="" frame-style="" valueUp="0" select_y="0" frame_color="" file_names="" enableSource="" background="" select_x="0"/>
+   <widget _y="552" _index_="18" width="169" height="49" show_frame="false" multiGroup="" label="Ramp down" type="push" command="DXL.ramp_down" show_title="false" name="RampDownButton" icon="" class="button" button_background="" title="Title" radioGroup="" commandUp="" tooltip="" _x="960" parameter="" color="" frame_width="1" value="1" style="" frame-style="" valueUp="0" select_y="0" frame_color="" file_names="" enableSource="" background="" select_x="0"/>
+   <widget _y="456" _index_="19" width="169" height="49" show_frame="false" multiGroup="" label="Operate" type="push" command="DXL.operate" show_title="false" name="OperationButton" icon="" class="button" button_background="" title="Title" radioGroup="" commandUp="" tooltip="" _x="960" parameter="" color="" frame_width="1" value="1" style="" frame-style="" valueUp="0" select_y="0" frame_color="" file_names="" enableSource="" background="" select_x="0"/>
+   <widget _y="552" _index_="20" width="217" height="49" show_frame="false" multiGroup="" label="Torque off" color="red" type="push" command="DXL.torque_off" show_title="false" name="TorqueOffButton" icon="" class="button" button_background="" title="Title" radioGroup="" commandUp="" tooltip="" _x="1176" parameter="" frame_width="1" value="1" style="" frame-style="" valueUp="0" select_y="0" frame_color="" file_names="" enableSource="" background="" select_x="0"/>
+   <connection target="DXL.GOAL_POSITION" source="Goal.OUTPUT" line_type="auto_route"/>
+   <connection target="DXL.TORQUE_ENABLE" source="TorqueEnable.OUTPUT" line_type="auto_route"/>
 </group>

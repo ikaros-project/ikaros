@@ -1,0 +1,125 @@
+{
+    "chains": [
+        {
+            "servos": {
+                "5": {
+                    "goal_offset": 180,
+                    "min": 1764,
+                    "unit": "degree",
+                    "present_position_offset": -180,
+                    "max": 2332,
+                    "shutdown_position": 0,
+                    "startup_position": 0,
+                    "model": "MX-28R",
+                    "label": "Right eye"
+                },
+                "4": {
+                    "goal_offset": 180,
+                    "min": 1764,
+                    "unit": "degree",
+                    "present_position_offset": -180,
+                    "max": 2332,
+                    "shutdown_position": 0.52734375,
+                    "startup_position": 0.52734375,
+                    "model": "MX-28R",
+                    "label": "Left eye"
+                },
+                "3": {
+                    "goal_offset": 180,
+                    "min": 1422,
+                    "unit": "degree",
+                    "present_position_offset": -180,
+                    "max": 2674,
+                    "shutdown_position": -2.724609375,
+                    "startup_position": -1.142578125,
+                    "model": "MX-106R",
+                    "label": "Neck pan"
+                },
+                "2": {
+                    "goal_offset": 180,
+                    "min": 1479,
+                    "unit": "degree",
+                    "present_position_offset": -180,
+                    "max": 2617,
+                    "shutdown_position": 59.94140625,
+                    "startup_position": -15.8203125,
+                    "model": "MX-106R",
+                    "label": "Neck tilt"
+                }
+            },
+            "communication": "sync_indirect",
+            "parameter_chain": true,
+            "defaults": {
+                "d_gain": 0,
+                "i_gain": 0,
+                "p_gain": 850
+            },
+            "baud_rate": 3000000,
+            "name": "Head",
+            "io_index": 0,
+            "id_max": 5,
+            "id_min": 2
+        },
+        {
+            "detect_range": {
+                "write_delay": 0.01,
+                "position_offset": 5,
+                "torque_limit": 500,
+                "full_range_position": 1023,
+                "max_torque_limit": 1023,
+                "move_delay": 1.5,
+                "position_range": 80,
+                "goal_position": 0
+            },
+            "startup_writes": {
+                "I Gain": 20,
+                "D Gain": 5,
+                "P Gain": 100,
+                "Moving Speed": 150
+            },
+            "servos": {
+                "3": {
+                    "shutdown_position": 0,
+                    "conversion_factor": 0.66875,
+                    "model": "XL-320",
+                    "startup_position": 0,
+                    "direct_position": {
+                        "position_max": 80,
+                        "input_max": 19.7,
+                        "position_min": 0,
+                        "input_min": 4.2,
+                        "software_max": 20,
+                        "software_min": 5
+                    },
+                    "unit": "mm",
+                    "label": "Pupil right"
+                },
+                "2": {
+                    "shutdown_position": 0,
+                    "conversion_factor": 0.66875,
+                    "model": "XL-320",
+                    "startup_position": 0,
+                    "direct_position": {
+                        "position_max": 80,
+                        "input_max": 19.7,
+                        "position_min": 0,
+                        "input_min": 4.2,
+                        "software_max": 20,
+                        "software_min": 5
+                    },
+                    "unit": "mm",
+                    "label": "Pupil left"
+                }
+            },
+            "communication": "direct_position",
+            "parameter_chain": false,
+            "baud_rate": 1000000,
+            "name": "Pupil",
+            "io_index": 4,
+            "id_max": 3,
+            "id_min": 2
+        }
+    ],
+    "type": "EpiHead",
+    "format": "DynamixelRobotType/v1"
+}

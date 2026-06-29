@@ -69,14 +69,15 @@ DynamixelServoChain::DynamixelServoChain(DynamixelServoChainSettings settings):
     startupPosition(std::move(settings.startupPosition)),
     shutdownPosition(std::move(settings.shutdownPosition)),
     startupWrites(std::move(settings.startupWrites)),
-    calibrationGoalPosition(settings.calibrationGoalPosition),
-    calibratedPositionOffset(settings.calibratedPositionOffset),
-    calibratedPositionRange(settings.calibratedPositionRange),
-    calibrationTorqueLimit(settings.calibrationTorqueLimit),
-    calibrationMaxTorqueLimit(settings.calibrationMaxTorqueLimit),
-    calibrationFullRangePosition(settings.calibrationFullRangePosition),
+    detectRange(settings.detectRange),
+    detectRangeGoalPosition(settings.detectRangeGoalPosition),
+    detectRangePositionOffset(settings.detectRangePositionOffset),
+    detectRangePositionRange(settings.detectRangePositionRange),
+    detectRangeTorqueLimit(settings.detectRangeTorqueLimit),
+    detectRangeMaxTorqueLimit(settings.detectRangeMaxTorqueLimit),
+    detectRangeFullRangePosition(settings.detectRangeFullRangePosition),
     writeDelay(settings.writeDelay),
-    calibrationMoveDelay(settings.calibrationMoveDelay)
+    detectRangeMoveDelay(settings.detectRangeMoveDelay)
 {
 }
 
@@ -115,14 +116,15 @@ DynamixelServoChain::DynamixelServoChain(DynamixelServoChain && other) noexcept:
     startupPosition(std::move(other.startupPosition)),
     shutdownPosition(std::move(other.shutdownPosition)),
     startupWrites(std::move(other.startupWrites)),
-    calibrationGoalPosition(other.calibrationGoalPosition),
-    calibratedPositionOffset(other.calibratedPositionOffset),
-    calibratedPositionRange(other.calibratedPositionRange),
-    calibrationTorqueLimit(other.calibrationTorqueLimit),
-    calibrationMaxTorqueLimit(other.calibrationMaxTorqueLimit),
-    calibrationFullRangePosition(other.calibrationFullRangePosition),
+    detectRange(other.detectRange),
+    detectRangeGoalPosition(other.detectRangeGoalPosition),
+    detectRangePositionOffset(other.detectRangePositionOffset),
+    detectRangePositionRange(other.detectRangePositionRange),
+    detectRangeTorqueLimit(other.detectRangeTorqueLimit),
+    detectRangeMaxTorqueLimit(other.detectRangeMaxTorqueLimit),
+    detectRangeFullRangePosition(other.detectRangeFullRangePosition),
     writeDelay(other.writeDelay),
-    calibrationMoveDelay(other.calibrationMoveDelay),
+    detectRangeMoveDelay(other.detectRangeMoveDelay),
     debug(std::move(other.debug)),
     warning(std::move(other.warning)),
     fatal(std::move(other.fatal)),
@@ -143,6 +145,8 @@ DynamixelServoChain::DynamixelServoChain(DynamixelServoChain && other) noexcept:
     syncReadPresentPositionOffset(other.syncReadPresentPositionOffset),
     syncReadPresentCurrentOffset(other.syncReadPresentCurrentOffset),
     currentSupported(std::move(other.currentSupported)),
+    powerOnRampTargetValue(std::move(other.powerOnRampTargetValue)),
+    powerOnRampHasTargetValue(std::move(other.powerOnRampHasTargetValue)),
     powerOffRampStartValue(std::move(other.powerOffRampStartValue)),
     powerOffRampHasStartValue(std::move(other.powerOffRampHasStartValue))
 {
@@ -185,14 +189,15 @@ DynamixelServoChain::operator=(DynamixelServoChain && other) noexcept
     startupPosition = std::move(other.startupPosition);
     shutdownPosition = std::move(other.shutdownPosition);
     startupWrites = std::move(other.startupWrites);
-    calibrationGoalPosition = other.calibrationGoalPosition;
-    calibratedPositionOffset = other.calibratedPositionOffset;
-    calibratedPositionRange = other.calibratedPositionRange;
-    calibrationTorqueLimit = other.calibrationTorqueLimit;
-    calibrationMaxTorqueLimit = other.calibrationMaxTorqueLimit;
-    calibrationFullRangePosition = other.calibrationFullRangePosition;
+    detectRange = other.detectRange;
+    detectRangeGoalPosition = other.detectRangeGoalPosition;
+    detectRangePositionOffset = other.detectRangePositionOffset;
+    detectRangePositionRange = other.detectRangePositionRange;
+    detectRangeTorqueLimit = other.detectRangeTorqueLimit;
+    detectRangeMaxTorqueLimit = other.detectRangeMaxTorqueLimit;
+    detectRangeFullRangePosition = other.detectRangeFullRangePosition;
     writeDelay = other.writeDelay;
-    calibrationMoveDelay = other.calibrationMoveDelay;
+    detectRangeMoveDelay = other.detectRangeMoveDelay;
     debug = std::move(other.debug);
     warning = std::move(other.warning);
     fatal = std::move(other.fatal);
@@ -213,6 +218,8 @@ DynamixelServoChain::operator=(DynamixelServoChain && other) noexcept
     syncReadPresentPositionOffset = other.syncReadPresentPositionOffset;
     syncReadPresentCurrentOffset = other.syncReadPresentCurrentOffset;
     currentSupported = std::move(other.currentSupported);
+    powerOnRampTargetValue = std::move(other.powerOnRampTargetValue);
+    powerOnRampHasTargetValue = std::move(other.powerOnRampHasTargetValue);
     powerOffRampStartValue = std::move(other.powerOffRampStartValue);
     powerOffRampHasStartValue = std::move(other.powerOffRampHasStartValue);
 
@@ -407,8 +414,6 @@ DynamixelServoChain::Fatal(const std::string & message) const
 bool
 DynamixelServoChain::Open()
 {
-    std::vector<uint8_t> detectedIDs;
-
     Close();
 
     portHandler.reset(dynamixel::PortHandler::getPortHandler(serialPort.c_str()));
@@ -429,14 +434,6 @@ DynamixelServoChain::Open()
         return false;
     }
     Debug("Succeeded to change baudrate!");
-
-    int dxl_comm_result = packetHandler->broadcastPing(portHandler.get(), detectedIDs);
-    if (dxl_comm_result != COMM_SUCCESS)
-        Warn("Cannot send broadcast ping to servos");
-
-    Debug("Detected Dynamixel (" + name + "): ");
-    for (int i = 0; i < static_cast<int>(detectedIDs.size()); i++)
-        Debug("[ID: " + std::to_string(detectedIDs.at(i)) + "]");
 
     return true;
 }
@@ -520,30 +517,72 @@ DynamixelServoChain::PortName() const
 bool
 DynamixelServoChain::Write1Byte(int id, int address, uint8_t value, uint8_t & dxl_error)
 {
+    if (!ready())
+    {
+        Warn("Cannot write 1 byte to " + name + " because the chain is not ready.");
+        return false;
+    }
+
     return COMM_SUCCESS == packetHandler->write1ByteTxRx(portHandler.get(), id, address, value, &dxl_error);
+}
+
+bool
+DynamixelServoChain::Read1Byte(int id, int address, uint8_t & value, uint8_t & dxl_error)
+{
+    if (!ready())
+    {
+        Warn("Cannot read 1 byte from " + name + " because the chain is not ready.");
+        return false;
+    }
+
+    return COMM_SUCCESS == packetHandler->read1ByteTxRx(portHandler.get(), id, address, &value, &dxl_error);
 }
 
 bool
 DynamixelServoChain::Write2Byte(int id, int address, uint16_t value, uint8_t & dxl_error)
 {
+    if (!ready())
+    {
+        Warn("Cannot write 2 bytes to " + name + " because the chain is not ready.");
+        return false;
+    }
+
     return COMM_SUCCESS == packetHandler->write2ByteTxRx(portHandler.get(), id, address, value, &dxl_error);
 }
 
 bool
 DynamixelServoChain::Write4Byte(int id, int address, uint32_t value, uint8_t & dxl_error)
 {
+    if (!ready())
+    {
+        Warn("Cannot write 4 bytes to " + name + " because the chain is not ready.");
+        return false;
+    }
+
     return COMM_SUCCESS == packetHandler->write4ByteTxRx(portHandler.get(), id, address, value, &dxl_error);
 }
 
 bool
 DynamixelServoChain::Read2Byte(int id, int address, uint16_t & value, uint8_t & dxl_error)
 {
+    if (!ready())
+    {
+        Warn("Cannot read 2 bytes from " + name + " because the chain is not ready.");
+        return false;
+    }
+
     return COMM_SUCCESS == packetHandler->read2ByteTxRx(portHandler.get(), id, address, &value, &dxl_error);
 }
 
 bool
 DynamixelServoChain::Read4Byte(int id, int address, uint32_t & value, uint8_t & dxl_error)
 {
+    if (!ready())
+    {
+        Warn("Cannot read 4 bytes from " + name + " because the chain is not ready.");
+        return false;
+    }
+
     return COMM_SUCCESS == packetHandler->read4ByteTxRx(portHandler.get(), id, address, &value, &dxl_error);
 }
 
@@ -760,6 +799,12 @@ DynamixelServoChain::ConfigureIndirectAddressesForCommunicationMode(const dictio
 bool
 DynamixelServoChain::DisableTorque(const dictionary & controlTable, uint8_t & dxl_error)
 {
+    if (!ready())
+    {
+        Warn("Cannot disable torque for " + name + " because the chain is not ready.");
+        return false;
+    }
+
     int torqueEnableAddress = 0;
     if (!ControlTableAddress(controlTable, "Torque Enable", 1, torqueEnableAddress))
         return false;
@@ -1408,6 +1453,171 @@ DynamixelServoChain::PowerOnForCommunicationMode(const dictionary & controlTable
 
 
 bool
+DynamixelServoChain::PreparePowerOnRampForCommunicationMode(const dictionary & controlTable)
+{
+    return PreparePowerOnRampForCommunicationMode(controlTable, {});
+}
+
+
+bool
+DynamixelServoChain::PreparePowerOnRampForCommunicationMode(const dictionary & controlTable, const std::vector<bool> & skipServo)
+{
+    if (!portHandler)
+        return true;
+
+    uint8_t dxl_error = 0;
+    const std::string parameterName = UsesSyncIndirectCommunication() ? "Position P Gain" : "Torque Limit";
+    int address = 0;
+    if (!ControlTableAddress(controlTable, parameterName, 2, address))
+    {
+        int torqueEnableAddress = 0;
+        if (!ControlTableAddress(controlTable, "Torque Enable", 1, torqueEnableAddress))
+            return false;
+
+        bool success = true;
+        for (int id = idMin; id <= idMax; id++)
+        {
+            const int index = ioIndex + row(id);
+            if (index < static_cast<int>(skipServo.size()) && skipServo[index])
+                continue;
+
+            if (!Write1Byte(id, torqueEnableAddress, 1, dxl_error))
+            {
+                Warn("Cannot turn on torque for " + name + " servo ID: " + std::to_string(id));
+                success = false;
+            }
+        }
+        return success;
+    }
+
+    powerOnRampTargetValue.assign(size(), 0);
+    powerOnRampHasTargetValue.assign(size(), false);
+    bool success = true;
+    for (int i = 0; i < size(); i++)
+    {
+        const int index = ioIndex + i;
+        if (index < static_cast<int>(skipServo.size()) && skipServo[index])
+            continue;
+
+        if (!Read2Byte(idMin + i, address, powerOnRampTargetValue[i], dxl_error))
+        {
+            Warn("Cannot read " + parameterName + " for " + name + " servo ID: " + std::to_string(idMin + i));
+            success = false;
+            continue;
+        }
+
+        powerOnRampHasTargetValue[i] = true;
+        if (!Write2Byte(idMin + i, address, 0, dxl_error))
+        {
+            Warn("Cannot set " + parameterName + " to zero for " + name + " servo ID: " + std::to_string(idMin + i));
+            success = false;
+        }
+    }
+
+    int torqueEnableAddress = 0;
+    if (!ControlTableAddress(controlTable, "Torque Enable", 1, torqueEnableAddress))
+        return false;
+
+    for (int id = idMin; id <= idMax; id++)
+    {
+        const int index = ioIndex + row(id);
+        if (index < static_cast<int>(skipServo.size()) && skipServo[index])
+            continue;
+
+        if (!Write1Byte(id, torqueEnableAddress, 1, dxl_error))
+        {
+            Warn("Cannot turn on torque for " + name + " servo ID: " + std::to_string(id));
+            success = false;
+        }
+    }
+
+    return success;
+}
+
+
+bool
+DynamixelServoChain::RampPowerOnForCommunicationMode(const dictionary & controlTable, double phase)
+{
+    return RampPowerOnForCommunicationMode(controlTable, phase, {});
+}
+
+
+bool
+DynamixelServoChain::RampPowerOnForCommunicationMode(const dictionary & controlTable, double phase, const std::vector<bool> & skipServo)
+{
+    if (!portHandler)
+        return true;
+
+    uint8_t dxl_error = 0;
+    const std::string parameterName = UsesSyncIndirectCommunication() ? "Position P Gain" : "Torque Limit";
+    int address = 0;
+    if (!ControlTableAddress(controlTable, parameterName, 2, address))
+        return true;
+
+    phase = clip(phase, 0.0, 1.0);
+    bool success = true;
+    for (int i = 0; i < size(); i++)
+    {
+        const int index = ioIndex + i;
+        if (index < static_cast<int>(skipServo.size()) && skipServo[index])
+            continue;
+
+        if (i >= static_cast<int>(powerOnRampHasTargetValue.size()) || !powerOnRampHasTargetValue[i])
+            continue;
+
+        const uint16_t value = static_cast<uint16_t>(std::lround(powerOnRampTargetValue[i] * phase));
+        if (!Write2Byte(idMin + i, address, value, dxl_error))
+        {
+            Warn("Cannot ramp up " + parameterName + " for " + name + " servo ID: " + std::to_string(idMin + i));
+            success = false;
+        }
+    }
+
+    return success;
+}
+
+
+bool
+DynamixelServoChain::RestorePowerOnRampForCommunicationMode(const dictionary & controlTable)
+{
+    return RestorePowerOnRampForCommunicationMode(controlTable, {});
+}
+
+
+bool
+DynamixelServoChain::RestorePowerOnRampForCommunicationMode(const dictionary & controlTable, const std::vector<bool> & skipServo)
+{
+    if (!portHandler)
+        return true;
+
+    uint8_t dxl_error = 0;
+    const std::string parameterName = UsesSyncIndirectCommunication() ? "Position P Gain" : "Torque Limit";
+    int address = 0;
+    if (!ControlTableAddress(controlTable, parameterName, 2, address))
+        return true;
+
+    bool success = true;
+    for (int i = 0; i < size(); i++)
+    {
+        const int index = ioIndex + i;
+        if (index < static_cast<int>(skipServo.size()) && skipServo[index])
+            continue;
+
+        if (i >= static_cast<int>(powerOnRampHasTargetValue.size()) || !powerOnRampHasTargetValue[i])
+            continue;
+
+        if (!Write2Byte(idMin + i, address, powerOnRampTargetValue[i], dxl_error))
+        {
+            Warn("Cannot restore " + parameterName + " for " + name + " servo ID: " + std::to_string(idMin + i));
+            success = false;
+        }
+    }
+
+    return success;
+}
+
+
+bool
 DynamixelServoChain::PowerOffForCommunicationMode(const dictionary & controlTable)
 {
     if (UsesSyncIndirectCommunication())
@@ -1609,6 +1819,12 @@ DynamixelServoChain::WriteGoalForCommunicationMode(matrix & goalPosition, matrix
 bool
 DynamixelServoChain::SetTorque(const dictionary & controlTable, uint8_t enabled)
 {
+    if (!ready())
+    {
+        Warn("Cannot set torque for " + name + " because the chain is not ready.");
+        return false;
+    }
+
     uint8_t dxl_error = 0;
     int torqueEnableAddress = 0;
     if (!ControlTableAddress(controlTable, "Torque Enable", 1, torqueEnableAddress))
@@ -1801,10 +2017,10 @@ DynamixelServoChain::ApplyStartupForCommunicationMode(const dictionary & control
 
 
 bool
-DynamixelServoChain::AutoCalibrateForCommunicationMode(const dictionary & controlTable)
+DynamixelServoChain::DetectRangeForCommunicationMode(const dictionary & controlTable)
 {
     if (UsesDirectPositionCommunication())
-        return AutoCalibrateDirectPosition(controlTable);
+        return DetectRangeDirectPosition(controlTable);
 
     return true;
 }
@@ -1825,10 +2041,8 @@ DynamixelServoChain::ApplyDirectPositionStartup(const dictionary & controlTable)
     {
         if (!Write2Byte(id, cwAngleLimitAddress, MapValue(positionMin, id), dxl_error))
             return false;
-        Sleep(writeDelay);
         if (!Write2Byte(id, ccwAngleLimitAddress, MapValue(positionMax, id), dxl_error))
             return false;
-        Sleep(writeDelay);
 
         for (const auto & startupWrite : startupWrites)
         {
@@ -1857,8 +2071,6 @@ DynamixelServoChain::ApplyDirectPositionStartup(const dictionary & controlTable)
                 Warn("Startup write " + startupWrite.first + " for " + name + " must be 1 or 2 bytes.");
                 return false;
             }
-
-            Sleep(writeDelay);
         }
     }
 
@@ -1866,19 +2078,19 @@ DynamixelServoChain::ApplyDirectPositionStartup(const dictionary & controlTable)
 }
 
 bool
-DynamixelServoChain::AutoCalibrateDirectPosition(const dictionary & controlTable)
+DynamixelServoChain::DetectRangeDirectPosition(const dictionary & controlTable)
 {
-    if (!BeginAutoCalibrateDirectPosition(controlTable))
+    if (!BeginDetectRangeDirectPosition(controlTable))
         return false;
 
-    Sleep(calibrationMoveDelay);
+    Sleep(detectRangeMoveDelay);
 
-    return FinishAutoCalibrateDirectPosition(controlTable);
+    return FinishDetectRangeDirectPosition(controlTable);
 }
 
 
 bool
-DynamixelServoChain::BeginAutoCalibrateDirectPosition(const dictionary & controlTable)
+DynamixelServoChain::BeginDetectRangeDirectPosition(const dictionary & controlTable)
 {
     uint8_t dxl_error = 0;
     int cwAngleLimitAddress = 0;
@@ -1894,27 +2106,22 @@ DynamixelServoChain::BeginAutoCalibrateDirectPosition(const dictionary & control
 
     if (!SetTorque(controlTable, 0))
         return false;
-    Sleep(writeDelay);
 
     for (int id = idMin; id <= idMax; id++)
     {
         if (!Write2Byte(id, cwAngleLimitAddress, 0, dxl_error))
             return false;
-        Sleep(writeDelay);
-        if (!Write2Byte(id, ccwAngleLimitAddress, calibrationFullRangePosition, dxl_error))
+        if (!Write2Byte(id, ccwAngleLimitAddress, detectRangeFullRangePosition, dxl_error))
             return false;
-        Sleep(writeDelay);
-        if (!Write2Byte(id, torqueLimitAddress, calibrationTorqueLimit, dxl_error))
+        if (!Write2Byte(id, torqueLimitAddress, detectRangeTorqueLimit, dxl_error))
             return false;
-        Sleep(writeDelay);
     }
 
     if (!SetTorque(controlTable, 1))
         return false;
-    Sleep(writeDelay);
 
     for (int id = idMin; id <= idMax; id++)
-        if (!Write2Byte(id, goalPositionAddress, calibrationGoalPosition, dxl_error))
+        if (!Write2Byte(id, goalPositionAddress, detectRangeGoalPosition, dxl_error))
             return false;
 
     return true;
@@ -1922,7 +2129,7 @@ DynamixelServoChain::BeginAutoCalibrateDirectPosition(const dictionary & control
 
 
 bool
-DynamixelServoChain::FinishAutoCalibrateDirectPosition(const dictionary & controlTable)
+DynamixelServoChain::FinishDetectRangeDirectPosition(const dictionary & controlTable)
 {
     uint8_t dxl_error = 0;
     int torqueLimitAddress = 0;
@@ -1938,21 +2145,19 @@ DynamixelServoChain::FinishAutoCalibrateDirectPosition(const dictionary & contro
         if (!Read2Byte(id, presentPositionAddress, presentPosition, dxl_error))
             return false;
 
-        positionMin[id] = presentPosition + calibratedPositionOffset;
-        positionMax[id] = positionMin[id] + calibratedPositionRange;
+        positionMin[id] = presentPosition + detectRangePositionOffset;
+        positionMax[id] = positionMin[id] + detectRangePositionRange;
     }
 
-    Debug("Position limits direct-position chain " + name + " (auto calibrate)");
+    Debug("Position limits chain " + name + " (detect_range)");
 
     if (!SetTorque(controlTable, 0))
         return false;
-    Sleep(writeDelay);
 
     for (int id = idMin; id <= idMax; id++)
     {
-        if (!Write2Byte(id, torqueLimitAddress, calibrationMaxTorqueLimit, dxl_error))
+        if (!Write2Byte(id, torqueLimitAddress, detectRangeMaxTorqueLimit, dxl_error))
             return false;
-        Sleep(writeDelay);
     }
 
     return true;

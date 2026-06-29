@@ -1,7 +1,7 @@
 {
     "format": "DynamixelRobotInstance/v1",
     "robot": "EpiRedDemo",
-    "type": "EpiTorso",
+    "type": "EpiHead",
     "serial_ports": {
         "Head": "/dev/ttyUSB1",
         "Pupil": "/dev/ttyUSB0"
