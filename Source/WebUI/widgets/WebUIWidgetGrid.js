@@ -93,6 +93,12 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         this.endSliderInteraction();
     }
 
+    requestData(data_set)
+    {
+        super.requestData(data_set);
+        this.addSourceMetadata(data_set, this.parameters.source);
+    }
+
     hasDrawableGrid()
     {
         return Array.isArray(this.displayData) && Array.isArray(this.displayData[0]) && this.displayData.length > 0 && this.displayData[0].length > 0;
@@ -298,8 +304,21 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         return transposed;
     }
 
+    normalizeGridData(data)
+    {
+        if(!Array.isArray(data))
+            return data;
+        if(data.length === 0)
+            return data;
+        if(!Array.isArray(data[0]))
+            return [data];
+        return data;
+    }
+
     getDisplayData(data)
     {
+        data = this.normalizeGridData(data);
+
         if(this.parameters.order !== "col")
             return data;
 
@@ -311,6 +330,22 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         }
 
         return this.transposeMatrix(data);
+    }
+
+    getMetadataLabels()
+    {
+        const labels = this.metadata?.labels;
+        if(!Array.isArray(labels) || !Array.isArray(labels[0]))
+            return [];
+        return labels[0].map((label) => String(label ?? "").trim()).filter((label) => label !== "");
+    }
+
+    getDisplayLabels()
+    {
+        const explicitLabels = String(this.parameters.labels ?? "").trim();
+        if(explicitLabels !== "")
+            return explicitLabels.split(',').map((label) => label.trim()).filter((label) => label !== "");
+        return this.getMetadataLabels();
     }
 
     channelToHex(value)
@@ -360,7 +395,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                 ct = LUT_gray;
         }
 
-        let labels = String(this.parameters.labels ?? "").trim() === "" ? [] : String(this.parameters.labels).split(',');
+        let labels = this.getDisplayLabels();
         let ln = labels.length;
         let ls = (ln ? parseInt(this.parameters.labelWidth) : 0);
         let n = ct.length;
@@ -480,6 +515,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                 return;
             if(this.data[0].length != this.data[1].length || this.data[1].length != this.data[2].length)
                 return;
+            this.metadata = this.getSourceMetadata('source', null);
             this.displayData = this.getDisplayData(this.data);
             this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
@@ -488,6 +524,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         }
         else if(this.data = this.getSource('source'))
         {
+            this.metadata = this.getSourceMetadata('source', null);
             this.displayData = this.getDisplayData(this.data);
             this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
