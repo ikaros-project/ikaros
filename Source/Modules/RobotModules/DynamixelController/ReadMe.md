@@ -121,7 +121,11 @@ from the goal inputs using a simple first-order approximation.
 
 `direct_position` chains also define `startup_writes` and per-servo `direct_position`
 dictionaries with software limits, input mapping limits, and initial direct-position limits.
-Chains can optionally define `detect_range` to detect a mechanical end range during initialization.
+Chains can optionally define `detect_range` to detect two mechanical endpoints in the separate
+detect-range controller state. The lower measured endpoint is used as a reference, and
+`position_min_offset`/`position_max_offset` define the working raw range from that reference.
+The detection phase uses its own temporary `moving_speed` and `torque_limit`, then restores the
+normal direct-position startup settings.
 
 ## Tests
 

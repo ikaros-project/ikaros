@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -129,11 +130,13 @@ class DynamixelController : public Module
     {
         idle,
         initialization,
+        detectRange,
         rampUp,
         startUp,
+        operationTransition,
+        operation,
         shutDown,
         rampDown,
-        operation,
         torqueOff
     };
 
@@ -146,11 +149,14 @@ class DynamixelController : public Module
         applySettings,
         applyPositionLimits,
         applyDefaultSettings,
-        detectRangeBegin,
-        detectRangeWait,
-        detectRangeFinish,
-        detectRange,
         complete
+    };
+
+    enum class DetectRangePhase
+    {
+        begin,
+        wait,
+        finish
     };
 
     enum class DetectRangeStep
@@ -158,12 +164,17 @@ class DynamixelController : public Module
         disableTorque,
         writeCWAngleLimit,
         writeCCWAngleLimit,
+        writeDetectRangeMovingSpeed,
         writeDetectRangeTorqueLimit,
         enableTorque,
-        writeDetectRangeGoalPosition,
-        readPresentPosition,
+        writeFirstDetectRangeGoalPosition,
+        readFirstEndpointPosition,
+        writeSecondDetectRangeGoalPosition,
+        readSecondEndpointPosition,
         disableTorqueAfterRead,
         restoreTorqueLimit,
+        restoreStartupSettings,
+        restoreTorqueState,
         done
     };
 
@@ -189,10 +200,12 @@ class DynamixelController : public Module
     matrix servoPresentCurrent;
     matrix startUpStartPosition;
     matrix shutDownStartPosition;
+    matrix operationTransitionStartPosition;
 
     std::string controlMode;
     ControllerMode controllerMode = ControllerMode::idle;
     InitializationStep initializationStep = InitializationStep::openChains;
+    DetectRangePhase detectRangePhase = DetectRangePhase::begin;
     DetectRangeStep detectRangeStep = DetectRangeStep::disableTorque;
     size_t initializationChainIndex = 0;
     size_t initializationPositionLimitIndex = 0;
@@ -202,7 +215,9 @@ class DynamixelController : public Module
     int shutDownPoseStep = 0;
     int rampUpStep = 0;
     int rampDownStep = 0;
+    int operationTransitionStep = 0;
     bool shutDownComplete = false;
+    bool activationSequenceActive = false;
     bool hardwareInitialized = false;
     bool initializationPositionLimitsBuilt = false;
 
@@ -210,6 +225,7 @@ class DynamixelController : public Module
     std::vector<DynamixelServoPositionLimit> initializationPositionLimits;
     std::vector<bool> torqueWasEnabledAtInitialization;
     std::vector<bool> torqueStateKnownAtInitialization;
+    std::map<std::string, std::map<int, uint16_t>> detectRangeFirstEndpointPosition;
 
     std::string robotName;
     DynamixelServoConfiguration configuration;
@@ -426,12 +442,13 @@ class DynamixelController : public Module
     }
 
     bool
-    SendPoseGoal(bool reportWarnings, matrix & poseTorqueEnable)
+    SendPoseGoal(bool reportWarnings, matrix & poseTorqueEnable, bool clipToOperationLimits = true)
     {
         for (DynamixelServoChain & chain : servoChains)
             chain.PrepareFeedbackForCommunicationMode(servoGoalPosition, servoPresentPosition);
 
-        ClipGoalPositionsToLimits();
+        if (clipToOperationLimits)
+            ClipGoalPositionsToLimits();
 
         for (DynamixelServoChain & chain : servoChains)
             chain.ConvertGoalsForCommunicationMode(servoGoalPosition);
@@ -529,6 +546,29 @@ class DynamixelController : public Module
     }
 
     void
+    CopyInterpolatedInputPoseToServoSpace(double phase)
+    {
+        for (DynamixelServoChain & chain : servoChains)
+            for (int id = chain.idMin; id <= chain.idMax; id++)
+            {
+                const int index = chain.ioIndex + chain.row(id);
+                const double target = goalPosition(index);
+                double start = target;
+                if (operationTransitionStartPosition.size() == configuredServoCount)
+                    start = operationTransitionStartPosition(index);
+                else if (presentPosition.size() == configuredServoCount)
+                    start = presentPosition(index);
+                const double graphPosition = start + phase * (target - start);
+                servoGoalPosition(index) = ApplyTransform(
+                    graphPosition,
+                    BoolMapValue(chain.goalPreInverted, id),
+                    DoubleMapValue(chain.goalOffset, id),
+                    BoolMapValue(chain.goalPostInverted, id));
+            }
+    }
+
+
+    void
     BeginStartUpMode()
     {
         Notify(msg_print, "DynamixelController entering start_up mode.");
@@ -547,6 +587,29 @@ class DynamixelController : public Module
 
         EnterState(ControllerMode::startUp);
     }
+
+    bool
+    RefreshDirectPositionFeedbackFromInput()
+    {
+        if (!HasGoalPositionInput())
+            return false;
+
+        for (DynamixelServoChain & chain : servoChains)
+        {
+            if (!chain.UsesDirectPositionCommunication())
+                continue;
+
+            for (int id = chain.idMin; id <= chain.idMax; id++)
+            {
+                const int index = chain.ioIndex + chain.row(id);
+                servoPresentPosition(index) = clip(goalPosition(index), DoubleMapValue(chain.softwareMin, id), DoubleMapValue(chain.softwareMax, id));
+                servoPresentCurrent(index) = 0;
+            }
+        }
+
+        return true;
+    }
+
 
     bool
     ReadPresentPositionForConfiguredChains()
@@ -572,6 +635,7 @@ class DynamixelController : public Module
             }
         }
 
+        RefreshDirectPositionFeedbackFromInput();
         PublishFeedbackInGraphSpace();
         return success;
     }
@@ -596,9 +660,32 @@ class DynamixelController : public Module
     }
 
     void
+    BeginOperationTransitionMode()
+    {
+        Notify(msg_print, "DynamixelController entering operate mode.");
+        operationTransitionStep = 0;
+        operationTransitionStartPosition.realloc(configuredServoCount);
+        if (hardwareInitialized)
+            ReadPresentPositionForConfiguredChains();
+        for (DynamixelServoChain & chain : servoChains)
+            for (int id = chain.idMin; id <= chain.idMax; id++)
+            {
+                const int index = chain.ioIndex + chain.row(id);
+                operationTransitionStartPosition(index) = 0;
+                if (presentPosition.size() == configuredServoCount)
+                    operationTransitionStartPosition(index) = presentPosition(index);
+            }
+
+        EnterState(ControllerMode::operationTransition);
+    }
+
+
+    void
     BeginInitializationMode()
     {
+        activationSequenceActive = true;
         initializationStep = InitializationStep::openChains;
+        detectRangePhase = DetectRangePhase::begin;
         detectRangeStep = DetectRangeStep::disableTorque;
         initializationChainIndex = 0;
         initializationPositionLimitIndex = 0;
@@ -606,15 +693,29 @@ class DynamixelController : public Module
         initializationWaitTicks = 0;
         initializationPositionLimitsBuilt = false;
         initializationPositionLimits.clear();
-        torqueWasEnabledAtInitialization.assign(configuredServoCount, true);
+        torqueWasEnabledAtInitialization.assign(configuredServoCount, false);
         torqueStateKnownAtInitialization.assign(configuredServoCount, false);
+        detectRangeFirstEndpointPosition.clear();
         hardwareInitialized = false;
         EnterState(ControllerMode::initialization);
     }
 
     void
-    BeginRampUpMode()
+    BeginDetectRangeMode()
     {
+        detectRangePhase = DetectRangePhase::begin;
+        detectRangeStep = DetectRangeStep::disableTorque;
+        initializationChainIndex = 0;
+        initializationServoID = servoChains.empty() ? 0 : servoChains[0].idMin;
+        initializationWaitTicks = 0;
+        detectRangeFirstEndpointPosition.clear();
+        EnterState(ControllerMode::detectRange);
+    }
+
+    void
+    BeginRampUpMode(bool continueToOperation = false)
+    {
+        activationSequenceActive = continueToOperation;
         rampUpStep = 0;
         EnterState(ControllerMode::rampUp);
     }
@@ -805,8 +906,8 @@ class DynamixelController : public Module
         const double startTime = InitializationElapsedTime();
         if (!chain.Read1Byte(id, address, value, dxl_error))
         {
-            Warning("Could not read " + parameterName + " for " + chain.name + " servo ID " +
-                std::to_string(id) + ". Assuming torque may already be enabled.");
+            Debug("Could not read " + parameterName + " for " + chain.name + " servo ID " +
+                std::to_string(id) + ". Treating initial torque state as unknown.");
             return false;
         }
 
@@ -868,7 +969,7 @@ class DynamixelController : public Module
         const int index = chain.ioIndex + chain.row(id);
         if (index >= 0 && index < configuredServoCount)
         {
-            torqueWasEnabledAtInitialization[index] = true;
+            torqueWasEnabledAtInitialization[index] = false;
             torqueStateKnownAtInitialization[index] = false;
         }
     }
@@ -919,12 +1020,24 @@ class DynamixelController : public Module
     }
 
     bool
-    TorqueWasEnabledAtInitialization(const DynamixelServoChain & chain, int id) const
+    KnownTorqueWasEnabledAtInitialization(const DynamixelServoChain & chain, int id) const
     {
         const int index = chain.ioIndex + chain.row(id);
         return index >= 0 &&
             index < static_cast<int>(torqueWasEnabledAtInitialization.size()) &&
+            index < static_cast<int>(torqueStateKnownAtInitialization.size()) &&
+            torqueStateKnownAtInitialization[index] &&
             torqueWasEnabledAtInitialization[index];
+    }
+
+    bool
+    ChainHadKnownTorqueEnabledAtInitialization(const DynamixelServoChain & chain) const
+    {
+        for (int id = chain.idMin; id <= chain.idMax; id++)
+            if (KnownTorqueWasEnabledAtInitialization(chain, id))
+                return true;
+
+        return false;
     }
 
     void
@@ -974,6 +1087,13 @@ class DynamixelController : public Module
                 if (!WriteInitialization2Byte(chain, controlTable, initializationServoID, "CCW Angle Limit", chain.detectRangeFullRangePosition))
                     return false;
                 if (AdvanceServoID(chain))
+                    BeginDetectRangeStep(chain, DetectRangeStep::writeDetectRangeMovingSpeed);
+                return false;
+
+            case DetectRangeStep::writeDetectRangeMovingSpeed:
+                if (!WriteInitialization2Byte(chain, controlTable, initializationServoID, "Moving Speed", chain.detectRangeMovingSpeed))
+                    return false;
+                if (AdvanceServoID(chain))
                     BeginDetectRangeStep(chain, DetectRangeStep::writeDetectRangeTorqueLimit);
                 return false;
 
@@ -988,17 +1108,17 @@ class DynamixelController : public Module
                 if (!WriteInitialization1Byte(chain, controlTable, initializationServoID, "Torque Enable", 1))
                     return false;
                 if (AdvanceServoID(chain))
-                    BeginDetectRangeStep(chain, DetectRangeStep::writeDetectRangeGoalPosition);
+                    BeginDetectRangeStep(chain, DetectRangeStep::writeFirstDetectRangeGoalPosition);
                 return false;
 
-            case DetectRangeStep::writeDetectRangeGoalPosition:
-                if (!WriteInitialization2Byte(chain, controlTable, initializationServoID, "Goal Position", chain.detectRangeGoalPosition))
+            case DetectRangeStep::writeFirstDetectRangeGoalPosition:
+                if (!WriteInitialization2Byte(chain, controlTable, initializationServoID, "Goal Position", chain.detectRangeFirstGoalPosition))
                     return false;
                 if (AdvanceServoID(chain))
                 {
                     initializationWaitTicks = TickStepsForDuration(chain.detectRangeMoveDelay);
-                    BeginDetectRangeStep(chain, DetectRangeStep::readPresentPosition);
-                    initializationStep = InitializationStep::detectRangeWait;
+                    BeginDetectRangeStep(chain, DetectRangeStep::readFirstEndpointPosition);
+                    detectRangePhase = DetectRangePhase::wait;
                     return true;
                 }
                 return false;
@@ -1019,31 +1139,98 @@ class DynamixelController : public Module
 
         switch (detectRangeStep)
         {
-            case DetectRangeStep::readPresentPosition:
+            case DetectRangeStep::readFirstEndpointPosition:
             {
                 uint16_t presentPosition = 0;
                 if (!ReadInitialization2Byte(chain, controlTable, initializationServoID, "Present Position", presentPosition))
                     return false;
 
-                chain.positionMin[initializationServoID] = presentPosition + chain.detectRangePositionOffset;
-                chain.positionMax[initializationServoID] = chain.positionMin[initializationServoID] + chain.detectRangePositionRange;
+                detectRangeFirstEndpointPosition[chain.name][initializationServoID] = presentPosition;
+                if (AdvanceServoID(chain))
+                    BeginDetectRangeStep(chain, DetectRangeStep::writeSecondDetectRangeGoalPosition);
+                return false;
+            }
+
+            case DetectRangeStep::writeSecondDetectRangeGoalPosition:
+            {
+                const auto chainEndpoints = detectRangeFirstEndpointPosition.find(chain.name);
+                uint16_t firstPosition = chain.detectRangeFirstGoalPosition;
+                if (chainEndpoints != detectRangeFirstEndpointPosition.end())
+                {
+                    const auto firstEndpoint = chainEndpoints->second.find(initializationServoID);
+                    if (firstEndpoint != chainEndpoints->second.end())
+                        firstPosition = firstEndpoint->second;
+                }
+                const int secondGoal = std::min(
+                    chain.detectRangeFullRangePosition,
+                    static_cast<int>(firstPosition) + chain.detectRangePositionMaxOffset + 20);
+                if (!WriteInitialization2Byte(chain, controlTable, initializationServoID, "Goal Position", secondGoal))
+                    return false;
+                if (AdvanceServoID(chain))
+                {
+                    initializationWaitTicks = TickStepsForDuration(chain.detectRangeMoveDelay);
+                    BeginDetectRangeStep(chain, DetectRangeStep::readSecondEndpointPosition);
+                    detectRangePhase = DetectRangePhase::wait;
+                    return false;
+                }
+                return false;
+            }
+
+            case DetectRangeStep::readSecondEndpointPosition:
+            {
+                uint16_t presentPosition = 0;
+                if (!ReadInitialization2Byte(chain, controlTable, initializationServoID, "Present Position", presentPosition))
+                    return false;
+
+                const uint16_t firstPosition = detectRangeFirstEndpointPosition[chain.name][initializationServoID];
+                const double rawMin = std::min(firstPosition, presentPosition);
+                const double rawMax = std::max(firstPosition, presentPosition);
+                const double detectedMin = rawMin;
+                const double workingMin = detectedMin + chain.detectRangePositionMinOffset;
+                const double workingMax = detectedMin + chain.detectRangePositionMaxOffset;
+                Warning("Detect range " + chain.name + " servo ID " +
+                    std::to_string(initializationServoID) +
+                    ": first=" + std::to_string(firstPosition) +
+                    ", second=" + std::to_string(presentPosition) +
+                    ", working_min=" + std::to_string(workingMin) +
+                    ", working_max=" + std::to_string(workingMax));
+                if (workingMax >= rawMax)
+                {
+                    Debug("Detect range for " + chain.name + " servo ID " +
+                        std::to_string(initializationServoID) + " did not confirm the full configured range.");
+                }
+
+                chain.positionMin[initializationServoID] = workingMin;
+                chain.positionMax[initializationServoID] = workingMax;
                 if (AdvanceServoID(chain))
                     BeginDetectRangeStep(chain, DetectRangeStep::disableTorqueAfterRead);
                 return false;
             }
 
             case DetectRangeStep::disableTorqueAfterRead:
-            {
-                const uint8_t restoreTorque = TorqueWasEnabledAtInitialization(chain, initializationServoID) ? 1 : 0;
-                if (!WriteInitialization1Byte(chain, controlTable, initializationServoID, "Torque Enable", restoreTorque))
+                if (!WriteInitialization1Byte(chain, controlTable, initializationServoID, "Torque Enable", 0))
                     return false;
                 if (AdvanceServoID(chain))
                     BeginDetectRangeStep(chain, DetectRangeStep::restoreTorqueLimit);
                 return false;
-            }
 
             case DetectRangeStep::restoreTorqueLimit:
                 if (!WriteInitialization2Byte(chain, controlTable, initializationServoID, "Torque Limit", chain.detectRangeMaxTorqueLimit))
+                    return false;
+                if (AdvanceServoID(chain))
+                    BeginDetectRangeStep(chain, DetectRangeStep::restoreStartupSettings);
+                return false;
+
+            case DetectRangeStep::restoreStartupSettings:
+                if (!chain.ApplyStartupForCommunicationMode(controlTable))
+                    return false;
+                BeginDetectRangeStep(chain, DetectRangeStep::restoreTorqueState);
+                return false;
+
+            case DetectRangeStep::restoreTorqueState:
+            {
+                const uint8_t restoreTorque = KnownTorqueWasEnabledAtInitialization(chain, initializationServoID) ? 1 : 0;
+                if (!WriteInitialization1Byte(chain, controlTable, initializationServoID, "Torque Enable", restoreTorque))
                     return false;
                 if (AdvanceServoID(chain))
                 {
@@ -1052,6 +1239,7 @@ class DynamixelController : public Module
                     return true;
                 }
                 return false;
+            }
 
             default:
                 return false;
@@ -1066,7 +1254,7 @@ class DynamixelController : public Module
         if (simulate)
         {
             hardwareInitialized = true;
-            EnterState(ControllerMode::operation);
+            BeginOperationTransitionMode();
             return;
         }
 
@@ -1077,9 +1265,7 @@ class DynamixelController : public Module
                 {
                     hardwareOpened = true;
                     initializationChainIndex = 0;
-                    if (!servoChains.empty())
-                        initializationServoID = servoChains[0].idMin;
-                    initializationStep = InitializationStep::readTorqueState;
+                    initializationStep = InitializationStep::createSyncObjects;
                     break;
                 }
                 if (!CanStartInitializationOperation())
@@ -1101,7 +1287,10 @@ class DynamixelController : public Module
                 if (initializationChainIndex >= servoChains.size())
                 {
                     initializationChainIndex = 0;
-                    initializationStep = InitializationStep::createSyncObjects;
+                    initializationPositionLimitIndex = 0;
+                    initializationPositionLimitsBuilt = false;
+                    initializationPositionLimits.clear();
+                    initializationStep = InitializationStep::loadParameters;
                     break;
                 }
                 if (!ReadInitializationTorqueState(servoChains[initializationChainIndex]))
@@ -1112,7 +1301,9 @@ class DynamixelController : public Module
                 if (initializationChainIndex >= servoChains.size())
                 {
                     initializationChainIndex = 0;
-                    initializationStep = InitializationStep::loadParameters;
+                    if (!servoChains.empty())
+                        initializationServoID = servoChains[0].idMin;
+                    initializationStep = InitializationStep::readTorqueState;
                     break;
                 }
                 if (!CanStartInitializationOperation())
@@ -1165,9 +1356,6 @@ class DynamixelController : public Module
                 if (initializationChainIndex >= servoChains.size())
                 {
                     initializationChainIndex = 0;
-                    initializationPositionLimitIndex = 0;
-                    initializationPositionLimitsBuilt = false;
-                    initializationPositionLimits.clear();
                     initializationStep = InitializationStep::applyPositionLimits;
                     break;
                 }
@@ -1176,6 +1364,13 @@ class DynamixelController : public Module
                 {
                     uint8_t dxl_error = 0;
                     DynamixelServoChain & chain = servoChains[initializationChainIndex];
+                    if (ChainHadKnownTorqueEnabledAtInitialization(chain))
+                    {
+                        Debug("Skipping settings for " + chain.name + " because torque was already enabled.");
+                        initializationChainIndex++;
+                        break;
+                    }
+
                     const double startTime = InitializationElapsedTime();
                     if (!chain.ApplyLoadedControlTableSettingsForCommunicationMode(
                         configuration.modelRegistry,
@@ -1208,7 +1403,7 @@ class DynamixelController : public Module
                 if (initializationPositionLimitIndex >= initializationPositionLimits.size())
                 {
                     initializationChainIndex = 0;
-                    initializationStep = InitializationStep::detectRangeBegin;
+                    initializationStep = InitializationStep::complete;
                     break;
                 }
                 if (!CanStartInitializationOperation())
@@ -1222,6 +1417,15 @@ class DynamixelController : public Module
                         Error("Servo chain is not ready: " + limit.chainName);
                         EnterState(ControllerMode::idle);
                         return;
+                    }
+
+                    if (KnownTorqueWasEnabledAtInitialization(*chain, limit.id))
+                    {
+                        Debug("Skipping position limits for " + limit.chainName +
+                            " servo ID " + std::to_string(limit.id) +
+                            " because torque was already enabled.");
+                        initializationPositionLimitIndex++;
+                        break;
                     }
 
                     const dictionary * controlTable = ControlTableFor(*chain);
@@ -1253,38 +1457,9 @@ class DynamixelController : public Module
                     return;
                 }
                 initializationChainIndex = 0;
-                initializationStep = InitializationStep::detectRangeBegin;
-                break;
-
-            case InitializationStep::detectRangeBegin:
-                if (initializationChainIndex >= servoChains.size())
-                {
-                    initializationStep = InitializationStep::complete;
-                    break;
-                }
-                if (!BeginDetectRangeChain(servoChains[initializationChainIndex]))
-                    return;
-                break;
-
-            case InitializationStep::detectRangeWait:
-                if (initializationWaitTicks > 0)
-                {
-                    initializationWaitTicks--;
-                    break;
-                }
-                initializationStep = InitializationStep::detectRangeFinish;
-                break;
-
-            case InitializationStep::detectRangeFinish:
-                if (!FinishDetectRangeChain(servoChains[initializationChainIndex]))
-                    return;
-                initializationChainIndex++;
-                detectRangeStep = DetectRangeStep::disableTorque;
-                initializationStep = InitializationStep::detectRangeBegin;
-                break;
-
-            case InitializationStep::detectRange:
-                initializationStep = InitializationStep::detectRangeBegin;
+                if (!servoChains.empty())
+                    initializationServoID = servoChains[0].idMin;
+                initializationStep = InitializationStep::applyPositionLimits;
                 break;
 
             case InitializationStep::complete:
@@ -1295,7 +1470,7 @@ class DynamixelController : public Module
                     ReadPresentPositionForConfiguredChains();
                     DebugSlowInitializationOperation("read final startup feedback", startTime);
                 }
-                EnterState(ControllerMode::idle);
+                BeginRampUpMode(true);
                 break;
         }
 
@@ -1315,22 +1490,23 @@ class DynamixelController : public Module
         if (!chain.detectRange)
         {
             initializationChainIndex++;
-            initializationStep = InitializationStep::detectRangeBegin;
+            detectRangePhase = DetectRangePhase::begin;
             return true;
         }
 
         if (detectRangeStep != DetectRangeStep::disableTorque &&
             detectRangeStep != DetectRangeStep::writeCWAngleLimit &&
             detectRangeStep != DetectRangeStep::writeCCWAngleLimit &&
+            detectRangeStep != DetectRangeStep::writeDetectRangeMovingSpeed &&
             detectRangeStep != DetectRangeStep::writeDetectRangeTorqueLimit &&
             detectRangeStep != DetectRangeStep::enableTorque &&
-            detectRangeStep != DetectRangeStep::writeDetectRangeGoalPosition)
+            detectRangeStep != DetectRangeStep::writeFirstDetectRangeGoalPosition)
             BeginDetectRangeStep(chain, DetectRangeStep::disableTorque);
 
         if (!AdvanceDetectRangeBegin(chain, *controlTable))
             return false;
 
-        if (initializationStep != InitializationStep::detectRangeWait)
+        if (detectRangePhase != DetectRangePhase::wait)
             return false;
 
         return true;
@@ -1350,6 +1526,59 @@ class DynamixelController : public Module
             return true;
 
         return AdvanceDetectRangeFinish(chain, *controlTable);
+    }
+
+    void
+    TickDetectRange()
+    {
+        initializationTickStart = std::chrono::steady_clock::now();
+
+        if (simulate)
+        {
+            EnterState(ControllerMode::idle);
+            return;
+        }
+
+        if (!hardwareInitialized)
+        {
+            Warning("Cannot detect servo ranges before DynamixelController initialization.");
+            EnterState(ControllerMode::idle);
+            return;
+        }
+
+        switch (detectRangePhase)
+        {
+            case DetectRangePhase::begin:
+                if (initializationChainIndex >= servoChains.size())
+                {
+                    ReadPresentPositionForConfiguredChains();
+                    EnterState(ControllerMode::idle);
+                    Notify(msg_print, "DynamixelController detect range complete.");
+                    break;
+                }
+                if (!BeginDetectRangeChain(servoChains[initializationChainIndex]))
+                    return;
+                break;
+
+            case DetectRangePhase::wait:
+                if (initializationWaitTicks > 0)
+                {
+                    initializationWaitTicks--;
+                    break;
+                }
+                detectRangePhase = DetectRangePhase::finish;
+                break;
+
+            case DetectRangePhase::finish:
+                if (!FinishDetectRangeChain(servoChains[initializationChainIndex]))
+                    return;
+                initializationChainIndex++;
+                detectRangeStep = DetectRangeStep::disableTorque;
+                detectRangePhase = DetectRangePhase::begin;
+                break;
+        }
+
+        WarnSlowInitializationTick();
     }
 
     void
@@ -1387,8 +1616,12 @@ class DynamixelController : public Module
         RampPowerOnRobot(static_cast<double>(rampUpStep) / steps);
         if (rampUpStep >= steps)
         {
+            const bool continueActivationSequence = activationSequenceActive;
             RestorePowerOnRampRobot();
-            EnterState(ControllerMode::idle);
+            if (continueActivationSequence)
+                BeginStartUpMode();
+            else
+                EnterState(ControllerMode::idle);
         }
     }
 
@@ -1422,8 +1655,11 @@ class DynamixelController : public Module
         if (startUpPoseStep > steps)
         {
             shutDownComplete = false;
-            EnterState(ControllerMode::idle);
             Notify(msg_print, "DynamixelController start-up complete.");
+            if (activationSequenceActive)
+                BeginOperationTransitionMode();
+            else
+                EnterState(ControllerMode::idle);
         }
     }
 
@@ -1445,15 +1681,17 @@ class DynamixelController : public Module
         }
 
         const int steps = TickStepsForDuration(DynamixelServoChainConstants::SHUTDOWN_POSE_DURATION);
+        const int holdSteps = TickStepsForDuration(DynamixelServoChainConstants::SHUTDOWN_POSE_HOLD_DURATION);
         shutDownPoseStep++;
-        CopyInterpolatedConfiguredPoseToServoSpace(false, static_cast<double>(shutDownPoseStep) / steps);
+        const double phase = std::min(1.0, static_cast<double>(shutDownPoseStep) / steps);
+        CopyInterpolatedConfiguredPoseToServoSpace(false, phase);
 
         matrix poseTorqueEnable(configuredServoCount);
         for (int i = 0; i < configuredServoCount; i++)
             poseTorqueEnable(i) = 1;
 
         SendPoseGoal(true, poseTorqueEnable);
-        if (shutDownPoseStep >= steps)
+        if (shutDownPoseStep >= steps + holdSteps)
             BeginRampDownMode();
     }
 
@@ -1467,6 +1705,7 @@ class DynamixelController : public Module
         }
 
         const int steps = TickStepsForDuration(DynamixelServoChainConstants::TIMER_POWER_OFF);
+        const int holdSteps = TickStepsForDuration(DynamixelServoChainConstants::POWER_OFF_ZERO_HOLD_DURATION);
         if (rampDownStep == 0)
         {
             Notify(msg_print, "Powering off servos. Support the robot if needed.");
@@ -1474,8 +1713,12 @@ class DynamixelController : public Module
         }
 
         rampDownStep++;
-        RampPowerOffRobot(static_cast<double>(rampDownStep) / steps);
-        if (rampDownStep >= steps)
+        const double linearPhase = std::min(1.0, static_cast<double>(rampDownStep) / steps);
+        const double smoothPhase = linearPhase * linearPhase * (3.0 - 2.0 * linearPhase);
+        const double phase = DynamixelServoChainConstants::POWER_OFF_START_PHASE +
+            (1.0 - DynamixelServoChainConstants::POWER_OFF_START_PHASE) * smoothPhase;
+        RampPowerOffRobot(phase);
+        if (rampDownStep >= steps + holdSteps)
         {
             RunPowerOffRampAction(&DynamixelServoChain::DisableTorqueForCommunicationMode);
             RunPowerOffRampAction(&DynamixelServoChain::RestorePowerOffRampForCommunicationMode);
@@ -1510,6 +1753,48 @@ class DynamixelController : public Module
             Notify(msg_warning, "DynamixelController emergency torque off complete. Support the robot if needed.");
         EnterState(ControllerMode::idle);
     }
+
+    void
+    TickOperationTransition()
+    {
+        if (!hardwareInitialized && !simulate)
+        {
+            Warning("Cannot operate before DynamixelController initialization.");
+            EnterState(ControllerMode::idle);
+            return;
+        }
+
+        if (!HasGoalPositionInput())
+        {
+            PublishFeedbackInGraphSpace();
+            return;
+        }
+
+        CopyGoalPositionToServoSpace();
+        const int steps = TickStepsForDuration(DynamixelServoChainConstants::OPERATION_TRANSITION_DURATION);
+        operationTransitionStep++;
+        const double phase = std::min(1.0, static_cast<double>(operationTransitionStep) / steps);
+        CopyInterpolatedInputPoseToServoSpace(phase);
+
+        for (DynamixelServoChain & chain : servoChains)
+            chain.PrepareFeedbackForCommunicationMode(servoGoalPosition, servoPresentPosition);
+
+        if (simulate)
+        {
+            SimulateFeedback();
+            PublishFeedbackInGraphSpace();
+        }
+        else
+            WritePreparedServoGoals(true, torqueEnable);
+
+        if (operationTransitionStep >= steps)
+        {
+            operationTransitionStartPosition.clear();
+            EnterState(ControllerMode::operation);
+            Notify(msg_print, "DynamixelController operate transition complete.");
+        }
+    }
+
 
     void
     TickOperation()
@@ -1583,6 +1868,10 @@ class DynamixelController : public Module
                 TickInitialization();
                 break;
 
+            case ControllerMode::detectRange:
+                TickDetectRange();
+                break;
+
             case ControllerMode::rampUp:
                 TickRampUp();
                 break;
@@ -1597,6 +1886,10 @@ class DynamixelController : public Module
 
             case ControllerMode::rampDown:
                 TickRampDown();
+                break;
+
+            case ControllerMode::operationTransition:
+                TickOperationTransition();
                 break;
 
             case ControllerMode::operation:
@@ -1698,11 +1991,13 @@ class DynamixelController : public Module
         state.clear_labels(0);
         state.push_label(0, "idle");
         state.push_label(0, "initialization");
+        state.push_label(0, "detect-range");
         state.push_label(0, "ramp-up");
         state.push_label(0, "start-up");
+        state.push_label(0, "operate-transition");
+        state.push_label(0, "operation");
         state.push_label(0, "shut-down");
         state.push_label(0, "ramp-down");
-        state.push_label(0, "operation");
         state.push_label(0, "torque-off");
     }
 
@@ -1726,6 +2021,8 @@ class DynamixelController : public Module
     void
     EnterState(ControllerMode mode)
     {
+        if (mode == ControllerMode::idle || mode == ControllerMode::operation || mode == ControllerMode::torqueOff)
+            activationSequenceActive = false;
         controllerMode = mode;
         PublishControllerState();
     }
@@ -2148,10 +2445,16 @@ class DynamixelController : public Module
     }
 
     bool
+    HasGoalPositionInput() const
+    {
+        return goalPosition.connected() && goalPosition.size() >= configuredServoCount;
+    }
+
+
+    bool
     HasReceivedGoalPosition() const
     {
-        // Extra startup guard for legacy models where Tick may be called before real GOAL_POSITION data has arrived.
-        return goalPosition.connected() && goalPosition.size() >= configuredServoCount && servoGoalPosition(0) > 0;
+        return HasGoalPositionInput();
     }
 
     void
@@ -2292,9 +2595,10 @@ class DynamixelController : public Module
             settings.shutdownPosition = chainConfiguration.shutdownPosition;
             settings.startupWrites = chainConfiguration.startupWrites;
             settings.detectRange = chainConfiguration.detectRange;
-            settings.detectRangeGoalPosition = chainConfiguration.detectRangeGoalPosition;
-            settings.detectRangePositionOffset = chainConfiguration.detectRangePositionOffset;
-            settings.detectRangePositionRange = chainConfiguration.detectRangePositionRange;
+            settings.detectRangeFirstGoalPosition = chainConfiguration.detectRangeFirstGoalPosition;
+            settings.detectRangeSecondGoalPosition = chainConfiguration.detectRangeSecondGoalPosition;
+            settings.detectRangePositionMinOffset = chainConfiguration.detectRangePositionMinOffset;
+            settings.detectRangePositionMaxOffset = chainConfiguration.detectRangePositionMaxOffset;
             settings.detectRangeTorqueLimit = chainConfiguration.detectRangeTorqueLimit;
             settings.detectRangeMaxTorqueLimit = chainConfiguration.detectRangeMaxTorqueLimit;
             settings.detectRangeFullRangePosition = chainConfiguration.detectRangeFullRangePosition;
@@ -2614,6 +2918,24 @@ class DynamixelController : public Module
     }
 
     bool
+    PoseSavePosition(const DynamixelServoChain & chain, int id, double & position) const
+    {
+        const int index = chain.ioIndex + chain.row(id);
+        if (chain.UsesDirectPositionCommunication() && HasGoalPositionInput())
+        {
+            position = clip(goalPosition(index), DoubleMapValue(chain.softwareMin, id), DoubleMapValue(chain.softwareMax, id));
+            return true;
+        }
+
+        if (presentPosition.size() != configuredServoCount)
+            return false;
+
+        position = presentPosition(index);
+        return true;
+    }
+
+
+    bool
     SavePresentPositionAsPose(const std::string & key, bool startup)
     {
         if (hardwareInitialized)
@@ -2635,8 +2957,12 @@ class DynamixelController : public Module
             std::map<int, double> & pose = ConfiguredPose(chain, startup);
             for (int id = chain.idMin; id <= chain.idMax; id++)
             {
-                const int index = chain.ioIndex + chain.row(id);
-                const double position = presentPosition(index);
+                double position = 0;
+                if (!PoseSavePosition(chain, id, position))
+                {
+                    Error("Cannot save Dynamixel pose because PRESENT_POSITION is not configured.");
+                    return false;
+                }
                 if (std::isnan(position))
                 {
                     Error("Cannot save Dynamixel pose because PRESENT_POSITION contains NaN.");
@@ -2690,9 +3016,15 @@ class DynamixelController : public Module
             EnterState(ControllerMode::idle);
             return;
         }
-        if (commandName == "initialize" || commandName == "Initialize" || commandName == "initialization")
+        if (commandName == "activate" || commandName == "Activate" ||
+            commandName == "initialize" || commandName == "Initialize" || commandName == "initialization")
         {
             BeginInitializationMode();
+            return;
+        }
+        if (commandName == "detect_range" || commandName == "DetectRange" || commandName == "detect-range")
+        {
+            BeginDetectRangeMode();
             return;
         }
         if (commandName == "ramp_up" || commandName == "RampUp")
@@ -2713,7 +3045,7 @@ class DynamixelController : public Module
         }
         if (commandName == "operate" || commandName == "Operation")
         {
-            EnterState(ControllerMode::operation);
+            BeginOperationTransitionMode();
             return;
         }
 

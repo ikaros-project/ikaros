@@ -547,9 +547,11 @@ DynamixelServoConfiguration::LoadRobotConfiguration()
                 }
 
                 const dictionary & detectRange = chainData["detect_range"].as_dictionary();
-                if (!RequireKey(detectRange, "goal_position", detectRangeContext, error) ||
-                    !RequireKey(detectRange, "position_offset", detectRangeContext, error) ||
-                    !RequireKey(detectRange, "position_range", detectRangeContext, error) ||
+                if (!RequireKey(detectRange, "first_goal_position", detectRangeContext, error) ||
+                    !RequireKey(detectRange, "second_goal_position", detectRangeContext, error) ||
+                    !RequireKey(detectRange, "position_min_offset", detectRangeContext, error) ||
+                    !RequireKey(detectRange, "position_max_offset", detectRangeContext, error) ||
+                    !RequireKey(detectRange, "moving_speed", detectRangeContext, error) ||
                     !RequireKey(detectRange, "torque_limit", detectRangeContext, error) ||
                     !RequireKey(detectRange, "max_torque_limit", detectRangeContext, error) ||
                     !RequireKey(detectRange, "full_range_position", detectRangeContext, error) ||
@@ -558,16 +560,21 @@ DynamixelServoConfiguration::LoadRobotConfiguration()
                     return false;
 
                 chain.detectRange = true;
-                chain.detectRangeGoalPosition = detectRange["goal_position"].as_int();
-                chain.detectRangePositionOffset = detectRange["position_offset"].as_int();
-                chain.detectRangePositionRange = detectRange["position_range"].as_int();
+                chain.detectRangeFirstGoalPosition = detectRange["first_goal_position"].as_int();
+                chain.detectRangeSecondGoalPosition = detectRange["second_goal_position"].as_int();
+                chain.detectRangePositionMinOffset = detectRange["position_min_offset"].as_int();
+                chain.detectRangePositionMaxOffset = detectRange["position_max_offset"].as_int();
+                chain.detectRangeMovingSpeed = detectRange["moving_speed"].as_int();
                 chain.detectRangeTorqueLimit = detectRange["torque_limit"].as_int();
                 chain.detectRangeMaxTorqueLimit = detectRange["max_torque_limit"].as_int();
                 chain.detectRangeFullRangePosition = detectRange["full_range_position"].as_int();
                 chain.writeDelay = detectRange["write_delay"].as_float();
                 chain.detectRangeMoveDelay = detectRange["move_delay"].as_float();
 
-                if (chain.detectRangePositionRange <= 0 ||
+                if (chain.detectRangePositionMinOffset < 0 ||
+                    chain.detectRangePositionMaxOffset <= chain.detectRangePositionMinOffset ||
+                    chain.detectRangeFirstGoalPosition == chain.detectRangeSecondGoalPosition ||
+                    chain.detectRangeMovingSpeed <= 0 ||
                     chain.detectRangeTorqueLimit <= 0 ||
                     chain.detectRangeMaxTorqueLimit <= 0 ||
                     chain.detectRangeFullRangePosition <= 0 ||

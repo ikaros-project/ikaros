@@ -1,7 +1,0 @@
-<group name="DynamixelControllerEpiYellowLiveTorqueSmoke" tick_duration="0.1" stop="1">
-   <connection source="Goal.OUTPUT" target="DXL.GOAL_POSITION" />
-   <connection source="TorqueEnable.OUTPUT" target="DXL.TORQUE_ENABLE" />
-   <module name="Goal" class="Constant" data="0, 0, 0, 0, 10, 10" />
-   <module name="TorqueEnable" class="Constant" data="1, 1, 1, 1, 0, 0" />
-   <module name="DXL" class="DynamixelController" robot="EpiYellow" Simulate="false" />
-</group>

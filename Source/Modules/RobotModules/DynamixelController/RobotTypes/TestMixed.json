@@ -47,14 +47,16 @@
                 "D Gain": 5
             },
             "detect_range": {
-                "goal_position": 0,
-                "position_offset": 5,
-                "position_range": 80,
-                "torque_limit": 500,
+                "first_goal_position": 0,
+                "second_goal_position": 100,
+                "position_min_offset": 5,
+                "position_max_offset": 80,
+                "moving_speed": 10,
+                "torque_limit": 100,
                 "max_torque_limit": 1023,
                 "full_range_position": 1023,
                 "write_delay": 0.01,
-                "move_delay": 1.5
+                "move_delay": 3.0
             },
             "servos": {
                 "2": {

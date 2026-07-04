@@ -16,12 +16,15 @@ namespace DynamixelServoChainConstants
     inline constexpr int ADDR_OPERATING_MODE = 11;
 
     inline constexpr double TIMER_POWER_ON = 2.0;
-    inline constexpr double TIMER_POWER_OFF = 2.0;
+    inline constexpr double TIMER_POWER_OFF = 3.0;
     inline constexpr double STARTUP_POSE_DURATION = 3.0;
+    inline constexpr double OPERATION_TRANSITION_DURATION = 2.0;
     inline constexpr double TIMER_POWER_OFF_EXTENDED = 3.0;
     inline constexpr double STARTUP_POSE_DELAY = 1.0;
-    inline constexpr double SHUTDOWN_POSE_DURATION = 3.0;
-    inline constexpr double SHUTDOWN_POSE_HOLD_DURATION = 0.5;
+    inline constexpr double SHUTDOWN_POSE_DURATION = 2.5;
+    inline constexpr double SHUTDOWN_POSE_HOLD_DURATION = 0.0;
+    inline constexpr double POWER_OFF_START_PHASE = 0.6;
+    inline constexpr double POWER_OFF_ZERO_HOLD_DURATION = 2.0;
     inline constexpr double SHUTDOWN_STEP_TIME = 0.1;
     inline constexpr double POWER_OFF_RAMP_STEP_TIME = 0.1;
     inline constexpr double CURRENT_UNIT = 3.36;
@@ -60,9 +63,11 @@ struct DynamixelServoChainSettings
     std::map<int, double> shutdownPosition;
     std::map<std::string, double> startupWrites;
     bool detectRange = false;
-    int detectRangeGoalPosition = 0;
-    int detectRangePositionOffset = 0;
-    int detectRangePositionRange = 0;
+    int detectRangeFirstGoalPosition = 0;
+    int detectRangeSecondGoalPosition = 0;
+    int detectRangePositionMinOffset = 0;
+    int detectRangePositionMaxOffset = 0;
+    int detectRangeMovingSpeed = 0;
     int detectRangeTorqueLimit = 0;
     int detectRangeMaxTorqueLimit = 0;
     int detectRangeFullRangePosition = 0;
@@ -103,9 +108,11 @@ public:
     std::map<int, double> shutdownPosition;
     std::map<std::string, double> startupWrites;
     bool detectRange = false;
-    int detectRangeGoalPosition = 0;
-    int detectRangePositionOffset = 0;
-    int detectRangePositionRange = 0;
+    int detectRangeFirstGoalPosition = 0;
+    int detectRangeSecondGoalPosition = 0;
+    int detectRangePositionMinOffset = 0;
+    int detectRangePositionMaxOffset = 0;
+    int detectRangeMovingSpeed = 0;
     int detectRangeTorqueLimit = 0;
     int detectRangeMaxTorqueLimit = 0;
     int detectRangeFullRangePosition = 0;
@@ -296,6 +303,7 @@ private:
     dynamixel::PacketHandler *packetHandler = nullptr;
     std::unique_ptr<dynamixel::GroupSyncRead> syncRead;
     std::unique_ptr<dynamixel::GroupSyncWrite> syncWrite;
+    std::map<int, uint16_t> detectRangeFirstEndpointPosition;
     int syncWriteDataStart = 0;
     int syncWriteDataLength = 0;
     int syncReadDataStart = 0;

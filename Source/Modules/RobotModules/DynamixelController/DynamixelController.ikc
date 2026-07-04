@@ -33,5 +33,5 @@
 	<input name="GOAL_PWM" optional ="true" description="Pulse width modulation in percentage. This is an optional input that can be used to limit PWM and thereby force in position control mode." size="@ServoCount" />
 	<output name="PRESENT_POSITION" description="Present positions in the units defined by the selected robot type configuration." size="@ServoCount" />
 	<output name="PRESENT_CURRENT" description="Present current (if supported by the servo) in mA." size="@ServoCount" />
-	<output name="STATE" description="One-hot controller state: idle, initialization, ramp-up, start-up, shut-down, ramp-down, operation, torque-off." size="8" />
+	<output name="STATE" description="One-hot controller state: idle, initialization, detect-range, ramp-up, start-up, operate-transition, operation, shut-down, ramp-down, torque-off." size="10" />
 </class>

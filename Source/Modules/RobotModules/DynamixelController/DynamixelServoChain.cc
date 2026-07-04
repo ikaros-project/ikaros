@@ -1,5 +1,6 @@
 #include "DynamixelServoChain.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <set>
@@ -70,9 +71,11 @@ DynamixelServoChain::DynamixelServoChain(DynamixelServoChainSettings settings):
     shutdownPosition(std::move(settings.shutdownPosition)),
     startupWrites(std::move(settings.startupWrites)),
     detectRange(settings.detectRange),
-    detectRangeGoalPosition(settings.detectRangeGoalPosition),
-    detectRangePositionOffset(settings.detectRangePositionOffset),
-    detectRangePositionRange(settings.detectRangePositionRange),
+    detectRangeFirstGoalPosition(settings.detectRangeFirstGoalPosition),
+    detectRangeSecondGoalPosition(settings.detectRangeSecondGoalPosition),
+    detectRangePositionMinOffset(settings.detectRangePositionMinOffset),
+    detectRangePositionMaxOffset(settings.detectRangePositionMaxOffset),
+    detectRangeMovingSpeed(settings.detectRangeMovingSpeed),
     detectRangeTorqueLimit(settings.detectRangeTorqueLimit),
     detectRangeMaxTorqueLimit(settings.detectRangeMaxTorqueLimit),
     detectRangeFullRangePosition(settings.detectRangeFullRangePosition),
@@ -117,9 +120,11 @@ DynamixelServoChain::DynamixelServoChain(DynamixelServoChain && other) noexcept:
     shutdownPosition(std::move(other.shutdownPosition)),
     startupWrites(std::move(other.startupWrites)),
     detectRange(other.detectRange),
-    detectRangeGoalPosition(other.detectRangeGoalPosition),
-    detectRangePositionOffset(other.detectRangePositionOffset),
-    detectRangePositionRange(other.detectRangePositionRange),
+    detectRangeFirstGoalPosition(other.detectRangeFirstGoalPosition),
+    detectRangeSecondGoalPosition(other.detectRangeSecondGoalPosition),
+    detectRangePositionMinOffset(other.detectRangePositionMinOffset),
+    detectRangePositionMaxOffset(other.detectRangePositionMaxOffset),
+    detectRangeMovingSpeed(other.detectRangeMovingSpeed),
     detectRangeTorqueLimit(other.detectRangeTorqueLimit),
     detectRangeMaxTorqueLimit(other.detectRangeMaxTorqueLimit),
     detectRangeFullRangePosition(other.detectRangeFullRangePosition),
@@ -134,6 +139,7 @@ DynamixelServoChain::DynamixelServoChain(DynamixelServoChain && other) noexcept:
     packetHandler(std::exchange(other.packetHandler, nullptr)),
     syncRead(std::move(other.syncRead)),
     syncWrite(std::move(other.syncWrite)),
+    detectRangeFirstEndpointPosition(std::move(other.detectRangeFirstEndpointPosition)),
     syncWriteDataStart(other.syncWriteDataStart),
     syncWriteDataLength(other.syncWriteDataLength),
     syncReadDataStart(other.syncReadDataStart),
@@ -190,14 +196,17 @@ DynamixelServoChain::operator=(DynamixelServoChain && other) noexcept
     shutdownPosition = std::move(other.shutdownPosition);
     startupWrites = std::move(other.startupWrites);
     detectRange = other.detectRange;
-    detectRangeGoalPosition = other.detectRangeGoalPosition;
-    detectRangePositionOffset = other.detectRangePositionOffset;
-    detectRangePositionRange = other.detectRangePositionRange;
+    detectRangeFirstGoalPosition = other.detectRangeFirstGoalPosition;
+    detectRangeSecondGoalPosition = other.detectRangeSecondGoalPosition;
+    detectRangePositionMinOffset = other.detectRangePositionMinOffset;
+    detectRangePositionMaxOffset = other.detectRangePositionMaxOffset;
+    detectRangeMovingSpeed = other.detectRangeMovingSpeed;
     detectRangeTorqueLimit = other.detectRangeTorqueLimit;
     detectRangeMaxTorqueLimit = other.detectRangeMaxTorqueLimit;
     detectRangeFullRangePosition = other.detectRangeFullRangePosition;
     writeDelay = other.writeDelay;
     detectRangeMoveDelay = other.detectRangeMoveDelay;
+    detectRangeFirstEndpointPosition = std::move(other.detectRangeFirstEndpointPosition);
     debug = std::move(other.debug);
     warning = std::move(other.warning);
     fatal = std::move(other.fatal);
@@ -423,14 +432,18 @@ DynamixelServoChain::Open()
 
     if (!portHandler->openPort())
     {
-        Fatal("Failed to open serial port!");
+        Warn("Could not open serial port " + serialPort + " for " + name +
+            ". It may already be used by another process.");
+        Close();
         return false;
     }
     Debug("Succeeded to open serial port!");
 
     if (!portHandler->setBaudRate(baudRate))
     {
-        Fatal("Failed to change baudrate!");
+        Warn("Could not set baud rate " + std::to_string(baudRate) +
+            " for " + name + " on serial port " + serialPort + ".");
+        Close();
         return false;
     }
     Debug("Succeeded to change baudrate!");
@@ -2095,11 +2108,13 @@ DynamixelServoChain::BeginDetectRangeDirectPosition(const dictionary & controlTa
     uint8_t dxl_error = 0;
     int cwAngleLimitAddress = 0;
     int ccwAngleLimitAddress = 0;
+    int movingSpeedAddress = 0;
     int torqueLimitAddress = 0;
     int goalPositionAddress = 0;
 
     if (!ControlTableAddress(controlTable, "CW Angle Limit", 2, cwAngleLimitAddress) ||
         !ControlTableAddress(controlTable, "CCW Angle Limit", 2, ccwAngleLimitAddress) ||
+        !ControlTableAddress(controlTable, "Moving Speed", 2, movingSpeedAddress) ||
         !ControlTableAddress(controlTable, "Torque Limit", 2, torqueLimitAddress) ||
         !ControlTableAddress(controlTable, "Goal Position", 2, goalPositionAddress))
         return false;
@@ -2113,6 +2128,8 @@ DynamixelServoChain::BeginDetectRangeDirectPosition(const dictionary & controlTa
             return false;
         if (!Write2Byte(id, ccwAngleLimitAddress, detectRangeFullRangePosition, dxl_error))
             return false;
+        if (!Write2Byte(id, movingSpeedAddress, detectRangeMovingSpeed, dxl_error))
+            return false;
         if (!Write2Byte(id, torqueLimitAddress, detectRangeTorqueLimit, dxl_error))
             return false;
     }
@@ -2121,7 +2138,7 @@ DynamixelServoChain::BeginDetectRangeDirectPosition(const dictionary & controlTa
         return false;
 
     for (int id = idMin; id <= idMax; id++)
-        if (!Write2Byte(id, goalPositionAddress, detectRangeGoalPosition, dxl_error))
+        if (!Write2Byte(id, goalPositionAddress, detectRangeFirstGoalPosition, dxl_error))
             return false;
 
     return true;
@@ -2145,8 +2162,50 @@ DynamixelServoChain::FinishDetectRangeDirectPosition(const dictionary & controlT
         if (!Read2Byte(id, presentPositionAddress, presentPosition, dxl_error))
             return false;
 
-        positionMin[id] = presentPosition + detectRangePositionOffset;
-        positionMax[id] = positionMin[id] + detectRangePositionRange;
+        detectRangeFirstEndpointPosition[id] = presentPosition;
+    }
+
+    int goalPositionAddress = 0;
+    if (!ControlTableAddress(controlTable, "Goal Position", 2, goalPositionAddress))
+        return false;
+
+    for (int id = idMin; id <= idMax; id++)
+    {
+        const auto firstEndpoint = detectRangeFirstEndpointPosition.find(id);
+        const uint16_t firstPosition = firstEndpoint == detectRangeFirstEndpointPosition.end() ?
+            detectRangeFirstGoalPosition : firstEndpoint->second;
+        const int secondGoal = std::min(
+            detectRangeFullRangePosition,
+            static_cast<int>(firstPosition) + detectRangePositionMaxOffset + 20);
+        if (!Write2Byte(id, goalPositionAddress, secondGoal, dxl_error))
+            return false;
+    }
+
+    Sleep(detectRangeMoveDelay);
+
+    for (int id = idMin; id <= idMax; id++)
+    {
+        uint16_t presentPosition = 0;
+        if (!Read2Byte(id, presentPositionAddress, presentPosition, dxl_error))
+            return false;
+
+        const auto firstEndpoint = detectRangeFirstEndpointPosition.find(id);
+        if (firstEndpoint == detectRangeFirstEndpointPosition.end())
+            return false;
+
+        const double rawMin = std::min(firstEndpoint->second, presentPosition);
+        const double rawMax = std::max(firstEndpoint->second, presentPosition);
+        const double detectedMin = rawMin;
+        const double workingMin = detectedMin + detectRangePositionMinOffset;
+        const double workingMax = detectedMin + detectRangePositionMaxOffset;
+        if (workingMax >= rawMax)
+        {
+            Debug("Detect range for " + name + " servo ID " + std::to_string(id) +
+                " did not confirm the full configured range.");
+        }
+
+        positionMin[id] = workingMin;
+        positionMax[id] = workingMax;
     }
 
     Debug("Position limits chain " + name + " (detect_range)");
@@ -2159,6 +2218,9 @@ DynamixelServoChain::FinishDetectRangeDirectPosition(const dictionary & controlT
         if (!Write2Byte(id, torqueLimitAddress, detectRangeMaxTorqueLimit, dxl_error))
             return false;
     }
+
+    if (!ApplyDirectPositionStartup(controlTable))
+        return false;
 
     return true;
 }

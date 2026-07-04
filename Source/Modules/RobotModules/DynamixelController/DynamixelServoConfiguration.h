@@ -57,9 +57,11 @@ struct DynamixelChainConfiguration
     std::map<int, double> shutdownPosition;
     std::map<std::string, double> startupWrites;
     bool detectRange = false;
-    int detectRangeGoalPosition = 0;
-    int detectRangePositionOffset = 0;
-    int detectRangePositionRange = 0;
+    int detectRangeFirstGoalPosition = 0;
+    int detectRangeSecondGoalPosition = 0;
+    int detectRangePositionMinOffset = 0;
+    int detectRangePositionMaxOffset = 0;
+    int detectRangeMovingSpeed = 0;
     int detectRangeTorqueLimit = 0;
     int detectRangeMaxTorqueLimit = 0;
     int detectRangeFullRangePosition = 0;
