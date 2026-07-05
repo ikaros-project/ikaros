@@ -20,6 +20,7 @@
 - Keep headers self-contained; include what the file directly uses.
 - Prefer `ikaros::dictionary` for Ikaros JSON/config parsing unless an external JSON library is explicitly needed.
 - Route warnings intended for users or the WebUI through `Warning()` or Ikaros notification functions, not `std::cerr`.
+- Use exceptions for startup and module `Init()` failures; during execution, report runtime conditions through `Notify()`, `Warning()`, or related Ikaros notification functions.
 
 ## Ikaros Programming Rules
 

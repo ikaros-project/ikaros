@@ -308,6 +308,8 @@ Even if you do not declare them, the kernel adds these to every class:
 - Control: `menu`
 - Options: `inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace`
 
+Exception and notification use: use exceptions for failures detected during startup and module `Init()`, where the model can fail before execution begins. During execution, modules should report runtime conditions through `Notify()`, `Warning()`, or related Ikaros notification functions so messages go through the configured log level, WebUI, and notification handling path.
+
 ### `module_start`
 
 - Type: `number`
