@@ -72,7 +72,6 @@ class file and must match what the script writes.
 | on_error | Action to take when Python execution fails. Options: `pause`, `zero`, `log`. | string | pause |
 | restart_on_crash | Restart the Python worker after a crash. | bool | false |
 | process_mode | Runtime mode for the Python implementation. Currently only `worker` is supported. | string | worker |
-| execution_mode | Execution policy. Options: `sync`, `async`. | string | sync |
 | use_global_names | Expose input and output names as bare Python globals when safe. | bool | true |
 
 ## Global Name Mode
@@ -244,11 +243,11 @@ explicit `ctx` access is the safer and clearer option.
 Uncaught Python exceptions are routed into the Ikaros log with traceback information when
 available in both modes.
 
-## Execution Modes
+## Asynchronous Execution
 
-### Synchronous Mode
+Python-backed modules use the common Ikaros `async` module parameter.
 
-`execution_mode="sync"` means that the kernel waits for the Python worker to finish before the tick
+`async="no"` means that the kernel waits for the Python worker to finish before the tick
 continues.
 
 Use this when:
@@ -257,9 +256,7 @@ Use this when:
 - downstream modules must see the result in the same tick
 - deterministic per-tick behavior is important
 
-### Asynchronous Mode
-
-`execution_mode="async"` means that the Python work runs in the background.
+`async="yes"` means that the Python-backed module runs in the background.
 
 Behavior:
 
@@ -383,7 +380,7 @@ Meaning:
 What to check:
 
 - increase `timeout_ms`
-- use `execution_mode="async"` for slow functions
+- use `async="yes"` for slow functions
 - look for blocking operations in the Python code
 
 ### `Python worker closed its output unexpectedly.`
@@ -454,7 +451,7 @@ Start with these checks:
 python3 -c "import numpy; print(numpy.__version__)"
 ```
 
-4. If the script is slow, switch to `execution_mode="async"` or increase `timeout_ms`.
+4. If the script is slow, switch to `async="yes"` or increase `timeout_ms`.
 5. If the worker crashes, set `restart_on_crash="true"` and inspect the logged traceback.
 6. If output values look wrong, check that the `.ikc` output sizes match what Python writes.
 
@@ -463,7 +460,7 @@ python3 -c "import numpy; print(numpy.__version__)"
 - Start with a tiny module and verify it works in synchronous mode.
 - Add `ctx.log.print(...)` statements to trace execution.
 - Keep output shapes simple at first.
-- Once correctness is confirmed, switch to `async` if needed.
+- Once correctness is confirmed, switch to `async="yes"` if needed.
 - If performance matters, use a Python interpreter with NumPy installed.
 - Use the default global-name style for concise scripts, and fall back to `ctx` access if a name conflict appears or if you want more explicit code.
 
@@ -487,7 +484,7 @@ def tick(ctx):
 ### Async Long-Running Module
 
 ```xml
-<module class="MyAsyncClass" name="Worker" execution_mode="async" on_error="log"/>
+<module class="MyAsyncClass" name="Worker" async="yes" on_error="log"/>
 ```
 
 In this mode, outputs change only after a completed Python run.

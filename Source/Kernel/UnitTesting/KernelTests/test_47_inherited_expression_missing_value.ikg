@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_47"
     description="Test inherited expression reports missing value clearly"
     expected_exit="1"

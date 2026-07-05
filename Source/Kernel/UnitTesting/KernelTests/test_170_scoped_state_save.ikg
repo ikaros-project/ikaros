@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestScopedStateSave"
     description="Test scoped state save excludes other modules"
     webui_port="8170"

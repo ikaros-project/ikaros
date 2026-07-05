@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_76"
     description="Exercise matrix output size contract failures"
     start="true"

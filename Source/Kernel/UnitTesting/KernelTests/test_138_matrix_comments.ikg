@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_138"
     description="Test hash comments in matrix strings"
     start="true"

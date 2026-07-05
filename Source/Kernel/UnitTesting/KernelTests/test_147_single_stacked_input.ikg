@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_147"
     description="Test stack input adds a dimension for one connection"
     stop="1"

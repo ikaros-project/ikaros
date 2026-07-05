@@ -1,4 +1,0 @@
-<class name="FirstTickReporter" description="Prints the first tick when the module is allowed to run">
-    <input name="INPUT_A" optional="yes" />
-    <input name="INPUT_B" optional="yes" />
-</class>

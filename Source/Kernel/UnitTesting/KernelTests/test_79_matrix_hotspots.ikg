@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_79"
     description="Exercise matrix hotspot operations before view optimizations"
     start="true"

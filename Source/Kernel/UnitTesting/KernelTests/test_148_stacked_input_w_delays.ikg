@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_148"
     description="Test stacked input connections with multiple delays"
     stop="3"

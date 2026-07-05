@@ -1,0 +1,13 @@
+<class internal="true" name="PersistentStateTestModule" description="tests persistent output state save and load">
+    <parameter name="data" type="matrix" default="1, 2, 3" />
+    <parameter name="write" type="bool" default="true" />
+    <parameter name="use_private" type="bool" default="false" />
+    <parameter name="use_scalar" type="bool" default="false" />
+    <state name="bias" type="float" default="0" persistent="true" />
+    <state name="gain" type="double" default="0" persistent="true" />
+    <state name="steps" type="int" default="0" persistent="true" />
+    <state name="active" type="bool" default="true" persistent="true" />
+    <state name="label" type="string" default="untrained" persistent="true" />
+    <state name="MEMORY" type="matrix" size="data.size" persistent="true" />
+    <output name="STATE" size="data.size" persistent="true" />
+</class>

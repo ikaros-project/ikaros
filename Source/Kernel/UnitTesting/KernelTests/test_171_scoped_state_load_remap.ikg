@@ -1,8 +1,8 @@
-<group
+<group internal="true"
     name="TestScopedStateLoadRemap"
     description="Test scoped state load remaps module paths"
     webui_port="8171"
-    http_start_delay="0.2"
+    http_start_delay="1.2"
     http_requests="stop||savestate?filename=test_171_scoped_state_source&amp;module=TestScopedStateLoadRemap.SourceMemory||resetstate?module=TestScopedStateLoadRemap.TargetMemory||loadstate?filename=test_171_scoped_state_source&amp;module=TestScopedStateLoadRemap.TargetMemory||savestate?filename=test_171_scoped_state_result||quit"
     expected_output_contains="Loaded state from /Users/cba/ikaros/UserData/test_171_scoped_state_source.state into TestScopedStateLoadRemap.TargetMemory"
     expected_file_exists="UserData/test_171_scoped_state_source.state||UserData/test_171_scoped_state_result.state"

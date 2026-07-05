@@ -1,0 +1,8 @@
+<group internal="true" name="TestCppAsyncWebUIOpen" description="Test WebUI open while C++ async work is running" start="true" stop="100" webui_port="8185" cli_args="-u/Users/cba/ikaros/Source/Kernel/UnitTesting/KernelTests" http_start_delay="0.05" http_requests="open?file=fixture_async_webui_open_target" http_terminate_after_requests="true" expected_output_contains="Loaded /Users/cba/ikaros/Source/Kernel/UnitTesting/KernelTests/fixture_async_webui_open_target.ikg">
+    <module class="Constant" name="Input" data="2"/>
+    <module class="AsyncLifecycleTestModule" name="Worker" async="yes" duration="2"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="Input.OUTPUT" target="Worker.X" delay="0"/>
+    <connection source="Worker.Y" target="Print.INPUT" delay="0"/>
+</group>

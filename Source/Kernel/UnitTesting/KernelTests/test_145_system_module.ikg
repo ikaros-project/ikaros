@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestSystemModule"
     description="Test that the System module instantiates and publishes outputs"
     start="true"

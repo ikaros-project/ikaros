@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_46"
     description="Test local override beats inherited expression"
     check_sum="236799"

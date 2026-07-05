@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_71"
     description="Exercise scalar and shape matrix functions"
     start="true"

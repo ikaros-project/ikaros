@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_72"
     description="Exercise elementwise matrix functions"
     start="true"

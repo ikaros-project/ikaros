@@ -1,3 +1,0 @@
-<class name="KernelSizedInputTestModule" description="used internally to test fixed input sizes in the ikaros kernel.">
-    <input name="INPUT" size="4" optional="yes" />
-</class>

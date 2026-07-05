@@ -1,4 +1,4 @@
-<group name="Outer" xyz="77" q="12" check_sum="1485" description="Test that size lists functions with indirection">
+<group internal="true" name="Outer" xyz="77" q="12" check_sum="1485" description="Test that size lists functions with indirection">
  
      
     <group name="image" sx="11" sy="22">

@@ -1,4 +1,4 @@
-<group name="TestSizedMatrixParameterDefault"
+<group internal="true" name="TestSizedMatrixParameterDefault"
     description="Test sized matrix parameter default zero-fill"
     start="true"
     stop="0"

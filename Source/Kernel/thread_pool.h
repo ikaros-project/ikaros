@@ -136,8 +136,10 @@ protected:
         }
     }
 
-private:
+protected:
     std::vector<Task *> tasks_;  // Changed from reference to value
+
+private:
     mutable std::mutex mutex_;
     std::condition_variable condition_;
     bool running;

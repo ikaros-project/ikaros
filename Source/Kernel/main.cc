@@ -47,6 +47,7 @@ namespace
         k.webui_dir = o.ikaros_root+"/Source/WebUI/";
         k.user_dir = ResolveUserDirectory(o);
         k.ScanClasses(o.ikaros_root+"/Source/Modules");
+        k.ScanClasses(o.ikaros_root+"/Source/Kernel/UnitTesting/TestModules");
         k.ScanClasses(o.ikaros_root+"/Source/UserModules");
 
         std::filesystem::current_path(k.user_dir);

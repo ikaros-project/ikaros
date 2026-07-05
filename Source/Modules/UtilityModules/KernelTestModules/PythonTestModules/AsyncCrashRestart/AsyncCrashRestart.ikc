@@ -1,4 +1,0 @@
-<class name="AsyncCrashRestart" description="Python example module that crashes once in async mode and then succeeds after worker restart">
-    <input name="X" description="Input values." />
-    <output name="Y" description="Recovered output values." size="X.size" />
-</class>

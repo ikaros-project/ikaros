@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestScalarStateSave"
     description="Test scalar state invalid value fails"
     stop="1"

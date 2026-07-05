@@ -1,0 +1,6 @@
+<class internal="true" name="AsyncLifecycleTestModule" description="Slow C++ module for async lifecycle tests">
+    <parameter name="gain" type="number" default="1" description="Output gain." />
+    <parameter name="duration" type="number" default="0.4" description="Seconds spent in each tick." />
+    <input name="X" description="Input value." />
+    <output name="Y" description="Scaled output value." size="1" />
+</class>

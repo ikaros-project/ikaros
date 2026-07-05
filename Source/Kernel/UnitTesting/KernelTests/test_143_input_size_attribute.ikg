@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_143"
     description="Test fixed input size attributes in .ikc files"
 >

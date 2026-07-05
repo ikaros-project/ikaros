@@ -1,4 +1,4 @@
-<group name="Test_3"  check_sum = "12557" description="Test error messages for incorrect parameter types">
+<group internal="true" name="Test_3"  check_sum = "12557" description="Test error messages for incorrect parameter types">
 
     <module name="Const" class="Constant" data="9, 8, 7" />
 

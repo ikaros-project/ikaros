@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestResetStateDeltaWeights"
     description="Test reset state clears Delta weights"
     webui_port="8169"

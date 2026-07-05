@@ -57,6 +57,11 @@ namespace ikaros
     {
         constexpr size_t default_max_pending_webui_log_messages = 500;
 
+        bool is_internal(const dictionary & info)
+        {
+            return info.is_set("internal");
+        }
+
         bool try_parse_matrix_literal(matrix & out, const std::string & value)
         {
             try
@@ -466,6 +471,30 @@ namespace ikaros
             start_tick_param["type"] = "number";
             start_tick_param["default"] = 0;
             return start_tick_param;
+        }
+
+        dictionary make_async_parameter()
+        {
+            dictionary async_param;
+            async_param["_tag"] = "parameter";
+            async_param["name"] = "async";
+            async_param["type"] = "bool";
+            async_param["default"] = "no";
+            async_param["description"] = "Run this module asynchronously.";
+            return async_param;
+        }
+
+        std::string normalize_request_value_path(const std::string & path)
+        {
+            if(!path.empty() && path[0] == '.')
+                return path.substr(1);
+            return path;
+        }
+
+        bool request_path_matches_command(const std::string & uri, const std::string & command)
+        {
+            std::string path = "/" + command;
+            return uri == path || uri.rfind(path + "?", 0) == 0 || uri.rfind(path + "/", 0) == 0;
         }
 
         dictionary make_color_parameter()
@@ -1181,6 +1210,230 @@ namespace ikaros
     }
 
 
+    bool
+    Component::IsAsyncRunning() const
+    {
+        return async_mode && async_running.load();
+    }
+
+
+    bool
+    Component::IsAsyncPending() const
+    {
+        return async_pending_action_count.load() > 0;
+    }
+
+
+    bool
+    Component::IsAsyncFailed() const
+    {
+        return async_failed.load();
+    }
+
+
+    void
+    Component::SyncAsyncModeFromParameter()
+    {
+        async_mode = GetParameter("async").as_bool();
+    }
+
+
+    bool
+    Component::PollAsyncCompletion(bool apply_pending_actions)
+    {
+        std::exception_ptr error;
+        {
+            std::lock_guard<std::mutex> lock(async_state_mutex);
+            if(!async_running.load() || !async_future.valid())
+                return false;
+
+            if(async_future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+                return false;
+
+            error = async_future.get();
+            async_completed_tick = kernel().GetTick();
+        }
+
+        if(error)
+        {
+            async_failed = true;
+            ClearPendingAsyncActions();
+            async_running = false;
+            try
+            {
+                std::rethrow_exception(error);
+            }
+            catch(const std::exception & e)
+            {
+                throw exception("Asynchronous tick failed in \"" + path_ + "\": " + e.what(), path_);
+            }
+            catch(...)
+            {
+                throw exception("Asynchronous tick failed in \"" + path_ + "\": Unknown error.", path_);
+            }
+        }
+
+        if(apply_pending_actions)
+        {
+            ApplyPendingAsyncActions();
+            async_publish_pending = true;
+        }
+        else
+        {
+            ClearPendingAsyncActions();
+            async_publish_pending = false;
+        }
+        async_running = false;
+        return true;
+    }
+
+
+    void
+    Component::LaunchAsyncTick()
+    {
+        std::lock_guard<std::mutex> lock(async_state_mutex);
+        if(async_running.load() || async_failed.load() || async_publish_pending.load())
+            return;
+
+        async_started_tick = kernel().GetTick();
+        async_running = true;
+        try
+        {
+            async_future = std::async(std::launch::async, [this]() -> std::exception_ptr
+            {
+                ProfilingBegin();
+                try
+                {
+                    Tick();
+                    ProfilingEnd();
+                    return nullptr;
+                }
+                catch(...)
+                {
+                    ProfilingEnd();
+                    return std::current_exception();
+                }
+            });
+        }
+        catch(...)
+        {
+            async_running = false;
+            async_failed = true;
+            throw;
+        }
+    }
+
+
+    void
+    Component::WaitForAsyncCompletion(bool apply_pending_actions)
+    {
+        {
+            std::unique_lock<std::mutex> lock(async_state_mutex);
+            if(!async_running.load() || !async_future.valid())
+                return;
+
+            async_future.wait();
+        }
+        PollAsyncCompletion(apply_pending_actions);
+    }
+
+
+    void
+    Component::ClearPendingAsyncActions()
+    {
+        std::lock_guard<std::mutex> lock(async_pending_mutex);
+        deferred_parameter_changes.clear();
+        deferred_commands.clear();
+        async_pending_action_count = 0;
+    }
+
+
+    std::string
+    AsyncParameterChangeKey(const Component::DeferredParameterChange & change)
+    {
+        std::string key = change.parameter_path;
+        if(change.is_matrix_cell)
+            key += ":" + std::to_string(change.x) + ":" + std::to_string(change.y);
+        return key;
+    }
+
+
+    void
+    Component::QueueDeferredParameterChange(const DeferredParameterChange & change)
+    {
+        std::lock_guard<std::mutex> lock(async_pending_mutex);
+        deferred_parameter_changes[AsyncParameterChangeKey(change)] = change;
+        async_pending_action_count = static_cast<int>(deferred_parameter_changes.size() + deferred_commands.size());
+    }
+
+
+    void
+    Component::QueueDeferredCommand(const std::string & command_name, const dictionary & parameters)
+    {
+        std::lock_guard<std::mutex> lock(async_pending_mutex);
+        constexpr size_t max_deferred_commands = 100;
+        if(deferred_commands.size() >= max_deferred_commands)
+        {
+            Warning("Async command queue is full; ignoring command \"" + command_name + "\".", path_);
+            return;
+        }
+
+        DeferredCommand command;
+        command.command_name = command_name;
+        command.parameters = parameters.copy();
+        deferred_commands.push_back(std::move(command));
+        async_pending_action_count = static_cast<int>(deferred_parameter_changes.size() + deferred_commands.size());
+    }
+
+
+    void
+    Component::ApplyPendingAsyncActions()
+    {
+        Kernel & k = kernel();
+        std::map<std::string, DeferredParameterChange> parameter_changes;
+        std::vector<DeferredCommand> commands;
+        {
+            std::lock_guard<std::mutex> lock(async_pending_mutex);
+            parameter_changes.swap(deferred_parameter_changes);
+            commands.swap(deferred_commands);
+            async_pending_action_count = 0;
+        }
+
+        for(auto & [_, change] : parameter_changes)
+        {
+            auto parameter_it = k.parameters.find(change.parameter_path);
+            if(parameter_it == k.parameters.end())
+            {
+                Warning("Queued parameter \"" + change.parameter_path + "\" no longer exists.", path_);
+                continue;
+            }
+
+            parameter & p = parameter_it->second;
+            if(change.is_matrix_cell)
+            {
+                if(auto matrix_value = get_parameter_matrix_ptr(p.value.get()))
+                {
+                    double value = parse_parameter_number(change.value, "matrix parameter cell");
+                    if(matrix_value->rank() == 1)
+                        (*matrix_value)(change.x)= value;
+                    else if(matrix_value->rank() == 2)
+                        (*matrix_value)(change.y, change.x)= value;
+                    else
+                        Warning("Queued parameter \"" + change.parameter_path + "\" has unsupported matrix rank.", path_);
+                }
+                else
+                    Warning("Queued parameter \"" + change.parameter_path + "\" is not a matrix.", path_);
+            }
+            else
+            {
+                p = change.value;
+            }
+        }
+        for(auto & command : commands)
+            Command(command.command_name, command.parameters);
+    }
+
+
     std::string
     Component::StartupFirstRealInputStepString() const
     {
@@ -1867,6 +2120,19 @@ namespace ikaros
         info_["parameters"].push_back(make_start_tick_parameter().copy());
     }
 
+    void
+    add_async_parameter_if_missing(dictionary & info)
+    {
+        if(info["parameters"].is_null())
+            info["parameters"] = list();
+
+        for(auto p: info["parameters"])
+            if(p["name"].as_string()=="async")
+                return;
+
+        info["parameters"].push_back(make_async_parameter().copy());
+    }
+
 
 
     Component::Component():
@@ -1876,7 +2142,14 @@ namespace ikaros
         module_start(0),
         start_tick(0),
         startup_first_real_input_step(std::numeric_limits<int>::max()),
-        startup_all_real_inputs_step(std::numeric_limits<int>::max())
+        startup_all_real_inputs_step(std::numeric_limits<int>::max()),
+        async_mode(false),
+        async_running(false),
+        async_failed(false),
+        async_publish_pending(false),
+        async_started_tick(-1),
+        async_completed_tick(-1),
+        async_pending_action_count(0)
     {
         ensure_component_collections(info_);
 
@@ -1884,6 +2157,7 @@ namespace ikaros
 
         AddLogLevel();
         AddFirstTick();
+        add_async_parameter_if_missing(info_);
 
         for(auto p: info_["parameters"])
             AddParameter(p);
@@ -2764,7 +3038,7 @@ namespace ikaros
         for(auto & d : info_["parameters"])
         {
             std::string parameter_name = d["name"].as_string();
-            if(parameter_name == "log_level" || parameter_name == "module_start" || parameter_name == "start_tick" || parameter_name == "color" || parameter_name == "rgb_quality" || parameter_name == "gray_quality" || parameter_name == "snapshot_interval" || parameter_name == "webui_req_int" || parameter_name == "webui_log_buffer_limit")
+            if(parameter_name == "log_level" || parameter_name == "module_start" || parameter_name == "start_tick" || parameter_name == "async" || parameter_name == "color" || parameter_name == "rgb_quality" || parameter_name == "gray_quality" || parameter_name == "snapshot_interval" || parameter_name == "webui_req_int" || parameter_name == "webui_log_buffer_limit")
                 continue;
 
             parameter p;
@@ -3025,8 +3299,31 @@ bool operator==(Request & r, const std::string s)
 // Kernel
 
     void
+    Kernel::WaitForAsyncComponents(bool discard_pending_actions)
+    {
+        std::lock_guard<std::mutex> lifecycle_lock(component_lifecycle_mutex);
+        for(auto & [path, component] : components)
+        {
+            try
+            {
+                if(discard_pending_actions)
+                    component->ClearPendingAsyncActions();
+                component->WaitForAsyncCompletion(!discard_pending_actions);
+            }
+            catch(const std::exception & e)
+            {
+                Notify(msg_warning, "Could not finish asynchronous component \"" + path + "\": " + e.what(), path);
+                component->ClearPendingAsyncActions();
+            }
+        }
+    }
+
+
+    void
     Kernel::StopComponents()
     {
+        WaitForAsyncComponents(true);
+
         for(auto & [path, component] : components)
         {
             try
@@ -3044,6 +3341,7 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::Clear()
     {
+        std::lock_guard<std::mutex> lifecycle_lock(component_lifecycle_mutex);
         // FIXME: retain persistent components
 
         components.clear();
@@ -3083,7 +3381,16 @@ bool operator==(Request & r, const std::string s)
     Kernel::New()
     {
         Notify(msg_print, "New file");
-        if(components.size() > 0)
+        bool had_components = false;
+        {
+            std::lock_guard<std::recursive_mutex> lock(kernelLock);
+            had_components = !components.empty();
+        }
+        if(had_components)
+            Stop();
+
+        std::lock_guard<std::recursive_mutex> lock(kernelLock);
+        if(!had_components && components.size() > 0)
             StopComponents();
         Clear();
 
@@ -3138,6 +3445,7 @@ bool operator==(Request & r, const std::string s)
     {
         tick++;
 
+        PollAsyncComponents();
         RunTasks();
         //RunTasksInSingleThread();
 
@@ -3186,6 +3494,7 @@ bool operator==(Request & r, const std::string s)
                     bool has_log_level = false;
                     bool has_module_start = false;
                     bool has_start_tick = false;
+                    bool has_async = false;
                     bool has_color = false;
                     for(auto parameter : classes[name].info_["parameters"])
                     {
@@ -3196,6 +3505,8 @@ bool operator==(Request & r, const std::string s)
                             has_module_start = true;
                         else if(parameter_name == "start_tick")
                             has_start_tick = true;
+                        else if(parameter_name == "async")
+                            has_async = true;
                         else if(parameter_name == "color")
                             has_color = true;
                     }
@@ -3208,6 +3519,9 @@ bool operator==(Request & r, const std::string s)
 
                     if(!has_start_tick)
                         classes[name].info_["parameters"].push_back(make_start_tick_parameter().copy());
+
+                    if(!has_async)
+                        classes[name].info_["parameters"].push_back(make_async_parameter().copy());
 
                     if(!has_color)
                         classes[name].info_["parameters"].push_back(make_color_parameter().copy());
@@ -3239,6 +3553,17 @@ bool operator==(Request & r, const std::string s)
             const std::string extension = p.path().extension().string();
             if(extension==".ikg")
             {
+                try
+                {
+                    dictionary file_info;
+                    LoadXMLWithRestrictedIncludes(file_info, p.path());
+                    if(is_internal(file_info))
+                        continue;
+                }
+                catch(const std::exception &)
+                {
+                }
+
                 std::string name = p.path().stem();
 
                 if(system)
@@ -3307,6 +3632,7 @@ bool operator==(Request & r, const std::string s)
         {
             (void)name;
             component->SyncFirstTickFromParameter();
+            component->SyncAsyncModeFromParameter();
         }
 
         if(!ok)
@@ -3456,6 +3782,12 @@ bool operator==(Request & r, const std::string s)
             connection.shared_memory_ = false;
 
             if(!connection.delay_range_.is_delay_0())
+                continue;
+
+            if(Component * source_component = ComponentForValuePath(connection.source); source_component != nullptr && source_component->async_mode)
+                continue;
+
+            if(Component * target_component = ComponentForValuePath(connection.target); target_component != nullptr && target_component->async_mode)
                 continue;
 
             if(!connection.IsWholeMatrixConnection() || connection.stacked_)
@@ -4578,6 +4910,7 @@ bool operator==(Request & r, const std::string s)
         bool has_log_level = false;
         bool has_module_start = false;
         bool has_start_tick = false;
+        bool has_async = false;
         bool has_color = false;
         for(auto parameter : info["parameters"])
         {
@@ -4588,6 +4921,8 @@ bool operator==(Request & r, const std::string s)
                 has_module_start = true;
             else if(parameter_name == "start_tick")
                 has_start_tick = true;
+            else if(parameter_name == "async")
+                has_async = true;
             else if(parameter_name == "color")
                 has_color = true;
         }
@@ -4609,6 +4944,9 @@ bool operator==(Request & r, const std::string s)
 
         if(!has_start_tick)
             info["parameters"].push_back(make_start_tick_parameter().copy());
+
+        if(!has_async)
+            info["parameters"].push_back(make_async_parameter().copy());
 
         if(!has_color)
         {
@@ -5400,6 +5738,8 @@ bool operator==(Request & r, const std::string s)
          for(auto & c : connections)
             if(c.delay_range_.is_delay_0())
                 continue;
+            else if(ConnectionTouchesRunningAsyncComponent(c))
+                continue;
             else
                 try
                 {
@@ -5683,6 +6023,132 @@ bool operator==(Request & r, const std::string s)
 
 
 
+    Component *
+    Kernel::ComponentForValuePath(const std::string & value_path) const
+    {
+        std::string component_path = peek_rhead(value_path, ".");
+        auto component = components.find(component_path);
+        if(component == components.end())
+            return nullptr;
+        return component->second.get();
+    }
+
+
+    bool
+    Kernel::ValueOwnedByRunningAsyncComponent(const std::string & value_path) const
+    {
+        Component * component = ComponentForValuePath(value_path);
+        return component != nullptr && component->IsAsyncRunning();
+    }
+
+
+    bool
+    Kernel::ConnectionTouchesRunningAsyncComponent(const Connection & connection) const
+    {
+        return ValueOwnedByRunningAsyncComponent(connection.source) || ValueOwnedByRunningAsyncComponent(connection.target);
+    }
+
+
+    void
+    Kernel::RunTask(Task * task)
+    {
+        if(task == nullptr)
+            return;
+        if(!task->ShouldTick())
+            return;
+
+        if(auto component = dynamic_cast<Component *>(task))
+        {
+            if(component->async_mode)
+            {
+                if(component->async_publish_pending.exchange(false))
+                    return;
+                if(component->IsAsyncRunning() || component->IsAsyncFailed())
+                    return;
+                if(stop_after != -1 && tick >= stop_after)
+                    return;
+
+                component->LaunchAsyncTick();
+                return;
+            }
+        }
+
+        if(auto connection = dynamic_cast<Connection *>(task))
+            if(ConnectionTouchesRunningAsyncComponent(*connection))
+                return;
+
+        task->ProfilingBegin();
+        try
+        {
+            task->Tick();
+        }
+        catch(...)
+        {
+            task->ProfilingEnd();
+            throw;
+        }
+        task->ProfilingEnd();
+    }
+
+
+    void
+    Kernel::PollAsyncComponents()
+    {
+        for(auto & [path, component] : components)
+        {
+            if(!component->async_mode)
+                continue;
+
+            try
+            {
+                component->PollAsyncCompletion();
+            }
+            catch(const std::exception & e)
+            {
+                Notify(msg_fatal_error, "Error during asynchronous task completion for \"" + path + "\": " + std::string(e.what()), path);
+            }
+            catch(...)
+            {
+                Notify(msg_fatal_error, "Error during asynchronous task completion for \"" + path + "\": Unknown error.", path);
+            }
+        }
+    }
+
+
+    class KernelTaskSequence: public TaskSequence
+    {
+    public:
+        KernelTaskSequence(Kernel & kernel, const std::vector<Task *> & tasks):
+            TaskSequence(tasks),
+            kernel_(kernel)
+        {
+        }
+
+    protected:
+        void Tick() override
+        {
+            for(auto & task : tasks_)
+            {
+                try
+                {
+                    kernel_.RunTask(task);
+                }
+                catch(const std::exception & e)
+                {
+                    throw std::runtime_error("Error in task \"" + (task ? task->Info() : std::string("<null>")) + "\": " + e.what());
+                }
+                catch(...)
+                {
+                    throw std::runtime_error("Error in task \"" + (task ? task->Info() : std::string("<null>")) + "\": Unknown error.");
+                }
+            }
+        }
+
+    private:
+        Kernel & kernel_;
+    };
+
+
     void Kernel::RunTasks()
     {
         std::vector<std::shared_ptr<TaskSequence>> sequences;
@@ -5692,7 +6158,7 @@ bool operator==(Request & r, const std::string s)
             // Create and submit tasks using shared_ptr
             for (auto &task_sequence : tasks) 
             {
-                auto ts = std::make_shared<TaskSequence>(task_sequence);
+                auto ts = std::make_shared<KernelTaskSequence>(*this, task_sequence);
                 thread_pool->submit(ts);
                 sequences.push_back(ts);
             }
@@ -5723,8 +6189,7 @@ bool operator==(Request & r, const std::string s)
     {
         for(auto & task_group : tasks)
             for(auto & task: task_group)
-                if(task->ShouldTick())
-                    task->Tick();
+                RunTask(task);
     }
 
 
@@ -5777,7 +6242,7 @@ bool operator==(Request & r, const std::string s)
         bool has_async_workers = false;
         if(options_.is_set("batch_mode"))
             for(auto & [name, parameter] : parameters)
-                if(ends_with(name, ".execution_mode") && std::string(parameter) == "async")
+                if(ends_with(name, ".async") && parameter.as_bool())
                 {
                     has_async_workers = true;
                     break;
@@ -5977,23 +6442,32 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::Stop()
     {
-        std::lock_guard<std::recursive_mutex> lock(kernelLock);
         notify_stop_requested = false;
-        if(options_.is_explicitly_set("save_state") && !components.empty())
-            SaveState(resolve_state_filename(options_, "save_state"));
-        run_mode.store(std::min(run_mode_stop, run_mode.load()));
-        tick = -1;
-        timer.Pause();
-        timer.SetPauseTime(0);
-#if !defined(LOGGING_OFF)
-        if(session_logging_active)
+
         {
-            LogStop();
-            session_logging_active = false;
+            std::lock_guard<std::recursive_mutex> lock(kernelLock);
+            run_mode.store(std::min(run_mode_stop, run_mode.load()));
+            timer.Pause();
+            timer.SetPauseTime(0);
         }
+
+        WaitForAsyncComponents(true);
+
+        {
+            std::lock_guard<std::recursive_mutex> lock(kernelLock);
+            if(options_.is_explicitly_set("save_state") && !components.empty())
+                SaveState(resolve_state_filename(options_, "save_state"));
+            tick = -1;
+#if !defined(LOGGING_OFF)
+            if(session_logging_active)
+            {
+                LogStop();
+                session_logging_active = false;
+            }
 #endif
-        //PrintProfiling(); // FIXME: Use option to turn on and off 
-        StopComponents();
+            //PrintProfiling(); // FIXME: Use option to turn on and off
+            StopComponents();
+        }
     }
 
 
@@ -6014,6 +6488,7 @@ bool operator==(Request & r, const std::string s)
             run_mode = run_mode_pause;
             timer.Pause();
             timer.SetPauseTime(GetTime()+tick_duration);
+            WaitForAsyncComponents(false);
         }
     }
 
@@ -6166,6 +6641,25 @@ bool operator==(Request & r, const std::string s)
                 break;
         }
 
+        response << "\t\"async\": {";
+        std::string sep;
+        for(auto & [path, component] : components)
+        {
+            if(!component->async_mode)
+                continue;
+
+            response << sep
+                     << "\"" << escape_json_string(path) << "\": {"
+                     << "\"running\": " << (component->IsAsyncRunning() ? "true" : "false") << ", "
+                     << "\"failed\": " << (component->IsAsyncFailed() ? "true" : "false") << ", "
+                     << "\"pending\": " << (component->IsAsyncPending() ? "true" : "false") << ", "
+                     << "\"started_tick\": " << component->async_started_tick.load() << ", "
+                     << "\"completed_tick\": " << component->async_completed_tick.load()
+                     << "}";
+            sep = ", ";
+        }
+        response << "},\n";
+
         return response.str();
     }
 
@@ -6314,6 +6808,9 @@ bool operator==(Request & r, const std::string s)
         bool found_value = false;
         if(buffers.count(source_with_root) && !state_buffers.count(source_with_root))
         {
+            if(ValueOwnedByRunningAsyncComponent(source_with_root))
+                return false;
+
             if(requested_value.format.empty())
                 serialized_value = buffers[source_with_root].json();
             else if(requested_value.format == "metadata")
@@ -6451,11 +6948,17 @@ bool operator==(Request & r, const std::string s)
                     }
                 }
 
-                image_futures.push_back(std::async(std::launch::async, [this, subscription_key, requested_value]() mutable
+                image_futures.push_back(std::async(std::launch::async, [this, subscription_key, requested_value, previous_snapshot]() mutable
                 {
                     std::string serialized_value;
                     if(SerializeRequestedValue(requested_value, serialized_value))
                         return std::make_pair(subscription_key, std::move(serialized_value));
+                    if(previous_snapshot != nullptr)
+                    {
+                        auto it = previous_snapshot->serialized_values.find(subscription_key);
+                        if(it != previous_snapshot->serialized_values.end())
+                            return std::make_pair(subscription_key, it->second);
+                    }
                     return std::make_pair(std::string(), std::string());
                 }));
             }
@@ -6466,6 +6969,12 @@ bool operator==(Request & r, const std::string s)
                     std::string serialized_value;
                     if(SerializeRequestedValue(requested_value, serialized_value))
                         snapshot->serialized_values[subscription_key] = std::move(serialized_value);
+                    else if(previous_snapshot != nullptr)
+                    {
+                        auto it = previous_snapshot->serialized_values.find(subscription_key);
+                        if(it != previous_snapshot->serialized_values.end())
+                            snapshot->serialized_values[subscription_key] = it->second;
+                    }
                 }
                 catch(const std::exception & e)
                 {
@@ -6646,18 +7155,30 @@ bool operator==(Request & r, const std::string s)
             where == "examples" ? examples_files :
             user_files;
         auto file_path = files.find(file);
+        std::filesystem::path open_path;
         if(file_path == files.end())
         {
-            Notify(msg_warning, "File \""+file+"\" could not be found.");
-            DoSendNetwork(request);
-            return;
+            const std::filesystem::path root =
+                where == "system" ? std::filesystem::path(options_.ikaros_root) / "Source/Modules" :
+                where == "examples" ? std::filesystem::path(options_.ikaros_root) / "Examples" :
+                std::filesystem::path(user_dir);
+            if(!SanitizePathUnderRoot(root, add_extension(file, ".ikg"), open_path))
+            {
+                Notify(msg_warning, "File \""+file+"\" could not be found.");
+                DoSendNetwork(request);
+                return;
+            }
+        }
+        else
+        {
+            open_path = file_path->second;
         }
 
         bool should_start = false;
         try
         {
             dictionary requested_file_info;
-            LoadXMLWithRestrictedIncludes(requested_file_info, file_path->second);
+            LoadXMLWithRestrictedIncludes(requested_file_info, open_path);
             should_start = requested_file_info.is_set("start") || requested_file_info.is_set("real_time");
         }
         catch(...)
@@ -6665,10 +7186,13 @@ bool operator==(Request & r, const std::string s)
             // LoadFile will report the detailed error below.
         }
 
-        Stop();
-        options_.path_ = file_path->second;
         try
         {
+            Stop();
+            std::lock_guard<std::recursive_mutex> lock(kernelLock);
+            if(components.size() > 0)
+                Clear();
+            options_.path_ = open_path.string();
             LoadFile();
             if(should_start && info_.is_set("real_time"))
                 Realtime();
@@ -6903,7 +7427,10 @@ bool operator==(Request & r, const std::string s)
     {
         Notify(msg_print, "quit");
         Stop();
-        run_mode = run_mode_quit;
+        {
+            std::lock_guard<std::recursive_mutex> lock(kernelLock);
+            run_mode = run_mode_quit;
+        }
         DoUpdate(request);
     }
 
@@ -7289,20 +7816,28 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
+        std::string key = normalize_request_value_path(request.component_path);
+
         std::string body;
-        if(!buffers.count(request.component_path) || state_buffers.count(request.component_path))
+        if(!buffers.count(key) || state_buffers.count(key))
         {
             body = "Buffer \""+request.component_path+"\" can not be found";
             SendStringResponse(header, body);
             return;
         }
-        if(buffers[request.component_path].rank() > 2)
+        if(ValueOwnedByRunningAsyncComponent(key))
+        {
+            body = "Buffer \"" + request.component_path + "\" is currently being updated asynchronously";
+            SendStringResponse(header, body);
+            return;
+        }
+        if(buffers[key].rank() > 2)
         {
             body = "Rank of matrix != 2. Cannot be displayed as CSV";
             SendStringResponse(header, body);
             return;
         }
-        SendStringResponse(header, buffers[request.component_path].csv());
+        SendStringResponse(header, buffers[key].csv());
     }
 
 
@@ -7310,9 +7845,7 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoJSON(Request & request)
     {
-        std::string key = request.component_path;
-        if(!key.empty() && key[0] == '.')
-            key = key.substr(1); // Global path
+        std::string key = normalize_request_value_path(request.component_path);
         std::string format = rtail(key, ":");
 
         dictionary header({
@@ -7343,6 +7876,13 @@ bool operator==(Request & r, const std::string s)
 
         if(buffers.count(key) && !state_buffers.count(key))
         {
+            if(ValueOwnedByRunningAsyncComponent(key))
+            {
+                dictionary error;
+                error["error"] = "Value \"" + request.component_path + "\" is currently being updated asynchronously";
+                SendStringResponse(header, error.json());
+                return;
+            }
             send_json_response(format == "metadata" ? buffers[key].metadata_json() : buffers[key].json(), buffers[key].shape());
             SendStringResponse(header, body);
             return;
@@ -7392,17 +7932,24 @@ bool operator==(Request & r, const std::string s)
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
-        if(!buffers.count(request.component_path) || state_buffers.count(request.component_path))
+        std::string key = normalize_request_value_path(request.component_path);
+
+        if(!buffers.count(key) || state_buffers.count(key))
         {
             SendStringResponse(header, "Buffer \""+request.component_path+"\" can not be found");
             return;
         }
-        if(buffers[request.component_path].rank() > 2)
+        if(ValueOwnedByRunningAsyncComponent(key))
+        {
+            SendStringResponse(header, "Buffer \"" + request.component_path + "\" is currently being updated asynchronously");
+            return;
+        }
+        if(buffers[key].rank() > 2)
         {
             SendStringResponse(header, "Rank of matrix != 2. Cannot be displayed as CSV");
             return;
         }
-        SendStringResponse(header, buffers[request.component_path].csv());
+        SendStringResponse(header, buffers[key].csv());
     }
 
 
@@ -7410,14 +7957,24 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoImage(Request & request)
     {
-        std::string key = request.component_path;
-        if(!key.empty() && key[0] == '.')
-            key = key.substr(1); // Global path
+        std::string key = normalize_request_value_path(request.component_path);
 
         matrix * image = nullptr;
 
         if(buffers.count(key) && !state_buffers.count(key))
+        {
+            if(ValueOwnedByRunningAsyncComponent(key))
+            {
+                dictionary header({
+                    {"Content-Type", "text/plain"},
+                    {"Cache-Control", "no-cache, no-store"},
+                    {"Pragma", "no-cache"}
+                });
+                SendStringResponse(header, "Matrix \"" + request.component_path + "\" is currently being updated asynchronously");
+                return;
+            }
             image = &buffers[key];
+        }
         else if(parameters.count(key) && parameters[key].type == matrix_type)
         {
             if(auto matrix_value = get_parameter_matrix_ptr(parameters[key].value.get()))
@@ -7500,9 +8057,7 @@ bool operator==(Request & r, const std::string s)
         {
             request.MergeJsonBodyIntoParameters();
 
-            std::string key = request.component_path;
-            if(key[0] == '.')
-                key = key.substr(1); // Global path
+            std::string key = normalize_request_value_path(request.component_path);
 
             std::lock_guard<std::recursive_mutex> lock(kernelLock);
 
@@ -7513,6 +8068,12 @@ bool operator==(Request & r, const std::string s)
             else if(!request.parameters.contains("command"))
             {
                 Notify(msg_warning, "No command specified for  '"+request.component_path+"'.");
+            }
+            else if(components.at(key)->IsAsyncRunning())
+            {
+                std::string command_name = request.parameters["command"];
+                components.at(key)->QueueDeferredCommand(command_name, request.parameters);
+                Notify(msg_print, "Queued command \"" + command_name + "\" for asynchronous component \"" + key + "\".", key);
             }
             else
             {
@@ -7535,9 +8096,7 @@ bool operator==(Request & r, const std::string s)
         {
             request.MergeJsonBodyIntoParameters();
 
-            std::string key = request.component_path;
-            if(key[0] == '.')
-                key = key.substr(1); // Global path
+            std::string key = normalize_request_value_path(request.component_path);
 
             std::lock_guard<std::recursive_mutex> lock(kernelLock);
 
@@ -7547,6 +8106,30 @@ bool operator==(Request & r, const std::string s)
             }
             else
             {
+                if(Component * component = ComponentForValuePath(key); component != nullptr && component->IsAsyncRunning())
+                {
+                    Component::DeferredParameterChange change;
+                    change.parameter_path = key;
+                    change.value = "1";
+                    if(request.parameters.contains("value"))
+                        change.value = std::string(request.parameters["value"]);
+
+                    parameter & p = parameters.at(key);
+                    if(p.type == matrix_type)
+                    {
+                        change.is_matrix_cell = true;
+                        if(request.parameters.contains("x"))
+                            change.x = request.parameters["x"];
+                        if(request.parameters.contains("y"))
+                            change.y = request.parameters["y"];
+                    }
+
+                    component->QueueDeferredParameterChange(change);
+                    Notify(msg_print, "Queued parameter change for asynchronous component \"" + component->path_ + "\".", component->path_);
+                    DoSendData(request);
+                    return;
+                }
+
                 parameter & p = parameters.at(key);
                 if(p.type == matrix_type)
                 {
@@ -7634,6 +8217,9 @@ bool operator==(Request & r, const std::string s)
         std::string s = "";
         for(auto & c: classes)
         {
+            if(is_internal(c.second.info_))
+                continue;
+
             body += s;
             body += escape_json_string(c.first);
             s = "\",\n\t\"";
@@ -7656,6 +8242,9 @@ bool operator==(Request & r, const std::string s)
         std::string s = "";
         for(auto & c: classes)
         {
+            if(is_internal(c.second.info_))
+                continue;
+
             body += s;
             body += "\""+escape_json_string(c.first)+"\": ";
             dictionary class_info = c.second.info_.copy();
@@ -8037,8 +8626,13 @@ Kernel::CalculateCPUUsage() // In percent
                     std::string method = queued_request.header.contains_non_null("method") ? std::string(queued_request.header["method"]) : "";
                     std::string uri = queued_request.header.contains_non_null("uri") ? std::string(queued_request.header["uri"]) : "";
                     bool is_update_request = uri.find("/update") != std::string::npos;
+                    bool waits_before_locking =
+                        request_path_matches_command(uri, "quit") ||
+                        request_path_matches_command(uri, "stop") ||
+                        request_path_matches_command(uri, "new") ||
+                        request_path_matches_command(uri, "open");
 
-                    if(is_update_request && (method == "GET" || method == "PUT"))
+                    if((is_update_request || waits_before_locking) && (method == "GET" || method == "PUT"))
                     {
                         HandleHTTPRequest();
                     }

@@ -1,4 +1,4 @@
-<group name="TestPythonMissingScript" description="Test that missing python scripts fail cleanly during init" start="true" stop="0" webui_port="8211" expected_exit="1">
+<group internal="true" name="TestPythonMissingScript" description="Test that missing python scripts fail cleanly during init" start="true" stop="0" webui_port="8211" expected_exit="1">
     <module class="Constant" name="InputValues" data="1,2,3"/>
     <module class="MissingPythonScript" name="Broken"/>
 

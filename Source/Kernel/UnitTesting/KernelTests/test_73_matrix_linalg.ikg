@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_73"
     description="Exercise linear algebra matrix functions"
     start="true"

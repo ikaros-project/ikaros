@@ -1,4 +1,4 @@
-<group name="TestRaggedMatrixStringPadding"
+<group internal="true" name="TestRaggedMatrixStringPadding"
     description="Test ragged matrix strings pad missing values with zero"
     start="true"
     stop="0"

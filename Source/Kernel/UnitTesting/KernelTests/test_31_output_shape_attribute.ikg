@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_31"
     description="Test output shape attribute on module outputs"
     stop="1"

@@ -1,4 +1,4 @@
-<group name="TestPythonRestartOnCrash" description="Test that a crashed python worker can restart and continue producing output" start="true" stop="4" webui_port="8107">
+<group internal="true" name="TestPythonRestartOnCrash" description="Test that a crashed python worker can restart and continue producing output" start="true" stop="4" webui_port="8107">
     <module class="Constant" name="InputValues" data="4,5,6"/>
     <module class="CrashOnceThenRecover" name="Recover" restart_on_crash="true" on_error="log"/>
     <module class="Print" name="Print"/>

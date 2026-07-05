@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_146"
     description="Test stacked input connections"
     stop="3"

@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_74"
     description="Exercise image-style matrix functions"
     start="true"

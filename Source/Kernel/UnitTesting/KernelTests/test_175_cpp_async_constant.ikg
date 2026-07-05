@@ -1,0 +1,6 @@
+<group internal="true" name="TestCppAsyncConstant" description="Test that a normal C++ module can run with async=yes" start="true" stop="4" expected_output_contains="INPUT = {42}">
+    <module class="Constant" name="AsyncConstant" async="yes" data="42"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="AsyncConstant.OUTPUT" target="Print.INPUT" delay="0"/>
+</group>

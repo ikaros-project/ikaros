@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestWebUISaveStateAfterStop"
     description="Test WebUI state save after stop preserves loaded state"
     webui_port="8166"

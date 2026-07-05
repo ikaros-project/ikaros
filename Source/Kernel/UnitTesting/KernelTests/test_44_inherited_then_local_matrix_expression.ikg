@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_44"
     description="Test inherited expression becomes local value for later matrix expression"
     check_sum="196332"

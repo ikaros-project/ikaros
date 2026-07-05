@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestBareSaveState"
     description="Test bare save state option uses model basename"
     stop="1"

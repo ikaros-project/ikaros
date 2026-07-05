@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestScalarStateSave"
     description="Test scalar private state load"
     stop="1"

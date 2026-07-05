@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_43"
     description="Test inherited string expression uses owner context"
     check_sum="238491"

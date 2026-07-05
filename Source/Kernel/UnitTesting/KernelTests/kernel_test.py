@@ -40,14 +40,15 @@ def run_http_test(cmd, root):
     process = subprocess.Popen(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     http_output = []
 
-    def request(path, retries=1):
+    def request(path, retries=1, record=True):
         url = f"http://127.0.0.1:{port}/{path}"
         last_error = None
         for _ in range(retries):
             try:
                 with urllib.request.urlopen(url, timeout=5) as response:
                     body = response.read().decode("utf-8", errors="replace")
-                    http_output.append(body)
+                    if record:
+                        http_output.append(body)
                     return body
             except Exception as error:
                 last_error = error
@@ -55,7 +56,7 @@ def run_http_test(cmd, root):
         raise last_error
 
     try:
-        request("network", retries=100)
+        request("network", retries=100, record=False)
         if root.get("http_start_delay") is not None:
             time.sleep(float(root.get("http_start_delay")))
 
@@ -65,8 +66,18 @@ def run_http_test(cmd, root):
             else:
                 request(action)
 
+        if root.get("http_terminate_after_requests") == "true":
+            process.terminate()
+            try:
+                stdout, stderr = process.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                stdout, stderr = process.communicate()
+            return 0, (stdout or "") + (stderr or "") + "\n".join(http_output), ""
+
+        exit_timeout = float(root.get("http_exit_timeout", "5"))
         try:
-            stdout, stderr = process.communicate(timeout=5)
+            stdout, stderr = process.communicate(timeout=exit_timeout)
         except subprocess.TimeoutExpired:
             process.terminate()
             stdout, stderr = process.communicate(timeout=5)
@@ -112,6 +123,7 @@ for item in sorted(test_files):
             combined_output = (result.stdout or "") + (result.stderr or "")
             http_error = ""
         missing_output = [text for text in split_expected_text(root.get("expected_output_contains")) if text not in combined_output]
+        present_unexpected_output = [text for text in split_expected_text(root.get("expected_output_not_contains")) if text in combined_output]
         missing_files = [str(path) for path in expected_files if not path.exists()]
         expected_file_text = split_expected_text(root.get("expected_file_contains"))
         unexpected_file_text = split_expected_text(root.get("expected_file_not_contains"))
@@ -119,7 +131,7 @@ for item in sorted(test_files):
         missing_file_text = [text for text in expected_file_text if text not in file_contents]
         present_unexpected_file_text = [text for text in unexpected_file_text if text in file_contents]
 
-        if actual_exit == expected_exit and not http_error and not missing_output and not missing_files and not missing_file_text and not present_unexpected_file_text:
+        if actual_exit == expected_exit and not http_error and not missing_output and not present_unexpected_output and not missing_files and not missing_file_text and not present_unexpected_file_text:
             print(f"[  OK  ]  {get_description(item)}{item.name}{reset}")
             if root.get("cleanup_expected_files") == "true":
                 for expected_file in expected_files:
@@ -128,6 +140,8 @@ for item in sorted(test_files):
         else:
             if missing_output:
                 detail = f"missing output: {missing_output[0]}"
+            elif present_unexpected_output:
+                detail = f"unexpected output: {present_unexpected_output[0]}"
             elif missing_files:
                 detail = f"missing file: {missing_files[0]}"
             elif missing_file_text:

@@ -1,4 +1,4 @@
-<group name="Test_2"  check_sum = "146133" description="Test value paths and indirection of different types" z="7" g="3">
+<group internal="true" name="Test_2"  check_sum = "146133" description="Test value paths and indirection of different types" z="7" g="3">
 
     <module name="Const" class="Constant" data="9, 8, 7" />
 

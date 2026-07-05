@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestPersistentOutputSave"
     description="Test persistent output state shape mismatch"
     stop="1"

@@ -195,6 +195,21 @@ class Message
 class Component : public Task
 {
 public:
+    struct DeferredParameterChange
+    {
+        std::string parameter_path;
+        bool is_matrix_cell = false;
+        int x = 0;
+        int y = 0;
+        std::string value;
+    };
+
+    struct DeferredCommand
+    {
+        std::string command_name;
+        dictionary parameters;
+    };
+
     Component *     parent_;
     dictionary      info_;
     std::string     path_;
@@ -202,6 +217,18 @@ public:
     int             start_tick;
     int             startup_first_real_input_step;
     int             startup_all_real_inputs_step;
+    bool            async_mode;
+    std::atomic<bool> async_running;
+    std::atomic<bool> async_failed;
+    std::atomic<bool> async_publish_pending;
+    std::atomic<tick_count> async_started_tick;
+    std::atomic<tick_count> async_completed_tick;
+    std::atomic<int> async_pending_action_count;
+    std::mutex      async_state_mutex;
+    std::future<std::exception_ptr> async_future;
+    std::mutex      async_pending_mutex;
+    std::map<std::string, DeferredParameterChange> deferred_parameter_changes;
+    std::vector<DeferredCommand> deferred_commands;
 
     Component();
 
@@ -255,6 +282,17 @@ public:
     bool ShouldTick() const override;
     int EffectiveFirstTick() const;
     void SyncFirstTickFromParameter();
+    bool IsAsyncRunning() const;
+    bool IsAsyncPending() const;
+    bool IsAsyncFailed() const;
+    void SyncAsyncModeFromParameter();
+    bool PollAsyncCompletion(bool apply_pending_actions = true);
+    void LaunchAsyncTick();
+    void WaitForAsyncCompletion(bool apply_pending_actions = true);
+    void ClearPendingAsyncActions();
+    void QueueDeferredParameterChange(const DeferredParameterChange & change);
+    void QueueDeferredCommand(const std::string & command_name, const dictionary & parameters);
+    void ApplyPendingAsyncActions();
     std::string StartupFirstRealInputStepString() const;
     std::string StartupAllRealInputsStepString() const;
 
@@ -557,6 +595,7 @@ public:
 private:
     friend class Component;
     friend class Connection;
+    friend class KernelTaskSequence;
     friend class ComputeEngine;
     friend void SendSessionLogEvent(Kernel & kernel, const std::string & endpoint, const std::string & event_name);
     friend void SendProcessStartLogEvent(Kernel & kernel);
@@ -569,6 +608,7 @@ private:
     std::map<std::string, std::string>      user_files;   // ikg-files
     std::map<std::string, std::string>      user_state_files; // state-files
     std::map<std::string, std::unique_ptr<Component>> components;
+    std::mutex                              component_lifecycle_mutex;
     std::vector<Connection>                 connections;
     std::map<std::string, matrix>           buffers;                // IO-structure
     std::set<std::string>                   state_buffers;
@@ -651,6 +691,12 @@ private:
     void InitComponents();
     void PruneConnections();
     void SortTasks();
+    void RunTask(Task * task);
+    void PollAsyncComponents();
+    bool ConnectionTouchesRunningAsyncComponent(const Connection & connection) const;
+    bool ValueOwnedByRunningAsyncComponent(const std::string & value_path) const;
+    Component * ComponentForValuePath(const std::string & value_path) const;
+    void WaitForAsyncComponents(bool discard_pending_actions);
     void RunTasks();
     void RunTasksInSingleThread();
     void SetUp();

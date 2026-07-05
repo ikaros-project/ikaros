@@ -1,0 +1,8 @@
+<group internal="true" name="TestCppAsyncWebUIQueuedControl" description="Test WebUI control changes are queued while C++ async work is running" start="true" stop="100" webui_port="8183" http_start_delay="0.05" http_requests="sleep:1||control/TestCppAsyncWebUIQueuedControl.Worker.gain?value=7||json/TestCppAsyncWebUIQueuedControl.Worker.gain" http_terminate_after_requests="true" expected_output_contains="&quot;pending&quot;: true||&quot;value&quot;: [[1]]">
+    <module class="Constant" name="Input" data="2"/>
+    <module class="AsyncLifecycleTestModule" name="Worker" async="yes" duration="10"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="Input.OUTPUT" target="Worker.X" delay="0"/>
+    <connection source="Worker.Y" target="Print.INPUT" delay="0"/>
+</group>

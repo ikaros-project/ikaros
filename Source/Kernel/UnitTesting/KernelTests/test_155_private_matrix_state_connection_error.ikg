@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestPrivateMatrixStateConnectionError"
     description="Test private matrix state cannot be connected"
     stop="1"

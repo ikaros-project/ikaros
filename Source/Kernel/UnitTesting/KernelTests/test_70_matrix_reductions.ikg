@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_70"
     description="Exercise matrix reduction functions"
     start="true"

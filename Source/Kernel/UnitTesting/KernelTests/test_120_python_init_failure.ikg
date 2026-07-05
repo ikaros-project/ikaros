@@ -1,4 +1,4 @@
-<group name="TestPythonInitFailure" description="Test that python init() failures include traceback information" start="true" stop="0" webui_port="9120" expected_exit="1">
+<group internal="true" name="TestPythonInitFailure" description="Test that python init() failures include traceback information" start="true" stop="0" webui_port="9120" expected_exit="1">
     <module class="Constant" name="InputValues" data="1,2,3"/>
     <module class="InitFailure" name="Broken"/>
 

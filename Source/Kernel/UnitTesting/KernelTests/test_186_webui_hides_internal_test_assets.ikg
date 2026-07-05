@@ -1,0 +1,3 @@
+<group internal="true" name="TestWebUIHidesInternalTestAssets" description="Test WebUI hides internal test modules and files" start="true" stop="100" webui_port="8186" cli_args="-u/Users/cba/ikaros/Source/Kernel/UnitTesting/KernelTests" http_start_delay="0.05" http_requests="classes||classinfo||files" http_terminate_after_requests="true" expected_output_contains="&quot;classes&quot;||&quot;user_files&quot;" expected_output_not_contains="AsyncLifecycleTestModule||KernelTestModule||fixture_async_webui_open_target">
+    <module class="Constant" name="Value" data="1"/>
+</group>

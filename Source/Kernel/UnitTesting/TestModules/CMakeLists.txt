@@ -1,0 +1,17 @@
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+add_subdirectory(KernelTestModule)
+add_subdirectory(KernelSizeTestModule)
+add_subdirectory(KernelPlayground)
+add_subdirectory(LogTester)
+add_subdirectory(NotifyTester)
+add_subdirectory(MatrixFunctionTestModule)
+add_subdirectory(DynamicMatrixTestModule)
+add_subdirectory(StartupStepReporter)
+add_subdirectory(FirstTickReporter)
+add_subdirectory(PersistentStateTestModule)
+add_subdirectory(AsyncLifecycleTestModule)
+
+set(SOURCE ${SOURCE} PARENT_SCOPE)
+set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)
+set(MODULES_LIBS ${MODULES_LIBS} PARENT_SCOPE)

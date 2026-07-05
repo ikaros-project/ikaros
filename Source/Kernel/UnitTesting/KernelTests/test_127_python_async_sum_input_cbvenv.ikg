@@ -1,6 +1,6 @@
-<group name="TestPythonAsyncSumInputCbVenv" description="Test async python sum using cbvenv shared-memory transport" start="true" stop="10" webui_port="8127" cli_args="-p/Users/cba/cbvenv/bin/python" expected_output_contains="INPUT = {10}">
+<group internal="true" name="TestPythonAsyncSumInputCbVenv" description="Test async python sum using cbvenv shared-memory transport" start="true" stop="10" webui_port="8127" cli_args="-p/Users/cba/cbvenv/bin/python" expected_output_contains="INPUT = {10}">
     <module class="Constant" name="InputValues" data="1,2,3,4"/>
-    <module class="AsyncSumInput" name="Sum" execution_mode="async"/>
+    <module class="AsyncSumInput" name="Sum" async="yes"/>
     <module class="Print" name="Print"/>
 
     <connection source="InputValues.OUTPUT" target="Sum.X" delay="0"/>

@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="BenchmarkMatrixHotspots"
     description="Measure matrix hotspot operations"
     start="true"

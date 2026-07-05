@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestPrivateMatrixStateSave"
     description="Test private matrix state save"
     stop="1"
