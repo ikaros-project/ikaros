@@ -111,6 +111,10 @@ Set a matrix element:
 
     /control/a.b.c.p?x=2&y=3&value=96
 
+If the target parameter belongs to a module that is currently running asynchronously, the change is
+queued and applied after the running asynchronous job completes. Multiple queued changes to the same
+scalar parameter or matrix element collapse to the latest value.
+
 ### /command
 
 Execute a command in a module or group. All supplied parameters are forwarded as a dictionary.
@@ -136,7 +140,38 @@ headers = {"Content-Type": "application/json"}
 response = requests.put(url, headers=headers, data=json.dumps(data))
 ```
 
+If the target module is currently running asynchronously, the command is queued and executed after
+the running asynchronous job completes. Commands keep their arrival order. The async command queue is
+bounded; when it is full, later commands are ignored and a warning is logged.
+
 A larger example with error handling can be found in `API/ikaros_api_put.py`.
+
+### Async status
+
+The `/data` response includes an `async` object with one entry for each asynchronous module:
+
+```json
+"async": {
+    "Example.Worker": {
+        "running": true,
+        "failed": false,
+        "pending": false,
+        "started_tick": 12,
+        "completed_tick": 10
+    }
+}
+```
+
+Fields:
+
+- `running`: the module currently has a background job active
+- `failed`: the last asynchronous job failed
+- `pending`: queued parameter changes or commands are waiting
+- `started_tick`: tick when the current or most recent asynchronous job was launched
+- `completed_tick`: tick when the most recent asynchronous job completed
+
+Requests that read a buffer or image owned by a running asynchronous module may return a temporary
+message saying that the value is currently being updated asynchronously.
 
 ## A Simple HTML Client
 

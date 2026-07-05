@@ -128,6 +128,11 @@ Instantiates a class from a `.ikc` file.
 
 - `description`
   - Metadata only.
+- `async`
+  - Optional boolean module parameter.
+  - Defaults to `no`.
+  - When set to `yes`, the module's `Tick()` runs asynchronously.
+  - Available for both normal C++ modules and Python-backed modules.
 - any class parameter name
   - Used to override the parameter value for this instance.
 
@@ -139,18 +144,47 @@ For example:
 
 Here `factor` is not a special `.ikg` keyword. It is simply a parameter defined by the `Scale` class.
 
+Example asynchronous module:
+
+```xml
+<module class="SlowDetector" name="Detector" async="yes" />
+```
+
 ### Important behavior
 
 - Module attributes are merged with the class definition from the `.ikc`.
 - Parameter values can be literal values or expressions like `@shared_value`.
 - If `class` contains an expression, it is resolved before lookup.
 
+### Asynchronous modules
+
+An asynchronous module starts work in the background and lets the main Ikaros tick loop continue.
+This is intended for slow modules where blocking the whole network every tick is worse than using
+the most recently completed output.
+
+Behavior:
+
+- At most one asynchronous job is active for a module.
+- If the module is still running on a later tick, no new job is started.
+- Connections to or from a running asynchronous module are skipped while that job is active.
+- Outputs keep their last completed values until the running job finishes.
+- Zero-delay shared-buffer optimization is disabled for connections to or from asynchronous modules.
+- `/control` parameter changes and `/command` requests sent while the module is running are queued.
+- Queued parameter changes and commands are applied after the running job completes.
+- Stop, pause, `/new`, and `/open` wait for running asynchronous jobs to finish before continuing.
+
+Use `async="yes"` when the module is slow and downstream modules can tolerate values that update
+only when a background job completes. Keep `async="no"` when downstream modules must consume the
+new output in the same tick or when strict per-tick determinism matters.
+
+See `docs/ASYNC_MODULES.md` for the full scheduling, connection, WebUI, and lifecycle behavior.
+
 ### Python-backed modules
 
 Python-backed classes may also use inherited or explicit attributes such as:
 
 - `python_executable`
-- `execution_mode`
+- `async`
 - `on_error`
 - `restart_on_crash`
 - `use_global_names`

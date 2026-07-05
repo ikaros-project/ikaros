@@ -265,12 +265,24 @@ Behavior:
 - if the worker is still busy, no new job is launched
 - outputs are published only when the worker completes
 - until then, outputs keep their last completed value
+- connections to or from the running module are skipped while the job is active
+- WebUI/API parameter changes and commands are queued while the module is running
+- stop, pause, `/new`, and `/open` wait for the running job to finish
 
 Use this when:
 
 - the Python function is slow
 - stale outputs are acceptable between completed runs
 - you want to avoid blocking the Ikaros tick loop
+
+Queued parameter changes and commands are applied after the current asynchronous job completes.
+Repeated changes to the same scalar parameter or matrix cell collapse to the latest value. Commands
+keep their arrival order.
+
+Asynchronous execution is an Ikaros module feature, not a Python-only feature. Normal C++ modules
+can also use `async="yes"`.
+
+See `docs/ASYNC_MODULES.md` for the full scheduler, connection, WebUI, and lifecycle behavior.
 
 ## Data Transport
 

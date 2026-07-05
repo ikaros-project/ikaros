@@ -30,7 +30,7 @@ The current kernel directly understands these child elements inside `<class>`:
 - `<output>`
 - `<state>`
 
-It also reads some class-level attributes such as `python`, `name`, and `description`.
+It also reads some class-level attributes such as `python`, `name`, `description`, and `internal`.
 
 Other child elements can still be parsed as generic XML metadata, but they are not part of the active kernel contract unless some other tool or UI consumes them.
 
@@ -47,6 +47,9 @@ Use a single root `<class>` element.
   - Class lookup is still driven by the filename stem, not this attribute.
 - `description`
   - Short metadata string.
+- `internal`
+  - Marks a class as internal to the kernel or test suite.
+  - Internal classes are discovered by the kernel but hidden from WebUI class listings.
 - `python`
   - Marks the class as Python-backed.
   - Must be a relative path inside the class directory.
@@ -107,8 +110,22 @@ Declares a module parameter.
   - `log_level`
   - `module_start`
   - `start_tick`
+  - `async`
   - `color`
 - Some classes also receive additional WebUI parameters at runtime.
+
+### Auto-Injected `async` Parameter
+
+Every module class receives an `async` bool parameter unless the class defines one explicitly.
+Its default is `no`.
+
+When an instance is created with `async="yes"` in an `.ikg` file, the module's `Tick()` method runs
+in the background instead of blocking the main tick loop. This works for normal C++ modules and
+Python-backed modules. Class authors do not need to add a special parameter for this in ordinary
+classes.
+
+Asynchronous mode is best for slow modules whose output can be consumed as the latest completed
+value. It should not be used for modules that must update their outputs synchronously on every tick.
 
 #### Legacy or metadata-only attributes seen in old files
 
