@@ -312,6 +312,7 @@ public:
     double ComputeDouble(const std::string & s);
     int ComputeInt(const std::string & s);
     bool ComputeBool(const std::string & s);
+    bool ComputeAttributeBool(dictionary d, const std::string & name, bool default_value=false);
     bool LookupParameter(parameter & p, const std::string & name);
 
     std::vector<int> EvaluateShapeList(std::string & s);

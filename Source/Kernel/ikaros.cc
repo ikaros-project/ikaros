@@ -1901,6 +1901,16 @@ namespace ikaros
     }
 
 
+    bool
+    Component::ComputeAttributeBool(dictionary d, const std::string & name, bool default_value)
+    {
+        if(!d.contains(name))
+            return default_value;
+
+        return ComputeBool(std::string(d[name]));
+    }
+
+
     std::vector<int> 
     Component::EvaluateShapeList(std::string & s) // return shape list from shape expression string
     {
@@ -2495,7 +2505,7 @@ namespace ikaros
         std::string name = d.at("name");
         std::string full_name = path_ +"."+ name;
         bool has_fixed_size = d.contains("size");
-        bool stack = d.is_set("stack");
+        bool stack = ComputeAttributeBool(d, "stack");
 
         auto shape_string = [](const std::vector<int> & shape) -> std::string
         {
