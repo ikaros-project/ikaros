@@ -29,6 +29,7 @@ add_subdirectory(SalienceIntegrator)
 add_subdirectory(World2D)
 
 
+add_subdirectory(Arbiter)
 add_subdirectory(AmbientLight)
 
 add_subdirectory(SequenceRecorder)

@@ -1,307 +1,217 @@
-//    Arbiter.cc		This file is a part of the IKAROS project  Copyright (C) 2006-2025 Christian Balkenius
-
 #include "ikaros.h"
+
+#include <cmath>
+#include <limits>
 
 using namespace ikaros;
 
-class Arbiter: public Module
+class Arbiter : public Module
 {
+    parameter metric_;
+    parameter arbitration_;
+    parameter softmaxExponent_;
+    parameter hysteresisThreshold_;
+    parameter switchTime_;
+    parameter alpha_;
+    parameter debug_;
+
+    matrix input_;
+    matrix valueIn_;
+    matrix amplitudes_;
+    matrix arbitrationState_;
+    matrix smoothed_;
+    matrix normalized_;
+    matrix output_;
+
+    int winner_ = 0;
+    int candidateCount_ = 0;
+
 public:
-    std::string * input_name;
-    std::string * value_name;
-
-    matrix          input; // float ***
-    matrix          value_in;
-
-    matrix          output;
-    matrix          value_out;
-
-    matrix          amplitudes;
-    matrix          rbitration_state;
-    matrix          smoothed;
-    matrix          normalized;
-    
-    int         no_of_inputs;
-    int         size_x;
-    int         size_y;
-    
-    parameter       switch_time;
-    parameter       alpha;
-
-    parameter       metric;
-    parameter       arbitration_method;
-    parameter        by_row;
-    parameter       softmax_exponent;
-    parameter       hysteresis_threshold;
-    
-    int         winner;
-    bool        debug;
-
-
-
-    Arbiter(Parameter * p):
-        Module(p)
+    void Init() override
     {
-        Bind(by_row, "by_row");
+        Bind(metric_, "metric");
+        Bind(arbitration_, "arbitration");
+        Bind(softmaxExponent_, "softmax_exponent");
+        Bind(hysteresisThreshold_, "hysteresis_threshold");
+        Bind(switchTime_, "switch_time");
+        Bind(alpha_, "alpha");
+        Bind(debug_, "debug");
 
-        no_of_inputs = GetIntValue("no_of_inputs");
+        Bind(input_, "INPUT");
+        Bind(valueIn_, "VALUE");
+        Bind(amplitudes_, "AMPLITUDES");
+        Bind(arbitrationState_, "ARBITRATION");
+        Bind(smoothed_, "SMOOTHED");
+        Bind(normalized_, "NORMALIZED");
+        Bind(output_, "OUTPUT");
 
-        input_name  = new std::string[no_of_inputs];
-        value_name  = new std::string[no_of_inputs];
+        if(input_.rank() < 2)
+            throw exception("Arbiter: INPUT must have candidate index in dimension 0 and at least one value dimension.", path_);
 
-        input      = new float ** [no_of_inputs];
-        value_in   = new float * [no_of_inputs];
+        candidateCount_ = input_.shape(0);
+        if(candidateCount_ <= 0)
+            throw exception("Arbiter: INPUT must contain at least one candidate.", path_);
 
-        for (int i=0; i<no_of_inputs; i++)
-        {
-            input_name[i] = "INPUT_" + std::to_string(i + 1);
-            value_name[i] = "VALUE_" + std::to_string(i + 1);
-            AddInput(input_name[i].c_str());
-            AddInput(value_name[i].c_str());
-        }
-
-        AddOutput("OUTPUT");
-        AddOutput("VALUE");
-
-        AddOutput("AMPLITUDES");
-        AddOutput("ARBITRATION");
-        AddOutput("SMOOTHED");
-        AddOutput("NORMALIZED");
-    }
-    ~Arbiter()
-    {
-        delete [] input_name;
-        delete [] value_name;
+        if(valueIn_.connected() && valueIn_.size() != candidateCount_)
+            throw exception("Arbiter: VALUE must contain one scalar per INPUT candidate.", path_);
     }
 
-
-
-    void
-    SetSizes()
+    void Tick() override
     {
-        int sx = 0;
-        int sy = 0;
-
-        for(int i=0; i<no_of_inputs; i++)
-        {
-            int sxi = GetInputSizeX(input_name[i].c_str());
-            int syi = GetInputSizeY(input_name[i].c_str());
-
-            if(sxi == unknown_size)
-                continue; // Not ready yet
-
-            if(syi == unknown_size)
-                continue; // Not ready yet
-
-            if(sx != 0 && sxi != 0 && sx != sxi)
-                Notify(msg_fatal_error, "Inputs have different sizes x: %s, %i vs %i, ", input_name[i].c_str(), sxi, sx);
-
-            if(sy != 0 && syi != 0 && sy != syi)
-                Notify(msg_fatal_error, "Inputs have different sizes y: %s, %i vs %i", input_name[i].c_str(), syi, sy);
-            
-            sx = sxi;
-            sy = syi;
-        }
-
-        if(sx == unknown_size || sy == unknown_size)
-            return;  // Not ready yet
-
-        if(by_row)
-        {
-            SetOutputSize("OUTPUT", sx, sy);
-            SetOutputSize("VALUE", sy);
-
-            SetOutputSize("AMPLITUDES", no_of_inputs, sy);
-            SetOutputSize("ARBITRATION", no_of_inputs, sy);
-            SetOutputSize("SMOOTHED", no_of_inputs, sy);
-            SetOutputSize("NORMALIZED", no_of_inputs, sy);
-        }
-        else
-        {
-            SetOutputSize("OUTPUT", sx, sy);
-            SetOutputSize("VALUE", 1);
-
-            SetOutputSize("AMPLITUDES", no_of_inputs, 1);
-            SetOutputSize("ARBITRATION", no_of_inputs, 1);
-            SetOutputSize("SMOOTHED", no_of_inputs, 1);
-            SetOutputSize("NORMALIZED", no_of_inputs, 1);
-        }
+        CalculateAmplitudes();
+        Arbitrate();
+        Smooth();
+        Normalize();
+        MixOutput();
     }
 
-
-
-    void
-    Init()
+private:
+    float CandidateNorm(matrix candidate) const
     {
-        Bind(metric, "metric");
-        Bind(arbitration_method, "arbitration");
-        Bind(softmax_exponent, "softmax_exponent");
-        Bind(hysteresis_threshold, "hysteresis_threshold");
-        Bind(switch_time, "switch_time");
-        Bind(alpha, "alpha");
-        Bind(debug, "debug");
+        const float * data = candidate.data();
+        float norm = 0.0f;
 
-        int vcnt = 0;
-        for(int i=0; i<no_of_inputs; i++)
+        if(metric_.as_int() == 0)
         {
-            input[i] = GetInputMatrix(input_name[i].c_str());
-            value_in[i] = GetInputArray(value_name[i].c_str(), false);
-            if(value_in[i])
-                vcnt++;
+            for(int i = 0; i < candidate.size(); ++i)
+                norm += std::fabs(data[i]);
+            return norm;
         }
 
-        if(vcnt!=0 && vcnt != no_of_inputs)
-            Notify(msg_fatal_error, "All VALUE inputs must have connections - or none");
-
-        amplitudes = GetOutputMatrix("AMPLITUDES");
-        arbitration_state = GetOutputMatrix("ARBITRATION");
-        smoothed = GetOutputMatrix("SMOOTHED");
-        normalized = GetOutputMatrix("NORMALIZED");
-
-        output = GetOutputMatrix("OUTPUT");
-        value_out = GetOutputMatrix("VALUE");
-
-        if(by_row)
-        {
-            size_x = GetOutputSizeX("OUTPUT");
-            size_y = GetOutputSizeY("OUTPUT");
-        }
-        else
-        {
-            size_x = GetOutputSizeX("OUTPUT") * GetOutputSizeY("OUTPUT"); // overflow to next line
-            size_y = 1;
-
-        }
+        for(int i = 0; i < candidate.size(); ++i)
+            norm += data[i] * data[i];
+        return std::sqrt(norm);
     }
 
-
-
-    void
-    CalculateAmplitudes(int row)
+    void CalculateAmplitudes()
     {
-        if(value_in[0])
+        if(valueIn_.connected())
         {
-            for(int i=0; i<no_of_inputs; i++)
-                amplitudes[row][i] = value_in[i][row]; // FIXME: This needs to be checked
+            for(int i = 0; i < candidateCount_; ++i)
+                amplitudes_(i) = valueIn_.data()[i];
+            return;
         }
-        else if(metric == 0)
-        {
-            for(int i=0; i<no_of_inputs; i++)
-                amplitudes[row][i] = norm1(input[i][row], size_x);
-        }
-        else if(metric == 1)
-        {
-            for(int i=0; i<no_of_inputs; i++)
-                amplitudes[row][i] = norm(input[i][row], size_x);
-        }
+
+        int index = 0;
+        for(matrix candidate : input_)
+            amplitudes_(index++) = CandidateNorm(candidate);
     }
 
-
-
-    void
-    Arbitrate(int row)
+    int MaxAmplitudeIndex() const
     {
-        // Do the actual arbitration
+        int winner = 0;
+        float value = amplitudes_(0);
 
-        int a;
-        switch(arbitration_method)
+        for(int i = 1; i < candidateCount_; ++i)
         {
-            case 0: // WTA
-                a = arg_max(amplitudes[row], no_of_inputs);
-                reset_array(arbitration_state[row], no_of_inputs);
-                arbitration_state[row][a] = amplitudes[row][a];
+            if(amplitudes_(i) > value)
+            {
+                winner = i;
+                value = amplitudes_(i);
+            }
+        }
+
+        return winner;
+    }
+
+    void SelectCandidate(int index)
+    {
+        arbitrationState_.set(0.0f);
+        arbitrationState_(index) = amplitudes_(index);
+    }
+
+    void Arbitrate()
+    {
+        switch(arbitration_.as_int())
+        {
+            case 0:
+                SelectCandidate(MaxAmplitudeIndex());
+                winner_ = 0;
                 break;
 
-            case 1: // hysteresis
-                a = arg_max(amplitudes[row], no_of_inputs);
-                if(amplitudes[row][a] > amplitudes[row][winner] + hysteresis_threshold || amplitudes[row][winner] == 0)
-                    winner = a;
-                reset_array(arbitration_state[row], no_of_inputs);
-                arbitration_state[row][winner] = amplitudes[row][winner];
+            case 1:
+            {
+                const int candidate = MaxAmplitudeIndex();
+                if(winner_ < 0 || winner_ >= candidateCount_)
+                    winner_ = 0;
+                if(amplitudes_(candidate) > amplitudes_(winner_) + hysteresisThreshold_.as_float() || amplitudes_(winner_) == 0.0f)
+                    winner_ = candidate;
+                SelectCandidate(winner_);
+                break;
+            }
+
+            case 2:
+                for(int i = 0; i < candidateCount_; ++i)
+                    arbitrationState_(i) = std::pow(amplitudes_(i), softmaxExponent_.as_float());
+                winner_ = 0;
                 break;
 
-            case 2: // softmax
-                for(int i=0; i<no_of_inputs; i++)
-                    arbitration_state[row][i] = pow(amplitudes[row][i], softmax_exponent);
-                break;
-
-            case 3: // hierarchy
-                for(int i=no_of_inputs-1; i>=0; i--)
-                    if(amplitudes[row][i] > 0 || i==0)
+            case 3:
+                for(int i = candidateCount_ - 1; i >= 0; --i)
+                    if(amplitudes_(i) > 0.0f || i == 0)
                     {
-                        reset_array(arbitration_state[row], no_of_inputs);
-                        arbitration_state[row][i] = amplitudes[row][i];
+                        SelectCandidate(i);
                         break;
                     }
+                winner_ = 0;
                 break;
 
-            default: // no arbitration - should never happen
-                copy_array(arbitration_state[row], amplitudes[row], no_of_inputs);
+            default:
+                arbitrationState_.copy(amplitudes_);
+                winner_ = 0;
                 break;
         }
-        
-        // Save last max for hysteresis or reset otherwise
-
-        if(arbitration_method != 1)
-            winner = 0;
     }
 
-
-
-    void
-    Smooth(int row)
+    void Smooth()
     {
-        float a = alpha;
-        if(switch_time != 0)
-            a = 1.0/switch_time;
+        float a = alpha_.as_float();
+        if(switchTime_.as_int() != 0)
+            a = 1.0f / switchTime_.as_float();
 
-        if(switch_time > 0 || alpha != 1)
-            add(smoothed[row], 1-a, smoothed[row], a, arbitration_state[row], no_of_inputs);
+        if(switchTime_.as_int() > 0 || alpha_.as_float() != 1.0f)
+        {
+            smoothed_.scale(1.0f - a);
+            smoothed_.multiply_and_accumulate(arbitrationState_, a);
+        }
         else
-            copy_array(smoothed[row], arbitration_state[row], no_of_inputs);
+            smoothed_.copy(arbitrationState_);
     }
 
-
-
-    void
-    Tick()
+    void Normalize()
     {
-        for(int r=0; r < (by_row ? size_y : 1); r++)
+        normalized_.copy(smoothed_);
+
+        const float sum = normalized_.sum();
+        if(sum <= std::numeric_limits<float>::epsilon())
         {
-            CalculateAmplitudes(r);
-            Arbitrate(r);
-            Smooth(r);
-
-            // Normalize
-
-            copy_array(normalized[r], smoothed[r], no_of_inputs);
-            normalize1(normalized[r], no_of_inputs);
-
-            // Weigh inputs together
-
-            reset_array(output[r], size_x);
-            for(int i=0; i<no_of_inputs; i++)
-                add(output[r], normalized[r][i], input[i][r], size_x);
-        }
-        if(debug)
-        {
-            printf("--Instance name: %s--\n", this->instance_name);
-            printf("size_x= %i, size_y= %i\n", size_x, size_y);
-            for (int i = 0; i < no_of_inputs; i++)
-            {
-                print_matrix(input_name[i].c_str(), input[i], size_x, size_y);
-                print_array(value_name[i].c_str(), value_in[i], size_x);
-            }
-            print_matrix("output", output, size_x, size_y);
-            print_matrix("value_out", value_out, size_x, size_y);
-            print_matrix("amplitudes", amplitudes, size_x, size_y);
-            print_matrix("arbitration_state", arbitration_state, size_x, size_y);
-            print_matrix("smoothed", smoothed, size_x, size_y);
-            print_matrix("normalized", normalized, size_x, size_y);
+            normalized_.set(0.0f);
+            return;
         }
 
-    
+        normalized_.scale(1.0f / sum);
+    }
+
+    void MixOutput()
+    {
+        output_.set(0.0f);
+
+        int index = 0;
+        for(matrix candidate : input_)
+            output_.multiply_and_accumulate(candidate, normalized_(index++));
+
+        if(debug_.as_bool())
+        {
+            input_.print("INPUT");
+            if(valueIn_.connected())
+                valueIn_.print("VALUE");
+            amplitudes_.print("AMPLITUDES");
+            arbitrationState_.print("ARBITRATION");
+            smoothed_.print("SMOOTHED");
+            normalized_.print("NORMALIZED");
+            output_.print("OUTPUT");
+        }
+    }
 };
-
 
 INSTALL_CLASS(Arbiter)

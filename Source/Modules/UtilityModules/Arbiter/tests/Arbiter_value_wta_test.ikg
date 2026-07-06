@@ -1,0 +1,14 @@
+<group name="Arbiter_value_wta_test" stop="1">
+    <module class="Constant" name="CandidateA" data="10, 0" />
+    <module class="Constant" name="CandidateB" data="0, 1" />
+    <module class="Constant" name="Values" data="0, 1" />
+    <module class="Arbiter" name="Arbiter" arbitration="WTA" />
+    <module class="Print" name="PrintOutput" />
+    <module class="Print" name="PrintWeights" />
+
+    <connection source="CandidateA.OUTPUT" target="Arbiter.INPUT" delay="0" />
+    <connection source="CandidateB.OUTPUT" target="Arbiter.INPUT" delay="0" />
+    <connection source="Values.OUTPUT" target="Arbiter.VALUE" delay="0" />
+    <connection source="Arbiter.OUTPUT" target="PrintOutput.INPUT" delay="0" />
+    <connection source="Arbiter.NORMALIZED" target="PrintWeights.INPUT" delay="0" />
+</group>
