@@ -2,71 +2,108 @@
 
 ## Description
 
-Selects between multiple inputs. Module that selects between its inputs based on the values in the
-value inputs or the amplitude of its inputs. 
+Arbiter selects one candidate, or mixes several candidates, from an input tensor whose first dimension is the candidate index.
 
-The output is a weighted average of the inputs
-depending on the corresponding value inputs. 
+`INPUT` has shape:
 
-`INPUT` contains candidates along dimension 0. The remaining dimensions are the selected value shape.
+```text
+number_of_candidates, ...
+```
 
-When the values are equal, the lowest candidate index is selected.
+The remaining dimensions are copied to `OUTPUT`. For example, an `INPUT` with shape `3, 2, 4` contains three candidates, each with shape `2, 4`, and produces an `OUTPUT` with shape `2, 4`.
 
-If the value inputs are not
-connected, the norms of the inputs are used instead. This is useful for population coded values. 
+If `VALUE` is connected, it must contain one scalar per candidate. `VALUE[i]` is the arbitration value for `INPUT[i]`. If `VALUE` is not connected, Arbiter calculates each candidate value from the candidate norm. The `metric` parameter selects norm 1 or norm 2.
 
-There are four arbitration methods: 
+The selected or mixed output is calculated from normalized arbitration weights:
 
-- WTA: winner take all. Input with maximum value is selected; 
-- hysteresis: like WTA, but to switch, the new value must be higher than the last value plus the hysteresis threshold; 
-- softmax: inputs are mixed according to the values to the power of the softmax exponent; 
-- hierarchy: input with highest index and value > 0 is always selected, this can implement a subsumption architecture; Note
-that changing to hysteresis arbitration during operation may initially select the wrong state. 
-
-After arbitration, the state can be smoothed to avoid abrupt changes of the outputs. The switching time is set by the switching_time parameter or directly by the integration constant alpha. Finally, the convex combinations of inputs are calculated by first normalizaing the smoothed state and the calculating the weighted average of the inputs.
-
-It receives INPUT and produces 
-
-- AMPLITUDES
-- ARBITRATION
-- SMOOTHED
-- NORMALIZED
-
-Parameters such as metric, arbitration, and softmax_exponent shape its behavior. A meaningful use case is to place the module inside a larger sensorimotor or cognitive architecture where it helps transform, summarize, or route signals between neural subsystems and robot effectors.
+```text
+OUTPUT = sum_i NORMALIZED[i] * INPUT[i]
+```
 
 ![Arbiter](Arbiter.svg)
+
+## Arbitration
+
+Arbiter supports four arbitration methods:
+
+| Method | Behavior |
+| --- | --- |
+| WTA | Winner take all. The candidate with the highest amplitude is selected. Ties keep the lowest candidate index. |
+| hysteresis | Like WTA, but a new candidate must exceed the current winner by `hysteresis_threshold` before switching. |
+| softmax | Candidates are mixed using `amplitude ^ softmax_exponent`, followed by normalization. |
+| hierarchy | The highest candidate index with amplitude greater than 0 is selected. If none are positive, candidate 0 is selected. |
+
+After arbitration, the state can be smoothed before normalization. Set `switch_time` to a positive number of ticks, or set `alpha` directly.
+
+## Stacking
+
+`stack_inputs` and `stack_values` control whether multiple connections to the corresponding input are stacked along dimension 0.
+
+The default is:
+
+```xml
+<module class="Arbiter" name="Arbiter" stack_inputs="yes" stack_values="no" />
+```
+
+With `stack_inputs="yes"`, multiple `INPUT` connections become candidates. This is convenient when `VALUE` is not connected and candidate order only affects ties.
+
+With `VALUE` connected, candidate order matters because `VALUE[i]` scores `INPUT[i]`. In models where this ordering should be explicit, use `stack_inputs="no"` and provide an already assembled candidate tensor.
+
+`stack_values="yes"` is available for convenience, but it also uses connection order. Leave it disabled when score order should be explicit.
 
 ## Parameters
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| metric | The metric used when VALUE is not connected: city block or euclidean | list | 1 |
-| arbitration | The arbitration function | list | WTA |
-| softmax_exponent | The softmax exponent | float | 2 |
-| hysteresis_threshold | The value difference that needs to be passed for a switch | float | 5 |
-| switch_time | Number of ticks to switch over | int | 0 |
-| alpha | Smoothing constant (set to 1/switch_time if not set) | float | 1 |
-| stack_inputs | Stack multiple INPUT connections along dimension 0 | bool | yes |
-| stack_values | Stack multiple VALUE connections along dimension 0 | bool | no |
-| debug | Print out debug info | bool | false |
+| metric | Metric used when `VALUE` is not connected: `1` for city-block norm, `2` for Euclidean norm | list | 1 |
+| arbitration | Arbitration method | list | WTA |
+| softmax_exponent | Exponent used by the softmax arbitration method | number | 2 |
+| hysteresis_threshold | Difference required before hysteresis switches winner | number | 5 |
+| switch_time | Number of ticks used for switching; overrides `alpha` when positive | number | 0 |
+| alpha | Smoothing constant used when `switch_time` is 0 | number | 1 |
+| stack_inputs | Stack multiple `INPUT` connections along dimension 0 | bool | yes |
+| stack_values | Stack multiple `VALUE` connections along dimension 0 | bool | no |
+| debug | Print input, intermediate states, and output | bool | false |
 
 ## Inputs
 
 | Name | Description | Optional |
 | --- | --- | --- |
-INPUT | Candidate inputs; candidate index is dimension 0 when stacked |  |
-VALUE | Optional arbitration values; one value per candidate | yes |
-
-When `stack_inputs` or `stack_values` is enabled, connection order defines the candidate index. Leave stacking disabled when candidate order should be made explicit upstream.
+| INPUT | Candidate tensor. Dimension 0 is the candidate index. | no |
+| VALUE | Optional vector of arbitration values, one per candidate. | yes |
 
 ## Outputs
 
-| Name | Description |
-| --- | --- |
-| AMPLITUDES | The amplitides of the inputs / or values |
-| ARBITRATION | The state after arbitration |
-| SMOOTHED | The temporally smoothed arbitration state |
-| NORMALIZED | The arbitration state after normalization; the weights used to weigh together the inputs |
-| OUTPUT | The selected output |
+| Name | Shape | Description |
+| --- | --- | --- |
+| AMPLITUDES | `INPUT.shape[0]` | Raw arbitration values from `VALUE` or candidate norms. |
+| ARBITRATION | `INPUT.shape[0]` | State after the selected arbitration method. |
+| SMOOTHED | `INPUT.shape[0]` | Temporally smoothed arbitration state. |
+| NORMALIZED | `INPUT.shape[0]` | Normalized weights used to mix candidates. |
+| OUTPUT | `INPUT.shape[1:]` | Selected or mixed candidate output. |
 
-*This description is a work in progress and may not be an accurate description of the module.*
+## Examples
+
+Norm-based WTA with stacked inputs:
+
+```xml
+<module class="Constant" name="CandidateA" data="1, 0" />
+<module class="Constant" name="CandidateB" data="0, 3" />
+<module class="Arbiter" name="Arbiter" arbitration="WTA" metric="2" />
+
+<connection source="CandidateA.OUTPUT" target="Arbiter.INPUT" />
+<connection source="CandidateB.OUTPUT" target="Arbiter.INPUT" />
+```
+
+Explicit value arbitration:
+
+```xml
+<module class="Constant" name="CandidateA" data="10, 0" />
+<module class="Constant" name="CandidateB" data="0, 1" />
+<module class="Constant" name="Values" data="0, 1" />
+<module class="Arbiter" name="Arbiter" arbitration="WTA" />
+
+<connection source="CandidateA.OUTPUT" target="Arbiter.INPUT" />
+<connection source="CandidateB.OUTPUT" target="Arbiter.INPUT" />
+<connection source="Values.OUTPUT" target="Arbiter.VALUE" />
+```

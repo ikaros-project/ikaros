@@ -1,4 +1,4 @@
-<group name="Arbiter_value_wta_test" stop="1">
+<group name="Arbiter_value_wta_test">
     <module class="Constant" name="CandidateA" data="10, 0" />
     <module class="Constant" name="CandidateB" data="0, 1" />
     <module class="Constant" name="Values" data="0, 1" />
