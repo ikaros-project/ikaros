@@ -525,9 +525,9 @@ namespace ikaros
 
         void dictionary::merge(const dictionary & source, bool overwrite) // shallow merge: copy from source to this
         {
-            for(const auto & p : *(source.dict_))
-                if(!dict_->count(p.first) || overwrite)
-                    (*dict_)[p.first] = p.second;
+            for(const auto & [key, value] : *(source.dict_))
+                if(!dict_->count(key) || overwrite)
+                    (*dict_)[key] = value;
         }
         
 
@@ -540,9 +540,9 @@ namespace ikaros
     {
         std::string s = "{";
         std::string sep = "";
-        for(auto & v : *dict_)
+        for(auto & [key, value] : *dict_)
         {
-            s += sep + "" + v.first + ": " + std::string(v.second);
+            s += sep + "" + key + ": " + std::string(value);
             sep = ", ";
         }
         s += "}";
@@ -556,9 +556,9 @@ namespace ikaros
     {
         std::string s = "{";
         std::string sep = "";
-        for(auto & v : *dict_)
+        for(auto & [key, value] : *dict_)
         {
-            s += sep + "\"" + escape_json_string(v.first) + "\": " + v.second.json();
+            s += sep + "\"" + escape_json_string(key) + "\": " + value.json();
             sep = ", ";
         }
         s += "}";
@@ -585,19 +585,19 @@ namespace ikaros
     dictionary::xml(std::string name,exclude_set exclude, int depth) const
     {
         std::string s = tab(depth)+"<"+name;
-        for(auto & a : *dict_)
-            if(exclude.count(name+"."+a.first))
+        for(auto & [key, value] : *dict_)
+            if(exclude.count(name+"."+key))
                 continue;
-            else if(!a.second.is_list())
-                    if(!a.second.is_null()) // Do not include null attributes - but include empty strings
-                    if(a.first != "_tag") // Do not include tag attributes since the are used as element name
-                        s += " "+a.first + "=\"" + escape_xml_attribute(std::string(a.second)) + "\"";
+            else if(!value.is_list())
+                    if(!value.is_null()) // Do not include null attributes - but include empty strings
+                    if(key != "_tag") // Do not include tag attributes since the are used as element name
+                        s += " "+key + "=\"" + escape_xml_attribute(std::string(value)) + "\"";
 
         std::string sep = ">\n";
-        for(auto & e : *dict_)
-            if(e.second.is_list() && !exclude.count(name+"/"+e.first))
+        for(auto & [key, value] : *dict_)
+            if(value.is_list() && !exclude.count(name+"/"+key))
             {
-                std::string sub = e.second.xml(e.first.substr(0, e.first.size()-1), exclude, depth);
+                std::string sub = value.xml(key.substr(0, key.size()-1), exclude, depth);
                 if(!sub.empty())
                 {
                     s += sep + sub;

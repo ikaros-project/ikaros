@@ -3596,8 +3596,11 @@ bool operator==(Request & r, const std::string s)
     Kernel::ListClasses()
     {
         std::cout << "\nClasses:\n";
-        for(auto & c : classes)
-            c.second.Print();
+        for(auto & [name, component_class] : classes)
+        {
+            (void)name;
+            component_class.Print();
+        }
     }
 
 
@@ -3622,8 +3625,11 @@ bool operator==(Request & r, const std::string s)
     {
         // All all componenets to initialize parameters programmatically
 
-        for(auto & m : components)
-            m.second->SetParameters();
+        for(auto & [name, component] : components)
+        {
+            (void)name;
+            component->SetParameters();
+        }
 
         // resolve
         bool ok = true;
@@ -3647,9 +3653,9 @@ bool operator==(Request & r, const std::string s)
 
         if(!ok)
         {
-            for(auto & p : parameters)
-                if(!*(p.second.resolved))
-                    throw setup_failed("Parameter \""+p.first+"\" could not be resolved.", p.first);
+            for(auto & [name, parameter] : parameters)
+                if(!*(parameter.resolved))
+                    throw setup_failed("Parameter \""+name+"\" could not be resolved.", name);
             throw setup_failed("All parameters could not be resolved.");
         }
     }
@@ -4046,12 +4052,12 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::InitCircularBuffers()
     {
-        for(auto it : max_delays)
+        for(auto [buffer_name, delay] : max_delays)
         {
-            if(it.second <= 1)
+            if(delay <= 1)
                 continue;
-          if(buffers.count(it.first))
-                circular_buffers.emplace(it.first, CircularBuffer(buffers[it.first], it.second));
+          if(buffers.count(buffer_name))
+                circular_buffers.emplace(buffer_name, CircularBuffer(buffers[buffer_name], delay));
         }
     }
 
@@ -4059,8 +4065,8 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::RotateBuffers()
     {
-        for(auto & it : circular_buffers)
-            it.second.rotate(buffers[it.first]);
+        for(auto & [name, circularBuffer] : circular_buffers)
+            circularBuffer.rotate(buffers[name]);
     }
 
 
@@ -4069,8 +4075,11 @@ bool operator==(Request & r, const std::string s)
     Kernel::ListComponents()
     {
         std::cout << "\nComponents:\n";
-        for(auto & m : components)
-            m.second->print();
+        for(auto & [name, component] : components)
+        {
+            (void)name;
+            component->print();
+        }
     }
 
 
@@ -4087,16 +4096,16 @@ bool operator==(Request & r, const std::string s)
     Kernel::ListInputs()
     {
         std::cout << "\nInputs:\n";
-        for(auto & i : buffers)
-            std::cout << "\t" << i.first <<  i.second.shape() << '\n';
+        for(auto & [name, buffer] : buffers)
+            std::cout << "\t" << name <<  buffer.shape() << '\n';
     }
 
 
    void Kernel::ListOutputs()
     {
         std::cout << "\nOutputs:\n";
-        for(auto & o : buffers)
-            std::cout  << "\t" << o.first << o.second.shape() << '\n';
+        for(auto & [name, buffer] : buffers)
+            std::cout  << "\t" << name << buffer.shape() << '\n';
     }
 
 
@@ -4104,8 +4113,8 @@ bool operator==(Request & r, const std::string s)
     Kernel::ListBuffers()
     {
         std::cout << "\nBuffers:\n";
-        for(auto & i : buffers)
-            std::cout << "\t" << i.first <<  i.second.shape() << '\n';
+        for(auto & [name, buffer] : buffers)
+            std::cout << "\t" << name <<  buffer.shape() << '\n';
     }
 
 
@@ -4116,8 +4125,8 @@ bool operator==(Request & r, const std::string s)
             return;
 
         std::cout << "\nCircularBuffers:\n";
-        for(auto & i : circular_buffers)
-            std::cout << "\t" << i.first <<  " " << i.second.buffer_.size() << " " << i.second.buffer_[0].rank() << i.second.buffer_[0].shape() <<  '\n';
+        for(auto & [name, circularBuffer] : circular_buffers)
+            std::cout << "\t" << name <<  " " << circularBuffer.buffer_.size() << " " << circularBuffer.buffer_[0].rank() << circularBuffer.buffer_[0].shape() <<  '\n';
     }
 
 
@@ -4136,8 +4145,8 @@ bool operator==(Request & r, const std::string s)
    Kernel::ListParameters()
     {
         std::cout << "\nParameters:\n";
-        for(auto & p : parameters)
-            std::cout  << "\t" << p.first << ": " << p.second << '\n';
+        for(auto & [name, parameter] : parameters)
+            std::cout  << "\t" << name << ": " << parameter << '\n';
     }
 
 
@@ -4612,8 +4621,11 @@ bool operator==(Request & r, const std::string s)
     void
         Kernel::PrintProfiling()
         {
-            for(auto & c : components)
-                c.second->profiler_.print(c.second->path_);
+            for(auto & [name, component] : components)
+            {
+                (void)name;
+                component->profiler_.print(component->path_);
+            }
         }
 
 
@@ -5068,23 +5080,26 @@ bool operator==(Request & r, const std::string s)
     Kernel::InitComponents()
     {
         // Call Init for all modules (after CalcalateSizes and Allocate)
-        for(auto & c : components)
+        for(auto & [name, component] : components)
+        {
+            (void)name;
             try
             {
-                c.second->Init();
+                component->Init();
             }
             catch(const fatal_error& e)
             {
-                throw init_error(u8"Fatal error. Init failed for \""+c.second->path_+"\": "+std::string(e.what()), c.second->path_);
+                throw init_error(u8"Fatal error. Init failed for \""+component->path_+"\": "+std::string(e.what()), component->path_);
             }
             catch(const std::exception& e)
             {
-                throw init_error(u8"Init failed for "+c.second->path_+": "+std::string(e.what()), c.second->path_);
+                throw init_error(u8"Init failed for "+component->path_+": "+std::string(e.what()), component->path_);
             }
             catch(...)
             {
                 throw init_error(u8"Init failed");
             }
+        }
     }
 
 
@@ -5095,10 +5110,10 @@ bool operator==(Request & r, const std::string s)
         if(d.contains("user_data"))
             d.erase("user_data");
 
-        for(auto & x : options_.d)
-            if(options_.is_explicitly_set(x.first))
-                if(x.first != "user_data" && x.first != "auth_password")
-                    d[x.first] = x.second;
+        for(auto & [name, value] : options_.d)
+            if(options_.is_explicitly_set(name))
+                if(name != "user_data" && name != "auth_password")
+                    d[name] = value;
 
         if(d.contains("stop"))
             stop_after = d["stop"];
@@ -8225,13 +8240,13 @@ bool operator==(Request & r, const std::string s)
         });
         std::string body = "{\"classes\":[\n\t\"";
         std::string s = "";
-        for(auto & c: classes)
+        for(auto & [name, component_class]: classes)
         {
-            if(is_internal(c.second.info_))
+            if(is_internal(component_class.info_))
                 continue;
 
             body += s;
-            body += escape_json_string(c.first);
+            body += escape_json_string(name);
             s = "\",\n\t\"";
         }
         body += "\"\n]\n}\n";
@@ -8250,15 +8265,15 @@ bool operator==(Request & r, const std::string s)
         });
         std::string body = "{\n";
         std::string s = "";
-        for(auto & c: classes)
+        for(auto & [name, component_class]: classes)
         {
-            if(is_internal(c.second.info_))
+            if(is_internal(component_class.info_))
                 continue;
 
             body += s;
-            body += "\""+escape_json_string(c.first)+"\": ";
-            dictionary class_info = c.second.info_.copy();
-            class_info["path"] = std::filesystem::path(c.second.path).parent_path().string();
+            body += "\""+escape_json_string(name)+"\": ";
+            dictionary class_info = component_class.info_.copy();
+            class_info["path"] = std::filesystem::path(component_class.path).parent_path().string();
             body += class_info.json();
             s = ",\n\t";
         }
@@ -8338,40 +8353,44 @@ bool operator==(Request & r, const std::string s)
         });
         std::string sep;
         std::string body = "{\"system_files\":[\n\t\"";
-        for(auto & f: system_files)
+        for(auto & [name, path]: system_files)
         {
+            (void)path;
             body += sep;
-            body += escape_json_string(f.first);
+            body += escape_json_string(name);
             sep = "\",\n\t\"";
         }
         body += "\"\n],\n";
     
         sep = "";
         body += "\"examples_files\":[\n\t\"";
-        for(auto & f: examples_files)
+        for(auto & [name, path]: examples_files)
         {
+            (void)path;
             body += sep;
-            body += escape_json_string(f.first);
+            body += escape_json_string(name);
             sep = "\",\n\t\"";
         }
         body += "\"\n],\n";
 
         sep = "";
         body += "\"user_files\":[\n\t\"";
-        for(auto & f: user_files)
+        for(auto & [name, path]: user_files)
         {
+            (void)path;
             body += sep;
-            body += escape_json_string(f.first);
+            body += escape_json_string(name);
             sep = "\",\n\t\"";
         }
         body += "\"\n],\n";
 
         sep = "";
         body += "\"user_state_files\":[\n\t\"";
-        for(auto & f: user_state_files)
+        for(auto & [name, path]: user_state_files)
         {
+            (void)path;
             body += sep;
-            body += escape_json_string(f.first);
+            body += escape_json_string(name);
             sep = "\",\n\t\"";
         }
         body += "\"\n]\n";

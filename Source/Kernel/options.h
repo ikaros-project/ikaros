@@ -116,11 +116,11 @@ namespace ikaros {
         {
             std::cout << "usage: ikaros [options] [variable=value] [filename]\n";
             std::cout << "\tCommand line options:\n";
-            for(auto & p : full)
+            for(const auto & [short_name, option_name] : full)
             {
-                std::cout << "\t-"<< p.first << " (" << p.second << "): " << description.at(p.second);
-                if(d.count(p.second))
-                    std::cout << " [" << d.at(p.second) << "]"; 
+                std::cout << "\t-"<< short_name << " (" << option_name << "): " << description.at(option_name);
+                if(d.count(option_name))
+                    std::cout << " [" << d.at(option_name) << "]"; 
                 std::cout << '\n';
             }
         }
