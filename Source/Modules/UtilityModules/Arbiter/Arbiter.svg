@@ -45,12 +45,12 @@
   <line x1="50" y1="235" x2="300" y2="235" class="wire"/>
   <text x="80" y="207" class="label medium">INPUT</text>
   <text x="80" y="260" class="label note">candidates: [n, ...]</text>
-  <text x="80" y="284" class="label note">stack_inputs controls stacking</text>
+  <text x="80" y="284" class="label note">stack_inputs option</text>
 
   <line x1="50" y1="365" x2="300" y2="365" class="wire"/>
   <text x="80" y="337" class="label medium">VALUE</text>
   <text x="80" y="390" class="label note">optional scores: [n]</text>
-  <text x="80" y="414" class="label note">stack_values controls stacking</text>
+  <text x="80" y="414" class="label note">stack_values option</text>
 
   <line x1="710" y1="150" x2="950" y2="150" class="wire"/>
   <text x="735" y="128" class="label medium">AMPLITUDES</text>
