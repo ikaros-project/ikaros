@@ -178,7 +178,7 @@ find_package (Jpeg-Turbo)
  # PNG 
  find_package (PNG)
 if (PNG_FOUND)
-  include_directories(${PNG_INCLUDE_DIRS})
+  include_directories(${PNG_PNG_INCLUDE_DIR})
   target_link_libraries (ikaros ${PNG_LIBRARIES})
     else()
     message(FATAL_ERROR "\nIkaros require the PNG library. \nVisit www.ikaros-project.org for information about dependencies")

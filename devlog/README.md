@@ -377,3 +377,4 @@ This directory contains weekly development summaries for the Ikaros repository, 
 | 2026-W25 | 2026-06-15 to 2026-06-21 | [Sequence Recorder, Matrix, and WebUI Updates](2026/2026-06-15-week-22.md) |
 | 2026-W26 | 2026-06-22 to 2026-06-28 | [Dynamixel Controller and Session Logging Updates](2026/2026-06-22-week-23.md) |
 | 2026-W27 | 2026-06-29 to 2026-07-05 | [Dynamixel Controller, Async Modules, and Documentation Updates](2026/2026-06-29-week-24.md) |
+| 2026-W28 | 2026-07-06 to 2026-07-12 | [Arbiter v3, Stack Expressions, and Kernel Cleanup](2026/2026-07-06-week-25.md) |
