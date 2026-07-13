@@ -1,0 +1,15 @@
+<class name="Integrator" description="integrates its input over time">
+    <description type="text">
+        Integrator updates OUTPUT from its previous value and the current INPUT:
+        OUTPUT(t) = alpha * OUTPUT(t-1) + beta * INPUT(t).
+        The min and max parameters clip the output after each update; their defaults are unbounded.
+    </description>
+
+    <parameter name="alpha" type="number" default="0.9" description="Scale factor for the previous output" />
+    <parameter name="beta" type="number" default="0.1" description="Scale factor for the current input" />
+    <parameter name="min" type="number" default="-inf" description="Minimum output value" />
+    <parameter name="max" type="number" default="inf" description="Maximum output value" />
+
+    <input name="INPUT" description="Input to integrate" />
+    <output name="OUTPUT" description="Integrated output" shape="INPUT.shape" />
+</class>

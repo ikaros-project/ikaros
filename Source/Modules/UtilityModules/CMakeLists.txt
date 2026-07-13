@@ -15,6 +15,7 @@ add_subdirectory(ReduceFunctions)
 add_subdirectory(Functions)
 
 add_subdirectory(Scale)
+add_subdirectory(Integrator)
 add_subdirectory(Oscillator)
 add_subdirectory(FunctionGenerator)
 add_subdirectory(Protocol)
