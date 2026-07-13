@@ -1,0 +1,20 @@
+<class name="ColorMatch" description="matches a prototype color">
+    <description type="text">
+        ColorMatch compares each pixel in a channel-first color image [3, rows, cols] to a prototype color. The match is computed from chromaticity, so pixels below the intensity threshold produce zero output. The prototype can optionally be retuned from TARGETINPUT at the FOCUS location when REINFORCEMENT is connected.
+    </description>
+
+    <parameter name="alpha" type="number" default="0.01" description="Learning rate for the color prototype" />
+    <parameter name="sigma" type="number" default="25" description="Width of the prototype match function" />
+    <parameter name="gain" type="number" default="1" description="Output gain" />
+    <parameter name="threshold" type="number" default="0" description="Intensity threshold" />
+    <parameter name="target0" type="number" default="0" description="Initial prototype channel 0" />
+    <parameter name="target1" type="number" default="0" description="Initial prototype channel 1" />
+    <parameter name="target2" type="number" default="0" description="Initial prototype channel 2" />
+
+    <input name="INPUT" description="Color image [3, rows, cols]" />
+    <input name="TARGETINPUT" description="Optional color image used for retuning [3, rows, cols]" optional="yes" />
+    <input name="FOCUS" description="Optional focus coordinate [x, y]" optional="yes" />
+    <input name="REINFORCEMENT" description="Optional scalar reinforcement" optional="yes" />
+
+    <output name="OUTPUT" description="Color match map [rows, cols]" shape="INPUT.rows, INPUT.cols" />
+</class>
