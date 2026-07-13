@@ -1,0 +1,12 @@
+<class name="Threshold" description="applies a threshold to each input element">
+    <description type="text">
+        Threshold applies an element-wise threshold to INPUT. In binary mode, values greater than threshold become 1 and all other values become 0. In linear mode, values greater than threshold become INPUT - threshold and all other values become 0. When bypass is enabled, OUTPUT is a copy of INPUT.
+    </description>
+
+    <parameter name="bypass" type="bool" default="false" description="Copy INPUT to OUTPUT without thresholding" />
+    <parameter name="threshold" type="number" default="0" description="Threshold value" />
+    <parameter name="type" type="number" default="0" options="binary,linear" description="Threshold mode" />
+
+    <input name="INPUT" description="Input values" />
+    <output name="OUTPUT" description="Thresholded output" shape="INPUT.shape" />
+</class>
