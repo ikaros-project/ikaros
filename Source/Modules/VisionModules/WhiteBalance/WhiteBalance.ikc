@@ -1,0 +1,22 @@
+<class name="WhiteBalance" description="white balances a color image">
+    <description type="text">
+        WhiteBalance applies von Kries adaptation to a channel-first color image with shape [3, rows, cols]. The average color in a reference rectangle is scaled to the configured target color, and the same channel gains are applied to the full image.
+    </description>
+
+    <parameter name="red_target" type="number" default="1" description="Target value for the red channel in the reference region" />
+    <parameter name="green_target" type="number" default="1" description="Target value for the green channel in the reference region" />
+    <parameter name="blue_target" type="number" default="1" description="Target value for the blue channel in the reference region" />
+
+    <parameter name="x0" type="number" default="0" description="Left coordinate of the reference region, inclusive" />
+    <parameter name="x1" type="number" default="1" description="Right coordinate of the reference region, exclusive" />
+    <parameter name="y0" type="number" default="0" description="Top coordinate of the reference region, inclusive" />
+    <parameter name="y1" type="number" default="1" description="Bottom coordinate of the reference region, exclusive" />
+
+    <parameter name="log_x0" type="number" default="0" description="Left coordinate of the optional logged region, inclusive" />
+    <parameter name="log_x1" type="number" default="0" description="Right coordinate of the optional logged region, exclusive" />
+    <parameter name="log_y0" type="number" default="0" description="Top coordinate of the optional logged region, inclusive" />
+    <parameter name="log_y1" type="number" default="0" description="Bottom coordinate of the optional logged region, exclusive" />
+
+    <input name="INPUT" description="Color image [3, rows, cols]" />
+    <output name="OUTPUT" description="White-balanced color image [3, rows, cols]" shape="INPUT.shape" />
+</class>
