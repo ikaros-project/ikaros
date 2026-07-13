@@ -39,13 +39,22 @@ def run_http_test(cmd, root):
 
     process = subprocess.Popen(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     http_output = []
+    session_id = None
 
     def request(path, retries=1, record=True):
+        nonlocal session_id
         url = f"http://127.0.0.1:{port}/{path}"
         last_error = None
         for _ in range(retries):
             try:
-                with urllib.request.urlopen(url, timeout=5) as response:
+                headers = {}
+                if session_id is not None:
+                    headers["Session-Id"] = session_id
+                request = urllib.request.Request(url, headers=headers)
+                with urllib.request.urlopen(request, timeout=5) as response:
+                    response_session_id = response.headers.get("Session-Id")
+                    if response_session_id:
+                        session_id = response_session_id
                     body = response.read().decode("utf-8", errors="replace")
                     if record:
                         http_output.append(body)
@@ -55,6 +64,20 @@ def run_http_test(cmd, root):
                 time.sleep(0.05)
         raise last_error
 
+    def wait_contains(path, expected, timeout=5.0):
+        deadline = time.monotonic() + timeout
+        last_body = ""
+        while time.monotonic() < deadline:
+            try:
+                last_body = request(path, record=False)
+                if expected in last_body:
+                    http_output.append(last_body)
+                    return
+            except Exception:
+                pass
+            time.sleep(0.05)
+        raise TimeoutError(f"Timed out waiting for {path} to contain {expected!r}")
+
     try:
         request("network", retries=100, record=False)
         if root.get("http_start_delay") is not None:
@@ -63,6 +86,9 @@ def run_http_test(cmd, root):
         for action in split_expected_text(root.get("http_requests")):
             if action.startswith("sleep:"):
                 time.sleep(float(action[len("sleep:"):]))
+            elif action.startswith("wait_contains:"):
+                _, path, expected = action.split(":", 2)
+                wait_contains(path, expected)
             else:
                 request(action)
 
