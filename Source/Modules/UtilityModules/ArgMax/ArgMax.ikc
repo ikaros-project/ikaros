@@ -1,0 +1,9 @@
+<class name="ArgMax" description="finds the position of the maximum input element">
+    <description type="text">
+        ArgMax finds the first maximum element in INPUT. For vectors, OUTPUT is [index, 0]. For matrices, OUTPUT is [column, row]. VALUE contains the maximum value.
+    </description>
+
+    <input name="INPUT" description="Input scalar, vector, or matrix" />
+    <output name="OUTPUT" description="Coordinate of the first maximum element: [index, 0] for vectors or [column, row] for matrices" size="2" />
+    <output name="VALUE" description="Maximum value" size="1" />
+</class>
