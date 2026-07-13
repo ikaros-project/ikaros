@@ -1,4 +1,4 @@
-<group internal="true" name="TestAsyncWebUIPause" description="Test WebUI pause waits for async work to finish" start="true" stop="100" webui_port="8177" http_start_delay="0.05" http_requests="pause" http_terminate_after_requests="true" expected_output_contains="pause||ASYNC_LIFECYCLE_OUTPUT 2 gain=1">
+<group internal="true" name="TestAsyncWebUIPause" description="Test WebUI pause waits for async work to finish" start="true" stop="100" webui_port="8177" http_start_delay="0.05" http_requests="wait_contains:update:&quot;TestAsyncWebUIPause.Worker&quot;: {&quot;running&quot;: true||pause" http_terminate_after_requests="true" expected_output_contains="pause||ASYNC_LIFECYCLE_OUTPUT 2 gain=1">
     <module class="Constant" name="Input" data="2"/>
     <module class="AsyncLifecycle" name="Worker" async="yes" duration="2" timeout_ms="3000"/>
     <module class="Print" name="Print"/>
