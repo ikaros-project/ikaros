@@ -1,0 +1,13 @@
+<group name="ColorTransform_test" start="true" stop="1">
+    <module class="Constant" name="White" data="[[[1, 1], [1, 1]], [[1, 1], [1, 1]], [[1, 1], [1, 1]]]" />
+    <module class="Constant" name="Black" data="[[[0, 0], [0, 0]], [[0, 0], [0, 0]], [[0, 0], [0, 0]]]" />
+    <module class="ColorTransform" name="XYZ" transform="RGB->XYZ" />
+    <module class="ColorTransform" name="rgI" transform="RGB->rgI" />
+    <module class="Print" name="PrintXYZ" />
+    <module class="Print" name="PrintrgI" />
+
+    <connection source="White.OUTPUT" target="XYZ.INPUT" delay="0" />
+    <connection source="Black.OUTPUT" target="rgI.INPUT" delay="0" />
+    <connection source="XYZ.OUTPUT" target="PrintXYZ.INPUT" delay="0" />
+    <connection source="rgI.OUTPUT" target="PrintrgI.INPUT" delay="0" />
+</group>
