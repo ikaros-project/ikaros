@@ -1,0 +1,12 @@
+<group name="KalmanFilter_innovation_gate_test" start="true" stop="1">
+    <module class="Constant" name="Observation" data="[10]" />
+    <module class="KalmanFilter" name="KalmanFilter" process_noise="1" observation_noise="1" innovation_gate="0.1" A="[[1]]" H="[[1]]" P="[[1]]" />
+    <module class="Print" name="PrintState" />
+    <module class="Print" name="PrintGated" />
+    <module class="Print" name="PrintNormalizedInnovation" />
+
+    <connection source="Observation.OUTPUT" target="KalmanFilter.OBSERVATION" delay="0" />
+    <connection source="KalmanFilter.STATE" target="PrintState.INPUT" delay="0" />
+    <connection source="KalmanFilter.GATED" target="PrintGated.INPUT" delay="0" />
+    <connection source="KalmanFilter.NORMALIZED_INNOVATION" target="PrintNormalizedInnovation.INPUT" delay="0" />
+</group>

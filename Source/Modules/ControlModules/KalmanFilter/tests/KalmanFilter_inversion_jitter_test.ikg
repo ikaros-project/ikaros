@@ -1,0 +1,8 @@
+<group name="KalmanFilter_inversion_jitter_test" start="true" stop="1">
+    <module class="Constant" name="Observation" data="[1]" />
+    <module class="KalmanFilter" name="KalmanFilter" process_noise="0" observation_noise="0" inversion_jitter="1" A="[[1]]" H="[[1]]" R="[[-1]]" P="[[1]]" />
+    <module class="Print" name="PrintState" />
+
+    <connection source="Observation.OUTPUT" target="KalmanFilter.OBSERVATION" delay="0" />
+    <connection source="KalmanFilter.STATE" target="PrintState.INPUT" delay="0" />
+</group>

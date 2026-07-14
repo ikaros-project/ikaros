@@ -1,0 +1,34 @@
+<class name="KalmanFilter" description="standard Kalman filter">
+    <description type="text">
+        KalmanFilter estimates a state vector from an optional control input and an observation using x(t+1) = A*x(t) + B*u(t) and z(t) = H*x(t). If Q or R are left as zero matrices, diagonal covariance matrices are set from process_noise and observation_noise. The scalar process_noise parameter is a rate because process uncertainty accumulates over elapsed time.
+    </description>
+
+    <parameter name="process_noise" type="rate" default="1" min="0" description="Diagonal process noise covariance per second when Q is not explicitly set" />
+    <parameter name="observation_noise" type="number" default="1" description="Diagonal observation noise covariance" />
+    <parameter name="state_size" type="number" default="1" description="State vector size" />
+    <parameter name="input_size" type="number" default="1" description="Control input vector size" />
+    <parameter name="innovation_gate" type="number" default="0" min="0" description="Maximum squared normalized innovation; 0 disables gating" />
+    <parameter name="inversion_jitter" type="number" default="0" min="0" description="Diagonal value added to the residual covariance if inversion fails; 0 disables retry" />
+
+    <input name="INPUT" description="Optional control input vector [m]" optional="yes" />
+    <input name="INPUT_VALID" description="Optional control input validity signal; zero ignores INPUT for this tick" optional="yes" />
+    <input name="OBSERVATION" description="Observation vector [k]" />
+    <input name="OBSERVATION_VALID" description="Optional observation validity signal; zero runs prediction only for this tick" optional="yes" />
+    <input name="RESET" description="Optional reset signal" optional="yes" />
+
+    <parameter name="A" type="matrix" default="0" description="State transition matrix [n, n]; zero matrix uses identity" />
+    <parameter name="B" type="matrix" default="0" description="Input matrix [n, m]" />
+    <parameter name="H" type="matrix" default="0" description="Observation matrix [k, n]; zero matrix uses identity where possible" />
+    <parameter name="Q" type="matrix" default="0" description="Process covariance [n, n]; zero matrix uses process_noise" />
+    <parameter name="R" type="matrix" default="0" description="Observation covariance [k, k]; zero matrix uses observation_noise" />
+    <parameter name="INITIAL_STATE" type="matrix" default="0" description="State used when RESET is active" />
+    <parameter name="INITIAL_P" type="matrix" default="0" description="Covariance used when RESET is active; zero matrix uses initial P" />
+
+    <state name="P" type="matrix" size="@state_size, @state_size" persistent="true" description="State covariance [n, n]" />
+
+    <output name="STATE" description="Estimated state vector [n]" size="@state_size" />
+    <output name="INNOVATION" description="Observation innovation [k]" size="OBSERVATION.size" />
+    <output name="KALMAN_GAIN" description="Kalman gain [n, k]" shape="STATE.size, OBSERVATION.size" />
+    <output name="GATED" description="One when the observation was rejected by innovation_gate, otherwise zero" size="1" />
+    <output name="NORMALIZED_INNOVATION" description="Squared normalized innovation y^T*S^-1*y" size="1" />
+</class>
