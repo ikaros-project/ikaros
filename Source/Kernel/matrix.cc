@@ -4412,6 +4412,47 @@ matrix::matmul(const matrix & A, const matrix & B)
 
 
 matrix &
+matrix::matvec(const matrix & A, const matrix & x)
+{
+    if(is_uninitialized())
+        realloc(A.rows());
+
+#ifndef NO_MATRIX_CHECKS
+    if(rank() != 1 || A.rank() != 2 || x.rank() != 1)
+        throw std::invalid_argument("Matrix-vector multiplication requires a matrix and a vector.");
+
+    if(A.cols() != x.size())
+        throw std::invalid_argument("Matrix and vector are not compatible for multiplication.");
+#endif
+
+    if(size() != A.rows())
+        throw std::invalid_argument("Result vector does not have size " + std::to_string(A.rows()) + ".");
+
+    if(this == &A || this == &x)
+        throw std::invalid_argument("Result cannot be assigned to A or x.");
+
+#if defined(__APPLE__)
+    cblas_sgemv(CblasRowMajor, CblasNoTrans,
+                A.rows(), A.cols(), 1.0f,
+                A.data(), A.info_->stride_[1],
+                x.data(), 1,
+                0.0f,
+                data(), 1);
+#else
+    for(int row = 0; row < A.rows(); ++row)
+    {
+        float sum = 0.0f;
+        for(int col = 0; col < A.cols(); ++col)
+            sum += A(row, col) * x(col);
+        (*this)(row) = sum;
+    }
+#endif
+
+    return *this;
+}
+
+
+matrix &
 matrix::outer_product(const matrix & left, const matrix & right)
 {
     if(is_uninitialized())

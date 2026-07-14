@@ -371,6 +371,10 @@ class MatrixFunctionTestModule : public Module
         mmul.matmul(left, right);
         require_matrix_close(mmul, make_matrix("58, 64; 139, 154"), "matmul()");
 
+        matrix mvec;
+        mvec.matvec(left, make_matrix("7, 8, 9"));
+        require_matrix_close(mvec, make_matrix("50, 122"), "matvec()");
+
         matrix outer_product_result;
         outer_product_result.outer_product(make_matrix("1, 2, 3"), make_matrix("4, 5"));
         require_matrix_close(outer_product_result, make_matrix("4, 5; 8, 10; 12, 15"), "outer_product()");
@@ -1257,6 +1261,9 @@ class MatrixFunctionTestModule : public Module
         matrix right = make_matrix("7, 8; 9, 10; 11, 12");
         matrix wrong_matmul(3, 3);
         require_throws([&]() { wrong_matmul.matmul(left, right); }, "matmul() should throw for wrong-sized initialized destination");
+
+        matrix wrong_matvec(3);
+        require_throws([&]() { wrong_matvec.matvec(left, make_matrix("7, 8, 9")); }, "matvec() should throw for wrong-sized initialized destination");
 
         matrix hx = make_matrix("3, 4");
         matrix hy = make_matrix("4, 3");

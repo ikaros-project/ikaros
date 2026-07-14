@@ -568,6 +568,7 @@ namespace ikaros
 
 
         matrix & matmul(const matrix & A, const matrix & B); // Compute matrix multiplication A*B and put result in current matrix
+        matrix & matvec(const matrix & A, const matrix & x); // Compute matrix-vector multiplication A*x and put result in current matrix
         matrix & outer_product(const matrix & left, const matrix & right); // left [M], right [N] -> result [M,N]
         matrix & dense_forward(const matrix & input, const matrix & weights); // input [I], weights [I,O] -> result [O]
         matrix & dense_backward_input(const matrix & weights, const matrix & output_gradient); // weights [I,O], output_gradient [O] -> result [I]
