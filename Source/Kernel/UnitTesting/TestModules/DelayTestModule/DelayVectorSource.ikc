@@ -1,0 +1,3 @@
+<class internal="true" name="DelayVectorSource" description="Produces two distinguishable tick-numbered values for delay tests">
+    <output name="OUTPUT" shape="2" description="The current tick and the current tick plus 100." />
+</class>

@@ -3,7 +3,7 @@
 The range class provides a robust interface for managing and iterating over multidimensional ranges. It includes various constructors for initialization, member functions for manipulating and querying the range, and operators for convenience. The class supports both integer and string-based initialization, allowing for flexible usage in different contexts.
 
 
-A range in a single dimension defines start and and end to a sequence as well as the increment.
+A range in a single dimension defines the start and end of a sequence as well as the increment.
 
 If the increment is negative, the sequence will be generated in reverse.
 
@@ -59,6 +59,28 @@ range r(0,16,7); // generates 0, 7, 14
 range r(0,16,-7); // generates 14, 7, 0 (the same sequence as above, but backwards)
 ```
 
+## Cardinality
+
+`range::size()` returns the number of values produced by iteration, not the numerical span between
+the bounds. The end is exclusive, and a final partial step does not add another value.
+
+```C++
+range(0, 5, 2).size();  // 3: 0, 2, 4
+range(1, 6, 2).size();  // 3: 1, 3, 5
+range(2, 3, 5).size();  // 1: 2
+range(3, 3, 1).size();  // 0: empty
+range(0, 5, -2).size(); // 3: 4, 2, 0
+```
+
+For a multidimensional range, `size()` is the product of the cardinalities of its dimensions. For
+example, `[0:5:2][1:6:2]` contains `3 * 3 = 9` index tuples. Empty dimensions and zero-increment
+ranges have cardinality zero. If the product cannot be represented by the supported integer size,
+`size()` throws an overflow error.
+
+Connection delay ranges are a restricted use of this syntax: they must be one-dimensional,
+ascending, non-negative, non-empty, use a positive increment, and generate no value above 100.
+These restrictions do not apply to general matrix and loop ranges.
+
 Print numbers 0 to 4.
 
 ```C++
@@ -90,4 +112,3 @@ Or define the range directly in the for loop:
 for(auto s = range(1,4,2).push(1,4);s.more();s++)
    std::cout << s << std::endl;
 ```
-

@@ -1,0 +1,3 @@
+<class internal="true" name="DelayPropagationBenchmarkSink" description="Consumes delayed scalar connections for propagation benchmarks">
+    <input name="INPUT" size="64" optional="yes" description="One lane per benchmark connection." />
+</class>

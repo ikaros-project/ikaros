@@ -406,6 +406,13 @@ public:
     Connection(std::string s, std::string t, range & delay_range, std::string label="");
     virtual ~Connection() = default;
 
+    int DelayCount() const;
+    int MinDelay() const;
+    int MaxDelay() const;
+    bool HasZeroDelay() const;
+    bool IsSingleDelay(int delay) const;
+    bool UsesCircularBuffer() const;
+
     range Resolve(const range & source_output);
     bool IsWholeMatrixConnection() const;
 

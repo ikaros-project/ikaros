@@ -1,0 +1,5 @@
+<class internal="true" name="DelayWindowSink" description="Checks a three-lane delay window">
+    <parameter name="second_delay" type="number" default="1" description="Delay expected in the second lane." />
+    <parameter name="third_delay" type="number" default="2" description="Delay expected in the third lane." />
+    <input name="INPUT" description="Three delayed samples." />
+</class>

@@ -1,0 +1,3 @@
+<class internal="true" name="DelayedPropagationFailureSink" description="Forces a delayed propagation failure after task execution">
+    <input name="INPUT" description="Input deliberately invalidated by the test module." />
+</class>

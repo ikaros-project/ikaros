@@ -71,6 +71,10 @@ Groups may be nested.
   - Metadata only.
 - `tick_duration`
   - Top-group runtime setting.
+- `task_timeout`
+  - Synchronous task watchdog deadline in seconds.
+  - Defaults to `5`.
+  - Must be finite and non-negative; `0` disables the deadline.
 - `stop`
   - Top-group stop tick.
 - `threads`
@@ -209,6 +213,43 @@ Declares a connection between a source buffer and a target buffer.
   - If no brackets are supplied, the kernel wraps the value in `[]`.
 - `label`
   - Optional connection label.
+
+### Delay syntax and semantics
+
+Connection delays use a one-dimensional Ikaros range. A single integer selects one delay, while
+`[start:end:step]` selects a half-open sequence whose last value is less than `end`.
+
+| Attribute | Delays selected | Meaning |
+|---|---:|---|
+| omitted or `delay="1"` | `1` | Value produced one tick earlier. |
+| `delay="0"` | `0` | Current-tick value; participates in task dependency ordering. |
+| `delay="2"` | `2` | Value produced two ticks earlier. |
+| `delay="[0:3]"` | `0, 1, 2` | Current value followed by two history samples. |
+| `delay="[0:5:2]"` | `0, 2, 4` | Stepped current/history window. |
+
+Delay specifications must be:
+
+- one-dimensional and non-empty
+- ascending, with a positive increment
+- non-negative
+- limited to generated delay values of at most 100 ticks
+
+Consequently, negative delays, descending ranges, zero or negative increments, `[]`, and
+multidimensional ranges are rejected while the model is built. General Ikaros ranges support
+reverse iteration, but connection delay ranges deliberately do not.
+
+For a multi-value delay range, samples are copied in ascending delay order. A normal input gains
+space for the delay window. A flattened input stores values in delay-major order. For an input with
+`stack="yes"`, the first dimension selects the incoming connection and the next dimension selects
+the delay. History storage is shared per source buffer and sized to the deepest delay requested by
+any connection from that source. History that predates the start of execution is initialized to
+zero.
+
+If a delayed copy fails during execution, Ikaros reports a fatal runtime error containing the full
+connection description. Execution then follows the normal shutdown path, including component
+`Stop()` callbacks, rather than continuing with a partially propagated tick.
+
+See the [range reference](../Source/Kernel/range.md) for general range iteration and cardinality.
 
 Stacked inputs are declared on the target `<input ... />`, not on individual connections. When an input has `stack="yes"`, connections to that input are stored in separate slices along a new first dimension instead of overwriting the same target range. The new first dimension is added even when there is only one incoming connection.
 
@@ -409,6 +450,27 @@ Behavior:
 
 The top group is special in a few ways.
 
+### Synchronous task watchdog and failures
+
+`task_timeout` sets one wall-clock deadline for all synchronous task sequences submitted for a
+tick. The default is five seconds. Set it to `0` only when the watchdog must be disabled:
+
+```xml
+<group name="Model" task_timeout="10" />
+```
+
+Exceeding the deadline does not forcibly terminate a module's C++ `Tick()` method. Ikaros first
+logs a warning, then waits for every submitted task sequence to finish before it reports the fatal
+timeout and stops. The same completion barrier is used when one task throws: peer tasks finish
+before their errors are inspected and before shutdown begins. This prevents component `Stop()`
+callbacks and kernel cleanup from racing work that still accesses module or kernel data. A task
+that never returns will therefore keep the kernel at this safety barrier even after the watchdog
+warning.
+
+When synchronous task execution fails or times out, the failed tick does not rotate delay buffers,
+propagate outputs, calculate its final metrics, or publish a new UI snapshot. Runtime failures then
+use the normal component shutdown path.
+
 ### Command-line override behavior
 
 When a file is loaded:
@@ -472,6 +534,7 @@ This is the safest subset for hand-authored `.ikg` files:
   - `name`
   - `description`
   - `tick_duration`
+  - `task_timeout`
   - `stop`
   - `threads`
   - `check_sum`

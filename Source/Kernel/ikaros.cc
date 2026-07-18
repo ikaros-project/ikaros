@@ -58,6 +58,7 @@ namespace ikaros
     namespace
     {
         constexpr size_t default_max_pending_webui_log_messages = 500;
+        constexpr int maximum_connection_delay = 100;
 
         bool is_internal(const dictionary & info)
         {
@@ -84,6 +85,34 @@ namespace ikaros
         std::vector<std::string> get_parameter_options(const dictionary & info)
         {
             return split(info["options"], ",");
+        }
+
+        void
+        ValidateConnectionDelayRange(const range & delays,
+                                     const std::string & source,
+                                     const std::string & target,
+                                     const std::string & path)
+        {
+            const std::string connection = "Connection \"" + source + " => " + target + "\" delay range ";
+
+            if(delays.rank() != 1)
+                throw build_failed(connection + "must be one-dimensional.", path);
+            if(delays.a_[0] == delays.b_[0])
+                throw build_failed(connection + "must not be empty.", path);
+            if(delays.inc_[0] <= 0)
+                throw build_failed(connection + "must have a positive increment.", path);
+            if(delays.a_[0] < 0)
+                throw build_failed(connection + "must be non-negative.", path);
+            if(delays.b_[0] <= delays.a_[0])
+                throw build_failed(connection + "must be an ascending, non-empty range.", path);
+
+            const long long distance = static_cast<long long>(delays.b_[0]) - delays.a_[0];
+            const long long count = 1 + (distance - 1) / delays.inc_[0];
+            const long long max_delay = static_cast<long long>(delays.a_[0]) +
+                                        (count - 1) * delays.inc_[0];
+            if(max_delay > maximum_connection_delay)
+                throw build_failed(connection + "must not exceed " +
+                                   std::to_string(maximum_connection_delay) + " ticks.", path);
         }
 
         int clamp_option_index(int index, const std::vector<std::string> & options)
@@ -654,10 +683,14 @@ namespace ikaros
 // CircularBuffer
 
     CircularBuffer::CircularBuffer(matrix &  m,  int size):
-        buffer_(std::vector<matrix>(size)),
+        buffer_(),
         index_(0)
     {
-        for(int i=0; i<size;i++)
+        if(size <= 0)
+            throw std::invalid_argument("Circular buffer size must be positive");
+
+        buffer_.resize(static_cast<size_t>(size));
+        for(int i = 0; i < size; i++)
         {
             if(m.is_dynamic())
             {
@@ -674,16 +707,26 @@ namespace ikaros
     void 
     CircularBuffer::rotate(matrix &  m)
     {
+        if(buffer_.empty())
+            throw std::logic_error("Cannot rotate an empty circular buffer");
+
         if(m.is_dynamic())
             buffer_[index_].resize(m.shape());
         buffer_[index_].copy(m);
-        index_ = ++index_ % buffer_.size();
+        index_ = (index_ + 1) % static_cast<int>(buffer_.size());
     }
 
     matrix & 
     CircularBuffer::get(int i) // Get output with delay i
     {
-        return buffer_[(buffer_.size()+index_-i) % buffer_.size()];
+        if(buffer_.empty())
+            throw std::logic_error("Cannot read from an empty circular buffer");
+        if(i < 1 || i > static_cast<int>(buffer_.size()))
+            throw std::out_of_range("Circular buffer delay is outside its history");
+
+        const size_t position = (buffer_.size() + static_cast<size_t>(index_) -
+                                 static_cast<size_t>(i)) % buffer_.size();
+        return buffer_[position];
     }
 
 
@@ -2467,7 +2510,10 @@ namespace ikaros
             range output_matrix = output_buffer;
             c->Resolve(output_matrix);  //**NEW  
 
-            int s = c->source_range.size() * std::max(1, c->delay_range_.trim().size());
+            const long long required_size = static_cast<long long>(c->source_range.size()) * c->DelayCount();
+            if(required_size > std::numeric_limits<int>::max())
+                throw setup_failed("Connection \"" + c->Info() + "\" requires an input larger than the supported size.", path_);
+            int s = static_cast<int>(required_size);
             end_index = begin_index + s;
             c->target_range = range(begin_index, end_index);
             if(has_fixed_size)
@@ -2487,7 +2533,10 @@ namespace ikaros
             begin_index = 0;
             for(auto & c : ingoing_connections.at(full_name))
             {
-                int s = c->source_range.size() * std::max(1, c->delay_range_.trim().size());
+                const long long required_size = static_cast<long long>(c->source_range.size()) * c->DelayCount();
+                if(required_size > std::numeric_limits<int>::max())
+                    throw setup_failed("Connection \"" + c->Info() + "\" requires an input larger than the supported size.", path_);
+                int s = static_cast<int>(required_size);
                 if(c->label_.empty())
                     kernel().buffers[full_name].push_label(0, c->source, s); // WAS: kernel().buffers[d.at(full_name)].push_label(0, c->source, s);
                 else
@@ -2599,20 +2648,25 @@ namespace ikaros
 
         // Handle single connection without inidices - do not collapse dimensions
 
+        auto & input_connections = ingoing_connections.at(full_name);
+        Connection * single_connection = input_connections.size() == 1 ? input_connections[0] : nullptr;
         bool old_style_simple_connection =
             !has_fixed_size &&
             ingoing_connections.size() == 1 &&
+            ingoing_connections.begin()->second[0]->DelayCount() == 1 &&
             ingoing_connections.begin()->second[0]->source_range.empty() &&
             ingoing_connections.begin()->second[0]->target_range.empty();
         bool dynamic_simple_connection =
             !has_fixed_size &&
-            ingoing_connections.at(full_name).size() == 1 &&
-            kernel().buffers[ingoing_connections.at(full_name)[0]->source].is_dynamic() &&
-            ingoing_connections.at(full_name)[0]->IsWholeMatrixConnection();
+            single_connection != nullptr &&
+            single_connection->DelayCount() == 1 &&
+            kernel().buffers[single_connection->source].is_dynamic() &&
+            single_connection->IsWholeMatrixConnection();
 
         if(old_style_simple_connection || dynamic_simple_connection)
         {
-            Connection * connection = dynamic_simple_connection ? ingoing_connections.at(full_name)[0] : ingoing_connections.begin()->second[0];
+            Connection * connection = old_style_simple_connection ?
+                                      ingoing_connections.begin()->second[0] : single_connection;
             matrix & output_buffer = kernel().buffers[connection->source];
             range output_matrix = output_buffer;
             if(output_matrix.empty())
@@ -3093,6 +3147,53 @@ namespace ikaros
     }
 
 
+    int
+    Connection::DelayCount() const
+    {
+        return delay_range_.empty() ? 1 : delay_range_.size();
+    }
+
+
+    int
+    Connection::MinDelay() const
+    {
+        return delay_range_.empty() ? 1 : delay_range_.a_[0];
+    }
+
+
+    int
+    Connection::MaxDelay() const
+    {
+        if(delay_range_.empty())
+            return 1;
+        return delay_range_.a_[0] + (DelayCount() - 1) * delay_range_.inc_[0];
+    }
+
+
+    bool
+    Connection::HasZeroDelay() const
+    {
+        return !delay_range_.empty() && delay_range_.a_[0] == 0;
+    }
+
+
+    bool
+    Connection::IsSingleDelay(int delay) const
+    {
+        if(delay_range_.empty())
+            return delay == 1;
+        return delay_range_.a_[0] == delay &&
+               static_cast<long long>(delay_range_.a_[0]) + delay_range_.inc_[0] >= delay_range_.b_[0];
+    }
+
+
+    bool
+    Connection::UsesCircularBuffer() const
+    {
+        return !IsSingleDelay(0) && !IsSingleDelay(1);
+    }
+
+
     range 
     Connection::Resolve(const range & source_output)
     {
@@ -3135,11 +3236,11 @@ namespace ikaros
                 target_range.inc_[target_range.rank()-1] = 1;
             }
         }
-        range trimmed_delay = delay_range_.trim();
-        int delay_size = trimmed_delay.empty() ? 1 : trimmed_delay.size();
+        int delay_size = DelayCount();
         if(delay_size > 1)
             target_range.push_front(0, delay_size);
-        if(delay_size*source_range.size() != target_range.size())
+        const long long source_size = static_cast<long long>(delay_size) * source_range.size();
+        if(source_size != target_range.size())
             throw exception("Connection could not be resolved: "+source+"."+std::string(source_range)+"=>"+target+"."+std::string(target_range));
 
         return target_range;
@@ -3163,7 +3264,7 @@ namespace ikaros
         auto & k = kernel();
 
         if(IsWholeMatrixConnection() &&
-            (delay_range_.is_delay_0() || delay_range_.empty() || delay_range_.is_delay_1()) &&
+            (IsSingleDelay(0) || IsSingleDelay(1)) &&
             (k.buffers[target].is_dynamic() || k.buffers[target].shape() == k.buffers[source].shape()))
         {
             if(k.buffers[target].is_dynamic())
@@ -3172,12 +3273,12 @@ namespace ikaros
             return;
         }
 
-        if(delay_range_.is_delay_0())
+        if(IsSingleDelay(0))
         {
             k.buffers[target].copy(k.buffers[source], target_range, source_range);
             //std::cout << source << " =0=> " << target << std::endl; 
         }
-        else if(delay_range_.empty() || delay_range_.is_delay_1())
+        else if(IsSingleDelay(1))
         {
             //std::cout << source << " =1=> " << target << std::endl; 
             k.buffers[target].copy(k.buffers[source], target_range, source_range);
@@ -3189,21 +3290,23 @@ namespace ikaros
             matrix ctarget = k.buffers[target];
             int target_offset = target_range.a_[0];
             for(auto delay = delay_range_; delay.more(); delay++)
-            {   
-                matrix s = k.circular_buffers[source].get(delay.index()[0]);
+            {
+                const int delay_value = delay.index()[0];
+                matrix s = delay_value == 0 ? k.buffers[source] :
+                           k.circular_buffers.at(source).get(delay_value);
 
                 for(auto ix=source_range; ix.more(); ix++)
                 {
                     int source_index = s.compute_index(ix.index());
-                    ctarget[target_offset++] = (*(s.data_))[source_index];
+                    ctarget(target_offset++) = (*(s.data_))[source_index];
                 }
             }
         }
 
-        else if(delay_range_.size() == 1) // Copy indexed delayed value with single delay
+        else if(DelayCount() == 1) // Copy indexed delayed value with single delay
         {
             //std::cout << source << " =D=> " << target << std::endl;
-            matrix s = k.circular_buffers[source].get(delay_range_.a_[0]);
+            matrix s = k.circular_buffers.at(source).get(MinDelay());
             k.buffers[target].copy(s, target_range, source_range);
         }
 
@@ -3213,8 +3316,10 @@ namespace ikaros
             int target_ix = 0;
             int delay_dimension = stacked_ ? 1 : 0;
             for(auto delay = delay_range_; delay.more(); delay++, target_ix++)
-            {   
-                matrix s = k.circular_buffers[source].get(delay.index()[0]);
+            {
+                const int delay_value = delay.index()[0];
+                matrix s = delay_value == 0 ? k.buffers[source] :
+                           k.circular_buffers.at(source).get(delay_value);
                 range tr = target_range;
                 tr.set(delay_dimension, target_ix, target_ix + 1, 1);
                 k.buffers[target].copy(s, tr, source_range);
@@ -3809,7 +3914,7 @@ bool operator==(Request & r, const std::string s)
         {
             connection.shared_memory_ = false;
 
-            if(!connection.delay_range_.is_delay_0())
+            if(!connection.IsSingleDelay(0))
                 continue;
 
             if(Component * source_component = ComponentForValuePath(connection.source); source_component != nullptr && source_component->async_mode)
@@ -3847,14 +3952,12 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::CalculateDelays()
     {
+        max_delays.clear();
         for(auto & c : connections)
         {
-            if(!max_delays.count(c.source))
-                max_delays[c.source] = 0;
-            if(c.delay_range_.extent()[0] > max_delays[c.source])
-            {
-                max_delays[c.source] = c.delay_range_.extent()[0];
-            }
+            if(!c.UsesCircularBuffer())
+                continue;
+            max_delays[c.source] = std::max(max_delays[c.source], c.MaxDelay());
         }
 
         enum class DataSnapshotKind
@@ -3880,30 +3983,14 @@ bool operator==(Request & r, const std::string s)
         int
         ConnectionDelayMin(const Connection & connection)
         {
-            range delays = connection.delay_range_;
-            if(delays.empty())
-                return 1;
-
-            int min_delay = unresolved_startup_step;
-            for(auto delay = delays; delay.more(); delay++)
-                min_delay = std::min(min_delay, delay.index()[0]);
-
-            return min_delay == unresolved_startup_step ? 1 : min_delay;
+            return connection.MinDelay();
         }
 
 
         int
         ConnectionDelayMax(const Connection & connection)
         {
-            range delays = connection.delay_range_;
-            if(delays.empty())
-                return 1;
-
-            int max_delay = 0;
-            for(auto delay = delays; delay.more(); delay++)
-                max_delay = std::max(max_delay, delay.index()[0]);
-
-            return max_delay;
+            return connection.MaxDelay();
         }
 
     }
@@ -4066,10 +4153,24 @@ bool operator==(Request & r, const std::string s)
     {
         for(auto [buffer_name, delay] : max_delays)
         {
-            if(delay <= 1)
+            if(delay < 1)
                 continue;
-          if(buffers.count(buffer_name))
+            if(!buffers.count(buffer_name))
+                continue;
+
+            try
+            {
                 circular_buffers.emplace(buffer_name, CircularBuffer(buffers[buffer_name], delay));
+            }
+            catch(const std::bad_alloc &)
+            {
+                throw setup_failed("Could not allocate " + std::to_string(delay) +
+                                   " ticks of delay history for \"" + buffer_name + "\".", buffer_name);
+            }
+            catch(const std::length_error &)
+            {
+                throw setup_failed("Delay history for \"" + buffer_name + "\" is too large.", buffer_name);
+            }
         }
     }
 
@@ -5021,7 +5122,17 @@ bool operator==(Request & r, const std::string s)
             delay_range = "[1]";
         else if(delay_range[0] != '[')
             delay_range = "["+delay_range+"]";
-        range r(delay_range);
+        range r;
+        try
+        {
+            r = range(delay_range);
+        }
+        catch(const std::exception &)
+        {
+            throw build_failed("Connection \"" + source + " => " + target +
+                               "\" has malformed delay range \"" + delay_range + "\".", path);
+        }
+        ValidateConnectionDelayRange(r, source, target, path);
         connections.push_back(Connection(source, target, r, label));
     }
 
@@ -5773,9 +5884,8 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::Propagate()
     {
-
-         for(auto & c : connections)
-            if(c.delay_range_.is_delay_0())
+        for(auto & c : connections)
+            if(c.HasZeroDelay())
                 continue;
             else if(ConnectionTouchesRunningAsyncComponent(c))
                 continue;
@@ -5784,12 +5894,16 @@ bool operator==(Request & r, const std::string s)
                 {
                     c.Tick();
                 }
-                catch(const std::exception& e)
+                catch(const std::exception & e)
                 {
-                    std::cerr << e.what() << '\n';
+                    throw std::runtime_error("Error propagating connection \"" +
+                                             c.Info() + "\": " + e.what());
                 }
-                
-                
+                catch(...)
+                {
+                    throw std::runtime_error("Unknown error propagating connection \"" +
+                                             c.Info() + "\".");
+                }
     }
 
 
@@ -6024,8 +6138,8 @@ bool operator==(Request & r, const std::string s)
             task_map[s] = c.get(); // Save in task map
         }
 
-        for(auto & c : connections) // Only zero-delay connections are sorted into tasks
-        if(c.delay_range_.is_delay_0())
+        for(auto & c : connections) // Connections containing delay zero are sorted into tasks
+        if(c.HasZeroDelay())
             {
                 std::string s = peek_rhead(c.source,".");
                 std::string t = peek_rhead(c.target,".");

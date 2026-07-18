@@ -1,0 +1,71 @@
+<group internal="true"
+    name="BenchmarkDelayedPropagation"
+    description="Measure the normal path through 64 delayed scalar connections"
+    start="true">
+    <module class="DelaySequenceSource" name="Source" />
+    <module class="DelayPropagationBenchmarkSink" name="Sink" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[0]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[1]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[2]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[3]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[4]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[5]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[6]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[7]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[8]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[9]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[10]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[11]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[12]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[13]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[14]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[15]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[16]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[17]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[18]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[19]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[20]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[21]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[22]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[23]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[24]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[25]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[26]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[27]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[28]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[29]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[30]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[31]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[32]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[33]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[34]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[35]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[36]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[37]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[38]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[39]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[40]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[41]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[42]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[43]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[44]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[45]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[46]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[47]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[48]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[49]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[50]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[51]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[52]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[53]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[54]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[55]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[56]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[57]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[58]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[59]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[60]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[61]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[62]" delay="2" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[63]" delay="2" />
+</group>

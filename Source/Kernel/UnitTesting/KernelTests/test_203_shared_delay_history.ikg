@@ -1,0 +1,12 @@
+<group internal="true"
+    name="TestSharedDelayHistory"
+    description="Use the deepest requested history for delay windows sharing one source"
+    start="true"
+    stop="5"
+    expected_output_contains="TestSharedDelayHistory.ShortSink DELAY WINDOW TEST OK||TestSharedDelayHistory.LongSink DELAY WINDOW TEST OK">
+    <module class="DelaySequenceSource" name="Source" />
+    <module class="DelayWindowSink" name="ShortSink" />
+    <module class="DelayWindowSink" name="LongSink" second_delay="2" third_delay="4" />
+    <connection source="Source.OUTPUT" target="ShortSink.INPUT" delay="[0:3]" />
+    <connection source="Source.OUTPUT" target="LongSink.INPUT" delay="[0:5:2]" />
+</group>

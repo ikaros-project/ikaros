@@ -1,36 +1,74 @@
 // range.cc   (c) Christian Balkenius 2023
 
 #include <iostream>
+#include <limits>
+#include <stdexcept>
 
 #include "range.h"
 #include "utilities.h"
 
 namespace ikaros
 {
+    namespace
+    {
+        int
+        RangeDimensionSize(int a, int b, int increment)
+        {
+            if(increment == 0 || b <= a)
+                return 0;
+
+            const long long span = static_cast<long long>(b) - a;
+            const long long step = increment > 0 ? increment : -static_cast<long long>(increment);
+            const long long count = 1 + (span - 1) / step;
+            if(count > std::numeric_limits<int>::max())
+                throw std::overflow_error("Range size exceeds the supported integer size");
+            return static_cast<int>(count);
+        }
+
+
+        int
+        RangeStartIndex(int a, int b, int increment)
+        {
+            const int count = RangeDimensionSize(a, b, increment);
+            if(count == 0)
+                return increment == 0 ? 0 : a;
+            if(increment > 0)
+                return a;
+
+            const long long step = -static_cast<long long>(increment);
+            return static_cast<int>(static_cast<long long>(a) + (count - 1) * step);
+        }
+    }
+
+
     range::range() {};
     range::range(int a, int b, int inc):
         inc_(std::vector<int>{inc}),
         a_(std::vector<int>{a}),
         b_(std::vector<int>{b}),
-        index_(std::vector<int>{inc>0 ? a : a+inc*((b-a-1)/inc)})
+        index_(std::vector<int>{RangeStartIndex(a, b, inc)})
      {};
-     range::range(int a) : range(a, a+1, 1) {};
+    range::range(int a)
+    {
+        if(a == std::numeric_limits<int>::max())
+            throw std::out_of_range("Range index is too large");
+        push(a, a + 1, 1);
+    };
 
      range & range::push(int a, int b, int inc)
      {
         a_.push_back(a);
         b_.push_back(b);
         inc_.push_back(inc);
-        if(inc == 0)
-            index_.push_back(0);
-        else
-            index_.push_back(inc>0 ? a : a+inc*((b-a)/inc));
+        index_.push_back(RangeStartIndex(a, b, inc));
         return *this;
      }
 
      range & range::push(int a)
      {
-        return push(a, a+1, 1);
+        if(a == std::numeric_limits<int>::max())
+            throw std::out_of_range("Range index is too large");
+        return push(a, a + 1, 1);
      }
 
      range & range::push()
@@ -44,10 +82,7 @@ namespace ikaros
         a_.insert(a_.begin(), a);
         b_.insert(b_.begin(), b);
         inc_.insert(inc_.begin(), inc);
-        if(inc == 0)
-            index_.insert(index_.begin(), 0);
-        else
-            index_.insert(index_.begin(),inc>0 ? a : a+inc*((b-a)/inc));
+        index_.insert(index_.begin(), RangeStartIndex(a, b, inc));
         return *this;
     }
 
@@ -71,7 +106,7 @@ namespace ikaros
             a_[i] = std::min(a_[i], r.a_[i]);
             b_[i] = std::max(b_[i], r.b_[i]);
             inc_[i] = r.inc_[i];
-            index_[i] = inc_[i]>0 ? a_[i] : a_[i]+inc_[i]*((b_[i]-a_[i]-1)/inc_[i]);
+            index_[i] = RangeStartIndex(a_[i], b_[i], inc_[i]);
         }
         return *this;
    } 
@@ -86,6 +121,7 @@ namespace ikaros
                 a_[i] = r.a_[i];
                 b_[i] = r.b_[i];
                 inc_[i] = r.inc_[i];
+                index_[i] = RangeStartIndex(a_[i], b_[i], inc_[i]);
             }
             return *this;
     }
@@ -117,7 +153,12 @@ namespace ikaros
                     if(r[0].empty())
                         push(0, 0, 0);
                     else
-                        push(std::stoi(r[0]), std::stoi(r[0])+1, 1); // single index
+                    {
+                        int index = std::stoi(r[0]);
+                        if(index == std::numeric_limits<int>::max())
+                            throw std::out_of_range("Range index is too large");
+                        push(index, index + 1, 1); // single index
+                    }
                 }
                 else if(r.size()==2)
                 {
@@ -167,9 +208,7 @@ namespace ikaros
         if (d < 0 || d >= index_.size()) {
             throw std::out_of_range("Index out of bounds in reset.");
         }
-        if (inc_[d] == 0)
-            return *this;
-        index_[d] = inc_[d] > 0 ? a_[d] : a_[d] + inc_[d] * ((b_[d] - a_[d] - 1) / inc_[d]);
+        index_[d] = RangeStartIndex(a_[d], b_[d], inc_[d]);
         return *this;
     }
 
@@ -189,7 +228,8 @@ namespace ikaros
     {
         if(inc_.empty())
             return false;
-        return (inc_[d] > 0 && index_[d] < b_[d]) || (inc_[d] < 0 && index_[d] >= a_[d]);
+        return inc_[d] != 0 && a_[d] < b_[d] &&
+               index_[d] >= a_[d] && index_[d] < b_[d];
     };
 
     
@@ -198,6 +238,7 @@ namespace ikaros
         range r = *this;
         for(int d=0; d<index_.size(); d++)
         {
+            r.index_[d] -= r.a_[d];
             r.b_[d] -= r.a_[d];
             r.a_[d] = 0;
         }
@@ -210,7 +251,7 @@ namespace ikaros
     {
         range r;
         for(int i=0; i<index_.size(); i++)
-            if(b_[i]-a_[i] > 1)
+            if(size(i) > 1)
                 r.push(a_[i], b_[i], inc_[i]);
 
         if(r.empty())
@@ -256,7 +297,7 @@ namespace ikaros
         if (d < 0 || d >= a_.size()) {
             throw std::out_of_range("Index out of bounds in empty.");
         }
-        return a_[d] == b_[d] || inc_[d] == 0;
+        return size(d) == 0;
     }
 
     range::operator std::vector<int> &() { return index(); };
@@ -269,7 +310,7 @@ namespace ikaros
         a_.at(d) = a;
         b_.at(d) = b;
         inc_.at(d) = inc;
-        index_.at(d) = inc_[d] > 0 ? a_[d] : a_[d] + inc_[d] * ((b_[d] - a_[d] - 1) / inc_[d]);
+        index_.at(d) = RangeStartIndex(a_[d], b_[d], inc_[d]);
         return *this;
     }
 
@@ -427,10 +468,9 @@ namespace ikaros
     int
     range::size(int d) const
     {
-        if(inc_[d]==0)
-            return 0; // FIXME: should this throw an expection?
-        else
-            return (b_[d]-a_[d])/inc_[d];
+        if(d < 0 || d >= rank())
+            throw std::out_of_range("Range dimension is out of bounds");
+        return RangeDimensionSize(a_[d], b_[d], inc_[d]);
     }
 
     int 
@@ -439,10 +479,17 @@ namespace ikaros
         if(index_.size() == 0)
             return 0;
 
-        int s=1;
+        int s = 1;
         for(int d=0; d<index_.size(); d++)
-            s *= size(d);
-      return s;
+        {
+            const int dimension_size = size(d);
+            if(dimension_size == 0)
+                return 0;
+            if(s > std::numeric_limits<int>::max() / dimension_size)
+                throw std::overflow_error("Range size exceeds the supported integer size");
+            s *= dimension_size;
+        }
+        return s;
     }
 
     std::ostream& operator<<(std::ostream& os, const range & x);

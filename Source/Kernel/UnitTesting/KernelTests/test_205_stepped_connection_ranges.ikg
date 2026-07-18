@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestSteppedConnectionRanges"
+    description="Resolve non-divisible stepped source and target selectors by cardinality"
+    start="true"
+    stop="1"
+    expected_output_contains="{10, 0, 30, 0, 50, 0}">
+    <module class="Constant" name="Source" data="10,20,30,40,50" />
+    <module class="Print" name="Sink" />
+    <connection source="Source.OUTPUT[0:5:2]" target="Sink.INPUT[0:6:2]" delay="0" />
+</group>

@@ -1,0 +1,3 @@
+<class internal="true" name="DelayFlatWindowSink" description="Checks a flattened mixed-zero delay window">
+    <input name="INPUT" flatten="yes" description="Three delayed two-element samples." />
+</class>

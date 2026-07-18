@@ -300,6 +300,11 @@ Example response:
 }
 ```
 
+`cpu_usage` is the Ikaros process's user-plus-system CPU time divided by the elapsed wall time and
+the detected `cpu_cores`. It is a fraction of total machine CPU capacity, not a percentage of one
+core. For example, one fully occupied core on an eight-core system is approximately `0.125`. The
+first sample after initialization is `0` while the kernel establishes a baseline.
+
 ### /data
 
 Get a buffer as plain text CSV-like output.

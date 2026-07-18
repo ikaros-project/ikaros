@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestExcessiveDelay"
+    description="Reject connection delays beyond the supported history limit"
+    expected_exit="1"
+    expected_output_contains="delay range must not exceed 100 ticks">
+    <module class="Constant" name="Source" data="1" />
+    <module class="Print" name="Sink" />
+    <connection source="Source.OUTPUT" target="Sink.INPUT" delay="101" />
+</group>

@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestMixedZeroDelay"
+    description="Propagate mixed zero and positive delay windows in dependency order"
+    start="true"
+    stop="3"
+    expected_output_contains="TestMixedZeroDelay.Sink DELAY WINDOW TEST OK">
+    <module class="DelaySequenceSource" name="Source" />
+    <module class="DelayWindowSink" name="Sink" />
+    <connection source="Source.OUTPUT" target="Sink.INPUT" delay="[0:3]" />
+</group>

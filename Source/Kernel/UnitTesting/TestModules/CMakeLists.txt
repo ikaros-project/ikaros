@@ -13,6 +13,7 @@ add_subdirectory(PersistentStateTestModule)
 add_subdirectory(AsyncLifecycleTestModule)
 add_subdirectory(TaskLifecycleTestModule)
 add_subdirectory(CPUUsageTestModule)
+add_subdirectory(DelayTestModule)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)
