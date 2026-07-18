@@ -10,9 +10,9 @@ The WebUI update path now uses a server-side snapshot cache to keep `/update` re
 
 ## Multi-Browser Behavior
 
-- Subscriptions are tracked per session.
-- The snapshot includes the union of values requested by all active sessions.
-- Inactive sessions expire automatically after a short timeout.
+- Subscriptions and log delivery cursors are tracked per WebUI client.
+- The snapshot includes the union of values requested by all active clients.
+- Inactive clients expire automatically after a short timeout.
 
 This means one browser can change view without disturbing another browser that is showing different data.
 
@@ -39,8 +39,10 @@ These settings affect snapshot-backed `/update` image data. They do not change t
 Related top-group parameter:
 
 - `webui_log_buffer_limit`
-  Maximum number of pending log messages kept for the next `/update` response before older entries are dropped.
+  Maximum number of recent log messages retained for delivery to WebUI clients.
   Default: `500`
+
+Log delivery is independent of snapshot replacement. Each client advances its own cursor through the retained history, so messages emitted between snapshots remain available and another client's request cannot consume them. If a client falls behind far enough for messages to leave the bounded history, its next response includes a truncation warning.
 
 ## Why This Helps
 

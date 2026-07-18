@@ -106,5 +106,5 @@ The top group can define a few parameters that affect WebUI update behavior:
   Default: `70`
 
 - `webui_log_buffer_limit`
-  Maximum number of pending log messages kept for the next `/update` response before older entries are dropped.
+  Maximum number of recent log messages retained for independent, once-only delivery to each active WebUI client. A client that falls behind the retained history receives a truncation warning.
   Default: `500`

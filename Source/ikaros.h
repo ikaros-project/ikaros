@@ -450,6 +450,7 @@ public:
 struct Request
     {
         long       session_id;
+        long       client_id;
         dictionary parameters;
         value      json_body;
         std::string url;
@@ -457,7 +458,7 @@ struct Request
         std::string component_path;
         std::string body;
 
-        Request(std::string  uri, long sid=0, std::string body="", std::string content_type="");  // Add client id later
+        Request(std::string uri, long sid=0, std::string body="", std::string content_type="", long cid=0);
         bool HasJsonBody() const;
         void MergeJsonBodyIntoParameters(bool overwrite=true);
     };
@@ -522,7 +523,8 @@ public:
     std::unique_ptr<ServerSocket>           socket;
     std::mutex                              log_mutex;
     std::vector<Message>                    log;
-    size_t                                  dropped_webui_log_messages = 0;
+    uint64_t                                first_webui_log_sequence = 1;
+    uint64_t                                next_webui_log_sequence = 1;
     std::thread                             httpThread;
 
     struct RequestedUIValue
@@ -541,22 +543,22 @@ public:
         tick_count tick = -1;
         double image_timestamp = 0;
         std::string status_json;
-        std::string log_json;
         std::unordered_map<std::string, std::string> serialized_values;
     };
 
-    struct UISubscriptionState
+    struct UIClientState
     {
         std::unordered_set<std::string> keys;
         double last_seen_time = 0;
-        uint64_t delivered_log_snapshot_id = 0;
+        uint64_t delivered_log_sequence = 0;
+        bool log_delivery_initialized = false;
     };
 
     uint64_t                                next_ui_snapshot_id = 1;
     std::shared_ptr<const UISnapshot>       current_ui_snapshot;
     std::mutex                              ui_snapshot_mutex;
-    std::unordered_map<long, UISubscriptionState> ui_session_subscriptions;
-    std::mutex                              ui_subscriptions_mutex;
+    std::unordered_map<long, UIClientState>       ui_client_states;
+    std::mutex                                    ui_client_mutex;
 
     Kernel();
     ~Kernel();
@@ -781,14 +783,13 @@ private:
     std::string DoSendDataStatus();
     std::string NormalizeUIRoot(const std::string & component_path) const;
     double SnapshotInterval() const;
-    size_t MaxPendingWebUILogMessages() const;
+    size_t MaxRetainedWebUILogMessages() const;
     int SnapshotJPEGQualityForFormat(const std::string & format) const;
     std::vector<RequestedUIValue> ParseRequestedUIValues(Request & request);
     RequestedUIValue ParseSubscribedUIValue(const std::string & subscription_key) const;
     std::string SubscriptionKeyFor(const RequestedUIValue & requested_value) const;
     bool SerializeRequestedValue(RequestedUIValue requested_value, std::string & serialized_value, long long * compute_us = nullptr, long long * value_us = nullptr);
-    std::string SerializePendingLog(bool clear_pending_log);
-    std::string ConsumeSnapshotLogForSession(long ui_session_id, const UISnapshot & snapshot);
+    std::string ConsumeLogForClient(long ui_client_id);
     void ResetUISnapshotCache();
     void BuildUISnapshot();
 

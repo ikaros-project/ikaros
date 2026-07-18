@@ -44,7 +44,7 @@ def run_http_test(cmd, root):
     http_output = []
     session_id = None
 
-    def request(path, retries=1, record=True):
+    def request(path, retries=1, record=True, client_id=None):
         nonlocal session_id
         url = f"http://127.0.0.1:{port}/{path}"
         last_error = None
@@ -53,6 +53,8 @@ def run_http_test(cmd, root):
                 headers = {}
                 if session_id is not None:
                     headers["Session-Id"] = session_id
+                if client_id is not None:
+                    headers["Client-Id"] = str(client_id)
                 request = urllib.request.Request(url, headers=headers)
                 with urllib.request.urlopen(request, timeout=5) as response:
                     response_session_id = response.headers.get("Session-Id")
@@ -103,6 +105,36 @@ def run_http_test(cmd, root):
                         f"Snapshot tick {package['tick']!r} does not match "
                         f"{data_key} value {data_value!r}"
                     )
+            elif action.startswith("assert_log_fanout:"):
+                _, path, expected, expected_count = action.split(":", 3)
+                expected_count = int(expected_count)
+
+                def log_messages(body):
+                    package = json.loads(body)
+                    return [
+                        str(message[1])
+                        for message in package.get("log", [])
+                        if len(message) > 1
+                    ]
+
+                for client_id in (101, 202):
+                    messages = log_messages(request(path, client_id=client_id))
+                    count = sum(expected in message for message in messages)
+                    if count != expected_count:
+                        raise AssertionError(
+                            f"Client {client_id} received {count} log messages "
+                            f"containing {expected!r}; expected {expected_count}. "
+                            f"Received: {messages!r}"
+                        )
+
+                for client_id in (101, 202):
+                    messages = log_messages(request(path, client_id=client_id))
+                    count = sum(expected in message for message in messages)
+                    if count != 0:
+                        raise AssertionError(
+                            f"Client {client_id} received {count} duplicate log "
+                            f"messages containing {expected!r}"
+                        )
             else:
                 request(action)
 

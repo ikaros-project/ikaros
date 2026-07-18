@@ -57,7 +57,7 @@ namespace ikaros
 
     namespace
     {
-        constexpr size_t default_max_pending_webui_log_messages = 500;
+        constexpr size_t default_max_retained_webui_log_messages = 500;
         constexpr int maximum_connection_delay = 100;
 
         bool is_internal(const dictionary & info)
@@ -590,8 +590,8 @@ namespace ikaros
             limit_param["_tag"] = "parameter";
             limit_param["name"] = "webui_log_buffer_limit";
             limit_param["type"] = "number";
-            limit_param["default"] = static_cast<int>(default_max_pending_webui_log_messages);
-            limit_param["description"] = "Maximum number of pending log messages kept for the next WebUI update before older messages are dropped.";
+            limit_param["default"] = static_cast<int>(default_max_retained_webui_log_messages);
+            limit_param["description"] = "Maximum number of recent log messages retained for delivery to WebUI clients.";
             return limit_param;
         }
 
@@ -621,29 +621,6 @@ namespace ikaros
             std::string prefix;
             std::string value;
         };
-
-        bool log_json_empty(const std::string & log_json)
-        {
-            return log_json.empty() || log_json == ",\n\"log\": []";
-        }
-
-        std::string merge_log_json(std::string first, const std::string & second)
-        {
-            if(log_json_empty(first))
-                return second;
-            if(log_json_empty(second))
-                return first;
-
-            const std::string first_suffix = "]";
-            const std::string second_prefix = ",\n\"log\": [";
-            if(!ends_with(first, first_suffix) || second.rfind(second_prefix, 0) != 0)
-                return first;
-
-            first.pop_back();
-            first += ",";
-            first += second.substr(second_prefix.size());
-            return first;
-        }
 
         constexpr char ui_subscription_separator = '\n';
         constexpr double ui_subscription_timeout_seconds = 10.0;
@@ -3371,11 +3348,12 @@ Class::Class(std::string n, std::string p) : info_(), module_creator(nullptr), n
 
     // Request
 
-    Request::Request(std::string  uri, long sid, std::string b, std::string content_type):
+    Request::Request(std::string uri, long sid, std::string b, std::string content_type, long cid):
         body(b)
     {
         url = uri;
         session_id = sid;
+        client_id = cid;
         uri.erase(0, 1);
         std::string params = tail(uri, "?");
         //std::cout << params << std::endl;
@@ -4270,7 +4248,7 @@ bool operator==(Request & r, const std::string s)
         for(auto & s : log)
             std::cout << "ikaros: " << s.level_ << ": " << s.message_ << '\n';
         log.clear();
-        dropped_webui_log_messages = 0;
+        first_webui_log_sequence = next_webui_log_sequence;
     }
 
 
@@ -6568,13 +6546,14 @@ bool operator==(Request & r, const std::string s)
             const std::string timestamped_message = "[" + TimeString(GetTime()) + "] " + message;
             {
                 std::lock_guard<std::mutex> lock(log_mutex);
-                const size_t max_pending_webui_log_messages = MaxPendingWebUILogMessages();
-                if(log.size() >= max_pending_webui_log_messages)
+                const size_t max_retained_webui_log_messages = MaxRetainedWebUILogMessages();
+                while(log.size() >= max_retained_webui_log_messages)
                 {
                     log.erase(log.begin());
-                    ++dropped_webui_log_messages;
+                    ++first_webui_log_sequence;
                 }
                 log.push_back(Message(msg, timestamped_message, path));
+                ++next_webui_log_sequence;
             }
 
         std::cout << timestamped_message;
@@ -6924,7 +6903,7 @@ bool operator==(Request & r, const std::string s)
 
 
     size_t
-    Kernel::MaxPendingWebUILogMessages() const
+    Kernel::MaxRetainedWebUILogMessages() const
     {
         if(parameters.count("webui_log_buffer_limit"))
         {
@@ -6936,7 +6915,7 @@ bool operator==(Request & r, const std::string s)
             {
             }
         }
-        return default_max_pending_webui_log_messages;
+        return default_max_retained_webui_log_messages;
     }
 
 
@@ -7075,46 +7054,46 @@ bool operator==(Request & r, const std::string s)
 
 
     std::string
-    Kernel::SerializePendingLog(bool clear_pending_log)
+    Kernel::ConsumeLogForClient(long ui_client_id)
     {
         std::string response = ",\n\"log\": [";
         std::string sep;
-        std::lock_guard<std::mutex> lock(log_mutex);
-        if(dropped_webui_log_messages > 0)
+        std::lock_guard<std::mutex> client_lock(ui_client_mutex);
+        std::lock_guard<std::mutex> log_lock(log_mutex);
+
+        auto & client_state = ui_client_states[ui_client_id];
+        const uint64_t latest_sequence = next_webui_log_sequence - 1;
+
+        if(!client_state.log_delivery_initialized)
         {
+            client_state.delivered_log_sequence = first_webui_log_sequence - 1;
+            client_state.log_delivery_initialized = true;
+        }
+
+        uint64_t next_sequence = client_state.delivered_log_sequence + 1;
+        if(next_sequence < first_webui_log_sequence && next_sequence <= latest_sequence)
+        {
+            const uint64_t dropped_count = first_webui_log_sequence - next_sequence;
             const std::string dropped_message =
-                "WebUI log truncated. Dropped " + std::to_string(dropped_webui_log_messages) +
-                " older log message" + (dropped_webui_log_messages == 1 ? "" : "s") + ".";
+                "WebUI log truncated. Dropped " + std::to_string(dropped_count) +
+                " older log message" + (dropped_count == 1 ? "" : "s") + " for this client.";
             response += Message(msg_warning, dropped_message).json();
             sep = ",";
+            next_sequence = first_webui_log_sequence;
         }
-        for(auto line : log)
+
+        for(uint64_t sequence = next_sequence; sequence <= latest_sequence; ++sequence)
         {
-            response += sep + line.json();
+            const size_t index = static_cast<size_t>(sequence - first_webui_log_sequence);
+            response += sep + log[index].json();
             sep = ",";
         }
+
+        client_state.delivered_log_sequence =
+            std::max(client_state.delivered_log_sequence, latest_sequence);
         response += "]";
-        if(clear_pending_log)
-        {
-            log.clear();
-            dropped_webui_log_messages = 0;
-        }
         return response;
     }
-
-
-    std::string
-    Kernel::ConsumeSnapshotLogForSession(long ui_session_id, const UISnapshot & snapshot)
-    {
-        std::lock_guard<std::mutex> lock(ui_subscriptions_mutex);
-        auto & session_subscription = ui_session_subscriptions[ui_session_id];
-        if(session_subscription.delivered_log_snapshot_id == snapshot.snapshot_id)
-            return "";
-        session_subscription.delivered_log_snapshot_id =
-            std::max(session_subscription.delivered_log_snapshot_id, snapshot.snapshot_id);
-        return snapshot.log_json;
-    }
-
 
     void
     Kernel::ResetUISnapshotCache()
@@ -7124,8 +7103,14 @@ bool operator==(Request & r, const std::string s)
             current_ui_snapshot.reset();
         }
         {
-            std::lock_guard<std::mutex> lock(ui_subscriptions_mutex);
-            ui_session_subscriptions.clear();
+            const double now = GetRealTime();
+            std::lock_guard<std::mutex> lock(ui_client_mutex);
+            for(auto & client_entry : ui_client_states)
+            {
+                auto & client_state = client_entry.second;
+                client_state.keys.clear();
+                client_state.last_seen_time = now;
+            }
         }
     }
 
@@ -7136,11 +7121,11 @@ bool operator==(Request & r, const std::string s)
         std::unordered_set<std::string> subscriptions;
         double now = GetRealTime();
         {
-            std::lock_guard<std::mutex> lock(ui_subscriptions_mutex);
-            for(auto it = ui_session_subscriptions.begin(); it != ui_session_subscriptions.end();)
+            std::lock_guard<std::mutex> lock(ui_client_mutex);
+            for(auto it = ui_client_states.begin(); it != ui_client_states.end();)
             {
                 if(now - it->second.last_seen_time > ui_subscription_timeout_seconds)
-                    it = ui_session_subscriptions.erase(it);
+                    it = ui_client_states.erase(it);
                 else
                 {
                     subscriptions.insert(it->second.keys.begin(), it->second.keys.end());
@@ -7162,7 +7147,6 @@ bool operator==(Request & r, const std::string s)
         snapshot->tick = tick;
         snapshot->image_timestamp = refresh_images ? now : (previous_snapshot ? previous_snapshot->image_timestamp : now);
         snapshot->status_json = DoSendDataStatus();
-        snapshot->log_json = SerializePendingLog(true);
 
         std::vector<std::future<std::pair<std::string, std::string>>> image_futures;
         for(const auto & subscription_key : subscriptions)
@@ -7235,9 +7219,9 @@ bool operator==(Request & r, const std::string s)
 
 
     std::string
-    Kernel::DoSendLog(Request &)
+    Kernel::DoSendLog(Request & request)
     {
-        return SerializePendingLog(true);
+        return ConsumeLogForClient(request.client_id);
     }
 
 
@@ -7250,10 +7234,10 @@ bool operator==(Request & r, const std::string s)
         for(const auto & requested_value : requested_values)
             requested_subscriptions.insert(SubscriptionKeyFor(requested_value));
         {
-            std::lock_guard<std::mutex> lock(ui_subscriptions_mutex);
-            auto & session_subscription = ui_session_subscriptions[request.session_id];
-            session_subscription.keys = std::move(requested_subscriptions);
-            session_subscription.last_seen_time = GetRealTime();
+            std::lock_guard<std::mutex> lock(ui_client_mutex);
+            auto & client_state = ui_client_states[request.client_id];
+            client_state.keys = std::move(requested_subscriptions);
+            client_state.last_seen_time = GetRealTime();
         }
 
         if(refresh_paused_snapshot && run_mode.load() == run_mode_pause)
@@ -7270,15 +7254,13 @@ bool operator==(Request & r, const std::string s)
 
         long response_session_id = 0;
         std::string status;
-        std::string log_json;
+        std::string log_json = ConsumeLogForClient(request.client_id);
         if(snapshot != nullptr)
         {
             response_session_id = snapshot->session_id;
             if(use_snapshot_status)
                 status = snapshot->status_json;
-            log_json = ConsumeSnapshotLogForSession(request.session_id, *snapshot);
         }
-        log_json = merge_log_json(std::move(log_json), SerializePendingLog(true));
 
         std::vector<DataSnapshotItem> response_items;
         std::vector<std::pair<size_t, RequestedUIValue>> fallback_items;
@@ -7309,10 +7291,7 @@ bool operator==(Request & r, const std::string s)
         {
             std::lock_guard<std::recursive_mutex> lock(kernelLock);
             if(snapshot == nullptr)
-            {
                 response_session_id = session_id;
-                log_json = merge_log_json(std::move(log_json), SerializePendingLog(true));
-            }
             if(serialize_live_status)
                 status = DoSendDataStatus();
 
@@ -7942,20 +7921,15 @@ bool operator==(Request & r, const std::string s)
 
 
     void
-    Kernel::DoSendNetwork(Request &)
+    Kernel::DoSendNetwork(Request & request)
     {
         std::string s = json();
-        std::string log_json = SerializePendingLog(true);
-        if(log_json_empty(log_json))
         {
-            std::shared_ptr<const UISnapshot> snapshot;
-            {
-                std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
-                snapshot = current_ui_snapshot;
-            }
-            if(snapshot != nullptr && snapshot->session_id == session_id && !log_json_empty(snapshot->log_json))
-                log_json = snapshot->log_json;
+            std::lock_guard<std::mutex> lock(ui_client_mutex);
+            ui_client_states[request.client_id].last_seen_time = GetRealTime();
         }
+
+        std::string log_json = ConsumeLogForClient(request.client_id);
         if(s.size() > 0 && s.back() == '}')
         {
             s.pop_back();
@@ -8711,6 +8685,10 @@ bool operator==(Request & r, const std::string s)
         if(socket->header.contains_non_null("session-id"))
             sid = atol(std::string(socket->header["session-id"]).c_str());
 
+        long cid = 0;
+        if(socket->header.contains_non_null("client-id"))
+            cid = atol(std::string(socket->header["client-id"]).c_str());
+
         std::string content_type;
         if(socket->header.contains_non_null("content-type"))
             content_type = std::string(socket->header["content-type"]);
@@ -8718,7 +8696,7 @@ bool operator==(Request & r, const std::string s)
         std::optional<Request> parsed_request;
         try
         {
-            parsed_request.emplace(std::string(socket->header["uri"]), sid, socket->body, content_type);
+            parsed_request.emplace(std::string(socket->header["uri"]), sid, socket->body, content_type, cid);
         }
         catch(const std::exception & e)
         {
