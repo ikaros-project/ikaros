@@ -404,6 +404,12 @@ public:
     bool        target_indexed_;
     bool        stacked_;
     bool        shared_memory_;
+    matrix *    source_buffer_ = nullptr;
+    matrix *    target_buffer_ = nullptr;
+    CircularBuffer * circular_buffer_ = nullptr;
+    Component * source_component_ = nullptr;
+    Component * target_component_ = nullptr;
+    bool        has_async_endpoint_ = false;
 
     Connection(std::string s, std::string t, range & delay_range, std::string label="");
     virtual ~Connection() = default;
@@ -414,14 +420,16 @@ public:
     bool HasZeroDelay() const;
     bool IsSingleDelay(int delay) const;
     bool UsesCircularBuffer() const;
+    bool ShouldTick() const override;
+    void ResolveRuntimeState();
 
     range Resolve(const range & source_output);
     bool IsWholeMatrixConnection() const;
 
-    void Tick();
+    void Tick() override;
     void Print() const;
 
-    std::string Info() const; // FIXME: Make consistent with other classes
+    std::string Info() const override; // FIXME: Make consistent with other classes
 };
 
 //
@@ -710,7 +718,6 @@ private:
     void SortTasks();
     void RunTask(Task * task);
     void PollAsyncComponents();
-    bool ConnectionTouchesRunningAsyncComponent(const Connection & connection) const;
     bool ValueOwnedByRunningAsyncComponent(const std::string & value_path) const;
     Component * ComponentForValuePath(const std::string & value_path) const;
     void WaitForAsyncComponents(bool discard_pending_actions);

@@ -15,12 +15,25 @@
 
 class Task {
 public:
+    enum class Kind
+    {
+        generic,
+        component,
+        connection,
+    };
+
+    explicit Task(Kind kind = Kind::generic): kind_(kind) {}
+
+    Kind kind() const { return kind_; }
     virtual void Tick() = 0;
     virtual std::string Info() const = 0;
     virtual bool ShouldTick() const { return true; }
     virtual bool Priority() { return false; }
     virtual void ProfilingBegin() {};
     virtual void ProfilingEnd()  {};
+
+private:
+    Kind kind_;
 };
 
 

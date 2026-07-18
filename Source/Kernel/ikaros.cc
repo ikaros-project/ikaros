@@ -2168,6 +2168,7 @@ namespace ikaros
 
 
     Component::Component():
+        Task(Task::Kind::component),
         parent_(nullptr),
         info_(kernel().current_component_info),
         path_(kernel().current_component_path),
@@ -3111,7 +3112,8 @@ namespace ikaros
 
     // Connection
 
-    Connection::Connection(std::string s, std::string t, range & delay_range, std::string label)
+    Connection::Connection(std::string s, std::string t, range & delay_range, std::string label):
+        Task(Task::Kind::connection)
     {
         source = peek_head(s, "[");
         std::string source_selector = peek_tail(s, "[", true);
@@ -3173,6 +3175,34 @@ namespace ikaros
     Connection::UsesCircularBuffer() const
     {
         return !IsSingleDelay(0) && !IsSingleDelay(1);
+    }
+
+
+    bool
+    Connection::ShouldTick() const
+    {
+        if(!has_async_endpoint_)
+            return true;
+        if(source_component_ != nullptr && source_component_->IsAsyncRunning())
+            return false;
+        return target_component_ == nullptr ||
+               target_component_ == source_component_ ||
+               !target_component_->IsAsyncRunning();
+    }
+
+
+    void
+    Connection::ResolveRuntimeState()
+    {
+        auto & k = kernel();
+        source_buffer_ = &k.buffers.at(source);
+        target_buffer_ = &k.buffers.at(target);
+        circular_buffer_ = UsesCircularBuffer() ? &k.circular_buffers.at(source) : nullptr;
+        source_component_ = k.ComponentForValuePath(source);
+        target_component_ = k.ComponentForValuePath(target);
+        has_async_endpoint_ =
+            (source_component_ != nullptr && source_component_->async_mode) ||
+            (target_component_ != nullptr && target_component_->async_mode);
     }
 
 
@@ -3243,39 +3273,37 @@ namespace ikaros
         if(shared_memory_)
             return;
 
-        auto & k = kernel();
-
         if(IsWholeMatrixConnection() &&
             (IsSingleDelay(0) || IsSingleDelay(1)) &&
-            (k.buffers[target].is_dynamic() || k.buffers[target].shape() == k.buffers[source].shape()))
+            (target_buffer_->is_dynamic() || target_buffer_->shape() == source_buffer_->shape()))
         {
-            if(k.buffers[target].is_dynamic())
-                k.buffers[target].resize(k.buffers[source].shape());
-            k.buffers[target].copy(k.buffers[source]);
+            if(target_buffer_->is_dynamic())
+                target_buffer_->resize(source_buffer_->shape());
+            target_buffer_->copy(*source_buffer_);
             return;
         }
 
         if(IsSingleDelay(0))
         {
-            k.buffers[target].copy(k.buffers[source], target_range, source_range);
+            target_buffer_->copy(*source_buffer_, target_range, source_range);
             //std::cout << source << " =0=> " << target << std::endl; 
         }
         else if(IsSingleDelay(1))
         {
             //std::cout << source << " =1=> " << target << std::endl; 
-            k.buffers[target].copy(k.buffers[source], target_range, source_range);
+            target_buffer_->copy(*source_buffer_, target_range, source_range);
         }
 
         else if(flatten_) // Copy flattened delayed values
         {
             //std::cout << source << " =F=> " << target << std::endl; 
-            matrix ctarget = k.buffers[target];
+            matrix ctarget = *target_buffer_;
             int target_offset = target_range.a_[0];
             for(auto delay = delay_range_; delay.more(); delay++)
             {
                 const int delay_value = delay.index()[0];
-                matrix s = delay_value == 0 ? k.buffers[source] :
-                           k.circular_buffers.at(source).get(delay_value);
+                matrix s = delay_value == 0 ? *source_buffer_ :
+                           circular_buffer_->get(delay_value);
 
                 for(auto ix=source_range; ix.more(); ix++)
                 {
@@ -3288,8 +3316,8 @@ namespace ikaros
         else if(DelayCount() == 1) // Copy indexed delayed value with single delay
         {
             //std::cout << source << " =D=> " << target << std::endl;
-            matrix s = k.circular_buffers.at(source).get(MinDelay());
-            k.buffers[target].copy(s, target_range, source_range);
+            matrix s = circular_buffer_->get(MinDelay());
+            target_buffer_->copy(s, target_range, source_range);
         }
 
         else // Copy indexed delayed values with more than one element
@@ -3300,11 +3328,11 @@ namespace ikaros
             for(auto delay = delay_range_; delay.more(); delay++, target_ix++)
             {
                 const int delay_value = delay.index()[0];
-                matrix s = delay_value == 0 ? k.buffers[source] :
-                           k.circular_buffers.at(source).get(delay_value);
+                matrix s = delay_value == 0 ? *source_buffer_ :
+                           circular_buffer_->get(delay_value);
                 range tr = target_range;
                 tr.set(delay_dimension, target_ix, target_ix + 1, 1);
-                k.buffers[target].copy(s, tr, source_range);
+                target_buffer_->copy(s, tr, source_range);
 
             }
         }
@@ -5872,7 +5900,7 @@ bool operator==(Request & r, const std::string s)
         for(auto & c : connections)
             if(c.HasZeroDelay())
                 continue;
-            else if(ConnectionTouchesRunningAsyncComponent(c))
+            else if(!c.ShouldTick())
                 continue;
             else
                 try
@@ -6180,13 +6208,6 @@ bool operator==(Request & r, const std::string s)
     }
 
 
-    bool
-    Kernel::ConnectionTouchesRunningAsyncComponent(const Connection & connection) const
-    {
-        return ValueOwnedByRunningAsyncComponent(connection.source) || ValueOwnedByRunningAsyncComponent(connection.target);
-    }
-
-
     void
     Kernel::RunTask(Task * task)
     {
@@ -6195,8 +6216,9 @@ bool operator==(Request & r, const std::string s)
         if(!task->ShouldTick())
             return;
 
-        if(auto component = dynamic_cast<Component *>(task))
+        if(task->kind() == Task::Kind::component)
         {
+            auto * component = static_cast<Component *>(task);
             if(component->async_mode)
             {
                 if(component->async_publish_pending.exchange(false))
@@ -6210,10 +6232,6 @@ bool operator==(Request & r, const std::string s)
                 return;
             }
         }
-
-        if(auto connection = dynamic_cast<Connection *>(task))
-            if(ConnectionTouchesRunningAsyncComponent(*connection))
-                return;
 
         task->ProfilingBegin();
         try
@@ -6421,6 +6439,8 @@ bool operator==(Request & r, const std::string s)
             ShareZeroDelayConnectionBuffers();
 
             InitCircularBuffers();
+            for(auto & connection : connections)
+                connection.ResolveRuntimeState();
             InitComponents();
 
             if(info_.is_set("info"))
