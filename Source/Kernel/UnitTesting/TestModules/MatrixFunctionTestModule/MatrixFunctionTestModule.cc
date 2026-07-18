@@ -2,7 +2,9 @@
 
 #include <chrono>
 #include <cmath>
+#include <limits>
 #include <random>
+#include <sstream>
 
 using namespace ikaros;
 
@@ -116,6 +118,27 @@ namespace
         }
         throw exception("MatrixFunctionTestModule: " + message + " (expected exception)");
     }
+
+    template <typename Expected, typename Fn>
+    void require_throws_as(Fn && fn, const std::string & message)
+    {
+        try
+        {
+            fn();
+        }
+        catch(const Expected &)
+        {
+            return;
+        }
+        catch(const std::exception & e)
+        {
+            throw exception(
+                "MatrixFunctionTestModule: " + message +
+                " (unexpected exception: " + e.what() + ")"
+            );
+        }
+        throw exception("MatrixFunctionTestModule: " + message + " (expected exception)");
+    }
 }
 
 class MatrixFunctionTestModule : public Module
@@ -149,12 +172,104 @@ class MatrixFunctionTestModule : public Module
     {
         matrix uninitialized;
         require_true(uninitialized.size() == 0, "size() is zero for uninitialized matrix");
+        require_throws_as<std::invalid_argument>(
+            [&]() { matrix invalid_shape(-1, 2); },
+            "constructor should preserve invalid-dimension errors"
+        );
+        require_throws_as<std::out_of_range>(
+            [&]() { matrix oversized(std::numeric_limits<int>::max(), 2); },
+            "constructor should preserve shape-overflow errors"
+        );
+        require_throws([&]() { uninitialized[0]; }, "operator[] should reject uninitialized rank-zero matrices");
+        const matrix & const_uninitialized = uninitialized;
+        require_throws([&]() { const_uninitialized[0]; }, "const operator[] should reject rank-zero matrices");
         matrix scalar_source(1);
         matrix scalar = scalar_source[0];
         require_true(scalar.size() == 1, "size() is one for scalar matrix");
+        require_throws([&]() { scalar[0]; }, "operator[] should reject scalar rank-zero matrices");
+
+        matrix scalar_values = make_matrix("10, 42");
+        matrix scalar_copy;
+        scalar_copy.copy(scalar_values[1]);
+        require_true(scalar_copy.is_scalar(), "copy(scalar) produces a scalar matrix");
+        require_close(static_cast<float>(scalar_copy), 42.0f, "copy(scalar) honors source offset");
+        scalar_values(1) = 99.0f;
+        require_close(static_cast<float>(scalar_copy), 42.0f, "copy(scalar) performs a deep copy");
+
+        matrix scalar_apply_target_values = make_matrix("10, 20");
+        matrix scalar_apply_source_values = make_matrix("1, 2");
+        matrix scalar_apply_target = scalar_apply_target_values[1];
+        matrix scalar_apply_source = scalar_apply_source_values[0];
+        scalar_apply_target.apply(scalar_apply_source, [](float target, float source) { return target + source; });
+        require_close(scalar_apply_target_values(1), 21.0f, "apply() uses the source scalar offset");
+
+        matrix scalar_apply_second_source_values = make_matrix("4, 5, 6");
+        matrix scalar_apply_second_source = scalar_apply_second_source_values[2];
+        scalar_apply_target.apply(
+            scalar_apply_source,
+            scalar_apply_second_source,
+            [](float first, float second) { return first + second; }
+        );
+        require_close(scalar_apply_target_values(1), 7.0f, "ternary apply() uses both source scalar offsets");
+
+        float legacy_vector_data[] = {1.0f, 2.0f, 3.0f};
+        matrix legacy_vector(3, legacy_vector_data);
+        require_matrix_close(legacy_vector, make_matrix("1, 2, 3"), "legacy vector pointer constructor");
+        legacy_vector_data[0] = 9.0f;
+        require_close(legacy_vector(0), 1.0f, "legacy vector pointer constructor copies data");
+        require_throws(
+            [&]() { matrix invalid(3, static_cast<float *>(nullptr)); },
+            "legacy vector pointer constructor should reject null data"
+        );
+
+        float legacy_row_0[] = {1.0f, 2.0f, 3.0f};
+        float legacy_row_1[] = {4.0f, 5.0f, 6.0f};
+        float * legacy_matrix_data[] = {legacy_row_0, legacy_row_1};
+        matrix legacy_matrix(2, 3, legacy_matrix_data);
+        require_matrix_close(legacy_matrix, make_matrix("1, 2, 3; 4, 5, 6"), "legacy row pointer constructor");
+        legacy_row_1[0] = 9.0f;
+        require_close(legacy_matrix(1, 0), 4.0f, "legacy row pointer constructor copies data");
+        require_throws(
+            [&]() { matrix invalid(2, 3, static_cast<float **>(nullptr)); },
+            "legacy row pointer constructor should reject null rows"
+        );
+        float * null_row_data[] = {legacy_row_0, nullptr};
+        require_throws(
+            [&]() { matrix invalid(2, 3, null_row_data); },
+            "legacy row pointer constructor should reject null row pointers"
+        );
+
+        float ** legacy_matrix_rows = legacy_matrix;
+        require_close(legacy_matrix_rows[1][2], 6.0f, "legacy float** conversion");
+        legacy_matrix.reserve(3, 3);
+        legacy_matrix.resize(3, 3);
+        legacy_matrix.set(0.0f);
+        legacy_matrix(2, 2) = 7.0f;
+        legacy_matrix_rows = legacy_matrix;
+        require_close(legacy_matrix_rows[2][2], 7.0f, "legacy float** conversion refreshes row pointers");
 
         matrix values = make_matrix("1, 2; 3, 4");
         require_true(values.size() == 4, "size() is product of shape");
+        require_throws([&]() { values(0, 2) = 0.0f; }, "rank-2 access should reject a column at the logical bound");
+
+        std::ostringstream matrix_stream;
+        matrix_stream << values;
+        require_equal(matrix_stream.str(), "{{1, 2}, {3, 4}}", "operator<< writes to its stream");
+
+        matrix rank1(2);
+        require_throws([&]() { rank1(2) = 0.0f; }, "rank-1 access should reject an index at the logical bound");
+
+        matrix rank3(2, 2, 2);
+        require_throws([&]() { rank3(0, 0, 2) = 0.0f; }, "rank-3 access should reject an index at the logical bound");
+        require_throws([&]() { rank3(0, 0) = 0.0f; }, "mutable access should reject the wrong number of indices");
+
+        matrix rank4(2, 2, 2, 2);
+        require_throws([&]() { rank4(0, 0, 0, 2) = 0.0f; }, "rank-4 access should reject an index at the logical bound");
+
+        matrix strided(2, 4);
+        strided.resize(2, 2);
+        require_throws([&]() { strided(0, 2) = 0.0f; }, "strided access should reject an index outside the logical shape");
+
         values.add(1.0f);
         require_matrix_close(values, make_matrix("2, 3; 4, 5"), "add(float)");
         values.subtract(1.0f);
@@ -173,10 +288,49 @@ class MatrixFunctionTestModule : public Module
         require_shape(reshaped, {2, 3}, "reshape()");
         require_close(reshaped(1, 2), 6.0f, "reshape() preserves data order");
 
+        matrix initializer_list_matrix{1.0f, 2.0f};
+        require_true(!initializer_list_matrix.is_dynamic(), "initializer-list matrix is not dynamic");
+        initializer_list_matrix.append(3.0f);
+        require_matrix_close(initializer_list_matrix, make_matrix("1, 2, 3"), "initializer-list matrix can grow");
+
+        matrix resize_target(2, 2);
+        require_throws([&]() { resize_target.resize(-1, 2); }, "resize() should reject negative dimensions");
+        require_shape(resize_target, {2, 2}, "resize() keeps shape after invalid dimensions");
+        require_throws([&]() { resize_target.resize(3, 2); }, "resize() should reject dimensions beyond capacity");
+        require_throws([&]() { resize_target.resize(4); }, "resize() should reject a changed rank");
+
+        matrix reshape_target = make_matrix("1, 2, 3, 4");
+        require_throws([&]() { reshape_target.reshape(-1, 4); }, "reshape() should reject negative dimensions");
+        require_throws(
+            [&]() { reshape_target.reshape(std::numeric_limits<int>::max(), 2); },
+            "reshape() should reject overflowing dimensions"
+        );
+        require_shape(reshape_target, {4}, "reshape() keeps shape after invalid dimensions");
+
+        matrix realloc_target;
+        require_throws(
+            [&]() { realloc_target.realloc(std::numeric_limits<int>::max(), 2); },
+            "realloc() should reject overflowing dimensions"
+        );
+        require_throws([&]() { realloc_target.reserve(-1); }, "reserve() should reject negative capacity");
+
+        matrix reshape_parent = make_matrix("1, 2; 3, 4");
+        matrix reshape_view = reshape_parent[1];
+        require_throws([&]() { reshape_view.reshape(4); }, "reshape() should reject matrix views");
+        require_throws([&]() { reshape_view.realloc(4); }, "realloc() should reject matrix views");
+        require_throws([&]() { reshape_view.reserve(4); }, "reserve() should reject matrix views");
+        require_matrix_close(reshape_parent, make_matrix("1, 2; 3, 4"), "shape mutators preserve parent views");
+
         matrix original = make_matrix("1, 2; 3, 4");
         matrix copied;
         copied.copy(original);
         require_matrix_close(copied, original, "copy()");
+
+        matrix strided_submatrix(2, 4);
+        strided_submatrix.set(-1000.0f);
+        strided_submatrix.resize(2, 2);
+        strided_submatrix.submatrix(make_matrix("1, 2, 3; 4, 5, 6; 7, 8, 9"), {1, 1, 2, 2});
+        require_matrix_close(strided_submatrix, make_matrix("5, 6; 8, 9"), "submatrix() row-gapped destination");
 
         matrix transposed;
         original.transpose(transposed);
@@ -184,6 +338,14 @@ class MatrixFunctionTestModule : public Module
         const matrix & const_original = original;
         const_original.transpose(transposed);
         require_matrix_close(transposed, make_matrix("1, 3; 2, 4"), "const transpose()");
+
+        matrix in_place_transpose = make_matrix("1, 2, 3; 4, 5, 6; 7, 8, 9");
+        in_place_transpose.transpose(in_place_transpose);
+        require_matrix_close(
+            in_place_transpose,
+            make_matrix("1, 4, 7; 2, 5, 8; 3, 6, 9"),
+            "in-place transpose()"
+        );
 
         const matrix & const_scalar = scalar;
         require_close(static_cast<float>(const_scalar), 0.0f, "const scalar conversion");
@@ -201,6 +363,23 @@ class MatrixFunctionTestModule : public Module
             scoped_tracked.save();
             require_true(!const_scoped_tracked.changed(), "const changed() is false after resave");
         }
+        {
+            matrix reassigned_tracked = make_matrix("1, 2");
+            reassigned_tracked.last();
+            reassigned_tracked = make_matrix("3, 4");
+            reassigned_tracked.last();
+        }
+        save_matrix_states();
+
+        matrix copied_tracked = make_matrix("1, 2");
+        copied_tracked.last();
+        {
+            matrix copy = copied_tracked;
+            require_true(!copy.changed(), "copy construction preserves saved-state values");
+        }
+        copied_tracked(0) = 3.0f;
+        save_matrix_states();
+        require_true(!copied_tracked.changed(), "copy destruction leaves original saved-state registration intact");
 
         matrix stack(3, 2);
         stack.resize(0, 2);
@@ -392,6 +571,70 @@ class MatrixFunctionTestModule : public Module
         matrix inverse = make_matrix("4, 7; 2, 6");
         inverse.inv();
         require_matrix_close(inverse, make_matrix("0.6, -0.7; -0.2, 0.4"), "inv()", 1e-3f);
+
+        matrix strided_inverse(2, 4);
+        strided_inverse.set(-1000.0f);
+        strided_inverse.resize(2, 2);
+        strided_inverse.copy(make_matrix("4, 7; 2, 6"));
+        strided_inverse.inv();
+        require_matrix_close(strided_inverse, make_matrix("0.6, -0.7; -0.2, 0.4"), "inv() row-gapped", 1e-3f);
+
+#if defined(__APPLE__)
+        auto require_svd_reconstruction = [&](matrix input, const std::string & message)
+        {
+            matrix U;
+            matrix S;
+            matrix Vt;
+            input.singular_value_decomposition(input, U, S, Vt);
+
+            matrix US;
+            US.matmul(U, S);
+            matrix reconstructed;
+            reconstructed.matmul(US, Vt);
+            require_matrix_close(reconstructed, input, message, 1e-3f);
+        };
+
+        require_svd_reconstruction(
+            make_matrix("1, 2; 3, 4"),
+            "singular_value_decomposition() reconstruction"
+        );
+        require_svd_reconstruction(
+            make_matrix("1, 2; 3, 4; 5, 7"),
+            "singular_value_decomposition() tall reconstruction"
+        );
+
+        matrix strided_svd_input(2, 6);
+        strided_svd_input.set(-1000.0f);
+        strided_svd_input.resize(2, 3);
+        strided_svd_input.copy(make_matrix("1, 2, 3; 4, 5, 7"));
+        require_svd_reconstruction(
+            strided_svd_input,
+            "singular_value_decomposition() strided reconstruction"
+        );
+
+        matrix rank_one = make_matrix("1, 2; 2, 4");
+        require_close(rank_one.matrank(), 1.0f, "matrank()");
+
+        matrix trace_and_determinant = make_matrix("1, 2; 3, 4");
+        require_close(trace_and_determinant.trace(), 5.0f, "trace()");
+        require_close(trace_and_determinant.det(), -2.0f, "det()");
+
+        matrix pseudoinverse;
+        pseudoinverse.pinv(make_matrix("1, 0; 0, 2; 0, 0"));
+        require_matrix_close(pseudoinverse, make_matrix("1, 0, 0; 0, 0.5, 0"), "pinv()", 1e-3f);
+
+        matrix symmetric = make_matrix("2, 1; 1, 2");
+        auto [eigenvectors, eigenvalues] = symmetric.eig();
+        require_matrix_close(eigenvalues, make_matrix("1, 3"), "eig() eigenvalues", 1e-3f);
+        matrix eigenvectors_times_values(2, 2);
+        for(int row = 0; row < 2; ++row)
+            for(int col = 0; col < 2; ++col)
+                eigenvectors_times_values(row, col) = eigenvectors(row, col) * eigenvalues(col);
+        matrix eigenvector_product;
+        eigenvector_product.matmul(symmetric, eigenvectors);
+        require_matrix_close(eigenvector_product, eigenvectors_times_values, "eig() eigenvectors", 1e-3f);
+        require_throws([&]() { make_matrix("1, 2; 3, 4").eig(); }, "eig() should reject non-symmetric matrices");
+#endif
     }
 
     void test_image()
@@ -401,16 +644,94 @@ class MatrixFunctionTestModule : public Module
         require_shape(gaussian_kernel, {7, 7}, "gaussian()");
         require_close(gaussian_kernel.sum(), 1.0f, "gaussian() normalization", 1e-3f);
 
+        matrix downsample_source = make_matrix("1, 2, 3, 4; 5, 6, 7, 8; 9, 10, 11, 12; 13, 14, 15, 16");
+        matrix expected_downsample = make_matrix("3.5, 5.5; 11.5, 13.5");
+        matrix temporary_row;
+        matrix downsampled;
+        downsampled.downsample(downsample_source, temporary_row);
+        require_matrix_close(downsampled, expected_downsample, "downsample() with temporary row");
+        require_shape(temporary_row, {4}, "downsample() temporary row allocation");
+
+        matrix initialized_empty_row(0);
+        downsampled.downsample(downsample_source, initialized_empty_row);
+        require_shape(initialized_empty_row, {4}, "downsample() initialized empty row allocation");
+
+        matrix zero_width_source(4, 0);
+        matrix zero_width_temporary_row;
+        matrix zero_width_downsample;
+        zero_width_downsample.downsample(zero_width_source, zero_width_temporary_row);
+        require_shape(zero_width_downsample, {2, 0}, "downsample() zero-width result");
+        require_shape(zero_width_temporary_row, {0}, "downsample() zero-width temporary row");
+
+        float * temporary_row_data = temporary_row.data();
+        downsampled.downsample(downsample_source, temporary_row);
+        require_true(temporary_row.data() == temporary_row_data, "downsample() temporary row reuse");
+
+        matrix compatibility_downsample;
+        compatibility_downsample.downsample(downsample_source);
+        require_matrix_close(compatibility_downsample, expected_downsample, "downsample() compatibility overload");
+
+        matrix strided_downsample_source(4, 8);
+        strided_downsample_source.set(-1000.0f);
+        strided_downsample_source.resize(4, 4);
+        strided_downsample_source.copy(downsample_source);
+        matrix strided_downsample(2, 4);
+        strided_downsample.set(-1000.0f);
+        strided_downsample.resize(2, 2);
+        strided_downsample.downsample(strided_downsample_source, temporary_row);
+        require_matrix_close(strided_downsample, expected_downsample, "downsample() row-gapped matrices");
+
         matrix image = make_matrix("1, 2, 3; 4, 5, 6; 7, 8, 9");
         matrix kernel = make_matrix("1, 0; 0, -1");
 
         matrix corr(2, 2);
-        corr.corr(image, kernel);
-        require_matrix_close(corr, make_matrix("-4, -4; -4, -4"), "corr()");
+        corr.corr2(image, kernel);
+        require_matrix_close(corr, make_matrix("-4, -4; -4, -4"), "corr2()");
+
+        matrix row_gapped_correlation_input(3, 5);
+        row_gapped_correlation_input.set(-1000.0f);
+        row_gapped_correlation_input.resize(3, 3);
+        row_gapped_correlation_input.copy(image);
+        std::vector<float> legacy_patches;
+        im2row(legacy_patches, row_gapped_correlation_input, kernel);
+        require_true(legacy_patches.size() == 16, "im2row() allocates its patch buffer");
+        matrix legacy_correlation(2, 4);
+        legacy_correlation.set(-1000.0f);
+        legacy_correlation.resize(2, 2);
+        legacy_correlation.corr3(
+            row_gapped_correlation_input,
+            kernel,
+            flattenKernel(kernel),
+            legacy_patches
+        );
+        require_matrix_close(legacy_correlation, make_matrix("-4, -4; -4, -4"), "corr3() row-gapped input");
+
+        matrix same_correlation;
+        same_correlation.corr2(image, kernel, matrix::convolution_padding::same);
+        require_matrix_close(
+            same_correlation,
+            make_matrix("-4, -4, 3; -4, -4, 6; 7, 8, 9"),
+            "corr2() zero-padded same correlation"
+        );
 
         matrix conv(2, 2);
-        conv.conv_slow(image, kernel);
-        require_matrix_close(conv, make_matrix("4, 4; 4, 4"), "conv_slow()");
+        conv.conv2_slow(image, kernel);
+        require_matrix_close(conv, make_matrix("4, 4; 4, 4"), "conv2_slow()");
+
+        matrix same_convolution;
+        same_convolution.conv2(image, make_matrix("1, 1, 1; 1, 1, 1; 1, 1, 1"));
+        matrix expected_same_convolution = make_matrix("12, 21, 16; 27, 45, 33; 24, 39, 28");
+        require_matrix_close(same_convolution, expected_same_convolution, "conv2() zero-padded same convolution");
+
+        matrix strided_convolution_input(3, 5);
+        strided_convolution_input.set(-1000.0f);
+        strided_convolution_input.resize(3, 3);
+        strided_convolution_input.copy(image);
+        matrix strided_convolution(3, 5);
+        strided_convolution.set(-1000.0f);
+        strided_convolution.resize(3, 3);
+        strided_convolution.conv2(strided_convolution_input, make_matrix("1, 1, 1; 1, 1, 1; 1, 1, 1"));
+        require_matrix_close(strided_convolution, expected_same_convolution, "conv2() zero-padded row-gapped convolution");
 
 #if defined(__APPLE__)
         matrix search_image = make_matrix("0, 0, 0, 0; 0, 1, 2, 0; 0, 3, 9, 0; 0, 0, 0, 0");
@@ -872,6 +1193,32 @@ class MatrixFunctionTestModule : public Module
         strided_added.clear();
         require_true(strided_added.size() == 0, "size() is zero after clear()");
 
+        matrix strided_tensor_source(std::vector<int>{2, 3, 4});
+        fill_sequence(strided_tensor_source);
+        strided_tensor_source.resize({2, 2, 2});
+        matrix expected_tensor(std::vector<int>{2, 2, 2});
+        expected_tensor(0, 0, 0) = 1.0f;
+        expected_tensor(0, 0, 1) = 2.0f;
+        expected_tensor(0, 1, 0) = 5.0f;
+        expected_tensor(0, 1, 1) = 6.0f;
+        expected_tensor(1, 0, 0) = 13.0f;
+        expected_tensor(1, 0, 1) = 14.0f;
+        expected_tensor(1, 1, 0) = 17.0f;
+        expected_tensor(1, 1, 1) = 18.0f;
+
+        matrix strided_tensor_target(std::vector<int>{2, 4, 5});
+        strided_tensor_target.set(100.0f);
+        strided_tensor_target.resize({2, 2, 2});
+        strided_tensor_target.copy(strided_tensor_source);
+        require_matrix_close(strided_tensor_target, expected_tensor, "copy() rank-3 row blocks with different strides");
+        require_true(strided_tensor_target == expected_tensor, "equality compares rank-3 row blocks");
+        require_true(expected_tensor == strided_tensor_target, "equality compares rank-3 row blocks in either direction");
+        require_close(strided_tensor_target.sum(), 76.0f, "reduce() traverses rank-3 row blocks");
+
+        strided_tensor_target.apply([](float value) { return value + 1.0f; });
+        expected_tensor.apply([](float value) { return value + 1.0f; });
+        require_matrix_close(strided_tensor_target, expected_tensor, "apply() traverses rank-3 row blocks");
+
         matrix strided_sum(2, 4);
         strided_sum.set(100.0f);
         strided_sum.resize(2, 2);
@@ -1092,6 +1439,16 @@ class MatrixFunctionTestModule : public Module
                 checksum += source[i % channels].sum();
         });
 
+        constexpr int temporary_view_iterations = 200000;
+        double temporary_views_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < temporary_view_iterations; ++i)
+            {
+                matrix view = source[i % channels];
+                checksum += view(0, 0);
+            }
+        });
+
         double sum_last_two_dimensions_ms = measure_ms([&]()
         {
             for(int i = 0; i < iterations; ++i)
@@ -1226,6 +1583,7 @@ class MatrixFunctionTestModule : public Module
                   << " slice_apply_ms=" << slice_apply_ms
                   << " full_sum_ms=" << full_sum_ms
                   << " slice_sum_ms=" << slice_sum_ms
+                  << " temporary_views_ms=" << temporary_views_ms
                   << " sum_last_two_dimensions_ms=" << sum_last_two_dimensions_ms
                   << " dot_ms=" << dot_ms
                   << " serialization_ms=" << serialization_ms
@@ -1278,19 +1636,29 @@ class MatrixFunctionTestModule : public Module
         matrix image = make_matrix("1, 2, 3; 4, 5, 6; 7, 8, 9");
         matrix kernel = make_matrix("1, 0; 0, -1");
         matrix wrong_corr(3, 3);
-        require_throws([&]() { wrong_corr.corr(image, kernel); }, "corr() should throw for wrong-sized initialized destination");
+        require_throws([&]() { wrong_corr.corr2(image, kernel); }, "corr2() should throw for wrong-sized initialized destination");
 
         matrix wrong_conv_slow(3, 3);
-        require_throws([&]() { wrong_conv_slow.conv_slow(image, kernel); }, "conv_slow() should throw for wrong-sized initialized destination");
+        require_throws([&]() { wrong_conv_slow.conv2_slow(image, kernel); }, "conv2_slow() should throw for wrong-sized initialized destination");
 
         matrix wrong_conv(2, 2);
         matrix conv_image = make_matrix("1, 2, 3; 4, 5, 6; 7, 8, 9");
         matrix conv_kernel = make_matrix("1, 0; 0, -1");
-        require_throws([&]() { wrong_conv.conv(conv_image, conv_kernel); }, "conv() should throw for wrong-sized initialized destination");
+        require_throws([&]() { wrong_conv.conv2(conv_image, conv_kernel); }, "conv2() should throw for wrong-sized initialized destination");
 
         matrix down_source = make_matrix("1, 2, 3, 4; 5, 6, 7, 8; 9, 10, 11, 12; 13, 14, 15, 16");
         matrix wrong_downsample(3, 3);
         require_throws([&]() { wrong_downsample.downsample(down_source); }, "downsample() should throw for wrong-sized initialized destination");
+
+        matrix downsample_target(2, 2);
+        matrix wrong_temporary_row(3);
+        require_throws([&]() { downsample_target.downsample(down_source, wrong_temporary_row); }, "downsample() should throw for wrong-sized temporary row");
+
+        matrix wrong_temporary_rank(1, 4);
+        require_throws([&]() { downsample_target.downsample(down_source, wrong_temporary_rank); }, "downsample() should throw for wrong-rank temporary row");
+
+        require_throws([&]() { downsample_target.downsample(down_source, down_source); }, "downsample() should reject a source alias as temporary row");
+        require_throws([&]() { downsample_target.downsample(down_source, downsample_target); }, "downsample() should reject a destination alias as temporary row");
 
         matrix up_source = make_matrix("1, 2; 3, 4");
         matrix wrong_upsample(3, 3);
