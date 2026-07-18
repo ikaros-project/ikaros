@@ -14,6 +14,7 @@
 #include <memory>
 #include <mutex>
 #include <limits>
+#include <optional>
 #include <random>
 #include <set>
 #include <stack>
@@ -499,6 +500,7 @@ public:
 
     // Timing parameters and functions
     double                                  tick_duration;  // Desired actual or simulated duration for each tick
+    double                                  task_timeout;   // Watchdog timeout for synchronous task execution; zero disables it
     double                                  actual_tick_duration;   // actual time between ticks in real time
     double                                  tick_time_usage;        // Time used to execute each tick in real time
     tick_count                              tick;
@@ -698,7 +700,7 @@ private:
     bool ValueOwnedByRunningAsyncComponent(const std::string & value_path) const;
     Component * ComponentForValuePath(const std::string & value_path) const;
     void WaitForAsyncComponents(bool discard_pending_actions);
-    void RunTasks();
+    std::optional<std::string> RunTasks();
     void RunTasksInSingleThread();
     void SetUp();
     void SetCommandLineParameters(dictionary & d);
@@ -781,7 +783,7 @@ private:
     void ResetUISnapshotCache();
     void BuildUISnapshot();
 
-    void DoSendData(Request & request);
+    void DoSendData(Request & request, bool refresh_paused_snapshot = true);
     void DoUpdate(Request & request);
     void DoAuthStatus();
     void DoLogin(Request & request);
@@ -814,7 +816,7 @@ private:
 
     void HandleHTTPRequest();
     void HandleHTTPThread();
-    void Tick();
+    bool Tick();
     void Propagate();
 
 public:

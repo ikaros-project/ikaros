@@ -5,6 +5,7 @@
 #include "session_logging.h"
 
 #include <cctype>
+#include <cmath>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
@@ -3374,6 +3375,7 @@ bool operator==(Request & r, const std::string s)
         //tick_is_running = false;
         tick_time_usage = 0;
         tick_duration = 1; // default value
+        task_timeout = 5.0;
         actual_tick_duration = tick_duration;
         idle_time = 0;
         stop_after = -1;
@@ -3450,13 +3452,17 @@ bool operator==(Request & r, const std::string s)
     }
 
 
-    void
+    bool
     Kernel::Tick()
     {
         tick++;
 
         PollAsyncComponents();
-        RunTasks();
+        if(auto failure = RunTasks())
+        {
+            Notify(msg_fatal_error, *failure);
+            return false;
+        }
         //RunTasksInSingleThread();
 
         save_matrix_states();
@@ -3464,6 +3470,7 @@ bool operator==(Request & r, const std::string s)
         Propagate();
 
         CalculateCPUUsage();
+        return true;
     }
 
 
@@ -4168,6 +4175,7 @@ bool operator==(Request & r, const std::string s)
         run_mode(run_mode_pause),
         idle_time(0),
         tick_duration(1),
+        task_timeout(5.0),
         actual_tick_duration(0), // FIME: Use desired tick duration here
         tick_time_usage(0),
         tick(0),
@@ -6174,37 +6182,104 @@ bool operator==(Request & r, const std::string s)
     };
 
 
-    void Kernel::RunTasks()
+    std::optional<std::string>
+    Kernel::RunTasks()
     {
         std::vector<std::shared_ptr<TaskSequence>> sequences;
-    
-        try 
+        sequences.reserve(tasks.size());
+
+        std::optional<std::string> failure;
+        try
         {
-            // Create and submit tasks using shared_ptr
-            for (auto &task_sequence : tasks) 
+            for(auto & task_sequence : tasks)
             {
                 auto ts = std::make_shared<KernelTaskSequence>(*this, task_sequence);
                 thread_pool->submit(ts);
                 sequences.push_back(ts);
             }
-    
-            // Wait for completion
-            for (auto &ts : sequences) 
-            {
-                if(!ts->waitForCompletion(5)) // Timeout after 5 seconds
-                    throw std::runtime_error("Task sequence timed out after 5 seconds.");
+        }
+        catch(const std::exception & e)
+        {
+            failure = "Could not submit task sequence: " + std::string(e.what());
+        }
+        catch(...)
+        {
+            failure = "Could not submit task sequence: Unknown error.";
+        }
 
+        bool timed_out = false;
+        if(!failure && task_timeout > 0)
+        {
+            const auto timeout = duration_cast<steady_clock::duration>(duration<double>(task_timeout));
+            const auto deadline = steady_clock::now() + timeout;
+            for(auto & ts : sequences)
+            {
+                if(ts->isCompleted())
+                    continue;
+
+                const auto now = steady_clock::now();
+                if(now >= deadline || !ts->waitForCompletion(duration<double>(deadline - now).count()))
+                {
+                    timed_out = true;
+                    break;
+                }
+            }
+
+            if(timed_out)
+            {
+                try
+                {
+                    Notify(msg_warning, "Task execution exceeded " + formatNumber(task_timeout) +
+                        " seconds. Waiting for active tasks to finish before stopping safely.");
+                }
+                catch(...)
+                {
+                    // The completion barrier below must still run if reporting the watchdog fails.
+                }
+            }
+        }
+
+        // Do not inspect failures or return while submitted sequences can still access kernel data.
+        for(auto & ts : sequences)
+        {
+            try
+            {
+                ts->waitForCompletion();
+            }
+            catch(const std::exception & e)
+            {
+                if(!failure)
+                    failure = "Could not wait for task sequence: " + std::string(e.what());
+            }
+            catch(...)
+            {
+                if(!failure)
+                    failure = "Could not wait for task sequence: Unknown error.";
+            }
+        }
+
+        if(timed_out)
+            failure = "Task execution timed out after " + formatNumber(task_timeout) + " seconds.";
+
+        for(auto & ts : sequences)
+        {
+            try
+            {
                 ts->rethrowIfError();
             }
-        } 
-        catch (const std::exception &e) 
-        {
-            Notify(msg_fatal_error, "Error during task execution: " + std::string(e.what()));
+            catch(const std::exception & e)
+            {
+                if(!failure)
+                    failure = "Error during task execution: " + std::string(e.what());
+            }
+            catch(...)
+            {
+                if(!failure)
+                    failure = "Error during task execution: Unknown error.";
+            }
         }
-        catch (...) 
-        {
-            Notify(msg_fatal_error, "Error during task execution: Unknown error.");
-        }
+
+        return failure;
     }
 
 
@@ -6224,6 +6299,14 @@ bool operator==(Request & r, const std::string s)
     {
         try
         {
+            task_timeout = 5.0;
+            if(info_.contains_non_null("task_timeout"))
+            {
+                task_timeout = info_["task_timeout"].as_double();
+                if(!std::isfinite(task_timeout) || task_timeout < 0)
+                    throw setup_failed("task_timeout must be a finite non-negative number of seconds.");
+            }
+
             PruneConnections();
             SortTasks();
             CalculateStartupSteps();
@@ -6335,8 +6418,8 @@ bool operator==(Request & r, const std::string s)
                     try
                     {
                         std::lock_guard<std::recursive_mutex> lock(kernelLock);
-                        Tick();
-                        BuildUISnapshot();
+                        if(Tick())
+                            BuildUISnapshot();
                     }
                     catch(std::exception & e)
                     {
@@ -7035,7 +7118,7 @@ bool operator==(Request & r, const std::string s)
 
 
     void
-    Kernel::DoSendData(Request & request)
+    Kernel::DoSendData(Request & request, bool refresh_paused_snapshot)
     {
         auto requested_values = ParseRequestedUIValues(request);
         std::unordered_set<std::string> requested_subscriptions;
@@ -7049,7 +7132,7 @@ bool operator==(Request & r, const std::string s)
             session_subscription.last_seen_time = GetRealTime();
         }
 
-        if(run_mode.load() == run_mode_pause)
+        if(refresh_paused_snapshot && run_mode.load() == run_mode_pause)
         {
             std::lock_guard<std::recursive_mutex> lock(kernelLock);
             BuildUISnapshot();
@@ -7782,19 +7865,21 @@ bool operator==(Request & r, const std::string s)
     Kernel::DoStep(Request & request)
     {
         Notify(msg_print, "step");
+        bool tick_succeeded = false;
         try
         {
             Pause();
             run_mode = run_mode_pause;
-            Tick();
-            BuildUISnapshot();
+            tick_succeeded = Tick();
+            if(tick_succeeded)
+                BuildUISnapshot();
             timer.SetPauseTime(GetTime()+tick_duration);
         }
         catch(const exception& e)
         {
             Notify(msg_warning, e.what(), e.path());
         }
-        DoSendData(request);
+        DoSendData(request, tick_succeeded);
     }
 
 
