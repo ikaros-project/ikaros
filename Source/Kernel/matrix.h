@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <random>
 #include <cmath>
+#include <tuple>
 
 #include "exceptions.h"
 #include "utilities.h"
@@ -102,11 +103,22 @@ namespace ikaros
         {
             if(shape_.empty())
                 return 0;
-            else
-                return reduce(shape_.begin(), shape_.end(), 1, std::multiplies<>());
+
+            size_t result = 1;
+            for(int dimension : shape_)
+            {
+                if(dimension < 0)
+                    throw std::invalid_argument("Matrix dimensions cannot be negative.");
+                if(dimension != 0 && result > static_cast<size_t>(std::numeric_limits<int>::max()) / static_cast<size_t>(dimension))
+                    throw std::out_of_range("Matrix size exceeds the supported range.");
+                result *= static_cast<size_t>(dimension);
+            }
+            return result;
         }
 
-        matrix_info() {}
+        matrix_info():
+            offset_(0), size_(0), has_contiguous_logical_storage(true), dynamic_(false), fixed_capacity_(false)
+        {}
         matrix_info(std::vector<int> shape);
         void refresh_logical_layout()
         {
@@ -124,6 +136,23 @@ namespace ikaros
 
     class matrix 
     {
+    private:
+        struct saved_state_registration
+        {
+            bool registered = false;
+
+            saved_state_registration() = default;
+            saved_state_registration(const saved_state_registration &) noexcept:
+                registered(false)
+            {}
+            saved_state_registration & operator=(const saved_state_registration &) noexcept { return *this; }
+        };
+
+        // Registration belongs to the matrix object, not its shared data.
+        saved_state_registration saved_state_registration_;
+
+        friend void clear_matrix_states();
+
     public:
         enum class convolution_padding
         {
@@ -184,8 +213,8 @@ namespace ikaros
             matrix(std::vector<int>({shape...}))
         {}
 
-        matrix(int cols, float *);
-        matrix(int, int, float **);
+        matrix(int cols, float * data);
+        matrix(int rows, int cols, float ** data);
 
         void operator=(std::string & data_string); // set from data string after resizing
         matrix(const std::string & data_string);
@@ -315,12 +344,12 @@ namespace ikaros
         float & 
         operator()(int a)
         {
-            #ifdef MATRIX_FULL_BOUNDS_CHECK
-            auto & shape = info_->shape_;
+            #if !defined(MATRIX_NO_BOUNDS_CHECK) || defined(MATRIX_FULL_BOUNDS_CHECK)
+            const auto & shape = info_->shape_;
             if(shape.size() != 1)
-                throw exception("wrong number of indices");
-            if(a < 0 || a > shape[0])
-                    throw exception("out of bounds");
+                throw std::invalid_argument(get_name() + "Number of indices must match matrix rank.");
+            if(a < 0 || a >= shape[0])
+                throw std::out_of_range(get_name() + "Index out of range.");
             #endif
 
             int index = info_->offset_ + a;
@@ -336,12 +365,12 @@ namespace ikaros
         float & 
         operator()(int a, int b)
         {
-            #ifdef MATRIX_FULL_BOUNDS_CHECK
-            auto & shape = info_->shape_;
+            #if !defined(MATRIX_NO_BOUNDS_CHECK) || defined(MATRIX_FULL_BOUNDS_CHECK)
+            const auto & shape = info_->shape_;
             if(shape.size() != 2)
-                throw exception("wrong number of indices");
-            if(a < 0 || b < 0 || a > shape[0] || b > shape[1])
-                    throw exception("out of bounds");
+                throw std::invalid_argument(get_name() + "Number of indices must match matrix rank.");
+            if(a < 0 || b < 0 || a >= shape[0] || b >= shape[1])
+                throw std::out_of_range(get_name() + "Index out of range.");
             #endif
 
             int * s = info_->stride_.data();
@@ -358,12 +387,13 @@ namespace ikaros
         float & 
         operator()(int a, int b, int c)
         {
-            #ifdef MATRIX_FULL_BOUNDS_CHECK
-            auto & shape = info_->shape_;
+            #if !defined(MATRIX_NO_BOUNDS_CHECK) || defined(MATRIX_FULL_BOUNDS_CHECK)
+            const auto & shape = info_->shape_;
             if(shape.size() != 3)
-                throw exception("wrong number of indices");
-            if(a < 0 || b < 0 || c < 0 || a > shape[0] || b > shape[1] || c > shape[2])
-                    throw exception("out of bounds");
+                throw std::invalid_argument(get_name() + "Number of indices must match matrix rank.");
+            if(a < 0 || b < 0 || c < 0 ||
+               a >= shape[0] || b >= shape[1] || c >= shape[2])
+                throw std::out_of_range(get_name() + "Index out of range.");
             #endif
 
             int * s = info_->stride_.data();
@@ -380,12 +410,13 @@ namespace ikaros
         float & 
         operator()(int a, int b, int c, int d)
         {
-            #ifdef MATRIX_FULL_BOUNDS_CHECK
-            auto & shape = info_->shape_;
+            #if !defined(MATRIX_NO_BOUNDS_CHECK) || defined(MATRIX_FULL_BOUNDS_CHECK)
+            const auto & shape = info_->shape_;
             if(shape.size() != 4)
-                throw exception("wrong number of indices");
-            if(a < 0 || b < 0 || c < 0 || a > shape[0] || b > shape[1] || c > shape[2] || d > shape[3])
-                    throw exception("out of bounds");
+                throw std::invalid_argument(get_name() + "Number of indices must match matrix rank.");
+            if(a < 0 || b < 0 || c < 0 || d < 0 ||
+               a >= shape[0] || b >= shape[1] || c >= shape[2] || d >= shape[3])
+                throw std::out_of_range(get_name() + "Index out of range.");
             #endif
 
             int * s = info_->stride_.data();
@@ -416,19 +447,7 @@ namespace ikaros
         matrix & 
         resize(Args... new_shape)
         {
-            #ifndef NO_MATRIX_CHECKS
-            if (sizeof...(new_shape) != info_->shape_.size())
-                throw std::invalid_argument("Number of indices must match matrix rank (in call to resize).");
-
-            std::vector<int> v{static_cast<int>(new_shape)...};
-
-            for(std::size_t i = 0; i < info_->shape_.size(); ++i)
-                if(v[i] > info_->max_size_[i])
-                    throw std::out_of_range(get_name()+"New size larger than allocated space.");
-            #endif
-            info_->shape_ = v;
-            info_->refresh_logical_layout();
-            return *this;
+            return resize(std::vector<int>{static_cast<int>(new_shape)...});
         }
 
         matrix & realloc(const std::vector<int> & shape);
@@ -450,42 +469,13 @@ namespace ikaros
             return reserve(std::vector<int>({capacity_shape...}));
         }
 
+        matrix & reshape(const std::vector<int> & new_shape);
+
         template <typename... Args>
-        matrix & 
+        matrix &
         reshape(Args... new_shape)
         {
-            int n = 1;
-            for(int i : {new_shape...})
-                n *= i;
-            
-            if(static_cast<std::size_t>(n) != data_->size())
-                throw std::out_of_range(get_name()+"Incompatible matrix sizes.");
-
-            info_->shape_ = std::vector<int>({new_shape...});
-            info_->stride_ = info_->shape_;
-            info_->max_size_ = info_->shape_;
-            info_->refresh_logical_layout();
-            info_->labels_.resize(info_->shape_.size());
-            return *this;
-        }
-        
-        template <typename... Args>
-        matrix & 
-        reshape(std::vector<int> new_shape)
-        {
-            int n = 1;
-            for(int i : new_shape)
-                n *= i;
-            
-            if(static_cast<std::size_t>(n) != data_->size())
-                throw std::out_of_range(get_name()+"Incompatible matrix sizes.");
-
-            info_->shape_ = new_shape;
-            info_->stride_ = info_->shape_;
-            info_->max_size_ = info_->shape_;
-            info_->refresh_logical_layout();
-            info_->labels_.resize(info_->shape_.size());
-            return *this;
+            return reshape(std::vector<int>{static_cast<int>(new_shape)...});
         }
         // Push & pop
 
@@ -576,7 +566,8 @@ namespace ikaros
 
         matrix & inv(); // Invert matrix in place
 
-        matrix & corr(const matrix & I, const matrix & K); // correlation of I and K
+        matrix & corr2(const matrix & I, const matrix & K); // Valid two-dimensional correlation
+        matrix & corr2(const matrix & I, const matrix & K, convolution_padding padding);
 
 
 /*
@@ -623,7 +614,8 @@ corr2(matrix &I, matrix &K) {
 
 */
 
-        matrix & corr3(const matrix &I, const matrix &K, const std::vector<float> &kernel_flat, const std::vector<float> &submatrices_flat);
+        // Legacy low-level valid correlation. Prefer corr2(), which prepares patches internally.
+        matrix & corr3(const matrix & I, const matrix & K, const std::vector<float> & kernel_flat, const std::vector<float> & submatrices_flat);
 
 
 
@@ -636,11 +628,11 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
 */
 
 
-        matrix & conv_slow(const matrix & I, const matrix & K); // Convolution of I and K; no border; result smaller than input image
+        matrix & conv2_slow(const matrix & I, const matrix & K); // Valid two-dimensional convolution
 
 
 
-    matrix &conv(const matrix &I, const matrix &K); // Convolution of I and K; border; result same size as input image
+    matrix & conv2(const matrix & I, const matrix & K); // Zero-padded same two-dimensional convolution
 
     // 2D filter-bank correlation used by trainable convolutional layers.
     // Shape convention with valid padding: I [H,W], K [F,KH,KW], B [F], Y/dY [F,H-KH+1,W-KW+1].
@@ -693,9 +685,9 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
         float trace() const;
         float det() const;
         matrix & inv(const matrix & m);
-        matrix & pinv(const matrix &);
+        matrix & pinv(const matrix & input);
         matrix & transpose(matrix &ret) const;
-        matrix & eig(const matrix &);
+        std::tuple<matrix, matrix> eig() const;
         // lu
         // chol
         // mldivide
@@ -715,17 +707,18 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
         // operator>=
 
 
-    void singular_value_decomposition(const matrix& inputMatrix, matrix& U, matrix& S, matrix& Vt);
+    void singular_value_decomposition(const matrix & inputMatrix, matrix & U, matrix & S, matrix & Vt) const;
 
 
-                // Helper function to flatten the kernel matrix
+        // Legacy helpers for corr3(). Prefer corr2() for new code.
 
-        friend std::vector<float> flattenKernel(const matrix &K);
-        friend void im2row(std::vector<float> &submatrices_flat, const matrix &I, const matrix &K);
+        friend std::vector<float> flattenKernel(const matrix & K);
+        friend void im2row(std::vector<float> & submatrices_flat, const matrix & I, const matrix & K);
 
 //Image processing
 
-    matrix &    downsample(const matrix &source); // Downsample an image matrix by averaging over a 2x2 block
+    matrix & downsample(const matrix & source); // Downsample an image matrix by averaging over a 2x2 block
+    matrix & downsample(const matrix & source, matrix & temporary_row);
     matrix &    upsample(const matrix &source); // Upsample an image matrix by repeating each pixel 2x2 times
     match       search(const matrix & target,const rect & search_ractangle) const;
     };

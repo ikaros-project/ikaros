@@ -18,9 +18,11 @@
 #endif
 #endif
 
-#include "matrix.h"
-
+#include <array>
 #include <mutex>
+#include <new>
+
+#include "matrix.h"
 
 namespace ikaros {
 
@@ -44,16 +46,12 @@ im2row_valid_2d(const matrix & I, int kernel_rows, int kernel_cols, std::vector<
     const int patch_size = kernel_rows * kernel_cols;
     resize_scratch(patches, output_pixels * patch_size);
 
-    const float * input = I.data();
     float * patch = patches.data();
     for(int y = 0; y < output_rows; ++y)
         for(int x = 0; x < output_cols; ++x)
             for(int ky = 0; ky < kernel_rows; ++ky)
-            {
-                const float * input_row = input + (y + ky) * I.cols() + x;
                 for(int kx = 0; kx < kernel_cols; ++kx)
-                    *patch++ = input_row[kx];
-            }
+                    *patch++ = I(y + ky, x + kx);
 }
 
 
@@ -68,7 +66,6 @@ im2row_same_2d(const matrix & I, int kernel_rows, int kernel_cols, std::vector<f
     const int pad_left = (kernel_cols - 1) / 2;
     resize_scratch(patches, output_pixels * patch_size);
 
-    const float * input = I.data();
     float * patch = patches.data();
     for(int y = 0; y < output_rows; ++y)
         for(int x = 0; x < output_cols; ++x)
@@ -82,11 +79,10 @@ im2row_same_2d(const matrix & I, int kernel_rows, int kernel_cols, std::vector<f
                     continue;
                 }
 
-                const float * input_row = input + input_y * I.cols();
                 for(int kx = 0; kx < kernel_cols; ++kx)
                 {
                     const int input_x = x + kx - pad_left;
-                    *patch++ = input_x >= 0 && input_x < I.cols() ? input_row[input_x] : 0.0f;
+                    *patch++ = input_x >= 0 && input_x < I.cols() ? I(input_y, input_x) : 0.0f;
                 }
             }
 }
@@ -278,6 +274,22 @@ col2im_same_channels_add(matrix & dI, const std::vector<float> & patches, int ou
 }
 #endif
 
+
+bool
+can_reallocate_storage(const matrix & m)
+{
+    if(m.data_.use_count() != m.info_.use_count() || m.info_->offset_ != 0)
+        return false;
+
+    if(m.rank() == 0)
+        return m.info_->size_ == static_cast<int>(m.data_->size());
+
+    size_t capacity_size = 1;
+    for(int dimension : m.info_->max_size_)
+        capacity_size *= static_cast<size_t>(dimension);
+    return capacity_size == m.data_->size();
+}
+
 void
 require_valid_padding(matrix::convolution_padding padding, const char * function_name)
 {
@@ -327,56 +339,83 @@ matrix_info::print(std::string n) const
 namespace
 {
 int
-compute_index_unchecked(const matrix_info & info, const std::vector<int> & v)
+physical_dimension_stride(const matrix_info & info, int dimension)
 {
-    int index = info.offset_;
     int stride = 1;
-    for(int i = static_cast<int>(info.stride_.size()) - 1; i >= 0; --i)
-    {
-        index += v[i] * stride;
+    for(int i = static_cast<int>(info.stride_.size()) - 1; i > dimension; --i)
         stride *= info.stride_[i];
-    }
-    return index;
+    return stride;
 }
 
 
-template <typename Fn>
-void
-for_each_logical_row(const matrix & m, Fn f)
+template <typename Fn, typename... Matrices>
+bool
+for_each_logical_row_while_recursive(const matrix & shape_source, int dimension,
+                                     const std::array<int, 1 + sizeof...(Matrices)> & offsets,
+                                     Fn & f, const matrix & first, const Matrices &... rest)
 {
-    const int matrix_rank = m.rank();
-    const int row_length = m.shape(-1);
-    const int total_size = m.size();
-    if(total_size == 0 || row_length == 0)
-        return;
+    if(dimension == shape_source.rank() - 1)
+        return f(offsets, shape_source.shape(-1));
 
-    const int row_count = total_size / row_length;
-    std::vector<int> index(matrix_rank, 0);
+    const std::array<int, 1 + sizeof...(Matrices)> strides = {
+        physical_dimension_stride(*first.info_, dimension),
+        physical_dimension_stride(*rest.info_, dimension)...,
+    };
 
-    for(int row = 0; row < row_count; ++row)
+    for(int i = 0; i < shape_source.shape(dimension); ++i)
     {
-        int remaining = row;
-        for(int d = matrix_rank - 2; d >= 0; --d)
-        {
-            const int extent = m.shape(d);
-            index[d] = remaining % extent;
-            remaining /= extent;
-        }
+        auto next_offsets = offsets;
+        for(std::size_t j = 0; j < next_offsets.size(); ++j)
+            next_offsets[j] += i * strides[j];
 
-        f(index, row_length);
+        if(!for_each_logical_row_while_recursive(shape_source, dimension + 1, next_offsets, f, first, rest...))
+            return false;
     }
+
+    return true;
+}
+
+
+template <typename Fn, typename... Matrices>
+bool
+for_each_logical_row_while(const matrix & shape_source, Fn f, const Matrices &... rest)
+{
+    if(shape_source.empty())
+        return true;
+
+    const std::array<int, 1 + sizeof...(Matrices)> offsets = {
+        shape_source.info_->offset_,
+        rest.info_->offset_...,
+    };
+
+    if(shape_source.rank() == 0)
+        return f(offsets, 1);
+
+    return for_each_logical_row_while_recursive(shape_source, 0, offsets, f, shape_source, rest...);
+}
+
+
+template <typename Fn, typename... Matrices>
+void
+for_each_logical_row(const matrix & shape_source, Fn f, const Matrices &... rest)
+{
+    auto visit = [&](const auto & offsets, int row_length)
+    {
+        f(offsets, row_length);
+        return true;
+    };
+
+    for_each_logical_row_while(shape_source, visit, rest...);
 }
 
 
 matrix &
 copy_row_blocks(matrix & target, const matrix & source)
 {
-    for_each_logical_row(target, [&](const std::vector<int> & index, int row_length)
+    for_each_logical_row(target, [&](const auto & offsets, int row_length)
     {
-        const int target_index = compute_index_unchecked(*target.info_, index);
-        const int source_index = compute_index_unchecked(*source.info_, index);
-        std::copy_n(source.data_->begin() + source_index, row_length, target.data_->begin() + target_index);
-    });
+        std::copy_n(source.data_->begin() + offsets[1], row_length, target.data_->begin() + offsets[0]);
+    }, source);
 
     return target;
 }
@@ -386,9 +425,9 @@ template <typename Fn>
 matrix &
 apply_unary_row_blocks(matrix & target, Fn f)
 {
-    for_each_logical_row(target, [&](const std::vector<int> & index, int row_length)
+    for_each_logical_row(target, [&](const auto & offsets, int row_length)
     {
-        float * target_values = target.data_->data() + compute_index_unchecked(*target.info_, index);
+        float * target_values = target.data_->data() + offsets[0];
         for(int col = 0; col < row_length; ++col)
             target_values[col] = f(target_values[col]);
     });
@@ -401,13 +440,13 @@ template <typename Fn>
 matrix &
 apply_binary_row_blocks(matrix & target, const matrix & source, Fn f)
 {
-    for_each_logical_row(target, [&](const std::vector<int> & index, int row_length)
+    for_each_logical_row(target, [&](const auto & offsets, int row_length)
     {
-        float * target_values = target.data_->data() + compute_index_unchecked(*target.info_, index);
-        const float * source_values = source.data_->data() + compute_index_unchecked(*source.info_, index);
+        float * target_values = target.data_->data() + offsets[0];
+        const float * source_values = source.data_->data() + offsets[1];
         for(int col = 0; col < row_length; ++col)
             target_values[col] = f(target_values[col], source_values[col]);
-    });
+    }, source);
 
     return target;
 }
@@ -417,14 +456,14 @@ template <typename Fn>
 matrix &
 apply_ternary_row_blocks(matrix & target, const matrix & A, const matrix & B, Fn f)
 {
-    for_each_logical_row(target, [&](const std::vector<int> & index, int row_length)
+    for_each_logical_row(target, [&](const auto & offsets, int row_length)
     {
-        float * target_values = target.data_->data() + compute_index_unchecked(*target.info_, index);
-        const float * a_values = A.data_->data() + compute_index_unchecked(*A.info_, index);
-        const float * b_values = B.data_->data() + compute_index_unchecked(*B.info_, index);
+        float * target_values = target.data_->data() + offsets[0];
+        const float * a_values = A.data_->data() + offsets[1];
+        const float * b_values = B.data_->data() + offsets[2];
         for(int col = 0; col < row_length; ++col)
             target_values[col] = f(a_values[col], b_values[col]);
-    });
+    }, A, B);
 
     return target;
 }
@@ -434,15 +473,15 @@ template <typename Fn>
 matrix &
 apply_quaternary_row_blocks(matrix & target, const matrix & A, const matrix & B, const matrix & C, Fn f)
 {
-    for_each_logical_row(target, [&](const std::vector<int> & index, int row_length)
+    for_each_logical_row(target, [&](const auto & offsets, int row_length)
     {
-        float * target_values = target.data_->data() + compute_index_unchecked(*target.info_, index);
-        const float * a_values = A.data_->data() + compute_index_unchecked(*A.info_, index);
-        const float * b_values = B.data_->data() + compute_index_unchecked(*B.info_, index);
-        const float * c_values = C.data_->data() + compute_index_unchecked(*C.info_, index);
+        float * target_values = target.data_->data() + offsets[0];
+        const float * a_values = A.data_->data() + offsets[1];
+        const float * b_values = B.data_->data() + offsets[2];
+        const float * c_values = C.data_->data() + offsets[3];
         for(int col = 0; col < row_length; ++col)
             target_values[col] = f(a_values[col], b_values[col], c_values[col]);
-    });
+    }, A, B, C);
 
     return target;
 }
@@ -497,20 +536,39 @@ matrix::matrix(std::vector<int> shape)
         info_ = std::make_shared<matrix_info>(shape);
         data_ = std::make_shared<std::vector<float>>(info_->calculate_size());
     }
-    catch(const std::exception &)
+    catch(const std::bad_alloc &)
     {
         throw out_of_memory_matrix_error("Could not allocate memory for matrix");
     }
 }
 
 
-matrix::matrix(int cols, float *):
+matrix::matrix(int cols, float * source):
     matrix(cols)
-{}
+{
+    if(cols > 0 && source == nullptr)
+        throw std::invalid_argument("Cannot construct a matrix from a null data pointer.");
+
+    for(int col = 0; col < cols; ++col)
+        (*this)(col) = source[col];
+}
 
 
-matrix::matrix(int, int, float **)
-{}
+matrix::matrix(int rows, int cols, float ** source):
+    matrix(rows, cols)
+{
+    if(rows > 0 && cols > 0 && source == nullptr)
+        throw std::invalid_argument("Cannot construct a matrix from null row pointers.");
+
+    for(int row = 0; row < rows; ++row)
+    {
+        if(cols > 0 && source[row] == nullptr)
+            throw std::invalid_argument("Cannot construct a matrix from a null row pointer.");
+
+        for(int col = 0; col < cols; ++col)
+            (*this)(row, col) = source[row][col];
+    }
+}
 
 
 void
@@ -651,6 +709,8 @@ matrix
 matrix::operator[](int i)
 {
 #ifndef NO_MATRIX_CHECKS
+    if(info_->shape_.empty())
+        throw std::invalid_argument(get_name() + "Cannot index a rank-zero matrix.");
     if(i < 0 || i >= info_->shape_.front())
         throw std::out_of_range("Index out of range");
 #endif
@@ -662,6 +722,8 @@ matrix
 matrix::operator[](int i) const
 {
 #ifndef NO_MATRIX_CHECKS
+    if(info_->shape_.empty())
+        throw std::invalid_argument(get_name() + "Cannot index a rank-zero matrix.");
     if(i < 0 || i >= info_->shape_.front())
         throw std::out_of_range("Index out of range");
 #endif
@@ -1078,11 +1140,13 @@ matrix::reduce(std::function<void(float)> f) const
             f(data[i]);
         return *this;
     }
-    if(is_scalar())
-        f((*data_)[info_->offset_]);
-    else
-        for(int i = 0; i < info_->shape_.front(); ++i)
-            (*this)[i].reduce(f);
+
+    for_each_logical_row(*this, [&](const auto & offsets, int row_length)
+    {
+        const float * values = data_->data() + offsets[0];
+        for(int col = 0; col < row_length; ++col)
+            f(values[col]);
+    });
     return *this;
 }
 
@@ -1099,14 +1163,8 @@ matrix::apply(std::function<float(float)> f)
             data[i] = f(data[i]);
         return *this;
     }
-    if(is_scalar())
-        (*data_)[info_->offset_] = f((*data_)[info_->offset_]);
-    else if(rank() >= 2)
-        apply_unary_row_blocks(*this, f);
-    else
-        for(int i = 0; i < info_->shape_.front(); ++i)
-            (*this)[i].apply(f);
-    return *this;
+
+    return apply_unary_row_blocks(*this, f);
 }
 
 
@@ -1123,17 +1181,8 @@ matrix::apply(const matrix & A, std::function<float(float, float)> f)
             data[i] = f(data[i], a[i]);
         return *this;
     }
-    else if(is_scalar())
-        (*data_)[info_->offset_] = f((*data_)[info_->offset_], (*A.data_)[info_->offset_]);
-    else if(rank() >= 2)
-        apply_binary_row_blocks(*this, A, f);
-    else
-        for(int i = 0; i < info_->shape_.front(); ++i)
-        {
-            matrix X = (*this)[i];
-            X.apply(A[i], f);
-        }
-    return *this;
+
+    return apply_binary_row_blocks(*this, A, f);
 }
 
 
@@ -1151,17 +1200,8 @@ matrix::apply(const matrix & A, const matrix & B, std::function<float(float, flo
             data[i] = f(a[i], b[i]);
         return *this;
     }
-    else if(is_scalar())
-        (*data_)[info_->offset_] = f((*A.data_)[info_->offset_], (*B.data_)[info_->offset_]);
-    else if(rank() >= 2)
-        apply_ternary_row_blocks(*this, A, B, f);
-    else
-        for(int i = 0; i < info_->shape_.front(); ++i)
-        {
-            matrix X = (*this)[i];
-            X.apply(A[i], B[i], f);
-        }
-    return *this;
+
+    return apply_ternary_row_blocks(*this, A, B, f);
 }
 
 
@@ -1182,20 +1222,23 @@ matrix &
 matrix::copy(const matrix & m)
 {
     if(is_uninitialized())
-        realloc(m.shape());
+    {
+        if(m.is_scalar())
+        {
+            info_->size_ = 1;
+            data_->resize(1);
+        }
+        else
+            realloc(m.shape());
+    }
 
     if(info_->shape_ != m.info_->shape_)
         throw std::out_of_range("Assignment requires matrices of the same size");
 
     if(info_->has_contiguous_logical_storage && m.info_->has_contiguous_logical_storage)
         std::copy_n(m.data_->begin() + m.info_->offset_, m.size(), data_->begin() + info_->offset_);
-    else if(is_scalar())
-        (*data_)[info_->offset_] = (*m.data_)[m.info_->offset_];
-    else if(rank() >= 2)
-        copy_row_blocks(*this, m);
     else
-        for(int i = 0; i < info_->shape_.front(); ++i)
-            (*this)[i].copy(m[i]);
+        copy_row_blocks(*this, m);
     return *this;
 }
 
@@ -1233,10 +1276,9 @@ matrix::submatrix(const matrix & m, const rect & region)
     if(rank() != 2 || m.rank() != 2)
         throw std::invalid_argument(get_name() + " Matrix must be two-dimensional.");
 
-    float * t = this->data();
-    for(int j = 0; j < height; ++j)
-        for(int i = 0; i < width; ++i)
-            *t++ = m(region.y + j, region.x + i);
+    for(int row = 0; row < height; ++row)
+        for(int col = 0; col < width; ++col)
+            (*this)(row, col) = m(region.y + row, region.x + col);
 
     return *this;
 }
@@ -1273,9 +1315,12 @@ matrix::operator float ** ()
     if(rank() != 2)
         throw std::out_of_range(get_name() + "Matrix must be two-dimensional.");
 
-    if(row_pointers_.empty())
-        for(int i = 0; i < info_->shape_.front(); ++i)
-            row_pointers_.push_back(&(*this)(i, 0));
+    row_pointers_.resize(rows());
+    if(cols() > 0)
+        for(int row = 0; row < rows(); ++row)
+            row_pointers_[row] = &(*this)(row, 0);
+    else
+        std::fill(row_pointers_.begin(), row_pointers_.end(), nullptr);
 
     return row_pointers_.data();
 }
@@ -1379,14 +1424,17 @@ int matrix::size_z() const { return shape(-3); }
 matrix &
 matrix::resize(const std::vector<int> & new_shape)
 {
-#ifndef NO_MATRIX_CHECKS
     if(new_shape.size() != info_->shape_.size())
         throw std::invalid_argument("Number of indices must match matrix rank (in call to resize).");
 
     for(std::size_t i = 0; i < info_->shape_.size(); ++i)
+    {
+        if(new_shape[i] < 0)
+            throw std::invalid_argument(get_name() + "Matrix size cannot be negative.");
         if(new_shape[i] > info_->max_size_[i])
-            throw std::out_of_range(get_name()+"New size larger than allocated space.");
-#endif
+            throw std::out_of_range(get_name() + "New size larger than allocated space.");
+    }
+
     info_->shape_ = new_shape;
     info_->refresh_logical_layout();
     return *this;
@@ -1394,17 +1442,36 @@ matrix::resize(const std::vector<int> & new_shape)
 
 
 matrix &
+matrix::reshape(const std::vector<int> & new_shape)
+{
+    matrix_info reshaped_info(new_shape);
+    if(reshaped_info.size_ != static_cast<int>(data_->size()))
+        throw std::out_of_range(get_name() + "Incompatible matrix sizes.");
+    if(!can_reallocate_storage(*this))
+        throw std::invalid_argument(get_name() + "Cannot reshape a matrix view.");
+
+    info_->shape_ = new_shape;
+    info_->stride_ = new_shape;
+    info_->max_size_ = new_shape;
+    info_->size_ = reshaped_info.size_;
+    info_->refresh_logical_layout();
+    info_->labels_.resize(info_->shape_.size());
+    return *this;
+}
+
+
+matrix &
 matrix::realloc(const std::vector<int> & shape)
 {
-    for(int dimension : shape)
-        if(dimension < 0)
-            throw std::invalid_argument(get_name() + "Matrix size cannot be negative.");
+    matrix_info reallocated_info(shape);
+    if(!can_reallocate_storage(*this))
+        throw std::invalid_argument(get_name() + "Cannot reallocate a matrix view.");
 
     info_->offset_ = 0;
     info_->shape_ = shape;
     info_->stride_ = shape;
     info_->max_size_ = shape;
-    info_->size_ = info_->calculate_size();
+    info_->size_ = reallocated_info.size_;
     info_->refresh_logical_layout();
     info_->labels_.resize(info_->shape_.size());
     data_->resize(info_->size_);
@@ -1426,9 +1493,7 @@ matrix::reserve(const std::vector<int> & capacity_shape)
     if(capacity_shape.empty())
         throw std::invalid_argument(get_name() + "Reserve requires at least one dimension.");
 
-    for(int dimension : capacity_shape)
-        if(dimension < 0)
-            throw std::invalid_argument(get_name() + "Matrix capacity cannot be negative.");
+    (void)matrix_info(capacity_shape);
 
     if(is_uninitialized())
     {
@@ -1450,6 +1515,8 @@ matrix::reserve(const std::vector<int> & capacity_shape)
 
     if(capacity_shape.front() > info_->max_size_.front())
     {
+        if(!can_reallocate_storage(*this))
+            throw std::invalid_argument(get_name() + "Cannot reserve storage for a matrix view.");
         std::vector<int> logical_shape = info_->shape_;
         realloc(capacity_shape);
         info_->shape_ = logical_shape;
@@ -1497,7 +1564,11 @@ matrix::append(const matrix & m)
             throw std::out_of_range(get_name() + "No room for additional element");
 
         std::vector<int> capacity_shape = info_->max_size_;
-        capacity_shape.front() = std::max(1, capacity_shape.front() * 2);
+        if(capacity_shape.front() == std::numeric_limits<int>::max())
+            throw std::out_of_range(get_name() + "No room for additional element");
+        capacity_shape.front() = capacity_shape.front() > std::numeric_limits<int>::max() / 2 ?
+            std::numeric_limits<int>::max() :
+            std::max(1, capacity_shape.front() * 2);
         reserve(capacity_shape);
     }
 
@@ -1520,7 +1591,11 @@ matrix::append(float v)
             throw std::out_of_range(get_name() + "No room for additional element");
 
         std::vector<int> capacity_shape = info_->max_size_;
-        capacity_shape.front() = std::max(1, capacity_shape.front() * 2);
+        if(capacity_shape.front() == std::numeric_limits<int>::max())
+            throw std::out_of_range(get_name() + "No room for additional element");
+        capacity_shape.front() = capacity_shape.front() > std::numeric_limits<int>::max() / 2 ?
+            std::numeric_limits<int>::max() :
+            std::max(1, capacity_shape.front() * 2);
         reserve(capacity_shape);
     }
 
@@ -1531,13 +1606,15 @@ matrix::append(float v)
 matrix &
 matrix::push(const matrix & m, bool extend)
 {
-#ifndef NO_MATRIX_CHECKS
     if(rank() != m.rank() + 1)
         throw std::out_of_range(get_name() + "Incompatible matrix sizes");
     if(extend)
     {
-        info_->shape_.front()++;
-        realloc(info_->shape_);
+        if(info_->shape_.front() == std::numeric_limits<int>::max())
+            throw std::out_of_range(get_name() + "No room for additional element");
+        std::vector<int> extended_shape = info_->shape_;
+        extended_shape.front()++;
+        realloc(extended_shape);
         info_->shape_.front()--;
         info_->refresh_logical_layout();
     }
@@ -1547,7 +1624,7 @@ matrix::push(const matrix & m, bool extend)
 
     if(info_->shape_.front() >= info_->max_size_.front())
         throw std::out_of_range(get_name() + "No room for additional element");
-#endif
+
     if(info_->shape_.front() < info_->max_size_.front())
     {
         const int index = info_->shape_.front();
@@ -1578,10 +1655,10 @@ matrix::push(float v)
 matrix &
 matrix::pop(matrix & m)
 {
-#ifndef NO_MATRIX_CHECKS
+    if(m.rank() == 0)
+        throw std::out_of_range(get_name() + "Nothing to pop.");
     if(m.info_->shape_.front() == 0)
         throw std::out_of_range(get_name() + "Nothing to pop.");
-#endif
     copy(m[m.info_->shape_.front() - 1]);
     m.info_->shape_.front()--;
     m.info_->refresh_logical_layout();
@@ -1701,41 +1778,100 @@ matrix::gaussian(float sigma)
 
 
 matrix &
-matrix::corr(const matrix & I, const matrix & K)
+matrix::corr2(const matrix & I, const matrix & K)
 {
-#ifndef NO_MATRIX_CHECKS
-    if(rank() != 2 || I.rank() != 2 || K.rank() != 2)
+    return corr2(I, K, convolution_padding::valid);
+}
+
+
+matrix &
+matrix::corr2(const matrix & I, const matrix & K, convolution_padding padding)
+{
+    if(I.rank() != 2 || K.rank() != 2)
         throw std::invalid_argument("Correlation requires two-dimensional matrices.");
-
-    if(I.cols() < K.cols() || I.rows() < K.rows())
+    if(K.rows() <= 0 || K.cols() <= 0)
+        throw std::invalid_argument("Correlation kernel dimensions must be positive.");
+    if(padding == convolution_padding::valid && (I.cols() < K.cols() || I.rows() < K.rows()))
         throw std::invalid_argument("K must fit in I");
-#endif
+    if(padding != convolution_padding::valid && padding != convolution_padding::same)
+        throw std::invalid_argument("corr2() received an invalid padding mode.");
 
-    int rr = I.rows() - K.rows() + 1;
-    int rc = I.cols() - K.cols() + 1;
+    const int input_rows = I.rows();
+    const int input_cols = I.cols();
+    const int kernel_rows = K.rows();
+    const int kernel_cols = K.cols();
+    const int output_rows = padding == convolution_padding::same ? input_rows : input_rows - kernel_rows + 1;
+    const int output_cols = padding == convolution_padding::same ? input_cols : input_cols - kernel_cols + 1;
 
     if(is_uninitialized())
-        realloc(rr, rc);
+        realloc(output_rows, output_cols);
 
-    if(rows() != rr || cols() != rc)
-        throw std::invalid_argument("Result matrix does not have size " + std::to_string(rr) + "x" + std::to_string(rc) + ".");
+    if(rank() != 2 || rows() != output_rows || cols() != output_cols)
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(output_rows) + "x" + std::to_string(output_cols) + ".");
 
     if(this == &I || this == &K)
         throw std::invalid_argument("Result cannot be assigned to I or K.");
-    reset();
 
-    for(int j = 0; j < rows(); j++)
-        for(int i = 0; i < cols(); i++)
-            for(int k = 0; k < K.rows(); k++)
-                for(int l = 0; l < K.cols(); l++)
-                    (*this)(j, i) += I(j + k, i + l) * K(k, l);
+#if defined(__APPLE__)
+    const int output_pixels = output_rows * output_cols;
+    const int kernel_size = kernel_rows * kernel_cols;
+    static thread_local std::vector<float> patches;
+    static thread_local std::vector<float> flattened_kernel;
+    static thread_local std::vector<float> filtered;
+    if(padding == convolution_padding::same)
+        im2row_same_2d(I, kernel_rows, kernel_cols, patches);
+    else
+        im2row_valid_2d(I, kernel_rows, kernel_cols, patches);
+    resize_scratch(flattened_kernel, kernel_size);
+    resize_scratch(filtered, output_pixels);
+
+    for(int y = 0; y < kernel_rows; ++y)
+        for(int x = 0; x < kernel_cols; ++x)
+            flattened_kernel[y * kernel_cols + x] = K(y, x);
+
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+                1, output_pixels, kernel_size,
+                1.0f,
+                flattened_kernel.data(), kernel_size,
+                patches.data(), kernel_size,
+                0.0f,
+                filtered.data(), output_pixels);
+
+    for(int y = 0; y < output_rows; ++y)
+        for(int x = 0; x < output_cols; ++x)
+            (*this)(y, x) = filtered[y * output_cols + x];
+#else
+    const int pad_top = padding == convolution_padding::same ? (kernel_rows - 1) / 2 : 0;
+    const int pad_left = padding == convolution_padding::same ? (kernel_cols - 1) / 2 : 0;
+
+    for(int y = 0; y < output_rows; ++y)
+        for(int x = 0; x < output_cols; ++x)
+        {
+            float sum = 0.0f;
+            for(int ky = 0; ky < kernel_rows; ++ky)
+            {
+                const int input_y = y + ky - pad_top;
+                if(input_y < 0 || input_y >= input_rows)
+                    continue;
+
+                for(int kx = 0; kx < kernel_cols; ++kx)
+                {
+                    const int input_x = x + kx - pad_left;
+                    if(input_x >= 0 && input_x < input_cols)
+                        sum += I(input_y, input_x) * K(ky, kx);
+                }
+            }
+            (*this)(y, x) = sum;
+        }
+#endif
+
     return *this;
 }
 
-// conv_slow is a fallback funtion. Use conv() instead of conv_slow() for better performance.
+// conv2_slow is a fallback function. Use conv2() instead for better performance.
 
 matrix &
-matrix::conv_slow(const matrix & I, const matrix & K)
+matrix::conv2_slow(const matrix & I, const matrix & K)
 {
 #ifndef NO_MATRIX_CHECKS
     if(rank() != 2 || I.rank() != 2 || K.rank() != 2)
@@ -3100,22 +3236,115 @@ matrix::fillExtendBorder(int wx, int wy)
 std::ostream &
 operator<<(std::ostream & os, const matrix & m)
 {
-    if(m.rank() == 0)
+    auto write = [&os](auto && self, const matrix & value) -> void
     {
-        if(m.info_->size_ == 0)
-            os << "{}";
-        else if(m.info_->size_ == 1)
-            os << m.data_->at(m.info_->offset_);
-    }
-    else
-        m.print();
+        if(value.rank() == 0)
+        {
+            if(value.info_->size_ == 0)
+                os << "{}";
+            else
+                os << value.data_->at(value.info_->offset_);
+            return;
+        }
+
+        os << "{";
+        for(int i = 0; i < value.shape(0); ++i)
+        {
+            if(i > 0)
+                os << ", ";
+            self(self, value[i]);
+        }
+        os << "}";
+    };
+
+    write(write, m);
     return os;
 }
 
 
-float matrix::matrank() const { throw std::logic_error("matrank(). Not implemented."); }
-float matrix::trace() const { throw std::logic_error("Not implemented."); }
-float matrix::det() const { throw std::logic_error("trace(). Not implemented."); }
+float
+matrix::matrank() const
+{
+    if(rank() != 2)
+        throw std::invalid_argument("Matrix rank requires a two-dimensional matrix.");
+
+#if !defined(__APPLE__)
+    throw std::runtime_error("matrix::matrank() requires Apple Accelerate LAPACK today.");
+#else
+    const int rows = this->rows();
+    const int cols = this->cols();
+    if(rows == 0 || cols == 0)
+        return 0.0f;
+
+    matrix U;
+    matrix S;
+    matrix Vt;
+    singular_value_decomposition(*this, U, S, Vt);
+
+    const float tolerance = std::max(rows, cols) * std::numeric_limits<float>::epsilon() * S(0, 0);
+    int result = 0;
+    for(int i = 0; i < std::min(rows, cols); ++i)
+        if(S(i, i) > tolerance)
+            ++result;
+    return static_cast<float>(result);
+#endif
+}
+
+
+float
+matrix::trace() const
+{
+    if(rank() != 2)
+        throw std::invalid_argument("Trace requires a two-dimensional matrix.");
+    if(rows() != cols())
+        throw std::invalid_argument("Trace requires a square matrix.");
+
+    float result = 0.0f;
+    for(int i = 0; i < rows(); ++i)
+        result += (*this)(i, i);
+    return result;
+}
+
+
+float
+matrix::det() const
+{
+    if(rank() != 2)
+        throw std::invalid_argument("Determinant requires a two-dimensional matrix.");
+    if(rows() != cols())
+        throw std::invalid_argument("Determinant requires a square matrix.");
+
+#if !defined(__APPLE__)
+    throw std::runtime_error("matrix::det() requires Apple Accelerate LAPACK today.");
+#else
+    int n = rows();
+    if(n == 0)
+        return 1.0f;
+
+    std::vector<float> values(n * n);
+    for(int row = 0; row < n; ++row)
+        for(int col = 0; col < n; ++col)
+            values[col * n + row] = (*this)(row, col);
+
+    std::vector<int> pivots(n);
+    int lda = n;
+    int info = 0;
+    sgetrf_(&n, &n, values.data(), &lda, pivots.data(), &info);
+    if(info < 0)
+        throw std::runtime_error("LU decomposition failed with invalid argument " + std::to_string(-info) + ".");
+    if(info > 0)
+        return 0.0f;
+
+    float result = 1.0f;
+    for(int i = 0; i < n; ++i)
+    {
+        if(pivots[i] != i + 1)
+            result = -result;
+        result *= values[i * n + i];
+    }
+    return result;
+#endif
+}
 
 
 matrix &
@@ -3127,9 +3356,53 @@ matrix::inv(const matrix & m)
 
 
 matrix &
-matrix::pinv(const matrix &)
+matrix::pinv(const matrix & input)
 {
-    throw std::logic_error("pinv(). Not implemented.");
+    if(input.rank() != 2)
+        throw std::invalid_argument("Pseudoinverse requires a two-dimensional matrix.");
+
+#if !defined(__APPLE__)
+    throw std::runtime_error("matrix::pinv() requires Apple Accelerate LAPACK today.");
+#else
+    matrix input_copy;
+    const matrix * source = &input;
+    if(data_ == input.data_)
+    {
+        input_copy.copy(input);
+        source = &input_copy;
+    }
+
+    const int source_rows = source->rows();
+    const int source_cols = source->cols();
+    if(is_uninitialized())
+        realloc(source_cols, source_rows);
+    else if(rank() != 2 || rows() != source_cols || cols() != source_rows)
+        throw std::invalid_argument("Pseudoinverse result does not have size " + std::to_string(source_cols) + "x" + std::to_string(source_rows) + ".");
+
+    reset();
+    if(source_rows == 0 || source_cols == 0)
+        return *this;
+
+    matrix U;
+    matrix S;
+    matrix Vt;
+    source->singular_value_decomposition(*source, U, S, Vt);
+
+    const int singular_values = std::min(source_rows, source_cols);
+    const float tolerance = std::max(source_rows, source_cols) * std::numeric_limits<float>::epsilon() * S(0, 0);
+    for(int singular = 0; singular < singular_values; ++singular)
+    {
+        const float value = S(singular, singular);
+        if(value <= tolerance)
+            continue;
+
+        const float inverse_value = 1.0f / value;
+        for(int row = 0; row < source_cols; ++row)
+            for(int col = 0; col < source_rows; ++col)
+                (*this)(row, col) += Vt(singular, row) * inverse_value * U(col, singular);
+    }
+    return *this;
+#endif
 }
 
 
@@ -3144,6 +3417,21 @@ matrix::transpose(matrix & ret) const
     else if(ret.rows() != cols || ret.cols() != rows)
         throw std::invalid_argument("Result matrix does not have size " + std::to_string(cols) + "x" + std::to_string(rows) + ".");
 
+    if(data_ == ret.data_)
+    {
+        if(this == &ret)
+        {
+            for(int row = 0; row < rows; ++row)
+                for(int col = row + 1; col < cols; ++col)
+                    std::swap(ret(row, col), ret(col, row));
+            return ret;
+        }
+
+        matrix source_copy;
+        source_copy.copy(*this);
+        return source_copy.transpose(ret);
+    }
+
     for(int i = 0; i < rows; ++i)
         for(int j = 0; j < cols; ++j)
             ret(j, i) = (*this)(i, j);
@@ -3151,10 +3439,58 @@ matrix::transpose(matrix & ret) const
 }
 
 
-matrix &
-matrix::eig(const matrix &)
+std::tuple<matrix, matrix>
+matrix::eig() const
 {
-    throw std::logic_error("eig(). Not implemented.");
+    if(rank() != 2)
+        throw std::invalid_argument("Eigenvalue decomposition requires a two-dimensional matrix.");
+    if(rows() != cols())
+        throw std::invalid_argument("Eigenvalue decomposition requires a square matrix.");
+
+    int n = rows();
+    for(int row = 0; row < n; ++row)
+        for(int col = row + 1; col < n; ++col)
+        {
+            const float tolerance = std::numeric_limits<float>::epsilon() *
+                                    std::max({1.0f, std::fabs((*this)(row, col)), std::fabs((*this)(col, row))});
+            if(std::fabs((*this)(row, col) - (*this)(col, row)) > tolerance)
+                throw std::invalid_argument("Eigenvalue decomposition requires a symmetric matrix.");
+        }
+
+    matrix eigenvectors(n, n);
+    matrix eigenvalues(n);
+    if(n == 0)
+        return {eigenvectors, eigenvalues};
+
+#if !defined(__APPLE__)
+    throw std::runtime_error("matrix::eig() requires Apple Accelerate LAPACK today.");
+#else
+    std::vector<float> values(n * n);
+    for(int row = 0; row < n; ++row)
+        for(int col = 0; col < n; ++col)
+            values[col * n + row] = (*this)(row, col);
+
+    int lda = n;
+    int info = 0;
+    int lwork = -1;
+    float work_size = 0.0f;
+    ssyev_("V", "U", &n, values.data(), &lda, eigenvalues.data(), &work_size, &lwork, &info);
+    if(info != 0)
+        throw std::runtime_error("Eigenvalue workspace query failed with info = " + std::to_string(info) + ".");
+
+    lwork = std::max(1, static_cast<int>(work_size));
+    std::vector<float> work(lwork);
+    ssyev_("V", "U", &n, values.data(), &lda, eigenvalues.data(), work.data(), &lwork, &info);
+    if(info < 0)
+        throw std::runtime_error("Eigenvalue decomposition failed with invalid argument " + std::to_string(-info) + ".");
+    if(info > 0)
+        throw std::runtime_error("Eigenvalue decomposition did not converge.");
+
+    for(int row = 0; row < n; ++row)
+        for(int col = 0; col < n; ++col)
+            eigenvectors(row, col) = values[col * n + row];
+    return {eigenvectors, eigenvalues};
+#endif
 }
 
 
@@ -3185,11 +3521,16 @@ matrix::operator==(const matrix & other) const
     if(rank() == 0)
         return size() == other.size() && (size() == 0 || (*data_)[info_->offset_] == (*other.data_)[other.info_->offset_]);
 
-    for(auto ix = get_range(); ix.more(); ix++)
-        if((*data_)[compute_index(ix.index())] != (*other.data_)[other.compute_index(ix.index())])
-            return false;
+    if(info_->has_contiguous_logical_storage && other.info_->has_contiguous_logical_storage)
+        return std::equal(data_->begin() + info_->offset_, data_->begin() + info_->offset_ + size(),
+                          other.data_->begin() + other.info_->offset_);
 
-    return true;
+    return for_each_logical_row_while(*this, [&](const auto & offsets, int row_length)
+    {
+        const float * values = data_->data() + offsets[0];
+        const float * other_values = other.data_->data() + offsets[1];
+        return std::equal(values, values + row_length, other_values);
+    }, other);
 }
 
 
@@ -3232,25 +3573,27 @@ flattenKernel(const matrix & K)
 void
 im2row(std::vector<float> & submatrices_flat, const matrix & I, const matrix & K)
 {
-    int rr = I.rows() - K.rows() + 1;
-    int rc = I.cols() - K.cols() + 1;
+    if(I.rank() != 2 || K.rank() != 2)
+        throw std::invalid_argument("im2row() requires two-dimensional matrices.");
+    if(K.rows() <= 0 || K.cols() <= 0)
+        throw std::invalid_argument("im2row() requires a non-empty kernel.");
+    if(K.rows() > I.rows() || K.cols() > I.cols())
+        throw std::invalid_argument("im2row() kernel must fit in the input.");
 
-    const float * I_data = I.data();
-    int I_cols = I.cols();
-    int K_cols = K.cols();
-    int K_rows = K.rows();
+    const int output_rows = I.rows() - K.rows() + 1;
+    const int output_cols = I.cols() - K.cols() + 1;
+    const int kernel_rows = K.rows();
+    const int kernel_cols = K.cols();
+    const std::size_t patch_count = static_cast<std::size_t>(output_rows) * output_cols;
+    const std::size_t patch_size = static_cast<std::size_t>(kernel_rows) * kernel_cols;
+    submatrices_flat.resize(patch_count * patch_size);
 
-    size_t offset = 0;
-    for(int j = 0; j < rr; ++j)
-        for(int i = 0; i < rc; ++i)
-            for(int k = 0; k < K_rows; ++k)
-            {
-                const float * input_row_start = I_data + (j + k) * I_cols + i;
-                float * output_row_start = submatrices_flat.data() + offset;
-                for(int l = 0; l < K_cols; ++l)
-                    output_row_start[l] = input_row_start[l];
-                offset += K_cols;
-            }
+    std::size_t offset = 0;
+    for(int row = 0; row < output_rows; ++row)
+        for(int col = 0; col < output_cols; ++col)
+            for(int kernel_row = 0; kernel_row < kernel_rows; ++kernel_row)
+                for(int kernel_col = 0; kernel_col < kernel_cols; ++kernel_col)
+                    submatrices_flat[offset++] = I(row + kernel_row, col + kernel_col);
 }
 
 
@@ -3729,18 +4072,18 @@ matrix::latent_log_variance_gradient(const matrix & latent_gradient, const matri
         return *this;
     }
 
-    for_each_logical_row(*this, [&](const std::vector<int> & index, int row_length)
+    for_each_logical_row(*this, [&](const auto & offsets, int row_length)
     {
-        float * output_row = data_->data() + compute_index_unchecked(*info_, index);
-        const float * latent_gradient_row = latent_gradient.data_->data() + compute_index_unchecked(*latent_gradient.info_, index);
-        const float * epsilon_row = epsilon.data_->data() + compute_index_unchecked(*epsilon.info_, index);
-        const float * stddev_row = stddev.data_->data() + compute_index_unchecked(*stddev.info_, index);
-        const float * log_variance_row = log_variance.data_->data() + compute_index_unchecked(*log_variance.info_, index);
+        float * output_row = data_->data() + offsets[0];
+        const float * latent_gradient_row = latent_gradient.data_->data() + offsets[1];
+        const float * epsilon_row = epsilon.data_->data() + offsets[2];
+        const float * stddev_row = stddev.data_->data() + offsets[3];
+        const float * log_variance_row = log_variance.data_->data() + offsets[4];
 
         for(int col = 0; col < row_length; ++col)
             output_row[col] = 0.5f * latent_gradient_row[col] * epsilon_row[col] * stddev_row[col] +
                 0.5f * kl_scale * (std::exp(log_variance_row[col]) - 1.0f);
-    });
+    }, latent_gradient, epsilon, stddev, log_variance);
 
     return *this;
 }
@@ -3784,15 +4127,15 @@ matrix::latent_sample_gradients(matrix & d_log_variance, const matrix & latent_g
         return *this;
     }
 
-    for_each_logical_row(*this, [&](const std::vector<int> & index, int row_length)
+    for_each_logical_row(*this, [&](const auto & offsets, int row_length)
     {
-        float * d_mean_row = data_->data() + compute_index_unchecked(*info_, index);
-        float * d_log_variance_row = d_log_variance.data_->data() + compute_index_unchecked(*d_log_variance.info_, index);
-        const float * latent_gradient_row = latent_gradient.data_->data() + compute_index_unchecked(*latent_gradient.info_, index);
-        const float * mean_row = mean.data_->data() + compute_index_unchecked(*mean.info_, index);
-        const float * epsilon_row = epsilon.data_->data() + compute_index_unchecked(*epsilon.info_, index);
-        const float * stddev_row = stddev.data_->data() + compute_index_unchecked(*stddev.info_, index);
-        const float * log_variance_row = log_variance.data_->data() + compute_index_unchecked(*log_variance.info_, index);
+        float * d_mean_row = data_->data() + offsets[0];
+        float * d_log_variance_row = d_log_variance.data_->data() + offsets[1];
+        const float * latent_gradient_row = latent_gradient.data_->data() + offsets[2];
+        const float * mean_row = mean.data_->data() + offsets[3];
+        const float * epsilon_row = epsilon.data_->data() + offsets[4];
+        const float * stddev_row = stddev.data_->data() + offsets[5];
+        const float * log_variance_row = log_variance.data_->data() + offsets[6];
 
         for(int col = 0; col < row_length; ++col)
         {
@@ -3800,7 +4143,7 @@ matrix::latent_sample_gradients(matrix & d_log_variance, const matrix & latent_g
             d_log_variance_row[col] = 0.5f * latent_gradient_row[col] * epsilon_row[col] * stddev_row[col] +
                 0.5f * kl_scale * (std::exp(log_variance_row[col]) - 1.0f);
         }
-    });
+    }, d_log_variance, latent_gradient, mean, epsilon, stddev, log_variance);
 
     return *this;
 }
@@ -3838,20 +4181,20 @@ matrix::latent_mean_gradients(matrix & d_log_variance, const matrix & latent_gra
         return *this;
     }
 
-    for_each_logical_row(*this, [&](const std::vector<int> & index, int row_length)
+    for_each_logical_row(*this, [&](const auto & offsets, int row_length)
     {
-        float * d_mean_row = data_->data() + compute_index_unchecked(*info_, index);
-        float * d_log_variance_row = d_log_variance.data_->data() + compute_index_unchecked(*d_log_variance.info_, index);
-        const float * latent_gradient_row = latent_gradient.data_->data() + compute_index_unchecked(*latent_gradient.info_, index);
-        const float * mean_row = mean.data_->data() + compute_index_unchecked(*mean.info_, index);
-        const float * log_variance_row = log_variance.data_->data() + compute_index_unchecked(*log_variance.info_, index);
+        float * d_mean_row = data_->data() + offsets[0];
+        float * d_log_variance_row = d_log_variance.data_->data() + offsets[1];
+        const float * latent_gradient_row = latent_gradient.data_->data() + offsets[2];
+        const float * mean_row = mean.data_->data() + offsets[3];
+        const float * log_variance_row = log_variance.data_->data() + offsets[4];
 
         for(int col = 0; col < row_length; ++col)
         {
             d_mean_row[col] = latent_gradient_row[col] + kl_scale * mean_row[col];
             d_log_variance_row[col] = 0.5f * kl_scale * (std::exp(log_variance_row[col]) - 1.0f);
         }
-    });
+    }, d_log_variance, latent_gradient, mean, log_variance);
 
     return *this;
 }
@@ -3886,19 +4229,19 @@ matrix::latent_kl_gradients(matrix & d_log_variance, const matrix & mean, const 
         return *this;
     }
 
-    for_each_logical_row(*this, [&](const std::vector<int> & index, int row_length)
+    for_each_logical_row(*this, [&](const auto & offsets, int row_length)
     {
-        float * d_mean_row = data_->data() + compute_index_unchecked(*info_, index);
-        float * d_log_variance_row = d_log_variance.data_->data() + compute_index_unchecked(*d_log_variance.info_, index);
-        const float * mean_row = mean.data_->data() + compute_index_unchecked(*mean.info_, index);
-        const float * log_variance_row = log_variance.data_->data() + compute_index_unchecked(*log_variance.info_, index);
+        float * d_mean_row = data_->data() + offsets[0];
+        float * d_log_variance_row = d_log_variance.data_->data() + offsets[1];
+        const float * mean_row = mean.data_->data() + offsets[2];
+        const float * log_variance_row = log_variance.data_->data() + offsets[3];
 
         for(int col = 0; col < row_length; ++col)
         {
             d_mean_row[col] = kl_scale * mean_row[col];
             d_log_variance_row[col] = 0.5f * kl_scale * (std::exp(log_variance_row[col]) - 1.0f);
         }
-    });
+    }, d_log_variance, mean, log_variance);
 
     return *this;
 }
@@ -3951,12 +4294,12 @@ matrix::adam_update(const matrix & gradients, matrix & first_moment, matrix & se
         return *this;
     }
 
-    for_each_logical_row(*this, [&](const std::vector<int> & index, int row_length)
+    for_each_logical_row(*this, [&](const auto & offsets, int row_length)
     {
-        float * values_row = data_->data() + compute_index_unchecked(*info_, index);
-        const float * gradient_row = gradients.data_->data() + compute_index_unchecked(*gradients.info_, index);
-        float * first_row = first_moment.data_->data() + compute_index_unchecked(*first_moment.info_, index);
-        float * second_row = second_moment.data_->data() + compute_index_unchecked(*second_moment.info_, index);
+        float * values_row = data_->data() + offsets[0];
+        const float * gradient_row = gradients.data_->data() + offsets[1];
+        float * first_row = first_moment.data_->data() + offsets[2];
+        float * second_row = second_moment.data_->data() + offsets[3];
 
         for(int col = 0; col < row_length; ++col)
         {
@@ -3967,7 +4310,7 @@ matrix::adam_update(const matrix & gradients, matrix & first_moment, matrix & se
             values_row[col] -= update_scale * first_row[col] /
                 (std::sqrt(second_row[col] * inv_beta2_correction) + epsilon);
         }
-    });
+    }, gradients, first_moment, second_moment);
 
     return *this;
 }
@@ -4594,22 +4937,33 @@ matrix::inv()
     throw std::runtime_error("matrix::inv() requires Apple Accelerate LAPACK today. A portable fallback could use Eigen, LAPACK/OpenBLAS, or a local Gauss-Jordan/LU implementation.");
 #else
     int n = size_x();
-    int lda = size_y();
-    int info;
+    if(n == 0)
+        return *this;
+
+    std::vector<float> values(n * n);
+    for(int row = 0; row < n; ++row)
+        for(int col = 0; col < n; ++col)
+            values[col * n + row] = (*this)(row, col);
 
     std::vector<int> ipiv(n);
     int lwork = n * 64;
     std::vector<float> work(lwork);
+    int lda = n;
+    int info = 0;
 
-    sgetrf_(&n, &n, data(), &lda, ipiv.data(), &info);
+    sgetrf_(&n, &n, values.data(), &lda, ipiv.data(), &info);
 
     if(info != 0)
         throw std::runtime_error("LU decomposition failed with info = " + std::to_string(info));
 
-    sgetri_(&n, data(), &lda, ipiv.data(), work.data(), &lwork, &info);
+    sgetri_(&n, values.data(), &lda, ipiv.data(), work.data(), &lwork, &info);
 
     if(info != 0)
         throw std::runtime_error("Matrix inversion failed with info = " + std::to_string(info));
+
+    for(int row = 0; row < n; ++row)
+        for(int col = 0; col < n; ++col)
+            (*this)(row, col) = values[col * n + row];
 
     return *this;
 #endif
@@ -4619,86 +4973,132 @@ matrix::inv()
 matrix &
 matrix::corr3(const matrix &I, const matrix &K, const std::vector<float> &kernel_flat, const std::vector<float> &submatrices_flat)
 {
-    if(is_uninitialized())
-        realloc(I.rows() - K.rows() + 1, I.cols() - K.cols() + 1);
-
-#ifndef NO_MATRIX_CHECKS
-    if(rank() != 2 || I.rank() != 2 || K.rank() != 2)
+    if(I.rank() != 2 || K.rank() != 2)
         throw std::invalid_argument("Correlation requires two-dimensional matrices.");
-
+    if(K.rows() <= 0 || K.cols() <= 0)
+        throw std::invalid_argument("Correlation kernel dimensions must be positive.");
     if(I.cols() < K.cols() || I.rows() < K.rows())
         throw std::invalid_argument("K must fit in I");
-#endif
 
-    int rr = I.rows() - K.rows() + 1;
-    int rc = I.cols() - K.cols() + 1;
+    const int output_rows = I.rows() - K.rows() + 1;
+    const int output_cols = I.cols() - K.cols() + 1;
+    const int kernel_size = K.rows() * K.cols();
+    const std::size_t output_size = static_cast<std::size_t>(output_rows) * output_cols;
+    if(kernel_flat.size() != static_cast<std::size_t>(kernel_size))
+        throw std::invalid_argument("Correlation kernel buffer has incorrect size.");
+    if(submatrices_flat.size() != output_size * kernel_size)
+        throw std::invalid_argument("Correlation patch buffer has incorrect size.");
 
-    if(rows() != rr || cols() != rc)
-        throw std::invalid_argument("Result matrix does not have size " + std::to_string(rr) + "x" + std::to_string(rc) + ".");
+    if(is_uninitialized())
+        realloc(output_rows, output_cols);
+
+    if(rank() != 2 || rows() != output_rows || cols() != output_cols)
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(output_rows) + "x" + std::to_string(output_cols) + ".");
 
     if(this == &I || this == &K)
         throw std::invalid_argument("Result cannot be assigned to I or K.");
 
-    reset();
+    std::vector<float> result(output_size);
 
 #if defined(__APPLE__)
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                rr * rc, 1, K.rows() * K.cols(),
+                output_rows * output_cols, 1, kernel_size,
                 1.0f,
-                submatrices_flat.data(), K.rows() * K.cols(),
+                submatrices_flat.data(), kernel_size,
                 kernel_flat.data(), 1,
                 0.0f,
-                this->data(), 1);
+                result.data(), 1);
 #else
-    for(int idx = 0; idx < rr * rc; ++idx)
+    for(int idx = 0; idx < output_rows * output_cols; ++idx)
     {
         float sum = 0.0f;
-        int base = idx * K.rows() * K.cols();
-        for(int k = 0; k < K.rows() * K.cols(); ++k)
+        int base = idx * kernel_size;
+        for(int k = 0; k < kernel_size; ++k)
             sum += submatrices_flat[base + k] * kernel_flat[k];
-        this->data()[idx] = sum;
+        result[idx] = sum;
     }
 #endif
+
+    for(int row = 0; row < output_rows; ++row)
+        for(int col = 0; col < output_cols; ++col)
+            (*this)(row, col) = result[row * output_cols + col];
 
     return *this;
 }
 
 
 matrix &
-matrix::conv(const matrix &I, const matrix &K)
+matrix::conv2(const matrix & I, const matrix & K)
 {
-#ifndef NO_MATRIX_CHECKS
-    if(rank() != 2 || I.rank() != 2 || K.rank() != 2)
+    if(I.rank() != 2 || K.rank() != 2)
         throw std::invalid_argument("Convolution requires two-dimensional matrices.");
-
     if(I.cols() < K.cols() || I.rows() < K.rows())
         throw std::invalid_argument("K must fit in I");
-#endif
+    if(K.rows() <= 0 || K.cols() <= 0)
+        throw std::invalid_argument("Convolution kernel dimensions must be positive.");
 
-    int Ir = I.rows();
-    int Ic = I.cols();
-    int Kr = K.rows();
-    int Kc = K.cols();
+    const int input_rows = I.rows();
+    const int input_cols = I.cols();
+    const int kernel_rows = K.rows();
+    const int kernel_cols = K.cols();
 
     if(is_uninitialized())
-        realloc(Ir, Ic);
+        realloc(input_rows, input_cols);
 
-    if(rows() != Ir || cols() != Ic)
-        throw std::invalid_argument("Result matrix does not have size " + std::to_string(Ir) + "x" + std::to_string(Ic) + ".");
+    if(rank() != 2 || rows() != input_rows || cols() != input_cols)
+        throw std::invalid_argument("Result matrix does not have size " + std::to_string(input_rows) + "x" + std::to_string(input_cols) + ".");
 
     if(this == &I || this == &K)
         throw std::invalid_argument("Result cannot be assigned to I or K.");
 
-    reset();
-
 #if defined(__APPLE__)
-    const float *input = I.data();
-    const float *kernel = K.data();
-    float *output = this->data();
+    const int output_pixels = input_rows * input_cols;
+    const int kernel_size = kernel_rows * kernel_cols;
+    static thread_local std::vector<float> patches;
+    static thread_local std::vector<float> reversed_kernel;
+    static thread_local std::vector<float> filtered;
+    im2row_same_2d(I, kernel_rows, kernel_cols, patches);
+    resize_scratch(reversed_kernel, kernel_size);
+    resize_scratch(filtered, output_pixels);
 
-    vDSP_imgfir(input, Ir, Ic, kernel, output, Kr, Kc);
+    for(int y = 0; y < kernel_rows; ++y)
+        for(int x = 0; x < kernel_cols; ++x)
+            reversed_kernel[y * kernel_cols + x] = K(kernel_rows - y - 1, kernel_cols - x - 1);
+
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+                1, output_pixels, kernel_size,
+                1.0f,
+                reversed_kernel.data(), kernel_size,
+                patches.data(), kernel_size,
+                0.0f,
+                filtered.data(), output_pixels);
+
+    for(int y = 0; y < input_rows; ++y)
+        for(int x = 0; x < input_cols; ++x)
+            (*this)(y, x) = filtered[y * input_cols + x];
 #else
-    return conv_slow(I, K);
+    const int pad_top = (kernel_rows - 1) / 2;
+    const int pad_left = (kernel_cols - 1) / 2;
+
+    for(int y = 0; y < input_rows; ++y)
+        for(int x = 0; x < input_cols; ++x)
+        {
+            float sum = 0.0f;
+            for(int ky = 0; ky < kernel_rows; ++ky)
+            {
+                const int input_y = y + ky - pad_top;
+                if(input_y < 0 || input_y >= input_rows)
+                    continue;
+
+                for(int kx = 0; kx < kernel_cols; ++kx)
+                {
+                    const int input_x = x + kx - pad_left;
+                    if(input_x >= 0 && input_x < input_cols)
+                        sum += I(input_y, input_x) * K(kernel_rows - ky - 1, kernel_cols - kx - 1);
+                }
+            }
+            (*this)(y, x) = sum;
+        }
 #endif
 
     return *this;
@@ -4706,8 +5106,14 @@ matrix::conv(const matrix &I, const matrix &K)
 
 
 void
-matrix::singular_value_decomposition(const matrix& inputMatrix, matrix& U, matrix& S, matrix& Vt)
+matrix::singular_value_decomposition(const matrix & inputMatrix,
+                                     matrix & U,
+                                     matrix & S,
+                                     matrix & Vt) const
 {
+    if(inputMatrix.rank() != 2)
+        throw std::invalid_argument("SVD requires a two-dimensional matrix.");
+
 #if !defined(__APPLE__)
     throw std::runtime_error("matrix::singular_value_decomposition() requires Apple Accelerate LAPACK today. A portable fallback could use Eigen, LAPACK/OpenBLAS, or another SVD-capable linear algebra library.");
 #else
@@ -4730,11 +5136,14 @@ matrix::singular_value_decomposition(const matrix& inputMatrix, matrix& U, matri
     else if(S.rows() != m || S.cols() != n)
         throw std::invalid_argument("S matrix does not have size " + std::to_string(m) + "x" + std::to_string(n) + ".");
 
-    std::vector<float> a(inputMatrix.data(), inputMatrix.data() + m * n);
+    std::vector<float> a(m * n);
+    for(int row = 0; row < m; ++row)
+        for(int col = 0; col < n; ++col)
+            a[col * m + row] = inputMatrix(row, col);
 
-    matrix singularValues(min_mn);
-    matrix u(m, m);
-    matrix vt(n, n);
+    std::vector<float> singular_values(min_mn);
+    std::vector<float> u(m * m);
+    std::vector<float> vt(n * n);
 
     int lda = m;
     int ldu = m;
@@ -4743,89 +5152,100 @@ matrix::singular_value_decomposition(const matrix& inputMatrix, matrix& U, matri
 
     int lwork = -1;
     float work_size;
-    sgesvd_("A", "A", &m, &n, a.data(), &lda, singularValues.data(), u.data(), &ldu, vt.data(), &ldvt, &work_size, &lwork, &info);
+    sgesvd_("A", "A", &m, &n, a.data(), &lda, singular_values.data(),
+            u.data(), &ldu, vt.data(), &ldvt, &work_size, &lwork, &info);
 
-    lwork = static_cast<int>(work_size);
+    if(info != 0)
+        throw std::runtime_error("SVD workspace query failed with info = " + std::to_string(info) + ".");
+
+    lwork = std::max(1, static_cast<int>(work_size));
     std::vector<float> work(lwork);
-    sgesvd_("A", "A", &m, &n, a.data(), &lda, singularValues.data(),
+    sgesvd_("A", "A", &m, &n, a.data(), &lda, singular_values.data(),
             u.data(), &ldu, vt.data(), &ldvt, work.data(), &lwork, &info);
 
+    if(info < 0)
+        throw std::runtime_error("SVD failed with invalid argument " + std::to_string(-info) + ".");
     if(info > 0)
         throw std::runtime_error("SVD did not converge.");
 
-    U.copy(u);
-    Vt.copy(vt);
+    for(int row = 0; row < m; ++row)
+        for(int col = 0; col < m; ++col)
+            U(row, col) = u[col * m + row];
 
-    std::vector<float> s(m * n, 0.0f);
+    for(int row = 0; row < n; ++row)
+        for(int col = 0; col < n; ++col)
+            Vt(row, col) = vt[col * n + row];
+
+    S.reset();
     for(int i = 0; i < min_mn; ++i)
-        s[i * n + i] = singularValues[i];
-
-    std::copy(s.begin(), s.end(), S.data());
+        S(i, i) = singular_values[i];
 #endif
 }
 
 
 
 matrix &
-matrix::downsample(const matrix &source) 
+matrix::downsample(const matrix & source)
 {
-    if (source.rank() != 2)
+    matrix temporary_row;
+    return downsample(source, temporary_row);
+}
+
+
+matrix &
+matrix::downsample(const matrix & source, matrix & temporary_row)
+{
+    if(source.rank() != 2)
         throw std::invalid_argument("downsample() requires 2D input.");
-    if (source.rows() % 2 != 0 || source.cols() % 2 != 0)
+    if(source.rows() % 2 != 0 || source.cols() % 2 != 0)
         throw std::invalid_argument("Source dimensions must be even.");
+    if(this == &source || data_ == source.data_)
+        throw std::invalid_argument("downsample() destination must not alias the source.");
+    if(&temporary_row == this || &temporary_row == &source ||
+       temporary_row.data_ == data_ || temporary_row.data_ == source.data_)
+        throw std::invalid_argument("downsample() temporary row must not alias the source or destination.");
 
-    int src_rows = source.rows();
-    int src_cols = source.cols();
-    int new_rows = src_rows / 2;
-    int new_cols = src_cols / 2;
+    const int src_rows = source.rows();
+    const int src_cols = source.cols();
+    const int new_rows = src_rows / 2;
+    const int new_cols = src_cols / 2;
 
-    if (is_uninitialized()) {
+    if(is_uninitialized())
         realloc(new_rows, new_cols);
-    } else if (rows() != new_rows || cols() != new_cols) {
+    else if(rank() != 2 || rows() != new_rows || cols() != new_cols)
         throw std::invalid_argument("Destination matrix has incorrect size.");
-    }
+
+    if(temporary_row.empty())
+        temporary_row.realloc(src_cols);
+    else if(temporary_row.rank() != 1 || temporary_row.size() != src_cols)
+        throw std::invalid_argument("downsample() temporary row has incorrect size.");
+
+    if(new_rows == 0 || new_cols == 0)
+        return *this;
 
 #ifdef __APPLE__
-    // Use a 3x3 averaging kernel for vDSP_imgfir (which requires odd-sized kernels)
-    float kernel[9] = {
-        0.25f, 0.25f, 0,
-        0.25f, 0.25f, 0,
-        0, 0, 0
-    };
+    const float filter[] = {0.25f, 0.25f};
+    float * row_sum = temporary_row.data();
 
-    std::vector<float> filtered(src_rows * src_cols, 0.0f);
+    for(int y = 0; y < new_rows; ++y)
+    {
+        const float * first_row = &source(2 * y, 0);
+        const float * second_row = &source(2 * y + 1, 0);
+        float * destination_row = &(*this)(y, 0);
 
-    vDSP_imgfir(
-        source.data(),
-        src_rows,
-        src_cols,
-        kernel,
-        filtered.data(),
-        3,
-        3
-    );
-
-    // Manual decimation: take every second pixel starting from (1,1) to avoid border effects
-    float* dst = this->data();
-    for (int y = 0; y < new_rows; ++y) {
-        float* filtered_row = filtered.data() + (2 * y + 1) * src_cols;
-        for (int x = 0; x < new_cols; ++x, ++dst) {
-            int fx = 2 * x + 1;
-            *dst = filtered_row[fx];
-        }
+        vDSP_vadd(first_row, 1, second_row, 1, row_sum, 1, src_cols);
+        vDSP_desamp(row_sum, 2, filter, destination_row, new_cols, 2);
     }
 #else
-    std::cerr << "[DEBUG] Using fallback manual downsampling." << std::endl;
-
-    for (int y = 0; y < new_rows; ++y) {
-        for (int x = 0; x < new_cols; ++x) {
-            float a = source(2 * y,     2 * x);
+    for(int y = 0; y < new_rows; ++y)
+        for(int x = 0; x < new_cols; ++x)
+        {
+            float a = source(2 * y, 2 * x);
             float b = source(2 * y + 1, 2 * x);
-            float c = source(2 * y,     2 * x + 1);
+            float c = source(2 * y, 2 * x + 1);
             float d = source(2 * y + 1, 2 * x + 1);
             (*this)(y, x) = (a + b + c + d) * 0.25f;
         }
-    }
 #endif
 
     return *this;
@@ -5045,51 +5465,60 @@ matrix::downsample(const matrix &source)
     clear_matrix_states()
     {
         std::lock_guard<std::mutex> lock(saving_matrices_mutex());
+        for(auto * m : saving_matrices())
+            m->saved_state_registration_.registered = false;
         saving_matrices().clear();
     }
 
 
-        matrix::~matrix()
-        {
-            if(last_==nullptr)
-                return;
+matrix::~matrix()
+{
+    if(!saved_state_registration_.registered)
+        return;
 
-            std::lock_guard<std::mutex> lock(saving_matrices_mutex());
-            auto & matrices = saving_matrices();
-            auto i = std::find(matrices.begin(), matrices.end(), this);
-            if(i != matrices.end())
-                matrices.erase(i);
-        }
+    std::lock_guard<std::mutex> lock(saving_matrices_mutex());
+    auto & matrices = saving_matrices();
+    auto i = std::find(matrices.begin(), matrices.end(), this);
+    if(i != matrices.end())
+        matrices.erase(i);
+    saved_state_registration_.registered = false;
+}
 
 
 
-        void 
-        matrix::save()
-        {
-            if(last_!=nullptr)
-                last_->copy(*this);
-        }
+void
+matrix::save()
+{
+    if(last_ != nullptr)
+        last_->copy(*this);
+}
 
-        matrix & 
-        matrix::last()
-        {
-            if(last_==nullptr)
-            {
-                std::lock_guard<std::mutex> lock(saving_matrices_mutex());
-                if(last_!=nullptr)
-                    return *last_;
-                saving_matrices().push_back(this);
-                last_ = std::make_shared<matrix>();
-                save();
-            }
+
+matrix &
+matrix::last()
+{
+    if(last_ == nullptr)
+    {
+        std::lock_guard<std::mutex> lock(saving_matrices_mutex());
+        if(last_ != nullptr)
             return *last_;
-        }
-
-        bool 
-        matrix::changed() const
+        if(!saved_state_registration_.registered)
         {
-            if(last_==nullptr)
-                return false;
-            return !(*last_ == *this);
+            saving_matrices().push_back(this);
+            saved_state_registration_.registered = true;
         }
+        last_ = std::make_shared<matrix>();
+        save();
+    }
+    return *last_;
+}
+
+
+bool
+matrix::changed() const
+{
+    if(last_ == nullptr)
+        return false;
+    return !(*last_ == *this);
+}
 }
