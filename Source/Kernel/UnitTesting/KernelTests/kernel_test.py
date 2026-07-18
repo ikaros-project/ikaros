@@ -11,6 +11,7 @@ with ".ikg".
 import subprocess
 import shlex
 import sys
+import json
 import xml.etree.ElementTree as ET
 import time
 import urllib.request
@@ -91,6 +92,17 @@ def run_http_test(cmd, root):
             elif action.startswith("wait_contains:"):
                 _, path, expected = action.split(":", 2)
                 wait_contains(path, expected)
+            elif action.startswith("assert_snapshot_tick:"):
+                _, path, data_key = action.split(":", 2)
+                package = json.loads(request(path))
+                data_value = package["data"][data_key]
+                while isinstance(data_value, list):
+                    data_value = data_value[0]
+                if package["tick"] != data_value:
+                    raise AssertionError(
+                        f"Snapshot tick {package['tick']!r} does not match "
+                        f"{data_key} value {data_value!r}"
+                    )
             else:
                 request(action)
 

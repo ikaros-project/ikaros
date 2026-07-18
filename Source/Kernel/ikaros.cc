@@ -7242,7 +7242,7 @@ bool operator==(Request & r, const std::string s)
 
 
     void
-    Kernel::DoSendData(Request & request, bool refresh_paused_snapshot)
+    Kernel::DoSendData(Request & request, bool refresh_paused_snapshot, bool use_snapshot_status)
     {
         auto requested_values = ParseRequestedUIValues(request);
         std::unordered_set<std::string> requested_subscriptions;
@@ -7269,11 +7269,13 @@ bool operator==(Request & r, const std::string s)
         }
 
         long response_session_id = 0;
-        std::string status = DoSendDataStatus();
+        std::string status;
         std::string log_json;
         if(snapshot != nullptr)
         {
             response_session_id = snapshot->session_id;
+            if(use_snapshot_status)
+                status = snapshot->status_json;
             log_json = ConsumeSnapshotLogForSession(request.session_id, *snapshot);
         }
         log_json = merge_log_json(std::move(log_json), SerializePendingLog(true));
@@ -7302,12 +7304,17 @@ bool operator==(Request & r, const std::string s)
             fallback_items.emplace_back(response_items.size() - 1, requested_value);
         }
 
-        if(!fallback_items.empty() || snapshot == nullptr)
+        bool serialize_live_status = snapshot == nullptr || !use_snapshot_status;
+        if(!fallback_items.empty() || serialize_live_status)
         {
             std::lock_guard<std::recursive_mutex> lock(kernelLock);
-            response_session_id = session_id;
             if(snapshot == nullptr)
+            {
+                response_session_id = session_id;
                 log_json = merge_log_json(std::move(log_json), SerializePendingLog(true));
+            }
+            if(serialize_live_status)
+                status = DoSendDataStatus();
 
             for(const auto & fallback_item : fallback_items)
             {
@@ -8428,7 +8435,7 @@ bool operator==(Request & r, const std::string s)
             DoSendNetwork(request);
         }
         else
-            DoSendData(request);
+            DoSendData(request, true, true);
     }
 
 

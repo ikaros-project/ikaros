@@ -792,7 +792,7 @@ private:
     void ResetUISnapshotCache();
     void BuildUISnapshot();
 
-    void DoSendData(Request & request, bool refresh_paused_snapshot = true);
+    void DoSendData(Request & request, bool refresh_paused_snapshot = true, bool use_snapshot_status = false);
     void DoUpdate(Request & request);
     void DoAuthStatus();
     void DoLogin(Request & request);
