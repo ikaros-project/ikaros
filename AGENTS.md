@@ -63,6 +63,7 @@
 - For module or CLI changes, run the smallest relevant model or test first, then broaden if the change touches shared behavior.
 - When changing C++ module code, run the smallest relevant `.ikg` smoke test after building when practical.
 - If a requested verification cannot be run, report what was skipped and why.
+- After completing a change or fix, include a suggested commit message in the final response.
 
 ## Style Notes
 
