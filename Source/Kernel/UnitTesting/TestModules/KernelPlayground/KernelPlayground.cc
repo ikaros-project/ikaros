@@ -47,7 +47,7 @@ class KernelPlayground: public Module
         for(int i=0; i< 1; i++)
         {
        // p.Reset().Start();
-        result.corr(image, kernel);
+        result.corr2(image, kernel);
         //p.Stop().Print("corr: ");
         }
         //result.print("result");
@@ -74,7 +74,7 @@ class KernelPlayground: public Module
      for(int i=0; i< 10; i++)
      {
          //p.Reset().Start();
-         result2.conv(image, kernel);
+         result2.conv2(image, kernel);
          result2.fillReflect101Border(4,4);
          //p.Stop().Print("corrF:");
     }
@@ -83,7 +83,7 @@ class KernelPlayground: public Module
     for(int i=0; i< 10; i++)
     {
         //p.Reset().Start();
-        result2.conv(image, kernel);
+        result2.conv2(image, kernel);
         //result2.fillReflect101Border(4,4);
        // p.Stop().Print("corrF:");
    }
@@ -192,4 +192,3 @@ class KernelPlayground: public Module
 };
 
 INSTALL_CLASS(KernelPlayground)
-
