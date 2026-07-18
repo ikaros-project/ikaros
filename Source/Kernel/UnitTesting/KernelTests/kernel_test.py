@@ -2,13 +2,15 @@
 """
 test.py
 
-Run a set of Ikaros unit tests in the same directory as this code
-test files must start with "test" and end with ".ikg"
+Run a set of Ikaros unit tests in this script's directory or a directory
+provided as the first argument. Test files must start with "test" and end
+with ".ikg".
 
 """
 
 import subprocess
 import shlex
+import sys
 import xml.etree.ElementTree as ET
 import time
 import urllib.request
@@ -118,10 +120,13 @@ def run_http_test(cmd, root):
 
     return process.returncode, (stdout or "") + (stderr or "") + "\n".join(http_output), ""
 
-print(f"\n{bold}Running Ikaros Unit Tests{reset}\n")
+script_directory = Path(__file__).resolve().parent
+current_directory = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else script_directory
+suite_name = sys.argv[2] if len(sys.argv) > 2 else "Unit Tests"
+ikaros_binary = script_directory / "../../../../Bin/ikaros"
+
+print(f"\n{bold}Running Ikaros {suite_name}{reset}\n")
 errors = 0
-current_directory = Path(__file__).resolve().parent
-ikaros_binary = current_directory / "../../../../Bin/ikaros"
 
 test_files = [item for item in current_directory.iterdir() if item.name.startswith("test") and item.suffix.lower() == '.ikg']
 for item in sorted(test_files):
