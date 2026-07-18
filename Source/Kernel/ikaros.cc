@@ -2559,6 +2559,16 @@ namespace ikaros
         if(!ingoing_connections.count(full_name)) // Not connected
             return 1;
 
+        auto set_input_label = [&]()
+        {
+            if(!d.is_set("use_label"))
+                return;
+
+            const auto & connections = ingoing_connections.at(full_name);
+            if(connections.size() == 1 && !connections[0]->label_.empty())
+                kernel().buffers.at(full_name).set_name(connections[0]->label_);
+        };
+
         if(has_fixed_size)
         {
             std::string shape_expr = std::string(d.at("size"));
@@ -2620,6 +2630,7 @@ namespace ikaros
                 Trace("\t\t\tComponent::SetInputShape Stacked Alloc" + std::string(input_size), full_name);
             }
 
+            set_input_label();
             return 1;
         }
 
@@ -2660,6 +2671,7 @@ namespace ikaros
 
             Trace("\t\t\tComponent::SetInputShape Simple Alloc" + std::string(input_size), full_name);
 
+            set_input_label();
             return 1;
         }
 
@@ -2684,14 +2696,7 @@ namespace ikaros
             Trace("\t\t\tComponent::SetInputShape Alloc" + std::string(input_size), full_name);
         }
 
-        // Set label if requested and there is only a single input
-
-        if(d.is_set("use_label"))
-        {
-            auto ic = ingoing_connections.at(full_name);
-            if(ic.size() == 1 && !ic[0]->label_.empty())
-                kernel().buffers[name].set_name(ic[0]->label_);
-        }
+        set_input_label();
 
         return 1;
     }

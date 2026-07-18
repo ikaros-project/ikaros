@@ -1,0 +1,8 @@
+<group internal="true" name="TestUseLabelInputBuffer" description="Apply a connection label to the fully qualified input buffer" start="true" stop="2" expected_output_contains="signal = {7}">
+
+    <module class="Constant" name="Source" data="7,8" />
+    <module class="Print" name="Sink" />
+
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT" label="signal" />
+
+</group>
