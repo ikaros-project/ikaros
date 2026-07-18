@@ -6,6 +6,7 @@ class Downsample : public Module
 {
     matrix input;
     matrix output;
+    matrix temporaryRow;
 
     void Init() 
     {
@@ -16,12 +17,11 @@ class Downsample : public Module
     void Tick()
     {
         if (input.rank() == 2) 
-            output.downsample(input);
+            output.downsample(input, temporaryRow);
         else
             for (int i = 0; i < input.size_z(); i++)
-                output[i].downsample(input[i]);
+                output[i].downsample(input[i], temporaryRow);
     }
 };
 
 INSTALL_CLASS(Downsample)
-
