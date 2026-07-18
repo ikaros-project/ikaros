@@ -86,7 +86,7 @@ Inspector for selected item:
 
 ## Top Group WebUI Parameters
 
-The top group can define a few parameters that affect WebUI update behavior:
+The following parameters are built into the top group and can be set directly as attributes on the top-level `<group>` element; no explicit `<parameter>` declaration is needed:
 
 - `webui_req_int`
   Browser polling interval for `/update`, in seconds.

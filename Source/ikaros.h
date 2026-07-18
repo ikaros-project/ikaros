@@ -494,6 +494,7 @@ public:
 
     dictionary                              current_component_info; // Implivit parameters to create Component
     std::string                             current_component_path;
+    std::string                             top_group_path;
 
     double                                  idle_time = 0;         
     int                                     cpu_cores = 1;
@@ -692,7 +693,7 @@ private:
     void AddParameter(std::string name, dictionary params=dictionary());
     void SetParameter(std::string name, std::string value);
     void SetParameter(std::string name, const matrix & value, const std::string & source_value="");
-    void AddGroup(dictionary info, std::string path);
+    void AddGroup(dictionary info, std::string path, bool is_top_group);
     void AddModule(dictionary info, std::string path);
     bool PreparePythonModule(dictionary & info, const std::string & classname);
     void InstantiatePythonModule(dictionary & info, const std::string & path);
@@ -782,6 +783,7 @@ private:
     void SendStringResponse(ikaros::dictionary header, const std::string & body, const char * response=nullptr);
     std::string DoSendDataStatus();
     std::string NormalizeUIRoot(const std::string & component_path) const;
+    const parameter * FindTopGroupParameter(const std::string & name) const;
     double SnapshotInterval() const;
     size_t MaxRetainedWebUILogMessages() const;
     int SnapshotJPEGQualityForFormat(const std::string & format) const;

@@ -105,6 +105,32 @@ def run_http_test(cmd, root):
                         f"Snapshot tick {package['tick']!r} does not match "
                         f"{data_key} value {data_value!r}"
                     )
+            elif action.startswith("assert_webui_parameters:"):
+                (
+                    _, path, request_interval, snapshot_interval,
+                    rgb_quality, gray_quality, log_limit,
+                ) = action.split(":", 6)
+                package = json.loads(request(path))
+                expected_values = {
+                    "webui_req_int": float(request_interval),
+                    "snapshot_interval": float(snapshot_interval),
+                    "rgb_quality": float(rgb_quality),
+                    "gray_quality": float(gray_quality),
+                    "webui_log_buffer_limit": float(log_limit),
+                }
+
+                for key, expected in expected_values.items():
+                    actual = (
+                        package[key]
+                        if key == "webui_req_int"
+                        else package["data"][key]
+                    )
+                    while isinstance(actual, list):
+                        actual = actual[0]
+                    if actual != expected:
+                        raise AssertionError(
+                            f"WebUI parameter {key} is {actual!r}; expected {expected!r}"
+                        )
             elif action.startswith("assert_log_fanout:"):
                 _, path, expected, expected_count = action.split(":", 3)
                 expected_count = int(expected_count)

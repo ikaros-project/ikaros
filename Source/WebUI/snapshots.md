@@ -20,7 +20,7 @@ This means one browser can change view without disturbing another browser that i
 
 Scalar values and status data are refreshed every tick, but image entries in the snapshot are refreshed at a lower rate.
 
-The top group can define these parameters:
+These parameters are built into the top group and can be set directly as attributes on the top-level `<group>` element:
 
 - `snapshot_interval`
   Minimum time in seconds between image snapshot refreshes.

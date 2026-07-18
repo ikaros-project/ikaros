@@ -3451,6 +3451,7 @@ bool operator==(Request & r, const std::string s)
         circular_buffers.clear();
         parameters.clear();
         tasks.clear();
+        top_group_path.clear();
 
         clear_matrix_states();  // if(NOT PERSISTENT)
 
@@ -4845,13 +4846,14 @@ bool operator==(Request & r, const std::string s)
 
 
     void 
-    Kernel::AddGroup(dictionary info, std::string path)
+    Kernel::AddGroup(dictionary info, std::string path, bool is_top_group)
     {
         if(info["parameters"].is_null())
             info["parameters"] = list();
 
-        if(path.empty())
+        if(is_top_group)
         {
+            top_group_path = path;
             bool has_color = false;
             bool has_rgb_quality = false;
             bool has_gray_quality = false;
@@ -5156,7 +5158,7 @@ bool operator==(Request & r, const std::string s)
             if(d.contains("external"))
                 LoadExternalGroup(d);
 
-            AddGroup(d, name);
+            AddGroup(d, name, path.empty());
 
             for(auto g : d["groups"])
                 BuildGroup(g, name);
@@ -6777,11 +6779,11 @@ bool operator==(Request & r, const std::string s)
             nm = std::filesystem::path(nm).filename().string();
 
         double webui_request_interval = 0.1;
-        if(parameters.count("webui_req_int"))
+        if(const parameter * request_interval = FindTopGroupParameter("webui_req_int"))
         {
             try
             {
-                webui_request_interval = std::max(0.001, parameters.at("webui_req_int").as_double());
+                webui_request_interval = std::max(0.001, request_interval->as_double());
             }
             catch(const std::exception &)
             {
@@ -6885,14 +6887,25 @@ bool operator==(Request & r, const std::string s)
     }
 
 
+    const parameter *
+    Kernel::FindTopGroupParameter(const std::string & name) const
+    {
+        if(top_group_path.empty())
+            return nullptr;
+
+        auto it = parameters.find(top_group_path + "." + name);
+        return it == parameters.end() ? nullptr : &it->second;
+    }
+
+
     double
     Kernel::SnapshotInterval() const
     {
-        if(parameters.count("snapshot_interval"))
+        if(const parameter * snapshot_interval = FindTopGroupParameter("snapshot_interval"))
         {
             try
             {
-                return std::max(0.0, parameters.at("snapshot_interval").as_double());
+                return std::max(0.0, snapshot_interval->as_double());
             }
             catch(const std::exception &)
             {
@@ -6905,11 +6918,11 @@ bool operator==(Request & r, const std::string s)
     size_t
     Kernel::MaxRetainedWebUILogMessages() const
     {
-        if(parameters.count("webui_log_buffer_limit"))
+        if(const parameter * buffer_limit = FindTopGroupParameter("webui_log_buffer_limit"))
         {
             try
             {
-                return std::max<size_t>(1, static_cast<size_t>(parameters.at("webui_log_buffer_limit").as_int()));
+                return static_cast<size_t>(std::max(1, buffer_limit->as_int()));
             }
             catch(const std::exception &)
             {
@@ -6923,11 +6936,11 @@ bool operator==(Request & r, const std::string s)
     Kernel::SnapshotJPEGQualityForFormat(const std::string & format) const
     {
         const char * parameter_name = format == "rgb" ? "rgb_quality" : "gray_quality";
-        if(parameters.count(parameter_name))
+        if(const parameter * quality_parameter = FindTopGroupParameter(parameter_name))
         {
             try
             {
-                int quality = parameters.at(parameter_name).as_int();
+                int quality = quality_parameter->as_int();
                 return std::clamp(quality, 1, 100);
             }
             catch(const std::exception &)
