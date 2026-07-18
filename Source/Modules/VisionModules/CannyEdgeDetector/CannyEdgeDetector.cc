@@ -65,9 +65,9 @@ public:
         int rows = input.rows();
         int cols = input.cols();
 
-        smoothed.conv(input, gaussian);  // Gaussian smoothing
-        grad_x.conv(smoothed, sobel_x);  // Compute gradients using Sobel filters
-        grad_y.conv(smoothed, sobel_y);
+        smoothed.conv2(input, gaussian);  // Gaussian smoothing
+        grad_x.conv2(smoothed, sobel_x);  // Compute gradients using Sobel filters
+        grad_y.conv2(smoothed, sobel_y);
         magnitude.hypot(grad_x, grad_y); // Compute gradient magnitude
         const float* grad_x_ptr = grad_x.data();
         const float* grad_y_ptr = grad_y.data();
