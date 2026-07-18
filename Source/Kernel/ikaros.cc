@@ -6421,11 +6421,15 @@ bool operator==(Request & r, const std::string s)
                         if(Tick())
                             BuildUISnapshot();
                     }
-                    catch(std::exception & e)
+                    catch(const std::exception & e)
                     {
-                        //std::cout << e.what() << std::endl;
-                        Notify(msg_fatal_error, (e.what()));
-                        return;
+                        Notify(msg_fatal_error, e.what());
+                        break;
+                    }
+                    catch(...)
+                    {
+                        Notify(msg_fatal_error, "Unknown error during kernel execution.");
+                        break;
                     }
                     tick_time_usage = intra_tick_timer.GetTime();
                     idle_time = std::max(0.0, tick_duration - tick_time_usage);

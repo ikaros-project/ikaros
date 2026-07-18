@@ -1,0 +1,11 @@
+<group internal="true"
+    name="TestRunExceptionCleanup"
+    description="Test runtime exceptions use the normal component shutdown path"
+    start="true"
+    stop="3"
+    log_level="7"
+    expected_exit="1"
+    expected_output_contains="Fault POST_TASK_FAILURE_ARMED||Assignment requires matrices of the same size||Fault STOP_AFTER_TICK"
+    expected_output_not_contains="Fault STOP_DURING_TICK">
+    <module class="TaskLifecycleTestModule" name="Fault" label="Fault" fail_after_tasks="true" />
+</group>

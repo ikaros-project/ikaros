@@ -11,18 +11,27 @@ class TaskLifecycleTestModule : public Module
 {
     parameter duration;
     parameter fail;
+    parameter failAfterTasks;
     parameter label;
     parameter outputValue;
     matrix output;
+    matrix postTaskFailureProbe;
     std::atomic<bool> tickActive = false;
 
     void Init() override
     {
         Bind(duration, "duration");
         Bind(fail, "fail");
+        Bind(failAfterTasks, "fail_after_tasks");
         Bind(label, "label");
         Bind(outputValue, "output_value");
         Bind(output, "OUTPUT");
+
+        if(failAfterTasks.as_bool())
+        {
+            postTaskFailureProbe.realloc(1);
+            postTaskFailureProbe.last();
+        }
     }
 
     void Tick() override
@@ -42,6 +51,12 @@ class TaskLifecycleTestModule : public Module
 
         Notify(msg_print, taskLabel + " TICK_END");
         tickActive = false;
+
+        if(failAfterTasks.as_bool())
+        {
+            postTaskFailureProbe.last().realloc(2);
+            Notify(msg_print, taskLabel + " POST_TASK_FAILURE_ARMED");
+        }
     }
 
     void Stop() override
