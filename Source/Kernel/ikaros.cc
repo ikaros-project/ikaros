@@ -3476,7 +3476,7 @@ bool operator==(Request & r, const std::string s)
 
         clear_matrix_states();  // if(NOT PERSISTENT)
 
-        tick = -1;
+        tick = 0;
         //run_mode = run_mode_pause;
         //tick_is_running = false;
         tick_time_usage = 0;
@@ -6689,7 +6689,7 @@ bool operator==(Request & r, const std::string s)
             std::lock_guard<std::recursive_mutex> lock(kernelLock);
             if(options_.is_explicitly_set("save_state") && !components.empty())
                 SaveState(resolve_state_filename(options_, "save_state"));
-            tick = -1;
+            tick = 0;
 #if !defined(LOGGING_OFF)
             if(session_logging_active)
             {

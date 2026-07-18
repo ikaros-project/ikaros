@@ -1,0 +1,3 @@
+<group internal="true" name="ReloadTickTarget" description="Fixture for reload tick initialization tests" start="true" stop="1">
+    <module class="FirstTickReporter" name="Reloaded" />
+</group>

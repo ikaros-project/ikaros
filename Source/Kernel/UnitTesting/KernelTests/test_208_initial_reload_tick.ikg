@@ -1,0 +1,14 @@
+<group internal="true"
+    name="TestInitialReloadTick"
+    description="Test initial and reloaded models both begin at tick one"
+    start="true"
+    stop="100"
+    tick_duration="0.01"
+    webui_port="8208"
+    cli_args="-u/Users/cba/ikaros/Source/Kernel/UnitTesting/KernelTests"
+    http_start_delay="0.2"
+    http_requests="open?file=fixture_reload_tick_target||sleep:0.1"
+    http_terminate_after_requests="true"
+    expected_output_contains="TestInitialReloadTick.Initial tick=1||ReloadTickTarget.Reloaded tick=1">
+    <module class="FirstTickReporter" name="Initial" />
+</group>
