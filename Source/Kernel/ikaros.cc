@@ -6523,7 +6523,7 @@ bool operator==(Request & r, const std::string s)
                     try
                     {
                         std::lock_guard<std::recursive_mutex> lock(kernelLock);
-                        if(Tick())
+                        if(Tick() && socket != nullptr)
                             BuildUISnapshot();
                     }
                     catch(const std::exception & e)
@@ -7140,6 +7140,7 @@ bool operator==(Request & r, const std::string s)
     {
         std::unordered_set<std::string> subscriptions;
         const auto now = steady_clock::now();
+        bool has_active_clients = false;
         {
             std::lock_guard<std::mutex> lock(ui_client_mutex);
             for(auto it = ui_client_states.begin(); it != ui_client_states.end();)
@@ -7152,6 +7153,14 @@ bool operator==(Request & r, const std::string s)
                     ++it;
                 }
             }
+            has_active_clients = !ui_client_states.empty();
+        }
+
+        if(!has_active_clients)
+        {
+            std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
+            current_ui_snapshot.reset();
+            return;
         }
 
         std::shared_ptr<const UISnapshot> previous_snapshot;

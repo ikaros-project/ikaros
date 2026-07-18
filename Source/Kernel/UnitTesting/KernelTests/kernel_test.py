@@ -84,7 +84,7 @@ def run_http_test(cmd, root):
         raise TimeoutError(f"Timed out waiting for {path} to contain {expected!r}")
 
     try:
-        request("network", retries=100, record=False)
+        request(root.get("http_ready_path", "network"), retries=100, record=False)
         if root.get("http_start_delay") is not None:
             time.sleep(float(root.get("http_start_delay")))
 
@@ -104,6 +104,17 @@ def run_http_test(cmd, root):
                     raise AssertionError(
                         f"Snapshot tick {package['tick']!r} does not match "
                         f"{data_key} value {data_value!r}"
+                    )
+            elif action.startswith("assert_data_scalar:"):
+                _, path, data_key, expected = action.split(":", 3)
+                package = json.loads(request(path))
+                data_value = package["data"][data_key]
+                while isinstance(data_value, list):
+                    data_value = data_value[0]
+                if data_value != float(expected):
+                    raise AssertionError(
+                        f"Data value {data_key!r} is {data_value!r}; "
+                        f"expected {float(expected)!r}"
                     )
             elif action.startswith("assert_json_field:"):
                 _, path, field, expected_json = action.split(":", 3)
