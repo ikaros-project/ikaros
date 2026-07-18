@@ -105,6 +105,24 @@ def run_http_test(cmd, root):
                         f"Snapshot tick {package['tick']!r} does not match "
                         f"{data_key} value {data_value!r}"
                     )
+            elif action.startswith("assert_json_field:"):
+                _, path, field, expected_json = action.split(":", 3)
+
+                def reject_non_finite(value):
+                    raise ValueError(f"Non-finite JSON number {value!r}")
+
+                package = json.loads(
+                    request(path),
+                    parse_constant=reject_non_finite,
+                )
+                actual = package
+                for key in field.split("."):
+                    actual = actual[key]
+                expected = json.loads(expected_json)
+                if actual != expected:
+                    raise AssertionError(
+                        f"JSON field {field!r} is {actual!r}; expected {expected!r}"
+                    )
             elif action.startswith("assert_webui_parameters:"):
                 (
                     _, path, request_interval, snapshot_interval,

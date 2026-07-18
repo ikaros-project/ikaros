@@ -6807,7 +6807,9 @@ bool operator==(Request & r, const std::string s)
         if(stop_after != -1)
         {
             response << "\t\"tick\": \"" << tick << " / " << stop_after << "\",\n";
-            response << "\t\"progress\": " << double(tick)/double(stop_after) << ",\n";
+            response << "\t\"progress\": "
+                     << (stop_after > 0 ? static_cast<double>(tick) / static_cast<double>(stop_after) : 0.0)
+                     << ",\n";
         }
         else
         {
