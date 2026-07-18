@@ -5,12 +5,25 @@
 
 #include "timing.h"
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <iomanip>
 #include <ctime>
 #include <sstream>
 
 using namespace std::chrono;
+
+
+double
+CPUUsageFraction(double cpu_time_delta, double wall_time_delta, int cpu_cores)
+{
+    if(!std::isfinite(cpu_time_delta) || !std::isfinite(wall_time_delta) ||
+       cpu_time_delta <= 0 || wall_time_delta <= 0 || cpu_cores < 1)
+        return 0;
+
+    return std::clamp(cpu_time_delta / (wall_time_delta * double(cpu_cores)), 0.0, 1.0);
+}
 
 
 std::string TimeString(double time)
@@ -188,4 +201,3 @@ Timer::GetTimeString()
 {
     return TimeString(GetTime());
 }
-

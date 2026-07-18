@@ -12,6 +12,7 @@
 #include <optional>
 #include <random>
 #include <sstream>
+#include <sys/resource.h>
 
 #if __has_include(<CommonCrypto/CommonDigest.h>) && __has_include(<CommonCrypto/CommonHMAC.h>)
 #include <CommonCrypto/CommonDigest.h>
@@ -3374,6 +3375,10 @@ bool operator==(Request & r, const std::string s)
         //run_mode = run_mode_pause;
         //tick_is_running = false;
         tick_time_usage = 0;
+        cpu_usage = 0;
+        last_cpu = 0;
+        cpu_usage_initialized = false;
+        cpu_usage_sample_time = std::chrono::steady_clock::time_point{};
         tick_duration = 1; // default value
         task_timeout = 5.0;
         actual_tick_duration = tick_duration;
@@ -4185,7 +4190,8 @@ bool operator==(Request & r, const std::string s)
         lag_max(0),
         lag_sum(0)
     {
-        cpu_cores = std::thread::hardware_concurrency();
+        const unsigned int detected_cpu_cores = std::thread::hardware_concurrency();
+        cpu_cores = detected_cpu_cores > 0 ? static_cast<int>(detected_cpu_cores) : 1;
         thread_pool = std::make_unique<ThreadPool>(default_thread_pool_size(cpu_cores));
     }
 
@@ -8715,15 +8721,34 @@ Kernel::GetTimeOfDay()
 
 
 void
-Kernel::CalculateCPUUsage() // In percent
+Kernel::CalculateCPUUsage() // Fraction of total CPU capacity
 {
-    double cpu = 0;
-    struct rusage rusage;
-    if(getrusage(RUSAGE_SELF, &rusage) != -1)
-        cpu = double(rusage.ru_utime.tv_sec) + double(rusage.ru_utime.tv_usec) / 1000000.0;
-    if(actual_tick_duration > 0)
-        cpu_usage = (cpu-last_cpu)/double(cpu_cores)*actual_tick_duration;
+    const auto sample_time = std::chrono::steady_clock::now();
+    struct rusage usage{};
+    if(getrusage(RUSAGE_SELF, &usage) != 0)
+    {
+        cpu_usage = 0;
+        cpu_usage_initialized = false;
+        return;
+    }
+
+    const double user_cpu = double(usage.ru_utime.tv_sec) + double(usage.ru_utime.tv_usec) / 1000000.0;
+    const double system_cpu = double(usage.ru_stime.tv_sec) + double(usage.ru_stime.tv_usec) / 1000000.0;
+    const double cpu = user_cpu + system_cpu;
+
+    if(!cpu_usage_initialized)
+    {
+        last_cpu = cpu;
+        cpu_usage = 0;
+        cpu_usage_initialized = true;
+        cpu_usage_sample_time = sample_time;
+        return;
+    }
+
+    const double wall_time_delta = std::chrono::duration<double>(sample_time - cpu_usage_sample_time).count();
+    cpu_usage = CPUUsageFraction(cpu - last_cpu, wall_time_delta, cpu_cores);
     last_cpu = cpu;
+    cpu_usage_sample_time = sample_time;
 }
 
 

@@ -15,6 +15,7 @@
 [[nodiscard]] std::string TimeString(double time);    // Convert double time to formatted string
 [[nodiscard]] long        GetTimeStamp();             // Get long representation of clock time
 [[nodiscard]] std::string GetClockTimeString();       // Get string representation of clock time
+[[nodiscard]] double      CPUUsageFraction(double cpu_time_delta, double wall_time_delta, int cpu_cores);
 void        Sleep(double d);		    // Sleep for this duration (in seconds)
 
 
@@ -49,4 +50,3 @@ public:
 
     Timer();
 };
-

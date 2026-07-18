@@ -1,0 +1,8 @@
+<group internal="true"
+    name="TestCPUUsage"
+    description="Test normalized kernel CPU usage accounting"
+    start="true"
+    stop="1"
+    expected_output_contains="CPU USAGE TEST OK">
+    <module class="CPUUsageTestModule" name="CPUUsage" />
+</group>

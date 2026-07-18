@@ -491,6 +491,8 @@ public:
     int                                     cpu_cores = 1;
     double                                  cpu_usage = 0;
     double                                  last_cpu = 0;
+    bool                                    cpu_usage_initialized = false;
+    std::chrono::steady_clock::time_point   cpu_usage_sample_time;
 
     Timer                                   uptime_timer;   // Measues kernel uptime
     Timer                                   session_timer;  // Measures elapsed wall-clock time for a logged run
