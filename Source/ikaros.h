@@ -212,6 +212,7 @@ public:
         dictionary parameters;
     };
 
+    Profiler        profiler_;
     Component *     parent_;
     dictionary      info_;
     std::string     path_;

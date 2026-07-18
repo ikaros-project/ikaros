@@ -13,8 +13,6 @@
 #include <exception>
 #include <stdexcept>
 
-#include "profiler.h"
-
 class Task {
 public:
     virtual void Tick() = 0;
@@ -23,8 +21,6 @@ public:
     virtual bool Priority() { return false; }
     virtual void ProfilingBegin() {};
     virtual void ProfilingEnd()  {};
-
-    Profiler profiler_;
 };
 
 

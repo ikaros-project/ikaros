@@ -165,6 +165,52 @@ def run_http_test(cmd, root):
                     raise AssertionError(
                         "WebUI image did not refresh after the wall-clock snapshot interval elapsed"
                     )
+            elif action.startswith("assert_async_profiling:"):
+                _, component_path, request_count = action.split(":", 2)
+                request_count = int(request_count)
+                saw_running = False
+                maximum_count = 0
+                last_body = ""
+
+                for _ in range(request_count):
+                    last_body = request("profiling", record=False)
+                    package = json.loads(last_body)
+                    components = [
+                        component
+                        for component in package["components"]
+                        if component["path"] == component_path
+                    ]
+                    if len(components) != 1:
+                        raise AssertionError(
+                            f"Profiling response contains {len(components)} components "
+                            f"at {component_path!r}"
+                        )
+
+                    profiling = components[0]["profiling"]
+                    wall_count = profiling["wall"]["count"]
+                    cpu_count = profiling["cpu"]["count"]
+                    if wall_count != cpu_count:
+                        raise AssertionError(
+                            f"Profiling snapshot has wall count {wall_count} and "
+                            f"CPU count {cpu_count}"
+                        )
+                    if wall_count < maximum_count:
+                        raise AssertionError(
+                            f"Profiling count decreased from {maximum_count} to {wall_count}"
+                        )
+
+                    saw_running = saw_running or profiling["running"]
+                    maximum_count = max(maximum_count, wall_count)
+
+                if not saw_running:
+                    raise AssertionError(
+                        f"Profiling never reported {component_path!r} as running"
+                    )
+                if maximum_count == 0:
+                    raise AssertionError(
+                        f"Profiling recorded no completed runs for {component_path!r}"
+                    )
+                http_output.append(last_body)
             elif action.startswith("assert_log_fanout:"):
                 _, path, expected, expected_count = action.split(":", 3)
                 expected_count = int(expected_count)
