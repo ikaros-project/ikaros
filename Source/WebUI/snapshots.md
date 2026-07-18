@@ -23,7 +23,7 @@ Scalar values and status data are refreshed every tick, but image entries in the
 These parameters are built into the top group and can be set directly as attributes on the top-level `<group>` element:
 
 - `snapshot_interval`
-  Minimum time in seconds between image snapshot refreshes.
+  Minimum wall-clock time in seconds between image snapshot refreshes.
   Default: `0.1`
 
 - `rgb_quality`

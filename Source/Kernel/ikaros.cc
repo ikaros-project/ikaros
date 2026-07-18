@@ -7116,7 +7116,7 @@ bool operator==(Request & r, const std::string s)
             current_ui_snapshot.reset();
         }
         {
-            const double now = GetRealTime();
+            const auto now = steady_clock::now();
             std::lock_guard<std::mutex> lock(ui_client_mutex);
             for(auto & client_entry : ui_client_states)
             {
@@ -7132,12 +7132,12 @@ bool operator==(Request & r, const std::string s)
     Kernel::BuildUISnapshot()
     {
         std::unordered_set<std::string> subscriptions;
-        double now = GetRealTime();
+        const auto now = steady_clock::now();
         {
             std::lock_guard<std::mutex> lock(ui_client_mutex);
             for(auto it = ui_client_states.begin(); it != ui_client_states.end();)
             {
-                if(now - it->second.last_seen_time > ui_subscription_timeout_seconds)
+                if(now - it->second.last_seen_time > duration<double>(ui_subscription_timeout_seconds))
                     it = ui_client_states.erase(it);
                 else
                 {
@@ -7153,7 +7153,8 @@ bool operator==(Request & r, const std::string s)
             previous_snapshot = current_ui_snapshot;
         }
 
-        bool refresh_images = previous_snapshot == nullptr || now - previous_snapshot->image_timestamp >= SnapshotInterval();
+        bool refresh_images = previous_snapshot == nullptr ||
+            now - previous_snapshot->image_timestamp >= duration<double>(SnapshotInterval());
         auto snapshot = std::make_shared<UISnapshot>();
         snapshot->snapshot_id = next_ui_snapshot_id++;
         snapshot->session_id = session_id;
@@ -7250,7 +7251,7 @@ bool operator==(Request & r, const std::string s)
             std::lock_guard<std::mutex> lock(ui_client_mutex);
             auto & client_state = ui_client_states[request.client_id];
             client_state.keys = std::move(requested_subscriptions);
-            client_state.last_seen_time = GetRealTime();
+            client_state.last_seen_time = steady_clock::now();
         }
 
         if(refresh_paused_snapshot && run_mode.load() == run_mode_pause)
@@ -7939,7 +7940,7 @@ bool operator==(Request & r, const std::string s)
         std::string s = json();
         {
             std::lock_guard<std::mutex> lock(ui_client_mutex);
-            ui_client_states[request.client_id].last_seen_time = GetRealTime();
+            ui_client_states[request.client_id].last_seen_time = steady_clock::now();
         }
 
         std::string log_json = ConsumeLogForClient(request.client_id);

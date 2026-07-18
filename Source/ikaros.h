@@ -6,6 +6,7 @@
 #include <atomic>
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -542,7 +543,7 @@ public:
         uint64_t snapshot_id = 0;
         long session_id = 0;
         tick_count tick = -1;
-        double image_timestamp = 0;
+        std::chrono::steady_clock::time_point image_timestamp;
         std::string status_json;
         std::unordered_map<std::string, std::string> serialized_values;
     };
@@ -550,7 +551,7 @@ public:
     struct UIClientState
     {
         std::unordered_set<std::string> keys;
-        double last_seen_time = 0;
+        std::chrono::steady_clock::time_point last_seen_time;
         uint64_t delivered_log_sequence = 0;
         bool log_delivery_initialized = false;
     };

@@ -131,6 +131,40 @@ def run_http_test(cmd, root):
                         raise AssertionError(
                             f"WebUI parameter {key} is {actual!r}; expected {expected!r}"
                         )
+            elif action.startswith("assert_wall_clock_image_refresh:"):
+                _, root_path, module_name, wait_seconds = action.split(":", 3)
+                wait_seconds = float(wait_seconds)
+                data_key = f"{module_name}.OUTPUT:gray"
+                update_path = f"update/{root_path}?data={data_key}"
+
+                request("network", record=False, client_id=301)
+
+                def image_value(path):
+                    body = request(path, client_id=301)
+                    try:
+                        return json.loads(body)["data"][data_key]
+                    except (json.JSONDecodeError, KeyError) as error:
+                        raise AssertionError(
+                            f"Invalid WebUI image response for {path}: {body!r}"
+                        ) from error
+
+                initial = image_value(update_path)
+                request(
+                    f"control/{root_path}.{module_name}.data?x=1&y=1&value=1",
+                    client_id=302,
+                )
+                immediate = image_value(f"step/{root_path}?data={data_key}")
+                if immediate != initial:
+                    raise AssertionError(
+                        "WebUI image refreshed before the wall-clock snapshot interval elapsed"
+                    )
+
+                time.sleep(wait_seconds)
+                refreshed = image_value(update_path)
+                if refreshed == initial:
+                    raise AssertionError(
+                        "WebUI image did not refresh after the wall-clock snapshot interval elapsed"
+                    )
             elif action.startswith("assert_log_fanout:"):
                 _, path, expected, expected_count = action.split(":", 3)
                 expected_count = int(expected_count)
@@ -208,7 +242,8 @@ for item in sorted(test_files):
         if root.get("webui_port") is not None:
             cmd.insert(1, f"-w{root.get('webui_port')}")
         if http_requests:
-            cmd.insert(1, "-r")
+            if root.get("http_real_time", "true") == "true":
+                cmd.insert(1, "-r")
         elif root.get("stop") is None:
             cmd.insert(1, "-s0")
         expected_files = split_expected_paths(root.get("expected_file_exists"))

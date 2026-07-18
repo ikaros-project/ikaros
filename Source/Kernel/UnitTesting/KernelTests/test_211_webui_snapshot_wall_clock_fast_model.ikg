@@ -1,0 +1,14 @@
+<group internal="true"
+    name="TestWebUISnapshotWallClockFastModel"
+    description="Test WebUI image throttling ignores large simulated tick durations"
+    tick_duration="1"
+    snapshot_interval="0.5"
+    webui_port="8211"
+    http_real_time="false"
+    http_start_delay="0.1"
+    http_requests="assert_wall_clock_image_refresh:TestWebUISnapshotWallClockFastModel:Image:0.65"
+    http_terminate_after_requests="true">
+    <module class="Constant"
+        name="Image"
+        data="0,0,0,0; 0,0,0,0; 0,0,0,0; 0,0,0,0" />
+</group>

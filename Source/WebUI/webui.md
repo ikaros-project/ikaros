@@ -93,7 +93,7 @@ The following parameters are built into the top group and can be set directly as
   Default: `0.1`
 
 - `snapshot_interval`
-  Minimum interval in seconds between image refreshes in update snapshots.
+  Minimum wall-clock interval in seconds between image refreshes in update snapshots.
   Scalar values may still update every tick.
   Default: `0.1`
 
