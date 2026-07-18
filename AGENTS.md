@@ -37,6 +37,15 @@
 - Follow the Ikaros rank convention for image-like tensors: channel first, then height and width.
 - Hierarchical models and delayed feedback loops should have all connection shapes resolved at startup whenever the architecture is static.
 
+## Performance-Critical Code
+
+- `ikaros::matrix`, kernel operations, and per-tick processing paths are performance-critical.
+- Preserve contiguous-memory fast paths and Apple Accelerate implementations.
+- Avoid heap allocation, reallocation, temporary matrices, and unnecessary shape or index calculations in processing loops.
+- Benchmark performance-sensitive matrix changes in Release mode before and after modification.
+- Do not accept a measurable performance regression without explicitly discussing the tradeoff with the user.
+- Functional correctness tests do not replace performance verification.
+
 ## Build And Run
 
 - Build with `cmake --build Build --parallel` when C++ or CMake files change.
