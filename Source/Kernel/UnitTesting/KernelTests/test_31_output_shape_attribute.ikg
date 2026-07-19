@@ -2,6 +2,7 @@
     name="Test_31"
     description="Test output shape attribute on module outputs"
     stop="1"
+    check_sum="196164"
     expected_output_contains="DIFF: 0 0"
 >
     <module name="Const" class="Constant" data="9" />

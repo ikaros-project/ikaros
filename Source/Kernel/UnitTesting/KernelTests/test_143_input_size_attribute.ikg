@@ -1,6 +1,7 @@
 <group internal="true"
     name="Test_143"
     description="Test fixed input size attributes in .ikc files"
+    check_sum="137"
 >
 
     <module class="Constant" name="Const" data="10,20" />

@@ -1,4 +1,4 @@
-<group internal="true" name="Test_Threads"  _check_sum = "93" description="Test paralell threads" >
+<group internal="true" name="Test_Threads" check_sum="391" description="Test paralell threads" >
 
     <module name="A" class="Constant" data="1" />
     <module name="B" class="Constant" data="2" />
@@ -13,7 +13,6 @@
     <connection source="D.OUTPUT" target="P.INPUT" /> 
 
 </group>
-
 
 
 

@@ -2,6 +2,7 @@
     name="TestSystemModule"
     description="Test that the System module instantiates and publishes outputs"
     start="true"
-    stop="1">
+    stop="1"
+    check_sum="1034">
     <module class="System" name="System" />
 </group>
