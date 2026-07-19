@@ -304,6 +304,34 @@ class RangeSizeTestModule : public Module
 
         if(!range("[]").is_placeholder(0) || range(3, 3).is_placeholder(0))
             throw exception("Range placeholder detection was confused with emptiness");
+
+        const std::vector<std::string> explicitEmptyRangeTexts = {
+            "[0:0]",
+            "[:]",
+            "[0:0:1]",
+            "[::]",
+        };
+        for(const std::string & text : explicitEmptyRangeTexts)
+        {
+            range parsed(text);
+            if(parsed != range(0, 0) || parsed.is_placeholder(0))
+                throw exception("Explicit empty range \"" + text + "\" was parsed as a placeholder");
+        }
+
+        range explicitEmptyForRoundTrip(0, 0);
+        range restoredExplicitEmpty{std::string(explicitEmptyForRoundTrip)};
+        if(!restoredExplicitEmpty.same_state(explicitEmptyForRoundTrip) ||
+           restoredExplicitEmpty.is_placeholder(0))
+            throw exception("Explicit empty range text did not preserve its definition");
+
+        range mixedEmptyRange("[][0:0][::]");
+        range restoredMixedEmptyRange{std::string(mixedEmptyRange)};
+        if(!restoredMixedEmptyRange.same_state(mixedEmptyRange) ||
+           !restoredMixedEmptyRange.is_placeholder(0) ||
+           restoredMixedEmptyRange.is_placeholder(1) ||
+           restoredMixedEmptyRange.is_placeholder(2))
+            throw exception("Mixed placeholder and empty range text did not preserve its definitions");
+
         try
         {
             static_cast<void>(range().is_placeholder(0));

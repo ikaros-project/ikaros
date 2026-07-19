@@ -94,8 +94,10 @@ independent of the iteration cursor, so a non-empty range remains non-empty afte
 selector has not been specified.
 
 String conversion preserves that distinction: a rank-zero range is represented by an empty string,
-while `[]` represents one zero-cardinality dimension. Converting either form to text and parsing it
-again preserves its rank.
+`[]` represents one unresolved zero-step placeholder, and `[:]` represents an explicitly empty
+dimension with step 1. An omitted increment in any colon form defaults to 1, so `[0:0]`, `[:]`,
+`[0:0:1]`, and `[::]` are equivalent explicit empty ranges rather than placeholders. Converting
+these forms to text and parsing them again preserves both their rank and placeholder state.
 
 `extend(const range &)` may add dimensions when its argument has a higher rank. It rejects an
 argument with fewer dimensions than the receiver. `fill()` likewise requires its source to have at

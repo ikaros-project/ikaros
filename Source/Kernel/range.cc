@@ -320,16 +320,13 @@ namespace ikaros
                 {
                     int a = r[0].empty() ? 0 : ParseRangeInteger(r[0]);
                     int b = r[1].empty() ? 0 : ParseRangeInteger(r[1]);
-                    if(a== 0 && b==0)
-                        push(0, 0, 0);
-                    else
-                        push(a, b, 1);
+                    push(a, b, 1);
                 }
                 else if(r.size()==3)
                 {
                     int a = r[0].empty() ? 0 : ParseRangeInteger(r[0]);
                     int b = r[1].empty() ? 0 : ParseRangeInteger(r[1]);
-                    int i = r[2].empty() ? (a==0 && b==0 ? 0 : 1) : ParseRangeInteger(r[2]);
+                    int i = r[2].empty() ? 1 : ParseRangeInteger(r[2]);
                     push(a, b, i);
                 }
                 else
