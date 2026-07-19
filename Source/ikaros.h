@@ -382,8 +382,9 @@ public:
     int GetClassCount() const;
     tick_count GetStopAfter() const;
 
-    void ProfilingBegin();
-    void ProfilingEnd();
+    bool TryProfilingBegin() override;
+    void ProfilingBegin() override;
+    void ProfilingEnd() override;
 };
 
 //
@@ -573,6 +574,9 @@ public:
     std::mutex                              ui_snapshot_mutex;
     std::unordered_map<long, UIClientState>       ui_client_states;
     std::mutex                                    ui_client_mutex;
+    std::unordered_map<long, std::chrono::steady_clock::time_point> profiling_clients;
+    std::mutex                                    profiling_clients_mutex;
+    std::atomic<bool>                             profiling_enabled = false;
 
     Kernel();
     ~Kernel();
@@ -598,6 +602,7 @@ public:
     int GetModuleCount() const;
     int GetClassCount() const;
     tick_count GetStopAfter() const;
+    bool ProfilingEnabled() const;
 
     void CalculateCPUUsage();
 
@@ -765,6 +770,8 @@ private:
     dictionary GetModuleInstantiationInfo(); // Used for profiling
     std::string GetProfilingJSON() const;
     std::string GetStartupStepsJSON() const;
+    void SetProfilingClientActive(long client_id, bool active);
+    void UpdateProfilingState();
 
     void DoNew(Request & request);
     void DoOpen(Request & request);

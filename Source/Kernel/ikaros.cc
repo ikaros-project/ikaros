@@ -624,6 +624,7 @@ namespace ikaros
 
         constexpr char ui_subscription_separator = '\n';
         constexpr double ui_subscription_timeout_seconds = 10.0;
+        constexpr double profiling_subscription_timeout_seconds = 3.0;
         constexpr int ui_snapshot_rgb_jpeg_quality = 75;
         constexpr int ui_snapshot_gray_jpeg_quality = 70;
 
@@ -1323,16 +1324,18 @@ namespace ikaros
         {
             async_future = std::async(std::launch::async, [this]() -> std::exception_ptr
             {
-                ProfilingBegin();
+                const bool profiling_started = TryProfilingBegin();
                 try
                 {
                     Tick();
-                    ProfilingEnd();
+                    if(profiling_started)
+                        ProfilingEnd();
                     return nullptr;
                 }
                 catch(...)
                 {
-                    ProfilingEnd();
+                    if(profiling_started)
+                        ProfilingEnd();
                     return std::current_exception();
                 }
             });
@@ -2384,6 +2387,16 @@ namespace ikaros
 
     Module::~Module()
     {
+    }
+
+    bool
+    Module::TryProfilingBegin()
+    {
+        if(!kernel().ProfilingEnabled())
+            return false;
+
+        ProfilingBegin();
+        return true;
     }
 
     void
@@ -3577,6 +3590,7 @@ bool operator==(Request & r, const std::string s)
     bool
     Kernel::Tick()
     {
+        UpdateProfilingState();
         tick++;
 
         PollAsyncComponents();
@@ -4402,6 +4416,12 @@ bool operator==(Request & r, const std::string s)
     Kernel::GetStopAfter() const
     {
         return stop_after;
+    }
+
+    bool
+    Kernel::ProfilingEnabled() const
+    {
+        return profiling_enabled.load(std::memory_order_relaxed);
     }
 
     bool
@@ -5449,6 +5469,8 @@ bool operator==(Request & r, const std::string s)
         body << "{";
         body << "\"tick\": " << tick << ", ";
         body << "\"run_mode\": " << run_mode.load() << ", ";
+        body << "\"enabled\": "
+             << (profiling_enabled.load(std::memory_order_relaxed) ? "true" : "false") << ", ";
         body << "\"components\": [";
 
         std::string separator;
@@ -5480,6 +5502,48 @@ bool operator==(Request & r, const std::string s)
         body << "]";
         body << "}";
         return body.str();
+    }
+
+
+    void
+    Kernel::SetProfilingClientActive(long client_id, bool active)
+    {
+        const auto now = steady_clock::now();
+        std::lock_guard<std::mutex> lock(profiling_clients_mutex);
+
+        for(auto it = profiling_clients.begin(); it != profiling_clients.end();)
+        {
+            if(now - it->second > duration<double>(profiling_subscription_timeout_seconds))
+                it = profiling_clients.erase(it);
+            else
+                ++it;
+        }
+
+        if(active)
+            profiling_clients[client_id] = now;
+        else
+            profiling_clients.erase(client_id);
+
+        profiling_enabled.store(!profiling_clients.empty(), std::memory_order_relaxed);
+    }
+
+
+    void
+    Kernel::UpdateProfilingState()
+    {
+        if(!profiling_enabled.load(std::memory_order_relaxed))
+            return;
+
+        const auto now = steady_clock::now();
+        std::lock_guard<std::mutex> lock(profiling_clients_mutex);
+        for(auto it = profiling_clients.begin(); it != profiling_clients.end();)
+        {
+            if(now - it->second > duration<double>(profiling_subscription_timeout_seconds))
+                it = profiling_clients.erase(it);
+            else
+                ++it;
+        }
+        profiling_enabled.store(!profiling_clients.empty(), std::memory_order_relaxed);
     }
 
 
@@ -6233,17 +6297,19 @@ bool operator==(Request & r, const std::string s)
             }
         }
 
-        task->ProfilingBegin();
+        const bool profiling_started = task->TryProfilingBegin();
         try
         {
             task->Tick();
         }
         catch(...)
         {
-            task->ProfilingEnd();
+            if(profiling_started)
+                task->ProfilingEnd();
             throw;
         }
-        task->ProfilingEnd();
+        if(profiling_started)
+            task->ProfilingEnd();
     }
 
 
@@ -8328,8 +8394,13 @@ bool operator==(Request & r, const std::string s)
 
 
     void
-    Kernel::DoProfiling(Request &)
+    Kernel::DoProfiling(Request & request)
     {
+        bool active = true;
+        if(request.parameters.contains("active"))
+            active = request.parameters.is_set("active");
+        SetProfilingClientActive(request.client_id, active);
+
         dictionary header({
             {"Content-Type", "application/json; charset=utf-8"},
             {"Cache-Control", "no-cache, no-store"},

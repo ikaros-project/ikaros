@@ -29,8 +29,9 @@ public:
     virtual std::string Info() const = 0;
     virtual bool ShouldTick() const { return true; }
     virtual bool Priority() { return false; }
-    virtual void ProfilingBegin() {};
-    virtual void ProfilingEnd()  {};
+    virtual bool TryProfilingBegin() { return false; }
+    virtual void ProfilingBegin() {}
+    virtual void ProfilingEnd() {}
 
 private:
     Kind kind_;
@@ -126,22 +127,25 @@ protected:
                 continue; // FIXME: Should not happen - task list may not have been correctky deleted ******
             if(!task->ShouldTick())
                 continue;
-            task->ProfilingBegin();
+            const bool profiling_started = task->TryProfilingBegin();
             try
             {
                 task->Tick();
             }
             catch(const std::exception & e)
             {
-                task->ProfilingEnd();
+                if(profiling_started)
+                    task->ProfilingEnd();
                 throw std::runtime_error("Error in task \"" + task->Info() + "\": " + e.what());
             }
             catch(...)
             {
-                task->ProfilingEnd();
+                if(profiling_started)
+                    task->ProfilingEnd();
                 throw std::runtime_error("Error in task \"" + task->Info() + "\": Unknown error.");
             }
-            task->ProfilingEnd();
+            if(profiling_started)
+                task->ProfilingEnd();
         }
     }
 

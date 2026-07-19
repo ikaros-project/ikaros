@@ -265,9 +265,8 @@ def run_http_test(cmd, root):
                 maximum_count = 0
                 last_body = ""
 
-                for _ in range(request_count):
-                    last_body = request("profiling", record=False)
-                    package = json.loads(last_body)
+                def profiling_for_component(body):
+                    package = json.loads(body)
                     components = [
                         component
                         for component in package["components"]
@@ -278,8 +277,20 @@ def run_http_test(cmd, root):
                             f"Profiling response contains {len(components)} components "
                             f"at {component_path!r}"
                         )
+                    return package, components[0]["profiling"]
 
-                    profiling = components[0]["profiling"]
+                inactive_body = request("profiling?active=false", record=False)
+                inactive_package, inactive_profiling = profiling_for_component(inactive_body)
+                if inactive_package["enabled"]:
+                    raise AssertionError("Profiling remained enabled without an active client")
+                if inactive_profiling["wall"]["count"] != 0 or inactive_profiling["cpu"]["count"] != 0:
+                    raise AssertionError("Profiling collected samples before it was enabled")
+
+                for _ in range(request_count):
+                    last_body = request("profiling", record=False)
+                    package, profiling = profiling_for_component(last_body)
+                    if not package["enabled"]:
+                        raise AssertionError("Profiling request did not enable collection")
                     wall_count = profiling["wall"]["count"]
                     cpu_count = profiling["cpu"]["count"]
                     if wall_count != cpu_count:
@@ -303,6 +314,17 @@ def run_http_test(cmd, root):
                     raise AssertionError(
                         f"Profiling recorded no completed runs for {component_path!r}"
                     )
+
+                request("profiling?active=false", record=False)
+                request("profiling", record=False, client_id=101)
+                request("profiling", record=False, client_id=202)
+                first_close = json.loads(request("profiling?active=false", record=False, client_id=101))
+                if not first_close["enabled"]:
+                    raise AssertionError("Closing one profiling client disabled another active client")
+                last_close = json.loads(request("profiling?active=false", record=False, client_id=202))
+                if last_close["enabled"]:
+                    raise AssertionError("Profiling remained enabled after the last client closed")
+
                 http_output.append(last_body)
             elif action.startswith("assert_log_fanout:"):
                 _, path, expected, expected_count = action.split(":", 3)

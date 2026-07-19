@@ -148,6 +148,8 @@ const inspector =
         {
             if(!inspector[windowProperty] || inspector[windowProperty].closed)
             {
+                if(typeof features.onClose === "function")
+                    features.onClose();
                 clearInterval(inspector[timerProperty]);
                 inspector[timerProperty] = null;
                 inspector[windowProperty] = null;
@@ -184,8 +186,19 @@ const inspector =
             "ikaros_profiling",
             () => inspector.initializeProfilingWindow(),
             () => inspector.refreshProfilingWindow(),
-            {width: 1200}
+            {width: 1200, onClose: () => inspector.stopProfiling()}
         );
+    },
+
+    stopProfiling()
+    {
+        fetch('/profiling?active=false', {
+            method: 'GET',
+            headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id},
+            cache: 'no-store',
+            keepalive: true
+        })
+        .catch((error) => console.log("profiling stop failed", error));
     },
 
     initializeProfilingWindow()
