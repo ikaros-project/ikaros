@@ -295,8 +295,18 @@ class RangeSizeTestModule : public Module
         CheckRangeValues("[0:2][]", {});
 
         range empty(0, 0, 0);
-        if(empty.size() != 0 || empty.more())
+        if(empty.rank() != 1 || empty.size() != 0 || !empty.empty() || empty.more())
             throw exception("Zero-increment range was not empty");
+
+        if(!range().empty() || !range(3, 3).empty() ||
+           !range("[0:2][][0:2]").empty() || range(0, 1).empty())
+            throw exception("Range emptiness did not follow generated cardinality");
+
+        range exhausted(0, 2);
+        while(exhausted.more())
+            ++exhausted;
+        if(exhausted.empty())
+            throw exception("Range emptiness depended on the iteration cursor");
 
         range multidimensional("[0:5:2][1:6:2]");
         std::vector<std::vector<int>> actualIndices;
@@ -417,6 +427,8 @@ class RangeSizeTestModule : public Module
 
         if(!range(3).tail().empty())
             throw exception("The tail of a rank-one range was not empty");
+        if(range("[]").tail().rank() != 0)
+            throw exception("The tail of a zero-cardinality rank-one range was not rank zero");
 
         range multidimensionalTailSource("[1:4][2:7:2][5]");
         ++multidimensionalTailSource;

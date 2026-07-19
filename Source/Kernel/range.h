@@ -55,7 +55,7 @@ namespace ikaros
         [[nodiscard]] bool is_delay_1() const;
 
         [[nodiscard]] bool more() const;
-        [[nodiscard]] bool empty() const;
+        [[nodiscard]] bool empty() const;                       // true if the range generates no index tuples
         [[nodiscard]] bool empty(int d) const;
         [[nodiscard]] bool same_state(const range & other) const;
 

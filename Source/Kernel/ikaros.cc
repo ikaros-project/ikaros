@@ -2809,7 +2809,7 @@ namespace ikaros
                 if(!c->stacked_)
                 {
                     range output_matrix = output_buffer.get_range();
-                    if(output_matrix.empty())
+                    if(output_matrix.rank() == 0)
                         return 0;
 
                     range resolved_target = c->Resolve(output_matrix);
@@ -2830,7 +2830,7 @@ namespace ikaros
 
                 if(has_fixed_size)
                     validate_fixed_target(*c, c->target_range);
-                else if(input_size.empty())
+                else if(input_size.rank() == 0)
                     input_size = c->target_range;
                 else
                     input_size.extend(c->target_range);
@@ -2854,8 +2854,8 @@ namespace ikaros
             !has_fixed_size &&
             ingoing_connections.size() == 1 &&
             ingoing_connections.begin()->second[0]->DelayCount() == 1 &&
-            ingoing_connections.begin()->second[0]->source_range.empty() &&
-            ingoing_connections.begin()->second[0]->target_range.empty();
+            ingoing_connections.begin()->second[0]->source_range.rank() == 0 &&
+            ingoing_connections.begin()->second[0]->target_range.rank() == 0;
         bool dynamic_simple_connection =
             !has_fixed_size &&
             single_connection != nullptr &&
@@ -2869,7 +2869,7 @@ namespace ikaros
                                       ingoing_connections.begin()->second[0] : single_connection;
             matrix & output_buffer = kernel().buffers[connection->source];
             range output_matrix = output_buffer.get_range();
-            if(output_matrix.empty())
+            if(output_matrix.rank() == 0)
                 return 0;
 
             if(output_buffer.is_dynamic())
@@ -2894,7 +2894,7 @@ namespace ikaros
                 throw setup_failed("Connection \"" + c->Info() + "\" uses an indexed or ranged connection from dynamic output \"" + c->source + "\". Dynamic outputs only support whole-matrix connections.", path_);
 
             range output_matrix = output_buffer.get_range();
-            if(output_matrix.empty())
+            if(output_matrix.rank() == 0)
                 return 0;
             range resolved_target = c->Resolve(output_matrix);
             if(has_fixed_size)
@@ -2982,7 +2982,7 @@ namespace ikaros
 
             range output_matrix = output_buffer.get_range();
             
-            if(output_matrix.empty())
+            if(output_matrix.rank() == 0)
                 return 0;
             
             output_range.extend(c->Resolve(output_matrix));
@@ -3346,21 +3346,21 @@ namespace ikaros
     int
     Connection::DelayCount() const
     {
-        return delay_range_.empty() ? 1 : delay_range_.size();
+        return delay_range_.rank() == 0 ? 1 : delay_range_.size();
     }
 
 
     int
     Connection::MinDelay() const
     {
-        return delay_range_.empty() ? 1 : delay_range_.a_[0];
+        return delay_range_.rank() == 0 ? 1 : delay_range_.a_[0];
     }
 
 
     int
     Connection::MaxDelay() const
     {
-        if(delay_range_.empty())
+        if(delay_range_.rank() == 0)
             return 1;
         return delay_range_.a_[0] + (DelayCount() - 1) * delay_range_.inc_[0];
     }
@@ -3369,14 +3369,14 @@ namespace ikaros
     bool
     Connection::HasZeroDelay() const
     {
-        return !delay_range_.empty() && delay_range_.a_[0] == 0;
+        return delay_range_.rank() != 0 && delay_range_.a_[0] == 0;
     }
 
 
     bool
     Connection::IsSingleDelay(int delay) const
     {
-        if(delay_range_.empty())
+        if(delay_range_.rank() == 0)
             return delay == 1;
         return delay_range_.a_[0] == delay &&
                static_cast<long long>(delay_range_.a_[0]) + delay_range_.inc_[0] >=
@@ -3422,14 +3422,14 @@ namespace ikaros
     range 
     Connection::Resolve(const range & source_output)
     {
-        if(source_output.empty())
+        if(source_output.rank() == 0)
             return range();
 
         source_range.extend(source_output.rank());
         source_range.fill(source_output);
         range reduced_source = source_range.strip().trim();
 
-        if(target_range.empty())
+        if(target_range.rank() == 0)
             target_range = reduced_source;
         else
         {

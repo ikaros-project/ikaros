@@ -87,6 +87,12 @@ ranges have cardinality zero. If the product cannot be represented by the suppor
 If any dimension is empty, `more()` returns false and iteration produces no index tuples,
 regardless of where the empty dimension occurs.
 
+Like `matrix::empty()`, `range::empty()` reports whether the object contains any logical elements.
+It returns true for a rank-zero range and for a range with any zero-cardinality dimension. It is
+independent of the iteration cursor, so a non-empty range remains non-empty after traversal. Use
+`rank() == 0` when testing specifically whether a range has no dimensions, for example when a
+selector has not been specified.
+
 `extend(const range &)` may add dimensions when its argument has a higher rank. It rejects an
 argument with fewer dimensions than the receiver. `fill()` likewise requires its source to have at
 least as many dimensions as the receiver. Invalid rank combinations throw `std::invalid_argument`
@@ -102,8 +108,8 @@ during construction or mutation. This keeps iteration free of runtime overflow c
 likewise rejects an unrepresentable result without changing the source range.
 
 `tail()` removes the first dimension and preserves the remaining bounds, increments, and current
-cursor. The tail of a rank-one range is empty. Calling `tail()` on an empty range throws
-`std::out_of_range`.
+cursor. The tail of a rank-one range has rank zero. Calling `tail()` on a rank-zero range throws
+`std::out_of_range`; a zero-cardinality range with at least one dimension still has a valid tail.
 
 Stream insertion writes the current multidimensional cursor to the supplied stream in tuple form,
 for example `(1, 4)`.

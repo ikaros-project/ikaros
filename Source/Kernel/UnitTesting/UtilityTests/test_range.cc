@@ -20,7 +20,7 @@ ResolveConnection(range & output, range & source, range & target)
     source.fill(output);
     range reduced_source = source.strip().trim();
 
-    if(target.empty())
+    if(target.rank() == 0)
         target = reduced_source;
     else
     {

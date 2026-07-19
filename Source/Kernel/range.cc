@@ -447,7 +447,7 @@ namespace ikaros
             if(size(i) > 1)
                 r.push(a_[i], b_[i], inc_[i]);
 
-        if(r.empty())
+        if(r.rank() == 0)
             r.push(1);
 
         return r;
@@ -457,8 +457,8 @@ namespace ikaros
     range
     range::tail() const
     {
-        if(empty())
-            throw std::out_of_range("Cannot take the tail of an empty range");
+        if(rank() == 0)
+            throw std::out_of_range("Cannot take the tail of a rank-zero range");
 
         range r = *this;
         r.a_.erase(r.a_.begin());
@@ -482,9 +482,16 @@ namespace ikaros
 
 
 
-    bool range::empty() const
+    bool
+    range::empty() const
     {
-        return a_.size() == 0;
+        if(rank() == 0)
+            return true;
+
+        for(int d = 0; d < rank(); ++d)
+            if(size(d) == 0)
+                return true;
+        return false;
     }
 
 
