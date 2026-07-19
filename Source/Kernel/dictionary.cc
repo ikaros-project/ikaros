@@ -5,12 +5,18 @@
 #include "utilities.h"
 
 #include <cctype>
+#include <climits>
+#include <cmath>
 #include <stdexcept>
 #include <fstream>
 
 using namespace ikaros;
 namespace ikaros 
 {
+        static constexpr size_t max_json_nesting_depth = 256;
+        static constexpr const char * xml_value_type_attribute = "_value_type";
+        static constexpr const char * xml_value_attribute = "value";
+
         const value &
         null_value()
         {
@@ -38,7 +44,8 @@ namespace ikaros
 
         static void skip_whitespace(const std::string& s, size_t& pos)
         {
-            while (pos<s.length() && std::isspace(static_cast<unsigned char>(s[pos])))
+            while(pos < s.length() &&
+                  (s[pos] == ' ' || s[pos] == '\t' || s[pos] == '\n' || s[pos] == '\r'))
                 ++pos;
         }
 
@@ -116,6 +123,57 @@ namespace ikaros
                 }
             }
             return escaped;
+        }
+
+
+        static std::string xml_scalar_element(const std::string & name,
+                                              const std::string & type,
+                                              const std::string & value,
+                                              int depth)
+        {
+            std::string result = tab(depth) + "<" + name + " " +
+                                 xml_value_type_attribute + "=\"" + type + "\"";
+            if(type != "null")
+                result += " " + std::string(xml_value_attribute) + "=\"" + escape_xml_attribute(value) + "\"";
+            result += "/>\n";
+            return result;
+        }
+
+
+        static bool parse_xml_scalar(XMLElement * element, value & result)
+        {
+            const char * type_attribute = element->GetActualAttribute(xml_value_type_attribute);
+            if(type_attribute == nullptr)
+                return false;
+
+            std::string type = type_attribute;
+            if(type == "null")
+            {
+                result = null();
+                return true;
+            }
+
+            const char * value_attribute = element->GetActualAttribute(xml_value_attribute);
+            if(value_attribute == nullptr)
+                throw std::runtime_error("XML scalar value is missing its value attribute.");
+
+            if(type == "string")
+                result = value_attribute;
+            else if(type == "number")
+                result = parse_double(value_attribute);
+            else if(type == "bool")
+            {
+                std::string bool_value = value_attribute;
+                if(bool_value == "true")
+                    result = true;
+                else if(bool_value == "false")
+                    result = false;
+                else
+                    throw std::runtime_error("Invalid Boolean XML scalar value.");
+            }
+            else
+                throw std::runtime_error("Unknown XML scalar value type \"" + type + "\".");
+            return true;
         }
 
     // null
@@ -619,11 +677,15 @@ namespace ikaros
         for(XMLAttribute * a = xml_node->attributes; a!=nullptr; a=(XMLAttribute *)(a->next))
             (*dict_)[std::string(a->name)] = a->value;
 
-        for (XMLElement * xml_element = xml_node->GetContentElement(); xml_element != nullptr; xml_element = xml_element->GetNextElement())
-            //if(merge.empty())
-                (*dict_)[std::string(xml_element->name)+"s"].push_back(dictionary(xml_element));
-            //else
-            //    (*dict_)["elements"].push_back(dictionary(xml_element));
+        for(XMLElement * xml_element = xml_node->GetContentElement();
+            xml_element != nullptr;
+            xml_element = xml_element->GetNextElement())
+        {
+            value child;
+            if(!parse_xml_scalar(xml_element, child))
+                child = dictionary(xml_element);
+            (*dict_)[std::string(xml_element->name) + "s"].push_back(std::move(child));
+        }
     }
 
     dictionary::dictionary(std::string filename):
@@ -667,10 +729,10 @@ namespace ikaros
         if(s.empty())
             return;
 
-        for(auto p : split(s, "&"))
+        for(auto part : split(s, "&"))
         {   
-            std::string key = head(p,"=");
-            std::string value = p;
+            std::string key = decode_url_component(head(part, "="), true);
+            std::string value = decode_url_component(part, true);
             (*this)[key] = value;
         }
     }
@@ -911,6 +973,33 @@ namespace ikaros
         }
 
 
+        bool
+        value::as_bool() const
+        {
+            if(std::holds_alternative<bool>(value_))
+                return std::get<bool>(value_);
+            if(std::holds_alternative<std::string>(value_))
+            {
+                const std::string & string_value = std::get<std::string>(value_);
+                double number = 0;
+                if(parse_double(string_value, number))
+                    return number != 0;
+                return ::ikaros::is_true(string_value);
+            }
+            return double(*this) != 0;
+        }
+
+
+        int
+        value::as_int() const
+        {
+            double number = double(*this);
+            if(!std::isfinite(number) || number < INT_MIN || number > INT_MAX)
+                throw std::out_of_range("Value cannot be represented as an int.");
+            return static_cast<int>(number);
+        }
+
+
         std::string  
         value::json() const
         {
@@ -932,15 +1021,20 @@ namespace ikaros
         value::xml(std::string name,exclude_set exclude, int depth) const
         {
             if(std::holds_alternative<std::string>(value_))
-                return tab(depth)+"<string>"+std::get<std::string>(value_)+"</string>\n"; // FIXME: <'type' value="v" />    ???
+                return xml_scalar_element(name, "string", std::get<std::string>(value_), depth);
             else if(std::holds_alternative<list>(value_))
                 return std::get<list>(value_).xml(name, exclude, depth);
             else if(std::holds_alternative<dictionary>(value_))
                 return std::get<dictionary>(value_).xml(name, exclude, depth);
             else if(std::holds_alternative<null>(value_))
-                return tab(depth)+"<null/>\n";
-            else
-                return std::string(*this);                              // FIXME: <'type' value="v" />    ???
+                return xml_scalar_element(name, "null", "", depth);
+            else if(std::holds_alternative<bool>(value_))
+                return xml_scalar_element(name, "bool", std::get<bool>(value_) ? "true" : "false", depth);
+
+            std::string number = format_json_number(std::get<double>(value_));
+            if(number == "null")
+                return xml_scalar_element(name, "null", "", depth);
+            return xml_scalar_element(name, "number", number, depth);
         }
 
           
@@ -1080,12 +1174,14 @@ namespace ikaros
             throw std::runtime_error("Expected '\"' at the end of string");
 
         ++pos; // Skip the closing quote
+        if(!is_valid_utf8(result))
+            throw std::runtime_error("JSON strings must contain valid UTF-8");
         return result;
     }
 
-    value parse_value(const std::string& s, size_t& pos);
+    value parse_value(const std::string& s, size_t& pos, size_t depth);
 
-    list parse_array(const std::string& s, size_t& pos)
+    list parse_array(const std::string& s, size_t& pos, size_t depth)
     {
         if(pos >= s.length())
             throw std::runtime_error("Unexpected end of JSON while parsing array at position " + std::to_string(pos));
@@ -1106,7 +1202,7 @@ namespace ikaros
 
         while (pos < s.length())
         {
-            result.push_back(parse_value(s, pos));
+            result.push_back(parse_value(s, pos, depth));
             skip_whitespace(s, pos);
             if(pos >= s.length())
                 throw std::runtime_error("Unexpected end of array at position " + std::to_string(pos));
@@ -1124,7 +1220,7 @@ namespace ikaros
         throw std::runtime_error("Unexpected end of array");
     }
 
-    dictionary parse_object(const std::string& s, size_t& pos)
+    dictionary parse_object(const std::string& s, size_t& pos, size_t depth)
     {
         if(pos >= s.length())
             throw std::runtime_error("Unexpected end of JSON while parsing object at position " + std::to_string(pos));
@@ -1158,7 +1254,7 @@ namespace ikaros
             skip_whitespace(s, pos);
             if(pos >= s.length())
                 throw std::runtime_error("Unexpected end of object after ':' at position " + std::to_string(pos));
-            result[key] = parse_value(s, pos);
+            result[key] = parse_value(s, pos, depth);
             skip_whitespace(s, pos);
             if(pos >= s.length())
                 throw std::runtime_error("Unexpected end of object at position " + std::to_string(pos));
@@ -1230,7 +1326,7 @@ namespace ikaros
     }
 
 
-    value parse_value(const std::string& s, size_t& pos)
+    value parse_value(const std::string& s, size_t& pos, size_t depth)
     {
         skip_whitespace(s, pos);
         if(pos >= s.length())
@@ -1266,11 +1362,15 @@ namespace ikaros
         }
         else if(s[pos] == '[')
         {
-            return value(parse_array(s, pos));
+            if(depth >= max_json_nesting_depth)
+                throw std::runtime_error("Maximum JSON nesting depth exceeded at position " + std::to_string(pos));
+            return value(parse_array(s, pos, depth + 1));
         }
         else if(s[pos] == '{')
         {
-            return value(parse_object(s, pos));
+            if(depth >= max_json_nesting_depth)
+                throw std::runtime_error("Maximum JSON nesting depth exceeded at position " + std::to_string(pos));
+            return value(parse_object(s, pos, depth + 1));
         }
         else if(std::isdigit(static_cast<unsigned char>(s[pos])) || s[pos] == '-')
         {
@@ -1284,7 +1384,7 @@ namespace ikaros
 value parse_json(const std::string& json_str)
 {
     size_t pos = 0;
-    value result = parse_value(json_str, pos);
+    value result = parse_value(json_str, pos, 0);
     skip_whitespace(json_str, pos);
     if(pos != json_str.length())
         throw std::runtime_error("Unexpected trailing characters after JSON value at position " + std::to_string(pos));

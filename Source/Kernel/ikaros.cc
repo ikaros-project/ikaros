@@ -3397,13 +3397,15 @@ Class::Class(std::string n, std::string p) : info_(), module_creator(nullptr), n
     Request::Request(std::string uri, long sid, std::string b, std::string content_type, long cid):
         body(b)
     {
-        url = uri;
         session_id = sid;
         client_id = cid;
-        uri.erase(0, 1);
         std::string params = tail(uri, "?");
-        //std::cout << params << std::endl;
-        command = head(uri, "/"); 
+        url = decode_url_component(uri);
+
+        if(!uri.empty() && uri[0] == '/')
+            uri.erase(0, 1);
+        uri = decode_url_component(uri);
+        command = head(uri, "/");
         component_path = uri;
         parameters.parse_url(params);
 

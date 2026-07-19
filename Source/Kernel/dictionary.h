@@ -201,8 +201,8 @@ namespace ikaros
         [[nodiscard]] bool is_string() const { return std::holds_alternative<std::string>(value_); }
         [[nodiscard]] bool is_true() const;
 
-        [[nodiscard]] bool as_bool() const { return double(*this) != 0; };
-        [[nodiscard]] int as_int() const { return double(*this); };
+        [[nodiscard]] bool as_bool() const;
+        [[nodiscard]] int as_int() const;
         [[nodiscard]] float as_float() const { return double(*this); };
         [[nodiscard]] double as_double() const { return double(*this); };
         [[nodiscard]] std::string as_string() const { return std::string(*this); };

@@ -383,104 +383,6 @@ strip(char * s)
 
 
 
-// https://www.codeguru.com/cpp/cpp/algorithms/strings/article.php/c12759/URI-Encoding-and-Decoding.htm
-
-const signed char HEX2DEC[256] =
-{
-    /*       0  1  2  3   4  5  6  7   8  9  A  B   C  D  E  F */
-    /* 0 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 1 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 2 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 3 */  0, 1, 2, 3,  4, 5, 6, 7,  8, 9,-1,-1, -1,-1,-1,-1,
-    
-    /* 4 */ -1,10,11,12, 13,14,15,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 5 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 6 */ -1,10,11,12, 13,14,15,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 7 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    
-    /* 8 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 9 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* A */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* B */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    
-    /* C */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* D */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* E */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* F */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1
-};
-
-static std::string UriDecode(const std::string &sSrc)
-{
-    const unsigned char *pSrc = (const unsigned char *)sSrc.c_str();
-    const size_t SRC_LEN = sSrc.length();
-    std::string result;
-    result.reserve(SRC_LEN);
-
-    for (size_t i = 0; i < SRC_LEN; ++i)
-    {
-        if (pSrc[i] == '%' && i + 2 < SRC_LEN)
-        {
-            char dec1 = HEX2DEC[pSrc[i + 1]];
-            char dec2 = HEX2DEC[pSrc[i + 2]];
-            if (dec1 != -1 && dec2 != -1)
-            {
-                result += (dec1 << 4) + dec2;
-                i += 2;
-                continue;
-            }
-        }
-        result += pSrc[i];
-    }
-    return result;
-}
-
-
-/* OLD VERSION
-
-static std::string UriDecode(const std::string & sSrc)
-{
-   // Note from RFC1630: "Sequences which start with a percent
-   // sign but are not followed by two hexadecimal characters
-   // (0-9, A-F) are reserved for future extension"
- 
-   const unsigned char * pSrc = (const unsigned char *)sSrc.c_str();
-   const long SRC_LEN = sSrc.length();
-   const unsigned char * const SRC_END = pSrc + SRC_LEN;
-   // last decodable '%'
-   const unsigned char * const SRC_LAST_DEC = SRC_END - 2;
- 
-   char * const pStart = new char[SRC_LEN];
-   char * pEnd = pStart;
- 
-   while (pSrc < SRC_LAST_DEC)
-   {
-      if(*pSrc == '%')
-      {
-         char dec1, dec2;
-         if(-1 != (dec1 = HEX2DEC[*(pSrc + 1)])
-            && -1 != (dec2 = HEX2DEC[*(pSrc + 2)]))
-         {
-            *pEnd++ = (dec1 << 4) + dec2;
-            pSrc += 3;
-            continue;
-         }
-      }
- 
-      *pEnd++ = *pSrc++;
-   }
- 
-   // the last 2- chars
-   while (pSrc < SRC_END)
-      *pEnd++ = *pSrc++;
- 
-   std::string sResult(pStart, pEnd);
-   delete [] pStart;
-   return sResult;
-}
-*/
-
-
-
 bool
 ServerSocket::GetRequest(bool block)
 {
@@ -633,7 +535,7 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
     queued_request.connection_id = current_read_connection_id;
 
     queued_request.header["method"] = request_line_parts[0];
-	queued_request.header["uri"] = UriDecode(request_line_parts[1]);
+	queued_request.header["uri"] = request_line_parts[1];
 	queued_request.header["http-version"] = request_line_parts[2];
 
     for(std::string line; std::getline(request_stream, line);)

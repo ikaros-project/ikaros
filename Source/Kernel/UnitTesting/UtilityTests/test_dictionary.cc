@@ -44,6 +44,11 @@ main()
     assert(url_dict["b"].as_string() == "XXX");
     assert(url_dict["xxx"].as_string() == "oiuy");
 
+    dictionary encoded_url_dict;
+    encoded_url_dict.parse_url("file=a%26b%3Dc+file&encoded%20key=value%2Fpart");
+    assert(encoded_url_dict["file"].as_string() == "a&b=c file");
+    assert(encoded_url_dict["encoded key"].as_string() == "value/part");
+
     d["null_value"] = nullptr;
     assert(d["null_value"].is_null());
     assert(d["null_value"].json() == "null");
@@ -98,6 +103,33 @@ main()
 
     assert(parse_json("-12.5e2").as_double() == -1250.0);
 
+    const double exact_numbers[] = {
+        1e-12,
+        1.2345678901234567,
+        std::numeric_limits<double>::denorm_min(),
+        std::numeric_limits<double>::max(),
+    };
+    for(double number : exact_numbers)
+        assert(parse_json(value(number).json()).as_double() == number);
+
+    assert(value(true).as_bool());
+    assert(!value(false).as_bool());
+    assert(value("yes").as_bool());
+    assert(!value("no").as_bool());
+    assert(value("2").as_bool());
+    assert(!value("0").as_bool());
+
+    bool threw_on_int_overflow = false;
+    try
+    {
+        static_cast<void>(value(1e100).as_int());
+    }
+    catch(const std::out_of_range &)
+    {
+        threw_on_int_overflow = true;
+    }
+    assert(threw_on_int_overflow);
+
     value unicode_json = parse_json(R"({"latin":"\u00E5","emoji":"\uD83D\uDE00"})");
     assert(unicode_json["latin"].as_string() == "\xC3\xA5");
     assert(unicode_json["emoji"].as_string() == "\xF0\x9F\x98\x80");
@@ -128,6 +160,27 @@ main()
     dictionary reparsed_xml(xml_document.xml);
     assert(reparsed_xml["title"].as_string() == "line 1\nline \"2\" & <3>\t");
 
+    dictionary scalar_list_xml;
+    list scalar_values;
+    scalar_values.push_back("<&\"");
+    scalar_values.push_back(42.5);
+    scalar_values.push_back(true);
+    scalar_values.push_back(nullptr);
+    scalar_list_xml["items"] = scalar_values;
+    const std::string scalar_list_xml_text = scalar_list_xml.xml("root");
+    {
+        std::ofstream xml_file("/tmp/test_dictionary_scalar_list.xml");
+        xml_file << scalar_list_xml_text;
+    }
+    XMLDocument scalar_list_document("/tmp/test_dictionary_scalar_list.xml");
+    dictionary reparsed_scalar_list(scalar_list_document.xml);
+    assert(reparsed_scalar_list["items"].size() == 4);
+    assert(reparsed_scalar_list["items"][0].as_string() == "<&\"");
+    assert(reparsed_scalar_list["items"][1].as_double() == 42.5);
+    assert(reparsed_scalar_list["items"][2].is_bool());
+    assert(reparsed_scalar_list["items"][2].as_bool());
+    assert(reparsed_scalar_list["items"][3].is_null());
+
     dictionary non_finite;
     non_finite["nan"] = std::nan("");
     non_finite["inf"] = std::numeric_limits<double>::infinity();
@@ -136,7 +189,7 @@ main()
     bool threw_on_trailing_junk = false;
     try
     {
-        parse_json("{\"name\":\"John\"} trailing");
+        static_cast<void>(parse_json("{\"name\":\"John\"} trailing"));
     }
     catch(const std::runtime_error &)
     {
@@ -150,7 +203,7 @@ main()
         bool threw_on_invalid_number = false;
         try
         {
-            parse_json(invalid_number);
+            static_cast<void>(parse_json(invalid_number));
         }
         catch(const std::runtime_error &)
         {
@@ -162,7 +215,7 @@ main()
     bool threw_on_invalid_unicode = false;
     try
     {
-        parse_json(R"({"broken":"\uD83D"})");
+        static_cast<void>(parse_json(R"({"broken":"\uD83D"})"));
     }
     catch(const std::runtime_error &)
     {
@@ -176,7 +229,7 @@ main()
         bool threw_on_truncated_json = false;
         try
         {
-            parse_json(truncated_json);
+            static_cast<void>(parse_json(truncated_json));
         }
         catch(const std::runtime_error &)
         {
@@ -184,6 +237,63 @@ main()
         }
         assert(threw_on_truncated_json);
     }
+
+    const std::string invalid_json_whitespace[] = {"\vtrue", "\ftrue"};
+    for(const auto & invalid_whitespace : invalid_json_whitespace)
+    {
+        bool threw_on_invalid_whitespace = false;
+        try
+        {
+            static_cast<void>(parse_json(invalid_whitespace));
+        }
+        catch(const std::runtime_error &)
+        {
+            threw_on_invalid_whitespace = true;
+        }
+        assert(threw_on_invalid_whitespace);
+    }
+
+    const std::string invalid_utf8_json = std::string("\"") + char(0xC0) + char(0xAF) + "\"";
+    bool threw_on_invalid_utf8 = false;
+    try
+    {
+        static_cast<void>(parse_json(invalid_utf8_json));
+    }
+    catch(const std::runtime_error &)
+    {
+        threw_on_invalid_utf8 = true;
+    }
+    assert(threw_on_invalid_utf8);
+
+    bool threw_on_invalid_utf8_serialization = false;
+    try
+    {
+        static_cast<void>(value(std::string(1, char(0x80))).json());
+    }
+    catch(const std::invalid_argument &)
+    {
+        threw_on_invalid_utf8_serialization = true;
+    }
+    assert(threw_on_invalid_utf8_serialization);
+
+    std::string maximum_depth_json(256, '[');
+    maximum_depth_json += "0";
+    maximum_depth_json.append(256, ']');
+    assert(parse_json(maximum_depth_json).is_list());
+
+    std::string excessive_depth_json(257, '[');
+    excessive_depth_json += "0";
+    excessive_depth_json.append(257, ']');
+    bool threw_on_excessive_depth = false;
+    try
+    {
+        static_cast<void>(parse_json(excessive_depth_json));
+    }
+    catch(const std::runtime_error &)
+    {
+        threw_on_excessive_depth = true;
+    }
+    assert(threw_on_excessive_depth);
 
     std::cout << "test_dictionary: ok" << std::endl;
 

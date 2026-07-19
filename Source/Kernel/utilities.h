@@ -62,7 +62,7 @@ namespace ikaros
     char * base64_encode(const unsigned char * data, size_t size_in, size_t *size_out);
 
     [[nodiscard]] std::string formatNumber(double value, int decimals=10); // remove trailing zeros
-    [[nodiscard]] std::string format_json_number(double value, int decimals=10); // valid JSON number or null for non-finite
+    [[nodiscard]] std::string format_json_number(double value); // exact JSON number or null for non-finite
 
     class prime
     {
@@ -77,6 +77,8 @@ namespace ikaros
 
     [[nodiscard]] std::string to_hex(char c);
     [[nodiscard]] std::string escape_json_string(const std::string& str);
+    [[nodiscard]] bool is_valid_utf8(const std::string & str);
+    [[nodiscard]] std::string decode_url_component(const std::string & str, bool plus_as_space=false);
     [[nodiscard]] std::string replace_characters(const std::string& str); // replace ',' and ';' and non-breaking space with space
     [[nodiscard]] std::string remove_comment(const std::string& input);
 };  

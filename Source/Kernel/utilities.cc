@@ -622,11 +622,16 @@ base64_encode(const unsigned char * data,
         return str;
     }
 
-    std::string format_json_number(double value, int decimals)
+    std::string format_json_number(double value)
     {
         if(!std::isfinite(value))
             return "null";
-        return formatNumber(value, decimals);
+
+        char buffer[64];
+        auto result = std::to_chars(buffer, buffer + sizeof(buffer), value);
+        if(result.ec != std::errc())
+            throw std::runtime_error("Could not format JSON number.");
+        return std::string(buffer, result.ptr);
     }
 
 
@@ -680,9 +685,119 @@ base64_encode(const unsigned char * data,
         return hex_str;
     }
 
+    bool
+    is_valid_utf8(const std::string & str)
+    {
+        for(size_t i = 0; i < str.size();)
+        {
+            const unsigned char first = static_cast<unsigned char>(str[i]);
+            if(first <= 0x7F)
+            {
+                ++i;
+                continue;
+            }
+
+            size_t length = 0;
+            unsigned char second_min = 0x80;
+            unsigned char second_max = 0xBF;
+            if(first >= 0xC2 && first <= 0xDF)
+                length = 2;
+            else if(first == 0xE0)
+            {
+                length = 3;
+                second_min = 0xA0;
+            }
+            else if(first >= 0xE1 && first <= 0xEC)
+                length = 3;
+            else if(first == 0xED)
+            {
+                length = 3;
+                second_max = 0x9F;
+            }
+            else if(first >= 0xEE && first <= 0xEF)
+                length = 3;
+            else if(first == 0xF0)
+            {
+                length = 4;
+                second_min = 0x90;
+            }
+            else if(first >= 0xF1 && first <= 0xF3)
+                length = 4;
+            else if(first == 0xF4)
+            {
+                length = 4;
+                second_max = 0x8F;
+            }
+            else
+                return false;
+
+            if(i + length > str.size())
+                return false;
+
+            const unsigned char second = static_cast<unsigned char>(str[i + 1]);
+            if(second < second_min || second > second_max)
+                return false;
+            for(size_t j = 2; j < length; ++j)
+            {
+                const unsigned char continuation = static_cast<unsigned char>(str[i + j]);
+                if(continuation < 0x80 || continuation > 0xBF)
+                    return false;
+            }
+            i += length;
+        }
+        return true;
+    }
+
+
+    std::string
+    decode_url_component(const std::string & str, bool plus_as_space)
+    {
+        std::string decoded;
+        decoded.reserve(str.size());
+        for(size_t i = 0; i < str.size(); ++i)
+        {
+            if(str[i] == '+' && plus_as_space)
+            {
+                decoded += ' ';
+                continue;
+            }
+            if(str[i] != '%')
+            {
+                decoded += str[i];
+                continue;
+            }
+            if(i + 2 >= str.size())
+                throw std::invalid_argument("Incomplete URL escape sequence.");
+
+            auto hex_value = [](char c)
+            {
+                if(c >= '0' && c <= '9')
+                    return c - '0';
+                if(c >= 'a' && c <= 'f')
+                    return 10 + c - 'a';
+                if(c >= 'A' && c <= 'F')
+                    return 10 + c - 'A';
+                return -1;
+            };
+
+            int high = hex_value(str[i + 1]);
+            int low = hex_value(str[i + 2]);
+            if(high < 0 || low < 0)
+                throw std::invalid_argument("Invalid URL escape sequence.");
+            decoded += static_cast<char>((high << 4) | low);
+            i += 2;
+        }
+        return decoded;
+    }
+
+
     std::string escape_json_string(const std::string& str)
     {
+        if(!is_valid_utf8(str))
+            throw std::invalid_argument("JSON strings must contain valid UTF-8.");
+
         std::string escaped;
+        escaped.reserve(str.size());
         for (unsigned char c : str)
         {
             switch (c)
