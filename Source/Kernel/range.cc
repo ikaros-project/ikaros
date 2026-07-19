@@ -659,25 +659,23 @@ namespace ikaros
         return s;
     }
 
-    std::ostream& operator<<(std::ostream& os, const range & x);
-    
     int range::rank() const
     {
         return index_.size();
     }
 
-    std::ostream& 
-    operator<<(std::ostream& os, const range & x)
+
+    std::ostream &
+    operator<<(std::ostream & os, const range & x)
     {
         std::string sep;
-        std::cout << "(";
+        os << "(";
         for(auto i : x.index_)
         {
-            std::cout << sep << i;
+            os << sep << i;
             sep = ", ";
         }
-        std::cout << ")";
-        return os;
+        return os << ")";
     }
 
     range::range(std::initializer_list<std::tuple<int, int, int>> ranges) 

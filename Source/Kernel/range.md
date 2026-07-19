@@ -101,6 +101,9 @@ range union likewise reject unrepresentable results and leave their input unchan
 cursor. The tail of a rank-one range is empty. Calling `tail()` on an empty range throws
 `std::out_of_range`.
 
+Stream insertion writes the current multidimensional cursor to the supplied stream in tuple form,
+for example `(1, 4)`.
+
 Connection delay ranges are a restricted use of this syntax: they must be one-dimensional,
 ascending, non-negative, non-empty, use a positive increment, and generate no value above 100.
 These restrictions do not apply to general matrix and loop ranges.

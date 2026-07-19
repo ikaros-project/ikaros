@@ -76,7 +76,7 @@ namespace ikaros
         friend bool operator!=(const range & a, const range & b);
         friend bool operator<=(const range & a, const range & b);        // is subset
 
-        friend std::ostream& operator<<(std::ostream& os, const range & x);
+        friend std::ostream & operator<<(std::ostream & os, const range & x);
 
     private:
         std::vector<int> inc_;

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <iostream>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -433,6 +434,13 @@ class RangeSizeTestModule : public Module
            multidimensionalTail.step(1) != 1 ||
            multidimensionalTail.index() != std::vector<int>{4, 5})
             throw exception("A multidimensional tail did not preserve the remaining dimensions");
+
+        range streamed("[1:4][2:7:2]");
+        ++streamed;
+        std::ostringstream rangeOutput;
+        std::ostream * returnedStream = &(rangeOutput << "prefix " << streamed << " suffix");
+        if(returnedStream != &rangeOutput || rangeOutput.str() != "prefix (1, 4) suffix")
+            throw exception("Range stream insertion did not write to the supplied stream");
 
         range prefix(0, 3);
         range * prefixResult = &(++prefix);
