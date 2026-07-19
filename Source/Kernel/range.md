@@ -111,6 +111,10 @@ likewise rejects an unrepresentable result without changing the source range.
 cursor. The tail of a rank-one range has rank zero. Calling `tail()` on a rank-zero range throws
 `std::out_of_range`; a zero-cardinality range with at least one dimension still has a valid tail.
 
+`strip()` removes dimensions containing exactly one index. It preserves zero-cardinality dimensions,
+so stripping cannot turn an empty range into a non-empty range. If every dimension is a singleton,
+the result retains one logical element; a rank-zero input remains rank zero.
+
 Stream insertion writes the current multidimensional cursor to the supplied stream in tuple form,
 for example `(1, 4)`.
 

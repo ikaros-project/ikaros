@@ -302,6 +302,21 @@ class RangeSizeTestModule : public Module
            !range("[0:2][][0:2]").empty() || range(0, 1).empty())
             throw exception("Range emptiness did not follow generated cardinality");
 
+        range strippedEmpty = range("[0:2][][3]").strip();
+        if(strippedEmpty.rank() != 2 || !strippedEmpty.empty() || strippedEmpty.size() != 0 ||
+           strippedEmpty.start(0) != 0 || strippedEmpty.stop(0) != 2 ||
+           strippedEmpty.start(1) != 0 || strippedEmpty.stop(1) != 0)
+            throw exception("Stripping a range did not preserve its empty dimension");
+
+        range strippedSingletons = range("[3][5]").strip();
+        if(strippedSingletons.rank() != 1 || strippedSingletons.size() != 1 ||
+           strippedSingletons.start(0) != 1 || strippedSingletons.stop(0) != 2)
+            throw exception("Stripping singleton dimensions did not preserve one element");
+
+        range strippedRankZero = range().strip();
+        if(strippedRankZero.rank() != 0 || !strippedRankZero.empty())
+            throw exception("Stripping a rank-zero range changed its cardinality");
+
         range exhausted(0, 2);
         while(exhausted.more())
             ++exhausted;

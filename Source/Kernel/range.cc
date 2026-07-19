@@ -444,10 +444,10 @@ namespace ikaros
     {
         range r;
         for(int i=0; i<index_.size(); i++)
-            if(size(i) > 1)
+            if(size(i) != 1)
                 r.push(a_[i], b_[i], inc_[i]);
 
-        if(r.rank() == 0)
+        if(r.rank() == 0 && rank() != 0)
             r.push(1);
 
         return r;
