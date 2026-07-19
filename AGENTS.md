@@ -59,6 +59,8 @@
 ## Tests
 
 - For kernel behavior changes, run `python3 Source/Kernel/UnitTesting/KernelTests/kernel_test.py`.
+- When adding or updating a kernel unit-test `.ikg`, always consider whether a top-level `check_sum` should be included.
+- Use `check_sum` to pin deterministic setup structure such as task grouping, resolved buffer shapes, and parameter values. Keep explicit assertions for runtime behavior, matrix contents, and other state the kernel checksum does not cover.
 - Put module-local test `.ikg` files in a separate `tests` subdirectory under the module directory.
 - For module or CLI changes, run the smallest relevant model or test first, then broaden if the change touches shared behavior.
 - When changing C++ module code, run the smallest relevant `.ikg` smoke test after building when practical.
