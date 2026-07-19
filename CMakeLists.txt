@@ -21,6 +21,22 @@ set(LOGGING "FULL" CACHE STRING "Logging mode: OFF, MINIMAL, or FULL")
 set_property(CACHE LOGGING PROPERTY STRINGS OFF MINIMAL FULL)
 string(TOUPPER "${LOGGING}" LOGGING)
 
+option(IKAROS_MATRIX_CHECKS "Check matrix ranks, indices, and operation preconditions" ON)
+if(IKAROS_MATRIX_CHECKS)
+    add_compile_definitions(IKAROS_MATRIX_CHECKS=1)
+else()
+    add_compile_definitions(IKAROS_MATRIX_CHECKS=0)
+endif()
+
+option(IKAROS_MATRIX_ACCELERATE "Use Apple Accelerate matrix implementations" ${APPLE})
+if(IKAROS_MATRIX_ACCELERATE AND NOT APPLE)
+    message(FATAL_ERROR "IKAROS_MATRIX_ACCELERATE is only available on Apple platforms")
+elseif(IKAROS_MATRIX_ACCELERATE)
+    add_compile_definitions(IKAROS_MATRIX_ACCELERATE=1)
+else()
+    add_compile_definitions(IKAROS_MATRIX_ACCELERATE=0)
+endif()
+
 if(NOT LOGGING STREQUAL "OFF" AND NOT LOGGING STREQUAL "MINIMAL" AND NOT LOGGING STREQUAL "FULL")
     message(FATAL_ERROR "LOGGING must be one of: OFF, MINIMAL, FULL")
 endif()
@@ -156,6 +172,12 @@ if (BLAS_FOUND)
 else()
     message(FATAL_ERROR "\nIkaros requires the BLAS library.\nVisit www.ikaros-project.org for information about dependencies")
 endif (BLAS_FOUND)
+
+# LAPACK backs matrix decompositions on every supported platform. On macOS
+# this resolves to Accelerate; Linux installations commonly provide it through
+# the same BLAS/OpenBLAS package family.
+find_package(LAPACK REQUIRED)
+target_link_libraries(ikaros ${LAPACK_LIBRARIES})
 
 # Threads Not part of the core
 #find_package(Threads)

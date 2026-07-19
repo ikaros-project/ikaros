@@ -1,6 +1,5 @@
 
-        //#define MATRIX_FULL_BOUNDS_CHECK
-        //#define MATRIX_NO_BOUNDS_CHECK
+        // Configure matrix checks with -DIKAROS_MATRIX_CHECKS=ON or OFF in CMake.
 
 #include "ikaros.h"
 

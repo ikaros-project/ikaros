@@ -7,8 +7,12 @@
 
 #undef USE_BLAS
 
+#include <array>
 #include <iostream>
 #include <cstddef>
+#include <functional>
+#include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -21,11 +25,21 @@
 #include <random>
 #include <cmath>
 #include <tuple>
+#include <type_traits>
+#include <utility>
 
 #include "exceptions.h"
 #include "utilities.h"
 #include "range.h"
 #include "dictionary.h"
+
+#ifndef IKAROS_MATRIX_CHECKS
+#define IKAROS_MATRIX_CHECKS 1
+#endif
+
+#if IKAROS_MATRIX_CHECKS != 0 && IKAROS_MATRIX_CHECKS != 1
+#error "IKAROS_MATRIX_CHECKS must be 0 or 1."
+#endif
 
 namespace ikaros
 {
@@ -74,9 +88,44 @@ namespace ikaros
         InitList(std::initializer_list<InitList> d) { value=d;}
     };
 
-    class matrix;
+    namespace matrix_detail
+    {
+        template <typename T>
+        inline constexpr bool is_dimension_v =
+            std::is_integral_v<std::decay_t<T>> &&
+            !std::is_same_v<std::decay_t<T>, bool>;
 
-    [[nodiscard]] inline bool try_parse_bracket_matrix_literal(matrix & out, const std::string & data_string);
+
+        template <typename T, std::enable_if_t<is_dimension_v<T>, int> = 0>
+        int
+        checked_dimension(T value)
+        {
+            using dimension_type = std::decay_t<T>;
+            if constexpr(std::is_signed_v<dimension_type>)
+            {
+                if constexpr(std::numeric_limits<dimension_type>::lowest() <
+                             std::numeric_limits<int>::lowest())
+                    if(value < static_cast<dimension_type>(std::numeric_limits<int>::lowest()))
+                        throw std::out_of_range("Matrix dimension is outside the supported integer range.");
+                if constexpr(std::numeric_limits<dimension_type>::max() >
+                             std::numeric_limits<int>::max())
+                    if(value > static_cast<dimension_type>(std::numeric_limits<int>::max()))
+                        throw std::out_of_range("Matrix dimension is outside the supported integer range.");
+            }
+            else if constexpr(std::numeric_limits<dimension_type>::max() >
+                              std::numeric_limits<int>::max())
+            {
+                if(value > static_cast<dimension_type>(std::numeric_limits<int>::max()))
+                    throw std::out_of_range("Matrix dimension is outside the supported integer range.");
+            }
+            return static_cast<int>(value);
+        }
+    }
+
+
+    class matrix;
+    class const_matrix_view;
+    class matrix_access;
 
     void save_matrix_states();
     void clear_matrix_states();
@@ -91,12 +140,14 @@ namespace ikaros
         std::vector<int> shape_;                        // size of each dimension of the matrix
         std::vector<int> stride_;                       // stride for jumping to the next row - necessary for submatrices
         std::vector<int> max_size_;                     // shape of allocated memory; same as stride for main matrix
-        int size_;                                      // internal storage/span size; rank-0 uses 0 for uninitialized and 1 for scalar
+        int logical_size_;                              // number of addressable elements in shape_
+        int storage_size_;                              // number of elements in the shared backing allocation
+        bool initialized_;                              // distinguishes an uninitialized rank-0 matrix from a scalar
         bool has_contiguous_logical_storage;             // logical matrix data can be traversed as one contiguous span
         bool dynamic_;                                  // logical shape can change while capacity stays fixed
         bool fixed_capacity_;                           // append must not grow beyond max_size_
         std::string name_;                              // name of the matrix, used when printing and possibly for access in the future
-        std::vector<std::vector<std::string>> labels_;  // label for each 'column' in each dimension; will be used for tables in the future
+        std::vector<std::vector<std::string>> labels_;  // Lazily allocated labels for each dimension
 
 
         size_t calculate_size() const // Calculate the number of elements in the matrix; this can be different from its size in memory
@@ -117,11 +168,13 @@ namespace ikaros
         }
 
         matrix_info():
-            offset_(0), size_(0), has_contiguous_logical_storage(true), dynamic_(false), fixed_capacity_(false)
+            offset_(0), logical_size_(0), storage_size_(0), initialized_(false), has_contiguous_logical_storage(true), dynamic_(false), fixed_capacity_(false)
         {}
         matrix_info(std::vector<int> shape);
         void refresh_logical_layout()
         {
+            logical_size_ = !initialized_ ? 0 :
+                (shape_.empty() ? 1 : static_cast<int>(calculate_size()));
             has_contiguous_logical_storage = true;
             for(std::size_t d = 1; d < shape_.size(); ++d)
                 if(stride_[d] != shape_[d])
@@ -139,19 +192,34 @@ namespace ikaros
     private:
         struct saved_state_registration
         {
-            bool registered = false;
+            matrix * owner;
 
-            saved_state_registration() = default;
-            saved_state_registration(const saved_state_registration &) noexcept:
-                registered(false)
-            {}
-            saved_state_registration & operator=(const saved_state_registration &) noexcept { return *this; }
+            explicit saved_state_registration(matrix * owner): owner(owner) {}
         };
 
         // Registration belongs to the matrix object, not its shared data.
-        saved_state_registration saved_state_registration_;
+        std::shared_ptr<saved_state_registration> saved_state_registration_;
 
+        std::shared_ptr<matrix_info> info_;             // Description shared by shallow matrix copies
+        std::shared_ptr<std::vector<float>> data_;      // Storage shared by shallow copies and submatrices
+        std::shared_ptr<matrix> last_;                  // Copy of the last saved matrix state
+        std::vector<float *> row_pointers_;             // Legacy float ** compatibility cache
+
+        static std::vector<std::weak_ptr<saved_state_registration>> & saved_state_registrations();
+        static std::mutex & saved_state_mutex();
+        static void unregister_saved_state_unlocked(const std::shared_ptr<saved_state_registration> & registration);
+        void save_saved_state_unlocked();
+        void check_elementwise_apply_input(const matrix & input) const;
+        matrix(std::shared_ptr<matrix_info> info,
+               std::shared_ptr<std::vector<float>> data);
+        matrix make_slice(int i) const;
+        matrix & push_slice(const matrix & m, int requested_capacity);
+
+        friend void save_matrix_states();
         friend void clear_matrix_states();
+        friend class const_matrix_view;
+        friend class matrix_access;
+        friend float dot(const matrix & A, const matrix & B);
 
     public:
         enum class convolution_padding
@@ -163,65 +231,91 @@ namespace ikaros
         struct iterator
         {
         public:
-            const matrix *    matrix_;
-            int         index_;
+            matrix * matrix_;
+            int index_;
 
-            using iterator_category = std::forward_iterator_tag;
-            /*
-            using difference_type   = std::ptrdiff_t;
-            using value_type        = matrix;
-            using pointer           = matrix*;
-            using reference         = matrix&;
-            */
+            using iterator_category = std::input_iterator_tag;
+            using difference_type = std::ptrdiff_t;
+            using value_type = matrix;
+            using pointer = void;
+            using reference = matrix;
 
             iterator(matrix & m) : matrix_(&m), index_(0) {}
-            iterator(const matrix & m) : matrix_(&m), index_(0) {}
             iterator(matrix & m, int i) : matrix_(&m), index_(i) {}
-            iterator(const matrix & m, int i) : matrix_(&m), index_(i) {}
 
-            matrix operator*();
-            
-            //pointer operator->() { return m_ptr; }
+            matrix operator*() const;
 
-            iterator& operator++() { index_++; return *this; }  
+            iterator & operator++() { index_++; return *this; }
             iterator operator++(int) { iterator tmp = *this; ++(*this); return tmp; }
 
-            friend bool operator== (const iterator& a, const iterator& b) { return a.index_ == b.index_; }
-            friend bool operator!= (const iterator& a, const iterator& b){  return !(a == b); }
+            friend bool operator==(const iterator & a, const iterator & b) { return a.matrix_ == b.matrix_ && a.index_ == b.index_; }
+            friend bool operator!=(const iterator & a, const iterator & b) { return !(a == b); }
         };
 
-        std::shared_ptr<matrix_info> info_;             // The description of the matrix, can be shared by different matrices
-        std::shared_ptr<std::vector<float>> data_;      // The raw data for the matrix, shared by submatrices
-        std::shared_ptr<matrix> last_;                  // Copy of the matrix
-        std::vector<float *> row_pointers_;             // used for backward compatibility with old float ** matrices - deprecated
+        struct const_iterator
+        {
+        public:
+            const matrix * matrix_;
+            int index_;
+
+            using iterator_category = std::input_iterator_tag;
+            using difference_type = std::ptrdiff_t;
+            using value_type = const_matrix_view;
+            using pointer = void;
+            using reference = const_matrix_view;
+
+            const_iterator(const matrix & m) : matrix_(&m), index_(0) {}
+            const_iterator(const matrix & m, int i) : matrix_(&m), index_(i) {}
+
+            const_matrix_view operator*() const;
+
+            const_iterator & operator++() { index_++; return *this; }
+            const_iterator operator++(int) { const_iterator tmp = *this; ++(*this); return tmp; }
+
+            friend bool operator==(const const_iterator & a, const const_iterator & b) { return a.matrix_ == b.matrix_ && a.index_ == b.index_; }
+            friend bool operator!=(const const_iterator & a, const const_iterator & b) { return !(a == b); }
+        };
 
         // iterator
 
         iterator begin() { return iterator(*this, 0); }
-        iterator end()   { return iterator(*this, info_->shape_.front()); }
-        iterator begin() const { return iterator(*this, 0); }
-        iterator end()   const { return iterator(*this, info_->shape_.front()); }
+        iterator end()   { return iterator(*this, info_->shape_.empty() ? 0 : info_->shape_.front()); }
+        const_iterator begin() const { return const_iterator(*this, 0); }
+        const_iterator end()   const { return const_iterator(*this, info_->shape_.empty() ? 0 : info_->shape_.front()); }
 
         // Initialization
         
-            matrix(std::vector<int> shape);
+        explicit matrix(std::vector<int> shape);
+        matrix(): matrix(std::vector<int>{}) {}
+        matrix(const matrix & other);
+        matrix(matrix && other) noexcept;
         ~matrix();
 
+        matrix & operator=(const matrix & other);
+        matrix & operator=(matrix && other) noexcept;
 
-        template <typename... Args> // Main creator function from matrix sizes as arguments
-        matrix(Args... shape):
-            matrix(std::vector<int>({shape...}))
+
+        template <typename... Dimensions,
+                  std::enable_if_t<
+                      sizeof...(Dimensions) != 0 &&
+                      (matrix_detail::is_dimension_v<Dimensions> && ...),
+                      int
+                  > = 0> // Main creator function from matrix sizes as arguments
+        explicit matrix(Dimensions... shape):
+            matrix(std::vector<int>{matrix_detail::checked_dimension(shape)...})
         {}
 
         matrix(int cols, float * data);
         matrix(int rows, int cols, float ** data);
+        matrix(const const_matrix_view &) = delete;
 
-        void operator=(std::string & data_string); // set from data string after resizing
+        matrix & operator=(const std::string & data_string);
         matrix(const std::string & data_string);
         matrix(const char * data_string);
+        matrix & operator=(std::initializer_list<InitList> list);
 
         matrix operator[](int i); // submatrix operator; returns a submatrix with rank()-1
-        matrix operator[](int i) const;
+        const_matrix_view operator[](int i) const;
 
         void info(std::string n="") const; // print matrix info; n overrides name if set (useful during debugging)
         void test_fill(); // test function that fills the elements with consecutive numbers
@@ -229,16 +323,24 @@ namespace ikaros
 
         matrix(std::initializer_list<InitList>  list); // Main creator function from initializer list
         range get_range() const;
-        operator range() const;
+        [[deprecated("Use get_range().")]] explicit operator range() const;
         matrix & set_name(std::string n);
         std::string get_name(std::string post=" ") const; // post added to string if not empty
 
-        template <typename... Args>
+        matrix & set_labels(int dimension, std::vector<std::string> labels);
+
+        template <typename... Args,
+                  std::enable_if_t<
+                      (std::is_constructible_v<std::string, Args &&> && ...),
+                      int
+                  > = 0>
         matrix &
-        set_labels(int dimension, Args... labels)
+        set_labels(int dimension, Args &&... labels)
         {
-            info_->labels_.at(dimension) = {labels...};
-            return *this;
+            return set_labels(
+                dimension,
+                std::vector<std::string>{std::forward<Args>(labels)...}
+            );
         }
 
         matrix & clear_labels(int dimension);
@@ -254,6 +356,10 @@ namespace ikaros
         matrix & set_dynamic(bool dynamic=true);
         matrix & set_fixed_capacity(bool fixed_capacity=true);
 
+#ifndef NDEBUG
+        static void set_allocation_failure_countdown_for_testing(int successful_allocations);
+#endif
+
         bool print_(int depth=0) const;
         std::string json() const; // Generate JSON-representation of matrix
         std::string metadata_json() const; // Generate JSON-representation of matrix metadata
@@ -261,10 +367,127 @@ namespace ikaros
         void print(std::string n="") const; // print matrix; n overrides name if set (useful during debugging)
 
 
-        const matrix & reduce(std::function< void(float) > f) const; // Apply a lambda over elements of a matrix
-        matrix & apply(std::function< float(float) > f); // Apply a lambda to elements of a matrix
-        matrix & apply(const matrix & A, std::function<float(float, float)> f); // e = f(A[], x)
-        matrix & apply(const matrix & A, const matrix & B, std::function<float(float, float)> f); // e[] = f(A[], B[])
+        const matrix & reduce(std::function<void(float)> f) const; // Compatibility overload for type-erased callables
+        matrix & apply(std::function<float(float)> f); // Compatibility overload for type-erased callables
+        matrix & apply(const matrix & A, std::function<float(float, float)> f);
+        matrix & apply(const matrix & A, const matrix & B, std::function<float(float, float)> f);
+
+        template <typename Function,
+                  std::enable_if_t<!std::is_same_v<std::decay_t<Function>,
+                                                   std::function<void(float)>>, int> = 0>
+        const matrix &
+        reduce(Function && function) const
+        {
+            if(empty())
+                return *this;
+            if(is_contiguous())
+            {
+                const float * values = data();
+                for(int i = 0; i < size(); ++i)
+                    function(values[i]);
+                return *this;
+            }
+
+            const int block_count = logical_block_count();
+            const int block_size = logical_block_size();
+            for(int block = 0; block < block_count; ++block)
+            {
+                const float * values = logical_block_data(block);
+                for(int element = 0; element < block_size; ++element)
+                    function(values[element]);
+            }
+            return *this;
+        }
+
+        template <typename Function,
+                  std::enable_if_t<!std::is_same_v<std::decay_t<Function>,
+                                                   std::function<float(float)>>, int> = 0>
+        matrix &
+        apply(Function && function)
+        {
+            if(empty())
+                return *this;
+            if(is_contiguous())
+            {
+                float * values = data();
+                for(int i = 0; i < size(); ++i)
+                    values[i] = function(values[i]);
+                return *this;
+            }
+
+            const int block_count = logical_block_count();
+            const int block_size = logical_block_size();
+            for(int block = 0; block < block_count; ++block)
+            {
+                float * values = logical_block_data(block);
+                for(int element = 0; element < block_size; ++element)
+                    values[element] = function(values[element]);
+            }
+            return *this;
+        }
+
+        template <typename Function,
+                  std::enable_if_t<!std::is_same_v<std::decay_t<Function>,
+                                                   std::function<float(float, float)>>, int> = 0>
+        matrix &
+        apply(const matrix & A, Function && function)
+        {
+            check_elementwise_apply_input(A);
+            if(empty())
+                return *this;
+            if(is_contiguous() && A.is_contiguous())
+            {
+                float * values = data();
+                const float * a = A.data();
+                for(int i = 0; i < size(); ++i)
+                    values[i] = function(values[i], a[i]);
+                return *this;
+            }
+
+            const int block_count = logical_block_count();
+            const int block_size = logical_block_size();
+            for(int block = 0; block < block_count; ++block)
+            {
+                float * values = logical_block_data(block);
+                const float * a = A.logical_block_data(block);
+                for(int element = 0; element < block_size; ++element)
+                    values[element] = function(values[element], a[element]);
+            }
+            return *this;
+        }
+
+        template <typename Function,
+                  std::enable_if_t<!std::is_same_v<std::decay_t<Function>,
+                                                   std::function<float(float, float)>>, int> = 0>
+        matrix &
+        apply(const matrix & A, const matrix & B, Function && function)
+        {
+            check_elementwise_apply_input(A);
+            check_elementwise_apply_input(B);
+            if(empty())
+                return *this;
+            if(is_contiguous() && A.is_contiguous() && B.is_contiguous())
+            {
+                float * values = data();
+                const float * a = A.data();
+                const float * b = B.data();
+                for(int i = 0; i < size(); ++i)
+                    values[i] = function(a[i], b[i]);
+                return *this;
+            }
+
+            const int block_count = logical_block_count();
+            const int block_size = logical_block_size();
+            for(int block = 0; block < block_count; ++block)
+            {
+                float * values = logical_block_data(block);
+                const float * a = A.logical_block_data(block);
+                const float * b = B.logical_block_data(block);
+                for(int element = 0; element < block_size; ++element)
+                    values[element] = function(a[element], b[element]);
+            }
+            return *this;
+        }
         matrix & set(float v); // Set all element of the matrix to a value
         template <typename RandomGenerator>
         matrix &
@@ -288,17 +511,32 @@ namespace ikaros
             return apply([&](float) { return distribution(rng); });
         }
         matrix & copy(const matrix & m);  // assign to matrix or submatrix - copy data
+        matrix & copy(const const_matrix_view & m);
         matrix & copy(const matrix & m, range & target, range & source);
+        matrix share() const; // Shallow copy sharing data, metadata, and saved-state values
+        matrix clone() const; // Independent contiguous copy of logical values, name, and labels
         matrix & submatrix(const matrix & m, const rect & region); // Copy a submatrix from m to this matrix
 
 
 
-        operator float & ();
-        operator const float & () const;
-        operator float * ();  // Get pointer to data in a row
-        operator float ** ();  // Get pointer to data in a row
-        float * data(); // Get pointer to the underlying data. Works for all sizes and for submatrices
-        const float * data() const; // Get pointer to the underlying data. Works for all sizes and for submatrices
+        float & scalar();
+        const float & scalar() const;
+        [[deprecated("Use scalar().")]] explicit operator float & ();
+        [[deprecated("Use scalar().")]] explicit operator const float & () const;
+        [[deprecated("Use data().")]] explicit operator float * ();  // Legacy explicit access to the first physical element
+        float ** row_data();
+        bool is_contiguous() const; // True when all logical elements form one physical span
+        float * data(); // First physical element, or nullptr when empty; flat traversal requires is_contiguous()
+        const float * data() const; // First physical element, or nullptr when empty; flat traversal requires is_contiguous()
+        float * contiguous_data(); // data(), but rejects a non-contiguous logical layout
+        const float * contiguous_data() const; // data(), but rejects a non-contiguous logical layout
+        int logical_block_count() const; // Number of contiguous innermost-dimension blocks
+        int logical_block_size() const; // Elements in each logical block, or zero when empty
+        float * logical_block_data(int block); // Pointer to a checked logical block
+        const float * logical_block_data(int block) const; // Pointer to a checked logical block
+        float & at(const std::vector<int> & indices);
+        const float & at(const std::vector<int> & indices) const;
+        matrix & share_storage(const matrix & source); // Bind to compatible storage without exposing ownership handles
         matrix & reset(); // reset the matrix
         void check_bounds(const std::vector<int> &v) const; // Check bounds and throw exception if indices are out of range
 
@@ -316,27 +554,16 @@ namespace ikaros
         template <typename... Args>
         float& operator()(Args... indices)
         {
-
-            #ifndef NO_MATRIX_CHECKS
-            if (sizeof...(indices) != info_->shape_.size())
-            throw std::invalid_argument(get_name()+"Number of indices must match matrix rank.");
-
-            check_bounds(indices...);
-            #endif
-            int index = compute_index(indices...);
+            const std::array<int, sizeof...(indices)> values{static_cast<int>(indices)...};
+            const int index = compute_index(values);
             return (*data_)[index];
         }
 
         template <typename... Args>
         const float& operator()(Args... indices) const 
         {
-            #ifndef NO_MATRIX_CHECKS
-            if (sizeof...(indices) != info_->shape_.size())
-                throw std::invalid_argument(get_name()+"Number of indices must match matrix rank."); // TODO move to check bounds
-                check_bounds(indices...);
-            #endif
-
-            int index = compute_index(indices...);
+            const std::array<int, sizeof...(indices)> values{static_cast<int>(indices)...};
+            const int index = compute_index(values);
             return (*data_)[index];
         }
 
@@ -344,7 +571,7 @@ namespace ikaros
         float & 
         operator()(int a)
         {
-            #if !defined(MATRIX_NO_BOUNDS_CHECK) || defined(MATRIX_FULL_BOUNDS_CHECK)
+            #if IKAROS_MATRIX_CHECKS
             const auto & shape = info_->shape_;
             if(shape.size() != 1)
                 throw std::invalid_argument(get_name() + "Number of indices must match matrix rank.");
@@ -354,7 +581,7 @@ namespace ikaros
 
             int index = info_->offset_ + a;
 
-            #ifdef MATRIX_NO_BOUNDS_CHECK
+            #if !IKAROS_MATRIX_CHECKS
                 return (*data_)[index];
             #else
                 return (*data_).at(index);
@@ -362,10 +589,31 @@ namespace ikaros
         }
 
 
+        const float &
+        operator()(int a) const
+        {
+            #if IKAROS_MATRIX_CHECKS
+            const auto & shape = info_->shape_;
+            if(shape.size() != 1)
+                throw std::invalid_argument(get_name() + "Number of indices must match matrix rank.");
+            if(a < 0 || a >= shape[0])
+                throw std::out_of_range(get_name() + "Index out of range.");
+            #endif
+
+            const int index = info_->offset_ + a;
+
+            #if !IKAROS_MATRIX_CHECKS
+                return (*data_)[index];
+            #else
+                return data_->at(index);
+            #endif
+        }
+
+
         float & 
         operator()(int a, int b)
         {
-            #if !defined(MATRIX_NO_BOUNDS_CHECK) || defined(MATRIX_FULL_BOUNDS_CHECK)
+            #if IKAROS_MATRIX_CHECKS
             const auto & shape = info_->shape_;
             if(shape.size() != 2)
                 throw std::invalid_argument(get_name() + "Number of indices must match matrix rank.");
@@ -376,7 +624,7 @@ namespace ikaros
             int * s = info_->stride_.data();
             int index = info_->offset_ + a * s[1] + b;
 
-            #ifdef MATRIX_NO_BOUNDS_CHECK
+            #if !IKAROS_MATRIX_CHECKS
                 return (*data_)[index];
             #else
                 return (*data_).at(index);
@@ -384,10 +632,32 @@ namespace ikaros
         }
 
 
+        const float &
+        operator()(int a, int b) const
+        {
+            #if IKAROS_MATRIX_CHECKS
+            const auto & shape = info_->shape_;
+            if(shape.size() != 2)
+                throw std::invalid_argument(get_name() + "Number of indices must match matrix rank.");
+            if(a < 0 || b < 0 || a >= shape[0] || b >= shape[1])
+                throw std::out_of_range(get_name() + "Index out of range.");
+            #endif
+
+            const int * strides = info_->stride_.data();
+            const int index = info_->offset_ + a * strides[1] + b;
+
+            #if !IKAROS_MATRIX_CHECKS
+                return (*data_)[index];
+            #else
+                return data_->at(index);
+            #endif
+        }
+
+
         float & 
         operator()(int a, int b, int c)
         {
-            #if !defined(MATRIX_NO_BOUNDS_CHECK) || defined(MATRIX_FULL_BOUNDS_CHECK)
+            #if IKAROS_MATRIX_CHECKS
             const auto & shape = info_->shape_;
             if(shape.size() != 3)
                 throw std::invalid_argument(get_name() + "Number of indices must match matrix rank.");
@@ -399,7 +669,7 @@ namespace ikaros
             int * s = info_->stride_.data();
             int index = info_->offset_ + (a * s[1] + b) * s[2] + c;
 
-            #ifdef MATRIX_NO_BOUNDS_CHECK
+            #if !IKAROS_MATRIX_CHECKS
                 return (*data_)[index];
             #else
                 return (*data_).at(index);
@@ -407,10 +677,33 @@ namespace ikaros
         }
 
 
+        const float &
+        operator()(int a, int b, int c) const
+        {
+            #if IKAROS_MATRIX_CHECKS
+            const auto & shape = info_->shape_;
+            if(shape.size() != 3)
+                throw std::invalid_argument(get_name() + "Number of indices must match matrix rank.");
+            if(a < 0 || b < 0 || c < 0 ||
+               a >= shape[0] || b >= shape[1] || c >= shape[2])
+                throw std::out_of_range(get_name() + "Index out of range.");
+            #endif
+
+            const int * strides = info_->stride_.data();
+            const int index = info_->offset_ + (a * strides[1] + b) * strides[2] + c;
+
+            #if !IKAROS_MATRIX_CHECKS
+                return (*data_)[index];
+            #else
+                return data_->at(index);
+            #endif
+        }
+
+
         float & 
         operator()(int a, int b, int c, int d)
         {
-            #if !defined(MATRIX_NO_BOUNDS_CHECK) || defined(MATRIX_FULL_BOUNDS_CHECK)
+            #if IKAROS_MATRIX_CHECKS
             const auto & shape = info_->shape_;
             if(shape.size() != 4)
                 throw std::invalid_argument(get_name() + "Number of indices must match matrix rank.");
@@ -422,10 +715,33 @@ namespace ikaros
             int * s = info_->stride_.data();
             int index = info_->offset_ + ((a * s[1] + b) * s[2] + c) * s[3] + d;
 
-            #ifdef MATRIX_NO_BOUNDS_CHECK
+            #if !IKAROS_MATRIX_CHECKS
                 return (*data_)[index];
             #else
                 return (*data_).at(index);
+            #endif
+        }
+
+
+        const float &
+        operator()(int a, int b, int c, int d) const
+        {
+            #if IKAROS_MATRIX_CHECKS
+            const auto & shape = info_->shape_;
+            if(shape.size() != 4)
+                throw std::invalid_argument(get_name() + "Number of indices must match matrix rank.");
+            if(a < 0 || b < 0 || c < 0 || d < 0 ||
+               a >= shape[0] || b >= shape[1] || c >= shape[2] || d >= shape[3])
+                throw std::out_of_range(get_name() + "Index out of range.");
+            #endif
+
+            const int * strides = info_->stride_.data();
+            const int index = info_->offset_ + ((a * strides[1] + b) * strides[2] + c) * strides[3] + d;
+
+            #if !IKAROS_MATRIX_CHECKS
+                return (*data_)[index];
+            #else
+                return data_->at(index);
             #endif
         }
 
@@ -434,6 +750,7 @@ namespace ikaros
         const std::vector<int>& capacity() const;
         int size() const; // Number of logical elements, i.e. product of shape()
         int shape(int dim) const; // Size of one dimension; negative indices means from the back
+        int shape_or_zero(int dim) const noexcept; // Compatibility query returning zero for an invalid dimension
         int size(int dim) const; // Compatibility alias for shape(int dim)
         int rows() const;
         int cols() const;
@@ -443,53 +760,84 @@ namespace ikaros
 
         matrix & resize(const std::vector<int> & new_shape);
 
-        template <typename... Args>
+        template <typename... Dimensions,
+                  std::enable_if_t<
+                      sizeof...(Dimensions) != 0 &&
+                      (matrix_detail::is_dimension_v<Dimensions> && ...),
+                      int
+                  > = 0>
         matrix & 
-        resize(Args... new_shape)
+        resize(Dimensions... new_shape)
         {
-            return resize(std::vector<int>{static_cast<int>(new_shape)...});
+            return resize(std::vector<int>{matrix_detail::checked_dimension(new_shape)...});
         }
 
         matrix & realloc(const std::vector<int> & shape);
         matrix & realloc(const range & r);
 
-        template <typename... Args>
+        template <typename T,
+                  std::enable_if_t<
+                      !matrix_detail::is_dimension_v<T> &&
+                      !std::is_same_v<std::decay_t<T>, std::vector<int>> &&
+                      !std::is_same_v<std::decay_t<T>, range>,
+                      int
+                  > = 0>
+        matrix & realloc(T) = delete;
+
+        template <typename... Dimensions,
+                  std::enable_if_t<
+                      sizeof...(Dimensions) != 0 &&
+                      (matrix_detail::is_dimension_v<Dimensions> && ...),
+                      int
+                  > = 0>
         matrix & 
-        realloc(Args... shape)
+        realloc(Dimensions... shape)
         {
-            return realloc(std::vector<int>({shape...}));
+            return realloc(std::vector<int>{matrix_detail::checked_dimension(shape)...});
         }
 
         matrix & reserve(const std::vector<int> & capacity_shape);
 
-        template <typename... Args>
+        template <typename... Dimensions,
+                  std::enable_if_t<
+                      sizeof...(Dimensions) != 0 &&
+                      (matrix_detail::is_dimension_v<Dimensions> && ...),
+                      int
+                  > = 0>
         matrix &
-        reserve(Args... capacity_shape)
+        reserve(Dimensions... capacity_shape)
         {
-            return reserve(std::vector<int>({capacity_shape...}));
+            return reserve(std::vector<int>{matrix_detail::checked_dimension(capacity_shape)...});
         }
 
         matrix & reshape(const std::vector<int> & new_shape);
 
-        template <typename... Args>
+        template <typename... Dimensions,
+                  std::enable_if_t<
+                      sizeof...(Dimensions) != 0 &&
+                      (matrix_detail::is_dimension_v<Dimensions> && ...),
+                      int
+                  > = 0>
         matrix &
-        reshape(Args... new_shape)
+        reshape(Dimensions... new_shape)
         {
-            return reshape(std::vector<int>{static_cast<int>(new_shape)...});
+            return reshape(std::vector<int>{matrix_detail::checked_dimension(new_shape)...});
         }
         // Push & pop
 
         matrix & clear(); // clear logical first dimension while keeping allocated storage
         matrix & append(const matrix & m); // append a row/slice, growing first-dimension capacity as needed
         matrix & append(float v); // append a scalar to a one-dimensional matrix, growing capacity as needed
-        matrix & push(const matrix & m, bool extend=false);
+        matrix & push(const matrix & m); // append a row/slice within preallocated capacity
+        [[deprecated("Use append(m) to grow or push(m) for preallocated capacity.")]]
+        matrix & push(const matrix & m, bool extend); // source-compatible transition from the retired exact-growth flag
         matrix & push(float v); // push a scalar to the end of the matrix
         matrix & pop(matrix & m); // pop the last element from m and copy to the current matrix; sizes must match
         matrix operator[](const std::string & n);
-        matrix operator[](const std::string & n) const;
+        const_matrix_view operator[](const std::string & n) const;
         matrix operator[](const char * n);
-        matrix operator[](const char * n) const;
-        float operator=(float v); // Set the element of the single element matrix to a value
+        const_matrix_view operator[](const char * n) const;
+        matrix & operator=(float v); // Set the element of the single element matrix to a value
         
         // Element-wise functions
 
@@ -538,11 +886,29 @@ namespace ikaros
     
         int compute_index(const std::vector<int> & v) const;
 
-        template <typename... Args> int
-        compute_index(Args... indices) const
+        template <std::size_t N>
+        int
+        compute_index(const std::array<int, N> & indices) const
         {
-            std::vector<int> v{static_cast<int>(indices)...};
-            return compute_index(v);
+            #if IKAROS_MATRIX_CHECKS
+            const auto & shape = info_->shape_;
+            if(N != shape.size())
+                throw std::invalid_argument(get_name() + "Number of indices must match matrix rank.");
+            for(std::size_t dimension = 0; dimension < N; ++dimension)
+                if(indices[dimension] < 0 || indices[dimension] >= shape[dimension])
+                    throw std::out_of_range(get_name() + "Index out of range.");
+            #endif
+
+            const int * strides = info_->stride_.data();
+            int index = info_->offset_;
+            int physical_stride = 1;
+            for(std::size_t reverse_dimension = N; reverse_dimension > 0; --reverse_dimension)
+            {
+                const std::size_t dimension = reverse_dimension - 1;
+                index += indices[dimension] * physical_stride;
+                physical_stride *= strides[dimension];
+            }
+            return index;
         }
 
         matrix & gaussian(float sigma); // TOD: Handle already allocated matrix as well
@@ -578,7 +944,7 @@ corr2(matrix &I, matrix &K) {
         realloc(I.rows() - K.rows() + 1, I.cols() - K.cols() + 1);
     }
 
-    #ifndef NO_MATRIX_CHECKS
+    #if IKAROS_MATRIX_CHECKS
     if (rank() != 2 || I.rank() != 2 || K.rank() != 2) {
         throw std::invalid_argument("Correlation requires two-dimensional matrices.");
     }
@@ -718,13 +1084,124 @@ result_matrix.corr3(I, K, kernel_flat, submatrices_flat);
 //Image processing
 
     matrix & downsample(const matrix & source); // Downsample an image matrix by averaging over a 2x2 block
+    matrix & downsample(const const_matrix_view & source);
     matrix & downsample(const matrix & source, matrix & temporary_row);
     matrix &    upsample(const matrix &source); // Upsample an image matrix by repeating each pixel 2x2 times
     match       search(const matrix & target,const rect & search_ractangle) const;
     };
 
 
-    void parse_bracket_matrix_value(const value & v, std::vector<int> & shape, std::vector<float> & data, int depth = 0);
-    bool try_parse_bracket_matrix_literal(matrix & out, const std::string & data_string);
+    class const_matrix_view
+    {
+    private:
+        matrix view_;
+
+        explicit const_matrix_view(matrix view):
+            view_(std::move(view))
+        {}
+
+        const matrix & matrix_ref() const { return view_; }
+
+        friend class matrix;
+        friend float dot(const matrix & A, const matrix & B);
+        friend float dot(const const_matrix_view & A, const const_matrix_view & B);
+        friend float dot(const matrix & A, const const_matrix_view & B);
+        friend float dot(const const_matrix_view & A, const matrix & B);
+        friend std::ostream & operator<<(std::ostream & os, const const_matrix_view & m);
+
+    public:
+        struct const_iterator
+        {
+            const const_matrix_view * view_;
+            int index_;
+
+            using iterator_category = std::input_iterator_tag;
+            using difference_type = std::ptrdiff_t;
+            using value_type = const_matrix_view;
+            using pointer = void;
+            using reference = const_matrix_view;
+
+            const_matrix_view operator*() const { return (*view_)[index_]; }
+            const_iterator & operator++() { index_++; return *this; }
+            const_iterator operator++(int) { const_iterator tmp = *this; ++(*this); return tmp; }
+
+            friend bool operator==(const const_iterator & a, const const_iterator & b) { return a.view_ == b.view_ && a.index_ == b.index_; }
+            friend bool operator!=(const const_iterator & a, const const_iterator & b) { return !(a == b); }
+        };
+
+        const_iterator begin() const { return const_iterator{this, 0}; }
+        const_iterator end() const { return const_iterator{this, view_.rank() == 0 ? 0 : view_.shape(0)}; }
+
+        const_matrix_view operator[](int i) const { return const_matrix_view(view_.make_slice(i)); }
+        const_matrix_view operator[](const std::string & n) const;
+        const_matrix_view operator[](const char * n) const { return (*this)[std::string(n)]; }
+
+        template <typename... Args>
+        const float & operator()(Args... indices) const
+        {
+            return static_cast<const matrix &>(view_)(indices...);
+        }
+
+        const float & scalar() const { return view_.scalar(); }
+        [[deprecated("Use scalar().")]] explicit operator const float & () const { return view_.scalar(); }
+        const float * data() const { return static_cast<const matrix &>(view_).data(); }
+        bool is_contiguous() const { return view_.is_contiguous(); }
+        const float * contiguous_data() const { return view_.contiguous_data(); }
+        int logical_block_count() const { return view_.logical_block_count(); }
+        int logical_block_size() const { return view_.logical_block_size(); }
+        const float * logical_block_data(int block) const { return view_.logical_block_data(block); }
+        const float & at(const std::vector<int> & indices) const { return static_cast<const matrix &>(view_).at(indices); }
+        range get_range() const { return view_.get_range(); }
+        [[deprecated("Use get_range().")]] explicit operator range() const { return view_.get_range(); }
+        const std::vector<int> & shape() const { return view_.shape(); }
+        const std::vector<int> & capacity() const { return view_.capacity(); }
+        int rank() const { return view_.rank(); }
+        int size() const { return view_.size(); }
+        int shape(int dim) const { return view_.shape(dim); }
+        int shape_or_zero(int dim) const noexcept { return view_.shape_or_zero(dim); }
+        int size(int dim) const { return view_.size(dim); }
+        int rows() const { return view_.rows(); }
+        int cols() const { return view_.cols(); }
+        int size_x() const { return view_.size_x(); }
+        int size_y() const { return view_.size_y(); }
+        int size_z() const { return view_.size_z(); }
+        bool empty() const { return view_.empty(); }
+        bool is_uninitialized() const { return view_.is_uninitialized(); }
+        bool unfilled() const { return view_.unfilled(); }
+        bool is_scalar() const { return view_.is_scalar(); }
+        bool connected() const { return view_.connected(); }
+        bool is_dynamic() const { return view_.is_dynamic(); }
+        const std::vector<std::string> & labels(int dimension=0) const { return view_.labels(dimension); }
+        std::string get_name(std::string post=" ") const { return view_.get_name(post); }
+        bool print_(int depth=0) const { return view_.print_(depth); }
+        std::string json() const { return view_.json(); }
+        std::string metadata_json() const { return view_.metadata_json(); }
+        std::string csv(std::string separator=",") const { return view_.csv(separator); }
+        void info(std::string n="") const { view_.info(n); }
+        void print(std::string n="") const { view_.print(n); }
+        float sum() const { return view_.sum(); }
+        float product() const { return view_.product(); }
+        float min() const { return view_.min(); }
+        float max() const { return view_.max(); }
+        float average() const { return view_.average(); }
+        float median() const { return view_.median(); }
+        float matrank() const { return view_.matrank(); }
+        float trace() const { return view_.trace(); }
+        float det() const { return view_.det(); }
+        matrix & transpose(matrix & target) const { return view_.transpose(target); }
+        std::tuple<matrix, matrix> eig() const { return view_.eig(); }
+        bool operator==(float value) const { return view_ == value; }
+        bool operator==(int value) const { return view_ == value; }
+        bool operator==(const matrix & other) const { return view_ == other; }
+        bool operator!=(float value) const { return view_ != value; }
+        bool operator!=(int value) const { return view_ != value; }
+        bool operator!=(const matrix & other) const { return view_ != other; }
+    };
+
+
     float dot(const matrix & A, const matrix & B);
+    float dot(const const_matrix_view & A, const const_matrix_view & B);
+    float dot(const matrix & A, const const_matrix_view & B);
+    float dot(const const_matrix_view & A, const matrix & B);
+    std::ostream & operator<<(std::ostream & os, const const_matrix_view & m);
 }

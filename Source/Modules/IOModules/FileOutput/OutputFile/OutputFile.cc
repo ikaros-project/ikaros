@@ -70,10 +70,14 @@ class OutputFile: public Module
     WriteRow()
     {
         std::string sep;
-        for(float v : input)
+        for(int block = 0; block < input.logical_block_count(); ++block)
         {
-            file << sep << v;
-            sep = column_separator;
+            const float * values = input.logical_block_data(block);
+            for(int i = 0; i < input.logical_block_size(); ++i)
+            {
+                file << sep << values[i];
+                sep = column_separator;
+            }
         }
         file << std::endl;
     }

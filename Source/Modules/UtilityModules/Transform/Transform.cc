@@ -99,11 +99,11 @@ class Transform : public Module
                 {
                     m2.copy(matrix_2[j]);
 
-                    o1 = (invert_1 ? frame_id_1[i] : object_id_1[i]);
-                    f1 = (invert_1 ? object_id_1[i] : frame_id_1[i]);
+                    o1 = invert_1 ? frame_id_1(i) : object_id_1(i);
+                    f1 = invert_1 ? object_id_1(i) : frame_id_1(i);
 
-                    o2 = (invert_2 ? frame_id_2[j] : object_id_2[j]);
-                    f2 = (invert_2 ? object_id_2[j] : frame_id_2[j]);
+                    o2 = invert_2 ? frame_id_2(j) : object_id_2(j);
+                    f2 = invert_2 ? object_id_2(j) : frame_id_2(j);
 
                     if (m2.is_valid() && o1 == f2) // matching rule
                     {

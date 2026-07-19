@@ -287,6 +287,7 @@ class ParameterTestModule : public Module
         matrix dynamic_snapshot = dynamic_matrix.as_matrix();
         require_true(dynamic_snapshot.rows() == 2 && dynamic_snapshot.cols() == 2 && dynamic_snapshot(1, 1) == 6.0f,
                      "explicitly dynamic matrix parameters should allow shape changes");
+
     }
 
 

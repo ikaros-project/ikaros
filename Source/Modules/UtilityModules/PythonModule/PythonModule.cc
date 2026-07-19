@@ -78,7 +78,7 @@ namespace
         if(static_cast<int>(flattened.size()) != target.size())
             throw std::runtime_error("Python output size does not match declared output size.");
 
-        float * data = target.data();
+        float * data = target.contiguous_data();
         for(int i = 0; i < target.size(); ++i)
             data[i] = flattened[i];
     }

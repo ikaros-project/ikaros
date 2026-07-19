@@ -455,5 +455,6 @@ for item in sorted(test_files):
 
 if errors > 0:
     print(f"\n{red}{bold}***** Ikaros failed {errors} tests *****{reset}\n")
+    sys.exit(1)
 else:
     print(f"\nIkaros passed all {len(test_files)} tests\n")

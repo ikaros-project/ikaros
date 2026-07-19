@@ -1387,23 +1387,23 @@ DynamixelServoChain::Communicate(matrix & goalPosition, matrix & goalCurrent, ma
     {
         int32_t dxlPresentPosition = syncRead->getData(id, syncReadDataStart + syncReadPresentPositionOffset, 4);
 
-        presentPosition[index] = dxlPresentPosition * PositionUnitDegrees(id) * ConversionFactor(id);
+        presentPosition(index) = dxlPresentPosition * PositionUnitDegrees(id) * ConversionFactor(id);
         if (currentSupported.empty() || currentSupported[id])
         {
             int16_t dxlPresentCurrent = syncRead->getData(id, syncReadDataStart + syncReadPresentCurrentOffset, 2);
-            presentCurrent[index] = dxlPresentCurrent * DynamixelServoChainConstants::CURRENT_UNIT;
+            presentCurrent(index) = dxlPresentCurrent * DynamixelServoChainConstants::CURRENT_UNIT;
         }
         else
-            presentCurrent[index] = 0;
+            presentCurrent(index) = 0;
         index++;
     }
 
     index = ioIndex;
     for (int id = idMin; id <= idMax; id++)
     {
-        paramSyncWrite[syncWriteTorqueEnableOffset] = torqueEnable[index];
+        paramSyncWrite[syncWriteTorqueEnableOffset] = torqueEnable(index);
 
-        int value = goalPosition[index] / ConversionFactor(id) / PositionUnitDegrees(id);
+        int value = goalPosition(index) / ConversionFactor(id) / PositionUnitDegrees(id);
         paramSyncWrite[syncWriteGoalPositionOffset] = DXL_LOBYTE(DXL_LOWORD(value));
         paramSyncWrite[syncWriteGoalPositionOffset + 1] = DXL_HIBYTE(DXL_LOWORD(value));
         paramSyncWrite[syncWriteGoalPositionOffset + 2] = DXL_LOBYTE(DXL_HIWORD(value));
@@ -1411,7 +1411,7 @@ DynamixelServoChain::Communicate(matrix & goalPosition, matrix & goalCurrent, ma
 
         if ((currentSupported.empty() || currentSupported[id]) && goalCurrent.connected() && controlMode == "CurrentPosition")
         {
-            int valueCurrent = goalCurrent[index] / DynamixelServoChainConstants::CURRENT_UNIT;
+            int valueCurrent = goalCurrent(index) / DynamixelServoChainConstants::CURRENT_UNIT;
             paramSyncWrite[syncWriteGoalCurrentOffset] = DXL_LOBYTE(valueCurrent);
             paramSyncWrite[syncWriteGoalCurrentOffset + 1] = DXL_HIBYTE(valueCurrent);
         }
@@ -1421,7 +1421,7 @@ DynamixelServoChain::Communicate(matrix & goalPosition, matrix & goalCurrent, ma
             paramSyncWrite[syncWriteGoalCurrentOffset + 1] = 0;
         }
 
-        int valuePWM = goalPWM.connected() ? goalPWM[index] / DynamixelServoChainConstants::PWM_PERCENT_UNIT : 100 / DynamixelServoChainConstants::PWM_PERCENT_UNIT;
+        int valuePWM = goalPWM.connected() ? goalPWM(index) / DynamixelServoChainConstants::PWM_PERCENT_UNIT : 100 / DynamixelServoChainConstants::PWM_PERCENT_UNIT;
         paramSyncWrite[syncWriteGoalPWMOffset] = DXL_LOBYTE(valuePWM);
         paramSyncWrite[syncWriteGoalPWMOffset + 1] = DXL_HIBYTE(valuePWM);
 
@@ -1720,14 +1720,14 @@ DynamixelServoChain::ReadFeedbackForCommunicationMode(matrix & presentPosition, 
     {
         const int32_t dxlPresentPosition = syncRead->getData(id, syncReadDataStart + syncReadPresentPositionOffset, 4);
 
-        presentPosition[index] = dxlPresentPosition * PositionUnitDegrees(id) * ConversionFactor(id);
+        presentPosition(index) = dxlPresentPosition * PositionUnitDegrees(id) * ConversionFactor(id);
         if (currentSupported.empty() || currentSupported[id])
         {
             const int16_t dxlPresentCurrent = syncRead->getData(id, syncReadDataStart + syncReadPresentCurrentOffset, 2);
-            presentCurrent[index] = dxlPresentCurrent * DynamixelServoChainConstants::CURRENT_UNIT;
+            presentCurrent(index) = dxlPresentCurrent * DynamixelServoChainConstants::CURRENT_UNIT;
         }
         else
-            presentCurrent[index] = 0;
+            presentCurrent(index) = 0;
         index++;
     }
 
@@ -1750,7 +1750,7 @@ DynamixelServoChain::CommunicateDirectPosition(matrix & goalPosition, const dict
     int index = ioIndex;
     for (int id = idMin; id <= idMax; id++)
     {
-        uint16_t value = goalPosition[index];
+        uint16_t value = goalPosition(index);
         if (!Write2Byte(id, goalPositionAddress, value, dxl_error))
         {
             Warn("[ID:" + std::to_string(id) + "] write2ByteTxRx failed");
@@ -1779,9 +1779,9 @@ DynamixelServoChain::WriteGoal(matrix & goalPosition, matrix & goalPWM, matrix &
     int index = ioIndex;
     for (int id = idMin; id <= idMax; id++)
     {
-        paramSyncWrite[syncWriteTorqueEnableOffset] = torqueEnable[index];
+        paramSyncWrite[syncWriteTorqueEnableOffset] = torqueEnable(index);
 
-        int value = goalPosition[index] / ConversionFactor(id) / PositionUnitDegrees(id);
+        int value = goalPosition(index) / ConversionFactor(id) / PositionUnitDegrees(id);
         paramSyncWrite[syncWriteGoalPositionOffset] = DXL_LOBYTE(DXL_LOWORD(value));
         paramSyncWrite[syncWriteGoalPositionOffset + 1] = DXL_HIBYTE(DXL_LOWORD(value));
         paramSyncWrite[syncWriteGoalPositionOffset + 2] = DXL_LOBYTE(DXL_HIWORD(value));
@@ -1790,7 +1790,7 @@ DynamixelServoChain::WriteGoal(matrix & goalPosition, matrix & goalPWM, matrix &
         paramSyncWrite[syncWriteGoalCurrentOffset] = 0;
         paramSyncWrite[syncWriteGoalCurrentOffset + 1] = 0;
 
-        int valuePWM = goalPWM.connected() ? goalPWM[index] / DynamixelServoChainConstants::PWM_PERCENT_UNIT : 100 / DynamixelServoChainConstants::PWM_PERCENT_UNIT;
+        int valuePWM = goalPWM.connected() ? goalPWM(index) / DynamixelServoChainConstants::PWM_PERCENT_UNIT : 100 / DynamixelServoChainConstants::PWM_PERCENT_UNIT;
         paramSyncWrite[syncWriteGoalPWMOffset] = DXL_LOBYTE(valuePWM);
         paramSyncWrite[syncWriteGoalPWMOffset + 1] = DXL_HIBYTE(valuePWM);
 
@@ -2235,8 +2235,8 @@ DynamixelServoChain::PrepareFeedbackForCommunicationMode(matrix & goalPosition, 
     for (int id = idMin; id <= idMax; id++)
     {
         const int index = ioIndex + row(id);
-        goalPosition[index] = clip(goalPosition[index], MapValue(softwareMin, id), MapValue(softwareMax, id));
-        presentPosition[index] = goalPosition[index];
+        goalPosition(index) = clip(goalPosition(index), MapValue(softwareMin, id), MapValue(softwareMax, id));
+        presentPosition(index) = goalPosition(index);
     }
 }
 
@@ -2254,6 +2254,6 @@ DynamixelServoChain::ConvertGoalsForCommunicationMode(matrix & goalPosition)
         const double maxInput = MapValue(inputMax, id);
         const double minPosition = MapValue(positionMin, id);
         const double maxPosition = MapValue(positionMax, id);
-        goalPosition[index] = (-(goalPosition[index] - minInput) / (maxInput - minInput) * (maxPosition - minPosition) + maxPosition);
+        goalPosition(index) = (-(goalPosition(index) - minInput) / (maxInput - minInput) * (maxPosition - minPosition) + maxPosition);
     }
 }

@@ -322,11 +322,11 @@ class SpikingPopulation: public Module
 
         for(int j = 0; j < population_size.as_int(); j++)
         {
-            if(fired[j] == 1.f)
+            if(fired(j) == 1.f)
             {
-                a_v[j] = (float)threshold;
-                v1[j] = a_c[j]; // reset voltage
-                u1[j] = a_u[j] + a_d[j];
+                a_v(j) = (float)threshold;
+                v1(j) = a_c(j); // reset voltage
+                u1(j) = a_u(j) + a_d(j);
             }
             std::cout << "step 2.1)\n";
             // sum up 
@@ -334,13 +334,13 @@ class SpikingPopulation: public Module
             for(int i = 0; !e_syn.empty() && i < e_syn.size_x(); i++)
             {
                 //if(e_syn[j][i] >= threshold) // TAT 2022-09-26: removed since spikes already gated above; result is scaled by synaptic weights
-                inputvlt[j] += e_syn[j][i];
+                inputvlt(j) += e_syn(j, i);
             }
             std::cout << "step 2.2)\n";
             for(int i = 0; !i_syn.empty() && i< i_syn.size_x(); i++)
             {
                 //if(i_syn[j][i] >= threshold)
-                inputvlt[j]-= i_syn[j][i];
+                inputvlt(j)-= i_syn(j, i);
             }
         }
         std::cout << "step 3)\n";
@@ -354,12 +354,12 @@ class SpikingPopulation: public Module
             {
                 // v1=v1+(1.0/substeps)*(0.04*(v1**2)+(5*v1)+140-u + i1) 
                 // 
-                v1[i] += stepfact*(0.04f*pow(v1[i], 2) + 5*v1[i] + 
-                            140-a_u[i] + i1[i]);
+                v1(i) += stepfact*(0.04f*pow(v1(i), 2) + 5*v1(i) +
+                            140-a_u(i) + i1(i));
                 // u1=u1+(1.0/substeps)*a*(b*v1-u1)                  
             }
             // u1[i] += stepfact*(a_a[i]*(a_b[i]*v1[i] - u1[i]));
-            u1[i] += (a_a[i]*(a_b[i]*v1[i] - u1[i]));
+            u1(i) += (a_a(i)*(a_b(i)*v1(i) - u1(i)));
         }
         std::cout << "step 4)\n";
         
@@ -381,7 +381,7 @@ class SpikingPopulation: public Module
 
         for(int j=0; j<n; j++)
             for(int i=0; i<r.size_x(); i++)
-                r[j][i] = a[i];
+                r(j, i) = a(i);
     }
     void hstack(matrix &target,
             matrix &a,
@@ -390,14 +390,13 @@ class SpikingPopulation: public Module
     
         for (int j = 0; j < a.size_y(); ++j) {
             for (int i = 0; i < a.size_x(); ++i) {
-                target[j][i] = a[j][i];
+                target(j, i) = a(j, i);
             }
             for (int i = 0; i < b.size_x(); ++i) {
-                target[j][i + a.size_x()] = b[j][i];
+                target(j, i + a.size_x()) = b(j, i);
             }
         }
     }
 };
 
 INSTALL_CLASS(SpikingPopulation)
-

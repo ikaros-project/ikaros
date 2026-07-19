@@ -103,13 +103,13 @@ class FadeCandy : public Module
         // Fill color from input
         for (size_t i = 0; i < 8; ++i) // 8 Leds in each row of the mouth
         {
-            led_array_colors[0][i] = Color(MouthHigh[0][i] * 255, MouthHigh[1][i] * 255, MouthHigh[2][i] * 255);
-            led_array_colors[1][i] = Color(MouthLow[0][i] * 255, MouthLow[1][i] * 255, MouthLow[2][i] * 255);
+            led_array_colors[0][i] = Color(MouthHigh(0, i) * 255, MouthHigh(1, i) * 255, MouthHigh(2, i) * 255);
+            led_array_colors[1][i] = Color(MouthLow(0, i) * 255, MouthLow(1, i) * 255, MouthLow(2, i) * 255);
         }
         for (size_t i = 0; i < 12; ++i) // 12 Leds in each eye
         {
-            led_array_colors[2][i] = Color(RightEye[0][i] * 255, RightEye[1][i] * 255, RightEye[2][i] * 255);
-            led_array_colors[3][i] = Color(LeftEye[0][i] * 255, LeftEye[1][i] * 255, LeftEye[2][i] * 255);
+            led_array_colors[2][i] = Color(RightEye(0, i) * 255, RightEye(1, i) * 255, RightEye(2, i) * 255);
+            led_array_colors[3][i] = Color(LeftEye(0, i) * 255, LeftEye(1, i) * 255, LeftEye(2, i) * 255);
         }
 
         try

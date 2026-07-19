@@ -247,11 +247,11 @@ class SoundOutput : public Module
         rms[1] = -50;
 
         if (current_sound != -1)
-            if (!sound[current_sound].UpdateVolume(rms, lag))
+            if (!sound[current_sound].UpdateVolume(rms.contiguous_data(), lag))
                 current_sound = -1;
 
-        volume[0] = scale_volume * pow(10, 0.1 * rms[0]); // convert to linear volume scale
-        volume[1] = scale_volume * pow(10, 0.1 * rms[1]);
+        volume(0) = scale_volume * pow(10, 0.1 * rms(0)); // convert to linear volume scale
+        volume(1) = scale_volume * pow(10, 0.1 * rms(1));
 
         // Set playing status outputs
 

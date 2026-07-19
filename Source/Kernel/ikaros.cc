@@ -217,7 +217,7 @@ namespace ikaros
                 throw exception("Could not convert matrix to " + conversion_name + ". Matrix must contain exactly one element.");
 
             std::vector<int> zero_index(value.rank(), 0);
-            return (*value.data_)[value.compute_index(zero_index)];
+            return value.at(zero_index);
         }
 
         std::string format_shape(const std::vector<int> & shape)
@@ -1012,7 +1012,12 @@ namespace ikaros
     parameter::get(int index, float default_value) const
     {
         if(auto stored_matrix = matrix_value())
-            return index >= 0 && index < stored_matrix->size() ? stored_matrix->data()[index] : default_value;
+        {
+            if(index < 0 || index >= stored_matrix->size())
+                return default_value;
+            const int block_size = stored_matrix->logical_block_size();
+            return stored_matrix->logical_block_data(index / block_size)[index % block_size];
+        }
         throw exception("Not a matrix value.");
     }
 
@@ -1024,7 +1029,8 @@ namespace ikaros
         {
             if(index < 0 || index >= stored_matrix->size())
                 throw std::out_of_range("Parameter matrix index out of range.");
-            return stored_matrix->data()[index];
+            const int block_size = stored_matrix->logical_block_size();
+            return stored_matrix->logical_block_data(index / block_size)[index % block_size];
         }
         throw exception("Not a matrix value.");
     }
@@ -1707,7 +1713,13 @@ namespace ikaros
                         throw exception("Matrix parameter value has " + std::to_string(value.size()) +
                             " elements but shape \"" + shape_expr + "\" only allows " + std::to_string(shaped.size()) + ".");
 
-                    std::copy_n(value.data(), value.size(), shaped.data());
+                    float * target = shaped.contiguous_data();
+                    int target_index = 0;
+                    for(int block = 0; block < value.logical_block_count(); ++block)
+                    {
+                        std::copy_n(value.logical_block_data(block), value.logical_block_size(), target + target_index);
+                        target_index += value.logical_block_size();
+                    }
                 }
                 return shaped;
             };
@@ -2497,7 +2509,7 @@ namespace ikaros
             }
 
             auto buffer = k.buffers.find(state_path);
-            if(buffer != k.buffers.end() && k.state_buffers.count(state_path) && !buffer->second.empty())
+            if(buffer != k.buffers.end() && k.state_buffers.count(state_path) && !buffer->second.is_uninitialized())
                 buffer->second.reset();
         }
     }
@@ -2678,7 +2690,7 @@ namespace ikaros
             if(output_buffer.is_dynamic())
                 throw setup_failed("Connection \"" + c->Info() + "\" can not flatten dynamic output \"" + c->source + "\".", path_);
 
-            range output_matrix = output_buffer;
+            range output_matrix = output_buffer.get_range();
             c->Resolve(output_matrix);  //**NEW  
 
             const long long required_size = static_cast<long long>(c->source_range.size()) * c->DelayCount();
@@ -2790,7 +2802,7 @@ namespace ikaros
 
                 if(!c->stacked_)
                 {
-                    range output_matrix = output_buffer;
+                    range output_matrix = output_buffer.get_range();
                     if(output_matrix.empty())
                         return 0;
 
@@ -2850,7 +2862,7 @@ namespace ikaros
             Connection * connection = old_style_simple_connection ?
                                       ingoing_connections.begin()->second[0] : single_connection;
             matrix & output_buffer = kernel().buffers[connection->source];
-            range output_matrix = output_buffer;
+            range output_matrix = output_buffer.get_range();
             if(output_matrix.empty())
                 return 0;
 
@@ -2875,7 +2887,7 @@ namespace ikaros
             if(output_buffer.is_dynamic())
                 throw setup_failed("Connection \"" + c->Info() + "\" uses an indexed or ranged connection from dynamic output \"" + c->source + "\". Dynamic outputs only support whole-matrix connections.", path_);
 
-            range output_matrix = output_buffer;
+            range output_matrix = output_buffer.get_range();
             if(output_matrix.empty())
                 return 0;
             range resolved_target = c->Resolve(output_matrix);
@@ -2927,7 +2939,7 @@ namespace ikaros
             dictionary input = d;
             std::string full_name = path_+"."+std::string(input["name"]);
             bool has_fixed_size = input.contains("size");
-            if(has_fixed_size || k.buffers[full_name].empty())
+            if(has_fixed_size || k.buffers[full_name].is_uninitialized())
                 if(InputsReady(input, ingoing_connections))
                     SetInputSize(input, ingoing_connections);
         }
@@ -2962,7 +2974,7 @@ namespace ikaros
             if(output_buffer.is_dynamic())
                 throw setup_failed("Connection \"" + c->Info() + "\" can not map dynamic output \"" + c->source + "\" through group output \"" + full_name + "\".", path_);
 
-            range output_matrix = output_buffer;
+            range output_matrix = output_buffer.get_range();
             
             if(output_matrix.empty())
                 return 0;
@@ -3012,7 +3024,7 @@ namespace ikaros
                 throw setup_failed("Output \"" + output_name + "\" aliases unknown output \"" + alias_source_name + "\".", path_);
 
             matrix aliased_output = k.buffers[alias_source_name];
-            if(aliased_output.empty())
+            if(aliased_output.is_uninitialized())
                 return 0;
 
             try
@@ -3134,7 +3146,7 @@ namespace ikaros
     {
         Kernel & k = kernel();
         for(dictionary d : info_["inputs"])
-        if(!d.is_set("optional") && k.buffers[path_+"."+d["name"].as_string()].empty())
+        if(!d.is_set("optional") && k.buffers[path_+"."+d["name"].as_string()].is_uninitialized())
         {
             // Unconnected group inputs that are never referenced internally are harmless.
             if(dynamic_cast<Group *>(this) != nullptr)
@@ -3500,8 +3512,7 @@ namespace ikaros
 
                 for(auto ix=source_range; ix.more(); ++ix)
                 {
-                    int source_index = s.compute_index(ix.index());
-                    ctarget(target_offset++) = (*(s.data_))[source_index];
+                    ctarget(target_offset++) = s.at(ix.index());
                 }
             }
         }
@@ -4004,7 +4015,7 @@ bool operator==(Request & r, const std::string s)
                     for(dictionary d : component->info_["inputs"])
                     {
                         std::string full_name = name + "." + d["name"].as_string();
-                        if(!d.is_set("optional") && ingoing_connections.count(full_name) && buffers[full_name].empty())
+                        if(!d.is_set("optional") && ingoing_connections.count(full_name) && buffers[full_name].is_uninitialized())
                             pending++;
                     }
 
@@ -4012,14 +4023,14 @@ bool operator==(Request & r, const std::string s)
                     for(dictionary d : component->info_["outputs"])
                     {
                         std::string full_name = name + "." + d["name"].as_string();
-                        if((is_module || ingoing_connections.count(full_name)) && buffers[full_name].empty())
+                        if((is_module || ingoing_connections.count(full_name)) && buffers[full_name].is_uninitialized())
                             pending++;
                     }
 
                     for(dictionary d : component->info_["states"])
                     {
                         std::string full_name = name + "." + d["name"].as_string();
-                        if(state_buffers.count(full_name) && buffers[full_name].empty())
+                        if(state_buffers.count(full_name) && buffers[full_name].is_uninitialized())
                             pending++;
                     }
                 }
@@ -4034,7 +4045,7 @@ bool operator==(Request & r, const std::string s)
                     for(dictionary d : component->info_["inputs"])
                     {
                         std::string full_name = name + "." + d["name"].as_string();
-                        if(!d.is_set("optional") && ingoing_connections.count(full_name) && buffers[full_name].empty())
+                        if(!d.is_set("optional") && ingoing_connections.count(full_name) && buffers[full_name].is_uninitialized())
                             pending.push_back(full_name);
                     }
 
@@ -4042,14 +4053,14 @@ bool operator==(Request & r, const std::string s)
                     for(dictionary d : component->info_["outputs"])
                     {
                         std::string full_name = name + "." + d["name"].as_string();
-                        if((is_module || ingoing_connections.count(full_name)) && buffers[full_name].empty())
+                        if((is_module || ingoing_connections.count(full_name)) && buffers[full_name].is_uninitialized())
                             pending.push_back(full_name);
                     }
 
                     for(dictionary d : component->info_["states"])
                     {
                         std::string full_name = name + "." + d["name"].as_string();
-                        if(state_buffers.count(full_name) && buffers[full_name].empty())
+                        if(state_buffers.count(full_name) && buffers[full_name].is_uninitialized())
                             pending.push_back(full_name);
                     }
                 }
@@ -4151,7 +4162,7 @@ bool operator==(Request & r, const std::string s)
             if(source_buffer->second.shape() != target_buffer->second.shape())
                 continue;
 
-            target_buffer->second.data_ = source_buffer->second.data_;
+            target_buffer->second.share_storage(source_buffer->second);
             connection.shared_memory_ = true;
         }
     }
@@ -5830,7 +5841,7 @@ bool operator==(Request & r, const std::string s)
             auto buffer = buffers.find(path);
             if(buffer == buffers.end())
                 throw exception("Persistent " + kind + " \"" + path + "\" does not exist.");
-            if(buffer->second.empty())
+            if(buffer->second.is_uninitialized())
                 throw exception("Persistent " + kind + " \"" + path + "\" has no allocated value.");
             items.push_back({path, kind, &buffer->second, nullptr});
         };

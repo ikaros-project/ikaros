@@ -214,7 +214,7 @@ namespace ikaros
             
             JSAMPLE * ib = image_buffer;
             if (maximum != minimum) // FIXME: test in conversion instead
-                float_to_byte(image_buffer, image[j], minimum, maximum, sizex);
+                float_to_byte(image_buffer, image[j].contiguous_data(), minimum, maximum, sizex);
             else
                 for (int i=0; i<sizex; i++)
                     *ib++ = 0;
@@ -271,7 +271,7 @@ namespace ikaros
         unsigned char * z = new unsigned char [sizex];
         while (cinfo.next_scanline < cinfo.image_height)
         {
-            float_to_byte(z, image[j], minimum, maximum, sizex);
+            float_to_byte(z, image[j].contiguous_data(), minimum, maximum, sizex);
             int x = 0;
             unsigned char * zz = z;
             
@@ -537,9 +537,9 @@ namespace ikaros
         if(image.rank() != 3 || image.size(0) != 3)
             return nullptr;
 
-        float * r = image[0][0];
-        float * g = image[1][0];
-        float * b = image[2][0];
+        float * r = image[0][0].contiguous_data();
+        float * g = image[1][0].contiguous_data();
+        float * b = image[2][0].contiguous_data();
         long sizex = image.size(2);
         long sizey = image.shape()[1];
 

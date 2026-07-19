@@ -1,4 +1,5 @@
 <group internal="true"
+    check_sum="7628"
     name="Test_70"
     description="Exercise matrix reduction functions"
     start="true"

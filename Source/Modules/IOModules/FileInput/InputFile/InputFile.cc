@@ -1,9 +1,8 @@
 
-#include "ikaros.h"
-
-#include <iostream>
 #include <fstream>
 #include <string>
+
+#include "ikaros.h"
 
 using namespace ikaros;
 
@@ -91,9 +90,9 @@ public:
         std::getline(file, line); // Skip header line
         try 
         {
+            matrix row(column_count);
             while(std::getline(file, line))
             {
-                matrix row(column_count);
                 row.resize(0);
 
                 line_number++;
@@ -112,9 +111,8 @@ public:
                 if(row.size_x() < column_count)
                     throw fatal_error("Row has too few columns");
                 else
-                    data.push(row, true);
+                    data.append(row);
             }
-            data.print();
         }
         catch(std::exception & e)
         {
@@ -127,11 +125,10 @@ public:
     void
     CopyToOutput(int row)
     {
-        int i=0;
-        for(matrix & m : output)
-            for(int j=0; j<column_size[i]; j++)
-                m(j) = data(row,i++);
-            i++;
+        int source_column = 0;
+        for(std::size_t output_index = 0; output_index < output.size(); ++output_index)
+            for(int element = 0; element < column_size[output_index]; ++element)
+                output[output_index](element) = data(row, source_column++);
     }
 
 

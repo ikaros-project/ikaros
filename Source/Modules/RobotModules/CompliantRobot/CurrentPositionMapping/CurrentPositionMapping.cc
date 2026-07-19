@@ -58,7 +58,7 @@ class CurrentPositionMapping: public Module
             std::cout << present_current.size() << std::endl;
             std::cout << current_output.size() << std::endl;
             Notify(msg_fatal_error, "Present current and Goal current must be the same size");
-            return -1;
+            return {};
         }
         for (int i = 0; i < current_controlled_servos.size(); i++) {
             if ( goal_current(current_controlled_servos(i)) < limit && abs(goal_position(current_controlled_servos(i))- position(current_controlled_servos(i)))> margin){
@@ -88,7 +88,7 @@ class CurrentPositionMapping: public Module
         if (num_columns != min_limits.size() && num_columns != max_limits.size()){
     
             Notify(msg_fatal_error, "Min and Max limits must have the same number of columns as the current controlled servos in the robot type (2 for Torso, 12 for full body)");
-            return -1;
+            return {};
         }
         if (robotType=="Torso"){
             for (int i = 0; i < num_transitions; i++) {
@@ -281,7 +281,7 @@ class CurrentPositionMapping: public Module
         max_present_current.set_name("MaxPresentCurrent");
         max_present_current.copy(present_current);
         min_moving_current.set_name("MinMovingCurrent");
-        min_moving_current.copy(starting_current);
+        min_moving_current.set(starting_current);
         min_torque_current.set_name("MinTorqueCurrent");
         min_torque_current.set(starting_current);
         

@@ -189,7 +189,7 @@ class DynamixelController : public Module
 
     matrix goalPosition;
     matrix goalCurrent;
-    matrix torqueEnable = true;
+    matrix torqueEnable;
     matrix goalPWM;
 
     matrix presentPosition;
@@ -2248,8 +2248,8 @@ class DynamixelController : public Module
 
         for (int i = 0; i < limitCount; i++)
         {
-            minLimits[i] = minLimitPosition[i];
-            maxLimits[i] = maxLimitPosition[i];
+            minLimits[i] = minLimitPosition(i);
+            maxLimits[i] = maxLimitPosition(i);
         }
 
         return true;

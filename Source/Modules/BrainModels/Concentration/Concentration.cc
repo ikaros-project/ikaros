@@ -27,12 +27,12 @@ class Concentration: public Module
 
     void Tick()
     {
-        output += alpha * input.sum() - beta * (output - gamma);
+        float & output_value = output.scalar();
+        output_value += alpha * input.sum() - beta * (output_value - gamma);
 
-        if(output(0) < gamma)
-            output(0) = gamma;
+        if(output_value < gamma)
+            output_value = gamma;
     }
 };
 
 INSTALL_CLASS(Concentration)
-

@@ -26,12 +26,11 @@ class KernelSizeTestModule: public Module
         Print("Tick-Print");
         Warning("Tick-Warning");
 
-        double x = input;
-        double y = input.last();
+        double x = input.scalar();
+        double y = input.last().scalar();
 
         std::cout << "DIFF: " << x << " " << y << std::endl;
     }
 };
 
 INSTALL_CLASS(KernelSizeTestModule)
-

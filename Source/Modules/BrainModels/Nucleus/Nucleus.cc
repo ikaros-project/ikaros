@@ -81,38 +81,39 @@ class Nucleus: public Module
             S = shunting_inhibition.sum();
         }
 
-        float dx_dt = alpha + beta * (1/(1+psi*S)) * E - gamma * I - delta*x + sample_normal_distribution(0, sigma);
+        float & x_value = x.scalar();
+        float dx_dt = alpha + beta * (1/(1+psi*S)) * E - gamma * I - delta*x_value + sample_normal_distribution(0, sigma);
 
-        x += epsilon * dx_dt; // Euler integration
+        x_value += epsilon * dx_dt; // Euler integration
 
         float o = 0;
 
         switch(activation_function.as_int())
         {
             case 0: // atan
-                    o = atan(x-theta)/atan(1); 
+                    o = atan(x_value-theta)/atan(1);
                     break;
             case 1: // threshold
-                    if(x > theta)
+                    if(x_value > theta)
                     {
                         o = 1;
-                        x = 0; // reset
+                        x_value = 0; // reset
                         burst_end_time = GetTime() + burst_time;
                     }
 
                     break;
             case 2: // ReLU
-                    o =  (x > theta ? x-theta : 0); 
+                    o =  (x_value > theta ? x_value-theta : 0);
                     break;
             case 3: // tanh
-                    o =  (tanh(x-theta)); 
+                    o =  (tanh(x_value-theta));
                     break;
             case 4: // sigmoid
-                    o =  1 / (1 + exp(-(x-theta))); 
+                    o =  1 / (1 + exp(-(x_value-theta)));
                     break;
             case 5: // linear
             default:
-                    o =  (x-theta); 
+                    o =  (x_value-theta);
                     break;
         }
 
@@ -121,4 +122,3 @@ class Nucleus: public Module
 };
 
 INSTALL_CLASS(Nucleus)
-

@@ -62,11 +62,11 @@ class RegressionStatistics: public Module
 
         for (int channel = 0; channel < y.size(); ++channel)
         {
-            if (sample.connected() && sample[channel] < 1.0f)
+            if (sample.connected() && sample(channel) < 1.0f)
                 continue;
 
             const int x_index = x.size() == 1 ? 0 : channel;
-            AddSample(channel, x[x_index], y[channel]);
+            AddSample(channel, x(x_index), y(channel));
         }
 
         WriteScatterOutputs();

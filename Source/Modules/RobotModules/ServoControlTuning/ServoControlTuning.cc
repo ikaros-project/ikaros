@@ -295,8 +295,8 @@ class ServoControlTuning : public Module
         std::cout << "dxl_present_temperature: " << dxl_present_temperature << std::endl;
         
 
-        position[0] = dxl_present_position / 4095.0 * 360.0; // degrees
-        current[0] = dxl_present_current * 3.36;   // mA
+        position(0) = dxl_present_position / 4095.0 * 360.0; // degrees
+        current(0) = dxl_present_current * 3.36;   // mA
         
     
 
@@ -311,35 +311,35 @@ class ServoControlTuning : public Module
             int parameterIndex = 0;
 
             // P
-            val = parameterValues[parameterIndex];
+            val = parameterValues(parameterIndex);
             std::cout << "P: " << val << std::endl;
             param_sync_write[1] = DXL_LOBYTE(DXL_LOWORD(val));
             param_sync_write[2] = DXL_HIBYTE(DXL_LOWORD(val));
             parameterIndex++;
 
             // I   
-            val = parameterValues[parameterIndex];
+            val = parameterValues(parameterIndex);
             std::cout << "I: " << val << std::endl;
             param_sync_write[3] = DXL_LOBYTE(DXL_LOWORD(val));
             param_sync_write[4] = DXL_HIBYTE(DXL_LOWORD(val));
             parameterIndex++;
 
             // D
-            val = parameterValues[parameterIndex];
+            val = parameterValues(parameterIndex);
             std::cout << "D: " << val << std::endl;
             param_sync_write[5] = DXL_LOBYTE(DXL_LOWORD(val));
             param_sync_write[6] = DXL_HIBYTE(DXL_LOWORD(val));
             parameterIndex++;    
 
             //Goal current
-            val = parameterValues[parameterIndex] / 3.36;
+            val = parameterValues(parameterIndex) / 3.36;
             std::cout << "Goal current: " << val << std::endl;
             param_sync_write[7] = DXL_LOBYTE(DXL_LOWORD(val));
             param_sync_write[8] = DXL_HIBYTE(DXL_LOWORD(val));
             parameterIndex++;
 
             // Profile Acceleration
-            val = parameterValues[parameterIndex];
+            val = parameterValues(parameterIndex);
             param_sync_write[9] = DXL_LOBYTE(DXL_LOWORD(val));
             param_sync_write[10] = DXL_HIBYTE(DXL_LOWORD(val));
             param_sync_write[11] = DXL_LOBYTE(DXL_HIWORD(val));
@@ -347,7 +347,7 @@ class ServoControlTuning : public Module
             parameterIndex++;
 
             // Profile Velocity
-            val = parameterValues[parameterIndex];
+            val = parameterValues(parameterIndex);
             std::cout << "Profile Velocity: " << val << std::endl;
             param_sync_write[13] = DXL_LOBYTE(DXL_LOWORD(val));
             param_sync_write[14] = DXL_HIBYTE(DXL_LOWORD(val));
@@ -355,8 +355,8 @@ class ServoControlTuning : public Module
             param_sync_write[16] = DXL_HIBYTE(DXL_HIWORD(val));
 
             //Goal position
-            std::cout << "Goal position: " << (int)parameterValues[parameterIndex] << std::endl;
-            val = parameterValues[parameterIndex] / 360.0 * 4096.0;
+            std::cout << "Goal position: " << (int)parameterValues(parameterIndex) << std::endl;
+            val = parameterValues(parameterIndex) / 360.0 * 4096.0;
             std::cout << "Goal position after conversion: " << val << std::endl;
             param_sync_write[17] = DXL_LOBYTE(DXL_LOWORD(val));
             param_sync_write[18] = DXL_HIBYTE(DXL_LOWORD(val));
@@ -586,7 +586,7 @@ class ServoControlTuning : public Module
         std::cout << "servoIndex: " << servoIndex << std::endl;
 
 
-        servoTransitions = GenerateServoTransitions(numberTransitions, minLimitPosiiton[servoIndex], maxLimitPosition[servoIndex]);
+        servoTransitions = GenerateServoTransitions(numberTransitions, minLimitPosiiton(servoIndex), maxLimitPosition(servoIndex));
         servoTransitions.set_name("ServoTransitions");
         servoTransitions.print();
 
@@ -867,10 +867,10 @@ class ServoControlTuning : public Module
         {
           
             float step = totalRange / 2 * (i/numTransitions);
-            Positions[i] = middle + step;
+            Positions(i, 0) = middle + step;
             if(i+1 < numTransitions)
             {
-                Positions[i+1] = middle - step;
+                Positions(i + 1, 0) = middle - step;
                 i++;
             }
         }
@@ -1202,7 +1202,7 @@ class ServoControlTuning : public Module
             for (int id = idMin; id <= idMax; id++) 
             {
                 //min and max limits
-                param_default_4Byte = minLimitPosiiton[maxMinPositionLimitIndex[i]];
+                param_default_4Byte = minLimitPosiiton(maxMinPositionLimitIndex[i]);
                 if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, ADDR_MIN_POSITION_LIMIT, param_default_4Byte, &dxl_error)){
                     std::cout << "Failed to set indirect address for min position limit for servo ID: " 
                     << id << " of port:" 
@@ -1211,7 +1211,7 @@ class ServoControlTuning : public Module
                     
                     return false;
                 }
-                param_default_4Byte = maxLimitPosition[maxMinPositionLimitIndex[i]];
+                param_default_4Byte = maxLimitPosition(maxMinPositionLimitIndex[i]);
                 if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, ADDR_MIN_POSITION_LIMIT, param_default_4Byte, &dxl_error)){
                     std::cout << "Failed to set indirect address for max position limit for servo ID: " 
                     << id << " of port:" 
@@ -1439,18 +1439,18 @@ class ServoControlTuning : public Module
 
         if (runSequence)
         {
-            goalPosition = servoTransitions[0][transitionIndex];
+            goalPosition = servoTransitions(transitionIndex, 0);
         }
         else
         {
-            goalPosition = servoParameters[0];
+            goalPosition = servoParameters(0);
             
      
         }
-        position[0]= goalPosition;
+        position(0)= goalPosition;
         
-        goalCurrent = servoParameters[1];
-        current[1] = goalCurrent;
+        goalCurrent = servoParameters(1);
+        current(1) = goalCurrent;
 
         if (transitionIndex > numberTransitions)
         {
@@ -1463,18 +1463,18 @@ class ServoControlTuning : public Module
         {   
             Notify(msg_debug, "Compare parameter with strings method works");
             
-            position[1] = clip(position[1], 5, 16); // Pupil size must be between 5 mm to 16 mm.
+            position(1) = clip(position(1), 5, 16); // Pupil size must be between 5 mm to 16 mm.
 
             // Special case. As pupil does not have any feedback we just return goal position
             
-            position[0].copy(position[1]);
+            position(0) = position(1);
             
         
             // Special case for pupil uses mm instead of degrees
-            position[1] = PupilMMToDynamixel(position[1], AngleMinLimitPupil[0], AngleMaxLimitPupil[0]);
+            position(1) = PupilMMToDynamixel(position(1), AngleMinLimitPupil[0], AngleMaxLimitPupil[0]);
             
         
-            auto pupilThread = std::async(std::launch::async, &ServoControlTuning::CommunicationPupil, this, servoTransitions[transitionIndex] ); // Special!
+            auto pupilThread = std::async(std::launch::async, &ServoControlTuning::CommunicationPupil, this, servoTransitions(transitionIndex, 0) ); // Special!
             if (!pupilThread.get())
         {
             Notify(msg_warning, "Can not communicate with pupil");

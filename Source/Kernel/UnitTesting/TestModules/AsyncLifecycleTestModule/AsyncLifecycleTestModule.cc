@@ -23,7 +23,7 @@ class AsyncLifecycleTestModule : public Module
     void Tick() override
     {
         std::this_thread::sleep_for(std::chrono::duration<double>(duration.as_double()));
-        const double result = double(input) * gain.as_double();
+        const double result = input.scalar() * gain.as_double();
         output(0) = result;
         Notify(msg_print, "CPP_ASYNC_LIFECYCLE_OUTPUT " + std::to_string(result) + " gain=" + gain.as_int_string());
     }

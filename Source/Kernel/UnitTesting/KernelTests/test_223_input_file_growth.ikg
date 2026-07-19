@@ -1,0 +1,20 @@
+<group internal="true"
+    name="TestInputFileGrowth"
+    check_sum="207512"
+    description="Load InputFile rows with geometric matrix growth and split multi-value columns"
+    start="true"
+    stop="3"
+    threads="1"
+    cli_args="-uSource/Kernel/UnitTesting/KernelTests"
+    expected_output_contains="{1, 2}||{3}||{4, 5}||{6}"
+>
+    <module name="Reader"
+        class="InputFile"
+        filename="fixture_input_file_multicolumn.txt"
+        send_end_of_file="no"
+    />
+    <module name="Pair" class="Print" />
+    <module name="Value" class="Print" />
+    <connection source="Reader.PAIR" target="Pair.INPUT" />
+    <connection source="Reader.VALUE" target="Value.INPUT" />
+</group>

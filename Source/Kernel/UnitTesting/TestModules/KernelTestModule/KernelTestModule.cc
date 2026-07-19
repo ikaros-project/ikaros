@@ -95,8 +95,8 @@ class KernelTestModule: public Module
     {
         output.copy(input);
 
-        double x = input;
-        double y = input.last();
+        double x = input.scalar();
+        double y = input.last().scalar();
 
         std::cout << "DIFF: " << x << " " << y << std::endl;
 
@@ -111,4 +111,3 @@ class KernelTestModule: public Module
 };
 
 INSTALL_CLASS(KernelTestModule)
-

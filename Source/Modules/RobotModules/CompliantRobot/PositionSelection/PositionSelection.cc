@@ -38,7 +38,7 @@ class PositionSelection: public Module
     void Tick()
     {     
         if(inputRank.connected() && position_input.rank()>1){
-            position_output.copy(position_input[inputRank[0]]);
+            position_output.copy(position_input[inputRank(0)]);
         }
         else if (position_input.connected() && position_input.rank()>1)
             {
@@ -52,8 +52,8 @@ class PositionSelection: public Module
             
             // Avoid setting goal positions to zero
             for(int i=0; i<position_output.size(); i++)
-                if(position_output[i] == 0)
-                    position_output[i] = position_input(0,i);
+                if(position_output(i) == 0)
+                    position_output(i) = position_input(0,i);
             
             previous_input.copy(position_input);
 
@@ -82,4 +82,3 @@ class PositionSelection: public Module
 
 
 INSTALL_CLASS(PositionSelection)
-

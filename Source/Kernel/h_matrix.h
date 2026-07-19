@@ -130,7 +130,7 @@ namespace ikaros
             //return copy_array(r, t, 16);
             // memcpy(r, t, 16 * sizeof(float));
 
-            *data_ = *(mt.data_);
+            copy(mt);
 
             return *this;
         }
@@ -155,7 +155,7 @@ namespace ikaros
             rZ.set_rotation_matrix(Z, z);
 
             // memcpy(data(), rZ.data(), 16 * sizeof(float)); //  copy(rZ);
-            *data_ =  *(rZ.data_);
+            copy(rZ);
 
             multiply(rY);
             multiply(rX);
@@ -292,9 +292,9 @@ namespace ikaros
             z = m[10];
         }
 
-        float get_x() const { return (*data_)[3]; }
-        float get_y() const  { return (*data_)[7]; }
-        float get_z() const { return (*data_)[11]; }
+        float get_x() const { return data()[3]; }
+        float get_y() const  { return data()[7]; }
+        float get_z() const { return data()[11]; }
 
 
         h_matrix &
@@ -344,7 +344,7 @@ namespace ikaros
 
         //return copy_array(r, t, 16);
 
-        std::copy(t, t + 16, data_->begin());
+        std::copy(t, t + 16, data());
 
         return *this;
     }

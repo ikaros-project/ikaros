@@ -77,7 +77,7 @@ public:
 
     void Tick()
     {
-        if(effort.empty() || effort > 0){
+        if(effort.empty() || effort.scalar() > 0){
             // convert to rank 2
             //matrix inp, t_inp, t_trgt;
             //inp.copy(input); // does not copy shape
