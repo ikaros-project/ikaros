@@ -98,6 +98,11 @@ namespace ikaros
    range & 
    range::extend(const range & r)
    {
+        if(rank() > r.rank())
+            throw std::invalid_argument("Cannot extend a rank-" + std::to_string(rank()) +
+                                        " range with a rank-" + std::to_string(r.rank()) +
+                                        " range");
+
         extend(r.rank());
         for(int i=0; i<rank(); i++)
         {
@@ -115,6 +120,11 @@ namespace ikaros
     range & 
     range::fill(const range & r)
     {
+        if(rank() > r.rank())
+            throw std::invalid_argument("Cannot fill a rank-" + std::to_string(rank()) +
+                                        " range from a rank-" + std::to_string(r.rank()) +
+                                        " range");
+
         for(int i=0; i<rank(); i++)
             if(empty(i))
             {

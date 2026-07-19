@@ -4115,6 +4115,11 @@ bool operator==(Request & r, const std::string s)
             throw setup_failed("Could not calculate input and output sizes. "+e.message(), e.path());
         }
 
+        catch(const std::exception & e)
+        {
+            throw setup_failed("Could not calculate input and output sizes. " + std::string(e.what()));
+        }
+
         catch(...)
         {
             throw setup_failed("Could not calculate input and output sizes.");

@@ -302,6 +302,27 @@ class RangeSizeTestModule : public Module
         if(multidimensional.size() != 9 || actualIndices != expectedIndices)
             throw exception("Multidimensional stepped range iterated over unexpected values");
 
+        range higherRank("[0:2][0:2]");
+        range lowerRank("[0:2]");
+        try
+        {
+            higherRank.extend(lowerRank);
+            throw exception("Extending from a lower-rank range was not rejected");
+        }
+        catch(const std::invalid_argument &)
+        {
+        }
+
+        range incomplete("[][0:2]");
+        try
+        {
+            incomplete.fill(lowerRank);
+            throw exception("Filling from a lower-rank range was not rejected");
+        }
+        catch(const std::invalid_argument &)
+        {
+        }
+
         range prefix(0, 3);
         range * prefixResult = &(++prefix);
         if(prefixResult != &prefix || prefix.index()[0] != 1)

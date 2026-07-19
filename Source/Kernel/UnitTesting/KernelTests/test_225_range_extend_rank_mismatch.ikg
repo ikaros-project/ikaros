@@ -1,0 +1,12 @@
+<group internal="true"
+    name="TestRangeExtendRankMismatch"
+    description="Reject inconsistent target selector ranks"
+    expected_exit="1"
+    expected_output_contains="Cannot extend a rank-2 range with a rank-1 range">
+    <module class="Constant" name="Source1" data="1,2" />
+    <module class="Constant" name="Source2" data="3,4" />
+    <module class="Print" name="Sink" />
+
+    <connection source="Source1.OUTPUT[0:2]" target="Sink.INPUT[0:2][0:1]" />
+    <connection source="Source2.OUTPUT[0:2]" target="Sink.INPUT[2:4]" />
+</group>

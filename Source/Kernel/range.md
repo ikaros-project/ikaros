@@ -83,6 +83,11 @@ ranges have cardinality zero. If the product cannot be represented by the suppor
 If any dimension is empty, `more()` returns false and iteration produces no index tuples,
 regardless of where the empty dimension occurs.
 
+`extend(const range &)` may add dimensions when its argument has a higher rank. It rejects an
+argument with fewer dimensions than the receiver. `fill()` likewise requires its source to have at
+least as many dimensions as the receiver. Invalid rank combinations throw `std::invalid_argument`
+instead of accessing missing dimension data.
+
 Connection delay ranges are a restricted use of this syntax: they must be one-dimensional,
 ascending, non-negative, non-empty, use a positive increment, and generate no value above 100.
 These restrictions do not apply to general matrix and loop ranges.
