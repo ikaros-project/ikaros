@@ -383,6 +383,37 @@ class RangeSizeTestModule : public Module
         {
         }
 
+        range misalignedFirst(0, 6, 2);
+        range misalignedSecond(1, 6, 2);
+        misalignedFirst.extend(misalignedSecond);
+        if(misalignedFirst.step(0) != 1 || !(misalignedSecond <= misalignedFirst) ||
+           misalignedFirst.size() != 6)
+            throw exception("Extending misaligned ranges did not cover both progressions");
+
+        range differingFirst(0, 10, 4);
+        range differingSecond(2, 10, 6);
+        differingFirst.extend(differingSecond);
+        if(differingFirst.step(0) != 2 || !(differingSecond <= differingFirst) ||
+           differingFirst.start(0) != 0 || differingFirst.stop(0) != 10)
+            throw exception("Extending ranges with different steps did not use a covering step");
+
+        range reverseCover(0, 6, -2);
+        range forwardOffset(1, 6, 2);
+        reverseCover.extend(forwardOffset);
+        if(reverseCover.step(0) != -1 || !(forwardOffset <= reverseCover) ||
+           reverseCover.index() != std::vector<int>{5})
+            throw exception("Extending a reverse range did not preserve its traversal direction");
+
+        range placeholder;
+        placeholder.extend(1);
+        range offsetRange(1, 6, 2);
+        placeholder.extend(offsetRange);
+        if(placeholder != offsetRange)
+            throw exception("Extending a placeholder did not adopt the supplied range");
+        placeholder.extend(range("[]"));
+        if(placeholder != offsetRange)
+            throw exception("Extending with a placeholder changed an existing range");
+
         range incomplete("[][0:2]");
         try
         {

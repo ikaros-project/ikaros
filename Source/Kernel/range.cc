@@ -3,6 +3,7 @@
 #include <charconv>
 #include <iostream>
 #include <limits>
+#include <numeric>
 #include <stdexcept>
 #include <system_error>
 
@@ -25,6 +26,30 @@ namespace ikaros
             if(count > std::numeric_limits<int>::max())
                 throw std::overflow_error("Range size exceeds the supported integer size");
             return static_cast<int>(count);
+        }
+
+
+        int
+        RangeCoveringIncrement(int current_increment, int other_increment,
+                               int current_start, int other_start)
+        {
+            const long long current_magnitude = current_increment > 0
+                                                    ? current_increment
+                                                    : -static_cast<long long>(current_increment);
+            const long long other_magnitude = other_increment > 0
+                                                  ? other_increment
+                                                  : -static_cast<long long>(other_increment);
+            const long long start_offset = current_start >= other_start
+                                               ? static_cast<long long>(current_start) - other_start
+                                               : static_cast<long long>(other_start) - current_start;
+            const long long magnitude = std::gcd(std::gcd(current_magnitude,
+                                                          other_magnitude),
+                                                 start_offset);
+            const long long increment = current_increment < 0 ? -magnitude : magnitude;
+            if(increment < std::numeric_limits<int>::min() ||
+               increment > std::numeric_limits<int>::max())
+                throw std::overflow_error("Range increment exceeds the supported integer bounds");
+            return static_cast<int>(increment);
         }
 
 
@@ -212,11 +237,23 @@ namespace ikaros
         result.extend(r.rank());
         for(int i=0; i<result.rank(); i++)
         {
-            if(result.inc_[i] !=0 && result.inc_[i] != r.inc_[i])
-                throw std::runtime_error("Incompatible range increments");
+            if(r.inc_[i] == 0)
+                continue;
+            if(result.inc_[i] == 0)
+            {
+                result.a_[i] = r.a_[i];
+                result.b_[i] = r.b_[i];
+                result.inc_[i] = r.inc_[i];
+                result.index_[i] = ValidatedRangeStartIndex(result.a_[i], result.b_[i],
+                                                            result.inc_[i]);
+                continue;
+            }
+
+            const int covering_increment = RangeCoveringIncrement(result.inc_[i], r.inc_[i],
+                                                                   result.a_[i], r.a_[i]);
             result.a_[i] = std::min(result.a_[i], r.a_[i]);
             result.b_[i] = std::max(result.b_[i], r.b_[i]);
-            result.inc_[i] = r.inc_[i];
+            result.inc_[i] = covering_increment;
             result.index_[i] = ValidatedRangeStartIndex(result.a_[i], result.b_[i], result.inc_[i]);
         }
         swap(result);

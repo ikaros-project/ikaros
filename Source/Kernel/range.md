@@ -102,6 +102,12 @@ argument with fewer dimensions than the receiver. `fill()` likewise requires its
 least as many dimensions as the receiver. Invalid rank combinations throw `std::invalid_argument`
 instead of accessing missing dimension data.
 
+For each populated dimension, `extend(const range &)` produces the smallest arithmetic progression
+that covers both inputs. It uses the greatest common divisor of their increments and starting-point
+offset, preserving the receiver's traversal direction. The result can contain intermediate indices
+when the exact union cannot be represented by one range. A zero-step placeholder adopts a populated
+dimension, while extending a populated dimension with a placeholder leaves it unchanged.
+
 The bounds, increments, and iteration cursor are private. Use `start(d)`, `stop(d)`, and `step(d)`
 to inspect a dimension, and `index()` to inspect the current cursor. `index()` is read-only; use the
 range traversal and mutation functions to change state. If `push()`, `push_front()`, `set()`,
