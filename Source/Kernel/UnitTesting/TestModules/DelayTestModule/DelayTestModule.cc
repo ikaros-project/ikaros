@@ -475,6 +475,22 @@ class RangeSizeTestModule : public Module
            !advancedDefinition.same_state(advancedDefinition))
             throw exception("Range state comparison did not include the iteration cursor");
 
+        if(!(range(0, 6, 2) <= range(0, 6)) ||
+           range(0, 6, 3) <= range(0, 6, 2) ||
+           range(1, 6, 2) <= range(0, 6, 2))
+            throw exception("Range subset comparison did not account for stepped membership");
+        if(!(range(0, 6, -2) <= range(0, 6, 2)) ||
+           !(range(2, 3, -100) <= range(0, 6, 2)))
+            throw exception("Range subset comparison depended on traversal direction");
+
+        range subset2D("[0:4:2][1:4:2]");
+        range superset2D("[0:5][0:5]");
+        if(!(subset2D <= superset2D) || subset2D <= range(0, 5))
+            throw exception("Range subset comparison did not enforce compatible ranks");
+        if(!(range() <= range(0, 5)) || !(range("[][0:2]") <= range(0, 5)) ||
+           range(0, 5) <= range())
+            throw exception("Range subset comparison did not treat empty ranges as empty sets");
+
         range prefix(0, 3);
         range * prefixResult = &(++prefix);
         if(prefixResult != &prefix || prefix.index()[0] != 1)

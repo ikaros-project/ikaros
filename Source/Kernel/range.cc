@@ -28,6 +28,37 @@ namespace ikaros
         }
 
 
+        bool
+        RangeDimensionIsSubset(int subset_start, int subset_stop, int subset_increment,
+                               int superset_start, int superset_stop, int superset_increment)
+        {
+            const int subset_size = RangeDimensionSize(subset_start, subset_stop, subset_increment);
+            const int superset_size = RangeDimensionSize(superset_start, superset_stop,
+                                                         superset_increment);
+            if(subset_size == 0)
+                return true;
+            if(superset_size == 0)
+                return false;
+
+            const long long subset_step = subset_increment > 0
+                                              ? subset_increment
+                                              : -static_cast<long long>(subset_increment);
+            const long long superset_step = superset_increment > 0
+                                                ? superset_increment
+                                                : -static_cast<long long>(superset_increment);
+            const long long subset_first = subset_start;
+            const long long subset_last = subset_first + (subset_size - 1) * subset_step;
+            const long long superset_first = superset_start;
+            const long long superset_last = superset_first + (superset_size - 1) * superset_step;
+
+            if(subset_first < superset_first || subset_last > superset_last)
+                return false;
+            if((subset_first - superset_first) % superset_step != 0)
+                return false;
+            return subset_size == 1 || subset_step % superset_step == 0;
+        }
+
+
         int
         RangeStartIndex(int a, int b, int increment)
         {
@@ -659,8 +690,20 @@ namespace ikaros
     bool 
     operator<=(const range & a, const range & b)
     {
-        throw std::runtime_error("operator <= not implemented");
-        return false;
+        for(int d = 0; d < a.rank(); ++d)
+            if(RangeDimensionSize(a.a_[d], a.b_[d], a.inc_[d]) == 0)
+                return true;
+
+        if(a.rank() == 0)
+            return true;
+        if(a.rank() != b.rank())
+            return false;
+
+        for(int d = 0; d < a.rank(); ++d)
+            if(!RangeDimensionIsSubset(a.a_[d], a.b_[d], a.inc_[d],
+                                       b.a_[d], b.b_[d], b.inc_[d]))
+                return false;
+        return true;
     }
 
     int
