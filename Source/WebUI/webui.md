@@ -89,12 +89,12 @@ Inspector for selected item:
 The following parameters are built into the top group and can be set directly as attributes on the top-level `<group>` element; no explicit `<parameter>` declaration is needed:
 
 - `webui_req_int`
-  Browser polling interval for `/update`, in seconds.
+  Browser polling interval for `/update` and minimum wall-clock interval between complete server-side WebUI snapshots, in seconds. New subscriptions refresh immediately.
   Default: `0.1`
 
 - `snapshot_interval`
   Minimum wall-clock interval in seconds between image refreshes in update snapshots.
-  Scalar values may still update every tick.
+  This is independent of the complete snapshot cadence controlled by `webui_req_int`.
   Default: `0.1`
 
 - `rgb_quality`

@@ -105,6 +105,70 @@ def run_http_test(cmd, root):
                         f"Snapshot tick {package['tick']!r} does not match "
                         f"{data_key} value {data_value!r}"
                     )
+            elif action.startswith("assert_snapshot_rate_limit:"):
+                (
+                    _, path, data_key, sample_seconds,
+                    sample_interval, maximum_distinct_snapshots,
+                ) = action.split(":", 5)
+                sample_seconds = float(sample_seconds)
+                sample_interval = float(sample_interval)
+                maximum_distinct_snapshots = int(maximum_distinct_snapshots)
+                client_id = 401
+
+                request(path, record=False, client_id=client_id)
+                time.sleep(0.03)
+
+                deadline = time.monotonic() + sample_seconds
+                snapshot_ticks = []
+                while time.monotonic() < deadline:
+                    package = json.loads(request(path, record=False, client_id=client_id))
+                    data_value = package["data"][data_key]
+                    while isinstance(data_value, list):
+                        data_value = data_value[0]
+                    if package["tick"] != data_value:
+                        raise AssertionError(
+                            f"Snapshot tick {package['tick']!r} does not match "
+                            f"{data_key} value {data_value!r}"
+                        )
+                    snapshot_ticks.append(package["tick"])
+                    time.sleep(sample_interval)
+
+                distinct_snapshot_ticks = list(dict.fromkeys(snapshot_ticks))
+                if len(distinct_snapshot_ticks) < 2:
+                    raise AssertionError(
+                        "WebUI snapshot did not refresh during the sampling period"
+                    )
+                if len(distinct_snapshot_ticks) > maximum_distinct_snapshots:
+                    raise AssertionError(
+                        f"Observed {len(distinct_snapshot_ticks)} distinct snapshots "
+                        f"during {sample_seconds} seconds; expected no more than "
+                        f"{maximum_distinct_snapshots}. Ticks: {distinct_snapshot_ticks!r}"
+                    )
+                http_output.append(
+                    f"SNAPSHOT_RATE distinct={len(distinct_snapshot_ticks)} "
+                    f"samples={len(snapshot_ticks)}"
+                )
+            elif action.startswith("assert_subscription_snapshot_refresh:"):
+                (
+                    _, initial_path, changed_path, data_key,
+                    data_offset, wait_seconds,
+                ) = action.split(":", 5)
+                data_offset = float(data_offset)
+                client_id = 402
+
+                request(initial_path, record=False, client_id=client_id)
+                time.sleep(float(wait_seconds))
+                package = json.loads(request(changed_path, client_id=client_id))
+                data_value = package["data"][data_key]
+                while isinstance(data_value, list):
+                    data_value = data_value[0]
+                data_tick = data_value - data_offset
+                if package["tick"] != data_tick:
+                    raise AssertionError(
+                        f"Snapshot tick {package['tick']!r} does not match "
+                        f"newly subscribed {data_key} tick {data_tick!r}"
+                    )
+                http_output.append("SUBSCRIPTION_SNAPSHOT_REFRESH coherent")
             elif action.startswith("assert_data_scalar:"):
                 _, path, data_key, expected = action.split(":", 3)
                 package = json.loads(request(path))

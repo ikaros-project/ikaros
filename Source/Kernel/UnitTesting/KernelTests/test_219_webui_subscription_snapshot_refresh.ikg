@@ -1,0 +1,16 @@
+<group internal="true"
+    name="TestWebUISubscriptionSnapshotRefresh"
+    description="Refresh WebUI snapshots immediately when subscriptions change"
+    start="true"
+    stop="100"
+    tick_duration="0.001"
+    webui_req_int="1"
+    webui_port="8219"
+    http_start_delay="0.1"
+    http_requests="assert_subscription_snapshot_refresh:update/TestWebUISubscriptionSnapshotRefresh?data=SourceA.OUTPUT:update/TestWebUISubscriptionSnapshotRefresh?data=SourceB.OUTPUT:SourceB.OUTPUT:100:0.06"
+    http_terminate_after_requests="true"
+    expected_output_contains="SUBSCRIPTION_SNAPSHOT_REFRESH coherent">
+    <module class="DelaySequenceSource" name="SourceA" />
+    <module class="DelaySequenceSource" name="SourceB" offset="100" />
+    <module class="TaskLifecycleTestModule" name="Slow" duration="0.02" label="Slow" />
+</group>

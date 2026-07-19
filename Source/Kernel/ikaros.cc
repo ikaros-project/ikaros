@@ -580,7 +580,7 @@ namespace ikaros
             interval_param["name"] = "webui_req_int";
             interval_param["type"] = "number";
             interval_param["default"] = 0.1;
-            interval_param["description"] = "WebUI update request interval in seconds.";
+            interval_param["description"] = "WebUI update request and snapshot construction interval in seconds.";
             return interval_param;
         }
 
@@ -6544,7 +6544,7 @@ bool operator==(Request & r, const std::string s)
                     {
                         std::lock_guard<std::recursive_mutex> lock(kernelLock);
                         if(Tick() && socket != nullptr)
-                            BuildUISnapshot();
+                            BuildUISnapshot(true);
                     }
                     catch(const std::exception & e)
                     {
@@ -6803,18 +6803,6 @@ bool operator==(Request & r, const std::string s)
         if(!nm.empty())
             nm = std::filesystem::path(nm).filename().string();
 
-        double webui_request_interval = 0.1;
-        if(const parameter * request_interval = FindTopGroupParameter("webui_req_int"))
-        {
-            try
-            {
-                webui_request_interval = std::max(0.001, request_interval->as_double());
-            }
-            catch(const std::exception &)
-            {
-            }
-        }
-
         response << "\t\"file\": " << value(nm).json() << ",\n";
 
 #if DEBUG
@@ -6844,7 +6832,7 @@ bool operator==(Request & r, const std::string s)
         response << "\t\"timestamp\": " << GetTimeStamp() << ",\n";
         response << "\t\"uptime\": " << uptime << ",\n";
         response << "\t\"tick_duration\": " << tick_duration << ",\n";
-        response << "\t\"webui_req_int\": " << webui_request_interval << ",\n";
+        response << "\t\"webui_req_int\": " << WebUIRequestInterval() << ",\n";
         response << "\t\"cpu_cores\": " << cpu_cores << ",\n";
     
         switch(run_mode)
@@ -6922,6 +6910,23 @@ bool operator==(Request & r, const std::string s)
 
         auto it = parameters.find(top_group_path + "." + name);
         return it == parameters.end() ? nullptr : &it->second;
+    }
+
+
+    double
+    Kernel::WebUIRequestInterval() const
+    {
+        if(const parameter * request_interval = FindTopGroupParameter("webui_req_int"))
+        {
+            try
+            {
+                return std::max(0.001, request_interval->as_double());
+            }
+            catch(const std::exception &)
+            {
+            }
+        }
+        return 0.1;
     }
 
 
@@ -7151,29 +7156,55 @@ bool operator==(Request & r, const std::string s)
                 client_state.keys.clear();
                 client_state.last_seen_time = now;
             }
+            ++ui_subscription_revision;
         }
     }
 
 
     void
-    Kernel::BuildUISnapshot()
+    Kernel::BuildUISnapshot(bool respect_rate_limit)
     {
         std::unordered_set<std::string> subscriptions;
         const auto now = steady_clock::now();
+        std::shared_ptr<const UISnapshot> previous_snapshot;
+        {
+            std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
+            previous_snapshot = current_ui_snapshot;
+        }
+
         bool has_active_clients = false;
+        bool snapshot_due = !respect_rate_limit || previous_snapshot == nullptr;
+        uint64_t subscription_revision = 0;
         {
             std::lock_guard<std::mutex> lock(ui_client_mutex);
+            bool removed_client = false;
             for(auto it = ui_client_states.begin(); it != ui_client_states.end();)
             {
                 if(now - it->second.last_seen_time > duration<double>(ui_subscription_timeout_seconds))
-                    it = ui_client_states.erase(it);
-                else
                 {
-                    subscriptions.insert(it->second.keys.begin(), it->second.keys.end());
-                    ++it;
+                    it = ui_client_states.erase(it);
+                    removed_client = true;
                 }
+                else
+                    ++it;
             }
+
+            if(removed_client)
+                ++ui_subscription_revision;
+
             has_active_clients = !ui_client_states.empty();
+            subscription_revision = ui_subscription_revision;
+            const bool subscriptions_changed = previous_snapshot == nullptr ||
+                previous_snapshot->subscription_revision != subscription_revision;
+            if(subscriptions_changed)
+                snapshot_due = true;
+            else if(!snapshot_due)
+                snapshot_due = now - previous_snapshot->timestamp >=
+                    duration<double>(WebUIRequestInterval());
+
+            if(snapshot_due)
+                for(const auto & client_entry : ui_client_states)
+                    subscriptions.insert(client_entry.second.keys.begin(), client_entry.second.keys.end());
         }
 
         if(!has_active_clients)
@@ -7183,16 +7214,14 @@ bool operator==(Request & r, const std::string s)
             return;
         }
 
-        std::shared_ptr<const UISnapshot> previous_snapshot;
-        {
-            std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
-            previous_snapshot = current_ui_snapshot;
-        }
+        if(!snapshot_due)
+            return;
 
         bool refresh_images = previous_snapshot == nullptr ||
             now - previous_snapshot->image_timestamp >= duration<double>(SnapshotInterval());
         auto snapshot = std::make_shared<UISnapshot>();
         snapshot->snapshot_id = next_ui_snapshot_id++;
+        snapshot->subscription_revision = subscription_revision;
         snapshot->session_id = session_id;
         snapshot->tick = tick;
         snapshot->image_timestamp = refresh_images ? now : (previous_snapshot ? previous_snapshot->image_timestamp : now);
@@ -7263,6 +7292,7 @@ bool operator==(Request & r, const std::string s)
             }
         }
 
+        snapshot->timestamp = steady_clock::now();
         std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
         current_ui_snapshot = std::move(snapshot);
     }
@@ -7283,14 +7313,21 @@ bool operator==(Request & r, const std::string s)
         requested_subscriptions.reserve(requested_values.size());
         for(const auto & requested_value : requested_values)
             requested_subscriptions.insert(SubscriptionKeyFor(requested_value));
+        bool client_subscriptions_changed = false;
         {
             std::lock_guard<std::mutex> lock(ui_client_mutex);
             auto & client_state = ui_client_states[request.client_id];
+            if(client_state.keys != requested_subscriptions)
+            {
+                ++ui_subscription_revision;
+                client_subscriptions_changed = true;
+            }
             client_state.keys = std::move(requested_subscriptions);
             client_state.last_seen_time = steady_clock::now();
         }
 
-        if(refresh_paused_snapshot && run_mode.load() == run_mode_pause)
+        if((refresh_paused_snapshot && run_mode.load() == run_mode_pause) ||
+           (use_snapshot_status && client_subscriptions_changed))
         {
             std::lock_guard<std::recursive_mutex> lock(kernelLock);
             BuildUISnapshot();

@@ -550,8 +550,10 @@ public:
     struct UISnapshot
     {
         uint64_t snapshot_id = 0;
+        uint64_t subscription_revision = 0;
         long session_id = 0;
         tick_count tick = -1;
+        std::chrono::steady_clock::time_point timestamp;
         std::chrono::steady_clock::time_point image_timestamp;
         std::string status_json;
         std::unordered_map<std::string, std::string> serialized_values;
@@ -566,6 +568,7 @@ public:
     };
 
     uint64_t                                next_ui_snapshot_id = 1;
+    uint64_t                                ui_subscription_revision = 1;
     std::shared_ptr<const UISnapshot>       current_ui_snapshot;
     std::mutex                              ui_snapshot_mutex;
     std::unordered_map<long, UIClientState>       ui_client_states;
@@ -793,6 +796,7 @@ private:
     std::string DoSendDataStatus();
     std::string NormalizeUIRoot(const std::string & component_path) const;
     const parameter * FindTopGroupParameter(const std::string & name) const;
+    double WebUIRequestInterval() const;
     double SnapshotInterval() const;
     size_t MaxRetainedWebUILogMessages() const;
     int SnapshotJPEGQualityForFormat(const std::string & format) const;
@@ -802,7 +806,7 @@ private:
     bool SerializeRequestedValue(RequestedUIValue requested_value, std::string & serialized_value, long long * compute_us = nullptr, long long * value_us = nullptr);
     std::string ConsumeLogForClient(long ui_client_id);
     void ResetUISnapshotCache();
-    void BuildUISnapshot();
+    void BuildUISnapshot(bool respect_rate_limit = false);
 
     void DoSendData(Request & request, bool refresh_paused_snapshot = true, bool use_snapshot_status = false);
     void DoUpdate(Request & request);

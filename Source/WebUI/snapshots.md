@@ -4,9 +4,10 @@ The WebUI update path now uses a server-side snapshot cache to keep `/update` re
 
 ## What It Does
 
-- The kernel builds a shared UI snapshot between simulation ticks.
+- During steady-state execution with active clients, the kernel builds a shared UI snapshot no more often than the configured WebUI request interval.
 - `/update` responses read from that snapshot instead of serializing everything on demand.
 - If a requested value is missing from the current snapshot, it is computed once as a fallback and then included in future snapshots.
+- The first active client and subscription changes trigger an immediate snapshot instead of waiting for the next interval.
 
 ## Multi-Browser Behavior
 
@@ -16,11 +17,15 @@ The WebUI update path now uses a server-side snapshot cache to keep `/update` re
 
 This means one browser can change view without disturbing another browser that is showing different data.
 
-## Image Throttling
+## Snapshot And Image Throttling
 
-Scalar values and status data are refreshed every tick, but image entries in the snapshot are refreshed at a lower rate.
+Scalar values and status data are refreshed at the WebUI request cadence. Image entries can be refreshed less often because encoding them is substantially more expensive.
 
 These parameters are built into the top group and can be set directly as attributes on the top-level `<group>` element:
+
+- `webui_req_int`
+  Minimum wall-clock time in seconds between complete WebUI snapshots and the browser polling interval for `/update`.
+  Default: `0.1`
 
 - `snapshot_interval`
   Minimum wall-clock time in seconds between image snapshot refreshes.
@@ -48,8 +53,9 @@ Log delivery is independent of snapshot replacement. Each client advances its ow
 
 - `/update` latency stays very low.
 - Expensive image encoding is moved off the request path.
-- If the browser polls slower than the simulation ticks, image work is no longer repeated every tick unnecessarily.
+- Snapshot serialization follows the browser polling cadence instead of the simulation tick rate.
+- If the browser polls slower than the simulation ticks, scalar serialization and image work are no longer repeated every tick unnecessarily.
 
 ## Tradeoff
 
-With a nonzero `snapshot_interval`, image data in `/update` may be slightly older than scalar values from the same response. This is intentional and reduces encoding load substantially for image-heavy views.
+Status and scalar data in `/update` can be up to one `webui_req_int` interval old. With a nonzero `snapshot_interval`, image data may be older than scalar values from the same response. Both bounds are intentional and reduce snapshot and encoding load while matching the browser's configured refresh cadence.
