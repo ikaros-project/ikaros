@@ -107,6 +107,9 @@ class ParameterTestModule : public Module
         SetParameter("bounded_value", std::string("0.75"));
         require_true(boundedBinding.as_double() == 0.75,
                      "kernel parameter updates should accept values within constraints");
+        require_true(boundedBinding.metadata().contains_non_null("value") &&
+                     std::string(boundedBinding.metadata()["value"]) == "0.75",
+                     "bound parameters should share current source metadata");
         require_throws_as<exception>([&]() { SetParameter("bounded_value", std::string("1.1")); },
                                      "kernel parameter updates should enforce constraints");
         require_true(boundedBinding.as_double() == 0.75,

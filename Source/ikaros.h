@@ -129,20 +129,27 @@ class parameter
 private:
     using parameter_value = std::variant<std::monostate, double, bool, int, std::string, matrix>;
 
-    dictionary                       info_;
-    bool                             has_options_;
-    std::vector<std::string>         options_;
-    std::shared_ptr<bool>            resolved_;
-    parameter_type                   type_;
-    std::shared_ptr<parameter_value> value_;
-    std::optional<double>            minimum_;
-    std::optional<double>            maximum_;
+    struct parameter_state
+    {
+        dictionary               info;
+        bool                     has_options = false;
+        std::vector<std::string> options;
+        bool                     resolved = false;
+        parameter_type           type = no_type;
+        parameter_value          value;
+        std::optional<double>    minimum;
+        std::optional<double>    maximum;
+    };
 
+    std::shared_ptr<parameter_state> state_;
+
+    void bind_to(const parameter & p);
     void validate_numeric_value(double value) const;
     matrix * matrix_value() noexcept;
     const matrix * matrix_value() const noexcept;
     void set_source_value(const std::string & value);
 
+    friend class Component;
     friend class Kernel;
 
 public:
@@ -151,7 +158,6 @@ public:
     parameter(dictionary info);
     parameter(const std::string type, const std::string options="");
 
-    void assign(const parameter & p); // this aliases data from p
     double operator=(double v);
     std::string operator=(std::string v);
     void set_matrix(const matrix & v);
