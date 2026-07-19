@@ -3299,13 +3299,13 @@ namespace ikaros
             //std::cout << source << " =F=> " << target << std::endl; 
             matrix ctarget = *target_buffer_;
             int target_offset = target_range.a_[0];
-            for(auto delay = delay_range_; delay.more(); delay++)
+            for(auto delay = delay_range_; delay.more(); ++delay)
             {
                 const int delay_value = delay.index()[0];
                 matrix s = delay_value == 0 ? *source_buffer_ :
                            circular_buffer_->get(delay_value);
 
-                for(auto ix=source_range; ix.more(); ix++)
+                for(auto ix=source_range; ix.more(); ++ix)
                 {
                     int source_index = s.compute_index(ix.index());
                     ctarget(target_offset++) = (*(s.data_))[source_index];
@@ -3325,7 +3325,7 @@ namespace ikaros
             //std::cout << source << " =DD=> " << target << std::endl;
             int target_ix = 0;
             int delay_dimension = stacked_ ? 1 : 0;
-            for(auto delay = delay_range_; delay.more(); delay++, target_ix++)
+            for(auto delay = delay_range_; delay.more(); ++delay, ++target_ix)
             {
                 const int delay_value = delay.index()[0];
                 matrix s = delay_value == 0 ? *source_buffer_ :

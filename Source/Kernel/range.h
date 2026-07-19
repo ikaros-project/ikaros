@@ -41,7 +41,8 @@ namespace ikaros
         [[nodiscard]] int size(int f) const;                    // number of element in odimension d of the range
         [[nodiscard]] std::vector<int> extent() const;          // the largest index in each fimension
         std::vector<int> & index() ;        // the current index during iteration
-        std::vector<int> operator++(int);
+        range & operator++();                 // advance without copying the current index
+        std::vector<int> operator++(int);     // advance and return a copied index
 
         range & reset(int d=0);
         range & clear();

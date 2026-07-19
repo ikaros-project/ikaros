@@ -34,9 +34,12 @@ r.push(2, 4); // second dimension goes from 2 to 3
 Loop over a range in one or several dimensions:
 
 ```C++
-for(; r.more(); r++)
+for(; r.more(); ++r)
    std::cout << r << std::endl;
 ```
+
+Prefer prefix increment for traversal. Postfix increment returns a copied index vector and should
+only be used when that value is needed.
 
 Print a range in bracket style by converting to a string:
 
@@ -84,7 +87,7 @@ These restrictions do not apply to general matrix and loop ranges.
 Print numbers 0 to 4.
 
 ```C++
-for(range r=range(0,5);r.more();r++)
+for(range r=range(0,5);r.more();++r)
    std::cout << r << std::endl;
 ```
 
@@ -95,20 +98,20 @@ range r;
 r.push(1,4,2);
 r.push(1,4);
 
-for(;r.more();r++)
+for(;r.more();++r)
    std::cout << r << std::endl;
 ```
 
 To generate the same sequence again, the range must first be reset:
 
 ```C++
-for(r.reset();r.more();r++)
+for(r.reset();r.more();++r)
    std::cout << r << std::endl;
 ```
 
 Or define the range directly in the for loop:
 
 ```C++
-for(auto s = range(1,4,2).push(1,4);s.more();s++)
+for(auto s = range(1,4,2).push(1,4);s.more();++s)
    std::cout << s << std::endl;
 ```

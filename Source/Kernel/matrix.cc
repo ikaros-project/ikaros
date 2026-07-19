@@ -1252,7 +1252,7 @@ matrix::copy(const matrix & m, range & target, range & source)
     source.reset();
     target.reset();
 
-    for(; source.more() && target.more(); source++, target++)
+    for(; source.more() && target.more(); ++source, ++target)
     {
         int source_index = m.compute_index(source.index());
         int target_index = compute_index(target.index());

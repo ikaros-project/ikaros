@@ -81,7 +81,7 @@ namespace
             return;
         }
 
-        for(auto ix = actual.get_range(); ix.more(); ix++)
+        for(auto ix = actual.get_range(); ix.more(); ++ix)
         {
             int actual_index = actual.compute_index(ix.index());
             int expected_index = expected.compute_index(ix.index());
@@ -92,7 +92,7 @@ namespace
     void fill_sequence(matrix & values)
     {
         float value = 1.0f;
-        for(auto ix = values.get_range(); ix.more(); ix++)
+        for(auto ix = values.get_range(); ix.more(); ++ix)
             (*values.data_)[values.compute_index(ix.index())] = value++;
     }
 

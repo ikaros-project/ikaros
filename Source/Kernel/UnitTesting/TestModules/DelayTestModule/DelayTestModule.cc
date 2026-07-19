@@ -41,7 +41,7 @@ namespace
                             std::to_string(expected.size()));
 
         std::vector<int> actual;
-        for(auto index = parsed; index.more(); index++)
+        for(auto index = parsed; index.more(); ++index)
             actual.push_back(index.index()[0]);
         if(actual != expected)
             throw exception("Range " + specification + " iterated over unexpected values");
@@ -288,11 +288,26 @@ class RangeSizeTestModule : public Module
             throw exception("Zero-increment range was not empty");
 
         range multidimensional("[0:5:2][1:6:2]");
-        int iterationCount = 0;
-        for(auto index = multidimensional; index.more(); index++)
-            iterationCount++;
-        if(multidimensional.size() != 9 || iterationCount != 9)
-            throw exception("Multidimensional stepped range did not contain nine values");
+        std::vector<std::vector<int>> actualIndices;
+        for(auto index = multidimensional; index.more(); ++index)
+            actualIndices.push_back(index.index());
+        const std::vector<std::vector<int>> expectedIndices{
+            {0, 1}, {0, 3}, {0, 5},
+            {2, 1}, {2, 3}, {2, 5},
+            {4, 1}, {4, 3}, {4, 5}
+        };
+        if(multidimensional.size() != 9 || actualIndices != expectedIndices)
+            throw exception("Multidimensional stepped range iterated over unexpected values");
+
+        range prefix(0, 3);
+        range * prefixResult = &(++prefix);
+        if(prefixResult != &prefix || prefix.index()[0] != 1)
+            throw exception("Prefix range increment did not return the advanced range");
+
+        range postfix(0, 3);
+        std::vector<int> postfixResult = postfix++;
+        if(postfixResult != std::vector<int>{1} || postfix.index()[0] != 1)
+            throw exception("Postfix range increment compatibility changed");
 
         std::cout << path_ << " RANGE SIZE TEST OK" << std::endl;
     }

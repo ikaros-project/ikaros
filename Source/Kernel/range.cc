@@ -189,16 +189,28 @@ namespace ikaros
     std::vector<int>  & range::index() { return index_; };
 
 
-    std::vector<int>  range::operator++(int)
+    range &
+    range::operator++()
     {
-        for(int d=index_.size()-1; d>0; d--)
+        if(index_.empty())
+            return *this;
+
+        for(int d = static_cast<int>(index_.size()) - 1; d > 0; --d)
         {
-            index_[d]+=inc_[d];
+            index_[d] += inc_[d];
             if(more(d))
-                return index();
+                return *this;
             reset(d);
         }
-        index_[0]+=inc_[0];
+        index_[0] += inc_[0];
+        return *this;
+    }
+
+
+    std::vector<int>
+    range::operator++(int)
+    {
+        ++(*this);
         return index();
     }
 
