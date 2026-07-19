@@ -108,6 +108,11 @@ cursor. The tail of a rank-one range is empty. Calling `tail()` on an empty rang
 Stream insertion writes the current multidimensional cursor to the supplied stream in tuple form,
 for example `(1, 4)`.
 
+`operator==` and `operator!=` compare range definitions: rank, bounds, and increments. They ignore
+the current iteration cursor. Use `same_state()` when both the definition and cursor must match, or
+compare `index()` values when only cursor positions matter. Differently encoded definitions remain
+different even if they happen to generate the same index sequence.
+
 Connection delay ranges are a restricted use of this syntax: they must be one-dimensional,
 ascending, non-negative, non-empty, use a positive increment, and generate no value above 100.
 These restrictions do not apply to general matrix and loop ranges.

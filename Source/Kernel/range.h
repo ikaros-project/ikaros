@@ -58,6 +58,7 @@ namespace ikaros
         [[nodiscard]] bool more(int d) const;
         [[nodiscard]] bool empty() const;
         [[nodiscard]] bool empty(int d) const;
+        [[nodiscard]] bool same_state(const range & other) const;
 
         range & set(int d, int a, int b, int inc);
 

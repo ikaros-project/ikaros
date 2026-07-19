@@ -346,7 +346,7 @@ class RangeSizeTestModule : public Module
             }
             if(!rejected)
                 throw exception(operation + " did not reject an overflowing range");
-            if(value != original)
+            if(!value.same_state(original))
                 throw exception(operation + " changed the range after rejecting the operation");
         };
 
@@ -465,6 +465,15 @@ class RangeSizeTestModule : public Module
             throw exception("Strict range parsing rejected valid explicitly signed integers");
         if(range("[ +1 : +4 : +1 ]") != explicitlySigned)
             throw exception("Strict range parsing rejected surrounding field whitespace");
+
+        range equalDefinition(0, 5, 2);
+        range advancedDefinition = equalDefinition;
+        ++advancedDefinition;
+        if(equalDefinition != advancedDefinition || equalDefinition == range(0, 6, 2))
+            throw exception("Range equality did not compare definitions only");
+        if(equalDefinition.same_state(advancedDefinition) ||
+           !advancedDefinition.same_state(advancedDefinition))
+            throw exception("Range state comparison did not include the iteration cursor");
 
         range prefix(0, 3);
         range * prefixResult = &(++prefix);

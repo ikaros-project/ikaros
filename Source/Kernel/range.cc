@@ -466,6 +466,14 @@ namespace ikaros
         return size(d) == 0;
     }
 
+
+    bool
+    range::same_state(const range & other) const
+    {
+        return *this == other && index_ == other.index_;
+    }
+
+
     range &
     range::set(int d, int a, int b, int inc)
     {
@@ -639,7 +647,7 @@ namespace ikaros
     bool 
     operator==(const range & a, const range & b)
     {
-        return a.index_==b.index_ && a.a_==b.a_ && a.b_==b.b_ && a.inc_==b.inc_;
+        return a.a_ == b.a_ && a.b_ == b.b_ && a.inc_ == b.inc_;
     }
     
     bool 
