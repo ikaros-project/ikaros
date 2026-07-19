@@ -400,8 +400,12 @@ namespace ikaros
     }
 
 
-    range range::tail() const
+    range
+    range::tail() const
     {
+        if(empty())
+            throw std::out_of_range("Cannot take the tail of an empty range");
+
         range r = *this;
         r.a_.erase(r.a_.begin());
         r.b_.erase(r.b_.begin());

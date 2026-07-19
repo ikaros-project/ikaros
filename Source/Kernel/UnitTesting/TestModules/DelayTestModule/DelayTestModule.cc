@@ -409,6 +409,31 @@ class RangeSizeTestModule : public Module
             value.push(maximum - 1, maximum, 2);
         }, "push() with an overflowing terminal cursor");
 
+        try
+        {
+            static_cast<void>(range().tail());
+            throw exception("Taking the tail of an empty range was not rejected");
+        }
+        catch(const std::out_of_range &)
+        {
+        }
+
+        if(!range(3).tail().empty())
+            throw exception("The tail of a rank-one range was not empty");
+
+        range multidimensionalTailSource("[1:4][2:7:2][5]");
+        ++multidimensionalTailSource;
+        range multidimensionalTail = multidimensionalTailSource.tail();
+        if(multidimensionalTail.rank() != 2 ||
+           multidimensionalTail.start(0) != 2 ||
+           multidimensionalTail.stop(0) != 7 ||
+           multidimensionalTail.step(0) != 2 ||
+           multidimensionalTail.start(1) != 5 ||
+           multidimensionalTail.stop(1) != 6 ||
+           multidimensionalTail.step(1) != 1 ||
+           multidimensionalTail.index() != std::vector<int>{4, 5})
+            throw exception("A multidimensional tail did not preserve the remaining dimensions");
+
         range prefix(0, 3);
         range * prefixResult = &(++prefix);
         if(prefixResult != &prefix || prefix.index()[0] != 1)

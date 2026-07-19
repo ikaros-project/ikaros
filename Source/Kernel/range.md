@@ -97,6 +97,10 @@ A range whose terminal increment would overflow an `int` is rejected with `std::
 during construction or mutation. This keeps iteration free of runtime overflow checks. `trim()` and
 range union likewise reject unrepresentable results and leave their input unchanged.
 
+`tail()` removes the first dimension and preserves the remaining bounds, increments, and current
+cursor. The tail of a rank-one range is empty. Calling `tail()` on an empty range throws
+`std::out_of_range`.
+
 Connection delay ranges are a restricted use of this syntax: they must be one-dimensional,
 ascending, non-negative, non-empty, use a positive increment, and generate no value above 100.
 These restrictions do not apply to general matrix and loop ranges.
