@@ -421,6 +421,163 @@ copy_row_blocks(matrix & target, const matrix & source)
 }
 
 
+struct RangeCopyLayout
+{
+    bool valid = false;
+    bool contiguous = false;
+    int element_count = 0;
+    int first_index = 0;
+    int row_length = 0;
+};
+
+
+RangeCopyLayout
+analyze_range_copy_layout(const matrix & value, const range & selection)
+{
+    RangeCopyLayout layout;
+    if(selection.rank() == 0 || selection.rank() != value.rank())
+        return layout;
+
+    long long first_index = value.info_->offset_;
+    long long last_index = value.info_->offset_;
+    long long physical_stride = 1;
+    int element_count = 1;
+    bool unit_increments = true;
+
+    for(int dimension = selection.rank() - 1; dimension >= 0; --dimension)
+    {
+        const int dimension_count = selection.size(dimension);
+        if(dimension_count == 0)
+            return layout;
+
+        const int increment = selection.inc_[dimension];
+        const long long step = increment > 0 ? increment : -static_cast<long long>(increment);
+        const long long minimum_coordinate = selection.a_[dimension];
+        const long long maximum_coordinate = minimum_coordinate +
+            static_cast<long long>(dimension_count - 1) * step;
+        if(minimum_coordinate < 0 || maximum_coordinate >= value.shape(dimension))
+            return layout;
+
+        const long long first_coordinate = increment > 0 ? minimum_coordinate : maximum_coordinate;
+        const long long last_coordinate = increment > 0 ? maximum_coordinate : minimum_coordinate;
+        first_index += first_coordinate * physical_stride;
+        last_index += last_coordinate * physical_stride;
+        physical_stride *= value.info_->stride_[dimension];
+
+        if(element_count > std::numeric_limits<int>::max() / dimension_count)
+            return layout;
+        element_count *= dimension_count;
+        unit_increments = unit_increments && increment == 1;
+    }
+
+    if(first_index < 0 || last_index < 0 ||
+       first_index > std::numeric_limits<int>::max() ||
+       last_index > std::numeric_limits<int>::max())
+        return layout;
+
+    layout.valid = true;
+    layout.element_count = element_count;
+    layout.first_index = static_cast<int>(first_index);
+    layout.row_length = selection.size(selection.rank() - 1);
+    layout.contiguous = unit_increments &&
+        last_index - first_index + 1 == element_count;
+    return layout;
+}
+
+
+void
+finish_contiguous_range_iteration(range & selection)
+{
+    selection.reset();
+    selection.index_[0] = selection.b_[0];
+}
+
+
+void
+advance_range_row(range & selection)
+{
+    const int last_dimension = selection.rank() - 1;
+    if(last_dimension == 0)
+    {
+        selection.index_[0] = selection.b_[0];
+        return;
+    }
+
+    selection.reset(last_dimension);
+    for(int dimension = last_dimension - 1; dimension > 0; --dimension)
+    {
+        selection.index_[dimension] += selection.inc_[dimension];
+        if(selection.more(dimension))
+            return;
+        selection.reset(dimension);
+    }
+    selection.index_[0] += selection.inc_[0];
+}
+
+
+bool
+has_minimum_inner_block(const range & selection, int minimum_length)
+{
+    return selection.rank() > 0 &&
+           selection.size(selection.rank() - 1) >= minimum_length;
+}
+
+
+// Keep range planning out of the scalar fallback loop.
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((noinline))
+#endif
+bool
+copy_range_blocks(matrix & target, const matrix & source,
+                  range & target_range, range & source_range)
+{
+    const RangeCopyLayout source_layout = analyze_range_copy_layout(source, source_range);
+    const RangeCopyLayout target_layout = analyze_range_copy_layout(target, target_range);
+    if(!source_layout.valid || !target_layout.valid ||
+       source_layout.element_count != target_layout.element_count)
+        return false;
+
+    if(source_layout.contiguous && target_layout.contiguous)
+    {
+        std::copy_n(source.data_->begin() + source_layout.first_index,
+                    source_layout.element_count,
+                    target.data_->begin() + target_layout.first_index);
+        finish_contiguous_range_iteration(source_range);
+        finish_contiguous_range_iteration(target_range);
+        return true;
+    }
+
+    if(source_layout.row_length != target_layout.row_length)
+        return false;
+
+    source_range.reset();
+    target_range.reset();
+    while(source_range.more() && target_range.more())
+    {
+        int source_index = source.compute_index(source_range.index());
+        int target_index = target.compute_index(target_range.index());
+        if(source_range.inc_.back() == 1 && target_range.inc_.back() == 1)
+        {
+            std::copy_n(source.data_->begin() + source_index,
+                        source_layout.row_length,
+                        target.data_->begin() + target_index);
+        }
+        else
+        {
+            for(int element = 0; element < source_layout.row_length; ++element)
+            {
+                (*target.data_)[target_index] = (*source.data_)[source_index];
+                source_index += source_range.inc_.back();
+                target_index += target_range.inc_.back();
+            }
+        }
+        advance_range_row(source_range);
+        advance_range_row(target_range);
+    }
+    return true;
+}
+
+
 template <typename Fn>
 matrix &
 apply_unary_row_blocks(matrix & target, Fn f)
@@ -1248,6 +1405,13 @@ matrix::copy(const matrix & m, range & target, range & source)
 {
     if(source == target && m.info_->shape_ == info_->shape_)
         return copy(m);
+
+    constexpr int minimum_fast_copy_length = 4;
+    if(data_.get() != m.data_.get() &&
+       has_minimum_inner_block(source, minimum_fast_copy_length) &&
+       has_minimum_inner_block(target, minimum_fast_copy_length) &&
+       copy_range_blocks(*this, m, target, source))
+        return *this;
 
     source.reset();
     target.reset();

@@ -1215,6 +1215,117 @@ class MatrixFunctionTestModule : public Module
         require_true(expected_tensor == strided_tensor_target, "equality compares rank-3 row blocks in either direction");
         require_close(strided_tensor_target.sum(), 76.0f, "reduce() traverses rank-3 row blocks");
 
+        matrix ranged_source(4, 6);
+        fill_sequence(ranged_source);
+
+        matrix contiguous_range_target(4, 6);
+        contiguous_range_target.set(-1.0f);
+        range contiguous_source_range("[1:3][0:6]");
+        range contiguous_target_range("[0:2][0:6]");
+        contiguous_range_target.copy(ranged_source, contiguous_target_range, contiguous_source_range);
+        require_matrix_close(
+            contiguous_range_target,
+            make_matrix("7, 8, 9, 10, 11, 12; 13, 14, 15, 16, 17, 18; -1, -1, -1, -1, -1, -1; -1, -1, -1, -1, -1, -1"),
+            "ranged copy uses a contiguous selected span"
+        );
+        require_true(contiguous_source_range.index_ == std::vector<int>{3, 0} &&
+                     contiguous_target_range.index_ == std::vector<int>{2, 0},
+                     "contiguous ranged copy preserves exhausted iterator state");
+
+        matrix row_block_target(4, 8);
+        row_block_target.set(-1.0f);
+        range row_block_source_range("[0:4][1:5]");
+        range row_block_target_range("[0:4][2:6]");
+        row_block_target.copy(ranged_source, row_block_target_range, row_block_source_range);
+        require_matrix_close(
+            row_block_target,
+            make_matrix("-1, -1, 2, 3, 4, 5, -1, -1; -1, -1, 8, 9, 10, 11, -1, -1; -1, -1, 14, 15, 16, 17, -1, -1; -1, -1, 20, 21, 22, 23, -1, -1"),
+            "ranged copy uses contiguous row blocks"
+        );
+        require_true(row_block_source_range.index_ == std::vector<int>{4, 1} &&
+                     row_block_target_range.index_ == std::vector<int>{4, 2},
+                     "row-block ranged copy preserves exhausted iterator state");
+
+        matrix row_gapped_range_source(4, 10);
+        fill_sequence(row_gapped_range_source);
+        row_gapped_range_source.resize(4, 6);
+        matrix row_gapped_range_target(4, 12);
+        row_gapped_range_target.set(-1.0f);
+        row_gapped_range_target.resize(4, 8);
+        range row_gapped_range_source_selection("[0:4][1:5]");
+        range row_gapped_range_target_selection("[0:4][2:6]");
+        row_gapped_range_target.copy(row_gapped_range_source,
+                                     row_gapped_range_target_selection,
+                                     row_gapped_range_source_selection);
+        require_matrix_close(
+            row_gapped_range_target,
+            make_matrix("-1, -1, 2, 3, 4, 5, -1, -1; -1, -1, 12, 13, 14, 15, -1, -1; -1, -1, 22, 23, 24, 25, -1, -1; -1, -1, 32, 33, 34, 35, -1, -1"),
+            "ranged copy honors source and target row gaps"
+        );
+        row_gapped_range_target.resize(4, 12);
+        for(int row_index = 0; row_index < row_gapped_range_target.rows(); ++row_index)
+        {
+            require_close(row_gapped_range_target(row_index, 6), -1.0f, "ranged copy leaves logical row remainder unchanged");
+            require_close(row_gapped_range_target(row_index, 11), -1.0f, "ranged copy leaves physical row gap unchanged");
+        }
+
+        matrix cross_rank_source = make_matrix("1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12");
+        matrix cross_rank_target(3, 4);
+        cross_rank_target.set(-1.0f);
+        range cross_rank_source_range("[0:12]");
+        range cross_rank_target_range("[0:3][0:4]");
+        cross_rank_target.copy(cross_rank_source, cross_rank_target_range, cross_rank_source_range);
+        require_matrix_close(cross_rank_target,
+                             make_matrix("1, 2, 3, 4; 5, 6, 7, 8; 9, 10, 11, 12"),
+                             "contiguous ranged copy supports different ranks");
+
+        matrix stepped_range_target(4, 7);
+        stepped_range_target.set(-1.0f);
+        range stepped_range_source("[0:4][0:6:2]");
+        range stepped_range_target_selection("[0:4][1:7:2]");
+        stepped_range_target.copy(ranged_source, stepped_range_target_selection, stepped_range_source);
+        require_matrix_close(
+            stepped_range_target,
+            make_matrix("-1, 1, -1, 3, -1, 5, -1; -1, 7, -1, 9, -1, 11, -1; -1, 13, -1, 15, -1, 17, -1; -1, 19, -1, 21, -1, 23, -1"),
+            "stepped ranged copy preserves selection order"
+        );
+
+        matrix reverse_range_target(2, 6);
+        range reverse_range_source("[0:2][0:6:-1]");
+        range reverse_range_target_selection("[0:2][0:6]");
+        reverse_range_target.copy(ranged_source, reverse_range_target_selection, reverse_range_source);
+        require_matrix_close(reverse_range_target,
+                             make_matrix("6, 5, 4, 3, 2, 1; 12, 11, 10, 9, 8, 7"),
+                             "reverse ranged copy preserves selection order");
+
+        matrix reverse_row_target(4, 4);
+        range reverse_row_source_range("[0:4:-1][1:5]");
+        range reverse_row_target_range("[0:4][0:4]");
+        reverse_row_target.copy(ranged_source, reverse_row_target_range, reverse_row_source_range);
+        require_matrix_close(reverse_row_target,
+                             make_matrix("20, 21, 22, 23; 14, 15, 16, 17; 8, 9, 10, 11; 2, 3, 4, 5"),
+                             "row-block ranged copy supports reversed outer dimensions");
+        require_true(reverse_row_source_range.index_ == std::vector<int>{-1, 1},
+                     "reverse row-block copy preserves exhausted iterator state");
+
+        matrix incompatible_block_target(8);
+        range incompatible_block_source_range("[0:2][1:5]");
+        range incompatible_block_target_range("[0:8]");
+        incompatible_block_target.copy(ranged_source,
+                                       incompatible_block_target_range,
+                                       incompatible_block_source_range);
+        require_matrix_close(incompatible_block_target,
+                             make_matrix("2, 3, 4, 5, 8, 9, 10, 11"),
+                             "incompatible ranged row widths retain scalar fallback behavior");
+
+        matrix overlapping_range = make_matrix("1, 2, 3, 4, 5, 6, 7, 8");
+        range overlapping_source_range("[0:6]");
+        range overlapping_target_range("[2:8]");
+        overlapping_range.copy(overlapping_range, overlapping_target_range, overlapping_source_range);
+        require_matrix_close(overlapping_range,
+                             make_matrix("1, 2, 1, 2, 1, 2, 1, 2"),
+                             "overlapping ranged copy retains element-order behavior");
+
         strided_tensor_target.apply([](float value) { return value + 1.0f; });
         expected_tensor.apply([](float value) { return value + 1.0f; });
         require_matrix_close(strided_tensor_target, expected_tensor, "apply() traverses rank-3 row blocks");
@@ -1413,6 +1524,45 @@ class MatrixFunctionTestModule : public Module
             checksum += target(0, 0, 0);
         });
 
+        range contiguous_source_range("[2:6][0:64][0:64]");
+        range contiguous_target_range("[0:4][0:64][0:64]");
+        double ranged_contiguous_copy_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                target.copy(source, contiguous_target_range, contiguous_source_range);
+            checksum += target(0, 0, 0);
+        });
+
+        range row_block_source_range("[0:8][0:64][8:56]");
+        range row_block_target_range("[0:8][0:64][4:52]");
+        double ranged_row_block_copy_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                target.copy(source, row_block_target_range, row_block_source_range);
+            checksum += target(0, 0, 4);
+        });
+
+        range stepped_source_range("[0:8][0:64][0:64:2]");
+        range stepped_target_range("[0:8][0:64][1:64:2]");
+        for(int i = 0; i < 20; ++i)
+            target.copy(source, stepped_target_range, stepped_source_range);
+        double ranged_stepped_copy_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                target.copy(source, stepped_target_range, stepped_source_range);
+            checksum += target(0, 0, 1);
+        });
+
+        range scalar_source_range("[0][0][0]");
+        range scalar_target_range("[0][0][0]");
+        constexpr int scalar_copy_iterations = 200000;
+        double ranged_scalar_copy_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < scalar_copy_iterations; ++i)
+                target.copy(source, scalar_target_range, scalar_source_range);
+            checksum += target(0, 0, 0);
+        });
+
         double slice_copy_ms = measure_ms([&]()
         {
             for(int i = 0; i < iterations; ++i)
@@ -1507,6 +1657,15 @@ class MatrixFunctionTestModule : public Module
             checksum += row_gapped_target.sum();
         });
 
+        range row_gapped_source_range("[0:64][8:56]");
+        range row_gapped_target_range("[0:64][4:52]");
+        double ranged_row_gapped_copy_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < row_gap_iterations; ++i)
+                row_gapped_target.copy(row_gapped_source, row_gapped_target_range, row_gapped_source_range);
+            checksum += row_gapped_target(0, 4);
+        });
+
         double row_gapped_unary_apply_ms = measure_ms([&]()
         {
             for(int i = 0; i < row_gap_iterations; ++i)
@@ -1579,6 +1738,10 @@ class MatrixFunctionTestModule : public Module
 
         std::cout << "MATRIX BENCHMARK hotspots"
                   << " contiguous_copy_ms=" << contiguous_copy_ms
+                  << " ranged_contiguous_copy_ms=" << ranged_contiguous_copy_ms
+                  << " ranged_row_block_copy_ms=" << ranged_row_block_copy_ms
+                  << " ranged_stepped_copy_ms=" << ranged_stepped_copy_ms
+                  << " ranged_scalar_copy_ms=" << ranged_scalar_copy_ms
                   << " slice_copy_ms=" << slice_copy_ms
                   << " slice_apply_ms=" << slice_apply_ms
                   << " full_sum_ms=" << full_sum_ms
@@ -1588,6 +1751,7 @@ class MatrixFunctionTestModule : public Module
                   << " dot_ms=" << dot_ms
                   << " serialization_ms=" << serialization_ms
                   << " row_gapped_copy_ms=" << row_gapped_copy_ms
+                  << " ranged_row_gapped_copy_ms=" << ranged_row_gapped_copy_ms
                   << " row_gapped_unary_apply_ms=" << row_gapped_unary_apply_ms
                   << " row_gapped_binary_apply_ms=" << row_gapped_binary_apply_ms
                   << " row_gapped_ternary_apply_ms=" << row_gapped_ternary_apply_ms
