@@ -38,6 +38,24 @@ namespace ikaros
             const long long step = -static_cast<long long>(increment);
             return static_cast<int>(static_cast<long long>(a) + (count - 1) * step);
         }
+
+
+        int
+        ValidatedRangeStartIndex(int a, int b, int increment)
+        {
+            const int count = RangeDimensionSize(a, b, increment);
+            if(count == 0)
+                return increment == 0 ? 0 : a;
+
+            long long initial = a;
+            if(increment < 0)
+                initial += (count - 1) * -static_cast<long long>(increment);
+            const long long terminal = initial + static_cast<long long>(count) * increment;
+            if(terminal < std::numeric_limits<int>::min() ||
+               terminal > std::numeric_limits<int>::max())
+                throw std::overflow_error("Range terminal cursor exceeds the supported integer bounds");
+            return static_cast<int>(initial);
+        }
     }
 
 
@@ -46,7 +64,7 @@ namespace ikaros
         inc_(std::vector<int>{inc}),
         a_(std::vector<int>{a}),
         b_(std::vector<int>{b}),
-        index_(std::vector<int>{RangeStartIndex(a, b, inc)})
+        index_(std::vector<int>{ValidatedRangeStartIndex(a, b, inc)})
      {};
     range::range(int a)
     {
@@ -58,7 +76,7 @@ namespace ikaros
     range &
     range::push(int a, int b, int inc)
     {
-        const int initial_index = RangeStartIndex(a, b, inc);
+        const int initial_index = ValidatedRangeStartIndex(a, b, inc);
         const std::size_t new_size = index_.size() + 1;
         a_.reserve(new_size);
         b_.reserve(new_size);
@@ -92,7 +110,7 @@ namespace ikaros
     range &
     range::push_front(int a, int b, int inc)
     {
-        const int initial_index = RangeStartIndex(a, b, inc);
+        const int initial_index = ValidatedRangeStartIndex(a, b, inc);
         const std::size_t new_size = index_.size() + 1;
         a_.reserve(new_size);
         b_.reserve(new_size);
@@ -145,7 +163,7 @@ namespace ikaros
             result.a_[i] = std::min(result.a_[i], r.a_[i]);
             result.b_[i] = std::max(result.b_[i], r.b_[i]);
             result.inc_[i] = r.inc_[i];
-            result.index_[i] = RangeStartIndex(result.a_[i], result.b_[i], result.inc_[i]);
+            result.index_[i] = ValidatedRangeStartIndex(result.a_[i], result.b_[i], result.inc_[i]);
         }
         swap(result);
         return *this;
@@ -167,7 +185,7 @@ namespace ikaros
                 result.a_[i] = r.a_[i];
                 result.b_[i] = r.b_[i];
                 result.inc_[i] = r.inc_[i];
-                result.index_[i] = RangeStartIndex(result.a_[i], result.b_[i], result.inc_[i]);
+                result.index_[i] = ValidatedRangeStartIndex(result.a_[i], result.b_[i], result.inc_[i]);
             }
         swap(result);
         return *this;
@@ -227,7 +245,11 @@ namespace ikaros
                 throw std::invalid_argument("Malformed range string");
             }
         }
-        catch(const std::exception& e)
+        catch(const std::overflow_error &)
+        {
+            throw;
+        }
+        catch(const std::exception &)
         {
             throw std::invalid_argument("Malformed range string");
         }
@@ -292,6 +314,7 @@ namespace ikaros
         return index();
     }
 
+
     range & 
     range::reset(int d)
     {
@@ -338,13 +361,24 @@ namespace ikaros
     }
 
     
-    range range::trim() const
+    range
+    range::trim() const
     {
         range r = *this;
         for(int d=0; d<index_.size(); d++)
         {
-            r.index_[d] -= r.a_[d];
-            r.b_[d] -= r.a_[d];
+            const long long shifted_stop = static_cast<long long>(r.b_[d]) - r.a_[d];
+            const long long shifted_index = static_cast<long long>(r.index_[d]) - r.a_[d];
+            if(shifted_stop < std::numeric_limits<int>::min() ||
+               shifted_stop > std::numeric_limits<int>::max() ||
+               shifted_index < std::numeric_limits<int>::min() ||
+               shifted_index > std::numeric_limits<int>::max())
+                throw std::overflow_error("Trimmed range exceeds the supported integer bounds");
+
+            static_cast<void>(ValidatedRangeStartIndex(0, static_cast<int>(shifted_stop), r.inc_[d]));
+
+            r.index_[d] = static_cast<int>(shifted_index);
+            r.b_[d] = static_cast<int>(shifted_stop);
             r.a_[d] = 0;
         }
         return r;
@@ -411,7 +445,7 @@ namespace ikaros
         if(d < 0 || d >= rank())
             throw std::out_of_range("Index out of bounds in set.");
 
-        const int initial_index = RangeStartIndex(a, b, inc);
+        const int initial_index = ValidatedRangeStartIndex(a, b, inc);
         a_[d] = a;
         b_[d] = b;
         inc_[d] = inc;
@@ -444,24 +478,31 @@ namespace ikaros
         index_.swap(other.index_);
     }
 
-    void 
-        operator|=(range & r, range & s)
+
+    void
+    operator|=(range & r, range & s)
     {
-        if(r.index_.size()==0)
+        if(r.empty())
         {
-            r = s;
+            range result = s;
+            r.swap(result);
             return;
         }
+        if(r.rank() != s.rank())
+            throw std::invalid_argument("Cannot combine ranges with different ranks");
 
-        for(int d=0; d<r.index_.size(); d++)
+        range result = r;
+        for(int d = 0; d < result.rank(); ++d)
         {
-            if(s.a_[d] < r.a_[d])
-                r.a_[d] = s.a_[d];
-            if(s.b_[d] > r.b_[d])
-                r.b_[d] = s.b_[d];
-            r.inc_[d] = 1;
-            r.index_[d] = r.inc_[d]>0 ? r.a_[d] : r.a_[d]+r.inc_[d]*((r.b_[d]-r.a_[d]-1)/r.inc_[d]);
+            const int combined_start = std::min(result.a_[d], s.a_[d]);
+            const int combined_stop = std::max(result.b_[d], s.b_[d]);
+            const int combined_index = ValidatedRangeStartIndex(combined_start, combined_stop, 1);
+            result.a_[d] = combined_start;
+            result.b_[d] = combined_stop;
+            result.inc_[d] = 1;
+            result.index_[d] = combined_index;
         }
+        r.swap(result);
     }
 
     void

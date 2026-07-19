@@ -349,6 +349,19 @@ class RangeSizeTestModule : public Module
                 throw exception(operation + " changed the range after rejecting the operation");
         };
 
+        auto checkConstructionOverflow = [](const auto & construction,
+                                            const std::string & description)
+        {
+            try
+            {
+                construction();
+                throw exception(description + " was not rejected");
+            }
+            catch(const std::overflow_error &)
+            {
+            }
+        };
+
         const int minimum = std::numeric_limits<int>::min();
         const int maximum = std::numeric_limits<int>::max();
         checkAtomicOverflow(range(0, 1), [=](range & value)
@@ -369,6 +382,32 @@ class RangeSizeTestModule : public Module
         {
             value.extend(distantRange);
         }, "extend()");
+        checkAtomicOverflow(range(minimum, 0, maximum), [](range & value)
+        {
+            static_cast<void>(value.trim());
+        }, "trim()");
+        checkAtomicOverflow(range(minimum, -1, 1), [&](range & value)
+        {
+            value |= distantRange;
+        }, "operator|=()");
+
+        checkConstructionOverflow([=]()
+        {
+            static_cast<void>(range(maximum - 1, maximum, 2));
+        }, "A range with an overflowing positive terminal cursor");
+        checkConstructionOverflow([=]()
+        {
+            static_cast<void>(range(minimum, minimum + 1, -2));
+        }, "A range with an overflowing negative terminal cursor");
+        checkConstructionOverflow([=]()
+        {
+            static_cast<void>(range("[" + std::to_string(maximum - 1) + ":" +
+                                    std::to_string(maximum) + ":2]"));
+        }, "A parsed range with an overflowing terminal cursor");
+        checkAtomicOverflow(range(0, 2), [=](range & value)
+        {
+            value.push(maximum - 1, maximum, 2);
+        }, "push() with an overflowing terminal cursor");
 
         range prefix(0, 3);
         range * prefixResult = &(++prefix);
