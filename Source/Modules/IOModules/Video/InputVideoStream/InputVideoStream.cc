@@ -64,7 +64,8 @@ class InputVideoStream : public Module
 	{
 		framegrabber = std::make_unique<FFMpegGrab>();
 		framegrabber->SetUv4l(uv4l);
-		framegrabber->SetUrl(url.c_str());
+		const std::string stream_url = url.as_string();
+		framegrabber->SetUrl(stream_url.c_str());
 		framegrabber->SetPrintInfo(printInfo);
 		framegrabber->SetOutputSize(size_x.as_int(), size_y.as_int());
 		framegrabber->SetSynchronized(synchronized_framegrabber);

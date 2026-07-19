@@ -189,8 +189,6 @@ public:
     const std::vector<std::string> & options() const noexcept;
     const dictionary & metadata() const noexcept;
 
-    const char* c_str() const noexcept;
-
     std::string json() const;    
     
     friend std::ostream& operator<<(std::ostream& os, const parameter & p);

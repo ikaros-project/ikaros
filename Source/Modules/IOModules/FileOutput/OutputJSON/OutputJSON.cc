@@ -19,7 +19,7 @@ class OutputJSON: public Module
 
     std::string ComputeOutputFilename()
     {
-        std::string base = filename.c_str();
+        std::string base = filename.as_string();
         std::string ext  = static_cast<bool>(JSONL) ? ".jsonl" : ".json";
 
         // If filename already ends with the right extension, keep it
@@ -76,7 +76,7 @@ class OutputJSON: public Module
 
         std::fstream io(path, std::ios::in | std::ios::out | std::ios::binary);
         if (!io.is_open()) {
-            Notify(msg_warning, "JSONStreamer: Could not open '%s' for append.", filename.c_str());
+            Notify(msg_warning, "JSONStreamer: Could not open '%s' for append.", output_filename.c_str());
             return;
         }
 

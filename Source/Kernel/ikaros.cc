@@ -1205,16 +1205,6 @@ namespace ikaros
     }
 
 
-    const char* 
-    parameter::c_str() const noexcept
-    {
-        if(auto string_value = std::get_if<std::string>(&state_->value))
-            return string_value->c_str();
-        else
-            return nullptr;
-    }
-
-
     std::string
     parameter::as_string() const
     {
