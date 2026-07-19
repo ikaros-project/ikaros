@@ -784,7 +784,7 @@ namespace ikaros
         if(has_options)
         {
             auto options = get_parameter_options(info_);
-            *value = clamp_option_index(int(std::round(v)), options);
+            *value = clamp_option_index(checked_truncating_int(std::round(v), "option index"), options);
             *resolved = true;
             return v;
         }
@@ -823,7 +823,10 @@ namespace ikaros
             if(it != options.end())
                 *value = int(std::distance(options.begin(), it));
             else if(is_number(v))
-                *value = clamp_option_index(int(parse_parameter_number(v, "option index")), options);
+                *value = clamp_option_index(
+                    checked_truncating_int(std::round(parse_parameter_number(v, "option index")), "option index"),
+                    options
+                );
             else
                 throw exception("Invalid parameter value");
 
@@ -908,7 +911,7 @@ namespace ikaros
     parameter::get(int index, float default_value) const
     {
         if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
-            return index < matrix_value->size() ? matrix_value->data()[index] : default_value;
+            return index >= 0 && index < matrix_value->size() ? matrix_value->data()[index] : default_value;
         throw exception("Not a matrix value.");
     }
 
@@ -917,7 +920,11 @@ namespace ikaros
     parameter::operator[](int index) const
     {
         if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
+        {
+            if(index < 0 || index >= matrix_value->size())
+                throw std::out_of_range("Parameter matrix index out of range.");
             return matrix_value->data()[index];
+        }
         throw exception("Not a matrix value.");
     }
 
@@ -1046,7 +1053,10 @@ namespace ikaros
             case number_type:
             case rate_type:
                 if(auto number_value = std::get_if<double>(value.get()))
-                    return type == rate_type ? static_cast<long>(*number_value * kernel().GetTickDuration()) : static_cast<long>(*number_value);
+                    return checked_truncating_long(
+                        type == rate_type ? *number_value * kernel().GetTickDuration() : *number_value,
+                        "long"
+                    );
                 break;
             case bool_type:
                 if(auto bool_value = std::get_if<bool>(value.get()))
@@ -1054,11 +1064,11 @@ namespace ikaros
                 break;
             case string_type:
                 if(auto string_value = std::get_if<std::string>(value.get()))
-                    return static_cast<long>(parse_parameter_number(*string_value, "long"));
+                    return checked_truncating_long(parse_parameter_number(*string_value, "long"), "long");
                 break;
             case matrix_type:
                 if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
-                    return static_cast<long>(get_scalar_matrix_value(*matrix_value, "long"));
+                    return checked_truncating_long(get_scalar_matrix_value(*matrix_value, "long"), "long");
                 throw exception("Could not convert matrix to long");
             default: ;
         }
@@ -1082,7 +1092,10 @@ namespace ikaros
             case number_type:
             case rate_type:
                 if(auto number_value = std::get_if<double>(value.get()))
-                    return type == rate_type ? int(*number_value * kernel().GetTickDuration()) : int(*number_value);
+                    return checked_truncating_int(
+                        type == rate_type ? *number_value * kernel().GetTickDuration() : *number_value,
+                        "int"
+                    );
                 break;
             case bool_type:
                 if(auto bool_value = std::get_if<bool>(value.get()))
@@ -1090,11 +1103,11 @@ namespace ikaros
                 break;
             case string_type:
                 if(auto string_value = std::get_if<std::string>(value.get()))
-                    return int(parse_parameter_number(*string_value, "int"));
+                    return checked_truncating_int(parse_parameter_number(*string_value, "int"), "int");
                 break;
             case matrix_type:
                 if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
-                    return int(get_scalar_matrix_value(*matrix_value, "int"));
+                    return checked_truncating_int(get_scalar_matrix_value(*matrix_value, "int"), "int");
                 throw exception("Could not convert matrix to int");
             default: ;
         }

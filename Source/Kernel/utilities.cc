@@ -1,12 +1,33 @@
 // utilities.cc
 
-#include "utilities.h"
 #include <charconv>
 #include <cmath>
+#include <limits>
+#include <stdexcept>
 #include <system_error>
+#include <type_traits>
+
+#include "utilities.h"
 
 namespace ikaros
 {
+namespace
+{
+template<typename T>
+T
+checked_truncating_integral_conversion(double value, const std::string & conversion_name)
+{
+    static_assert(std::is_integral_v<T> && std::is_signed_v<T>);
+
+    const long double converted_value = value;
+    const long double lower_exclusive = static_cast<long double>(std::numeric_limits<T>::lowest()) - 1.0L;
+    const long double upper_exclusive = static_cast<long double>(std::numeric_limits<T>::max()) + 1.0L;
+    if(!std::isfinite(value) || converted_value <= lower_exclusive || converted_value >= upper_exclusive)
+        throw std::out_of_range("Value cannot be represented as " + conversion_name + ".");
+
+    return static_cast<T>(value);
+}
+}
 
 std::string trim(const std::string &s)
 {
@@ -469,6 +490,20 @@ parse_float(const std::string & s)
     if(!parse_float(s, value))
         throw std::invalid_argument("Invalid decimal number \"" + s + "\".");
     return value;
+}
+
+
+int
+checked_truncating_int(double value, const std::string & conversion_name)
+{
+    return checked_truncating_integral_conversion<int>(value, conversion_name);
+}
+
+
+long
+checked_truncating_long(double value, const std::string & conversion_name)
+{
+    return checked_truncating_integral_conversion<long>(value, conversion_name);
 }
 
 

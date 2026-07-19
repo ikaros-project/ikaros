@@ -82,7 +82,7 @@ ComputeEngine::ComputeDouble(const std::string & s)
 int
 ComputeEngine::ComputeInt(const std::string & s)
 {
-    return static_cast<int>(ComputeDouble(s));
+    return checked_truncating_int(ComputeDouble(s), "int");
 }
 
 
