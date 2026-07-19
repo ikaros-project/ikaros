@@ -237,9 +237,9 @@ namespace ikaros
         result.extend(r.rank());
         for(int i=0; i<result.rank(); i++)
         {
-            if(r.inc_[i] == 0)
+            if(r.is_placeholder(i))
                 continue;
-            if(result.inc_[i] == 0)
+            if(result.is_placeholder(i))
             {
                 result.a_[i] = r.a_[i];
                 result.b_[i] = r.b_[i];
@@ -271,7 +271,7 @@ namespace ikaros
 
         range result = *this;
         for(int i=0; i<result.rank(); i++)
-            if(result.empty(i))
+            if(result.is_placeholder(i))
             {
                 result.a_[i] = r.a_[i];
                 result.b_[i] = r.b_[i];
@@ -539,6 +539,13 @@ namespace ikaros
 
 
     bool
+    range::is_placeholder(int d) const
+    {
+        return step(d) == 0;
+    }
+
+
+    bool
     range::same_state(const range & other) const
     {
         return *this == other && index_ == other.index_;
@@ -628,7 +635,7 @@ namespace ikaros
         {
             s +=  sep;
 
-            if(inc_[d] == 0) // empty/full range
+            if(is_placeholder(d))
                 ;
 
             else if(a_[d] == b_[d]-1 && inc_[d]==1) // single index
@@ -667,7 +674,7 @@ namespace ikaros
         {
             s +=  sep;
 
-            if(inc_[d] == 0) // empty/full range
+            if(is_placeholder(d))
                 ;
 
             else if(a_[d] == b_[d]-1 && inc_[d]==1) // single index

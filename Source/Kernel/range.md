@@ -102,6 +102,11 @@ argument with fewer dimensions than the receiver. `fill()` likewise requires its
 least as many dimensions as the receiver. Invalid rank combinations throw `std::invalid_argument`
 instead of accessing missing dimension data.
 
+`fill()` replaces only zero-step placeholders such as `[]` and dimensions added by `extend(rank)`.
+An explicitly empty dimension with a nonzero increment remains empty. Connection resolution uses
+the same rule for source and target selectors, so zero cardinality does not imply a wildcard. Use
+`is_placeholder(d)` to test this state without exposing its zero-step representation.
+
 For each populated dimension, `extend(const range &)` produces the smallest arithmetic progression
 that covers both inputs. It uses the greatest common divisor of their increments and starting-point
 offset, preserving the receiver's traversal direction. The result can contain intermediate indices

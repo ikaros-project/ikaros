@@ -302,6 +302,17 @@ class RangeSizeTestModule : public Module
            !range("[0:2][][0:2]").empty() || range(0, 1).empty())
             throw exception("Range emptiness did not follow generated cardinality");
 
+        if(!range("[]").is_placeholder(0) || range(3, 3).is_placeholder(0))
+            throw exception("Range placeholder detection was confused with emptiness");
+        try
+        {
+            static_cast<void>(range().is_placeholder(0));
+            throw exception("Placeholder detection accepted an invalid dimension");
+        }
+        catch(const std::out_of_range &)
+        {
+        }
+
         range strippedEmpty = range("[0:2][][3]").strip();
         if(strippedEmpty.rank() != 2 || !strippedEmpty.empty() || strippedEmpty.size() != 0 ||
            strippedEmpty.start(0) != 0 || strippedEmpty.stop(0) != 2 ||
@@ -413,6 +424,24 @@ class RangeSizeTestModule : public Module
         placeholder.extend(range("[]"));
         if(placeholder != offsetRange)
             throw exception("Extending with a placeholder changed an existing range");
+
+        range fillSource(0, 5);
+        range fillPlaceholder("[]");
+        fillPlaceholder.fill(fillSource);
+        if(fillPlaceholder != fillSource)
+            throw exception("Filling a range did not replace a zero-step placeholder");
+
+        range explicitEmpty(3, 3);
+        const range originalExplicitEmpty = explicitEmpty;
+        explicitEmpty.fill(fillSource);
+        if(!explicitEmpty.same_state(originalExplicitEmpty))
+            throw exception("Filling a range replaced an explicitly empty dimension");
+
+        range descendingEmpty(3, 2);
+        const range originalDescendingEmpty = descendingEmpty;
+        descendingEmpty.fill(fillSource);
+        if(!descendingEmpty.same_state(originalDescendingEmpty))
+            throw exception("Filling a range replaced a descending empty dimension");
 
         range incomplete("[][0:2]");
         try

@@ -55,6 +55,7 @@ namespace ikaros
         [[nodiscard]] bool more() const;
         [[nodiscard]] bool empty() const;                       // true if the range generates no index tuples
         [[nodiscard]] bool empty(int d) const;
+        [[nodiscard]] bool is_placeholder(int d) const;
         [[nodiscard]] bool same_state(const range & other) const;
 
         range & set(int d, int a, int b, int inc);

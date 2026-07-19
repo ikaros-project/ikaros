@@ -3434,8 +3434,8 @@ namespace ikaros
         else
         {
             int j=0;
-            for(int i=0; i<target_range.rank()-1; i++)    // CHECK EMPTY DIMENSION
-                if(target_range.empty(i) && j<reduced_source.rank())
+            for(int i=0; i<target_range.rank()-1; i++)
+                if(target_range.is_placeholder(i) && j<reduced_source.rank())
                 {
                     target_range.set(i, reduced_source.start(j),
                                      reduced_source.stop(j), reduced_source.step(j));
@@ -3450,7 +3450,8 @@ namespace ikaros
                 s *= (si >0?si:1);
             }
 
-            if(target_range.empty(target_range.rank()-1) && j<reduced_source.rank())
+            if(target_range.is_placeholder(target_range.rank()-1) &&
+               j<reduced_source.rank())
                 target_range.set(target_range.rank()-1, 0, s, 1);
         }
         int delay_size = DelayCount();
