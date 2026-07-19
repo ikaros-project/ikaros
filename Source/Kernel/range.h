@@ -44,7 +44,8 @@ namespace ikaros
         range & operator++();                 // advance without copying the current index
         std::vector<int> operator++(int);     // advance and return a copied index
 
-        range & reset(int d=0);
+        range & reset();
+        range & reset(int d);
         range & clear();
         
         [[nodiscard]] range trim() const;  // move range to 0..

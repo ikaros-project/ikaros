@@ -333,6 +333,33 @@ class RangeSizeTestModule : public Module
         if(exhausted.empty())
             throw exception("Range emptiness depended on the iteration cursor");
 
+        range partiallyAdvanced("[0:2][1:4]");
+        ++partiallyAdvanced;
+        ++partiallyAdvanced;
+        range * resetResult = &partiallyAdvanced.reset();
+        if(resetResult != &partiallyAdvanced ||
+           partiallyAdvanced.index() != std::vector<int>{0, 1})
+            throw exception("Reset did not restart every forward range dimension");
+
+        range reverseAdvanced("[0:5:-2][1:6:-2]");
+        ++reverseAdvanced;
+        reverseAdvanced.reset();
+        if(reverseAdvanced.index() != std::vector<int>{4, 5})
+            throw exception("Reset did not restart every reverse range dimension");
+
+        range dimensionReset("[0:2][0:3]");
+        ++dimensionReset;
+        ++dimensionReset;
+        ++dimensionReset;
+        ++dimensionReset;
+        dimensionReset.reset(1);
+        if(dimensionReset.index() != std::vector<int>{1, 0})
+            throw exception("Dimension-specific reset changed another range dimension");
+
+        range rankZeroReset;
+        if(&rankZeroReset.reset() != &rankZeroReset || rankZeroReset.rank() != 0)
+            throw exception("Resetting a rank-zero range was not a no-op");
+
         range multidimensional("[0:5:2][1:6:2]");
         std::vector<std::vector<int>> actualIndices;
         for(auto index = multidimensional; index.more(); ++index)

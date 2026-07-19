@@ -988,24 +988,17 @@ public:
     range_iteration_reset(range & target, range & source):
         target_(target), source_(source)
     {
-        reset_all(target_);
-        reset_all(source_);
+        target_.reset();
+        source_.reset();
     }
 
     ~range_iteration_reset()
     {
-        reset_all(target_);
-        reset_all(source_);
+        target_.reset();
+        source_.reset();
     }
 
 private:
-    static void
-    reset_all(range & selection)
-    {
-        for(int dimension = 0; dimension < selection.rank(); ++dimension)
-            selection.reset(dimension);
-    }
-
     range & target_;
     range & source_;
 };

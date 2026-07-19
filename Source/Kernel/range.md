@@ -162,6 +162,9 @@ for(r.reset();r.more();++r)
    std::cout << r << std::endl;
 ```
 
+`reset()` restores the iteration cursor in every dimension and is a no-op for a rank-zero range.
+Use `reset(d)` only when restarting one specific dimension while preserving the others.
+
 Or define the range directly in the for loop:
 
 ```C++

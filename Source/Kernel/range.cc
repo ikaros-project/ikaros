@@ -369,6 +369,15 @@ namespace ikaros
     }
 
 
+    range &
+    range::reset()
+    {
+        for(int d = 0; d < rank(); ++d)
+            index_[d] = RangeStartIndex(a_[d], b_[d], inc_[d]);
+        return *this;
+    }
+
+
     range & 
     range::reset(int d)
     {
