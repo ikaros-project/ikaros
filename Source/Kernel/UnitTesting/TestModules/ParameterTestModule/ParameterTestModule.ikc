@@ -1,4 +1,5 @@
 <class internal="true" name="ParameterTestModule" description="Exercises parameter conversion, indexing, and matrix update safety">
+    <parameter name="bounded_value" type="number" default="0.5" min="0" max="1" />
     <parameter name="matrix_value" type="matrix" default="1, 2; 3, 4" />
     <parameter name="precision_copy" type="number" default="@precision_source" />
     <parameter name="precision_source" type="number" default="0.12345678901234566" />

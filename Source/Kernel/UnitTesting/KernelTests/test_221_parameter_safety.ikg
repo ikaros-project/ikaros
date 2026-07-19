@@ -1,6 +1,6 @@
 <group internal="true"
     name="TestParameterSafety"
-    description="Test parameter bounds, conversions, precision, rates, strict booleans, and fixed-shape matrices"
+    description="Test parameter safety, constraints, precision, rates, options, and fixed-shape matrices"
     start="true"
     stop="1"
     tick_duration="0.02"

@@ -100,6 +100,55 @@ class ParameterTestModule : public Module
     }
 
 
+    void test_constraints_and_option_cache()
+    {
+        parameter boundedBinding;
+        Bind(boundedBinding, "bounded_value");
+        SetParameter("bounded_value", std::string("0.75"));
+        require_true(boundedBinding.as_double() == 0.75,
+                     "kernel parameter updates should accept values within constraints");
+        require_throws_as<exception>([&]() { SetParameter("bounded_value", std::string("1.1")); },
+                                     "kernel parameter updates should enforce constraints");
+        require_true(boundedBinding.as_double() == 0.75,
+                     "a rejected kernel parameter update should leave the value unchanged");
+
+        parameter bounded(dictionary({
+            {"type", "number"},
+            {"name", "bounded"},
+            {"min", "-1.5"},
+            {"max", "2.5"}
+        }));
+        bounded = -1.5;
+        bounded = 2.5;
+        require_throws_as<exception>([&]() { bounded = -1.5001; },
+                                     "numeric assignment should enforce the minimum");
+        require_true(bounded.as_double() == 2.5, "a rejected minimum violation should leave the value unchanged");
+        require_throws_as<exception>([&]() { bounded = std::string("2.5001"); },
+                                     "string assignment should enforce the maximum");
+        require_true(bounded.as_double() == 2.5, "a rejected maximum violation should leave the value unchanged");
+        require_throws_as<exception>([&]() { bounded = std::numeric_limits<double>::quiet_NaN(); },
+                                     "constrained parameters should reject non-finite values");
+
+        require_throws_as<exception>([]()
+        {
+            parameter invalid(dictionary({
+                {"type", "number"},
+                {"min", "2"},
+                {"max", "1"}
+            }));
+            static_cast<void>(invalid);
+        }, "parameter construction should reject reversed constraints");
+
+        parameter option("string", "alpha, beta, gamma");
+        require_true(option.has_options() && option.options().size() == 3,
+                     "option metadata should be parsed once into the parameter");
+        require_true(option.options()[0] == "alpha" && option.options()[1] == "beta" &&
+                     option.options()[2] == "gamma", "cached options should be trimmed");
+        option = std::string("beta");
+        require_true(option.as_string() == "beta", "option assignment should use the cached options");
+    }
+
+
     void test_matrix_update_contract()
     {
         Bind(matrixValue, "matrix_value");
@@ -233,6 +282,7 @@ class ParameterTestModule : public Module
         test_numeric_precision_and_rates();
         test_matrix_indexing();
         test_boolean_assignment();
+        test_constraints_and_option_cache();
         test_matrix_update_contract();
         test_integral_conversions();
         test_option_indices();

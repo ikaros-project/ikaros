@@ -127,14 +127,25 @@ inline constexpr std::array<std::string_view, 6> parameter_strings = {
 class parameter
 {
 private:
-public:
     using parameter_value = std::variant<std::monostate, double, bool, int, std::string, matrix>;
 
-    dictionary                      info_;
-    bool                            has_options;
-    std::shared_ptr<bool>           resolved;
-    parameter_type                  type;
-    std::shared_ptr<parameter_value> value;
+    dictionary                       info_;
+    bool                             has_options_;
+    std::vector<std::string>         options_;
+    std::shared_ptr<bool>            resolved_;
+    parameter_type                   type_;
+    std::shared_ptr<parameter_value> value_;
+    std::optional<double>            minimum_;
+    std::optional<double>            maximum_;
+
+    void validate_numeric_value(double value) const;
+    matrix * matrix_value() noexcept;
+    const matrix * matrix_value() const noexcept;
+    void set_source_value(const std::string & value);
+
+    friend class Kernel;
+
+public:
 
     parameter();
     parameter(dictionary info);
@@ -165,6 +176,12 @@ public:
     int size() const;
     float get(int index, float default_value) const;
     float operator[](int index) const;
+
+    parameter_type get_type() const noexcept;
+    bool has_options() const noexcept;
+    bool is_resolved() const noexcept;
+    const std::vector<std::string> & options() const noexcept;
+    const dictionary & metadata() const noexcept;
 
     const char* c_str() const noexcept;
 

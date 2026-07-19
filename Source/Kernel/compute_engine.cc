@@ -371,9 +371,10 @@ ComputeEngine::LookupLocal(EvalContext & context, const std::string & name) cons
     if(component_.info_.contains(name))
         return context.lookup_cache.emplace(name, LookupResult{LookupResult::Source::local_attribute, std::string(component_.info_[name])}).first->second;
 
-    if(kernel().parameters.count(component_.path_+'.'+name) && *(kernel().parameters.at(component_.path_+'.'+name).resolved))
+    auto parameter_it = kernel().parameters.find(component_.path_ + '.' + name);
+    if(parameter_it != kernel().parameters.end() && parameter_it->second.is_resolved())
     {
-        std::string value = kernel().parameters.at(component_.path_+'.'+name).as_string();
+        std::string value = parameter_it->second.as_string();
         if(!value.empty())
             return context.lookup_cache.emplace(name, LookupResult{LookupResult::Source::resolved_parameter, value}).first->second;
     }

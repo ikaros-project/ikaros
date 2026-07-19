@@ -29,10 +29,10 @@ std::atomic<bool> global_terminate(false);
 namespace ikaros
 {
     parameter::parameter():
-        has_options(false),
-        resolved(std::make_shared<bool>(false)),
-        type(no_type),
-        value(std::make_shared<parameter_value>(std::monostate{}))
+        has_options_(false),
+        resolved_(std::make_shared<bool>(false)),
+        type_(no_type),
+        value_(std::make_shared<parameter_value>(std::monostate{}))
     {
     }
 
@@ -82,9 +82,17 @@ namespace ikaros
             }
         }
 
-        std::vector<std::string> get_parameter_options(const dictionary & info)
+        std::optional<double> get_parameter_bound(const dictionary & info, const std::string & name)
         {
-            return split(info["options"], ",");
+            if(!info.contains_non_null(name))
+                return std::nullopt;
+
+            double value = 0;
+            if(!parse_double(std::string(info[name]), value))
+                return std::nullopt;
+            if(!std::isfinite(value))
+                throw exception("Parameter " + name + " constraint must be finite.");
+            return value;
         }
 
         void
@@ -198,16 +206,6 @@ namespace ikaros
             return hex_encode(digest, sizeof(digest));
         }
 #endif
-
-        matrix * get_parameter_matrix_ptr(parameter::parameter_value * value)
-        {
-            return value ? std::get_if<matrix>(value) : nullptr;
-        }
-
-        const matrix * get_parameter_matrix_ptr(const parameter::parameter_value * value)
-        {
-            return value ? std::get_if<matrix>(value) : nullptr;
-        }
 
         matrix scalar_parameter_matrix(double value)
         {
@@ -712,11 +710,14 @@ namespace ikaros
 // Parameter
 
     parameter::parameter(dictionary info):
-        info_(info), 
-        has_options(info_.contains("options")),
-        resolved(std::make_shared<bool>(false)),
-        type(no_type),
-        value(std::make_shared<parameter_value>(std::monostate{}))
+        info_(info),
+        has_options_(info_.contains("options")),
+        options_(has_options_ ? split(std::string(info_["options"]), ",") : std::vector<std::string>()),
+        resolved_(std::make_shared<bool>(false)),
+        type_(no_type),
+        value_(std::make_shared<parameter_value>(std::monostate{})),
+        minimum_(get_parameter_bound(info_, "min")),
+        maximum_(get_parameter_bound(info_, "max"))
     {
         std::string type_string = info_["type"];
 
@@ -727,31 +728,34 @@ namespace ikaros
         if(type_index == parameter_strings.end())
             throw exception("Unknown parameter type: "+type_string+".");
 
-        type = parameter_type(std::distance(parameter_strings.begin(), type_index));
+        type_ = parameter_type(std::distance(parameter_strings.begin(), type_index));
 
-        if(has_options)
+        if(minimum_ && maximum_ && *minimum_ > *maximum_)
+            throw exception("Parameter minimum must not exceed maximum.");
+
+        if(has_options_)
         {
-            value = std::make_shared<parameter_value>(0);
+            value_ = std::make_shared<parameter_value>(0);
             return;
         }
 
-        switch(type)
+        switch(type_)
         {
             case number_type:
             case rate_type:
-                value = std::make_shared<parameter_value>(0.0);
+                value_ = std::make_shared<parameter_value>(0.0);
                 break;
 
             case bool_type:
-                value = std::make_shared<parameter_value>(false);
+                value_ = std::make_shared<parameter_value>(false);
                 break;
 
             case string_type: 
-                value = std::make_shared<parameter_value>(std::string(""));
+                value_ = std::make_shared<parameter_value>(std::string(""));
                 break;
 
             case matrix_type: 
-                value = std::make_shared<parameter_value>(matrix());
+                value_ = std::make_shared<parameter_value>(matrix());
                 break;
 
             default: 
@@ -770,10 +774,13 @@ namespace ikaros
     parameter::assign(const parameter & p) // this aliases data from p
     {
         info_ = p.info_;
-        type = p.type;
-        resolved = p.resolved;
-        has_options = p.has_options;
-        value = p.value;
+        has_options_ = p.has_options_;
+        options_ = p.options_;
+        resolved_ = p.resolved_;
+        type_ = p.type_;
+        value_ = p.value_;
+        minimum_ = p.minimum_;
+        maximum_ = p.maximum_;
     }
 
 
@@ -781,25 +788,25 @@ namespace ikaros
     double 
     parameter::operator=(double v)
     {
-        if(has_options)
+        if(has_options_)
         {
-            auto options = get_parameter_options(info_);
-            *value = clamp_option_index(checked_truncating_int(std::round(v), "option index"), options);
-            *resolved = true;
+            *value_ = clamp_option_index(checked_truncating_int(std::round(v), "option index"), options_);
+            *resolved_ = true;
             return v;
         }
 
-        switch(type)
+        switch(type_)
         {
             case number_type:
             case rate_type:
-                *value = double(v);
+                validate_numeric_value(v);
+                *value_ = double(v);
                 break;
             case bool_type:
-                *value = (v != 0.0);
+                *value_ = (v != 0.0);
                 break;
             case string_type:
-                *value = std::to_string(v);
+                *value_ = std::to_string(v);
                 break;
             case matrix_type:
                 set_matrix(scalar_parameter_matrix(v));
@@ -807,7 +814,7 @@ namespace ikaros
             default:
                 throw exception("Invalid parameter type for numeric assignment.");
         }
-        *resolved = true;
+        *resolved_ = true;
         return v;
     }
 
@@ -816,21 +823,20 @@ namespace ikaros
     {
         double val = 0;
         bool has_numeric_value = false;
-        if(has_options)
+        if(has_options_)
         {
-            auto options = get_parameter_options(info_);
-            auto it = std::find(options.begin(), options.end(), v);
-            if(it != options.end())
-                *value = int(std::distance(options.begin(), it));
+            auto it = std::find(options_.begin(), options_.end(), v);
+            if(it != options_.end())
+                *value_ = int(std::distance(options_.begin(), it));
             else if(is_number(v))
-                *value = clamp_option_index(
+                *value_ = clamp_option_index(
                     checked_truncating_int(std::round(parse_parameter_number(v, "option index")), "option index"),
-                    options
+                    options_
                 );
             else
                 throw exception("Invalid parameter value");
 
-            *resolved = true;
+            *resolved_ = true;
             return v;
         }
         else if(is_number(v))
@@ -839,13 +845,14 @@ namespace ikaros
             has_numeric_value = true;
         }
 
-        switch(type)
+        switch(type_)
         {
             case number_type:
             case rate_type:
                 if(!has_numeric_value)
                     throw exception("Invalid numeric parameter value \"" + v + "\".");
-                *value = val;
+                validate_numeric_value(val);
+                *value_ = val;
                 break;
 
             case bool_type:
@@ -853,12 +860,12 @@ namespace ikaros
                 bool bool_value = false;
                 if(!parse_bool(v, bool_value))
                     throw exception("Invalid boolean parameter value \"" + v + "\".");
-                *value = bool_value;
+                *value_ = bool_value;
                 break;
             }
 
             case string_type:
-                *value = v;
+                *value_ = v;
                 break;
 
             case matrix_type:
@@ -868,45 +875,75 @@ namespace ikaros
             default:
                 throw exception("Invalid parameter type for string assignment.");
         }
-        *resolved = true;
+        *resolved_ = true;
         return v;
+    }
+
+
+    void
+    parameter::validate_numeric_value(double numeric_value) const
+    {
+        if(!minimum_ && !maximum_)
+            return;
+        if(!std::isfinite(numeric_value))
+            throw exception("Numeric parameter value must be finite when constraints are declared.");
+        if(minimum_ && numeric_value < *minimum_)
+            throw exception("Numeric parameter value " + formatNumber(numeric_value) +
+                            " is below minimum " + formatNumber(*minimum_) + ".");
+        if(maximum_ && numeric_value > *maximum_)
+            throw exception("Numeric parameter value " + formatNumber(numeric_value) +
+                            " is above maximum " + formatNumber(*maximum_) + ".");
+    }
+
+
+    matrix *
+    parameter::matrix_value() noexcept
+    {
+        return value_ ? std::get_if<matrix>(value_.get()) : nullptr;
+    }
+
+
+    const matrix *
+    parameter::matrix_value() const noexcept
+    {
+        return value_ ? std::get_if<matrix>(value_.get()) : nullptr;
     }
 
 
     void
     parameter::set_matrix(const matrix & v)
     {
-        if(type != matrix_type)
+        if(type_ != matrix_type)
             throw exception("Invalid parameter value");
 
-        matrix * matrix_value = get_parameter_matrix_ptr(value.get());
-        if(!matrix_value)
+        matrix * stored_matrix = matrix_value();
+        if(!stored_matrix)
             throw exception("Matrix parameter does not contain matrix storage.");
 
         matrix replacement;
         replacement.copy(v);
-        if(*resolved && (matrix_value->shape() != replacement.shape() || matrix_value->size() != replacement.size()))
+        if(*resolved_ && (stored_matrix->shape() != replacement.shape() || stored_matrix->size() != replacement.size()))
             throw exception("Matrix parameter shape cannot change after startup from " +
-                            format_shape(matrix_value->shape()) + " to " +
+                            format_shape(stored_matrix->shape()) + " to " +
                             format_shape(replacement.shape()) + ".");
 
-        matrix_value->copy(replacement);
-        *resolved = true;
+        stored_matrix->copy(replacement);
+        *resolved_ = true;
     }
 
 
     parameter::operator matrix & ()
     {
-        if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
-            return *matrix_value;
+        if(auto stored_matrix = matrix_value())
+            return *stored_matrix;
         throw exception("Not a matrix value.");
     }
 
 
     parameter::operator const matrix & () const
     {
-        if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
-            return *matrix_value;
+        if(auto stored_matrix = matrix_value())
+            return *stored_matrix;
         throw exception("Not a matrix value.");
     }
 
@@ -914,8 +951,8 @@ namespace ikaros
     int
     parameter::size() const
     {
-        if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
-            return matrix_value->size();
+        if(auto stored_matrix = matrix_value())
+            return stored_matrix->size();
         throw exception("Not a matrix value.");
     }
 
@@ -923,8 +960,8 @@ namespace ikaros
     float
     parameter::get(int index, float default_value) const
     {
-        if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
-            return index >= 0 && index < matrix_value->size() ? matrix_value->data()[index] : default_value;
+        if(auto stored_matrix = matrix_value())
+            return index >= 0 && index < stored_matrix->size() ? stored_matrix->data()[index] : default_value;
         throw exception("Not a matrix value.");
     }
 
@@ -932,11 +969,11 @@ namespace ikaros
     float
     parameter::operator[](int index) const
     {
-        if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
+        if(auto stored_matrix = matrix_value())
         {
-            if(index < 0 || index >= matrix_value->size())
+            if(index < 0 || index >= stored_matrix->size())
                 throw std::out_of_range("Parameter matrix index out of range.");
-            return matrix_value->data()[index];
+            return stored_matrix->data()[index];
         }
         throw exception("Not a matrix value.");
     }
@@ -944,38 +981,37 @@ namespace ikaros
 
     parameter::operator std::string() const
     {
-        if(has_options)
+        if(has_options_)
         {
-            auto option_index = std::get_if<int>(value.get());
+            auto option_index = std::get_if<int>(value_.get());
             if(!option_index)
                 throw exception("Option parameter missing index value.");
             int index = *option_index;
-            auto options = get_parameter_options(info_);
-            if(index < 0 || static_cast<std::size_t>(index) >= options.size())
+            if(index < 0 || static_cast<std::size_t>(index) >= options_.size())
                 return std::to_string(index)+" (OUT-OF-RANGE)";
             else
-                return options[index];
+                return options_[index];
         } 
 
-        switch(type)
+        switch(type_)
         {
             case no_type: throw exception("Uninitialized or unbound parameter.");
             case number_type:
             case rate_type:
-                if(auto number_value = std::get_if<double>(value.get()))
+                if(auto number_value = std::get_if<double>(value_.get()))
                     return formatNumber(*number_value);
                 break;
             case bool_type:
-                if(auto bool_value = std::get_if<bool>(value.get()))
+                if(auto bool_value = std::get_if<bool>(value_.get()))
                     return (*bool_value ? "true" : "false");
                 break;
             case string_type:
-                if(auto string_value = std::get_if<std::string>(value.get()))
+                if(auto string_value = std::get_if<std::string>(value_.get()))
                     return *string_value;
                 break;
             case matrix_type:
-                if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
-                    return matrix_value->json();
+                if(auto stored_matrix = matrix_value())
+                    return stored_matrix->json();
                 break;
             default:
                 break;
@@ -986,26 +1022,26 @@ namespace ikaros
 
     parameter::operator double() const
     {
-        if(has_options)
+        if(has_options_)
         {
-            if(auto option_index = std::get_if<int>(value.get()))
+            if(auto option_index = std::get_if<int>(value_.get()))
                 return *option_index;
             throw exception("Option parameter missing index value.");
         }
 
-        if(type==rate_type)
+        if(type_ == rate_type)
         {
-            if(auto number_value = std::get_if<double>(value.get()))
+            if(auto number_value = std::get_if<double>(value_.get()))
                 return *number_value * kernel().GetTickDuration();
         }
-        if(auto number_value = std::get_if<double>(value.get()))
+        if(auto number_value = std::get_if<double>(value_.get()))
             return *number_value;
-        else if(auto bool_value = std::get_if<bool>(value.get()))
+        else if(auto bool_value = std::get_if<bool>(value_.get()))
             return *bool_value ? 1.0 : 0.0;
-        else if(auto string_value = std::get_if<std::string>(value.get()))
+        else if(auto string_value = std::get_if<std::string>(value_.get()))
             return parse_parameter_number(*string_value, "double");
-        else if(get_parameter_matrix_ptr(value.get()))
-            return get_scalar_matrix_value(*get_parameter_matrix_ptr(value.get()), "double");
+        else if(auto stored_matrix = matrix_value())
+            return get_scalar_matrix_value(*stored_matrix, "double");
         else
             throw exception("Type conversion error. Parameter does not have a type Check spelling IKC and cc file.");
     }
@@ -1020,16 +1056,16 @@ namespace ikaros
     bool
     parameter::as_bool() const
     {
-        if(has_options)
+        if(has_options_)
             return as_int() != 0;
-        if(type == bool_type)
+        if(type_ == bool_type)
         {
-            if(auto bool_value = std::get_if<bool>(value.get()))
+            if(auto bool_value = std::get_if<bool>(value_.get()))
                 return *bool_value;
         }
-        if(type == string_type)
+        if(type_ == string_type)
         {
-            if(auto string_value = std::get_if<std::string>(value.get()))
+            if(auto string_value = std::get_if<std::string>(value_.get()))
                 return is_true(*string_value);
         }
         return as_double() != 0;
@@ -1053,35 +1089,35 @@ namespace ikaros
     long
     parameter::as_long() const
     {
-        if(has_options)
+        if(has_options_)
         {
-            if(auto option_index = std::get_if<int>(value.get()))
+            if(auto option_index = std::get_if<int>(value_.get()))
                 return static_cast<long>(*option_index);
             throw exception("Option parameter missing index value.");
         }
 
-        switch(type)
+        switch(type_)
         {
             case no_type: throw exception("Uninitialized_parameter.");
             case number_type:
             case rate_type:
-                if(auto number_value = std::get_if<double>(value.get()))
+                if(auto number_value = std::get_if<double>(value_.get()))
                     return checked_truncating_long(
-                        type == rate_type ? *number_value * kernel().GetTickDuration() : *number_value,
+                        type_ == rate_type ? *number_value * kernel().GetTickDuration() : *number_value,
                         "long"
                     );
                 break;
             case bool_type:
-                if(auto bool_value = std::get_if<bool>(value.get()))
+                if(auto bool_value = std::get_if<bool>(value_.get()))
                     return *bool_value ? 1L : 0L;
                 break;
             case string_type:
-                if(auto string_value = std::get_if<std::string>(value.get()))
+                if(auto string_value = std::get_if<std::string>(value_.get()))
                     return checked_truncating_long(parse_parameter_number(*string_value, "long"), "long");
                 break;
             case matrix_type:
-                if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
-                    return checked_truncating_long(get_scalar_matrix_value(*matrix_value, "long"), "long");
+                if(auto stored_matrix = matrix_value())
+                    return checked_truncating_long(get_scalar_matrix_value(*stored_matrix, "long"), "long");
                 throw exception("Could not convert matrix to long");
             default: ;
         }
@@ -1092,35 +1128,35 @@ namespace ikaros
     int
     parameter::as_int() const
     {
-        if(has_options)
+        if(has_options_)
         {
-            if(auto option_index = std::get_if<int>(value.get()))
+            if(auto option_index = std::get_if<int>(value_.get()))
                 return *option_index;
             throw exception("Option parameter missing index value.");
         }
 
-        switch(type)
+        switch(type_)
         {
             case no_type: throw exception("Uninitialized_parameter.");
             case number_type:
             case rate_type:
-                if(auto number_value = std::get_if<double>(value.get()))
+                if(auto number_value = std::get_if<double>(value_.get()))
                     return checked_truncating_int(
-                        type == rate_type ? *number_value * kernel().GetTickDuration() : *number_value,
+                        type_ == rate_type ? *number_value * kernel().GetTickDuration() : *number_value,
                         "int"
                     );
                 break;
             case bool_type:
-                if(auto bool_value = std::get_if<bool>(value.get()))
+                if(auto bool_value = std::get_if<bool>(value_.get()))
                     return *bool_value ? 1 : 0;
                 break;
             case string_type:
-                if(auto string_value = std::get_if<std::string>(value.get()))
+                if(auto string_value = std::get_if<std::string>(value_.get()))
                     return checked_truncating_int(parse_parameter_number(*string_value, "int"), "int");
                 break;
             case matrix_type:
-                if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
-                    return checked_truncating_int(get_scalar_matrix_value(*matrix_value, "int"), "int");
+                if(auto stored_matrix = matrix_value())
+                    return checked_truncating_int(get_scalar_matrix_value(*stored_matrix, "int"), "int");
                 throw exception("Could not convert matrix to int");
             default: ;
         }
@@ -1135,10 +1171,52 @@ namespace ikaros
     }
 
 
+    parameter_type
+    parameter::get_type() const noexcept
+    {
+        return type_;
+    }
+
+
+    bool
+    parameter::has_options() const noexcept
+    {
+        return has_options_;
+    }
+
+
+    bool
+    parameter::is_resolved() const noexcept
+    {
+        return *resolved_;
+    }
+
+
+    const std::vector<std::string> &
+    parameter::options() const noexcept
+    {
+        return options_;
+    }
+
+
+    const dictionary &
+    parameter::metadata() const noexcept
+    {
+        return info_;
+    }
+
+
+    void
+    parameter::set_source_value(const std::string & source_value)
+    {
+        info_["value"] = source_value;
+    }
+
+
     const char* 
     parameter::c_str() const noexcept
     {
-        if(auto string_value = std::get_if<std::string>(value.get()))
+        if(auto string_value = std::get_if<std::string>(value_.get()))
             return string_value->c_str();
         else
             return nullptr;
@@ -1166,7 +1244,7 @@ namespace ikaros
     {
         if(!name.empty())
             std::cout << name << " = ";
-        if(type == no_type)
+        if(type_ == no_type)
             std::cout <<"not initialized\n";
         else
             std::cout << std::string(*this) << '\n';
@@ -1177,9 +1255,9 @@ namespace ikaros
     parameter::info() const
     {
         std::cout << "name: " << info_["name"] << '\n';
-        std::cout << "type: " << type << '\n';
+        std::cout << "type: " << type_ << '\n';
         std::cout << "default: " << info_["default"] << '\n';
-        std::cout << "has_options: " << has_options << '\n';
+        std::cout << "has_options: " << has_options_ << '\n';
         std::cout << "options: " << info_["options"] << '\n';
         std::cout << "value: " << std::string(*this) << '\n';
     }
@@ -1187,26 +1265,26 @@ namespace ikaros
     std::string 
     parameter::json() const
     {
-        if(has_options)
+        if(has_options_)
         {
-            if(type == number_type || type == rate_type)
+            if(type_ == number_type || type_ == rate_type)
                 return "[["+format_json_number(as_double())+"]]";
-            if(type == bool_type)
+            if(type_ == bool_type)
                 return (as_bool() ? "[[true]]" : "[[false]]");
-            if(type == string_type)
+            if(type_ == string_type)
                 return "\""+escape_json_string(as_string())+"\"";
             throw exception("Cannot convert parameter to string");
         }
 
-        if((type == number_type || type == rate_type) && std::holds_alternative<double>(*value))
-            return "[["+format_json_number(std::get<double>(*value))+"]]";
-        if(type == bool_type && std::holds_alternative<bool>(*value))
-            return (std::get<bool>(*value) ? "[[true]]" : "[[false]]");
-        if(type == string_type && std::holds_alternative<std::string>(*value))
-            return "\""+escape_json_string(std::get<std::string>(*value))+"\"";
-        if(type == matrix_type)
-            if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
-                return matrix_value->json();
+        if((type_ == number_type || type_ == rate_type) && std::holds_alternative<double>(*value_))
+            return "[["+format_json_number(std::get<double>(*value_))+"]]";
+        if(type_ == bool_type && std::holds_alternative<bool>(*value_))
+            return (std::get<bool>(*value_) ? "[[true]]" : "[[false]]");
+        if(type_ == string_type && std::holds_alternative<std::string>(*value_))
+            return "\""+escape_json_string(std::get<std::string>(*value_))+"\"";
+        if(type_ == matrix_type)
+            if(auto stored_matrix = matrix_value())
+                return stored_matrix->json();
         throw exception("Cannot convert parameter to string");
     }
 
@@ -1462,13 +1540,14 @@ namespace ikaros
             parameter & p = parameter_it->second;
             if(change.is_matrix_cell)
             {
-                if(auto matrix_value = get_parameter_matrix_ptr(p.value.get()))
+                if(p.get_type() == matrix_type)
                 {
+                    matrix & matrix_value = static_cast<matrix &>(p);
                     double value = parse_parameter_number(change.value, "matrix parameter cell");
-                    if(matrix_value->rank() == 1)
-                        (*matrix_value)(change.x)= value;
-                    else if(matrix_value->rank() == 2)
-                        (*matrix_value)(change.y, change.x)= value;
+                    if(matrix_value.rank() == 1)
+                        matrix_value(change.x)= value;
+                    else if(matrix_value.rank() == 2)
+                        matrix_value(change.y, change.x)= value;
                     else
                         Warning("Queued parameter \"" + change.parameter_path + "\" has unsupported matrix rank.", path_);
                 }
@@ -1477,7 +1556,7 @@ namespace ikaros
             }
             else
             {
-                p = change.value;
+                k.SetParameter(change.parameter_path, change.value);
             }
         }
         for(auto & command : commands)
@@ -1521,7 +1600,7 @@ namespace ikaros
     bool 
     Component::ResolveParameter(parameter & p,  std::string & name)
     {
-        if(*(p.resolved))
+        if(p.is_resolved())
             return true; // Already set from SetParameters
 
         auto resolve_value = [&](const std::string & raw_value, Component * owner)
@@ -1530,10 +1609,10 @@ namespace ikaros
 
             auto matrix_parameter_shape_expression = [&]() -> std::string
             {
-                if(p.info_.contains_non_null("shape"))
-                    return std::string(p.info_["shape"]);
-                if(p.info_.contains_non_null("size"))
-                    return std::string(p.info_["size"]);
+                if(p.metadata().contains_non_null("shape"))
+                    return std::string(p.metadata()["shape"]);
+                if(p.metadata().contains_non_null("size"))
+                    return std::string(p.metadata()["size"]);
                 return "";
             };
 
@@ -1559,13 +1638,13 @@ namespace ikaros
                 return shaped;
             };
 
-            if((p.type == number_type || p.type == rate_type) && !p.has_options)
+            if((p.get_type() == number_type || p.get_type() == rate_type) && !p.has_options())
             {
                 SetParameter(name, formatNumber(context->ComputeDouble(raw_value)));
                 return;
             }
 
-            if(p.type==matrix_type)
+            if(p.get_type() == matrix_type)
             {
                 matrix literal;
                 if(raw_value.empty() && !matrix_parameter_shape_expression().empty())
@@ -1577,7 +1656,7 @@ namespace ikaros
                 return;
             }
 
-            if(p.type==bool_type && !p.has_options)
+            if(p.get_type() == bool_type && !p.has_options())
             {
                 SetParameter(name, std::string(context->ComputeBool(raw_value) ? "true" : "false"));
                 return;
@@ -1603,9 +1682,10 @@ namespace ikaros
             bool has_explicit_value = value_owner && value_owner->info_.contains_non_null(name);
             if(!has_explicit_value)
             {
-                if(!p.info_.contains("default"))
+                if(!p.metadata().contains("default"))
                 {
-                    if(p.type==matrix_type && (p.info_.contains_non_null("size") || p.info_.contains_non_null("shape")))
+                    if(p.get_type() == matrix_type &&
+                       (p.metadata().contains_non_null("size") || p.metadata().contains_non_null("shape")))
                     {
                         resolve_value("", this);
                         return true;
@@ -1615,7 +1695,7 @@ namespace ikaros
                     return false;
                 }
 
-                resolve_value(std::string(p.info_["default"]), this);
+                resolve_value(std::string(p.metadata()["default"]), this);
                 return true;
             }
 
@@ -2023,18 +2103,18 @@ namespace ikaros
             if(!LookupParameter(p, parameter_name))
                 return std::nullopt;
 
-            if(!*(p.resolved))
+            if(!p.is_resolved())
             {
                 std::string local_parameter_name = parameter_name;
                 if(!ResolveParameter(p, local_parameter_name))
                     return std::nullopt;
             }
 
-            if(p.has_options && (p.type == number_type || p.type == rate_type))
+            if(p.has_options() && (p.get_type() == number_type || p.get_type() == rate_type))
                 return p.as_int_string();
-            if(p.type == number_type || p.type == rate_type)
+            if(p.get_type() == number_type || p.get_type() == rate_type)
                 return formatNumber(p.as_double());
-            if(p.type == bool_type)
+            if(p.get_type() == bool_type)
                 return p.as_bool() ? "1" : "0";
 
             return std::nullopt;
@@ -3133,13 +3213,13 @@ namespace ikaros
             Bind(p, parameter_name);
             //std::cout << "Parameter: " << d["name"] << std::endl;
 
-            if(p.type == string_type)
+            if(p.get_type() == string_type)
                 check_sum += prime_number.next() * character_sum(p);
             else
-            if(p.type == matrix_type)
+            if(p.get_type() == matrix_type)
             {
-                if(auto matrix_value = get_parameter_matrix_ptr(p.value.get()))
-                    check_sum += prime_number.next() * matrix_value->size();
+                const matrix & matrix_value = static_cast<const matrix &>(p);
+                check_sum += prime_number.next() * matrix_value.size();
             }
             else
                 check_sum += prime_number.next() * p.as_long();
@@ -3778,7 +3858,7 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::ResolveParameter(parameter & p,  std::string & name)
     {
-        if(*(p.resolved))
+        if(p.is_resolved())
             return; // Already set from SetParameters
 
         std::size_t i = name.rfind(".");
@@ -3825,7 +3905,7 @@ bool operator==(Request & r, const std::string s)
         if(!ok)
         {
             for(auto & [name, parameter] : parameters)
-                if(!*(parameter.resolved))
+                if(!parameter.is_resolved())
                     throw setup_failed("Parameter \""+name+"\" could not be resolved.", name);
             throw setup_failed("All parameters could not be resolved.");
         }
@@ -4882,7 +4962,7 @@ bool operator==(Request & r, const std::string s)
         try
         {
             parameters[name] = value;
-            parameters[name].info_["value"] = value;
+            parameters[name].set_source_value(value);
         }
         catch(const exception & e)
         {
@@ -4909,7 +4989,7 @@ bool operator==(Request & r, const std::string s)
         {
             parameters[name].set_matrix(value);
             matrix stored_value = value;
-            parameters[name].info_["value"] = source_value.empty() ? stored_value.json() : source_value;
+            parameters[name].set_source_value(source_value.empty() ? stored_value.json() : source_value);
         }
         catch(const exception & e)
         {
@@ -7171,13 +7251,14 @@ bool operator==(Request & r, const std::string s)
         }
         else if(parameters.count(source_with_root))
         {
-            if(requested_value.format == "metadata" && parameters[source_with_root].type == matrix_type)
+            parameter & parameter_value = parameters[source_with_root];
+            if(requested_value.format == "metadata" && parameter_value.get_type() == matrix_type)
             {
-                if(auto matrix_value = get_parameter_matrix_ptr(parameters[source_with_root].value.get()))
-                    serialized_value = matrix_value->metadata_json();
+                const matrix & matrix_value = static_cast<const matrix &>(parameter_value);
+                serialized_value = matrix_value.metadata_json();
             }
             else
-                serialized_value = parameters[source_with_root].json();
+                serialized_value = parameter_value.json();
             found_value = true;
         }
         else if(components.count(component_path))
@@ -8286,15 +8367,14 @@ bool operator==(Request & r, const std::string s)
 
         if(parameters.count(key))
         {
-            if(parameters[key].type == matrix_type)
+            parameter & parameter_value = parameters[key];
+            if(parameter_value.get_type() == matrix_type)
             {
-                if(auto matrix_value = get_parameter_matrix_ptr(parameters[key].value.get()))
-                    send_json_response(format == "metadata" ? matrix_value->metadata_json() : parameters[key].json(), matrix_value->shape());
-                else
-                    send_json_response(parameters[key].json(), {});
+                const matrix & matrix_value = static_cast<const matrix &>(parameter_value);
+                send_json_response(format == "metadata" ? matrix_value.metadata_json() : parameter_value.json(), matrix_value.shape());
             }
             else
-                send_json_response(parameters[key].json(), {});
+                send_json_response(parameter_value.json(), {});
             SendStringResponse(header, body);
             return;
         }
@@ -8371,10 +8451,9 @@ bool operator==(Request & r, const std::string s)
             }
             image = &buffers[key];
         }
-        else if(parameters.count(key) && parameters[key].type == matrix_type)
+        else if(parameters.count(key) && parameters[key].get_type() == matrix_type)
         {
-            if(auto matrix_value = get_parameter_matrix_ptr(parameters[key].value.get()))
-                image = matrix_value;
+            image = &static_cast<matrix &>(parameters[key]);
         }
 
         if(!image)
@@ -8516,7 +8595,7 @@ bool operator==(Request & r, const std::string s)
                         change.value = std::string(request.parameters["value"]);
 
                     parameter & p = parameters.at(key);
-                    if(p.type == matrix_type)
+                    if(p.get_type() == matrix_type)
                     {
                         change.is_matrix_cell = true;
                         if(request.parameters.contains("x"))
@@ -8532,7 +8611,7 @@ bool operator==(Request & r, const std::string s)
                 }
 
                 parameter & p = parameters.at(key);
-                if(p.type == matrix_type)
+                if(p.get_type() == matrix_type)
                 {
                     int x = 0;
                     int y = 0;
@@ -8547,21 +8626,17 @@ bool operator==(Request & r, const std::string s)
                     if(request.parameters.contains("value"))
                         value = request.parameters["value"];
 
-                    if(auto matrix_value = get_parameter_matrix_ptr(p.value.get()))
-                    {
-                        if(matrix_value->rank() == 1)
-                            (*matrix_value)(x)= value;
-                        else if(matrix_value->rank() == 2)
-                            (*matrix_value)(y,x)= value; // Is this correct?
-                        else
-                            throw exception("Higher-dimensional matrix parameters are not supported by /control.");
-                    }
+                    matrix & matrix_value = static_cast<matrix &>(p);
+                    if(matrix_value.rank() == 1)
+                        matrix_value(x)= value;
+                    else if(matrix_value.rank() == 2)
+                        matrix_value(y,x)= value; // Is this correct?
                     else
-                        throw exception("Parameter is not a matrix.");
+                        throw exception("Higher-dimensional matrix parameters are not supported by /control.");
                 }
                 else
                 {
-                    p = std::string(request.parameters["value"]);
+                    SetParameter(key, std::string(request.parameters["value"]));
                 }
             }
         }
