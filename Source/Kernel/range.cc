@@ -572,6 +572,9 @@ namespace ikaros
 
     range::operator std::string() const
     {
+        if(rank() == 0)
+            return "";
+
         std::string s;
         std::string sep;
         s += "[";

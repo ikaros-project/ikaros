@@ -93,6 +93,10 @@ independent of the iteration cursor, so a non-empty range remains non-empty afte
 `rank() == 0` when testing specifically whether a range has no dimensions, for example when a
 selector has not been specified.
 
+String conversion preserves that distinction: a rank-zero range is represented by an empty string,
+while `[]` represents one zero-cardinality dimension. Converting either form to text and parsing it
+again preserves its rank.
+
 `extend(const range &)` may add dimensions when its argument has a higher rank. It rejects an
 argument with fewer dimensions than the receiver. `fill()` likewise requires its source to have at
 least as many dimensions as the receiver. Invalid rank combinations throw `std::invalid_argument`

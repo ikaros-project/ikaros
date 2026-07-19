@@ -317,6 +317,16 @@ class RangeSizeTestModule : public Module
         if(strippedRankZero.rank() != 0 || !strippedRankZero.empty())
             throw exception("Stripping a rank-zero range changed its cardinality");
 
+        const std::string rankZeroText = std::string(range());
+        if(!rankZeroText.empty() || range(rankZeroText).rank() != 0)
+            throw exception("Rank-zero range text did not preserve rank");
+
+        const std::string emptyDimensionText = std::string(range("[]"));
+        range restoredEmptyDimension(emptyDimensionText);
+        if(emptyDimensionText != "[]" || restoredEmptyDimension.rank() != 1 ||
+           !restoredEmptyDimension.empty())
+            throw exception("Explicit empty range dimension text did not preserve rank");
+
         range exhausted(0, 2);
         while(exhausted.more())
             ++exhausted;
