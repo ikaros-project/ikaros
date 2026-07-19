@@ -28,13 +28,9 @@ ResolveConnection(range & output, range & source, range & target)
         for(int i=0; i<target.rank()-1; i++)    // CHECK EMPTY DIMENSION
             if(target.empty(i) && j<reduced_source.rank())
             {
-                target.a_[i] = reduced_source.a_[j];
-                target.b_[i] = reduced_source.b_[j];
-                target.inc_[i] = reduced_source.inc_[j];
-
-                reduced_source.a_[j] = 0;  // mark as used
-                reduced_source.b_[j] = 0;
-                reduced_source.inc_[j] = 0;
+                target.set(i, reduced_source.start(j),
+                           reduced_source.stop(j), reduced_source.step(j));
+                reduced_source.set(j, 0, 0, 0); // mark as used
                 j++;
             }
 
@@ -46,11 +42,7 @@ ResolveConnection(range & output, range & source, range & target)
         }
 
         if(target.empty(target.rank()-1) && j<reduced_source.rank())
-        {
-            target.a_[target.rank()-1] = 0; // Check that dim is empty first
-            target.b_[target.rank()-1] = s;
-            target.inc_[target.rank()-1] = 1;
-        }
+            target.set(target.rank()-1, 0, s, 1);
     }
     return source.size() == target.size();
 }

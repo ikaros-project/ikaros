@@ -88,6 +88,11 @@ argument with fewer dimensions than the receiver. `fill()` likewise requires its
 least as many dimensions as the receiver. Invalid rank combinations throw `std::invalid_argument`
 instead of accessing missing dimension data.
 
+The bounds, increments, and iteration cursor are private. Use `start(d)`, `stop(d)`, and `step(d)`
+to inspect a dimension, and `index()` to inspect the current cursor. `index()` is read-only; use the
+range traversal and mutation functions to change state. If `push()`, `push_front()`, `set()`,
+`extend()`, or `fill()` throws, the original range remains unchanged.
+
 Connection delay ranges are a restricted use of this syntax: they must be one-dimensional,
 ascending, non-negative, non-empty, use a positive increment, and generate no value above 100.
 These restrictions do not apply to general matrix and loop ranges.

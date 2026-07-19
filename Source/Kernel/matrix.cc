@@ -64,6 +64,17 @@ public:
     static const std::shared_ptr<matrix_info> & description(const matrix & value) { return value.info_; }
 };
 
+
+struct range_access
+{
+    static const std::vector<int> & starts(const range & value) { return value.a_; }
+    static const std::vector<int> & stops(const range & value) { return value.b_; }
+    static const std::vector<int> & steps(const range & value) { return value.inc_; }
+    static std::vector<int> & indices(range & value) { return value.index_; }
+    static const std::vector<int> & indices(const range & value) { return value.index_; }
+    static bool more(const range & value, int dimension) { return value.more(dimension); }
+};
+
 namespace
 {
 #ifndef NDEBUG
@@ -920,20 +931,24 @@ void
 validate_range_selection(const matrix & value, const range & selection, const char * selection_name)
 {
     const int selection_rank = selection.rank();
+    const auto & starts = range_access::starts(selection);
+    const auto & stops = range_access::stops(selection);
+    const auto & steps = range_access::steps(selection);
+    const auto & indices = range_access::indices(selection);
     if(selection_rank != value.rank() ||
-       selection.a_.size() != selection.index_.size() ||
-       selection.b_.size() != selection.index_.size() ||
-       selection.inc_.size() != selection.index_.size())
+       starts.size() != indices.size() ||
+       stops.size() != indices.size() ||
+       steps.size() != indices.size())
         throw std::invalid_argument(std::string(selection_name) +
                                     " range: Number of indices must match matrix rank.");
 
     for(int dimension = 0; dimension < selection_rank; ++dimension)
     {
-        const int begin = selection.a_[dimension];
-        const int end = selection.b_[dimension];
+        const int begin = starts[dimension];
+        const int end = stops[dimension];
         if(begin < 0 || end < begin || end > value.shape(dimension))
             throw std::out_of_range(std::string(selection_name) + " range is outside the matrix bounds.");
-        if(begin < end && selection.inc_[dimension] == 0)
+        if(begin < end && steps[dimension] == 0)
             throw std::invalid_argument(std::string(selection_name) + " range increment cannot be zero.");
     }
 }
@@ -942,7 +957,9 @@ validate_range_selection(const matrix & value, const range & selection, const ch
 bool
 same_range_selection(const range & first, const range & second)
 {
-    return first.a_ == second.a_ && first.b_ == second.b_ && first.inc_ == second.inc_;
+    return range_access::starts(first) == range_access::starts(second) &&
+           range_access::stops(first) == range_access::stops(second) &&
+           range_access::steps(first) == range_access::steps(second);
 }
 
 
@@ -952,10 +969,13 @@ is_full_range_selection(const matrix & value, const range & selection)
     if(selection.rank() != value.rank())
         return false;
 
+    const auto & starts = range_access::starts(selection);
+    const auto & stops = range_access::stops(selection);
+    const auto & steps = range_access::steps(selection);
     for(int dimension = 0; dimension < selection.rank(); ++dimension)
-        if(selection.a_[dimension] != 0 ||
-           selection.b_[dimension] != value.shape(dimension) ||
-           selection.inc_[dimension] != 1)
+        if(starts[dimension] != 0 ||
+           stops[dimension] != value.shape(dimension) ||
+           steps[dimension] != 1)
             return false;
 
     return true;
@@ -999,6 +1019,8 @@ analyze_range_copy_layout(const matrix & value, const range & selection)
         return layout;
 
     const auto & info = matrix_access::info(value);
+    const auto & starts = range_access::starts(selection);
+    const auto & steps = range_access::steps(selection);
     long long first_index = info.offset_;
     long long last_index = info.offset_;
     long long physical_stride = 1;
@@ -1011,9 +1033,9 @@ analyze_range_copy_layout(const matrix & value, const range & selection)
         if(dimension_count == 0)
             return layout;
 
-        const int increment = selection.inc_[dimension];
+        const int increment = steps[dimension];
         const long long step = increment > 0 ? increment : -static_cast<long long>(increment);
-        const long long minimum_coordinate = selection.a_[dimension];
+        const long long minimum_coordinate = starts[dimension];
         const long long maximum_coordinate = minimum_coordinate +
             static_cast<long long>(dimension_count - 1) * step;
         if(minimum_coordinate < 0 || maximum_coordinate >= value.shape(dimension))
@@ -1050,7 +1072,7 @@ void
 finish_contiguous_range_iteration(range & selection)
 {
     selection.reset();
-    selection.index_[0] = selection.b_[0];
+    range_access::indices(selection)[0] = range_access::stops(selection)[0];
 }
 
 
@@ -1058,21 +1080,24 @@ void
 advance_range_row(range & selection)
 {
     const int last_dimension = selection.rank() - 1;
+    auto & indices = range_access::indices(selection);
+    const auto & stops = range_access::stops(selection);
+    const auto & steps = range_access::steps(selection);
     if(last_dimension == 0)
     {
-        selection.index_[0] = selection.b_[0];
+        indices[0] = stops[0];
         return;
     }
 
     selection.reset(last_dimension);
     for(int dimension = last_dimension - 1; dimension > 0; --dimension)
     {
-        selection.index_[dimension] += selection.inc_[dimension];
-        if(selection.more(dimension))
+        indices[dimension] += steps[dimension];
+        if(range_access::more(selection, dimension))
             return;
         selection.reset(dimension);
     }
-    selection.index_[0] += selection.inc_[0];
+    indices[0] += steps[0];
 }
 
 
@@ -1119,7 +1144,9 @@ copy_range_blocks(matrix & target, const matrix & source,
     {
         int source_index = source.compute_index(source_range.index());
         int target_index = target.compute_index(target_range.index());
-        if(source_range.inc_.back() == 1 && target_range.inc_.back() == 1)
+        const int source_step = range_access::steps(source_range).back();
+        const int target_step = range_access::steps(target_range).back();
+        if(source_step == 1 && target_step == 1)
         {
             const auto & source_data = matrix_access::data(source);
             auto & target_data = matrix_access::data(target);
@@ -1134,8 +1161,8 @@ copy_range_blocks(matrix & target, const matrix & source,
             for(int element = 0; element < source_layout.row_length; ++element)
             {
                 target_data[target_index] = source_data[source_index];
-                source_index += source_range.inc_.back();
-                target_index += target_range.inc_.back();
+                source_index += source_step;
+                target_index += target_step;
             }
         }
         advance_range_row(source_range);

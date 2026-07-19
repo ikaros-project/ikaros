@@ -2775,8 +2775,8 @@ class MatrixFunctionTestModule : public Module
             make_matrix("7, 8, 9, 10, 11, 12; 13, 14, 15, 16, 17, 18; -1, -1, -1, -1, -1, -1; -1, -1, -1, -1, -1, -1"),
             "ranged copy uses a contiguous selected span"
         );
-        require_true(contiguous_source_range.index_ == std::vector<int>{1, 0} &&
-                     contiguous_target_range.index_ == std::vector<int>{0, 0},
+        require_true(contiguous_source_range.index() == std::vector<int>{1, 0} &&
+                     contiguous_target_range.index() == std::vector<int>{0, 0},
                      "contiguous ranged copy restores caller iterator state");
 
         matrix row_block_target(4, 8);
@@ -2789,8 +2789,8 @@ class MatrixFunctionTestModule : public Module
             make_matrix("-1, -1, 2, 3, 4, 5, -1, -1; -1, -1, 8, 9, 10, 11, -1, -1; -1, -1, 14, 15, 16, 17, -1, -1; -1, -1, 20, 21, 22, 23, -1, -1"),
             "ranged copy uses contiguous row blocks"
         );
-        require_true(row_block_source_range.index_ == std::vector<int>{0, 1} &&
-                     row_block_target_range.index_ == std::vector<int>{0, 2},
+        require_true(row_block_source_range.index() == std::vector<int>{0, 1} &&
+                     row_block_target_range.index() == std::vector<int>{0, 2},
                      "row-block ranged copy restores caller iterator state");
 
         matrix row_gapped_range_source(4, 10);
@@ -2852,7 +2852,7 @@ class MatrixFunctionTestModule : public Module
         require_matrix_close(reverse_row_target,
                              make_matrix("20, 21, 22, 23; 14, 15, 16, 17; 8, 9, 10, 11; 2, 3, 4, 5"),
                              "row-block ranged copy supports reversed outer dimensions");
-        require_true(reverse_row_source_range.index_ == std::vector<int>{3, 1},
+        require_true(reverse_row_source_range.index() == std::vector<int>{3, 1},
                      "reverse row-block copy restores caller iterator state");
 
         matrix incompatible_block_target(8);

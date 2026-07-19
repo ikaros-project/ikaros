@@ -10,17 +10,14 @@
 
 namespace ikaros
 {
+    class Connection;
+    struct range_access;
     
     class range
     {
     public:
 
         range(std::initializer_list<std::tuple<int, int, int>> ranges);
-
-        std::vector<int>    inc_;   // FIXME: change to vector of individual ranges instead for clearer code
-        std::vector<int>    a_;
-        std::vector<int>    b_;
-        std::vector<int>    index_;
 
         range();
         range(int a);
@@ -40,7 +37,10 @@ namespace ikaros
         [[nodiscard]] int size() const;                         // number of elements in the range
         [[nodiscard]] int size(int f) const;                    // number of element in odimension d of the range
         [[nodiscard]] std::vector<int> extent() const;          // the largest index in each fimension
-        std::vector<int> & index() ;        // the current index during iteration
+        [[nodiscard]] int start(int d) const;
+        [[nodiscard]] int stop(int d) const;
+        [[nodiscard]] int step(int d) const;
+        [[nodiscard]] const std::vector<int> & index() const;   // the current index during iteration
         range & operator++();                 // advance without copying the current index
         std::vector<int> operator++(int);     // advance and return a copied index
 
@@ -58,8 +58,6 @@ namespace ikaros
         [[nodiscard]] bool more(int d) const;
         [[nodiscard]] bool empty() const;
         [[nodiscard]] bool empty(int d) const;
-
-        operator std::vector<int> &();
 
         range & set(int d, int a, int b, int inc);
 
@@ -79,5 +77,16 @@ namespace ikaros
         friend bool operator<=(const range & a, const range & b);        // is subset
 
         friend std::ostream& operator<<(std::ostream& os, const range & x);
+
+    private:
+        std::vector<int> inc_;
+        std::vector<int> a_;
+        std::vector<int> b_;
+        std::vector<int> index_;
+
+        void swap(range & other) noexcept;
+
+        friend class Connection;
+        friend struct range_access;
     };
 }; // namespace ikaros

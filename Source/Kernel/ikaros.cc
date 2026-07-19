@@ -102,19 +102,22 @@ namespace ikaros
 
             if(delays.rank() != 1)
                 throw build_failed(connection + "must be one-dimensional.", path);
-            if(delays.a_[0] == delays.b_[0])
+            const int delay_start = delays.start(0);
+            const int delay_stop = delays.stop(0);
+            const int delay_step = delays.step(0);
+            if(delay_start == delay_stop)
                 throw build_failed(connection + "must not be empty.", path);
-            if(delays.inc_[0] <= 0)
+            if(delay_step <= 0)
                 throw build_failed(connection + "must have a positive increment.", path);
-            if(delays.a_[0] < 0)
+            if(delay_start < 0)
                 throw build_failed(connection + "must be non-negative.", path);
-            if(delays.b_[0] <= delays.a_[0])
+            if(delay_stop <= delay_start)
                 throw build_failed(connection + "must be an ascending, non-empty range.", path);
 
-            const long long distance = static_cast<long long>(delays.b_[0]) - delays.a_[0];
-            const long long count = 1 + (distance - 1) / delays.inc_[0];
-            const long long max_delay = static_cast<long long>(delays.a_[0]) +
-                                        (count - 1) * delays.inc_[0];
+            const long long distance = static_cast<long long>(delay_stop) - delay_start;
+            const long long count = 1 + (distance - 1) / delay_step;
+            const long long max_delay = static_cast<long long>(delay_start) +
+                                        (count - 1) * delay_step;
             if(max_delay > maximum_connection_delay)
                 throw build_failed(connection + "must not exceed " +
                                    std::to_string(maximum_connection_delay) + " ticks.", path);
@@ -2663,7 +2666,8 @@ namespace ikaros
             if(input_buffer.rank() != 1)
                 throw setup_failed("Input \"" + name + "\" in \"" + path_ + "\" uses flatten and must have a one-dimensional fixed size, got \"" + shape_string(shape) + "\".", path_);
 
-            if(target_range.rank() != 1 || target_range.inc_[0] <= 0 || target_range.a_[0] < 0 || target_range.b_[0] > input_buffer.size())
+            if(target_range.rank() != 1 || target_range.step(0) <= 0 ||
+               target_range.start(0) < 0 || target_range.stop(0) > input_buffer.size())
                 throw setup_failed("Connection \"" + connection.Info() + "\" writes outside fixed size of input \"" + name + "\" in \"" + path_ + "\" (" + shape_string(shape) + ").", path_);
         };
 
@@ -2758,7 +2762,9 @@ namespace ikaros
                 throw setup_failed("Connection \"" + connection.Info() + "\" writes outside fixed size of input \"" + name + "\" in \"" + path_ + "\" (" + shape_string(shape) + ").", path_);
 
             for(int i = 0; i < target_range.rank(); ++i)
-                if(target_range.inc_[i] <= 0 || target_range.a_[i] < 0 || target_range.a_[i] > target_range.b_[i] || target_range.b_[i] > input_buffer.size(i))
+                if(target_range.step(i) <= 0 || target_range.start(i) < 0 ||
+                   target_range.start(i) > target_range.stop(i) ||
+                   target_range.stop(i) > input_buffer.size(i))
                     throw setup_failed("Connection \"" + connection.Info() + "\" writes outside fixed size of input \"" + name + "\" in \"" + path_ + "\" (" + shape_string(shape) + ").", path_);
         };
 
@@ -3034,14 +3040,15 @@ namespace ikaros
                     range selector(alias_selector);
                     for(int i = 0; i < selector.rank(); ++i)
                     {
-                        bool is_single_index = !selector.empty(i) && selector.inc_[i] == 1 && selector.b_[i] == selector.a_[i] + 1;
+                        bool is_single_index = !selector.empty(i) && selector.step(i) == 1 &&
+                                               selector.stop(i) == selector.start(i) + 1;
                         if(!is_single_index)
                             throw setup_failed("Output \"" + output_name + "\" alias must use single indices only.", path_);
 
                         if(aliased_output.rank() == 0)
                             throw setup_failed("Output \"" + output_name + "\" alias indexes deeper than its source output.", path_);
 
-                        aliased_output = aliased_output[selector.a_[i]];
+                        aliased_output = aliased_output[selector.start(i)];
                     }
                 }
             }
@@ -3372,7 +3379,8 @@ namespace ikaros
         if(delay_range_.empty())
             return delay == 1;
         return delay_range_.a_[0] == delay &&
-               static_cast<long long>(delay_range_.a_[0]) + delay_range_.inc_[0] >= delay_range_.b_[0];
+               static_cast<long long>(delay_range_.a_[0]) + delay_range_.inc_[0] >=
+                   delay_range_.b_[0];
     }
 
 
@@ -3429,13 +3437,9 @@ namespace ikaros
             for(int i=0; i<target_range.rank()-1; i++)    // CHECK EMPTY DIMENSION
                 if(target_range.empty(i) && j<reduced_source.rank())
                 {
-                    target_range.a_[i] = reduced_source.a_[j];
-                    target_range.b_[i] = reduced_source.b_[j];
-                    target_range.inc_[i] = reduced_source.inc_[j];
-
-                    reduced_source.a_[j] = 0;  // mark as used
-                    reduced_source.b_[j] = 0;
-                    reduced_source.inc_[j] = 0;
+                    target_range.set(i, reduced_source.start(j),
+                                     reduced_source.stop(j), reduced_source.step(j));
+                    reduced_source.set(j, 0, 0, 0); // mark as used
                     j++;
                 }
 
@@ -3447,11 +3451,7 @@ namespace ikaros
             }
 
             if(target_range.empty(target_range.rank()-1) && j<reduced_source.rank())
-            {
-                target_range.a_[target_range.rank()-1] = 0; // Check that dim is empty first
-                target_range.b_[target_range.rank()-1] = s;
-                target_range.inc_[target_range.rank()-1] = 1;
-            }
+                target_range.set(target_range.rank()-1, 0, s, 1);
         }
         int delay_size = DelayCount();
         if(delay_size > 1)

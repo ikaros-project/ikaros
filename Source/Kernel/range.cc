@@ -55,69 +55,104 @@ namespace ikaros
         push(a, a + 1, 1);
     };
 
-     range & range::push(int a, int b, int inc)
-     {
+    range &
+    range::push(int a, int b, int inc)
+    {
+        const int initial_index = RangeStartIndex(a, b, inc);
+        const std::size_t new_size = index_.size() + 1;
+        a_.reserve(new_size);
+        b_.reserve(new_size);
+        inc_.reserve(new_size);
+        index_.reserve(new_size);
+
         a_.push_back(a);
         b_.push_back(b);
         inc_.push_back(inc);
-        index_.push_back(RangeStartIndex(a, b, inc));
+        index_.push_back(initial_index);
         return *this;
-     }
+    }
 
-     range & range::push(int a)
-     {
+
+    range &
+    range::push(int a)
+    {
         if(a == std::numeric_limits<int>::max())
             throw std::out_of_range("Range index is too large");
         return push(a, a + 1, 1);
-     }
-
-     range & range::push()
-     {
-        return push(0, 0, 0);
-     }
+    }
 
 
-    range & range::push_front(int a, int b, int inc)
+    range &
+    range::push()
     {
+        return push(0, 0, 0);
+    }
+
+
+    range &
+    range::push_front(int a, int b, int inc)
+    {
+        const int initial_index = RangeStartIndex(a, b, inc);
+        const std::size_t new_size = index_.size() + 1;
+        a_.reserve(new_size);
+        b_.reserve(new_size);
+        inc_.reserve(new_size);
+        index_.reserve(new_size);
+
         a_.insert(a_.begin(), a);
         b_.insert(b_.begin(), b);
         inc_.insert(inc_.begin(), inc);
-        index_.insert(index_.begin(), RangeStartIndex(a, b, inc));
+        index_.insert(index_.begin(), initial_index);
         return *this;
     }
 
-    range & 
+    range &
     range::extend(int n)
     {
+        if(n <= rank())
+            return *this;
+
+        const std::size_t new_size = static_cast<std::size_t>(n);
+        a_.reserve(new_size);
+        b_.reserve(new_size);
+        inc_.reserve(new_size);
+        index_.reserve(new_size);
         while(rank() < n)
-            push();
+        {
+            a_.push_back(0);
+            b_.push_back(0);
+            inc_.push_back(0);
+            index_.push_back(0);
+        }
         return *this;
     }
 
 
-   range & 
-   range::extend(const range & r)
-   {
+    range &
+    range::extend(const range & r)
+    {
         if(rank() > r.rank())
             throw std::invalid_argument("Cannot extend a rank-" + std::to_string(rank()) +
                                         " range with a rank-" + std::to_string(r.rank()) +
                                         " range");
 
-        extend(r.rank());
-        for(int i=0; i<rank(); i++)
+        range result = *this;
+        result.extend(r.rank());
+        for(int i=0; i<result.rank(); i++)
         {
-            if(inc_[i] !=0 && inc_[i] != r.inc_[i])
+            if(result.inc_[i] !=0 && result.inc_[i] != r.inc_[i])
                 throw std::runtime_error("Incompatible range increments");
-            a_[i] = std::min(a_[i], r.a_[i]);
-            b_[i] = std::max(b_[i], r.b_[i]);
-            inc_[i] = r.inc_[i];
-            index_[i] = RangeStartIndex(a_[i], b_[i], inc_[i]);
+            result.a_[i] = std::min(result.a_[i], r.a_[i]);
+            result.b_[i] = std::max(result.b_[i], r.b_[i]);
+            result.inc_[i] = r.inc_[i];
+            result.index_[i] = RangeStartIndex(result.a_[i], result.b_[i], result.inc_[i]);
         }
+        swap(result);
         return *this;
-   } 
+    }
 
 
-    range & 
+    range &
     range::fill(const range & r)
     {
         if(rank() > r.rank())
@@ -125,15 +160,17 @@ namespace ikaros
                                         " range from a rank-" + std::to_string(r.rank()) +
                                         " range");
 
-        for(int i=0; i<rank(); i++)
-            if(empty(i))
+        range result = *this;
+        for(int i=0; i<result.rank(); i++)
+            if(result.empty(i))
             {
-                a_[i] = r.a_[i];
-                b_[i] = r.b_[i];
-                inc_[i] = r.inc_[i];
-                index_[i] = RangeStartIndex(a_[i], b_[i], inc_[i]);
+                result.a_[i] = r.a_[i];
+                result.b_[i] = r.b_[i];
+                result.inc_[i] = r.inc_[i];
+                result.index_[i] = RangeStartIndex(result.a_[i], result.b_[i], result.inc_[i]);
             }
-            return *this;
+        swap(result);
+        return *this;
     }
 
     
@@ -196,7 +233,38 @@ namespace ikaros
         }
     }
 
-    std::vector<int>  & range::index() { return index_; };
+    int
+    range::start(int d) const
+    {
+        if(d < 0 || d >= rank())
+            throw std::out_of_range("Range dimension is out of bounds");
+        return a_[d];
+    }
+
+
+    int
+    range::stop(int d) const
+    {
+        if(d < 0 || d >= rank())
+            throw std::out_of_range("Range dimension is out of bounds");
+        return b_[d];
+    }
+
+
+    int
+    range::step(int d) const
+    {
+        if(d < 0 || d >= rank())
+            throw std::out_of_range("Range dimension is out of bounds");
+        return inc_[d];
+    }
+
+
+    const std::vector<int> &
+    range::index() const
+    {
+        return index_;
+    }
 
 
     range &
@@ -337,26 +405,43 @@ namespace ikaros
         return size(d) == 0;
     }
 
-    range::operator std::vector<int> &() { return index(); };
-
-    range & range::set(int d, int a, int b, int inc)
+    range &
+    range::set(int d, int a, int b, int inc)
     {
-        if (d < 0 || d >= a_.size()) {
+        if(d < 0 || d >= rank())
             throw std::out_of_range("Index out of bounds in set.");
-        }
-        a_.at(d) = a;
-        b_.at(d) = b;
-        inc_.at(d) = inc;
-        index_.at(d) = RangeStartIndex(a_[d], b_[d], inc_[d]);
+
+        const int initial_index = RangeStartIndex(a, b, inc);
+        a_[d] = a;
+        b_[d] = b;
+        inc_[d] = inc;
+        index_[d] = initial_index;
         return *this;
     }
 
-    void 
-        range::operator=(const std::vector<int> & v)
+
+    void
+    range::operator=(const std::vector<int> & v)
     {
-        clear();
+        if(v.size() > static_cast<std::size_t>(std::numeric_limits<int>::max()))
+            throw std::length_error("Range rank exceeds the supported integer size");
+
+        range result;
+        result.extend(static_cast<int>(v.size()));
+        int dimension = 0;
         for(auto & i : v)
-            push(0, i);
+            result.set(dimension++, 0, i, 1);
+        swap(result);
+    }
+
+
+    void
+    range::swap(range & other) noexcept
+    {
+        inc_.swap(other.inc_);
+        a_.swap(other.a_);
+        b_.swap(other.b_);
+        index_.swap(other.index_);
     }
 
     void 

@@ -1,6 +1,9 @@
 #include <algorithm>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "ikaros.h"
@@ -9,6 +12,10 @@ using namespace ikaros;
 
 namespace
 {
+    static_assert(std::is_same_v<decltype(std::declval<range &>().index()),
+                                 const std::vector<int> &>);
+    static_assert(!std::is_convertible_v<range &, std::vector<int> &>);
+
     float
     ExpectedDelayedValue(int tick, int delay, int offset)
     {
@@ -322,6 +329,46 @@ class RangeSizeTestModule : public Module
         catch(const std::invalid_argument &)
         {
         }
+
+        auto checkAtomicOverflow = [](range value, const auto & mutation,
+                                      const std::string & operation)
+        {
+            const range original = value;
+            bool rejected = false;
+            try
+            {
+                mutation(value);
+            }
+            catch(const std::overflow_error &)
+            {
+                rejected = true;
+            }
+            if(!rejected)
+                throw exception(operation + " did not reject an overflowing range");
+            if(value != original)
+                throw exception(operation + " changed the range after rejecting the operation");
+        };
+
+        const int minimum = std::numeric_limits<int>::min();
+        const int maximum = std::numeric_limits<int>::max();
+        checkAtomicOverflow(range(0, 1), [=](range & value)
+        {
+            value.push(minimum, maximum, 1);
+        }, "push()");
+        checkAtomicOverflow(range(0, 1), [=](range & value)
+        {
+            value.push_front(minimum, maximum, 1);
+        }, "push_front()");
+        checkAtomicOverflow(range(0, 1), [=](range & value)
+        {
+            value.set(0, minimum, maximum, 1);
+        }, "set()");
+
+        range distantRange(0, maximum, 1);
+        checkAtomicOverflow(range(minimum, -1, 1), [&](range & value)
+        {
+            value.extend(distantRange);
+        }, "extend()");
 
         range prefix(0, 3);
         range * prefixResult = &(++prefix);
