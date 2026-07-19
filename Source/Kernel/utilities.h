@@ -46,8 +46,8 @@ namespace ikaros
     [[nodiscard]] float parse_float(const std::string & s);
     [[nodiscard]] int checked_truncating_int(double value, const std::string & conversion_name);
     [[nodiscard]] long checked_truncating_long(double value, const std::string & conversion_name);
-    // is_bool(s):; // Can s be converted to a boolean value?
-    [[nodiscard]] bool is_true(const std::string & s); // True if equal to 1 or start with T, t, Y, or y.
+    [[nodiscard]] bool is_true(const std::string & s);
+    [[nodiscard]] bool parse_bool(const std::string & s, bool & value);
 
     std::ostream& operator<<(std::ostream& os, const std::vector<int> & v);
 

@@ -409,12 +409,29 @@ bool is_integer(const std::string & s)
 
 bool is_true(const std::string & s)
 {
-    static std::vector<std::string> true_list = {"true", "True", "yes", "YES", "on", "ON","1"};
+    static const std::vector<std::string> true_list = {"true", "True", "yes", "YES", "on", "ON", "1"};
     return std::find(true_list.begin(), true_list.end(), s) != true_list.end();
 }
 
 
+bool
+parse_bool(const std::string & s, bool & value)
+{
+    const std::string trimmed = trim(s);
+    static const std::vector<std::string> false_list = {"false", "False", "no", "NO", "off", "OFF", "0"};
 
+    if(is_true(trimmed))
+    {
+        value = true;
+        return true;
+    }
+    if(std::find(false_list.begin(), false_list.end(), trimmed) != false_list.end())
+    {
+        value = false;
+        return true;
+    }
+    return false;
+}
 
 
 bool

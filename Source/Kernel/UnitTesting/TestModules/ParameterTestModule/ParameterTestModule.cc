@@ -81,6 +81,25 @@ class ParameterTestModule : public Module
     }
 
 
+    void test_boolean_assignment()
+    {
+        parameter value("bool");
+        value = std::string("true");
+        require_true(value.as_bool(), "boolean assignment should accept true");
+        value = std::string("off");
+        require_true(!value.as_bool(), "boolean assignment should accept recognized false values");
+        value = std::string("1");
+        require_true(value.as_bool(), "boolean assignment should accept one");
+
+        require_throws_as<exception>([&]() { value = std::string("truthy"); },
+                                     "boolean assignment should reject unknown text");
+        require_true(value.as_bool(), "rejected boolean text should leave the value unchanged");
+        require_throws_as<exception>([&]() { value = std::string("2"); },
+                                     "boolean assignment should reject numeric values other than zero and one");
+        require_true(value.as_bool(), "rejected numeric boolean text should leave the value unchanged");
+    }
+
+
     void test_matrix_update_contract()
     {
         Bind(matrixValue, "matrix_value");
@@ -213,6 +232,7 @@ class ParameterTestModule : public Module
     {
         test_numeric_precision_and_rates();
         test_matrix_indexing();
+        test_boolean_assignment();
         test_matrix_update_contract();
         test_integral_conversions();
         test_option_indices();

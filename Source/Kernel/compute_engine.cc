@@ -91,12 +91,9 @@ ComputeEngine::ComputeBool(const std::string & s)
 {
     EvalContext context;
     std::string value = trim(EvalMatrix(context, s, 0));
-    static std::vector<std::string> false_list = {"false", "False", "no", "NO", "off", "OFF", "0"};
-
-    if(is_true(value))
-        return true;
-    if(std::find(false_list.begin(), false_list.end(), value) != false_list.end())
-        return false;
+    bool result = false;
+    if(parse_bool(value, result))
+        return result;
 
     throw exception("ComputeBool could not convert \""+value+"\" to bool.", component_.path_);
 }

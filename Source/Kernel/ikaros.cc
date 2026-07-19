@@ -849,8 +849,13 @@ namespace ikaros
                 break;
 
             case bool_type:
-                *value = is_true(v);
+            {
+                bool bool_value = false;
+                if(!parse_bool(v, bool_value))
+                    throw exception("Invalid boolean parameter value \"" + v + "\".");
+                *value = bool_value;
                 break;
+            }
 
             case string_type:
                 *value = v;
