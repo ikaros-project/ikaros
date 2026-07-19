@@ -802,7 +802,7 @@ namespace ikaros
                 *value = std::to_string(v);
                 break;
             case matrix_type:
-                *value = scalar_parameter_matrix(v);
+                set_matrix(scalar_parameter_matrix(v));
                 break;
             default:
                 throw exception("Invalid parameter type for numeric assignment.");
@@ -857,10 +857,7 @@ namespace ikaros
                 break;
 
             case matrix_type:
-                if(auto matrix_value = get_parameter_matrix_ptr(value.get()))
-                    *matrix_value = v;
-                else
-                    *value = matrix(v);
+                set_matrix(matrix(v));
                 break;
 
             default:
@@ -877,7 +874,18 @@ namespace ikaros
         if(type != matrix_type)
             throw exception("Invalid parameter value");
 
-        *value = v;
+        matrix * matrix_value = get_parameter_matrix_ptr(value.get());
+        if(!matrix_value)
+            throw exception("Matrix parameter does not contain matrix storage.");
+
+        matrix replacement;
+        replacement.copy(v);
+        if(*resolved && (matrix_value->shape() != replacement.shape() || matrix_value->size() != replacement.size()))
+            throw exception("Matrix parameter shape cannot change after startup from " +
+                            format_shape(matrix_value->shape()) + " to " +
+                            format_shape(replacement.shape()) + ".");
+
+        matrix_value->copy(replacement);
         *resolved = true;
     }
 

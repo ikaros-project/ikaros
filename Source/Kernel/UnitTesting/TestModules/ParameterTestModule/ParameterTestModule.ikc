@@ -1,1 +1,3 @@
-<class internal="true" name="ParameterTestModule" description="Exercises parameter conversion and indexing safety" />
+<class internal="true" name="ParameterTestModule" description="Exercises parameter conversion, indexing, and matrix update safety">
+    <parameter name="matrix_value" type="matrix" default="1, 2; 3, 4" />
+</class>

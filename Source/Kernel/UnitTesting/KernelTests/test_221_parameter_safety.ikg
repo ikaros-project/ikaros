@@ -1,6 +1,6 @@
 <group internal="true"
     name="TestParameterSafety"
-    description="Test bounds-safe parameter indexing and checked integral conversions"
+    description="Test parameter bounds, checked integral conversions, and fixed-shape matrix updates"
     start="true"
     stop="1"
     expected_output_contains="PARAMETER SAFETY TEST OK">

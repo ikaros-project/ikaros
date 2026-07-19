@@ -38,6 +38,8 @@ require_throws_as(Function function, const std::string & message)
 
 class ParameterTestModule : public Module
 {
+    matrix matrixValue;
+
     void test_matrix_indexing()
     {
         parameter values("matrix");
@@ -51,6 +53,65 @@ class ParameterTestModule : public Module
                                              "operator[] should reject a negative index");
         require_throws_as<std::out_of_range>([&]() { static_cast<void>(values[3]); },
                                              "operator[] should reject an oversized index");
+    }
+
+
+    void test_matrix_update_contract()
+    {
+        Bind(matrixValue, "matrix_value");
+        float * storage = matrixValue.data();
+
+        SetParameter("matrix_value", matrix("5, 6; 7, 8"));
+        require_true(matrixValue.data() == storage, "same-shaped matrix replacement should preserve bound storage");
+        require_true(matrixValue(0, 0) == 5.0f && matrixValue(1, 1) == 8.0f,
+                     "direct matrix binding should observe programmatic replacement");
+
+        SetParameter("matrix_value", std::string("9, 10; 11, 12"));
+        require_true(matrixValue.data() == storage, "string replacement should preserve bound storage");
+        require_true(matrixValue(0, 1) == 10.0f && matrixValue(1, 0) == 11.0f,
+                     "direct matrix binding should observe string replacement");
+
+        matrix rowGapped(2, 4);
+        rowGapped.resize(2, 2);
+        rowGapped(0, 0) = 13.0f;
+        rowGapped(0, 1) = 14.0f;
+        rowGapped(1, 0) = 15.0f;
+        rowGapped(1, 1) = 16.0f;
+        SetParameter("matrix_value", rowGapped);
+        require_true(matrixValue.data() == storage, "row-gapped source should preserve bound storage");
+        require_true(matrixValue(0, 0) == 13.0f && matrixValue(0, 1) == 14.0f &&
+                     matrixValue(1, 0) == 15.0f && matrixValue(1, 1) == 16.0f,
+                     "row-gapped source should be copied in logical order");
+
+        matrix alias = matrixValue;
+        SetParameter("matrix_value", alias);
+        require_true(matrixValue.data() == storage && matrixValue(1, 1) == 16.0f,
+                     "aliased replacement should preserve the parameter value");
+
+        require_throws_as<exception>(
+            [&]() { SetParameter("matrix_value", matrix("1, 2, 3")); },
+            "matrix replacement should reject a different element count"
+        );
+        require_throws_as<exception>(
+            [&]() { SetParameter("matrix_value", matrix("1, 2, 3, 4")); },
+            "matrix replacement should reject a different shape with the same element count"
+        );
+        require_throws_as<exception>(
+            [&]() { SetParameter("matrix_value", std::string("1, 2, 3")); },
+            "string replacement should reject a different shape"
+        );
+        require_true(matrixValue.data() == storage && matrixValue(0, 0) == 13.0f && matrixValue(1, 1) == 16.0f,
+                     "rejected replacement should leave the bound matrix unchanged");
+
+        parameter scalar("matrix");
+        scalar = 1.0;
+        matrix scalarBinding = static_cast<matrix &>(scalar);
+        float * scalarStorage = scalarBinding.data();
+        scalar = 2.0;
+        require_true(scalarBinding.data() == scalarStorage && scalarBinding(0) == 2.0f,
+                     "numeric matrix assignment should preserve bound storage");
+        require_throws_as<exception>([&]() { scalar = std::string("1, 2"); },
+                                     "numeric matrix assignment should establish a fixed shape");
     }
 
 
@@ -126,6 +187,7 @@ class ParameterTestModule : public Module
     void Init() override
     {
         test_matrix_indexing();
+        test_matrix_update_contract();
         test_integral_conversions();
         test_option_indices();
         test_compute_int();
