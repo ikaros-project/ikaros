@@ -1,8 +1,9 @@
 <group internal="true"
     name="TestParameterSafety"
-    description="Test parameter bounds, checked integral conversions, and fixed-shape matrix updates"
+    description="Test parameter bounds, conversions, numeric precision, rates, and fixed-shape matrix updates"
     start="true"
     stop="1"
+    tick_duration="0.02"
     expected_output_contains="PARAMETER SAFETY TEST OK">
 
     <module class="ParameterTestModule" name="ParameterSafety" />

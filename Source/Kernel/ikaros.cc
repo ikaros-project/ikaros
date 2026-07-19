@@ -958,7 +958,7 @@ namespace ikaros
             case number_type:
             case rate_type:
                 if(auto number_value = std::get_if<double>(value.get()))
-                    return std::to_string(*number_value);
+                    return formatNumber(*number_value);
                 break;
             case bool_type:
                 if(auto bool_value = std::get_if<bool>(value.get()))
@@ -1554,7 +1554,7 @@ namespace ikaros
                 return shaped;
             };
 
-            if(p.type==number_type && !p.has_options)
+            if((p.type == number_type || p.type == rate_type) && !p.has_options)
             {
                 SetParameter(name, formatNumber(context->ComputeDouble(raw_value)));
                 return;

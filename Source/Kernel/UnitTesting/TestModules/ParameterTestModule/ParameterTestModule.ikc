@@ -1,3 +1,8 @@
 <class internal="true" name="ParameterTestModule" description="Exercises parameter conversion, indexing, and matrix update safety">
     <parameter name="matrix_value" type="matrix" default="1, 2; 3, 4" />
+    <parameter name="precision_copy" type="number" default="@precision_source" />
+    <parameter name="precision_source" type="number" default="0.12345678901234566" />
+    <parameter name="rate_copy" type="rate" default="@rate_source / 2" />
+    <parameter name="rate_expression" type="rate" default="1 / 8" />
+    <parameter name="rate_source" type="rate" default="0.12345678901234566" />
 </class>

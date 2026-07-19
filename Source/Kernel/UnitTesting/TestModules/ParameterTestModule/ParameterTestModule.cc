@@ -40,6 +40,31 @@ class ParameterTestModule : public Module
 {
     matrix matrixValue;
 
+    void test_numeric_precision_and_rates()
+    {
+        parameter precisionCopy;
+        parameter precisionSource;
+        parameter rateCopy;
+        parameter rateExpression;
+        parameter rateSource;
+        Bind(precisionCopy, "precision_copy");
+        Bind(precisionSource, "precision_source");
+        Bind(rateCopy, "rate_copy");
+        Bind(rateExpression, "rate_expression");
+        Bind(rateSource, "rate_source");
+
+        require_true(precisionSource.as_double() == 0.12345678901234566,
+                     "numeric resolution should preserve double precision");
+        require_true(precisionCopy.as_double() == precisionSource.as_double(),
+                     "numeric indirection should preserve double precision");
+        require_true(parse_double(precisionSource.as_string()) == precisionSource.as_double(),
+                     "numeric string conversion should round-trip exactly");
+        require_true(rateExpression.as_double() == 0.125 * GetTickDuration(),
+                     "rate parameters should evaluate plain arithmetic expressions");
+        require_true(parse_double(rateCopy.as_string()) == 0.5 * parse_double(rateSource.as_string()),
+                     "rate expressions should preserve source precision");
+    }
+
     void test_matrix_indexing()
     {
         parameter values("matrix");
@@ -186,6 +211,7 @@ class ParameterTestModule : public Module
 
     void Init() override
     {
+        test_numeric_precision_and_rates();
         test_matrix_indexing();
         test_matrix_update_contract();
         test_integral_conversions();

@@ -641,6 +641,15 @@ base64_encode(const unsigned char * data,
 
     std::string formatNumber(double value, int decimals)
     {
+        if(decimals < 0)
+        {
+            char buffer[64];
+            auto result = std::to_chars(buffer, buffer + sizeof(buffer), value);
+            if(result.ec != std::errc())
+                throw std::runtime_error("Could not format number.");
+            return std::string(buffer, result.ptr);
+        }
+
         std::ostringstream oss;
         oss.precision(decimals); // Set precision to handle floating-point accuracy
         oss << std::fixed << value;
