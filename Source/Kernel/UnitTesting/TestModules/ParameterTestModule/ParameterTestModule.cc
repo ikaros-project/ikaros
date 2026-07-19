@@ -1,4 +1,6 @@
+#include <iostream>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
 
 #include "ikaros.h"
@@ -33,6 +35,26 @@ require_throws_as(Function function, const std::string & message)
     }
 
     throw exception("ParameterTestModule: " + message + " (expected exception)");
+}
+
+
+template<typename Function>
+std::string
+capture_stdout(Function function)
+{
+    std::ostringstream output;
+    std::streambuf * previous_buffer = std::cout.rdbuf(output.rdbuf());
+    try
+    {
+        function();
+    }
+    catch(...)
+    {
+        std::cout.rdbuf(previous_buffer);
+        throw;
+    }
+    std::cout.rdbuf(previous_buffer);
+    return output.str();
 }
 }
 
@@ -149,6 +171,58 @@ class ParameterTestModule : public Module
                      option.options()[2] == "gamma", "cached options should be trimmed");
         option = std::string("beta");
         require_true(option.as_string() == "beta", "option assignment should use the cached options");
+    }
+
+
+    void test_debug_output()
+    {
+        parameter value(dictionary({
+            {"name", "gain"},
+            {"type", "number"},
+            {"default", "1"},
+            {"min", "0"},
+            {"max", "2"}
+        }));
+
+        require_true(capture_stdout([&]() { value.print(); }) == "gain = unresolved\n",
+                     "print() should identify unresolved named parameters");
+
+        value = 1.25;
+        require_true(capture_stdout([&]() { value.print(); }) == "gain = 1.25\n",
+                     "print() should use the declared name and current value");
+
+        const std::string details = capture_stdout([&]() { value.info(); });
+        require_true(details.find("name: gain\n") != std::string::npos,
+                     "info() should print the parameter name");
+        require_true(details.find("type: number\n") != std::string::npos,
+                     "info() should print the textual parameter type");
+        require_true(details.find("resolved: true\n") != std::string::npos,
+                     "info() should print the resolution state");
+        require_true(details.find("default: 1\n") != std::string::npos,
+                     "info() should print the declared default");
+        require_true(details.find("minimum: 0\n") != std::string::npos &&
+                     details.find("maximum: 2\n") != std::string::npos,
+                     "info() should print numeric constraints");
+        require_true(details.find("value: 1.25\n") != std::string::npos,
+                     "info() should print the current value");
+
+        parameter option(dictionary({
+            {"name", "mode"},
+            {"type", "string"},
+            {"options", "alpha, beta"}
+        }));
+        option = std::string("beta");
+        const std::string option_details = capture_stdout([&]() { option.info(); });
+        require_true(option_details.find("options: alpha, beta\n") != std::string::npos,
+                     "info() should print normalized cached options");
+
+        parameter unnamed("number");
+        const std::string unnamed_details = capture_stdout([&]() { unnamed.info(); });
+        require_true(unnamed_details.find("name: (unnamed)\n") != std::string::npos &&
+                     unnamed_details.find("default: (none)\n") != std::string::npos,
+                     "info() should label missing metadata clearly");
+        require_true(!unnamed.metadata().contains("name") && !unnamed.metadata().contains("default"),
+                     "info() should not create missing metadata entries");
     }
 
 
@@ -286,6 +360,7 @@ class ParameterTestModule : public Module
         test_matrix_indexing();
         test_boolean_assignment();
         test_constraints_and_option_cache();
+        test_debug_output();
         test_matrix_update_contract();
         test_integral_conversions();
         test_option_indices();

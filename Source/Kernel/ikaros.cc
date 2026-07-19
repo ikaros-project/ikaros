@@ -1221,27 +1221,59 @@ namespace ikaros
 
 
 
-    void 
-        parameter::print(std::string name) const
+    void
+    parameter::print(std::string name) const
     {
+        const dictionary & metadata = state_->info;
+        if(name.empty() && metadata.contains_non_null("name"))
+            name = std::string(metadata.at("name"));
+
         if(!name.empty())
             std::cout << name << " = ";
         if(state_->type == no_type)
-            std::cout <<"not initialized\n";
+            std::cout << "not initialized\n";
+        else if(!state_->resolved)
+            std::cout << "unresolved\n";
         else
-            std::cout << std::string(*this) << '\n';
+            std::cout << as_string() << '\n';
     }
 
 
-    void 
+    void
     parameter::info() const
     {
-        std::cout << "name: " << state_->info["name"] << '\n';
-        std::cout << "type: " << state_->type << '\n';
-        std::cout << "default: " << state_->info["default"] << '\n';
-        std::cout << "has_options: " << state_->has_options << '\n';
-        std::cout << "options: " << state_->info["options"] << '\n';
-        std::cout << "value: " << std::string(*this) << '\n';
+        const dictionary & metadata = state_->info;
+        const auto metadata_value = [&](const std::string & key, const std::string & fallback)
+        {
+            return metadata.contains_non_null(key) ? std::string(metadata.at(key)) : fallback;
+        };
+
+        const std::size_t type_index = static_cast<std::size_t>(state_->type);
+        const std::string type_name = type_index < parameter_strings.size() ?
+                                      std::string(parameter_strings[type_index]) : "unknown";
+
+        std::cout << "name: " << metadata_value("name", "(unnamed)") << '\n';
+        std::cout << "type: " << type_name << '\n';
+        std::cout << "resolved: " << (state_->resolved ? "true" : "false") << '\n';
+        std::cout << "default: " << metadata_value("default", "(none)") << '\n';
+        std::cout << "source: " << metadata_value("value", "(none)") << '\n';
+        std::cout << "has_options: " << (state_->has_options ? "true" : "false") << '\n';
+        std::cout << "options: ";
+        if(state_->options.empty())
+            std::cout << "(none)";
+        else
+        {
+            std::string separator;
+            for(const std::string & option : state_->options)
+            {
+                std::cout << separator << option;
+                separator = ", ";
+            }
+        }
+        std::cout << '\n';
+        std::cout << "minimum: " << (state_->minimum ? formatNumber(*state_->minimum) : "(none)") << '\n';
+        std::cout << "maximum: " << (state_->maximum ? formatNumber(*state_->maximum) : "(none)") << '\n';
+        std::cout << "value: " << (state_->resolved ? as_string() : "unresolved") << '\n';
     }
 
     std::string 
