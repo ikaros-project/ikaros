@@ -54,7 +54,8 @@ namespace ikaros
         [[nodiscard]] bool is_delay_0() const; // FIXME: rename
         [[nodiscard]] bool is_delay_1() const;
 
-        [[nodiscard]] bool more(int d=0) const;
+        [[nodiscard]] bool more() const;
+        [[nodiscard]] bool more(int d) const;
         [[nodiscard]] bool empty() const;
         [[nodiscard]] bool empty(int d) const;
 

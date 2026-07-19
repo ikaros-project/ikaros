@@ -236,13 +236,28 @@ namespace ikaros
     }
 
 
-    bool range::more(int d) const
+    bool
+    range::more() const
+    {
+        if(index_.empty())
+            return false;
+
+        for(int d = 0; d < rank(); ++d)
+            if(!more(d))
+                return false;
+
+        return true;
+    }
+
+
+    bool
+    range::more(int d) const
     {
         if(inc_.empty())
             return false;
         return inc_[d] != 0 && a_[d] < b_[d] &&
                index_[d] >= a_[d] && index_[d] < b_[d];
-    };
+    }
 
     
     range range::trim() const

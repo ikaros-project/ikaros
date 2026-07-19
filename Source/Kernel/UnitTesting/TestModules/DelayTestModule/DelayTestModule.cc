@@ -282,6 +282,9 @@ class RangeSizeTestModule : public Module
         CheckRangeValues("[3:2]", {});
         CheckRangeValues("[0:5:-2]", {4, 2, 0});
         CheckRangeValues("[0:6:-2]", {4, 2, 0});
+        CheckRangeValues("[][0:2]", {});
+        CheckRangeValues("[0:2][][0:2]", {});
+        CheckRangeValues("[0:2][]", {});
 
         range empty(0, 0, 0);
         if(empty.size() != 0 || empty.more())

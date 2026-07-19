@@ -80,6 +80,9 @@ example, `[0:5:2][1:6:2]` contains `3 * 3 = 9` index tuples. Empty dimensions an
 ranges have cardinality zero. If the product cannot be represented by the supported integer size,
 `size()` throws an overflow error.
 
+If any dimension is empty, `more()` returns false and iteration produces no index tuples,
+regardless of where the empty dimension occurs.
+
 Connection delay ranges are a restricted use of this syntax: they must be one-dimensional,
 ascending, non-negative, non-empty, use a positive increment, and generate no value above 100.
 These restrictions do not apply to general matrix and loop ranges.
