@@ -98,8 +98,8 @@ range traversal and mutation functions to change state. If `push()`, `push_front
 `extend()`, or `fill()` throws, the original range remains unchanged.
 
 A range whose terminal increment would overflow an `int` is rejected with `std::overflow_error`
-during construction or mutation. This keeps iteration free of runtime overflow checks. `trim()` and
-range union likewise reject unrepresentable results and leave their input unchanged.
+during construction or mutation. This keeps iteration free of runtime overflow checks. `trim()`
+likewise rejects an unrepresentable result without changing the source range.
 
 `tail()` removes the first dimension and preserves the remaining bounds, increments, and current
 cursor. The tail of a rank-one range is empty. Calling `tail()` on an empty range throws

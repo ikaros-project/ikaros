@@ -546,32 +546,6 @@ namespace ikaros
 
 
     void
-    operator|=(range & r, range & s)
-    {
-        if(r.empty())
-        {
-            range result = s;
-            r.swap(result);
-            return;
-        }
-        if(r.rank() != s.rank())
-            throw std::invalid_argument("Cannot combine ranges with different ranks");
-
-        range result = r;
-        for(int d = 0; d < result.rank(); ++d)
-        {
-            const int combined_start = std::min(result.a_[d], s.a_[d]);
-            const int combined_stop = std::max(result.b_[d], s.b_[d]);
-            const int combined_index = ValidatedRangeStartIndex(combined_start, combined_stop, 1);
-            result.a_[d] = combined_start;
-            result.b_[d] = combined_stop;
-            result.inc_[d] = 1;
-            result.index_[d] = combined_index;
-        }
-        r.swap(result);
-    }
-
-    void
     range::print(std::string name) const
     {
         std::cout << name << ": " << std::string(*this) << '\n';

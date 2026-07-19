@@ -387,10 +387,6 @@ class RangeSizeTestModule : public Module
         {
             static_cast<void>(value.trim());
         }, "trim()");
-        checkAtomicOverflow(range(minimum, -1, 1), [&](range & value)
-        {
-            value |= distantRange;
-        }, "operator|=()");
 
         checkConstructionOverflow([=]()
         {

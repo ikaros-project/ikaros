@@ -64,8 +64,6 @@ namespace ikaros
 
         void operator=(const std::vector<int> & v);
 
-        friend void operator|=(range & r, range & s);
-
         void print(std::string name="") const;
         void info(std::string name="") const;
         void print_index() const; // Print the current index position during a loop
