@@ -469,19 +469,6 @@ namespace ikaros
     }
 
 
-    bool range::is_delay_0() const
-    {
-        return a_.size() == 1 && a_[0] == 0 && b_[0] == 1;
-    }
-
-
-    bool range::is_delay_1() const
-    {
-        return a_.size() == 1 && a_[0] == 1 && b_[0] == 2;
-    }
-
-
-
     bool
     range::empty() const
     {

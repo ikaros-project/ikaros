@@ -51,9 +51,6 @@ namespace ikaros
         [[nodiscard]] range strip() const; // rremove dimensions with single index size
         [[nodiscard]] range tail() const;  // drop first dimension // FIXME: pop_front?
 
-        [[nodiscard]] bool is_delay_0() const; // FIXME: rename
-        [[nodiscard]] bool is_delay_1() const;
-
         [[nodiscard]] bool more() const;
         [[nodiscard]] bool empty() const;                       // true if the range generates no index tuples
         [[nodiscard]] bool empty(int d) const;
