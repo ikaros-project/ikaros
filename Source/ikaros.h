@@ -170,7 +170,7 @@ public:
     std::string operator=(std::string v);
     void set_matrix(const matrix & v);
 
-    operator const matrix & () const;
+    operator const matrix & () const = delete;
     operator std::string() const;
     operator double() const;
     explicit operator bool() const;
@@ -194,7 +194,7 @@ public:
     parameter_type get_type() const noexcept;
     bool has_options() const noexcept;
     bool is_resolved() const noexcept;
-    const std::vector<std::string> & options() const noexcept;
+    std::vector<std::string> options() const;
     dictionary metadata() const;
 
     std::string json() const;    

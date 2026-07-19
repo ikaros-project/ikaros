@@ -990,12 +990,6 @@ namespace ikaros
     }
 
 
-    parameter::operator const matrix & () const
-    {
-        return matrix_ref();
-    }
-
-
     matrix
     parameter::as_matrix() const
     {
@@ -1249,8 +1243,8 @@ namespace ikaros
     }
 
 
-    const std::vector<std::string> &
-    parameter::options() const noexcept
+    std::vector<std::string>
+    parameter::options() const
     {
         return state_->options;
     }

@@ -10,13 +10,13 @@ class KalmanFilter: public Module
     parameter inputSize;
     parameter innovationGate;
     parameter inversionJitter;
-    parameter aParameter;
-    parameter bParameter;
-    parameter hParameter;
-    parameter qParameter;
-    parameter rParameter;
-    parameter initialStateParameter;
-    parameter initialPParameter;
+    matrix aParameter;
+    matrix bParameter;
+    matrix hParameter;
+    matrix qParameter;
+    matrix rParameter;
+    matrix initialStateParameter;
+    matrix initialPParameter;
 
     matrix input;
     matrix inputValid;
@@ -322,34 +322,28 @@ class KalmanFilter: public Module
         scalarObservationNoise = IsZero(R);
     }
 
-    void CopyMatrixParameter(matrix & target, const parameter & source, int rows, int cols)
+    void CopyMatrixParameter(matrix & target, const matrix & source, int rows, int cols)
     {
-        matrix value;
-        value.copy(source);
-
-        if(IsZeroScalar(value))
+        if(IsZeroScalar(source))
         {
             target.realloc(rows, cols);
             target.set(0.0f);
             return;
         }
 
-        target.copy(value);
+        target.copy(source);
     }
 
-    void CopyVectorParameter(matrix & target, const parameter & source, int size)
+    void CopyVectorParameter(matrix & target, const matrix & source, int size)
     {
-        matrix value;
-        value.copy(source);
-
-        if(IsZeroScalar(value))
+        if(IsZeroScalar(source))
         {
             target.realloc(size);
             target.set(0.0f);
             return;
         }
 
-        target.copy(value);
+        target.copy(source);
     }
 
     bool IsZeroScalar(const matrix & m) const

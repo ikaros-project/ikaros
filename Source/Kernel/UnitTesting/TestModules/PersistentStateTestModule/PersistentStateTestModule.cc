@@ -4,7 +4,7 @@ using namespace ikaros;
 
 class PersistentStateTestModule: public Module
 {
-    parameter data;
+    matrix data;
     parameter write;
     parameter use_private;
     parameter use_scalar;

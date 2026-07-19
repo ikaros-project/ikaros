@@ -16,7 +16,7 @@ class BalkeniusReactiveControl : public Module
     matrix raw_motor_;
 
     parameter behavior_;
-    parameter weights_;
+    matrix weights_;
     parameter a_;
     parameter b_;
     parameter c_;
@@ -55,9 +55,8 @@ class BalkeniusReactiveControl : public Module
     std::array<float, 6> ControlWeights()
     {
         std::array<float, 6> w = {0, 0, 0, 0, 0, 0};
-        matrix weights = weights_;
-        for (int i = 0; i < 6 && i < weights.size(); ++i)
-            w[i] = weights(i);
+        for (int i = 0; i < 6 && i < weights_.size(); ++i)
+            w[i] = weights_(i);
         return w;
     }
 

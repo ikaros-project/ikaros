@@ -28,8 +28,8 @@ class CurrentPositionMapping: public Module
      
 
     parameter number_num_transitions;
-    parameter min_limits;
-    parameter max_limits;
+    matrix min_limits;
+    matrix max_limits;
     parameter robotType;
 
 

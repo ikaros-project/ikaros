@@ -4,7 +4,7 @@ using namespace ikaros;
 
 class TimeSeries: public Module
 {
-    parameter data;
+    matrix data;
     parameter base_duration;
     parameter loop;
     parameter first_column_duration;
@@ -55,7 +55,7 @@ class TimeSeries: public Module
         series_position = 0.0;
         current_index = 0;
 
-        matrix series = data;
+        const matrix & series = data;
         if(series.empty())
             return;
 
@@ -69,7 +69,7 @@ class TimeSeries: public Module
     {
         trig = 0;
 
-        matrix series = data;
+        const matrix & series = data;
         if(series.empty())
             return;
 

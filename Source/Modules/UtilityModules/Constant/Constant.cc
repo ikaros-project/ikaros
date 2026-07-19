@@ -4,7 +4,7 @@ using namespace ikaros;
 
 class Constant: public Module
 {
-    parameter data;
+    matrix data;
     matrix output;
 
     void Init()
@@ -21,4 +21,3 @@ class Constant: public Module
 };
 
 INSTALL_CLASS(Constant)
-

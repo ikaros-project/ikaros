@@ -40,15 +40,15 @@ class World2D: public Module
     parameter whisker_length_;
     parameter whisker_angle_;
     parameter odour_decay_;
-    parameter edit_tool_;
-    parameter edit_type_;
-    parameter edit_value_;
-    parameter edit_opaque_;
-    parameter edit_smell_;
-    parameter edit_color_;
-    parameter food_;
-    parameter aversive_;
-    parameter walls_;
+    matrix edit_tool_;
+    matrix edit_type_;
+    matrix edit_value_;
+    matrix edit_opaque_;
+    matrix edit_smell_;
+    matrix edit_color_;
+    matrix food_;
+    matrix aversive_;
+    matrix walls_;
 
     matrix motor_;
     matrix creature_;
@@ -91,6 +91,12 @@ class World2D: public Module
         color(2) = 0.18f;
         return color;
     }
+    matrix matrix_snapshot(const matrix & source) const
+    {
+        matrix snapshot;
+        snapshot.copy(source);
+        return snapshot;
+    }
     bool has_object_geometry(const matrix & rows) const { return rows.cols() >= 17; }
     bool has_wall_geometry(const matrix & rows) const { return rows.cols() >= 11; }
     int find_object_row_by_id(const matrix & rows, int id) const
@@ -126,7 +132,7 @@ class World2D: public Module
     }
     int current_edit_tool()
     {
-        matrix tool = edit_tool_;
+        const matrix & tool = edit_tool_;
         return tool.empty() ? 0 : int(std::round(tool(0)));
     }
     bool object_solid(const matrix & rows, int row) const
@@ -433,10 +439,10 @@ class World2D: public Module
             apply_edit_smell_to_object_row("aversive", aversive_, find_object_row_by_id(aversive_, selected_object_id_));
     }
 
-    void apply_edit_smell_to_object_row(const std::string & parameter_name, parameter & rows_parameter, int row)
+    void apply_edit_smell_to_object_row(const std::string & parameter_name, const matrix & rows_parameter, int row)
     {
-        matrix rows = rows_parameter.as_matrix();
-        matrix smell = edit_smell_;
+        matrix rows = matrix_snapshot(rows_parameter);
+        const matrix & smell = edit_smell_;
         if(rows.empty() || rows.rank() < 2 || row < 0 || row >= rows.rows() || !has_object_geometry(rows) || smell.empty())
             return;
 
@@ -465,10 +471,10 @@ class World2D: public Module
         }
     }
 
-    void apply_edit_color_to_object_row(const std::string & parameter_name, parameter & rows_parameter, int row)
+    void apply_edit_color_to_object_row(const std::string & parameter_name, const matrix & rows_parameter, int row)
     {
-        matrix rows = rows_parameter.as_matrix();
-        matrix color = edit_color_;
+        matrix rows = matrix_snapshot(rows_parameter);
+        const matrix & color = edit_color_;
         if(rows.empty() || rows.rank() < 2 || row < 0 || row >= rows.rows() || !has_object_geometry(rows) || color.empty())
             return;
 
@@ -481,8 +487,8 @@ class World2D: public Module
 
     void apply_edit_color_to_wall_row(int row)
     {
-        matrix rows = walls_.as_matrix();
-        matrix color = edit_color_;
+        matrix rows = matrix_snapshot(walls_);
+        const matrix & color = edit_color_;
         if(rows.empty() || rows.rank() < 2 || row < 0 || row >= rows.rows() || !has_wall_geometry(rows) || color.empty())
             return;
 
@@ -511,7 +517,7 @@ class World2D: public Module
 
     float edit_object_type()
     {
-        matrix type = edit_type_;
+        const matrix & type = edit_type_;
         if(type.empty())
             return row_type_food;
 
@@ -533,10 +539,10 @@ class World2D: public Module
             move_selected_object_between_type_parameters("aversive", aversive_, "food", food_, desired_type);
     }
 
-    void move_selected_object_between_type_parameters(const std::string & source_name, parameter & source_parameter, const std::string & target_name, parameter & target_parameter, float desired_type)
+    void move_selected_object_between_type_parameters(const std::string & source_name, const matrix & source_parameter, const std::string & target_name, const matrix & target_parameter, float desired_type)
     {
-        matrix source = source_parameter.as_matrix();
-        matrix target = target_parameter.as_matrix();
+        matrix source = matrix_snapshot(source_parameter);
+        matrix target = matrix_snapshot(target_parameter);
         const int row = find_object_row_by_id(source, selected_object_id_);
         if(source.empty() || source.rank() < 2 || row < 0 || row >= source.rows() || !has_object_geometry(source))
             return;
@@ -555,9 +561,9 @@ class World2D: public Module
 
     void apply_edit_values_to_wall_row(int row)
     {
-        matrix rows = walls_.as_matrix();
-        matrix color = edit_color_;
-        matrix opaque = edit_opaque_;
+        matrix rows = matrix_snapshot(walls_);
+        const matrix & color = edit_color_;
+        const matrix & opaque = edit_opaque_;
         if(rows.empty() || rows.rank() < 2 || row < 0 || row >= rows.rows() || !has_wall_geometry(rows))
             return;
 
@@ -574,12 +580,12 @@ class World2D: public Module
         SetParameter("walls", rows, "");
     }
 
-    void apply_edit_values_to_object_row(const std::string & parameter_name, parameter & rows_parameter, int row)
+    void apply_edit_values_to_object_row(const std::string & parameter_name, const matrix & rows_parameter, int row)
     {
-        matrix rows = rows_parameter.as_matrix();
-        matrix value = edit_value_;
-        matrix smell = edit_smell_;
-        matrix color = edit_color_;
+        matrix rows = matrix_snapshot(rows_parameter);
+        const matrix & value = edit_value_;
+        const matrix & smell = edit_smell_;
+        const matrix & color = edit_color_;
         if(rows.empty() || rows.rank() < 2 || row < 0 || row >= rows.rows() || !has_object_geometry(rows))
             return;
 
@@ -643,36 +649,40 @@ class World2D: public Module
 
     matrix edit_color_values()
     {
-        matrix color = edit_color_;
-        if(color.empty())
+        matrix color;
+        if(edit_color_.empty())
         {
             color = matrix(3);
             color(0) = 0.48f;
             color(1) = 0.48f;
             color(2) = 0.50f;
         }
+        else
+            color.copy(edit_color_);
 
         return color;
     }
 
     matrix edit_smell_values()
     {
-        matrix smell = edit_smell_;
-        if(smell.empty())
+        matrix smell;
+        if(edit_smell_.empty())
             smell = matrix(8);
+        else
+            smell.copy(edit_smell_);
 
         return smell;
     }
 
     float edit_value_value()
     {
-        matrix value = edit_value_;
+        const matrix & value = edit_value_;
         return value.empty() ? 0.0f : value(0);
     }
 
     void add_object(dictionary & parameters)
     {
-        matrix rows = food_.as_matrix();
+        matrix rows = matrix_snapshot(food_);
         matrix row(object_parameter_cols);
         matrix color = edit_color_values();
         matrix smell = edit_smell_values();
@@ -703,7 +713,7 @@ class World2D: public Module
 
     void add_wall(dictionary & parameters)
     {
-        matrix rows = walls_.as_matrix();
+        matrix rows = matrix_snapshot(walls_);
         matrix row(wall_parameter_cols);
         matrix color = edit_color_values();
         row.set(0.0f);
@@ -737,9 +747,9 @@ class World2D: public Module
             delete_object_row("aversive", aversive_, find_object_row_by_id(aversive_, id), id, type);
     }
 
-    void delete_object_row(const std::string & parameter_name, parameter & rows_parameter, int row, int id, float type)
+    void delete_object_row(const std::string & parameter_name, const matrix & rows_parameter, int row, int id, float type)
     {
-        matrix rows = rows_parameter.as_matrix();
+        matrix rows = matrix_snapshot(rows_parameter);
         if(rows.empty() || rows.rank() < 2 || row < 0 || row >= rows.rows())
             return;
 
@@ -751,7 +761,7 @@ class World2D: public Module
     void delete_wall(dictionary & parameters)
     {
         const int id = int(parameters["id"]);
-        matrix rows = walls_.as_matrix();
+        matrix rows = matrix_snapshot(walls_);
         const int row = find_wall_row_by_id(rows, id);
         if(id < 1 || rows.empty() || rows.rank() < 2 || row < 0 || row >= rows.rows())
             return;
@@ -795,9 +805,9 @@ class World2D: public Module
         }
     }
 
-    void move_object_row(const std::string & parameter_name, parameter & rows_parameter, int row, float x, float y)
+    void move_object_row(const std::string & parameter_name, const matrix & rows_parameter, int row, float x, float y)
     {
-        matrix rows = rows_parameter.as_matrix();
+        matrix rows = matrix_snapshot(rows_parameter);
         if(rows.empty() || rows.rank() < 2 || row < 0 || row >= rows.rows())
             return;
 
@@ -813,7 +823,7 @@ class World2D: public Module
     void move_wall(dictionary & parameters)
     {
         const int id = int(parameters["id"]);
-        matrix walls = walls_.as_matrix();
+        matrix walls = matrix_snapshot(walls_);
         const int row = find_wall_row_by_id(walls, id);
         if(id < 1 || walls.empty() || walls.rank() < 2 || row < 0 || row >= walls.rows())
             return;

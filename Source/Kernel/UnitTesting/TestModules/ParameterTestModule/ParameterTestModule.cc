@@ -9,7 +9,7 @@
 using namespace ikaros;
 
 static_assert(!std::is_convertible_v<parameter &, matrix &>);
-static_assert(std::is_convertible_v<const parameter &, const matrix &>);
+static_assert(!std::is_convertible_v<const parameter &, const matrix &>);
 
 namespace
 {
@@ -171,8 +171,11 @@ class ParameterTestModule : public Module
         parameter option("string", "alpha, beta, gamma");
         require_true(option.has_options() && option.options().size() == 3,
                      "option metadata should be parsed once into the parameter");
-        require_true(option.options()[0] == "alpha" && option.options()[1] == "beta" &&
-                     option.options()[2] == "gamma", "cached options should be trimmed");
+        std::vector<std::string> exposed_options = option.options();
+        exposed_options[0] = "changed";
+        const std::vector<std::string> current_options = option.options();
+        require_true(current_options[0] == "alpha" && current_options[1] == "beta" &&
+                     current_options[2] == "gamma", "options() should return an independent copy");
         option = std::string("beta");
         require_true(option.as_string() == "beta", "option assignment should use the cached options");
     }
@@ -265,13 +268,13 @@ class ParameterTestModule : public Module
         matrix_source = std::string("1, 2");
         parameter matrix_copy = matrix_source;
         matrix_source = std::string("3, 4");
-        const matrix & copied_matrix = matrix_copy;
+        matrix copied_matrix = matrix_copy.as_matrix();
         require_true(copied_matrix(0) == 1.0f && copied_matrix(1) == 2.0f,
                      "parameter copies should own independent matrix storage");
 
         matrix matrix_snapshot = matrix_source.as_matrix();
         matrix_snapshot(0) = 9.0f;
-        const matrix & current_matrix = matrix_source;
+        matrix current_matrix = matrix_source.as_matrix();
         require_true(current_matrix(0) == 3.0f,
                      "as_matrix() should return an independent matrix snapshot");
 
@@ -336,11 +339,11 @@ class ParameterTestModule : public Module
 
         parameter scalar("matrix");
         scalar = 1.0;
-        const matrix & scalarView = scalar;
-        const float * scalarStorage = scalarView.data();
+        matrix scalarSnapshot = scalar.as_matrix();
         scalar = 2.0;
-        require_true(scalarView.data() == scalarStorage && scalarView(0) == 2.0f,
-                     "numeric matrix assignment should preserve const view storage");
+        matrix updatedScalar = scalar.as_matrix();
+        require_true(scalarSnapshot(0) == 1.0f && updatedScalar(0) == 2.0f,
+                     "numeric matrix snapshots should remain independent");
         require_throws_as<exception>([&]() { scalar = std::string("1, 2"); },
                                      "numeric matrix assignment should establish a fixed shape");
     }
