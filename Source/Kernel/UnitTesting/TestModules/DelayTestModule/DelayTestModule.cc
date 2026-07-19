@@ -453,6 +453,35 @@ class RangeSizeTestModule : public Module
         if(placeholder != offsetRange)
             throw exception("Extending with a placeholder changed an existing range");
 
+        range emptyReceiver(100, 100);
+        emptyReceiver.extend(offsetRange);
+        if(emptyReceiver != offsetRange)
+            throw exception("Extending an empty dimension did not adopt a populated dimension");
+
+        range populatedReceiver = offsetRange;
+        ++populatedReceiver;
+        const range advancedPopulatedReceiver = populatedReceiver;
+        populatedReceiver.extend(range(100, 100));
+        if(!populatedReceiver.same_state(advancedPopulatedReceiver))
+            throw exception("Extending with an empty dimension changed a populated dimension");
+
+        range firstEmpty(5, 5);
+        const range originalFirstEmpty = firstEmpty;
+        firstEmpty.extend(range(10, 10));
+        if(!firstEmpty.same_state(originalFirstEmpty))
+            throw exception("Extending two empty dimensions created a populated dimension");
+
+        range descendingEmptyReceiver(5, 4);
+        descendingEmptyReceiver.extend(offsetRange);
+        if(descendingEmptyReceiver != offsetRange)
+            throw exception("Extending a descending empty dimension did not adopt a populated dimension");
+
+        range multidimensionalEmpty("[100:100][0:2]");
+        range multidimensionalPopulated("[1:3][0:2]");
+        multidimensionalEmpty.extend(multidimensionalPopulated);
+        if(multidimensionalEmpty != multidimensionalPopulated)
+            throw exception("Multidimensional extension did not replace an empty dimension");
+
         range fillSource(0, 5);
         range fillPlaceholder("[]");
         fillPlaceholder.fill(fillSource);

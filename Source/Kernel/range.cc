@@ -249,6 +249,22 @@ namespace ikaros
                 continue;
             }
 
+            const int other_size = RangeDimensionSize(r.a_[i], r.b_[i], r.inc_[i]);
+            if(other_size == 0)
+                continue;
+
+            const int result_size = RangeDimensionSize(result.a_[i], result.b_[i],
+                                                        result.inc_[i]);
+            if(result_size == 0)
+            {
+                result.a_[i] = r.a_[i];
+                result.b_[i] = r.b_[i];
+                result.inc_[i] = r.inc_[i];
+                result.index_[i] = ValidatedRangeStartIndex(result.a_[i], result.b_[i],
+                                                            result.inc_[i]);
+                continue;
+            }
+
             const int covering_increment = RangeCoveringIncrement(result.inc_[i], r.inc_[i],
                                                                    result.a_[i], r.a_[i]);
             result.a_[i] = std::min(result.a_[i], r.a_[i]);
