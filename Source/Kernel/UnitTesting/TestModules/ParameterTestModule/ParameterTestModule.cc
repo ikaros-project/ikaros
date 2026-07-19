@@ -2,10 +2,14 @@
 #include <limits>
 #include <sstream>
 #include <stdexcept>
+#include <type_traits>
 
 #include "ikaros.h"
 
 using namespace ikaros;
+
+static_assert(!std::is_convertible_v<parameter &, matrix &>);
+static_assert(std::is_convertible_v<const parameter &, const matrix &>);
 
 namespace
 {
@@ -226,6 +230,63 @@ class ParameterTestModule : public Module
     }
 
 
+    void test_public_state_isolation()
+    {
+        parameter original(dictionary({
+            {"name", "isolated"},
+            {"type", "number"},
+            {"min", "0"},
+            {"max", "1"}
+        }));
+        original = 0.25;
+
+        parameter constructed = original;
+        constructed = 0.75;
+        require_true(original.as_double() == 0.25 && constructed.as_double() == 0.75,
+                     "copy construction should create independent parameter values");
+        require_throws_as<exception>([&]() { constructed = 1.25; },
+                                     "copied parameters should preserve independent constraints");
+
+        parameter assigned;
+        assigned = original;
+        assigned = 0.5;
+        require_true(original.as_double() == 0.25 && assigned.as_double() == 0.5,
+                     "copy assignment should create independent parameter values");
+
+        dictionary exposed_metadata = original.metadata();
+        exposed_metadata["type"] = "bool";
+        exposed_metadata["min"] = "-10";
+        dictionary current_metadata = original.metadata();
+        require_true(original.get_type() == number_type && std::string(current_metadata["type"]) == "number" &&
+                     std::string(current_metadata["min"]) == "0",
+                     "metadata() should return an independent deep copy");
+
+        parameter matrix_source("matrix");
+        matrix_source = std::string("1, 2");
+        parameter matrix_copy = matrix_source;
+        matrix_source = std::string("3, 4");
+        const matrix & copied_matrix = matrix_copy;
+        require_true(copied_matrix(0) == 1.0f && copied_matrix(1) == 2.0f,
+                     "parameter copies should own independent matrix storage");
+
+        matrix matrix_snapshot = matrix_source.as_matrix();
+        matrix_snapshot(0) = 9.0f;
+        const matrix & current_matrix = matrix_source;
+        require_true(current_matrix(0) == 3.0f,
+                     "as_matrix() should return an independent matrix snapshot");
+
+        parameter dynamic_matrix(dictionary({
+            {"type", "matrix"},
+            {"dynamic", "yes"}
+        }));
+        dynamic_matrix = std::string("1, 2");
+        dynamic_matrix = std::string("3, 4; 5, 6");
+        matrix dynamic_snapshot = dynamic_matrix.as_matrix();
+        require_true(dynamic_snapshot.rows() == 2 && dynamic_snapshot.cols() == 2 && dynamic_snapshot(1, 1) == 6.0f,
+                     "explicitly dynamic matrix parameters should allow shape changes");
+    }
+
+
     void test_matrix_update_contract()
     {
         Bind(matrixValue, "matrix_value");
@@ -275,11 +336,11 @@ class ParameterTestModule : public Module
 
         parameter scalar("matrix");
         scalar = 1.0;
-        matrix scalarBinding = static_cast<matrix &>(scalar);
-        float * scalarStorage = scalarBinding.data();
+        const matrix & scalarView = scalar;
+        const float * scalarStorage = scalarView.data();
         scalar = 2.0;
-        require_true(scalarBinding.data() == scalarStorage && scalarBinding(0) == 2.0f,
-                     "numeric matrix assignment should preserve bound storage");
+        require_true(scalarView.data() == scalarStorage && scalarView(0) == 2.0f,
+                     "numeric matrix assignment should preserve const view storage");
         require_throws_as<exception>([&]() { scalar = std::string("1, 2"); },
                                      "numeric matrix assignment should establish a fixed shape");
     }
@@ -361,6 +422,7 @@ class ParameterTestModule : public Module
         test_boolean_assignment();
         test_constraints_and_option_cache();
         test_debug_output();
+        test_public_state_isolation();
         test_matrix_update_contract();
         test_integral_conversions();
         test_option_indices();

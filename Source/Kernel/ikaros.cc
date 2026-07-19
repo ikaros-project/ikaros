@@ -713,6 +713,7 @@ namespace ikaros
         state_->has_options = state_->info.contains("options");
         if(state_->has_options)
             state_->options = split(std::string(state_->info["options"]), ",");
+        state_->dynamic = state_->info.is_set("dynamic");
         state_->minimum = get_parameter_bound(state_->info, "min");
         state_->maximum = get_parameter_bound(state_->info, "max");
 
@@ -765,6 +766,50 @@ namespace ikaros
     parameter::parameter(const std::string type, const std::string options):
         parameter(options.empty() ? dictionary({{"type", type}}) : dictionary({{"type", type},{"options", options}}))
     {}
+
+
+    parameter::parameter(const parameter & p):
+        state_(p.clone_state())
+    {
+    }
+
+
+    parameter &
+    parameter::operator=(const parameter & p)
+    {
+        if(this != &p)
+            state_ = p.clone_state();
+        return *this;
+    }
+
+
+    std::shared_ptr<parameter::parameter_state>
+    parameter::clone_state() const
+    {
+        auto cloned_state = std::make_shared<parameter_state>();
+        if(!state_)
+            return cloned_state;
+
+        cloned_state->info = state_->info.copy();
+        cloned_state->has_options = state_->has_options;
+        cloned_state->options = state_->options;
+        cloned_state->resolved = state_->resolved;
+        cloned_state->type = state_->type;
+        cloned_state->dynamic = state_->dynamic;
+        cloned_state->minimum = state_->minimum;
+        cloned_state->maximum = state_->maximum;
+
+        if(const matrix * stored_matrix = matrix_value())
+        {
+            matrix copied_matrix;
+            copied_matrix.copy(*stored_matrix);
+            cloned_state->value = copied_matrix;
+        }
+        else
+            cloned_state->value = state_->value;
+
+        return cloned_state;
+    }
 
 
     void 
@@ -913,18 +958,31 @@ namespace ikaros
 
         matrix replacement;
         replacement.copy(v);
-        if(state_->resolved &&
-           (stored_matrix->shape() != replacement.shape() || stored_matrix->size() != replacement.size()))
+        const bool shape_changed = stored_matrix->shape() != replacement.shape() ||
+                                   stored_matrix->size() != replacement.size();
+        if(state_->resolved && shape_changed && !state_->dynamic)
             throw exception("Matrix parameter shape cannot change after startup from " +
                             format_shape(stored_matrix->shape()) + " to " +
                             format_shape(replacement.shape()) + ".");
 
+        if(shape_changed)
+            stored_matrix->realloc(replacement.shape());
         stored_matrix->copy(replacement);
         state_->resolved = true;
     }
 
 
-    parameter::operator matrix & ()
+    matrix &
+    parameter::matrix_ref()
+    {
+        if(auto stored_matrix = matrix_value())
+            return *stored_matrix;
+        throw exception("Not a matrix value.");
+    }
+
+
+    const matrix &
+    parameter::matrix_ref() const
     {
         if(auto stored_matrix = matrix_value())
             return *stored_matrix;
@@ -934,9 +992,16 @@ namespace ikaros
 
     parameter::operator const matrix & () const
     {
-        if(auto stored_matrix = matrix_value())
-            return *stored_matrix;
-        throw exception("Not a matrix value.");
+        return matrix_ref();
+    }
+
+
+    matrix
+    parameter::as_matrix() const
+    {
+        matrix copied_matrix;
+        copied_matrix.copy(matrix_ref());
+        return copied_matrix;
     }
 
 
@@ -1191,10 +1256,10 @@ namespace ikaros
     }
 
 
-    const dictionary &
-    parameter::metadata() const noexcept
+    dictionary
+    parameter::metadata() const
     {
-        return state_->info;
+        return state_->info.copy();
     }
 
 
@@ -1557,7 +1622,7 @@ namespace ikaros
             {
                 if(p.get_type() == matrix_type)
                 {
-                    matrix & matrix_value = static_cast<matrix &>(p);
+                    matrix & matrix_value = p.matrix_ref();
                     double value = parse_parameter_number(change.value, "matrix parameter cell");
                     if(matrix_value.rank() == 1)
                         matrix_value(change.x)= value;
@@ -1834,7 +1899,7 @@ namespace ikaros
             if(k.buffers.count(name))
                 m = k.buffers[name];
             else if(k.parameters.count(name))
-                m = (matrix &)(k.parameters[name]);
+                m = k.parameters[name].matrix_ref();
             else if(KeyExists(n))
                 throw exception("Cannot bind to attribute \""+name+"\". Define it as a parameter!", path_);
             else
@@ -3233,7 +3298,7 @@ namespace ikaros
             else
             if(p.get_type() == matrix_type)
             {
-                const matrix & matrix_value = static_cast<const matrix &>(p);
+                const matrix & matrix_value = p.matrix_ref();
                 check_sum += prime_number.next() * matrix_value.size();
             }
             else
@@ -7269,7 +7334,7 @@ bool operator==(Request & r, const std::string s)
             parameter & parameter_value = parameters[source_with_root];
             if(requested_value.format == "metadata" && parameter_value.get_type() == matrix_type)
             {
-                const matrix & matrix_value = static_cast<const matrix &>(parameter_value);
+                const matrix & matrix_value = parameter_value.matrix_ref();
                 serialized_value = matrix_value.metadata_json();
             }
             else
@@ -8385,7 +8450,7 @@ bool operator==(Request & r, const std::string s)
             parameter & parameter_value = parameters[key];
             if(parameter_value.get_type() == matrix_type)
             {
-                const matrix & matrix_value = static_cast<const matrix &>(parameter_value);
+                const matrix & matrix_value = parameter_value.matrix_ref();
                 send_json_response(format == "metadata" ? matrix_value.metadata_json() : parameter_value.json(), matrix_value.shape());
             }
             else
@@ -8468,7 +8533,7 @@ bool operator==(Request & r, const std::string s)
         }
         else if(parameters.count(key) && parameters[key].get_type() == matrix_type)
         {
-            image = &static_cast<matrix &>(parameters[key]);
+            image = &parameters[key].matrix_ref();
         }
 
         if(!image)
@@ -8641,7 +8706,7 @@ bool operator==(Request & r, const std::string s)
                     if(request.parameters.contains("value"))
                         value = request.parameters["value"];
 
-                    matrix & matrix_value = static_cast<matrix &>(p);
+                    matrix & matrix_value = p.matrix_ref();
                     if(matrix_value.rank() == 1)
                         matrix_value(x)= value;
                     else if(matrix_value.rank() == 2)

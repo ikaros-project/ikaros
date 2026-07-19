@@ -265,9 +265,8 @@ class PythonModule: public Module
             if(name.empty())
                 continue;
 
-            parameter bound;
-            Bind(bound, name);
-            parameters_[name] = bound;
+            auto parameter_it = parameters_.try_emplace(name).first;
+            Bind(parameter_it->second, name);
         }
     }
 

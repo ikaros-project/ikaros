@@ -137,16 +137,20 @@ private:
         bool                     resolved = false;
         parameter_type           type = no_type;
         parameter_value          value;
+        bool                     dynamic = false;
         std::optional<double>    minimum;
         std::optional<double>    maximum;
     };
 
     std::shared_ptr<parameter_state> state_;
 
+    std::shared_ptr<parameter_state> clone_state() const;
     void bind_to(const parameter & p);
     void validate_numeric_value(double value) const;
     matrix * matrix_value() noexcept;
     const matrix * matrix_value() const noexcept;
+    matrix & matrix_ref();
+    const matrix & matrix_ref() const;
     void set_source_value(const std::string & value);
 
     friend class Component;
@@ -157,12 +161,15 @@ public:
     parameter();
     parameter(dictionary info);
     parameter(const std::string type, const std::string options="");
+    parameter(const parameter & p);
+    parameter(parameter && p) noexcept = default;
 
+    parameter & operator=(const parameter & p);
+    parameter & operator=(parameter && p) noexcept = default;
     double operator=(double v);
     std::string operator=(std::string v);
     void set_matrix(const matrix & v);
 
-    operator matrix & ();
     operator const matrix & () const;
     operator std::string() const;
     operator double() const;
@@ -176,6 +183,7 @@ public:
     double as_double() const;
     long as_long() const;
     int as_int() const;
+    matrix as_matrix() const;
     std::string as_int_string() const; // as_int() converted to string
     std::string as_string() const;
     bool empty() const;
@@ -187,7 +195,7 @@ public:
     bool has_options() const noexcept;
     bool is_resolved() const noexcept;
     const std::vector<std::string> & options() const noexcept;
-    const dictionary & metadata() const noexcept;
+    dictionary metadata() const;
 
     std::string json() const;    
     
