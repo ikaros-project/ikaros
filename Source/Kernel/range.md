@@ -53,6 +53,10 @@ Initialize a range from a string:
 range r("[0:5][2:4:-1]");
 ```
 
+Every non-empty numeric field must contain one complete, optionally signed integer after
+surrounding whitespace is removed. Trailing characters such as `[0:5junk]` are rejected as
+malformed instead of being ignored.
+
 This looks like ranges in Python but the semantics is different. The first value should always be the lower number even for a negative increment. A negative increment will generate exactly the same numbers as a positive but in reverse order.
 
 Examples:

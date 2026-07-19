@@ -442,6 +442,30 @@ class RangeSizeTestModule : public Module
         if(returnedStream != &rangeOutput || rangeOutput.str() != "prefix (1, 4) suffix")
             throw exception("Range stream insertion did not write to the supplied stream");
 
+        auto checkMalformedRange = [](const std::string & text)
+        {
+            try
+            {
+                static_cast<void>(range(text));
+                throw exception("Malformed range \"" + text + "\" was not rejected");
+            }
+            catch(const std::invalid_argument &)
+            {
+            }
+        };
+        checkMalformedRange("[1x]");
+        checkMalformedRange("[0:5junk]");
+        checkMalformedRange("[0:5:2step]");
+        checkMalformedRange("[1]x[2]");
+        checkMalformedRange("[1e2]");
+
+        range explicitlySigned("[+1:+4:+1]");
+        if(explicitlySigned.rank() != 1 || explicitlySigned.start(0) != 1 ||
+           explicitlySigned.stop(0) != 4 || explicitlySigned.step(0) != 1)
+            throw exception("Strict range parsing rejected valid explicitly signed integers");
+        if(range("[ +1 : +4 : +1 ]") != explicitlySigned)
+            throw exception("Strict range parsing rejected surrounding field whitespace");
+
         range prefix(0, 3);
         range * prefixResult = &(++prefix);
         if(prefixResult != &prefix || prefix.index()[0] != 1)

@@ -1,8 +1,10 @@
 // range.cc   (c) Christian Balkenius 2023
 
+#include <charconv>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
+#include <system_error>
 
 #include "range.h"
 #include "utilities.h"
@@ -55,6 +57,27 @@ namespace ikaros
                terminal > std::numeric_limits<int>::max())
                 throw std::overflow_error("Range terminal cursor exceeds the supported integer bounds");
             return static_cast<int>(initial);
+        }
+
+
+        int
+        ParseRangeInteger(const std::string & value)
+        {
+            if(value.empty())
+                throw std::invalid_argument("Malformed range integer");
+
+            const char * first = value.data();
+            const char * last = first + value.size();
+            if(*first == '+')
+                ++first;
+            if(first == last)
+                throw std::invalid_argument("Malformed range integer");
+
+            int result = 0;
+            const auto [parsed_end, error] = std::from_chars(first, last, result);
+            if(error != std::errc{} || parsed_end != last)
+                throw std::invalid_argument("Malformed range integer");
+            return result;
         }
     }
 
@@ -219,7 +242,7 @@ namespace ikaros
                         push(0, 0, 0);
                     else
                     {
-                        int index = std::stoi(r[0]);
+                        int index = ParseRangeInteger(r[0]);
                         if(index == std::numeric_limits<int>::max())
                             throw std::out_of_range("Range index is too large");
                         push(index, index + 1, 1); // single index
@@ -227,8 +250,8 @@ namespace ikaros
                 }
                 else if(r.size()==2)
                 {
-                    int a = r[0].empty() ? 0 : std::stoi(r[0]);
-                    int b = r[1].empty() ? 0 : std::stoi(r[1]);
+                    int a = r[0].empty() ? 0 : ParseRangeInteger(r[0]);
+                    int b = r[1].empty() ? 0 : ParseRangeInteger(r[1]);
                     if(a== 0 && b==0)
                         push(0, 0, 0);
                     else
@@ -236,9 +259,9 @@ namespace ikaros
                 }
                 else if(r.size()==3)
                 {
-                    int a = r[0].empty() ? 0 : std::stoi(r[0]);
-                    int b = r[1].empty() ? 0 : std::stoi(r[1]);
-                    int i = r[2].empty() ? (a==0 && b==0 ? 0 : 1) : std::stoi(r[2]);
+                    int a = r[0].empty() ? 0 : ParseRangeInteger(r[0]);
+                    int b = r[1].empty() ? 0 : ParseRangeInteger(r[1]);
+                    int i = r[2].empty() ? (a==0 && b==0 ? 0 : 1) : ParseRangeInteger(r[2]);
                     push(a, b, i);
                 }
                 else
