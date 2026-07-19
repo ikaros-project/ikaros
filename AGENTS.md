@@ -25,6 +25,7 @@
 ## Ikaros Programming Rules
 
 - Treat module outputs as setup-owned buffers. Declare output `size` or `shape` in `.ikc` and do not `realloc()` public outputs from module code.
+- Treat all matrices as fixed-shape after startup by default. Resize or reallocate a matrix during execution only when a runtime-varying shape is an explicit, exceptional design requirement; document and test that exception.
 - Use `.ikc` shape expressions as the source of truth for startup-resolvable sizes, including mode- or parameter-dependent shapes.
 - Use dynamic outputs only for genuinely runtime-varying shapes, not as a workaround for static mode-dependent sizes.
 - For shape expressions, numeric option parameters may be used algebraically as their numeric option index while still displaying labels in the UI.
