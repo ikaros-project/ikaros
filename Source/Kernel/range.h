@@ -55,7 +55,6 @@ namespace ikaros
         [[nodiscard]] bool is_delay_1() const;
 
         [[nodiscard]] bool more() const;
-        [[nodiscard]] bool more(int d) const;
         [[nodiscard]] bool empty() const;
         [[nodiscard]] bool empty(int d) const;
         [[nodiscard]] bool same_state(const range & other) const;
@@ -83,6 +82,7 @@ namespace ikaros
         std::vector<int> b_;
         std::vector<int> index_;
 
+        [[nodiscard]] bool more(int d) const;
         void swap(range & other) noexcept;
 
         friend class Connection;

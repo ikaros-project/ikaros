@@ -1140,7 +1140,7 @@ copy_range_blocks(matrix & target, const matrix & source,
 
     source_range.reset();
     target_range.reset();
-    while(source_range.more(0) && target_range.more(0))
+    while(range_access::more(source_range, 0) && range_access::more(target_range, 0))
     {
         int source_index = source.compute_index(source_range.index());
         int target_index = target.compute_index(target_range.index());
@@ -2216,7 +2216,7 @@ matrix::copy(const matrix & m, range & target, range & source)
        copy_range_blocks(*this, m, target, source))
         return *this;
 
-    for(; source.more(0) && target.more(0); ++source, ++target)
+    for(; range_access::more(source, 0) && range_access::more(target, 0); ++source, ++target)
     {
         int source_index = m.compute_index(source.index());
         int target_index = compute_index(target.index());
