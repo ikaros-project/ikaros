@@ -120,6 +120,20 @@ class ParameterTestModule : public Module
         require_true(ComputeValue("@dotted_source").empty(),
                      "an empty current parameter value should not fall back to its model attribute");
 
+        const std::string matrixShape = ComputeValue("matrix_value.shape");
+        require_throws_as<exception>([&]()
+        {
+            static_cast<void>(ComputeValue("matrix_value.shape[999999999999999999999999999999]"));
+        }, "shape selectors should reject indices that overflow size_t");
+        require_true(ComputeValue("matrix_value.shape[999999999999999999:]").empty(),
+                     "large representable shape slice starts should clamp to the rank");
+        require_true(ComputeValue("matrix_value.shape[:999999999999999999]") == matrixShape,
+                     "large representable shape slice ends should clamp to the rank");
+        require_throws_as<exception>([&]()
+        {
+            static_cast<void>(ComputeValue("matrix_value.shape[:999999999999999999999999999999]"));
+        }, "shape slices should reject endpoints that overflow size_t");
+
         Bind(prefixShapeTest, "PREFIX_SHAPE_TEST");
         require_true(prefixShapeTest.rank() == 1 && prefixShapeTest.size() == 5,
                      "shape substitution should distinguish parameter names that share a prefix");

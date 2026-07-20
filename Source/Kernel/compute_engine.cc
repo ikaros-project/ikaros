@@ -2,7 +2,9 @@
 
 #include "compute_engine.h"
 
+#include <algorithm>
 #include <cctype>
+#include <limits>
 
 namespace ikaros
 {
@@ -38,7 +40,7 @@ bool ParseShapeSelector(const std::string & function_name, std::string & base_na
     return base_name == "shape" || base_name == "size";
 }
 
-bool ParseNonNegativeIndex(const std::string & text, int & value)
+bool ParseNonNegativeIndex(const std::string & text, std::size_t & value)
 {
     const std::string trimmed = trim(text);
     if(trimmed.empty())
@@ -49,7 +51,10 @@ bool ParseNonNegativeIndex(const std::string & text, int & value)
     {
         if(!std::isdigit(static_cast<unsigned char>(c)))
             return false;
-        value = value * 10 + (c - '0');
+        const std::size_t digit = static_cast<std::size_t>(c - '0');
+        if(value > (std::numeric_limits<std::size_t>::max() - digit) / 10)
+            return false;
+        value = value * 10 + digit;
     }
     return true;
 }
@@ -555,16 +560,16 @@ ComputeEngine::MatrixShapeFunctionValue(const matrix & m, const std::string & fu
         const std::size_t colon = selector.find(':');
         if(colon == std::string::npos)
         {
-            int index = 0;
+            std::size_t index = 0;
             if(!ParseNonNegativeIndex(selector, index))
                 throw exception("Invalid shape index \"" + function_name + "\".", component_.path_);
-            if(index < 0 || static_cast<std::size_t>(index) >= shape.size())
+            if(index >= shape.size())
                 throw exception("Shape index out of range in \"" + function_name + "\".", component_.path_);
-            return std::to_string(shape[static_cast<std::size_t>(index)]);
+            return std::to_string(shape[index]);
         }
 
-        int start = 0;
-        int end = static_cast<int>(shape.size());
+        std::size_t start = 0;
+        std::size_t end = shape.size();
         const std::string start_text = selector.substr(0, colon);
         const std::string end_text = selector.substr(colon + 1);
         if(!start_text.empty() && !ParseNonNegativeIndex(start_text, start))
@@ -572,8 +577,8 @@ ComputeEngine::MatrixShapeFunctionValue(const matrix & m, const std::string & fu
         if(!end_text.empty() && !ParseNonNegativeIndex(end_text, end))
             throw exception("Invalid shape slice \"" + function_name + "\".", component_.path_);
 
-        start = std::clamp(start, 0, static_cast<int>(shape.size()));
-        end = std::clamp(end, 0, static_cast<int>(shape.size()));
+        start = std::min(start, shape.size());
+        end = std::min(end, shape.size());
         if(end < start)
             end = start;
         return ShapeString(std::vector<int>(shape.begin() + start, shape.begin() + end));
