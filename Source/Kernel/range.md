@@ -119,6 +119,8 @@ when the exact union cannot be represented by one range. A zero-step placeholder
 dimension, while extending a populated dimension with a placeholder leaves it unchanged. Explicit
 empty dimensions act as identities: an empty receiver adopts a populated dimension, a populated
 receiver ignores an empty dimension, and extending two empty dimensions keeps the receiver empty.
+An extension that leaves a dimension's definition unchanged also preserves its current cursor;
+only dimensions whose bounds or increment change are reset for traversal of the expanded range.
 
 The bounds, increments, and iteration cursor are private. Use `start(d)`, `stop(d)`, and `step(d)`
 to inspect a dimension, and `index()` to inspect the current cursor. `index()` is read-only; use the

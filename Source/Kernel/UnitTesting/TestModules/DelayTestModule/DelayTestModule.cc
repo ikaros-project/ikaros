@@ -496,6 +496,35 @@ class RangeSizeTestModule : public Module
            reverseCover.index() != std::vector<int>{5})
             throw exception("Extending a reverse range did not preserve its traversal direction");
 
+        range unchangedExtension(0, 5);
+        ++unchangedExtension;
+        const range originalUnchangedExtension = unchangedExtension;
+        unchangedExtension.extend(range(1, 3));
+        if(!unchangedExtension.same_state(originalUnchangedExtension))
+            throw exception("A definition-preserving extension reset the iteration cursor");
+
+        range selfExtension(0, 3);
+        while(selfExtension.more())
+            ++selfExtension;
+        const range originalSelfExtension = selfExtension;
+        selfExtension.extend(selfExtension);
+        if(!selfExtension.same_state(originalSelfExtension))
+            throw exception("Self-extension restarted an exhausted range");
+
+        range steppedContainedExtension(0, 6, 2);
+        ++steppedContainedExtension;
+        const range originalSteppedContainedExtension = steppedContainedExtension;
+        steppedContainedExtension.extend(range(2, 5, 2));
+        if(!steppedContainedExtension.same_state(originalSteppedContainedExtension))
+            throw exception("Extending with a contained progression reset iteration");
+
+        range partiallyChangedExtension("[0:3][0:3]");
+        for(int i = 0; i < 4; ++i)
+            ++partiallyChangedExtension;
+        partiallyChangedExtension.extend(range("[0:3][0:5]"));
+        if(partiallyChangedExtension.index() != std::vector<int>{1, 0})
+            throw exception("Multidimensional extension reset an unchanged dimension");
+
         range placeholder;
         placeholder.extend(1);
         range offsetRange(1, 6, 2);
