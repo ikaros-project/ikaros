@@ -1,0 +1,7 @@
+<group internal="true"
+    name="TestDuplicateScalarStateBinding"
+    description="Reject binding one scalar state to two C++ variables"
+    expected_exit="1"
+    expected_output_contains="Bind:&quot;TestDuplicateScalarStateBinding.Invalid.value&quot; failed. Scalar state is already bound to another variable">
+    <module class="ComponentHardeningTestModule" name="Invalid" bind_state_twice="yes" />
+</group>

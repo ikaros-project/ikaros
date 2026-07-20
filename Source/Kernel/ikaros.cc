@@ -1952,6 +1952,12 @@ namespace ikaros
             throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
         if(it->second.type != "float")
             throw exception("Bind:\"" + name + "\" failed. Expected state type float but got " + it->second.type + ".", path_);
+        if(it->second.float_ptr)
+        {
+            if(it->second.float_ptr == &v)
+                return;
+            throw exception("Bind:\"" + name + "\" failed. Scalar state is already bound to another variable.", path_);
+        }
         v = it->second.float_value;
         it->second.float_ptr = &v;
     }
@@ -1966,6 +1972,12 @@ namespace ikaros
             throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
         if(it->second.type != "double")
             throw exception("Bind:\"" + name + "\" failed. Expected state type double but got " + it->second.type + ".", path_);
+        if(it->second.double_ptr)
+        {
+            if(it->second.double_ptr == &v)
+                return;
+            throw exception("Bind:\"" + name + "\" failed. Scalar state is already bound to another variable.", path_);
+        }
         v = it->second.double_value;
         it->second.double_ptr = &v;
     }
@@ -1980,6 +1992,12 @@ namespace ikaros
             throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
         if(it->second.type != "int")
             throw exception("Bind:\"" + name + "\" failed. Expected state type int but got " + it->second.type + ".", path_);
+        if(it->second.int_ptr)
+        {
+            if(it->second.int_ptr == &v)
+                return;
+            throw exception("Bind:\"" + name + "\" failed. Scalar state is already bound to another variable.", path_);
+        }
         v = it->second.int_value;
         it->second.int_ptr = &v;
     }
@@ -1994,6 +2012,12 @@ namespace ikaros
             throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
         if(it->second.type != "bool")
             throw exception("Bind:\"" + name + "\" failed. Expected state type bool but got " + it->second.type + ".", path_);
+        if(it->second.bool_ptr)
+        {
+            if(it->second.bool_ptr == &v)
+                return;
+            throw exception("Bind:\"" + name + "\" failed. Scalar state is already bound to another variable.", path_);
+        }
         v = it->second.bool_value;
         it->second.bool_ptr = &v;
     }
@@ -2008,6 +2032,12 @@ namespace ikaros
             throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
         if(it->second.type != "string")
             throw exception("Bind:\"" + name + "\" failed. Expected state type string but got " + it->second.type + ".", path_);
+        if(it->second.string_ptr)
+        {
+            if(it->second.string_ptr == &v)
+                return;
+            throw exception("Bind:\"" + name + "\" failed. Scalar state is already bound to another variable.", path_);
+        }
         v = it->second.string_value;
         it->second.string_ptr = &v;
     }
