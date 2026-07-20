@@ -94,6 +94,10 @@ public:
 
     CircularBuffer() {}
     CircularBuffer(matrix &  m,  int size);
+    CircularBuffer(const CircularBuffer &) = delete;
+    CircularBuffer & operator=(const CircularBuffer &) = delete;
+    CircularBuffer(CircularBuffer &&) noexcept = default;
+    CircularBuffer & operator=(CircularBuffer &&) noexcept = default;
     void rotate(matrix &  m);
     matrix & get(int i);
 };
