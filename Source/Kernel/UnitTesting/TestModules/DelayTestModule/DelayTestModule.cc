@@ -24,6 +24,9 @@ namespace
     static_assert(!std::is_copy_assignable_v<CircularBuffer>);
     static_assert(std::is_move_constructible_v<CircularBuffer>);
     static_assert(std::is_move_assignable_v<CircularBuffer>);
+    static_assert(!std::is_default_constructible_v<CircularBuffer>);
+    static_assert(std::is_same_v<decltype(std::declval<const CircularBuffer &>().get(1)),
+                                 const matrix &>);
 
     float
     ExpectedDelayedValue(int tick, int delay, int offset)

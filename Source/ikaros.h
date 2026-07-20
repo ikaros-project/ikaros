@@ -89,17 +89,19 @@ Kernel& kernel();
 class CircularBuffer
 {
 public:
-    std::vector<matrix> buffer_;
-    int                 index_;
-
-    CircularBuffer() {}
-    CircularBuffer(matrix &  m,  int size);
+    CircularBuffer() = delete;
+    CircularBuffer(const matrix & m, int size);
     CircularBuffer(const CircularBuffer &) = delete;
     CircularBuffer & operator=(const CircularBuffer &) = delete;
     CircularBuffer(CircularBuffer &&) noexcept = default;
     CircularBuffer & operator=(CircularBuffer &&) noexcept = default;
-    void rotate(matrix &  m);
-    matrix & get(int i);
+    void rotate(const matrix & m);
+    const matrix & get(int i) const;
+    int size() const noexcept;
+
+private:
+    std::vector<matrix> buffer_;
+    int index_;
 };
 
 //

@@ -658,7 +658,7 @@ namespace ikaros
 
 // CircularBuffer
 
-    CircularBuffer::CircularBuffer(matrix &  m,  int size):
+    CircularBuffer::CircularBuffer(const matrix & m, int size):
         buffer_(),
         index_(0)
     {
@@ -680,8 +680,16 @@ namespace ikaros
         }
     }
 
+
+    int
+    CircularBuffer::size() const noexcept
+    {
+        return static_cast<int>(buffer_.size());
+    }
+
+
     void 
-    CircularBuffer::rotate(matrix &  m)
+    CircularBuffer::rotate(const matrix & m)
     {
         if(buffer_.empty())
             throw std::logic_error("Cannot rotate an empty circular buffer");
@@ -692,8 +700,8 @@ namespace ikaros
         index_ = (index_ + 1) % static_cast<int>(buffer_.size());
     }
 
-    matrix & 
-    CircularBuffer::get(int i) // Get output with delay i
+    const matrix &
+    CircularBuffer::get(int i) const // Get output with delay i
     {
         if(buffer_.empty())
             throw std::logic_error("Cannot read from an empty circular buffer");
@@ -3548,8 +3556,8 @@ namespace ikaros
             for(auto delay = delay_range_; delay.more(); ++delay)
             {
                 const int delay_value = delay.index()[0];
-                matrix s = delay_value == 0 ? *source_buffer_ :
-                           circular_buffer_->get(delay_value);
+                const matrix & s = delay_value == 0 ? *source_buffer_ :
+                                   circular_buffer_->get(delay_value);
 
                 for(auto ix=source_range; ix.more(); ++ix)
                 {
@@ -3561,7 +3569,7 @@ namespace ikaros
         else if(DelayCount() == 1) // Copy indexed delayed value with single delay
         {
             //std::cout << source << " =D=> " << target << std::endl;
-            matrix s = circular_buffer_->get(MinDelay());
+            const matrix & s = circular_buffer_->get(MinDelay());
             target_buffer_->copy(s, target_range, source_range);
         }
 
@@ -3573,8 +3581,8 @@ namespace ikaros
             for(auto delay = delay_range_; delay.more(); ++delay, ++target_ix)
             {
                 const int delay_value = delay.index()[0];
-                matrix s = delay_value == 0 ? *source_buffer_ :
-                           circular_buffer_->get(delay_value);
+                const matrix & s = delay_value == 0 ? *source_buffer_ :
+                                   circular_buffer_->get(delay_value);
                 range tr = target_range;
                 tr.set(delay_dimension, target_ix, target_ix + 1, 1);
                 target_buffer_->copy(s, tr, source_range);
@@ -4524,7 +4532,11 @@ bool operator==(Request & r, const std::string s)
 
         std::cout << "\nCircularBuffers:\n";
         for(auto & [name, history] : circular_buffers)
-            std::cout << "\t" << name <<  " " << history.buffer.buffer_.size() << " " << history.buffer.buffer_[0].rank() << history.buffer.buffer_[0].shape() <<  '\n';
+        {
+            const matrix & latest = history.buffer.get(1);
+            std::cout << "\t" << name << " " << history.buffer.size() << " "
+                      << latest.rank() << latest.shape() << '\n';
+        }
     }
 
 
