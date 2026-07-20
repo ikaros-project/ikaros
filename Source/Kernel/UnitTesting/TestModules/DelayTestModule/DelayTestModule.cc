@@ -124,6 +124,42 @@ class DelaySequenceSource : public Module
 
         if(!invalidSizeRejected || !zeroDelayRejected || !excessiveDelayRejected)
             throw exception("CircularBuffer accepted an invalid size or delay");
+
+        sample(0) = 1.0f;
+        history.rotate(sample);
+        sample(0) = 2.0f;
+        history.rotate(sample);
+        sample(0) = 3.0f;
+        history.rotate(sample);
+        if(history.get(1)(0) != 3.0f || history.get(2)(0) != 2.0f)
+            throw exception("CircularBuffer lost its order while wrapping");
+
+#ifndef NDEBUG
+        matrix dynamicSample;
+        dynamicSample.reserve({2, 2});
+        dynamicSample.set_dynamic().set_fixed_capacity();
+        dynamicSample.resize({1, 2});
+        dynamicSample(0, 0) = 4.0f;
+        dynamicSample(0, 1) = 5.0f;
+        CircularBuffer dynamicHistory(dynamicSample, 2);
+
+        matrix::set_allocation_failure_countdown_for_testing(0);
+        try
+        {
+            dynamicHistory.rotate(dynamicSample);
+        }
+        catch(...)
+        {
+            matrix::set_allocation_failure_countdown_for_testing(-1);
+            throw exception("CircularBuffer allocated while rotating an unchanged dynamic shape");
+        }
+        matrix::set_allocation_failure_countdown_for_testing(-1);
+
+        const matrix & latestDynamicSample = dynamicHistory.get(1);
+        if(latestDynamicSample.shape() != dynamicSample.shape() ||
+           latestDynamicSample(0, 0) != 4.0f || latestDynamicSample(0, 1) != 5.0f)
+            throw exception("CircularBuffer did not copy an unchanged dynamic shape");
+#endif
     }
 
     void Tick() override

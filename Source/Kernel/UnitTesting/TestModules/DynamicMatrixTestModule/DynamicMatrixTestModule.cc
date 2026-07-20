@@ -29,8 +29,12 @@ class DynamicMatrixSource : public Module
     {
         if(command_name == "fail_next_rotation")
         {
+#ifndef NDEBUG
             matrix::set_allocation_failure_countdown_for_testing(0);
             std::cout << path_ << " DYNAMIC ROTATION FAILURE ARMED" << std::endl;
+#else
+            throw exception("Dynamic rotation failure injection requires a Debug build");
+#endif
             return;
         }
 

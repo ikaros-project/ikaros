@@ -694,10 +694,14 @@ namespace ikaros
         if(buffer_.empty())
             throw std::logic_error("Cannot rotate an empty circular buffer");
 
-        if(m.is_dynamic())
-            buffer_[index_].resize(m.shape());
-        buffer_[index_].copy(m);
-        index_ = (index_ + 1) % static_cast<int>(buffer_.size());
+        matrix & frame = buffer_[index_];
+        if(m.is_dynamic() && frame.shape() != m.shape())
+            frame.resize(m.shape());
+        frame.copy(m);
+
+        ++index_;
+        if(index_ == static_cast<int>(buffer_.size()))
+            index_ = 0;
     }
 
     const matrix &
@@ -708,8 +712,9 @@ namespace ikaros
         if(i < 1 || i > static_cast<int>(buffer_.size()))
             throw std::out_of_range("Circular buffer delay is outside its history");
 
-        const size_t position = (buffer_.size() + static_cast<size_t>(index_) -
-                                 static_cast<size_t>(i)) % buffer_.size();
+        int position = index_ - i;
+        if(position < 0)
+            position += static_cast<int>(buffer_.size());
         return buffer_[position];
     }
 
