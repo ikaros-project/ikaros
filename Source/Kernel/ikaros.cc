@@ -3425,6 +3425,16 @@ namespace ikaros
         if(source_output.rank() == 0)
             return range();
 
+        auto reject_zero_increment = [&](const range & selector, const std::string & side)
+        {
+            for(int dimension = 0; dimension < selector.rank(); ++dimension)
+                if(selector.step(dimension) == 0 && !selector.is_placeholder(dimension))
+                    throw exception("Connection " + side +
+                                    " selector must not have a zero increment: " + Info());
+        };
+        reject_zero_increment(source_range, "source");
+        reject_zero_increment(target_range, "target");
+
         source_range.extend(source_output.rank());
         source_range.fill(source_output);
         range reduced_source = source_range.strip().trim();

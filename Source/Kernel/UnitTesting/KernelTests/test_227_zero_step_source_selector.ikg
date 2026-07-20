@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestZeroStepSourceSelector"
+    description="Reject explicit zero-step source selectors instead of expanding them as wildcards"
+    expected_exit="1"
+    expected_output_contains="Connection source selector must not have a zero increment">
+    <module class="Constant" name="Source" data="1,2,3" />
+    <module class="Print" name="Sink" />
+
+    <connection source="Source.OUTPUT[0:3:0]" target="Sink.INPUT" />
+</group>

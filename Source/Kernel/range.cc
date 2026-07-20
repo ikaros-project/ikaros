@@ -343,6 +343,8 @@ namespace ikaros
                     int a = r[0].empty() ? 0 : ParseRangeInteger(r[0]);
                     int b = r[1].empty() ? 0 : ParseRangeInteger(r[1]);
                     int i = r[2].empty() ? 1 : ParseRangeInteger(r[2]);
+                    if(a == 0 && b == 0 && i == 0)
+                        throw std::invalid_argument("The [] placeholder cannot be written as a numeric range");
                     push(a, b, i);
                 }
                 else
@@ -554,7 +556,7 @@ namespace ikaros
     bool
     range::is_placeholder(int d) const
     {
-        return step(d) == 0;
+        return step(d) == 0 && a_[d] == 0 && b_[d] == 0;
     }
 
 

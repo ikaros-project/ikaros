@@ -98,16 +98,19 @@ String conversion preserves that distinction: a rank-zero range is represented b
 dimension with step 1. An omitted increment in any colon form defaults to 1, so `[0:0]`, `[:]`,
 `[0:0:1]`, and `[::]` are equivalent explicit empty ranges rather than placeholders. Converting
 these forms to text and parsing them again preserves both their rank and placeholder state.
+The numeric spelling `[0:0:0]` is rejected because it would be indistinguishable from `[]`.
+Other explicit zero-step ranges have zero cardinality but are not placeholders.
 
 `extend(const range &)` may add dimensions when its argument has a higher rank. It rejects an
 argument with fewer dimensions than the receiver. `fill()` likewise requires its source to have at
 least as many dimensions as the receiver. Invalid rank combinations throw `std::invalid_argument`
 instead of accessing missing dimension data.
 
-`fill()` replaces only zero-step placeholders such as `[]` and dimensions added by `extend(rank)`.
-An explicitly empty dimension with a nonzero increment remains empty. Connection resolution uses
-the same rule for source and target selectors, so zero cardinality does not imply a wildcard. Use
-`is_placeholder(d)` to test this state without exposing its zero-step representation.
+`fill()` replaces only canonical `{0, 0, 0}` placeholders created by `[]`, `push()`, or
+`extend(rank)`. Other explicitly empty dimensions remain empty. Connection resolution uses the same
+rule for source and target selectors, so zero cardinality does not imply a wildcard. Explicit
+zero-step connection selectors are rejected during setup. Use `is_placeholder(d)` to test the
+placeholder state without duplicating its representation.
 
 For each populated dimension, `extend(const range &)` produces the smallest arithmetic progression
 that covers both inputs. It uses the greatest common divisor of their increments and starting-point

@@ -302,8 +302,29 @@ class RangeSizeTestModule : public Module
            !range("[0:2][][0:2]").empty() || range(0, 1).empty())
             throw exception("Range emptiness did not follow generated cardinality");
 
-        if(!range("[]").is_placeholder(0) || range(3, 3).is_placeholder(0))
+        if(!range("[]").is_placeholder(0) || !range(0, 0, 0).is_placeholder(0) ||
+           range(3, 3).is_placeholder(0) || range(0, 3, 0).is_placeholder(0) ||
+           range(1, 1, 0).is_placeholder(0))
             throw exception("Range placeholder detection was confused with emptiness");
+
+        for(const std::string & text : {"[0:0:0]", "[:0:0]", "[::0]"})
+        {
+            try
+            {
+                static_cast<void>(range(text));
+                throw exception("Numeric range \"" + text + "\" was accepted as a placeholder");
+            }
+            catch(const std::invalid_argument &)
+            {
+            }
+        }
+
+        range explicitZeroStep(0, 3, 0);
+        const range originalExplicitZeroStep = explicitZeroStep;
+        explicitZeroStep.fill(range(0, 5));
+        if(!explicitZeroStep.same_state(originalExplicitZeroStep) ||
+           range(std::string(explicitZeroStep)).is_placeholder(0))
+            throw exception("Explicit zero-step range was treated as a placeholder");
 
         const std::vector<std::string> explicitEmptyRangeTexts = {
             "[0:0]",
