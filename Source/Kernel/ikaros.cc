@@ -6018,11 +6018,12 @@ bool operator==(Request & r, const std::string s)
         if(!path.empty() && path[0] == '.')
             path = path.substr(1);
 
-        auto component = components.find(path);
-        if(component == components.end())
+        if(components.find(path) == components.end())
             throw exception("Component \"" + component_path + "\" could not be found.");
 
-        component->second->Reset();
+        for(auto & [candidate_path, component] : components)
+            if(path_is_in_scope(candidate_path, path))
+                component->Reset();
         Notify(msg_print, "Reset state for " + path);
     }
 

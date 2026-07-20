@@ -10,7 +10,7 @@ This file tracks the eleven high- and medium-priority findings from the joint re
 | 4 | P1 | Failed setup can leave a partially initialized model executable. | Addressed | `Failed setup cleanup removed partial networks` |
 | 5 | P2 | Groups can accidentally run in module-only async mode. | Addressed | `Async execution was restricted to modules` |
 | 6 | P2 | Custom component JSON serialization bypasses async protection. | Addressed | `Custom JSON reads respected async updates` |
-| 7 | P2 | Resetting a selected group does not reset its child components. | Not addressed | — |
+| 7 | P2 | Resetting a selected group does not reset its child components. | Addressed | `Scoped resets included child components` |
 | 8 | P2 | Input-dependent dynamic output capacities fail instead of deferring resolution. | Not addressed | — |
 | 9 | P2 | A whole-output alias renames its source matrix metadata. | Not addressed | — |
 | 10 | P2 | Scalar-state defaults and loaded Boolean values are not parsed strictly. | Not addressed | — |
