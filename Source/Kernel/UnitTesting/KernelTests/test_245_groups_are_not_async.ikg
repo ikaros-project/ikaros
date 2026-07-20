@@ -1,0 +1,11 @@
+<group internal="true"
+    name="TestGroupsAreNotAsync"
+    description="Keep group scheduling synchronous when a group defines async=yes"
+    async="yes"
+    webui_port="8245"
+    http_real_time="false"
+    http_requests="update/TestGroupsAreNotAsync||quit"
+    expected_output_contains="&quot;async&quot;: {}"
+    expected_output_not_contains="&quot;async&quot;: {&quot;TestGroupsAreNotAsync&quot;">
+    <module class="Constant" name="Source" data="1" async="no" />
+</group>

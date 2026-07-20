@@ -2166,21 +2166,6 @@ namespace ikaros
         info_["parameters"].push_back(make_start_tick_parameter().copy());
     }
 
-    void
-    add_async_parameter_if_missing(dictionary & info)
-    {
-        if(info["parameters"].is_null())
-            info["parameters"] = list();
-
-        for(auto p: info["parameters"])
-            if(p["name"].as_string()=="async")
-                return;
-
-        info["parameters"].push_back(make_async_parameter().copy());
-    }
-
-
-
     Component::Component():
         Task(Task::Kind::component),
         parent_(nullptr),
@@ -2205,7 +2190,6 @@ namespace ikaros
 
         AddLogLevel();
         AddFirstTick();
-        add_async_parameter_if_missing(info_);
 
         for(auto p: info_["parameters"])
             AddParameter(p);
@@ -3848,7 +3832,10 @@ bool operator==(Request & r, const std::string s)
         {
             (void)name;
             component->SyncFirstTickFromParameter();
-            component->SyncAsyncModeFromParameter();
+            if(dynamic_cast<Module *>(component.get()))
+                component->SyncAsyncModeFromParameter();
+            else
+                component->async_mode = false;
         }
 
         if(!ok)
