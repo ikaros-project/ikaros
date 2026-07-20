@@ -21,7 +21,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | # | Priority | Finding | Status | Commit |
 |---:|:---:|---|---|---|
 | 12 | P3 | Group outputs reject `size` but silently ignore the equally forbidden `shape` attribute. | Addressed | `Group outputs rejected explicit shapes` |
-| 13 | P3 | `GetIntValue()` accepts trailing characters in integer attributes. | Not addressed | — |
+| 13 | P3 | `GetIntValue()` accepts trailing characters in integer attributes. | Addressed | `Integer attributes rejected trailing characters` |
 | 14 | P3 | Binding the same scalar state twice silently leaves the first binding stale. | Not addressed | — |
 | 15 | P3 | `ClearOutputs()` clears component metadata but leaves registered kernel buffers behind. | Not addressed | — |
 | 16 | Hardening | `Component` exposes scheduling, async, identity, and profiler internals publicly. | Not addressed | — |

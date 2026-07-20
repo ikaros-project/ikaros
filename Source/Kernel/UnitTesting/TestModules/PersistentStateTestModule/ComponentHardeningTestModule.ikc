@@ -1,0 +1,3 @@
+<class internal="true" name="ComponentHardeningTestModule" description="Exercises Component API hardening checks">
+    <state name="value" type="int" default="0" />
+</class>

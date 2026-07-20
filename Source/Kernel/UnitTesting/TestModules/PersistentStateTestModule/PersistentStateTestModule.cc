@@ -69,6 +69,24 @@ class InvalidBoolStateDefaultModule : public Module
 };
 
 
+class ComponentHardeningTestModule : public Module
+{
+    int firstBinding = 0;
+    int secondBinding = 0;
+
+    void Init() override
+    {
+        if(KeyExists("integer_attribute"))
+            GetIntValue("integer_attribute");
+
+        Bind(firstBinding, "value");
+        if(KeyExists("bind_state_twice") && ComputeBool(GetValue("bind_state_twice")))
+            Bind(secondBinding, "value");
+    }
+};
+
+
 INSTALL_CLASS(PersistentStateTestModule)
 INSTALL_CLASS(InvalidIntStateDefaultModule)
 INSTALL_CLASS(InvalidBoolStateDefaultModule)
+INSTALL_CLASS(ComponentHardeningTestModule)

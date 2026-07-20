@@ -1886,7 +1886,15 @@ namespace ikaros
         std::string value = GetValue(name);
         if(value.empty())
             return d;
-        return std::stoi(value);
+        try
+        {
+            return parse_scalar_state_int(value);
+        }
+        catch(const std::exception & e)
+        {
+            throw exception("Attribute \"" + name + "\" has invalid integer value \"" + value + "\": " + e.what(),
+                            path_ + "." + name);
+        }
     }
 
 
