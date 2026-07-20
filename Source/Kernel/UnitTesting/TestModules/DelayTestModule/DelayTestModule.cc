@@ -124,6 +124,8 @@ class DelaySequenceSource : public Module
 
         if(!invalidSizeRejected || !zeroDelayRejected || !excessiveDelayRejected)
             throw exception("CircularBuffer accepted an invalid size or delay");
+        if(history.get(1)(0) != 0.0f || history.get(2)(0) != 0.0f)
+            throw exception("CircularBuffer static history was not initialized to zero");
 
         sample(0) = 1.0f;
         history.rotate(sample);
@@ -142,6 +144,13 @@ class DelaySequenceSource : public Module
         dynamicSample(0, 0) = 4.0f;
         dynamicSample(0, 1) = 5.0f;
         CircularBuffer dynamicHistory(dynamicSample, 2);
+        for(int delay = 1; delay <= dynamicHistory.size(); ++delay)
+        {
+            const matrix & initialFrame = dynamicHistory.get(delay);
+            if(initialFrame.shape() != dynamicSample.shape() ||
+               initialFrame(0, 0) != 0.0f || initialFrame(0, 1) != 0.0f)
+                throw exception("CircularBuffer dynamic history was not initialized to zero");
+        }
 
         matrix::set_allocation_failure_countdown_for_testing(0);
         try

@@ -675,8 +675,7 @@ namespace ikaros
                 buffer_[i].resize(m.shape());
             }
             else
-                buffer_[i].realloc(m.shape()); // copy(m);
-            buffer_[i].reset(); 
+                buffer_[i].realloc(m.shape());
         }
     }
 
