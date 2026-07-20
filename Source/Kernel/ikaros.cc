@@ -5462,15 +5462,13 @@ bool operator==(Request & r, const std::string s)
         if(d.contains_non_null("threads"))
         {
             std::string thread_pool_value = std::string(d["threads"]);
+            std::string trimmed_thread_pool_value = trim(thread_pool_value);
             int requested_threads = 0;
-            try
-            {
-                requested_threads = std::stoi(thread_pool_value);
-            }
-            catch(const std::exception &)
-            {
+            const char * begin = trimmed_thread_pool_value.data();
+            const char * end = begin + trimmed_thread_pool_value.size();
+            const auto result = std::from_chars(begin, end, requested_threads);
+            if(trimmed_thread_pool_value.empty() || result.ec != std::errc() || result.ptr != end)
                 throw setup_failed("Invalid thread pool size \"" + thread_pool_value + "\". Expected a positive integer.");
-            }
 
             if(requested_threads < 1)
                 throw setup_failed("Invalid thread pool size \"" + thread_pool_value + "\". Expected a positive integer.");
@@ -6243,153 +6241,172 @@ bool operator==(Request & r, const std::string s)
  * 
  *************************/
 
-    bool 
-    Kernel::DFSCycleCheck(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::unordered_set<std::string>& recStack) 
-    {
-        if(recStack.find(node) != recStack.end())
-            return true;
-
-        if(visited.find(node) != visited.end())
-            return false;
-
-        visited.insert(node);
-        recStack.insert(node);
-
-        if(graph.find(node) != graph.end()) 
-            for (const std::string& neighbor : graph.at(node)) 
-                if(DFSCycleCheck(neighbor, graph, visited, recStack)) 
-                    return true;
-        recStack.erase(node);
-        return false;
-    }
-
-
-
-    bool 
-    Kernel::HasCycle(const std::vector<std::string>& nodes, const std::vector<std::pair<std::string, std::string>>& edges) 
+    bool
+    Kernel::HasCycle(const std::vector<std::string> & nodes, const std::vector<std::pair<std::string, std::string>> & edges)
     {
         std::unordered_map<std::string, std::vector<std::string>> graph;
-        for (const auto& edge : edges)
+        for(const auto & edge : edges)
             graph[edge.first].push_back(edge.second);
 
-        std::unordered_set<std::string> visited;
-        std::unordered_set<std::string> recStack;
+        enum class VisitState
+        {
+            unvisited,
+            visiting,
+            visited,
+        };
 
-        for (const std::string& node : nodes)
-            if(visited.find(node) == visited.end() &&  (DFSCycleCheck(node, graph, visited, recStack)))
+        struct TraversalFrame
+        {
+            std::string node;
+            size_t next_neighbor = 0;
+        };
+
+        std::unordered_map<std::string, VisitState> states;
+        std::vector<TraversalFrame> traversal;
+
+        for(const std::string & node : nodes)
+        {
+            if(states[node] != VisitState::unvisited)
+                continue;
+
+            states[node] = VisitState::visiting;
+            traversal.push_back({node, 0});
+            while(!traversal.empty())
+            {
+                TraversalFrame & frame = traversal.back();
+                auto neighbors = graph.find(frame.node);
+                if(neighbors == graph.end() || frame.next_neighbor >= neighbors->second.size())
+                {
+                    states[frame.node] = VisitState::visited;
+                    traversal.pop_back();
+                    continue;
+                }
+
+                const std::string & neighbor = neighbors->second[frame.next_neighbor++];
+                if(states[neighbor] == VisitState::visiting)
                     return true;
+                if(states[neighbor] == VisitState::unvisited)
+                {
+                    states[neighbor] = VisitState::visiting;
+                    traversal.push_back({neighbor, 0});
+                }
+            }
+        }
 
         return false;
     }
 
-    void 
-    Kernel::DFSSubgroup(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::vector<std::string>& component) 
-    {
-        visited.insert(node);
-        component.push_back(node);
 
-        if(graph.find(node) != graph.end()) 
-        {
-            for (const std::string& neighbor : graph.at(node)) 
-            {
-                if(visited.find(neighbor) == visited.end()) 
-                    DFSSubgroup(neighbor, graph, visited, component);
-            }
-        }
-    }
-
-
-    std::vector<std::vector<std::string>> 
-    Kernel::FindSubgraphs(const std::vector<std::string>& nodes, const std::vector<std::pair<std::string, std::string>>& edges) 
+    std::vector<std::vector<std::string>>
+    Kernel::FindSubgraphs(const std::vector<std::string> & nodes, const std::vector<std::pair<std::string, std::string>> & edges)
     {
         std::unordered_map<std::string, std::vector<std::string>> graph;
-        for (const auto& edge : edges) 
+        for(const auto & edge : edges)
         {
             graph[edge.first].push_back(edge.second);
             graph[edge.second].push_back(edge.first);
         }
 
+        struct TraversalFrame
+        {
+            std::string node;
+            size_t next_neighbor = 0;
+        };
+
         std::unordered_set<std::string> visited;
         std::vector<std::vector<std::string>> components;
 
-        for (const std::string& node : nodes) 
+        for(const std::string & node : nodes)
         {
-            if(visited.find(node) == visited.end()) 
+            if(!visited.insert(node).second)
+                continue;
+
+            std::vector<std::string> component{node};
+            std::vector<TraversalFrame> traversal{{node, 0}};
+            while(!traversal.empty())
             {
-                std::vector<std::string> component;
-                DFSSubgroup(node, graph, visited, component);
-                components.push_back(component);
+                TraversalFrame & frame = traversal.back();
+                auto neighbors = graph.find(frame.node);
+                if(neighbors == graph.end() || frame.next_neighbor >= neighbors->second.size())
+                {
+                    traversal.pop_back();
+                    continue;
+                }
+
+                const std::string & neighbor = neighbors->second[frame.next_neighbor++];
+                if(visited.insert(neighbor).second)
+                {
+                    component.push_back(neighbor);
+                    traversal.push_back({neighbor, 0});
+                }
             }
+            components.push_back(std::move(component));
         }
 
         return components;
     }
 
 
-    void 
-    Kernel::TopologicalSortUtil(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::stack<std::string>& Stack) 
+    std::vector<std::string>
+    Kernel::TopologicalSort(const std::vector<std::string> & component, const std::unordered_map<std::string, std::vector<std::string>> & graph)
     {
-        visited.insert(node);
-
-        if(graph.find(node) != graph.end()) 
+        struct TraversalFrame
         {
-            for (const std::string& neighbor : graph.at(node)) 
+            std::string node;
+            size_t next_neighbor = 0;
+        };
+
+        std::unordered_set<std::string> visited;
+        std::vector<std::string> finished;
+
+        for(const std::string & node : component)
+        {
+            if(!visited.insert(node).second)
+                continue;
+
+            std::vector<TraversalFrame> traversal{{node, 0}};
+            while(!traversal.empty())
             {
-                if(visited.find(neighbor) == visited.end())
-                    TopologicalSortUtil(neighbor, graph, visited, Stack);
+                TraversalFrame & frame = traversal.back();
+                auto neighbors = graph.find(frame.node);
+                if(neighbors == graph.end() || frame.next_neighbor >= neighbors->second.size())
+                {
+                    finished.push_back(frame.node);
+                    traversal.pop_back();
+                    continue;
+                }
+
+                const std::string & neighbor = neighbors->second[frame.next_neighbor++];
+                if(visited.insert(neighbor).second)
+                    traversal.push_back({neighbor, 0});
             }
         }
-        Stack.push(node);
-    }
 
-
-
-    std::vector<std::string> 
-    Kernel::TopologicalSort(const std::vector<std::string>& component, const std::unordered_map<std::string, std::vector<std::string>>& graph) 
-    {
-        std::unordered_set<std::string> visited;
-        std::stack<std::string> Stack;
-
-        for (const std::string& node : component) 
-            if(visited.find(node) == visited.end())
-                TopologicalSortUtil(node, graph, visited, Stack);
-
-        std::vector<std::string> sortedSubgraph;
-        while (!Stack.empty()) 
-        {
-            sortedSubgraph.push_back(Stack.top());
-            Stack.pop();
-        }
-
-        return sortedSubgraph;
+        std::vector<std::string> sorted_subgraph;
+        sorted_subgraph.reserve(finished.size());
+        for(auto node = finished.rbegin(); node != finished.rend(); ++node)
+            sorted_subgraph.push_back(*node);
+        return sorted_subgraph;
     }
 
 
     std::vector<std::vector<std::string>>
-    Kernel::Sort(std::vector<std::string> nodes, std::vector<std::pair<std::string, std::string>> edges)
+    Kernel::Sort(const std::vector<std::string> & nodes, const std::vector<std::pair<std::string, std::string>> & edges)
     {
-        if(HasCycle(nodes, edges)) 
+        if(HasCycle(nodes, edges))
             throw setup_failed("Network has zero-delay loops");
-        else 
-        {
 
-            std::vector<std::vector<std::string>> components = FindSubgraphs(nodes, edges);
+        std::vector<std::vector<std::string>> components = FindSubgraphs(nodes, edges);
 
-            // Rebuild the original graph for directed edges
-            std::unordered_map<std::string, std::vector<std::string>> graph;
-            for (const auto& edge : edges) {
-                graph[edge.first].push_back(edge.second);
-            }
+        std::unordered_map<std::string, std::vector<std::string>> graph;
+        for(const auto & edge : edges)
+            graph[edge.first].push_back(edge.second);
 
-            std::vector<std::vector<std::string>>  result;
-
-            for (const auto& component : components) {
-                std::vector<std::string> sortedSubgraph = TopologicalSort(component, graph);
-                result.push_back(sortedSubgraph);
-            }
-
-            return result;
-        }
+        std::vector<std::vector<std::string>> result;
+        result.reserve(components.size());
+        for(const auto & component : components)
+            result.push_back(TopologicalSort(component, graph));
+        return result;
     }
 
 
@@ -6407,18 +6424,21 @@ bool operator==(Request & r, const std::string s)
             task_map[s] = c.get(); // Save in task map
         }
 
-        for(auto & c : connections) // Connections containing delay zero are sorted into tasks
-        if(c.HasZeroDelay())
-            {
-                std::string s = peek_rhead(c.source,".");
-                std::string t = peek_rhead(c.target,".");
-                std::string cc = "CON("+s+","+t+")"; // Connection node name
+        for(size_t connection_index = 0; connection_index < connections.size(); ++connection_index)
+        {
+            auto & c = connections[connection_index];
+            if(!c.HasZeroDelay())
+                continue;
 
-                nodes.push_back(cc);
-                arcs.push_back({s, cc});
-                arcs.push_back({cc, t});
-                task_map[cc] = &c; // Save in task map
-            }
+            std::string s = peek_rhead(c.source,".");
+            std::string t = peek_rhead(c.target,".");
+            std::string cc = "CON(" + std::to_string(connection_index) + ")";
+
+            nodes.push_back(cc);
+            arcs.push_back({s, cc});
+            arcs.push_back({cc, t});
+            task_map[cc] = &c; // Save in task map
+        }
 
         auto r = Sort(nodes, arcs);
 

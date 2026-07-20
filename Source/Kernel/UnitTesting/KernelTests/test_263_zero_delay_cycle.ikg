@@ -1,0 +1,11 @@
+<group internal="true"
+    name="TestZeroDelayCycle"
+    description="Reject zero-delay cycles after iterative task-graph traversal"
+    expected_exit="1"
+    expected_output_contains="Network has zero-delay loops">
+    <module class="Add" name="First" />
+    <module class="Add" name="Second" />
+
+    <connection source="First.OUTPUT" target="Second.INPUT1" delay="0" />
+    <connection source="Second.OUTPUT" target="First.INPUT1" delay="0" />
+</group>

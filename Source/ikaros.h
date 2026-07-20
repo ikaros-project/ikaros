@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <future>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -18,11 +19,11 @@
 #include <optional>
 #include <random>
 #include <set>
-#include <stack>
 #include <string>
 #include <string_view>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -918,13 +919,10 @@ private:
 
     // TASK SORTING
 
-    bool DFSCycleCheck(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::unordered_set<std::string>& recStack);
-    bool HasCycle(const std::vector<std::string>& nodes, const std::vector<std::pair<std::string, std::string>>& edges);
-    void DFSSubgroup(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::vector<std::string>& component) ;
-    std::vector<std::vector<std::string>> FindSubgraphs(const std::vector<std::string>& nodes, const std::vector<std::pair<std::string, std::string>>& edges);
-    void TopologicalSortUtil(const std::string& node, const std::unordered_map<std::string, std::vector<std::string>>& graph, std::unordered_set<std::string>& visited, std::stack<std::string>& Stack);
-    std::vector<std::string>  TopologicalSort(const std::vector<std::string>& component, const std::unordered_map<std::string, std::vector<std::string>>& graph);
-    std::vector<std::vector<std::string>> Sort(std::vector<std::string> nodes, std::vector<std::pair<std::string, std::string>> edges);
+    bool HasCycle(const std::vector<std::string> & nodes, const std::vector<std::pair<std::string, std::string>> & edges);
+    std::vector<std::vector<std::string>> FindSubgraphs(const std::vector<std::string> & nodes, const std::vector<std::pair<std::string, std::string>> & edges);
+    std::vector<std::string> TopologicalSort(const std::vector<std::string> & component, const std::unordered_map<std::string, std::vector<std::string>> & graph);
+    std::vector<std::vector<std::string>> Sort(const std::vector<std::string> & nodes, const std::vector<std::pair<std::string, std::string>> & edges);
 };
 
 //

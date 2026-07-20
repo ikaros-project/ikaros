@@ -1,6 +1,32 @@
-# Component, Group, Module, and Class Review Status
+# Kernel Review Status
 
-This file tracks the high-, medium-, and lower-priority findings from the joint review. Each finding is completed in its own commit after implementation, focused tests, the full kernel test suite, and any relevant performance verification.
+This file tracks the high-, medium-, and lower-priority findings from the joint review. Findings remain pending commit until implementation, focused tests, the full kernel test suite, and any relevant performance verification have completed.
+
+## Thread and task review
+
+| # | Priority | Finding | Status | Commit |
+|---:|:---:|---|---|---|
+| 1 | P1 | Parallel zero-delay connections between the same component pair collapse into one task. | Implemented and verified | Pending |
+| 2 | P2 | Partial `ThreadPool` construction can terminate the process. | Implemented and verified | Pending |
+| 3 | P2 | `TaskSequence` cannot safely be resubmitted or executed concurrently. | Implemented and verified | Pending |
+| 4 | P2 | Parallel console output can race. | Excluded by decision | — |
+| 5 | P3 | Malformed thread counts are accepted. | Implemented and verified | Pending |
+| 6 | P3 | Timeout conversion loses sub-millisecond precision. | Implemented and verified | Pending |
+| 7 | P3 | Task errors are reported twice and out of order. | Implemented and verified | Pending |
+| 8 | P3 | `Task` lacks a virtual destructor. | Implemented and verified | Pending |
+| 9 | P3 | Public `ThreadPool` inputs are insufficiently validated. | Implemented and verified | Pending |
+| 10 | P3 | Recursive task-graph algorithms have an avoidable depth limit. | Implemented and verified | Pending |
+
+### Thread and task verification
+
+- Debug build completed successfully.
+- Six focused scheduler, watchdog, exception, and public-API tests passed.
+- The complete kernel suite passed all 163 tests.
+- The public `ThreadPool` API test passed under Homebrew Clang ThreadSanitizer.
+- An iterative task-graph stress model completed setup with 4,000 modules and 8,001 graph nodes.
+- The Release delayed-propagation benchmark measured 42.56 ns/connection before and 42.55 ns/connection after the changes.
+
+## Component, group, module, and class review
 
 | # | Priority | Finding | Status | Commit |
 |---:|:---:|---|---|---|
@@ -36,4 +62,6 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 
 - **Not addressed**: no corrective implementation has been completed.
 - **In progress**: implementation or verification is currently underway.
+- **Implemented and verified**: implementation and required verification have completed, but the change has not yet been committed.
 - **Addressed**: implementation and required verification have completed and the change has been committed.
+- **Excluded by decision**: the finding was deliberately left unchanged.

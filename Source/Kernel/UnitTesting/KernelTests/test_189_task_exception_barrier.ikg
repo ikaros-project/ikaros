@@ -8,7 +8,7 @@
     task_timeout="1"
     expected_exit="1"
     expected_output_contains="Failing THROW||SlowPeer TICK_END||TaskLifecycleTestModule failure Failing||SlowPeer STOP_AFTER_TICK"
-    expected_output_not_contains="SlowPeer STOP_DURING_TICK||INPUT = {1}">
+    expected_output_not_contains="SlowPeer STOP_DURING_TICK||INPUT = {1}||Task execution error:">
     <module class="TaskLifecycleTestModule" name="Failing" duration="0" fail="true" label="Failing" />
     <module class="TaskLifecycleTestModule" name="SlowPeer" duration="0.08" label="SlowPeer" output_value="1" />
     <module class="Print" name="Sink" />

@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestThreadPoolAPI"
+    description="Validate task-sequence and thread-pool state transitions"
+    check_sum="12"
+    log_level="7"
+    expected_output_contains="THREAD_POOL_API_OK"
+    expected_output_not_contains="Task execution error">
+    <module class="ThreadPoolAPITestModule" name="Test" />
+</group>
