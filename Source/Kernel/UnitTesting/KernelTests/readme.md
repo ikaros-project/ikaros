@@ -7,6 +7,34 @@ are in the sibling `PythonTests` directory and have their own runner.
 
 Files with a name starting with "test" are run by the script. Other files are supporting files that are not tested directly.
 
+## ThreadSanitizer
+
+Use a separate build and executable directory so the sanitizer executable does not replace the
+normal `Bin/ikaros`:
+
+```sh
+cmake -S . -B Build-tsan \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="$PWD/Bin-tsan" \
+    -DIKAROS_THREAD_SANITIZER=ON
+cmake --build Build-tsan --parallel
+TSAN_OPTIONS=halt_on_error=1 ./Bin-tsan/ikaros -b \
+    Source/Kernel/UnitTesting/KernelTests/test_236_async_delay_history.ikg
+```
+
+If Apple Clang's sanitizer runtime crashes before `main()`, configure with a current Homebrew LLVM
+instead. Set both compilers during the first configuration of the build directory:
+
+```sh
+LLVM_ROOT="$(brew --prefix llvm)"
+cmake -S . -B Build-tsan \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="$PWD/Bin-tsan" \
+    -DCMAKE_CXX_COMPILER="$LLVM_ROOT/bin/clang++" \
+    -DCMAKE_OBJCXX_COMPILER="$LLVM_ROOT/bin/clang++" \
+    -DIKAROS_THREAD_SANITIZER=ON
+```
+
 ## Delayed Propagation Release Benchmark
 
 The delayed propagation benchmark is a timing probe, not a pass/fail test. It compares an identical

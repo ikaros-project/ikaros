@@ -37,6 +37,8 @@ else()
     add_compile_definitions(IKAROS_MATRIX_ACCELERATE=0)
 endif()
 
+option(IKAROS_THREAD_SANITIZER "Build Ikaros with ThreadSanitizer" OFF)
+
 if(NOT LOGGING STREQUAL "OFF" AND NOT LOGGING STREQUAL "MINIMAL" AND NOT LOGGING STREQUAL "FULL")
     message(FATAL_ERROR "LOGGING must be one of: OFF, MINIMAL, FULL")
 endif()
@@ -75,10 +77,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
 
- 	# Set compiler
-	set(CMAKE_C_COMPILER "clang")
-	set(CMAKE_CXX_COMPILER "clang++")
-
   find_library(ACCELERATE_LIBRARY Accelerate) # Hardware Acceleration
   find_library(COCOA_LIBRARY Cocoa)           # Wrapper for including the Cocoa frameworks AppKit.framework, Foundation.framework, and CoreData.framework.
   find_library(QUARTZ_LIBRARY QuartzCore)     # Contains the interfaces for Core Image, Core Animation, and Core Video. See Quartz Core Framework Reference. Used by CIFaceDetector
@@ -99,8 +97,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # Linux specific code
  	message( STATUS "Detected a Linux system")
 	add_definitions(-DLINUX)
-	set(CMAKE_C_COMPILER "gcc")
-	set(CMAKE_CXX_COMPILER "g++")
 	add_definitions(-DLINUX)
   # Remove a few warnings
   add_definitions(-Wno-unused-value)
@@ -162,6 +158,16 @@ add_subdirectory(Source)
 
 # Crete a binary with source files
 add_executable(ikaros ${SOURCE})
+
+if(IKAROS_THREAD_SANITIZER)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        message(FATAL_ERROR "IKAROS_THREAD_SANITIZER requires Clang or GCC")
+    endif()
+
+    target_compile_options(ikaros PRIVATE -fsanitize=thread -fno-omit-frame-pointer)
+    set_property(TARGET ikaros APPEND_STRING PROPERTY LINK_FLAGS " -fsanitize=thread")
+    message(STATUS "ThreadSanitizer enabled with ${CMAKE_CXX_COMPILER}")
+endif()
 
 # Check and adding Kernel libraries
 # BLAS
