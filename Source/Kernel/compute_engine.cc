@@ -308,53 +308,44 @@ ComputeEngine::HasTopLevelMath(EvalContext & context, const std::string & s) con
     if(cached != context.top_level_math_cache.end())
         return cached->second;
 
-    int paren_depth = 0;
-    int brace_depth = 0;
-    int bracket_depth = 0;
     bool has_top_level_math = false;
-
-    for(size_t i = 0; i < s.size(); i++)
+    try
     {
-        char c = s[i];
-        if(c == '(')
-            paren_depth++;
-        else if(c == ')')
-            paren_depth--;
-        else if(c == '{')
-            brace_depth++;
-        else if(c == '}')
-            brace_depth--;
-        else if(c == '[')
-            bracket_depth++;
-        else if(c == ']')
-            bracket_depth--;
-
-        if(paren_depth != 0 || brace_depth != 0 || bracket_depth != 0)
-            continue;
-
-        if(c == '+' || c == '*' || c == '/')
-        {
-            has_top_level_math = true;
-            break;
-        }
-
-        if(c == '-')
-        {
-            if(i == 0)
-            {
-                has_top_level_math = true;
-                break;
-            }
-            char prev = s[i-1];
-            if(prev != '.' && prev != '_' && !std::isalnum(static_cast<unsigned char>(prev)) && prev != '@' && prev != '}')
-            {
-                has_top_level_math = true;
-                break;
-            }
-        }
+        const std::string source = trim(s);
+        expression parsed(source);
+        bool parenthesized = source.size() >= 2 && source.front() == '(' && source.back() == ')';
+        has_top_level_math = parsed.has_operators() || parenthesized;
     }
+    catch(const std::invalid_argument &)
+    {}
 
     return context.top_level_math_cache.emplace(s, has_top_level_math).first->second;
+}
+
+
+bool
+ComputeEngine::HasResolvableMath(EvalContext & context, const std::string & s) const
+{
+    if(!HasTopLevelMath(context, s))
+        return false;
+
+    try
+    {
+        expression parsed(trim(s));
+        for(const auto & variable : parsed.variables())
+        {
+            if(!variable.empty() && variable[0] == '@')
+                continue;
+            if(IsPathLike(context, variable))
+                continue;
+            return false;
+        }
+        return true;
+    }
+    catch(const std::invalid_argument &)
+    {
+        return false;
+    }
 }
 
 
@@ -389,15 +380,11 @@ ComputeEngine::LookupLocal(EvalContext & context, const std::string & name) cons
         EvalContext owner_context;
 
         bool has_explicit_syntax = owner_engine.HasExplicitSyntax(owner_context, inherited_value);
-        bool is_path_like = owner_engine.IsPathLike(owner_context, inherited_value);
         bool looks_like_number = owner_engine.LooksLikeNumber(owner_context, inherited_value);
-        bool has_top_level_math = owner_engine.HasTopLevelMath(owner_context, inherited_value);
-        bool has_alpha = std::any_of(inherited_value.begin(), inherited_value.end(), [](unsigned char c)
-        {
-            return std::isalpha(c);
-        });
+        bool has_resolvable_math = owner_engine.HasResolvableMath(owner_context, inherited_value);
+        bool is_function = owner_engine.IsFunction(inherited_value);
 
-        if(has_explicit_syntax || is_path_like || looks_like_number || (!has_alpha && has_top_level_math))
+        if(has_explicit_syntax || looks_like_number || has_resolvable_math || is_function)
             inherited_value = owner_engine.ComputeValue(inherited_value);
 
         return context.lookup_cache.emplace(name, LookupResult{
@@ -779,7 +766,8 @@ ComputeEngine::EvalScalar(EvalContext & context, const std::string & s, int dept
 
         if(current != previous &&
            !HasExplicitSyntax(context, current) &&
-           !IsPathLike(context, current) &&
+           !HasResolvableMath(context, current) &&
+           !IsFunction(current) &&
            std::any_of(current.begin(), current.end(), [](unsigned char c) { return std::isalpha(c); }))
             return current;
 

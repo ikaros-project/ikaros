@@ -1,5 +1,6 @@
 #include <iostream>
 #include <limits>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <type_traits>
@@ -65,6 +66,53 @@ capture_stdout(Function function)
 class ParameterTestModule : public Module
 {
     matrix matrixValue;
+    matrix prefixShapeTest;
+
+    void test_expression_and_compute_engine()
+    {
+        require_true(expression("8/4*2").evaluate() == 4.0,
+                     "multiplication and division should be left-associative");
+        require_true(expression("8*4/2").evaluate() == 16.0,
+                     "mixed multiplication and division should preserve source order");
+        require_true(expression("1e-3*2").evaluate() == 0.002,
+                     "scientific notation should work inside arithmetic");
+        require_true(expression("1--2").evaluate() == 3.0,
+                     "binary and unary minus should compose correctly");
+
+        const std::set<std::string> scientific_variables = expression("1e-3*@precision_source").variables();
+        require_true(scientific_variables.size() == 1 && scientific_variables.count("@precision_source") == 1,
+                     "scientific notation should not introduce a variable named e");
+
+        for(const std::string & invalid : {"", "()", "1+", "+", "1*", "*1"})
+            require_throws_as<std::invalid_argument>([&]() { static_cast<void>(expression(invalid)); },
+                                                     "malformed arithmetic should be rejected: " + invalid);
+
+        require_true(ComputeDouble("3-1") == 2.0,
+                     "ComputeDouble() should recognize subtraction without surrounding spaces");
+        require_true(ComputeDouble("(1+2)") == 3.0,
+                     "ComputeDouble() should recognize fully parenthesized arithmetic");
+        require_true(ComputeDouble("1e-3*2") == 0.002,
+                     "ComputeDouble() should evaluate scientific notation inside arithmetic");
+        require_true(ComputeDouble("@precision_source-0.1") == 0.12345678901234566 - 0.1,
+                     "ComputeDouble() should recognize subtraction after parameter indirection");
+        require_throws_as<exception>([&]() { static_cast<void>(ComputeDouble("1+")); },
+                                     "ComputeDouble() should reject a missing operand");
+        require_throws_as<exception>([&]() { static_cast<void>(ComputeValue("bare+1")); },
+                                     "bare variables in arithmetic should still require @ indirection");
+
+        parameter dottedValue;
+        parameter inheritedDottedValue;
+        Bind(dottedValue, "dotted_value");
+        Bind(inheritedDottedValue, "inherited_dotted_value");
+        require_true(dottedValue.as_string() == "file.name.txt" &&
+                     ComputeValue("@dotted_source") == "file.name.txt" &&
+                     inheritedDottedValue.as_string() == "server.example.org",
+                     "parameter indirection should preserve dotted literal strings");
+
+        Bind(prefixShapeTest, "PREFIX_SHAPE_TEST");
+        require_true(prefixShapeTest.rank() == 1 && prefixShapeTest.size() == 5,
+                     "shape substitution should distinguish parameter names that share a prefix");
+    }
 
     void test_numeric_precision_and_rates()
     {
@@ -421,6 +469,7 @@ class ParameterTestModule : public Module
 
     void Init() override
     {
+        test_expression_and_compute_engine();
         test_numeric_precision_and_rates();
         test_matrix_indexing();
         test_boolean_assignment();

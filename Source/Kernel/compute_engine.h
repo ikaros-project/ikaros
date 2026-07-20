@@ -78,6 +78,7 @@ private:
     bool IsPathLike(EvalContext & context, const std::string & s) const;
     bool ShouldReturnLiteral(EvalContext & context, const std::string & s, bool evaluate_final) const;
     bool HasTopLevelMath(EvalContext & context, const std::string & s) const;
+    bool HasResolvableMath(EvalContext & context, const std::string & s) const;
     bool IsFunction(const std::string & s) const;
     bool LooksLikeNumber(EvalContext & context, const std::string & s) const;
     const std::vector<std::string> & SplitTopLevel(EvalContext & context, const std::string & s, char separator) const;

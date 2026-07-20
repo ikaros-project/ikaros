@@ -4,253 +4,391 @@
 //
 // Supported syntax:
 // - binary operators: +, -, *, /
-// - unary minus
+// - unary plus and minus
 // - parentheses
-// - variables beginning with a letter, '_' or '@', optionally followed by
-//   letters, digits, '_', dots, and shape-index brackets
+// - decimal and scientific-notation numbers
+// - variables beginning with a letter, '_', '@', or an absolute-path dot
 //
 // expression e(s) parses an expression string.
 // e.variables() returns the variables referenced by the expression.
 // e.evaluate(vars) evaluates the expression using a map of variable values.
 //
-// Expressions are evaluated as doubles.
-// Missing variables and invalid numeric conversions throw std::invalid_argument.
+// Expressions are evaluated as doubles. Invalid syntax, missing variables,
+// and invalid numeric conversions throw std::invalid_argument.
 
 #ifndef EXPRESSION
 #define EXPRESSION
 
-#include <exception>
+#include <cctype>
 #include <iostream>
-#include <string>
-#include <vector>
 #include <map>
+#include <memory>
 #include <set>
+#include <stdexcept>
+#include <string>
 
 #include "utilities.h"
 
 using variables = std::map<std::string, std::string>;
 
+namespace expression_detail
+{
+struct node
+{
+    char op = ' ';
+    std::string value;
+    std::unique_ptr<node> left;
+    std::unique_ptr<node> right;
+};
+
+
+class parser
+{
+public:
+    explicit parser(const std::string & source):
+        source_(source),
+        position_(0)
+    {}
+
+    std::unique_ptr<node> parse()
+    {
+        skip_whitespace();
+        if(at_end())
+            fail("Expression cannot be empty");
+
+        std::unique_ptr<node> result = parse_additive();
+        skip_whitespace();
+        if(!at_end())
+            fail("Unexpected token");
+        return result;
+    }
+
+private:
+    const std::string & source_;
+    std::size_t position_;
+
+    static bool initial_identifier_char(char c)
+    {
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_' || c == '@';
+    }
+
+    static bool identifier_char(char c)
+    {
+        return initial_identifier_char(c) || c == '.' || c == '[' || c == ']' || c == ':'
+            || (c >= '0' && c <= '9');
+    }
+
+    bool at_end() const
+    {
+        return position_ >= source_.size();
+    }
+
+    char current() const
+    {
+        return at_end() ? '\0' : source_[position_];
+    }
+
+    void skip_whitespace()
+    {
+        while(!at_end() && std::isspace(static_cast<unsigned char>(source_[position_])))
+            ++position_;
+    }
+
+    bool consume(char token)
+    {
+        skip_whitespace();
+        if(current() != token)
+            return false;
+        ++position_;
+        return true;
+    }
+
+    [[noreturn]] void fail(const std::string & message) const
+    {
+        throw std::invalid_argument(message + " at position " + std::to_string(position_) + ".");
+    }
+
+    std::unique_ptr<node> make_terminal(const std::string & value) const
+    {
+        auto result = std::make_unique<node>();
+        result->value = value;
+        return result;
+    }
+
+    std::unique_ptr<node> make_unary(char op, std::unique_ptr<node> operand) const
+    {
+        auto result = std::make_unique<node>();
+        result->op = op;
+        result->right = std::move(operand);
+        return result;
+    }
+
+    std::unique_ptr<node> make_binary(char op, std::unique_ptr<node> left, std::unique_ptr<node> right) const
+    {
+        auto result = std::make_unique<node>();
+        result->op = op;
+        result->left = std::move(left);
+        result->right = std::move(right);
+        return result;
+    }
+
+    std::unique_ptr<node> parse_additive()
+    {
+        std::unique_ptr<node> result = parse_multiplicative();
+        while(true)
+        {
+            if(consume('+'))
+                result = make_binary('+', std::move(result), parse_multiplicative());
+            else if(consume('-'))
+                result = make_binary('-', std::move(result), parse_multiplicative());
+            else
+                return result;
+        }
+    }
+
+    std::unique_ptr<node> parse_multiplicative()
+    {
+        std::unique_ptr<node> result = parse_unary();
+        while(true)
+        {
+            if(consume('*'))
+                result = make_binary('*', std::move(result), parse_unary());
+            else if(consume('/'))
+                result = make_binary('/', std::move(result), parse_unary());
+            else
+                return result;
+        }
+    }
+
+    std::unique_ptr<node> parse_unary()
+    {
+        if(consume('+'))
+            return make_unary('+', parse_unary());
+        if(consume('-'))
+            return make_unary('-', parse_unary());
+        return parse_primary();
+    }
+
+    std::unique_ptr<node> parse_primary()
+    {
+        skip_whitespace();
+        if(at_end())
+            fail("Missing operand");
+
+        if(consume('('))
+        {
+            std::unique_ptr<node> result = parse_additive();
+            if(!consume(')'))
+                fail("Missing closing parenthesis");
+            return result;
+        }
+
+        const char c = current();
+        if(std::isdigit(static_cast<unsigned char>(c)) ||
+           (c == '.' && position_ + 1 < source_.size() &&
+            std::isdigit(static_cast<unsigned char>(source_[position_ + 1]))))
+            return parse_number();
+
+        if(initial_identifier_char(c) ||
+           (c == '.' && position_ + 1 < source_.size() &&
+            initial_identifier_char(source_[position_ + 1])))
+            return parse_identifier();
+
+        fail("Expected a number, variable, or parenthesized expression");
+    }
+
+    std::unique_ptr<node> parse_number()
+    {
+        const std::size_t start = position_;
+        bool digits = false;
+        while(!at_end() && std::isdigit(static_cast<unsigned char>(current())))
+        {
+            digits = true;
+            ++position_;
+        }
+
+        if(current() == '.')
+        {
+            ++position_;
+            while(!at_end() && std::isdigit(static_cast<unsigned char>(current())))
+            {
+                digits = true;
+                ++position_;
+            }
+        }
+
+        if(!digits)
+            fail("Invalid decimal number");
+
+        if(current() == 'e' || current() == 'E')
+        {
+            ++position_;
+            if(current() == '+' || current() == '-')
+                ++position_;
+
+            const std::size_t exponent_start = position_;
+            while(!at_end() && std::isdigit(static_cast<unsigned char>(current())))
+                ++position_;
+            if(position_ == exponent_start)
+                fail("Invalid exponent");
+        }
+
+        const std::string value = source_.substr(start, position_ - start);
+        static_cast<void>(::ikaros::parse_double(value));
+        return make_terminal(value);
+    }
+
+    std::unique_ptr<node> parse_identifier()
+    {
+        const std::size_t start = position_;
+        if(current() == '.')
+            ++position_;
+        while(!at_end() && identifier_char(current()))
+            ++position_;
+        return make_terminal(source_.substr(start, position_ - start));
+    }
+};
+}
+
+
 class expression
 {
 public:
-    bool split(std::string s, char bin_op, bool unary=false)
+    explicit expression(const std::string & source):
+        root_(expression_detail::parser(source).parse())
+    {}
+
+    bool split(const std::string & source, char bin_op, bool unary=false)
     {
-        std::string left_string, right_string;
-        if(!split_expression(left_string, right_string, s, bin_op, unary))
+        std::unique_ptr<expression_detail::node> parsed = expression_detail::parser(source).parse();
+        bool is_unary = parsed->op != ' ' && !parsed->left;
+        if(parsed->op != bin_op || (unary && is_unary))
             return false;
-
-    op = bin_op;
-    left = std::make_unique<expression>(left_string);
-    right = std::make_unique<expression>(right_string);
-    return true;
-    }
-
-    expression(std::string s)
-    {
-        int left_p_count = std::count(s.begin(), s.end(), '(');
-        int right_p_count = std::count(s.begin(), s.end(), ')');
-
-        if(left_p_count != right_p_count)
-            throw std::invalid_argument("Unmatched parentheses");
-
-        op = ' ';
-        erase_whitespace(s);
-        str = s; 
-
-        if(s.empty())
-            return;
-
-        while(s.size()>1 && s.front()=='(' && s.back() == ')' &&
-              static_cast<std::string::size_type>(find_closing(s)) == s.size()-1)
-            str = s = s.substr(1, s.size()-2);
-
-        if(split(s, '+'))
-            return;
-
-        if(split(s, '-', true))
-            return;
-
-        if(split(s, '/'))
-            return;
-
-        if(split(s, '*'))
-            return;
-
-        if(split(s, '-')) // unary minus
-            return;
-
-        // terminal - do nothing
+        root_ = std::move(parsed);
+        return true;
     }
 
     std::set<std::string> variables() const
     {
-        std::set<std::string> vars;
-        std::string s;
-        bool in_id = false;
-
-        for(char c : str)
-        {
-            if(initial_identifier_char(c))
-                in_id = true;
-            else if(!identifier_char(c))
-                in_id = false;
-
-            if(in_id)       
-                s.push_back(c);
-
-
-            if(!in_id && !s.empty())
-            {
-                vars.insert(s);
-                s.clear();
-            }
-        }
-
-            if(!s.empty())
-                vars.insert(s);
-
-        return vars;
+        std::set<std::string> result;
+        collect_variables(root_.get(), result);
+        return result;
     }
 
     double evaluate(const ::variables & vars = {}) const
     {
         try
         {
-            switch(op)
-            {
-                case ' ':
-                        if(str.empty())
-                                return 0;
-                        if(vars.count(str))
-                            return ::ikaros::parse_double(vars.at(str));
-                        if(initial_identifier_char(str[0]))
-                            throw std::invalid_argument("Variable \"" + str + "\" not defined.");
-                        return ::ikaros::parse_double(str);
-                
-
-                case '+':   return left->evaluate(vars) + right->evaluate(vars);
-                case '-':   return left->evaluate(vars) - right->evaluate(vars);
-                case '*':   return left->evaluate(vars) * right->evaluate(vars);
-                case '/':   
-                    {
-                            double r = right->evaluate(vars);
-                            if(r==0) 
-                                throw std::runtime_error("Division by zero in expression.");
-                            return left->evaluate(vars) / r;
-                    }
-            default:
-                return 0;
-            }   
+            return evaluate(root_.get(), vars);
         }
-        catch(std::exception & e)
+        catch(const std::exception & e)
         {
             throw std::invalid_argument(e.what());
         }
         catch(...)
         {
-            throw std::invalid_argument("invalid expression");
+            throw std::invalid_argument("Invalid expression.");
         }
+    }
+
+    bool has_operators() const noexcept
+    {
+        return root_->op != ' ';
+    }
+
+    std::string substitute(const std::map<std::string, std::string> & replacements) const
+    {
+        return substitute(root_.get(), replacements);
     }
 
     void print(int depth=0) const
     {
-        if(op==' ')
-            std::cout << ::ikaros::tab(depth) << "[" << str << "]\n";
-        else
-            std::cout << ::ikaros::tab(depth) << op << '\n';
-        if(left)
-            left->print(depth+1);
-        if(right)
-            right->print(depth+1);
+        print(root_.get(), depth);
         if(depth == 0)
             std::cout << '\n';
     }
 
 private:
+    std::unique_ptr<expression_detail::node> root_;
 
-    bool initial_identifier_char(char c) const
+    static bool initial_identifier_char(char c)
     {
-        return (c>='A' && c<='Z') || (c>='a' && c<='z') || (c=='_') || (c=='@');
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_' || c == '@' || c == '.';
     }
 
-    bool identifier_char(char c) const
+    static void collect_variables(const expression_detail::node * current, std::set<std::string> & result)
     {
-        return initial_identifier_char(c) || c == '.' || c == '[' || c == ']' || c == ':'
-            || (c >= '0' && c <= '9');
-    }
-
-    void
-    erase_whitespace(std::string & s)
-    {
-        s.erase(std::remove_if(s.begin(), s.end(), [](unsigned char x){ return std::isspace(x); }), s.end());
-    }
-
-    // Split string at token except within parentheses or after a character
-    // in not_after (used to distinguish binary from unary minus).
-
-    int find_closing(const std::string & s) const
-    {
-        int c = 1;
-        for(int i=1; i< static_cast<int>(s.size()); i++)
+        if(current->op == ' ')
         {
-            if(s[i]==')')
-                c--;
-            else if(s[i] == '(')
-                c++;
-            if(c==0)
-                return i;
+            if(!current->value.empty() && initial_identifier_char(current->value[0]))
+                result.insert(current->value);
+            return;
         }
-        return 0;
+
+        if(current->left)
+            collect_variables(current->left.get(), result);
+        collect_variables(current->right.get(), result);
     }
 
-    bool split_expression(std::string & head, std::string & tail, const std::string & s, char token, bool unary=false) const
+    static double evaluate(const expression_detail::node * current, const ::variables & vars)
     {
-        if(s.empty())
-            return false;
-
-        int p_count = 0;
-        int bracket_count = 0;
-        for(int i=static_cast<int>(s.size())-1; i>=0 ; i--)
+        if(current->op == ' ')
         {
-            if(s[i]=='(')
-                p_count++;
-            if(s[i]==')')
-                p_count--;
-            if(s[i]=='[')
-                bracket_count++;
-            if(s[i]==']')
-                bracket_count--;
-            if(p_count==0 && bracket_count==0 && s[i]==token)
-            {
-                bool match = true;
-                std::string not_after = "+(*/";
-                if(unary)
-                    for(std::string::size_type j = 0; j < not_after.size(); ++j)
-                        if(i>0 && s[i-1]==not_after[j])
-                        {
-                            match = false;
-                            break;
-                        }
-                
-                if(match)
-                {    
-                    int start=0;
-                    while(start < static_cast<int>(s.size()) && isspace(s[start]))
-                        start++;
-                        
-                        head = s.substr(start, i);
-                        tail = s.substr(i+1, s.size()-i);
-                    return true;
-                }
-            }
+            auto variable = vars.find(current->value);
+            if(variable != vars.end())
+                return ::ikaros::parse_double(variable->second);
+            if(!current->value.empty() && initial_identifier_char(current->value[0]))
+                throw std::invalid_argument("Variable \"" + current->value + "\" not defined.");
+            return ::ikaros::parse_double(current->value);
         }
-        return false;
+
+        const double right = evaluate(current->right.get(), vars);
+        if(!current->left)
+            return current->op == '-' ? -right : right;
+
+        const double left = evaluate(current->left.get(), vars);
+        switch(current->op)
+        {
+            case '+': return left + right;
+            case '-': return left - right;
+            case '*': return left * right;
+            case '/':
+                if(right == 0)
+                    throw std::runtime_error("Division by zero in expression.");
+                return left / right;
+            default:
+                throw std::invalid_argument("Invalid expression operator.");
+        }
     }
 
-    char op;
-    std::string str;
-    std::unique_ptr<expression> left;
-    std::unique_ptr<expression> right;
+    static std::string substitute(const expression_detail::node * current,
+                                  const std::map<std::string, std::string> & replacements)
+    {
+        if(current->op == ' ')
+        {
+            auto replacement = replacements.find(current->value);
+            return replacement == replacements.end() ? current->value : replacement->second;
+        }
+
+        const std::string right = substitute(current->right.get(), replacements);
+        if(!current->left)
+            return "(" + std::string(1, current->op) + right + ")";
+
+        return "(" + substitute(current->left.get(), replacements) +
+               std::string(1, current->op) + right + ")";
+    }
+
+    static void print(const expression_detail::node * current, int depth)
+    {
+        if(current->op == ' ')
+            std::cout << ::ikaros::tab(depth) << "[" << current->value << "]\n";
+        else
+            std::cout << ::ikaros::tab(depth) << current->op << '\n';
+        if(current->left)
+            print(current->left.get(), depth + 1);
+        if(current->right)
+            print(current->right.get(), depth + 1);
+    }
 };
 
 #endif

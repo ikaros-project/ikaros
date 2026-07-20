@@ -4,8 +4,9 @@
     start="true"
     stop="1"
     tick_duration="0.02"
+    inherited_dotted="server.example.org"
     expected_output_contains="PARAMETER SAFETY TEST OK">
 
-    <module class="ParameterTestModule" name="ParameterSafety" />
+    <module class="ParameterTestModule" name="ParameterSafety" dotted_source="file.name.txt" />
 
 </group>

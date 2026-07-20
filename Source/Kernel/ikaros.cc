@@ -2220,18 +2220,6 @@ namespace ikaros
 
             return std::nullopt;
         };
-        auto replace_all = [](std::string & target, const std::string & needle, const std::string & replacement)
-        {
-            if(needle.empty())
-                return;
-
-            size_t pos = 0;
-            while((pos = target.find(needle, pos)) != std::string::npos)
-            {
-                target.replace(pos, needle.size(), replacement);
-                pos += replacement.size();
-            }
-        };
         auto unwrap_optional_dimension = [](std::string & item)
         {
             const std::string optional_prefix = "optional(";
@@ -2265,13 +2253,13 @@ namespace ikaros
             if(optional_dimension && e.empty())
                 throw std::invalid_argument("optional() requires a size expression.");
 
-            std::string rewritten = e;
             bool unresolved_variable = false;
             expression expr(e);
+            std::map<std::string, std::string> replacements;
             for(const auto & var : expr.variables())
             {
                 if(auto replacement = resolve_matrix_size_function(var))
-                    replace_all(rewritten, var, *replacement);
+                    replacements[var] = *replacement;
                 else if(!var.empty() && var[0] == '@')
                 {
                     std::optional<std::string> shape_parameter = resolve_parameter_for_shape(var);
@@ -2280,13 +2268,15 @@ namespace ikaros
                         replacement = "1";
                     else if(replacement == "false")
                         replacement = "0";
-                    replace_all(rewritten, var, replacement);
+                    replacements[var] = replacement;
                 }
                 else
                     unresolved_variable = true;
             }
             if(unresolved_variable)
                 return {};
+
+            std::string rewritten = expr.substitute(replacements);
 
             bool purely_numeric_expression = std::none_of(rewritten.begin(), rewritten.end(), [](unsigned char c)
             {
