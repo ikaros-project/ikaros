@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestFailedSetupCleanup"
+    description="Discard partial models and stop initialized components after setup fails"
+    webui_port="8244"
+    http_real_time="false"
+    cli_args="-u/Users/cba/ikaros/Source/Kernel/UnitTesting/KernelTests"
+    http_requests="open?file=fixture_failed_setup_target||play||quit"
+    expected_output_contains="Initialized INIT||Failing INIT||Initialized STOP_AFTER_TICK||Set-up file failed"
+    expected_output_not_contains="Failing STOP_AFTER_TICK||Failing TICK_START||Initialized TICK_START">
+</group>

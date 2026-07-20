@@ -2,6 +2,7 @@
     <parameter name="duration" type="number" default="0" description="Seconds spent in Tick." />
     <parameter name="fail" type="bool" default="false" description="Throw after the delay." />
     <parameter name="fail_after_tasks" type="bool" default="false" description="Trigger a kernel failure after task execution." />
+    <parameter name="fail_init" type="bool" default="false" description="Throw during initialization." />
     <parameter name="label" type="string" default="Task" description="Label included in lifecycle messages." />
     <parameter name="output_value" type="number" default="1" description="Value written at the end of Tick." />
     <output name="OUTPUT" size="1" description="Value written at the end of Tick." />

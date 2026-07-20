@@ -254,6 +254,7 @@ public:
     int             start_tick;
     int             startup_first_real_input_step;
     int             startup_all_real_inputs_step;
+    bool            initialized_;
     bool            async_mode;
     std::atomic<bool> async_running;
     std::atomic<bool> async_failed;

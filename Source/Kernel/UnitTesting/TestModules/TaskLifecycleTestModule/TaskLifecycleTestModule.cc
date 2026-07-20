@@ -12,6 +12,7 @@ class TaskLifecycleTestModule : public Module
     parameter duration;
     parameter fail;
     parameter failAfterTasks;
+    parameter failInit;
     parameter label;
     parameter outputValue;
     matrix output;
@@ -23,9 +24,14 @@ class TaskLifecycleTestModule : public Module
         Bind(duration, "duration");
         Bind(fail, "fail");
         Bind(failAfterTasks, "fail_after_tasks");
+        Bind(failInit, "fail_init");
         Bind(label, "label");
         Bind(outputValue, "output_value");
         Bind(output, "OUTPUT");
+
+        Notify(msg_print, label.as_string() + " INIT");
+        if(failInit.as_bool())
+            throw std::runtime_error("TaskLifecycleTestModule Init failure " + label.as_string());
 
         if(failAfterTasks.as_bool())
         {

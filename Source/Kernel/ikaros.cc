@@ -2190,6 +2190,7 @@ namespace ikaros
         start_tick(0),
         startup_first_real_input_step(std::numeric_limits<int>::max()),
         startup_all_real_inputs_step(std::numeric_limits<int>::max()),
+        initialized_(false),
         async_mode(false),
         async_running(false),
         async_failed(false),
@@ -3517,6 +3518,8 @@ bool operator==(Request & r, const std::string s)
 
         for(auto & [path, component] : components)
         {
+            if(!component->initialized_)
+                continue;
             try
             {
                 component->Stop();
@@ -3621,6 +3624,8 @@ bool operator==(Request & r, const std::string s)
         catch(const setup_failed & e)
         {
             Notify(msg_warning, "Could not create new file: " + e.message(), e.path());
+            if(!components.empty())
+                StopComponents();
             Clear();
             info_ = d;
             run_mode = run_mode_stop;
@@ -3629,6 +3634,8 @@ bool operator==(Request & r, const std::string s)
         catch(const std::exception & e)
         {
             Notify(msg_warning, "Could not create new file: " + std::string(e.what()));
+            if(!components.empty())
+                StopComponents();
             Clear();
             info_ = d;
             run_mode = run_mode_stop;
@@ -5368,6 +5375,7 @@ bool operator==(Request & r, const std::string s)
             try
             {
                 component->Init();
+                component->initialized_ = true;
             }
             catch(const fatal_error& e)
             {
@@ -5507,6 +5515,15 @@ bool operator==(Request & r, const std::string s)
         }
         catch(const exception& e)
         {
+            dictionary failed_info = info_.copy();
+            run_mode = run_mode_stop;
+            timer.Pause();
+            timer.SetPauseTime(0);
+            if(!components.empty())
+                StopComponents();
+            Clear();
+            info_ = failed_info;
+            needs_reload = true;
             Notify(msg_warning, e.what(), e.path());
             throw;
         }
