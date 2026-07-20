@@ -1,10 +1,77 @@
-# Ikaros 2 Modules Not Yet Ported To Ikaros 3
+# Ikaros 2 Module Port Status
 
-Generated on 2026-07-15 by comparing `.ikc` module names in the Ikaros 2 `main` branch under `Source/Modules` with local Ikaros 3 `.ikc` module names under `Source/Modules`.
+Generated on 2026-07-20 by comparing `.ikc` module names in the Ikaros 2 `main` branch under `Source/Modules` with local Ikaros 3 `.ikc` module names under `Source/Modules`.
 
-Example and test `.ikc` files were excluded. Matching is by module/class filename, so renamed or substantially merged modules may need manual review.
+Example and test `.ikc` files were excluded. Matching is by module/class filename, so renamed, merged, or split modules may need manual review.
 
-Total missing modules: 160
+Total Ikaros 2 modules considered: 218
+Total ported by name: 58
+Total not yet ported by name: 160
+
+## Ported Modules
+
+| Module | Ikaros 2 path | Ikaros 3 path |
+| --- | --- | --- |
+| `Abs` | `Source/Modules/UtilityModules/Abs/Abs.ikc` | `Source/Modules/UtilityModules/Functions/Abs/Abs.ikc` |
+| `Add` | `Source/Modules/UtilityModules/Add/Add.ikc` | `Source/Modules/UtilityModules/CombineFunctions/Add/Add.ikc` |
+| `And` | `Source/Modules/UtilityModules/And/And.ikc` | `Source/Modules/UtilityModules/CombineFunctions/And/And.ikc` |
+| `Arbiter` | `Source/Modules/UtilityModules/Arbiter/Arbiter.ikc` | `Source/Modules/UtilityModules/Arbiter/Arbiter.ikc` |
+| `ArgMax` | `Source/Modules/UtilityModules/ArgMax/ArgMax.ikc` | `Source/Modules/UtilityModules/ArgMax/ArgMax.ikc` |
+| `Average` | `Source/Modules/UtilityModules/Average/Average.ikc` | `Source/Modules/UtilityModules/ReduceFunctions/Average/Average.ikc` |
+| `CannyEdgeDetector` | `Source/Modules/VisionModules/ImageOperators/EdgeDetectors/CannyEdgeDetector/CannyEdgeDetector.ikc` | `Source/Modules/VisionModules/CannyEdgeDetector/CannyEdgeDetector.ikc` |
+| `ColorMatch` | `Source/Modules/VisionModules/ColorMatch/ColorMatch.ikc` | `Source/Modules/VisionModules/ColorMatch/ColorMatch.ikc` |
+| `ColorTransform` | `Source/Modules/VisionModules/ColorTransform/ColorTransform.ikc` | `Source/Modules/VisionModules/ColorTransform/ColorTransform.ikc` |
+| `Constant` | `Source/Modules/UtilityModules/Constant/Constant.ikc` | `Source/Modules/UtilityModules/Constant/Constant.ikc` |
+| `Delta` | `Source/Modules/LearningModules/Delta/Delta.ikc` | `Source/Modules/BrainModels/Delta/Delta.ikc` |
+| `Divide` | `Source/Modules/UtilityModules/Divide/Divide.ikc` | `Source/Modules/UtilityModules/CombineFunctions/Divide/Divide.ikc` |
+| `Downsample` | `Source/Modules/VisionModules/Scaling/Downsample/Downsample.ikc` | `Source/Modules/ImageProcessing/Downsample/Downsample.ikc` |
+| `EnergyMeter` | `Source/Modules/UtilityModules/EnergyMeter/EnergyMeter.ikc` | `Source/Modules/UtilityModules/EnergyMeter/EnergyMeter.ikc` |
+| `EpiServos` | `Source/Modules/RobotModules/EpiServos/EpiServos.ikc` | `Source/Modules/RobotModules/EpiServos/EpiServos.ikc` |
+| `EpiSpeech` | `Source/Modules/IOModules/EpiSpeech/EpiSpeech.ikc` | `Source/Modules/EpiSpeech/EpiSpeech.ikc` |
+| `EpiVoice` | `Source/Modules/IOModules/EpiVoice/EpiVoice.ikc` | `Source/Modules/EpiVoice/EpiVoice.ikc` |
+| `FadeCandy` | `Source/Modules/RobotModules/FadeCandy/FadeCandy.ikc` | `Source/Modules/RobotModules/FadeCandy/FadeCandy.ikc` |
+| `FunctionGenerator` | `Source/Modules/UtilityModules/FunctionGenerator/FunctionGenerator.ikc` | `Source/Modules/UtilityModules/FunctionGenerator/FunctionGenerator.ikc` |
+| `InputFile` | `Source/Modules/IOModules/FileInput/InputFile/InputFile.ikc` | `Source/Modules/IOModules/FileInput/InputFile/InputFile.ikc` |
+| `InputJPEG` | `Source/Modules/IOModules/FileInput/InputJPEG/InputJPEG.ikc` | `Source/Modules/IOModules/FileInput/InputJPEG/InputJPEG.ikc` |
+| `InputVideo` | `Source/Modules/IOModules/Video/InputVideo/InputVideo.ikc` | `Source/Modules/IOModules/Video/InputVideo/InputVideo.ikc` |
+| `InputVideoFile` | `Source/Modules/IOModules/FileInput/InputVideoFile/InputVideoFile.ikc` | `Source/Modules/IOModules/FileInput/InputVideoFile/InputVideoFile.ikc` |
+| `InputVideoStream` | `Source/Modules/IOModules/Video/InputVideoStream/InputVideoStream.ikc` | `Source/Modules/IOModules/Video/InputVideoStream/InputVideoStream.ikc` |
+| `Integrator` | `Source/Modules/UtilityModules/Integrator/Integrator.ikc` | `Source/Modules/UtilityModules/Integrator/Integrator.ikc` |
+| `KalmanFilter` | `Source/Modules/ControlModules/KalmanFilter/KalmanFilter.ikc` | `Source/Modules/ControlModules/KalmanFilter/KalmanFilter.ikc` |
+| `LinearSplines` | `Source/Modules/UtilityModules/LinearSplines/LinearSplines.ikc` | `Source/Modules/UtilityModules/LinearSplines/LinearSplines.ikc` |
+| `Logger` | `Source/Modules/UtilityModules/Logger/Logger.ikc` | `Source/Modules/UtilityModules/Logger/Logger.ikc` |
+| `MatrixMultiply` | `Source/Modules/UtilityModules/MatrixMultiply/MatrixMultiply.ikc` | `Source/Modules/UtilityModules/MatrixMultiply/MatrixMultiply.ikc` |
+| `Max` | `Source/Modules/UtilityModules/Max/Max.ikc` | `Source/Modules/UtilityModules/ReduceFunctions/Max/Max.ikc` |
+| `Min` | `Source/Modules/UtilityModules/Min/Min.ikc` | `Source/Modules/UtilityModules/ReduceFunctions/Min/Min.ikc` |
+| `Multiply` | `Source/Modules/UtilityModules/Multiply/Multiply.ikc` | `Source/Modules/UtilityModules/CombineFunctions/Multiply/Multiply.ikc` |
+| `Noise` | `Source/Modules/UtilityModules/Noise/Noise.ikc` | `Source/Modules/UtilityModules/Noise/Noise.ikc` |
+| `Normalize` | `Source/Modules/UtilityModules/Normalize/Normalize.ikc` | `Source/Modules/UtilityModules/Normalize/Normalize.ikc` |
+| `Nucleus` | `Source/Modules/BrainModels/Nucleus/Nucleus.ikc` | `Source/Modules/BrainModels/Nucleus/Nucleus.ikc` |
+| `OneHotVector` | `Source/Modules/UtilityModules/OneHotVector/OneHotVector.ikc` | `Source/Modules/UtilityModules/OneHotVector/OneHotVector.ikc` |
+| `Or` | `Source/Modules/UtilityModules/Or/Or.ikc` | `Source/Modules/UtilityModules/CombineFunctions/Or/Or.ikc` |
+| `OutputFile` | `Source/Modules/IOModules/FileOutput/OutputFile/OutputFile.ikc` | `Source/Modules/IOModules/FileOutput/OutputFile/OutputFile.ikc` |
+| `PIDController` | `Source/Modules/ControlModules/PIDController/PIDController.ikc` | `Source/Modules/ControlModules/PIDController/PIDController.ikc` |
+| `Product` | `Source/Modules/UtilityModules/Product/Product.ikc` | `Source/Modules/UtilityModules/ReduceFunctions/Product/Product.ikc` |
+| `Randomizer` | `Source/Modules/UtilityModules/Randomizer/Randomizer.ikc` | `Source/Modules/UtilityModules/Randomizer/Randomizer.ikc` |
+| `RotationConverter` | `Source/Modules/UtilityModules/RotationConverter/RotationConverter.ikc` | `Source/Modules/UtilityModules/RotationConverter/RotationConverter.ikc` |
+| `Scale` | `Source/Modules/UtilityModules/Scale/Scale.ikc` | `Source/Modules/UtilityModules/Scale/Scale.ikc` |
+| `SequenceRecorder` | `Source/Modules/RobotModules/SequenceRecorder/SequenceRecorder.ikc` | `Source/Modules/UtilityModules/SequenceRecorder/SequenceRecorder.ikc` |
+| `ServoConnector` | `Source/Modules/RobotModules/ServoConnector/ServoConnector.ikc` | `Source/Modules/RobotModules/ServoConnector/ServoConnector.ikc` |
+| `SobelEdgeDetector` | `Source/Modules/VisionModules/ImageOperators/EdgeDetectors/SobelEdgeDetector/SobelEdgeDetector.ikc` | `Source/Modules/VisionModules/SobelEdgeDetector/SobelEdgeDetector.ikc` |
+| `Softmax` | `Source/Modules/UtilityModules/Softmax/Softmax.ikc` | `Source/Modules/UtilityModules/Softmax/Softmax.ikc` |
+| `SoundOutput` | `Source/Modules/IOModules/SoundOutput/SoundOutput.ikc` | `Source/Modules/IOModules/SoundOutput/SoundOutput.ikc` |
+| `SpikingPopulation` | `Source/Modules/BrainModels/SpikingPopulation/SpikingPopulation.ikc` | `Source/Modules/BrainModels/SpikingPopulation/SpikingPopulation.ikc` |
+| `StaufferGrimson` | `Source/Modules/VisionModules/BackgroundSubtraction/StaufferGrimson/StaufferGrimson.ikc` | `Source/Modules/ImageProcessing/StaufferGrimson/StaufferGrimson.ikc` |
+| `Subtract` | `Source/Modules/UtilityModules/Subtract/Subtract.ikc` | `Source/Modules/UtilityModules/CombineFunctions/Subtract/Subtract.ikc` |
+| `Sum` | `Source/Modules/UtilityModules/Sum/Sum.ikc` | `Source/Modules/UtilityModules/ReduceFunctions/Sum/Sum.ikc` |
+| `Threshold` | `Source/Modules/UtilityModules/Threshold/Threshold.ikc` | `Source/Modules/UtilityModules/Threshold/Threshold.ikc` |
+| `Transform` | `Source/Modules/UtilityModules/Transform/Transform.ikc` | `Source/Modules/UtilityModules/Transform/Transform.ikc` |
+| `UM7` | `Source/Modules/RobotModules/UM7/UM7.ikc` | `Source/Modules/RobotModules/UM7/UM7.ikc` |
+| `Upsample` | `Source/Modules/VisionModules/Scaling/Upsample/Upsample.ikc` | `Source/Modules/ImageProcessing/Upsample/Upsample.ikc` |
+| `WhiteBalance` | `Source/Modules/VisionModules/WhiteBalance/WhiteBalance.ikc` | `Source/Modules/VisionModules/WhiteBalance/WhiteBalance.ikc` |
+| `Xor` | `Source/Modules/UtilityModules/Xor/Xor.ikc` | `Source/Modules/UtilityModules/CombineFunctions/Xor/Xor.ikc` |
+
+## Modules Not Yet Ported
 
 | Module | Ikaros 2 path |
 | --- | --- |
