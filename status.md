@@ -14,7 +14,7 @@ This file tracks the eleven high- and medium-priority findings from the joint re
 | 8 | P2 | Input-dependent dynamic output capacities fail instead of deferring resolution. | Addressed | `Dynamic capacities deferred unresolved input shapes` |
 | 9 | P2 | A whole-output alias renames its source matrix metadata. | Addressed | `Whole-output aliases preserved source metadata` |
 | 10 | P2 | Scalar-state defaults and loaded Boolean values are not parsed strictly. | Addressed | `Scalar state parsing rejected malformed values` |
-| 11 | P2 | Flattened input size accumulation can overflow. | Not addressed | — |
+| 11 | P2 | Flattened input size accumulation can overflow. | Addressed | `Flattened input sizing prevented cumulative overflow` |
 
 ## Status meanings
 

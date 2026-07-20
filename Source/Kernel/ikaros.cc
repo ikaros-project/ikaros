@@ -2502,9 +2502,7 @@ namespace ikaros
             kernel().buffers[full_name].realloc(shape);
         }
 
-        int begin_index = 0;
-        int end_index = 0;
-        int flattened_input_size = 0;
+        long long flattened_input_size = 0;
         for(auto & c : ingoing_connections.at(full_name))
         {
             c->flatten_ = true;
@@ -2517,26 +2515,24 @@ namespace ikaros
             c->Resolve(output_matrix);  //**NEW  
 
             const long long required_size = static_cast<long long>(c->source_range.size()) * c->DelayCount();
-            if(required_size > std::numeric_limits<int>::max())
+            if(required_size > std::numeric_limits<int>::max() - flattened_input_size)
                 throw setup_failed("Connection \"" + c->Info() + "\" requires an input larger than the supported size.", path_);
-            int s = static_cast<int>(required_size);
-            end_index = begin_index + s;
+            const int begin_index = static_cast<int>(flattened_input_size);
+            flattened_input_size += required_size;
+            const int end_index = static_cast<int>(flattened_input_size);
             c->target_range = range(begin_index, end_index);
             if(has_fixed_size)
                 validate_fixed_target(*c, c->target_range);
-            begin_index += s;
-            flattened_input_size += s;
         }
     
         if(!has_fixed_size && flattened_input_size != 0)
         {
-            kernel().buffers[full_name].realloc(flattened_input_size); 
+            kernel().buffers[full_name].realloc(static_cast<int>(flattened_input_size));
           Trace("\t\t\tComponent::SetInputShape_Index Alloc "+std::to_string(flattened_input_size), path_);
         }
 
         if(d.is_set("use_label"))
         {
-            begin_index = 0;
             for(auto & c : ingoing_connections.at(full_name))
             {
                 const long long required_size = static_cast<long long>(c->source_range.size()) * c->DelayCount();

@@ -993,6 +993,17 @@ class RangeSizeTestModule : public Module
     }
 };
 
+
+class LargeFlattenSource : public Module
+{
+};
+
+
+class FlattenOverflowSink : public Module
+{
+};
+
+
 INSTALL_CLASS(DelaySequenceSource)
 INSTALL_CLASS(DelayVectorSource)
 INSTALL_CLASS(AsyncDelaySequenceSource)
@@ -1004,3 +1015,5 @@ INSTALL_CLASS(DelayedPropagationFailureSink)
 INSTALL_CLASS(DelayPropagationBenchmarkSink)
 INSTALL_CLASS(RangeBenchmarkModule)
 INSTALL_CLASS(RangeSizeTestModule)
+INSTALL_CLASS(LargeFlattenSource)
+INSTALL_CLASS(FlattenOverflowSink)
