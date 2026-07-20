@@ -1,0 +1,11 @@
+<group internal="true"
+    name="TestReverseStepConnection"
+    description="Allow negative connection increments with ordered in-bounds selectors"
+    start="true"
+    stop="1"
+    expected_output_contains="{3, 2, 1}">
+    <module class="Constant" name="Source" data="1,2,3" />
+    <module class="Print" name="Sink" />
+
+    <connection source="Source.OUTPUT[0:3:-1]" target="Sink.INPUT[0:3]" delay="0" />
+</group>

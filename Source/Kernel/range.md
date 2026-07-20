@@ -159,6 +159,11 @@ Connection delay ranges are a restricted use of this syntax: they must be one-di
 ascending, non-negative, non-empty, use a positive increment, and generate no value above 100.
 These restrictions do not apply to general matrix and loop ranges.
 
+Connection data selectors are validated during setup. Source bounds must lie inside the source
+matrix, and source and target bounds must be non-negative and ordered. Positive and negative
+increments are both supported for traversal, but zero increments are rejected unless the dimension
+is an unresolved `[]` placeholder that connection resolution subsequently fills.
+
 Print numbers 0 to 4.
 
 ```C++

@@ -2762,7 +2762,7 @@ namespace ikaros
                 throw setup_failed("Connection \"" + connection.Info() + "\" writes outside fixed size of input \"" + name + "\" in \"" + path_ + "\" (" + shape_string(shape) + ").", path_);
 
             for(int i = 0; i < target_range.rank(); ++i)
-                if(target_range.step(i) <= 0 || target_range.start(i) < 0 ||
+                if(target_range.step(i) == 0 || target_range.start(i) < 0 ||
                    target_range.start(i) > target_range.stop(i) ||
                    target_range.stop(i) > input_buffer.size(i))
                     throw setup_failed("Connection \"" + connection.Info() + "\" writes outside fixed size of input \"" + name + "\" in \"" + path_ + "\" (" + shape_string(shape) + ").", path_);
@@ -3425,18 +3425,31 @@ namespace ikaros
         if(source_output.rank() == 0)
             return range();
 
-        auto reject_zero_increment = [&](const range & selector, const std::string & side)
+        auto validate_selector_structure = [&](const range & selector, const std::string & side)
         {
             for(int dimension = 0; dimension < selector.rank(); ++dimension)
-                if(selector.step(dimension) == 0 && !selector.is_placeholder(dimension))
+            {
+                if(selector.is_placeholder(dimension))
+                    continue;
+                if(selector.step(dimension) == 0)
                     throw exception("Connection " + side +
                                     " selector must not have a zero increment: " + Info());
+                if(selector.start(dimension) < 0 ||
+                   selector.stop(dimension) < selector.start(dimension))
+                    throw exception("Connection " + side +
+                                    " selector must have non-negative, ordered bounds: " + Info());
+            }
         };
-        reject_zero_increment(source_range, "source");
-        reject_zero_increment(target_range, "target");
+        validate_selector_structure(source_range, "source");
+        validate_selector_structure(target_range, "target");
 
         source_range.extend(source_output.rank());
         source_range.fill(source_output);
+        for(int dimension = 0; dimension < source_range.rank(); ++dimension)
+            if(source_range.start(dimension) < source_output.start(dimension) ||
+               source_range.stop(dimension) > source_output.stop(dimension))
+                throw exception("Connection source selector is outside its output bounds: " + Info());
+
         range reduced_source = source_range.strip().trim();
 
         if(target_range.rank() == 0)

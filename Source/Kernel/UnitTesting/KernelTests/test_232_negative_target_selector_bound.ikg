@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestNegativeTargetSelectorBound"
+    description="Reject negative inferred target selector bounds during setup"
+    expected_exit="1"
+    expected_output_contains="Connection target selector must have non-negative, ordered bounds">
+    <module class="Constant" name="Source" data="1,2" />
+    <module class="Print" name="Sink" />
+
+    <connection source="Source.OUTPUT" target="Sink.INPUT[-1:1]" />
+</group>
