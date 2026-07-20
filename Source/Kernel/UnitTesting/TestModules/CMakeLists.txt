@@ -15,6 +15,7 @@ add_subdirectory(TaskLifecycleTestModule)
 add_subdirectory(CPUUsageTestModule)
 add_subdirectory(DelayTestModule)
 add_subdirectory(ParameterTestModule)
+add_subdirectory(ComputeEngineTestModule)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)

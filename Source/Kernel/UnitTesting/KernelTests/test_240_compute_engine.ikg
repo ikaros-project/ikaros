@@ -1,0 +1,32 @@
+<group internal="true"
+    name="TestComputeEngine"
+    description="Exercise compute paths, matrix functions, and shape-list evaluation"
+    start="true"
+    stop="1"
+    target="child"
+    base="child"
+    i="1"
+    EpiName="EpiBlue"
+    agent="@EpiName"
+    literal_agent="X"
+    shape_expr="MatrixSource.OUTPUT.shape[1:]"
+    expected_output_contains="COMPUTE ENGINE TEST OK">
+
+    <group name="child" value="7" expr="1+2*3" />
+    <group name="child1" value="11" />
+
+    <group name="outer" which="inner">
+        <group name="inner" value="9" />
+    </group>
+
+    <group name="Epi">
+        <group name="EpiBlue" robotType="FullX" />
+        <group name="Settings" type=".Epi.@EpiName.@robotType">
+            <group name="FullX" Body_L1_T1_data="88" />
+        </group>
+    </group>
+
+    <module class="Constant" name="MatrixSource" data="1,2,3;4,5,6" />
+    <module class="ComputeEngineTestModule" name="Assertions" padding="same" />
+
+</group>

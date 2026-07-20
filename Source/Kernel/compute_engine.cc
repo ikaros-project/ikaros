@@ -1170,13 +1170,13 @@ ComputeEngine::MatrixShapeFunctionValue(const matrix & m, const std::string & fu
     const auto shape = m.shape();
 
     if(function_name == "size_x")
-        return std::to_string(m.size_x());
+        return std::to_string(m.shape_or_zero(-1));
 
     if(function_name == "size_y")
-        return std::to_string(m.size_y());
+        return std::to_string(m.shape_or_zero(-2));
 
     if(function_name == "size_z")
-        return std::to_string(m.size_z());
+        return std::to_string(m.shape_or_zero(-3));
 
     if(function_name == "rows")
         return std::to_string(m.rows());
