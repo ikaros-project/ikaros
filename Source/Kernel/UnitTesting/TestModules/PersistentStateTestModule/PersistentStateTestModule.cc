@@ -1,6 +1,28 @@
 #include "ikaros.h"
 
+#include <type_traits>
+#include <utility>
+
+
 using namespace ikaros;
+
+namespace
+{
+template <typename T, typename = void>
+struct exposes_component_scheduler_state: std::false_type
+{};
+
+template <typename T>
+struct exposes_component_scheduler_state<T, std::void_t<
+    decltype(std::declval<T &>().async_mode),
+    decltype(std::declval<T &>().async_future),
+    decltype(std::declval<T &>().profiler_),
+    decltype(std::declval<T &>().parent_)>>: std::true_type
+{};
+
+static_assert(!exposes_component_scheduler_state<Component>::value,
+              "Component scheduler and identity state must not be public");
+}
 
 class PersistentStateTestModule: public Module
 {

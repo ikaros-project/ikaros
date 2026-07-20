@@ -38,7 +38,7 @@ class ComputeEngineTestModule: public Module
 {
     void Init() override
     {
-        Component & root = *parent_;
+        Component & root = *Parent();
         Component * child = root.GetComponent("child");
         Component * settings = root.GetComponent("Epi.Settings");
 

@@ -1575,7 +1575,7 @@ namespace ikaros
 
 
     std::string
-    AsyncParameterChangeKey(const Component::DeferredParameterChange & change)
+    Component::AsyncParameterChangeKey(const DeferredParameterChange & change)
     {
         std::string key = change.parameter_path;
         if(change.is_matrix_cell)

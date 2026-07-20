@@ -230,7 +230,12 @@ class Message
 
 class Component : public Task
 {
-public:
+private:
+    friend class ComputeEngine;
+    friend class Connection;
+    friend class Kernel;
+    friend class Module;
+
     struct DeferredParameterChange
     {
         std::string parameter_path;
@@ -248,8 +253,6 @@ public:
 
     Profiler        profiler_;
     Component *     parent_;
-    dictionary      info_;
-    std::string     path_;
     int             module_start;
     int             start_tick;
     int             startup_first_real_input_step;
@@ -268,6 +271,30 @@ public:
     std::map<std::string, DeferredParameterChange> deferred_parameter_changes;
     std::vector<DeferredCommand> deferred_commands;
 
+    int EffectiveFirstTick() const;
+    void SyncFirstTickFromParameter();
+    bool IsAsyncPending() const;
+    void SyncAsyncModeFromParameter();
+    bool PollAsyncCompletion(bool apply_pending_actions = true);
+    void LaunchAsyncTick();
+    void WaitForAsyncCompletion(bool apply_pending_actions = true);
+    void ClearPendingAsyncActions();
+    static std::string AsyncParameterChangeKey(const DeferredParameterChange & change);
+    void QueueDeferredParameterChange(const DeferredParameterChange & change);
+    void QueueDeferredCommand(const std::string & command_name, const dictionary & parameters);
+    void ApplyPendingAsyncActions();
+
+protected:
+    dictionary      info_;
+    std::string     path_;
+
+    Component * Parent() const noexcept { return parent_; }
+    bool IsAsyncRunning() const;
+    bool IsAsyncFailed() const;
+    std::string StartupFirstRealInputStepString() const;
+    std::string StartupAllRealInputsStepString() const;
+
+public:
     Component();
 
     virtual ~Component() {};
@@ -317,21 +344,6 @@ public:
     virtual std::string json(const std::string &); // json representation for name of component
     std::string xml();
     bool ShouldTick() const override;
-    int EffectiveFirstTick() const;
-    void SyncFirstTickFromParameter();
-    bool IsAsyncRunning() const;
-    bool IsAsyncPending() const;
-    bool IsAsyncFailed() const;
-    void SyncAsyncModeFromParameter();
-    bool PollAsyncCompletion(bool apply_pending_actions = true);
-    void LaunchAsyncTick();
-    void WaitForAsyncCompletion(bool apply_pending_actions = true);
-    void ClearPendingAsyncActions();
-    void QueueDeferredParameterChange(const DeferredParameterChange & change);
-    void QueueDeferredCommand(const std::string & command_name, const dictionary & parameters);
-    void ApplyPendingAsyncActions();
-    std::string StartupFirstRealInputStepString() const;
-    std::string StartupAllRealInputsStepString() const;
 
     bool KeyExists(const std::string & key) const;  // Check if a key exist here or in any parent; this means that GetValue will succeed
     std::string GetValue(const std::string & key) const; // Look up value in dictionary with inheritance
@@ -374,7 +386,6 @@ public:
 
     void CalculateCheckSum(long & check_sum, prime & prime_number); // Calculates a value that depends on all parameters and buffer size
 
-private:
 };
 
 typedef std::function<Module *()> ModuleCreator;
