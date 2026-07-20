@@ -289,7 +289,6 @@ public:
     void AddInput(dictionary parameters);
     void AddOutput(dictionary parameters);
     void AddOutput(std::string name, int size, std::string description=""); // Must be called from creator function and not from Init
-    void ClearOutputs();    // Must be called from creator function and not from Init
     void AddState(dictionary parameters);
     void AddParameter(dictionary parameters);
     void SetParameter(std::string name, std::string value);

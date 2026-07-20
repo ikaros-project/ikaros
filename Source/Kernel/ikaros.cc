@@ -2081,12 +2081,6 @@ namespace ikaros
         AddOutput(o);
     }
 
-    void Component::ClearOutputs()
-    {
-       info_["outputs"] = list(); 
-    }
-
-
     void Component::AddParameter(dictionary parameters)
     {
         try
