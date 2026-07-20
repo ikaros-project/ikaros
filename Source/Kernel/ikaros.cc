@@ -4463,21 +4463,38 @@ bool operator==(Request & r, const std::string s)
     {
         for(auto & [name, history] : circular_buffers)
         {
-            (void)name;
+            tick_count completed_tick = -1;
+            bool record_async_completion = false;
+
             if(history.source_component != nullptr && history.source_component->async_mode)
             {
                 if(history.source_component->IsAsyncRunning() ||
                    history.source_component->IsAsyncFailed())
                     continue;
 
-                const tick_count completed_tick =
-                    history.source_component->async_completed_tick.load();
+                completed_tick = history.source_component->async_completed_tick.load();
                 if(completed_tick < 0 || completed_tick == history.last_async_completion)
                     continue;
-                history.last_async_completion = completed_tick;
+                record_async_completion = true;
             }
 
-            history.buffer.rotate(*history.source_buffer);
+            try
+            {
+                history.buffer.rotate(*history.source_buffer);
+            }
+            catch(const std::exception & e)
+            {
+                throw fatal_runtime_error("Error updating delay history for \"" +
+                                          name + "\": " + e.what(), name);
+            }
+            catch(...)
+            {
+                throw fatal_runtime_error("Unknown error updating delay history for \"" +
+                                          name + "\".", name);
+            }
+
+            if(record_async_completion)
+                history.last_async_completion = completed_tick;
         }
     }
 
