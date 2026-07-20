@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cctype>
 #include <limits>
+#include <utility>
 
 namespace ikaros
 {
@@ -109,10 +110,10 @@ ComputeEngine::EvalMatrix(EvalContext & context, const std::string & s, int dept
 {
     CheckDepth(depth);
 
-    const auto & rows = SplitTopLevel(context, s, ';');
-    if(rows.size() <= 1)
+    if(s.find(';') == std::string::npos)
         return EvalList(context, trim(s), depth+1);
 
+    const auto & rows = SplitTopLevel(context, s, ';');
     std::vector<std::string> computed_rows;
     for(const auto & row : rows)
     {
@@ -130,26 +131,30 @@ ComputeEngine::SplitTopLevel(const std::string & s, char separator)
 {
     std::vector<std::string> items;
     std::string current;
-    int paren_depth = 0;
-    int brace_depth = 0;
-    int bracket_depth = 0;
+    std::vector<std::pair<char, std::size_t>> delimiters;
 
-    for(char c : s)
+    for(std::size_t i = 0; i < s.size(); ++i)
     {
-        if(c == '(')
-            paren_depth++;
-        else if(c == ')')
-            paren_depth--;
-        else if(c == '{')
-            brace_depth++;
-        else if(c == '}')
-            brace_depth--;
-        else if(c == '[')
-            bracket_depth++;
-        else if(c == ']')
-            bracket_depth--;
+        const char c = s[i];
+        if(c == '(' || c == '{' || c == '[')
+            delimiters.emplace_back(c, i);
+        else if(c == ')' || c == '}' || c == ']')
+        {
+            if(delimiters.empty())
+                throw std::invalid_argument("Unmatched closing delimiter \"" + std::string(1, c) +
+                                            "\" at position " + std::to_string(i) + ".");
 
-        if(c == separator && paren_depth == 0 && brace_depth == 0 && bracket_depth == 0)
+            const char expected = c == ')' ? '(' : c == '}' ? '{' : '[';
+            if(delimiters.back().first != expected)
+                throw std::invalid_argument("Mismatched closing delimiter \"" + std::string(1, c) +
+                                            "\" at position " + std::to_string(i) +
+                                            "; expected the delimiter opened by \"" +
+                                            std::string(1, delimiters.back().first) + "\" at position " +
+                                            std::to_string(delimiters.back().second) + ".");
+            delimiters.pop_back();
+        }
+
+        if(c == separator && delimiters.empty())
         {
             items.push_back(trim(current));
             current.clear();
@@ -157,6 +162,10 @@ ComputeEngine::SplitTopLevel(const std::string & s, char separator)
         else
             current.push_back(c);
     }
+
+    if(!delimiters.empty())
+        throw std::invalid_argument("Unclosed delimiter \"" + std::string(1, delimiters.back().first) +
+                                    "\" at position " + std::to_string(delimiters.back().second) + ".");
 
     items.push_back(trim(current));
     return items;
@@ -174,7 +183,16 @@ ComputeEngine::SplitTopLevel(EvalContext & context, const std::string & s, char 
 
     auto it = cache->find(s);
     if(it == cache->end())
-        it = cache->emplace(s, SplitTopLevel(s, separator)).first;
+    {
+        try
+        {
+            it = cache->emplace(s, SplitTopLevel(s, separator)).first;
+        }
+        catch(const std::invalid_argument & e)
+        {
+            throw exception(e.what(), component_.path_);
+        }
+    }
     return it->second;
 }
 
@@ -192,9 +210,15 @@ ComputeEngine::ParsePath(EvalContext & context, const std::string & s) const
     if(parsed.absolute)
         path = path.substr(1);
 
+    if(path.empty())
+        throw exception("Compute path \"" + s + "\" does not contain a path segment.", component_.path_);
+
     for(const auto & part : SplitTopLevel(context, path, '.'))
-        if(!part.empty())
-            parsed.segments.push_back(part);
+    {
+        if(part.empty())
+            throw exception("Compute path \"" + s + "\" contains an empty path segment.", component_.path_);
+        parsed.segments.push_back(part);
+    }
 
     return context.parsed_path_cache.emplace(s, std::move(parsed)).first->second;
 }
@@ -255,8 +279,10 @@ ComputeEngine::IsPathLike(EvalContext & context, const std::string & s) const
     {
         if(s[0] == '.')
             is_path_like = true;
-        else
-            is_path_like = SplitTopLevel(context, s, '.').size() > 1 || IsFunction(s);
+        else if(IsFunction(s))
+            is_path_like = true;
+        else if(s.find('.') != std::string::npos)
+            is_path_like = SplitTopLevel(context, s, '.').size() > 1;
     }
 
     return context.path_like_cache.emplace(s, is_path_like).first->second;
@@ -411,10 +437,10 @@ ComputeEngine::EvalList(EvalContext & context, const std::string & s, int depth)
 {
     CheckDepth(depth);
 
-    const auto & items = SplitTopLevel(context, s, ',');
-    if(items.size() <= 1)
+    if(s.find(',') == std::string::npos)
         return EvalScalar(context, trim(s), depth+1);
 
+    const auto & items = SplitTopLevel(context, s, ',');
     std::vector<std::string> values;
     for(const auto & item : items)
         values.push_back(EvalScalar(context, item, depth+1));
@@ -514,16 +540,15 @@ ComputeEngine::EvalFunction(EvalContext &, const std::string & s, int depth)
 std::optional<matrix>
 ComputeEngine::LookupMatrixValue(const std::string & name) const
 {
-    try
-    {
-        matrix m;
-        const_cast<Component &>(component_).Bind(m, name);
-        return m;
-    }
-    catch(...)
-    {
+    const std::string qualified_name = component_.path_ + "." + name;
+    Kernel & k = kernel();
+    if(k.buffers.find(qualified_name) == k.buffers.end() &&
+       k.parameters.find(qualified_name) == k.parameters.end())
         return std::nullopt;
-    }
+
+    matrix m;
+    const_cast<Component &>(component_).Bind(m, name);
+    return m;
 }
 
 
@@ -679,11 +704,19 @@ ComputeEngine::EvalPath(EvalContext & context, const std::string & s, int depth,
         }
 
         std::string expanded = current_engine.ExpandSegment(current_context, segments[0], depth+1);
+        if(expanded.empty())
+            throw exception("Compute path segment \"" + segments[0] + "\" resolved to an empty value.",
+                            current->path_);
+
         const auto & extra = current_engine.SplitTopLevel(current_context, expanded, '.');
         std::vector<std::string> rewritten;
         for(const auto & piece : extra)
-            if(!piece.empty())
-                rewritten.push_back(piece);
+        {
+            if(piece.empty())
+                throw exception("Expanded compute path \"" + expanded + "\" contains an empty path segment.",
+                                current->path_);
+            rewritten.push_back(piece);
+        }
         rewritten.insert(rewritten.end(), segments.begin()+1, segments.end());
         segments = rewritten;
 
@@ -756,6 +789,8 @@ ComputeEngine::EvalScalar(EvalContext & context, const std::string & s, int dept
             current = EvalPath(context, current, depth+1, evaluate_final);
 
         current = trim(current);
+        if(current.empty())
+            return "";
 
         // After explicit expansion or a successful final lookup, preserve a newly
         // resolved literal string rather than re-evaluating punctuation inside it

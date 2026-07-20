@@ -134,6 +134,35 @@ class ParameterTestModule : public Module
             static_cast<void>(ComputeValue("matrix_value.shape[:999999999999999999999999999999]"));
         }, "shape slices should reject endpoints that overflow size_t");
 
+        require_throws_as<exception>([&]() { static_cast<void>(ComputeValue("matrix_value..shape")); },
+                                     "compute paths should reject empty path segments");
+        require_throws_as<exception>([&]() { static_cast<void>(ComputeValue("matrix_value.shape[0")); },
+                                     "compute functions should reject unclosed delimiters");
+        require_throws_as<exception>([&]() { static_cast<void>(ComputeValue("1,([)]")); },
+                                     "compute lists should reject mismatched delimiters");
+        require_throws_as<exception>([&]()
+        {
+            static_cast<void>(ComputeValue("@missing.@precision_source"));
+        }, "computed paths should reject segments that resolve to an empty value");
+
+        bool preservedMatrixBindError = false;
+        try
+        {
+            static_cast<void>(ComputeValue("precision_source.rows"));
+        }
+        catch(const exception & e)
+        {
+            preservedMatrixBindError = e.message().find("Not a matrix value") != std::string::npos;
+        }
+        require_true(preservedMatrixBindError,
+                     "matrix functions should preserve errors from binding non-matrix parameters");
+
+        parameter literalPunctuation;
+        Bind(literalPunctuation, "literal_punctuation");
+        require_true(literalPunctuation.as_string() == "hello (world" &&
+                     ComputeValue("@literal_punctuation") == "hello (world",
+                     "literal string parameters should not require balanced delimiters");
+
         Bind(prefixShapeTest, "PREFIX_SHAPE_TEST");
         require_true(prefixShapeTest.rank() == 1 && prefixShapeTest.size() == 5,
                      "shape substitution should distinguish parameter names that share a prefix");
