@@ -110,6 +110,31 @@ class DynamicDelayedMatrixSink : public Module
     }
 };
 
+
+class DynamicInputCapacityModule : public Module
+{
+    matrix input_;
+    matrix rows_;
+
+    void Init() override
+    {
+        Bind(input_, "X");
+        Bind(rows_, "ROWS");
+
+        if(rows_.capacity() != input_.shape())
+            throw exception("DynamicInputCapacityModule: capacity did not resolve from the input shape");
+        Notify(msg_warning, "DYNAMIC INPUT CAPACITY RESOLVED");
+    }
+};
+
+
+class InvalidDynamicCapacityModule : public Module
+{
+};
+
+
 INSTALL_CLASS(DynamicMatrixSource)
 INSTALL_CLASS(DynamicMatrixSink)
 INSTALL_CLASS(DynamicDelayedMatrixSink)
+INSTALL_CLASS(DynamicInputCapacityModule)
+INSTALL_CLASS(InvalidDynamicCapacityModule)

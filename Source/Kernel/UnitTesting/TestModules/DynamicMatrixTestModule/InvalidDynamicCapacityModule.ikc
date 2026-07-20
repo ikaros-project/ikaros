@@ -1,0 +1,3 @@
+<class internal="true" name="InvalidDynamicCapacityModule" description="Provides an invalid dynamic capacity for kernel validation tests">
+    <output name="ROWS" dynamic="yes" capacity="0" />
+</class>

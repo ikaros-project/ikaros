@@ -3023,7 +3023,7 @@ namespace ikaros
             if(dynamic_output)
             {
                 if(shape.empty())
-                    throw setup_failed("Dynamic output \""+std::string(d.at("name")) +"\" capacity must have at least one dimension.", path_);
+                    return 0;
                 o.reserve(shape);
                 o.set_dynamic().set_fixed_capacity();
             }
