@@ -11,6 +11,7 @@ class AsyncLifecycleTestModule : public Module
     parameter gain;
     parameter duration;
     parameter reportRuntimeSnapshot;
+    int completedTicks;
     matrix input;
     matrix output;
 
@@ -19,6 +20,7 @@ class AsyncLifecycleTestModule : public Module
         Bind(gain, "gain");
         Bind(duration, "duration");
         Bind(reportRuntimeSnapshot, "report_runtime_snapshot");
+        Bind(completedTicks, "completed_ticks");
         Bind(input, "X");
         Bind(output, "Y");
     }
@@ -51,6 +53,7 @@ class AsyncLifecycleTestModule : public Module
 
         const double result = input.scalar() * gain.as_double();
         output(0) = result;
+        ++completedTicks;
         Notify(msg_print, "CPP_ASYNC_LIFECYCLE_OUTPUT " + std::to_string(result) + " gain=" + gain.as_int_string());
     }
 };

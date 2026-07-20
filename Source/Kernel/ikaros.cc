@@ -7804,6 +7804,7 @@ bool operator==(Request & r, const std::string s)
                 std::lock_guard<std::recursive_mutex> lock(kernelLock);
                 if(components.empty())
                     throw exception("No network is loaded.");
+                WaitForAsyncComponents(false);
                 SaveState(filename, component_path);
             }
 
@@ -7839,6 +7840,7 @@ bool operator==(Request & r, const std::string s)
                 std::lock_guard<std::recursive_mutex> lock(kernelLock);
                 if(components.empty())
                     throw exception("No network is loaded.");
+                WaitForAsyncComponents(false);
                 LoadState(filename, component_path);
                 BuildUISnapshot();
             }
@@ -7875,6 +7877,7 @@ bool operator==(Request & r, const std::string s)
                 std::lock_guard<std::recursive_mutex> lock(kernelLock);
                 if(components.empty())
                     throw exception("No network is loaded.");
+                WaitForAsyncComponents(false);
                 ResetState(component_path);
                 BuildUISnapshot();
             }

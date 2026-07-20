@@ -1,0 +1,17 @@
+<group internal="true"
+    name="TestAsyncWebUIStateSave"
+    description="Wait for active asynchronous state updates before saving, loading, or resetting state"
+    stop="100"
+    webui_port="8242"
+    http_real_time="false"
+    http_start_delay="0.01"
+    http_requests="step||assert_min_duration:savestate?filename=test_242_async_webui_state_save:0.08||step||step||assert_min_duration:loadstate?filename=test_242_async_webui_state_save:0.08||step||step||assert_min_duration:resetstate?module=TestAsyncWebUIStateSave.Worker:0.08||savestate?filename=test_242_async_webui_state_result||quit"
+    expected_output_contains="Saved state to /Users/cba/ikaros/UserData/test_242_async_webui_state_save.state"
+    expected_file_exists="UserData/test_242_async_webui_state_save.state||UserData/test_242_async_webui_state_result.state"
+    expected_file_contains="&quot;TestAsyncWebUIStateSave.Worker.completed_ticks&quot;||&quot;type&quot;: &quot;int&quot;||&quot;value&quot;: 1||&quot;value&quot;: 0"
+    cleanup_expected_files="true">
+    <module class="Constant" name="Input" data="2" />
+    <module class="AsyncLifecycleTestModule" name="Worker" async="yes" duration="0.25" />
+
+    <connection source="Input.OUTPUT" target="Worker.X" delay="0" />
+</group>

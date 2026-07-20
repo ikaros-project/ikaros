@@ -95,6 +95,16 @@ def run_http_test(cmd, root):
             elif action.startswith("wait_contains:"):
                 _, path, expected = action.split(":", 2)
                 wait_contains(path, expected)
+            elif action.startswith("assert_min_duration:"):
+                _, path, minimum_seconds = action.split(":", 2)
+                request_started = time.monotonic()
+                request(path)
+                request_duration = time.monotonic() - request_started
+                if request_duration < float(minimum_seconds):
+                    raise AssertionError(
+                        f"Request {path!r} completed in {request_duration:.3f}s; "
+                        f"expected at least {minimum_seconds}s"
+                    )
             elif action.startswith("assert_snapshot_tick:"):
                 _, path, data_key = action.split(":", 2)
                 package = json.loads(request(path))
