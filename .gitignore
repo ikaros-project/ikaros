@@ -60,6 +60,8 @@ Thumbs.db
 /Debug/
 /Release/
 /Build/
+/Build-tsan/
+/Bin-tsan/
 
 # Python
 __pycache__/

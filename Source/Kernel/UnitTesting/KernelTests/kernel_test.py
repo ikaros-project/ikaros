@@ -4,10 +4,11 @@ test.py
 
 Run a set of Ikaros unit tests in this script's directory or a directory
 provided as the first argument. Test files must start with "test" and end
-with ".ikg".
+with ".ikg". Use --ikaros to select the executable under test.
 
 """
 
+import argparse
 import subprocess
 import shlex
 import sys
@@ -386,9 +387,37 @@ def run_http_test(cmd, root):
     return process.returncode, (stdout or "") + (stderr or "") + "\n".join(http_output), ""
 
 script_directory = Path(__file__).resolve().parent
-current_directory = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else script_directory
-suite_name = sys.argv[2] if len(sys.argv) > 2 else "Unit Tests"
-ikaros_binary = script_directory / "../../../../Bin/ikaros"
+
+parser = argparse.ArgumentParser(description="Run Ikaros kernel tests")
+parser.add_argument(
+    "directory",
+    nargs="?",
+    type=Path,
+    default=script_directory,
+    help="directory containing test*.ikg files",
+)
+parser.add_argument(
+    "suite_name",
+    nargs="?",
+    default="Unit Tests",
+    help="name displayed for the test suite",
+)
+parser.add_argument(
+    "--ikaros",
+    type=Path,
+    default=script_directory / "../../../../Bin/ikaros",
+    help="Ikaros executable to test (default: Bin/ikaros)",
+)
+arguments = parser.parse_args()
+
+current_directory = arguments.directory.expanduser().resolve()
+ikaros_binary = arguments.ikaros.expanduser().resolve()
+suite_name = arguments.suite_name
+
+if not current_directory.is_dir():
+    parser.error(f"test directory does not exist: {current_directory}")
+if not ikaros_binary.is_file():
+    parser.error(f"Ikaros executable does not exist: {ikaros_binary}")
 
 print(f"\n{bold}Running Ikaros {suite_name}{reset}\n")
 errors = 0

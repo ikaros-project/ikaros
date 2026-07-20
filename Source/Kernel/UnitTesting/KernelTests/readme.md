@@ -20,6 +20,9 @@ cmake -S . -B Build-tsan \
 cmake --build Build-tsan --parallel
 TSAN_OPTIONS=halt_on_error=1 ./Bin-tsan/ikaros -b \
     Source/Kernel/UnitTesting/KernelTests/test_236_async_delay_history.ikg
+TSAN_OPTIONS=halt_on_error=1 python3 \
+    Source/Kernel/UnitTesting/KernelTests/kernel_test.py \
+    --ikaros "$PWD/Bin-tsan/ikaros"
 ```
 
 If Apple Clang's sanitizer runtime crashes before `main()`, configure with a current Homebrew LLVM
