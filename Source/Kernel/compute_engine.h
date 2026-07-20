@@ -17,9 +17,9 @@ public:
     int ComputeInt(const std::string & s);
     bool ComputeBool(const std::string & s);
 
-    static std::vector<std::string> SplitTopLevel(const std::string & s, char separator);
-
 private:
+    friend class Component;
+
     struct LookupResult
     {
         enum class Source
@@ -60,6 +60,8 @@ private:
 
     Component & component_;
 
+    std::vector<int> EvaluateShapeList(const std::string & s);
+    static std::vector<std::string> SplitTopLevel(const std::string & s, char separator);
     std::string EvalMatrix(EvalContext & context, const std::string & s, int depth=0);
     std::string EvalList(EvalContext & context, const std::string & s, int depth=0);
     std::string EvalScalar(EvalContext & context, const std::string & s, int depth=0, bool evaluate_final=false);

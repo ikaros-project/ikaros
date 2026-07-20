@@ -39,6 +39,8 @@ Examples:
 
 There are two related evaluators:
 
+Both are implemented by `ComputeEngine` and share its internal arithmetic parser.
+
 ### General compute expressions
 
 Used for ordinary attribute and parameter values.
@@ -600,6 +602,5 @@ This reference is based on the current implementation in:
 
 - `/Users/cba/ikaros/Source/Kernel/compute_engine.cc`
 - `/Users/cba/ikaros/Source/Kernel/compute_engine.h`
-- `/Users/cba/ikaros/Source/Kernel/expression.h`
 - `/Users/cba/ikaros/Source/Kernel/ikaros.cc`
 - `/Users/cba/ikaros/Source/Kernel/UnitTesting/UtilityTests/test_compute.cc`

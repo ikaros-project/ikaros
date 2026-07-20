@@ -1,6 +1,5 @@
 #include <iostream>
 #include <limits>
-#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <type_traits>
@@ -70,22 +69,21 @@ class ParameterTestModule : public Module
 
     void test_expression_and_compute_engine()
     {
-        require_true(expression("8/4*2").evaluate() == 4.0,
+        require_true(ComputeDouble("8/4*2") == 4.0,
                      "multiplication and division should be left-associative");
-        require_true(expression("8*4/2").evaluate() == 16.0,
+        require_true(ComputeDouble("8*4/2") == 16.0,
                      "mixed multiplication and division should preserve source order");
-        require_true(expression("1e-3*2").evaluate() == 0.002,
+        require_true(ComputeDouble("1e-3*2") == 0.002,
                      "scientific notation should work inside arithmetic");
-        require_true(expression("1--2").evaluate() == 3.0,
+        require_true(ComputeDouble("1--2") == 3.0,
                      "binary and unary minus should compose correctly");
 
-        const std::set<std::string> scientific_variables = expression("1e-3*@precision_source").variables();
-        require_true(scientific_variables.size() == 1 && scientific_variables.count("@precision_source") == 1,
+        require_true(ComputeDouble("1e-3*@precision_source") == 1e-3 * 0.12345678901234566,
                      "scientific notation should not introduce a variable named e");
 
         for(const std::string & invalid : {"", "()", "1+", "+", "1*", "*1"})
-            require_throws_as<std::invalid_argument>([&]() { static_cast<void>(expression(invalid)); },
-                                                     "malformed arithmetic should be rejected: " + invalid);
+            require_throws_as<exception>([&]() { static_cast<void>(ComputeDouble(invalid)); },
+                                         "malformed arithmetic should be rejected: " + invalid);
 
         require_true(ComputeDouble("3-1") == 2.0,
                      "ComputeDouble() should recognize subtraction without surrounding spaces");
@@ -133,6 +131,14 @@ class ParameterTestModule : public Module
         {
             static_cast<void>(ComputeValue("matrix_value.shape[:999999999999999999999999999999]"));
         }, "shape slices should reject endpoints that overflow size_t");
+
+        std::string integratedShapeSource = "matrix_value.shape[0]+1,matrix_value.shape[1]";
+        const std::vector<int> integratedShape = EvaluateShapeList(integratedShapeSource);
+        require_true(integratedShape == std::vector<int>({3, 2}),
+                     "shape lists should use the integrated arithmetic evaluator");
+        std::string overflowingShapeSource = "matrix_value.shape[999999999999999999999999999999]";
+        require_throws_as<exception>([&]() { static_cast<void>(EvaluateShapeList(overflowingShapeSource)); },
+                                     "shape-list selectors should reject indices that overflow size_t");
 
         require_throws_as<exception>([&]() { static_cast<void>(ComputeValue("matrix_value..shape")); },
                                      "compute paths should reject empty path segments");

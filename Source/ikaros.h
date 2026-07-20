@@ -33,7 +33,6 @@
 #include "Kernel/dictionary.h"
 #include "Kernel/options.h"
 #include "Kernel/range.h"
-#include "Kernel/expression.h"
 #include "Kernel/maths.h"
 #include "Kernel/matrix.h"
 #include "Kernel/h_matrix.h"

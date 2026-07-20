@@ -5,6 +5,10 @@
 #include <algorithm>
 #include <cctype>
 #include <limits>
+#include <map>
+#include <memory>
+#include <set>
+#include <stdexcept>
 #include <utility>
 
 namespace ikaros
@@ -59,6 +63,419 @@ bool ParseNonNegativeIndex(const std::string & text, std::size_t & value)
     }
     return true;
 }
+
+
+bool IsExpressionIdentifierStart(char c)
+{
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_' || c == '@';
+}
+
+
+bool IsExpressionVariableStart(char c)
+{
+    return IsExpressionIdentifierStart(c) || c == '.';
+}
+
+
+struct ArithmeticNode
+{
+    char op = ' ';
+    std::string value;
+    std::unique_ptr<ArithmeticNode> left;
+    std::unique_ptr<ArithmeticNode> right;
+};
+
+
+class ArithmeticParser
+{
+public:
+    explicit ArithmeticParser(const std::string & source);
+    std::unique_ptr<ArithmeticNode> parse();
+
+private:
+    const std::string & source_;
+    std::size_t position_;
+
+    bool at_end() const;
+    char current() const;
+    void skip_whitespace();
+    bool consume(char token);
+    [[noreturn]] void fail(const std::string & message) const;
+    bool identifier_char(char c) const;
+    std::unique_ptr<ArithmeticNode> make_terminal(const std::string & value) const;
+    std::unique_ptr<ArithmeticNode> make_unary(char op, std::unique_ptr<ArithmeticNode> operand) const;
+    std::unique_ptr<ArithmeticNode> make_binary(char op,
+                                                std::unique_ptr<ArithmeticNode> left,
+                                                std::unique_ptr<ArithmeticNode> right) const;
+    std::unique_ptr<ArithmeticNode> parse_additive();
+    std::unique_ptr<ArithmeticNode> parse_multiplicative();
+    std::unique_ptr<ArithmeticNode> parse_unary();
+    std::unique_ptr<ArithmeticNode> parse_primary();
+    std::unique_ptr<ArithmeticNode> parse_number();
+    std::unique_ptr<ArithmeticNode> parse_identifier();
+};
+
+
+ArithmeticParser::ArithmeticParser(const std::string & source):
+    source_(source),
+    position_(0)
+{}
+
+
+std::unique_ptr<ArithmeticNode>
+ArithmeticParser::parse()
+{
+    skip_whitespace();
+    if(at_end())
+        fail("Expression cannot be empty");
+
+    std::unique_ptr<ArithmeticNode> result = parse_additive();
+    skip_whitespace();
+    if(!at_end())
+        fail("Unexpected token");
+    return result;
+}
+
+
+bool
+ArithmeticParser::at_end() const
+{
+    return position_ >= source_.size();
+}
+
+
+char
+ArithmeticParser::current() const
+{
+    return at_end() ? '\0' : source_[position_];
+}
+
+
+void
+ArithmeticParser::skip_whitespace()
+{
+    while(!at_end() && std::isspace(static_cast<unsigned char>(source_[position_])))
+        ++position_;
+}
+
+
+bool
+ArithmeticParser::consume(char token)
+{
+    skip_whitespace();
+    if(current() != token)
+        return false;
+    ++position_;
+    return true;
+}
+
+
+void
+ArithmeticParser::fail(const std::string & message) const
+{
+    throw std::invalid_argument(message + " at position " + std::to_string(position_) + ".");
+}
+
+
+bool
+ArithmeticParser::identifier_char(char c) const
+{
+    return IsExpressionIdentifierStart(c) || c == '.' || c == '[' || c == ']' || c == ':' ||
+           (c >= '0' && c <= '9');
+}
+
+
+std::unique_ptr<ArithmeticNode>
+ArithmeticParser::make_terminal(const std::string & value) const
+{
+    auto result = std::make_unique<ArithmeticNode>();
+    result->value = value;
+    return result;
+}
+
+
+std::unique_ptr<ArithmeticNode>
+ArithmeticParser::make_unary(char op, std::unique_ptr<ArithmeticNode> operand) const
+{
+    auto result = std::make_unique<ArithmeticNode>();
+    result->op = op;
+    result->right = std::move(operand);
+    return result;
+}
+
+
+std::unique_ptr<ArithmeticNode>
+ArithmeticParser::make_binary(char op,
+                              std::unique_ptr<ArithmeticNode> left,
+                              std::unique_ptr<ArithmeticNode> right) const
+{
+    auto result = std::make_unique<ArithmeticNode>();
+    result->op = op;
+    result->left = std::move(left);
+    result->right = std::move(right);
+    return result;
+}
+
+
+std::unique_ptr<ArithmeticNode>
+ArithmeticParser::parse_additive()
+{
+    std::unique_ptr<ArithmeticNode> result = parse_multiplicative();
+    while(true)
+    {
+        if(consume('+'))
+            result = make_binary('+', std::move(result), parse_multiplicative());
+        else if(consume('-'))
+            result = make_binary('-', std::move(result), parse_multiplicative());
+        else
+            return result;
+    }
+}
+
+
+std::unique_ptr<ArithmeticNode>
+ArithmeticParser::parse_multiplicative()
+{
+    std::unique_ptr<ArithmeticNode> result = parse_unary();
+    while(true)
+    {
+        if(consume('*'))
+            result = make_binary('*', std::move(result), parse_unary());
+        else if(consume('/'))
+            result = make_binary('/', std::move(result), parse_unary());
+        else
+            return result;
+    }
+}
+
+
+std::unique_ptr<ArithmeticNode>
+ArithmeticParser::parse_unary()
+{
+    if(consume('+'))
+        return make_unary('+', parse_unary());
+    if(consume('-'))
+        return make_unary('-', parse_unary());
+    return parse_primary();
+}
+
+
+std::unique_ptr<ArithmeticNode>
+ArithmeticParser::parse_primary()
+{
+    skip_whitespace();
+    if(at_end())
+        fail("Missing operand");
+
+    if(consume('('))
+    {
+        std::unique_ptr<ArithmeticNode> result = parse_additive();
+        if(!consume(')'))
+            fail("Missing closing parenthesis");
+        return result;
+    }
+
+    const char c = current();
+    if(std::isdigit(static_cast<unsigned char>(c)) ||
+       (c == '.' && position_ + 1 < source_.size() &&
+        std::isdigit(static_cast<unsigned char>(source_[position_ + 1]))))
+        return parse_number();
+
+    if(IsExpressionIdentifierStart(c) ||
+       (c == '.' && position_ + 1 < source_.size() &&
+        IsExpressionIdentifierStart(source_[position_ + 1])))
+        return parse_identifier();
+
+    fail("Expected a number, variable, or parenthesized expression");
+}
+
+
+std::unique_ptr<ArithmeticNode>
+ArithmeticParser::parse_number()
+{
+    const std::size_t start = position_;
+    bool digits = false;
+    while(!at_end() && std::isdigit(static_cast<unsigned char>(current())))
+    {
+        digits = true;
+        ++position_;
+    }
+
+    if(current() == '.')
+    {
+        ++position_;
+        while(!at_end() && std::isdigit(static_cast<unsigned char>(current())))
+        {
+            digits = true;
+            ++position_;
+        }
+    }
+
+    if(!digits)
+        fail("Invalid decimal number");
+
+    if(current() == 'e' || current() == 'E')
+    {
+        ++position_;
+        if(current() == '+' || current() == '-')
+            ++position_;
+
+        const std::size_t exponent_start = position_;
+        while(!at_end() && std::isdigit(static_cast<unsigned char>(current())))
+            ++position_;
+        if(position_ == exponent_start)
+            fail("Invalid exponent");
+    }
+
+    const std::string value = source_.substr(start, position_ - start);
+    static_cast<void>(parse_double(value));
+    return make_terminal(value);
+}
+
+
+std::unique_ptr<ArithmeticNode>
+ArithmeticParser::parse_identifier()
+{
+    const std::size_t start = position_;
+    if(current() == '.')
+        ++position_;
+    while(!at_end() && identifier_char(current()))
+        ++position_;
+    return make_terminal(source_.substr(start, position_ - start));
+}
+
+
+class ArithmeticExpression
+{
+public:
+    using Values = std::map<std::string, std::string>;
+
+    explicit ArithmeticExpression(const std::string & source);
+    std::set<std::string> variables() const;
+    double evaluate(const Values & values = {}) const;
+    bool has_operators() const noexcept;
+    std::string substitute(const Values & replacements) const;
+
+private:
+    std::unique_ptr<ArithmeticNode> root_;
+
+    static void collect_variables(const ArithmeticNode * current, std::set<std::string> & result);
+    static double evaluate_node(const ArithmeticNode * current, const Values & values);
+    static std::string substitute_node(const ArithmeticNode * current, const Values & replacements);
+};
+
+
+ArithmeticExpression::ArithmeticExpression(const std::string & source):
+    root_(ArithmeticParser(source).parse())
+{}
+
+
+std::set<std::string>
+ArithmeticExpression::variables() const
+{
+    std::set<std::string> result;
+    collect_variables(root_.get(), result);
+    return result;
+}
+
+
+double
+ArithmeticExpression::evaluate(const Values & values) const
+{
+    try
+    {
+        return evaluate_node(root_.get(), values);
+    }
+    catch(const std::exception & e)
+    {
+        throw std::invalid_argument(e.what());
+    }
+    catch(...)
+    {
+        throw std::invalid_argument("Invalid expression.");
+    }
+}
+
+
+bool
+ArithmeticExpression::has_operators() const noexcept
+{
+    return root_->op != ' ';
+}
+
+
+std::string
+ArithmeticExpression::substitute(const Values & replacements) const
+{
+    return substitute_node(root_.get(), replacements);
+}
+
+
+void
+ArithmeticExpression::collect_variables(const ArithmeticNode * current, std::set<std::string> & result)
+{
+    if(current->op == ' ')
+    {
+        if(!current->value.empty() && IsExpressionVariableStart(current->value[0]))
+            result.insert(current->value);
+        return;
+    }
+
+    if(current->left)
+        collect_variables(current->left.get(), result);
+    collect_variables(current->right.get(), result);
+}
+
+
+double
+ArithmeticExpression::evaluate_node(const ArithmeticNode * current, const Values & values)
+{
+    if(current->op == ' ')
+    {
+        auto variable = values.find(current->value);
+        if(variable != values.end())
+            return parse_double(variable->second);
+        if(!current->value.empty() && IsExpressionVariableStart(current->value[0]))
+            throw std::invalid_argument("Variable \"" + current->value + "\" not defined.");
+        return parse_double(current->value);
+    }
+
+    const double right = evaluate_node(current->right.get(), values);
+    if(!current->left)
+        return current->op == '-' ? -right : right;
+
+    const double left = evaluate_node(current->left.get(), values);
+    switch(current->op)
+    {
+        case '+': return left + right;
+        case '-': return left - right;
+        case '*': return left * right;
+        case '/':
+            if(right == 0)
+                throw std::runtime_error("Division by zero in expression.");
+            return left / right;
+        default:
+            throw std::invalid_argument("Invalid expression operator.");
+    }
+}
+
+
+std::string
+ArithmeticExpression::substitute_node(const ArithmeticNode * current, const Values & replacements)
+{
+    if(current->op == ' ')
+    {
+        auto replacement = replacements.find(current->value);
+        return replacement == replacements.end() ? current->value : replacement->second;
+    }
+
+    const std::string right = substitute_node(current->right.get(), replacements);
+    if(!current->left)
+        return "(" + std::string(1, current->op) + right + ")";
+
+    return "(" + substitute_node(current->left.get(), replacements) +
+           std::string(1, current->op) + right + ")";
+}
 }
 
 ComputeEngine::ComputeEngine(Component & component):
@@ -102,6 +519,201 @@ ComputeEngine::ComputeBool(const std::string & s)
         return result;
 
     throw exception("ComputeBool could not convert \""+value+"\" to bool.", component_.path_);
+}
+
+
+std::vector<int>
+ComputeEngine::EvaluateShapeList(const std::string & s)
+{
+    std::vector<int> shape;
+    auto resolve_matrix_size_function = [&](const std::string & token) -> std::optional<std::string>
+    {
+        static const std::vector<std::string> size_functions = {
+            "size_x", "size_y", "size_z", "rows", "cols", "size", "shape", "rank"
+        };
+
+        const std::size_t dot = token.rfind('.');
+        if(dot == std::string::npos || dot == token.size() - 1)
+            return std::nullopt;
+
+        const std::string function_name = token.substr(dot + 1);
+        const std::string matrix_path = token.substr(0, dot);
+        bool recognized = std::find(size_functions.begin(), size_functions.end(), function_name) !=
+                          size_functions.end();
+        if(!recognized)
+        {
+            std::string base_name;
+            std::string selector;
+            recognized = ParseShapeSelector(function_name, base_name, selector);
+        }
+
+        if(!recognized || matrix_path.empty())
+            return std::nullopt;
+
+        Component * current = &component_;
+        std::string local_path = matrix_path;
+        if(local_path[0] == '.')
+        {
+            const std::string root_path = peek_head(component_.path_, ".");
+            current = kernel().components.at(root_path).get();
+            local_path = local_path.substr(1);
+        }
+
+        const auto & segments = SplitTopLevel(local_path, '.');
+        if(segments.empty() || std::any_of(segments.begin(), segments.end(), [](const std::string & segment)
+        {
+            return segment.empty();
+        }))
+            throw exception("Matrix path \"" + matrix_path + "\" contains an empty path segment.",
+                            component_.path_);
+
+        for(std::size_t i = 0; i + 1 < segments.size(); ++i)
+            current = current->GetComponent(segments[i]);
+
+        matrix m;
+        current->Bind(m, segments.back());
+        if(m.is_uninitialized())
+            return std::nullopt;
+
+        std::string base_name;
+        std::string selector;
+        if(ParseShapeSelector(function_name, base_name, selector) &&
+           selector.find(':') == std::string::npos && m.shape().empty())
+            return "0";
+
+        return MatrixShapeFunctionValue(m, function_name);
+    };
+
+    auto resolve_parameter_for_shape = [&](const std::string & token) -> std::optional<std::string>
+    {
+        if(token.empty() || token[0] != '@')
+            return std::nullopt;
+
+        const std::string parameter_name = token.substr(1);
+        if(parameter_name.empty() || parameter_name.find('.') != std::string::npos ||
+           parameter_name.find('@') != std::string::npos)
+            return std::nullopt;
+
+        parameter p;
+        if(!component_.LookupParameter(p, parameter_name))
+            return std::nullopt;
+
+        if(!p.is_resolved())
+        {
+            std::string local_parameter_name = parameter_name;
+            if(!component_.ResolveParameter(p, local_parameter_name))
+                return std::nullopt;
+        }
+
+        if(p.has_options() && (p.get_type() == number_type || p.get_type() == rate_type))
+            return p.as_int_string();
+        if(p.get_type() == number_type || p.get_type() == rate_type)
+            return formatNumber(p.as_double());
+        if(p.get_type() == bool_type)
+            return p.as_bool() ? "1" : "0";
+
+        return std::nullopt;
+    };
+
+    auto unwrap_optional_dimension = [](std::string & item)
+    {
+        const std::string optional_prefix = "optional(";
+        if(item.size() <= optional_prefix.size() || !starts_with(item, optional_prefix) || item.back() != ')')
+            return false;
+
+        int depth = 0;
+        for(std::size_t i = 0; i < item.size(); ++i)
+        {
+            if(item[i] == '(')
+                ++depth;
+            else if(item[i] == ')')
+            {
+                --depth;
+                if(depth == 0 && i != item.size() - 1)
+                    return false;
+            }
+        }
+
+        item = trim(item.substr(optional_prefix.size(), item.size() - optional_prefix.size() - 1));
+        return true;
+    };
+
+    EvalContext context;
+    for(std::string source : SplitTopLevel(context, s, ','))
+    {
+        source = trim(source);
+        if(source.empty())
+            continue;
+
+        const bool optional_dimension = unwrap_optional_dimension(source);
+        if(optional_dimension && source.empty())
+            throw std::invalid_argument("optional() requires a size expression.");
+
+        bool unresolved_variable = false;
+        ArithmeticExpression expression(source);
+        ArithmeticExpression::Values replacements;
+        for(const auto & variable : expression.variables())
+        {
+            if(auto replacement = resolve_matrix_size_function(variable))
+                replacements[variable] = *replacement;
+            else if(!variable.empty() && variable[0] == '@')
+            {
+                std::optional<std::string> shape_parameter = resolve_parameter_for_shape(variable);
+                std::string replacement = shape_parameter ? *shape_parameter : ComputeValue(variable);
+                if(replacement == "true")
+                    replacement = "1";
+                else if(replacement == "false")
+                    replacement = "0";
+                replacements[variable] = replacement;
+            }
+            else
+                unresolved_variable = true;
+        }
+        if(unresolved_variable)
+            return {};
+
+        const std::string rewritten = expression.substitute(replacements);
+        const bool purely_numeric_expression = std::none_of(rewritten.begin(), rewritten.end(), [](unsigned char c)
+        {
+            return std::isalpha(c) || c == '@' || c == '_';
+        });
+        const bool contains_top_level_comma = SplitTopLevel(context, rewritten, ',').size() > 1;
+
+        std::string computed;
+        if(purely_numeric_expression && !contains_top_level_comma)
+            computed = formatNumber(ArithmeticExpression(rewritten).evaluate());
+        else if(purely_numeric_expression)
+            computed = rewritten;
+        else
+            computed = ComputeValue(rewritten);
+
+        if(computed.find(';') != std::string::npos)
+            throw std::invalid_argument("Size expression \"" + source + "\" evaluated to a matrix.");
+
+        bool had_dimension = false;
+        for(std::string item : SplitTopLevel(context, computed, ','))
+        {
+            item = trim(item);
+            if(item.empty())
+                continue;
+            if(optional_dimension && had_dimension)
+                throw std::invalid_argument("optional() must resolve to a single dimension.");
+            had_dimension = true;
+
+            const int dimension = ComputeInt(item);
+            if(dimension < 0)
+                return {};
+            if(dimension == 0 && optional_dimension)
+                continue;
+            if(dimension == 0)
+                return {};
+            shape.push_back(dimension);
+        }
+        if(optional_dimension && !had_dimension)
+            return {};
+    }
+
+    return shape;
 }
 
 
@@ -343,7 +955,7 @@ ComputeEngine::HasTopLevelMath(EvalContext & context, const std::string & s) con
     try
     {
         const std::string source = trim(s);
-        expression parsed(source);
+        ArithmeticExpression parsed(source);
         bool parenthesized = source.size() >= 2 && source.front() == '(' && source.back() == ')';
         has_top_level_math = parsed.has_operators() || parenthesized;
     }
@@ -362,7 +974,7 @@ ComputeEngine::HasResolvableMath(EvalContext & context, const std::string & s) c
 
     try
     {
-        expression parsed(trim(s));
+        ArithmeticExpression parsed(trim(s));
         for(const auto & variable : parsed.variables())
         {
             if(!variable.empty() && variable[0] == '@')
@@ -738,8 +1350,8 @@ ComputeEngine::EvalMath(EvalContext & context, const std::string & s, int depth)
 {
     CheckDepth(depth);
 
-    expression e(s);
-    std::map<std::string, std::string> vars;
+    ArithmeticExpression e(s);
+    ArithmeticExpression::Values vars;
     for(const auto & v : e.variables())
     {
         std::string value;
