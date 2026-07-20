@@ -24,6 +24,18 @@ class DynamicMatrixSource : public Module
             rows_.append(row);
         }
     }
+
+    void Command(std::string command_name, dictionary & parameters) override
+    {
+        if(command_name == "fail_next_rotation")
+        {
+            matrix::set_allocation_failure_countdown_for_testing(0);
+            std::cout << path_ << " DYNAMIC ROTATION FAILURE ARMED" << std::endl;
+            return;
+        }
+
+        Module::Command(command_name, parameters);
+    }
 };
 
 

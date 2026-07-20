@@ -8428,6 +8428,12 @@ bool operator==(Request & r, const std::string s)
                 BuildUISnapshot();
             timer.SetPauseTime(GetTime()+tick_duration);
         }
+        catch(const fatal_runtime_error & e)
+        {
+            needs_reload = true;
+            Notify(msg_fatal_error, e.what(), e.path());
+            Stop();
+        }
         catch(const exception& e)
         {
             Notify(msg_warning, e.what(), e.path());

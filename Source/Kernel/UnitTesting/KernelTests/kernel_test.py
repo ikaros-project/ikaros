@@ -225,6 +225,34 @@ def run_http_test(cmd, root):
                         raise AssertionError(
                             f"WebUI parameter {key} is {actual!r}; expected {expected!r}"
                         )
+            elif action.startswith("assert_fatal_step_recovery:"):
+                _, path = action.split(":", 1)
+                failed_step = json.loads(request(path))
+                if failed_step["state"] != 1 or failed_step["tick"] != "-":
+                    raise AssertionError(
+                        "Fatal WebUI step did not stop the kernel: "
+                        f"state={failed_step['state']!r}, tick={failed_step['tick']!r}"
+                    )
+                failed_messages = [
+                    str(message[1])
+                    for message in failed_step.get("log", [])
+                    if len(message) > 1
+                ]
+                if not any("Error updating delay history" in message
+                           for message in failed_messages):
+                    raise AssertionError(
+                        "Fatal WebUI step did not report its delay-history failure: "
+                        f"{failed_messages!r}"
+                    )
+
+                recovered_step = json.loads(request(path))
+                if recovered_step["state"] != 2 or recovered_step["tick"] != 1:
+                    raise AssertionError(
+                        "WebUI step did not reload the model after a fatal failure: "
+                        f"state={recovered_step['state']!r}, "
+                        f"tick={recovered_step['tick']!r}"
+                    )
+                http_output.append("FATAL_STEP_RECOVERY stopped_then_reloaded")
             elif action.startswith("assert_wall_clock_image_refresh:"):
                 _, root_path, module_name, wait_seconds = action.split(":", 3)
                 wait_seconds = float(wait_seconds)
