@@ -2891,7 +2891,19 @@ namespace ikaros
         {
             matrix & output_buffer = kernel().buffers[c->source];
             if(output_buffer.is_dynamic())
-                throw setup_failed("Connection \"" + c->Info() + "\" uses an indexed or ranged connection from dynamic output \"" + c->source + "\". Dynamic outputs only support whole-matrix connections.", path_);
+            {
+                if(c->IsWholeMatrixConnection() && c->DelayCount() > 1)
+                    throw setup_failed("Connection \"" + c->Info() +
+                                       "\" requests multiple delay values from dynamic output \"" +
+                                       c->source +
+                                       "\". Dynamic outputs support only a single whole-matrix delay.",
+                                       path_);
+                throw setup_failed("Connection \"" + c->Info() +
+                                   "\" uses an indexed or ranged connection from dynamic output \"" +
+                                   c->source +
+                                   "\". Dynamic outputs only support whole-matrix connections.",
+                                   path_);
+            }
 
             range output_matrix = output_buffer.get_range();
             if(output_matrix.rank() == 0)
@@ -3502,14 +3514,19 @@ namespace ikaros
         if(shared_memory_)
             return;
 
-        if(IsWholeMatrixConnection() &&
-            (IsSingleDelay(0) || IsSingleDelay(1)) &&
-            (target_buffer_->is_dynamic() || target_buffer_->shape() == source_buffer_->shape()))
+        if(IsWholeMatrixConnection() && DelayCount() == 1)
         {
+            const matrix & sample =
+                (IsSingleDelay(0) || IsSingleDelay(1)) ?
+                *source_buffer_ : circular_buffer_->get(MinDelay());
+
             if(target_buffer_->is_dynamic())
-                target_buffer_->resize(source_buffer_->shape());
-            target_buffer_->copy(*source_buffer_);
-            return;
+                target_buffer_->resize(sample.shape());
+            if(target_buffer_->shape() == sample.shape())
+            {
+                target_buffer_->copy(sample);
+                return;
+            }
         }
 
         if(IsSingleDelay(0))

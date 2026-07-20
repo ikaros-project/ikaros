@@ -1,0 +1,11 @@
+<group internal="true"
+    check_sum="85"
+    name="TestDynamicMatrixDelayedConnection"
+    description="Propagate historical shapes and values through a delayed dynamic whole-matrix connection"
+    start="true"
+    stop="4"
+    expected_output_contains="TestDynamicMatrixDelayedConnection.Sink DYNAMIC DELAYED MATRIX TEST OK">
+    <module name="Source" class="DynamicMatrixSource" />
+    <module name="Sink" class="DynamicDelayedMatrixSink" />
+    <connection source="Source.ROWS" target="Sink.ROWS" delay="2" />
+</group>
