@@ -4439,6 +4439,12 @@ bool operator==(Request & r, const std::string s)
                                              delay,
                                              ComponentForValuePath(buffer_name));
             }
+            catch(const out_of_memory_matrix_error &)
+            {
+                throw setup_failed("Could not allocate " + std::to_string(delay) +
+                                   " ticks of delay history for \"" + buffer_name + "\".",
+                                   buffer_name);
+            }
             catch(const std::bad_alloc &)
             {
                 throw setup_failed("Could not allocate " + std::to_string(delay) +
