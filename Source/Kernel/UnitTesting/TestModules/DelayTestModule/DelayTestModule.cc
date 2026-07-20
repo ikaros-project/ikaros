@@ -6,6 +6,7 @@
 #include <limits>
 #include <sstream>
 #include <stdexcept>
+#include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -138,6 +139,67 @@ class DelayVectorSource : public Module
     {
         output(0) = static_cast<float>(GetTick());
         output(1) = static_cast<float>(GetTick() + 100);
+    }
+};
+
+
+class AsyncDelaySequenceSource : public Module
+{
+    parameter duration;
+    matrix output;
+    int publication_count = 0;
+
+    void Init() override
+    {
+        Bind(duration, "duration");
+        Bind(output, "OUTPUT");
+    }
+
+    void Tick() override
+    {
+        std::this_thread::sleep_for(std::chrono::duration<double>(duration.as_double()));
+        output(0) = static_cast<float>(++publication_count);
+    }
+};
+
+
+class AsyncDelayHistorySink : public Module
+{
+    matrix input;
+    int last_publication = 0;
+    bool reported = false;
+
+    void Init() override
+    {
+        Bind(input, "INPUT");
+        if(input.size() != 3)
+            throw exception("AsyncDelayHistorySink expected three delayed values");
+    }
+
+    void Tick() override
+    {
+        const int latest_publication = static_cast<int>(
+            input.rank() == 1 ? input(0) : input(0, 0));
+        if(latest_publication == 0 || latest_publication == last_publication)
+            return;
+
+        for(int delay_index = 0; delay_index < 3; ++delay_index)
+        {
+            const float expected = static_cast<float>(
+                std::max(0, latest_publication - delay_index));
+            const float actual = input.rank() == 1
+                                     ? input(delay_index)
+                                     : input(delay_index, 0);
+            if(actual != expected)
+                throw exception("Asynchronous delay history advanced between publications");
+        }
+
+        last_publication = latest_publication;
+        if(!reported && latest_publication >= 3)
+        {
+            reported = true;
+            std::cout << path_ << " ASYNC DELAY HISTORY TEST OK" << std::endl;
+        }
     }
 };
 
@@ -881,6 +943,8 @@ class RangeSizeTestModule : public Module
 
 INSTALL_CLASS(DelaySequenceSource)
 INSTALL_CLASS(DelayVectorSource)
+INSTALL_CLASS(AsyncDelaySequenceSource)
+INSTALL_CLASS(AsyncDelayHistorySink)
 INSTALL_CLASS(DelayWindowSink)
 INSTALL_CLASS(DelayFlatWindowSink)
 INSTALL_CLASS(DelayStackedWindowSink)

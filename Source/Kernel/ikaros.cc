@@ -3410,7 +3410,7 @@ namespace ikaros
         auto & k = kernel();
         source_buffer_ = &k.buffers.at(source);
         target_buffer_ = &k.buffers.at(target);
-        circular_buffer_ = UsesCircularBuffer() ? &k.circular_buffers.at(source) : nullptr;
+        circular_buffer_ = UsesCircularBuffer() ? &k.circular_buffers.at(source).buffer : nullptr;
         source_component_ = k.ComponentForValuePath(source);
         target_component_ = k.ComponentForValuePath(target);
         has_async_endpoint_ =
@@ -4399,16 +4399,20 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::InitCircularBuffers()
     {
-        for(auto [buffer_name, delay] : max_delays)
+        for(const auto & [buffer_name, delay] : max_delays)
         {
             if(delay < 1)
                 continue;
-            if(!buffers.count(buffer_name))
+            auto source_buffer = buffers.find(buffer_name);
+            if(source_buffer == buffers.end())
                 continue;
 
             try
             {
-                circular_buffers.emplace(buffer_name, CircularBuffer(buffers[buffer_name], delay));
+                circular_buffers.try_emplace(buffer_name,
+                                             source_buffer->second,
+                                             delay,
+                                             ComponentForValuePath(buffer_name));
             }
             catch(const std::bad_alloc &)
             {
@@ -4426,8 +4430,24 @@ bool operator==(Request & r, const std::string s)
     void 
     Kernel::RotateBuffers()
     {
-        for(auto & [name, circularBuffer] : circular_buffers)
-            circularBuffer.rotate(buffers[name]);
+        for(auto & [name, history] : circular_buffers)
+        {
+            (void)name;
+            if(history.source_component != nullptr && history.source_component->async_mode)
+            {
+                if(history.source_component->IsAsyncRunning() ||
+                   history.source_component->IsAsyncFailed())
+                    continue;
+
+                const tick_count completed_tick =
+                    history.source_component->async_completed_tick.load();
+                if(completed_tick < 0 || completed_tick == history.last_async_completion)
+                    continue;
+                history.last_async_completion = completed_tick;
+            }
+
+            history.buffer.rotate(*history.source_buffer);
+        }
     }
 
 
@@ -4486,8 +4506,8 @@ bool operator==(Request & r, const std::string s)
             return;
 
         std::cout << "\nCircularBuffers:\n";
-        for(auto & [name, circularBuffer] : circular_buffers)
-            std::cout << "\t" << name <<  " " << circularBuffer.buffer_.size() << " " << circularBuffer.buffer_[0].rank() << circularBuffer.buffer_[0].shape() <<  '\n';
+        for(auto & [name, history] : circular_buffers)
+            std::cout << "\t" << name <<  " " << history.buffer.buffer_.size() << " " << history.buffer.buffer_[0].rank() << history.buffer.buffer_[0].shape() <<  '\n';
     }
 
 

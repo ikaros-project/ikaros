@@ -159,6 +159,12 @@ Connection delay ranges are a restricted use of this syntax: they must be one-di
 ascending, non-negative, non-empty, use a positive increment, and generate no value above 100.
 These restrictions do not apply to general matrix and loop ranges.
 
+For synchronous sources, connection delays count kernel ticks. For asynchronous sources, positive
+delays count completed output publications: their circular history remains unchanged while the
+source is running or after it has failed, and advances once when a completed output is published.
+In particular, `delay="1"` remains a positive-delay connection and introduces no same-tick topology
+constraint.
+
 Connection data selectors are validated during setup. Source bounds must lie inside the source
 matrix, and source and target bounds must be non-negative and ordered. Positive and negative
 increments are both supported for traversal, but zero increments are rejected unless the dimension

@@ -697,8 +697,23 @@ private:
         std::string * string_ptr = nullptr;
     };
     std::map<std::string, ScalarState>       scalar_states;
-    std::map<std::string, int>              max_delays;             // Maximum delay needed for each output
-    std::map<std::string, CircularBuffer>   circular_buffers;       // Circular circular_buffers for delayed buffers
+    struct DelayedSourceHistory
+    {
+        CircularBuffer buffer;
+        matrix * source_buffer;
+        Component * source_component;
+        tick_count last_async_completion = -1;
+
+        DelayedSourceHistory(matrix & source, int size, Component * component):
+            buffer(source, size),
+            source_buffer(&source),
+            source_component(component)
+        {
+        }
+    };
+
+    std::map<std::string, int>                  max_delays;       // Maximum delay needed for each output
+    std::map<std::string, DelayedSourceHistory> circular_buffers; // Histories for delayed outputs
     std::map<std::string, parameter>        parameters;
 
     std::vector<std::vector<Task *>>        tasks;                  // Sorted tasks in groups
