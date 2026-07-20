@@ -117,7 +117,11 @@ class ComponentHardeningTestModule : public Module
             GetIntValue("integer_attribute");
 
         if(KeyExists("class_scan_path"))
+        {
             kernel().ScanClasses(GetValue("class_scan_path"));
+            if(KeyExists("repeat_class_scan") && ComputeBool(GetValue("repeat_class_scan")))
+                kernel().ScanClasses(GetValue("class_scan_path"));
+        }
 
         Bind(firstBinding, "value");
         if(KeyExists("bind_state_twice") && ComputeBool(GetValue("bind_state_twice")))

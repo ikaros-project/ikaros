@@ -3456,16 +3456,6 @@ Class::Class() : info_(), module_creator(nullptr), name(), path()
 {
 }
 
-Class::Class(std::string n, std::string p) : info_(), module_creator(nullptr), name(n), path(p)
-    {
-        info_.load_xml(p);
-    }
-
-    Class::Class(std::string n, ModuleCreator mc) : module_creator(mc), name(n)
-    {
-    }
-
-
     void 
     Class::Print() const
     {
@@ -3714,7 +3704,7 @@ bool operator==(Request & r, const std::string s)
 
 
     void 
-    Kernel::ScanClasses(std::string path) // FIXME: Add error handling
+    Kernel::ScanClasses(std::string path)
     {
         if(!std::filesystem::exists(path))
         {
@@ -3724,9 +3714,16 @@ bool operator==(Request & r, const std::string s)
         for(auto& p: std::filesystem::recursive_directory_iterator(path))
             if(std::string(p.path().extension())==".ikc")
             {
+                const std::string name = p.path().stem();
+                auto existing_class = classes.find(name);
+                if(existing_class != classes.end() && !existing_class->second.path.empty())
+                    throw exception("Duplicate class \"" + name +
+                                    "\" was found in more than one .ikc file: \"" +
+                                    existing_class->second.path + "\" and \"" +
+                                    p.path().string() + "\".", p.path().string());
+
                 try
                 {
-                    std::string name = p.path().stem();
                     dictionary class_info;
                     LoadXMLWithRestrictedIncludes(class_info, p.path());
 
@@ -3784,12 +3781,10 @@ bool operator==(Request & r, const std::string s)
                 catch(const exception & e)
                 {
                     Notify(msg_warning, "Could not load class file \"" + p.path().string() + "\": " + e.message(), p.path().string());
-                    classes.erase(p.path().stem());
                 }
                 catch(const std::exception & e)
                 {
                     Notify(msg_warning, "Could not load class file \"" + p.path().string() + "\": " + e.what(), p.path().string());
-                    classes.erase(p.path().stem());
                 }
             }
     }

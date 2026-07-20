@@ -494,8 +494,6 @@ private:
 
 public:
     Class();
-    Class(std::string n, std::string p);
-    Class(std::string n, ModuleCreator mc);
 
     void Print() const;
 };
