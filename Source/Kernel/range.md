@@ -135,7 +135,9 @@ cursor. The tail of a rank-one range has rank zero. Calling `tail()` on a rank-z
 
 `strip()` removes dimensions containing exactly one index. It preserves zero-cardinality dimensions,
 so stripping cannot turn an empty range into a non-empty range. If every dimension is a singleton,
-the result retains one logical element; a rank-zero input remains rank zero.
+the result retains one logical element; a rank-zero input remains rank zero. Retained dimensions
+keep their current cursors, and stripping an exhausted range produces an exhausted result rather
+than restarting iteration.
 
 Stream insertion writes the current multidimensional cursor to the supplied stream in tuple form,
 for example `(1, 4)`.

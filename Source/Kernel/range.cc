@@ -117,6 +117,16 @@ namespace ikaros
 
 
         int
+        RangeTerminalIndex(int a, int b, int increment)
+        {
+            const int count = RangeDimensionSize(a, b, increment);
+            const int initial = ValidatedRangeStartIndex(a, b, increment);
+            return static_cast<int>(static_cast<long long>(initial) +
+                                    static_cast<long long>(count) * increment);
+        }
+
+
+        int
         ParseRangeInteger(const std::string & value)
         {
             if(value.empty())
@@ -506,10 +516,16 @@ namespace ikaros
         range r;
         for(int i=0; i<index_.size(); i++)
             if(size(i) != 1)
+            {
                 r.push(a_[i], b_[i], inc_[i]);
+                r.index_.back() = index_[i];
+            }
 
         if(r.rank() == 0 && rank() != 0)
             r.push(1);
+
+        if(!more() && r.more())
+            r.index_[0] = RangeTerminalIndex(r.a_[0], r.b_[0], r.inc_[0]);
 
         return r;
     }

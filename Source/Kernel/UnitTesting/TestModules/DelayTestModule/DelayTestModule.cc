@@ -377,6 +377,38 @@ class RangeSizeTestModule : public Module
         if(strippedRankZero.rank() != 0 || !strippedRankZero.empty())
             throw exception("Stripping a rank-zero range changed its cardinality");
 
+        range advancedForStrip("[0:3][5]");
+        ++advancedForStrip;
+        range strippedAdvanced = advancedForStrip.strip();
+        if(strippedAdvanced.rank() != 1 ||
+           strippedAdvanced.index() != std::vector<int>{1})
+            throw exception("Stripping a range reset a retained iteration cursor");
+
+        range reverseForStrip("[0:5:-2][7]");
+        ++reverseForStrip;
+        range strippedReverse = reverseForStrip.strip();
+        if(strippedReverse.index() != std::vector<int>{2})
+            throw exception("Stripping a reverse range reset its iteration cursor");
+
+        range exhaustedForStrip("[0:2][5]");
+        while(exhaustedForStrip.more())
+            ++exhaustedForStrip;
+        range strippedExhausted = exhaustedForStrip.strip();
+        if(strippedExhausted.more())
+            throw exception("Stripping an exhausted range restarted iteration");
+
+        range removedLeadingExhaustion("[5][0:2]");
+        while(removedLeadingExhaustion.more())
+            ++removedLeadingExhaustion;
+        if(removedLeadingExhaustion.strip().more())
+            throw exception("Removing the exhausted dimension restarted range iteration");
+
+        range exhaustedSingletons("[3][5]");
+        ++exhaustedSingletons;
+        range strippedExhaustedSingletons = exhaustedSingletons.strip();
+        if(strippedExhaustedSingletons.size() != 1 || strippedExhaustedSingletons.more())
+            throw exception("Stripping exhausted singleton dimensions restarted iteration");
+
         const std::string rankZeroText = std::string(range());
         if(!rankZeroText.empty() || range(rankZeroText).rank() != 0)
             throw exception("Rank-zero range text did not preserve rank");
