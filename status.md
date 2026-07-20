@@ -1,6 +1,6 @@
 # Component, Group, Module, and Class Review Status
 
-This file tracks the eleven high- and medium-priority findings from the joint review. Each finding is completed in its own commit after implementation, focused tests, the full kernel test suite, and any relevant performance verification.
+This file tracks the high-, medium-, and lower-priority findings from the joint review. Each finding is completed in its own commit after implementation, focused tests, the full kernel test suite, and any relevant performance verification.
 
 | # | Priority | Finding | Status | Commit |
 |---:|:---:|---|---|---|
@@ -15,6 +15,18 @@ This file tracks the eleven high- and medium-priority findings from the joint re
 | 9 | P2 | A whole-output alias renames its source matrix metadata. | Addressed | `Whole-output aliases preserved source metadata` |
 | 10 | P2 | Scalar-state defaults and loaded Boolean values are not parsed strictly. | Addressed | `Scalar state parsing rejected malformed values` |
 | 11 | P2 | Flattened input size accumulation can overflow. | Addressed | `Flattened input sizing prevented cumulative overflow` |
+
+## Lower-priority defects and hardening
+
+| # | Priority | Finding | Status | Commit |
+|---:|:---:|---|---|---|
+| 12 | P3 | Group outputs reject `size` but silently ignore the equally forbidden `shape` attribute. | Addressed | `Group outputs rejected explicit shapes` |
+| 13 | P3 | `GetIntValue()` accepts trailing characters in integer attributes. | Not addressed | — |
+| 14 | P3 | Binding the same scalar state twice silently leaves the first binding stale. | Not addressed | — |
+| 15 | P3 | `ClearOutputs()` clears component metadata but leaves registered kernel buffers behind. | Not addressed | — |
+| 16 | Hardening | `Component` exposes scheduling, async, identity, and profiler internals publicly. | Not addressed | — |
+| 17 | Hardening | `Module` overrides are not declared explicitly and its destructor is not defaulted as an override. | Not addressed | — |
+| 18 | P3 | Class scanning trusts the `.ikc` filename without validating the declared class name. | Not addressed | — |
 
 ## Status meanings
 

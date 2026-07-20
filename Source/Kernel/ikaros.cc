@@ -2788,8 +2788,12 @@ namespace ikaros
         if(d.contains_non_null("alias"))
             return 0;
 
-        if(d.contains("size"))
-            throw setup_failed(u8"Output \""+std::string(d["name"])+"\"+in group \""+path_+"\" can not have size attribute.", path_);
+        if(d.contains("size") || d.contains("shape"))
+        {
+            std::string attribute = d.contains("size") ? "size" : "shape";
+            throw setup_failed("Output \"" + std::string(d["name"]) + "\" in group \"" + path_ +
+                               "\" can not have a " + attribute + " attribute.", path_);
+        }
 
         if(d.is_set("dynamic"))
             throw setup_failed("Group output \"" + std::string(d["name"]) + "\" in \"" + path_ + "\" can not be dynamic.", path_);
