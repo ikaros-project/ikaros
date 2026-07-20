@@ -1,0 +1,7 @@
+<group internal="true"
+    name="TestWholeOutputAliasMetadata"
+    description="Preserve source matrix metadata when creating a whole-output alias"
+    check_sum="48"
+    expected_output_contains="WHOLE OUTPUT ALIAS METADATA PRESERVED">
+    <module class="WholeOutputAliasTestModule" name="Alias" />
+</group>

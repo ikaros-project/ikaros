@@ -2874,7 +2874,8 @@ namespace ikaros
                 throw setup_failed("Output \"" + output_name + "\" has invalid alias \"" + alias_spec + "\". " + std::string(e.what()), path_);
             }
 
-            aliased_output.set_name(output_name);
+            if(!alias_selector.empty())
+                aliased_output.set_name(output_name);
             k.buffers[full_output_name] = aliased_output;
         }
 

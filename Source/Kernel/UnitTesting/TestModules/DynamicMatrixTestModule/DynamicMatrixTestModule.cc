@@ -133,8 +133,29 @@ class InvalidDynamicCapacityModule : public Module
 };
 
 
+class WholeOutputAliasTestModule : public Module
+{
+    matrix source_;
+    matrix alias_;
+
+    void Init() override
+    {
+        Bind(source_, "SOURCE");
+        Bind(alias_, "ALIAS");
+
+        if(source_.get_name("") != "SOURCE")
+            throw exception("WholeOutputAliasTestModule: source metadata was renamed");
+        source_(0) = 7;
+        if(alias_(0) != 7)
+            throw exception("WholeOutputAliasTestModule: alias did not share source storage");
+        Notify(msg_warning, "WHOLE OUTPUT ALIAS METADATA PRESERVED");
+    }
+};
+
+
 INSTALL_CLASS(DynamicMatrixSource)
 INSTALL_CLASS(DynamicMatrixSink)
 INSTALL_CLASS(DynamicDelayedMatrixSink)
 INSTALL_CLASS(DynamicInputCapacityModule)
 INSTALL_CLASS(InvalidDynamicCapacityModule)
+INSTALL_CLASS(WholeOutputAliasTestModule)

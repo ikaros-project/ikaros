@@ -12,7 +12,7 @@ This file tracks the eleven high- and medium-priority findings from the joint re
 | 6 | P2 | Custom component JSON serialization bypasses async protection. | Addressed | `Custom JSON reads respected async updates` |
 | 7 | P2 | Resetting a selected group does not reset its child components. | Addressed | `Scoped resets included child components` |
 | 8 | P2 | Input-dependent dynamic output capacities fail instead of deferring resolution. | Addressed | `Dynamic capacities deferred unresolved input shapes` |
-| 9 | P2 | A whole-output alias renames its source matrix metadata. | Not addressed | — |
+| 9 | P2 | A whole-output alias renames its source matrix metadata. | Addressed | `Whole-output aliases preserved source metadata` |
 | 10 | P2 | Scalar-state defaults and loaded Boolean values are not parsed strictly. | Not addressed | — |
 | 11 | P2 | Flattened input size accumulation can overflow. | Not addressed | — |
 
