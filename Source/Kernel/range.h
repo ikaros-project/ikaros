@@ -2,11 +2,12 @@
 
 #pragma once
 
+#include <cstddef>
 #include <initializer_list>
+#include <ostream>
 #include <string>
 #include <tuple>
 #include <vector>
-#include <ostream>
 
 namespace ikaros
 {
@@ -82,6 +83,7 @@ namespace ikaros
         std::vector<int> index_;
 
         [[nodiscard]] bool more(int d) const;
+        void reserve_dimensions(std::size_t capacity);
         void swap(range & other) noexcept;
 
         friend class Connection;

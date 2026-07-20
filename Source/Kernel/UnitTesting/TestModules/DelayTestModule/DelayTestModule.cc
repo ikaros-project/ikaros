@@ -1,4 +1,7 @@
 #include <algorithm>
+#include <chrono>
+#include <cstdint>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <sstream>
@@ -53,6 +56,19 @@ namespace
             actual.push_back(index.index()[0]);
         if(actual != expected)
             throw exception("Range " + specification + " iterated over unexpected values");
+    }
+
+
+#if defined(__GNUC__) || defined(__clang__)
+    __attribute__((noinline))
+#endif
+    std::uint64_t
+    ConsumeRange(const range & value)
+    {
+        std::uint64_t result = static_cast<std::uint64_t>(value.rank()) + value.size();
+        for(int index : value.index())
+            result += static_cast<std::uint64_t>(index);
+        return result;
     }
 }
 
@@ -274,6 +290,105 @@ class DelayPropagationBenchmarkSink : public Module
     {
         std::cout << path_ << " DELAY PROPAGATION BENCHMARK CHECKSUM "
                   << checksum << std::endl;
+    }
+};
+
+
+class RangeBenchmarkModule : public Module
+{
+    template<typename Function>
+    double MeasureNanosecondsPerOperation(int operations, Function function)
+    {
+        const auto start = std::chrono::steady_clock::now();
+        function();
+        const auto elapsed = std::chrono::duration<double, std::nano>(
+            std::chrono::steady_clock::now() - start).count();
+        return elapsed / operations;
+    }
+
+    double MeasureTraversal(const range & prototype, int repetitions,
+                            std::uint64_t & checksum)
+    {
+        range current = prototype;
+        const int operations = prototype.size() * repetitions;
+        return MeasureNanosecondsPerOperation(operations, [&]()
+        {
+            for(int repetition = 0; repetition < repetitions; ++repetition)
+            {
+                current.reset();
+                for(; current.more(); ++current)
+                    for(int index : current.index())
+                        checksum += static_cast<std::uint64_t>(index);
+            }
+        });
+    }
+
+    void Init() override
+    {
+        constexpr int traversal_repetitions = 1000;
+        constexpr int allocation_operations = 250000;
+        std::uint64_t checksum = 0;
+
+        const double traversal_1d_ns = MeasureTraversal(range(0, 1000),
+                                                        10 * traversal_repetitions,
+                                                        checksum);
+        const double traversal_2d_ns = MeasureTraversal(range("[0:100][0:100]"),
+                                                        traversal_repetitions,
+                                                        checksum);
+        const double traversal_3d_ns = MeasureTraversal(range("[0:25][0:20][0:20]"),
+                                                        traversal_repetitions,
+                                                        checksum);
+
+        const double construction_1d_ns = MeasureNanosecondsPerOperation(allocation_operations, [&]()
+        {
+            for(int operation = 0; operation < allocation_operations; ++operation)
+            {
+                range value(0, 16);
+                checksum += ConsumeRange(value);
+            }
+        });
+        const double construction_3d_ns = MeasureNanosecondsPerOperation(allocation_operations, [&]()
+        {
+            for(int operation = 0; operation < allocation_operations; ++operation)
+            {
+                range value{{0, 4, 1}, {0, 8, 1}, {0, 16, 1}};
+                checksum += ConsumeRange(value);
+            }
+        });
+
+        const range copy_source_1d(0, 16);
+        const range copy_source_3d("[0:4][0:8][0:16]");
+        const double copy_1d_ns = MeasureNanosecondsPerOperation(allocation_operations, [&]()
+        {
+            for(int operation = 0; operation < allocation_operations; ++operation)
+            {
+                range value = copy_source_1d;
+                ++value;
+                checksum += ConsumeRange(value);
+            }
+        });
+        const double copy_3d_ns = MeasureNanosecondsPerOperation(allocation_operations, [&]()
+        {
+            for(int operation = 0; operation < allocation_operations; ++operation)
+            {
+                range value = copy_source_3d;
+                ++value;
+                checksum += ConsumeRange(value);
+            }
+        });
+
+        std::ostringstream output;
+        output << std::fixed << std::setprecision(3)
+               << path_ << " RANGE BENCHMARK"
+               << " traversal_1d_ns=" << traversal_1d_ns
+               << " traversal_2d_ns=" << traversal_2d_ns
+               << " traversal_3d_ns=" << traversal_3d_ns
+               << " construction_1d_ns=" << construction_1d_ns
+               << " construction_3d_ns=" << construction_3d_ns
+               << " copy_1d_ns=" << copy_1d_ns
+               << " copy_3d_ns=" << copy_3d_ns
+               << " checksum=" << checksum;
+        std::cout << output.str() << std::endl;
     }
 };
 
@@ -771,4 +886,5 @@ INSTALL_CLASS(DelayFlatWindowSink)
 INSTALL_CLASS(DelayStackedWindowSink)
 INSTALL_CLASS(DelayedPropagationFailureSink)
 INSTALL_CLASS(DelayPropagationBenchmarkSink)
+INSTALL_CLASS(RangeBenchmarkModule)
 INSTALL_CLASS(RangeSizeTestModule)

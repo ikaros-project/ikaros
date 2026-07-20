@@ -1,0 +1,5 @@
+<group internal="true"
+    name="BenchmarkRange"
+    description="Measure range traversal, construction, and copying in Release mode">
+    <module class="RangeBenchmarkModule" name="Range" />
+</group>

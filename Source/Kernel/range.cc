@@ -1,5 +1,6 @@
 // range.cc   (c) Christian Balkenius 2023
 
+#include <algorithm>
 #include <charconv>
 #include <iostream>
 #include <limits>
@@ -162,15 +163,22 @@ namespace ikaros
         push(a, a + 1, 1);
     };
 
+
+    void
+    range::reserve_dimensions(std::size_t capacity)
+    {
+        a_.reserve(capacity);
+        b_.reserve(capacity);
+        inc_.reserve(capacity);
+        index_.reserve(capacity);
+    }
+
+
     range &
     range::push(int a, int b, int inc)
     {
         const int initial_index = ValidatedRangeStartIndex(a, b, inc);
-        const std::size_t new_size = index_.size() + 1;
-        a_.reserve(new_size);
-        b_.reserve(new_size);
-        inc_.reserve(new_size);
-        index_.reserve(new_size);
+        reserve_dimensions(index_.size() + 1);
 
         a_.push_back(a);
         b_.push_back(b);
@@ -200,11 +208,7 @@ namespace ikaros
     range::push_front(int a, int b, int inc)
     {
         const int initial_index = ValidatedRangeStartIndex(a, b, inc);
-        const std::size_t new_size = index_.size() + 1;
-        a_.reserve(new_size);
-        b_.reserve(new_size);
-        inc_.reserve(new_size);
-        index_.reserve(new_size);
+        reserve_dimensions(index_.size() + 1);
 
         a_.insert(a_.begin(), a);
         b_.insert(b_.begin(), b);
@@ -220,10 +224,7 @@ namespace ikaros
             return *this;
 
         const std::size_t new_size = static_cast<std::size_t>(n);
-        a_.reserve(new_size);
-        b_.reserve(new_size);
-        inc_.reserve(new_size);
-        index_.reserve(new_size);
+        reserve_dimensions(new_size);
         while(rank() < n)
         {
             a_.push_back(0);
@@ -333,6 +334,7 @@ namespace ikaros
                 throw std::invalid_argument("Malformed range string");
 
             std::vector<std::string> ranges = split(s.substr(1, s.size()-2), "][");
+            reserve_dimensions(ranges.size());
 
             for(auto & ss : ranges)
             {
@@ -816,9 +818,9 @@ namespace ikaros
 
     range::range(std::initializer_list<std::tuple<int, int, int>> ranges) 
     {
-        for (const auto& [a, b, inc] : ranges) {
+        reserve_dimensions(ranges.size());
+        for(const auto & [a, b, inc] : ranges)
             push(a, b, inc);
-        }
     }
 
 }

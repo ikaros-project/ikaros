@@ -192,6 +192,20 @@ for(r.reset();r.more();++r)
 `reset()` restores the iteration cursor in every dimension and is a no-op for a rank-zero range.
 Use `reset(d)` only when restarting one specific dimension while preserving the others.
 
+## Performance benchmark
+
+Range traversal, construction, and copying can be measured with the non-gating Release benchmark:
+
+```sh
+cmake -S . -B Release -DCMAKE_BUILD_TYPE=Release
+cmake --build Release --parallel
+python3 Source/Kernel/UnitTesting/KernelTests/benchmark_range.py
+```
+
+The benchmark reports nanoseconds per visited index or range operation. Run it before and after
+performance-sensitive changes under comparable system load; it is not part of the correctness
+suite and does not impose machine-specific pass/fail thresholds.
+
 Or define the range directly in the for loop:
 
 ```C++
