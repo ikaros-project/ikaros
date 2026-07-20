@@ -3,6 +3,7 @@
     <parameter name="dotted_source" type="string" default="file.name.txt" />
     <parameter name="dotted_value" type="string" default="@dotted_source" />
     <parameter name="inherited_dotted_value" type="string" default="@inherited_dotted" />
+    <parameter name="live_compute_value" type="number" default="2" />
     <parameter name="matrix_value" type="matrix" default="1, 2; 3, 4" />
     <parameter name="precision_copy" type="number" default="@precision_source" />
     <parameter name="precision_source" type="number" default="0.12345678901234566" />

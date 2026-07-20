@@ -109,6 +109,17 @@ class ParameterTestModule : public Module
                      inheritedDottedValue.as_string() == "server.example.org",
                      "parameter indirection should preserve dotted literal strings");
 
+        parameter liveComputeValue;
+        Bind(liveComputeValue, "live_compute_value");
+        require_true(ComputeDouble("@live_compute_value") == 2.0,
+                     "parameter indirection should read an explicitly configured value");
+        SetParameter("live_compute_value", std::string("5"));
+        require_true(liveComputeValue.as_double() == 5.0 && ComputeDouble("@live_compute_value") == 5.0,
+                     "parameter indirection should read the current value after an update");
+        SetParameter("dotted_source", std::string());
+        require_true(ComputeValue("@dotted_source").empty(),
+                     "an empty current parameter value should not fall back to its model attribute");
+
         Bind(prefixShapeTest, "PREFIX_SHAPE_TEST");
         require_true(prefixShapeTest.rank() == 1 && prefixShapeTest.size() == 5,
                      "shape substitution should distinguish parameter names that share a prefix");

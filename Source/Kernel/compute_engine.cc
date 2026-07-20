@@ -359,16 +359,13 @@ ComputeEngine::LookupLocal(EvalContext & context, const std::string & name) cons
     if(cached != context.lookup_cache.end())
         return cached->second;
 
-    if(component_.info_.contains(name))
-        return context.lookup_cache.emplace(name, LookupResult{LookupResult::Source::local_attribute, std::string(component_.info_[name])}).first->second;
-
     auto parameter_it = kernel().parameters.find(component_.path_ + '.' + name);
     if(parameter_it != kernel().parameters.end() && parameter_it->second.is_resolved())
-    {
-        std::string value = parameter_it->second.as_string();
-        if(!value.empty())
-            return context.lookup_cache.emplace(name, LookupResult{LookupResult::Source::resolved_parameter, value}).first->second;
-    }
+        return context.lookup_cache.emplace(name, LookupResult{LookupResult::Source::resolved_parameter,
+                                                               parameter_it->second.as_string()}).first->second;
+
+    if(component_.info_.contains(name))
+        return context.lookup_cache.emplace(name, LookupResult{LookupResult::Source::local_attribute, std::string(component_.info_[name])}).first->second;
 
     if(const Component * owner = component_.GetValueOwner(name))
     {

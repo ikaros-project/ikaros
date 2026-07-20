@@ -7,6 +7,6 @@
     inherited_dotted="server.example.org"
     expected_output_contains="PARAMETER SAFETY TEST OK">
 
-    <module class="ParameterTestModule" name="ParameterSafety" dotted_source="file.name.txt" />
+    <module class="ParameterTestModule" name="ParameterSafety" dotted_source="file.name.txt" live_compute_value="2" />
 
 </group>
