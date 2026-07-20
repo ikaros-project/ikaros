@@ -2,6 +2,7 @@
     <parameter name="gain" type="number" default="1" description="Output gain." />
     <parameter name="duration" type="number" default="0.4" description="Seconds spent in each tick." />
     <parameter name="report_runtime_snapshot" type="bool" default="false" description="Report whether async runtime values remain stable during Tick()." />
+    <parameter name="report_failure_on_stop" type="bool" default="false" description="Report asynchronous status during Stop()." />
     <state name="completed_ticks" type="int" default="0" persistent="true" />
     <input name="X" description="Input value." />
     <output name="Y" description="Scaled output value." size="1" />

@@ -1460,7 +1460,26 @@ namespace ikaros
 
         if(apply_pending_actions)
         {
-            ApplyPendingAsyncActions();
+            try
+            {
+                ApplyPendingAsyncActions();
+            }
+            catch(const std::exception & e)
+            {
+                async_failed = true;
+                async_publish_pending = false;
+                async_running = false;
+                ClearPendingAsyncActions();
+                throw exception("Deferred action failed for asynchronous component \"" + path_ + "\": " + e.what(), path_);
+            }
+            catch(...)
+            {
+                async_failed = true;
+                async_publish_pending = false;
+                async_running = false;
+                ClearPendingAsyncActions();
+                throw exception("Deferred action failed for asynchronous component \"" + path_ + "\": Unknown error.", path_);
+            }
             async_publish_pending = true;
         }
         else

@@ -11,6 +11,7 @@ class AsyncLifecycleTestModule : public Module
     parameter gain;
     parameter duration;
     parameter reportRuntimeSnapshot;
+    parameter reportFailureOnStop;
     int completedTicks;
     matrix input;
     matrix output;
@@ -20,6 +21,7 @@ class AsyncLifecycleTestModule : public Module
         Bind(gain, "gain");
         Bind(duration, "duration");
         Bind(reportRuntimeSnapshot, "report_runtime_snapshot");
+        Bind(reportFailureOnStop, "report_failure_on_stop");
         Bind(completedTicks, "completed_ticks");
         Bind(input, "X");
         Bind(output, "Y");
@@ -55,6 +57,20 @@ class AsyncLifecycleTestModule : public Module
         output(0) = result;
         ++completedTicks;
         Notify(msg_print, "CPP_ASYNC_LIFECYCLE_OUTPUT " + std::to_string(result) + " gain=" + gain.as_int_string());
+    }
+
+    void Command(std::string commandName, dictionary & parameters) override
+    {
+        if(commandName == "fail_deferred")
+            throw std::runtime_error("Requested deferred command failure.");
+        Module::Command(commandName, parameters);
+    }
+
+    void Stop() override
+    {
+        if(reportFailureOnStop.as_bool())
+            Notify(msg_warning, "ASYNC_FAILURE_STATE running=" + std::to_string(IsAsyncRunning()) +
+                                " failed=" + std::to_string(IsAsyncFailed()));
     }
 };
 

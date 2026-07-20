@@ -1,0 +1,13 @@
+<group internal="true"
+    name="TestAsyncDeferredActionFailure"
+    description="Finalize asynchronous state when a deferred command fails"
+    stop="100"
+    webui_port="8243"
+    http_real_time="false"
+    http_requests="step||command/TestAsyncDeferredActionFailure.Worker?command=fail_deferred||pause||quit"
+    expected_output_contains="Deferred action failed for asynchronous component &quot;TestAsyncDeferredActionFailure.Worker&quot;: Requested deferred command failure.||ASYNC_FAILURE_STATE running=0 failed=1">
+    <module class="Constant" name="Input" data="2" />
+    <module class="AsyncLifecycleTestModule" name="Worker" async="yes" duration="1" report_failure_on_stop="yes" />
+
+    <connection source="Input.OUTPUT" target="Worker.X" delay="0" />
+</group>
