@@ -57,6 +57,64 @@ namespace ikaros
         constexpr size_t default_max_retained_webui_log_messages = 500;
         constexpr int maximum_connection_delay = 100;
 
+        struct AsyncRuntimeSnapshot
+        {
+            tick_count tick;
+            double tick_duration;
+            double time;
+            double real_time;
+            double nominal_time;
+            double time_of_day;
+            double lag;
+            double uptime;
+            double actual_tick_duration;
+            double tick_time_usage;
+            double cpu_usage;
+            double idle_time;
+        };
+
+        thread_local const AsyncRuntimeSnapshot * active_async_runtime_snapshot = nullptr;
+
+        class AsyncRuntimeSnapshotScope
+        {
+        public:
+            explicit AsyncRuntimeSnapshotScope(const AsyncRuntimeSnapshot & snapshot):
+                previous_(active_async_runtime_snapshot)
+            {
+                active_async_runtime_snapshot = &snapshot;
+            }
+
+            ~AsyncRuntimeSnapshotScope()
+            {
+                active_async_runtime_snapshot = previous_;
+            }
+
+            AsyncRuntimeSnapshotScope(const AsyncRuntimeSnapshotScope &) = delete;
+            AsyncRuntimeSnapshotScope & operator=(const AsyncRuntimeSnapshotScope &) = delete;
+
+        private:
+            const AsyncRuntimeSnapshot * previous_;
+        };
+
+        AsyncRuntimeSnapshot
+        CaptureAsyncRuntimeSnapshot(Kernel & k)
+        {
+            AsyncRuntimeSnapshot snapshot;
+            snapshot.tick = k.GetTick();
+            snapshot.tick_duration = k.GetTickDuration();
+            snapshot.nominal_time = static_cast<double>(snapshot.tick) * snapshot.tick_duration;
+            snapshot.real_time = k.GetRealTime();
+            snapshot.time = k.GetRunMode() == run_mode_realtime ? snapshot.real_time : snapshot.nominal_time;
+            snapshot.time_of_day = k.GetTimeOfDay();
+            snapshot.lag = k.GetRunMode() == run_mode_realtime ? snapshot.nominal_time - snapshot.real_time : 0;
+            snapshot.uptime = k.GetUptime();
+            snapshot.actual_tick_duration = k.GetActualTickDuration();
+            snapshot.tick_time_usage = k.GetTickTimeUsage();
+            snapshot.cpu_usage = k.GetCPUUsage();
+            snapshot.idle_time = k.GetIdleTime();
+            return snapshot;
+        }
+
         bool is_internal(const dictionary & info)
         {
             return info.is_set("internal");
@@ -1422,12 +1480,14 @@ namespace ikaros
         if(async_running.load() || async_failed.load() || async_publish_pending.load())
             return;
 
+        const AsyncRuntimeSnapshot runtime_snapshot = CaptureAsyncRuntimeSnapshot(kernel());
         async_started_tick = kernel().GetTick();
         async_running = true;
         try
         {
-            async_future = std::async(std::launch::async, [this]() -> std::exception_ptr
+            async_future = std::async(std::launch::async, [this, runtime_snapshot]() -> std::exception_ptr
             {
+                AsyncRuntimeSnapshotScope runtime_snapshot_scope(runtime_snapshot);
                 const bool profiling_started = TryProfilingBegin();
                 try
                 {
@@ -4348,66 +4408,88 @@ bool operator==(Request & r, const std::string s)
     tick_count
     Kernel::GetTick()
     {
+        if(active_async_runtime_snapshot)
+            return active_async_runtime_snapshot->tick;
         return tick;
     }
 
     double
     Kernel::GetTickDuration()
     {
+        if(active_async_runtime_snapshot)
+            return active_async_runtime_snapshot->tick_duration;
         return tick_duration;
     }
 
     double
     Kernel::GetTime()
     {
+        if(active_async_runtime_snapshot)
+            return active_async_runtime_snapshot->time;
         return (run_mode.load() == run_mode_realtime) ? GetRealTime() : static_cast<double>(tick)*tick_duration;
     }
 
     double
     Kernel::GetRealTime()
     {
+        if(active_async_runtime_snapshot)
+            return active_async_runtime_snapshot->real_time;
         return (run_mode.load() == run_mode_realtime) ? timer.GetTime() : static_cast<double>(tick)*tick_duration;
     }
 
     double
     Kernel::GetNominalTime()
     {
+        if(active_async_runtime_snapshot)
+            return active_async_runtime_snapshot->nominal_time;
         return static_cast<double>(tick)*tick_duration;
     }
 
     double
     Kernel::GetLag()
     {
+        if(active_async_runtime_snapshot)
+            return active_async_runtime_snapshot->lag;
         return (run_mode.load() == run_mode_realtime) ? static_cast<double>(tick)*tick_duration - timer.GetTime() : 0;
     }
 
     double
     Kernel::GetUptime()
     {
+        if(active_async_runtime_snapshot)
+            return active_async_runtime_snapshot->uptime;
         return uptime_timer.GetTime();
     }
 
     double
     Kernel::GetActualTickDuration() const
     {
+        if(active_async_runtime_snapshot)
+            return active_async_runtime_snapshot->actual_tick_duration;
         return actual_tick_duration;
     }
 
     double
     Kernel::GetTickTimeUsage() const
     {
+        if(active_async_runtime_snapshot)
+            return active_async_runtime_snapshot->tick_time_usage;
         return tick_time_usage;
     }
 
     double
     Kernel::GetCPUUsage() const
     {
+        if(active_async_runtime_snapshot)
+            return active_async_runtime_snapshot->cpu_usage;
         return cpu_usage;
     }
 
     double
     Kernel::GetIdleTime() const
     {
+        if(active_async_runtime_snapshot)
+            return active_async_runtime_snapshot->idle_time;
         return idle_time;
     }
 
@@ -8991,6 +9073,9 @@ bool operator==(Request & r, const std::string s)
 double
 Kernel::GetTimeOfDay()
 {
+    if(active_async_runtime_snapshot)
+        return active_async_runtime_snapshot->time_of_day;
+
     auto now = system_clock::now();
     std::time_t now_time = system_clock::to_time_t(now);
     std::tm now_tm;
