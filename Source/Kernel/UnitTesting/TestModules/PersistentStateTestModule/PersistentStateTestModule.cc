@@ -58,4 +58,17 @@ class PersistentStateTestModule: public Module
     }
 };
 
+
+class InvalidIntStateDefaultModule : public Module
+{
+};
+
+
+class InvalidBoolStateDefaultModule : public Module
+{
+};
+
+
 INSTALL_CLASS(PersistentStateTestModule)
+INSTALL_CLASS(InvalidIntStateDefaultModule)
+INSTALL_CLASS(InvalidBoolStateDefaultModule)

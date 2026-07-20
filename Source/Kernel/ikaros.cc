@@ -4,6 +4,7 @@
 #include "compute_engine.h"
 #include "session_logging.h"
 
+#include <charconv>
 #include <cctype>
 #include <cmath>
 #include <ctime>
@@ -402,6 +403,23 @@ namespace ikaros
             {
                 throw exception("String \"" + value + "\" is out of range for " + conversion_name + ".");
             }
+        }
+
+        int parse_scalar_state_int(const std::string & value)
+        {
+            const std::string trimmed_value = trim(value);
+            if(trimmed_value.empty())
+                throw std::invalid_argument("Expected an integer.");
+
+            int parsed_value = 0;
+            const char * begin = trimmed_value.data();
+            const char * end = begin + trimmed_value.size();
+            const auto result = std::from_chars(begin, end, parsed_value);
+            if(result.ec == std::errc::result_out_of_range)
+                throw std::out_of_range("Integer is outside the supported range.");
+            if(result.ec != std::errc() || result.ptr != end)
+                throw std::invalid_argument("Expected an integer.");
+            return parsed_value;
         }
 
         std::string canonicalize_shape_aliases(const std::string & xml)
@@ -4943,9 +4961,14 @@ bool operator==(Request & r, const std::string s)
             else if(type == "double")
                 state.default_double_value = state.double_value = default_value.empty() ? 0 : parse_parameter_number(default_value, "double");
             else if(type == "int")
-                state.default_int_value = state.int_value = default_value.empty() ? 0 : std::stoi(default_value);
+                state.default_int_value = state.int_value = default_value.empty() ? 0 : parse_scalar_state_int(default_value);
             else if(type == "bool")
-                state.default_bool_value = state.bool_value = default_value.empty() ? false : ::ikaros::is_true(default_value);
+            {
+                bool parsed_value = false;
+                if(!default_value.empty() && !parse_bool(default_value, parsed_value))
+                    throw std::invalid_argument("Expected true, false, yes, no, on, off, 1, or 0.");
+                state.default_bool_value = state.bool_value = parsed_value;
+            }
             else if(type == "string")
                 state.default_string_value = state.string_value = default_value;
         }
@@ -5958,6 +5981,8 @@ bool operator==(Request & r, const std::string s)
                     }
                     else if(type == "bool")
                     {
+                        if(!item["value"].is_bool())
+                            throw exception("Expected Boolean value.");
                         bool value = item["value"].is_true();
                         scalar->second.bool_value = value;
                         if(scalar->second.bool_ptr)
