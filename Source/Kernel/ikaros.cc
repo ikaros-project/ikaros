@@ -7283,6 +7283,8 @@ bool operator==(Request & r, const std::string s)
         }
         else if(components.count(component_path))
         {
+            if(components[component_path]->IsAsyncRunning())
+                return false;
             serialized_value = components[component_path]->json(attribute);
             found_value = !serialized_value.empty();
         }
@@ -8413,6 +8415,13 @@ bool operator==(Request & r, const std::string s)
 
         if(components.count(component_path))
         {
+            if(components[component_path]->IsAsyncRunning())
+            {
+                dictionary error;
+                error["error"] = "Value \"" + request.component_path + "\" is currently being updated asynchronously";
+                SendStringResponse(header, error.json());
+                return;
+            }
             std::string json_data = components[component_path]->json(attribute);
             if(!json_data.empty())
             {

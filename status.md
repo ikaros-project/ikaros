@@ -9,7 +9,7 @@ This file tracks the eleven high- and medium-priority findings from the joint re
 | 3 | P1 | A failing deferred action permanently wedges async component state. | Addressed | `Deferred action failures finalized async state` |
 | 4 | P1 | Failed setup can leave a partially initialized model executable. | Addressed | `Failed setup cleanup removed partial networks` |
 | 5 | P2 | Groups can accidentally run in module-only async mode. | Addressed | `Async execution was restricted to modules` |
-| 6 | P2 | Custom component JSON serialization bypasses async protection. | Not addressed | — |
+| 6 | P2 | Custom component JSON serialization bypasses async protection. | Addressed | `Custom JSON reads respected async updates` |
 | 7 | P2 | Resetting a selected group does not reset its child components. | Not addressed | — |
 | 8 | P2 | Input-dependent dynamic output capacities fail instead of deferring resolution. | Not addressed | — |
 | 9 | P2 | A whole-output alias renames its source matrix metadata. | Not addressed | — |

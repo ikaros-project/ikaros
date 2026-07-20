@@ -13,6 +13,7 @@ class AsyncLifecycleTestModule : public Module
     parameter reportRuntimeSnapshot;
     parameter reportFailureOnStop;
     int completedTicks;
+    int runtimePhase = 0;
     matrix input;
     matrix output;
 
@@ -29,6 +30,7 @@ class AsyncLifecycleTestModule : public Module
 
     void Tick() override
     {
+        runtimePhase = 1;
         const tick_count tick_at_start = GetTick();
         const double time_at_start = GetTime();
         const double nominal_time_at_start = GetNominalTime();
@@ -56,7 +58,15 @@ class AsyncLifecycleTestModule : public Module
         const double result = input.scalar() * gain.as_double();
         output(0) = result;
         ++completedTicks;
+        runtimePhase = 2;
         Notify(msg_print, "CPP_ASYNC_LIFECYCLE_OUTPUT " + std::to_string(result) + " gain=" + gain.as_int_string());
+    }
+
+    std::string json(const std::string & name) override
+    {
+        if(name == "RUNTIME_STATE")
+            return "{\"phase\": " + std::to_string(runtimePhase) + "}";
+        return "";
     }
 
     void Command(std::string commandName, dictionary & parameters) override
