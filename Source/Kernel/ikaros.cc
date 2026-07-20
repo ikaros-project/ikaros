@@ -3727,17 +3727,26 @@ bool operator==(Request & r, const std::string s)
                 try
                 {
                     std::string name = p.path().stem();
-                    classes[name].path = p.path();
-                    LoadXMLWithRestrictedIncludes(classes[name].info_, p.path());
+                    dictionary class_info;
+                    LoadXMLWithRestrictedIncludes(class_info, p.path());
 
-                    ensure_list(classes[name].info_, "parameters");
+                    const std::string root_element = class_info["_tag"];
+                    if(root_element != "class")
+                        throw exception("Root element must be <class>, not <" + root_element + ">.");
+
+                    const std::string declared_name = class_info["name"];
+                    if(declared_name != name)
+                        throw exception("Declared class name \"" + declared_name +
+                                        "\" does not match filename \"" + name + "\".");
+
+                    ensure_list(class_info, "parameters");
 
                     bool has_log_level = false;
                     bool has_module_start = false;
                     bool has_start_tick = false;
                     bool has_async = false;
                     bool has_color = false;
-                    for(auto parameter : classes[name].info_["parameters"])
+                    for(auto parameter : class_info["parameters"])
                     {
                         std::string parameter_name = parameter["name"];
                         if(parameter_name == "log_level")
@@ -3753,19 +3762,24 @@ bool operator==(Request & r, const std::string s)
                     }
 
                     if(!has_log_level)
-                        classes[name].info_["parameters"].push_back(make_log_level_parameter().copy());
+                        class_info["parameters"].push_back(make_log_level_parameter().copy());
 
                     if(!has_module_start)
-                        classes[name].info_["parameters"].push_back(make_module_start_parameter().copy());
+                        class_info["parameters"].push_back(make_module_start_parameter().copy());
 
                     if(!has_start_tick)
-                        classes[name].info_["parameters"].push_back(make_start_tick_parameter().copy());
+                        class_info["parameters"].push_back(make_start_tick_parameter().copy());
 
                     if(!has_async)
-                        classes[name].info_["parameters"].push_back(make_async_parameter().copy());
+                        class_info["parameters"].push_back(make_async_parameter().copy());
 
                     if(!has_color)
-                        classes[name].info_["parameters"].push_back(make_color_parameter().copy());
+                        class_info["parameters"].push_back(make_color_parameter().copy());
+
+                    Class & scanned_class = classes[name];
+                    scanned_class.info_ = std::move(class_info);
+                    scanned_class.name = name;
+                    scanned_class.path = p.path();
                 }
                 catch(const exception & e)
                 {

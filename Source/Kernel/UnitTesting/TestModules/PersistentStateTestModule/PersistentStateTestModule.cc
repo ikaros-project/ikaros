@@ -22,6 +22,21 @@ struct exposes_component_scheduler_state<T, std::void_t<
 
 static_assert(!exposes_component_scheduler_state<Component>::value,
               "Component scheduler and identity state must not be public");
+
+template <typename T, typename = void>
+struct exposes_class_registry_state: std::false_type
+{};
+
+template <typename T>
+struct exposes_class_registry_state<T, std::void_t<
+    decltype(std::declval<T &>().info_),
+    decltype(std::declval<T &>().module_creator),
+    decltype(std::declval<T &>().name),
+    decltype(std::declval<T &>().path)>>: std::true_type
+{};
+
+static_assert(!exposes_class_registry_state<Class>::value,
+              "Class registry state must not be public");
 }
 
 class PersistentStateTestModule: public Module
@@ -100,6 +115,9 @@ class ComponentHardeningTestModule : public Module
     {
         if(KeyExists("integer_attribute"))
             GetIntValue("integer_attribute");
+
+        if(KeyExists("class_scan_path"))
+            kernel().ScanClasses(GetValue("class_scan_path"));
 
         Bind(firstBinding, "value");
         if(KeyExists("bind_state_twice") && ComputeBool(GetValue("bind_state_twice")))

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<group title="InputAudioFile Example">
+<group name="InputAudioFileExample" title="InputAudioFile Example">
 	
 		<module
 			class = "Constant"

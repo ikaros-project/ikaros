@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestClassNameValidation"
+    description="Reject class declarations that do not match their filenames"
+    start="true"
+    stop="1"
+    expected_output_contains="Declared class name &quot;DifferentClass&quot; does not match filename &quot;MismatchedClass&quot;.">
+    <module class="ComponentHardeningTestModule"
+        name="Scanner"
+        class_scan_path="/Users/cba/ikaros/Testing/Fixtures/ClassNameMismatch" />
+</group>

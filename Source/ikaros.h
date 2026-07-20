@@ -484,13 +484,15 @@ public:
 
 class Class
 {
-public:
+private:
+    friend class Kernel;
+
     dictionary      info_;
     ModuleCreator   module_creator;
     std::string     name;
     std::string     path;
-    // std::map<std::string, std::string>  parameters;
 
+public:
     Class();
     Class(std::string n, std::string p);
     Class(std::string n, ModuleCreator mc);

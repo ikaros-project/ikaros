@@ -1,4 +1,4 @@
-<class name="EpiServo" description="Robot servo control module">
+<class name="EpiServos" description="Robot servo control module">
 
 	<description type="text">
 	This module connects to the Epi robot. The module handles the communication with servoes using Dynaxmiel SDK. 
