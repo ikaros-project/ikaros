@@ -25,7 +25,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 14 | P3 | Binding the same scalar state twice silently leaves the first binding stale. | Addressed | `Scalar states rejected conflicting bindings` |
 | 15 | P3 | `ClearOutputs()` clears component metadata but leaves registered kernel buffers behind. | Addressed | `Unsafe output clearing API was removed` |
 | 16 | Hardening | `Component` exposes scheduling, async, identity, and profiler internals publicly. | Addressed | `Component runtime internals were encapsulated` |
-| 17 | Hardening | `Module` overrides are not declared explicitly and its destructor is not defaulted as an override. | Not addressed | — |
+| 17 | Hardening | `Module` overrides are not declared explicitly and its destructor is not defaulted as an override. | Addressed | `Module overrides were declared explicitly` |
 | 18 | P3 | Class scanning trusts the `.ikc` filename without validating the declared class name. | Not addressed | — |
 
 ## Status meanings

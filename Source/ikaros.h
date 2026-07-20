@@ -402,12 +402,12 @@ class Module : public Component
 {
 public:
     Module();
-    ~Module();
+    ~Module() override = default;
 
-    int SetOutputShape(dictionary d, input_map ingoing_connections);
-    int SetOutputShapes(input_map ingoing_connections); // Uses the size/shape attribute
-    int SetStateShapes(input_map ingoing_connections);
-    int SetSizes(input_map  ingoing_connections); // Sets input and output if possible
+    int SetOutputShape(dictionary d, input_map ingoing_connections) override;
+    int SetOutputShapes(input_map ingoing_connections) override; // Uses the size/shape attribute
+    int SetStateShapes(input_map ingoing_connections) override;
+    int SetSizes(input_map ingoing_connections) override; // Sets input and output if possible
 
     tick_count GetTick() const;
     double GetTickDuration() const;

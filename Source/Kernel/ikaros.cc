@@ -2431,10 +2431,6 @@ namespace ikaros
 
     }
 
-    Module::~Module()
-    {
-    }
-
     bool
     Module::TryProfilingBegin()
     {
