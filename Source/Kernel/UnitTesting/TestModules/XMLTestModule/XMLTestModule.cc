@@ -3,11 +3,21 @@
 #include <fstream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "ikaros.h"
 
 using namespace ikaros;
+
+static_assert(!std::is_copy_constructible_v<XMLNode>);
+static_assert(!std::is_copy_assignable_v<XMLNode>);
+static_assert(!std::is_move_constructible_v<XMLNode>);
+static_assert(!std::is_move_assignable_v<XMLNode>);
+static_assert(!std::is_copy_constructible_v<XMLElement>);
+static_assert(!std::is_copy_assignable_v<XMLElement>);
+static_assert(!std::is_copy_constructible_v<XMLDocument>);
+static_assert(!std::is_copy_assignable_v<XMLDocument>);
 
 namespace
 {

@@ -49,6 +49,10 @@ public:
 
     XMLNode() : parent(nullptr), prev(nullptr), next(nullptr), aux(nullptr)
     {};
+    XMLNode(const XMLNode &) = delete;
+    XMLNode & operator=(const XMLNode &) = delete;
+    XMLNode(XMLNode &&) = delete;
+    XMLNode & operator=(XMLNode &&) = delete;
     virtual ~XMLNode()
     {
         delete next;
@@ -206,6 +210,10 @@ public:
     XMLDocument(const char * filename, bool included = false);
     XMLDocument(const char * filename, bool included, const std::vector<std::filesystem::path> & include_roots);
     XMLDocument(const char * filename, bool included, const std::vector<std::filesystem::path> & include_roots, const std::vector<std::filesystem::path> & include_stack, int include_depth);
+    XMLDocument(const XMLDocument &) = delete;
+    XMLDocument & operator=(const XMLDocument &) = delete;
+    XMLDocument(XMLDocument &&) = delete;
+    XMLDocument & operator=(XMLDocument &&) = delete;
     ~XMLDocument();
 
     XMLElement * ReleaseXML() noexcept;
