@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestSocketConstruction"
+    description="Clean up failed server construction and preserve listener flags"
+    start="true"
+    stop="1"
+    check_sum="12"
+    log_level="7"
+    expected_output_contains="SOCKET_CONSTRUCTION_OK">
+    <module class="SocketConstructionTestModule" name="SocketTest" />
+</group>

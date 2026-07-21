@@ -33,6 +33,31 @@ namespace
     constexpr size_t MAX_HTTP_BODY_SIZE = 10 * 1024 * 1024;
     constexpr auto KEEP_ALIVE_IDLE_TIMEOUT = std::chrono::seconds(10);
 
+    class FileDescriptorGuard
+    {
+    public:
+        explicit FileDescriptorGuard(int fd = -1): fd_(fd) {}
+        FileDescriptorGuard(const FileDescriptorGuard &) = delete;
+        FileDescriptorGuard & operator=(const FileDescriptorGuard &) = delete;
+
+        ~FileDescriptorGuard()
+        {
+            if(fd_ != -1)
+                close(fd_);
+        }
+
+        int get() const { return fd_; }
+        int release()
+        {
+            int fd = fd_;
+            fd_ = -1;
+            return fd;
+        }
+
+    private:
+        int fd_;
+    };
+
     struct AddressInfoDeleter
     {
         void operator()(addrinfo * addresses) const
@@ -383,20 +408,28 @@ Socket::HTTPGet(const std::string & url) // Very temporary implementation that o
 //
 ServerSocket::ServerSocket(int port, const std::string & bind_address) 
 {
+    if(port < 0 || port > 65535)
+        throw std::invalid_argument("Server port must be between 0 and 65535");
+
     portno = port;
     int yes = 1;
 
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    FileDescriptorGuard listener(socket(AF_INET, SOCK_STREAM, 0));
+    sockfd = listener.get();
     if(sockfd == -1)
         throw std::system_error(errno, std::system_category(), "Failed to create socket");
     if(sockfd >= FD_SETSIZE)
-    {
-        close(sockfd);
-        sockfd = -1;
         throw std::runtime_error("Server listener descriptor exceeds select() capacity");
-    }
+
+    int listener_flags = fcntl(sockfd, F_GETFL, 0);
+    if(listener_flags == -1 ||
+       fcntl(sockfd, F_SETFL, listener_flags | O_NONBLOCK) == -1)
+        throw std::system_error(errno, std::system_category(),
+                                "Failed to make server listener nonblocking");
 
     // Set address properties
+    my_addr = {};
+    their_addr = {};
     my_addr.sin_family = AF_INET;                     // host byte order
     my_addr.sin_port = htons(port);                   // short, network byte order
     my_addr.sin_addr.s_addr = htonl(INADDR_ANY);      // automatically fill with my IP
@@ -427,27 +460,21 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
 
     int wakeup_pipe[2];
     if(pipe(wakeup_pipe) == -1)
-    {
-        int error = errno;
-        close(sockfd);
-        sockfd = -1;
-        throw std::system_error(error, std::system_category(), "Failed to create server wake-up pipe");
-    }
-    wakeup_read_fd = wakeup_pipe[0];
-    wakeup_write_fd = wakeup_pipe[1];
+        throw std::system_error(errno, std::system_category(), "Failed to create server wake-up pipe");
+
+    FileDescriptorGuard wakeup_reader(wakeup_pipe[0]);
+    FileDescriptorGuard wakeup_writer(wakeup_pipe[1]);
+    wakeup_read_fd = wakeup_reader.get();
+    wakeup_write_fd = wakeup_writer.get();
     if(wakeup_read_fd >= FD_SETSIZE || wakeup_write_fd >= FD_SETSIZE)
-    {
-        close(wakeup_read_fd);
-        close(wakeup_write_fd);
-        close(sockfd);
-        wakeup_read_fd = -1;
-        wakeup_write_fd = -1;
-        sockfd = -1;
         throw std::runtime_error("Server wake-up descriptor exceeds select() capacity");
-    }
 
     // Ignore SIGPIPE so the program does not exit unexpectedly
     signal(SIGPIPE, SIG_IGN);
+
+    listener.release();
+    wakeup_reader.release();
+    wakeup_writer.release();
 }
 
 
@@ -461,28 +488,19 @@ ServerSocket::~ServerSocket()
 
 
 bool
-ServerSocket::Poll(bool block)
+ServerSocket::Poll(bool)
 {
     if(stop_requested.load(std::memory_order_acquire))
         return false;
 
     int sin_size = sizeof(struct sockaddr_in);
-    if(!block)
-        fcntl(sockfd, F_SETFL, O_NONBLOCK);				// temporariliy make the socket non-blocking
     int accepted_fd = accept(sockfd, (struct sockaddr *)&(their_addr), (socklen_t*) &sin_size);
-    if(!block)
-        fcntl(sockfd, F_SETFL, 0);						// make the socket blocking again
-/*
-    // --- Add this block to set a 5 second receive timeout ---
-    if (accepted_fd != -1) {
-        struct timeval timeout;
-        timeout.tv_sec = 5;   // 5 seconds timeout
-        timeout.tv_usec = 0;
-        setsockopt(accepted_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
-    }
-*/
     if(accepted_fd == -1)
-        return false;
+    {
+        if(errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)
+            return false;
+        throw std::system_error(errno, std::system_category(), "accept failed");
+    }
     if(accepted_fd >= FD_SETSIZE)
     {
         close(accepted_fd);
