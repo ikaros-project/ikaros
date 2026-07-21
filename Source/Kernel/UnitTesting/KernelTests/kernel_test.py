@@ -295,6 +295,62 @@ def run_http_test(cmd, root):
                             f"Expired keep-alive connection returned unexpected data: {remaining!r}"
                         )
                 http_output.append("KEEP_ALIVE_TIMEOUT closed")
+            elif action.startswith("assert_http_body_framing:"):
+                _, path = action.split(":", 1)
+                request_text = (
+                    f"GET {path} HTTP/1.1\r\n"
+                    "Host: 127.0.0.1\r\n"
+                    "Content-Type: application/json\r\n"
+                    "Content-Length: 2\r\n\r\n{}"
+                    f"GET {path} HTTP/1.1\r\n"
+                    "Host: 127.0.0.1\r\n"
+                    "Connection: close\r\n\r\n"
+                ).encode("ascii")
+                with network_socket.create_connection(("127.0.0.1", int(port)), timeout=2) as client:
+                    client.settimeout(2)
+                    client.sendall(request_text)
+                    response = bytearray()
+                    while True:
+                        chunk = client.recv(4096)
+                        if not chunk:
+                            break
+                        response.extend(chunk)
+                if response.count(b"HTTP/1.1 200 OK") != 2:
+                    raise AssertionError(
+                        f"Content-Length body was not consumed before the next request: {bytes(response)!r}"
+                    )
+                http_output.append("HTTP_BODY_FRAMING consumed")
+            elif action == "assert_invalid_http_framing":
+                malformed_requests = [
+                    (
+                        b"PUT /startupsteps HTTP/1.1\r\nHost: 127.0.0.1\r\n"
+                        b"Content-Length: 2junk\r\n\r\n{}"
+                    ),
+                    (
+                        b"PUT /startupsteps HTTP/1.1\r\nHost: 127.0.0.1\r\n"
+                        b"Content-Length: 2\r\nContent-Length: 3\r\n\r\n{}"
+                    ),
+                    (
+                        b"PUT /startupsteps HTTP/1.1\r\nHost: 127.0.0.1\r\n"
+                        b"Transfer-Encoding: chunked\r\n\r\n2\r\n{}\r\n0\r\n\r\n"
+                    ),
+                    b"PUT /startupsteps HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n{}",
+                ]
+                for malformed in malformed_requests:
+                    with network_socket.create_connection(("127.0.0.1", int(port)), timeout=2) as client:
+                        client.settimeout(2)
+                        client.sendall(malformed)
+                        response = bytearray()
+                        while True:
+                            chunk = client.recv(4096)
+                            if not chunk:
+                                break
+                            response.extend(chunk)
+                    if response.startswith(b"HTTP/1.1 200 "):
+                        raise AssertionError(
+                            f"Malformed HTTP framing was accepted: {malformed!r}"
+                        )
+                http_output.append("INVALID_HTTP_FRAMING rejected")
             elif action.startswith("assert_json_field:"):
                 _, path, field, expected_json = action.split(":", 3)
 

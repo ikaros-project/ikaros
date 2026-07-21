@@ -1,0 +1,12 @@
+<group internal="true"
+    name="TestHTTPMessageFraming"
+    description="Consume declared request bodies and reject ambiguous HTTP framing"
+    start="true"
+    stop="1"
+    check_sum="1034"
+    webui_port="8268"
+    http_ready_path="auth"
+    http_requests="assert_http_body_framing:/startupsteps||assert_invalid_http_framing"
+    http_terminate_after_requests="true">
+    <module class="System" name="System" />
+</group>

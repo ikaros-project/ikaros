@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <algorithm> // For std::min
+#include <charconv>
 #include <future>
 #include <memory>
 #include <optional>
@@ -669,8 +670,11 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
     queued_request.connection_id = current_read_connection_id;
 
     queued_request.header["method"] = request_line_parts[0];
-	queued_request.header["uri"] = request_line_parts[1];
-	queued_request.header["http-version"] = request_line_parts[2];
+		queued_request.header["uri"] = request_line_parts[1];
+		queued_request.header["http-version"] = request_line_parts[2];
+
+    std::optional<size_t> content_length;
+    bool has_transfer_encoding = false;
 
     for(std::string line; std::getline(request_stream, line);)
     {
@@ -688,8 +692,30 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
         if(key.empty())
             return RequestReadResult::closed;
 
-        queued_request.header[to_lower_copy(key)] = value;
+        std::string normalized_key = to_lower_copy(key);
+        if(normalized_key == "content-length")
+        {
+            if(content_length)
+                return RequestReadResult::closed;
+
+            size_t parsed_length = 0;
+            auto [end, error] = std::from_chars(value.data(), value.data() + value.size(),
+                                                parsed_length);
+            if(error != std::errc() || end != value.data() + value.size() ||
+               parsed_length > MAX_HTTP_BODY_SIZE)
+                return RequestReadResult::closed;
+            content_length = parsed_length;
+        }
+        else if(normalized_key == "transfer-encoding" && !value.empty())
+        {
+            has_transfer_encoding = true;
+        }
+
+        queued_request.header[normalized_key] = value;
     }
+
+    if(has_transfer_encoding)
+        return RequestReadResult::closed;
 
     std::string http_version_string = std::string(queued_request.header["http-version"]);
     bool close_after_response = (http_version_string != "HTTP/1.1");
@@ -702,43 +728,32 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
             close_after_response = false;
     }
     queued_request.close_after_response = close_after_response;
-		
-    if(queued_request.header.contains_non_null("method") && std::string(queued_request.header["method"]) == "PUT")
+    std::string method = std::string(queued_request.header["method"]);
+    if(method == "PUT" && !content_length)
+        return RequestReadResult::closed;
+
+    size_t body_start = header_end + 4;
+    size_t expected_body_size = content_length.value_or(0);
+    while(connection->input_buffer.size() < body_start + expected_body_size)
     {
-        size_t body_start = header_end + 4;
-        if(queued_request.header.contains_non_null("content-length")) {
-            size_t content_length = 0;
-            try {
-                content_length = std::stoull(std::string(queued_request.header["content-length"]));
-            } catch(const std::exception &) {
-                return RequestReadResult::closed;
-            }
-
-            if(content_length > MAX_HTTP_BODY_SIZE)
-                return RequestReadResult::closed;
-
-            while(connection->input_buffer.size() < body_start + content_length)
-            {
-                char buffer[read_chunk_size];
-                ssize_t rr = Read(buffer, sizeof(buffer));
-                if(rr == 0)
-                    return RequestReadResult::closed;
-                if(rr < 0)
-                    return RequestReadResult::incomplete;
-                connection->input_buffer.append(buffer, rr);
-                if(connection->input_buffer.size() - body_start > MAX_HTTP_BODY_SIZE)
-                {
-                    CloseConnection(current_read_connection_id);
-                    return RequestReadResult::closed;
-                }
-            }
-
-            if(content_length > 0)
-                queued_request.body = connection->input_buffer.substr(body_start, content_length);
+        char buffer[read_chunk_size];
+        ssize_t rr = Read(buffer, sizeof(buffer));
+        if(rr == 0)
+            return RequestReadResult::closed;
+        if(rr < 0)
+            return RequestReadResult::incomplete;
+        connection->input_buffer.append(buffer, rr);
+        if(connection->input_buffer.size() - body_start > MAX_HTTP_BODY_SIZE)
+        {
+            CloseConnection(current_read_connection_id);
+            return RequestReadResult::closed;
         }
     }
 
-    size_t total_consumed = header_end + 4 + queued_request.body.size();
+    if(expected_body_size > 0)
+        queued_request.body = connection->input_buffer.substr(body_start, expected_body_size);
+
+    size_t total_consumed = body_start + expected_body_size;
     connection->input_buffer.erase(0, total_consumed);
     return RequestReadResult::complete;
 }
