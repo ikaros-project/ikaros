@@ -1,8 +1,10 @@
 #include <array>
 #include <iostream>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "ikaros.h"
 
@@ -82,6 +84,11 @@ public:
             rejected_oversized_base64 = true;
         }
         require(rejected_oversized_base64, "Base64 encoding accepted an impossible input size");
+
+        std::ostringstream vector_stream;
+        vector_stream << std::vector<int>{1, 2, 3};
+        require(vector_stream.str() == "(1, 2, 3)",
+                "vector insertion ignored its destination stream");
 
         std::cout << "UTILITIES TEST OK\n";
     }

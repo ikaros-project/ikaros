@@ -538,13 +538,13 @@ is_number(const std::string& s)
 std::ostream& operator<<(std::ostream& os, const std::vector<int> & v)
 {
     std::string sep;
-    std::cout << "(";
+    os << "(";
     for(auto i : v)
     {
-        std::cout << sep << i;
+        os << sep << i;
         sep = ", ";
     }
-    std::cout << ")";
+    os << ")";
     return os;
 }
 
