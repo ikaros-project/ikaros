@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "ikaros.h"
 
 using namespace ikaros;
@@ -188,8 +190,11 @@ class Statistics: public Module
             throw exception("Statistics: SAMPLE must have the same size as INPUT.", path_);
 
         for (int i = 0; i < input.size(); ++i)
-            if (!sample.connected() || sample.data()[i] >= 1.0f)
-                statistics_[i].push(input.data()[i]);
+        {
+            const float value = input.data()[i];
+            if ((!sample.connected() || sample.data()[i] >= 1.0f) && std::isfinite(value))
+                statistics_[i].push(value);
+        }
 
         WriteStatistics();
         WriteHistogram();

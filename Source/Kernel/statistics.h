@@ -1,11 +1,13 @@
 #pragma once
-#include <queue>
-#include <vector>
-#include <unordered_map>
-#include <limits>
-#include <cmath>
-#include <functional>
 #include <algorithm>
+#include <cmath>
+#include <cstddef>
+#include <functional>
+#include <limits>
+#include <queue>
+#include <stdexcept>
+#include <unordered_map>
+#include <vector>
 
 
 
@@ -24,7 +26,9 @@ public:
     }
 
     void push(double x) 
-    { 
+    {
+        if (!std::isfinite(x))
+            throw std::invalid_argument("statistics requires finite samples");
         data_.push_back(x); 
     }
 
@@ -41,16 +45,10 @@ public:
 
     double mean() const noexcept 
     {
-        if (data_.empty()) 
-            return nan_();
-            
-        long double s = 0.0L;
-        for (double x : data_) 
-            s += x;
-        return static_cast<double>(s / data_.size());
+        return static_cast<double>(mean_ld_());
     }
 
-    double median() const noexcept 
+    double median() const
     {
         const std::size_t n = data_.size();
         if (n == 0) 
@@ -60,11 +58,14 @@ public:
         std::sort(v.begin(), v.end());
         if (n & 1) 
             return v[n/2];
-        return (v[n/2 - 1] + v[n/2]) * 0.5;
+        return midpoint_(v[n/2 - 1], v[n/2]);
     }
 
-    double quantile(double q) const noexcept
+    double quantile(double q) const
     {
+        if (!std::isfinite(q))
+            throw std::invalid_argument("statistics quantile requires a finite probability");
+
         const std::size_t n = data_.size();
         if (n == 0)
             return nan_();
@@ -85,41 +86,41 @@ public:
         if (lower == upper)
             return v[lower];
 
-        return v[lower] + (v[upper] - v[lower]) * fraction;
+        return interpolate_(v[lower], v[upper], fraction);
     }
 
-    double q1() const noexcept
+    double q1() const
     {
         return quantile(0.25);
     }
 
-    double q3() const noexcept
+    double q3() const
     {
         return quantile(0.75);
     }
 
-    double interquartile_range() const noexcept
+    double interquartile_range() const
     {
         if (data_.empty())
             return nan_();
         return q3() - q1();
     }
 
-    double lower_fence() const noexcept
+    double lower_fence() const
     {
         if (data_.empty())
             return nan_();
         return q1() - 1.5 * interquartile_range();
     }
 
-    double upper_fence() const noexcept
+    double upper_fence() const
     {
         if (data_.empty())
             return nan_();
         return q3() + 1.5 * interquartile_range();
     }
 
-    double lower_whisker() const noexcept
+    double lower_whisker() const
     {
         if (data_.empty())
             return nan_();
@@ -131,7 +132,7 @@ public:
         return it == v.end() ? v.front() : *it;
     }
 
-    double upper_whisker() const noexcept
+    double upper_whisker() const
     {
         if (data_.empty())
             return nan_();
@@ -148,7 +149,7 @@ public:
         return data_;
     }
 
-    double mode() const noexcept 
+    double mode() const
     {
         if (data_.empty()) 
             return nan_();
@@ -253,11 +254,38 @@ public:
 private:
     static double nan_() noexcept { return std::numeric_limits<double>::quiet_NaN(); }
 
+    static long double next_mean_(long double mean, long double value,
+                                  long double count) noexcept
+    {
+        if (std::signbit(mean) != std::signbit(value))
+            return mean * ((count - 1.0L) / count) + value / count;
+        return mean + (value - mean) / count;
+    }
+
+    static double midpoint_(double a, double b) noexcept
+    {
+        if (std::signbit(a) != std::signbit(b))
+            return a * 0.5 + b * 0.5;
+        return a + (b - a) * 0.5;
+    }
+
+    static double interpolate_(double a, double b, double fraction) noexcept
+    {
+        if (std::signbit(a) != std::signbit(b))
+            return a * (1.0 - fraction) + b * fraction;
+        return a + (b - a) * fraction;
+    }
+
     long double mean_ld_() const noexcept {
         if (data_.empty()) return std::numeric_limits<long double>::quiet_NaN();
-        long double s = 0.0L;
-        for (double x : data_) s += x;
-        return s / static_cast<long double>(data_.size());
+        long double mean = 0.0L;
+        long double count = 0.0L;
+        for (double x : data_)
+        {
+            count += 1.0L;
+            mean = next_mean_(mean, static_cast<long double>(x), count);
+        }
+        return mean;
     }
 
     std::vector<double> data_;
@@ -300,21 +328,32 @@ public:
     // Add a new observation
     void push(double x) 
     {
+        if (!std::isfinite(x))
+            throw std::invalid_argument("online_statistics requires finite samples");
+
         const long double previous_count = static_cast<long double>(count_);
 
         // --- Update online moments (Pébay/Welford) ---
         const long double new_count = previous_count + 1.0L;
-        const long double delta = static_cast<long double>(x) - mean_;
-        const long double delta_n = delta / new_count;
-        const long double delta_n2 = delta_n * delta_n;
-        const long double term1 = delta * delta_n * previous_count;
+        if (count_ == 0)
+        {
+            mean_ = static_cast<long double>(x);
+        }
+        else
+        {
+            const long double value = static_cast<long double>(x);
+            const long double delta = value - mean_;
+            const long double delta_n = delta / new_count;
+            const long double delta_n2 = delta_n * delta_n;
+            const long double term1 = delta * delta_n * previous_count;
 
-        M4_ += term1 * delta_n2 * (new_count * new_count - 3.0L * new_count + 3.0L)
-             + 6.0L * delta_n2 * M2_
-             - 4.0L * delta_n * M3_;
-        M3_ += term1 * delta_n * (new_count - 2.0L) - 3.0L * delta_n * M2_;
-        M2_ += term1;
-        mean_ += delta_n;
+            M4_ += term1 * delta_n2 * (new_count * new_count - 3.0L * new_count + 3.0L)
+                 + 6.0L * delta_n2 * M2_
+                 - 4.0L * delta_n * M3_;
+            M3_ += term1 * delta_n * (new_count - 2.0L) - 3.0L * delta_n * M2_;
+            M2_ += term1;
+            mean_ = next_mean_(mean_, value, new_count);
+        }
         ++count_;
 
         // --- Track min/max ---
@@ -360,7 +399,7 @@ public:
             return nan_();
             
         if (lower_.size() == upper_.size())
-            return (lower_.top() + upper_.top()) / 2.0;
+            return midpoint_(lower_.top(), upper_.top());
         
         return lower_.size() > upper_.size() ? lower_.top() : upper_.top();
     }
@@ -449,6 +488,21 @@ private:
     static double nan_() noexcept 
     {
         return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    static long double next_mean_(long double mean, long double value,
+                                  long double count) noexcept
+    {
+        if (std::signbit(mean) != std::signbit(value))
+            return mean * ((count - 1.0L) / count) + value / count;
+        return mean + (value - mean) / count;
+    }
+
+    static double midpoint_(double a, double b) noexcept
+    {
+        if (std::signbit(a) != std::signbit(b))
+            return a * 0.5 + b * 0.5;
+        return a + (b - a) * 0.5;
     }
 
     // Running counters / moments
