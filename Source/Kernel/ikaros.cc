@@ -6972,7 +6972,6 @@ bool operator==(Request & r, const std::string s)
     {
         long size = 0;
         unsigned char * jpeg = nullptr;
-        size_t output_length = 0 ;
 
         if(format=="rgb" && image.rank() == 3 && image.size(0) == 3)
             jpeg = (unsigned char *)create_color_jpeg(size, image, quality);
@@ -6983,17 +6982,17 @@ bool operator==(Request & r, const std::string s)
         else if(image.rank() == 2) // taking our chances with the format...
             jpeg = (unsigned char *)create_pseudocolor_jpeg(size, image, 0, 1, format, quality);
 
-            if(!jpeg)
-            {
-                return "\"\"";
-            }
+        if(!jpeg)
+            return "\"\"";
 
-        char * jpeg_base64 = base64_encode(jpeg, size, &output_length);
+        std::unique_ptr<unsigned char, decltype(&destroy_jpeg)> jpeg_guard(jpeg, destroy_jpeg);
+        if(size < 0)
+            throw std::runtime_error("JPEG encoder returned a negative data size.");
+
+        const std::string jpeg_base64 = base64_encode(jpeg, static_cast<size_t>(size));
         std::string result = "\"data:image/jpeg;base64,";
-        result.append(jpeg_base64, output_length);
+        result += jpeg_base64;
         result += "\"";
-        destroy_jpeg(jpeg);
-        free(jpeg_base64);
         return result;
     }
 

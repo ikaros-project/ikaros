@@ -61,7 +61,7 @@ namespace ikaros
     void print_attribute_value(const std::string & name, const std::vector<float> & values, int indent=0, int max_items=0);
     void print_attribute_value(const std::string & name, const std::vector<std::vector<std::string>> &  values, int indent=0, int max_items=0);
 
-    char * base64_encode(const unsigned char * data, size_t size_in, size_t *size_out);
+    [[nodiscard]] std::string base64_encode(const unsigned char * data, size_t size);
 
     [[nodiscard]] std::string formatNumber(double value, int decimals=-1); // shortest round-trip value by default
     [[nodiscard]] std::string format_json_number(double value); // exact JSON number or null for non-finite

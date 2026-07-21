@@ -614,34 +614,30 @@ std::ostream& operator<<(std::ostream& os, const std::vector<int> & v)
     }
 
 
-char *
-base64_encode(const unsigned char * data,
-              size_t size_in,
-              size_t *size_out)
+std::string
+base64_encode(const unsigned char * data, size_t size)
 {
-    static char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    static int mod_table[] = {0, 2, 1};
-    if(size_in == 0)
-    {
-        *size_out = 0;
-        char *encoded_data = (char *)malloc(1);
-        if(encoded_data != nullptr)
-            encoded_data[0] = '\0';
-        return encoded_data;
-    }
+    static constexpr char encoding_table[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    static constexpr size_t padding[] = {0, 2, 1};
 
-    *size_out = ((size_in - 1) / 3) * 4 + 4;
+    if(size == 0)
+        return {};
+    if(data == nullptr)
+        throw std::invalid_argument("Cannot Base64-encode null data.");
+    if(size > (std::numeric_limits<size_t>::max() / 4) * 3)
+        throw std::length_error("Base64 input is too large.");
+
+    const size_t encoded_size = ((size + 2) / 3) * 4;
+    std::string encoded_data(encoded_size, '\0');
     
-    char *encoded_data = (char *)malloc(*size_out);
-    if (encoded_data == nullptr) return nullptr;
-    
-    for (int i = 0, j = 0; i < size_in;)
+    for(size_t i = 0, j = 0; i < size;)
     {
-        unsigned int octet_a = i < size_in ? data[i++] : 0;
-        unsigned int octet_b = i < size_in ? data[i++] : 0;
-        unsigned int octet_c = i < size_in ? data[i++] : 0;
+        const unsigned int octet_a = i < size ? data[i++] : 0;
+        const unsigned int octet_b = i < size ? data[i++] : 0;
+        const unsigned int octet_c = i < size ? data[i++] : 0;
         
-        unsigned int triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
+        const unsigned int triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
         
         encoded_data[j++] = encoding_table[(triple >> 3 * 6) & 0x3F];
         encoded_data[j++] = encoding_table[(triple >> 2 * 6) & 0x3F];
@@ -649,8 +645,8 @@ base64_encode(const unsigned char * data,
         encoded_data[j++] = encoding_table[(triple >> 0 * 6) & 0x3F];
     }
     
-    for (int i = 0; i < mod_table[size_in % 3]; i++)
-        encoded_data[*size_out - 1 - i] = '=';
+    for(size_t i = 0; i < padding[size % 3]; ++i)
+        encoded_data[encoded_size - 1 - i] = '=';
     
     return encoded_data;
 }

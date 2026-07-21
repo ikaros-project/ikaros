@@ -1,4 +1,6 @@
+#include <array>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 
@@ -50,6 +52,36 @@ public:
                 "zero-decimal formatting stripped integer zeros");
         require(formatNumber(1.25, 4) == "1.25" && formatNumber(0, 4) == "0",
                 "fixed-decimal formatting did not trim only fractional zeros");
+
+        const std::array<unsigned char, 3> man = {'M', 'a', 'n'};
+        require(base64_encode(nullptr, 0).empty(),
+                "Base64 encoding did not accept empty input");
+        require(base64_encode(man.data(), 1) == "TQ==" &&
+                base64_encode(man.data(), 2) == "TWE=" &&
+                base64_encode(man.data(), 3) == "TWFu",
+                "Base64 encoding produced an incorrect value");
+
+        bool rejected_null_base64 = false;
+        try
+        {
+            static_cast<void>(base64_encode(nullptr, 1));
+        }
+        catch(const std::invalid_argument &)
+        {
+            rejected_null_base64 = true;
+        }
+        require(rejected_null_base64, "Base64 encoding accepted null non-empty input");
+
+        bool rejected_oversized_base64 = false;
+        try
+        {
+            static_cast<void>(base64_encode(man.data(), std::numeric_limits<size_t>::max()));
+        }
+        catch(const std::length_error &)
+        {
+            rejected_oversized_base64 = true;
+        }
+        require(rejected_oversized_base64, "Base64 encoding accepted an impossible input size");
 
         std::cout << "UTILITIES TEST OK\n";
     }
