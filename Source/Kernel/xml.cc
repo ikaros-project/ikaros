@@ -516,14 +516,11 @@ XMLDocument::XMLDocument(const char * filename, bool included, const std::vector
     }
 
     include_stack_ = include_stack;
-    if(!include_roots_.empty())
-    {
-        if(include_depth_ > max_xml_include_depth)
-            throw std::runtime_error("Maximum XML include depth exceeded");
-        if(std::find(include_stack_.begin(), include_stack_.end(), filename_) != include_stack_.end())
-            throw std::runtime_error("Recursive XML include");
-        include_stack_.push_back(filename_);
-    }
+    if(include_depth_ > max_xml_include_depth)
+        throw std::runtime_error("Maximum XML include depth exceeded");
+    if(std::find(include_stack_.begin(), include_stack_.end(), filename_) != include_stack_.end())
+        throw std::runtime_error("Recursive XML include");
+    include_stack_.push_back(filename_);
 
     std::unique_ptr<FILE, decltype(&fclose)> input(fopen(filename, "rb"), &fclose);
     if(input == nullptr)
@@ -905,21 +902,21 @@ XMLDocument::ParseIncludedFile(XMLNode * parent)
 
     if(include_filename.empty())
         throw std::runtime_error("XML include filename is empty");
+    if(include_depth_ >= max_xml_include_depth)
+        throw std::runtime_error("Maximum XML include depth exceeded");
 
-    std::unique_ptr<XMLDocument> xml_doc;
+    std::filesystem::path resolved_filename;
     if(include_roots_.empty())
     {
-        std::filesystem::path resolved_filename(include_filename);
+        resolved_filename = include_filename;
         if(resolved_filename.is_relative())
             resolved_filename = base_dir_ / resolved_filename;
-        xml_doc = std::make_unique<XMLDocument>(resolved_filename.string().c_str(), true);
     }
     else
-    {
-        std::filesystem::path resolved_filename = ResolveIncludedFilename(include_filename);
-        xml_doc = std::make_unique<XMLDocument>(resolved_filename.string().c_str(), true,
-                                                include_roots_, include_stack_, include_depth_+1);
-    }
+        resolved_filename = ResolveIncludedFilename(include_filename);
+
+    std::unique_ptr<XMLDocument> xml_doc = std::make_unique<XMLDocument>(
+        resolved_filename.string().c_str(), true, include_roots_, include_stack_, include_depth_ + 1);
 
     std::unique_ptr<XMLNode> included_xml(xml_doc->ReleaseXML());
     XMLNode * final_node = included_xml.get();

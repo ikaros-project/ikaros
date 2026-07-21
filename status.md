@@ -88,7 +88,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | # | Priority | Finding | Status | Commit |
 |---:|:---:|---|---|---|
 | 1 | P2 | XML document buffers, included documents, duplicate attributes, and parser exception paths leak memory. | Addressed | `XML parser ownership was made exception-safe` |
-| 2 | P2 | Standalone XML includes have no effective cycle or depth protection. | Not addressed | — |
+| 2 | P2 | Standalone XML includes have no effective cycle or depth protection. | Addressed | `Standalone XML includes were bounded and cycle-checked` |
 | 3 | P2 | Top-level XML parsing silently accepts additional roots and trailing non-whitespace content. | Not addressed | — |
 | 4 | P2 | Single-quoted XML attributes are rejected because character matching consumes mismatches. | Not addressed | — |
 | 5 | P2 | XML entity decoding is incomplete and accepts malformed or corrupting numeric entities. | Not addressed | — |

@@ -52,6 +52,21 @@ namespace
         if(!condition)
             throw exception("XMLTestModule: " + message);
     }
+
+
+    void
+    require_parse_failure(const std::filesystem::path & path, const std::string & message)
+    {
+        try
+        {
+            XMLDocument document(path.string().c_str());
+        }
+        catch(const std::exception &)
+        {
+            return;
+        }
+        throw exception("XMLTestModule: " + message);
+    }
 }
 
 
@@ -75,18 +90,7 @@ class XMLTestModule : public Module
         const std::filesystem::path malformed = files.write(
             "malformed.xml", "<root><child></root>");
         for(int i = 0; i < 32; ++i)
-        {
-            bool rejected = false;
-            try
-            {
-                XMLDocument document(malformed.string().c_str());
-            }
-            catch(const std::exception &)
-            {
-                rejected = true;
-            }
-            require(rejected, "malformed document was accepted");
-        }
+            require_parse_failure(malformed, "malformed document was accepted");
 
         files.write("included.xml", "<child value=\"included\"/>");
         const std::filesystem::path including = files.write(
@@ -95,6 +99,21 @@ class XMLTestModule : public Module
         parsed_include.load_xml(including.string());
         require(parsed_include["childs"][0]["value"].as_string() == "included",
                 "included document was not transferred into the parent tree");
+
+        const std::filesystem::path recursive = files.write(
+            "recursive.xml", "<root><?include file=\"recursive.xml\"?></root>");
+        require_parse_failure(recursive, "recursive standalone include was accepted");
+
+        for(int i = 0; i <= 33; ++i)
+        {
+            const std::string content = i == 33
+                ? "<root/>"
+                : "<root><?include file=\"depth-" + std::to_string(i + 1) + ".xml\"?></root>";
+            files.write("depth-" + std::to_string(i) + ".xml", content);
+        }
+        require_parse_failure(files.write("depth-start.xml",
+                              "<root><?include file=\"depth-0.xml\"?></root>"),
+                              "excessively deep standalone include was accepted");
 
         std::cout << "XML TEST OK" << std::endl;
     }
