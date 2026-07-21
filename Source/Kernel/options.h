@@ -36,16 +36,41 @@ namespace ikaros {
                         const std::string & default_value = "", bool optional = false,
                         bool sensitive = false)
         {
+            if(short_name.size() != 1)
+                throw std::invalid_argument("Command-line option short name must be exactly one character");
+            if(full_name.empty())
+                throw std::invalid_argument("Command-line option full name must not be empty");
+            if(full.count(short_name))
+                throw std::invalid_argument("Command-line option short name \"-" + short_name +
+                                            "\" is already registered");
+            if(description.count(full_name))
+                throw std::invalid_argument("Command-line option full name \"" + full_name +
+                                            "\" is already registered");
+            if(takes_value && optional)
+                throw std::invalid_argument("Command-line option \"" + full_name +
+                                            "\" cannot both require and optionally accept a value");
+
+            const bool is_boolean = !takes_value && !optional;
+            std::string normalized_default = default_value;
+            if(is_boolean && !default_value.empty())
+            {
+                bool parsed_default = false;
+                if(!parse_bool(default_value, parsed_default))
+                    throw std::invalid_argument("Invalid Boolean default \"" + default_value +
+                                                "\" for option \"" + full_name + "\"");
+                normalized_default = parsed_default ? "true" : "false";
+            }
+
             full[short_name] = full_name;
             description[full_name] = desc;
             requires_value[full_name] = takes_value;
             optional_value[full_name] = optional;
-            if(!takes_value && !optional)
+            if(is_boolean)
                 boolean_options_.insert(full_name);
             if(!default_value.empty())
             {
-                d[full_name] = default_value;
-                default_values_[full_name] = default_value;
+                d[full_name] = normalized_default;
+                default_values_[full_name] = normalized_default;
             }
             if(sensitive)
                 sensitive_options_.insert(full_name);

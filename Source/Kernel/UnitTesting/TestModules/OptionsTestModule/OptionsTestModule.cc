@@ -96,6 +96,24 @@ namespace
     }
 
 
+    template<typename Function>
+    void
+    require_registration_failure(Function function, const std::string & expected_message,
+                                 const std::string & message)
+    {
+        bool rejected = false;
+        try
+        {
+            function();
+        }
+        catch(const std::invalid_argument & e)
+        {
+            rejected = std::string(e.what()).find(expected_message) != std::string::npos;
+        }
+        require(rejected, message);
+    }
+
+
     options
     configured_options()
     {
@@ -333,6 +351,75 @@ class OptionsTestModule : public Module
         require(negative_required_value.get_long("stop") == -1 &&
                 negative_required_value.is_explicitly_set("stop"),
                 "negative required option value was mistaken for another option");
+
+        require_registration_failure(
+            []()
+            {
+                options malformed;
+                malformed.add_option("", "empty_short", "invalid");
+            },
+            "exactly one character", "empty option short name was accepted");
+        require_registration_failure(
+            []()
+            {
+                options malformed;
+                malformed.add_option("ab", "long_short", "invalid");
+            },
+            "exactly one character", "multi-character option short name was accepted");
+        require_registration_failure(
+            []()
+            {
+                options malformed;
+                malformed.add_option("x", "", "invalid");
+            },
+            "must not be empty", "empty option full name was accepted");
+
+        options duplicate_short;
+        duplicate_short.add_option("x", "first", "first option");
+        require_registration_failure(
+            [&duplicate_short]()
+            {
+                duplicate_short.add_option("x", "second", "second option");
+            },
+            "already registered", "duplicate option short name was accepted");
+        require(duplicate_short.full.at("x") == "first" &&
+                !duplicate_short.description.count("second"),
+                "failed duplicate short-name registration changed existing state");
+
+        options duplicate_full;
+        duplicate_full.add_option("x", "same", "first option");
+        require_registration_failure(
+            [&duplicate_full]()
+            {
+                duplicate_full.add_option("y", "same", "second option");
+            },
+            "already registered", "duplicate option full name was accepted");
+        require(!duplicate_full.full.count("y"),
+                "failed duplicate full-name registration changed existing state");
+
+        require_registration_failure(
+            []()
+            {
+                options contradictory;
+                contradictory.add_option("x", "contradictory", "invalid", true, "", true);
+            },
+            "cannot both require", "contradictory option value modes were accepted");
+        require_registration_failure(
+            []()
+            {
+                options invalid_default;
+                invalid_default.add_option("x", "flag", "invalid", false, "perhaps");
+            },
+            "Invalid Boolean default", "invalid Boolean option default was accepted");
+
+        options boolean_defaults;
+        boolean_defaults.add_option("x", "enabled", "enabled by default", false, "YES");
+        boolean_defaults.add_option("y", "disabled", "disabled by default", false, "off");
+        require(boolean_defaults.get("enabled") == "true" &&
+                boolean_defaults.is_set("enabled") &&
+                boolean_defaults.get("disabled") == "false" &&
+                !boolean_defaults.is_set("disabled"),
+                "valid Boolean option defaults were not normalized");
 
         std::cout << "OPTIONS TEST OK" << std::endl;
     }
