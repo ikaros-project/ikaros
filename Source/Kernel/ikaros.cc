@@ -4655,8 +4655,8 @@ bool operator==(Request & r, const std::string s)
         options_ = opts;
         auth_enabled_ = options_.is_explicitly_set("auth_password");
         auth_password_ = auth_enabled_ ? options_.get("auth_password") : "";
-        if(auth_enabled_ && (auth_password_.empty() || auth_password_ == "true"))
-            throw exception("Authentication requires a non-empty password supplied as -a<password>.");
+        if(auth_enabled_ && auth_password_.empty())
+            throw exception("Authentication requires a non-empty password.");
         if(auth_enabled_ && !LoadOrCreateAuthCookieSecret())
             throw exception("Authentication could not initialize its persistent cookie secret in UserData.");
     }
