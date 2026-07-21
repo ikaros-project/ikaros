@@ -446,7 +446,7 @@ parse_double(const std::string & s, double & value)
     {
         negative = trimmed.front() == '-';
         trimmed = trimmed.substr(1);
-        if(trimmed.empty())
+        if(trimmed.empty() || trimmed.front() == '+' || trimmed.front() == '-')
             return false;
     }
 
@@ -474,7 +474,7 @@ parse_float(const std::string & s, float & value)
     {
         negative = trimmed.front() == '-';
         trimmed = trimmed.substr(1);
-        if(trimmed.empty())
+        if(trimmed.empty() || trimmed.front() == '+' || trimmed.front() == '-')
             return false;
     }
 

@@ -98,6 +98,21 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 9 | P3 | `XMLNode::Disconnect()` corrupts sibling or element list invariants. | Addressed | `XML node disconnection preserved list invariants` |
 | 10 | P3 | XML errors print directly and lose filenames or include-chain context. | Addressed | `XML errors retained file and include context` |
 
+## Utilities review
+
+| # | Priority | Finding | Status | Commit |
+|---:|:---:|---|---|---|
+| 1 | P1 | Floating-point parsing accepts malformed doubled signs and can reverse their meaning. | Addressed | `Malformed floating-point signs were rejected` |
+| 2 | P2 | Fixed-decimal number formatting corrupts zero-decimal output and can access an empty string. | Not addressed | — |
+| 3 | P2 | Base64 encoding exposes unsafe raw ownership and unchecked allocation and size failures. | Not addressed | — |
+| 4 | P2 | The vector stream operator ignores its destination stream and writes to standard output. | Not addressed | — |
+| 5 | P3 | `cut_head()` is publicly declared but has no linkable implementation. | Not addressed | — |
+| 6 | P3 | Diagnostic attribute printing ignores indentation and mishandles item limits. | Not addressed | — |
+| 7 | P3 | String delimiter helpers narrow positions to `int` and handle empty delimiters inconsistently. | Not addressed | — |
+| 8 | P3 | Prime and character-sum checksum helpers can overflow or vary with platform `char` signedness. | Not addressed | — |
+| 9 | P3 | Obsolete utility APIs are unused, inefficient, or have misleading semantics. | Not addressed | — |
+| 10 | P2/P3 | Utility tests are not integrated with the normal checksum-based kernel suite and cover little behavior. | Not addressed | — |
+
 ## Status meanings
 
 - **Not addressed**: no corrective implementation has been completed.
