@@ -21,6 +21,13 @@ static_assert(!std::is_copy_assignable_v<XMLDocument>);
 
 namespace
 {
+    struct ParseFailure
+    {
+        std::string message;
+        std::string path;
+    };
+
+
     class TemporaryXMLDirectory
     {
     public:
@@ -65,16 +72,20 @@ namespace
     }
 
 
-    void
+    ParseFailure
     require_parse_failure(const std::filesystem::path & path, const std::string & message)
     {
         try
         {
             XMLDocument document(path.string().c_str());
         }
-        catch(const std::exception &)
+        catch(const ikaros::exception & e)
         {
-            return;
+            return {e.message(), e.path()};
+        }
+        catch(const std::exception & e)
+        {
+            return {e.what(), ""};
         }
         throw exception("XMLTestModule: " + message);
     }
@@ -161,6 +172,30 @@ class XMLTestModule : public Module
             "malformed.xml", "<root><child></root>");
         for(int i = 0; i < 32; ++i)
             require_parse_failure(malformed, "malformed document was accepted");
+        const ParseFailure direct_failure = require_parse_failure(
+            malformed, "malformed document was accepted while checking diagnostics");
+        require(direct_failure.path == std::filesystem::weakly_canonical(malformed).string(),
+                "direct parse failure did not retain its filename");
+        require(direct_failure.message.find("line 1") != std::string::npos,
+                "direct parse failure did not retain its source location");
+
+        const std::filesystem::path missing = malformed.parent_path() / "missing.xml";
+        const ParseFailure missing_failure = require_parse_failure(
+            missing, "missing XML document was accepted");
+        require(missing_failure.path == std::filesystem::weakly_canonical(missing).string(),
+                "file-open failure did not retain the requested filename");
+
+        const std::filesystem::path broken_include = files.write("broken-include.xml", "<child>");
+        const std::filesystem::path broken_parent = files.write(
+            "broken-parent.xml", "<root><?include file=\"broken-include.xml\"?></root>");
+        const ParseFailure included_failure = require_parse_failure(
+            broken_parent, "malformed included document was accepted");
+        require(included_failure.path == std::filesystem::weakly_canonical(broken_include).string(),
+                "included parse failure did not retain the included filename");
+        require(included_failure.message.find(
+                    "Included from \"" + std::filesystem::weakly_canonical(broken_parent).string() + "\"") !=
+                std::string::npos,
+                "included parse failure did not retain its include chain");
 
         files.write("included.xml", "<child value=\"included\"/>");
         const std::filesystem::path including = files.write(

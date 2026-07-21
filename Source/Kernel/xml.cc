@@ -107,6 +107,18 @@ append_utf8(std::string & text, unsigned long code)
 
 
 static std::string
+xml_error_message(const std::string & message, int line, int character,
+                  const char * action, int action_line)
+{
+    std::string result = message + " at line " + std::to_string(line) +
+                         ", position " + std::to_string(character);
+    if(action_line != 0)
+        result += " while " + std::string(action) + " at line " + std::to_string(action_line);
+    return result;
+}
+
+
+static std::string
 decode_xml_entities(const char * text)
 {
     std::string decoded;
@@ -615,17 +627,14 @@ XMLDocument::XMLDocument(const char * filename, bool included, const std::vector
 
     include_stack_ = include_stack;
     if(include_depth_ > max_xml_include_depth)
-        throw std::runtime_error("Maximum XML include depth exceeded");
+        throw ikaros::exception("Maximum XML include depth exceeded", filename_.string());
     if(std::find(include_stack_.begin(), include_stack_.end(), filename_) != include_stack_.end())
-        throw std::runtime_error("Recursive XML include");
+        throw ikaros::exception("Recursive XML include", filename_.string());
     include_stack_.push_back(filename_);
 
     std::unique_ptr<FILE, decltype(&fclose)> input(fopen(filename, "rb"), &fclose);
     if(input == nullptr)
-    {
-        printf("XML: Could not open \"%s\".\n", filename);
-        throw std::runtime_error("File not found");
-    }
+        throw ikaros::exception("Could not open XML file", filename_.string());
     f = input.get();
     
     // allocate buffer
@@ -688,35 +697,20 @@ XMLDocument::XMLDocument(const char * filename, bool included, const std::vector
     }
     catch (const char * msg)
     {
-        printf("%s: ", filename);
-        printf("%s at line %d, position %d", msg, line, character);
-        if (action_line != 0)
-            printf(" while %s at line %d\n", action, action_line);
-        else
-            printf("\n");
-
-        if (action_line != 0)
-        {
-            throw ikaros::exception(std::string(msg)+ " at line "+std::to_string(line)+" position "+std::to_string(character)+" while "+std::string(action)+" at line "+std::to_string(action_line));
-        }
-        else
-        {
-            throw ikaros::exception(std::string(msg)+ " at line "+std::to_string(line)+" position "+std::to_string(character));
-        }
-        // exit(1);
+        throw ikaros::exception(xml_error_message(msg, line, character, action, action_line),
+                                filename_.string());
+    }
+    catch(const ikaros::exception & e)
+    {
+        const int include_line = action_line == 0 ? line : action_line;
+        throw ikaros::exception(e.message() + "\nIncluded from \"" + filename_.string() +
+                                "\" at line " + std::to_string(include_line),
+                                e.path().empty() ? filename_.string() : e.path());
     }
     catch (const std::exception & e)
     {
-        printf("%s: %s at line %d, position %d", filename, e.what(), line, character);
-        if (action_line != 0)
-            printf(" while %s at line %d\n", action, action_line);
-        else
-            printf("\n");
-
-        if (action_line != 0)
-            throw ikaros::exception(std::string(e.what())+ " at line "+std::to_string(line)+" position "+std::to_string(character)+" while "+std::string(action)+" at line "+std::to_string(action_line));
-        else
-            throw ikaros::exception(std::string(e.what())+ " at line "+std::to_string(line)+" position "+std::to_string(character));
+        throw ikaros::exception(xml_error_message(e.what(), line, character, action, action_line),
+                                filename_.string());
     }
 
     f = nullptr;

@@ -96,7 +96,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 7 | P2 | XML parser recursion and element nesting are unbounded. | Addressed | `XML parser recursion and nesting were bounded` |
 | 8 | P3 | Owning XML objects permit unsafe shallow copying. | Addressed | `Owning XML objects rejected shallow copying` |
 | 9 | P3 | `XMLNode::Disconnect()` corrupts sibling or element list invariants. | Addressed | `XML node disconnection preserved list invariants` |
-| 10 | P3 | XML errors print directly and lose filenames or include-chain context. | Not addressed | — |
+| 10 | P3 | XML errors print directly and lose filenames or include-chain context. | Addressed | `XML errors retained file and include context` |
 
 ## Status meanings
 
