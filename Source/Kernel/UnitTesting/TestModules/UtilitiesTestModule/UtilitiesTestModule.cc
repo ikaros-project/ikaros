@@ -38,6 +38,21 @@ namespace
         std::cout.rdbuf(previous);
         return output.str();
     }
+
+
+    bool
+    rejects_empty_delimiter(const std::function<void()> & function)
+    {
+        try
+        {
+            function();
+        }
+        catch(const std::invalid_argument &)
+        {
+            return true;
+        }
+        return false;
+    }
 }
 
 
@@ -143,6 +158,54 @@ public:
                                           1, 1);
                 }) == "   labels = \n      a \n      ...\n\n",
                 "nested attribute printing ignored indentation or limits");
+
+        std::string front = "alpha::beta::gamma";
+        require(head(front, "::") == "alpha" && front == "beta::gamma",
+                "head did not consume the first delimiter");
+        front = "alpha::beta::gamma";
+        require(tail(front, "::") == "beta::gamma" && front == "alpha",
+                "tail did not split at the first delimiter");
+
+        std::string back = "alpha::beta::gamma";
+        require(rhead(back, "::") == "alpha::beta" && back == "gamma",
+                "rhead did not consume through the last delimiter");
+        back = "alpha::beta::gamma";
+        require(rtail(back, "::") == "gamma" && back == "alpha::beta",
+                "rtail did not split at the last delimiter");
+
+        const std::string unchanged = "alpha::beta::gamma";
+        require(peek_head(unchanged, "::") == "alpha" &&
+                peek_tail(unchanged, "::") == "beta::gamma" &&
+                peek_tail(unchanged, "::", true) == "::beta::gamma" &&
+                peek_rhead(unchanged, "::") == "alpha::beta" &&
+                peek_rtail(unchanged, "::") == "gamma",
+                "non-mutating delimiter helpers returned incorrect segments");
+
+        require(rejects_empty_delimiter([]()
+                {
+                    std::string value = "value";
+                    static_cast<void>(head(value, ""));
+                }) &&
+                rejects_empty_delimiter([]()
+                {
+                    std::string value = "value";
+                    static_cast<void>(tail(value, ""));
+                }) &&
+                rejects_empty_delimiter([]()
+                {
+                    std::string value = "value";
+                    static_cast<void>(rhead(value, ""));
+                }) &&
+                rejects_empty_delimiter([]()
+                {
+                    std::string value = "value";
+                    static_cast<void>(rtail(value, ""));
+                }) &&
+                rejects_empty_delimiter([]() { static_cast<void>(peek_head("value", "")); }) &&
+                rejects_empty_delimiter([]() { static_cast<void>(peek_tail("value", "")); }) &&
+                rejects_empty_delimiter([]() { static_cast<void>(peek_rhead("value", "")); }) &&
+                rejects_empty_delimiter([]() { static_cast<void>(peek_rtail("value", "")); }),
+                "delimiter helpers did not reject empty delimiters consistently");
 
         std::cout << "UTILITIES TEST OK\n";
     }

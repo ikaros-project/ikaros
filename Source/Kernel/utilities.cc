@@ -27,6 +27,14 @@ checked_truncating_integral_conversion(double value, const std::string & convers
 
     return static_cast<T>(value);
 }
+
+
+void
+validate_delimiter(const std::string & delimiter)
+{
+    if(delimiter.empty())
+        throw std::invalid_argument("String delimiter must not be empty.");
+}
 }
 
 std::string trim(const std::string &s)
@@ -174,7 +182,8 @@ join(const std::string & separator, const std::vector<std::string> & v, bool rev
 std::string
 head(std::string & s, const std::string & delimiter)
 {
-    int end = s.find(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.find(delimiter);
     if(end == std::string::npos)
     {
         std::string h = s;
@@ -198,7 +207,8 @@ cut_head(std::string & s, const std::string & delimiter)
 std::string
 rhead(std::string & s, const std::string & delimiter)
 {
-    int end = s.rfind(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.rfind(delimiter);
     if(end == std::string::npos)
     {
         std::string h = s;
@@ -218,7 +228,8 @@ rhead(std::string & s, const std::string & delimiter)
 std::string
 tail(std::string & s, const std::string & delimiter)
 {
-    int end = s.find(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.find(delimiter);
     if(end == std::string::npos)
         return "";
 
@@ -232,7 +243,8 @@ tail(std::string & s, const std::string & delimiter)
 std::string
 rtail(std::string & s, const std::string & delimiter)
 {
-    int end = s.rfind(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.rfind(delimiter);
     if(end == std::string::npos)
         return "";
 
@@ -250,7 +262,8 @@ rtail(std::string & s, const std::string & delimiter)
 std::string
 peek_head(const std::string & s, const std::string & delimiter)
 {
-    int end = s.find(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.find(delimiter);
     if(end == std::string::npos)
     {
         std::string h = s;
@@ -265,7 +278,8 @@ peek_head(const std::string & s, const std::string & delimiter)
 std::string
 peek_rhead(const std::string & s, const std::string & delimiter)
 {
-    int end = s.rfind(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.rfind(delimiter);
     if(end == std::string::npos)
     {
         std::string h = s;
@@ -283,7 +297,8 @@ peek_rhead(const std::string & s, const std::string & delimiter)
 std::string
 peek_tail(const std::string & s, const std::string & delimiter, bool keep_delimiter)
 {
-    int end = s.find(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.find(delimiter);
     if(end == std::string::npos)
         return "";
 
@@ -300,7 +315,8 @@ peek_tail(const std::string & s, const std::string & delimiter, bool keep_delimi
 std::string
 peek_rtail(const std::string & s, const std::string & delimiter)
 {
-    int end = s.rfind(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.rfind(delimiter);
     if(end == std::string::npos)
         return "";
 
