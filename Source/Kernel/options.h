@@ -13,6 +13,10 @@
 #include <utility>
 #include <vector>
 
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+
 #include "utilities.h"
 
 namespace ikaros {
@@ -385,6 +389,10 @@ namespace ikaros {
             std::filesystem::path resolved = std::filesystem::canonical(candidate, error);
             if(error || !std::filesystem::is_regular_file(resolved, error) || error)
                 return {};
+#if !defined(_WIN32)
+            if(::access(resolved.c_str(), X_OK) != 0)
+                return {};
+#endif
             return resolved;
         }
 

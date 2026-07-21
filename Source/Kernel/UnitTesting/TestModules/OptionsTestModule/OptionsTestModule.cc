@@ -201,6 +201,41 @@ class OptionsTestModule : public Module
                     "bare executable name resolved the wrong Ikaros root through PATH");
         }
 
+#if !defined(_WIN32)
+        const std::filesystem::path non_executable =
+            files.write("non-executable/ikaros", "not executable");
+        std::filesystem::permissions(non_executable,
+                                     std::filesystem::perms::owner_exec |
+                                     std::filesystem::perms::group_exec |
+                                     std::filesystem::perms::others_exec,
+                                     std::filesystem::perm_options::remove);
+
+        bool non_executable_direct_path_rejected = false;
+        try
+        {
+            options direct_non_executable = configured_options();
+            parse(direct_non_executable, {non_executable.string()});
+        }
+        catch(const std::exception & e)
+        {
+            non_executable_direct_path_rejected =
+                std::string(e.what()).find("Could not resolve the Ikaros executable path") !=
+                std::string::npos;
+        }
+        require(non_executable_direct_path_rejected,
+                "non-executable direct path was accepted as the executable");
+
+        {
+            const std::string search_path = non_executable.parent_path().string() + ":" +
+                                            executable.parent_path().string();
+            ScopedPath path(search_path);
+            options after_non_executable = configured_options();
+            parse(after_non_executable, {executable.filename().string()});
+            require(after_non_executable.ikaros_root == std::filesystem::canonical(root).string(),
+                    "PATH lookup did not skip a non-executable file");
+        }
+#endif
+
         options help = configured_options();
         parse(help, {executable.string(), "-aSECRET", "-w9000", "-h"});
         std::ostringstream help_output;
