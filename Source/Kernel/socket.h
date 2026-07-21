@@ -3,15 +3,12 @@
 #pragma once
 
 #include <sys/types.h>
-#include <netinet/in.h>
 
 #include <string>
 #include <atomic>
 #include <filesystem>
 #include <chrono>
 #include <queue>
-#include <mutex>
-#include <condition_variable>
 #include <map>
 
 #include "dictionary.h"
@@ -58,17 +55,7 @@ class ServerSocket
 			std::string			body;
 			bool				close_after_response = true;
 			int					connection_id = 0;
-			long long			parse_duration_us = 0;
 		};
-
-		struct ConnectionState
-		{
-			int					fd = -1;
-			std::string			input_buffer;
-				std::string			output_buffer;
-				std::chrono::steady_clock::time_point last_activity = std::chrono::steady_clock::now();
-				bool				awaiting_more_input = false;
-			};
 
 		explicit ServerSocket(int port=PORTNO, const std::string & bind_address="");		// Create server socket on port
 		ServerSocket(const ServerSocket &) = delete;
@@ -77,33 +64,32 @@ class ServerSocket
 		ServerSocket & operator=(ServerSocket &&) = delete;
 		~ServerSocket();
 		
-		ikaros::dictionary	header;									// The current HTTP request header
-		bool				GetRequest(bool block=false);           // Check for request and read if available
 		bool				QueueRequest(bool block=false);
-		bool				PopRequest(QueuedRequest & request, bool block=true);
-		void				ActivateRequest(const QueuedRequest & request);
+		bool				PopRequest(QueuedRequest & request);
+		void				ActivateRequest(QueuedRequest request);
 		bool				FinishActiveRequest();
+		const ikaros::dictionary & RequestHeader() const;
+		const std::string & RequestBody() const;
 		
-		bool				SendHTTPHeader(ikaros::dictionary & d, const char * response=nullptr);
+		bool				SendHTTPHeader(ikaros::dictionary d, const char * response=nullptr);
 		bool				Append(const char * format, ...); // Maximum 1023 characters
 		bool				Append(const std::string & data);
 		bool				Flush();
 		bool				SendData(const char * buffer, long size);
-		bool				Send(const char * format, ...); // Compatibility wrapper around Append
-		bool				Send(const std::string & data); // Compatibility wrapper around Append
 		bool				SendFile(const std::filesystem::path & filename); // FIXME: add header automatically based on file type
-		bool				SendFile(const std::filesystem::path & filename, ikaros::dictionary & header);
-		bool				SendBuffer();
 		void				StopListening();
 
 		bool				Close();								// Close reply socket
-		
-		int					Port();									// Get port no
-		const char *		Host();									// Get host name
-		
-		int					errcode;								// Last error
-		std::string 		body;									// Body of PUT request
 		private:
+			struct ConnectionState
+			{
+				int					fd = -1;
+				std::string			input_buffer;
+				std::string			output_buffer;
+				std::chrono::steady_clock::time_point last_activity = std::chrono::steady_clock::now();
+				bool				awaiting_more_input = false;
+			};
+
 			enum class RequestReadResult
 		{
 			complete,
@@ -118,23 +104,19 @@ class ServerSocket
 			http_version_unsupported,
 		};
 
-		int				portno;
 		int 			sockfd = -1;				// Listen on sock_fd,
 		int				wakeup_read_fd = -1;
 		int				wakeup_write_fd = -1;
 		std::atomic<bool>	stop_requested{false};
 		std::map<int, ConnectionState> connections;
 		std::queue<QueuedRequest> pending_requests;
-		std::mutex		pending_requests_mutex;
-		std::condition_variable pending_requests_cv;
 		int				next_connection_id = 1;
 		int				current_read_connection_id = 0;
 		int				active_connection_id = 0;
 		bool			active_close_after_response = true;
-		int				block_flags;				// Original flags for blocking I/O
-		struct sockaddr_in	my_addr; 					// My address information
-		struct sockaddr_in	their_addr;					// Connector's address information
-		bool				Poll(bool block=false);                 // Accept a new connection if available
+		ikaros::dictionary active_header;
+		std::string		active_body;
+		bool				Poll();                                 // Accept a new connection if available
 		bool				WaitForReadyConnection(bool block, int & connection_id);
 		void				CloseIdleConnections();
 		bool				CloseConnection(int connection_id);
@@ -143,4 +125,5 @@ class ServerSocket
 		ConnectionState *	ConnectionFor(int connection_id);
 		RequestReadResult	ReadCurrentRequest(QueuedRequest & request);
 		ssize_t				Read(char * buffer, size_t max_size);
+		bool				SendFile(const std::filesystem::path & filename, ikaros::dictionary header);
 		};

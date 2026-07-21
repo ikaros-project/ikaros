@@ -4780,10 +4780,11 @@ bool operator==(Request & r, const std::string s)
     {
         if(!auth_enabled_)
             return true;
-        if(socket == nullptr || !socket->header.contains_non_null("cookie"))
+        if(socket == nullptr || !socket->RequestHeader().contains_non_null("cookie"))
             return false;
 
-        std::string cookie_value = extract_cookie_value(std::string(socket->header["cookie"]), "ikaros_session");
+        std::string cookie_value = extract_cookie_value(
+            std::string(socket->RequestHeader()["cookie"]), "ikaros_session");
         if(cookie_value.empty())
             return false;
 
@@ -9065,21 +9066,23 @@ bool operator==(Request & r, const std::string s)
     Kernel::HandleHTTPRequest()
     {
         long sid = 0;
-        if(socket->header.contains_non_null("session-id"))
-            sid = atol(std::string(socket->header["session-id"]).c_str());
+        const dictionary & request_header = socket->RequestHeader();
+        if(request_header.contains_non_null("session-id"))
+            sid = atol(std::string(request_header["session-id"]).c_str());
 
         long cid = 0;
-        if(socket->header.contains_non_null("client-id"))
-            cid = atol(std::string(socket->header["client-id"]).c_str());
+        if(request_header.contains_non_null("client-id"))
+            cid = atol(std::string(request_header["client-id"]).c_str());
 
         std::string content_type;
-        if(socket->header.contains_non_null("content-type"))
-            content_type = std::string(socket->header["content-type"]);
+        if(request_header.contains_non_null("content-type"))
+            content_type = std::string(request_header["content-type"]);
 
         std::optional<Request> parsed_request;
         try
         {
-            parsed_request.emplace(std::string(socket->header["uri"]), sid, socket->body, content_type, cid);
+            parsed_request.emplace(std::string(request_header["uri"]), sid,
+                                   socket->RequestBody(), content_type, cid);
         }
         catch(const std::exception & e)
         {
@@ -9247,12 +9250,12 @@ Kernel::CalculateCPUUsage() // Fraction of total CPU capacity
                 if(socket != nullptr && socket->QueueRequest(true))
                 {
                     ServerSocket::QueuedRequest queued_request;
-                    if(!socket->PopRequest(queued_request, false))
+                    if(!socket->PopRequest(queued_request))
                         continue;
 
-                    socket->ActivateRequest(queued_request);
                     std::string method = queued_request.header.contains_non_null("method") ? std::string(queued_request.header["method"]) : "";
                     std::string uri = queued_request.header.contains_non_null("uri") ? std::string(queued_request.header["uri"]) : "";
+                    socket->ActivateRequest(std::move(queued_request));
                     bool is_update_request = uri.find("/update") != std::string::npos;
                     bool waits_before_locking =
                         request_path_matches_command(uri, "quit") ||
@@ -9267,17 +9270,16 @@ Kernel::CalculateCPUUsage() // Fraction of total CPU capacity
                     else
                     {
                         std::lock_guard<std::recursive_mutex> lock(kernelLock); // Lock the mutex to ensure thread safety
-                        if(socket->header.contains_non_null("method") && std::string(socket->header["method"]) == "GET")
+                        const dictionary & request_header = socket->RequestHeader();
+                        if(request_header.contains_non_null("method") && std::string(request_header["method"]) == "GET")
                         {
                             HandleHTTPRequest();
                         }
-                        else if(socket->header.contains_non_null("method") && std::string(socket->header["method"]) == "PUT") // JSON Data
+                        else if(request_header.contains_non_null("method") && std::string(request_header["method"]) == "PUT") // JSON Data
                         {
                             HandleHTTPRequest();
                         }
-                        auto flush_start = steady_clock::now();
                         socket->Flush();
-                        auto finish_start = steady_clock::now();
                         socket->FinishActiveRequest();
                         continue;
                     }

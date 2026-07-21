@@ -42,7 +42,14 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 10 | P2 | Client `Socket` reuse, failed connection attempts, and short writes can corrupt descriptor ownership or truncate requests. | Addressed | `Client socket ownership was made reliable` |
 | 11 | P2 | Unbounded connections can pass descriptors outside the valid `select()` `fd_set` range. | Addressed | `Select descriptor limits were enforced` |
 | 12 | P3 | `ServerSocket` construction and temporary listener flag changes are not exception-safe. | Addressed | `Server socket construction became exception-safe` |
-| 13 | P3 | The socket API exposes fragile state and obsolete declarations, while an unused experimental server remains in the tree. | Not addressed | — |
+| 13 | P3 | The socket API exposes fragile state and obsolete declarations, while an unused experimental server remains in the tree. | Addressed | `Socket server state was encapsulated` |
+
+### Socket and server verification
+
+- The Debug build completed successfully.
+- Ten focused socket and HTTP server tests passed as part of the kernel suite.
+- The complete kernel suite passed all 173 tests.
+- The split-request and HTTP-thread shutdown path passed under Homebrew Clang ThreadSanitizer.
 
 ## Component, group, module, and class review
 

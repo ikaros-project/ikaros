@@ -6,7 +6,6 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netdb.h>
-#include <signal.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -20,6 +19,7 @@
 #include <string_view>
 #include <sstream>
 #include <thread>
+#include <utility>
 #include <vector>
 
 
@@ -411,7 +411,6 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
     if(port < 0 || port > 65535)
         throw std::invalid_argument("Server port must be between 0 and 65535");
 
-    portno = port;
     int yes = 1;
 
     FileDescriptorGuard listener(socket(AF_INET, SOCK_STREAM, 0));
@@ -428,8 +427,7 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
                                 "Failed to make server listener nonblocking");
 
     // Set address properties
-    my_addr = {};
-    their_addr = {};
+    sockaddr_in my_addr{};
     my_addr.sin_family = AF_INET;                     // host byte order
     my_addr.sin_port = htons(port);                   // short, network byte order
     my_addr.sin_addr.s_addr = htonl(INADDR_ANY);      // automatically fill with my IP
@@ -469,9 +467,6 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
     if(wakeup_read_fd >= FD_SETSIZE || wakeup_write_fd >= FD_SETSIZE)
         throw std::runtime_error("Server wake-up descriptor exceeds select() capacity");
 
-    // Ignore SIGPIPE so the program does not exit unexpectedly
-    signal(SIGPIPE, SIG_IGN);
-
     listener.release();
     wakeup_reader.release();
     wakeup_writer.release();
@@ -488,13 +483,15 @@ ServerSocket::~ServerSocket()
 
 
 bool
-ServerSocket::Poll(bool)
+ServerSocket::Poll()
 {
     if(stop_requested.load(std::memory_order_acquire))
         return false;
 
-    int sin_size = sizeof(struct sockaddr_in);
-    int accepted_fd = accept(sockfd, (struct sockaddr *)&(their_addr), (socklen_t*) &sin_size);
+    sockaddr_in peer_address{};
+    socklen_t peer_address_size = sizeof(peer_address);
+    int accepted_fd = accept(sockfd, reinterpret_cast<sockaddr *>(&peer_address),
+                             &peer_address_size);
     if(accepted_fd == -1)
     {
         if(errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)
@@ -579,22 +576,6 @@ strip(char * s)
 
 
 bool
-ServerSocket::GetRequest(bool block)
-{
-    QueuedRequest queued_request;
-    if(!QueueRequest(block))
-        return false;
-
-    if(!PopRequest(queued_request, false))
-        return false;
-
-    ActivateRequest(queued_request);
-    return true;
-}
-
-
-
-bool
 ServerSocket::QueueRequest(bool block)
 {
     QueuedRequest queued_request;
@@ -606,7 +587,6 @@ ServerSocket::QueueRequest(bool block)
 
         current_read_connection_id = connection_id;
         RequestReadResult read_result = RequestReadResult::incomplete;
-        auto parse_start = std::chrono::steady_clock::now();
         try
         {
             read_result = ReadCurrentRequest(queued_request);
@@ -616,8 +596,6 @@ ServerSocket::QueueRequest(bool block)
             current_read_connection_id = 0;
             throw;
         }
-        queued_request.parse_duration_us = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::steady_clock::now() - parse_start).count();
         current_read_connection_id = 0;
 
         if(read_result != RequestReadResult::complete)
@@ -636,11 +614,7 @@ ServerSocket::QueueRequest(bool block)
             continue;
         }
 
-        {
-            std::lock_guard<std::mutex> lock(pending_requests_mutex);
-            pending_requests.push(std::move(queued_request));
-        }
-        pending_requests_cv.notify_one();
+        pending_requests.push(std::move(queued_request));
 
         return true;
     }
@@ -649,13 +623,9 @@ ServerSocket::QueueRequest(bool block)
 
 
 bool
-ServerSocket::PopRequest(QueuedRequest & queued_request, bool block)
+ServerSocket::PopRequest(QueuedRequest & queued_request)
 {
-    std::unique_lock<std::mutex> lock(pending_requests_mutex);
-
-    if(block)
-        pending_requests_cv.wait(lock, [this] { return !pending_requests.empty(); });
-    else if(pending_requests.empty())
+    if(pending_requests.empty())
         return false;
 
     queued_request = std::move(pending_requests.front());
@@ -666,10 +636,10 @@ ServerSocket::PopRequest(QueuedRequest & queued_request, bool block)
 
 
 void
-ServerSocket::ActivateRequest(const QueuedRequest & queued_request)
+ServerSocket::ActivateRequest(QueuedRequest queued_request)
 {
-    header = queued_request.header;
-    body = queued_request.body;
+    active_header = std::move(queued_request.header);
+    active_body = std::move(queued_request.body);
     active_connection_id = queued_request.connection_id;
     active_close_after_response = queued_request.close_after_response;
 }
@@ -680,9 +650,12 @@ bool
 ServerSocket::FinishActiveRequest()
 {
     int connection_id = active_connection_id;
+    bool close_after_response = active_close_after_response;
     active_connection_id = 0;
+    active_header = dictionary();
+    active_body.clear();
 
-    if(active_close_after_response)
+    if(close_after_response)
         return CloseConnection(connection_id);
 
     return true;
@@ -693,7 +666,6 @@ ServerSocket::FinishActiveRequest()
 ServerSocket::RequestReadResult
 ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
 {
-    body.clear();
     ConnectionState * connection = ConnectionFor(current_read_connection_id);
     if(connection == nullptr)
         return RequestReadResult::closed;
@@ -837,7 +809,7 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
 
 
 bool
-ServerSocket::SendHTTPHeader(dictionary & d, const char * response) // Content length from where?
+ServerSocket::SendHTTPHeader(dictionary d, const char * response) // Content length from where?
 {
     bool can_keep_alive = active_close_after_response == false &&
         (d.contains_non_null("Content-Length") || d.contains_non_null("Transfer-Encoding"));
@@ -978,36 +950,6 @@ ServerSocket::Flush()
 
 
 bool
-ServerSocket::Send(const std::string & data)
-{
-    return Append(data);
-}
-
-
-
-bool
-ServerSocket::Send(const char * format, ...)
-{
-    if(ConnectionFor(active_connection_id) == nullptr)
-        return false;	// Connection closed - ignore send
-
-    char buffer[1024];
-    va_list 	args;
-    va_start(args, format);
-
-    if(vsnprintf(buffer, 1024, format, args) == -1)
-    {
-        va_end(args);
-        return false;
-    }
-    va_end(args);
-
-    return Append(buffer);
-}
-
-
-
-bool
 ServerSocket::SendFile(const std::filesystem::path & filename)
 {
     dictionary header;
@@ -1017,7 +959,7 @@ ServerSocket::SendFile(const std::filesystem::path & filename)
 
 
 bool
-ServerSocket::SendFile(const std::filesystem::path & filename, dictionary & hdr)
+ServerSocket::SendFile(const std::filesystem::path & filename, dictionary hdr)
 {
     if(filename.empty()) return false;
 
@@ -1224,7 +1166,7 @@ ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
 
         if(FD_ISSET(sockfd, &readfds))
         {
-            Poll(false);
+            Poll();
             if(--ready <= 0)
             {
                 if(!block)
@@ -1349,18 +1291,18 @@ ServerSocket::CloseConnection(int connection_id)
     if(it == connections.end())
         return true;
 
-    if(close(it->second.fd) == -1)
-    {
-        errcode = errno;
-        return false;
-    }
+    bool closed = close(it->second.fd) == 0;
 
     connections.erase(it);
     if(active_connection_id == connection_id)
+    {
         active_connection_id = 0;
+        active_header = dictionary();
+        active_body.clear();
+    }
     if(current_read_connection_id == connection_id)
         current_read_connection_id = 0;
-    return true;
+    return closed;
 }
 
 
@@ -1376,20 +1318,16 @@ ServerSocket::ConnectionFor(int connection_id)
 
 
 
-int
-ServerSocket::Port()
+const dictionary &
+ServerSocket::RequestHeader() const
 {
-    return portno;
+    return active_header;
 }
 
 
 
-const char *
-ServerSocket::Host()
+const std::string &
+ServerSocket::RequestBody() const
 {
-    static char hostname[256];
-    if(gethostname(hostname, 256) == 0)	// everything ok
-        return hostname;
-    else
-        return "unknown-host";
+    return active_body;
 }
