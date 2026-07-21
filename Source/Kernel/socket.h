@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 
 #include <string>
+#include <atomic>
 #include <filesystem>
 #include <chrono>
 #include <queue>
@@ -103,6 +104,9 @@ class ServerSocket
 		private:
 		int				portno;
 		int 			sockfd = -1;				// Listen on sock_fd,
+		int				wakeup_read_fd = -1;
+		int				wakeup_write_fd = -1;
+		std::atomic<bool>	stop_requested{false};
 		std::map<int, ConnectionState> connections;
 		std::queue<QueuedRequest> pending_requests;
 		std::mutex		pending_requests_mutex;
@@ -118,6 +122,7 @@ class ServerSocket
 		bool				WaitForReadyConnection(bool block, int & connection_id);
 		void				CloseIdleConnections();
 		bool				CloseConnection(int connection_id);
+		void				CloseSockets();
 		ConnectionState *	ConnectionFor(int connection_id);
 		bool				ReadCurrentRequest(QueuedRequest & request);
 		size_t				Read(char * buffer, int maxSize, bool fill=false);	// Read, fill means fill with maxSize, return read size

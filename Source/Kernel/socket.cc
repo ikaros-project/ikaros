@@ -250,6 +250,17 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
     if(listen(sockfd, BACKLOG) == -1)
         throw std::system_error(errno, std::system_category(), "Failed to listen on socket");
 
+    int wakeup_pipe[2];
+    if(pipe(wakeup_pipe) == -1)
+    {
+        int error = errno;
+        close(sockfd);
+        sockfd = -1;
+        throw std::system_error(error, std::system_category(), "Failed to create server wake-up pipe");
+    }
+    wakeup_read_fd = wakeup_pipe[0];
+    wakeup_write_fd = wakeup_pipe[1];
+
     // Ignore SIGPIPE so the program does not exit unexpectedly
     signal(SIGPIPE, SIG_IGN);
 }
@@ -259,7 +270,7 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
 ServerSocket::~ServerSocket()
 {
     StopListening();
-    Close();
+    CloseSockets();
 }
 
 
@@ -267,6 +278,9 @@ ServerSocket::~ServerSocket()
 bool
 ServerSocket::Poll(bool block)
 {
+    if(stop_requested.load(std::memory_order_acquire))
+        return false;
+
     int sin_size = sizeof(struct sockaddr_in);
     if(!block)
         fcntl(sockfd, F_SETFL, O_NONBLOCK);				// temporariliy make the socket non-blocking
@@ -887,19 +901,15 @@ ServerSocket::Close()
 void
 ServerSocket::StopListening()
 {
-    for(auto & [connection_id, connection] : connections)
-    {
-        if(connection.fd != -1)
-            close(connection.fd);
-    }
-    connections.clear();
-
-    if(sockfd == -1)
+    if(stop_requested.exchange(true, std::memory_order_acq_rel))
         return;
 
-    shutdown(sockfd, SHUT_RDWR);
-    close(sockfd);
-    sockfd = -1;
+    if(wakeup_write_fd == -1)
+        return;
+
+    const char wakeup = 1;
+    while(write(wakeup_write_fd, &wakeup, sizeof(wakeup)) == -1 && errno == EINTR)
+        ;
 }
 
 
@@ -911,12 +921,21 @@ ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
 
     while(true)
     {
+        if(stop_requested.load(std::memory_order_acquire))
+            return false;
+
         CloseIdleConnections();
 
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(sockfd, &readfds);
         int max_fd = sockfd;
+
+        if(wakeup_read_fd != -1)
+        {
+            FD_SET(wakeup_read_fd, &readfds);
+            max_fd = std::max(max_fd, wakeup_read_fd);
+        }
 
         for(const auto & [id, connection] : connections)
         {
@@ -946,6 +965,17 @@ ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
         if(ready == 0)
             return false;
 
+        if(wakeup_read_fd != -1 && FD_ISSET(wakeup_read_fd, &readfds))
+        {
+            char wakeup;
+            while(read(wakeup_read_fd, &wakeup, sizeof(wakeup)) == -1 && errno == EINTR)
+                ;
+            return false;
+        }
+
+        if(stop_requested.load(std::memory_order_acquire))
+            return false;
+
         if(FD_ISSET(sockfd, &readfds))
         {
             Poll(false);
@@ -965,6 +995,37 @@ ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
                 return true;
             }
         }
+    }
+}
+
+
+
+void
+ServerSocket::CloseSockets()
+{
+    for(auto & [connection_id, connection] : connections)
+    {
+        if(connection.fd != -1)
+            close(connection.fd);
+    }
+    connections.clear();
+
+    if(sockfd != -1)
+    {
+        close(sockfd);
+        sockfd = -1;
+    }
+
+    if(wakeup_read_fd != -1)
+    {
+        close(wakeup_read_fd);
+        wakeup_read_fd = -1;
+    }
+
+    if(wakeup_write_fd != -1)
+    {
+        close(wakeup_write_fd);
+        wakeup_write_fd = -1;
     }
 }
 
