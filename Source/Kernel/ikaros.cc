@@ -308,8 +308,15 @@ namespace ikaros
             tick_count result = 0;
             const char * begin = text.data();
             const char * end = begin + text.size();
+            bool valid_sign = true;
+            if(begin != end && *begin == '+')
+            {
+                ++begin;
+                valid_sign = begin != end && *begin != '+' && *begin != '-';
+            }
             const auto conversion = std::from_chars(begin, end, result);
-            if(text.empty() || conversion.ec != std::errc() || conversion.ptr != end || result < -1)
+            if(text.empty() || !valid_sign || conversion.ec != std::errc() ||
+               conversion.ptr != end || result < -1)
                 throw setup_failed("Invalid stop tick \"" + value +
                                    "\". Expected -1 or a non-negative integer.");
             return result;
@@ -5494,8 +5501,15 @@ bool operator==(Request & r, const std::string s)
             int requested_threads = 0;
             const char * begin = trimmed_thread_pool_value.data();
             const char * end = begin + trimmed_thread_pool_value.size();
+            bool valid_sign = true;
+            if(begin != end && *begin == '+')
+            {
+                ++begin;
+                valid_sign = begin != end && *begin != '+' && *begin != '-';
+            }
             const auto result = std::from_chars(begin, end, requested_threads);
-            if(trimmed_thread_pool_value.empty() || result.ec != std::errc() || result.ptr != end)
+            if(trimmed_thread_pool_value.empty() || !valid_sign ||
+               result.ec != std::errc() || result.ptr != end)
                 throw setup_failed("Invalid thread pool size \"" + thread_pool_value + "\". Expected a positive integer.");
 
             if(requested_threads < 1)

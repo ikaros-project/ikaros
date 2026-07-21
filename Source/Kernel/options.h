@@ -263,8 +263,14 @@ namespace ikaros {
             long result = 0;
             const char * begin = text.data();
             const char * end = begin + text.size();
+            bool valid_sign = true;
+            if(begin != end && *begin == '+')
+            {
+                ++begin;
+                valid_sign = begin != end && *begin != '+' && *begin != '-';
+            }
             const auto conversion = std::from_chars(begin, end, result);
-            if(text.empty() || conversion.ec != std::errc() || conversion.ptr != end)
+            if(text.empty() || !valid_sign || conversion.ec != std::errc() || conversion.ptr != end)
                 throw std::invalid_argument("Invalid integer value \"" + value->second +
                                             "\" for option \"" + o + "\"");
             return result;

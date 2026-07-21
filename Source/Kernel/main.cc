@@ -19,8 +19,14 @@ namespace
         long result = 0;
         const char * begin = text.data();
         const char * end = begin + text.size();
+        bool valid_sign = true;
+        if(begin != end && *begin == '+')
+        {
+            ++begin;
+            valid_sign = begin != end && *begin != '+' && *begin != '-';
+        }
         const auto conversion = std::from_chars(begin, end, result);
-        if(text.empty() || conversion.ec != std::errc() || conversion.ptr != end ||
+        if(text.empty() || !valid_sign || conversion.ec != std::errc() || conversion.ptr != end ||
            result < 0 || result > 65535)
             throw std::invalid_argument("Invalid WebUI port \"" + value +
                                         "\". Expected an integer between 0 and 65535.");

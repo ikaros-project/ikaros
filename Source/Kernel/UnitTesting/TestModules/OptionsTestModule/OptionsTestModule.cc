@@ -379,6 +379,24 @@ class OptionsTestModule : public Module
         require(valid_integer.get_long("webui_port") == 9000,
                 "valid integer option was not parsed completely");
 
+        options leading_plus_integer = configured_options();
+        parse(leading_plus_integer, {executable.string(), "-w", "+9000"});
+        require(leading_plus_integer.get_long("webui_port") == 9000,
+                "integer option with a leading plus was rejected");
+
+        bool doubled_sign_rejected = false;
+        try
+        {
+            options doubled_sign = configured_options();
+            parse(doubled_sign, {executable.string(), "-w", "+-9000"});
+            doubled_sign.get_long("webui_port");
+        }
+        catch(const std::invalid_argument &)
+        {
+            doubled_sign_rejected = true;
+        }
+        require(doubled_sign_rejected, "integer option with two signs was accepted");
+
         bool trailing_integer_text_rejected = false;
         try
         {
