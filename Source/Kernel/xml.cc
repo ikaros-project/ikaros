@@ -35,6 +35,19 @@ destroy_string(char * c)
 }
 
 
+static bool
+is_xml_whitespace(const char * text)
+{
+    if(text == nullptr)
+        return true;
+
+    for(const char * c = text; *c != 0; ++c)
+        if(*c != ' ' && *c != '\t' && *c != '\n' && *c != '\r')
+            return false;
+    return true;
+}
+
+
 static std::string
 decode_xml_entities(const char * text)
 {
@@ -542,17 +555,27 @@ XMLDocument::XMLDocument(const char * filename, bool included, const std::vector
 			if (parsed == nullptr)
 				throw "File is empty";
         parsed->SetPrev(nullptr);
-        
-        // Find root
 
-        XMLNode * xml_node = parsed.get();
-        while(!xml_node->IsElement())
+        XMLElement * root = nullptr;
+        for(XMLNode * node = parsed.get(); node != nullptr; node = node->next)
         {
-            if(xml_node->next == nullptr)
-                throw "XML contains no root element";
-            xml_node = xml_node->next;
+            if(node->IsElement())
+            {
+                if(root != nullptr && !included)
+                    throw "XML document contains more than one root element";
+                if(root == nullptr)
+                    root = static_cast<XMLElement *>(node);
+                continue;
+            }
+
+            XMLCharacterData * character_data = dynamic_cast<XMLCharacterData *>(node);
+            if(!included && character_data != nullptr &&
+               (character_data->cdata || !is_xml_whitespace(character_data->data)))
+                throw "Non-whitespace content is not allowed outside the root element";
         }
-        XMLElement * root = static_cast<XMLElement *>(xml_node);
+
+        if(root == nullptr)
+            throw "XML contains no root element";
 
         // Disconnect prolog before root element
         

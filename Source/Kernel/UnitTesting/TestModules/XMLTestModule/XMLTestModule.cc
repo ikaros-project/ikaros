@@ -100,6 +100,18 @@ class XMLTestModule : public Module
         require(parsed_include["childs"][0]["value"].as_string() == "included",
                 "included document was not transferred into the parent tree");
 
+        const std::filesystem::path decorated = files.write(
+            "decorated.xml", "<?setup value=\"yes\"?>\n<root/>\n<!-- done -->\n");
+        XMLDocument decorated_document(decorated.string().c_str());
+        require(decorated_document.xml->IsElement("root"),
+                "valid top-level comments or processing instructions were rejected");
+        require_parse_failure(files.write("multiple-roots.xml", "<first/><second/>"),
+                              "document with multiple roots was accepted");
+        require_parse_failure(files.write("leading-content.xml", "text<root/>"),
+                              "non-whitespace content before the root was accepted");
+        require_parse_failure(files.write("trailing-content.xml", "<root/>text"),
+                              "non-whitespace content after the root was accepted");
+
         const std::filesystem::path recursive = files.write(
             "recursive.xml", "<root><?include file=\"recursive.xml\"?></root>");
         require_parse_failure(recursive, "recursive standalone include was accepted");
