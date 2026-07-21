@@ -11,8 +11,12 @@
 #include <unistd.h>
 #include <errno.h>
 #include <algorithm> // For std::min
+#include <future>
+#include <memory>
+#include <optional>
 #include <string_view>
 #include <sstream>
+#include <thread>
 #include <vector>
 
 
@@ -25,6 +29,108 @@ namespace
     constexpr int MAX_HTTP_HEADER_SIZE = 64 * 1024;
     constexpr size_t MAX_HTTP_BODY_SIZE = 10 * 1024 * 1024;
     constexpr auto KEEP_ALIVE_IDLE_TIMEOUT = std::chrono::seconds(10);
+
+    struct AddressInfoDeleter
+    {
+        void operator()(addrinfo * addresses) const
+        {
+            if(addresses != nullptr)
+                freeaddrinfo(addresses);
+        }
+    };
+
+    using AddressInfoPtr = std::unique_ptr<addrinfo, AddressInfoDeleter>;
+
+    struct ResolutionResult
+    {
+        int status;
+        AddressInfoPtr addresses;
+    };
+
+    std::optional<ResolutionResult>
+    resolve_with_timeout(const std::string & hostname, int port,
+                         std::chrono::milliseconds timeout)
+    {
+        std::packaged_task<ResolutionResult()> resolver([hostname, port]()
+        {
+            addrinfo hints{};
+            hints.ai_family = AF_INET;
+            hints.ai_socktype = SOCK_STREAM;
+
+            addrinfo * addresses = nullptr;
+            int status = getaddrinfo(hostname.c_str(), std::to_string(port).c_str(),
+                                     &hints, &addresses);
+            return ResolutionResult{status, AddressInfoPtr(addresses)};
+        });
+        std::future<ResolutionResult> result = resolver.get_future();
+
+        try
+        {
+            std::thread(std::move(resolver)).detach();
+        }
+        catch(const std::system_error &)
+        {
+            return std::nullopt;
+        }
+
+        if(result.wait_for(timeout) != std::future_status::ready)
+            return std::nullopt;
+
+        try
+        {
+            return result.get();
+        }
+        catch(...)
+        {
+            return std::nullopt;
+        }
+    }
+
+    bool
+    wait_for_socket(int fd, bool read_ready,
+                    std::chrono::steady_clock::time_point deadline)
+    {
+        while(true)
+        {
+            auto remaining = std::chrono::duration_cast<std::chrono::microseconds>(
+                deadline - std::chrono::steady_clock::now());
+            if(remaining <= std::chrono::microseconds::zero())
+                return false;
+
+            timeval timeout{};
+            timeout.tv_sec = static_cast<time_t>(remaining.count() / 1000000);
+            timeout.tv_usec = static_cast<suseconds_t>(remaining.count() % 1000000);
+
+            fd_set read_fds;
+            fd_set write_fds;
+            FD_ZERO(&read_fds);
+            FD_ZERO(&write_fds);
+            if(read_ready)
+                FD_SET(fd, &read_fds);
+            else
+                FD_SET(fd, &write_fds);
+
+            int result = select(fd + 1,
+                                read_ready ? &read_fds : nullptr,
+                                read_ready ? nullptr : &write_fds,
+                                nullptr, &timeout);
+            if(result > 0)
+                return true;
+            if(result == 0)
+                return false;
+            if(errno != EINTR)
+                return false;
+        }
+    }
+
+    bool
+    set_socket_timeout(int fd, int option, std::chrono::milliseconds timeout)
+    {
+        timeval value{};
+        value.tv_sec = static_cast<time_t>(timeout.count() / 1000);
+        value.tv_usec = static_cast<suseconds_t>((timeout.count() % 1000) * 1000);
+        return setsockopt(fd, SOL_SOCKET, option, &value, sizeof(value)) == 0;
+    }
 
     std::string
     to_lower_copy(std::string value)
@@ -39,6 +145,14 @@ namespace
 //	Socket - functions that gets data from a HTTP server
 //
 
+Socket::Socket(std::chrono::milliseconds timeout): timeout_(timeout)
+{
+    if(timeout_ <= std::chrono::milliseconds::zero())
+        throw std::invalid_argument("Socket timeout must be positive");
+}
+
+
+
 Socket::~Socket()
 {
     if(sd != -1) 
@@ -51,40 +165,61 @@ Socket::~Socket()
 bool
 Socket::SendRequest(const char * hostname, int port, const char * request, const long size)
 {
-    struct addrinfo hints, *servinfo, *p;
-    int rv;
-
     sd = -1;
 
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET; // use AF_INET6 to force IPv6
-    hints.ai_socktype = SOCK_STREAM;
-
-    if((rv = getaddrinfo(hostname, std::to_string(port).c_str(), &hints, &servinfo)) != 0)
-        return false; //  gai_strerror(rv));
+    auto resolution = resolve_with_timeout(hostname, port, timeout_);
+    if(!resolution || resolution->status != 0 || !resolution->addresses)
+        return false;
 
     // loop through all the results and connect to the first we can
-    for(p = servinfo; p != nullptr; p = p->ai_next) {
-        if((sd = socket(p->ai_family, p->ai_socktype,
-                p->ai_protocol)) == -1) {
+    addrinfo * connected_address = nullptr;
+    for(addrinfo * address = resolution->addresses.get(); address != nullptr;
+        address = address->ai_next)
+    {
+        sd = socket(address->ai_family, address->ai_socktype, address->ai_protocol);
+        if(sd == -1)
             continue;
-        }
 
-        if(connect(sd, p->ai_addr, p->ai_addrlen) == -1) 
+        int flags = fcntl(sd, F_GETFL, 0);
+        if(flags == -1 || fcntl(sd, F_SETFL, flags | O_NONBLOCK) == -1)
         {
             close(sd);
+            sd = -1;
             continue;
         }
 
-        break; // if we get here, we must have connected successfully
+        int result = connect(sd, address->ai_addr, address->ai_addrlen);
+        if(result == -1 && errno == EINPROGRESS)
+        {
+            auto deadline = std::chrono::steady_clock::now() + timeout_;
+            if(wait_for_socket(sd, false, deadline))
+            {
+                int connect_error = 0;
+                socklen_t connect_error_size = sizeof(connect_error);
+                if(getsockopt(sd, SOL_SOCKET, SO_ERROR, &connect_error,
+                              &connect_error_size) == 0 && connect_error == 0)
+                    result = 0;
+            }
+        }
+
+        if(result == 0 && fcntl(sd, F_SETFL, flags) == 0 &&
+           set_socket_timeout(sd, SO_RCVTIMEO, timeout_) &&
+           set_socket_timeout(sd, SO_SNDTIMEO, timeout_))
+        {
+            connected_address = address;
+            break;
+        }
+
+        close(sd);
+        sd = -1;
     }
 
-    if(p == nullptr) 
-    {
-        freeaddrinfo(servinfo);
+    if(connected_address == nullptr)
         return false;
-    }
-    freeaddrinfo(servinfo); // all done with this structure
+
+    auto write_deadline = std::chrono::steady_clock::now() + timeout_;
+    if(!wait_for_socket(sd, false, write_deadline))
+        return false;
 
     if(size == -1) // default to use size of string
     {
@@ -136,14 +271,22 @@ Socket::ReadData(char * result, ssize_t maxlen, bool fill)
 	
     ssize_t dst=0;
     ssize_t rc = 0;
+    auto deadline = std::chrono::steady_clock::now() + timeout_;
     do
     {
+        if(!wait_for_socket(sd, true, deadline))
+            return -1;
+
         ssize_t read_size = (maxlen-dst < BUFFER_SIZE ? maxlen-dst : BUFFER_SIZE);
         rc = read(sd, buffer, read_size);
 
         // rc = read(sd, buffer, read_size); // Do not read twice; this discards the first chunk.
         if(rc == -1)
+        {
+            if(errno == EINTR)
+                continue;
             return -1;
+        }
     
         if(rc == 0 && fill)
             break; // End of file

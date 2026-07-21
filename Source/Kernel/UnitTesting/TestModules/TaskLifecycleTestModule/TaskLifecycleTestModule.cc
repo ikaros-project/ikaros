@@ -1,3 +1,7 @@
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
 #include <atomic>
 #include <chrono>
 #include <limits>
@@ -258,3 +262,79 @@ class ThreadPoolAPITestModule : public Module
 };
 
 INSTALL_CLASS(ThreadPoolAPITestModule)
+
+
+class SocketDeadlineTestModule : public Module
+{
+    void Init() override
+    {
+        int listener = ::socket(AF_INET, SOCK_STREAM, 0);
+        if(listener == -1)
+            throw std::system_error(errno, std::system_category(), "Could not create deadline test listener");
+
+        sockaddr_in address{};
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        address.sin_port = 0;
+        if(bind(listener, reinterpret_cast<sockaddr *>(&address), sizeof(address)) == -1 ||
+           listen(listener, 1) == -1)
+        {
+            int error = errno;
+            close(listener);
+            throw std::system_error(error, std::system_category(), "Could not start deadline test listener");
+        }
+
+        socklen_t address_size = sizeof(address);
+        if(getsockname(listener, reinterpret_cast<sockaddr *>(&address), &address_size) == -1)
+        {
+            int error = errno;
+            close(listener);
+            throw std::system_error(error, std::system_category(), "Could not inspect deadline test listener");
+        }
+
+        std::thread server([listener]()
+        {
+            int client;
+            do
+                client = accept(listener, nullptr, nullptr);
+            while(client == -1 && errno == EINTR);
+
+            if(client != -1)
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(250));
+                close(client);
+            }
+            close(listener);
+        });
+
+        try
+        {
+            Socket client(std::chrono::milliseconds(50));
+            const char request[] = "GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n";
+            if(!client.SendRequest("127.0.0.1", ntohs(address.sin_port), request))
+                throw std::runtime_error("Socket deadline test could not connect");
+
+            char response;
+            auto read_start = std::chrono::steady_clock::now();
+            int result = client.ReadData(&response, 1);
+            auto read_duration = std::chrono::steady_clock::now() - read_start;
+            client.Close();
+
+            if(result != -1)
+                throw std::runtime_error("Socket read did not report its deadline");
+            if(read_duration < std::chrono::milliseconds(25) ||
+               read_duration > std::chrono::milliseconds(200))
+                throw std::runtime_error("Socket read deadline was outside its expected range");
+        }
+        catch(...)
+        {
+            server.join();
+            throw;
+        }
+
+        server.join();
+        Notify(msg_print, "SOCKET_DEADLINE_OK");
+    }
+};
+
+INSTALL_CLASS(SocketDeadlineTestModule)

@@ -25,7 +25,7 @@ inline constexpr int PORTNO = 8000; // the default port clients will be connecti
 class Socket
 	{
 	public:
-		Socket() = default;
+			explicit Socket(std::chrono::milliseconds timeout = std::chrono::seconds(5));
 		Socket(const Socket &) = delete;
 		Socket & operator=(const Socket &) = delete;
 		Socket(Socket &&) = delete;
@@ -41,8 +41,9 @@ class Socket
 		int				Get(const char * hostname, int port, const char * request, char * result, int maxlen);
 			
 	private:
-		int sd = -1;
-	};
+			int sd = -1;
+			std::chrono::milliseconds timeout_;
+		};
 
 //
 //	The class ServerSocket implements a simple HTTP server

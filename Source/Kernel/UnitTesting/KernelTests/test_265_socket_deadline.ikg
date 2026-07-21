@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestSocketDeadline"
+    description="Bound outbound socket operations with explicit deadlines"
+    start="true"
+    stop="1"
+    check_sum="12"
+    log_level="7"
+    expected_output_contains="SOCKET_DEADLINE_OK">
+    <module class="SocketDeadlineTestModule" name="SocketTest" />
+</group>
