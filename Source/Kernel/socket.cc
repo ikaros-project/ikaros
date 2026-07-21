@@ -8,9 +8,11 @@
 #include <netdb.h>
 #include <signal.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
 #include <algorithm> // For std::min
+#include <array>
 #include <charconv>
 #include <future>
 #include <memory>
@@ -959,32 +961,21 @@ ServerSocket::SendFile(const std::filesystem::path & filename, dictionary & hdr)
     if(filename.empty()) return false;
 
     std::filesystem::path resolved_filename = filename;
-    FILE * f = fopen(resolved_filename.c_str(), "r+b");
-	
-    if(f == nullptr) return false;
-	
-    if(fseek(f, 0, SEEK_END) != 0)
-    {
-        fclose(f);
+    std::unique_ptr<FILE, decltype(&fclose)> file(
+        fopen(resolved_filename.c_str(), "rb"), &fclose);
+    if(!file)
         return false;
-    }
-    long file_length = ftell(f);
-    if(file_length < 0)
-    {
-        fclose(f);
+
+    struct stat file_info{};
+    if(fstat(fileno(file.get()), &file_info) == -1 || file_info.st_size < 0 ||
+       !S_ISREG(file_info.st_mode))
         return false;
-    }
-    size_t len  = static_cast<size_t>(file_length);
-    if(fseek(f, 0, SEEK_SET) != 0)
-    {
-        fclose(f);
-        return false;
-    }
-	
+
+    uintmax_t file_length = static_cast<uintmax_t>(file_info.st_size);
+
     hdr["Connection"] = active_close_after_response ? "Close" : "keep-alive";
 
-    std::string length = std::to_string((size_t)len);
-    hdr["Content-Length"] = length;
+    hdr["Content-Length"] = std::to_string(file_length);
     hdr["Server"] = "Ikaros/3.0";
     hdr["Cache-Control"] = "no-cache, no-store";
     hdr["Pragma"] = "no-cache";
@@ -1010,20 +1001,33 @@ ServerSocket::SendFile(const std::filesystem::path & filename, dictionary & hdr)
 		hdr["Content-Type"] = "text/xml";
     else if(extension == ".ico")
 		hdr["Content-Type"] = "image/vnd.microsoft.icon";
-	
-    SendHTTPHeader(hdr);
-    if(!Flush())
-    {
-        fclose(f);
+
+    if(!SendHTTPHeader(hdr))
         return false;
+    if(!Flush())
+        return false;
+
+    std::array<char, 64 * 1024> buffer;
+    uintmax_t bytes_remaining = file_length;
+    while(bytes_remaining > 0)
+    {
+        size_t requested = static_cast<size_t>(
+            std::min<uintmax_t>(buffer.size(), bytes_remaining));
+        size_t bytes_read = fread(buffer.data(), 1, requested, file.get());
+        if(bytes_read == 0 || !SendData(buffer.data(), static_cast<long>(bytes_read)))
+        {
+            CloseConnection(active_connection_id);
+            return false;
+        }
+
+        bytes_remaining -= bytes_read;
+        if(bytes_read != requested)
+        {
+            CloseConnection(active_connection_id);
+            return false;
+        }
     }
-	
-    char * s = new char[len];
-    fread(s, len, 1, f);
-    SendData(s, len);
-    fclose(f);
-    delete [] s;
-	
+
     return true;
 }
 

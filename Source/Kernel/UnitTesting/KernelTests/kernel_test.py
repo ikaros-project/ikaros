@@ -17,6 +17,7 @@ import xml.etree.ElementTree as ET
 import time
 import urllib.request
 import socket as network_socket
+import stat
 from pathlib import Path
 
 bold = "\033[1m"
@@ -389,6 +390,26 @@ def run_http_test(cmd, root):
                             f"response={bytes(response[:300])!r}"
                         )
                 http_output.append("HTTP_ERROR_RESPONSES complete")
+            elif action.startswith("assert_read_only_file_response:"):
+                _, request_path, relative_file = action.split(":", 2)
+                local_file = (script_directory / relative_file).resolve()
+                expected = local_file.read_bytes()
+                original_mode = local_file.stat().st_mode
+                local_file.chmod(original_mode & ~(stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH))
+                try:
+                    with urllib.request.urlopen(
+                        f"http://127.0.0.1:{port}{request_path}", timeout=5
+                    ) as response:
+                        received = response.read()
+                finally:
+                    local_file.chmod(original_mode)
+
+                if received != expected:
+                    raise AssertionError(
+                        f"Read-only file response differed: expected={len(expected)} bytes, "
+                        f"received={len(received)} bytes"
+                    )
+                http_output.append(f"READ_ONLY_FILE_RESPONSE bytes={len(received)}")
             elif action.startswith("assert_json_field:"):
                 _, path, field, expected_json = action.split(":", 3)
 
