@@ -16,6 +16,7 @@ import json
 import xml.etree.ElementTree as ET
 import time
 import urllib.request
+import socket as network_socket
 from pathlib import Path
 
 bold = "\033[1m"
@@ -191,6 +192,27 @@ def run_http_test(cmd, root):
                         f"Data value {data_key!r} is {data_value!r}; "
                         f"expected {float(expected)!r}"
                     )
+            elif action.startswith("assert_split_http_request:"):
+                _, path = action.split(":", 1)
+                with network_socket.create_connection(("127.0.0.1", int(port)), timeout=2) as client:
+                    client.settimeout(2)
+                    client.sendall(
+                        f"GET {path} HTTP/1.1\r\nHost: 127.0.0.1\r\n".encode("ascii")
+                    )
+                    time.sleep(0.05)
+                    client.sendall(b"Connection: close\r\n\r\n")
+                    response = bytearray()
+                    while True:
+                        chunk = client.recv(4096)
+                        if not chunk:
+                            break
+                        response.extend(chunk)
+
+                if not response.startswith(b"HTTP/1.1 200 "):
+                    raise AssertionError(
+                        f"Split HTTP request failed: {bytes(response[:200])!r}"
+                    )
+                http_output.append("SPLIT_HTTP_REQUEST complete")
             elif action.startswith("assert_json_field:"):
                 _, path, field, expected_json = action.split(":", 3)
 

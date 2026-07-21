@@ -66,7 +66,7 @@ class ServerSocket
 			std::string			input_buffer;
 			std::string			output_buffer;
 			std::chrono::steady_clock::time_point last_activity = std::chrono::steady_clock::now();
-		};
+			};
 
 		explicit ServerSocket(int port=PORTNO, const std::string & bind_address="");		// Create server socket on port
 		ServerSocket(const ServerSocket &) = delete;
@@ -102,6 +102,13 @@ class ServerSocket
 		int					errcode;								// Last error
 		std::string 		body;									// Body of PUT request
 		private:
+		enum class RequestReadResult
+		{
+			complete,
+			incomplete,
+			closed,
+		};
+
 		int				portno;
 		int 			sockfd = -1;				// Listen on sock_fd,
 		int				wakeup_read_fd = -1;
@@ -124,6 +131,6 @@ class ServerSocket
 		bool				CloseConnection(int connection_id);
 		void				CloseSockets();
 		ConnectionState *	ConnectionFor(int connection_id);
-		bool				ReadCurrentRequest(QueuedRequest & request);
-		size_t				Read(char * buffer, int maxSize, bool fill=false);	// Read, fill means fill with maxSize, return read size
+		RequestReadResult	ReadCurrentRequest(QueuedRequest & request);
+		ssize_t				Read(char * buffer, size_t max_size);
 		};

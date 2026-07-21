@@ -299,6 +299,14 @@ ServerSocket::Poll(bool block)
     if(accepted_fd == -1)
         return false;
 
+    int accepted_flags = fcntl(accepted_fd, F_GETFL, 0);
+    if(accepted_flags == -1 || fcntl(accepted_fd, F_SETFL, accepted_flags | O_NONBLOCK) == -1)
+    {
+        int error = errno;
+        close(accepted_fd);
+        throw std::system_error(error, std::system_category(), "Failed to make accepted socket nonblocking");
+    }
+
     connections.emplace(next_connection_id++, ConnectionState{accepted_fd, {}, {}, std::chrono::steady_clock::now()});
     return true;
 }
@@ -306,69 +314,33 @@ ServerSocket::Poll(bool block)
 
 
 
-size_t 
-ServerSocket::Read(char *buffer, int maxSize, bool fill) 
+ssize_t
+ServerSocket::Read(char * buffer, size_t max_size)
 {
     ConnectionState * connection = ConnectionFor(current_read_connection_id);
-    if(connection == nullptr) {
-        return 0; // Invalid socket
-    }
+    if(connection == nullptr)
+        return 0;
 
-    size_t total_read = 0;  // Total bytes read
-    ssize_t n = 0;          // Bytes read in a single recv() call
-
-    if(fill) {
-        // Fill the buffer completely if requested
-        while (total_read < maxSize) {
-            n = recv(connection->fd, buffer + total_read, maxSize - total_read, 0);
-
-            if(n > 0) 
-            {
-                total_read += n;
-                connection->last_activity = std::chrono::steady_clock::now();
-            } 
-            else if(n == 0) 
-            {
-                
-                break; // Connection closed by the client
-            } 
-            else if(n == -1) 
-            {
-                if(errno == EINTR) 
-                {
-                    
-                    continue; // Interrupted system call, retry
-                } 
-                else if(errno == EAGAIN || errno == EWOULDBLOCK) 
-                {
-                    break;  // No data available, break out of the loop
-                } 
-                else
-                     throw std::system_error(errno, std::system_category(), "recv failed");
-            }
-        }
-    } 
-    else 
+    while(true)
     {
-        n = recv(connection->fd, buffer, maxSize, 0);   // Single call to recv, do not enforce filling the buffer
+        ssize_t bytes_read = recv(connection->fd, buffer, max_size, 0);
 
-        if(n > 0) 
+        if(bytes_read > 0)
         {
-            total_read = n;
             connection->last_activity = std::chrono::steady_clock::now();
-        } 
-        else if(n == -1) 
-        {
-            if(errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK) 
-            {
-                // Fatal error
-                throw std::system_error(errno, std::system_category(), "recv failed");
-                // return -1;
-            }
+            return bytes_read;
         }
-    }
 
-    return total_read;
+        if(bytes_read == 0)
+            return 0;
+
+        if(errno == EINTR)
+            continue;
+        if(errno == EAGAIN || errno == EWOULDBLOCK)
+            return -1;
+
+        throw std::system_error(errno, std::system_category(), "recv failed");
+    }
 }
 
 
@@ -424,11 +396,11 @@ ServerSocket::QueueRequest(bool block)
             return false;
 
         current_read_connection_id = connection_id;
-        bool read_ok = false;
+        RequestReadResult read_result = RequestReadResult::incomplete;
         auto parse_start = std::chrono::steady_clock::now();
         try
         {
-            read_ok = ReadCurrentRequest(queued_request);
+            read_result = ReadCurrentRequest(queued_request);
         }
         catch(...)
         {
@@ -439,8 +411,10 @@ ServerSocket::QueueRequest(bool block)
             std::chrono::steady_clock::now() - parse_start).count();
         current_read_connection_id = 0;
 
-        if(!read_ok)
+        if(read_result != RequestReadResult::complete)
         {
+            if(read_result == RequestReadResult::closed)
+                CloseConnection(connection_id);
             if(!block)
                 return false;
             continue;
@@ -500,48 +474,47 @@ ServerSocket::FinishActiveRequest()
 
 
 
-bool
+ServerSocket::RequestReadResult
 ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
 {
     body.clear();
     ConnectionState * connection = ConnectionFor(current_read_connection_id);
     if(connection == nullptr)
-        return false;
+        return RequestReadResult::closed;
 
     constexpr size_t read_chunk_size = 4096;
     while(connection->input_buffer.find("\r\n\r\n") == std::string::npos)
     {
         char buffer[read_chunk_size];
-        long rr = Read(buffer, sizeof(buffer));
+        ssize_t rr = Read(buffer, sizeof(buffer));
         if(rr == 0)
-        {
-            CloseConnection(current_read_connection_id);
-            return false;
-        }
+            return RequestReadResult::closed;
+        if(rr < 0)
+            return RequestReadResult::incomplete;
 
         connection->input_buffer.append(buffer, rr);
         if(connection->input_buffer.size() > MAX_HTTP_HEADER_SIZE)
         {
             CloseConnection(current_read_connection_id);
-            return false;
+            return RequestReadResult::closed;
         }
     }
 
     size_t header_end = connection->input_buffer.find("\r\n\r\n");
     if(header_end == std::string::npos)
-        return false;
+        return RequestReadResult::incomplete;
 
     std::string header_text = connection->input_buffer.substr(0, header_end);
     std::istringstream request_stream(header_text);
     std::string request_line;
     if(!std::getline(request_stream, request_line))
-        return false;
+        return RequestReadResult::closed;
     if(!request_line.empty() && request_line.back() == '\r')
         request_line.pop_back();
 
     auto request_line_parts = split(request_line, " ");
     if(request_line_parts.size() < 3)
-        return false;
+        return RequestReadResult::closed;
 
     queued_request.header = dictionary();
     queued_request.body.clear();
@@ -561,12 +534,12 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
 
         auto separator = line.find(':');
         if(separator == std::string::npos)
-            return false;
+            return RequestReadResult::closed;
 
         std::string key = trim(line.substr(0, separator));
         std::string value = trim(line.substr(separator + 1));
         if(key.empty())
-            return false;
+            return RequestReadResult::closed;
 
         queued_request.header[to_lower_copy(key)] = value;
     }
@@ -591,26 +564,25 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
             try {
                 content_length = std::stoull(std::string(queued_request.header["content-length"]));
             } catch(const std::exception &) {
-                return false;
+                return RequestReadResult::closed;
             }
 
             if(content_length > MAX_HTTP_BODY_SIZE)
-                return false;
+                return RequestReadResult::closed;
 
             while(connection->input_buffer.size() < body_start + content_length)
             {
                 char buffer[read_chunk_size];
-                long rr = Read(buffer, sizeof(buffer));
+                ssize_t rr = Read(buffer, sizeof(buffer));
                 if(rr == 0)
-                {
-                    CloseConnection(current_read_connection_id);
-                    return false;
-                }
+                    return RequestReadResult::closed;
+                if(rr < 0)
+                    return RequestReadResult::incomplete;
                 connection->input_buffer.append(buffer, rr);
                 if(connection->input_buffer.size() - body_start > MAX_HTTP_BODY_SIZE)
                 {
                     CloseConnection(current_read_connection_id);
-                    return false;
+                    return RequestReadResult::closed;
                 }
             }
 
@@ -621,7 +593,7 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
 
     size_t total_consumed = header_end + 4 + queued_request.body.size();
     connection->input_buffer.erase(0, total_consumed);
-    return true;
+    return RequestReadResult::complete;
 }
 
 
