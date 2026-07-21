@@ -6795,7 +6795,7 @@ bool operator==(Request & r, const std::string s)
                 }
                 else if(run_mode.load() == run_mode_play)
                 {
-                    timer.SetStartTime(double(tick+1)*tick_duration); // Fake time increase
+                    timer.SetTime(double(tick+1)*tick_duration); // Fake time increase
                     lag = 0;
                     if(!options_.is_set("batch_mode") || has_async_workers)
                         Sleep(0.01);

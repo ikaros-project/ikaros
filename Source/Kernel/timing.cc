@@ -11,8 +11,65 @@
 #include <iomanip>
 #include <ctime>
 #include <sstream>
+#include <stdexcept>
 
 using namespace std::chrono;
+
+namespace
+{
+steady_clock::duration
+checked_steady_duration(double seconds, const char * operation)
+{
+    if(!std::isfinite(seconds))
+        throw std::invalid_argument(std::string(operation) + " requires a finite time in seconds");
+
+    const long double value = static_cast<long double>(seconds);
+    const long double minimum = duration<long double>(steady_clock::duration::min()).count();
+    const long double maximum = duration<long double>(steady_clock::duration::max()).count();
+    if(value < minimum || value > maximum)
+        throw std::out_of_range(std::string(operation) + " is outside the steady-clock range");
+
+    return duration_cast<steady_clock::duration>(duration<long double>(value));
+}
+
+
+steady_clock::time_point
+checked_add(steady_clock::time_point base,
+            steady_clock::duration offset,
+            const char * operation)
+{
+    using representation = steady_clock::duration::rep;
+    const representation base_count = base.time_since_epoch().count();
+    const representation offset_count = offset.count();
+    const representation minimum = steady_clock::duration::min().count();
+    const representation maximum = steady_clock::duration::max().count();
+
+    if((offset_count > 0 && base_count > maximum - offset_count) ||
+       (offset_count < 0 && base_count < minimum - offset_count))
+        throw std::out_of_range(std::string(operation) + " is outside the steady-clock range");
+
+    return steady_clock::time_point(steady_clock::duration(base_count + offset_count));
+}
+
+
+steady_clock::time_point
+checked_subtract(steady_clock::time_point base,
+                 steady_clock::duration offset,
+                 const char * operation)
+{
+    using representation = steady_clock::duration::rep;
+    const representation base_count = base.time_since_epoch().count();
+    const representation offset_count = offset.count();
+    const representation minimum = steady_clock::duration::min().count();
+    const representation maximum = steady_clock::duration::max().count();
+
+    if((offset_count > 0 && base_count < minimum + offset_count) ||
+       (offset_count < 0 && base_count > maximum + offset_count))
+        throw std::out_of_range(std::string(operation) + " is outside the steady-clock range");
+
+    return steady_clock::time_point(steady_clock::duration(base_count - offset_count));
+}
+}
 
 
 double
@@ -118,13 +175,11 @@ Timer::Stop()
 void
 Timer::SetPauseTime(double t)
 {
+    const steady_clock::duration duration = checked_steady_duration(t, "Timer::SetPauseTime()");
     std::lock_guard<std::mutex> lock(mtx);
 
     if(paused)
-    {
-        auto dur = duration_cast<steady_clock::duration>(duration<double>(t));
-        pause_time = start_time + dur;
-    }
+        pause_time = checked_add(start_time, duration, "Timer::SetPauseTime()");
 }
 
 
@@ -142,12 +197,15 @@ Timer::Restart()
 void 
 Timer::SetTime(double t)
 {
+    const steady_clock::duration duration = checked_steady_duration(t, "Timer::SetTime()");
+    const steady_clock::time_point now = steady_clock::now();
+    const steady_clock::time_point new_start = checked_subtract(now, duration, "Timer::SetTime()");
+
     std::lock_guard<std::mutex> lock(mtx);
 
-    auto dur = duration_cast<steady_clock::duration>(duration<double>(t));
-    start_time = steady_clock::now() - dur;
+    start_time = new_start;
     if (paused)
-        pause_time = start_time + dur;
+        pause_time = now;
 }
 
 
@@ -161,19 +219,11 @@ Timer::GetTime() const
 }
 
 
-void 
-Timer::SetStartTime(double t)
-{
-    std::lock_guard<std::mutex> lock(mtx);
-
-    auto d = duration<double>(t);
-    start_time = steady_clock::time_point(duration_cast<steady_clock::duration>(d));
-}
-
-
 double
 Timer::WaitUntil(double time)
 {
+    checked_steady_duration(time, "Timer::WaitUntil()");
+
     steady_clock::time_point wait_start;
     double remaining;
     {

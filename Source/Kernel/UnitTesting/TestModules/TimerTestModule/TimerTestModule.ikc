@@ -1,1 +1,1 @@
-<class internal="true" name="TimerTestModule" description="Tests synchronized timer state and precision" />
+<class internal="true" name="TimerTestModule" description="Tests synchronized, precise, and validated timer state" />

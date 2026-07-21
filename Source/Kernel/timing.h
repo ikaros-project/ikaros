@@ -10,6 +10,7 @@
 
 
 // All parameters are time in seconds represented by a double
+// Timer setters and waits reject non-finite values and values outside the steady-clock range.
 
 [[nodiscard]] std::string TimeString(double time);    // Convert double time to formatted string
 [[nodiscard]] long        GetTimeStamp();             // Get long representation of clock time
@@ -37,8 +38,7 @@ public:
 
     void        SetPauseTime(double t);     // Change the time where the timer start when Continue is called
 
-    void		Restart();					// Start the timer from time 0
-    void        SetStartTime(double t);     // Set start time of the timer
+    void        Restart();                   // Start the timer from time 0
     [[nodiscard]] double GetTime() const;				// Get the time (in seconds) since the timer was created or restarted
     void        SetTime(double t);          // Set the time (in seconds) of the timer
     [[nodiscard]] std::string GetTimeString() const;      // Get time since the timer was started as a formated string
