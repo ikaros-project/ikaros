@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestStatisticsMoments"
+    description="Test corrected batch and online skewness and kurtosis"
+    start="true"
+    stop="1"
+    check_sum="12"
+    expected_output_contains="STATISTICS TEST OK">
+    <module class="StatisticsTestModule" name="Statistics" />
+</group>

@@ -216,9 +216,10 @@ public:
 
         const long double s2 = M2 / static_cast<long double>(n - 1);
         if (s2 == 0.0L) return 0.0; // all equal
-        const long double s  = std::sqrt(s2);
-        const long double g1 = (std::sqrt(static_cast<long double>(n * (n - 1))) /
-                                static_cast<long double>(n - 2)) * (M3 / std::pow(s, 3));
+        const long double s = std::sqrt(s2);
+        const long double nld = static_cast<long double>(n);
+        const long double g1 = nld * M3 /
+                               ((nld - 1.0L) * (nld - 2.0L) * s * s * s);
         return static_cast<double>(g1);
     }
 
@@ -243,8 +244,9 @@ public:
         const long double m4_over_s4 = M4 / (s2 * s2);
 
         const long double nld = static_cast<long double>(n);
-        const long double num = (nld - 1) * ((nld + 1) * m4_over_s4 - 3.0L * (nld - 1));
-        const long double den = (nld - 2) * (nld - 3);
+        const long double num = nld * (nld + 1.0L) / (nld - 1.0L) * m4_over_s4 -
+                                3.0L * (nld - 1.0L) * (nld - 1.0L);
+        const long double den = (nld - 2.0L) * (nld - 3.0L);
         return static_cast<double>(num / den);
     }
 
@@ -298,20 +300,19 @@ public:
     // Add a new observation
     void push(double x) 
     {
-        // Count before update
-        const long double n = static_cast<long double>(count_);
+        const long double previous_count = static_cast<long double>(count_);
 
         // --- Update online moments (Pébay/Welford) ---
-        const long double delta   = static_cast<long double>(x) - mean_;
-        const long double n1      = n + 1.0L;
-        const long double delta_n = delta / n1;
-        const long double delta_n2= delta_n * delta_n;
-        const long double term1   = delta * (delta_n * n);
+        const long double new_count = previous_count + 1.0L;
+        const long double delta = static_cast<long double>(x) - mean_;
+        const long double delta_n = delta / new_count;
+        const long double delta_n2 = delta_n * delta_n;
+        const long double term1 = delta * delta_n * previous_count;
 
-        M4_ += term1 * delta_n2 * (n*n - 3.0L*n + 3.0L)
+        M4_ += term1 * delta_n2 * (new_count * new_count - 3.0L * new_count + 3.0L)
              + 6.0L * delta_n2 * M2_
              - 4.0L * delta_n * M3_;
-        M3_ += term1 * delta_n * (n - 2.0L) - 3.0L * delta_n * M2_;
+        M3_ += term1 * delta_n * (new_count - 2.0L) - 3.0L * delta_n * M2_;
         M2_ += term1;
         mean_ += delta_n;
         ++count_;
@@ -402,9 +403,10 @@ public:
         if (n < 3) return nan_();
         const long double s2 = M2_ / static_cast<long double>(n - 1);
         if (s2 == 0.0L) return 0.0; // all equal
-        const long double s  = std::sqrt(s2);
-        const long double g1 = (std::sqrt(static_cast<long double>(n * (n - 1))) /
-                               static_cast<long double>(n - 2)) * (M3_ / std::pow(s, 3));
+        const long double s = std::sqrt(s2);
+        const long double n_ld = static_cast<long double>(n);
+        const long double g1 = n_ld * M3_ /
+                               ((n_ld - 1.0L) * (n_ld - 2.0L) * s * s * s);
         return static_cast<double>(g1);
     }
 
@@ -419,8 +421,9 @@ public:
         const long double m4_over_s4 = M4_ / (s2 * s2);
 
         // Joanes & Gill (1998) unbiased estimator of excess kurtosis
-        const long double num = (n_ld - 1) * ((n_ld + 1) * m4_over_s4 - 3.0L * (n_ld - 1));
-        const long double den = (n_ld - 2) * (n_ld - 3);
+        const long double num = n_ld * (n_ld + 1.0L) / (n_ld - 1.0L) * m4_over_s4 -
+                                3.0L * (n_ld - 1.0L) * (n_ld - 1.0L);
+        const long double den = (n_ld - 2.0L) * (n_ld - 3.0L);
         return static_cast<double>((num / den));
     }
 
@@ -484,4 +487,3 @@ private:
     std::cout << "kurtosis(excess) = " << S.kurtosis() << "\n" ;
 
     */
-
