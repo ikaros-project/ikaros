@@ -1,4 +1,5 @@
 #include <array>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <sstream>
@@ -17,6 +18,25 @@ namespace
     {
         if(!condition)
             throw std::runtime_error("UtilitiesTestModule: " + message);
+    }
+
+
+    std::string
+    capture_standard_output(const std::function<void()> & function)
+    {
+        std::ostringstream output;
+        std::streambuf * previous = std::cout.rdbuf(output.rdbuf());
+        try
+        {
+            function();
+        }
+        catch(...)
+        {
+            std::cout.rdbuf(previous);
+            throw;
+        }
+        std::cout.rdbuf(previous);
+        return output.str();
     }
 }
 
@@ -95,6 +115,34 @@ public:
                 "cut_head did not consume the head and delimiter");
         require(cut_head(cut_value, "::") == "beta" && cut_value.empty(),
                 "cut_head did not consume an undelimited remainder");
+
+        require(capture_standard_output([]()
+                {
+                    print_attribute_value("value", 3, 2);
+                }) == "      value = 3\n",
+                "attribute printing ignored indentation");
+        require(capture_standard_output([]()
+                {
+                    print_attribute_value("values", std::vector<float>{1, 2}, 0, 0);
+                }) == "values = 1 2 \n",
+                "unlimited float attribute printing added an ellipsis");
+        require(capture_standard_output([]()
+                {
+                    print_attribute_value("values", std::vector<int>{1, 2}, 0, 2);
+                }) == "values = 1 2 \n",
+                "exactly limited attribute printing added an ellipsis");
+        require(capture_standard_output([]()
+                {
+                    print_attribute_value("values", std::vector<float>{1, 2, 3}, 0, 2);
+                }) == "values = 1 2 ...\n",
+                "limited attribute printing did not mark omitted values");
+        require(capture_standard_output([]()
+                {
+                    print_attribute_value("labels",
+                                          std::vector<std::vector<std::string>>{{"a"}, {"b"}},
+                                          1, 1);
+                }) == "   labels = \n      a \n      ...\n\n",
+                "nested attribute printing ignored indentation or limits");
 
         std::cout << "UTILITIES TEST OK\n";
     }

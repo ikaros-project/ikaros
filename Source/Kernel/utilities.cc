@@ -564,59 +564,64 @@ std::ostream& operator<<(std::ostream& os, const std::vector<int> & v)
     void 
     print_attribute_value(const std::string & name, int value, int indent)
     {
-        std::cout << name << " = " << value << '\n';
+        std::cout << tab(indent) << name << " = " << value << '\n';
     }
 
     void 
     print_attribute_value(const std::string & name, const std::string & value, int indent)
     {
-        std::cout << name << " = " << value << '\n';
+        std::cout << tab(indent) << name << " = " << value << '\n';
     }
 
     void 
     print_attribute_value(const std::string & name, const std::vector<int> & values, int indent, int max_items)
     {
-                std::cout << name << " = ";
-        int s = values.size();
-        if(max_items>0 && s>max_items)
-            s = max_items;
+        std::cout << tab(indent) << name << " = ";
+        const size_t count = max_items > 0 ?
+            std::min(values.size(), static_cast<size_t>(max_items)) : values.size();
 
-        for(int i=0; i<s; i++)
-            std::cout << values.at(i) << " ";
-        if(values.size() >= max_items && max_items>0)
-            std::cout << "...\n";
+        for(size_t i = 0; i < count; ++i)
+            std::cout << values[i] << " ";
+        if(count < values.size())
+            std::cout << "...";
         std::cout << '\n';
     }
    
     void 
     print_attribute_value(const std::string & name, const std::vector<float> & values, int indent, int max_items)
     {
-                std::cout << name << " = ";
-        int s = values.size();
-        if(max_items>0 && s>max_items && max_items>0)
-            s = max_items;
+        std::cout << tab(indent) << name << " = ";
+        const size_t count = max_items > 0 ?
+            std::min(values.size(), static_cast<size_t>(max_items)) : values.size();
 
-        for(int i=0; i<s; i++)
-            std::cout << values.at(i) << " ";
-        if(values.size() >= max_items)
-            std::cout << "...\n";
+        for(size_t i = 0; i < count; ++i)
+            std::cout << values[i] << " ";
+        if(count < values.size())
+            std::cout << "...";
         std::cout << '\n';
     }
 
     void
     print_attribute_value(const std::string & name, const std::vector<std::vector<std::string>> &  values, int indent, int max_items)
     {
-        std::cout << name << " = \n";
-        for(auto d : values)
+        std::cout << tab(indent) << name << " = \n";
+        const size_t count = max_items > 0 ?
+            std::min(values.size(), static_cast<size_t>(max_items)) : values.size();
+        for(size_t i = 0; i < count; ++i)
         {
-            std::cout << tab(1);
-            if(d.empty())
+            const auto & row = values[i];
+            std::cout << tab(indent + 1);
+            if(row.empty())
                 std::cout << "none\n";
             else
-                for(auto s : d)
-                    std::cout << s << " ";
-           std::cout << '\n'; 
+            {
+                for(const auto & item : row)
+                    std::cout << item << " ";
+                std::cout << '\n';
+            }
         }
+        if(count < values.size())
+            std::cout << tab(indent + 1) << "...\n";
         std::cout << '\n';
     }
 
