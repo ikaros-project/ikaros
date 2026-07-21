@@ -103,7 +103,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | # | Priority | Finding | Status | Commit |
 |---:|:---:|---|---|---|
 | 1 | P1 | Floating-point parsing accepts malformed doubled signs and can reverse their meaning. | Addressed | `Malformed floating-point signs were rejected` |
-| 2 | P2 | Fixed-decimal number formatting corrupts zero-decimal output and can access an empty string. | Not addressed | — |
+| 2 | P2 | Fixed-decimal number formatting corrupts zero-decimal output and can access an empty string. | Addressed | `Fixed-decimal number formatting preserved integer zeros` |
 | 3 | P2 | Base64 encoding exposes unsafe raw ownership and unchecked allocation and size failures. | Not addressed | — |
 | 4 | P2 | The vector stream operator ignores its destination stream and writes to standard output. | Not addressed | — |
 | 5 | P3 | `cut_head()` is publicly declared but has no linkable implementation. | Not addressed | — |

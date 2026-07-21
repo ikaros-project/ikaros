@@ -672,12 +672,13 @@ base64_encode(const unsigned char * data,
         oss << std::fixed << value;
         std::string str = oss.str();
 
-        // Remove trailing zeros
-        str.erase(str.find_last_not_of('0') + 1, std::string::npos);
-
-        // Remove the decimal point if it's the last character
-        if (str.back() == '.') {
-            str.pop_back();
+        const std::string::size_type decimal_point = str.find('.');
+        if(decimal_point != std::string::npos)
+        {
+            while(str.size() > decimal_point + 1 && str.back() == '0')
+                str.pop_back();
+            if(str.back() == '.')
+                str.pop_back();
         }
 
         return str;

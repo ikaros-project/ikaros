@@ -44,6 +44,13 @@ public:
         require(!parse_float("+-1.25", float_value) && float_value == 17,
                 "parse_float accepted mixed signs");
 
+        require(formatNumber(0, 0) == "0",
+                "zero-decimal formatting corrupted zero");
+        require(formatNumber(10, 0) == "10" && formatNumber(-20, 0) == "-20",
+                "zero-decimal formatting stripped integer zeros");
+        require(formatNumber(1.25, 4) == "1.25" && formatNumber(0, 4) == "0",
+                "fixed-decimal formatting did not trim only fractional zeros");
+
         std::cout << "UTILITIES TEST OK\n";
     }
 };
