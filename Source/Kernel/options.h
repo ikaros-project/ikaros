@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <charconv>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -39,6 +40,8 @@ namespace ikaros {
             description[full_name] = desc;
             requires_value[full_name] = takes_value;
             optional_value[full_name] = optional;
+            if(!takes_value && !optional)
+                boolean_options_.insert(full_name);
             if(!default_value.empty())
             {
                 d[full_name] = default_value;
@@ -64,15 +67,13 @@ namespace ikaros {
             {
                 const auto & s = args[i];
                 const auto pos = s.find('=');
-                if(pos != std::string::npos && s.front() !='-')
+                if(pos != std::string::npos && (s.empty() || s.front() != '-'))
                 {
                     if(pos < 1)
                         throw std::runtime_error("Assignment without variable");
-                    if(s.size() >3 && s.at(pos+1)== '"' && s.back()== '"')
-                        d[s.substr(0, pos)] = s.substr(pos+2, s.size()-pos-3);
-                    else
-                        d[s.substr(0, pos)] = s.substr(pos+1, s.size()-pos);
-                    explicitly_set.insert(s.substr(0, pos));
+                    const std::string name = s.substr(0, pos);
+                    const std::string value = parse_assignment_value(name, s.substr(pos + 1));
+                    set_explicit_value(name, value);
                 }
                 else if(s.size()>2 && s.front() =='-')
                 {
@@ -169,7 +170,14 @@ namespace ikaros {
 
         bool is_set(const std::string & o) const
         {
-            return d.count(o)>0;
+            auto value = d.find(o);
+            if(value == d.end())
+                return false;
+            if(!boolean_options_.count(o))
+                return true;
+
+            bool result = false;
+            return parse_bool(value->second, result) && result;
         }
 
         bool is_explicitly_set(const std::string & o) const
@@ -191,11 +199,29 @@ namespace ikaros {
         }
 
         long get_long(const std::string & o) const
-        { 
-            if(d.count(o)>0)
-                return std::stol(d.at(o));
-            else
+        {
+            auto value = d.find(o);
+            if(value == d.end())
                 return 0;
+
+            const std::string text = trim(value->second);
+            long result = 0;
+            const char * begin = text.data();
+            const char * end = begin + text.size();
+            const auto conversion = std::from_chars(begin, end, result);
+            if(text.empty() || conversion.ec != std::errc() || conversion.ptr != end)
+                throw std::invalid_argument("Invalid integer value \"" + value->second +
+                                            "\" for option \"" + o + "\"");
+            return result;
+        }
+
+        long get_long(const std::string & o, long minimum, long maximum) const
+        {
+            const long result = get_long(o);
+            if(result < minimum || result > maximum)
+                throw std::out_of_range("Value for option \"" + o + "\" must be between " +
+                                        std::to_string(minimum) + " and " + std::to_string(maximum));
+            return result;
         }
 
         double get_double(const std::string & o) const
@@ -209,6 +235,41 @@ namespace ikaros {
     private:
         std::map<std::string, std::string> default_values_;
         std::set<std::string> sensitive_options_;
+        std::set<std::string> boolean_options_;
+
+        std::string parse_assignment_value(const std::string & name,
+                                           const std::string & value) const
+        {
+            if(value.empty())
+                return {};
+
+            const bool quoted_at_start = value.front() == '"' || value.front() == '\'';
+            const bool quoted_at_end = value.back() == '"' || value.back() == '\'';
+            if(quoted_at_start || quoted_at_end)
+            {
+                if(value.size() < 2 || !quoted_at_start || !quoted_at_end ||
+                   value.front() != value.back())
+                    throw std::runtime_error("Mismatched quotes in assignment to \"" + name + "\"");
+                return value.substr(1, value.size() - 2);
+            }
+
+            return value;
+        }
+
+        void set_explicit_value(const std::string & name, const std::string & value)
+        {
+            if(boolean_options_.count(name))
+            {
+                bool parsed_value = false;
+                if(!parse_bool(value, parsed_value))
+                    throw std::runtime_error("Invalid Boolean value \"" + value +
+                                             "\" for option \"" + name + "\"");
+                d[name] = parsed_value ? "true" : "false";
+            }
+            else
+                d[name] = value;
+            explicitly_set.insert(name);
+        }
 
         bool has_later_positional_argument(const std::vector<std::string> & arguments,
                                            std::size_t start) const

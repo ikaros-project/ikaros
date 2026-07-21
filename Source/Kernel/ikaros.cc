@@ -5489,13 +5489,13 @@ bool operator==(Request & r, const std::string s)
         if(key == "filename")
             return options_.stem();
         if(key == "batch_mode")
-            return options_.is_explicitly_set("batch_mode") ? "true" : "false";
+            return options_.is_set("batch_mode") ? "true" : "false";
         if(key == "info")
-            return options_.is_explicitly_set("info") ? "true" : "false";
+            return options_.is_set("info") ? "true" : "false";
         if(key == "real_time")
-            return options_.is_explicitly_set("real_time") ? "true" : "false";
+            return options_.is_set("real_time") ? "true" : "false";
         if(key == "start")
-            return options_.is_explicitly_set("start") ? "true" : "false";
+            return options_.is_set("start") ? "true" : "false";
 
         auto it = options_.d.find(key);
         if(it != options_.d.end())
@@ -6181,8 +6181,10 @@ bool operator==(Request & r, const std::string s)
     {
         try
         {
+            if(port < 0 || port > 65535)
+                throw std::invalid_argument("Server port must be between 0 and 65535");
             shutdown.store(false, std::memory_order_release);
-            socket = std::make_unique<ServerSocket>(port, GetOption("bind_address"));
+            socket = std::make_unique<ServerSocket>(static_cast<int>(port), GetOption("bind_address"));
         }
         catch (const exception& e)
         {

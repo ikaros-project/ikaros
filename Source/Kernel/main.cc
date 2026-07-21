@@ -245,7 +245,7 @@ namespace
             if(!should_start_socket || socket_initialized)
                 return;
 
-            long port = k.GetOptionLong("webui_port");
+            long port = o.get_long("webui_port", 0, 65535);
             if(k.info_.contains("webui_port"))
                 port = long(k.info_["webui_port"]);
             k.InitSocket(port);

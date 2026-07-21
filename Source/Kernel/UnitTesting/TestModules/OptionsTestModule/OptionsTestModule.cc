@@ -103,6 +103,7 @@ namespace
         result.add_option("w", "webui_port", "WebUI port", true, "8000");
         result.add_option("a", "auth_password", "authentication password", true, "", false, true);
         result.add_option("W", "save_state", "save state", false, "", true);
+        result.add_option("b", "batch_mode", "batch mode");
         result.add_option("h", "help", "show help");
         return result;
     }
@@ -214,6 +215,103 @@ class OptionsTestModule : public Module
             multiple_models_rejected = std::string(e.what()).find("Only one model file") != std::string::npos;
         }
         require(multiple_models_rejected, "multiple model files were not rejected clearly");
+
+        options false_booleans = configured_options();
+        parse(false_booleans,
+              {executable.string(), "batch_mode=false", "help=off"});
+        require(!false_booleans.is_set("batch_mode") &&
+                !false_booleans.is_set("help") &&
+                false_booleans.is_explicitly_set("batch_mode") &&
+                false_booleans.is_explicitly_set("help"),
+                "false Boolean assignments enabled command-line flags");
+
+        options true_boolean = configured_options();
+        parse(true_boolean, {executable.string(), "batch_mode=yes"});
+        require(true_boolean.is_set("batch_mode"),
+                "recognized true Boolean assignment did not enable its flag");
+
+        bool invalid_boolean_rejected = false;
+        try
+        {
+            options invalid_boolean = configured_options();
+            parse(invalid_boolean, {executable.string(), "batch_mode=perhaps"});
+        }
+        catch(const std::exception & e)
+        {
+            invalid_boolean_rejected = std::string(e.what()).find("Invalid Boolean value") !=
+                                       std::string::npos;
+        }
+        require(invalid_boolean_rejected, "invalid Boolean assignment was accepted");
+
+        options assignments = configured_options();
+        parse(assignments,
+              {executable.string(), "empty=", "double_quoted=\"two words\"",
+               "single_quoted='three words'"});
+        require(assignments.get("empty").empty() &&
+                assignments.is_explicitly_set("empty"),
+                "empty assignment was not stored safely");
+        require(assignments.get("double_quoted") == "two words" &&
+                assignments.get("single_quoted") == "three words",
+                "quoted assignment values were not unwrapped consistently");
+
+        bool mismatched_quotes_rejected = false;
+        try
+        {
+            options mismatched_quotes = configured_options();
+            parse(mismatched_quotes, {executable.string(), "value=\"unterminated"});
+        }
+        catch(const std::exception & e)
+        {
+            mismatched_quotes_rejected = std::string(e.what()).find("Mismatched quotes") !=
+                                         std::string::npos;
+        }
+        require(mismatched_quotes_rejected, "mismatched assignment quotes were accepted");
+
+        options valid_integer = configured_options();
+        parse(valid_integer, {executable.string(), "-w", " 9000 "});
+        require(valid_integer.get_long("webui_port") == 9000,
+                "valid integer option was not parsed completely");
+
+        bool trailing_integer_text_rejected = false;
+        try
+        {
+            options trailing_integer_text = configured_options();
+            parse(trailing_integer_text, {executable.string(), "-w", "9000junk"});
+            trailing_integer_text.get_long("webui_port");
+        }
+        catch(const std::invalid_argument &)
+        {
+            trailing_integer_text_rejected = true;
+        }
+        require(trailing_integer_text_rejected,
+                "integer option with trailing text was accepted");
+
+        bool oversized_integer_rejected = false;
+        try
+        {
+            options oversized_integer = configured_options();
+            parse(oversized_integer,
+                  {executable.string(), "-w", "999999999999999999999999999999"});
+            oversized_integer.get_long("webui_port");
+        }
+        catch(const std::invalid_argument &)
+        {
+            oversized_integer_rejected = true;
+        }
+        require(oversized_integer_rejected, "overflowing integer option was accepted");
+
+        bool port_range_checked = false;
+        try
+        {
+            options invalid_port = configured_options();
+            parse(invalid_port, {executable.string(), "-w", "65536"});
+            invalid_port.get_long("webui_port", 0, 65535);
+        }
+        catch(const std::out_of_range &)
+        {
+            port_range_checked = true;
+        }
+        require(port_range_checked, "out-of-range WebUI port was accepted");
 
         std::cout << "OPTIONS TEST OK" << std::endl;
     }
