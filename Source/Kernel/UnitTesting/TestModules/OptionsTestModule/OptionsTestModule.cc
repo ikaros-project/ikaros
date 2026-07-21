@@ -421,6 +421,16 @@ class OptionsTestModule : public Module
                 !boolean_defaults.is_set("disabled"),
                 "valid Boolean option defaults were not normalized");
 
+        std::vector<std::string> many_arguments = {executable.string()};
+        for(int i = 0; i < 100; ++i)
+            many_arguments.push_back("override_" + std::to_string(i) + "=" + std::to_string(i));
+        options many_overrides = configured_options();
+        parse(many_overrides, many_arguments);
+        require(many_overrides.explicitly_set.size() == 100 &&
+                many_overrides.get("override_0") == "0" &&
+                many_overrides.get("override_99") == "99",
+                "more than 64 command-line arguments were not parsed correctly");
+
         std::cout << "OPTIONS TEST OK" << std::endl;
     }
 };

@@ -79,8 +79,6 @@ namespace ikaros {
 
         void parse_args(int argc, char *argv[])
         {
-            if (argc > 64)
-                throw std::runtime_error("Too many input parameters");
             if (argc < 1)
                 throw std::runtime_error("Too few input parameters");
 
