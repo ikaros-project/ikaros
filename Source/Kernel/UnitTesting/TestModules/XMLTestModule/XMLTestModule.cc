@@ -87,6 +87,14 @@ class XMLTestModule : public Module
                     "child element changed during repeated parsing");
         }
 
+        const std::filesystem::path quoted = files.write(
+            "quoted.xml", "<root single='one' double=\"two\"/>");
+        XMLDocument quoted_document(quoted.string().c_str());
+        require(std::string(quoted_document.xml->GetActualAttribute("single")) == "one",
+                "single-quoted attribute was not parsed");
+        require(std::string(quoted_document.xml->GetActualAttribute("double")) == "two",
+                "double-quoted attribute changed while fixing single quotes");
+
         const std::filesystem::path malformed = files.write(
             "malformed.xml", "<root><child></root>");
         for(int i = 0; i < 32; ++i)

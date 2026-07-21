@@ -658,7 +658,8 @@ XMLDocument::Match(const char c, bool skip)
     if (feof(f)) return false;		// REPORT ERROR ********
     bool r = (fgetc(f) == c);
     fseek(f, p, SEEK_SET);
-    if (skip) Skip("##", 1);
+    if(skip && r)
+        Skip("##", 1);
     return r;
 }
 
@@ -1094,7 +1095,8 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
 
     PushUntil("AV", "<", q);
     if (Match('<')) throw "< not allowed in attribute value";
-    Match(q);
+    if(!Match(q))
+        throw "Closing quote expected for attribute value";
 
     owned_c_string value(create_string(buffer));
     
