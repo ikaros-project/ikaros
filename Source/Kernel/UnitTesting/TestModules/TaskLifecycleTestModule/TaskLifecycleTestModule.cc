@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -407,3 +408,45 @@ class SocketClientAPITestModule : public Module
 };
 
 INSTALL_CLASS(SocketClientAPITestModule)
+
+
+class SocketSelectCapacityTestModule : public Module
+{
+    void Init() override
+    {
+        std::vector<int> descriptors;
+        int descriptor = -1;
+        while(descriptor < FD_SETSIZE)
+        {
+            descriptor = open("/dev/null", O_RDONLY);
+            if(descriptor == -1)
+                break;
+            descriptors.push_back(descriptor);
+        }
+
+        bool rejected = false;
+        if(descriptor >= FD_SETSIZE)
+        {
+            try
+            {
+                ServerSocket server(0, "127.0.0.1");
+            }
+            catch(const std::exception &)
+            {
+                rejected = true;
+            }
+        }
+
+        for(int open_descriptor : descriptors)
+            close(open_descriptor);
+
+        if(descriptor < FD_SETSIZE)
+            throw std::runtime_error("Could not reach FD_SETSIZE for the Socket capacity test");
+        if(!rejected)
+            throw std::runtime_error("ServerSocket accepted a descriptor outside select() capacity");
+
+        Notify(msg_print, "SOCKET_SELECT_CAPACITY_OK");
+    }
+};
+
+INSTALL_CLASS(SocketSelectCapacityTestModule)

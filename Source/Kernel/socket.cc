@@ -93,6 +93,9 @@ namespace
     wait_for_socket(int fd, bool read_ready,
                     std::chrono::steady_clock::time_point deadline)
     {
+        if(fd < 0 || fd >= FD_SETSIZE)
+            return false;
+
         while(true)
         {
             auto remaining = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -386,6 +389,12 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if(sockfd == -1)
         throw std::system_error(errno, std::system_category(), "Failed to create socket");
+    if(sockfd >= FD_SETSIZE)
+    {
+        close(sockfd);
+        sockfd = -1;
+        throw std::runtime_error("Server listener descriptor exceeds select() capacity");
+    }
 
     // Set address properties
     my_addr.sin_family = AF_INET;                     // host byte order
@@ -426,6 +435,16 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
     }
     wakeup_read_fd = wakeup_pipe[0];
     wakeup_write_fd = wakeup_pipe[1];
+    if(wakeup_read_fd >= FD_SETSIZE || wakeup_write_fd >= FD_SETSIZE)
+    {
+        close(wakeup_read_fd);
+        close(wakeup_write_fd);
+        close(sockfd);
+        wakeup_read_fd = -1;
+        wakeup_write_fd = -1;
+        sockfd = -1;
+        throw std::runtime_error("Server wake-up descriptor exceeds select() capacity");
+    }
 
     // Ignore SIGPIPE so the program does not exit unexpectedly
     signal(SIGPIPE, SIG_IGN);
@@ -464,6 +483,11 @@ ServerSocket::Poll(bool block)
 */
     if(accepted_fd == -1)
         return false;
+    if(accepted_fd >= FD_SETSIZE)
+    {
+        close(accepted_fd);
+        return false;
+    }
 
     int accepted_flags = fcntl(accepted_fd, F_GETFL, 0);
     if(accepted_flags == -1 || fcntl(accepted_fd, F_SETFL, accepted_flags | O_NONBLOCK) == -1)

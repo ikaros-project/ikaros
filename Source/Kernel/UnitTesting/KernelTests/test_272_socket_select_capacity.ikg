@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestSocketSelectCapacity"
+    description="Reject descriptors outside the range supported by select"
+    start="true"
+    stop="1"
+    check_sum="12"
+    log_level="7"
+    expected_output_contains="SOCKET_SELECT_CAPACITY_OK">
+    <module class="SocketSelectCapacityTestModule" name="SocketTest" />
+</group>
