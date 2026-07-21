@@ -104,11 +104,18 @@ class ServerSocket
 		int					errcode;								// Last error
 		std::string 		body;									// Body of PUT request
 		private:
-		enum class RequestReadResult
+			enum class RequestReadResult
 		{
 			complete,
 			incomplete,
 			closed,
+			bad_request,
+			method_not_allowed,
+			length_required,
+			payload_too_large,
+			request_header_too_large,
+			transfer_encoding_unsupported,
+			http_version_unsupported,
 		};
 
 		int				portno;
@@ -132,6 +139,7 @@ class ServerSocket
 		void				CloseIdleConnections();
 		bool				CloseConnection(int connection_id);
 		void				CloseSockets();
+		void				SendRequestError(int connection_id, RequestReadResult error);
 		ConnectionState *	ConnectionFor(int connection_id);
 		RequestReadResult	ReadCurrentRequest(QueuedRequest & request);
 		ssize_t				Read(char * buffer, size_t max_size);

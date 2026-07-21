@@ -561,6 +561,11 @@ ServerSocket::QueueRequest(bool block)
         {
             if(read_result == RequestReadResult::closed)
                 CloseConnection(connection_id);
+            else if(read_result != RequestReadResult::incomplete)
+            {
+                SendRequestError(connection_id, read_result);
+                CloseConnection(connection_id);
+            }
             else if(ConnectionState * connection = ConnectionFor(connection_id))
                 connection->awaiting_more_input = true;
             if(!block)
@@ -642,10 +647,7 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
 
         connection->input_buffer.append(buffer, rr);
         if(connection->input_buffer.size() > MAX_HTTP_HEADER_SIZE)
-        {
-            CloseConnection(current_read_connection_id);
-            return RequestReadResult::closed;
-        }
+            return RequestReadResult::request_header_too_large;
     }
 
     size_t header_end = connection->input_buffer.find("\r\n\r\n");
@@ -656,22 +658,32 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
     std::istringstream request_stream(header_text);
     std::string request_line;
     if(!std::getline(request_stream, request_line))
-        return RequestReadResult::closed;
+        return RequestReadResult::bad_request;
     if(!request_line.empty() && request_line.back() == '\r')
         request_line.pop_back();
 
-    auto request_line_parts = split(request_line, " ");
-    if(request_line_parts.size() < 3)
-        return RequestReadResult::closed;
+    std::istringstream request_line_stream(request_line);
+    std::string method;
+    std::string uri;
+    std::string http_version;
+    std::string extra_request_line_part;
+    if(!(request_line_stream >> method >> uri >> http_version) ||
+       request_line_stream >> extra_request_line_part)
+        return RequestReadResult::bad_request;
+
+    if(method != "GET" && method != "PUT")
+        return RequestReadResult::method_not_allowed;
+    if(http_version != "HTTP/1.1" && http_version != "HTTP/1.0")
+        return RequestReadResult::http_version_unsupported;
 
     queued_request.header = dictionary();
     queued_request.body.clear();
     queued_request.close_after_response = true;
     queued_request.connection_id = current_read_connection_id;
 
-    queued_request.header["method"] = request_line_parts[0];
-		queued_request.header["uri"] = request_line_parts[1];
-		queued_request.header["http-version"] = request_line_parts[2];
+    queued_request.header["method"] = method;
+		queued_request.header["uri"] = uri;
+		queued_request.header["http-version"] = http_version;
 
     std::optional<size_t> content_length;
     bool has_transfer_encoding = false;
@@ -685,25 +697,26 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
 
         auto separator = line.find(':');
         if(separator == std::string::npos)
-            return RequestReadResult::closed;
+            return RequestReadResult::bad_request;
 
         std::string key = trim(line.substr(0, separator));
         std::string value = trim(line.substr(separator + 1));
         if(key.empty())
-            return RequestReadResult::closed;
+            return RequestReadResult::bad_request;
 
         std::string normalized_key = to_lower_copy(key);
         if(normalized_key == "content-length")
         {
             if(content_length)
-                return RequestReadResult::closed;
+                return RequestReadResult::bad_request;
 
             size_t parsed_length = 0;
             auto [end, error] = std::from_chars(value.data(), value.data() + value.size(),
                                                 parsed_length);
-            if(error != std::errc() || end != value.data() + value.size() ||
-               parsed_length > MAX_HTTP_BODY_SIZE)
-                return RequestReadResult::closed;
+            if(error != std::errc() || end != value.data() + value.size())
+                return RequestReadResult::bad_request;
+            if(parsed_length > MAX_HTTP_BODY_SIZE)
+                return RequestReadResult::payload_too_large;
             content_length = parsed_length;
         }
         else if(normalized_key == "transfer-encoding" && !value.empty())
@@ -715,7 +728,11 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
     }
 
     if(has_transfer_encoding)
-        return RequestReadResult::closed;
+        return RequestReadResult::transfer_encoding_unsupported;
+
+    if(http_version == "HTTP/1.1" &&
+       !queued_request.header.contains_non_null("host"))
+        return RequestReadResult::bad_request;
 
     std::string http_version_string = std::string(queued_request.header["http-version"]);
     bool close_after_response = (http_version_string != "HTTP/1.1");
@@ -728,9 +745,8 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
             close_after_response = false;
     }
     queued_request.close_after_response = close_after_response;
-    std::string method = std::string(queued_request.header["method"]);
     if(method == "PUT" && !content_length)
-        return RequestReadResult::closed;
+        return RequestReadResult::length_required;
 
     size_t body_start = header_end + 4;
     size_t expected_body_size = content_length.value_or(0);
@@ -744,10 +760,7 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
             return RequestReadResult::incomplete;
         connection->input_buffer.append(buffer, rr);
         if(connection->input_buffer.size() - body_start > MAX_HTTP_BODY_SIZE)
-        {
-            CloseConnection(current_read_connection_id);
-            return RequestReadResult::closed;
-        }
+            return RequestReadResult::payload_too_large;
     }
 
     if(expected_body_size > 0)
@@ -1196,6 +1209,49 @@ ServerSocket::CloseSockets()
         close(wakeup_write_fd);
         wakeup_write_fd = -1;
     }
+}
+
+
+
+void
+ServerSocket::SendRequestError(int connection_id, RequestReadResult error)
+{
+    const char * status = "400 Bad Request";
+    switch(error)
+    {
+        case RequestReadResult::method_not_allowed:
+            status = "405 Method Not Allowed";
+            break;
+        case RequestReadResult::length_required:
+            status = "411 Length Required";
+            break;
+        case RequestReadResult::payload_too_large:
+            status = "413 Payload Too Large";
+            break;
+        case RequestReadResult::request_header_too_large:
+            status = "431 Request Header Fields Too Large";
+            break;
+        case RequestReadResult::transfer_encoding_unsupported:
+            status = "501 Not Implemented";
+            break;
+        case RequestReadResult::http_version_unsupported:
+            status = "505 HTTP Version Not Supported";
+            break;
+        default:
+            break;
+    }
+
+    active_connection_id = connection_id;
+    active_close_after_response = true;
+    std::string response_body = std::string(status) + "\n";
+    dictionary response_header({
+        {"Content-Type", "text/plain"},
+        {"Content-Length", std::to_string(response_body.size())},
+    });
+    SendHTTPHeader(response_header, status);
+    Append(response_body);
+    Flush();
+    active_connection_id = 0;
 }
 
 

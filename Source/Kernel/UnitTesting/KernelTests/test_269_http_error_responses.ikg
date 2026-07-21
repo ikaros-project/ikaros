@@ -1,0 +1,12 @@
+<group internal="true"
+    name="TestHTTPErrorResponses"
+    description="Return explicit HTTP errors for malformed and unsupported requests"
+    start="true"
+    stop="1"
+    check_sum="1034"
+    webui_port="8269"
+    http_ready_path="auth"
+    http_requests="assert_http_error_responses"
+    http_terminate_after_requests="true">
+    <module class="System" name="System" />
+</group>

@@ -322,21 +322,21 @@ def run_http_test(cmd, root):
                 http_output.append("HTTP_BODY_FRAMING consumed")
             elif action == "assert_invalid_http_framing":
                 malformed_requests = [
-                    (
+                    (400,
                         b"PUT /startupsteps HTTP/1.1\r\nHost: 127.0.0.1\r\n"
                         b"Content-Length: 2junk\r\n\r\n{}"
                     ),
-                    (
+                    (400,
                         b"PUT /startupsteps HTTP/1.1\r\nHost: 127.0.0.1\r\n"
                         b"Content-Length: 2\r\nContent-Length: 3\r\n\r\n{}"
                     ),
-                    (
+                    (501,
                         b"PUT /startupsteps HTTP/1.1\r\nHost: 127.0.0.1\r\n"
                         b"Transfer-Encoding: chunked\r\n\r\n2\r\n{}\r\n0\r\n\r\n"
                     ),
-                    b"PUT /startupsteps HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n{}",
+                    (411, b"PUT /startupsteps HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n{}"),
                 ]
-                for malformed in malformed_requests:
+                for expected_status, malformed in malformed_requests:
                     with network_socket.create_connection(("127.0.0.1", int(port)), timeout=2) as client:
                         client.settimeout(2)
                         client.sendall(malformed)
@@ -346,11 +346,49 @@ def run_http_test(cmd, root):
                             if not chunk:
                                 break
                             response.extend(chunk)
-                    if response.startswith(b"HTTP/1.1 200 "):
+                    expected_prefix = f"HTTP/1.1 {expected_status} ".encode("ascii")
+                    if not response.startswith(expected_prefix):
                         raise AssertionError(
-                            f"Malformed HTTP framing was accepted: {malformed!r}"
+                            f"Malformed HTTP framing returned the wrong status: "
+                            f"expected={expected_status}, response={bytes(response)!r}"
                         )
                 http_output.append("INVALID_HTTP_FRAMING rejected")
+            elif action == "assert_http_error_responses":
+                invalid_requests = [
+                    (405, b"POST /startupsteps HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n"),
+                    (400, b"GET\r\n\r\n"),
+                    (400, b"GET /startupsteps HTTP/1.1\r\nInvalid-Header\r\n\r\n"),
+                    (400, b"GET /startupsteps HTTP/1.1\r\n\r\n"),
+                    (505, b"GET /startupsteps HTTP/2\r\nHost: 127.0.0.1\r\n\r\n"),
+                    (
+                        413,
+                        b"PUT /startupsteps HTTP/1.1\r\nHost: 127.0.0.1\r\n"
+                        b"Content-Length: 10485761\r\n\r\n",
+                    ),
+                    (
+                        431,
+                        b"GET /startupsteps HTTP/1.1\r\nHost: 127.0.0.1\r\nX-Large: "
+                        + b"a" * (64 * 1024)
+                        + b"\r\n\r\n",
+                    ),
+                ]
+                for expected_status, invalid_request in invalid_requests:
+                    with network_socket.create_connection(("127.0.0.1", int(port)), timeout=2) as client:
+                        client.settimeout(2)
+                        client.sendall(invalid_request)
+                        response = bytearray()
+                        while True:
+                            chunk = client.recv(4096)
+                            if not chunk:
+                                break
+                            response.extend(chunk)
+                    expected_prefix = f"HTTP/1.1 {expected_status} ".encode("ascii")
+                    if not response.startswith(expected_prefix):
+                        raise AssertionError(
+                            f"Invalid request returned the wrong status: expected={expected_status}, "
+                            f"response={bytes(response[:300])!r}"
+                        )
+                http_output.append("HTTP_ERROR_RESPONSES complete")
             elif action.startswith("assert_json_field:"):
                 _, path, field, expected_json = action.split(":", 3)
 
