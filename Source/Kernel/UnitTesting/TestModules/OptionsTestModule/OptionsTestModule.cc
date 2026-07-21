@@ -88,6 +88,29 @@ namespace
     };
 
 
+    class ScopedCurrentPath
+    {
+    public:
+        explicit ScopedCurrentPath(const std::filesystem::path & path)
+            : old_path_(std::filesystem::current_path())
+        {
+            std::filesystem::current_path(path);
+        }
+
+        ~ScopedCurrentPath()
+        {
+            std::error_code error;
+            std::filesystem::current_path(old_path_, error);
+        }
+
+        ScopedCurrentPath(const ScopedCurrentPath &) = delete;
+        ScopedCurrentPath & operator=(const ScopedCurrentPath &) = delete;
+
+    private:
+        std::filesystem::path old_path_;
+    };
+
+
     void
     require(bool condition, const std::string & message)
     {
@@ -153,6 +176,8 @@ class OptionsTestModule : public Module
         const std::filesystem::path model = files.write("model.ikg", "<group/>");
         const std::filesystem::path second_model = files.write("second.ikg", "<group/>");
         const std::filesystem::path state = files.write("state.json", "{}");
+        const std::filesystem::path dashed_model = files.write("-model.ikg", "<group/>");
+        const std::filesystem::path assignment_model = files.write("model=assignment.ikg", "<group/>");
 
         options direct = configured_options();
         parse(direct, {executable.string()});
@@ -430,6 +455,59 @@ class OptionsTestModule : public Module
                 many_overrides.get("override_0") == "0" &&
                 many_overrides.get("override_99") == "99",
                 "more than 64 command-line arguments were not parsed correctly");
+
+        bool directory_rejected = false;
+        try
+        {
+            options directory_model = configured_options();
+            parse(directory_model, {executable.string(), files.path().string()});
+        }
+        catch(const std::exception & e)
+        {
+            directory_rejected = std::string(e.what()).find("not a regular file") !=
+                                 std::string::npos;
+        }
+        require(directory_rejected, "directory was accepted as a model file");
+
+        {
+            ScopedCurrentPath current_path(files.path());
+
+            options dashed_filename = configured_options();
+            parse(dashed_filename,
+                  {executable.string(), "--", dashed_model.filename().string()});
+            require(std::filesystem::equivalent(dashed_filename.full_path(), dashed_model),
+                    "end-of-options marker did not allow a dashed model filename");
+
+            options assignment_filename = configured_options();
+            parse(assignment_filename,
+                  {executable.string(), "--", assignment_model.filename().string()});
+            require(std::filesystem::equivalent(assignment_filename.full_path(), assignment_model) &&
+                    assignment_filename.explicitly_set.empty(),
+                    "end-of-options marker did not preserve an assignment-like model filename");
+
+            options optional_value_before_marker = configured_options();
+            parse(optional_value_before_marker,
+                  {executable.string(), "-W", state.string(), "--",
+                   dashed_model.filename().string()});
+            require(optional_value_before_marker.get("save_state") == state.string() &&
+                    std::filesystem::equivalent(optional_value_before_marker.full_path(), dashed_model),
+                    "optional-value lookahead failed across the end-of-options marker");
+        }
+
+        bool marker_rejected_as_required_value = false;
+        try
+        {
+            options missing_value_at_marker = configured_options();
+            parse(missing_value_at_marker,
+                  {executable.string(), "-w", "--", model.string()});
+        }
+        catch(const std::exception & e)
+        {
+            marker_rejected_as_required_value =
+                std::string(e.what()).find("\"-w\" requires a value") != std::string::npos;
+        }
+        require(marker_rejected_as_required_value,
+                "end-of-options marker was consumed as a required option value");
 
         std::cout << "OPTIONS TEST OK" << std::endl;
     }

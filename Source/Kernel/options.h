@@ -86,11 +86,19 @@ namespace ikaros {
             ikaros_root = executable_path.parent_path().parent_path().string();
 
             const std::vector<std::string> args(argv+1, argv+argc);
+            bool options_ended = false;
             for(std::size_t i = 0; i < args.size(); ++i)
             {
                 const auto & s = args[i];
+                if(!options_ended && s == "--")
+                {
+                    options_ended = true;
+                    continue;
+                }
+
                 const auto pos = s.find('=');
-                if(pos != std::string::npos && (s.empty() || s.front() != '-'))
+                if(!options_ended && pos != std::string::npos &&
+                   (s.empty() || s.front() != '-'))
                 {
                     if(pos < 1)
                         throw std::runtime_error("Assignment without variable");
@@ -98,7 +106,7 @@ namespace ikaros {
                     const std::string value = parse_assignment_value(name, s.substr(pos + 1));
                     set_explicit_value(name, value);
                 }
-                else if(s.size()>2 && s.front() =='-')
+                else if(!options_ended && s.size()>2 && s.front() =='-')
                 {
                     std::string attr = s.substr(1, 1);
                     if(!full.count(attr))
@@ -110,7 +118,7 @@ namespace ikaros {
                         throw std::runtime_error("\"-"+attr + "\" does not accept an attached value");
                     explicitly_set.insert(option_name);
                 }
-                else if(s.size()>1 && s.front() =='-')
+                else if(!options_ended && s.size()>1 && s.front() =='-')
                 {
                     std::string attr = s.substr(1, 1);
                     if(!full.count(attr))
@@ -130,7 +138,8 @@ namespace ikaros {
                     }
                     else if(requires_value[option_name])
                     {
-                        if(i + 1 >= args.size() || is_registered_option_argument(args[i + 1]))
+                        if(i + 1 >= args.size() || args[i + 1] == "--" ||
+                           is_registered_option_argument(args[i + 1]))
                             throw std::runtime_error("\"-"+attr + "\" requires a value");
                         d[option_name] = args[++i];
                     }
@@ -140,8 +149,12 @@ namespace ikaros {
                 }
                 else
                 {
-                    if (!std::filesystem::exists(s))
-                            throw std::runtime_error("File not found: "+std::string(s));
+                    std::error_code error;
+                    const std::filesystem::file_status status = std::filesystem::status(s, error);
+                    if(error || !std::filesystem::exists(status))
+                        throw std::runtime_error("File not found: " + std::string(s));
+                    if(!std::filesystem::is_regular_file(status))
+                        throw std::runtime_error("Model path is not a regular file: " + std::string(s));
                     if(!filenames.empty())
                         throw std::runtime_error("Only one model file may be specified: \"" +
                                                  filenames.front() + "\" and \"" + s + "\"");
@@ -303,9 +316,18 @@ namespace ikaros {
         bool has_later_positional_argument(const std::vector<std::string> & arguments,
                                            std::size_t start) const
         {
+            bool options_ended = false;
             for(std::size_t i = start; i < arguments.size(); ++i)
             {
                 const std::string & argument = arguments[i];
+                if(!options_ended && argument == "--")
+                {
+                    options_ended = true;
+                    continue;
+                }
+                if(options_ended)
+                    return true;
+
                 if(argument.find('=') != std::string::npos &&
                    !argument.empty() && argument.front() != '-')
                     continue;
