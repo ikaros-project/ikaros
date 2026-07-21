@@ -3,6 +3,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "ikaros.h"
 
@@ -94,6 +95,26 @@ class XMLTestModule : public Module
                 "single-quoted attribute was not parsed");
         require(std::string(quoted_document.xml->GetActualAttribute("double")) == "two",
                 "double-quoted attribute changed while fixing single quotes");
+
+        const std::filesystem::path entities = files.write(
+            "entities.xml",
+            "<root named=\"&amp;&lt;&gt;&quot;&apos;\" decimal=\"&#229;\" hex=\"&#x1F600;\"/>");
+        XMLDocument entity_document(entities.string().c_str());
+        require(std::string(entity_document.xml->GetActualAttribute("named")) == "&<>\"'",
+                "named XML entities were decoded incorrectly");
+        require(std::string(entity_document.xml->GetActualAttribute("decimal")) == "\xC3\xA5",
+                "decimal XML entity was not encoded as UTF-8");
+        require(std::string(entity_document.xml->GetActualAttribute("hex")) == "\xF0\x9F\x98\x80",
+                "hexadecimal XML entity was not encoded as UTF-8");
+
+        const std::vector<std::string> malformed_entities = {
+            "&#0;", "&#xD800;", "&#12junk;", "&#x;", "&unknown;", "&amp",
+        };
+        for(size_t i = 0; i < malformed_entities.size(); ++i)
+            require_parse_failure(
+                files.write("malformed-entity-" + std::to_string(i) + ".xml",
+                            "<root value=\"" + malformed_entities[i] + "\"/>"),
+                "malformed XML entity was accepted");
 
         const std::filesystem::path malformed = files.write(
             "malformed.xml", "<root><child></root>");

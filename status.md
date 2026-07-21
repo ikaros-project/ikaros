@@ -91,7 +91,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 2 | P2 | Standalone XML includes have no effective cycle or depth protection. | Addressed | `Standalone XML includes were bounded and cycle-checked` |
 | 3 | P2 | Top-level XML parsing silently accepts additional roots and trailing non-whitespace content. | Addressed | `Top-level XML structure was validated strictly` |
 | 4 | P2 | Single-quoted XML attributes are rejected because character matching consumes mismatches. | Addressed | `Single-quoted XML attributes were parsed correctly` |
-| 5 | P2 | XML entity decoding is incomplete and accepts malformed or corrupting numeric entities. | Not addressed | — |
+| 5 | P2 | XML entity decoding is incomplete and accepts malformed or corrupting numeric entities. | Addressed | `XML entities were decoded and validated correctly` |
 | 6 | P3 | Duplicate XML attributes are accepted instead of rejected. | Not addressed | — |
 | 7 | P2 | XML parser recursion and element nesting are unbounded. | Not addressed | — |
 | 8 | P3 | Owning XML objects permit unsafe shallow copying. | Not addressed | — |

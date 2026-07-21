@@ -48,6 +48,42 @@ is_xml_whitespace(const char * text)
 }
 
 
+static bool
+is_valid_xml_character(unsigned long code)
+{
+    return code == 0x09 || code == 0x0A || code == 0x0D ||
+           (code >= 0x20 && code <= 0xD7FF) ||
+           (code >= 0xE000 && code <= 0xFFFD) ||
+           (code >= 0x10000 && code <= 0x10FFFF);
+}
+
+
+static void
+append_utf8(std::string & text, unsigned long code)
+{
+    if(code <= 0x7F)
+        text += static_cast<char>(code);
+    else if(code <= 0x7FF)
+    {
+        text += static_cast<char>(0xC0 | (code >> 6));
+        text += static_cast<char>(0x80 | (code & 0x3F));
+    }
+    else if(code <= 0xFFFF)
+    {
+        text += static_cast<char>(0xE0 | (code >> 12));
+        text += static_cast<char>(0x80 | ((code >> 6) & 0x3F));
+        text += static_cast<char>(0x80 | (code & 0x3F));
+    }
+    else
+    {
+        text += static_cast<char>(0xF0 | (code >> 18));
+        text += static_cast<char>(0x80 | ((code >> 12) & 0x3F));
+        text += static_cast<char>(0x80 | ((code >> 6) & 0x3F));
+        text += static_cast<char>(0x80 | (code & 0x3F));
+    }
+}
+
+
 static std::string
 decode_xml_entities(const char * text)
 {
@@ -68,10 +104,7 @@ decode_xml_entities(const char * text)
             ++entity_end;
 
         if(text[entity_end] != ';')
-        {
-            decoded += '&';
-            continue;
-        }
+            throw std::runtime_error("Unterminated XML entity");
 
         std::string entity(text + i + 1, entity_end - i - 1);
         if(entity == "amp")
@@ -86,7 +119,7 @@ decode_xml_entities(const char * text)
             decoded += '\'';
         else if(!entity.empty() && entity[0] == '#')
         {
-            int base = 10;
+            unsigned long base = 10;
             size_t number_pos = 1;
             if(entity.size() > 2 && (entity[1] == 'x' || entity[1] == 'X'))
             {
@@ -94,31 +127,34 @@ decode_xml_entities(const char * text)
                 number_pos = 2;
             }
 
-            try
+            if(number_pos == entity.size())
+                throw std::runtime_error("Empty numeric XML entity");
+
+            unsigned long code = 0;
+            for(; number_pos < entity.size(); ++number_pos)
             {
-                unsigned long code = std::stoul(entity.substr(number_pos), nullptr, base);
-                if(code <= 0x7F)
-                    decoded += static_cast<char>(code);
+                const char c = entity[number_pos];
+                unsigned long digit;
+                if(c >= '0' && c <= '9')
+                    digit = static_cast<unsigned long>(c - '0');
+                else if(base == 16 && c >= 'a' && c <= 'f')
+                    digit = static_cast<unsigned long>(c - 'a' + 10);
+                else if(base == 16 && c >= 'A' && c <= 'F')
+                    digit = static_cast<unsigned long>(c - 'A' + 10);
                 else
-                {
-                    decoded += '&';
-                    decoded += entity;
-                    decoded += ';';
-                }
+                    throw std::runtime_error("Invalid digit in numeric XML entity");
+
+                if(code > (0x10FFFF - digit) / base)
+                    throw std::runtime_error("Numeric XML entity is out of range");
+                code = code * base + digit;
             }
-            catch(const std::exception &)
-            {
-                decoded += '&';
-                decoded += entity;
-                decoded += ';';
-            }
+
+            if(!is_valid_xml_character(code))
+                throw std::runtime_error("Numeric XML entity is not a valid XML character");
+            append_utf8(decoded, code);
         }
         else
-        {
-            decoded += '&';
-            decoded += entity;
-            decoded += ';';
-        }
+            throw std::runtime_error("Unknown XML entity &" + entity + ";");
 
         i = entity_end;
     }
@@ -1100,25 +1136,6 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
 
     owned_c_string value(create_string(buffer));
     
-    int c = 0;
-    int i = 0;
-    
-    while(value[i] != 0)
-    {
-        if(value[i] == '&')
-             if(c++>1)
-                throw "& not allowed in entity";
-        
-        if(value[i] == ';')
-            if(--c < 0)
-                c = 0;
-        
-        i++;
-    }
-
-    if(c != 0)
-        throw "unterminated entity";
-
     std::string decoded_value = decode_xml_entities(value.get());
     owned_c_string decoded(create_string(decoded_value.c_str()));
     std::unique_ptr<XMLAttribute> next(ParseAttribute(element_name, empty));
