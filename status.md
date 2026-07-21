@@ -39,7 +39,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 7 | P2 | HTTP message framing accepts ambiguous lengths and does not consistently consume request bodies. | Addressed | `HTTP request framing was validated strictly` |
 | 8 | P2 | Malformed and unsupported requests can remain open without an HTTP error response. | Addressed | `Invalid HTTP requests received explicit errors` |
 | 9 | P2 | File transfer requires write access, buffers whole files, ignores short reads and send failures, and can expose uninitialized bytes. | Addressed | `File responses were streamed safely` |
-| 10 | P2 | Client `Socket` reuse, failed connection attempts, and short writes can corrupt descriptor ownership or truncate requests. | Not addressed | — |
+| 10 | P2 | Client `Socket` reuse, failed connection attempts, and short writes can corrupt descriptor ownership or truncate requests. | Addressed | `Client socket ownership was made reliable` |
 | 11 | P2 | Unbounded connections can pass descriptors outside the valid `select()` `fd_set` range. | Not addressed | — |
 | 12 | P3 | `ServerSocket` construction and temporary listener flag changes are not exception-safe. | Not addressed | — |
 | 13 | P3 | The socket API exposes fragile state and obsolete declarations, while an unused experimental server remains in the tree. | Not addressed | — |

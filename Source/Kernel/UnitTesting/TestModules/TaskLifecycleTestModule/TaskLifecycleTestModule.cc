@@ -338,3 +338,72 @@ class SocketDeadlineTestModule : public Module
 };
 
 INSTALL_CLASS(SocketDeadlineTestModule)
+
+
+class SocketClientAPITestModule : public Module
+{
+    void Init() override
+    {
+        Socket client(std::chrono::milliseconds(50));
+        if(client.Poll())
+            throw std::runtime_error("Closed Socket reported pending data");
+        if(client.SendRequest(nullptr, 80, "") ||
+           client.SendRequest("127.0.0.1", 0, "") ||
+           client.ReadData(nullptr, 1) != -1)
+            throw std::runtime_error("Socket accepted invalid public API input");
+
+        int listener = ::socket(AF_INET, SOCK_STREAM, 0);
+        if(listener == -1)
+            throw std::system_error(errno, std::system_category(), "Could not create Socket API test listener");
+
+        sockaddr_in address{};
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        address.sin_port = 0;
+        if(bind(listener, reinterpret_cast<sockaddr *>(&address), sizeof(address)) == -1 ||
+           listen(listener, 1) == -1)
+        {
+            int error = errno;
+            close(listener);
+            throw std::system_error(error, std::system_category(), "Could not start Socket API test listener");
+        }
+
+        socklen_t address_size = sizeof(address);
+        if(getsockname(listener, reinterpret_cast<sockaddr *>(&address), &address_size) == -1)
+        {
+            int error = errno;
+            close(listener);
+            throw std::system_error(error, std::system_category(), "Could not inspect Socket API test listener");
+        }
+
+        std::thread server([listener]()
+        {
+            int peer;
+            do
+                peer = accept(listener, nullptr, nullptr);
+            while(peer == -1 && errno == EINTR);
+
+            if(peer != -1)
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(250));
+                close(peer);
+            }
+            close(listener);
+        });
+
+        std::string oversized_request(16 * 1024 * 1024, 'x');
+        bool complete = client.SendRequest("127.0.0.1", ntohs(address.sin_port),
+                                           oversized_request.data(),
+                                           static_cast<long>(oversized_request.size()));
+        client.Close();
+        server.join();
+        if(complete)
+            throw std::runtime_error("Socket accepted a partially written request");
+        if(client.Poll())
+            throw std::runtime_error("Failed Socket retained descriptor ownership");
+
+        Notify(msg_print, "SOCKET_CLIENT_API_OK");
+    }
+};
+
+INSTALL_CLASS(SocketClientAPITestModule)

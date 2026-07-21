@@ -158,9 +158,7 @@ Socket::Socket(std::chrono::milliseconds timeout): timeout_(timeout)
 
 Socket::~Socket()
 {
-    if(sd != -1) 
-        close(sd);
-        sd = -1;
+    Close();
 }
 
 
@@ -168,7 +166,12 @@ Socket::~Socket()
 bool
 Socket::SendRequest(const char * hostname, int port, const char * request, const long size)
 {
-    sd = -1;
+    Close();
+    if(hostname == nullptr || *hostname == '\0' || request == nullptr ||
+       port < 1 || port > 65535 || size < -1)
+        return false;
+
+    size_t request_size = size == -1 ? strlen(request) : static_cast<size_t>(size);
 
     auto resolution = resolve_with_timeout(hostname, port, timeout_);
     if(!resolution || resolution->status != 0 || !resolution->addresses)
@@ -221,21 +224,32 @@ Socket::SendRequest(const char * hostname, int port, const char * request, const
         return false;
 
     auto write_deadline = std::chrono::steady_clock::now() + timeout_;
-    if(!wait_for_socket(sd, false, write_deadline))
+    size_t total_sent = 0;
+    while(total_sent < request_size)
+    {
+        if(!wait_for_socket(sd, false, write_deadline))
+        {
+            Close();
+            return false;
+        }
+
+        ssize_t sent = send(sd, request + total_sent, request_size - total_sent,
+                            MSG_NOSIGNAL);
+        if(sent > 0)
+        {
+            total_sent += static_cast<size_t>(sent);
+            continue;
+        }
+        if(sent == -1 && errno == EINTR)
+            continue;
+        if(sent == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
+            continue;
+
+        Close();
         return false;
-
-    if(size == -1) // default to use size of string
-    {
-        if(write(sd, request, strlen(request)) <0)
-            return false; // cannot send data
-    }
-    else
-    {
-        if(write(sd, request, size) <0)
-            return false; // cannot send data
     }
 
-    return sd != -1;
+    return true;
 }
 
 
@@ -243,6 +257,9 @@ Socket::SendRequest(const char * hostname, int port, const char * request, const
 bool
 Socket::Poll()
 {
+    if(sd == -1)
+        return false;
+
     struct timeval tv;
     fd_set readfds;
     tv.tv_sec = 0;
@@ -266,7 +283,9 @@ Socket::Poll()
 int
 Socket::ReadData(char * result, ssize_t maxlen, bool fill)
 {
-    if(sd == -1)
+    if(sd == -1 || maxlen < 0 || (result == nullptr && maxlen > 0))
+        return -1;
+    if(maxlen == 0)
         return 0;
 	
     const int BUFFER_SIZE = 1024;
