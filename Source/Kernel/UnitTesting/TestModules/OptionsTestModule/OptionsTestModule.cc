@@ -105,6 +105,7 @@ namespace
         result.add_option("W", "save_state", "save state", false, "", true);
         result.add_option("b", "batch_mode", "batch mode");
         result.add_option("h", "help", "show help");
+        result.add_option("s", "stop", "stop tick", true, "-1");
         return result;
     }
 
@@ -312,6 +313,26 @@ class OptionsTestModule : public Module
             port_range_checked = true;
         }
         require(port_range_checked, "out-of-range WebUI port was accepted");
+
+        bool following_option_rejected = false;
+        try
+        {
+            options missing_required_value = configured_options();
+            parse(missing_required_value, {executable.string(), "-w", "-h"});
+        }
+        catch(const std::exception & e)
+        {
+            following_option_rejected = std::string(e.what()).find("\"-w\" requires a value") !=
+                                        std::string::npos;
+        }
+        require(following_option_rejected,
+                "required option consumed the following option as its value");
+
+        options negative_required_value = configured_options();
+        parse(negative_required_value, {executable.string(), "-s", "-1"});
+        require(negative_required_value.get_long("stop") == -1 &&
+                negative_required_value.is_explicitly_set("stop"),
+                "negative required option value was mistaken for another option");
 
         std::cout << "OPTIONS TEST OK" << std::endl;
     }

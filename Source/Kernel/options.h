@@ -107,7 +107,7 @@ namespace ikaros {
                     }
                     else if(requires_value[option_name])
                     {
-                        if(i + 1 >= args.size())
+                        if(i + 1 >= args.size() || is_registered_option_argument(args[i + 1]))
                             throw std::runtime_error("\"-"+attr + "\" requires a value");
                         d[option_name] = args[++i];
                     }
@@ -269,6 +269,12 @@ namespace ikaros {
             else
                 d[name] = value;
             explicitly_set.insert(name);
+        }
+
+        bool is_registered_option_argument(const std::string & argument) const
+        {
+            return argument.size() > 1 && argument.front() == '-' &&
+                   full.count(argument.substr(1, 1));
         }
 
         bool has_later_positional_argument(const std::vector<std::string> & arguments,
