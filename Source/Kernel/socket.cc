@@ -381,9 +381,10 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
     if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
         throw std::system_error(errno, std::system_category(), "Failed to set SO_REUSEADDR");
 
-    // Handle SIGPIPE errors on macOS
+#if defined(SO_NOSIGPIPE)
     if(setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(int)) == -1)
         throw std::system_error(errno, std::system_category(), "Failed to set SO_NOSIGPIPE");
+#endif
 
     // Bind the socket
     if(bind(sockfd, (struct sockaddr *)&(my_addr), sizeof(struct sockaddr)) == -1) 

@@ -33,7 +33,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 1 | P1 | HTTP shutdown races with the request thread while closing descriptors and clearing connection state. | Addressed | `HTTP server shutdown was synchronized` |
 | 2 | P1 | Partial TCP requests are rejected or can block indefinitely depending on accepted-socket behavior. | Addressed | `Partial HTTP requests were handled incrementally` |
 | 3 | P1 | Outbound `Socket` DNS, connection, write, and read operations have no deadlines. | Addressed | `Outbound socket operations received deadlines` |
-| 4 | P1 | The Linux build uses the macOS-only `SO_NOSIGPIPE` socket option unconditionally. | Not addressed | — |
+| 4 | P1 | The Linux build uses the macOS-only `SO_NOSIGPIPE` socket option unconditionally. | Addressed | `Socket SIGPIPE handling became portable` |
 | 5 | P2 | Complete pipelined requests already present in a connection buffer are not processed. | Not addressed | — |
 | 6 | P2 | The keep-alive idle timeout is not enforced while `select()` waits indefinitely. | Not addressed | — |
 | 7 | P2 | HTTP message framing accepts ambiguous lengths and does not consistently consume request bodies. | Not addressed | — |
