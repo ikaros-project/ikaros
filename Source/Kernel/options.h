@@ -2,13 +2,14 @@
 
 #pragma once
 
-#include <string>
+#include <cstdlib>
+#include <filesystem>
+#include <iostream>
 #include <map>
 #include <set>
-#include <vector>
-#include <iostream>
-#include <filesystem>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include "utilities.h"
 
@@ -17,7 +18,7 @@ namespace ikaros {
     class options
     {
     public:
-        std::string ikaros_root;            // Path to binary as indicated in argv
+        std::string ikaros_root;            // Repository or installation root resolved from argv[0]
         std::filesystem::path path_;       // If only one, or empty path if none
         std::vector<std::string> filenames;
         std::map<std::string, std::string> d;
@@ -29,14 +30,22 @@ namespace ikaros {
 
         options() = default;
 
-        void add_option(const std::string & short_name, const std::string & full_name, const std::string & desc, bool takes_value = false, const std::string & default_value = "", bool optional = false)
+        void add_option(const std::string & short_name, const std::string & full_name,
+                        const std::string & desc, bool takes_value = false,
+                        const std::string & default_value = "", bool optional = false,
+                        bool sensitive = false)
         {
             full[short_name] = full_name;
             description[full_name] = desc;
             requires_value[full_name] = takes_value;
             optional_value[full_name] = optional;
             if(!default_value.empty())
+            {
                 d[full_name] = default_value;
+                default_values_[full_name] = default_value;
+            }
+            if(sensitive)
+                sensitive_options_.insert(full_name);
         }
 
 
@@ -47,8 +56,8 @@ namespace ikaros {
             if (argc < 1)
                 throw std::runtime_error("Too few input parameters");
 
-            std::filesystem::path p(argv[0]);
-            ikaros_root = std::filesystem::canonical(p.parent_path().string()+"/..");
+            const std::filesystem::path executable_path = resolve_executable_path(argv[0]);
+            ikaros_root = executable_path.parent_path().parent_path().string();
 
             const std::vector<std::string> args(argv+1, argv+argc);
             for(std::size_t i = 0; i < args.size(); ++i)
@@ -85,7 +94,12 @@ namespace ikaros {
                     std::string option_name = full[attr];
                     if(optional_value[option_name])
                     {
-                        if(i + 2 < args.size() && !args[i + 1].empty() && args[i + 1].front() != '-' && args[i + 1].find('=') == std::string::npos)
+                        const bool model_already_selected = !filenames.empty();
+                        const bool later_model_candidate = has_later_positional_argument(args, i + 2);
+                        if(i + 1 < args.size() &&
+                           (model_already_selected || later_model_candidate) &&
+                           !args[i + 1].empty() && args[i + 1].front() != '-' &&
+                           args[i + 1].find('=') == std::string::npos)
                             d[option_name] = args[++i];
                         else
                             d[option_name] = "";
@@ -104,24 +118,27 @@ namespace ikaros {
                 {
                     if (!std::filesystem::exists(s))
                             throw std::runtime_error("File not found: "+std::string(s));
+                    if(!filenames.empty())
+                        throw std::runtime_error("Only one model file may be specified: \"" +
+                                                 filenames.front() + "\" and \"" + s + "\"");
                     std::filesystem::path filename = std::filesystem::absolute(s).lexically_normal();
                     filenames.push_back(filename.string());
-                    path_ = filename; // TEST ME
+                    path_ = filename;
                 }
             }
         }
 
 
-        void print_help() const
+        void print_help(std::ostream & output = std::cout) const
         {
-            std::cout << "usage: ikaros [options] [variable=value] [filename]\n";
-            std::cout << "\tCommand line options:\n";
+            output << "usage: ikaros [options] [variable=value] [filename]\n";
+            output << "\tCommand line options:\n";
             for(const auto & [short_name, option_name] : full)
             {
-                std::cout << "\t-"<< short_name << " (" << option_name << "): " << description.at(option_name);
-                if(d.count(option_name))
-                    std::cout << " [" << d.at(option_name) << "]"; 
-                std::cout << '\n';
+                output << "\t-"<< short_name << " (" << option_name << "): " << description.at(option_name);
+                if(default_values_.count(option_name) && !sensitive_options_.count(option_name))
+                    output << " [" << default_values_.at(option_name) << "]";
+                output << '\n';
             }
         }
 
@@ -187,6 +204,92 @@ namespace ikaros {
                 return parse_double(d.at(o));
             else
                 return 0;
+        }
+
+    private:
+        std::map<std::string, std::string> default_values_;
+        std::set<std::string> sensitive_options_;
+
+        bool has_later_positional_argument(const std::vector<std::string> & arguments,
+                                           std::size_t start) const
+        {
+            for(std::size_t i = start; i < arguments.size(); ++i)
+            {
+                const std::string & argument = arguments[i];
+                if(argument.find('=') != std::string::npos &&
+                   !argument.empty() && argument.front() != '-')
+                    continue;
+
+                if(argument.size() > 1 && argument.front() == '-')
+                {
+                    if(argument.size() == 2)
+                    {
+                        const std::string short_name = argument.substr(1, 1);
+                        auto option = full.find(short_name);
+                        if(option != full.end() && requires_value.at(option->second) &&
+                           !optional_value.at(option->second) && i + 1 < arguments.size())
+                            ++i;
+                    }
+                    continue;
+                }
+
+                return true;
+            }
+            return false;
+        }
+
+        static std::filesystem::path canonical_executable(const std::filesystem::path & candidate)
+        {
+            std::error_code error;
+            std::filesystem::path resolved = std::filesystem::canonical(candidate, error);
+            if(error || !std::filesystem::is_regular_file(resolved, error) || error)
+                return {};
+            return resolved;
+        }
+
+        static std::filesystem::path resolve_executable_path(const char * argv0)
+        {
+            if(argv0 == nullptr || argv0[0] == 0)
+                throw std::runtime_error("Could not determine the Ikaros executable path");
+
+            const std::filesystem::path argument(argv0);
+            if(argument.has_parent_path())
+            {
+                const std::filesystem::path resolved = canonical_executable(argument);
+                if(!resolved.empty())
+                    return resolved;
+            }
+            else
+            {
+                const char * path_value = std::getenv("PATH");
+                if(path_value != nullptr)
+                {
+                    const std::string search_path(path_value);
+                    std::size_t start = 0;
+                    while(start <= search_path.size())
+                    {
+                        const std::size_t separator = search_path.find(':', start);
+                        const std::string directory = search_path.substr(
+                            start, separator == std::string::npos ? std::string::npos : separator - start);
+                        const std::filesystem::path candidate =
+                            (directory.empty() ? std::filesystem::current_path() : std::filesystem::path(directory)) /
+                            argument;
+                        const std::filesystem::path resolved = canonical_executable(candidate);
+                        if(!resolved.empty())
+                            return resolved;
+                        if(separator == std::string::npos)
+                            break;
+                        start = separator + 1;
+                    }
+                }
+
+                const std::filesystem::path resolved = canonical_executable(argument);
+                if(!resolved.empty())
+                    return resolved;
+            }
+
+            throw std::runtime_error("Could not resolve the Ikaros executable path \"" +
+                                     std::string(argv0) + "\"");
         }
 
     };

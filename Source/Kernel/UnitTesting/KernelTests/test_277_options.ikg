@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestOptions"
+    description="Test command-line option parsing and executable path resolution"
+    start="true"
+    stop="1"
+    check_sum="12"
+    expected_output_contains="OPTIONS TEST OK">
+    <module class="OptionsTestModule" name="Options" />
+</group>

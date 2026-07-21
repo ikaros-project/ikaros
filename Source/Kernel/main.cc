@@ -34,7 +34,8 @@ namespace
         o.add_option("u", "user_data", "alternative directory for user data files", true);
         o.add_option("w", "webui_port", "port for ikaros WebUI", true, "8000");
         o.add_option("B", "bind_address", "bind WebUI/API server to a specific IPv4 address, for example 127.0.0.1", true);
-        o.add_option("a", "auth_password", "enable optional WebUI/API authentication using the provided password", true);
+        o.add_option("a", "auth_password", "enable optional WebUI/API authentication using the provided password",
+                     true, "", false, true);
         o.add_option("A", "agent", "set the agent identifier included in remote session logging", true);
         o.add_option("H", "hide_toolbar", "hide the WebUI top toolbar and breadcrumbs on startup");
         o.add_option("L", "load_state", "load persistent state after model setup; bare -L uses the model name with .state extension", false, "", true);
