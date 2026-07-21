@@ -342,8 +342,17 @@ namespace ikaros {
 
         bool is_registered_option_argument(const std::string & argument) const
         {
-            return argument.size() > 1 && argument.front() == '-' &&
-                   full.count(argument.substr(1, 1));
+            if(argument.size() <= 1 || argument.front() != '-')
+                return false;
+
+            auto registered = full.find(argument.substr(1, 1));
+            if(registered == full.end())
+                return false;
+            if(argument.size() == 2)
+                return true;
+
+            const std::string & option_name = registered->second;
+            return requires_value.at(option_name) || optional_value.at(option_name);
         }
 
         bool has_later_positional_argument(const std::vector<std::string> & arguments,

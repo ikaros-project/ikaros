@@ -434,6 +434,27 @@ class OptionsTestModule : public Module
         require(following_option_rejected,
                 "required option consumed the following option as its value");
 
+        options dash_prefixed_required_value = configured_options();
+        parse(dash_prefixed_required_value,
+              {executable.string(), "-a", "-banana"});
+        require(dash_prefixed_required_value.get("auth_password") == "-banana",
+                "dash-prefixed required value was mistaken for an invalid Boolean option");
+
+        bool attached_following_option_rejected = false;
+        try
+        {
+            options missing_value_before_attached_option = configured_options();
+            parse(missing_value_before_attached_option,
+                  {executable.string(), "-a", "-w9000"});
+        }
+        catch(const std::exception & e)
+        {
+            attached_following_option_rejected =
+                std::string(e.what()).find("\"-a\" requires a value") != std::string::npos;
+        }
+        require(attached_following_option_rejected,
+                "required option consumed a following attached option as its value");
+
         options negative_required_value = configured_options();
         parse(negative_required_value, {executable.string(), "-s", "-1"});
         require(negative_required_value.get_long("stop") == -1 &&
