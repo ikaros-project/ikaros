@@ -65,8 +65,9 @@ class ServerSocket
 		{
 			int					fd = -1;
 			std::string			input_buffer;
-			std::string			output_buffer;
-			std::chrono::steady_clock::time_point last_activity = std::chrono::steady_clock::now();
+				std::string			output_buffer;
+				std::chrono::steady_clock::time_point last_activity = std::chrono::steady_clock::now();
+				bool				awaiting_more_input = false;
 			};
 
 		explicit ServerSocket(int port=PORTNO, const std::string & bind_address="");		// Create server socket on port

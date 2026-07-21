@@ -213,6 +213,51 @@ def run_http_test(cmd, root):
                         f"Split HTTP request failed: {bytes(response[:200])!r}"
                     )
                 http_output.append("SPLIT_HTTP_REQUEST complete")
+            elif action.startswith("assert_pipelined_http_requests:"):
+                _, path = action.split(":", 1)
+                request_text = (
+                    f"GET {path} HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n"
+                    f"GET {path} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n"
+                ).encode("ascii")
+                with network_socket.create_connection(("127.0.0.1", int(port)), timeout=2) as client:
+                    client.settimeout(2)
+                    client.sendall(request_text)
+                    response = bytearray()
+                    while True:
+                        chunk = client.recv(4096)
+                        if not chunk:
+                            break
+                        response.extend(chunk)
+
+                response_offset = 0
+                for response_number in range(2):
+                    header_end = response.find(b"\r\n\r\n", response_offset)
+                    if header_end == -1:
+                        raise AssertionError(
+                            f"Missing pipelined response {response_number + 1}: {bytes(response)!r}"
+                        )
+                    header = bytes(response[response_offset:header_end])
+                    if not header.startswith(b"HTTP/1.1 200 "):
+                        raise AssertionError(
+                            f"Pipelined response {response_number + 1} failed: {header!r}"
+                        )
+                    content_length = None
+                    for line in header.split(b"\r\n")[1:]:
+                        key, separator, value = line.partition(b":")
+                        if separator and key.lower() == b"content-length":
+                            content_length = int(value.strip())
+                            break
+                    if content_length is None:
+                        raise AssertionError(
+                            f"Pipelined response {response_number + 1} has no Content-Length"
+                        )
+                    response_offset = header_end + 4 + content_length
+
+                if response_offset != len(response):
+                    raise AssertionError(
+                        f"Unexpected trailing pipelined response bytes: {bytes(response[response_offset:])!r}"
+                    )
+                http_output.append("PIPELINED_HTTP_REQUESTS complete")
             elif action.startswith("assert_json_field:"):
                 _, path, field, expected_json = action.split(":", 3)
 

@@ -451,7 +451,8 @@ ServerSocket::Poll(bool block)
         throw std::system_error(error, std::system_category(), "Failed to make accepted socket nonblocking");
     }
 
-    connections.emplace(next_connection_id++, ConnectionState{accepted_fd, {}, {}, std::chrono::steady_clock::now()});
+    connections.emplace(next_connection_id++,
+                        ConnectionState{accepted_fd, {}, {}, std::chrono::steady_clock::now(), false});
     return true;
 }
 
@@ -559,6 +560,8 @@ ServerSocket::QueueRequest(bool block)
         {
             if(read_result == RequestReadResult::closed)
                 CloseConnection(connection_id);
+            else if(ConnectionState * connection = ConnectionFor(connection_id))
+                connection->awaiting_more_input = true;
             if(!block)
                 return false;
             continue;
@@ -1042,6 +1045,16 @@ ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
 
         CloseIdleConnections();
 
+        for(const auto & [id, connection] : connections)
+        {
+            if(!connection.awaiting_more_input &&
+               connection.input_buffer.find("\r\n\r\n") != std::string::npos)
+            {
+                connection_id = id;
+                return true;
+            }
+        }
+
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(sockfd, &readfds);
@@ -1103,10 +1116,11 @@ ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
             }
         }
 
-        for(const auto & [id, connection] : connections)
+        for(auto & [id, connection] : connections)
         {
             if(connection.fd != -1 && FD_ISSET(connection.fd, &readfds))
             {
+                connection.awaiting_more_input = false;
                 connection_id = id;
                 return true;
             }
