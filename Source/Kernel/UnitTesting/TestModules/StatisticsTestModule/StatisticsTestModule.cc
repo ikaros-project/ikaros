@@ -104,6 +104,16 @@ class StatisticsTestModule: public Module
         require_close(online_varied.skewness(), varied.skewness(), "online skewness matches batch");
         require_close(online_varied.kurtosis(), varied.kurtosis(), "online kurtosis matches batch");
 
+        const statistics::order_summary order = varied.summarize_order();
+        require_close(order.lower_fence, -10.5, "summary lower fence");
+        require_close(order.lower_whisker, 0.0, "summary lower whisker");
+        require_close(order.q1, 0.75, "summary first quartile");
+        require_close(order.median, 3.0, "summary median");
+        require_close(order.q3, 8.25, "summary third quartile");
+        require_close(order.upper_whisker, 9.0, "summary upper whisker");
+        require_close(order.upper_fence, 19.5, "summary upper fence");
+        require_close(order.interquartile_range, 7.5, "summary interquartile range");
+
         online_statistics reset;
         reset.push(100.0);
         reset.push(-100.0);

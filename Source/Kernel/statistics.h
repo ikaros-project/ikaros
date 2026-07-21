@@ -15,6 +15,18 @@ class statistics
 {
 public:
 
+    struct order_summary
+    {
+        double lower_fence = std::numeric_limits<double>::quiet_NaN();
+        double lower_whisker = std::numeric_limits<double>::quiet_NaN();
+        double q1 = std::numeric_limits<double>::quiet_NaN();
+        double median = std::numeric_limits<double>::quiet_NaN();
+        double q3 = std::numeric_limits<double>::quiet_NaN();
+        double upper_whisker = std::numeric_limits<double>::quiet_NaN();
+        double upper_fence = std::numeric_limits<double>::quiet_NaN();
+        double interquartile_range = std::numeric_limits<double>::quiet_NaN();
+    };
+
     statistics()
     {
         //std::cout << "statistics ctor" << std::endl;
@@ -50,15 +62,7 @@ public:
 
     double median() const
     {
-        const std::size_t n = data_.size();
-        if (n == 0) 
-            return nan_();
-            
-        std::vector<double> v = data_;
-        std::sort(v.begin(), v.end());
-        if (n & 1) 
-            return v[n/2];
-        return midpoint_(v[n/2 - 1], v[n/2]);
+        return summarize_order().median;
     }
 
     double quantile(double q) const
@@ -77,71 +81,66 @@ public:
 
         std::vector<double> v = data_;
         std::sort(v.begin(), v.end());
-
-        const double pos = q * static_cast<double>(n - 1);
-        const std::size_t lower = static_cast<std::size_t>(std::floor(pos));
-        const std::size_t upper = static_cast<std::size_t>(std::ceil(pos));
-        const double fraction = pos - static_cast<double>(lower);
-
-        if (lower == upper)
-            return v[lower];
-
-        return interpolate_(v[lower], v[upper], fraction);
+        return quantile_sorted_(v, q);
     }
 
     double q1() const
     {
-        return quantile(0.25);
+        return summarize_order().q1;
     }
 
     double q3() const
     {
-        return quantile(0.75);
+        return summarize_order().q3;
     }
 
     double interquartile_range() const
     {
-        if (data_.empty())
-            return nan_();
-        return q3() - q1();
+        return summarize_order().interquartile_range;
     }
 
     double lower_fence() const
     {
-        if (data_.empty())
-            return nan_();
-        return q1() - 1.5 * interquartile_range();
+        return summarize_order().lower_fence;
     }
 
     double upper_fence() const
     {
-        if (data_.empty())
-            return nan_();
-        return q3() + 1.5 * interquartile_range();
+        return summarize_order().upper_fence;
     }
 
     double lower_whisker() const
     {
-        if (data_.empty())
-            return nan_();
-
-        std::vector<double> v = data_;
-        std::sort(v.begin(), v.end());
-        const double fence = lower_fence();
-        auto it = std::lower_bound(v.begin(), v.end(), fence);
-        return it == v.end() ? v.front() : *it;
+        return summarize_order().lower_whisker;
     }
 
     double upper_whisker() const
     {
+        return summarize_order().upper_whisker;
+    }
+
+    order_summary summarize_order() const
+    {
         if (data_.empty())
-            return nan_();
+            return {};
 
         std::vector<double> v = data_;
         std::sort(v.begin(), v.end());
-        const double fence = upper_fence();
-        auto it = std::upper_bound(v.begin(), v.end(), fence);
-        return it == v.begin() ? v.front() : *(it - 1);
+
+        order_summary result;
+        result.q1 = quantile_sorted_(v, 0.25);
+        result.median = quantile_sorted_(v, 0.5);
+        result.q3 = quantile_sorted_(v, 0.75);
+        result.interquartile_range = result.q3 - result.q1;
+        result.lower_fence = result.q1 - 1.5 * result.interquartile_range;
+        result.upper_fence = result.q3 + 1.5 * result.interquartile_range;
+
+        const auto lower = std::lower_bound(v.begin(), v.end(), result.lower_fence);
+        result.lower_whisker = lower == v.end() ? v.front() : *lower;
+
+        const auto upper = std::upper_bound(v.begin(), v.end(), result.upper_fence);
+        result.upper_whisker = upper == v.begin() ? v.front() : *(upper - 1);
+        return result;
     }
 
     const std::vector<double> & data() const noexcept
@@ -274,6 +273,23 @@ private:
         if (std::signbit(a) != std::signbit(b))
             return a * (1.0 - fraction) + b * fraction;
         return a + (b - a) * fraction;
+    }
+
+    static double quantile_sorted_(const std::vector<double> & values, double q) noexcept
+    {
+        if (q <= 0.0)
+            return values.front();
+        if (q >= 1.0)
+            return values.back();
+
+        const double position = q * static_cast<double>(values.size() - 1);
+        const std::size_t lower = static_cast<std::size_t>(std::floor(position));
+        const std::size_t upper = static_cast<std::size_t>(std::ceil(position));
+        if (lower == upper)
+            return values[lower];
+
+        return interpolate_(values[lower], values[upper],
+                            position - static_cast<double>(lower));
     }
 
     long double mean_ld_() const noexcept {
