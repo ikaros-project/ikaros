@@ -32,6 +32,7 @@ inline constexpr bool XML_DEBUG = false;
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -181,31 +182,33 @@ inline constexpr int initial_buffer_size = 16768;
 class XMLDocument
 {
 public:
-    FILE *	f;
-    int		line;
-    int		character;
-    bool	debug_mode;
-    char	* buffer;
-    long    buffer_size;
-    int		pos;
+    FILE *	f = nullptr;
+    int		line = 1;
+    int		character = 1;
+    bool	debug_mode = XML_DEBUG;
+    char	* buffer = nullptr;
+    long    buffer_size = 0;
+    int		pos = 0;
 
-    const char *	action;
-    int				action_line;
+    const char *	action = "";
+    int				action_line = 0;
 
-    char 	errbuf[1024];
+    char 	errbuf[1024]{};
 
-    XMLElement * xml;
-    XMLNode * prolog;
+    XMLElement * xml = nullptr;
+    XMLNode * prolog = nullptr;
     std::filesystem::path filename_;
     std::filesystem::path base_dir_;
     std::vector<std::filesystem::path> include_roots_;
     std::vector<std::filesystem::path> include_stack_;
-    int include_depth_;
+    int include_depth_ = 0;
 
     XMLDocument(const char * filename, bool included = false);
     XMLDocument(const char * filename, bool included, const std::vector<std::filesystem::path> & include_roots);
     XMLDocument(const char * filename, bool included, const std::vector<std::filesystem::path> & include_roots, const std::vector<std::filesystem::path> & include_stack, int include_depth);
     ~XMLDocument();
+
+    XMLElement * ReleaseXML() noexcept;
 
     bool		Match(const char c, bool skip=true);
     bool		Match(const char * s, bool skip=true);
@@ -233,4 +236,9 @@ public:
     XMLNode *	Parse(XMLNode * parent);
 
     void		Print(FILE * f);
+
+private:
+    std::unique_ptr<char[]> buffer_storage_;
+    std::unique_ptr<XMLElement> xml_storage_;
+    std::unique_ptr<XMLNode> prolog_storage_;
 };

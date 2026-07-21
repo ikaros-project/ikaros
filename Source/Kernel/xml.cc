@@ -12,6 +12,7 @@
 
 
 static constexpr int max_xml_include_depth = 32;
+using owned_c_string = std::unique_ptr<char[]>;
 
 
 static char *
@@ -377,12 +378,19 @@ XMLElement::SetAttribute(const char * attribute_name, const char * value)
     for (XMLAttribute * a = attributes; a != nullptr; a = (XMLAttribute *)(a->next))
         if (!strcmp(a->name, attribute_name))
         {
+			owned_c_string new_value(create_string(value));
 			destroy_string(a->value);
-			a->value = create_string(value);
+			a->value = new_value.release();
 			return;
 		}
-	
-	attributes = new XMLAttribute(create_string(attribute_name), create_string(value), '\"', attributes);
+
+    owned_c_string new_name(create_string(attribute_name));
+    owned_c_string new_value(create_string(value));
+    std::unique_ptr<XMLAttribute> new_attribute(
+        new XMLAttribute(new_name.get(), new_value.get(), '\"', attributes));
+    new_name.release();
+    new_value.release();
+	attributes = new_attribute.release();
 	if(attributes->next != nullptr)
 		attributes->next->prev = attributes;
 	attributes->parent = this;
@@ -486,9 +494,6 @@ XMLDocument::XMLDocument(const char * filename, bool included, const std::vector
 
 XMLDocument::XMLDocument(const char * filename, bool included, const std::vector<std::filesystem::path> & include_roots, const std::vector<std::filesystem::path> & include_stack, int include_depth)
 {
-    debug_mode = XML_DEBUG;
-    action = "";
-    action_line = 0;
     include_depth_ = include_depth;
 
     std::error_code ec;
@@ -520,56 +525,61 @@ XMLDocument::XMLDocument(const char * filename, bool included, const std::vector
         include_stack_.push_back(filename_);
     }
 
-    f = fopen(filename, "rb");
-
-    if (f == nullptr)
+    std::unique_ptr<FILE, decltype(&fclose)> input(fopen(filename, "rb"), &fclose);
+    if(input == nullptr)
     {
         printf("XML: Could not open \"%s\".\n", filename);
         throw std::runtime_error("File not found");
     }
+    f = input.get();
     
     // allocate buffer
     
     buffer_size = initial_buffer_size;
-    buffer = new char [buffer_size];
-
-    line = 1;
-    character = 1;
+    buffer_storage_ = std::make_unique<char[]>(buffer_size);
+    buffer = buffer_storage_.get();
 
     try
     {
-        prolog = Parse(nullptr);
-		if (prolog == nullptr)
-			throw "File is empty";
-        prolog->SetPrev(nullptr);
+        std::unique_ptr<XMLNode> parsed(Parse(nullptr));
+			if (parsed == nullptr)
+				throw "File is empty";
+        parsed->SetPrev(nullptr);
         
         // Find root
 
-        XMLNode * xml_node = prolog;
+        XMLNode * xml_node = parsed.get();
         while(!xml_node->IsElement())
         {
             if(xml_node->next == nullptr)
                 throw "XML contains no root element";
             xml_node = xml_node->next;
         }
-        xml = (XMLElement *)xml_node;
+        XMLElement * root = static_cast<XMLElement *>(xml_node);
 
         // Disconnect prolog before root element
         
-        if(xml->prev != nullptr)
-            xml->prev->next = nullptr;
-        xml->prev = nullptr;
+        if(root->prev != nullptr)
+            root->prev->next = nullptr;
+        root->prev = nullptr;
         
-        if(prolog == xml)
-            prolog = nullptr;
+        if(parsed.get() == root)
+            parsed.release();
+
+        std::unique_ptr<XMLElement> parsed_root(root);
             
         // Delete data after root (should never have been parsed)
         
         if(!included)
         {
-            delete xml->next;
-            xml->next = nullptr;
+            delete parsed_root->next;
+            parsed_root->next = nullptr;
         }
+
+        prolog_storage_ = std::move(parsed);
+        prolog = prolog_storage_.get();
+        xml_storage_ = std::move(parsed_root);
+        xml = xml_storage_.get();
     }
     catch (const char * msg)
     {
@@ -582,12 +592,10 @@ XMLDocument::XMLDocument(const char * filename, bool included, const std::vector
 
         if (action_line != 0)
         {
-            fclose(f);
             throw ikaros::exception(std::string(msg)+ " at line "+std::to_string(line)+" position "+std::to_string(character)+" while "+std::string(action)+" at line "+std::to_string(action_line));
         }
         else
         {
-            fclose(f);
             throw ikaros::exception(std::string(msg)+ " at line "+std::to_string(line)+" position "+std::to_string(character));
         }
         // exit(1);
@@ -600,22 +608,25 @@ XMLDocument::XMLDocument(const char * filename, bool included, const std::vector
         else
             printf("\n");
 
-        fclose(f);
         if (action_line != 0)
             throw ikaros::exception(std::string(e.what())+ " at line "+std::to_string(line)+" position "+std::to_string(character)+" while "+std::string(action)+" at line "+std::to_string(action_line));
         else
             throw ikaros::exception(std::string(e.what())+ " at line "+std::to_string(line)+" position "+std::to_string(character));
     }
 
-    fclose(f);
+    f = nullptr;
 }
 
 
 
-XMLDocument::~XMLDocument()
+XMLDocument::~XMLDocument() = default;
+
+
+XMLElement *
+XMLDocument::ReleaseXML() noexcept
 {
-    delete xml;
-    delete prolog;
+    xml = nullptr;
+    return xml_storage_.release();
 }
 
 
@@ -712,12 +723,12 @@ XMLDocument::Push(const char * t, int n)
     while (pos + n + 1 > buffer_size)
     {
         // grow buffer size
-        
-        char * old_buffer = buffer;
-        buffer = new char [buffer_size + 16768];
-        memcpy(buffer, old_buffer, buffer_size);
+
+        std::unique_ptr<char[]> new_buffer = std::make_unique<char[]>(buffer_size + 16768);
+        memcpy(new_buffer.get(), buffer, buffer_size);
         buffer_size += 16768;
-        delete [] old_buffer;
+        buffer_storage_ = std::move(new_buffer);
+        buffer = buffer_storage_.get();
     }
 
     for (int i=0; i<n; i++)
@@ -895,27 +906,30 @@ XMLDocument::ParseIncludedFile(XMLNode * parent)
     if(include_filename.empty())
         throw std::runtime_error("XML include filename is empty");
 
-    XMLDocument * xml_doc = nullptr;
+    std::unique_ptr<XMLDocument> xml_doc;
     if(include_roots_.empty())
     {
         std::filesystem::path resolved_filename(include_filename);
         if(resolved_filename.is_relative())
             resolved_filename = base_dir_ / resolved_filename;
-        xml_doc = new XMLDocument(resolved_filename.string().c_str(), true);
+        xml_doc = std::make_unique<XMLDocument>(resolved_filename.string().c_str(), true);
     }
     else
     {
         std::filesystem::path resolved_filename = ResolveIncludedFilename(include_filename);
-        xml_doc = new XMLDocument(resolved_filename.string().c_str(), true, include_roots_, include_stack_, include_depth_+1);
+        xml_doc = std::make_unique<XMLDocument>(resolved_filename.string().c_str(), true,
+                                                include_roots_, include_stack_, include_depth_+1);
     }
-    
-    XMLNode * final_node = xml_doc->xml;
+
+    std::unique_ptr<XMLNode> included_xml(xml_doc->ReleaseXML());
+    XMLNode * final_node = included_xml.get();
     while(final_node->next)
         final_node = final_node->next;
-    
-    final_node->next = Parse(parent);
-    
-    return xml_doc->xml;
+
+    std::unique_ptr<XMLNode> remainder(Parse(parent));
+    final_node->next = remainder.release();
+
+    return included_xml.release();
 }
 
 
@@ -925,16 +939,22 @@ XMLDocument::ParseProcessingInstruction(XMLNode * parent)
 {
     SetAction("parsing procesing instruction");
     PushName("N<");
-    char * name = create_string(buffer);
+    owned_c_string name(create_string(buffer));
 
     if (pos == 0) throw "Valid character for processing instruction name expected";
 
     PushUntil("PI", "?>");
-    char * content = create_string(buffer);
+    owned_c_string content(create_string(buffer));
 
     Skip("PI", 2);
 
-    return new XMLProcessingInstruction(name, content, Parse(parent));
+    std::unique_ptr<XMLNode> next(Parse(parent));
+    std::unique_ptr<XMLProcessingInstruction> instruction(
+        new XMLProcessingInstruction(name.get(), content.get(), next.get()));
+    name.release();
+    content.release();
+    next.release();
+    return instruction.release();
 }
 
 
@@ -943,9 +963,13 @@ XMLNode *
 XMLDocument::ParseComment(XMLNode * parent)
 {
     SetAction("parsing comment");
-    char * text = create_string(PushUntil("CM", "-->"));
+    owned_c_string text(create_string(PushUntil("CM", "-->")));
     Skip("CO", 3);
-    return new XMLComment(text, Parse(parent));
+    std::unique_ptr<XMLNode> next(Parse(parent));
+    std::unique_ptr<XMLComment> comment(new XMLComment(text.get(), next.get()));
+    text.release();
+    next.release();
+    return comment.release();
 }
 
 
@@ -973,10 +997,14 @@ XMLNode *
 XMLDocument::ParseCDATA(XMLNode * parent) // Return character data with CDATA tag
 {
     SetAction("parsing CDATA");
-    char * text = create_string(PushUntil("CD", "]]>"));
+    owned_c_string text(create_string(PushUntil("CD", "]]>")));
     PushUntil("CD", "]]>");
     Skip("CD", 3);
-    return new XMLCharacterData(text, true, Parse(parent));
+    std::unique_ptr<XMLNode> next(Parse(parent));
+    std::unique_ptr<XMLCharacterData> node(new XMLCharacterData(text.get(), true, next.get()));
+    text.release();
+    next.release();
+    return node.release();
 }
 
 
@@ -985,9 +1013,15 @@ XMLNode *
 XMLDocument::ParseCharacterData(XMLNode * parent)
 {
     SetAction("parsing character data");
-    char * s = create_string(PushUntil("DA", "<"));
-    if(s)
-        return new XMLCharacterData(s, false, Parse(parent));
+    owned_c_string text(create_string(PushUntil("DA", "<")));
+    if(text)
+    {
+        std::unique_ptr<XMLNode> next(Parse(parent));
+        std::unique_ptr<XMLCharacterData> node(new XMLCharacterData(text.get(), false, next.get()));
+        text.release();
+        next.release();
+        return node.release();
+    }
     else
         return Parse(parent); // ** experimental **
 }
@@ -1021,7 +1055,7 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
         throw errbuf;
     }
 
-    char * name = create_string(PushName("AT"));
+    owned_c_string name(create_string(PushName("AT")));
     if (name == nullptr) throw "Attribute not found";
 
     // Check that attribute does not already exist ***
@@ -1042,7 +1076,7 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
     if (Match('<')) throw "< not allowed in attribute value";
     Match(q);
 
-    char * value = create_string(buffer);
+    owned_c_string value(create_string(buffer));
     
     int c = 0;
     int i = 0;
@@ -1063,10 +1097,15 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
     if(c != 0)
         throw "unterminated entity";
 
-    std::string decoded_value = decode_xml_entities(value);
-    destroy_string(value);
-
-    return new XMLAttribute(name, create_string(decoded_value.c_str()), q[0], ParseAttribute(element_name, empty));
+    std::string decoded_value = decode_xml_entities(value.get());
+    owned_c_string decoded(create_string(decoded_value.c_str()));
+    std::unique_ptr<XMLAttribute> next(ParseAttribute(element_name, empty));
+    std::unique_ptr<XMLAttribute> attribute(
+        new XMLAttribute(name.get(), decoded.get(), q[0], next.get()));
+    name.release();
+    decoded.release();
+    next.release();
+    return attribute.release();
 }
 
 
@@ -1075,16 +1114,26 @@ void
 XMLAttribute::RemoveDuplicates()
 {
     for (XMLAttribute * a = this; a != nullptr; a = (XMLAttribute *)(a->next))
-        for (XMLAttribute * b = (XMLAttribute *)(a->next); b != nullptr; b = (XMLAttribute *)(b->next))
+    {
+        XMLAttribute * b = static_cast<XMLAttribute *>(a->next);
+        while(b != nullptr)
+        {
+            XMLAttribute * next = static_cast<XMLAttribute *>(b->next);
             if(!strcmp(a->name, b->name) && a != b)
             {
                 printf("WARNING: Redefined attribute. Will use %s = \"%s\".\n", a->name, a->value);
-                
+
                 if(b->prev != nullptr)
-                    b->prev->next = (XMLAttribute *)(b->next);
+                    b->prev->next = b->next;
                 if(b->next != nullptr)
-                    b->next->prev = (XMLAttribute *)(b->prev);
-             }
+                    b->next->prev = b->prev;
+                b->prev = nullptr;
+                b->next = nullptr;
+                delete b;
+            }
+            b = next;
+        }
+    }
 }
 
 
@@ -1095,43 +1144,56 @@ XMLDocument::ParseElement(XMLNode * parent)
     SetAction("parsing element");
     int start_line = line;
     PushName("N<");
-    char * name = create_string(buffer);
+    owned_c_string name(create_string(buffer));
 
     if (pos == 0) throw "Valid character for tag name expected";
 
     bool empty = false;
-    XMLAttribute * attributes = ParseAttribute(name, empty);
+    std::unique_ptr<XMLAttribute> attributes(ParseAttribute(name.get(), empty));
 
     if(attributes)
     {
         attributes->SetPrev(nullptr);
         attributes->RemoveDuplicates();
     }
-    if (empty) return new XMLElement(parent, name, attributes, true, nullptr, Parse(parent));
+    if(empty)
+    {
+        std::unique_ptr<XMLNode> next(Parse(parent));
+        std::unique_ptr<XMLElement> element(
+            new XMLElement(parent, name.get(), attributes.get(), true, nullptr, next.get()));
+        name.release();
+        attributes.release();
+        next.release();
+        return element.release();
+    }
 
-    XMLElement * e = new XMLElement(parent, name, attributes, false);
-    XMLNode * content = Parse(e);
-    e->content = content;
+    std::unique_ptr<XMLElement> element(new XMLElement(parent, name.get(), attributes.get(), false));
+    name.release();
+    attributes.release();
+    std::unique_ptr<XMLNode> content(Parse(element.get()));
+    element->content = content.release();
 
     if (!Match("</"))
     {
-        snprintf(errbuf, 1024, "End tag </%s> expected", name);
+        snprintf(errbuf, 1024, "End tag </%s> expected", element->name);
         throw errbuf;
     }
 
     PushName("N>");
 
-    if (strcmp(name, buffer))
+    if (strcmp(element->name, buffer))
     {
-        snprintf(errbuf, 1024, "Start tag <%s> at line %d does not match end tag </%s>", name, start_line, buffer);
+        snprintf(errbuf, 1024, "Start tag <%s> at line %d does not match end tag </%s>",
+                 element->name, start_line, buffer);
         throw errbuf;
     }
 
     PushUntil("ET", ">");
     Skip("ET", 1);
 
-    e->next =  Parse(parent);
-    return e;
+    std::unique_ptr<XMLNode> next(Parse(parent));
+    element->next = next.release();
+    return element.release();
 }
 
 
