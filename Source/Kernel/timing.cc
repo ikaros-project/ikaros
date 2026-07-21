@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <iostream>
 #include <iomanip>
 #include <ctime>
@@ -83,31 +84,41 @@ CPUUsageFraction(double cpu_time_delta, double wall_time_delta, int cpu_cores)
 }
 
 
-std::string TimeString(double time)
+std::string
+TimeString(double time)
 {
-    if(time < 0)
-        return "--:--:--.---";
+    constexpr const char * invalid_time = "--:--:--.---";
+    constexpr std::uint64_t maximum_formatted_milliseconds = std::uint64_t{1} << 62;
 
-    int days = time / 86400;
-    time -= (double(days) * 86400.0);
+    if(!std::isfinite(time) || time < 0)
+        return invalid_time;
 
-    int hours = time / 3600;
-    time -= (double(hours) * 3600.0);
+    const long double rounded_milliseconds =
+        std::round(static_cast<long double>(time) * 1000.0L);
+    if(!std::isfinite(rounded_milliseconds) ||
+       rounded_milliseconds > static_cast<long double>(maximum_formatted_milliseconds))
+        return invalid_time;
 
-    int minutes = time / 60;
-    double seconds = time - (double(minutes) * 60.0);
+    std::uint64_t remaining = static_cast<std::uint64_t>(rounded_milliseconds);
+    const std::uint64_t days = remaining / 86400000;
+    remaining %= 86400000;
+    const std::uint64_t hours = remaining / 3600000;
+    remaining %= 3600000;
+    const std::uint64_t minutes = remaining / 60000;
+    remaining %= 60000;
+    const std::uint64_t seconds = remaining / 1000;
+    const std::uint64_t milliseconds = remaining % 1000;
 
-    std::ostringstream oss;
-    if (days > 0)
-        oss << days << " " << std::setw(2) << std::setfill('0') << hours << ":"
-            << std::setw(2) << std::setfill('0') << minutes << ":"
-            << std::fixed << std::setprecision(3) << seconds;
-    else
-        oss << std::setw(2) << std::setfill('0') << hours << ":"
-            << std::setw(2) << std::setfill('0') << minutes << ":"
-            << std::fixed << std::setprecision(3) << seconds;
+    std::ostringstream out;
+    if(days > 0)
+        out << days << " ";
+    out << std::setfill('0')
+        << std::setw(2) << hours << ":"
+        << std::setw(2) << minutes << ":"
+        << std::setw(2) << seconds << "."
+        << std::setw(3) << milliseconds;
 
-    return oss.str();
+    return out.str();
 }
 
 
@@ -129,11 +140,18 @@ GetTimeStamp()
 std::string 
 GetClockTimeString()
 {
-    auto t = std::time(nullptr);
-    auto tm = *std::localtime(&t);
-    std::ostringstream oss;
-    oss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
-    return oss.str();
+    const std::time_t time = std::time(nullptr);
+    std::tm local_time{};
+#if defined(_WIN32)
+    if(localtime_s(&local_time, &time) != 0)
+#else
+    if(localtime_r(&time, &local_time) == nullptr)
+#endif
+        throw std::runtime_error("Could not convert the current time to local time");
+
+    std::ostringstream out;
+    out << std::put_time(&local_time, "%Y-%m-%d %H:%M:%S");
+    return out.str();
 }
 
 

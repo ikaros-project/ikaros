@@ -1,6 +1,6 @@
 <group internal="true"
     name="TestTimerSynchronization"
-    description="Test synchronized, precise, and validated Timer operations"
+    description="Test synchronized Timer operations and thread-safe time formatting"
     start="true"
     stop="1"
     check_sum="12"

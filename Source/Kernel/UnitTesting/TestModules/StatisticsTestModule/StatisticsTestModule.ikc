@@ -1,1 +1,1 @@
-<class internal="true" name="StatisticsTestModule" description="Tests batch and online descriptive statistics" />
+<class internal="true" name="StatisticsTestModule" description="Tests descriptive statistics and profiler lifecycle" />

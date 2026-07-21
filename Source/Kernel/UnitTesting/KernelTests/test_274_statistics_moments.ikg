@@ -1,6 +1,6 @@
 <group internal="true"
     name="TestStatisticsMoments"
-    description="Test batch and online descriptive statistics"
+    description="Test descriptive statistics and profiler lifecycle"
     start="true"
     stop="1"
     check_sum="12"

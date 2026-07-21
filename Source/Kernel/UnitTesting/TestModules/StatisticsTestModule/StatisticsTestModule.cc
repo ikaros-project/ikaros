@@ -1,8 +1,10 @@
+#include <atomic>
 #include <cmath>
 #include <initializer_list>
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <utility>
 
 #include "ikaros.h"
@@ -49,6 +51,22 @@ namespace
             function();
         }
         catch (const std::invalid_argument &)
+        {
+            return;
+        }
+        throw exception("StatisticsTestModule: " + message);
+    }
+
+
+    template<typename Function>
+    void
+    require_logic_error(Function function, const std::string & message)
+    {
+        try
+        {
+            function();
+        }
+        catch (const std::logic_error &)
         {
             return;
         }
@@ -199,6 +217,34 @@ class StatisticsTestModule: public Module
         if (profiler.history_limit() != 3 ||
             profiler.json().find("\"count\": 3") == std::string::npos)
             throw exception("StatisticsTestModule: profiler history is not bounded");
+
+        Profiler lifecycle;
+        require_logic_error([&lifecycle] { lifecycle.end(); },
+                            "profiler accepted an unmatched end");
+        lifecycle.begin();
+        require_logic_error([&lifecycle] { lifecycle.begin(); },
+                            "profiler accepted a nested begin");
+
+        std::atomic<bool> cross_thread_end_rejected{false};
+        std::thread other_thread([&lifecycle, &cross_thread_end_rejected]
+        {
+            try
+            {
+                lifecycle.end();
+            }
+            catch(const std::logic_error &)
+            {
+                cross_thread_end_rejected = true;
+            }
+        });
+        other_thread.join();
+        if(!cross_thread_end_rejected || !lifecycle.running())
+            throw exception("StatisticsTestModule: profiler accepted a cross-thread end");
+
+        lifecycle.end();
+        if(lifecycle.running() ||
+           lifecycle.json().find("\"count\": 1") == std::string::npos)
+            throw exception("StatisticsTestModule: valid profiler sample was not recorded");
 
         std::cout << "STATISTICS TEST OK" << std::endl;
     }

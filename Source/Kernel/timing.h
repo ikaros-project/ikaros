@@ -12,7 +12,7 @@
 // All parameters are time in seconds represented by a double
 // Timer setters and waits reject non-finite values and values outside the steady-clock range.
 
-[[nodiscard]] std::string TimeString(double time);    // Convert double time to formatted string
+[[nodiscard]] std::string TimeString(double time);    // Format as [days ]HH:MM:SS.mmm; invalid values use placeholders
 [[nodiscard]] long        GetTimeStamp();             // Get long representation of clock time
 [[nodiscard]] std::string GetClockTimeString();       // Get string representation of clock time
 [[nodiscard]] double      CPUUsageFraction(double cpu_time_delta, double wall_time_delta, int cpu_cores);

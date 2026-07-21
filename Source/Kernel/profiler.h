@@ -7,7 +7,9 @@
 #include <iomanip>
 #include <mutex>
 #include <sstream>
+#include <stdexcept>
 #include <string>
+#include <thread>
 
 #include "statistics.h"
 
@@ -40,6 +42,7 @@ public:
         cpu_duration_sec_ = 0.0;
         wall_start_ = clock::time_point{};
         cpu_start_sec_ = 0.0;
+        running_thread_ = std::thread::id{};
 
         wall_time_.reset();
         cpu_time_.reset();
@@ -48,31 +51,58 @@ public:
     void 
     begin() 
     {
-        const auto wall_start = clock::now();
-        const double cpu_start_sec = thread_cpu_seconds();
-
         std::lock_guard<std::mutex> lock(mutex_);
+        if(running_)
+            throw std::logic_error("Profiler::begin() called while a sample is already active");
+
+        const double cpu_start_sec = thread_cpu_seconds();
         running_ = true;
-        wall_start_ = wall_start;
+        wall_start_ = clock::now();
         cpu_start_sec_ = cpu_start_sec;
+        running_thread_ = std::this_thread::get_id();
     }
 
     void 
     end() 
     {
-        const auto wall_end = clock::now();
-        const double cpu_end_sec = thread_cpu_seconds();
-
         std::lock_guard<std::mutex> lock(mutex_);
-        if (!running_)
-            return;
+        if(!running_)
+            throw std::logic_error("Profiler::end() called without an active sample");
+        if(running_thread_ != std::this_thread::get_id())
+            throw std::logic_error("Profiler::end() must run on the thread that called begin()");
+
+        const auto wall_end = clock::now();
+        double cpu_end_sec;
+        try
+        {
+            cpu_end_sec = thread_cpu_seconds();
+        }
+        catch(...)
+        {
+            cancel_active_sample();
+            throw;
+        }
+
+        if(wall_end < wall_start_ || cpu_end_sec < cpu_start_sec_)
+        {
+            cancel_active_sample();
+            throw std::runtime_error("Profiler clock moved backwards during a sample");
+        }
 
         wall_duration_ = wall_end - wall_start_;
         cpu_duration_sec_ = cpu_end_sec - cpu_start_sec_;
 
-        wall_time_.push(std::chrono::duration<double>(wall_duration_).count());
-        cpu_time_.push(cpu_duration_sec_);
-        running_ = false;
+        try
+        {
+            wall_time_.push(std::chrono::duration<double>(wall_duration_).count());
+            cpu_time_.push(cpu_duration_sec_);
+        }
+        catch(...)
+        {
+            cancel_active_sample();
+            throw;
+        }
+        cancel_active_sample();
     }
 
     // Results (in seconds)
@@ -104,21 +134,20 @@ public:
     void print(const std::string & msg="") const
     {
         const Snapshot data = snapshot();
+        std::ostringstream out;
 
         if (!msg.empty())
-            std::cout << msg << "\t";
+            out << msg << "\t";
 
         if(data.cpu_time.no_data())
         {
-            std::cout << "-\n";
+            std::cout << out.str() << "-\n";
             return;
         }
-    
-        std::cout << std::fixed << std::setprecision(4) << 1000 * data.cpu_time.mean() << " ms\n";
 
-       // std::cout << " [" << wall_time_.count() << "] ";
-        //std::cout << "Wall: " << wall_seconds() << " s (mean: " << wall_time_.mean() << " s, sd: " << wall_time_.standard_deviation() << " s) ";
-       // std::cout << "CPU: " << cpu_seconds() << " s (mean: " << cpu_time_.mean() << " s, sd: " << cpu_time_.standard_deviation() << " s)" << std::endl;
+        out << std::fixed << std::setprecision(4)
+            << 1000 * data.cpu_time.mean() << " ms\n";
+        std::cout << out.str();
     }
 
     [[nodiscard]]
@@ -151,6 +180,13 @@ private:
     };
 
     static double thread_cpu_seconds();
+
+    void
+    cancel_active_sample() noexcept
+    {
+        running_ = false;
+        running_thread_ = std::thread::id{};
+    }
 
     Snapshot
     snapshot() const
@@ -190,6 +226,7 @@ private:
     clock::duration   wall_duration_{};
     double            cpu_start_sec_{0.0};
     double            cpu_duration_sec_{0.0};
+    std::thread::id    running_thread_{};
 
     statistics wall_time_;
     statistics cpu_time_;

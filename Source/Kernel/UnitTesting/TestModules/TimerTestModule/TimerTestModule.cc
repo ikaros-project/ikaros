@@ -1,9 +1,11 @@
 #include <atomic>
+#include <cctype>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "ikaros.h"
 
@@ -20,6 +22,32 @@ namespace
             throw exception("TimerTestModule: " + message +
                             " (expected " + std::to_string(expected) +
                             ", got " + std::to_string(actual) + ")");
+    }
+
+
+    void
+    require_equal(const std::string & actual,
+                  const std::string & expected,
+                  const std::string & message)
+    {
+        if(actual != expected)
+            throw exception("TimerTestModule: " + message +
+                            " (expected \"" + expected + "\", got \"" + actual + "\")");
+    }
+
+
+    bool
+    valid_clock_time(const std::string & value)
+    {
+        if(value.size() != 19 || value[4] != '-' || value[7] != '-' ||
+           value[10] != ' ' || value[13] != ':' || value[16] != ':')
+            return false;
+
+        for(std::size_t i = 0; i < value.size(); ++i)
+            if(i != 4 && i != 7 && i != 10 && i != 13 && i != 16 &&
+               !std::isdigit(static_cast<unsigned char>(value[i])))
+                return false;
+        return true;
     }
 
 
@@ -44,6 +72,38 @@ class TimerTestModule : public Module
 {
     void Init() override
     {
+        require_equal(TimeString(0.0), "00:00:00.000", "zero time formatting");
+        require_equal(TimeString(1.2344), "00:00:01.234", "millisecond time formatting");
+        require_equal(TimeString(59.9996), "00:01:00.000", "minute rollover formatting");
+        require_equal(TimeString(3599.9996), "01:00:00.000", "hour rollover formatting");
+        require_equal(TimeString(86399.9996), "1 00:00:00.000", "day rollover formatting");
+        require_equal(TimeString(-1.0), "--:--:--.---", "negative time formatting");
+        require_equal(TimeString(std::numeric_limits<double>::quiet_NaN()),
+                      "--:--:--.---", "NaN time formatting");
+        require_equal(TimeString(std::numeric_limits<double>::infinity()),
+                      "--:--:--.---", "infinite time formatting");
+
+        std::atomic<bool> clock_strings_valid{true};
+        std::vector<std::thread> clock_threads;
+        for(int thread = 0; thread < 4; ++thread)
+            clock_threads.emplace_back([&clock_strings_valid]()
+            {
+                try
+                {
+                    for(int i = 0; i < 1000; ++i)
+                        if(!valid_clock_time(GetClockTimeString()))
+                            clock_strings_valid = false;
+                }
+                catch(...)
+                {
+                    clock_strings_valid = false;
+                }
+            });
+        for(auto & thread : clock_threads)
+            thread.join();
+        if(!clock_strings_valid)
+            throw exception("TimerTestModule: concurrent clock formatting failed");
+
         Timer precise;
         precise.Pause();
         precise.SetPauseTime(0.0005);
