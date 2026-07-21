@@ -726,14 +726,15 @@ base64_encode(const unsigned char * data, size_t size)
     bool 
     prime::test(long n)
     {
-        if (n <= 1) return false;
-        if (n <= 3) 
-            return true;
-        if (n % 2 == 0 || n % 3 == 0) 
+        if(n <= 1)
             return false;
-        for (int i = 5; i * i <= n; i += 6)
+        if(n <= 3)
+            return true;
+        if(n % 2 == 0 || n % 3 == 0)
+            return false;
+        for(long divisor = 5; divisor <= n / divisor; divisor += 6)
         {
-            if (n % i == 0 || n % (i + 2) == 0) 
+            if(n % divisor == 0 || n % (divisor + 2) == 0)
                 return false;
         }
         return true;
@@ -743,11 +744,16 @@ base64_encode(const unsigned char * data, size_t size)
     long 
     prime::next()
     {
-
+        if(last_prime == std::numeric_limits<long>::max())
+            throw std::overflow_error("No larger prime can be represented as long.");
         long candidate = last_prime + 1;
 
         while(!test(candidate))
+        {
+            if(candidate == std::numeric_limits<long>::max())
+                throw std::overflow_error("No larger prime can be represented as long.");
             candidate++;
+        }
 
         last_prime = candidate;
         return last_prime;
@@ -757,8 +763,12 @@ base64_encode(const unsigned char * data, size_t size)
     character_sum(const std::string & s)
     {
         long sum = 0;
-        for(char c : s)
-            sum += c;
+        for(unsigned char byte : s)
+        {
+            if(sum > std::numeric_limits<long>::max() - byte)
+                throw std::overflow_error("Character sum cannot be represented as long.");
+            sum += byte;
+        }
         return sum;
     }
 

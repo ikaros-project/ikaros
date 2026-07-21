@@ -207,6 +207,30 @@ public:
                 rejects_empty_delimiter([]() { static_cast<void>(peek_rtail("value", "")); }),
                 "delimiter helpers did not reject empty delimiters consistently");
 
+        prime prime_number;
+        require(prime_number.next() == 2 && prime_number.next() == 3 && prime_number.next() == 5,
+                "prime sequence returned incorrect values");
+        require(prime_number.test(2147483647L) && !prime_number.test(2147483646L),
+                "primality testing failed beyond the safe int multiplication range");
+        prime_number.last_prime = std::numeric_limits<long>::max();
+        bool rejected_prime_overflow = false;
+        try
+        {
+            static_cast<void>(prime_number.next());
+        }
+        catch(const std::overflow_error &)
+        {
+            rejected_prime_overflow = true;
+        }
+        require(rejected_prime_overflow, "prime sequence overflow was not rejected");
+
+        const std::string non_ascii_bytes = {
+            static_cast<char>(0x80),
+            static_cast<char>(0xFF),
+        };
+        require(character_sum("ABC") == 198 && character_sum(non_ascii_bytes) == 383,
+                "character sums were not based on unsigned byte values");
+
         std::cout << "UTILITIES TEST OK\n";
     }
 };

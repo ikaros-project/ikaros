@@ -109,7 +109,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 5 | P3 | `cut_head()` is publicly declared but has no linkable implementation. | Addressed | `The cut-head utility received its missing implementation` |
 | 6 | P3 | Diagnostic attribute printing ignores indentation and mishandles item limits. | Addressed | `Diagnostic attribute printing honored layout limits` |
 | 7 | P3 | String delimiter helpers narrow positions to `int` and handle empty delimiters inconsistently. | Addressed | `Delimiter utilities used safe positions and rejected empty delimiters` |
-| 8 | P3 | Prime and character-sum checksum helpers can overflow or vary with platform `char` signedness. | Not addressed | — |
+| 8 | P3 | Prime and character-sum checksum helpers can overflow or vary with platform `char` signedness. | Addressed | `Checksum helpers avoided overflow and signed-character drift` |
 | 9 | P3 | Obsolete utility APIs are unused, inefficient, or have misleading semantics. | Not addressed | — |
 | 10 | P2/P3 | Utility tests are not integrated with the normal checksum-based kernel suite and cover little behavior. | Not addressed | — |
 
