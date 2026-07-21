@@ -554,24 +554,3 @@ private:
     std::size_t mode_count_ = 0;
     double mode_value_ = std::numeric_limits<double>::quiet_NaN();
 };
-
-
-// Example usage:
-
-/*
-
-    statistics S;
-    for (double x : {1.0, 2.0, 2.0, 3.0, 4.0}) S.push(x);
-
-    std::cout << "n = " << S.count() << "\n";
-    std::cout << "mean = " << S.mean() << "\n";
-    std::cout << "median = " << S.median() << "\n";
-    std::cout << "mode = " << S.mode() << "\n";
-    std::cout << "min = " << S.min() << "\n";
-    std::cout << "max = " << S.max() << "\n";
-    std::cout << "variance = " << S.variance() << "\n";
-    std::cout << "stddev = " << S.standard_deviation() << "\n";
-    std::cout << "skewness = " << S.skewness() << "\n";
-    std::cout << "kurtosis(excess) = " << S.kurtosis() << "\n" ;
-
-    */

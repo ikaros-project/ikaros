@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "ikaros.h"
+#include "StatisticsStandaloneTests.h"
 
 using namespace ikaros;
 
@@ -83,6 +84,15 @@ class StatisticsTestModule: public Module
 {
     void Init() override
     {
+        try
+        {
+            statistics_test::run_standalone_tests();
+        }
+        catch (const std::exception & error)
+        {
+            throw exception("StatisticsTestModule: " + std::string(error.what()));
+        }
+
         const statistics skewed = make_statistics<statistics>({1.0, 1.0, 2.0});
         const online_statistics online_skewed = make_statistics<online_statistics>({1.0, 1.0, 2.0});
         require_close(skewed.skewness(), std::sqrt(3.0), "batch corrected skewness");

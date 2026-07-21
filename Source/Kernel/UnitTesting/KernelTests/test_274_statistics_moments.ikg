@@ -1,6 +1,6 @@
 <group internal="true"
     name="TestStatisticsMoments"
-    description="Test corrected batch and online skewness and kurtosis"
+    description="Test batch and online descriptive statistics"
     start="true"
     stop="1"
     check_sum="12"
