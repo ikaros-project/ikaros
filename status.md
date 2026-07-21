@@ -95,7 +95,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 6 | P3 | Duplicate XML attributes are accepted instead of rejected. | Addressed | `Duplicate XML attributes were rejected` |
 | 7 | P2 | XML parser recursion and element nesting are unbounded. | Addressed | `XML parser recursion and nesting were bounded` |
 | 8 | P3 | Owning XML objects permit unsafe shallow copying. | Addressed | `Owning XML objects rejected shallow copying` |
-| 9 | P3 | `XMLNode::Disconnect()` corrupts sibling or element list invariants. | Not addressed | — |
+| 9 | P3 | `XMLNode::Disconnect()` corrupts sibling or element list invariants. | Addressed | `XML node disconnection preserved list invariants` |
 | 10 | P3 | XML errors print directly and lose filenames or include-chain context. | Not addressed | — |
 
 ## Status meanings

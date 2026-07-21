@@ -219,10 +219,27 @@ XMLNode *
 XMLNode::Disconnect()
 {
     if(prev != nullptr)
+    {
+        if(prev->next != this)
+            throw std::logic_error("Cannot disconnect an XML node from an inconsistent sibling list");
         prev->next = next;
+    }
     else if(parent != nullptr)
-        ((XMLElement *)parent)->content = next;
-    
+    {
+        XMLElement * owner = dynamic_cast<XMLElement *>(parent);
+        if(owner == nullptr)
+            throw std::logic_error("Cannot disconnect an XML node with a non-element parent");
+        if(owner->content == this)
+            owner->content = next;
+        else if(owner->attributes == this)
+            owner->attributes = static_cast<XMLAttribute *>(next);
+        else
+            throw std::logic_error("Cannot disconnect an XML node that is not linked from its parent");
+    }
+
+    if(next != nullptr)
+        next->prev = prev;
+
     parent = nullptr;
     prev = nullptr;
     next = nullptr;
@@ -325,6 +342,10 @@ XMLElement::XMLElement(XMLNode * p, char * nm, XMLAttribute * a, bool e) :
     empty = e;
     content = nullptr;
     next = nullptr;
+    for(XMLAttribute * attribute = attributes;
+        attribute != nullptr;
+        attribute = static_cast<XMLAttribute *>(attribute->next))
+        attribute->parent = this;
 }
 
 
@@ -338,6 +359,12 @@ XMLElement::XMLElement(XMLNode * p, char * nm, XMLAttribute * a, bool e, XMLNode
     empty = e;
     content = c;
     next = n;
+    for(XMLAttribute * attribute = attributes;
+        attribute != nullptr;
+        attribute = static_cast<XMLAttribute *>(attribute->next))
+        attribute->parent = this;
+    for(XMLNode * node = content; node != nullptr; node = node->next)
+        node->parent = this;
 }
 
 
@@ -1002,8 +1029,13 @@ XMLDocument::ParseIncludedFile(XMLNode * parent)
 
     std::unique_ptr<XMLNode> included_xml(xml_doc->ReleaseXML());
     XMLNode * final_node = included_xml.get();
-    while(final_node->next)
+    while(final_node != nullptr)
+    {
+        final_node->parent = parent;
+        if(final_node->next == nullptr)
+            break;
         final_node = final_node->next;
+    }
 
     std::unique_ptr<XMLNode> remainder(Parse(parent));
     final_node->next = remainder.release();

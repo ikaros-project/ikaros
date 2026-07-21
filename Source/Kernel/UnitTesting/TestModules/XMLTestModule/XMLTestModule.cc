@@ -130,6 +130,33 @@ class XMLTestModule : public Module
                                           "<root value=\"one\" value=\"two\"/>"),
                               "duplicate XML attribute was accepted");
 
+        const std::filesystem::path disconnect = files.write(
+            "disconnect.xml", "<root first=\"1\" second=\"2\"><one/><two/><three/></root>");
+        XMLDocument disconnect_document(disconnect.string().c_str());
+        XMLElement * root = disconnect_document.xml;
+        XMLNode * one = root->content;
+        XMLNode * two = one->next;
+        XMLNode * three = two->next;
+        {
+            std::unique_ptr<XMLNode> detached(two->Disconnect());
+            require(one->next == three && three->prev == one,
+                    "disconnecting a middle node broke sibling links");
+            require(detached->parent == nullptr && detached->prev == nullptr && detached->next == nullptr,
+                    "detached middle node retained tree links");
+        }
+        {
+            std::unique_ptr<XMLNode> detached(one->Disconnect());
+            require(root->content == three && three->prev == nullptr,
+                    "disconnecting the first content node did not update its parent");
+        }
+        XMLAttribute * first_attribute = root->attributes;
+        XMLAttribute * second_attribute = static_cast<XMLAttribute *>(first_attribute->next);
+        {
+            std::unique_ptr<XMLNode> detached(first_attribute->Disconnect());
+            require(root->attributes == second_attribute && second_attribute->prev == nullptr,
+                    "disconnecting the first attribute did not update its parent");
+        }
+
         const std::filesystem::path malformed = files.write(
             "malformed.xml", "<root><child></root>");
         for(int i = 0; i < 32; ++i)
