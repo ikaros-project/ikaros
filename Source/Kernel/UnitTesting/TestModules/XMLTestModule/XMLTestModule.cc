@@ -116,6 +116,10 @@ class XMLTestModule : public Module
                             "<root value=\"" + malformed_entities[i] + "\"/>"),
                 "malformed XML entity was accepted");
 
+        require_parse_failure(files.write("duplicate-attribute.xml",
+                                          "<root value=\"one\" value=\"two\"/>"),
+                              "duplicate XML attribute was accepted");
+
         const std::filesystem::path malformed = files.write(
             "malformed.xml", "<root><child></root>");
         for(int i = 0; i < 32; ++i)

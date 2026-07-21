@@ -1153,26 +1153,11 @@ void
 XMLAttribute::RemoveDuplicates()
 {
     for (XMLAttribute * a = this; a != nullptr; a = (XMLAttribute *)(a->next))
-    {
-        XMLAttribute * b = static_cast<XMLAttribute *>(a->next);
-        while(b != nullptr)
-        {
-            XMLAttribute * next = static_cast<XMLAttribute *>(b->next);
+        for(XMLAttribute * b = static_cast<XMLAttribute *>(a->next);
+            b != nullptr;
+            b = static_cast<XMLAttribute *>(b->next))
             if(!strcmp(a->name, b->name) && a != b)
-            {
-                printf("WARNING: Redefined attribute. Will use %s = \"%s\".\n", a->name, a->value);
-
-                if(b->prev != nullptr)
-                    b->prev->next = b->next;
-                if(b->next != nullptr)
-                    b->next->prev = b->prev;
-                b->prev = nullptr;
-                b->next = nullptr;
-                delete b;
-            }
-            b = next;
-        }
-    }
+                throw std::runtime_error("Duplicate XML attribute \"" + std::string(a->name) + "\"");
 }
 
 
