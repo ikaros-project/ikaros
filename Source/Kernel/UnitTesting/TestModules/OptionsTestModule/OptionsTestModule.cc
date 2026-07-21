@@ -509,6 +509,59 @@ class OptionsTestModule : public Module
         require(marker_rejected_as_required_value,
                 "end-of-options marker was consumed as a required option value");
 
+        options reusable = configured_options();
+        parse(reusable,
+              {executable.string(), "-w", "9001", "old_override=old", model.string()});
+        parse(reusable, {executable.string(), "-h", second_model.string()});
+        require(reusable.get("webui_port") == "8000" &&
+                !reusable.is_explicitly_set("webui_port") &&
+                reusable.get("old_override").empty() &&
+                reusable.is_set("help") &&
+                reusable.filenames.size() == 1 &&
+                reusable.full_path() == second_model.string(),
+                "successful parser reuse retained state from the previous parse");
+
+        options transactional = configured_options();
+        parse(transactional,
+              {executable.string(), "-w", "9001", "kept=value", model.string()});
+        bool failed_reparse = false;
+        try
+        {
+            parse(transactional,
+                  {executable.string(), "-w", "9002", "discarded=value",
+                   second_model.string(), model.string()});
+        }
+        catch(const std::exception &)
+        {
+            failed_reparse = true;
+        }
+        require(failed_reparse &&
+                transactional.get("webui_port") == "9001" &&
+                transactional.get("kept") == "value" &&
+                transactional.get("discarded").empty() &&
+                transactional.filenames.size() == 1 &&
+                transactional.full_path() == model.string(),
+                "failed parser reuse did not preserve the previous valid state");
+
+        options pristine_failure = configured_options();
+        bool initial_parse_failed = false;
+        try
+        {
+            parse(pristine_failure,
+                  {executable.string(), "-w", "9002", model.string(), second_model.string()});
+        }
+        catch(const std::exception &)
+        {
+            initial_parse_failed = true;
+        }
+        require(initial_parse_failed &&
+                pristine_failure.get("webui_port") == "8000" &&
+                pristine_failure.explicitly_set.empty() &&
+                pristine_failure.filenames.empty() &&
+                pristine_failure.full_path().empty() &&
+                pristine_failure.ikaros_root.empty(),
+                "failed initial parse left partial state behind");
+
         std::cout << "OPTIONS TEST OK" << std::endl;
     }
 };

@@ -10,6 +10,7 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "utilities.h"
@@ -79,6 +80,21 @@ namespace ikaros {
 
         void parse_args(int argc, char *argv[])
         {
+            options previous_state = *this;
+            struct ParseRollback
+            {
+                options * target;
+                options * previous;
+                bool committed = false;
+
+                ~ParseRollback() noexcept
+                {
+                    if(!committed)
+                        *target = std::move(*previous);
+                }
+            } rollback{this, &previous_state};
+
+            reset_parse_state();
             if (argc < 1)
                 throw std::runtime_error("Too few input parameters");
 
@@ -163,6 +179,7 @@ namespace ikaros {
                     path_ = filename;
                 }
             }
+            rollback.committed = true;
         }
 
 
@@ -272,6 +289,15 @@ namespace ikaros {
         std::map<std::string, std::string> default_values_;
         std::set<std::string> sensitive_options_;
         std::set<std::string> boolean_options_;
+
+        void reset_parse_state()
+        {
+            ikaros_root.clear();
+            path_.clear();
+            filenames.clear();
+            d = default_values_;
+            explicitly_set.clear();
+        }
 
         std::string parse_assignment_value(const std::string & name,
                                            const std::string & value) const
