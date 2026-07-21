@@ -12,7 +12,29 @@
 
 
 static constexpr int max_xml_include_depth = 32;
+static constexpr int max_xml_parse_depth = 8192;
+static constexpr int max_xml_element_depth = 256;
 using owned_c_string = std::unique_ptr<char[]>;
+
+
+class XMLDepthGuard
+{
+public:
+    XMLDepthGuard(int & depth, int maximum, const char * message) : depth_(depth)
+    {
+        if(depth_ >= maximum)
+            throw std::runtime_error(message);
+        ++depth_;
+    }
+
+    ~XMLDepthGuard()
+    {
+        --depth_;
+    }
+
+private:
+    int & depth_;
+};
 
 
 static char *
@@ -1182,6 +1204,8 @@ XMLDocument::ParseElement(XMLNode * parent)
     }
     if(empty)
     {
+        if(element_depth_ >= max_xml_element_depth)
+            throw std::runtime_error("Maximum XML element nesting depth exceeded");
         std::unique_ptr<XMLNode> next(Parse(parent));
         std::unique_ptr<XMLElement> element(
             new XMLElement(parent, name.get(), attributes.get(), true, nullptr, next.get()));
@@ -1194,8 +1218,12 @@ XMLDocument::ParseElement(XMLNode * parent)
     std::unique_ptr<XMLElement> element(new XMLElement(parent, name.get(), attributes.get(), false));
     name.release();
     attributes.release();
-    std::unique_ptr<XMLNode> content(Parse(element.get()));
-    element->content = content.release();
+    {
+        XMLDepthGuard element_depth(element_depth_, max_xml_element_depth,
+                                    "Maximum XML element nesting depth exceeded");
+        std::unique_ptr<XMLNode> content(Parse(element.get()));
+        element->content = content.release();
+    }
 
     if (!Match("</"))
     {
@@ -1225,6 +1253,9 @@ XMLDocument::ParseElement(XMLNode * parent)
 XMLNode *
 XMLDocument::Parse(XMLNode * parent)
 {
+    XMLDepthGuard parse_depth(parse_depth_, max_xml_parse_depth,
+                              "Maximum XML parser recursion depth exceeded");
+
     if (feof(f))
         return nullptr;
 

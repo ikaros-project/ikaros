@@ -241,4 +241,6 @@ private:
     std::unique_ptr<char[]> buffer_storage_;
     std::unique_ptr<XMLElement> xml_storage_;
     std::unique_ptr<XMLNode> prolog_storage_;
+    int parse_depth_ = 0;
+    int element_depth_ = 0;
 };

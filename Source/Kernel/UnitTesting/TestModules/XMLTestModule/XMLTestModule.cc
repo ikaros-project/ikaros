@@ -145,6 +145,21 @@ class XMLTestModule : public Module
         require_parse_failure(files.write("trailing-content.xml", "<root/>text"),
                               "non-whitespace content after the root was accepted");
 
+        std::string nested;
+        for(int i = 0; i < 257; ++i)
+            nested += "<level>";
+        for(int i = 0; i < 257; ++i)
+            nested += "</level>";
+        require_parse_failure(files.write("too-deep.xml", nested),
+                              "excessively nested XML document was accepted");
+
+        std::string too_many_nodes = "<root>";
+        for(int i = 0; i < 8192; ++i)
+            too_many_nodes += "<node/>";
+        too_many_nodes += "</root>";
+        require_parse_failure(files.write("too-many-nodes.xml", too_many_nodes),
+                              "XML parser recursion limit was not enforced");
+
         const std::filesystem::path recursive = files.write(
             "recursive.xml", "<root><?include file=\"recursive.xml\"?></root>");
         require_parse_failure(recursive, "recursive standalone include was accepted");
