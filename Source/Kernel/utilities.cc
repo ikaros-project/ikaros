@@ -189,6 +189,13 @@ head(std::string & s, const std::string & delimiter)
 
 
 std::string
+cut_head(std::string & s, const std::string & delimiter)
+{
+    return head(s, delimiter);
+}
+
+
+std::string
 rhead(std::string & s, const std::string & delimiter)
 {
     int end = s.rfind(delimiter);

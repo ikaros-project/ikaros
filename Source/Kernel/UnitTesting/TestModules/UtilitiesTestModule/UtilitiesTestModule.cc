@@ -90,6 +90,12 @@ public:
         require(vector_stream.str() == "(1, 2, 3)",
                 "vector insertion ignored its destination stream");
 
+        std::string cut_value = "alpha::beta";
+        require(cut_head(cut_value, "::") == "alpha" && cut_value == "beta",
+                "cut_head did not consume the head and delimiter");
+        require(cut_head(cut_value, "::") == "beta" && cut_value.empty(),
+                "cut_head did not consume an undelimited remainder");
+
         std::cout << "UTILITIES TEST OK\n";
     }
 };

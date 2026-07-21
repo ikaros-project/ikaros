@@ -106,7 +106,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 2 | P2 | Fixed-decimal number formatting corrupts zero-decimal output and can access an empty string. | Addressed | `Fixed-decimal number formatting preserved integer zeros` |
 | 3 | P2 | Base64 encoding exposes unsafe raw ownership and unchecked allocation and size failures. | Addressed | `Base64 encoding used safe string ownership` |
 | 4 | P2 | The vector stream operator ignores its destination stream and writes to standard output. | Addressed | `Vector formatting respected the destination stream` |
-| 5 | P3 | `cut_head()` is publicly declared but has no linkable implementation. | Not addressed | — |
+| 5 | P3 | `cut_head()` is publicly declared but has no linkable implementation. | Addressed | `The cut-head utility received its missing implementation` |
 | 6 | P3 | Diagnostic attribute printing ignores indentation and mishandles item limits. | Not addressed | — |
 | 7 | P3 | String delimiter helpers narrow positions to `int` and handle empty delimiters inconsistently. | Not addressed | — |
 | 8 | P3 | Prime and character-sum checksum helpers can overflow or vary with platform `char` signedness. | Not addressed | — |
