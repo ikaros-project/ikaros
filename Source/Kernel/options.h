@@ -129,10 +129,9 @@ namespace ikaros {
                         throw std::runtime_error("\"-"+attr + "\" is not a valid command line option");
                     std::string option_name = full[attr];
                     if(requires_value[option_name] || optional_value[option_name])
-                        d[option_name] = s.substr(2);  // option with attached parameter
+                        set_explicit_value(option_name, s.substr(2));
                     else
                         throw std::runtime_error("\"-"+attr + "\" does not accept an attached value");
-                    explicitly_set.insert(option_name);
                 }
                 else if(!options_ended && s.size()>1 && s.front() =='-')
                 {
@@ -148,20 +147,19 @@ namespace ikaros {
                            (model_already_selected || later_model_candidate) &&
                            !args[i + 1].empty() && args[i + 1].front() != '-' &&
                            args[i + 1].find('=') == std::string::npos)
-                            d[option_name] = args[++i];
+                            set_explicit_value(option_name, args[++i]);
                         else
-                            d[option_name] = "";
+                            set_explicit_value(option_name, "");
                     }
                     else if(requires_value[option_name])
                     {
                         if(i + 1 >= args.size() || args[i + 1] == "--" ||
                            is_registered_option_argument(args[i + 1]))
                             throw std::runtime_error("\"-"+attr + "\" requires a value");
-                        d[option_name] = args[++i];
+                        set_explicit_value(option_name, args[++i]);
                     }
                     else
-                        d[option_name] = "true";  // option without parameter
-                    explicitly_set.insert(option_name);
+                        set_explicit_value(option_name, "true");
                 }
                 else
                 {
@@ -320,6 +318,11 @@ namespace ikaros {
 
         void set_explicit_value(const std::string & name, const std::string & value)
         {
+            auto required = requires_value.find(name);
+            if(required != requires_value.end() && required->second && value.empty())
+                throw std::runtime_error("Command-line option \"" + name +
+                                         "\" requires a non-empty value");
+
             if(boolean_options_.count(name))
             {
                 bool parsed_value = false;

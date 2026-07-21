@@ -298,6 +298,34 @@ class OptionsTestModule : public Module
                 assignments.get("single_quoted") == "three words",
                 "quoted assignment values were not unwrapped consistently");
 
+        bool empty_required_assignment_rejected = false;
+        try
+        {
+            options empty_required_assignment = configured_options();
+            parse(empty_required_assignment, {executable.string(), "webui_port="});
+        }
+        catch(const std::exception & e)
+        {
+            empty_required_assignment_rejected =
+                std::string(e.what()).find("requires a non-empty value") != std::string::npos;
+        }
+        require(empty_required_assignment_rejected,
+                "empty assignment to a required option was accepted");
+
+        bool empty_separated_required_value_rejected = false;
+        try
+        {
+            options empty_separated_required_value = configured_options();
+            parse(empty_separated_required_value, {executable.string(), "-w", ""});
+        }
+        catch(const std::exception & e)
+        {
+            empty_separated_required_value_rejected =
+                std::string(e.what()).find("requires a non-empty value") != std::string::npos;
+        }
+        require(empty_separated_required_value_rejected,
+                "separated empty required option value was accepted");
+
         bool mismatched_quotes_rejected = false;
         try
         {
