@@ -258,6 +258,43 @@ def run_http_test(cmd, root):
                         f"Unexpected trailing pipelined response bytes: {bytes(response[response_offset:])!r}"
                     )
                 http_output.append("PIPELINED_HTTP_REQUESTS complete")
+            elif action.startswith("assert_keep_alive_timeout:"):
+                _, path, wait_seconds = action.split(":", 2)
+                with network_socket.create_connection(("127.0.0.1", int(port)), timeout=2) as client:
+                    client.settimeout(2)
+                    client.sendall(
+                        f"GET {path} HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n".encode("ascii")
+                    )
+                    response = bytearray()
+                    while b"\r\n\r\n" not in response:
+                        response.extend(client.recv(4096))
+                    header_end = response.find(b"\r\n\r\n")
+                    header = bytes(response[:header_end])
+                    content_length = None
+                    for line in header.split(b"\r\n")[1:]:
+                        key, separator, value = line.partition(b":")
+                        if separator and key.lower() == b"content-length":
+                            content_length = int(value.strip())
+                            break
+                    if content_length is None:
+                        raise AssertionError("Keep-alive response has no Content-Length")
+                    body_start = header_end + 4
+                    while len(response) - body_start < content_length:
+                        response.extend(client.recv(4096))
+
+                    time.sleep(float(wait_seconds))
+                    client.settimeout(1)
+                    try:
+                        remaining = client.recv(1)
+                    except TimeoutError as error:
+                        raise AssertionError(
+                            "Server did not close an expired keep-alive connection"
+                        ) from error
+                    if remaining:
+                        raise AssertionError(
+                            f"Expired keep-alive connection returned unexpected data: {remaining!r}"
+                        )
+                http_output.append("KEEP_ALIVE_TIMEOUT closed")
             elif action.startswith("assert_json_field:"):
                 _, path, field, expected_json = action.split(":", 3)
 

@@ -35,7 +35,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 3 | P1 | Outbound `Socket` DNS, connection, write, and read operations have no deadlines. | Addressed | `Outbound socket operations received deadlines` |
 | 4 | P1 | The Linux build uses the macOS-only `SO_NOSIGPIPE` socket option unconditionally. | Addressed | `Socket SIGPIPE handling became portable` |
 | 5 | P2 | Complete pipelined requests already present in a connection buffer are not processed. | Addressed | `Buffered HTTP requests were processed promptly` |
-| 6 | P2 | The keep-alive idle timeout is not enforced while `select()` waits indefinitely. | Not addressed | — |
+| 6 | P2 | The keep-alive idle timeout is not enforced while `select()` waits indefinitely. | Addressed | `Keep-alive idle timeouts were enforced` |
 | 7 | P2 | HTTP message framing accepts ambiguous lengths and does not consistently consume request bodies. | Not addressed | — |
 | 8 | P2 | Malformed and unsupported requests can remain open without an HTTP error response. | Not addressed | — |
 | 9 | P2 | File transfer requires write access, buffers whole files, ignores short reads and send failures, and can expose uninitialized bytes. | Not addressed | — |

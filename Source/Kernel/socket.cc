@@ -1083,6 +1083,30 @@ ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
             timeout.tv_usec = 0;
             timeout_ptr = &timeout;
         }
+        else if(!connections.empty())
+        {
+            auto now = std::chrono::steady_clock::now();
+            auto next_timeout = std::chrono::duration_cast<std::chrono::microseconds>(
+                KEEP_ALIVE_IDLE_TIMEOUT);
+            for(const auto & [id, connection] : connections)
+            {
+                if(connection.fd == -1 || active_connection_id == id ||
+                   current_read_connection_id == id)
+                    continue;
+
+                auto remaining = std::chrono::duration_cast<std::chrono::microseconds>(
+                    connection.last_activity + KEEP_ALIVE_IDLE_TIMEOUT - now);
+                if(remaining < next_timeout)
+                    next_timeout = remaining;
+            }
+
+            auto timeout_us = std::max<std::chrono::microseconds>(
+                std::chrono::microseconds(1),
+                std::chrono::duration_cast<std::chrono::microseconds>(next_timeout));
+            timeout.tv_sec = static_cast<time_t>(timeout_us.count() / 1000000);
+            timeout.tv_usec = static_cast<suseconds_t>(timeout_us.count() % 1000000);
+            timeout_ptr = &timeout;
+        }
 
         int ready = select(max_fd + 1, &readfds, nullptr, nullptr, timeout_ptr);
         if(ready == -1)
