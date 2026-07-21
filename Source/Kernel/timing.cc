@@ -1,8 +1,5 @@
 // timing.cc		Timing utilities for the IKAROS project
 
-//  TODO: Use only chrono functions
-//  std::this_thread::sleep_for(std::chrono::milliseconds(x));
-
 #include "timing.h"
 
 #include <algorithm>
