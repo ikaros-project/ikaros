@@ -7,7 +7,6 @@
 #include <thread>
 #include <string>
 #include <mutex>
-#include <atomic>
 
 
 // All parameters are time in seconds represented by a double
@@ -24,8 +23,8 @@ class Timer
 private:
     std::chrono::time_point<std::chrono::steady_clock> start_time;
     std::chrono::time_point<std::chrono::steady_clock> pause_time;  
-    std::atomic<bool> paused;
-    std::mutex mtx;
+    bool paused;
+    mutable std::mutex mtx;
 public: 
     Timer(const Timer&) = delete;
     Timer& operator=(const Timer&) = delete;
@@ -40,13 +39,10 @@ public:
 
     void		Restart();					// Start the timer from time 0
     void        SetStartTime(double t);     // Set start time of the timer
-    [[nodiscard]] double GetTime();					// Get the time (in seconds) since the timer was created or restarted
+    [[nodiscard]] double GetTime() const;				// Get the time (in seconds) since the timer was created or restarted
     void        SetTime(double t);          // Set the time (in seconds) of the timer
-    [[nodiscard]] std::string GetTimeString();            // Get time since the timer was started as a formated string
+    [[nodiscard]] std::string GetTimeString() const;      // Get time since the timer was started as a formated string
     [[nodiscard]] double WaitUntil(double time);     // Suspend execution until time; return timing lag
-
-    void Lock() { mtx.lock(); }
-    void Unlock() { mtx.unlock(); }
 
     Timer();
 };

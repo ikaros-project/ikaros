@@ -106,12 +106,14 @@ Timer::Continue()
     }
 }
 
-    void        
-    Timer::Stop()
-    {
-        Pause();
-        SetPauseTime(0);
-    }
+void
+Timer::Stop()
+{
+    std::lock_guard<std::mutex> lock(mtx);
+
+    pause_time = start_time;
+    paused = true;
+}
 
 void
 Timer::SetPauseTime(double t)
@@ -151,12 +153,11 @@ Timer::SetTime(double t)
 
 
 double
-Timer::GetTime()
+Timer::GetTime() const
 {
-    if(paused)
-        return 0.001 * duration_cast<milliseconds>(pause_time - start_time).count();
-    else
-        return 0.001 * duration_cast<milliseconds>(steady_clock::now() - start_time).count();
+    std::lock_guard<std::mutex> lock(mtx);
+    const auto end_time = paused ? pause_time : steady_clock::now();
+    return duration<double>(end_time - start_time).count();
 }
 
 
@@ -173,17 +174,28 @@ Timer::SetStartTime(double t)
 double
 Timer::WaitUntil(double time)
 {
-    // locked = true; // prevent changes while waiting
-    Lock();
-    float dt;
-	while ((dt = GetTime()-time) < -0.128){ std::this_thread::sleep_for(microseconds(127000)); };
-	while ((dt = GetTime()-time) < -0.004){ std::this_thread::sleep_for(microseconds(3000)); };
-	while ((dt = GetTime()-time) < -0.001){ std::this_thread::sleep_for(microseconds(100)); };
-    while(GetTime() < time)
+    steady_clock::time_point wait_start;
+    double remaining;
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        wait_start = steady_clock::now();
+        const auto timer_time = paused ? pause_time : wait_start;
+        remaining = time - duration<double>(timer_time - start_time).count();
+    }
+
+    const auto lag = [wait_start, remaining]() {
+        return duration<double>(steady_clock::now() - wait_start).count() - remaining;
+    };
+
+    while (lag() < -0.128)
+        std::this_thread::sleep_for(microseconds(127000));
+    while (lag() < -0.004)
+        std::this_thread::sleep_for(microseconds(3000));
+    while (lag() < -0.001)
+        std::this_thread::sleep_for(microseconds(100));
+    while (lag() < 0.0)
         std::this_thread::sleep_for(microseconds(1)); // minimal sleep to avoid busy-waiting
-    //locked = false;
-    Unlock();
-    return GetTime() - time;
+    return lag();
 }
 
 
@@ -197,7 +209,7 @@ Timer::Timer():
 
 
 std::string
-Timer::GetTimeString()
+Timer::GetTimeString() const
 {
     return TimeString(GetTime());
 }

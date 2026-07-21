@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestTimerSynchronization"
+    description="Test synchronized Timer reads, atomic stop, and sub-millisecond precision"
+    start="true"
+    stop="1"
+    check_sum="12"
+    expected_output_contains="TIMER TEST OK">
+    <module class="TimerTestModule" name="Timer" />
+</group>
