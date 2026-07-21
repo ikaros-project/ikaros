@@ -164,6 +164,32 @@ class StatisticsTestModule: public Module
         require_close(online_extremes.mean(), 0.0, "online extreme mean");
         require_close(online_extremes.median(), 0.0, "online extreme median");
 
+        statistics bounded(3);
+        for (double value : {1.0, 2.0, 3.0, 4.0, 5.0})
+            bounded.push(value);
+        if (bounded.sample_limit() != 3 || bounded.count() != 3)
+            throw exception("StatisticsTestModule: bounded history size is incorrect");
+        require_close(bounded.mean(), 4.0, "bounded history retained newest mean");
+        require_close(bounded.median(), 4.0, "bounded history retained newest median");
+        require_close(bounded.min(), 3.0, "bounded history discarded oldest minimum");
+        require_close(bounded.max(), 5.0, "bounded history retained newest maximum");
+
+        bounded.reset();
+        bounded.push(10.0);
+        if (bounded.sample_limit() != 3 || bounded.count() != 1)
+            throw exception("StatisticsTestModule: reset changed bounded history capacity");
+        require_close(bounded.mean(), 10.0, "bounded history after reset");
+
+        Profiler profiler(3);
+        for (int i = 0; i < 5; ++i)
+        {
+            profiler.begin();
+            profiler.end();
+        }
+        if (profiler.history_limit() != 3 ||
+            profiler.json().find("\"count\": 3") == std::string::npos)
+            throw exception("StatisticsTestModule: profiler history is not bounded");
+
         std::cout << "STATISTICS TEST OK" << std::endl;
     }
 };

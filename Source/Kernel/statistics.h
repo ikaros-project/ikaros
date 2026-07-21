@@ -27,21 +27,31 @@ public:
         double interquartile_range = std::numeric_limits<double>::quiet_NaN();
     };
 
-    statistics()
+    explicit statistics(std::size_t sample_limit = 0)
+        : sample_limit_(sample_limit)
     {
-        //std::cout << "statistics ctor" << std::endl;
     }
 
     void reset() noexcept 
-    { 
-        data_.clear(); 
+    {
+        data_.clear();
+        next_replacement_ = 0;
     }
 
     void push(double x) 
     {
         if (!std::isfinite(x))
             throw std::invalid_argument("statistics requires finite samples");
-        data_.push_back(x); 
+
+        if (sample_limit_ == 0 || data_.size() < sample_limit_)
+        {
+            data_.push_back(x);
+            return;
+        }
+
+        data_[next_replacement_] = x;
+        if (++next_replacement_ == sample_limit_)
+            next_replacement_ = 0;
     }
 
     std::size_t count() const noexcept 
@@ -52,6 +62,11 @@ public:
     bool no_data() const noexcept 
     { 
         return data_.empty(); 
+    }
+
+    std::size_t sample_limit() const noexcept
+    {
+        return sample_limit_;
     }
 
 
@@ -145,6 +160,7 @@ public:
 
     const std::vector<double> & data() const noexcept
     {
+        // Bounded histories retain the newest samples but are not stored chronologically after wrapping.
         return data_;
     }
 
@@ -305,6 +321,8 @@ private:
     }
 
     std::vector<double> data_;
+    std::size_t sample_limit_ = 0;
+    std::size_t next_replacement_ = 0;
 };
 
 

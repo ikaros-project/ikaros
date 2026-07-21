@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <cstddef>
 #include <iostream>
 #include <iomanip>
 #include <mutex>
@@ -16,8 +17,19 @@ class Profiler
 {
 public:
     using clock = std::chrono::steady_clock;
+    static constexpr std::size_t default_history_limit = 1000;
 
-    Profiler() = default;
+    explicit Profiler(std::size_t history_limit = default_history_limit)
+        : wall_time_(history_limit), cpu_time_(history_limit)
+    {
+    }
+
+    [[nodiscard]]
+    std::size_t
+    history_limit() const noexcept
+    {
+        return wall_time_.sample_limit();
+    }
 
     void 
     reset()
