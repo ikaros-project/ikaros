@@ -1,0 +1,7 @@
+<group internal="true"
+    name="TestInvalidModelWebUIPort"
+    description="Reject a fractional top-group WebUI port"
+    webui_port="8000.5"
+    pass_webui_port_as_cli="false"
+    expected_exit="1"
+    expected_output_contains="Invalid WebUI port &quot;8000.5&quot;. Expected an integer between 0 and 65535." />

@@ -1,8 +1,10 @@
 // Ikaros 3.0
 
-#include "ikaros.h"
 #include <atomic>
+#include <charconv>
 #include <cstdlib>
+
+#include "ikaros.h"
 
 using namespace ikaros;
 
@@ -10,6 +12,22 @@ extern std::atomic<bool> global_terminate;
 
 namespace
 {
+    long
+    ParseWebUIPort(const std::string & value)
+    {
+        const std::string text = trim(value);
+        long result = 0;
+        const char * begin = text.data();
+        const char * end = begin + text.size();
+        const auto conversion = std::from_chars(begin, end, result);
+        if(text.empty() || conversion.ec != std::errc() || conversion.ptr != end ||
+           result < 0 || result > 65535)
+            throw std::invalid_argument("Invalid WebUI port \"" + value +
+                                        "\". Expected an integer between 0 and 65535.");
+        return result;
+    }
+
+
     std::string ResolveUserDirectory(const options & o)
     {
         std::filesystem::path user_path = o.ikaros_root + "/UserData/";
@@ -245,9 +263,10 @@ namespace
             if(!should_start_socket || socket_initialized)
                 return;
 
-            long port = o.get_long("webui_port", 0, 65535);
+            std::string port_value = o.get("webui_port");
             if(k.info_.contains("webui_port"))
-                port = long(k.info_["webui_port"]);
+                port_value = std::string(k.info_["webui_port"]);
+            const long port = ParseWebUIPort(port_value);
             k.InitSocket(port);
             socket_initialized = true;
         }

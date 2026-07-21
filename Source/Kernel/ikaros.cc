@@ -300,6 +300,33 @@ namespace ikaros
             return type == "float" || type == "double" || type == "int" || type == "bool" || type == "string";
         }
 
+
+        tick_count
+        parse_stop_after(const std::string & value)
+        {
+            const std::string text = trim(value);
+            tick_count result = 0;
+            const char * begin = text.data();
+            const char * end = begin + text.size();
+            const auto conversion = std::from_chars(begin, end, result);
+            if(text.empty() || conversion.ec != std::errc() || conversion.ptr != end || result < -1)
+                throw setup_failed("Invalid stop tick \"" + value +
+                                   "\". Expected -1 or a non-negative integer.");
+            return result;
+        }
+
+
+        double
+        parse_tick_duration(const std::string & value)
+        {
+            double result = 0;
+            if(!parse_double(value, result) || !std::isfinite(result) || result <= 0)
+                throw setup_failed("Invalid tick duration \"" + value +
+                                   "\". Expected a finite positive number of seconds.");
+            return result;
+        }
+
+
         std::string resolve_state_filename(const options & opts, const std::string & option_name)
         {
             std::string filename = opts.get(option_name);
@@ -5455,10 +5482,10 @@ bool operator==(Request & r, const std::string s)
                     d[name] = value;
 
         if(d.contains("stop"))
-            stop_after = d["stop"];
+            stop_after = parse_stop_after(std::string(d["stop"]));
 
         if(d.contains("tick_duration"))
-            tick_duration = d["tick_duration"];
+            tick_duration = parse_tick_duration(std::string(d["tick_duration"]));
 
         if(d.contains_non_null("threads"))
         {

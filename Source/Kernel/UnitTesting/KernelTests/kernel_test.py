@@ -686,7 +686,8 @@ for item in sorted(test_files):
         cmd = [str(ikaros_binary), str(item)] if http_requests else [str(ikaros_binary), "-b", str(item)]
         if root.get("cli_args") is not None:
             cmd[1:1] = shlex.split(root.get("cli_args"))
-        if root.get("webui_port") is not None:
+        if (root.get("webui_port") is not None and
+                root.get("pass_webui_port_as_cli", "true") == "true"):
             cmd.insert(1, f"-w{root.get('webui_port')}")
         if http_requests:
             if root.get("http_real_time", "true") == "true":
