@@ -504,10 +504,8 @@ public:
             "valid.jpg",
             std::string(reinterpret_cast<const char *>(readable_jpeg.data()),
                         readable_jpeg.size()));
-        int decoded_width = 0;
-        int decoded_height = 0;
-        jpeg_get_size(decoded_width, decoded_height, valid_jpeg.path());
-        const int decoded_channels = jpeg_get_channels(valid_jpeg.path());
+        const auto [decoded_width, decoded_height, decoded_channels] =
+            jpeg_get_info(valid_jpeg.path());
         matrix decoded_jpeg = jpeg_get_image(valid_jpeg.path());
         float * decoded_jpeg_storage = decoded_jpeg.data();
         jpeg_get_image(decoded_jpeg, valid_jpeg.path());
@@ -528,7 +526,7 @@ public:
             std::string(reinterpret_cast<const char *>(grayscale_data.data()),
                         grayscale_data.size()));
         const matrix grayscale_image = jpeg_get_image(grayscale_jpeg.path());
-        bool grayscale_planes_match = jpeg_get_channels(grayscale_jpeg.path()) == 1;
+        bool grayscale_planes_match = jpeg_get_info(grayscale_jpeg.path()).channels == 1;
         for(int y = 0; y < 2; ++y)
             for(int x = 0; x < 2; ++x)
                 grayscale_planes_match = grayscale_planes_match &&
@@ -554,21 +552,14 @@ public:
         };
 
         const TemporaryFile malformed_jpeg("malformed.jpg", "not a JPEG file");
-        int jpeg_width = 17;
-        int jpeg_height = 19;
         require(rejected_malformed_jpeg([&]
                 {
-                    jpeg_get_size(jpeg_width, jpeg_height, malformed_jpeg.path());
-                }) &&
-                rejected_malformed_jpeg([&]
-                {
-                    static_cast<void>(jpeg_get_channels(malformed_jpeg.path()));
+                    static_cast<void>(jpeg_get_info(malformed_jpeg.path()));
                 }) &&
                 rejected_malformed_jpeg([&]
                 {
                     static_cast<void>(jpeg_get_image(malformed_jpeg.path()));
-                }) &&
-                jpeg_width == 17 && jpeg_height == 19,
+                }),
                 "JPEG readers did not recover from malformed input");
 
         const std::array<unsigned char, 72> valid_png_data
@@ -586,10 +577,7 @@ public:
         const std::string valid_png_contents(
             reinterpret_cast<const char *>(valid_png_data.data()), valid_png_data.size());
         const TemporaryFile valid_png("valid.png", valid_png_contents);
-        int png_width = 0;
-        int png_height = 0;
-        png_get_size(png_width, png_height, valid_png.path());
-        const int png_channels = png_get_channels(valid_png.path());
+        const auto [png_width, png_height, png_channels] = png_get_info(valid_png.path());
         matrix decoded_png = png_get_image(valid_png.path());
         float * decoded_png_storage = decoded_png.data();
         png_get_image(decoded_png, valid_png.path());
@@ -660,21 +648,14 @@ public:
         };
 
         const TemporaryFile short_png("short.png", std::string("\x89PNG", 4));
-        int unchanged_png_width = 17;
-        int unchanged_png_height = 19;
         require(rejected_malformed_png([&]
                 {
-                    png_get_size(unchanged_png_width, unchanged_png_height, short_png.path());
-                }) &&
-                rejected_malformed_png([&]
-                {
-                    static_cast<void>(png_get_channels(short_png.path()));
+                    static_cast<void>(png_get_info(short_png.path()));
                 }) &&
                 rejected_malformed_png([&]
                 {
                     static_cast<void>(png_get_image(short_png.path()));
-                }) &&
-                unchanged_png_width == 17 && unchanged_png_height == 19,
+                }),
                 "PNG readers did not reject a short signature safely");
 
         const TemporaryFile truncated_png(

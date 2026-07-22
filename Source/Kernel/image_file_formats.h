@@ -15,6 +15,13 @@ namespace ikaros
 {
     class matrix;
 
+    struct image_info
+    {
+        int width;
+        int height;
+        int channels;
+    };
+
     class jpeg_data
     {
     public:
@@ -67,15 +74,13 @@ namespace ikaros
                                                     std::string_view table = "fire",
                                                     int quality = 100);
 
-    void jpeg_get_size(int & sizex, int & sizey, const std::filesystem::path & filename);
-    int jpeg_get_channels(const std::filesystem::path & filename);
+    [[nodiscard]] image_info jpeg_get_info(const std::filesystem::path & filename);
     // Decoded RGB images use [channel, height, width]. Existing destinations are reused.
     void jpeg_get_image(matrix & image, const std::filesystem::path & filename);
     [[nodiscard]] matrix jpeg_get_image(const std::filesystem::path & filename);
 
 
-    void png_get_size(int & sizex, int & sizey, const std::filesystem::path & filename);
-    int png_get_channels(const std::filesystem::path & filename);
+    [[nodiscard]] image_info png_get_info(const std::filesystem::path & filename);
     // Decoded RGB images use [channel, height, width]. Existing destinations are reused.
     void png_get_image(matrix & image, const std::filesystem::path & filename);
     [[nodiscard]] matrix png_get_image(const std::filesystem::path & filename);

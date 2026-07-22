@@ -410,14 +410,6 @@ namespace ikaros
     }
 
 
-    struct JpegHeader
-    {
-        int width;
-        int height;
-        int channels;
-    };
-
-
     struct FileCloser
     {
         void operator()(FILE * file) const noexcept
@@ -494,35 +486,29 @@ namespace ikaros
     };
 
 
-    static JpegHeader
-    read_jpeg_header(const std::filesystem::path & filename)
+    static int
+    checked_jpeg_dimension(JDIMENSION value, const std::filesystem::path & filename)
+    {
+        if(value > static_cast<JDIMENSION>(std::numeric_limits<int>::max()))
+            throw std::runtime_error("JPEG dimensions exceed matrix limits for \"" +
+                                     filename.string() + "\"");
+        return static_cast<int>(value);
+    }
+
+
+    image_info
+    jpeg_get_info(const std::filesystem::path & filename)
     {
         JpegDecompressor decompressor;
-        return decompressor.read(filename, [](const jpeg_decompress_struct & cinfo)
+        return decompressor.read(filename, [&filename](const jpeg_decompress_struct & cinfo)
         {
-            return JpegHeader
+            return image_info
             {
-                static_cast<int>(cinfo.image_width),
-                static_cast<int>(cinfo.image_height),
+                checked_jpeg_dimension(cinfo.image_width, filename),
+                checked_jpeg_dimension(cinfo.image_height, filename),
                 cinfo.num_components,
             };
         });
-    }
-
-
-    void
-    jpeg_get_size(int & sizex, int & sizey, const std::filesystem::path & filename)
-    {
-        const JpegHeader header = read_jpeg_header(filename);
-        sizex = header.width;
-        sizey = header.height;
-    }
-
-
-    int
-    jpeg_get_channels(const std::filesystem::path & filename)
-    {
-        return read_jpeg_header(filename).channels;
     }
 
 
@@ -720,14 +706,6 @@ namespace ikaros
     };
 
 
-    struct PngHeader
-    {
-        int width;
-        int height;
-        int channels;
-    };
-
-
     static int
     checked_png_dimension(png_uint_32 value, const std::filesystem::path & filename)
     {
@@ -738,35 +716,19 @@ namespace ikaros
     }
 
 
-    static PngHeader
-    read_png_header(const std::filesystem::path & filename)
+    image_info
+    png_get_info(const std::filesystem::path & filename)
     {
         PngReader reader;
         return reader.read(filename, [&filename](png_structp png, png_infop info, PngReader &)
         {
-            return PngHeader
+            return image_info
             {
                 checked_png_dimension(png_get_image_width(png, info), filename),
                 checked_png_dimension(png_get_image_height(png, info), filename),
                 png_get_channels(png, info),
             };
         });
-    }
-
-
-    void
-    png_get_size(int & sizex, int & sizey, const std::filesystem::path & filename)
-    {
-        const PngHeader header = read_png_header(filename);
-        sizex = header.width;
-        sizey = header.height;
-    }
-
-
-    int
-    png_get_channels(const std::filesystem::path & filename)
-    {
-        return read_png_header(filename).channels;
     }
 
 
