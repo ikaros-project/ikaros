@@ -1,6 +1,6 @@
 <group internal="true"
     name="TestMidiProtocol"
-    description="Test MIDI framing, note identity, reset handling, and callback state"
+    description="Test MIDI framing, Launchpad output messages, note identity, reset handling, and callback state"
     start="true"
     stop="1"
     check_sum="12"

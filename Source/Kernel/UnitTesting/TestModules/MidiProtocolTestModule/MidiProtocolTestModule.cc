@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "ikaros.h"
+#include "Modules/IOModules/LaunchpadLED/LaunchpadProtocol.h"
 #include "Modules/IOModules/MidiInput/MidiProtocol.h"
 
 using namespace ikaros;
@@ -263,6 +264,73 @@ namespace
                 "reactivated event state rejected a callback");
         events.endCallback();
     }
+
+
+    void
+    testLaunchpadPadMapping()
+    {
+        std::uint8_t index = 0;
+        require(launchpad::padLEDIndex(0, 8, index) && index == 81,
+                "Launchpad sequence zero was not mapped to the top-left pad");
+        require(launchpad::padLEDIndex(7, 8, index) && index == 88,
+                "Launchpad top row mapping was incorrect");
+        require(launchpad::padLEDIndex(8, 8, index) && index == 71,
+                "Launchpad second row mapping was incorrect");
+        require(launchpad::padLEDIndex(63, 8, index) && index == 18,
+                "Launchpad bottom-right mapping was incorrect");
+        require(launchpad::padLEDIndex(4, 4, index) && index == 71,
+                "Launchpad custom layout width was ignored");
+        require(!launchpad::padLEDIndex(0, 0, index) &&
+                    !launchpad::padLEDIndex(0, 9, index) &&
+                    !launchpad::padLEDIndex(64, 8, index),
+                "Launchpad accepted an invalid pad layout");
+    }
+
+
+    void
+    testLaunchpadColors()
+    {
+        require(launchpad::colorComponent(1.0f, 1.0f) == 127 &&
+                    launchpad::colorComponent(0.5f, 1.0f) == 64 &&
+                    launchpad::colorComponent(255.0f, 1.0f) == 127 &&
+                    launchpad::colorComponent(128.0f, 0.5f) == 32 &&
+                    launchpad::colorComponent(-1.0f, 1.0f) == 0,
+                "Launchpad RGB conversion was incorrect");
+    }
+
+
+    void
+    testLaunchpadMessages()
+    {
+        std::vector<std::uint8_t> message;
+        launchpad::buildProgrammerModeMessage(true, message);
+        const std::vector<std::uint8_t> expectedMode
+        {
+            0xF0, 0x00, 0x20, 0x29, 0x02, 0x0C, 0x0E, 0x01, 0xF7,
+        };
+        require(message == expectedMode,
+                "Launchpad Programmer-mode SysEx was incorrect");
+
+        const std::array<launchpad::LEDUpdate, 2> updates
+        {{
+            {81, {127, 0, 64}},
+            {82, {0, 32, 127}},
+        }};
+        launchpad::buildRGBMessage(updates, message);
+        const std::vector<std::uint8_t> expectedRGB
+        {
+            0xF0, 0x00, 0x20, 0x29, 0x02, 0x0C, 0x03,
+            0x03, 81, 127, 0, 64,
+            0x03, 82, 0, 32, 127,
+            0xF7,
+        };
+        require(message == expectedRGB,
+                "Launchpad RGB SysEx was incorrect");
+
+        launchpad::buildRGBMessage({}, message);
+        require(message.empty(),
+                "Launchpad emitted an empty RGB update message");
+    }
 }
 
 
@@ -281,6 +349,9 @@ class MidiProtocolTestModule : public Module
         testLegacyPackets();
         testConcurrentAccumulation();
         testCallbackShutdown();
+        testLaunchpadPadMapping();
+        testLaunchpadColors();
+        testLaunchpadMessages();
         std::cout << "MIDI PROTOCOL TEST OK" << std::endl;
     }
 };

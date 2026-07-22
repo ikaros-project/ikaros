@@ -1,0 +1,23 @@
+<group name="LaunchpadLEDTest" title="Launchpad LED Test" tick_duration="0.05">
+    <module class="Constant" name="Colors"
+            data="1,0,0; 1,0.5,0; 1,1,0; 0,1,0; 0,1,1; 0,0,1; 1,0,1; 1,1,1"
+            _x="40" _y="160" />
+    <module class="Constant" name="Playing" data="0,0,0,1,0,0,0,0"
+            _x="40" _y="300" />
+    <module class="LaunchpadLED" name="Launchpad" layout_width="8"
+            idle_brightness="0.2" playing_brightness="1"
+            _x="340" _y="200" />
+
+    <connection source="Colors.OUTPUT" target="Launchpad.COLOR" />
+    <connection source="Playing.OUTPUT" target="Launchpad.PLAYING" />
+
+    <widget class="text" name="Instructions" x="40" y="30" width="720" height="70"
+            show_title="false" show_frame="false"
+            text="Manual Launchpad X output test. The top row should show red, orange, yellow, bright green, cyan, blue, magenta, and white. All pads except green use idle brightness." />
+    <widget class="table" name="Connected" source="Launchpad.CONNECTED"
+            title="Connected" x="600" y="150" width="160" height="90"
+            min="0" max="1" decimals="0" />
+    <widget class="table" name="Updates" source="Launchpad.LAST_UPDATE_COUNT"
+            title="Last update count" x="600" y="270" width="160" height="90"
+            decimals="0" />
+</group>
