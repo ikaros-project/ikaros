@@ -240,9 +240,23 @@ class SerialTestModule : public Module
                 received.get() == large_message,
                 "SendBytes did not complete a large partial write");
 
-        require(serial.ReceiveBytes(nullptr, 1, 0) == -1 && errno == EINVAL &&
+        std::vector<char> blocked_message(8 * 1024 * 1024, 'x');
+        const auto write_timeout_start = SteadyClock::now();
+        const int blocked_write = serial.SendBytes(
+            blocked_message.data(), static_cast<int>(blocked_message.size()), 30);
+        const auto write_timeout_duration =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                SteadyClock::now() - write_timeout_start);
+        require(blocked_write < static_cast<int>(blocked_message.size()) &&
+                write_timeout_duration.count() >= 20 &&
+                write_timeout_duration.count() < 2000,
+                "SendBytes did not honor its write timeout");
+
+        require(serial.SendBytes(nullptr, 1, 0) == -1 && errno == EINVAL &&
+                serial.SendBytes("x", 1, -1) == -1 && errno == EINVAL &&
+                serial.ReceiveBytes(nullptr, 1, 0) == -1 && errno == EINVAL &&
                 serial.ReceiveBytes(&byte, 1, -1) == -1 && errno == EINVAL,
-                "serial reads accepted invalid arguments");
+                "serial I/O accepted invalid arguments");
 
         serial.Close();
         serial.Close();

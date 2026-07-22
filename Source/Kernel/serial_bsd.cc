@@ -410,6 +410,50 @@ Serial::SendBytes(const char * sendbuf, int length)
 
 
 int
+Serial::SendBytes(const char * sendbuf, int length, int timeout_ms)
+{
+    if(!valid_buffer(sendbuf, length) || timeout_ms < 0)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+    if(data == nullptr || data->fd == -1 || length == 0)
+        return 0;
+
+    const auto deadline = SteadyClock::now() + std::chrono::milliseconds(timeout_ms);
+    int bytes_written = 0;
+    while(bytes_written < length)
+    {
+        const ssize_t result =
+            write(data->fd, sendbuf + bytes_written,
+                  static_cast<std::size_t>(length - bytes_written));
+        if(result > 0)
+        {
+            bytes_written += static_cast<int>(result);
+            continue;
+        }
+        if(result == 0)
+        {
+            errno = EIO;
+            return bytes_written == 0 ? -1 : bytes_written;
+        }
+        if(errno == EINTR)
+            continue;
+        if(errno == EAGAIN || errno == EWOULDBLOCK)
+        {
+            const int wait_result = wait_for_event(data->fd, POLLOUT, deadline);
+            if(wait_result > 0)
+                continue;
+            if(wait_result == 0)
+                errno = ETIMEDOUT;
+        }
+        return bytes_written == 0 ? -1 : bytes_written;
+    }
+    return bytes_written;
+}
+
+
+int
 Serial::ReceiveUntil(char * rcvbuf, int length, char c)
 {
     return ReceiveUntil(rcvbuf, length, c, 100);

@@ -25,6 +25,7 @@ public:
 
     int SendString(const char * sendbuf);
     int SendBytes(const char * sendbuf, int length);
+    int SendBytes(const char * sendbuf, int length, int timeout_ms);
 
     int ReceiveUntil(char * rcvbuf, int length, char c);
     int ReceiveBytes(char * rcvbuf, int length);

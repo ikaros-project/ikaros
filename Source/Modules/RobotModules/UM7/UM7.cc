@@ -1,5 +1,5 @@
 //
-//	UM7.cc		This file is a part of the IKAROS project
+//  UM7.cc        This file is a part of the IKAROS project
 //
 //    Copyright (C) 2026 Birger Johansson and Pierre Klintefors
 //
@@ -20,11 +20,13 @@
 //    See http://www.ikaros-project.org/ for more information.
 //
 
+#include <algorithm>
 #include <array>
+#include <bit>
+#include <cerrno>
+#include <chrono>
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
-#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -35,6 +37,27 @@ using namespace ikaros;
 
 class UM7 : public Module
 {
+    enum class ParseResult
+    {
+        packetReady,
+        incomplete,
+        discardedGarbage,
+        invalidPacketType,
+        checksumError,
+    };
+
+    struct UM7Packet
+    {
+        std::uint8_t address = 0;
+        std::uint8_t packetType = 0;
+        std::size_t dataLength = 0;
+        std::array<std::uint8_t, 64> data{};
+    };
+
+    static constexpr std::size_t maxBufferSize = 1024;
+    static constexpr int configurationTimeoutMs = 250;
+    static constexpr int configurationWriteTimeoutMs = 100;
+
     parameter port;
     matrix roll;
     matrix pitch;
@@ -43,85 +66,360 @@ class UM7 : public Module
     matrix accelProc;
     matrix eulerAngles;
 
-    int baudrate;
-
-    // Structure for holding received packet information
-    typedef struct UM7_packet_struct
-    {
-        uint8_t Address;
-        uint8_t PT;
-        uint16_t Checksum;
-        uint8_t data_length;
-        uint8_t data[30] = {}; // Ensure `data` is zero-initialized
-    } UM7_packet;
-
-    UM7_packet packet;
+    int baudrate = 115200;
+    UM7Packet packet;
     std::unique_ptr<Serial> serial;
-    int rx_length = 0;
-    std::array<char, 256> rx_data{};
-    std::string rx_buffer;               // Buffer for handling partial packets
-    const size_t MAX_BUFFER_SIZE = 1024; // Define a max buffer size
+    std::array<char, 256> rxData{};
+    std::string rxBuffer;
+    std::size_t parseErrorCount = 0;
+    std::size_t serialErrorCount = 0;
+    std::size_t dataErrorCount = 0;
 
-    // Function to convert 4 bytes to float (assuming little-endian format)
-    float bytesToFloat(const uint8_t *bytes)
+    static float
+    bytesToFloatBigEndian(const std::uint8_t * bytes)
     {
-        float result;
-        uint32_t asInt = static_cast<uint32_t>(bytes[0]) |
-                         (static_cast<uint32_t>(bytes[1]) << 8) |
-                         (static_cast<uint32_t>(bytes[2]) << 16) |
-                         (static_cast<uint32_t>(bytes[3]) << 24);
-        memcpy(&result, &asInt, sizeof(result));
-        return result;
+        const std::uint32_t value =
+            (static_cast<std::uint32_t>(bytes[0]) << 24) |
+            (static_cast<std::uint32_t>(bytes[1]) << 16) |
+            (static_cast<std::uint32_t>(bytes[2]) << 8) |
+            static_cast<std::uint32_t>(bytes[3]);
+        return std::bit_cast<float>(value);
     }
 
-    // Function to convert 4 bytes to float (assuming big-endian format)
-    float bytesToFloatBigEndian(const uint8_t *bytes)
+
+    static int
+    signedWord(std::uint8_t high, std::uint8_t low)
     {
-        uint32_t asInt = (uint32_t(bytes[3])) |
-                         (uint32_t(bytes[2]) << 8) |
-                         (uint32_t(bytes[1]) << 16) |
-                         (uint32_t(bytes[0]) << 24);
-        float result;
-        memcpy(&result, &asInt, sizeof(float));
-        return result;
+        const int value = (static_cast<int>(high) << 8) | static_cast<int>(low);
+        return value >= 0x8000 ? value - 0x10000 : value;
     }
+
+
+    static std::uint8_t
+    byteAt(const std::string & buffer, std::size_t index)
+    {
+        return static_cast<std::uint8_t>(static_cast<unsigned char>(buffer[index]));
+    }
+
+
+    int
+    receiveBytes(int timeoutMs)
+    {
+        const int received = serial->ReceiveBytes(
+            rxData.data(), static_cast<int>(rxData.size()), timeoutMs);
+        if(received > 0)
+            rxBuffer.append(rxData.data(), static_cast<std::size_t>(received));
+        return received;
+    }
+
 
     void
-    SendPacket(const std::array<std::uint8_t, 11> & packet_data)
+    discardGarbageWithoutLosingHeaderPrefix()
+    {
+        std::size_t keep = 0;
+        if(rxBuffer.size() >= 2 &&
+           rxBuffer.compare(rxBuffer.size() - 2, 2, "sn") == 0)
+            keep = 2;
+        else if(!rxBuffer.empty() && rxBuffer.back() == 's')
+            keep = 1;
+
+        if(keep == 0)
+            rxBuffer.clear();
+        else
+            rxBuffer.erase(0, rxBuffer.size() - keep);
+    }
+
+
+    ParseResult
+    parsePacket()
+    {
+        if(rxBuffer.size() < 3)
+            return ParseResult::incomplete;
+
+        const std::size_t header = rxBuffer.find("snp");
+        if(header == std::string::npos)
+        {
+            discardGarbageWithoutLosingHeaderPrefix();
+            return ParseResult::discardedGarbage;
+        }
+        if(header != 0)
+        {
+            rxBuffer.erase(0, header);
+            return ParseResult::discardedGarbage;
+        }
+        if(rxBuffer.size() < 7)
+            return ParseResult::incomplete;
+
+        const std::uint8_t packetType = byteAt(rxBuffer, 3);
+        const bool hasData = (packetType & 0x80) != 0;
+        const bool isBatch = (packetType & 0x40) != 0;
+        const std::size_t batchLength = (packetType >> 2) & 0x0F;
+
+        std::size_t dataLength = 0;
+        if(hasData)
+        {
+            if(isBatch)
+            {
+                if(batchLength == 0)
+                {
+                    rxBuffer.erase(0, 1);
+                    return ParseResult::invalidPacketType;
+                }
+                dataLength = 4 * batchLength;
+            }
+            else
+                dataLength = 4;
+        }
+
+        if(dataLength > packet.data.size())
+        {
+            rxBuffer.erase(0, 1);
+            return ParseResult::invalidPacketType;
+        }
+
+        const std::size_t packetLength = 7 + dataLength;
+        if(rxBuffer.size() < packetLength)
+            return ParseResult::incomplete;
+
+        packet.address = byteAt(rxBuffer, 4);
+        packet.packetType = packetType;
+        packet.dataLength = dataLength;
+
+        std::uint16_t computedChecksum =
+            static_cast<std::uint16_t>('s' + 'n' + 'p' + packetType + packet.address);
+        for(std::size_t i = 0; i < dataLength; ++i)
+        {
+            packet.data[i] = byteAt(rxBuffer, 5 + i);
+            computedChecksum = static_cast<std::uint16_t>(computedChecksum + packet.data[i]);
+        }
+
+        const std::uint16_t receivedChecksum =
+            static_cast<std::uint16_t>(byteAt(rxBuffer, 5 + dataLength) << 8) |
+            byteAt(rxBuffer, 6 + dataLength);
+        if(receivedChecksum != computedChecksum)
+        {
+            rxBuffer.erase(0, 1);
+            return ParseResult::checksumError;
+        }
+
+        rxBuffer.erase(0, packetLength);
+        return ParseResult::packetReady;
+    }
+
+
+    void
+    reportParseError(ParseResult result)
+    {
+        ++parseErrorCount;
+        if(parseErrorCount != 1 && parseErrorCount % 100 != 0)
+            return;
+
+        switch(result)
+        {
+        case ParseResult::discardedGarbage:
+            Warning("UM7 discarded serial data before the next packet header.");
+            break;
+        case ParseResult::invalidPacketType:
+            Warning("UM7 received an invalid packet type.");
+            break;
+        case ParseResult::checksumError:
+            Warning("UM7 received a packet with an invalid checksum.");
+            break;
+        default:
+            break;
+        }
+    }
+
+
+    void
+    trimReceiveBuffer()
+    {
+        if(rxBuffer.size() <= maxBufferSize)
+            return;
+
+        discardGarbageWithoutLosingHeaderPrefix();
+        ++parseErrorCount;
+        if(parseErrorCount == 1 || parseErrorCount % 100 == 0)
+            Warning("UM7 receive buffer exceeded its limit and was resynchronized.");
+    }
+
+
+    void
+    reportDataError(const std::string & message)
+    {
+        ++dataErrorCount;
+        if(dataErrorCount == 1 || dataErrorCount % 100 == 0)
+            Warning(message);
+    }
+
+
+    void
+    awaitAcknowledgement(std::uint8_t address)
+    {
+        const auto deadline = std::chrono::steady_clock::now() +
+                              std::chrono::milliseconds(configurationTimeoutMs);
+
+        while(std::chrono::steady_clock::now() < deadline)
+        {
+            bool needsMoreData = false;
+            for(int attempts = 0; attempts < 64; ++attempts)
+            {
+                const ParseResult result = parsePacket();
+                if(result == ParseResult::packetReady)
+                {
+                    if(packet.address != address)
+                        continue;
+                    if((packet.packetType & 0x01) != 0)
+                        throw std::runtime_error(
+                            "UM7 rejected configuration register " + std::to_string(address));
+                    if(packet.packetType == 0)
+                        return;
+                    continue;
+                }
+                if(result == ParseResult::incomplete)
+                {
+                    needsMoreData = true;
+                    break;
+                }
+                reportParseError(result);
+            }
+
+            if(!needsMoreData)
+                continue;
+
+            const auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(
+                deadline - std::chrono::steady_clock::now());
+            const int timeoutMs = std::clamp(static_cast<int>(remaining.count()), 1, 20);
+            const int received = receiveBytes(timeoutMs);
+            if(received < 0)
+            {
+                const int errorNumber = errno;
+                throw std::runtime_error(
+                    "Could not receive UM7 configuration acknowledgement: " +
+                    std::string(std::strerror(errorNumber)));
+            }
+        }
+
+        throw std::runtime_error(
+            "Timed out waiting for UM7 configuration register " + std::to_string(address));
+    }
+
+
+    void
+    sendPacket(const std::array<std::uint8_t, 11> & packetData)
     {
         const int sent = serial->SendBytes(
-            reinterpret_cast<const char *>(packet_data.data()),
-            static_cast<int>(packet_data.size()));
-        if(sent != static_cast<int>(packet_data.size()))
+            reinterpret_cast<const char *>(packetData.data()),
+            static_cast<int>(packetData.size()), configurationWriteTimeoutMs);
+        if(sent != static_cast<int>(packetData.size()))
             throw std::runtime_error("Could not send the complete UM7 configuration packet");
     }
 
 
     void
-    SendConfig(std::uint8_t address, std::array<std::uint8_t, 4> data)
+    sendConfig(std::uint8_t address, std::array<std::uint8_t, 4> data)
     {
-        std::array<std::uint8_t, 11> packet_data
+        std::array<std::uint8_t, 11> packetData
         {
             's', 'n', 'p', 0x80, address,
             data[0], data[1], data[2], data[3], 0, 0,
         };
         std::uint16_t checksum = 0;
         for(std::size_t i = 0; i < 9; ++i)
-            checksum += packet_data[i];
-        packet_data[9] = static_cast<std::uint8_t>(checksum >> 8);
-        packet_data[10] = static_cast<std::uint8_t>(checksum);
-        SendPacket(packet_data);
+            checksum = static_cast<std::uint16_t>(checksum + packetData[i]);
+        packetData[9] = static_cast<std::uint8_t>(checksum >> 8);
+        packetData[10] = static_cast<std::uint8_t>(checksum);
+
+        sendPacket(packetData);
+        awaitAcknowledgement(address);
     }
 
 
     void
-    DisableBroadcast()
+    disableBroadcast()
     {
         for(std::uint8_t address = 1; address <= 7; ++address)
-            SendConfig(address, {0, 0, 0, 0});
+            sendConfig(address, {0, 0, 0, 0});
     }
 
-    void Init()
+
+    void
+    processGyroData()
+    {
+        if(packet.dataLength < 12)
+        {
+            reportDataError("UM7 gyro packet contained fewer than 12 data bytes.");
+            return;
+        }
+
+        gyroProc(0) = bytesToFloatBigEndian(packet.data.data());
+        gyroProc(1) = bytesToFloatBigEndian(packet.data.data() + 4);
+        gyroProc(2) = bytesToFloatBigEndian(packet.data.data() + 8);
+    }
+
+
+    void
+    processAccelData()
+    {
+        if(packet.dataLength < 12)
+        {
+            reportDataError("UM7 accelerometer packet contained fewer than 12 data bytes.");
+            return;
+        }
+
+        accelProc(0) = bytesToFloatBigEndian(packet.data.data());
+        accelProc(1) = bytesToFloatBigEndian(packet.data.data() + 4);
+        accelProc(2) = bytesToFloatBigEndian(packet.data.data() + 8);
+    }
+
+
+    void
+    processEulerAngles()
+    {
+        if(packet.dataLength < 20)
+        {
+            reportDataError("UM7 Euler-angle packet contained fewer than 20 data bytes.");
+            return;
+        }
+
+        const float rollValue = static_cast<float>(signedWord(packet.data[0], packet.data[1])) /
+                                91.02222f;
+        const float pitchValue = static_cast<float>(signedWord(packet.data[2], packet.data[3])) /
+                                 91.02222f;
+        const float yawValue = static_cast<float>(signedWord(packet.data[4], packet.data[5])) /
+                               91.02222f;
+
+        eulerAngles(0) = rollValue;
+        eulerAngles(1) = pitchValue;
+        eulerAngles(2) = yawValue;
+        roll(0) = rollValue;
+        pitch(0) = pitchValue;
+        yaw(0) = yawValue;
+    }
+
+
+    void
+    processPacket()
+    {
+        switch(packet.address)
+        {
+        case 0x61:
+            processGyroData();
+            break;
+        case 0x65:
+            processAccelData();
+            break;
+        case 0x70:
+            processEulerAngles();
+            break;
+        default:
+            break;
+        }
+    }
+
+public:
+    void
+    Init() override
     {
         Bind(port, "port");
         Bind(roll, "ROLL");
@@ -130,269 +428,50 @@ class UM7 : public Module
         Bind(gyroProc, "ProcessedGyro");
         Bind(accelProc, "ProcessedAccel");
         Bind(eulerAngles, "EulerAngles");
-    
-        baudrate = 115200; // Default baudrate
 
         serial = std::make_unique<Serial>(std::string(port), baudrate);
-        Debug(std::string("Serial port for UM7 opened on ") + std::string(port).c_str() + " with baudrate " + std::to_string(baudrate) + "\n");
+        Debug("Serial port for UM7 opened on " + std::string(port) +
+              " with baudrate " + std::to_string(baudrate));
+        rxBuffer.reserve(maxBufferSize);
 
-        // Reserve buffer space to avoid frequent reallocations
-        rx_buffer.reserve(MAX_BUFFER_SIZE);
-
-        DisableBroadcast();
-        SendConfig(0x05, {0, 100, 0, 0}); // Enable Euler angles at 255 Hz
-        SendConfig(0x03, {100, 100, 0, 0}); // Enable accelerometer and gyro at 255 Hz
-        Debug( "UM7 configured for gyro, accelerometer, and Euler angle data broadcasting.");
+        disableBroadcast();
+        sendConfig(0x05, {0, 100, 0, 0});
+        sendConfig(0x03, {100, 100, 0, 0});
+        Debug("UM7 configured for 100 Hz gyro, accelerometer, and Euler-angle broadcasts.");
     }
 
-    void Tick()
+
+    void
+    Tick() override
     {
-        // Tick
-        
-        // Read available data with short timeout for responsive operation
-        rx_length = serial->ReceiveBytes(rx_data.data(),
-                                         static_cast<int>(rx_data.size()), 5);
-        if (rx_length <= 0)
+        const int received = receiveBytes(5);
+        if(received < 0)
         {
+            const int errorNumber = errno;
+            ++serialErrorCount;
+            if(serialErrorCount == 1 || serialErrorCount % 100 == 0)
+                Warning("UM7 serial receive failed: " +
+                        std::string(std::strerror(errorNumber)));
             return;
         }
-
-        rx_buffer.append(rx_data.data(), rx_length);
-
-        // Parse all available packets
-        int parse_result;
-        int packets_processed = 0;
-        do {
-            parse_result = parsePacket();
-            if (parse_result == 0)
-            {
-                packets_processed++;
-                // Process the valid packet
-                switch (packet.Address)
-                {
-                case 0x61:
-                    ProcessGyroData();
-                    break;
-                case 0x65:
-                    ProcessAccelData();
-                    break;
-                case 0x70:
-                case 0x71:
-                    ProcessEulerAngles();
-                    break;
-                }
-            }
-        } while (parse_result == 0 && packets_processed < 10); // Limit to prevent infinite loops
-
-        // Only log errors occasionally to prevent spam
-        static int error_count = 0;
-        if (parse_result > 1 && ++error_count % 100 == 0)
-        {
-            switch(parse_result)
-            {
-            case 2: Debug("No header found (logged every 100 errors)"); break;
-            case 3: Debug("Incomplete packets (logged every 100 errors)"); break;
-            case 4: Debug("Checksum errors (logged every 100 errors)"); break;
-            }
-        }
-
-        // Manage buffer size to prevent memory issues
-        if (rx_buffer.size() > MAX_BUFFER_SIZE)
-        {
-            rx_buffer.clear();
-        }
-    }
-
-    void ProcessGyroData()
-    {
-        if (packet.data_length < 12)
-        {
-            std::cerr << "Error: Not enough data for gyro values. Expected 12 bytes, got " << (int)packet.data_length << std::endl;
+        if(received == 0)
             return;
-        }
 
-        // Extract 4 bytes for each gyro axis and convert to float (IEEE 754 format)
-        float gyroX = bytesToFloatBigEndian(packet.data);
-        float gyroY = bytesToFloatBigEndian(packet.data + 4);
-        float gyroZ = bytesToFloatBigEndian(packet.data + 8);
-
-        gyroProc[0] = gyroX;
-        gyroProc[1] = gyroY;
-        gyroProc[2] = gyroZ;
-
-
-        // std::cout << "Gyro X: " << (float)gyroProc[0] << " deg/s, Y: " << (float)gyroProc[1] << " deg/s, Z: " << (float)gyroProc[2] << " deg/s" << std::endl;
-    }
-
-    void ProcessAccelData()
-    {
-        if (packet.data_length < 12)
+        while(true)
         {
-            std::cerr << "Error: Not enough data for accelerometer values. Expected 12 bytes, got " << (int)packet.data_length << std::endl;
-            return;
-        }
-
-        // Extract 4 bytes for each accelerometer axis and convert to float (IEEE 754 format)
-        float accelX = bytesToFloatBigEndian(packet.data);
-        float accelY = bytesToFloatBigEndian(packet.data + 4);
-        float accelZ = bytesToFloatBigEndian(packet.data + 8);
-
-        accelProc[0] = accelX;
-        accelProc[1] = accelY;
-        accelProc[2] = accelZ;
-
-        //std::cout << "Accel X: " << (float)accelProc[0] << " m/s², Y: " << (float)accelProc[1] << " m/s², Z: " << (float)accelProc[2] << " m/s²" << std::endl;
-    }
-
-    void ProcessEulerAngles()
-    {
-        if (packet.data_length < 20)
-        {
-            std::cerr << "Error: Not enough data for Euler angles. Expected 20 bytes, got "
-                      << (int)packet.data_length << std::endl;
-            return;
-        }
-
-        int16_t estRoll;
-        int16_t estPitch;
-        int16_t estYaw;
-
-        estRoll = (packet.data[0] << 8) | packet.data[1];
-        estPitch = (packet.data[2] << 8) | packet.data[3];
-        estYaw = (packet.data[4] << 8) | packet.data[5];
-
-        eulerAngles[0] = estRoll / 91.02222;
-        eulerAngles[1] = estPitch / 91.02222;
-        eulerAngles[2] = estYaw / 91.02222;
-
-
-
-       
-    }
-
-    int parsePacket()
-    {
-        size_t index;
-        // Minimum length required to contain a full packet header
-        if (rx_buffer.size() < 7)
-        {
-            return 1; // Not enough data for even the smallest packet
-        }
-
-        // Find the "snp" start sequence
-        for (index = 0; index < rx_buffer.size() - 2; ++index)
-        {
-            if (rx_buffer[index] == 's' && rx_buffer[index + 1] == 'n' && rx_buffer[index + 2] == 'p')
+            const ParseResult result = parsePacket();
+            if(result == ParseResult::packetReady)
             {
-                break; // Found the packet start
+                processPacket();
+                continue;
             }
+            if(result == ParseResult::incomplete)
+                break;
+            reportParseError(result);
         }
 
-        size_t packet_index = index;
-
-        // Check if we found a header or reached the end
-        if (packet_index == rx_buffer.size() - 2)
-        {
-            return 2; // No header found
-        }
-
-        // Verify that there's enough data for at least the minimum packet length (7 bytes)
-        if ((rx_buffer.size() - packet_index) < 7)
-        {
-            return 3; // Not enough data for a complete packet
-        }
-
-        // Extract packet type (PT) and determine packet length
-        uint8_t PT = rx_buffer[packet_index + 3];
-        uint8_t packet_has_data = (PT >> 7) & 0x01;
-        uint8_t packet_is_batch = (PT >> 6) & 0x01;
-        uint8_t batch_length = (PT >> 2) & 0x0F;
-
-        uint8_t data_length = 0;
-        if (packet_has_data)
-        {
-            if (packet_is_batch)
-            {
-                data_length = 4 * batch_length;
-            }
-            else
-            {
-                data_length = 4;
-            }
-        }
-        else
-        {
-            data_length = 0;
-        }
-
-        // Verify that there's enough data for the full packet, including the checksum
-        // Total packet length = 3(header) + 1(PT) + 1(addr) + data_length + 2(checksum) = 7 + data_length
-        if ((rx_buffer.size() - packet_index) < (data_length + 7))
-        {
-            return 3; // Not enough data yet for the complete packet
-        }
-
-        // Extract the packet details
-        packet.Address = rx_buffer[packet_index + 4];
-        packet.PT = PT;
-        packet.data_length = data_length;
-
-        // Compute checksum while copying data
-        uint16_t computed_checksum = 's' + 'n' + 'p' + PT + packet.Address;
-
-        for (size_t i = 0; i < data_length; ++i)
-        {
-            packet.data[i] = rx_buffer[packet_index + 5 + i];
-            computed_checksum += packet.data[i];
-        }
-
-        computed_checksum &= 0xFFFF;
-
-        uint16_t received_checksum = ((uint8_t)rx_buffer[packet_index + 5 + data_length] << 8) |
-                                     (uint8_t)rx_buffer[packet_index + 6 + data_length];
-
-        if (received_checksum != computed_checksum)
-        {
-            // Enhanced debugging for checksum mismatch
-            std::string debug_msg = "Checksum mismatch at pos " + std::to_string(packet_index) + 
-                                  ": computed=0x" + std::to_string(computed_checksum) +
-                                  ", received=0x" + std::to_string(received_checksum) +
-                                  ", PT=0x" + std::to_string(PT) +
-                                  ", Addr=0x" + std::to_string(packet.Address) +
-                                  ", DataLen=" + std::to_string(data_length);
-            
-            // Show some bytes around the packet for context
-            debug_msg += ", Bytes: ";
-            int bytes_to_show = 10;
-            if (bytes_to_show > (int)rx_buffer.size() - packet_index)
-                bytes_to_show = (int)rx_buffer.size() - packet_index;
-            for (int i = 0; i < bytes_to_show; i++)
-            {
-                char hex[4];
-                snprintf(hex, sizeof(hex), "%02X ", (unsigned char)rx_buffer[packet_index + i]);
-                debug_msg += hex;
-            }
-            Debug(debug_msg);
-            
-            // Remove packet from buffer and try to find next valid packet
-            rx_buffer.erase(0, packet_index + 1); // Remove just the bad start, not the whole packet
-            return 4;                             // Bad checksum
-        }
-
-        // Successfully parsed packet, remove it from the buffer              
-        size_t erase_length = packet_index + 7 + data_length; // 3(header) + 1(PT) + 1(addr) + data + 2(checksum)
-        if (erase_length > rx_buffer.size())
-        {
-            Warning( "Error: Attempt to erase beyond buffer size. Buffer size: " + std::to_string(rx_buffer.size())
-                      + ", Requested erase length: " + std::to_string(erase_length));
-            return 3; // Not enough data yet
-        }
-
-        rx_buffer.erase(0, erase_length);
-        return 0; // Successfully parsed
-
+        trimReceiveBuffer();
     }
-
 };
 
 INSTALL_CLASS(UM7)

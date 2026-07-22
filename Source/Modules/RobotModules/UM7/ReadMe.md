@@ -2,9 +2,8 @@
 
 ## Description
 
-Connect to a UM7 orientation sensor via USB. This module connects to a UM7 orientation sensor via
-USB. The module instructes the UM7 to send data to Ikaros at 255hz. This module has only been tested
-in MacOS.
+Connect to a UM7 orientation sensor via USB. The module instructs the UM7 to send gyro,
+accelerometer, and Euler-angle data to Ikaros at 100 Hz. This module has only been tested on macOS.
 
 It produces ROLL, PITCH, and YAW while parameters such as port shape its behavior. A strong use case
 is a layered robot architecture in which perception and decision circuits choose targets,
