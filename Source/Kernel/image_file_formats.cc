@@ -49,6 +49,7 @@ namespace ikaros
         jpeg_error_mgr pub;
         jmp_buf setjmp_buffer;
         char message[JMSG_LENGTH_MAX];
+        bool reject_warnings = false;
     };
 
 
@@ -58,6 +59,19 @@ namespace ikaros
         auto * error = reinterpret_cast<jpeg_error_context *>(cinfo->err);
         (*cinfo->err->format_message)(cinfo, error->message);
         longjmp(error->setjmp_buffer, 1);
+    }
+
+
+    static void
+    jpeg_emit_message(j_common_ptr cinfo, int message_level)
+    {
+        if(message_level >= 0)
+            return;
+
+        auto * error = reinterpret_cast<jpeg_error_context *>(cinfo->err);
+        ++error->pub.num_warnings;
+        if(error->reject_warnings)
+            jpeg_error_exit(cinfo);
     }
 
 
@@ -202,6 +216,8 @@ namespace ikaros
 
             cinfo_.err = jpeg_std_error(&error_.pub);
             error_.pub.error_exit = jpeg_error_exit;
+            error_.pub.emit_message = jpeg_emit_message;
+            error_.reject_warnings = false;
 
             if(setjmp(error_.setjmp_buffer))
             {
@@ -394,7 +410,8 @@ namespace ikaros
 
         template<typename Operation>
         std::invoke_result_t<Operation &, jpeg_decompress_struct &>
-        read(const std::filesystem::path & filename, Operation && operation)
+        read(const std::filesystem::path & filename, bool reject_warnings,
+             Operation && operation)
         {
             file_.reset(std::fopen(filename.string().c_str(), "rb"));
             if(file_ == nullptr)
@@ -402,6 +419,8 @@ namespace ikaros
 
             cinfo_.err = jpeg_std_error(&error_.pub);
             error_.pub.error_exit = jpeg_error_exit;
+            error_.pub.emit_message = jpeg_emit_message;
+            error_.reject_warnings = reject_warnings;
 
             if(setjmp(error_.setjmp_buffer))
             {
@@ -460,7 +479,8 @@ namespace ikaros
     jpeg_get_info(const std::filesystem::path & filename)
     {
         JpegDecompressor decompressor;
-        return decompressor.read(filename, [&filename](const jpeg_decompress_struct & cinfo)
+        return decompressor.read(filename, false,
+                                 [&filename](const jpeg_decompress_struct & cinfo)
         {
             return image_info
             {
@@ -492,7 +512,7 @@ namespace ikaros
     jpeg_get_image(matrix & image, const std::filesystem::path & filename)
     {
         JpegDecompressor decompressor;
-        decompressor.read(filename, [&](jpeg_decompress_struct & cinfo)
+        decompressor.read(filename, true, [&](jpeg_decompress_struct & cinfo)
         {
             cinfo.out_color_space = JCS_RGB;
             jpeg_start_decompress(&cinfo);

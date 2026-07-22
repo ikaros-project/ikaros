@@ -586,6 +586,20 @@ public:
                 }),
                 "JPEG readers did not recover from malformed input");
 
+        const TemporaryFile truncated_jpeg(
+            "truncated.jpg",
+            std::string(reinterpret_cast<const char *>(readable_jpeg.data()),
+                        readable_jpeg.size() - 2));
+        const auto [truncated_width, truncated_height, truncated_channels] =
+            jpeg_get_info(truncated_jpeg.path());
+        require(truncated_width == 2 && truncated_height == 2 && truncated_channels == 3 &&
+                rejected_malformed_jpeg([&]
+                {
+                    static_cast<void>(jpeg_get_image(truncated_jpeg.path()));
+                }) &&
+                jpeg_get_image(valid_jpeg.path()).shape() == std::vector<int>{3, 2, 2},
+                "JPEG reader accepted truncated pixel data or did not recover afterward");
+
         const std::array<unsigned char, 72> valid_png_data
         {
             0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
