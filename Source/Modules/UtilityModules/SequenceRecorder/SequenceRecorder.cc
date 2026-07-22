@@ -2004,7 +2004,7 @@ public:
 
             // Validate
 
-            if (data["type"].is_null() || data["type"].as_string() != u8"Ikaros Sequence Data")
+            if (data["type"].is_null() || data["type"].as_string() != "Ikaros Sequence Data")
             {
                 Notify(msg_warning, "File has wrong format. Cannot be opened.");
                 return false;

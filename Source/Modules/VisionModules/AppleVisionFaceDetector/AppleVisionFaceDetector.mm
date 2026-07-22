@@ -80,7 +80,9 @@ namespace
                                          32,
                                          bytes_per_row,
                                          color_space,
-                                         kCGImageAlphaLast | kCGBitmapByteOrderDefault,
+                                         static_cast<CGBitmapInfo>(
+                                             static_cast<uint32_t>(kCGImageAlphaLast) |
+                                             static_cast<uint32_t>(kCGBitmapByteOrderDefault)),
                                          provider,
                                          nullptr,
                                          false,

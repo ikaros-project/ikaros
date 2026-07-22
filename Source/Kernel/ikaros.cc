@@ -10,6 +10,7 @@
 #include <ctime>
 #include <fstream>
 #include <iomanip>
+#include <limits>
 #include <optional>
 #include <random>
 #include <sstream>
@@ -5463,15 +5464,15 @@ bool operator==(Request & r, const std::string s)
             }
             catch(const fatal_error& e)
             {
-                throw init_error(u8"Fatal error. Init failed for \""+component->path_+"\": "+std::string(e.what()), component->path_);
+                throw init_error("Fatal error. Init failed for \""+component->path_+"\": "+std::string(e.what()), component->path_);
             }
             catch(const std::exception& e)
             {
-                throw init_error(u8"Init failed for "+component->path_+": "+std::string(e.what()), component->path_);
+                throw init_error("Init failed for "+component->path_+": "+std::string(e.what()), component->path_);
             }
             catch(...)
             {
-                throw init_error(u8"Init failed");
+                throw init_error("Init failed");
             }
         }
     }
@@ -5566,7 +5567,7 @@ bool operator==(Request & r, const std::string s)
                 Clear();
             }
             if(!std::filesystem::exists(options_.full_path()))
-                throw load_failed(u8"File \""+options_.full_path()+"\" does not exist.");
+                throw load_failed("File \""+options_.full_path()+"\" does not exist.");
 
                 try
                 {
@@ -5578,7 +5579,7 @@ bool operator==(Request & r, const std::string s)
                     info_ = d;
                     session_id = new_session_id(); 
                     ResetUISnapshotCache();
-                    Notify(msg_print, u8"Loaded "s+options_.full_path());
+                    Notify(msg_print, "Loaded "s+options_.full_path());
                     SetUp();
                     if(options_.is_explicitly_set("load_state"))
                         LoadState(resolve_state_filename(options_, "load_state"));
@@ -5590,15 +5591,15 @@ bool operator==(Request & r, const std::string s)
 
                 catch(const load_failed& e)
                 {
-                    throw load_failed(u8"Load file failed for "s+options_.full_path()+". "+e.message(), e.path());
+                    throw load_failed("Load file failed for "s+options_.full_path()+". "+e.message(), e.path());
                 }
                 catch(const setup_failed& e)
                 {
-                    throw setup_failed(u8"Set-up file failed for "s+options_.full_path()+". "+e.message(), e.path());
+                    throw setup_failed("Set-up file failed for "s+options_.full_path()+". "+e.message(), e.path());
                 }
                 catch(const std::exception& e)
                 {
-                    throw load_failed(u8"Load or set-up failed for "s+options_.full_path()+". "+e.what());
+                    throw load_failed("Load or set-up failed for "s+options_.full_path()+". "+e.what());
                 }
 
         }
@@ -6273,7 +6274,7 @@ bool operator==(Request & r, const std::string s)
                 it++;
             else
             {
-                Notify(msg_print, u8"Pruning "  + it->source + "=>" + it->target);
+                Notify(msg_print, "Pruning " + it->source + "=>" + it->target);
                 it = connections.erase(it);
             }
         }
@@ -6969,28 +6970,23 @@ bool operator==(Request & r, const std::string s)
     //
 
     std::string
-    Kernel::SendImage(matrix & image, const std::string & format, int quality) // Compress image to jpg and return a base64 data URI
+    Kernel::SendImage(const matrix & image, const std::string & format, int quality) // Compress image to jpg and return a base64 data URI
     {
-        long size = 0;
-        unsigned char * jpeg = nullptr;
+        jpeg_data jpeg;
 
         if(format=="rgb" && image.rank() == 3 && image.size(0) == 3)
-            jpeg = (unsigned char *)create_color_jpeg(size, image, quality);
+            jpeg = create_color_jpeg(image, quality);
 
         else if(format=="gray" && image.rank() == 2)
-            jpeg = (unsigned char *)create_gray_jpeg(size, image, 0, 1, quality);
+            jpeg = create_gray_jpeg(image, 0, 1, quality);
 
         else if(image.rank() == 2) // taking our chances with the format...
-            jpeg = (unsigned char *)create_pseudocolor_jpeg(size, image, 0, 1, format, quality);
+            jpeg = create_pseudocolor_jpeg(image, 0, 1, format, quality);
 
-        if(!jpeg)
+        if(jpeg.empty())
             return "\"\"";
 
-        std::unique_ptr<unsigned char, decltype(&destroy_jpeg)> jpeg_guard(jpeg, destroy_jpeg);
-        if(size < 0)
-            throw std::runtime_error("JPEG encoder returned a negative data size.");
-
-        const std::string jpeg_base64 = base64_encode(jpeg, static_cast<size_t>(size));
+        const std::string jpeg_base64 = base64_encode(jpeg.data(), jpeg.size());
         std::string result = "\"data:image/jpeg;base64,";
         result += jpeg_base64;
         result += "\"";
@@ -8633,15 +8629,14 @@ bool operator==(Request & r, const std::string s)
             return;
         }
 
-        long size = 0;
-        unsigned char * jpeg = nullptr;
+        jpeg_data jpeg;
 
         if(image->rank() == 2)
-            jpeg = create_gray_jpeg(size, *image, 0, 1, 90);
+            jpeg = create_gray_jpeg(*image, 0, 1, 90);
         else if(image->rank() == 3 && image->size(0) == 3)
-            jpeg = create_color_jpeg(size, *image, 90);
+            jpeg = create_color_jpeg(*image, 90);
 
-        if(!jpeg)
+        if(jpeg.empty())
         {
             dictionary header({
                 {"Content-Type", "text/plain"},
@@ -8654,14 +8649,16 @@ bool operator==(Request & r, const std::string s)
 
         dictionary header({
             {"Content-Type", "image/jpeg"},
-            {"Content-Length", std::to_string(size)},
+            {"Content-Length", std::to_string(jpeg.size())},
             {"Cache-Control", "no-cache, no-store"},
             {"Pragma", "no-cache"}
         });
         socket->SendHTTPHeader(header);
         socket->Flush();
-        socket->SendData(reinterpret_cast<const char *>(jpeg), size);
-        destroy_jpeg(jpeg);
+        if(jpeg.size() > static_cast<std::size_t>(std::numeric_limits<long>::max()))
+            throw std::length_error("JPEG data is too large for the socket API.");
+        socket->SendData(reinterpret_cast<const char *>(jpeg.data()),
+                         static_cast<long>(jpeg.size()));
     }
 
 

@@ -3,23 +3,69 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include <filesystem>
+#include <memory>
+#include <span>
+#include <string>
+#include <utility>
 
 namespace ikaros
-{    
-    //char *      create_jpeg(long int & size, matrix & data, float minimum=0, float maximum=1, int quality=100);
+{
+    class matrix;
 
-    unsigned char * create_color_jpeg(long int & size, matrix & image, int quality=100);
-    unsigned char * create_gray_jpeg(long int & size, matrix & image, float minimum=0, float maximum=1, int quality=100);
-    unsigned char * create_pseudocolor_jpeg(long int & size, matrix & image, float minimum=0, float maximum=1, const std::string & table="fire",  int quality=100);
-    void destroy_jpeg(unsigned char * jpeg);
+    class jpeg_data
+    {
+    public:
+        jpeg_data() noexcept = default;
+        jpeg_data(const jpeg_data &) = delete;
+        jpeg_data & operator=(const jpeg_data &) = delete;
+        jpeg_data(jpeg_data && other) noexcept :
+            data_(std::move(other.data_)),
+            size_(std::exchange(other.size_, 0))
+        {
+        }
 
-    //void        decode_jpeg(float ** matrix, int sizex, int sizey, char * data, long int size);
-    //void        decode_jpeg(float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey, char * data, long int size);
+        jpeg_data & operator=(jpeg_data && other) noexcept
+        {
+            if(this != &other)
+            {
+                data_ = std::move(other.data_);
+                size_ = std::exchange(other.size_, 0);
+            }
+            return *this;
+        }
 
-    //bool        jpeg_get_info(int & sizex, int & sizey, int & planes, char * data, long int size);
-    //void        jpeg_decode(float ** red_matrix, float ** green_matrix, float ** blue_matrix, float ** intensity_matrix, int sizex, int sizey, char * data, long int size);
+        [[nodiscard]] bool empty() const noexcept { return size_ == 0; }
+        [[nodiscard]] std::size_t size() const noexcept { return size_; }
+        [[nodiscard]] const std::uint8_t * data() const noexcept { return data_.get(); }
+        [[nodiscard]] std::span<const std::uint8_t> bytes() const noexcept
+        {
+            return {data_.get(), size_};
+        }
 
+    private:
+        struct FreeDeleter
+        {
+            void operator()(std::uint8_t * data) const noexcept;
+        };
+
+        jpeg_data(std::uint8_t * data, std::size_t size) noexcept : data_(data), size_(size) {}
+
+        std::unique_ptr<std::uint8_t, FreeDeleter> data_;
+        std::size_t size_ = 0;
+
+        friend class JpegCompressor;
+    };
+
+    [[nodiscard]] jpeg_data create_color_jpeg(const matrix & image, int quality = 100);
+    [[nodiscard]] jpeg_data create_gray_jpeg(const matrix & image, float minimum = 0,
+                                             float maximum = 1, int quality = 100);
+    [[nodiscard]] jpeg_data create_pseudocolor_jpeg(const matrix & image, float minimum = 0,
+                                                    float maximum = 1,
+                                                    const std::string & table = "fire",
+                                                    int quality = 100);
 
     void jpeg_get_size(int & sizex, int & sizey, std::filesystem::path filename);
     int jpeg_get_channels(std::filesystem::path filename);
@@ -30,5 +76,3 @@ namespace ikaros
     int  png_get_channels(std::filesystem::path filename);
     void png_get_image(matrix & red, matrix & green, matrix & blue, std::filesystem::path filename);
 };
-
-

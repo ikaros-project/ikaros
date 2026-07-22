@@ -32,9 +32,8 @@ class Oscillator: public Module
     void Tick()
     {
         float time = GetTime();
-        output.apply(frequency, [=](float x, float f) {return func(time, f);});
+        output.apply(frequency, [this, time](float x, float f) {return func(time, f);});
     }
 };
 
 INSTALL_CLASS(Oscillator)
-

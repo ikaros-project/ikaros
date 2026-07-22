@@ -348,7 +348,7 @@ public:
         (void)jpeg_read_header(&cinfo, TRUE);
         (void)jpeg_start_decompress(&cinfo);
 
-        Notify(msg_debug, u8"Checking \"" + std::string(fn) + "\" (width = " + std::to_string(cinfo.output_width) + " height = " + std::to_string(cinfo.output_height) + " channels = " + std::to_string(cinfo.output_components) + ")");
+        Notify(msg_debug, "Checking \"" + std::string(fn) + "\" (width = " + std::to_string(cinfo.output_width) + " height = " + std::to_string(cinfo.output_height) + " channels = " + std::to_string(cinfo.output_components) + ")");
 
         x = cinfo.output_width;
         y = cinfo.output_height;
@@ -448,7 +448,7 @@ public:
             (void)jpeg_read_header(&cinfo, TRUE);
             (void)jpeg_start_decompress(&cinfo);
             row_stride = cinfo.output_width * cinfo.output_components;
-            Notify(msg_debug, u8"InputJPEG: width = " + std::to_string(cinfo.output_width) + " height = " + std::to_string(cinfo.output_height) + " components = " + std::to_string(cinfo.output_components) + "\n");
+            Notify(msg_debug, "InputJPEG: width = " + std::to_string(cinfo.output_width) + " height = " + std::to_string(cinfo.output_height) + " components = " + std::to_string(cinfo.output_components) + "\n");
 
             if (cinfo.output_width != (unsigned int)(size_x) || cinfo.output_height != (unsigned int)(size_y))
             {

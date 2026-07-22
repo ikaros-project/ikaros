@@ -18,7 +18,7 @@ class Randomizer: public Module
 
     void Tick()
     {
-        output.apply([=](float) {return  min_ + (float(::random())/float(RAND_MAX))*(max_-min_);});
+        output.apply([this](float) {return  min_ + (float(::random())/float(RAND_MAX))*(max_-min_);});
     }
 };
 

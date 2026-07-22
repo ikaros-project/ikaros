@@ -4,9 +4,12 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <limits>
 #include <new>
+#include <span>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "matrix.h"
 #include "image_file_formats.h"
@@ -23,11 +26,19 @@
 extern "C"
 {
 #include "jpeglib.h"
+#include "jerror.h"
 #include <setjmp.h>
 #include <png.h>
 }
 namespace ikaros
 {
+
+
+    void
+    jpeg_data::FreeDeleter::operator()(std::uint8_t * data) const noexcept
+    {
+        std::free(data);
+    }
 
 
     struct jpeg_encoder_error_mgr
@@ -71,29 +82,30 @@ namespace ikaros
 
 
     static void
-    float_to_byte(unsigned char * result, const float * source,
-                  float minimum, float maximum, long size)
+    float_to_byte(std::span<unsigned char> result, std::span<const float> source,
+                  float minimum, float maximum)
     {
+        const std::size_t size = source.size();
         if(maximum == minimum)
         {
-            std::fill_n(result, static_cast<std::size_t>(size), static_cast<unsigned char>(0));
+            std::fill(result.begin(), result.end(), static_cast<unsigned char>(0));
             return;
         }
 
 #if IKAROS_IMAGE_ACCELERATE
         vImage_Buffer source_buffer =
         {
-            const_cast<float *>(source),
+            const_cast<float *>(source.data()),
             1,
             static_cast<vImagePixelCount>(size),
-            static_cast<std::size_t>(size) * sizeof(float),
+            size * sizeof(float),
         };
         vImage_Buffer result_buffer =
         {
-            result,
+            result.data(),
             1,
             static_cast<vImagePixelCount>(size),
-            static_cast<std::size_t>(size) * sizeof(unsigned char),
+            size * sizeof(unsigned char),
         };
         if(vImageConvert_PlanarFtoPlanar8(&source_buffer, &result_buffer,
                                           maximum, minimum, kvImageDoNotTile) == kvImageNoError)
@@ -101,26 +113,29 @@ namespace ikaros
 #endif
 
         const float scale = 255.0f / (maximum - minimum);
-        for(long i = 0; i < size; ++i)
+        for(std::size_t i = 0; i < size; ++i)
             result[i] = normalized_float_to_byte(source[i], minimum, maximum, scale);
     }
 
 
     static void
-    float_rgb_to_byte(unsigned char * result, unsigned char * planar_buffer,
-                      const float * red, const float * green, const float * blue, long size)
+    float_rgb_to_byte(std::span<unsigned char> result,
+                      std::span<unsigned char> planar_buffer,
+                      std::span<const float> red, std::span<const float> green,
+                      std::span<const float> blue)
     {
+        const std::size_t size = red.size();
 #if IKAROS_IMAGE_ACCELERATE
         const auto width = static_cast<vImagePixelCount>(size);
-        const auto float_row_bytes = static_cast<std::size_t>(size) * sizeof(float);
-        const auto byte_row_bytes = static_cast<std::size_t>(size) * sizeof(unsigned char);
-        vImage_Buffer source_red{const_cast<float *>(red), 1, width, float_row_bytes};
-        vImage_Buffer source_green{const_cast<float *>(green), 1, width, float_row_bytes};
-        vImage_Buffer source_blue{const_cast<float *>(blue), 1, width, float_row_bytes};
-        vImage_Buffer planar_red{planar_buffer, 1, width, byte_row_bytes};
-        vImage_Buffer planar_green{planar_buffer + size, 1, width, byte_row_bytes};
-        vImage_Buffer planar_blue{planar_buffer + 2 * size, 1, width, byte_row_bytes};
-        vImage_Buffer destination{result, 1, width, 3 * byte_row_bytes};
+        const auto float_row_bytes = size * sizeof(float);
+        const auto byte_row_bytes = size * sizeof(unsigned char);
+        vImage_Buffer source_red{const_cast<float *>(red.data()), 1, width, float_row_bytes};
+        vImage_Buffer source_green{const_cast<float *>(green.data()), 1, width, float_row_bytes};
+        vImage_Buffer source_blue{const_cast<float *>(blue.data()), 1, width, float_row_bytes};
+        vImage_Buffer planar_red{planar_buffer.data(), 1, width, byte_row_bytes};
+        vImage_Buffer planar_green{planar_buffer.data() + size, 1, width, byte_row_bytes};
+        vImage_Buffer planar_blue{planar_buffer.data() + 2 * size, 1, width, byte_row_bytes};
+        vImage_Buffer destination_buffer{result.data(), 1, width, 3 * byte_row_bytes};
 
         if(vImageConvert_PlanarFtoPlanar8(&source_red, &planar_red, 1, 0,
                                           kvImageDoNotTile) == kvImageNoError &&
@@ -129,603 +144,265 @@ namespace ikaros
            vImageConvert_PlanarFtoPlanar8(&source_blue, &planar_blue, 1, 0,
                                           kvImageDoNotTile) == kvImageNoError &&
            vImageConvert_Planar8toRGB888(&planar_red, &planar_green, &planar_blue,
-                                         &destination, kvImageDoNotTile) == kvImageNoError)
+                                         &destination_buffer, kvImageDoNotTile) == kvImageNoError)
             return;
 #else
         static_cast<void>(planar_buffer);
 #endif
 
-        for(long i = 0; i < size; ++i)
+        unsigned char * destination = result.data();
+        for(std::size_t i = 0; i < size; ++i)
         {
-            *result++ = normalized_float_to_byte(red[i], 0, 1, 255);
-            *result++ = normalized_float_to_byte(green[i], 0, 1, 255);
-            *result++ = normalized_float_to_byte(blue[i], 0, 1, 255);
+            *destination++ = normalized_float_to_byte(red[i], 0, 1, 255);
+            *destination++ = normalized_float_to_byte(green[i], 0, 1, 255);
+            *destination++ = normalized_float_to_byte(blue[i], 0, 1, 255);
         }
     }
-	
 
-    // create jpeg functions
-    
-    struct jpeg_destination { 
-        struct jpeg_destination_mgr dest_mgr; 
-        JOCTET * buffer; 
-        size_t   size; 
-        size_t   used;
-    }; 
-    
 
-    static void 
-    dst_init(j_compress_ptr cinfo) 
-    { 
-        struct jpeg_destination *dst = (jpeg_destination *)cinfo->dest; 
-        dst->used = 0; 
-        dst->size = 2048+cinfo->image_width * cinfo->image_height * cinfo->input_components * 2; // arbitrary initial size ; 2048 for header in case of very small images
-        dst->buffer = (JOCTET *)malloc(dst->size * sizeof *dst->buffer);
-        if(dst->buffer == nullptr)
-            throw std::bad_alloc();
-        dst->dest_mgr.next_output_byte = dst->buffer; 
-        dst->dest_mgr.free_in_buffer = dst->size; 
-        return; 
+    struct JpegDestination
+    {
+        jpeg_destination_mgr manager{};
+        JOCTET * buffer = nullptr;
+        std::size_t capacity = 0;
+        std::size_t used = 0;
+    };
+
+
+    static void
+    destination_init(j_compress_ptr cinfo)
+    {
+        auto * destination = reinterpret_cast<JpegDestination *>(cinfo->dest);
+        destination->used = 0;
+        destination->manager.next_output_byte = destination->buffer;
+        destination->manager.free_in_buffer = destination->capacity;
     }
 
-    // FIXME:   Something goes wrong when dst_empty is called more than once
-    //          Fortunately it never happens since the size set by dst_init is large enough
-    
+
     static boolean
-    dst_empty(j_compress_ptr cinfo) 
-    { 
-        struct jpeg_destination *dst = (jpeg_destination *)cinfo->dest; 
-        dst->used = dst->size - dst->dest_mgr.free_in_buffer;
-        dst->size *= 2; 
-        JOCTET * resized = (JOCTET *)realloc(dst->buffer, dst->size * sizeof *dst->buffer);
+    destination_empty(j_compress_ptr cinfo)
+    {
+        auto * destination = reinterpret_cast<JpegDestination *>(cinfo->dest);
+        destination->used = destination->capacity - destination->manager.free_in_buffer;
+        if(destination->capacity > std::numeric_limits<std::size_t>::max() / 2)
+        {
+            ERREXIT(cinfo, JERR_OUT_OF_MEMORY);
+            return FALSE;
+        }
+
+        const std::size_t new_capacity = destination->capacity * 2;
+        auto * resized = static_cast<JOCTET *>(
+            std::realloc(destination->buffer, new_capacity));
         if(resized == nullptr)
-            throw std::bad_alloc();
-        dst->buffer = resized;
-        dst->dest_mgr.next_output_byte = &dst->buffer[dst->used];
-        dst->dest_mgr.free_in_buffer = dst->size - dst->used; 
-        return true; 
-    }
-    
-    
-    static void
-    dst_term(j_compress_ptr cinfo) 
-    { 
-        struct jpeg_destination *dst = (jpeg_destination *)cinfo->dest; 
-        dst->used = dst->size - dst->dest_mgr.free_in_buffer;
-        return; 
-    } 
-    
-    
-    static void
-    jpeg_set_destination(j_compress_ptr cinfo, struct jpeg_destination *dst) 
-    { 
-        dst->dest_mgr.init_destination = dst_init; 
-        dst->dest_mgr.empty_output_buffer = dst_empty; 
-        dst->dest_mgr.term_destination = dst_term; 
-        cinfo->dest = (jpeg_destination_mgr *)dst; 
-        return; 
-    } 
-    
-    
-     /*
-    char *
-    create_jpeg(long int & size, float * matrix, int sizex, int sizey, float minimum, float maximum, int quality)
-    {
-        if (matrix == NULL)
         {
-            size = 0;
-            return NULL;
+            ERREXIT(cinfo, JERR_OUT_OF_MEMORY);
+            return FALSE;
         }
-        
-        JSAMPLE *   image_buffer = new JSAMPLE [sizex];
-        JSAMPROW    row_pointer[1];
-        
-        struct jpeg_compress_struct cinfo;
-        struct jpeg_error_mgr       jerr;
-        struct jpeg_destination     dst;
-        
-        cinfo.err = jpeg_std_error(&jerr);
-        
-        jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
-        
-        cinfo.image_width = sizex; 	/// image width and height, in pixels
-        cinfo.image_height = sizey;
-        cinfo.input_components = 1;	// # of color components per pixel
-        cinfo.in_color_space = JCS_GRAYSCALE;
-        
-        jpeg_set_defaults(&cinfo);
-        jpeg_set_quality(&cinfo, quality, true);
-        jpeg_set_destination(&cinfo, &dst);
-        
-        // Do the compression
-        
-        jpeg_start_compress(&cinfo, true);
-        
-        while (cinfo.next_scanline < cinfo.image_height)
-        {
-            // Convert row to image buffer (assume max == 1 for now)
-            
-            JSAMPLE * ib = image_buffer;
-            if (maximum != minimum)
-                float_to_byte(image_buffer, matrix, minimum, maximum, sizex);
-            else
-                for (int i=0; i<sizex; i++)
-                    *ib++ = 0;
-            
-            // Write to compressor
-            row_pointer[0] = image_buffer;
-            (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-            matrix += sizex;
-        }
-        
-        jpeg_finish_compress(&cinfo);
-        jpeg_destroy_compress(&cinfo);
-        
-        delete [] image_buffer;
-        
-        size = dst.used;
-        return (char *)dst.buffer;
-    }
-    */
-    
-    
-    unsigned char *
-    create_gray_jpeg(long int & size, matrix & image, float minimum, float maximum, int quality)
-    {
-        size = 0;
-        validate_float_to_byte_range(minimum, maximum);
 
-        long sizex = image.size(1);
-        long sizey = image.size(0);
-
-        JSAMPLE *   image_buffer = new JSAMPLE [sizex];
-        JSAMPROW    row_pointer[1];
-        
-        struct jpeg_compress_struct cinfo{};
-        struct jpeg_encoder_error_mgr jerr{};
-        struct jpeg_destination dst{};
-        
-        //int    row_stride;				// physical row width in image buffer
-        
-        cinfo.err = jpeg_std_error(&jerr.pub);
-        jerr.pub.error_exit = jpeg_encoder_error_exit;
-
-        if(setjmp(jerr.setjmp_buffer))
-        {
-            jpeg_destroy_compress(&cinfo);
-            free(dst.buffer);
-            delete [] image_buffer;
-            size = 0;
-            throw std::runtime_error("JPEG encoding failed: " + std::string(jerr.message));
-        }
-        
-        jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
-        
-        cinfo.image_width = sizex; 	/// image width and height, in pixels
-        cinfo.image_height = sizey;
-        cinfo.input_components = 1;	// # of color components per pixel
-        cinfo.in_color_space = JCS_GRAYSCALE;
-        
-        jpeg_set_defaults(&cinfo);
-        jpeg_set_quality(&cinfo, quality, true);
-        jpeg_set_destination(&cinfo, &dst);
-        
-        // Do the compression
-        
-        jpeg_start_compress(&cinfo, true);
-        
-        //row_stride = sizex * 1;	// JSAMPLEs per row in image_buffer
-        int j=0;
-        
-        while (cinfo.next_scanline < cinfo.image_height)
-        {
-            float_to_byte(image_buffer, image.logical_block_data(j),
-                          minimum, maximum, sizex);
-            
-            // Write to compressor
-            row_pointer[0] = image_buffer;
-            (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-            j++;
-        }
-        
-        jpeg_finish_compress(&cinfo);
-        jpeg_destroy_compress(&cinfo);
-        
-        delete [] image_buffer;
-        
-        size = dst.used;
-        return dst.buffer;
-    }
-    
-    
-    unsigned char * create_pseudocolor_jpeg(long int & size, matrix & image, float minimum, float maximum, const std::string & table,  int quality)
-    {
-        size = 0;
-        if(!color_table.count(table))
-            return nullptr;
-        validate_float_to_byte_range(minimum, maximum);
-
-        long sizex = image.size(1);
-        long sizey = image.size(0);
-
-        JSAMPLE *   image_buffer = new JSAMPLE [3*sizex];
-        unsigned char * z = nullptr;
-        try
-        {
-            z = new unsigned char [sizex];
-        }
-        catch(...)
-        {
-            delete [] image_buffer;
-            throw;
-        }
-        JSAMPROW    row_pointer[1];
-        
-        struct jpeg_compress_struct cinfo{};
-        struct jpeg_encoder_error_mgr jerr{};
-        struct jpeg_destination dst{};
-        
-        cinfo.err = jpeg_std_error(&jerr.pub);
-        jerr.pub.error_exit = jpeg_encoder_error_exit;
-
-        if(setjmp(jerr.setjmp_buffer))
-        {
-            jpeg_destroy_compress(&cinfo);
-            free(dst.buffer);
-            delete [] z;
-            delete [] image_buffer;
-            size = 0;
-            throw std::runtime_error("JPEG encoding failed: " + std::string(jerr.message));
-        }
-        
-        jpeg_create_compress(&cinfo); // TODO: Replace with ikaros error handler later
-        
-        cinfo.image_width = sizex; 	//
-        cinfo.image_height = sizey;
-        cinfo.input_components = 3;	// # of color components per pixel
-        cinfo.in_color_space = JCS_RGB;
-        
-        jpeg_set_defaults(&cinfo);
-        jpeg_set_quality(&cinfo, quality, true);
-        jpeg_set_destination(&cinfo, &dst);
-        
-        // Do the compression
-        
-        jpeg_start_compress(&cinfo, true);
-        int j=0;
-        
-        while (cinfo.next_scanline < cinfo.image_height)
-        {
-            float_to_byte(z, image.logical_block_data(j), minimum, maximum, sizex);
-            int x = 0;
-            unsigned char * zz = z;
-            
-            for (int i=0; i<sizex; i++)
-            {
-                image_buffer[x++] = color_table[table][*zz][0];
-                image_buffer[x++] = color_table[table][*zz][1];
-                image_buffer[x++] = color_table[table][*zz][2];
-                zz++;
-            }
-            
-            // Write to compressor
-            row_pointer[0] = image_buffer;
-            (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-            j++;
-        }
-        
-        jpeg_finish_compress(&cinfo);
-        jpeg_destroy_compress(&cinfo);
-        
-        delete [] z;
-        delete [] image_buffer;
-        
-        size = dst.used;
-        return dst.buffer;
-    }
-    
-    /*
-    char *
-    create_jpeg(long int & size, float ** matrix, int sizex, int sizey, int color_table[256][3], int quality)
-    {
-        return create_jpeg(size, *matrix, sizex, sizey, color_table, quality);
-    }
-    */
-    
-    /*
-    char *
-    create_jpeg(long int & size, float * r, float * g, float * b, int sizex, int sizey, int quality)
-    {
-        size = 0;
-        if (r==NULL) return NULL;
-        if (g==NULL) return NULL;
-        if (b==NULL) return NULL;
-        
-        JSAMPLE *   image_buffer = new JSAMPLE [3*sizex];
-        JSAMPROW    row_pointer[1];
-        
-        struct jpeg_compress_struct cinfo;
-        struct jpeg_error_mgr       jerr;
-        struct jpeg_destination     dst;
-        
-        //int    row_stride;				// physical row width in image buffer
-        
-        cinfo.err = jpeg_std_error(&jerr);
-        
-        jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
-        
-        cinfo.image_width = sizex; 	/// image width and height, in pixels
-        cinfo.image_height = sizey;
-        cinfo.input_components = 3;	// # of color components per pixel
-        cinfo.in_color_space = JCS_RGB;
-        
-        jpeg_set_defaults(&cinfo);
-        jpeg_set_quality(&cinfo, quality, true);
-        jpeg_set_destination(&cinfo, &dst);
-        
-        // Do the compression
-        
-        jpeg_start_compress(&cinfo, true);
-        
-        //row_stride = sizex * 3;		// JSAMPLEs per row in image_buffer
-        int j=0;
-        
-        float * rp = r;
-        float * gp = g;
-        float * bp = b;
-        
-        while (cinfo.next_scanline < cinfo.image_height)
-        {
-            int x = 0;
-            for (int i=0; i<sizex; i++)
-            {
-                // IGNORE OVERFLOW
-                // float rr = (*rp < 0.0 ? 0.0 : (*rp > 1.0 ? 1.0 : *rp));
-                // float gg = (*gp < 0.0 ? 0.0 : (*gp > 1.0 ? 1.0 : *gp));
-                // float bb = (*bp < 0.0 ? 0.0 : (*bp > 1.0 ? 1.0 : *bp));
-
-                 // clipping |= (rr != r[j][i]) || (gg != g[j][i]) || (bb != b[j][i]);
-                
-                image_buffer[x++] = int(255.0*(*rp));
-                image_buffer[x++] = int(255.0*(*gp));
-                image_buffer[x++] = int(255.0*(*bp));
-                
-                rp++;
-                gp++;
-                bp++;
-            }
-            
-            // Write to compressor
-            row_pointer[0] = image_buffer;
-            (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-            j++;
-        }
-        jpeg_finish_compress(&cinfo);
-        jpeg_destroy_compress(&cinfo);
-        
-        delete [] image_buffer;
-        
-        size = dst.used;
-        return (char *)dst.buffer;
-    }
-    */
-    
-    /*
-    char *
-    create_jpeg(long int & size, float ** r, float ** g, float ** b, int sizex, int sizey, int quality)
-    {
-        return create_jpeg(size, *r, *g, *b, sizex, sizey, quality);
-    }
-    */
-    
-    
-    void
-    destroy_jpeg(unsigned char * jpeg)
-    {
-        free(jpeg);
-    }
-    
-    
-    // decode jpeg functions
-    
-    typedef struct {
-        struct jpeg_source_mgr pub;	// public fields
-        JOCTET eoi_buffer[2];         // a place to put a dummy EOI
-    } my_source_mgr;
-    
-    typedef my_source_mgr * my_src_ptr;
-    
-    
-    static void
-    init_source (j_decompress_ptr cinfo)
-    {
-    }
-    
-    
-    static boolean
-    fill_input_buffer (j_decompress_ptr cinfo)
-    {
-        my_src_ptr src = (my_src_ptr) cinfo->src;
-        
-        //      WARNMS(cinfo, JWRN_JPEG_EOF);
-        
-        // Create a fake EOI marker 
-        src->eoi_buffer[0] = (JOCTET) 0xFF;
-        src->eoi_buffer[1] = (JOCTET) JPEG_EOI;
-        src->pub.next_input_byte = src->eoi_buffer;
-        src->pub.bytes_in_buffer = 2;
-        
+        destination->buffer = resized;
+        destination->capacity = new_capacity;
+        destination->manager.next_output_byte = destination->buffer + destination->used;
+        destination->manager.free_in_buffer = destination->capacity - destination->used;
         return TRUE;
     }
-    
-    
+
+
     static void
-    skip_input_data (j_decompress_ptr cinfo, long num_bytes)
+    destination_term(j_compress_ptr cinfo)
     {
-        my_src_ptr src = (my_src_ptr) cinfo->src;
-        
-        if (num_bytes > 0) {
-            while (num_bytes > (long) src->pub.bytes_in_buffer) {
-                num_bytes -= (long) src->pub.bytes_in_buffer;
-                (void) fill_input_buffer(cinfo);
-                // note we assume that fill_input_buffer will never return FALSE, so suspension need not be handled.
+        auto * destination = reinterpret_cast<JpegDestination *>(cinfo->dest);
+        destination->used = destination->capacity - destination->manager.free_in_buffer;
+    }
+
+
+    class JpegCompressor
+    {
+    public:
+        JpegCompressor() = default;
+        JpegCompressor(const JpegCompressor &) = delete;
+        JpegCompressor & operator=(const JpegCompressor &) = delete;
+
+        ~JpegCompressor()
+        {
+            reset();
+        }
+
+        template<typename RowConverter>
+        jpeg_data encode(long width, long height, int components, J_COLOR_SPACE color_space,
+                         int quality, std::span<JSAMPLE> row, RowConverter && convert_row)
+        {
+            if(width <= 0 || height <= 0 ||
+               width > static_cast<long>(std::numeric_limits<JDIMENSION>::max()) ||
+               height > static_cast<long>(std::numeric_limits<JDIMENSION>::max()))
+                throw std::runtime_error("JPEG encoding failed: Invalid image dimensions");
+
+            cinfo_.err = jpeg_std_error(&error_.pub);
+            error_.pub.error_exit = jpeg_encoder_error_exit;
+
+            if(setjmp(error_.setjmp_buffer))
+            {
+                const std::string message(error_.message);
+                reset();
+                throw std::runtime_error("JPEG encoding failed: " + message);
             }
-            src->pub.next_input_byte += (size_t) num_bytes;
-            src->pub.bytes_in_buffer -= (size_t) num_bytes;
+
+            created_ = true;
+            jpeg_create_compress(&cinfo_);
+
+            cinfo_.image_width = static_cast<JDIMENSION>(width);
+            cinfo_.image_height = static_cast<JDIMENSION>(height);
+            cinfo_.input_components = components;
+            cinfo_.in_color_space = color_space;
+
+            const std::size_t pixel_count = checked_pixel_count(width, height);
+            if(pixel_count > (std::numeric_limits<std::size_t>::max() - 2048) /
+                                 (2 * static_cast<std::size_t>(components)))
+                throw std::length_error("JPEG output capacity overflow");
+            destination_.capacity =
+                2048 + pixel_count * 2 * static_cast<std::size_t>(components);
+            destination_.buffer = static_cast<JOCTET *>(std::malloc(destination_.capacity));
+            if(destination_.buffer == nullptr)
+                throw std::bad_alloc();
+            destination_.manager.init_destination = destination_init;
+            destination_.manager.empty_output_buffer = destination_empty;
+            destination_.manager.term_destination = destination_term;
+            cinfo_.dest = &destination_.manager;
+
+            jpeg_set_defaults(&cinfo_);
+            jpeg_set_quality(&cinfo_, quality, TRUE);
+            jpeg_start_compress(&cinfo_, TRUE);
+
+            while(cinfo_.next_scanline < cinfo_.image_height)
+            {
+                convert_row(cinfo_.next_scanline, row);
+                JSAMPROW row_pointer = row.data();
+                jpeg_write_scanlines(&cinfo_, &row_pointer, 1);
+            }
+
+            jpeg_finish_compress(&cinfo_);
+            jpeg_data result(reinterpret_cast<std::uint8_t *>(destination_.buffer),
+                             destination_.used);
+            destination_.buffer = nullptr;
+            reset();
+            return result;
         }
-    }
-    
-    
-    static void
-    term_source (j_decompress_ptr cinfo)
-    {
-    }
-    
-    
-    static void
-    jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize)
-    {
-        my_src_ptr src;
-        
-        if (cinfo->src == nullptr) // first time for this JPEG object?
-        {	
-            cinfo->src = (struct jpeg_source_mgr *)
-            (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof(my_source_mgr));
+
+    private:
+        static std::size_t checked_pixel_count(long width, long height)
+        {
+            const auto unsigned_width = static_cast<std::size_t>(width);
+            const auto unsigned_height = static_cast<std::size_t>(height);
+            if(unsigned_height > std::numeric_limits<std::size_t>::max() / unsigned_width)
+                throw std::length_error("JPEG image size overflow");
+            return unsigned_width * unsigned_height;
         }
-        
-        src = (my_src_ptr) cinfo->src;
-        src->pub.init_source = init_source;
-        src->pub.fill_input_buffer = fill_input_buffer;
-        src->pub.skip_input_data = skip_input_data;
-        src->pub.resync_to_restart = jpeg_resync_to_restart; // use default method 
-        src->pub.term_source = term_source;
-        
-        src->pub.next_input_byte = buffer;
-        src->pub.bytes_in_buffer = bufsize;
-    }
-    
-    
-    struct my_error_mgr
-    {
-        struct jpeg_error_mgr pub;	// "public" fields 
-        jmp_buf setjmp_buffer;		// for return to caller
+
+        void reset() noexcept
+        {
+            if(created_)
+                jpeg_destroy_compress(&cinfo_);
+            created_ = false;
+            std::free(destination_.buffer);
+            destination_ = {};
+        }
+
+        jpeg_compress_struct cinfo_{};
+        jpeg_encoder_error_mgr error_{};
+        JpegDestination destination_{};
+        bool created_ = false;
     };
-    
-    
-    typedef struct my_error_mgr * my_error_ptr;
-    
-    
-    static void
-    my_error_exit (j_common_ptr cinfo)
+
+
+    jpeg_data
+    create_gray_jpeg(const matrix & image, float minimum, float maximum, int quality)
     {
-        my_error_ptr myerr = (my_error_ptr) cinfo->err;
-        (*cinfo->err->output_message) (cinfo);
-        longjmp(myerr->setjmp_buffer, 1);
+        if(image.rank() != 2)
+            return {};
+        validate_float_to_byte_range(minimum, maximum);
+
+        const long width = image.size(1);
+        const long height = image.size(0);
+        std::vector<JSAMPLE> image_row(static_cast<std::size_t>(width));
+        JpegCompressor compressor;
+        return compressor.encode(width, height, 1, JCS_GRAYSCALE, quality, image_row,
+                                 [&](JDIMENSION row, std::span<JSAMPLE> destination)
+                                 {
+                                     const auto source = std::span(
+                                         image.logical_block_data(static_cast<int>(row)),
+                                         static_cast<std::size_t>(width));
+                                     float_to_byte(destination, source, minimum, maximum);
+                                 });
     }
     
     
-    bool
-    jpeg_get_info(int & sizex, int & sizey, int & planes, char * data, long int size)
+    jpeg_data
+    create_pseudocolor_jpeg(const matrix & image, float minimum, float maximum,
+                            const std::string & table, int quality)
     {
-        struct jpeg_decompress_struct cinfo;
-        struct my_error_mgr jerr;
-        
-        cinfo.err = jpeg_std_error(&jerr.pub);
-        jerr.pub.error_exit = my_error_exit;
-        
-        if (setjmp(jerr.setjmp_buffer))
-        {
-            jpeg_destroy_decompress(&cinfo);
-            sizex = 0;
-            sizey = 0;
-            planes = 0;
-            return false;
-        }
+        if(image.rank() != 2)
+            return {};
+        const auto table_iterator = color_table.find(table);
+        if(table_iterator == color_table.end())
+            return {};
+        validate_float_to_byte_range(minimum, maximum);
 
-        jpeg_create_decompress(&cinfo);
-        jpeg_memory_src(&cinfo, (JOCTET *)data, size);
-        (void) jpeg_read_header(&cinfo, TRUE);
-        (void) jpeg_start_decompress(&cinfo);
-        
-        sizex  = cinfo.output_width;
-        sizey  = cinfo.output_height;
-        planes = cinfo.output_components;
-        return true;
+        const long width = image.size(1);
+        const long height = image.size(0);
+        const std::size_t row_width = static_cast<std::size_t>(width);
+        std::vector<JSAMPLE> image_row(3 * row_width);
+        std::vector<unsigned char> normalized_row(row_width);
+        const LUT & colors = table_iterator->second;
+        JpegCompressor compressor;
+        return compressor.encode(width, height, 3, JCS_RGB, quality, image_row,
+                                 [&](JDIMENSION row, std::span<JSAMPLE> destination)
+                                 {
+                                     const auto source = std::span(
+                                         image.logical_block_data(static_cast<int>(row)),
+                                         row_width);
+                                     float_to_byte(normalized_row, source, minimum, maximum);
+                                     for(std::size_t x = 0; x < row_width; ++x)
+                                     {
+                                         const auto & color = colors[normalized_row[x]];
+                                         destination[3 * x] = static_cast<JSAMPLE>(color[0]);
+                                         destination[3 * x + 1] = static_cast<JSAMPLE>(color[1]);
+                                         destination[3 * x + 2] = static_cast<JSAMPLE>(color[2]);
+                                     }
+                                 });
     }
-
-
-    unsigned char *
-    create_color_jpeg(long int & size, matrix & image, int quality)
+    jpeg_data
+    create_color_jpeg(const matrix & image, int quality)
     {
-        size = 0;
-
         if(image.rank() != 3 || image.size(0) != 3)
-            return nullptr;
+            return {};
 
-        long sizex = image.size(2);
-        long sizey = image.shape()[1];
-        
-        const long image_storage_size = (IKAROS_IMAGE_ACCELERATE ? 6 : 3) * sizex;
-        JSAMPLE * image_storage = new JSAMPLE [image_storage_size];
-        JSAMPLE * image_buffer = image_storage;
-        JSAMPLE * planar_buffer = IKAROS_IMAGE_ACCELERATE ? image_storage + 3 * sizex : nullptr;
-        JSAMPROW    row_pointer[1];
-        
-        struct jpeg_compress_struct cinfo{};
-        struct jpeg_encoder_error_mgr jerr{};
-        struct jpeg_destination dst{};
-        
-        //int    row_stride;				// physical row width in image buffer
-        
-        cinfo.err = jpeg_std_error(&jerr.pub);
-        jerr.pub.error_exit = jpeg_encoder_error_exit;
+        const long width = image.size(2);
+        const long height = image.size(1);
+        const std::size_t row_width = static_cast<std::size_t>(width);
+        std::vector<JSAMPLE> image_storage((IKAROS_IMAGE_ACCELERATE ? 6 : 3) * row_width);
+        std::span<JSAMPLE> image_row(image_storage.data(), 3 * row_width);
+        std::span<JSAMPLE> planar_buffer;
+#if IKAROS_IMAGE_ACCELERATE
+        planar_buffer = std::span(image_storage).subspan(3 * row_width);
+#endif
 
-        if(setjmp(jerr.setjmp_buffer))
-        {
-            jpeg_destroy_compress(&cinfo);
-            free(dst.buffer);
-            delete [] image_storage;
-            size = 0;
-            throw std::runtime_error("JPEG encoding failed: " + std::string(jerr.message));
-        }
-        
-        jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
-        
-        cinfo.image_width = sizex; 	//* image width and height, in pixels
-        cinfo.image_height = sizey;
-        cinfo.input_components = 3;	// # of color components per pixel
-        cinfo.in_color_space = JCS_RGB;
-        
-        jpeg_set_defaults(&cinfo);
-        jpeg_set_quality(&cinfo, quality, true);
-        jpeg_set_destination(&cinfo, &dst);
-        
-        // Do the compression
-        
-        jpeg_start_compress(&cinfo, true);
-        
-        //row_stride = sizex * 3;		/* JSAMPLEs per row in image_buffer */
-        int j=0;
-        
-        while (cinfo.next_scanline < cinfo.image_height)
-        {
-            const float * red = image.logical_block_data(j);
-            const float * green = image.logical_block_data(sizey + j);
-            const float * blue = image.logical_block_data(2 * sizey + j);
-            float_rgb_to_byte(image_buffer, planar_buffer, red, green, blue, sizex);
-            
-            // Write to compressor
-            row_pointer[0] = image_buffer;
-            (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-            j++;
-        }
-        jpeg_finish_compress(&cinfo);
-        jpeg_destroy_compress(&cinfo);
-        
-        delete [] image_storage;
-        
-        size = dst.used;
-        return dst.buffer;
+        JpegCompressor compressor;
+        return compressor.encode(width, height, 3, JCS_RGB, quality, image_row,
+                                 [&](JDIMENSION row, std::span<JSAMPLE> destination)
+                                 {
+                                     const auto row_index = static_cast<int>(row);
+                                     const auto red = std::span(
+                                         image.logical_block_data(row_index), row_width);
+                                     const auto green = std::span(
+                                         image.logical_block_data(static_cast<int>(height) +
+                                                                  row_index),
+                                         row_width);
+                                     const auto blue = std::span(
+                                         image.logical_block_data(2 * static_cast<int>(height) +
+                                                                  row_index),
+                                         row_width);
+                                     float_rgb_to_byte(destination, planar_buffer,
+                                                       red, green, blue);
+                                 });
     }
 
 

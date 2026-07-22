@@ -347,48 +347,46 @@ public:
         require(remove_comment("1 # first\n2#second\n3") == "1 \n2\n3",
                 "comment removal returned an incorrect value");
 
-        auto recovered_from_jpeg_error = [](const std::function<unsigned char *(long &)> & encode)
+        auto recovered_from_jpeg_error = [](const std::function<jpeg_data()> & encode)
         {
-            long jpeg_size = 17;
-            unsigned char * jpeg = nullptr;
-            bool recovered = false;
             try
             {
-                jpeg = encode(jpeg_size);
+                static_cast<void>(encode());
             }
             catch(const std::runtime_error & error)
             {
-                recovered =
-                    std::string(error.what()).find("JPEG encoding failed:") != std::string::npos;
+                return std::string(error.what()).find("JPEG encoding failed:") !=
+                       std::string::npos;
             }
-            destroy_jpeg(jpeg);
-            return recovered && jpeg_size == 0;
+            return false;
         };
 
-        auto encoded_jpeg = [](const std::function<unsigned char *(long &)> & encode)
+        auto encoded_jpeg = [](const std::function<jpeg_data()> & encode)
         {
-            long jpeg_size = 0;
-            unsigned char * jpeg = encode(jpeg_size);
-            bool encoded = jpeg != nullptr && jpeg_size > 0;
-            destroy_jpeg(jpeg);
-            return encoded;
+            const jpeg_data data = encode();
+            const auto bytes = data.bytes();
+            return bytes.size() >= 4 && bytes[0] == 0xff && bytes[1] == 0xd8 &&
+                   bytes[bytes.size() - 2] == 0xff && bytes.back() == 0xd9;
         };
 
         matrix gray_image(2, 2);
         matrix color_image(3, 2, 2);
-        require(encoded_jpeg([&gray_image](long & size)
+        require(encoded_jpeg([&gray_image]
                 {
-                    return create_gray_jpeg(size, gray_image);
+                    return create_gray_jpeg(gray_image);
                 }) &&
-                encoded_jpeg([&gray_image](long & size)
+                encoded_jpeg([&gray_image]
                 {
-                    return create_pseudocolor_jpeg(size, gray_image);
+                    return create_pseudocolor_jpeg(gray_image);
                 }) &&
-                encoded_jpeg([&color_image](long & size)
+                encoded_jpeg([&color_image]
                 {
-                    return create_color_jpeg(size, color_image);
+                    return create_color_jpeg(color_image);
                 }),
                 "JPEG encoders failed for valid matrices");
+        require(create_color_jpeg(gray_image).empty() &&
+                create_pseudocolor_jpeg(gray_image, 0, 1, "missing").empty(),
+                "JPEG encoders accepted an incompatible shape or unknown color table");
 
         const std::array<float, 7> edge_values =
         {
@@ -408,56 +406,52 @@ public:
             for(int channel = 0; channel < 3; ++channel)
                 edge_color_image(channel, 0, x) = edge_values[x];
         }
-        require(encoded_jpeg([&edge_gray_image](long & size)
+        require(encoded_jpeg([&edge_gray_image]
                 {
-                    return create_gray_jpeg(size, edge_gray_image);
+                    return create_gray_jpeg(edge_gray_image);
                 }) &&
-                encoded_jpeg([&edge_gray_image](long & size)
+                encoded_jpeg([&edge_gray_image]
                 {
-                    return create_pseudocolor_jpeg(size, edge_gray_image);
+                    return create_pseudocolor_jpeg(edge_gray_image);
                 }) &&
-                encoded_jpeg([&edge_color_image](long & size)
+                encoded_jpeg([&edge_color_image]
                 {
-                    return create_color_jpeg(size, edge_color_image);
+                    return create_color_jpeg(edge_color_image);
                 }) &&
-                encoded_jpeg([&edge_gray_image](long & size)
+                encoded_jpeg([&edge_gray_image]
                 {
-                    return create_gray_jpeg(size, edge_gray_image, 0.5f, 0.5f);
+                    return create_gray_jpeg(edge_gray_image, 0.5f, 0.5f);
                 }) &&
-                encoded_jpeg([&edge_gray_image](long & size)
+                encoded_jpeg([&edge_gray_image]
                 {
-                    return create_pseudocolor_jpeg(size, edge_gray_image, 0.5f, 0.5f);
+                    return create_pseudocolor_jpeg(edge_gray_image, 0.5f, 0.5f);
                 }),
                 "JPEG encoders failed for clipped, nonfinite, or constant-range data");
 
         require(rejects_invalid_argument([&gray_image]()
                 {
-                    long size = 0;
-                    unsigned char * jpeg = create_gray_jpeg(size, gray_image, 1, 0);
-                    destroy_jpeg(jpeg);
+                    static_cast<void>(create_gray_jpeg(gray_image, 1, 0));
                 }) &&
                 rejects_invalid_argument([&gray_image]()
                 {
-                    long size = 0;
-                    unsigned char * jpeg = create_pseudocolor_jpeg(
-                        size, gray_image, 0, std::numeric_limits<float>::infinity());
-                    destroy_jpeg(jpeg);
+                    static_cast<void>(create_pseudocolor_jpeg(
+                        gray_image, 0, std::numeric_limits<float>::infinity()));
                 }),
                 "JPEG encoders accepted invalid conversion ranges");
 
         matrix oversized_gray_image(1, 70000);
         matrix oversized_color_image(3, 1, 70000);
-        require(recovered_from_jpeg_error([&oversized_gray_image](long & size)
+        require(recovered_from_jpeg_error([&oversized_gray_image]
                 {
-                    return create_gray_jpeg(size, oversized_gray_image);
+                    return create_gray_jpeg(oversized_gray_image);
                 }) &&
-                recovered_from_jpeg_error([&oversized_gray_image](long & size)
+                recovered_from_jpeg_error([&oversized_gray_image]
                 {
-                    return create_pseudocolor_jpeg(size, oversized_gray_image);
+                    return create_pseudocolor_jpeg(oversized_gray_image);
                 }) &&
-                recovered_from_jpeg_error([&oversized_color_image](long & size)
+                recovered_from_jpeg_error([&oversized_color_image]
                 {
-                    return create_color_jpeg(size, oversized_color_image);
+                    return create_color_jpeg(oversized_color_image);
                 }),
                 "JPEG encoders did not recover from an unsupported image dimension");
 

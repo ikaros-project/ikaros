@@ -898,7 +898,7 @@ private:
     void DoSendFile(std::string file);
     void DoSendPublicWebUIFile(std::string file);
     void DoSendError(const std::string & status = "404 Not Found", const std::string & message = "404 Not Found\n");
-    std::string SendImage(matrix & image, const std::string & format, int quality=90);
+    std::string SendImage(const matrix & image, const std::string & format, int quality=90);
     bool AuthEnabled() const;
     bool IsRequestAuthenticated() const;
     bool IsPublicRequest(const Request & request) const;

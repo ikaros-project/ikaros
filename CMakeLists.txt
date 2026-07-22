@@ -5,13 +5,17 @@
 #
 
 # Set cmake version
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 # To use elseif
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
 # Project name
 project(ikaros)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Configure logging with for example:
 #   cmake -S . -B Build -DLOGGING=OFF
@@ -48,7 +52,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    # Mac OS X specific code
    	message( STATUS "Detected APPLE system")
     enable_language(OBJCXX)
-    set(CMAKE_OBJCXX_STANDARD 17)
+    set(CMAKE_OBJCXX_STANDARD 20)
     set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
     set(CMAKE_OBJCXX_EXTENSIONS OFF)
 	add_definitions(-DMAC_OS_X)
@@ -110,33 +114,20 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	add_definitions(-DWIN32)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# Compiler-specific C++17 activation.
-# Ikaors WebUI is using atomic. Supported in Gnu GCC > 4.4
+# Compiler-specific standard-library selection.
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-    execute_process(
-        COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-
-
-    #if (NOT (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7))
-    #    message(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.7 or greater.")
-
-
-    if (NOT (GCC_VERSION VERSION_GREATER 4.6 OR GCC_VERSION VERSION_EQUAL 4.6))
-        message(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.6 or greater.")
-    endif ()
-
-    if (GCC_VERSION VERSION_EQUAL 4.6)
-    	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-	endif ()
-	if (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7)
-   	 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-	endif ()
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
+        message(FATAL_ERROR "${PROJECT_NAME} requires GCC 10 or later for C++20 support.")
+    endif()
 
 elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -stdlib=libc++")
-    set(CMAKE_OBJCXX_FLAGS "${CMAKE_OBJCXX_FLAGS} -std=c++17 -stdlib=libc++")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
+        message(FATAL_ERROR "${PROJECT_NAME} requires Clang 10 or later for C++20 support.")
+    endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    set(CMAKE_OBJCXX_FLAGS "${CMAKE_OBJCXX_FLAGS} -stdlib=libc++")
 else ()
-    message(FATAL_ERROR "Your C++ compiler does not support C++17.")
+    message(FATAL_ERROR "Your C++ compiler does not support C++20.")
 endif ()
 
 # Set Ikaros root path
