@@ -1,6 +1,8 @@
 // image_file_format.cc
 // Copyright (C) 2023-2025  Christian Balkenius
 
+#include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <new>
 #include <stdexcept>
@@ -10,9 +12,12 @@
 #include "image_file_formats.h"
 #include "color_tables.h"
 
-#if defined(__APPLE__) && defined(USE_VIMAGE)
-#include <vImage/vImage_Types.h>
-#include <vImage/Conversion.h>
+#if defined(__APPLE__) && defined(IKAROS_MATRIX_ACCELERATE) && IKAROS_MATRIX_ACCELERATE
+// Avoid Accelerate.h, which pulls deprecated compatibility headers into C++ builds.
+#include <Accelerate/../Frameworks/vImage.framework/Headers/Conversion.h>
+#define IKAROS_IMAGE_ACCELERATE 1
+#else
+#define IKAROS_IMAGE_ACCELERATE 0
 #endif
 
 extern "C"
@@ -43,30 +48,100 @@ namespace ikaros
 
 
     static void
-	float_to_byte(unsigned char * r, float * a, float min, float max, long size)
-	{
-#ifdef USE_VIMAGE
-		struct vImage_Buffer src =
+    validate_float_to_byte_range(float minimum, float maximum)
+    {
+        if(!std::isfinite(minimum) || !std::isfinite(maximum))
+            throw std::invalid_argument("JPEG conversion range must be finite.");
+        if(maximum < minimum)
+            throw std::invalid_argument("JPEG conversion maximum must not be less than its minimum.");
+        if(maximum > minimum && !std::isfinite(maximum - minimum))
+            throw std::invalid_argument("JPEG conversion range is too wide.");
+    }
+
+
+    static inline unsigned char
+    normalized_float_to_byte(float value, float minimum, float maximum, float scale) noexcept
+    {
+        if(!(value > minimum))
+            return 0;
+        if(value >= maximum)
+            return 255;
+        return static_cast<unsigned char>((value - minimum) * scale + 0.5f);
+    }
+
+
+    static void
+    float_to_byte(unsigned char * result, const float * source,
+                  float minimum, float maximum, long size)
+    {
+        if(maximum == minimum)
         {
-            a, 1, static_cast<vImagePixelCount>(size), size*sizeof(float)
-        };
-		struct vImage_Buffer dest =
+            std::fill_n(result, static_cast<std::size_t>(size), static_cast<unsigned char>(0));
+            return;
+        }
+
+#if IKAROS_IMAGE_ACCELERATE
+        vImage_Buffer source_buffer =
         {
-            r, 1, static_cast<vImagePixelCount>(size), size*sizeof(float)
+            const_cast<float *>(source),
+            1,
+            static_cast<vImagePixelCount>(size),
+            static_cast<std::size_t>(size) * sizeof(float),
         };
-		vImage_Error err = vImageConvert_PlanarFtoPlanar8 (&src, &dest, max, min, 0);
-		if (err < 0) 
-            throw exception("image_file_formats:float_to_byte: vImage_Error");
-#else
-		for (long i=0; i<size; i++)
-			if (a[i] < min)
-				r[i] = 0;
-			else if (a[i] > max)
-				r[i] = 255;
-			else
-				r[i] = int(255.0*(a[i]-min)/(max-min));
+        vImage_Buffer result_buffer =
+        {
+            result,
+            1,
+            static_cast<vImagePixelCount>(size),
+            static_cast<std::size_t>(size) * sizeof(unsigned char),
+        };
+        if(vImageConvert_PlanarFtoPlanar8(&source_buffer, &result_buffer,
+                                          maximum, minimum, kvImageDoNotTile) == kvImageNoError)
+            return;
 #endif
-	}
+
+        const float scale = 255.0f / (maximum - minimum);
+        for(long i = 0; i < size; ++i)
+            result[i] = normalized_float_to_byte(source[i], minimum, maximum, scale);
+    }
+
+
+    static void
+    float_rgb_to_byte(unsigned char * result, unsigned char * planar_buffer,
+                      const float * red, const float * green, const float * blue, long size)
+    {
+#if IKAROS_IMAGE_ACCELERATE
+        const auto width = static_cast<vImagePixelCount>(size);
+        const auto float_row_bytes = static_cast<std::size_t>(size) * sizeof(float);
+        const auto byte_row_bytes = static_cast<std::size_t>(size) * sizeof(unsigned char);
+        vImage_Buffer source_red{const_cast<float *>(red), 1, width, float_row_bytes};
+        vImage_Buffer source_green{const_cast<float *>(green), 1, width, float_row_bytes};
+        vImage_Buffer source_blue{const_cast<float *>(blue), 1, width, float_row_bytes};
+        vImage_Buffer planar_red{planar_buffer, 1, width, byte_row_bytes};
+        vImage_Buffer planar_green{planar_buffer + size, 1, width, byte_row_bytes};
+        vImage_Buffer planar_blue{planar_buffer + 2 * size, 1, width, byte_row_bytes};
+        vImage_Buffer destination{result, 1, width, 3 * byte_row_bytes};
+
+        if(vImageConvert_PlanarFtoPlanar8(&source_red, &planar_red, 1, 0,
+                                          kvImageDoNotTile) == kvImageNoError &&
+           vImageConvert_PlanarFtoPlanar8(&source_green, &planar_green, 1, 0,
+                                          kvImageDoNotTile) == kvImageNoError &&
+           vImageConvert_PlanarFtoPlanar8(&source_blue, &planar_blue, 1, 0,
+                                          kvImageDoNotTile) == kvImageNoError &&
+           vImageConvert_Planar8toRGB888(&planar_red, &planar_green, &planar_blue,
+                                         &destination, kvImageDoNotTile) == kvImageNoError)
+            return;
+#else
+        static_cast<void>(planar_buffer);
+#endif
+
+        for(long i = 0; i < size; ++i)
+        {
+            *result++ = normalized_float_to_byte(red[i], 0, 1, 255);
+            *result++ = normalized_float_to_byte(green[i], 0, 1, 255);
+            *result++ = normalized_float_to_byte(blue[i], 0, 1, 255);
+        }
+    }
 	
 
     // create jpeg functions
@@ -197,6 +272,9 @@ namespace ikaros
     unsigned char *
     create_gray_jpeg(long int & size, matrix & image, float minimum, float maximum, int quality)
     {
+        size = 0;
+        validate_float_to_byte_range(minimum, maximum);
+
         long sizex = image.size(1);
         long sizey = image.size(0);
 
@@ -241,14 +319,8 @@ namespace ikaros
         
         while (cinfo.next_scanline < cinfo.image_height)
         {
-            // Convert row to image buffer (assume max == 1 for now)
-            
-            JSAMPLE * ib = image_buffer;
-            if (maximum != minimum) // FIXME: test in conversion instead
-                float_to_byte(image_buffer, image[j].contiguous_data(), minimum, maximum, sizex);
-            else
-                for (int i=0; i<sizex; i++)
-                    *ib++ = 0;
+            float_to_byte(image_buffer, image.logical_block_data(j),
+                          minimum, maximum, sizex);
             
             // Write to compressor
             row_pointer[0] = image_buffer;
@@ -268,8 +340,10 @@ namespace ikaros
     
     unsigned char * create_pseudocolor_jpeg(long int & size, matrix & image, float minimum, float maximum, const std::string & table,  int quality)
     {
+        size = 0;
         if(!color_table.count(table))
             return nullptr;
+        validate_float_to_byte_range(minimum, maximum);
 
         long sizex = image.size(1);
         long sizey = image.size(0);
@@ -322,7 +396,7 @@ namespace ikaros
         
         while (cinfo.next_scanline < cinfo.image_height)
         {
-            float_to_byte(z, image[j].contiguous_data(), minimum, maximum, sizex);
+            float_to_byte(z, image.logical_block_data(j), minimum, maximum, sizex);
             int x = 0;
             unsigned char * zz = z;
             
@@ -588,17 +662,13 @@ namespace ikaros
         if(image.rank() != 3 || image.size(0) != 3)
             return nullptr;
 
-        float * r = image[0][0].contiguous_data();
-        float * g = image[1][0].contiguous_data();
-        float * b = image[2][0].contiguous_data();
         long sizex = image.size(2);
         long sizey = image.shape()[1];
-
-        if (r == nullptr) return nullptr;
-        if (g == nullptr) return nullptr;
-        if (b == nullptr) return nullptr;
         
-        JSAMPLE *   image_buffer = new JSAMPLE [3*sizex];
+        const long image_storage_size = (IKAROS_IMAGE_ACCELERATE ? 6 : 3) * sizex;
+        JSAMPLE * image_storage = new JSAMPLE [image_storage_size];
+        JSAMPLE * image_buffer = image_storage;
+        JSAMPLE * planar_buffer = IKAROS_IMAGE_ACCELERATE ? image_storage + 3 * sizex : nullptr;
         JSAMPROW    row_pointer[1];
         
         struct jpeg_compress_struct cinfo{};
@@ -614,7 +684,7 @@ namespace ikaros
         {
             jpeg_destroy_compress(&cinfo);
             free(dst.buffer);
-            delete [] image_buffer;
+            delete [] image_storage;
             size = 0;
             throw std::runtime_error("JPEG encoding failed: " + std::string(jerr.message));
         }
@@ -637,30 +707,12 @@ namespace ikaros
         //row_stride = sizex * 3;		/* JSAMPLEs per row in image_buffer */
         int j=0;
         
-        float * rp = r;
-        float * gp = g;
-        float * bp = b;
-        
         while (cinfo.next_scanline < cinfo.image_height)
         {
-            int x = 0;
-            for (int i=0; i<sizex; i++)
-            {
-                // IGNORE OVERFLOW
-                // float rr = (*rp < 0.0 ? 0.0 : (*rp > 1.0 ? 1.0 : *rp));
-                // float gg = (*gp < 0.0 ? 0.0 : (*gp > 1.0 ? 1.0 : *gp));
-                // float bb = (*bp < 0.0 ? 0.0 : (*bp > 1.0 ? 1.0 : *bp));
-
-                 // clipping |= (rr != r[j][i]) || (gg != g[j][i]) || (bb != b[j][i]);
-                
-                image_buffer[x++] = int(255.0*(*rp));
-                image_buffer[x++] = int(255.0*(*gp));
-                image_buffer[x++] = int(255.0*(*bp));
-                
-                rp++;
-                gp++;
-                bp++;
-            }
+            const float * red = image.logical_block_data(j);
+            const float * green = image.logical_block_data(sizey + j);
+            const float * blue = image.logical_block_data(2 * sizey + j);
+            float_rgb_to_byte(image_buffer, planar_buffer, red, green, blue, sizex);
             
             // Write to compressor
             row_pointer[0] = image_buffer;
@@ -670,7 +722,7 @@ namespace ikaros
         jpeg_finish_compress(&cinfo);
         jpeg_destroy_compress(&cinfo);
         
-        delete [] image_buffer;
+        delete [] image_storage;
         
         size = dst.used;
         return dst.buffer;
