@@ -111,7 +111,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 7 | P3 | String delimiter helpers narrow positions to `int` and handle empty delimiters inconsistently. | Addressed | `Delimiter utilities used safe positions and rejected empty delimiters` |
 | 8 | P3 | Prime and character-sum checksum helpers can overflow or vary with platform `char` signedness. | Addressed | `Checksum helpers avoided overflow and signed-character drift` |
 | 9 | P3 | Obsolete utility APIs are unused, inefficient, or have misleading semantics. | Addressed | `Obsolete utility APIs were removed and string helpers streamlined` |
-| 10 | P2/P3 | Utility tests are not integrated with the normal checksum-based kernel suite and cover little behavior. | Not addressed | — |
+| 10 | P2/P3 | Utility tests are not integrated with the normal checksum-based kernel suite and cover little behavior. | Addressed | `Utility coverage joined the checksum-based kernel suite` |
 
 ## Status meanings
 

@@ -41,13 +41,28 @@ namespace
 
 
     bool
-    rejects_empty_delimiter(const std::function<void()> & function)
+    rejects_invalid_argument(const std::function<void()> & function)
     {
         try
         {
             function();
         }
         catch(const std::invalid_argument &)
+        {
+            return true;
+        }
+        return false;
+    }
+
+
+    bool
+    rejects_out_of_range(const std::function<void()> & function)
+    {
+        try
+        {
+            function();
+        }
+        catch(const std::out_of_range &)
         {
             return true;
         }
@@ -112,7 +127,7 @@ public:
         bool rejected_oversized_base64 = false;
         try
         {
-            static_cast<void>(base64_encode(man.data(), std::numeric_limits<size_t>::max()));
+            static_cast<void>(base64_encode(man.data(), std::numeric_limits<std::size_t>::max()));
         }
         catch(const std::length_error &)
         {
@@ -136,6 +151,11 @@ public:
                     print_attribute_value("value", 3, 2);
                 }) == "      value = 3\n",
                 "attribute printing ignored indentation");
+        require(capture_standard_output([]()
+                {
+                    print_attribute_value("name", std::string("value"), 1);
+                }) == "   name = value\n",
+                "string attribute printing returned incorrect output");
         require(capture_standard_output([]()
                 {
                     print_attribute_value("values", std::vector<float>{1, 2}, 0, 0);
@@ -181,30 +201,30 @@ public:
                 peek_rtail(unchanged, "::") == "gamma",
                 "non-mutating delimiter helpers returned incorrect segments");
 
-        require(rejects_empty_delimiter([]()
+        require(rejects_invalid_argument([]()
                 {
                     std::string value = "value";
                     static_cast<void>(head(value, ""));
                 }) &&
-                rejects_empty_delimiter([]()
+                rejects_invalid_argument([]()
                 {
                     std::string value = "value";
                     static_cast<void>(tail(value, ""));
                 }) &&
-                rejects_empty_delimiter([]()
+                rejects_invalid_argument([]()
                 {
                     std::string value = "value";
                     static_cast<void>(rhead(value, ""));
                 }) &&
-                rejects_empty_delimiter([]()
+                rejects_invalid_argument([]()
                 {
                     std::string value = "value";
                     static_cast<void>(rtail(value, ""));
                 }) &&
-                rejects_empty_delimiter([]() { static_cast<void>(peek_head("value", "")); }) &&
-                rejects_empty_delimiter([]() { static_cast<void>(peek_tail("value", "")); }) &&
-                rejects_empty_delimiter([]() { static_cast<void>(peek_rhead("value", "")); }) &&
-                rejects_empty_delimiter([]() { static_cast<void>(peek_rtail("value", "")); }),
+                rejects_invalid_argument([]() { static_cast<void>(peek_head("value", "")); }) &&
+                rejects_invalid_argument([]() { static_cast<void>(peek_tail("value", "")); }) &&
+                rejects_invalid_argument([]() { static_cast<void>(peek_rhead("value", "")); }) &&
+                rejects_invalid_argument([]() { static_cast<void>(peek_rtail("value", "")); }),
                 "delimiter helpers did not reject empty delimiters consistently");
 
         prime prime_number;
@@ -248,6 +268,84 @@ public:
                 "string joining returned an incorrect value");
         require(replace_characters("1,2;3\xC2\xA0" "4") == "1 2 3 4",
                 "character replacement returned an incorrect value");
+
+        require(trim(" \t value \n") == "value" && trim(" \t\n").empty(),
+                "string trimming returned an incorrect value");
+        require(starts_with("utilities", "util") && !starts_with("utilities", "til") &&
+                ends_with("utilities", "ties") && !ends_with("utilities", "utility") &&
+                contains("utilities", "lit") && !contains("utilities", "matrix"),
+                "string predicates returned incorrect results");
+        require(add_extension("model", ".ikg") == "model.ikg" &&
+                add_extension("model.ikg", ".ikg") == "model.ikg",
+                "filename extension handling returned an incorrect value");
+        require(tab(2) == "      ", "indentation generation returned an incorrect value");
+
+        require(is_number(" -1.25e2 ") && !is_number("1.2x"),
+                "number recognition returned an incorrect result");
+        require(parse_double("1.25") == 1.25 && parse_float("1.25") == 1.25f,
+                "throwing numeric parsing returned an incorrect value");
+        require(rejects_invalid_argument([]() { static_cast<void>(parse_double("invalid")); }) &&
+                rejects_invalid_argument([]() { static_cast<void>(parse_float("invalid")); }),
+                "throwing numeric parsing accepted invalid input");
+        require(checked_truncating_int(1.9, "int") == 1 &&
+                checked_truncating_int(-1.9, "int") == -1 &&
+                checked_truncating_long(2.9, "long") == 2,
+                "checked truncating conversion returned an incorrect value");
+        require(rejects_out_of_range([]()
+                {
+                    static_cast<void>(checked_truncating_int(
+                        std::numeric_limits<double>::infinity(), "int"));
+                }) &&
+                rejects_out_of_range([]()
+                {
+                    static_cast<void>(checked_truncating_long(
+                        std::numeric_limits<double>::max(), "long"));
+                }),
+                "checked truncating conversion accepted an unrepresentable value");
+
+        bool boolean_value = true;
+        require(parse_bool(" off ", boolean_value) && !boolean_value &&
+                is_true("YES") && !is_true("false"),
+                "Boolean parsing returned an incorrect value");
+        boolean_value = true;
+        require(!parse_bool("perhaps", boolean_value) && boolean_value,
+                "invalid Boolean parsing changed its output value");
+
+        require(format_json_number(1.25) == "1.25" &&
+                format_json_number(std::numeric_limits<double>::infinity()) == "null",
+                "JSON number formatting returned an invalid value");
+        require(to_hex(static_cast<char>(0xAF)) == "AF",
+                "hexadecimal byte formatting returned an incorrect value");
+        require(is_valid_utf8("valid \xC3\xA5") &&
+                !is_valid_utf8("\xC0\x80") &&
+                !is_valid_utf8("\xED\xA0\x80") &&
+                !is_valid_utf8("\xE2\x82"),
+                "UTF-8 validation accepted malformed input");
+        require(escape_json_string("quote\"slash\\line\n") ==
+                    "quote\\\"slash\\\\line\\n" &&
+                escape_json_string(std::string("a\0b", 3)) == "a\\u0000b",
+                "JSON string escaping returned an incorrect value");
+        require(rejects_invalid_argument([]()
+                {
+                    static_cast<void>(escape_json_string("\xC0\x80"));
+                }),
+                "JSON string escaping accepted invalid UTF-8");
+
+        require(decode_url_component("alpha%20beta") == "alpha beta" &&
+                decode_url_component("alpha+beta", true) == "alpha beta" &&
+                decode_url_component("alpha+beta") == "alpha+beta",
+                "URL decoding returned an incorrect value");
+        require(rejects_invalid_argument([]()
+                {
+                    static_cast<void>(decode_url_component("%"));
+                }) &&
+                rejects_invalid_argument([]()
+                {
+                    static_cast<void>(decode_url_component("%GG"));
+                }),
+                "URL decoding accepted malformed escapes");
+        require(remove_comment("1 # first\n2#second\n3") == "1 \n2\n3",
+                "comment removal returned an incorrect value");
 
         std::cout << "UTILITIES TEST OK\n";
     }
