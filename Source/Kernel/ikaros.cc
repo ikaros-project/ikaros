@@ -2537,7 +2537,7 @@ namespace ikaros
             parts.reserve(shape.size());
             for(int dim : shape)
                 parts.push_back(std::to_string(dim));
-            return join(",", parts, false);
+            return join(",", parts);
         };
 
         auto validate_fixed_target = [&](const Connection & connection, const range & target_range)
@@ -2628,7 +2628,7 @@ namespace ikaros
             parts.reserve(shape.size());
             for(int dim : shape)
                 parts.push_back(std::to_string(dim));
-            return join(",", parts, false);
+            return join(",", parts);
         };
 
         auto validate_fixed_target = [&](const Connection & connection, const range & target_range)
@@ -4042,7 +4042,8 @@ bool operator==(Request & r, const std::string s)
 
             std::size_t pending = count_pending_sizes();
             if(pending != 0)
-                throw setup_failed("Could not resolve all input and output sizes. " + std::to_string(pending) + " buffers remain unresolved: " + join(", ", pending_size_names(), false) + ".");
+                throw setup_failed("Could not resolve all input and output sizes. " + std::to_string(pending) +
+                                   " buffers remain unresolved: " + join(", ", pending_size_names()) + ".");
         }
         catch(fatal_error & e)
         {
@@ -5686,7 +5687,7 @@ bool operator==(Request & r, const std::string s)
 
         d["module_count"] = module_count;
         d["class_count"] = static_cast<int>(class_counts.size());
-        d["classes"] = join(",", summary_entries, false);
+        d["classes"] = join(",", summary_entries);
         return d;
      }
 

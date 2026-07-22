@@ -231,6 +231,24 @@ public:
         require(character_sum("ABC") == 198 && character_sum(non_ascii_bytes) == 383,
                 "character sums were not based on unsigned byte values");
 
+        require(split(" alpha, beta ,gamma ", ",") ==
+                    std::vector<std::string>{"alpha", "beta", "gamma"},
+                "delimiter splitting did not preserve trimmed-token behavior");
+        require(split("alpha,beta,gamma", ",", 1) ==
+                    std::vector<std::string>{"alpha", "beta,gamma"} &&
+                split("alpha,beta", ",", 0) ==
+                    std::vector<std::string>{"alpha,beta"},
+                "delimiter splitting did not honor its split limit");
+        require(split("  alpha  beta gamma  ", "", 1) ==
+                    std::vector<std::string>{"alpha", "beta gamma"},
+                "whitespace splitting did not honor its split limit");
+        require(join(", ", std::vector<std::string>{"alpha", "beta", "gamma"}) ==
+                    "alpha, beta, gamma" &&
+                join(",", {}).empty(),
+                "string joining returned an incorrect value");
+        require(replace_characters("1,2;3\xC2\xA0" "4") == "1 2 3 4",
+                "character replacement returned an incorrect value");
+
         std::cout << "UTILITIES TEST OK\n";
     }
 };

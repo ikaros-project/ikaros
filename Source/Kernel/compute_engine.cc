@@ -734,7 +734,7 @@ ComputeEngine::EvalMatrix(EvalContext & context, const std::string & s, int dept
         computed_rows.push_back(EvalList(context, row, depth+1));
     }
 
-    return join(";", computed_rows, false);
+    return join(";", computed_rows);
 }
 
 
@@ -1057,7 +1057,7 @@ ComputeEngine::EvalList(EvalContext & context, const std::string & s, int depth)
     for(const auto & item : items)
         values.push_back(EvalScalar(context, item, depth+1));
 
-    return join(",", values, false);
+    return join(",", values);
 }
 
 

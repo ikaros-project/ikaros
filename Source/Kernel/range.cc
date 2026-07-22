@@ -338,7 +338,7 @@ namespace ikaros
 
             for(auto & ss : ranges)
             {
-                auto & r = split(ss, ":");
+                auto r = split(ss, ":");
                 if(r.size()==1)
                 {
                     if(r[0].empty())

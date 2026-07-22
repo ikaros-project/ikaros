@@ -2,18 +2,15 @@
 
 #pragma once
 
+#include <cstddef>
 #include <iosfwd>
-#include <string_view>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <sstream>
 
 namespace ikaros
 {
-    [[nodiscard]] const std::vector<std::string> split(const std::string & s, const std::string & sep, int maxsplit=-1);
-    [[nodiscard]] const std::vector<std::string> rsplit(const std::string & str, const std::string & sep, int maxsplit=-1);
-    [[nodiscard]] std::string join(const std::string & separator, const std::vector<std::string> & v, bool reverse);
+    [[nodiscard]] std::vector<std::string> split(const std::string & s, const std::string & separator, int maxsplit=-1);
+    [[nodiscard]] std::string join(const std::string & separator, const std::vector<std::string> & values);
 
     [[nodiscard]] bool starts_with(const std::string & s, const std::string & start); // waiting for C++20
     [[nodiscard]] bool ends_with(const std::string & s, const std::string & end); // waiting for C++20
@@ -38,7 +35,6 @@ namespace ikaros
 
     [[nodiscard]] std::string add_extension(const std::string &  filename, const std::string & extension);
 
-    [[nodiscard]] bool is_integer(const std::string & s); // is s an interger?
     [[nodiscard]] bool is_number(const std::string &s); // is s an int, float or double?
     [[nodiscard]] bool parse_double(const std::string & s, double & value);
     [[nodiscard]] bool parse_float(const std::string & s, float & value);
@@ -61,7 +57,7 @@ namespace ikaros
     void print_attribute_value(const std::string & name, const std::vector<float> & values, int indent=0, int max_items=0);
     void print_attribute_value(const std::string & name, const std::vector<std::vector<std::string>> &  values, int indent=0, int max_items=0);
 
-    [[nodiscard]] std::string base64_encode(const unsigned char * data, size_t size);
+    [[nodiscard]] std::string base64_encode(const unsigned char * data, std::size_t size);
 
     [[nodiscard]] std::string formatNumber(double value, int decimals=-1); // shortest round-trip value by default
     [[nodiscard]] std::string format_json_number(double value); // exact JSON number or null for non-finite
