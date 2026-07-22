@@ -559,11 +559,14 @@ namespace ikaros
             while(cinfo.output_scanline < cinfo.output_height)
             {
                 jpeg_read_scanlines(&cinfo, buffer, 1);
+                float * red_row = red.logical_block_data(row);
+                float * green_row = green.logical_block_data(row);
+                float * blue_row = blue.logical_block_data(row);
                 for(int x = 0; x < width; ++x)
                 {
-                    red(row, x) = buffer[0][3 * x] / 255.0f;
-                    green(row, x) = buffer[0][3 * x + 1] / 255.0f;
-                    blue(row, x) = buffer[0][3 * x + 2] / 255.0f;
+                    red_row[x] = buffer[0][3 * x] / 255.0f;
+                    green_row[x] = buffer[0][3 * x + 1] / 255.0f;
+                    blue_row[x] = buffer[0][3 * x + 2] / 255.0f;
                 }
                 ++row;
             }
