@@ -9,6 +9,7 @@ with ".ikg". Use --ikaros to select the executable under test.
 """
 
 import argparse
+import concurrent.futures
 import subprocess
 import shlex
 import sys
@@ -665,6 +666,12 @@ parser.add_argument(
     default=script_directory / "../../../../Bin/ikaros",
     help="Ikaros executable to test (default: Bin/ikaros)",
 )
+parser.add_argument(
+    "-j", "--jobs",
+    type=int,
+    default=30,
+    help="number of tests to run in parallel (default: 30)",
+)
 arguments = parser.parse_args()
 
 current_directory = arguments.directory.expanduser().resolve()
@@ -675,70 +682,119 @@ if not current_directory.is_dir():
     parser.error(f"test directory does not exist: {current_directory}")
 if not ikaros_binary.is_file():
     parser.error(f"Ikaros executable does not exist: {ikaros_binary}")
+if arguments.jobs < 1:
+    parser.error("--jobs must be at least 1")
 
 print(f"\n{bold}Running Ikaros {suite_name}{reset}\n")
-errors = 0
 
-test_files = [item for item in current_directory.iterdir() if item.name.startswith("test") and item.suffix.lower() == '.ikg']
-for item in sorted(test_files):
-        root = ET.parse(item).getroot()
-        http_requests = root.get("http_requests") is not None
-        cmd = [str(ikaros_binary), str(item)] if http_requests else [str(ikaros_binary), "-b", str(item)]
-        if root.get("cli_args") is not None:
-            cmd[1:1] = shlex.split(root.get("cli_args"))
-        if (root.get("webui_port") is not None and
-                root.get("pass_webui_port_as_cli", "true") == "true"):
-            cmd.insert(1, f"-w{root.get('webui_port')}")
-        if http_requests:
-            if root.get("http_real_time", "true") == "true":
-                cmd.insert(1, "-r")
-        elif root.get("stop") is None:
-            cmd.insert(1, "-s0")
-        expected_files = split_expected_paths(root.get("expected_file_exists"))
-        for expected_file in expected_files:
-            if expected_file.exists():
-                expected_file.unlink()
-        expected_exit = int(root.get("expected_exit", "0"))
-        if http_requests:
-            actual_exit, combined_output, http_error = run_http_test(cmd, root)
-        else:
-            result = subprocess.run(cmd, text=True, capture_output=True)
-            actual_exit = result.returncode
-            combined_output = (result.stdout or "") + (result.stderr or "")
-            http_error = ""
-        missing_output = [text for text in split_expected_text(root.get("expected_output_contains")) if text not in combined_output]
-        present_unexpected_output = [text for text in split_expected_text(root.get("expected_output_not_contains")) if text in combined_output]
-        missing_files = [str(path) for path in expected_files if not path.exists()]
-        expected_file_text = split_expected_text(root.get("expected_file_contains"))
-        unexpected_file_text = split_expected_text(root.get("expected_file_not_contains"))
-        file_contents = "\n".join(path.read_text() for path in expected_files if path.exists())
-        missing_file_text = [text for text in expected_file_text if text not in file_contents]
-        present_unexpected_file_text = [text for text in unexpected_file_text if text in file_contents]
 
-        if actual_exit == expected_exit and not http_error and not missing_output and not present_unexpected_output and not missing_files and not missing_file_text and not present_unexpected_file_text:
-            print(f"[  OK  ]  {get_description(item)}{item.name}{reset}")
-            if root.get("cleanup_expected_files") == "true":
-                for expected_file in expected_files:
-                    if expected_file.exists():
-                        expected_file.unlink()
+def run_test(item):
+    root = ET.parse(item).getroot()
+    http_requests = root.get("http_requests") is not None
+    cmd = [str(ikaros_binary), str(item)] if http_requests else [str(ikaros_binary), "-b", str(item)]
+    if root.get("cli_args") is not None:
+        cmd[1:1] = shlex.split(root.get("cli_args"))
+    if (root.get("webui_port") is not None and
+            root.get("pass_webui_port_as_cli", "true") == "true"):
+        cmd.insert(1, f"-w{root.get('webui_port')}")
+    if http_requests:
+        if root.get("http_real_time", "true") == "true":
+            cmd.insert(1, "-r")
+    elif root.get("stop") is None:
+        cmd.insert(1, "-s0")
+    expected_files = split_expected_paths(root.get("expected_file_exists"))
+    for expected_file in expected_files:
+        if expected_file.exists():
+            expected_file.unlink()
+    expected_exit = int(root.get("expected_exit", "0"))
+    if http_requests:
+        actual_exit, combined_output, http_error = run_http_test(cmd, root)
+    else:
+        result = subprocess.run(cmd, text=True, capture_output=True)
+        actual_exit = result.returncode
+        combined_output = (result.stdout or "") + (result.stderr or "")
+        http_error = ""
+    missing_output = [text for text in split_expected_text(root.get("expected_output_contains")) if text not in combined_output]
+    present_unexpected_output = [text for text in split_expected_text(root.get("expected_output_not_contains")) if text in combined_output]
+    missing_files = [str(path) for path in expected_files if not path.exists()]
+    expected_file_text = split_expected_text(root.get("expected_file_contains"))
+    unexpected_file_text = split_expected_text(root.get("expected_file_not_contains"))
+    file_contents = "\n".join(path.read_text() for path in expected_files if path.exists())
+    missing_file_text = [text for text in expected_file_text if text not in file_contents]
+    present_unexpected_file_text = [text for text in unexpected_file_text if text in file_contents]
+
+    if actual_exit == expected_exit and not http_error and not missing_output and not present_unexpected_output and not missing_files and not missing_file_text and not present_unexpected_file_text:
+        if root.get("cleanup_expected_files") == "true":
+            for expected_file in expected_files:
+                if expected_file.exists():
+                    expected_file.unlink()
+        return f"[  OK  ]  {get_description(item)}{item.name}{reset}", False
+    else:
+        if missing_output:
+            detail = f"missing output: {missing_output[0]}"
+        elif present_unexpected_output:
+            detail = f"unexpected output: {present_unexpected_output[0]}"
+        elif missing_files:
+            detail = f"missing file: {missing_files[0]}"
+        elif missing_file_text:
+            detail = f"missing file content: {missing_file_text[0]}"
+        elif present_unexpected_file_text:
+            detail = f"unexpected file content: {present_unexpected_file_text[0]}"
+        elif http_error:
+            detail = http_error
         else:
-            if missing_output:
-                detail = f"missing output: {missing_output[0]}"
-            elif present_unexpected_output:
-                detail = f"unexpected output: {present_unexpected_output[0]}"
-            elif missing_files:
-                detail = f"missing file: {missing_files[0]}"
-            elif missing_file_text:
-                detail = f"missing file content: {missing_file_text[0]}"
-            elif present_unexpected_file_text:
-                detail = f"unexpected file content: {present_unexpected_file_text[0]}"
-            elif http_error:
-                detail = http_error
-            else:
-                output = combined_output.strip().split('\n')
-                detail = output[-1] if output and output[-1] else f"exit={actual_exit}, expected={expected_exit}"
-            print(f"{red}{bold}[ FAIL ]  {get_description(item)}{item.name}{reset} ({detail})")
-            errors += 1
+            output = combined_output.strip().split('\n')
+            detail = output[-1] if output and output[-1] else f"exit={actual_exit}, expected={expected_exit}"
+        return (f"{red}{bold}[ FAIL ]  {get_description(item)}{item.name}{reset} "
+                f"({detail})", True)
+
+
+test_files = sorted(
+    item for item in current_directory.iterdir()
+    if item.name.startswith("test") and item.suffix.lower() == '.ikg'
+)
+
+
+def state_file_options(item, option):
+    root = ET.parse(item).getroot()
+    cli_args = shlex.split(root.get("cli_args", ""))
+    return [argument[len(option):] for argument in cli_args
+            if argument.startswith(option) and len(argument) > len(option)]
+
+
+state_file_producers = {
+    path: item
+    for item in test_files
+    for path in state_file_options(item, "-W")
+}
+
+
+def run_after_dependencies(item, dependencies):
+    for dependency in dependencies:
+        dependency.result()
+    return run_test(item)
+
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=arguments.jobs) as executor:
+    futures = {}
+
+    def submit(item):
+        if item in futures:
+            return futures[item]
+        dependencies = [
+            submit(state_file_producers[path])
+            for path in state_file_options(item, "-L")
+            if path in state_file_producers
+        ]
+        futures[item] = executor.submit(run_after_dependencies, item, dependencies)
+        return futures[item]
+
+    test_futures = [submit(item) for item in test_files]
+    results = [future.result() for future in test_futures]
+
+for line, _ in results:
+    print(line)
+errors = sum(failed for _, failed in results)
 
 if errors > 0:
     print(f"\n{red}{bold}***** Ikaros failed {errors} tests *****{reset}\n")

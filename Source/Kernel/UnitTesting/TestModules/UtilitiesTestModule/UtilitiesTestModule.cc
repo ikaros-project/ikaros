@@ -347,6 +347,65 @@ public:
         require(remove_comment("1 # first\n2#second\n3") == "1 \n2\n3",
                 "comment removal returned an incorrect value");
 
+        auto recovered_from_jpeg_error = [](const std::function<unsigned char *(long &)> & encode)
+        {
+            long jpeg_size = 17;
+            unsigned char * jpeg = nullptr;
+            bool recovered = false;
+            try
+            {
+                jpeg = encode(jpeg_size);
+            }
+            catch(const std::runtime_error & error)
+            {
+                recovered =
+                    std::string(error.what()).find("JPEG encoding failed:") != std::string::npos;
+            }
+            destroy_jpeg(jpeg);
+            return recovered && jpeg_size == 0;
+        };
+
+        auto encoded_jpeg = [](const std::function<unsigned char *(long &)> & encode)
+        {
+            long jpeg_size = 0;
+            unsigned char * jpeg = encode(jpeg_size);
+            bool encoded = jpeg != nullptr && jpeg_size > 0;
+            destroy_jpeg(jpeg);
+            return encoded;
+        };
+
+        matrix gray_image(2, 2);
+        matrix color_image(3, 2, 2);
+        require(encoded_jpeg([&gray_image](long & size)
+                {
+                    return create_gray_jpeg(size, gray_image);
+                }) &&
+                encoded_jpeg([&gray_image](long & size)
+                {
+                    return create_pseudocolor_jpeg(size, gray_image);
+                }) &&
+                encoded_jpeg([&color_image](long & size)
+                {
+                    return create_color_jpeg(size, color_image);
+                }),
+                "JPEG encoders failed for valid matrices");
+
+        matrix oversized_gray_image(1, 70000);
+        matrix oversized_color_image(3, 1, 70000);
+        require(recovered_from_jpeg_error([&oversized_gray_image](long & size)
+                {
+                    return create_gray_jpeg(size, oversized_gray_image);
+                }) &&
+                recovered_from_jpeg_error([&oversized_gray_image](long & size)
+                {
+                    return create_pseudocolor_jpeg(size, oversized_gray_image);
+                }) &&
+                recovered_from_jpeg_error([&oversized_color_image](long & size)
+                {
+                    return create_color_jpeg(size, oversized_color_image);
+                }),
+                "JPEG encoders did not recover from an unsupported image dimension");
+
         std::cout << "UTILITIES TEST OK\n";
     }
 };
