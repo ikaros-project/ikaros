@@ -1,0 +1,9 @@
+<group name="InputImageSequenceFormat"
+       description="InputImage rejects file counts that exceed a fixed-width sequence"
+       expected_exit="1"
+       expected_output_contains="filecount 101 exceeds the 100 files supported by ##">
+    <module name="Input"
+            class="InputImage"
+            filename="unused_##.png"
+            filecount="101" />
+</group>

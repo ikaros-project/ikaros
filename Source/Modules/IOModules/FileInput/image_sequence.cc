@@ -252,4 +252,107 @@ namespace ikaros
         formatted_name += unescape_literal_percents(pattern.substr(conversion_end + 1));
         return formatted_name;
     }
+
+
+    struct hash_sequence_pattern
+    {
+        std::size_t start = std::string_view::npos;
+        std::size_t width = 0;
+    };
+
+
+    static hash_sequence_pattern
+    parse_hash_image_sequence_pattern(std::string_view pattern)
+    {
+        if(contains_image_sequence_format(pattern))
+            throw std::invalid_argument(
+                "InputImage no longer supports printf-style sequence formats; use # or ####");
+
+        hash_sequence_pattern result;
+        for(std::size_t i = 0; i < pattern.size(); ++i)
+        {
+            if(pattern[i] == '\\' && i + 1 < pattern.size() && pattern[i + 1] == '#')
+            {
+                ++i;
+                continue;
+            }
+            if(pattern[i] != '#')
+                continue;
+            if(result.start != std::string_view::npos)
+                throw std::invalid_argument(
+                    "Image sequence filename can only contain one # placeholder");
+
+            result.start = i;
+            while(i < pattern.size() && pattern[i] == '#')
+            {
+                ++result.width;
+                ++i;
+            }
+            --i;
+        }
+        return result;
+    }
+
+
+    bool
+    contains_hash_image_sequence_format(std::string_view pattern)
+    {
+        return parse_hash_image_sequence_pattern(pattern).start != std::string_view::npos;
+    }
+
+
+    std::string
+    format_hash_image_sequence_filename(std::string_view pattern, int image_index)
+    {
+        if(image_index < 0)
+            throw std::invalid_argument("Image sequence index must not be negative");
+
+        const hash_sequence_pattern sequence = parse_hash_image_sequence_pattern(pattern);
+        const std::string image_number = std::to_string(image_index);
+        if(sequence.width > 1 && image_number.size() > sequence.width)
+            throw std::out_of_range("Image sequence index " + image_number +
+                                    " does not fit in its # placeholder");
+
+        std::string result;
+        result.reserve(pattern.size() + image_number.size());
+        for(std::size_t i = 0; i < pattern.size(); ++i)
+        {
+            if(pattern[i] == '\\' && i + 1 < pattern.size() && pattern[i + 1] == '#')
+            {
+                result += '#';
+                ++i;
+            }
+            else if(i == sequence.start)
+            {
+                if(sequence.width > image_number.size())
+                    result.append(sequence.width - image_number.size(), '0');
+                result += image_number;
+                i += sequence.width - 1;
+            }
+            else
+                result += pattern[i];
+        }
+        return result;
+    }
+
+
+    void
+    validate_hash_image_sequence_filecount(std::string_view pattern, int filecount)
+    {
+        if(filecount < 1)
+            throw std::invalid_argument("Image sequence filecount must be at least one");
+
+        const hash_sequence_pattern sequence = parse_hash_image_sequence_pattern(pattern);
+        if(sequence.width < 2 || sequence.width >= 10)
+            return;
+
+        int capacity = 1;
+        for(std::size_t i = 0; i < sequence.width; ++i)
+            capacity *= 10;
+        if(filecount > capacity)
+            throw std::invalid_argument("Image sequence filecount " +
+                                        std::to_string(filecount) + " exceeds the " +
+                                        std::to_string(capacity) + " files supported by " +
+                                        std::string(sequence.width, '#'));
+    }
 }

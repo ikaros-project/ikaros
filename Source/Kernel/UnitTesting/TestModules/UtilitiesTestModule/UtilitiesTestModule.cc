@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "ikaros.h"
+#include "../../../../Modules/IOModules/FileInput/image_sequence.h"
 
 using namespace ikaros;
 
@@ -382,6 +383,37 @@ public:
                 "URL decoding accepted malformed escapes");
         require(remove_comment("1 # first\n2#second\n3") == "1 \n2\n3",
                 "comment removal returned an incorrect value");
+
+        validate_hash_image_sequence_filecount("image_##.png", 100);
+        require(contains_hash_image_sequence_format("image_#.png") &&
+                contains_hash_image_sequence_format("image_####.png") &&
+                !contains_hash_image_sequence_format("image_\\#.png") &&
+                format_hash_image_sequence_filename("image_#.png", 12345) ==
+                    "image_12345.png" &&
+                format_hash_image_sequence_filename("image_####.png", 12) ==
+                    "image_0012.png" &&
+                format_hash_image_sequence_filename("image_\\#.png", 12) ==
+                    "image_#.png" &&
+                rejects_out_of_range([]
+                {
+                    static_cast<void>(
+                        format_hash_image_sequence_filename("image_####.png", 10000));
+                }) &&
+                rejects_invalid_argument([]
+                {
+                    static_cast<void>(
+                        format_hash_image_sequence_filename("image_#_#.png", 0));
+                }) &&
+                rejects_invalid_argument([]
+                {
+                    static_cast<void>(
+                        format_hash_image_sequence_filename("image_%04d.png", 0));
+                }) &&
+                rejects_invalid_argument([]
+                {
+                    validate_hash_image_sequence_filecount("image_##.png", 101);
+                }),
+                "Hash image-sequence formatting or validation failed");
 
         auto recovered_from_jpeg_error = [](const std::function<jpeg_data()> & encode)
         {

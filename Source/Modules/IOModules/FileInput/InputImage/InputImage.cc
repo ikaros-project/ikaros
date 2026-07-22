@@ -28,7 +28,7 @@ public:
     ResolveCurrentFilename()
     {
         const std::string formattedName =
-            format_image_sequence_filename(std::string(filename), currentImage);
+            format_hash_image_sequence_filename(std::string(filename), currentImage);
 
         std::filesystem::path sanitizedPath;
         if(!kernel().SanitizeReadPath(formattedName, sanitizedPath))
@@ -47,6 +47,8 @@ public:
         filename = GetValue("filename");
         if(std::string(filename).empty())
             throw std::invalid_argument("No image filename supplied");
+        validate_hash_image_sequence_filecount(std::string(filename),
+                                               GetIntValue("filecount", 1));
 
         const std::filesystem::path imagePath = ResolveCurrentFilename();
         const auto [width, height, channels] = image_get_info(imagePath);
@@ -71,7 +73,7 @@ public:
         Bind(fileCount, "filecount");
         Bind(readOnce, "read_once");
 
-        if(contains_image_sequence_format(std::string(filename)))
+        if(contains_hash_image_sequence_format(std::string(filename)))
             readOnce = false;
         first = true;
 
