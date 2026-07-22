@@ -92,16 +92,7 @@ public:
             {
                 const std::filesystem::path image_path = ResolveCurrentFilename();
                 image_name = image_path.string();
-                jpeg_get_image(output, image_path);
-
-                const int pixel_count = intensity.size();
-                const float * red = output.contiguous_data();
-                const float * green = red + pixel_count;
-                const float * blue = green + pixel_count;
-                float * gray = intensity.contiguous_data();
-                constexpr float one_third = 1.0f / 3.0f;
-                for(int i = 0; i < pixel_count; ++i)
-                    gray[i] = one_third * (red[i] + green[i] + blue[i]);
+                jpeg_get_image(output, intensity, image_path);
             }
             catch(const std::exception & error)
             {

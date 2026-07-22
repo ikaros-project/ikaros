@@ -1,5 +1,6 @@
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -119,6 +120,26 @@ namespace
             return true;
         }
         return false;
+    }
+
+
+    bool
+    intensity_matches_rgb(const matrix & rgb, const matrix & intensity)
+    {
+        if(rgb.rank() != 3 || rgb.size(0) != 3 || intensity.rank() != 2 ||
+           intensity.size(0) != rgb.size(1) || intensity.size(1) != rgb.size(2))
+            return false;
+
+        constexpr float one_third = 1.0f / 3.0f;
+        for(int y = 0; y < intensity.size(0); ++y)
+            for(int x = 0; x < intensity.size(1); ++x)
+            {
+                const float expected = one_third *
+                    (rgb(0, y, x) + rgb(1, y, x) + rgb(2, y, x));
+                if(std::fabs(intensity(y, x) - expected) > 1e-7f)
+                    return false;
+            }
+        return true;
     }
 }
 
@@ -580,10 +601,16 @@ public:
         matrix decoded_jpeg = jpeg_get_image(valid_jpeg.path());
         float * decoded_jpeg_storage = decoded_jpeg.data();
         jpeg_get_image(decoded_jpeg, valid_jpeg.path());
+        matrix decoded_jpeg_intensity;
+        jpeg_get_image(decoded_jpeg, decoded_jpeg_intensity, valid_jpeg.path());
+        float * decoded_jpeg_intensity_storage = decoded_jpeg_intensity.data();
+        jpeg_get_image(decoded_jpeg, decoded_jpeg_intensity, valid_jpeg.path());
         require(decoded_width == 2 && decoded_height == 2 && decoded_channels == 3 &&
                 decoded_jpeg.rank() == 3 && decoded_jpeg.size(0) == 3 &&
                 decoded_jpeg.size(1) == 2 && decoded_jpeg.size(2) == 2 &&
-                decoded_jpeg.data() == decoded_jpeg_storage,
+                decoded_jpeg.data() == decoded_jpeg_storage &&
+                decoded_jpeg_intensity.data() == decoded_jpeg_intensity_storage &&
+                intensity_matches_rgb(decoded_jpeg, decoded_jpeg_intensity),
                 "JPEG readers failed for valid input");
 
         matrix grayscale_source(2, 2);
@@ -664,10 +691,17 @@ public:
                 }),
                 "PNG file writers failed to round-trip data or reject invalid input");
 #else
+        matrix unavailable_png_image;
+        matrix unavailable_png_intensity;
         require(!image_file_format_available("unavailable.png") &&
                 rejects_runtime_error([&]
                 {
                     png_write_image(grayscale_source, "unavailable.png");
+                }) &&
+                rejects_runtime_error([&]
+                {
+                    png_get_image(unavailable_png_image, unavailable_png_intensity,
+                                  "unavailable.png");
                 }),
                 "Unavailable PNG support was reported incorrectly");
 #endif
@@ -729,11 +763,13 @@ public:
         const auto [png_width, png_height, png_channels] = png_get_info(valid_png.path());
         matrix decoded_png = png_get_image(valid_png.path());
         float * decoded_png_storage = decoded_png.data();
-        png_get_image(decoded_png, valid_png.path());
+        matrix decoded_png_intensity;
+        image_get_image(decoded_png, decoded_png_intensity, valid_png.path());
         require(png_width == 2 && png_height == 1 && png_channels == 3 &&
                 decoded_png.rank() == 3 && decoded_png.size(0) == 3 &&
                 decoded_png.size(1) == 1 && decoded_png.size(2) == 2 &&
                 decoded_png.data() == decoded_png_storage &&
+                intensity_matches_rgb(decoded_png, decoded_png_intensity) &&
                 decoded_png(0, 0, 0) == 1.0f && decoded_png(1, 0, 0) == 0.0f &&
                 decoded_png(2, 0, 0) == 0.0f && decoded_png(0, 0, 1) == 0.0f &&
                 decoded_png(1, 0, 1) > 0.5f && decoded_png(2, 0, 1) == 1.0f,
@@ -803,6 +839,7 @@ public:
                 "PNG reader did not reconstruct an Adam7-interlaced image");
 
         matrix wrong_image_destination(3, 1, 1);
+        matrix wrong_intensity_destination(1, 1);
         require(rejects_invalid_argument([&]
                 {
                     jpeg_get_image(wrong_image_destination, valid_jpeg.path());
@@ -811,7 +848,17 @@ public:
                 {
                     png_get_image(wrong_image_destination, valid_png.path());
                 }) &&
-                wrong_image_destination.shape() == std::vector<int>{3, 1, 1},
+                rejects_invalid_argument([&]
+                {
+                    jpeg_get_image(decoded_jpeg, wrong_intensity_destination,
+                                   valid_jpeg.path());
+                }) &&
+                rejects_invalid_argument([&]
+                {
+                    jpeg_get_image(decoded_jpeg, decoded_jpeg, valid_jpeg.path());
+                }) &&
+                wrong_image_destination.shape() == std::vector<int>{3, 1, 1} &&
+                wrong_intensity_destination.shape() == std::vector<int>{1, 1},
                 "Image readers accepted or resized an initialized destination of the wrong shape");
 
         auto rejected_malformed_png = [](const std::function<void()> & read)
@@ -855,13 +902,15 @@ public:
             image_get_info(written_tiff.path());
         matrix decoded_tiff = tiff_get_image(written_tiff.path());
         float * decoded_tiff_storage = decoded_tiff.data();
-        tiff_get_image(decoded_tiff, written_tiff.path());
+        matrix decoded_tiff_intensity;
+        tiff_get_image(decoded_tiff, decoded_tiff_intensity, written_tiff.path());
         const TemporaryFile written_gray_tiff("written-gray.tif", "");
         tiff_write_image(grayscale_source, written_gray_tiff.path());
         require(image_file_format_available(written_tiff.path()) &&
                 tiff_width == 2 && tiff_height == 2 && tiff_channels == 3 &&
                 decoded_tiff.shape() == std::vector<int>{3, 2, 2} &&
                 decoded_tiff.data() == decoded_tiff_storage &&
+                intensity_matches_rgb(decoded_tiff, decoded_tiff_intensity) &&
                 decoded_tiff(0, 0, 0) == 1.0f &&
                 decoded_tiff(1, 0, 1) == 1.0f &&
                 decoded_tiff(2, 1, 0) == 1.0f &&
@@ -872,10 +921,17 @@ public:
                 }),
                 "TIFF readers or writers failed to round-trip image data");
 #else
+        matrix unavailable_tiff_image;
+        matrix unavailable_tiff_intensity;
         require(!image_file_format_available("unavailable.tiff") &&
                 rejects_runtime_error([&]
                 {
                     tiff_write_image(grayscale_source, "unavailable.tiff");
+                }) &&
+                rejects_runtime_error([&]
+                {
+                    tiff_get_image(unavailable_tiff_image, unavailable_tiff_intensity,
+                                   "unavailable.tiff");
                 }),
                 "Unavailable TIFF support was reported incorrectly");
 #endif
@@ -887,13 +943,15 @@ public:
             webp_get_info(written_webp.path());
         matrix decoded_webp = image_get_image(written_webp.path());
         float * decoded_webp_storage = decoded_webp.data();
-        webp_get_image(decoded_webp, written_webp.path());
+        matrix decoded_webp_intensity;
+        webp_get_image(decoded_webp, decoded_webp_intensity, written_webp.path());
         const TemporaryFile written_gray_webp("written-gray.webp", "");
         webp_write_image(grayscale_source, written_gray_webp.path(), 90);
         require(image_file_format_available(written_webp.path()) &&
                 webp_width == 2 && webp_height == 2 && webp_channels == 3 &&
                 decoded_webp.shape() == std::vector<int>{3, 2, 2} &&
                 decoded_webp.data() == decoded_webp_storage &&
+                intensity_matches_rgb(decoded_webp, decoded_webp_intensity) &&
                 webp_get_info(written_gray_webp.path()).width == 2 &&
                 rejects_invalid_argument([&]
                 {
@@ -905,10 +963,17 @@ public:
                 }),
                 "WebP readers or writers failed to round-trip image data");
 #else
+        matrix unavailable_webp_image;
+        matrix unavailable_webp_intensity;
         require(!image_file_format_available("unavailable.webp") &&
                 rejects_runtime_error([&]
                 {
                     webp_write_image(grayscale_source, "unavailable.webp");
+                }) &&
+                rejects_runtime_error([&]
+                {
+                    webp_get_image(unavailable_webp_image, unavailable_webp_intensity,
+                                   "unavailable.webp");
                 }),
                 "Unavailable WebP support was reported incorrectly");
 #endif

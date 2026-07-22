@@ -17,6 +17,8 @@ METRICS = (
     "encode_blocks_ms",
     "decode_scalar_ms",
     "decode_blocks_ms",
+    "decode_separate_intensity_ms",
+    "decode_fused_intensity_ms",
 )
 
 
@@ -134,6 +136,10 @@ def main() -> int:
         print(f"{metric}={medians[metric]:.6f}")
     print(f"encode_speedup={medians['encode_rows_ms'] / medians['encode_blocks_ms']:.3f}x")
     print(f"decode_speedup={medians['decode_scalar_ms'] / medians['decode_blocks_ms']:.3f}x")
+    print(
+        "intensity_speedup="
+        f"{medians['decode_separate_intensity_ms'] / medians['decode_fused_intensity_ms']:.3f}x"
+    )
 
     if args.output:
         with Path(args.output).open("w", newline="") as output:

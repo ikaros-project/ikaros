@@ -81,24 +81,33 @@ namespace ikaros
     [[nodiscard]] image_info jpeg_get_info(const std::filesystem::path & filename);
     // Decoded RGB images use [channel, height, width]. Existing destinations are reused.
     void jpeg_get_image(matrix & image, const std::filesystem::path & filename);
+    // Optionally produces mean RGB intensity with shape [height, width] in the same pass.
+    void jpeg_get_image(matrix & image, matrix & intensity,
+                        const std::filesystem::path & filename);
     [[nodiscard]] matrix jpeg_get_image(const std::filesystem::path & filename);
 
 
     [[nodiscard]] image_info png_get_info(const std::filesystem::path & filename);
     // Decoded RGB images use [channel, height, width]. Existing destinations are reused.
     void png_get_image(matrix & image, const std::filesystem::path & filename);
+    void png_get_image(matrix & image, matrix & intensity,
+                       const std::filesystem::path & filename);
     [[nodiscard]] matrix png_get_image(const std::filesystem::path & filename);
     void png_write_image(const matrix & image, const std::filesystem::path & filename);
 
 
     [[nodiscard]] image_info tiff_get_info(const std::filesystem::path & filename);
     void tiff_get_image(matrix & image, const std::filesystem::path & filename);
+    void tiff_get_image(matrix & image, matrix & intensity,
+                        const std::filesystem::path & filename);
     [[nodiscard]] matrix tiff_get_image(const std::filesystem::path & filename);
     void tiff_write_image(const matrix & image, const std::filesystem::path & filename);
 
 
     [[nodiscard]] image_info webp_get_info(const std::filesystem::path & filename);
     void webp_get_image(matrix & image, const std::filesystem::path & filename);
+    void webp_get_image(matrix & image, matrix & intensity,
+                        const std::filesystem::path & filename);
     [[nodiscard]] matrix webp_get_image(const std::filesystem::path & filename);
     void webp_write_image(const matrix & image, const std::filesystem::path & filename,
                           int quality = 90);
@@ -111,6 +120,8 @@ namespace ikaros
     void validate_image_file_format(const std::filesystem::path & filename);
     [[nodiscard]] image_info image_get_info(const std::filesystem::path & filename);
     void image_get_image(matrix & image, const std::filesystem::path & filename);
+    void image_get_image(matrix & image, matrix & intensity,
+                         const std::filesystem::path & filename);
     [[nodiscard]] matrix image_get_image(const std::filesystem::path & filename);
     // Selects an encoder from the filename extension.
     void image_write_image(const matrix & image, const std::filesystem::path & filename,

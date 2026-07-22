@@ -70,6 +70,47 @@ namespace
     }
 
 
+    void
+    calculate_intensity(const float * red, const float * green, const float * blue,
+                        float * intensity, std::size_t pixelCount) noexcept
+    {
+        constexpr float oneThird = 1.0f / 3.0f;
+        for(std::size_t pixel = 0; pixel < pixelCount; ++pixel)
+            intensity[pixel] = oneThird * (red[pixel] + green[pixel] + blue[pixel]);
+    }
+
+
+    void
+    convert_rgb8_to_planar_float_and_intensity_rows(
+        const unsigned char * source, float * red, float * green, float * blue,
+        float * intensity, int width, int height) noexcept
+    {
+        constexpr float scale = 1.0f / 255.0f;
+        constexpr float oneThird = 1.0f / 3.0f;
+        const std::size_t rowWidth = static_cast<std::size_t>(width);
+        for(int row = 0; row < height; ++row)
+        {
+            const std::size_t rowOffset = static_cast<std::size_t>(row) * rowWidth;
+            const unsigned char * sourcePixel = source + 3 * rowOffset;
+            float * redPixel = red + rowOffset;
+            float * greenPixel = green + rowOffset;
+            float * bluePixel = blue + rowOffset;
+            float * intensityPixel = intensity + rowOffset;
+            for(int column = 0; column < width; ++column)
+            {
+                const float redValue = sourcePixel[3 * column] * scale;
+                const float greenValue = sourcePixel[3 * column + 1] * scale;
+                const float blueValue = sourcePixel[3 * column + 2] * scale;
+                redPixel[column] = redValue;
+                greenPixel[column] = greenValue;
+                bluePixel[column] = blueValue;
+                intensityPixel[column] =
+                    oneThird * (redValue + greenValue + blueValue);
+            }
+        }
+    }
+
+
 #if IKAROS_IMAGE_CONVERSION_BENCHMARK_ACCELERATE
     void
     convert_planar_float_to_rgb8_rows(const float * red, const float * green,
@@ -329,6 +370,9 @@ public:
         std::vector<unsigned char> encodedBlocks(3 * pixelCount);
         std::vector<float> decodedScalar(3 * pixelCount);
         std::vector<float> decodedBlocks(3 * pixelCount);
+        std::vector<float> decodedFused(3 * pixelCount);
+        std::vector<float> separateIntensity(pixelCount);
+        std::vector<float> fusedIntensity(pixelCount);
         std::vector<unsigned char> rowStorage;
         std::vector<unsigned char> blockStorage;
 
@@ -359,11 +403,30 @@ public:
                 decodedBlocks.data() + 2 * pixelCount, imageWidth, imageHeight,
                 rowsPerBlock, blockStorage);
         };
+        auto decodeSeparateIntensity = [&]()
+        {
+            convert_rgb8_to_planar_float_rows(
+                sourceRgb.data(), decodedScalar.data(), decodedScalar.data() + pixelCount,
+                decodedScalar.data() + 2 * pixelCount, imageWidth, imageHeight);
+            calculate_intensity(
+                decodedScalar.data(), decodedScalar.data() + pixelCount,
+                decodedScalar.data() + 2 * pixelCount, separateIntensity.data(),
+                pixelCount);
+        };
+        auto decodeFusedIntensity = [&]()
+        {
+            convert_rgb8_to_planar_float_and_intensity_rows(
+                sourceRgb.data(), decodedFused.data(), decodedFused.data() + pixelCount,
+                decodedFused.data() + 2 * pixelCount, fusedIntensity.data(),
+                imageWidth, imageHeight);
+        };
 
         encodeRows();
         encodeBlocks();
         decodeScalar();
         decodeBlocks();
+        decodeSeparateIntensity();
+        decodeFusedIntensity();
         if(encodedRows != encodedBlocks)
             throw std::runtime_error("Row and block encoders produced different pixels");
         if(!std::equal(decodedScalar.begin(), decodedScalar.end(), decodedBlocks.begin(),
@@ -372,6 +435,9 @@ public:
                            return std::fabs(left - right) <= 1e-7f;
                        }))
             throw std::runtime_error("Scalar and block decoders produced different pixels");
+        if(decodedScalar != decodedFused || separateIntensity != fusedIntensity)
+            throw std::runtime_error(
+                "Separate and fused intensity decoders produced different pixels");
 
         const double encodeRowsMs =
             measure_milliseconds_per_frame(measuredIterations, encodeRows);
@@ -381,13 +447,19 @@ public:
             measure_milliseconds_per_frame(measuredIterations, decodeScalar);
         const double decodeBlocksMs =
             measure_milliseconds_per_frame(measuredIterations, decodeBlocks);
+        const double decodeSeparateIntensityMs =
+            measure_milliseconds_per_frame(measuredIterations, decodeSeparateIntensity);
+        const double decodeFusedIntensityMs =
+            measure_milliseconds_per_frame(measuredIterations, decodeFusedIntensity);
 
         double checksum = 0;
         constexpr std::size_t checksumStride = 4093;
         for(std::size_t index = 0; index < encodedRows.size(); index += checksumStride)
             checksum += encodedRows[index] + encodedBlocks[index];
         for(std::size_t index = 0; index < decodedScalar.size(); index += checksumStride)
-            checksum += decodedScalar[index] + decodedBlocks[index];
+            checksum += decodedScalar[index] + decodedBlocks[index] + decodedFused[index];
+        for(std::size_t index = 0; index < separateIntensity.size(); index += checksumStride)
+            checksum += separateIntensity[index] + fusedIntensity[index];
 
         std::ostringstream output;
         output << std::fixed << std::setprecision(6)
@@ -399,6 +471,8 @@ public:
                << " encode_blocks_ms=" << encodeBlocksMs
                << " decode_scalar_ms=" << decodeScalarMs
                << " decode_blocks_ms=" << decodeBlocksMs
+               << " decode_separate_intensity_ms=" << decodeSeparateIntensityMs
+               << " decode_fused_intensity_ms=" << decodeFusedIntensityMs
                << " checksum=" << checksum;
         std::cout << output.str() << std::endl;
 #else

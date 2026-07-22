@@ -202,16 +202,23 @@ namespace ikaros
     }
 
 
+    template<bool MakeIntensity>
     static void
     rgb8_to_planar_float(const unsigned char * source, float * red, float * green,
-                         float * blue, std::size_t size) noexcept
+                         float * blue, float * intensity, std::size_t size) noexcept
     {
         constexpr float scale = 1.0f / 255.0f;
+        constexpr float one_third = 1.0f / 3.0f;
         for(std::size_t i = 0; i < size; ++i)
         {
-            red[i] = source[3 * i] * scale;
-            green[i] = source[3 * i + 1] * scale;
-            blue[i] = source[3 * i + 2] * scale;
+            const float red_value = source[3 * i] * scale;
+            const float green_value = source[3 * i + 1] * scale;
+            const float blue_value = source[3 * i + 2] * scale;
+            red[i] = red_value;
+            green[i] = green_value;
+            blue[i] = blue_value;
+            if constexpr(MakeIntensity)
+                intensity[i] = one_third * (red_value + green_value + blue_value);
         }
     }
 
@@ -553,23 +560,35 @@ namespace ikaros
 
 
     static void
-    prepare_rgb_image(matrix & image, int height, int width,
-                      const std::filesystem::path & filename)
+    prepare_image_destinations(matrix & image, matrix * intensity, int height, int width,
+                               const std::filesystem::path & filename)
     {
-        if(image.is_uninitialized())
-        {
-            image.realloc(3, height, width);
-            return;
-        }
-        if(image.rank() != 3 || image.size(0) != 3 ||
-           image.size(1) != height || image.size(2) != width)
+        if(intensity == &image)
+            throw std::invalid_argument(
+                "RGB and intensity destinations must be different matrices");
+        if(!image.is_uninitialized() &&
+           (image.rank() != 3 || image.size(0) != 3 ||
+            image.size(1) != height || image.size(2) != width))
             throw std::invalid_argument("RGB image destination has the wrong shape for \"" +
                                         filename.string() + "\"");
+        if(intensity != nullptr && !intensity->is_uninitialized() &&
+           (intensity->rank() != 2 || intensity->size(0) != height ||
+            intensity->size(1) != width))
+            throw std::invalid_argument(
+                "Intensity image destination has the wrong shape for \"" +
+                filename.string() + "\"");
+
+        if(image.is_uninitialized())
+            image.realloc(3, height, width);
+        if(intensity != nullptr && intensity->is_uninitialized())
+            intensity->realloc(height, width);
     }
 
 
-    void
-    jpeg_get_image(matrix & image, const std::filesystem::path & filename)
+    template<bool MakeIntensity>
+    static void
+    jpeg_get_image_impl(matrix & image, matrix * intensity,
+                        const std::filesystem::path & filename)
     {
         JpegDecompressor decompressor;
         decompressor.read(filename, true, [&](jpeg_decompress_struct & cinfo)
@@ -589,7 +608,7 @@ namespace ikaros
             const int height = static_cast<int>(cinfo.output_height);
             const JDIMENSION row_stride = cinfo.output_width * cinfo.output_components;
 
-            prepare_rgb_image(image, height, width, filename);
+            prepare_image_destinations(image, intensity, height, width, filename);
 
             JSAMPARRAY buffer = (*cinfo.mem->alloc_sarray)(
                 reinterpret_cast<j_common_ptr>(&cinfo), JPOOL_IMAGE, row_stride, 1);
@@ -601,13 +620,32 @@ namespace ikaros
                 float * red_row = image.logical_block_data(row);
                 float * green_row = image.logical_block_data(height + row);
                 float * blue_row = image.logical_block_data(2 * height + row);
-                rgb8_to_planar_float(buffer[0], red_row, green_row, blue_row,
-                                     static_cast<std::size_t>(width));
+                float * intensity_row = nullptr;
+                if constexpr(MakeIntensity)
+                    intensity_row = intensity->logical_block_data(row);
+                rgb8_to_planar_float<MakeIntensity>(
+                    buffer[0], red_row, green_row, blue_row, intensity_row,
+                    static_cast<std::size_t>(width));
                 ++row;
             }
 
             jpeg_finish_decompress(&cinfo);
         });
+    }
+
+
+    void
+    jpeg_get_image(matrix & image, const std::filesystem::path & filename)
+    {
+        jpeg_get_image_impl<false>(image, nullptr, filename);
+    }
+
+
+    void
+    jpeg_get_image(matrix & image, matrix & intensity,
+                   const std::filesystem::path & filename)
+    {
+        jpeg_get_image_impl<true>(image, &intensity, filename);
     }
 
 
@@ -769,8 +807,10 @@ namespace ikaros
     }
 
 
-    void
-    png_get_image(matrix & image, const std::filesystem::path & filename)
+    template<bool MakeIntensity>
+    static void
+    png_get_image_impl(matrix & image, matrix * intensity,
+                       const std::filesystem::path & filename)
     {
         PngReader reader;
         reader.read(filename, [&](png_structp png, png_infop info, PngReader & png_reader)
@@ -812,7 +852,7 @@ namespace ikaros
             png_read_image(png, rows);
             png_read_end(png, info);
 
-            prepare_rgb_image(image, height, width, filename);
+            prepare_image_destinations(image, intensity, height, width, filename);
 
             for(int y = 0; y < height; ++y)
             {
@@ -820,10 +860,29 @@ namespace ikaros
                 float * red_row = image.logical_block_data(y);
                 float * green_row = image.logical_block_data(height + y);
                 float * blue_row = image.logical_block_data(2 * height + y);
-                rgb8_to_planar_float(row, red_row, green_row, blue_row,
-                                     static_cast<std::size_t>(width));
+                float * intensity_row = nullptr;
+                if constexpr(MakeIntensity)
+                    intensity_row = intensity->logical_block_data(y);
+                rgb8_to_planar_float<MakeIntensity>(
+                    row, red_row, green_row, blue_row, intensity_row,
+                    static_cast<std::size_t>(width));
             }
         });
+    }
+
+
+    void
+    png_get_image(matrix & image, const std::filesystem::path & filename)
+    {
+        png_get_image_impl<false>(image, nullptr, filename);
+    }
+
+
+    void
+    png_get_image(matrix & image, matrix & intensity,
+                  const std::filesystem::path & filename)
+    {
+        png_get_image_impl<true>(image, &intensity, filename);
     }
 
 
@@ -990,6 +1049,13 @@ namespace ikaros
     }
 
 
+    void
+    png_get_image(matrix &, matrix &, const std::filesystem::path &)
+    {
+        throw_png_unavailable();
+    }
+
+
     matrix
     png_get_image(const std::filesystem::path &)
     {
@@ -1127,11 +1193,14 @@ namespace ikaros
     }
 
 
-    void
-    tiff_get_image(matrix & image, const std::filesystem::path & filename)
+    template<bool MakeIntensity>
+    static void
+    tiff_get_image_impl(matrix & image, matrix * intensity,
+                        const std::filesystem::path & filename)
     {
         const TiffFile file = open_tiff(filename, "r");
         const image_info info = read_tiff_info(file.get(), filename);
+        prepare_image_destinations(image, intensity, info.height, info.width, filename);
         const std::size_t pixel_count =
             checked_image_storage_size(info.width, info.height, 1, "TIFF");
         std::vector<std::uint32_t> pixels(pixel_count);
@@ -1141,22 +1210,45 @@ namespace ikaros
             throw std::runtime_error("Could not decode TIFF file \"" +
                                      filename.string() + "\"");
 
-        prepare_rgb_image(image, info.height, info.width, filename);
         constexpr float scale = 1.0f / 255.0f;
+        constexpr float one_third = 1.0f / 3.0f;
         for(int y = 0; y < info.height; ++y)
         {
             float * red = image.logical_block_data(y);
             float * green = image.logical_block_data(info.height + y);
             float * blue = image.logical_block_data(2 * info.height + y);
+            float * intensity_row = nullptr;
+            if constexpr(MakeIntensity)
+                intensity_row = intensity->logical_block_data(y);
             const std::uint32_t * source =
                 pixels.data() + static_cast<std::size_t>(y) * info.width;
             for(int x = 0; x < info.width; ++x)
             {
-                red[x] = TIFFGetR(source[x]) * scale;
-                green[x] = TIFFGetG(source[x]) * scale;
-                blue[x] = TIFFGetB(source[x]) * scale;
+                const float red_value = TIFFGetR(source[x]) * scale;
+                const float green_value = TIFFGetG(source[x]) * scale;
+                const float blue_value = TIFFGetB(source[x]) * scale;
+                red[x] = red_value;
+                green[x] = green_value;
+                blue[x] = blue_value;
+                if constexpr(MakeIntensity)
+                    intensity_row[x] = one_third * (red_value + green_value + blue_value);
             }
         }
+    }
+
+
+    void
+    tiff_get_image(matrix & image, const std::filesystem::path & filename)
+    {
+        tiff_get_image_impl<false>(image, nullptr, filename);
+    }
+
+
+    void
+    tiff_get_image(matrix & image, matrix & intensity,
+                   const std::filesystem::path & filename)
+    {
+        tiff_get_image_impl<true>(image, &intensity, filename);
     }
 
 
@@ -1252,6 +1344,13 @@ namespace ikaros
     }
 
 
+    void
+    tiff_get_image(matrix &, matrix &, const std::filesystem::path &)
+    {
+        throw_tiff_unavailable();
+    }
+
+
     matrix
     tiff_get_image(const std::filesystem::path &)
     {
@@ -1294,13 +1393,16 @@ namespace ikaros
     }
 
 
-    void
-    webp_get_image(matrix & image, const std::filesystem::path & filename)
+    template<bool MakeIntensity>
+    static void
+    webp_get_image_impl(matrix & image, matrix * intensity,
+                        const std::filesystem::path & filename)
     {
         const std::vector<unsigned char> data = read_image_file(filename, "WebP");
         const image_info info = webp_info(data, filename);
         if(info.width > std::numeric_limits<int>::max() / 3)
             throw std::length_error("WebP row size overflow");
+        prepare_image_destinations(image, intensity, info.height, info.width, filename);
         const std::size_t output_size =
             checked_image_storage_size(info.width, info.height, 3, "WebP");
         std::vector<unsigned char> pixels(output_size);
@@ -1309,16 +1411,34 @@ namespace ikaros
             throw std::runtime_error("Could not decode WebP file \"" +
                                      filename.string() + "\"");
 
-        prepare_rgb_image(image, info.height, info.width, filename);
         for(int y = 0; y < info.height; ++y)
         {
             const unsigned char * row =
                 pixels.data() + static_cast<std::size_t>(y) * info.width * 3;
-            rgb8_to_planar_float(row, image.logical_block_data(y),
-                                 image.logical_block_data(info.height + y),
-                                 image.logical_block_data(2 * info.height + y),
-                                 static_cast<std::size_t>(info.width));
+            float * intensity_row = nullptr;
+            if constexpr(MakeIntensity)
+                intensity_row = intensity->logical_block_data(y);
+            rgb8_to_planar_float<MakeIntensity>(
+                row, image.logical_block_data(y),
+                image.logical_block_data(info.height + y),
+                image.logical_block_data(2 * info.height + y), intensity_row,
+                static_cast<std::size_t>(info.width));
         }
+    }
+
+
+    void
+    webp_get_image(matrix & image, const std::filesystem::path & filename)
+    {
+        webp_get_image_impl<false>(image, nullptr, filename);
+    }
+
+
+    void
+    webp_get_image(matrix & image, matrix & intensity,
+                   const std::filesystem::path & filename)
+    {
+        webp_get_image_impl<true>(image, &intensity, filename);
     }
 
 
@@ -1408,6 +1528,13 @@ namespace ikaros
 
     void
     webp_get_image(matrix &, const std::filesystem::path &)
+    {
+        throw_webp_unavailable();
+    }
+
+
+    void
+    webp_get_image(matrix &, matrix &, const std::filesystem::path &)
     {
         throw_webp_unavailable();
     }
@@ -1555,6 +1682,29 @@ namespace ikaros
                 return;
             case image_format::webp:
                 webp_get_image(image, filename);
+                return;
+        }
+        throw std::logic_error("Unhandled image file format");
+    }
+
+
+    void
+    image_get_image(matrix & image, matrix & intensity,
+                    const std::filesystem::path & filename)
+    {
+        switch(validated_image_format(filename))
+        {
+            case image_format::jpeg:
+                jpeg_get_image(image, intensity, filename);
+                return;
+            case image_format::png:
+                png_get_image(image, intensity, filename);
+                return;
+            case image_format::tiff:
+                tiff_get_image(image, intensity, filename);
+                return;
+            case image_format::webp:
+                webp_get_image(image, intensity, filename);
                 return;
         }
         throw std::logic_error("Unhandled image file format");

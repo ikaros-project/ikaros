@@ -68,7 +68,8 @@ correctness suite.
 
 The image conversion benchmark compares the current row-at-a-time planar-float-to-RGB8 conversion
 with a 32-row Accelerate implementation. It also compares the current scalar RGB8-to-planar-float
-conversion with the corresponding block implementation. The default image size is 1920 by 1080.
+conversion with the corresponding block implementation, and separate-pass intensity generation
+with fused RGB-and-intensity decoding. The default image size is 1920 by 1080.
 
 Build Ikaros in Release mode and run:
 
