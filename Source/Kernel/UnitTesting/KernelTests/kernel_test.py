@@ -719,7 +719,10 @@ def run_test(item):
     missing_files = [str(path) for path in expected_files if not path.exists()]
     expected_file_text = split_expected_text(root.get("expected_file_contains"))
     unexpected_file_text = split_expected_text(root.get("expected_file_not_contains"))
-    file_contents = "\n".join(path.read_text() for path in expected_files if path.exists())
+    file_contents = ""
+    if expected_file_text or unexpected_file_text:
+        file_contents = "\n".join(path.read_text(errors="replace")
+                                  for path in expected_files if path.exists())
     missing_file_text = [text for text in expected_file_text if text not in file_contents]
     present_unexpected_file_text = [text for text in unexpected_file_text if text in file_contents]
 

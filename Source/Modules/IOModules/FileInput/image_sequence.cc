@@ -266,7 +266,7 @@ namespace ikaros
     {
         if(contains_image_sequence_format(pattern))
             throw std::invalid_argument(
-                "InputImage no longer supports printf-style sequence formats; use # or ####");
+                "Image sequences do not support printf-style formats here; use # or ####");
 
         hash_sequence_pattern result;
         for(std::size_t i = 0; i < pattern.size(); ++i)

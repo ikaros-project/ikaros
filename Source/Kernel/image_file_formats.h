@@ -73,6 +73,10 @@ namespace ikaros
                                                     float maximum = 1,
                                                     std::string_view table = "fire",
                                                     int quality = 100);
+    // Grayscale images use [height, width]; RGB images use [channel, height, width].
+    // Values are clipped to [0, 1] before encoding.
+    void jpeg_write_image(const matrix & image, const std::filesystem::path & filename,
+                          int quality = 100);
 
     [[nodiscard]] image_info jpeg_get_info(const std::filesystem::path & filename);
     // Decoded RGB images use [channel, height, width]. Existing destinations are reused.
@@ -84,6 +88,7 @@ namespace ikaros
     // Decoded RGB images use [channel, height, width]. Existing destinations are reused.
     void png_get_image(matrix & image, const std::filesystem::path & filename);
     [[nodiscard]] matrix png_get_image(const std::filesystem::path & filename);
+    void png_write_image(const matrix & image, const std::filesystem::path & filename);
 
 
     // Selects a decoder from the filename extension. Supported extensions are
@@ -91,4 +96,7 @@ namespace ikaros
     [[nodiscard]] image_info image_get_info(const std::filesystem::path & filename);
     void image_get_image(matrix & image, const std::filesystem::path & filename);
     [[nodiscard]] matrix image_get_image(const std::filesystem::path & filename);
+    // Selects an encoder from the filename extension.
+    void image_write_image(const matrix & image, const std::filesystem::path & filename,
+                           int jpeg_quality = 100);
 };

@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
 #include <limits>
 #include <memory>
 #include <new>
@@ -387,6 +388,41 @@ namespace ikaros
     }
 
 
+    static jpeg_data
+    encode_jpeg_image(const matrix & image, int quality)
+    {
+        if(image.rank() == 2)
+            return create_gray_jpeg(image, 0, 1, quality);
+        if(image.rank() == 3 && image.size(0) == 3)
+            return create_color_jpeg(image, quality);
+        throw std::invalid_argument(
+            "JPEG image must have shape [height, width] or [3, height, width]");
+    }
+
+
+    void
+    jpeg_write_image(const matrix & image, const std::filesystem::path & filename,
+                     int quality)
+    {
+        const jpeg_data encoded = encode_jpeg_image(image, quality);
+        if(encoded.size() > static_cast<std::size_t>(
+                                std::numeric_limits<std::streamsize>::max()))
+            throw std::length_error("JPEG file is too large to write");
+
+        std::ofstream file(filename, std::ios::binary | std::ios::trunc);
+        if(!file)
+            throw std::runtime_error("Could not open JPEG file for writing: \"" +
+                                     filename.string() + "\"");
+
+        file.write(reinterpret_cast<const char *>(encoded.data()),
+                   static_cast<std::streamsize>(encoded.size()));
+        file.close();
+        if(!file)
+            throw std::runtime_error("Could not write JPEG file: \"" +
+                                     filename.string() + "\"");
+    }
+
+
     struct FileCloser
     {
         void operator()(FILE * file) const noexcept
@@ -571,7 +607,7 @@ namespace ikaros
 
 
     static void
-    png_reader_error_exit(png_structp png, png_const_charp message)
+    png_error_exit(png_structp png, png_const_charp message)
     {
         auto * error = static_cast<png_error_context *>(png_get_error_ptr(png));
         if(error != nullptr)
@@ -611,7 +647,7 @@ namespace ikaros
 
             error_.message[0] = '\0';
             png_ = png_create_read_struct(PNG_LIBPNG_VER_STRING, &error_,
-                                          png_reader_error_exit, nullptr);
+                                          png_error_exit, nullptr);
             if(png_ == nullptr)
                 throw std::runtime_error("PNG read failed for \"" + filename.string() +
                                          "\": could not create the read structure");
@@ -776,6 +812,140 @@ namespace ikaros
     }
 
 
+    class PngWriter
+    {
+    public:
+        PngWriter() = default;
+        PngWriter(const PngWriter &) = delete;
+        PngWriter & operator=(const PngWriter &) = delete;
+
+        ~PngWriter()
+        {
+            reset();
+        }
+
+        void
+        write(const matrix & image, const std::filesystem::path & filename)
+        {
+            const bool grayscale = image.rank() == 2;
+            if(!grayscale && (image.rank() != 3 || image.size(0) != 3))
+                throw std::invalid_argument(
+                    "PNG image must have shape [height, width] or [3, height, width]");
+
+            const int height = image.size(grayscale ? 0 : 1);
+            const int width = image.size(grayscale ? 1 : 2);
+            if(width <= 0 || height <= 0)
+                throw std::invalid_argument("PNG image dimensions must be positive");
+
+            file_.reset(std::fopen(filename.string().c_str(), "wb"));
+            if(file_ == nullptr)
+                throw std::runtime_error("Could not open PNG file for writing: \"" +
+                                         filename.string() + "\"");
+
+            error_.message[0] = '\0';
+            png_ = png_create_write_struct(PNG_LIBPNG_VER_STRING, &error_,
+                                           png_error_exit, nullptr);
+            if(png_ == nullptr)
+                throw std::runtime_error("PNG write failed for \"" + filename.string() +
+                                         "\": could not create the write structure");
+
+            if(setjmp(png_jmpbuf(png_)))
+            {
+                const std::string message = error_.message[0] == '\0' ?
+                                            "unknown libpng error" : error_.message;
+                reset();
+                throw std::runtime_error("PNG write failed for \"" + filename.string() +
+                                         "\": " + message);
+            }
+
+            info_ = png_create_info_struct(png_);
+            if(info_ == nullptr)
+                throw std::runtime_error("PNG write failed for \"" + filename.string() +
+                                         "\": could not create the info structure");
+
+            png_init_io(png_, file_.get());
+            png_set_IHDR(png_, info_, static_cast<png_uint_32>(width),
+                         static_cast<png_uint_32>(height), 8,
+                         grayscale ? PNG_COLOR_TYPE_GRAY : PNG_COLOR_TYPE_RGB,
+                         PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
+                         PNG_FILTER_TYPE_DEFAULT);
+            png_write_info(png_, info_);
+
+            const std::size_t row_width = static_cast<std::size_t>(width);
+            row_storage_.resize((grayscale ? 1 : (IKAROS_IMAGE_ACCELERATE ? 6 : 3)) *
+                                row_width);
+            std::span<unsigned char> row(row_storage_.data(),
+                                         (grayscale ? 1 : 3) * row_width);
+            std::span<unsigned char> planar_buffer;
+#if IKAROS_IMAGE_ACCELERATE
+            if(!grayscale)
+                planar_buffer = std::span(row_storage_).subspan(3 * row_width);
+#endif
+
+            for(int y = 0; y < height; ++y)
+            {
+                if(grayscale)
+                {
+                    const auto source = std::span(image.logical_block_data(y), row_width);
+                    float_to_byte(row, source, 0, 1);
+                }
+                else
+                {
+                    const auto red = std::span(image.logical_block_data(y), row_width);
+                    const auto green = std::span(image.logical_block_data(height + y),
+                                                 row_width);
+                    const auto blue = std::span(image.logical_block_data(2 * height + y),
+                                                row_width);
+                    float_rgb_to_byte(row, planar_buffer, red, green, blue);
+                }
+                png_write_row(png_, row.data());
+            }
+            png_write_end(png_, info_);
+            finish(filename);
+        }
+
+    private:
+        void
+        finish(const std::filesystem::path & filename)
+        {
+            if(png_ != nullptr)
+                png_destroy_write_struct(&png_, info_ == nullptr ? nullptr : &info_);
+            info_ = nullptr;
+            row_storage_.clear();
+
+            FILE * file = file_.release();
+            if(file != nullptr && std::fclose(file) != 0)
+                throw std::runtime_error("Could not finish writing PNG file: \"" +
+                                         filename.string() + "\"");
+        }
+
+
+        void
+        reset() noexcept
+        {
+            if(png_ != nullptr)
+                png_destroy_write_struct(&png_, info_ == nullptr ? nullptr : &info_);
+            info_ = nullptr;
+            row_storage_.clear();
+            file_.reset();
+        }
+
+        png_error_context error_;
+        std::unique_ptr<FILE, FileCloser> file_;
+        png_structp png_ = nullptr;
+        png_infop info_ = nullptr;
+        std::vector<png_byte> row_storage_;
+    };
+
+
+    void
+    png_write_image(const matrix & image, const std::filesystem::path & filename)
+    {
+        PngWriter writer;
+        writer.write(image, filename);
+    }
+
+
     enum class image_format
     {
         jpeg,
@@ -838,6 +1008,23 @@ namespace ikaros
         matrix image;
         image_get_image(image, filename);
         return image;
+    }
+
+
+    void
+    image_write_image(const matrix & image, const std::filesystem::path & filename,
+                      int jpeg_quality)
+    {
+        switch(image_format_from_extension(filename))
+        {
+            case image_format::jpeg:
+                jpeg_write_image(image, filename, jpeg_quality);
+                return;
+            case image_format::png:
+                png_write_image(image, filename);
+                return;
+        }
+        throw std::logic_error("Unhandled image file format");
     }
 
 };

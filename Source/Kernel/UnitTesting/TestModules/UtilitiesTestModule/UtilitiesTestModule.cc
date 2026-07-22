@@ -594,6 +594,59 @@ public:
                 grayscale_image(0, 0, 0) < grayscale_image(0, 1, 1),
                 "JPEG reader did not convert grayscale input to RGB safely");
 
+        color_image(0, 0, 0) = 1.0f;
+        color_image(1, 0, 1) = 1.0f;
+        color_image(2, 1, 0) = 1.0f;
+        color_image(0, 1, 1) = 1.0f;
+        color_image(1, 1, 1) = 1.0f;
+        color_image(2, 1, 1) = 1.0f;
+
+        const TemporaryFile written_gray_jpeg("written-gray.jpg", "");
+        jpeg_write_image(grayscale_source, written_gray_jpeg.path(), 85);
+        const auto [written_jpeg_width, written_jpeg_height, written_jpeg_channels] =
+            jpeg_get_info(written_gray_jpeg.path());
+
+        const TemporaryFile written_gray_png("written-gray.png", "");
+        png_write_image(grayscale_source, written_gray_png.path());
+        const auto [written_gray_png_width, written_gray_png_height,
+                    written_gray_png_channels] = png_get_info(written_gray_png.path());
+        const matrix written_gray_png_image = png_get_image(written_gray_png.path());
+
+        const TemporaryFile written_color_jpeg("written-color.JPEG", "");
+        image_write_image(color_image, written_color_jpeg.path(), 85);
+        const TemporaryFile written_color_png("written-color.PNG", "");
+        image_write_image(color_image, written_color_png.path());
+        const matrix written_color_png_image = image_get_image(written_color_png.path());
+
+        matrix invalid_image_shape(2);
+        const TemporaryFile invalid_png_output("invalid-shape.png", "unchanged");
+        const TemporaryFile invalid_jpeg_output("invalid-shape.jpg", "unchanged");
+        const TemporaryFile unsupported_output("unsupported-output.gif", "unchanged");
+        require(written_jpeg_width == 2 && written_jpeg_height == 2 &&
+                written_jpeg_channels == 1 &&
+                written_gray_png_width == 2 && written_gray_png_height == 2 &&
+                written_gray_png_channels == 1 &&
+                written_gray_png_image.shape() == std::vector<int>{3, 2, 2} &&
+                written_gray_png_image(0, 0, 0) == 0.0f &&
+                written_gray_png_image(0, 1, 1) == 1.0f &&
+                written_color_png_image.shape() == std::vector<int>{3, 2, 2} &&
+                written_color_png_image(0, 0, 0) == 1.0f &&
+                written_color_png_image(1, 0, 1) == 1.0f &&
+                written_color_png_image(2, 1, 0) == 1.0f &&
+                rejects_invalid_argument([&]
+                {
+                    png_write_image(invalid_image_shape, invalid_png_output.path());
+                }) &&
+                rejects_invalid_argument([&]
+                {
+                    jpeg_write_image(invalid_image_shape, invalid_jpeg_output.path());
+                }) &&
+                rejects_invalid_argument([&]
+                {
+                    image_write_image(color_image, unsupported_output.path());
+                }),
+                "Image file writers failed to round-trip data or reject invalid input");
+
         auto rejected_malformed_jpeg = [](const std::function<void()> & read)
         {
             try

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<class name="OutputImage" description="writes grayscale or RGB matrices as JPEG or PNG files">
+    <parameter name="filename" type="string" default="output.png" description="JPEG or PNG file to write. Use # for an unpadded sequence number or multiple hashes such as #### for a fixed-width zero-padded number. Escape a literal hash as \#." />
+    <parameter name="quality" type="number" default="90" min="1" max="100" description="JPEG quality from 1 to 100. Ignored for PNG files." />
+    <parameter name="start_index" type="number" default="0" min="0" description="First sequence number used by a # placeholder." />
+    <parameter name="single_trigger" type="bool" default="no" description="When WRITE is connected, write only on its rising edge." />
+
+    <input name="INPUT" description="Grayscale [height, width] or RGB [3, height, width] image with values in [0, 1]." />
+    <input name="WRITE" optional="yes" size="1" description="Write while greater than zero. When disconnected, write every tick." />
+</class>
