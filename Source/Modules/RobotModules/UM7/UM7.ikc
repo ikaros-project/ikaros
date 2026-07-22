@@ -19,6 +19,8 @@
 
    <files>
    		<file>UM7.cc</file>
+                <file>UM7Protocol.cc</file>
+                <file>UM7Protocol.h</file>
    		<file>UM7.ikc</file>
    </files>
 

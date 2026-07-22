@@ -22,39 +22,22 @@
 
 #include <algorithm>
 #include <array>
-#include <bit>
 #include <cerrno>
 #include <chrono>
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <span>
 #include <stdexcept>
 #include <string>
 
 #include "ikaros.h"
+#include "UM7Protocol.h"
 
 using namespace ikaros;
 
 class UM7 : public Module
 {
-    enum class ParseResult
-    {
-        packetReady,
-        incomplete,
-        discardedGarbage,
-        invalidPacketType,
-        checksumError,
-    };
-
-    struct UM7Packet
-    {
-        std::uint8_t address = 0;
-        std::uint8_t packetType = 0;
-        std::size_t dataLength = 0;
-        std::array<std::uint8_t, 64> data{};
-    };
-
-    static constexpr std::size_t maxBufferSize = 1024;
     static constexpr int configurationTimeoutMs = 250;
     static constexpr int configurationWriteTimeoutMs = 100;
 
@@ -67,39 +50,13 @@ class UM7 : public Module
     matrix eulerAngles;
 
     int baudrate = 115200;
-    UM7Packet packet;
+    um7::Packet packet;
+    um7::PacketParser packetParser;
     std::unique_ptr<Serial> serial;
     std::array<char, 256> rxData{};
-    std::string rxBuffer;
     std::size_t parseErrorCount = 0;
     std::size_t serialErrorCount = 0;
     std::size_t dataErrorCount = 0;
-
-    static float
-    bytesToFloatBigEndian(const std::uint8_t * bytes)
-    {
-        const std::uint32_t value =
-            (static_cast<std::uint32_t>(bytes[0]) << 24) |
-            (static_cast<std::uint32_t>(bytes[1]) << 16) |
-            (static_cast<std::uint32_t>(bytes[2]) << 8) |
-            static_cast<std::uint32_t>(bytes[3]);
-        return std::bit_cast<float>(value);
-    }
-
-
-    static int
-    signedWord(std::uint8_t high, std::uint8_t low)
-    {
-        const int value = (static_cast<int>(high) << 8) | static_cast<int>(low);
-        return value >= 0x8000 ? value - 0x10000 : value;
-    }
-
-
-    static std::uint8_t
-    byteAt(const std::string & buffer, std::size_t index)
-    {
-        return static_cast<std::uint8_t>(static_cast<unsigned char>(buffer[index]));
-    }
 
 
     int
@@ -108,107 +65,13 @@ class UM7 : public Module
         const int received = serial->ReceiveBytes(
             rxData.data(), static_cast<int>(rxData.size()), timeoutMs);
         if(received > 0)
-            rxBuffer.append(rxData.data(), static_cast<std::size_t>(received));
+            packetParser.append(std::span(rxData.data(), static_cast<std::size_t>(received)));
         return received;
     }
 
 
     void
-    discardGarbageWithoutLosingHeaderPrefix()
-    {
-        std::size_t keep = 0;
-        if(rxBuffer.size() >= 2 &&
-           rxBuffer.compare(rxBuffer.size() - 2, 2, "sn") == 0)
-            keep = 2;
-        else if(!rxBuffer.empty() && rxBuffer.back() == 's')
-            keep = 1;
-
-        if(keep == 0)
-            rxBuffer.clear();
-        else
-            rxBuffer.erase(0, rxBuffer.size() - keep);
-    }
-
-
-    ParseResult
-    parsePacket()
-    {
-        if(rxBuffer.size() < 3)
-            return ParseResult::incomplete;
-
-        const std::size_t header = rxBuffer.find("snp");
-        if(header == std::string::npos)
-        {
-            discardGarbageWithoutLosingHeaderPrefix();
-            return ParseResult::discardedGarbage;
-        }
-        if(header != 0)
-        {
-            rxBuffer.erase(0, header);
-            return ParseResult::discardedGarbage;
-        }
-        if(rxBuffer.size() < 7)
-            return ParseResult::incomplete;
-
-        const std::uint8_t packetType = byteAt(rxBuffer, 3);
-        const bool hasData = (packetType & 0x80) != 0;
-        const bool isBatch = (packetType & 0x40) != 0;
-        const std::size_t batchLength = (packetType >> 2) & 0x0F;
-
-        std::size_t dataLength = 0;
-        if(hasData)
-        {
-            if(isBatch)
-            {
-                if(batchLength == 0)
-                {
-                    rxBuffer.erase(0, 1);
-                    return ParseResult::invalidPacketType;
-                }
-                dataLength = 4 * batchLength;
-            }
-            else
-                dataLength = 4;
-        }
-
-        if(dataLength > packet.data.size())
-        {
-            rxBuffer.erase(0, 1);
-            return ParseResult::invalidPacketType;
-        }
-
-        const std::size_t packetLength = 7 + dataLength;
-        if(rxBuffer.size() < packetLength)
-            return ParseResult::incomplete;
-
-        packet.address = byteAt(rxBuffer, 4);
-        packet.packetType = packetType;
-        packet.dataLength = dataLength;
-
-        std::uint16_t computedChecksum =
-            static_cast<std::uint16_t>('s' + 'n' + 'p' + packetType + packet.address);
-        for(std::size_t i = 0; i < dataLength; ++i)
-        {
-            packet.data[i] = byteAt(rxBuffer, 5 + i);
-            computedChecksum = static_cast<std::uint16_t>(computedChecksum + packet.data[i]);
-        }
-
-        const std::uint16_t receivedChecksum =
-            static_cast<std::uint16_t>(byteAt(rxBuffer, 5 + dataLength) << 8) |
-            byteAt(rxBuffer, 6 + dataLength);
-        if(receivedChecksum != computedChecksum)
-        {
-            rxBuffer.erase(0, 1);
-            return ParseResult::checksumError;
-        }
-
-        rxBuffer.erase(0, packetLength);
-        return ParseResult::packetReady;
-    }
-
-
-    void
-    reportParseError(ParseResult result)
+    reportParseError(um7::ParseResult result)
     {
         ++parseErrorCount;
         if(parseErrorCount != 1 && parseErrorCount % 100 != 0)
@@ -216,13 +79,13 @@ class UM7 : public Module
 
         switch(result)
         {
-        case ParseResult::discardedGarbage:
+        case um7::ParseResult::discardedGarbage:
             Warning("UM7 discarded serial data before the next packet header.");
             break;
-        case ParseResult::invalidPacketType:
+        case um7::ParseResult::invalidPacketType:
             Warning("UM7 received an invalid packet type.");
             break;
-        case ParseResult::checksumError:
+        case um7::ParseResult::checksumError:
             Warning("UM7 received a packet with an invalid checksum.");
             break;
         default:
@@ -234,10 +97,9 @@ class UM7 : public Module
     void
     trimReceiveBuffer()
     {
-        if(rxBuffer.size() <= maxBufferSize)
+        if(!packetParser.trim())
             return;
 
-        discardGarbageWithoutLosingHeaderPrefix();
         ++parseErrorCount;
         if(parseErrorCount == 1 || parseErrorCount % 100 == 0)
             Warning("UM7 receive buffer exceeded its limit and was resynchronized.");
@@ -264,19 +126,19 @@ class UM7 : public Module
             bool needsMoreData = false;
             for(int attempts = 0; attempts < 64; ++attempts)
             {
-                const ParseResult result = parsePacket();
-                if(result == ParseResult::packetReady)
+                const um7::ParseResult result = packetParser.parse(packet);
+                if(result == um7::ParseResult::packetReady)
                 {
                     if(packet.address != address)
                         continue;
-                    if((packet.packetType & 0x01) != 0)
+                    if(packet.commandFailed())
                         throw std::runtime_error(
                             "UM7 rejected configuration register " + std::to_string(address));
-                    if(packet.packetType == 0)
+                    if(packet.commandComplete())
                         return;
                     continue;
                 }
-                if(result == ParseResult::incomplete)
+                if(result == um7::ParseResult::incomplete)
                 {
                     needsMoreData = true;
                     break;
@@ -319,17 +181,7 @@ class UM7 : public Module
     void
     sendConfig(std::uint8_t address, std::array<std::uint8_t, 4> data)
     {
-        std::array<std::uint8_t, 11> packetData
-        {
-            's', 'n', 'p', 0x80, address,
-            data[0], data[1], data[2], data[3], 0, 0,
-        };
-        std::uint16_t checksum = 0;
-        for(std::size_t i = 0; i < 9; ++i)
-            checksum = static_cast<std::uint16_t>(checksum + packetData[i]);
-        packetData[9] = static_cast<std::uint8_t>(checksum >> 8);
-        packetData[10] = static_cast<std::uint8_t>(checksum);
-
+        const auto packetData = um7::makeWritePacket(address, data);
         sendPacket(packetData);
         awaitAcknowledgement(address);
     }
@@ -352,9 +204,12 @@ class UM7 : public Module
             return;
         }
 
-        gyroProc(0) = bytesToFloatBigEndian(packet.data.data());
-        gyroProc(1) = bytesToFloatBigEndian(packet.data.data() + 4);
-        gyroProc(2) = bytesToFloatBigEndian(packet.data.data() + 8);
+        gyroProc(0) = um7::decodeFloat(
+            std::span<const std::uint8_t, 4>(packet.data.data(), 4));
+        gyroProc(1) = um7::decodeFloat(
+            std::span<const std::uint8_t, 4>(packet.data.data() + 4, 4));
+        gyroProc(2) = um7::decodeFloat(
+            std::span<const std::uint8_t, 4>(packet.data.data() + 8, 4));
     }
 
 
@@ -367,9 +222,12 @@ class UM7 : public Module
             return;
         }
 
-        accelProc(0) = bytesToFloatBigEndian(packet.data.data());
-        accelProc(1) = bytesToFloatBigEndian(packet.data.data() + 4);
-        accelProc(2) = bytesToFloatBigEndian(packet.data.data() + 8);
+        accelProc(0) = um7::decodeFloat(
+            std::span<const std::uint8_t, 4>(packet.data.data(), 4));
+        accelProc(1) = um7::decodeFloat(
+            std::span<const std::uint8_t, 4>(packet.data.data() + 4, 4));
+        accelProc(2) = um7::decodeFloat(
+            std::span<const std::uint8_t, 4>(packet.data.data() + 8, 4));
     }
 
 
@@ -382,12 +240,9 @@ class UM7 : public Module
             return;
         }
 
-        const float rollValue = static_cast<float>(signedWord(packet.data[0], packet.data[1])) /
-                                91.02222f;
-        const float pitchValue = static_cast<float>(signedWord(packet.data[2], packet.data[3])) /
-                                 91.02222f;
-        const float yawValue = static_cast<float>(signedWord(packet.data[4], packet.data[5])) /
-                               91.02222f;
+        const float rollValue = um7::decodeEulerAngle(packet.data[0], packet.data[1]);
+        const float pitchValue = um7::decodeEulerAngle(packet.data[2], packet.data[3]);
+        const float yawValue = um7::decodeEulerAngle(packet.data[4], packet.data[5]);
 
         eulerAngles(0) = rollValue;
         eulerAngles(1) = pitchValue;
@@ -423,13 +278,13 @@ class UM7 : public Module
     {
         while(true)
         {
-            const ParseResult result = parsePacket();
-            if(result == ParseResult::packetReady)
+            const um7::ParseResult result = packetParser.parse(packet);
+            if(result == um7::ParseResult::packetReady)
             {
                 processPacket();
                 continue;
             }
-            if(result == ParseResult::incomplete)
+            if(result == um7::ParseResult::incomplete)
                 break;
             reportParseError(result);
         }
@@ -452,8 +307,6 @@ public:
         serial = std::make_unique<Serial>(std::string(port), baudrate);
         Debug("Serial port for UM7 opened on " + std::string(port) +
               " with baudrate " + std::to_string(baudrate));
-        rxBuffer.reserve(maxBufferSize);
-
         disableBroadcast();
         sendConfig(0x05, {0, 100, 0, 0});
         sendConfig(0x03, {100, 100, 0, 0});
