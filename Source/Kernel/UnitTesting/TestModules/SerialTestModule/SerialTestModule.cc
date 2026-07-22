@@ -2,6 +2,7 @@
 #define _XOPEN_SOURCE 600
 #endif
 
+#include <array>
 #include <cerrno>
 #include <chrono>
 #include <cstdlib>
@@ -220,6 +221,24 @@ class SerialTestModule : public Module
             SteadyClock::now() - timeout_start);
         require(timeout_duration.count() >= 20 && timeout_duration.count() < 2000,
                 "ReceiveBytes did not honor its timeout");
+
+        std::vector<char> burst(256);
+        for(std::size_t i = 0; i < burst.size(); ++i)
+            burst[i] = static_cast<char>(i % 251);
+        terminal.write_all(std::span(burst.data(), burst.size()));
+        std::vector<char> drained;
+        drained.reserve(burst.size());
+        std::array<char, 64> drain_buffer{};
+        while(true)
+        {
+            const int count = serial.ReceiveBytes(
+                drain_buffer.data(), static_cast<int>(drain_buffer.size()), 0);
+            require(count >= 0, "non-blocking serial drain failed");
+            drained.insert(drained.end(), drain_buffer.begin(), drain_buffer.begin() + count);
+            if(count < static_cast<int>(drain_buffer.size()))
+                break;
+        }
+        require(drained == burst, "non-blocking reads did not drain the queued burst");
 
         const std::string message = "serial output";
         require(serial.SendString(message.c_str()) == static_cast<int>(message.size()) &&

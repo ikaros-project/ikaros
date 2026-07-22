@@ -417,6 +417,26 @@ class UM7 : public Module
         }
     }
 
+
+    void
+    processAvailablePackets()
+    {
+        while(true)
+        {
+            const ParseResult result = parsePacket();
+            if(result == ParseResult::packetReady)
+            {
+                processPacket();
+                continue;
+            }
+            if(result == ParseResult::incomplete)
+                break;
+            reportParseError(result);
+        }
+
+        trimReceiveBuffer();
+    }
+
 public:
     void
     Init() override
@@ -444,33 +464,26 @@ public:
     void
     Tick() override
     {
-        const int received = receiveBytes(5);
-        if(received < 0)
-        {
-            const int errorNumber = errno;
-            ++serialErrorCount;
-            if(serialErrorCount == 1 || serialErrorCount % 100 == 0)
-                Warning("UM7 serial receive failed: " +
-                        std::string(std::strerror(errorNumber)));
-            return;
-        }
-        if(received == 0)
-            return;
-
         while(true)
         {
-            const ParseResult result = parsePacket();
-            if(result == ParseResult::packetReady)
+            const int received = receiveBytes(0);
+            if(received < 0)
             {
-                processPacket();
-                continue;
+                const int errorNumber = errno;
+                ++serialErrorCount;
+                if(serialErrorCount == 1 || serialErrorCount % 100 == 0)
+                    Warning("UM7 serial receive failed: " +
+                            std::string(std::strerror(errorNumber)));
+                return;
             }
-            if(result == ParseResult::incomplete)
-                break;
-            reportParseError(result);
-        }
+            if(received == 0)
+                return;
 
-        trimReceiveBuffer();
+            processAvailablePackets();
+
+            if(received < static_cast<int>(rxData.size()))
+                return;
+        }
     }
 };
 
