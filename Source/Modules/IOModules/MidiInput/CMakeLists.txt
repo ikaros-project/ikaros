@@ -1,9 +1,15 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(SOURCE
-	${SOURCE}
-	${CMAKE_CURRENT_SOURCE_DIR}/MidiInput.cc
-	PARENT_SCOPE
-	)
+    ${SOURCE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/MidiProtocol.cc
+)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(SOURCE
+        ${SOURCE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/MidiInput.cc
+    )
 endif()
+
+set(SOURCE ${SOURCE} PARENT_SCOPE)

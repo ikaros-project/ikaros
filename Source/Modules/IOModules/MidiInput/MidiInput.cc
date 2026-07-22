@@ -1,17 +1,65 @@
+#include <atomic>
+#include <cstdint>
+#include <cstring>
+#include <limits>
+#include <memory>
+#include <mutex>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include "ikaros.h"
+#include "MidiProtocol.h"
 
 #ifdef MAC_OS_X
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreMIDI/CoreMIDI.h>
 #endif
 
-#include <cstring>
-#include <deque>
-#include <mutex>
-#include <sstream>
-#include <unordered_set>
-
 using namespace ikaros;
+
+#ifdef MAC_OS_X
+namespace
+{
+    class CoreMIDIService
+    {
+    public:
+        static MIDIClientRef client()
+        {
+            std::lock_guard<std::mutex> lock(clientMutex_);
+            if(client_ != 0)
+                return client_;
+
+            const OSStatus status = MIDIClientCreate(
+                CFSTR("Ikaros"), &CoreMIDIService::TopologyChanged, nullptr,
+                &client_);
+            if(status != noErr)
+                throw exception("MidiInput could not create a CoreMIDI client (OSStatus " +
+                                std::to_string(status) + ").");
+
+            topologyGeneration_.fetch_add(1, std::memory_order_release);
+            return client_;
+        }
+
+
+        static std::uint64_t topologyGeneration() noexcept
+        {
+            return topologyGeneration_.load(std::memory_order_acquire);
+        }
+
+    private:
+        static void TopologyChanged(const MIDINotification *, void *)
+        {
+            topologyGeneration_.fetch_add(1, std::memory_order_release);
+        }
+
+        inline static std::mutex clientMutex_;
+        inline static MIDIClientRef client_ = 0;
+        inline static std::atomic<std::uint64_t> topologyGeneration_{0};
+    };
+}
+#endif
+
 
 class MidiInput: public Module
 {
@@ -21,185 +69,154 @@ public:
         Stop();
     }
 
-    void Stop() override
+
+    void
+    Stop() override
     {
 #ifdef MAC_OS_X
-        for(MIDIEndpointRef source : connected_sources_)
-            MIDIPortDisconnectSource(input_port_, source);
-        connected_sources_.clear();
-
-        if(input_port_ != 0)
-        {
-            MIDIPortDispose(input_port_);
-            input_port_ = 0;
-        }
-
-        if(client_ != 0)
-        {
-            MIDIClientDispose(client_);
-            client_ = 0;
-        }
-
-        using_protocol_port_ = false;
-        running_status_ = 0;
+        StopPort();
 #endif
     }
 
-    void Init() override
+
+    void
+    Init() override
     {
-        Bind(source_index_, "source_index");
-        Bind(trig_hold_ticks_, "trig_hold_ticks");
+        Bind(sourceIndex_, "source_index");
+        Bind(trigHoldTicks_, "trig_hold_ticks");
         Bind(key_, "KEY");
         Bind(gate_, "GATE");
         Bind(trig_, "TRIG");
-        Bind(event_count_out_, "EVENT_COUNT");
-        Bind(source_count_out_, "SOURCE_COUNT");
-        Bind(connected_out_, "CONNECTED");
-        Bind(last_batch_count_out_, "LAST_BATCH_COUNT");
+        Bind(eventCountOut_, "EVENT_COUNT");
+        Bind(sourceCountOut_, "SOURCE_COUNT");
+        Bind(connectedOut_, "CONNECTED");
+        Bind(lastBatchCountOut_, "LAST_BATCH_COUNT");
+
+        ValidateOutputs();
+        sourceIndexValue_ = IntegerParameter(sourceIndex_, "source_index");
+        trigHoldTicksValue_ = IntegerParameter(trigHoldTicks_, "trig_hold_ticks");
 
         key_ = 0;
         gate_ = 0;
         trig_ = 0;
-        event_count_out_ = 0;
-        source_count_out_ = 0;
-        connected_out_ = 0;
-        last_batch_count_out_ = 0;
+        eventCountOut_ = 0;
+        sourceCountOut_ = 0;
+        connectedOut_ = 0;
+        lastBatchCountOut_ = 0;
 
-        StartMIDI();
+#ifndef MAC_OS_X
+        throw exception("MidiInput is only available on macOS.");
+#else
+        StartPort();
+#endif
     }
 
-    void Tick() override
+
+    void
+    Tick() override
     {
-        StartMIDI();
+#ifdef MAC_OS_X
+        MaintainPort();
+#endif
 
-        int latest_note = -1;
-        int drained_note_count = 0;
-        bool gate_high = false;
-
+        if(!eventState_)
         {
-            std::lock_guard<std::mutex> lock(queue_mutex_);
-            if(!pending_note_ons_.empty())
-            {
-                latest_note = pending_note_ons_.back();
-                drained_note_count = static_cast<int>(pending_note_ons_.size());
-                pending_note_ons_.clear();
-            }
-
-            gate_high = !held_notes_.empty();
+            gate_ = 0;
+            trig_ = 0;
+            lastBatchCountOut_ = 0;
+            return;
         }
 
-        if(latest_note >= 0)
+        const midi::EventBatch batch = eventState_->consume();
+        if(batch.count != 0)
         {
-            key_ = latest_note;
-            event_count_ += drained_note_count;
-            event_count_out_ = static_cast<float>(event_count_);
-            last_batch_count_out_ = static_cast<float>(drained_note_count);
-            trig_countdown_ = std::max(1, trig_hold_ticks_.as_int());
+            key_ = batch.latestNote;
+            if(batch.count > std::numeric_limits<std::uint64_t>::max() - eventCount_)
+                eventCount_ = std::numeric_limits<std::uint64_t>::max();
+            else
+                eventCount_ += batch.count;
+            eventCountOut_ = static_cast<float>(eventCount_);
+            lastBatchCountOut_ = static_cast<float>(batch.count);
+            trigCountdown_ = trigHoldTicksValue_;
         }
         else
-            last_batch_count_out_ = 0;
+            lastBatchCountOut_ = 0;
 
-        gate_ = gate_high ? 1.0f : 0.0f;
-        trig_ = trig_countdown_ > 0 ? 1.0f : 0.0f;
-        if(trig_countdown_ > 0)
-            --trig_countdown_;
+        gate_ = eventState_->anyNoteHeld() ? 1.0f : 0.0f;
+        trig_ = trigCountdown_ > 0 ? 1.0f : 0.0f;
+        if(trigCountdown_ > 0)
+            --trigCountdown_;
     }
 
 private:
-    void StartMIDI()
+    static int
+    IntegerParameter(const parameter & value, const std::string & name)
     {
-#ifndef MAC_OS_X
-        Notify(msg_fatal_error, "MidiInput is only available on macOS.");
-        return;
-#else
-        if(client_ != 0)
-            return;
-
-        CFStringRef client_name = CFSTR("Ikaros MidiInput");
-        OSStatus status = MIDIClientCreate(client_name, nullptr, nullptr, &client_);
-        if(status != noErr)
-        {
-            Notify(msg_fatal_error, "MidiInput could not create a CoreMIDI client.");
-            return;
-        }
-
-        if(!CreateInputPort())
-        {
-            Notify(msg_fatal_error, "MidiInput could not create a CoreMIDI input port.");
-            return;
-        }
-
-        const ItemCount source_count = MIDIGetNumberOfSources();
-        source_count_out_ = static_cast<float>(source_count);
-        if(source_count == 0)
-        {
-            Notify(msg_warning, "MidiInput found no MIDI sources.");
-            return;
-        }
-
-        LogAvailableSources(source_count);
-
-        const int requested_source = source_index_.as_int();
-        if(requested_source >= 0)
-        {
-            if(requested_source >= static_cast<int>(source_count))
-            {
-                Notify(msg_fatal_error, "MidiInput source_index is out of range.");
-                return;
-            }
-
-            ConnectSource(MIDIGetSource(requested_source), requested_source);
-        }
-        else
-        {
-            for(ItemCount i = 0; i < source_count; ++i)
-                ConnectSource(MIDIGetSource(i), static_cast<int>(i));
-        }
-
-        connected_out_ = connected_sources_.empty() ? 0.0f : 1.0f;
-#endif
+        const double numericValue = value.as_double();
+        const int integerValue = value.as_int();
+        if(numericValue != static_cast<double>(integerValue))
+            throw exception("MidiInput parameter \"" + name +
+                            "\" must be an integer.");
+        return integerValue;
     }
-    parameter source_index_;
-    parameter trig_hold_ticks_;
+
+
+    void
+    ValidateOutputs() const
+    {
+        if(key_.size() != 1 || gate_.size() != 1 || trig_.size() != 1 ||
+           eventCountOut_.size() != 1 || sourceCountOut_.size() != 1 ||
+           connectedOut_.size() != 1 || lastBatchCountOut_.size() != 1)
+            throw exception("MidiInput outputs must all contain exactly one value.");
+    }
+
+
+    parameter sourceIndex_;
+    parameter trigHoldTicks_;
     matrix key_;
     matrix gate_;
     matrix trig_;
-    matrix event_count_out_;
-    matrix source_count_out_;
-    matrix connected_out_;
-    matrix last_batch_count_out_;
+    matrix eventCountOut_;
+    matrix sourceCountOut_;
+    matrix connectedOut_;
+    matrix lastBatchCountOut_;
 
-    std::mutex queue_mutex_;
-    std::deque<int> pending_note_ons_;
-    std::unordered_set<int> held_notes_;
-    int trig_countdown_ = 0;
-    int event_count_ = 0;
+    std::shared_ptr<midi::EventState> eventState_;
+    int sourceIndexValue_ = -1;
+    int trigHoldTicksValue_ = 1;
+    int trigCountdown_ = 0;
+    std::uint64_t eventCount_ = 0;
 
 #ifdef MAC_OS_X
-    MIDIClientRef client_ = 0;
-    MIDIPortRef input_port_ = 0;
-    std::vector<MIDIEndpointRef> connected_sources_;
-    bool using_protocol_port_ = false;
-    Byte running_status_ = 0;
-
-    static void ReadProc(const MIDIPacketList * packet_list, void * read_proc_ref_con, void *)
+    struct Connection
     {
-        static_cast<MidiInput *>(read_proc_ref_con)->HandlePacketList(packet_list);
-    }
+        MIDIEndpointRef source = 0;
+        midi::SourceState * state = nullptr;
+    };
 
-    static std::string CFStringToStdString(CFStringRef value)
+    MIDIPortRef inputPort_ = 0;
+    std::vector<Connection> connections_;
+    std::uint64_t topologyGeneration_ = 0;
+    bool runtimeStartWarningReported_ = false;
+
+
+    static std::string
+    CFStringToStdString(CFStringRef value)
     {
         if(value == nullptr)
             return "";
 
-        const char * c_string = CFStringGetCStringPtr(value, kCFStringEncodingUTF8);
-        if(c_string != nullptr)
-            return std::string(c_string);
+        const char * cString =
+            CFStringGetCStringPtr(value, kCFStringEncodingUTF8);
+        if(cString != nullptr)
+            return std::string(cString);
 
         const CFIndex length = CFStringGetLength(value);
-        const CFIndex max_size = CFStringGetMaximumSizeForEncoding(length, kCFStringEncodingUTF8) + 1;
-        std::string result(static_cast<size_t>(max_size), '\0');
-        if(CFStringGetCString(value, result.data(), max_size, kCFStringEncodingUTF8))
+        const CFIndex maxSize =
+            CFStringGetMaximumSizeForEncoding(length, kCFStringEncodingUTF8) + 1;
+        std::string result(static_cast<std::size_t>(maxSize), '\0');
+        if(CFStringGetCString(value, result.data(), maxSize,
+                              kCFStringEncodingUTF8))
         {
             result.resize(std::strlen(result.c_str()));
             return result;
@@ -208,13 +225,16 @@ private:
         return "";
     }
 
-    static std::string SourceName(MIDIEndpointRef source)
+
+    static std::string
+    SourceName(MIDIEndpointRef source)
     {
         if(source == 0)
             return "Unknown";
 
         CFStringRef name = nullptr;
-        const OSStatus status = MIDIObjectGetStringProperty(source, kMIDIPropertyName, &name);
+        const OSStatus status =
+            MIDIObjectGetStringProperty(source, kMIDIPropertyName, &name);
         if(status != noErr || name == nullptr)
             return "Unknown";
 
@@ -223,256 +243,225 @@ private:
         return result.empty() ? "Unknown" : result;
     }
 
-    void LogAvailableSources(ItemCount source_count)
+
+    void
+    StartPort()
     {
-        std::ostringstream message;
-        message << "MidiInput found " << static_cast<int>(source_count) << " MIDI source";
-        if(source_count != 1)
-            message << "s";
+        const MIDIClientRef client = CoreMIDIService::client();
+        const std::uint64_t observedGeneration =
+            CoreMIDIService::topologyGeneration();
 
-        for(ItemCount i = 0; i < source_count; ++i)
-            message << " [" << static_cast<int>(i) << ": " << SourceName(MIDIGetSource(i)) << "]";
-
-        Notify(msg_warning, message.str());
+        eventState_ = std::make_shared<midi::EventState>();
+        eventState_->activate();
+        CreateInputPort(client);
+        RefreshSources();
+        topologyGeneration_ = observedGeneration;
+        runtimeStartWarningReported_ = false;
     }
 
-    bool CreateInputPort()
-    {
-        if(__builtin_available(macOS 11.0, *))
-        {
-            OSStatus status = MIDIInputPortCreateWithProtocol(
-                client_,
-                CFSTR("Input"),
-                kMIDIProtocol_2_0,
-                &input_port_,
-                ^(const MIDIEventList * event_list, void *)
-                {
-                    HandleEventList(event_list);
-                });
 
-            if(status == noErr)
+    void
+    StopPort() noexcept
+    {
+        if(eventState_)
+            eventState_->deactivate();
+
+        if(inputPort_ != 0)
+        {
+            for(const Connection & connection : connections_)
+                MIDIPortDisconnectSource(inputPort_, connection.source);
+            MIDIPortDispose(inputPort_);
+            inputPort_ = 0;
+        }
+
+        if(eventState_)
+        {
+            eventState_->waitForCallbacks();
+            eventState_->clear();
+        }
+
+        connections_.clear();
+        eventState_.reset();
+    }
+
+
+    void
+    MaintainPort()
+    {
+        try
+        {
+            if(inputPort_ == 0)
             {
-                using_protocol_port_ = true;
-                return true;
+                StartPort();
+                return;
             }
 
-            Notify(msg_warning, "MidiInput could not create a protocol-based CoreMIDI input port. Falling back to legacy packets.");
+            const std::uint64_t currentGeneration =
+                CoreMIDIService::topologyGeneration();
+            if(currentGeneration != topologyGeneration_)
+            {
+                StopPort();
+                StartPort();
+            }
         }
-
-        const OSStatus status = MIDIInputPortCreate(client_, CFSTR("Input"), &MidiInput::ReadProc, this, &input_port_);
-        if(status == noErr)
+        catch(const std::exception & error)
         {
-            using_protocol_port_ = false;
-            return true;
+            StopPort();
+            connectedOut_ = 0;
+            if(!runtimeStartWarningReported_)
+            {
+                Notify(msg_warning,
+                       "MidiInput could not restart CoreMIDI: " +
+                           std::string(error.what()));
+                runtimeStartWarningReported_ = true;
+            }
         }
-
-        return false;
     }
 
-    void ConnectSource(MIDIEndpointRef source, int index)
+
+    void
+    CreateInputPort(MIDIClientRef client)
+    {
+        const std::shared_ptr<midi::EventState> callbackState = eventState_;
+        if(__builtin_available(macOS 11.0, *))
+        {
+            const OSStatus status = MIDIInputPortCreateWithProtocol(
+                client,
+                CFSTR("Input"),
+                kMIDIProtocol_2_0,
+                &inputPort_,
+                ^(const MIDIEventList * eventList, void * sourceContext)
+                {
+                    if(!callbackState->beginCallback())
+                        return;
+
+                    midi::SourceState & source = sourceContext == nullptr
+                        ? callbackState->fallbackSource()
+                        : *static_cast<midi::SourceState *>(sourceContext);
+                    const MIDIEventPacket * packet = &eventList->packet[0];
+                    for(UInt32 i = 0; i < eventList->numPackets; ++i)
+                    {
+                        midi::parseUMP(
+                            std::span<const std::uint32_t>(
+                                packet->words,
+                                static_cast<std::size_t>(packet->wordCount)),
+                            *callbackState,
+                            source);
+                        packet = MIDIEventPacketNext(packet);
+                    }
+                    callbackState->endCallback();
+                });
+            if(status == noErr)
+                return;
+
+            Notify(msg_warning,
+                   "MidiInput could not create a protocol-based CoreMIDI "
+                   "input port. Falling back to legacy packets.");
+        }
+
+        const OSStatus status = MIDIInputPortCreateWithBlock(
+            client,
+            CFSTR("Input"),
+            &inputPort_,
+            ^(const MIDIPacketList * packetList, void * sourceContext)
+            {
+                if(!callbackState->beginCallback())
+                    return;
+
+                midi::SourceState & source = sourceContext == nullptr
+                    ? callbackState->fallbackSource()
+                    : *static_cast<midi::SourceState *>(sourceContext);
+                const MIDIPacket * packet = &packetList->packet[0];
+                for(UInt32 i = 0; i < packetList->numPackets; ++i)
+                {
+                    midi::parseMidi1(
+                        std::span<const std::uint8_t>(
+                            packet->data,
+                            static_cast<std::size_t>(packet->length)),
+                        *callbackState,
+                        source);
+                    packet = MIDIPacketNext(packet);
+                }
+                callbackState->endCallback();
+            });
+        if(status != noErr)
+            throw exception(
+                "MidiInput could not create a CoreMIDI input port (OSStatus " +
+                std::to_string(status) + ").");
+    }
+
+
+    void
+    RefreshSources()
+    {
+        const ItemCount sourceCount = MIDIGetNumberOfSources();
+        sourceCountOut_ = static_cast<float>(sourceCount);
+
+        std::ostringstream availableSources;
+        availableSources << "MidiInput found " << sourceCount << " MIDI source";
+        if(sourceCount != 1)
+            availableSources << "s";
+        for(ItemCount i = 0; i < sourceCount; ++i)
+            availableSources << " [" << i << ": "
+                             << SourceName(MIDIGetSource(i)) << "]";
+        Notify(msg_print, availableSources.str());
+
+        if(sourceCount == 0)
+        {
+            Notify(msg_warning,
+                   "MidiInput found no MIDI sources and will wait for one to "
+                   "be connected.");
+            connectedOut_ = 0;
+            return;
+        }
+
+        if(sourceIndexValue_ >= 0)
+        {
+            if(static_cast<ItemCount>(sourceIndexValue_) >= sourceCount)
+            {
+                Notify(msg_warning,
+                       "MidiInput source_index is not currently available and "
+                       "will be retried when the MIDI configuration changes.");
+                connectedOut_ = 0;
+                return;
+            }
+            ConnectSource(MIDIGetSource(static_cast<ItemCount>(sourceIndexValue_)),
+                          sourceIndexValue_);
+        }
+        else
+        {
+            for(ItemCount i = 0; i < sourceCount; ++i)
+                ConnectSource(MIDIGetSource(i), static_cast<int>(i));
+        }
+
+        connectedOut_ = connections_.empty() ? 0.0f : 1.0f;
+    }
+
+
+    void
+    ConnectSource(MIDIEndpointRef source, int index)
     {
         if(source == 0)
             return;
 
-        const OSStatus status = MIDIPortConnectSource(input_port_, source, nullptr);
+        midi::SourceState & sourceState = eventState_->createSource();
+        const OSStatus status =
+            MIDIPortConnectSource(inputPort_, source, &sourceState);
         if(status != noErr)
         {
-            Notify(msg_warning, "MidiInput could not connect to MIDI source " + std::to_string(index) + ".");
+            Notify(msg_warning,
+                   "MidiInput could not connect to MIDI source " +
+                       std::to_string(index) + " (OSStatus " +
+                       std::to_string(status) + ").");
             return;
         }
 
-        connected_sources_.push_back(source);
-        Notify(msg_warning, "MidiInput connected to source " + std::to_string(index) + ": " + SourceName(source));
-    }
-
-    void HandlePacketList(const MIDIPacketList * packet_list)
-    {
-        const MIDIPacket * packet = &packet_list->packet[0];
-        for(UInt32 i = 0; i < packet_list->numPackets; ++i)
-        {
-            ParseMidiBytes(packet->data, packet->length);
-            packet = MIDIPacketNext(packet);
-        }
-    }
-
-    void HandleEventList(const MIDIEventList * event_list)
-    {
-        const MIDIEventPacket * packet = &event_list->packet[0];
-        for(UInt32 i = 0; i < event_list->numPackets; ++i)
-        {
-            UInt32 word_index = 0;
-            while(word_index < packet->wordCount)
-            {
-                const UInt32 first_word = packet->words[word_index];
-                const UInt32 message_type = (first_word >> 28) & 0x0F;
-
-                if(message_type == 0x04 && word_index + 1 < packet->wordCount)
-                {
-                    ParseMidi2ChannelVoice(first_word, packet->words[word_index + 1]);
-                    word_index += 2;
-                }
-                else
-                {
-                    ParseUMPWord(first_word);
-                    word_index += 1;
-                }
-            }
-
-            packet = MIDIEventPacketNext(packet);
-        }
-    }
-
-    void ParseMidiBytes(const Byte * data, UInt16 length)
-    {
-        UInt16 index = 0;
-        while(index < length)
-        {
-            Byte status = 0;
-
-            if(data[index] & 0x80)
-            {
-                status = data[index++];
-
-                // Ignore real-time bytes and clear running status on system common/status bytes.
-                if(status >= 0xF8)
-                    continue;
-
-                if(status >= 0xF0)
-                {
-                    running_status_ = 0;
-                    continue;
-                }
-
-                running_status_ = status;
-            }
-            else if(running_status_ != 0)
-                status = running_status_;
-            else
-            {
-                index += 1;
-                continue;
-            }
-
-            const Byte message_type = status & 0xF0;
-            const int data_size = (message_type == 0xC0 || message_type == 0xD0) ? 1 : 2;
-            if(index + data_size > length)
-                break;
-
-            const Byte data1 = data[index];
-            if(data1 & 0x80)
-            {
-                running_status_ = 0;
-                continue;
-            }
-
-            Byte data2 = 0;
-            if(data_size == 2)
-            {
-                data2 = data[index + 1];
-                if(data2 & 0x80)
-                {
-                    running_status_ = 0;
-                    continue;
-                }
-            }
-
-            if(message_type == 0x90)
-            {
-                LogNoteOn(status, data1, data2, "MIDI1");
-                if(data2 > 0)
-                    QueueNoteOn(static_cast<int>(data1));
-                else
-                    QueueNoteOff(static_cast<int>(data1));
-            }
-            else if(message_type == 0x80)
-                QueueNoteOff(static_cast<int>(data1));
-
-            index += data_size;
-        }
-    }
-
-    void ParseUMPWord(UInt32 word)
-    {
-        const UInt32 message_type = (word >> 28) & 0x0F;
-        if(message_type != 0x02)
-            return;
-
-        const Byte status = static_cast<Byte>((word >> 16) & 0xFF);
-        const Byte data1 = static_cast<Byte>((word >> 8) & 0x7F);
-        const Byte data2 = static_cast<Byte>(word & 0x7F);
-        if((status & 0xF0) == 0x80)
-        {
-            QueueNoteOff(static_cast<int>(data1));
-            return;
-        }
-
-        if((status & 0xF0) != 0x90)
-            return;
-
-        LogNoteOn(status, data1, data2, "UMP1");
-        if(data2 > 0)
-            QueueNoteOn(static_cast<int>(data1));
-        else
-            QueueNoteOff(static_cast<int>(data1));
-    }
-
-    void ParseMidi2ChannelVoice(UInt32 first_word, UInt32 second_word)
-    {
-        const UInt32 status_nibble = (first_word >> 20) & 0x0F;
-        const Byte channel = static_cast<Byte>((first_word >> 16) & 0x0F);
-        const Byte note = static_cast<Byte>((first_word >> 8) & 0x7F);
-        const uint16_t velocity = static_cast<uint16_t>((second_word >> 16) & 0xFFFF);
-        const Byte status = static_cast<Byte>((status_nibble << 4) | channel);
-        if(status_nibble == 0x8)
-        {
-            QueueNoteOff(static_cast<int>(note));
-            return;
-        }
-
-        if(status_nibble != 0x9)
-            return;
-
-        LogNoteOn(status, note, static_cast<Byte>(velocity > 0 ? 127 : 0), "UMP2");
-        if(velocity > 0)
-            QueueNoteOn(static_cast<int>(note));
-        else
-            QueueNoteOff(static_cast<int>(note));
-    }
-
-    void LogNoteOn(Byte status, Byte data1, Byte data2, const char * source)
-    {
-        if((status & 0xF0) != 0x90)
-            return;
-        Notify(
-            msg_warning,
-            "MidiInput received " + std::string(source) +
-            " status=0x" + ToHex(status) +
-            " data1=" + std::to_string(static_cast<int>(data1)) +
-            " data2=" + std::to_string(static_cast<int>(data2)));
-    }
-
-    static std::string ToHex(Byte value)
-    {
-        const char * digits = "0123456789ABCDEF";
-        std::string result = "00";
-        result[0] = digits[(value >> 4) & 0x0F];
-        result[1] = digits[value & 0x0F];
-        return result;
+        connections_.push_back({source, &sourceState});
+        Notify(msg_print,
+               "MidiInput connected to source " + std::to_string(index) +
+                   ": " + SourceName(source));
     }
 #endif
-
-    void QueueNoteOn(int note)
-    {
-        std::lock_guard<std::mutex> lock(queue_mutex_);
-        held_notes_.insert(note);
-        pending_note_ons_.push_back(note);
-    }
-
-    void QueueNoteOff(int note)
-    {
-        std::lock_guard<std::mutex> lock(queue_mutex_);
-        held_notes_.erase(note);
-    }
 };
 
 INSTALL_CLASS(MidiInput)
