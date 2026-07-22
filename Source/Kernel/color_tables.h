@@ -1,19 +1,22 @@
 //
 //	color_tables.h		Color tables for JPEG images
 //
-//    Copyright (C) 2009-2023  Christian Balkenius
+//    Copyright (C) 2009-2026  Christian Balkenius
 //
 
 #pragma once
 
-#include <string>
-#include <map>
-#include <vector>
+#include <array>
+#include <cstdint>
+#include <string_view>
 
-using LUT = std::vector<std::vector<int>>;
-
-LUT LUT_spectrum =
+namespace ikaros::image_color_tables
 {
+using RGBColor = std::array<std::uint8_t, 3>;
+using ColorTable = std::array<RGBColor, 256>;
+
+inline constexpr ColorTable spectrum_color_table =
+{{
 {255,	0,	0},
 {255,	6,	0},
 {255,	12,	0},
@@ -270,11 +273,11 @@ LUT LUT_spectrum =
 {255,	0,	12},
 {255,	0,	6},
 {255,	0,	0}
-};
+}};
 
 
-LUT LUT_red =
-{
+inline constexpr ColorTable red_color_table =
+{{
 {0, 0, 0},
 {1, 0, 0},
 {2, 0, 0},
@@ -531,10 +534,10 @@ LUT LUT_red =
 {253, 0, 0},
 {254, 0, 0},
 {255, 0, 0}
-};
+}};
 
-LUT LUT_green =
-{
+inline constexpr ColorTable green_color_table =
+{{
 {0, 0, 0},
 {0, 1, 0},
 {0, 2, 0},
@@ -791,11 +794,11 @@ LUT LUT_green =
 {0, 253, 0},
 {0, 254, 0},
 {0, 255, 0}
-};
+}};
 
 
-LUT LUT_blue =
-{
+inline constexpr ColorTable blue_color_table =
+{{
 {0, 0, 0},
 {0, 0, 1},
 {0, 0, 2},
@@ -1052,10 +1055,10 @@ LUT LUT_blue =
 {0, 0, 253},
 {0, 0, 254},
 {0, 0, 255}
-};
+}};
 
-LUT LUT_fire =
-{
+inline constexpr ColorTable fire_color_table =
+{{
 {0, 0, 31},
 {0, 0, 34},
 {0, 0, 38},
@@ -1312,15 +1315,22 @@ LUT LUT_fire =
 {255, 255, 255},
 {255, 255, 255},
 {255, 255, 255}
-};
+}};
 
 
-std::map<std::string, LUT> color_table =
+inline constexpr const ColorTable * find_color_table(std::string_view name) noexcept
 {
-    {"spectrum", LUT_spectrum}, 
-    {"red", LUT_red}, 
-    {"green", LUT_green}, 
-    {"blue", LUT_blue}, 
-    {"fire", LUT_fire}
-};
+    if(name == "spectrum")
+        return &spectrum_color_table;
+    if(name == "red")
+        return &red_color_table;
+    if(name == "green")
+        return &green_color_table;
+    if(name == "blue")
+        return &blue_color_table;
+    if(name == "fire")
+        return &fire_color_table;
+    return nullptr;
+}
 
+}

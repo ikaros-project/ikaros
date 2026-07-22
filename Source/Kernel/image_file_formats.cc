@@ -341,12 +341,13 @@ namespace ikaros
     
     jpeg_data
     create_pseudocolor_jpeg(const matrix & image, float minimum, float maximum,
-                            const std::string & table, int quality)
+                            std::string_view table, int quality)
     {
         if(image.rank() != 2)
             return {};
-        const auto table_iterator = color_table.find(table);
-        if(table_iterator == color_table.end())
+        const image_color_tables::ColorTable * colors =
+            image_color_tables::find_color_table(table);
+        if(colors == nullptr)
             return {};
         validate_float_to_byte_range(minimum, maximum);
 
@@ -355,7 +356,6 @@ namespace ikaros
         const std::size_t row_width = static_cast<std::size_t>(width);
         std::vector<JSAMPLE> image_row(3 * row_width);
         std::vector<unsigned char> normalized_row(row_width);
-        const LUT & colors = table_iterator->second;
         JpegCompressor compressor;
         return compressor.encode(width, height, 3, JCS_RGB, quality, image_row,
                                  [&](JDIMENSION row, std::span<JSAMPLE> destination)
@@ -366,7 +366,7 @@ namespace ikaros
                                      float_to_byte(normalized_row, source, minimum, maximum);
                                      for(std::size_t x = 0; x < row_width; ++x)
                                      {
-                                         const auto & color = colors[normalized_row[x]];
+                                         const auto & color = (*colors)[normalized_row[x]];
                                          destination[3 * x] = static_cast<JSAMPLE>(color[0]);
                                          destination[3 * x + 1] = static_cast<JSAMPLE>(color[1]);
                                          destination[3 * x + 2] = static_cast<JSAMPLE>(color[2]);

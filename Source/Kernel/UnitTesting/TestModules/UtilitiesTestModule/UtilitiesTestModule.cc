@@ -407,6 +407,14 @@ public:
 
         matrix gray_image(2, 2);
         matrix color_image(3, 2, 2);
+        bool encoded_all_color_tables = true;
+        for(const char * table : {"spectrum", "red", "green", "blue", "fire"})
+            encoded_all_color_tables = encoded_all_color_tables &&
+                                       encoded_jpeg([&gray_image, table]
+                                       {
+                                           return create_pseudocolor_jpeg(
+                                               gray_image, 0, 1, table);
+                                       });
         require(encoded_jpeg([&gray_image]
                 {
                     return create_gray_jpeg(gray_image);
@@ -418,7 +426,7 @@ public:
                 encoded_jpeg([&color_image]
                 {
                     return create_color_jpeg(color_image);
-                }),
+                }) && encoded_all_color_tables,
                 "JPEG encoders failed for valid matrices");
         require(create_color_jpeg(gray_image).empty() &&
                 create_pseudocolor_jpeg(gray_image, 0, 1, "missing").empty(),

@@ -8,7 +8,7 @@
 #include <filesystem>
 #include <memory>
 #include <span>
-#include <string>
+#include <string_view>
 #include <utility>
 
 namespace ikaros
@@ -64,7 +64,7 @@ namespace ikaros
                                              float maximum = 1, int quality = 100);
     [[nodiscard]] jpeg_data create_pseudocolor_jpeg(const matrix & image, float minimum = 0,
                                                     float maximum = 1,
-                                                    const std::string & table = "fire",
+                                                    std::string_view table = "fire",
                                                     int quality = 100);
 
     void jpeg_get_size(int & sizex, int & sizey, const std::filesystem::path & filename);
