@@ -510,6 +510,31 @@ public:
                 decoded_blue.shape() == decoded_red.shape(),
                 "JPEG readers failed for valid input");
 
+        matrix grayscale_source(2, 2);
+        grayscale_source(0, 0) = 0.0f;
+        grayscale_source(0, 1) = 0.25f;
+        grayscale_source(1, 0) = 0.75f;
+        grayscale_source(1, 1) = 1.0f;
+        const jpeg_data grayscale_data = create_gray_jpeg(grayscale_source);
+        const TemporaryFile grayscale_jpeg(
+            "grayscale.jpg",
+            std::string(reinterpret_cast<const char *>(grayscale_data.data()),
+                        grayscale_data.size()));
+        matrix grayscale_red(2, 2);
+        matrix grayscale_green(2, 2);
+        matrix grayscale_blue(2, 2);
+        jpeg_get_image(grayscale_red, grayscale_green, grayscale_blue,
+                       grayscale_jpeg.path());
+        bool grayscale_planes_match = jpeg_get_channels(grayscale_jpeg.path()) == 1;
+        for(int y = 0; y < 2; ++y)
+            for(int x = 0; x < 2; ++x)
+                grayscale_planes_match = grayscale_planes_match &&
+                                         grayscale_red(y, x) == grayscale_green(y, x) &&
+                                         grayscale_red(y, x) == grayscale_blue(y, x);
+        require(grayscale_planes_match &&
+                grayscale_red(0, 0) < grayscale_red(1, 1),
+                "JPEG reader did not convert grayscale input to RGB safely");
+
         auto rejected_malformed_jpeg = [](const std::function<void()> & read)
         {
             try

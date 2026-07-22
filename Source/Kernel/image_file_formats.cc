@@ -533,11 +533,20 @@ namespace ikaros
         JpegDecompressor decompressor;
         decompressor.read(filename, [&](jpeg_decompress_struct & cinfo)
         {
+            cinfo.out_color_space = JCS_RGB;
             jpeg_start_decompress(&cinfo);
+
+            if(cinfo.output_components != 3)
+                throw std::runtime_error("JPEG decoder did not produce RGB output for \"" +
+                                         filename.string() + "\"");
+            if(cinfo.output_width > static_cast<JDIMENSION>(std::numeric_limits<int>::max()) ||
+               cinfo.output_height > static_cast<JDIMENSION>(std::numeric_limits<int>::max()))
+                throw std::runtime_error("JPEG dimensions exceed matrix limits for \"" +
+                                         filename.string() + "\"");
 
             const int width = static_cast<int>(cinfo.output_width);
             const int height = static_cast<int>(cinfo.output_height);
-            const int row_stride = width * cinfo.output_components;
+            const JDIMENSION row_stride = cinfo.output_width * cinfo.output_components;
 
             red.resize(height, width);
             green.resize(height, width);
@@ -552,9 +561,9 @@ namespace ikaros
                 jpeg_read_scanlines(&cinfo, buffer, 1);
                 for(int x = 0; x < width; ++x)
                 {
-                    red[row][x] = buffer[0][3 * x] / 255.0f;
-                    green[row][x] = buffer[0][3 * x + 1] / 255.0f;
-                    blue[row][x] = buffer[0][3 * x + 2] / 255.0f;
+                    red(row, x) = buffer[0][3 * x] / 255.0f;
+                    green(row, x) = buffer[0][3 * x + 1] / 255.0f;
+                    blue(row, x) = buffer[0][3 * x + 2] / 255.0f;
                 }
                 ++row;
             }
