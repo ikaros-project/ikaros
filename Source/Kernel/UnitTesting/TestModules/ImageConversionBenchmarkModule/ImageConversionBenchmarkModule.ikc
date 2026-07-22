@@ -1,0 +1,8 @@
+<class internal="true"
+       name="ImageConversionBenchmarkModule"
+       description="Benchmarks image pixel conversion implementations">
+    <parameter name="width" type="number" default="1920" min="1" />
+    <parameter name="height" type="number" default="1080" min="1" />
+    <parameter name="iterations" type="number" default="20" min="1" />
+    <parameter name="block_rows" type="number" default="32" min="1" />
+</class>

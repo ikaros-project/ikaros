@@ -63,3 +63,21 @@ directory, or optional CSV output path.
 
 The benchmark models start with `benchmark_`, so `kernel_test.py` does not include them in the
 correctness suite.
+
+## Image Conversion Release Benchmark
+
+The image conversion benchmark compares the current row-at-a-time planar-float-to-RGB8 conversion
+with a 32-row Accelerate implementation. It also compares the current scalar RGB8-to-planar-float
+conversion with the corresponding block implementation. The default image size is 1920 by 1080.
+
+Build Ikaros in Release mode and run:
+
+```sh
+cmake -S . -B Release -DCMAKE_BUILD_TYPE=Release
+cmake --build Release --parallel
+python3 Source/Kernel/UnitTesting/KernelTests/benchmark_image_conversion.py
+```
+
+The script reports median milliseconds per frame and speedups over seven measured processes. Use
+`--width`, `--height`, `--iterations`, or `--block-rows` to explore other image and block sizes.
+This benchmark requires Apple Accelerate support and is not included in the correctness suite.
