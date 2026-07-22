@@ -20,10 +20,16 @@
 //    See http://www.ikaros-project.org/ for more information.
 //
 
-#include "ikaros.h"
+#include <array>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
 #include <iostream>
-#include <cstring> // for memcpy
-#include <memory>  // for smart pointers
+#include <memory>
+#include <stdexcept>
+#include <string>
+
+#include "ikaros.h"
 
 using namespace ikaros;
 
@@ -50,9 +56,9 @@ class UM7 : public Module
     } UM7_packet;
 
     UM7_packet packet;
-    Serial *s;
-    int rx_length;
-    char rx_data[255] = {};              // Ensure `rx_data` is zero-initialized
+    std::unique_ptr<Serial> serial;
+    int rx_length = 0;
+    std::array<char, 256> rx_data{};
     std::string rx_buffer;               // Buffer for handling partial packets
     const size_t MAX_BUFFER_SIZE = 1024; // Define a max buffer size
 
@@ -80,63 +86,39 @@ class UM7 : public Module
         return result;
     }
 
-    void sendConfig(uint8_t address)
+    void
+    SendPacket(const std::array<std::uint8_t, 11> & packet_data)
     {
-        int acceldata = 0x00;
-        if (address == 0x03)
-        {
-            uint8_t tx_data[11];
-            tx_data[0] = 's';
-            tx_data[1] = 'n';
-            tx_data[2] = 'p';
-            tx_data[3] = 0x80;      // Packet Type byte
-            tx_data[4] = address;   // Address in hex
-            tx_data[5] = 100; // Data
-            tx_data[6] = 100;      // Data // Maximum broadcast of 255 hz
-            tx_data[7] = 0x00;      // Data
-            tx_data[8] = 0x00;      // Data
-            uint16_t computed_checksum = tx_data[0] + tx_data[1] + tx_data[2] + tx_data[3] + tx_data[4] + tx_data[5] + tx_data[6] + tx_data[7] + tx_data[8];
-            tx_data[9] = (computed_checksum >> 8) & 0xFF;
-            tx_data[10] = computed_checksum & 0xFF;
-            s->SendBytes((char *)tx_data, 11);
-        }
-        else{
-            uint8_t tx_data[11];
-            tx_data[0] = 's';
-            tx_data[1] = 'n';
-            tx_data[2] = 'p';
-            tx_data[3] = 0x80;    // Packet Type byte
-            tx_data[4] = address; // Address in hex
-            tx_data[5] = 0x00;    // Data
-            tx_data[6] = 100;    // Data // Maximum broadcast of 255 hz
-            tx_data[7] = 0x00;    // Data
-            tx_data[8] = 0x00;    // Data
-            uint16_t computed_checksum = tx_data[0] + tx_data[1] + tx_data[2] + tx_data[3] + tx_data[4] + tx_data[5] + tx_data[6] + tx_data[7] + tx_data[8];
-            tx_data[9] = (computed_checksum >> 8) & 0xFF;
-            tx_data[10] = computed_checksum & 0xFF;
-            s->SendBytes((char *)tx_data, 11);
-        }
+        const int sent = serial->SendBytes(
+            reinterpret_cast<const char *>(packet_data.data()),
+            static_cast<int>(packet_data.size()));
+        if(sent != static_cast<int>(packet_data.size()))
+            throw std::runtime_error("Could not send the complete UM7 configuration packet");
     }
 
-    void DisableBroadcast()
+
+    void
+    SendConfig(std::uint8_t address, std::array<std::uint8_t, 4> data)
     {
-        for (int8_t i = 1; i <= 7; i++)
+        std::array<std::uint8_t, 11> packet_data
         {
-            uint8_t tx_data[20];
-            tx_data[0] = 's';
-            tx_data[1] = 'n';
-            tx_data[2] = 'p';
-            tx_data[3] = 0x80; // Packet Type byte
-            tx_data[4] = i;    // Address
-            tx_data[5] = 0x00; // Data
-            tx_data[6] = 0x00; // Data
-            tx_data[7] = 0x00; // Data
-            tx_data[8] = 0x00; // Data
-            uint16_t computed_checksum = tx_data[0] + tx_data[1] + tx_data[2] + tx_data[3] + tx_data[4] + tx_data[5] + tx_data[6] + tx_data[7] + tx_data[8];
-            tx_data[9] = (computed_checksum >> 8) & 0xFF;
-            tx_data[10] = computed_checksum & 0xFF;
-            s->SendBytes((char *)tx_data, 11);
-        }
+            's', 'n', 'p', 0x80, address,
+            data[0], data[1], data[2], data[3], 0, 0,
+        };
+        std::uint16_t checksum = 0;
+        for(std::size_t i = 0; i < 9; ++i)
+            checksum += packet_data[i];
+        packet_data[9] = static_cast<std::uint8_t>(checksum >> 8);
+        packet_data[10] = static_cast<std::uint8_t>(checksum);
+        SendPacket(packet_data);
+    }
+
+
+    void
+    DisableBroadcast()
+    {
+        for(std::uint8_t address = 1; address <= 7; ++address)
+            SendConfig(address, {0, 0, 0, 0});
     }
 
     void Init()
@@ -151,20 +133,15 @@ class UM7 : public Module
     
         baudrate = 115200; // Default baudrate
 
-        s = new Serial(std::string(port).c_str(), baudrate); // Use configurable baudrate
-        if (!s)
-        {
-            std::cerr << "Failed to initialize serial port." << std::endl;
-            return;
-        }
+        serial = std::make_unique<Serial>(std::string(port), baudrate);
         Debug(std::string("Serial port for UM7 opened on ") + std::string(port).c_str() + " with baudrate " + std::to_string(baudrate) + "\n");
 
         // Reserve buffer space to avoid frequent reallocations
         rx_buffer.reserve(MAX_BUFFER_SIZE);
 
         DisableBroadcast();
-        sendConfig(0x05); // Enable Euler angles at 255 Hz
-        sendConfig(0x03); // Enable processed accelerometer and gyro data at 255 Hz
+        SendConfig(0x05, {0, 100, 0, 0}); // Enable Euler angles at 255 Hz
+        SendConfig(0x03, {100, 100, 0, 0}); // Enable accelerometer and gyro at 255 Hz
         Debug( "UM7 configured for gyro, accelerometer, and Euler angle data broadcasting.");
     }
 
@@ -173,13 +150,14 @@ class UM7 : public Module
         // Tick
         
         // Read available data with short timeout for responsive operation
-        rx_length = s->ReceiveBytes(rx_data, 256, 5);
+        rx_length = serial->ReceiveBytes(rx_data.data(),
+                                         static_cast<int>(rx_data.size()), 5);
         if (rx_length <= 0)
         {
             return;
         }
 
-        rx_buffer.append(rx_data, rx_length);
+        rx_buffer.append(rx_data.data(), rx_length);
 
         // Parse all available packets
         int parse_result;

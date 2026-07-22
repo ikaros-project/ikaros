@@ -18,7 +18,6 @@
 	<output name="EulerAngles" description="Euler angles data (XYZ)" size="3" />
 
    <files>
-   		<file>UM7.h</file>
    		<file>UM7.cc</file>
    		<file>UM7.ikc</file>
    </files>
