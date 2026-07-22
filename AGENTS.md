@@ -66,7 +66,7 @@
 - For module or CLI changes, run the smallest relevant model or test first, then broaden if the change touches shared behavior.
 - When changing C++ module code, run the smallest relevant `.ikg` smoke test after building when practical.
 - If a requested verification cannot be run, report what was skipped and why.
-- After completing a change or fix, include a suggested commit message in the final response. Preferably use indicative mood, written in the simple past tense refering to the chages made.
+- After completing a change or fix, include a suggested commit message in the final response. Use indicative mood. Either describe the resulting state in the present tense, normally with `now` (for example, `Image metadata readers now return structured results`), or describe the completed action with a concise past-tense verb such as `Fixed`, `Added`, `Removed`, or `Updated`.
 
 ## Style Notes
 
