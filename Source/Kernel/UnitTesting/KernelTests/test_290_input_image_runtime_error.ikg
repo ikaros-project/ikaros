@@ -1,0 +1,13 @@
+<group name="InputImageRuntimeError"
+       description="InputImage continues after a runtime image error"
+       start="true"
+       stop="3"
+       check_sum="266909"
+       expected_output_contains="Could not read image">
+    <module name="Input"
+            class="InputImage"
+            filename="../Source/Modules/IOModules/FileInput/InputJPEG/image%.0d.jpg"
+            filecount="2"
+            iterations="0"
+            read_once="false" />
+</group>

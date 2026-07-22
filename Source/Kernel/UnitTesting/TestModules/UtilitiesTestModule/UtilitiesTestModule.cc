@@ -628,6 +628,37 @@ public:
                 decoded_png(1, 0, 1) > 0.5f && decoded_png(2, 0, 1) == 1.0f,
                 "PNG readers failed for valid RGB input");
 
+        const TemporaryFile generic_jpeg(
+            "generic.JPEG",
+            std::string(reinterpret_cast<const char *>(readable_jpeg.data()),
+                        readable_jpeg.size()));
+        const TemporaryFile generic_png("generic.PNG", valid_png_contents);
+        const auto [generic_jpeg_width, generic_jpeg_height, generic_jpeg_channels] =
+            image_get_info(generic_jpeg.path());
+        const auto [generic_png_width, generic_png_height, generic_png_channels] =
+            image_get_info(generic_png.path());
+        matrix generic_jpeg_image = image_get_image(generic_jpeg.path());
+        float * generic_jpeg_storage = generic_jpeg_image.data();
+        image_get_image(generic_jpeg_image, generic_jpeg.path());
+        const matrix generic_png_image = image_get_image(generic_png.path());
+        const TemporaryFile unsupported_image("unsupported.gif", valid_png_contents);
+        require(generic_jpeg_width == 2 && generic_jpeg_height == 2 &&
+                generic_jpeg_channels == 3 &&
+                generic_png_width == 2 && generic_png_height == 1 &&
+                generic_png_channels == 3 &&
+                generic_jpeg_image.shape() == std::vector<int>{3, 2, 2} &&
+                generic_jpeg_image.data() == generic_jpeg_storage &&
+                generic_png_image.shape() == std::vector<int>{3, 1, 2} &&
+                rejects_invalid_argument([&]
+                {
+                    static_cast<void>(image_get_info(unsupported_image.path()));
+                }) &&
+                rejects_invalid_argument([&]
+                {
+                    static_cast<void>(image_get_image(unsupported_image.path()));
+                }),
+                "Generic image dispatch failed for JPEG, PNG, or unsupported input");
+
         const std::array<unsigned char, 72> interlaced_png_data
         {
             0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,

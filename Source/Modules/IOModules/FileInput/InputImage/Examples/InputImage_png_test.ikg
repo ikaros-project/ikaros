@@ -1,0 +1,5 @@
+<group name="PNG">
+   <module _x="168" _y="216" class="InputImage" filename="../Examples/Media/robot.png" name="IN" />
+   <widget _index_="0" _x="360" _y="168" class="image" format="rgb" height="433" name="Image" source="IN.OUTPUT" title="PNG image" width="457" />
+   <widget _index_="1" _x="144" _y="120" class="text" height="73" name="Info" show_frame="false" show_title="false" text="Simple example that reads a PNG file." width="217" />
+</group>

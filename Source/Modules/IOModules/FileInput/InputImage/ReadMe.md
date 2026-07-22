@@ -1,9 +1,9 @@
-# InputJPEG
+# InputImage
 
 <br><br>
 ## Short description
 
-Reads jpeg files
+Reads JPEG and PNG files
 
 <br><br>
 
@@ -21,9 +21,7 @@ Reads jpeg files
 |Name|Description|
 |:----|:-----------|
 |INTENSITY|The intensity of the image.|
-|RED|The red channel of the image (or intensity for a gray image)|
-|GREEN|The green channel of the image (or intensity for a gray image)|
-|BLUE|The blue channel of the image (or intensity for a gray image)|
+|OUTPUT|The red, green, and blue channels in channel-first order.|
 
 <br><br>
 
@@ -31,13 +29,15 @@ Reads jpeg files
 
 |Name|Description|Type|Default value|
 |:----|:-----------|:----|:-------------|
-|filename|File to read the image from. if a sequence will be produced %d must be included in the name. it will be replaced with the sequence number of each file. standard c formats can be used, e. g. %02d will insert the number with two figures and an initial '0'.|string||
+|filename|JPEG or PNG file to read. For a sequence, include one integer format such as %d or %02d in the filename.|string||
 |filecount|Number of files to read|int|1|
 |iterations|Number of times to read the image(s); 0 means unlimited|int|0|
-|read_once|Makes the module only read each jpeg image once.|bool|yes|
+|read_once|Makes the module only read a single image once.|bool|yes|
 
 <br><br>
 ## Long description
-Module used for reading an image (or sequences of images) from a JPEG
-		file or a sequence of JPEG files. The files can be either
-		gray-scale or RGB.
+The module reads JPEG and PNG images or numbered image sequences. Images are
+decoded to channel-first RGB output, with a separate intensity output. The first
+image determines the fixed output shape. A later missing, malformed, unsupported,
+or differently sized image produces a warning and zero output for that tick;
+execution then continues with the next image.

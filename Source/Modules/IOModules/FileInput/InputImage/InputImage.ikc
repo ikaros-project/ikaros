@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 
-<class name="InputImage" description="reads JPEG files">
-	<parameter name="filename" type="string" description="File to read the image from. If a sequence will be produced %d must be included in the name. It will be replaced with the sequence number of each file. Standard C formats can be used, e. g. %02d will insert the number with two figures and an initial '0'." />
-	<parameter name="filecount" type="number" default="1" description="Number of files to read" min="0" max="filecount-1" />
-	<parameter name="iterations" type="number" default="0" description="Number of times to read the image(s); 0 means unlimited" min="0" max="filecount-1" />
-	<parameter name="read_once" type="bool" default="yes" description="Makes the module only read each JPEG image once." />
+<class name="InputImage" description="reads JPEG and PNG files">
+	<parameter name="filename" type="string" description="JPEG or PNG file to read. For a sequence, include one integer format such as %d or %02d in the filename." />
+	<parameter name="filecount" type="number" default="1" description="Number of files to read" min="1" />
+	<parameter name="iterations" type="number" default="0" description="Number of times to read the image(s); 0 means unlimited" min="0" />
+	<parameter name="read_once" type="bool" default="yes" description="Makes the module only read a single image once." />
 
 	<parameter name="size_x" type="number" default="640" description="Size of image (will be set in code)" />
 	<parameter name="size_y" type="number" default="480" description="Size of image (will be set in code)" />
 
 	<output name="INTENSITY" description="The intensity of the image." size="@size_y,@size_x" />
-	<output name="OUTPUT" description="The red, green and blue channel of the image." size="3,@size_y,@size_x" />
+	<output name="OUTPUT" description="The red, green and blue channels of the image." size="3,@size_y,@size_x" />
 </class>

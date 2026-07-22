@@ -2,6 +2,7 @@
 // Copyright (C) 2023-2025  Christian Balkenius
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -771,6 +772,71 @@ namespace ikaros
     {
         matrix image;
         png_get_image(image, filename);
+        return image;
+    }
+
+
+    enum class image_format
+    {
+        jpeg,
+        png,
+    };
+
+
+    static image_format
+    image_format_from_extension(const std::filesystem::path & filename)
+    {
+        std::string extension = filename.extension().string();
+        std::transform(extension.begin(), extension.end(), extension.begin(),
+                       [](unsigned char character)
+                       {
+                           return static_cast<char>(std::tolower(character));
+                       });
+
+        if(extension == ".jpg" || extension == ".jpeg")
+            return image_format::jpeg;
+        if(extension == ".png")
+            return image_format::png;
+        throw std::invalid_argument("Unsupported image file format for \"" +
+                                    filename.string() + "\"");
+    }
+
+
+    image_info
+    image_get_info(const std::filesystem::path & filename)
+    {
+        switch(image_format_from_extension(filename))
+        {
+            case image_format::jpeg:
+                return jpeg_get_info(filename);
+            case image_format::png:
+                return png_get_info(filename);
+        }
+        throw std::logic_error("Unhandled image file format");
+    }
+
+
+    void
+    image_get_image(matrix & image, const std::filesystem::path & filename)
+    {
+        switch(image_format_from_extension(filename))
+        {
+            case image_format::jpeg:
+                jpeg_get_image(image, filename);
+                return;
+            case image_format::png:
+                png_get_image(image, filename);
+                return;
+        }
+        throw std::logic_error("Unhandled image file format");
+    }
+
+
+    matrix
+    image_get_image(const std::filesystem::path & filename)
+    {
+        matrix image;
+        image_get_image(image, filename);
         return image;
     }
 

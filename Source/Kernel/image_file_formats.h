@@ -84,4 +84,11 @@ namespace ikaros
     // Decoded RGB images use [channel, height, width]. Existing destinations are reused.
     void png_get_image(matrix & image, const std::filesystem::path & filename);
     [[nodiscard]] matrix png_get_image(const std::filesystem::path & filename);
+
+
+    // Selects a decoder from the filename extension. Supported extensions are
+    // .jpg, .jpeg, and .png, matched case-insensitively.
+    [[nodiscard]] image_info image_get_info(const std::filesystem::path & filename);
+    void image_get_image(matrix & image, const std::filesystem::path & filename);
+    [[nodiscard]] matrix image_get_image(const std::filesystem::path & filename);
 };
