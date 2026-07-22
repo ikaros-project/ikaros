@@ -3,12 +3,16 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <limits>
+#include <memory>
 #include <new>
 #include <span>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "matrix.h"
@@ -41,7 +45,7 @@ namespace ikaros
     }
 
 
-    struct jpeg_encoder_error_mgr
+    struct jpeg_error_context
     {
         jpeg_error_mgr pub;
         jmp_buf setjmp_buffer;
@@ -50,9 +54,9 @@ namespace ikaros
 
 
     static void
-    jpeg_encoder_error_exit(j_common_ptr cinfo)
+    jpeg_error_exit(j_common_ptr cinfo)
     {
-        auto * error = reinterpret_cast<jpeg_encoder_error_mgr *>(cinfo->err);
+        auto * error = reinterpret_cast<jpeg_error_context *>(cinfo->err);
         (*cinfo->err->format_message)(cinfo, error->message);
         longjmp(error->setjmp_buffer, 1);
     }
@@ -237,7 +241,7 @@ namespace ikaros
                 throw std::runtime_error("JPEG encoding failed: Invalid image dimensions");
 
             cinfo_.err = jpeg_std_error(&error_.pub);
-            error_.pub.error_exit = jpeg_encoder_error_exit;
+            error_.pub.error_exit = jpeg_error_exit;
 
             if(setjmp(error_.setjmp_buffer))
             {
@@ -307,7 +311,7 @@ namespace ikaros
         }
 
         jpeg_compress_struct cinfo_{};
-        jpeg_encoder_error_mgr error_{};
+        jpeg_error_context error_{};
         JpegDestination destination_{};
         bool created_ = false;
     };
@@ -406,97 +410,157 @@ namespace ikaros
     }
 
 
-  void 
-    jpeg_get_size(int & sizex, int & sizey, std::filesystem::path filename)
+    struct JpegHeader
     {
-        FILE * infile;
-        if ((infile = fopen(filename.c_str(), "rb")) == nullptr) {
-            throw std::runtime_error("Can't open " + filename.string());
+        int width;
+        int height;
+        int channels;
+    };
+
+
+    struct FileCloser
+    {
+        void operator()(FILE * file) const noexcept
+        {
+            if(file != nullptr)
+                std::fclose(file);
+        }
+    };
+
+
+    class JpegDecompressor
+    {
+    public:
+        JpegDecompressor() = default;
+        JpegDecompressor(const JpegDecompressor &) = delete;
+        JpegDecompressor & operator=(const JpegDecompressor &) = delete;
+
+        ~JpegDecompressor()
+        {
+            reset();
         }
 
-        struct jpeg_decompress_struct cinfo;
-        struct jpeg_error_mgr jerr;
+        template<typename Operation>
+        std::invoke_result_t<Operation &, jpeg_decompress_struct &>
+        read(const std::filesystem::path & filename, Operation && operation)
+        {
+            file_.reset(std::fopen(filename.string().c_str(), "rb"));
+            if(file_ == nullptr)
+                throw std::runtime_error("Can't open " + filename.string());
 
-        cinfo.err = jpeg_std_error(&jerr);
-        jpeg_create_decompress(&cinfo);
-        jpeg_stdio_src(&cinfo, infile);
-        jpeg_read_header(&cinfo, TRUE);
+            cinfo_.err = jpeg_std_error(&error_.pub);
+            error_.pub.error_exit = jpeg_error_exit;
 
-        sizex = cinfo.image_width;
-        sizey = cinfo.image_height;
+            if(setjmp(error_.setjmp_buffer))
+            {
+                const std::string message(error_.message);
+                reset();
+                throw std::runtime_error("JPEG read failed for \"" + filename.string() +
+                                         "\": " + message);
+            }
 
-        jpeg_destroy_decompress(&cinfo);
-        fclose(infile);
-    }
+            created_ = true;
+            jpeg_create_decompress(&cinfo_);
+            jpeg_stdio_src(&cinfo_, file_.get());
+            jpeg_read_header(&cinfo_, TRUE);
 
-    int 
-    jpeg_get_channels(std::filesystem::path filename)
-    {
-        FILE * infile;
-        if ((infile = fopen(filename.c_str(), "rb")) == nullptr) {
-            throw std::runtime_error("Can't open " + filename.string());
+            using Result = std::invoke_result_t<Operation &, jpeg_decompress_struct &>;
+            if constexpr(std::is_void_v<Result>)
+            {
+                operation(cinfo_);
+                reset();
+            }
+            else
+            {
+                Result result = operation(cinfo_);
+                reset();
+                return result;
+            }
         }
 
-        struct jpeg_decompress_struct cinfo;
-        struct jpeg_error_mgr jerr;
+    private:
+        void reset() noexcept
+        {
+            if(created_)
+                jpeg_destroy_decompress(&cinfo_);
+            created_ = false;
+            file_.reset();
+        }
 
-        cinfo.err = jpeg_std_error(&jerr);
-        jpeg_create_decompress(&cinfo);
-        jpeg_stdio_src(&cinfo, infile);
-        jpeg_read_header(&cinfo, TRUE);
+        jpeg_decompress_struct cinfo_{};
+        jpeg_error_context error_{};
+        std::unique_ptr<FILE, FileCloser> file_;
+        bool created_ = false;
+    };
 
-        int channels = cinfo.num_components;
 
-        jpeg_destroy_decompress(&cinfo);
-        fclose(infile);
-
-        return channels;
+    static JpegHeader
+    read_jpeg_header(const std::filesystem::path & filename)
+    {
+        JpegDecompressor decompressor;
+        return decompressor.read(filename, [](const jpeg_decompress_struct & cinfo)
+        {
+            return JpegHeader
+            {
+                static_cast<int>(cinfo.image_width),
+                static_cast<int>(cinfo.image_height),
+                cinfo.num_components,
+            };
+        });
     }
+
 
     void
-    jpeg_get_image(matrix & red, matrix & green, matrix & blue, std::filesystem::path filename)
+    jpeg_get_size(int & sizex, int & sizey, std::filesystem::path filename)
     {
-        FILE * infile;
-        if ((infile = fopen(filename.c_str(), "rb")) == nullptr) {
-            throw std::runtime_error("Can't open " + filename.string());
-        }
+        const JpegHeader header = read_jpeg_header(filename);
+        sizex = header.width;
+        sizey = header.height;
+    }
 
-        struct jpeg_decompress_struct cinfo;
-        struct jpeg_error_mgr jerr;
 
-        cinfo.err = jpeg_std_error(&jerr);
-        jpeg_create_decompress(&cinfo);
-        jpeg_stdio_src(&cinfo, infile);
-        jpeg_read_header(&cinfo, TRUE);
-        jpeg_start_decompress(&cinfo);
+    int
+    jpeg_get_channels(std::filesystem::path filename)
+    {
+        return read_jpeg_header(filename).channels;
+    }
 
-        int width = cinfo.output_width;
-        int height = cinfo.output_height;
-        int row_stride = width * cinfo.output_components;
 
-        // Resize matrices
-        red.resize(height, width);
-        green.resize(height, width);
-        blue.resize(height, width);
+    void
+    jpeg_get_image(matrix & red, matrix & green, matrix & blue,
+                   std::filesystem::path filename)
+    {
+        JpegDecompressor decompressor;
+        decompressor.read(filename, [&](jpeg_decompress_struct & cinfo)
+        {
+            jpeg_start_decompress(&cinfo);
 
-        JSAMPARRAY buffer = (*cinfo.mem->alloc_sarray)
-            ((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
+            const int width = static_cast<int>(cinfo.output_width);
+            const int height = static_cast<int>(cinfo.output_height);
+            const int row_stride = width * cinfo.output_components;
 
-        int row = 0;
-        while (cinfo.output_scanline < cinfo.output_height) {
-            jpeg_read_scanlines(&cinfo, buffer, 1);
-            
-            for (int x = 0; x < width; x++) {
-                red[row][x] = buffer[0][x*3] / 255.0f;
-                green[row][x] = buffer[0][x*3+1] / 255.0f;
-                blue[row][x] = buffer[0][x*3+2] / 255.0f;
+            red.resize(height, width);
+            green.resize(height, width);
+            blue.resize(height, width);
+
+            JSAMPARRAY buffer = (*cinfo.mem->alloc_sarray)(
+                reinterpret_cast<j_common_ptr>(&cinfo), JPOOL_IMAGE, row_stride, 1);
+
+            int row = 0;
+            while(cinfo.output_scanline < cinfo.output_height)
+            {
+                jpeg_read_scanlines(&cinfo, buffer, 1);
+                for(int x = 0; x < width; ++x)
+                {
+                    red[row][x] = buffer[0][3 * x] / 255.0f;
+                    green[row][x] = buffer[0][3 * x + 1] / 255.0f;
+                    blue[row][x] = buffer[0][3 * x + 2] / 255.0f;
+                }
+                ++row;
             }
-            row++;
-        }
 
-        jpeg_finish_decompress(&cinfo);
-        jpeg_destroy_decompress(&cinfo);
-        fclose(infile);
+            jpeg_finish_decompress(&cinfo);
+        });
     }
 
     //

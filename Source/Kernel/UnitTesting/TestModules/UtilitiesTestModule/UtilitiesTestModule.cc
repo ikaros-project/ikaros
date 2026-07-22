@@ -1,4 +1,7 @@
 #include <array>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <functional>
 #include <iostream>
 #include <limits>
@@ -13,6 +16,39 @@ using namespace ikaros;
 
 namespace
 {
+    class TemporaryFile
+    {
+    public:
+        TemporaryFile(const std::string & name, const std::string & contents)
+        {
+            const auto suffix = std::chrono::steady_clock::now().time_since_epoch().count();
+            path_ = std::filesystem::temp_directory_path() /
+                    ("ikaros-utilities-" + std::to_string(suffix) + "-" + name);
+            std::ofstream file(path_, std::ios::binary);
+            if(!file)
+                throw std::runtime_error("Could not create temporary utility test file");
+            file.write(contents.data(), static_cast<std::streamsize>(contents.size()));
+            if(!file)
+                throw std::runtime_error("Could not write temporary utility test file");
+        }
+
+        ~TemporaryFile()
+        {
+            std::error_code error;
+            std::filesystem::remove(path_, error);
+        }
+
+        const std::filesystem::path &
+        path() const noexcept
+        {
+            return path_;
+        }
+
+    private:
+        std::filesystem::path path_;
+    };
+
+
     void
     require(bool condition, const std::string & message)
     {
@@ -454,6 +490,59 @@ public:
                     return create_color_jpeg(oversized_color_image);
                 }),
                 "JPEG encoders did not recover from an unsupported image dimension");
+
+        const jpeg_data readable_jpeg = create_color_jpeg(color_image);
+        const TemporaryFile valid_jpeg(
+            "valid.jpg",
+            std::string(reinterpret_cast<const char *>(readable_jpeg.data()),
+                        readable_jpeg.size()));
+        int decoded_width = 0;
+        int decoded_height = 0;
+        matrix decoded_red(2, 2);
+        matrix decoded_green(2, 2);
+        matrix decoded_blue(2, 2);
+        jpeg_get_size(decoded_width, decoded_height, valid_jpeg.path());
+        const int decoded_channels = jpeg_get_channels(valid_jpeg.path());
+        jpeg_get_image(decoded_red, decoded_green, decoded_blue, valid_jpeg.path());
+        require(decoded_width == 2 && decoded_height == 2 && decoded_channels == 3 &&
+                decoded_red.rank() == 2 && decoded_red.size(0) == 2 &&
+                decoded_red.size(1) == 2 && decoded_green.shape() == decoded_red.shape() &&
+                decoded_blue.shape() == decoded_red.shape(),
+                "JPEG readers failed for valid input");
+
+        auto rejected_malformed_jpeg = [](const std::function<void()> & read)
+        {
+            try
+            {
+                read();
+            }
+            catch(const std::runtime_error & error)
+            {
+                return std::string(error.what()).find("JPEG read failed for \"") == 0;
+            }
+            return false;
+        };
+
+        const TemporaryFile malformed_jpeg("malformed.jpg", "not a JPEG file");
+        int jpeg_width = 17;
+        int jpeg_height = 19;
+        matrix jpeg_red;
+        matrix jpeg_green;
+        matrix jpeg_blue;
+        require(rejected_malformed_jpeg([&]
+                {
+                    jpeg_get_size(jpeg_width, jpeg_height, malformed_jpeg.path());
+                }) &&
+                rejected_malformed_jpeg([&]
+                {
+                    static_cast<void>(jpeg_get_channels(malformed_jpeg.path()));
+                }) &&
+                rejected_malformed_jpeg([&]
+                {
+                    jpeg_get_image(jpeg_red, jpeg_green, jpeg_blue, malformed_jpeg.path());
+                }) &&
+                jpeg_width == 17 && jpeg_height == 19,
+                "JPEG readers did not recover from malformed input");
 
         std::cout << "UTILITIES TEST OK\n";
     }
