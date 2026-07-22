@@ -498,16 +498,15 @@ public:
                         readable_jpeg.size()));
         int decoded_width = 0;
         int decoded_height = 0;
-        matrix decoded_red(2, 2);
-        matrix decoded_green(2, 2);
-        matrix decoded_blue(2, 2);
         jpeg_get_size(decoded_width, decoded_height, valid_jpeg.path());
         const int decoded_channels = jpeg_get_channels(valid_jpeg.path());
-        jpeg_get_image(decoded_red, decoded_green, decoded_blue, valid_jpeg.path());
+        matrix decoded_jpeg = jpeg_get_image(valid_jpeg.path());
+        float * decoded_jpeg_storage = decoded_jpeg.data();
+        jpeg_get_image(decoded_jpeg, valid_jpeg.path());
         require(decoded_width == 2 && decoded_height == 2 && decoded_channels == 3 &&
-                decoded_red.rank() == 2 && decoded_red.size(0) == 2 &&
-                decoded_red.size(1) == 2 && decoded_green.shape() == decoded_red.shape() &&
-                decoded_blue.shape() == decoded_red.shape(),
+                decoded_jpeg.rank() == 3 && decoded_jpeg.size(0) == 3 &&
+                decoded_jpeg.size(1) == 2 && decoded_jpeg.size(2) == 2 &&
+                decoded_jpeg.data() == decoded_jpeg_storage,
                 "JPEG readers failed for valid input");
 
         matrix grayscale_source(2, 2);
@@ -520,19 +519,17 @@ public:
             "grayscale.jpg",
             std::string(reinterpret_cast<const char *>(grayscale_data.data()),
                         grayscale_data.size()));
-        matrix grayscale_red(2, 2);
-        matrix grayscale_green(2, 2);
-        matrix grayscale_blue(2, 2);
-        jpeg_get_image(grayscale_red, grayscale_green, grayscale_blue,
-                       grayscale_jpeg.path());
+        const matrix grayscale_image = jpeg_get_image(grayscale_jpeg.path());
         bool grayscale_planes_match = jpeg_get_channels(grayscale_jpeg.path()) == 1;
         for(int y = 0; y < 2; ++y)
             for(int x = 0; x < 2; ++x)
                 grayscale_planes_match = grayscale_planes_match &&
-                                         grayscale_red(y, x) == grayscale_green(y, x) &&
-                                         grayscale_red(y, x) == grayscale_blue(y, x);
+                                         grayscale_image(0, y, x) ==
+                                             grayscale_image(1, y, x) &&
+                                         grayscale_image(0, y, x) ==
+                                             grayscale_image(2, y, x);
         require(grayscale_planes_match &&
-                grayscale_red(0, 0) < grayscale_red(1, 1),
+                grayscale_image(0, 0, 0) < grayscale_image(0, 1, 1),
                 "JPEG reader did not convert grayscale input to RGB safely");
 
         auto rejected_malformed_jpeg = [](const std::function<void()> & read)
@@ -551,9 +548,6 @@ public:
         const TemporaryFile malformed_jpeg("malformed.jpg", "not a JPEG file");
         int jpeg_width = 17;
         int jpeg_height = 19;
-        matrix jpeg_red;
-        matrix jpeg_green;
-        matrix jpeg_blue;
         require(rejected_malformed_jpeg([&]
                 {
                     jpeg_get_size(jpeg_width, jpeg_height, malformed_jpeg.path());
@@ -564,7 +558,7 @@ public:
                 }) &&
                 rejected_malformed_jpeg([&]
                 {
-                    jpeg_get_image(jpeg_red, jpeg_green, jpeg_blue, malformed_jpeg.path());
+                    static_cast<void>(jpeg_get_image(malformed_jpeg.path()));
                 }) &&
                 jpeg_width == 17 && jpeg_height == 19,
                 "JPEG readers did not recover from malformed input");
@@ -586,19 +580,31 @@ public:
         const TemporaryFile valid_png("valid.png", valid_png_contents);
         int png_width = 0;
         int png_height = 0;
-        matrix png_red(1, 2);
-        matrix png_green(1, 2);
-        matrix png_blue(1, 2);
         png_get_size(png_width, png_height, valid_png.path());
         const int png_channels = png_get_channels(valid_png.path());
-        png_get_image(png_red, png_green, png_blue, valid_png.path());
+        matrix decoded_png = png_get_image(valid_png.path());
+        float * decoded_png_storage = decoded_png.data();
+        png_get_image(decoded_png, valid_png.path());
         require(png_width == 2 && png_height == 1 && png_channels == 3 &&
-                png_red.rank() == 2 && png_red.size(0) == 1 && png_red.size(1) == 2 &&
-                png_green.shape() == png_red.shape() && png_blue.shape() == png_red.shape() &&
-                png_red(0, 0) == 1.0f && png_green(0, 0) == 0.0f &&
-                png_blue(0, 0) == 0.0f && png_red(0, 1) == 0.0f &&
-                png_green(0, 1) > 0.5f && png_blue(0, 1) == 1.0f,
+                decoded_png.rank() == 3 && decoded_png.size(0) == 3 &&
+                decoded_png.size(1) == 1 && decoded_png.size(2) == 2 &&
+                decoded_png.data() == decoded_png_storage &&
+                decoded_png(0, 0, 0) == 1.0f && decoded_png(1, 0, 0) == 0.0f &&
+                decoded_png(2, 0, 0) == 0.0f && decoded_png(0, 0, 1) == 0.0f &&
+                decoded_png(1, 0, 1) > 0.5f && decoded_png(2, 0, 1) == 1.0f,
                 "PNG readers failed for valid RGB input");
+
+        matrix wrong_image_destination(3, 1, 1);
+        require(rejects_invalid_argument([&]
+                {
+                    jpeg_get_image(wrong_image_destination, valid_jpeg.path());
+                }) &&
+                rejects_invalid_argument([&]
+                {
+                    png_get_image(wrong_image_destination, valid_png.path());
+                }) &&
+                wrong_image_destination.shape() == std::vector<int>{3, 1, 1},
+                "Image readers accepted or resized an initialized destination of the wrong shape");
 
         auto rejected_malformed_png = [](const std::function<void()> & read)
         {
@@ -626,7 +632,7 @@ public:
                 }) &&
                 rejected_malformed_png([&]
                 {
-                    png_get_image(png_red, png_green, png_blue, short_png.path());
+                    static_cast<void>(png_get_image(short_png.path()));
                 }) &&
                 unchanged_png_width == 17 && unchanged_png_height == 19,
                 "PNG readers did not reject a short signature safely");
@@ -636,7 +642,7 @@ public:
             std::string(reinterpret_cast<const char *>(valid_png_data.data()), 41));
         require(rejected_malformed_png([&]
                 {
-                    png_get_image(png_red, png_green, png_blue, truncated_png.path());
+                    static_cast<void>(png_get_image(truncated_png.path()));
                 }),
                 "PNG image reader did not recover from truncated pixel data");
 

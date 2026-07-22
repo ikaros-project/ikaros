@@ -511,7 +511,7 @@ namespace ikaros
 
 
     void
-    jpeg_get_size(int & sizex, int & sizey, std::filesystem::path filename)
+    jpeg_get_size(int & sizex, int & sizey, const std::filesystem::path & filename)
     {
         const JpegHeader header = read_jpeg_header(filename);
         sizex = header.width;
@@ -520,15 +520,30 @@ namespace ikaros
 
 
     int
-    jpeg_get_channels(std::filesystem::path filename)
+    jpeg_get_channels(const std::filesystem::path & filename)
     {
         return read_jpeg_header(filename).channels;
     }
 
 
+    static void
+    prepare_rgb_image(matrix & image, int height, int width,
+                      const std::filesystem::path & filename)
+    {
+        if(image.is_uninitialized())
+        {
+            image.realloc(3, height, width);
+            return;
+        }
+        if(image.rank() != 3 || image.size(0) != 3 ||
+           image.size(1) != height || image.size(2) != width)
+            throw std::invalid_argument("RGB image destination has the wrong shape for \"" +
+                                        filename.string() + "\"");
+    }
+
+
     void
-    jpeg_get_image(matrix & red, matrix & green, matrix & blue,
-                   std::filesystem::path filename)
+    jpeg_get_image(matrix & image, const std::filesystem::path & filename)
     {
         JpegDecompressor decompressor;
         decompressor.read(filename, [&](jpeg_decompress_struct & cinfo)
@@ -548,9 +563,7 @@ namespace ikaros
             const int height = static_cast<int>(cinfo.output_height);
             const JDIMENSION row_stride = cinfo.output_width * cinfo.output_components;
 
-            red.resize(height, width);
-            green.resize(height, width);
-            blue.resize(height, width);
+            prepare_rgb_image(image, height, width, filename);
 
             JSAMPARRAY buffer = (*cinfo.mem->alloc_sarray)(
                 reinterpret_cast<j_common_ptr>(&cinfo), JPOOL_IMAGE, row_stride, 1);
@@ -559,9 +572,9 @@ namespace ikaros
             while(cinfo.output_scanline < cinfo.output_height)
             {
                 jpeg_read_scanlines(&cinfo, buffer, 1);
-                float * red_row = red.logical_block_data(row);
-                float * green_row = green.logical_block_data(row);
-                float * blue_row = blue.logical_block_data(row);
+                float * red_row = image.logical_block_data(row);
+                float * green_row = image.logical_block_data(height + row);
+                float * blue_row = image.logical_block_data(2 * height + row);
                 for(int x = 0; x < width; ++x)
                 {
                     red_row[x] = buffer[0][3 * x] / 255.0f;
@@ -573,6 +586,15 @@ namespace ikaros
 
             jpeg_finish_decompress(&cinfo);
         });
+    }
+
+
+    matrix
+    jpeg_get_image(const std::filesystem::path & filename)
+    {
+        matrix image;
+        jpeg_get_image(image, filename);
+        return image;
     }
 
     //
@@ -733,7 +755,7 @@ namespace ikaros
 
 
     void
-    png_get_size(int & sizex, int & sizey, std::filesystem::path filename)
+    png_get_size(int & sizex, int & sizey, const std::filesystem::path & filename)
     {
         const PngHeader header = read_png_header(filename);
         sizex = header.width;
@@ -742,15 +764,14 @@ namespace ikaros
 
 
     int
-    png_get_channels(std::filesystem::path filename)
+    png_get_channels(const std::filesystem::path & filename)
     {
         return read_png_header(filename).channels;
     }
 
 
     void
-    png_get_image(matrix & red, matrix & green, matrix & blue,
-                  std::filesystem::path filename)
+    png_get_image(matrix & image, const std::filesystem::path & filename)
     {
         PngReader reader;
         reader.read(filename, [&](png_structp png, png_infop info, PngReader & png_reader)
@@ -790,16 +811,14 @@ namespace ikaros
             png_read_image(png, rows);
             png_read_end(png, info);
 
-            red.resize(height, width);
-            green.resize(height, width);
-            blue.resize(height, width);
+            prepare_rgb_image(image, height, width, filename);
 
             for(int y = 0; y < height; ++y)
             {
                 const png_bytep row = rows[y];
-                float * red_row = red.logical_block_data(y);
-                float * green_row = green.logical_block_data(y);
-                float * blue_row = blue.logical_block_data(y);
+                float * red_row = image.logical_block_data(y);
+                float * green_row = image.logical_block_data(height + y);
+                float * blue_row = image.logical_block_data(2 * height + y);
                 for(int x = 0; x < width; ++x)
                 {
                     red_row[x] = row[3 * x] / 255.0f;
@@ -808,6 +827,15 @@ namespace ikaros
                 }
             }
         });
+    }
+
+
+    matrix
+    png_get_image(const std::filesystem::path & filename)
+    {
+        matrix image;
+        png_get_image(image, filename);
+        return image;
     }
 
 };
