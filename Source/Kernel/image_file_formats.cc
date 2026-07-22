@@ -30,7 +30,6 @@
 extern "C"
 {
 #include "jpeglib.h"
-#include "jerror.h"
 #include <setjmp.h>
 #include <png.h>
 }
@@ -178,61 +177,6 @@ namespace ikaros
     }
 
 
-    struct JpegDestination
-    {
-        jpeg_destination_mgr manager{};
-        JOCTET * buffer = nullptr;
-        std::size_t capacity = 0;
-        std::size_t used = 0;
-    };
-
-
-    static void
-    destination_init(j_compress_ptr cinfo)
-    {
-        auto * destination = reinterpret_cast<JpegDestination *>(cinfo->dest);
-        destination->used = 0;
-        destination->manager.next_output_byte = destination->buffer;
-        destination->manager.free_in_buffer = destination->capacity;
-    }
-
-
-    static boolean
-    destination_empty(j_compress_ptr cinfo)
-    {
-        auto * destination = reinterpret_cast<JpegDestination *>(cinfo->dest);
-        destination->used = destination->capacity - destination->manager.free_in_buffer;
-        if(destination->capacity > std::numeric_limits<std::size_t>::max() / 2)
-        {
-            ERREXIT(cinfo, JERR_OUT_OF_MEMORY);
-            return FALSE;
-        }
-
-        const std::size_t new_capacity = destination->capacity * 2;
-        auto * resized = static_cast<JOCTET *>(
-            std::realloc(destination->buffer, new_capacity));
-        if(resized == nullptr)
-        {
-            ERREXIT(cinfo, JERR_OUT_OF_MEMORY);
-            return FALSE;
-        }
-
-        destination->buffer = resized;
-        destination->capacity = new_capacity;
-        destination->manager.next_output_byte = destination->buffer + destination->used;
-        destination->manager.free_in_buffer = destination->capacity - destination->used;
-        return TRUE;
-    }
-
-
-    static void
-    destination_term(j_compress_ptr cinfo)
-    {
-        auto * destination = reinterpret_cast<JpegDestination *>(cinfo->dest);
-        destination->used = destination->capacity - destination->manager.free_in_buffer;
-    }
-
-
     class JpegCompressor
     {
     public:
@@ -275,18 +219,17 @@ namespace ikaros
             cinfo_.in_color_space = color_space;
 
             const std::size_t pixel_count = checked_pixel_count(width, height);
-            if(pixel_count > (std::numeric_limits<std::size_t>::max() - 2048) /
-                                 (2 * static_cast<std::size_t>(components)))
+            // Very high-quality JPEGs can approach two compressed bytes per pixel.
+            const unsigned long bytes_per_pixel = quality > 90 ? 2 : 1;
+            if(pixel_count > std::numeric_limits<unsigned long>::max() / bytes_per_pixel)
                 throw std::length_error("JPEG output capacity overflow");
-            destination_.capacity =
-                2048 + pixel_count * 2 * static_cast<std::size_t>(components);
-            destination_.buffer = static_cast<JOCTET *>(std::malloc(destination_.capacity));
-            if(destination_.buffer == nullptr)
+            output_size_ = std::max<unsigned long>(4096,
+                                                   static_cast<unsigned long>(pixel_count) *
+                                                       bytes_per_pixel);
+            output_buffer_ = static_cast<unsigned char *>(std::malloc(output_size_));
+            if(output_buffer_ == nullptr)
                 throw std::bad_alloc();
-            destination_.manager.init_destination = destination_init;
-            destination_.manager.empty_output_buffer = destination_empty;
-            destination_.manager.term_destination = destination_term;
-            cinfo_.dest = &destination_.manager;
+            jpeg_mem_dest(&cinfo_, &output_buffer_, &output_size_);
 
             jpeg_set_defaults(&cinfo_);
             jpeg_set_quality(&cinfo_, quality, TRUE);
@@ -300,9 +243,8 @@ namespace ikaros
             }
 
             jpeg_finish_compress(&cinfo_);
-            jpeg_data result(reinterpret_cast<std::uint8_t *>(destination_.buffer),
-                             destination_.used);
-            destination_.buffer = nullptr;
+            jpeg_data result(output_buffer_, static_cast<std::size_t>(output_size_));
+            output_buffer_ = nullptr;
             reset();
             return result;
         }
@@ -322,13 +264,15 @@ namespace ikaros
             if(created_)
                 jpeg_destroy_compress(&cinfo_);
             created_ = false;
-            std::free(destination_.buffer);
-            destination_ = {};
+            std::free(output_buffer_);
+            output_buffer_ = nullptr;
+            output_size_ = 0;
         }
 
         jpeg_compress_struct cinfo_{};
         jpeg_error_context error_{};
-        JpegDestination destination_{};
+        unsigned char * output_buffer_ = nullptr;
+        unsigned long output_size_ = 0;
         bool created_ = false;
     };
 
