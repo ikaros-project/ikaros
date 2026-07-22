@@ -1,10 +1,14 @@
 // image_file_format.cc
 // Copyright (C) 2023-2025  Christian Balkenius
 
+#include <cstdlib>
+#include <new>
+#include <stdexcept>
+#include <string>
+
 #include "matrix.h"
 #include "image_file_formats.h"
 #include "color_tables.h"
-#include <new>
 
 #if defined(__APPLE__) && defined(USE_VIMAGE)
 #include <vImage/vImage_Types.h>
@@ -19,6 +23,23 @@ extern "C"
 }
 namespace ikaros
 {
+
+
+    struct jpeg_encoder_error_mgr
+    {
+        jpeg_error_mgr pub;
+        jmp_buf setjmp_buffer;
+        char message[JMSG_LENGTH_MAX];
+    };
+
+
+    static void
+    jpeg_encoder_error_exit(j_common_ptr cinfo)
+    {
+        auto * error = reinterpret_cast<jpeg_encoder_error_mgr *>(cinfo->err);
+        (*cinfo->err->format_message)(cinfo, error->message);
+        longjmp(error->setjmp_buffer, 1);
+    }
 
 
     static void
@@ -182,13 +203,23 @@ namespace ikaros
         JSAMPLE *   image_buffer = new JSAMPLE [sizex];
         JSAMPROW    row_pointer[1];
         
-        struct jpeg_compress_struct cinfo;
-        struct jpeg_error_mgr       jerr;
-        struct jpeg_destination     dst;
+        struct jpeg_compress_struct cinfo{};
+        struct jpeg_encoder_error_mgr jerr{};
+        struct jpeg_destination dst{};
         
         //int    row_stride;				// physical row width in image buffer
         
-        cinfo.err = jpeg_std_error(&jerr);
+        cinfo.err = jpeg_std_error(&jerr.pub);
+        jerr.pub.error_exit = jpeg_encoder_error_exit;
+
+        if(setjmp(jerr.setjmp_buffer))
+        {
+            jpeg_destroy_compress(&cinfo);
+            free(dst.buffer);
+            delete [] image_buffer;
+            size = 0;
+            throw std::runtime_error("JPEG encoding failed: " + std::string(jerr.message));
+        }
         
         jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
         
@@ -244,13 +275,34 @@ namespace ikaros
         long sizey = image.size(0);
 
         JSAMPLE *   image_buffer = new JSAMPLE [3*sizex];
+        unsigned char * z = nullptr;
+        try
+        {
+            z = new unsigned char [sizex];
+        }
+        catch(...)
+        {
+            delete [] image_buffer;
+            throw;
+        }
         JSAMPROW    row_pointer[1];
         
-        struct jpeg_compress_struct cinfo;
-        struct jpeg_error_mgr       jerr;
-        struct jpeg_destination     dst;
+        struct jpeg_compress_struct cinfo{};
+        struct jpeg_encoder_error_mgr jerr{};
+        struct jpeg_destination dst{};
         
-        cinfo.err = jpeg_std_error(&jerr);
+        cinfo.err = jpeg_std_error(&jerr.pub);
+        jerr.pub.error_exit = jpeg_encoder_error_exit;
+
+        if(setjmp(jerr.setjmp_buffer))
+        {
+            jpeg_destroy_compress(&cinfo);
+            free(dst.buffer);
+            delete [] z;
+            delete [] image_buffer;
+            size = 0;
+            throw std::runtime_error("JPEG encoding failed: " + std::string(jerr.message));
+        }
         
         jpeg_create_compress(&cinfo); // TODO: Replace with ikaros error handler later
         
@@ -268,7 +320,6 @@ namespace ikaros
         jpeg_start_compress(&cinfo, true);
         int j=0;
         
-        unsigned char * z = new unsigned char [sizex];
         while (cinfo.next_scanline < cinfo.image_height)
         {
             float_to_byte(z, image[j].contiguous_data(), minimum, maximum, sizex);
@@ -550,13 +601,23 @@ namespace ikaros
         JSAMPLE *   image_buffer = new JSAMPLE [3*sizex];
         JSAMPROW    row_pointer[1];
         
-        struct jpeg_compress_struct cinfo;
-        struct jpeg_error_mgr       jerr;
-        struct jpeg_destination     dst;
+        struct jpeg_compress_struct cinfo{};
+        struct jpeg_encoder_error_mgr jerr{};
+        struct jpeg_destination dst{};
         
         //int    row_stride;				// physical row width in image buffer
         
-        cinfo.err = jpeg_std_error(&jerr);
+        cinfo.err = jpeg_std_error(&jerr.pub);
+        jerr.pub.error_exit = jpeg_encoder_error_exit;
+
+        if(setjmp(jerr.setjmp_buffer))
+        {
+            jpeg_destroy_compress(&cinfo);
+            free(dst.buffer);
+            delete [] image_buffer;
+            size = 0;
+            throw std::runtime_error("JPEG encoding failed: " + std::string(jerr.message));
+        }
         
         jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
         
