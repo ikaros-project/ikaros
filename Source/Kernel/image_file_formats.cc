@@ -164,6 +164,20 @@ namespace ikaros
     }
 
 
+    static void
+    rgb8_to_planar_float(const unsigned char * source, float * red, float * green,
+                         float * blue, std::size_t size) noexcept
+    {
+        constexpr float scale = 1.0f / 255.0f;
+        for(std::size_t i = 0; i < size; ++i)
+        {
+            red[i] = source[3 * i] * scale;
+            green[i] = source[3 * i + 1] * scale;
+            blue[i] = source[3 * i + 2] * scale;
+        }
+    }
+
+
     struct JpegDestination
     {
         jpeg_destination_mgr manager{};
@@ -561,12 +575,8 @@ namespace ikaros
                 float * red_row = image.logical_block_data(row);
                 float * green_row = image.logical_block_data(height + row);
                 float * blue_row = image.logical_block_data(2 * height + row);
-                for(int x = 0; x < width; ++x)
-                {
-                    red_row[x] = buffer[0][3 * x] / 255.0f;
-                    green_row[x] = buffer[0][3 * x + 1] / 255.0f;
-                    blue_row[x] = buffer[0][3 * x + 2] / 255.0f;
-                }
+                rgb8_to_planar_float(buffer[0], red_row, green_row, blue_row,
+                                     static_cast<std::size_t>(width));
                 ++row;
             }
 
@@ -783,12 +793,8 @@ namespace ikaros
                 float * red_row = image.logical_block_data(y);
                 float * green_row = image.logical_block_data(height + y);
                 float * blue_row = image.logical_block_data(2 * height + y);
-                for(int x = 0; x < width; ++x)
-                {
-                    red_row[x] = row[3 * x] / 255.0f;
-                    green_row[x] = row[3 * x + 1] / 255.0f;
-                    blue_row[x] = row[3 * x + 2] / 255.0f;
-                }
+                rgb8_to_planar_float(row, red_row, green_row, blue_row,
+                                     static_cast<std::size_t>(width));
             }
         });
     }
