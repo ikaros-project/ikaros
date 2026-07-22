@@ -569,6 +569,77 @@ public:
                 jpeg_width == 17 && jpeg_height == 19,
                 "JPEG readers did not recover from malformed input");
 
+        const std::array<unsigned char, 72> valid_png_data
+        {
+            0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+            0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+            0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01,
+            0x08, 0x02, 0x00, 0x00, 0x00, 0x7b, 0x40, 0xe8,
+            0xdd, 0x00, 0x00, 0x00, 0x0f, 0x49, 0x44, 0x41,
+            0x54, 0x78, 0x9c, 0x63, 0xf8, 0xcf, 0xc0, 0xc0,
+            0xd0, 0xf0, 0x1f, 0x00, 0x08, 0x00, 0x02, 0x7f,
+            0x9c, 0x45, 0x40, 0x4e, 0x00, 0x00, 0x00, 0x00,
+            0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
+        };
+        const std::string valid_png_contents(
+            reinterpret_cast<const char *>(valid_png_data.data()), valid_png_data.size());
+        const TemporaryFile valid_png("valid.png", valid_png_contents);
+        int png_width = 0;
+        int png_height = 0;
+        matrix png_red(1, 2);
+        matrix png_green(1, 2);
+        matrix png_blue(1, 2);
+        png_get_size(png_width, png_height, valid_png.path());
+        const int png_channels = png_get_channels(valid_png.path());
+        png_get_image(png_red, png_green, png_blue, valid_png.path());
+        require(png_width == 2 && png_height == 1 && png_channels == 3 &&
+                png_red.rank() == 2 && png_red.size(0) == 1 && png_red.size(1) == 2 &&
+                png_green.shape() == png_red.shape() && png_blue.shape() == png_red.shape() &&
+                png_red(0, 0) == 1.0f && png_green(0, 0) == 0.0f &&
+                png_blue(0, 0) == 0.0f && png_red(0, 1) == 0.0f &&
+                png_green(0, 1) > 0.5f && png_blue(0, 1) == 1.0f,
+                "PNG readers failed for valid RGB input");
+
+        auto rejected_malformed_png = [](const std::function<void()> & read)
+        {
+            try
+            {
+                read();
+            }
+            catch(const std::runtime_error & error)
+            {
+                return std::string(error.what()).find("PNG read failed for \"") == 0;
+            }
+            return false;
+        };
+
+        const TemporaryFile short_png("short.png", std::string("\x89PNG", 4));
+        int unchanged_png_width = 17;
+        int unchanged_png_height = 19;
+        require(rejected_malformed_png([&]
+                {
+                    png_get_size(unchanged_png_width, unchanged_png_height, short_png.path());
+                }) &&
+                rejected_malformed_png([&]
+                {
+                    static_cast<void>(png_get_channels(short_png.path()));
+                }) &&
+                rejected_malformed_png([&]
+                {
+                    png_get_image(png_red, png_green, png_blue, short_png.path());
+                }) &&
+                unchanged_png_width == 17 && unchanged_png_height == 19,
+                "PNG readers did not reject a short signature safely");
+
+        const TemporaryFile truncated_png(
+            "truncated.png",
+            std::string(reinterpret_cast<const char *>(valid_png_data.data()), 41));
+        require(rejected_malformed_png([&]
+                {
+                    png_get_image(png_red, png_green, png_blue, truncated_png.path());
+                }),
+                "PNG image reader did not recover from truncated pixel data");
+
         std::cout << "UTILITIES TEST OK\n";
     }
 };
