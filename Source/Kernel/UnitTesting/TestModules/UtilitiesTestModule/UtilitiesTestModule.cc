@@ -483,6 +483,30 @@ public:
                 }),
                 "JPEG encoders accepted invalid conversion ranges");
 
+        auto rejected_invalid_jpeg_quality = [&](int quality)
+        {
+            return rejects_invalid_argument([&]
+                   {
+                       static_cast<void>(create_gray_jpeg(gray_image, 0, 1, quality));
+                   }) &&
+                   rejects_invalid_argument([&]
+                   {
+                       static_cast<void>(create_pseudocolor_jpeg(
+                           gray_image, 0, 1, "fire", quality));
+                   }) &&
+                   rejects_invalid_argument([&]
+                   {
+                       static_cast<void>(create_color_jpeg(color_image, quality));
+                   });
+        };
+        require(rejected_invalid_jpeg_quality(0) &&
+                rejected_invalid_jpeg_quality(101) &&
+                encoded_jpeg([&color_image]
+                {
+                    return create_color_jpeg(color_image, 50);
+                }),
+                "JPEG encoders accepted an invalid quality or failed after rejecting one");
+
         matrix oversized_gray_image(1, 70000);
         matrix oversized_color_image(3, 1, 70000);
         require(recovered_from_jpeg_error([&oversized_gray_image]

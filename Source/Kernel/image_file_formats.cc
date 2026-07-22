@@ -253,6 +253,8 @@ namespace ikaros
                width > static_cast<long>(std::numeric_limits<JDIMENSION>::max()) ||
                height > static_cast<long>(std::numeric_limits<JDIMENSION>::max()))
                 throw std::runtime_error("JPEG encoding failed: Invalid image dimensions");
+            if(quality < 1 || quality > 100)
+                throw std::invalid_argument("JPEG quality must be between 1 and 100");
 
             cinfo_.err = jpeg_std_error(&error_.pub);
             error_.pub.error_exit = jpeg_error_exit;
