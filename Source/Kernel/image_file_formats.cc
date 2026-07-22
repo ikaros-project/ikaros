@@ -794,6 +794,8 @@ namespace ikaros
             if((color_type & PNG_COLOR_MASK_ALPHA) ||
                png_get_valid(png, info, PNG_INFO_tRNS))
                 png_set_strip_alpha(png);
+            if(png_get_interlace_type(png, info) == PNG_INTERLACE_ADAM7)
+                png_set_interlace_handling(png);
 
             png_read_update_info(png, info);
             if(png_get_channels(png, info) != 3 || png_get_bit_depth(png, info) != 8)

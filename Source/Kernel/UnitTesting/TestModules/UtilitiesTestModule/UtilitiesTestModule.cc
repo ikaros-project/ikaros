@@ -594,6 +594,38 @@ public:
                 decoded_png(1, 0, 1) > 0.5f && decoded_png(2, 0, 1) == 1.0f,
                 "PNG readers failed for valid RGB input");
 
+        const std::array<unsigned char, 72> interlaced_png_data
+        {
+            0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+            0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+            0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02,
+            0x08, 0x02, 0x00, 0x00, 0x01, 0x8a, 0xd3, 0xaa,
+            0xe5, 0x00, 0x00, 0x00, 0x0f, 0x49, 0x44, 0x41,
+            0x54, 0x78, 0x9c, 0x63, 0xf8, 0xcf, 0x00, 0x04,
+            0x10, 0x02, 0x08, 0x00, 0x20, 0xee, 0x05, 0xfb,
+            0xf5, 0x2b, 0xe9, 0xca, 0x00, 0x00, 0x00, 0x00,
+            0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
+        };
+        const TemporaryFile interlaced_png(
+            "interlaced.png",
+            std::string(reinterpret_cast<const char *>(interlaced_png_data.data()),
+                        interlaced_png_data.size()));
+        const matrix decoded_interlaced_png = png_get_image(interlaced_png.path());
+        require(decoded_interlaced_png.shape() == std::vector<int>{3, 2, 2} &&
+                decoded_interlaced_png(0, 0, 0) == 1.0f &&
+                decoded_interlaced_png(1, 0, 0) == 0.0f &&
+                decoded_interlaced_png(2, 0, 0) == 0.0f &&
+                decoded_interlaced_png(0, 0, 1) == 0.0f &&
+                decoded_interlaced_png(1, 0, 1) == 1.0f &&
+                decoded_interlaced_png(2, 0, 1) == 0.0f &&
+                decoded_interlaced_png(0, 1, 0) == 0.0f &&
+                decoded_interlaced_png(1, 1, 0) == 0.0f &&
+                decoded_interlaced_png(2, 1, 0) == 1.0f &&
+                decoded_interlaced_png(0, 1, 1) == 1.0f &&
+                decoded_interlaced_png(1, 1, 1) == 1.0f &&
+                decoded_interlaced_png(2, 1, 1) == 1.0f,
+                "PNG reader did not reconstruct an Adam7-interlaced image");
+
         matrix wrong_image_destination(3, 1, 1);
         require(rejects_invalid_argument([&]
                 {
