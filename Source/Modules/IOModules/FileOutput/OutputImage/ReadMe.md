@@ -3,8 +3,9 @@
 ## Description
 
 `OutputImage` writes a grayscale `[height, width]` matrix or a channel-first RGB
-`[3, height, width]` matrix as a JPEG or PNG file. The filename extension selects
-the format. Values below zero or above one are clipped to the supported image range.
+`[3, height, width]` matrix as a JPEG, PNG, TIFF, or WebP file. The filename
+extension selects the format. Values below zero or above one are clipped to the
+supported image range.
 
 Output files are restricted to the Ikaros `UserData` directory. Encoding and file
 errors generate warnings during execution and do not stop the model.
@@ -22,8 +23,8 @@ errors generate warnings during execution and do not stop the model.
 
 | Name | Description | Type | Default |
 |:-----|:------------|:-----|:--------|
-| filename | Output filename ending in `.jpg`, `.jpeg`, or `.png`. | string | `output.png` |
-| quality | JPEG quality from 1 to 100; ignored for PNG. | number | 90 |
+| filename | Output filename ending in `.jpg`, `.jpeg`, `.png`, `.tif`, `.tiff`, or `.webp`. | string | `output.jpg` |
+| quality | JPEG and WebP quality from 1 to 100; ignored for PNG and TIFF. | number | 90 |
 | start_index | First sequence number. | number | 0 |
 | single_trigger | With WRITE connected, write only on its rising edge. | bool | no |
 
@@ -36,3 +37,11 @@ request a fixed width with leading zeros: `frame_####.jpg` starts at
 
 Without a placeholder, each write replaces the same file. Sequence numbers advance
 only after a file was written successfully.
+
+## Codec availability
+
+JPEG support is required in every Ikaros build. PNG, TIFF, and WebP are included
+when their libraries are available. The CMake options `IKAROS_PNG`, `IKAROS_TIFF`,
+and `IKAROS_WEBP` accept `AUTO`, `ON`, or `OFF`. `AUTO` enables an installed codec,
+`ON` makes it a required dependency, and `OFF` disables it. Selecting an unavailable
+format produces a clear startup error.

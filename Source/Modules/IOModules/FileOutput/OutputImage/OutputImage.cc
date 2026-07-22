@@ -1,5 +1,3 @@
-#include <algorithm>
-#include <cctype>
 #include <filesystem>
 #include <limits>
 #include <stdexcept>
@@ -38,17 +36,9 @@ class OutputImage : public Module
 
 
     static void
-    ValidateExtension(const std::filesystem::path & path)
+    ValidateFormat(const std::filesystem::path & path)
     {
-        std::string extension = path.extension().string();
-        std::transform(extension.begin(), extension.end(), extension.begin(),
-                       [](unsigned char character)
-                       {
-                           return static_cast<char>(std::tolower(character));
-                       });
-        if(extension != ".jpg" && extension != ".jpeg" && extension != ".png")
-            throw std::invalid_argument(
-                "OutputImage filename must end in .jpg, .jpeg, or .png");
+        validate_image_file_format(path);
     }
 
 
@@ -117,7 +107,7 @@ public:
             throw std::invalid_argument("OutputImage quality must be between 1 and 100");
 
         const std::filesystem::path initialPath = ResolveFilename();
-        ValidateExtension(initialPath);
+        ValidateFormat(initialPath);
     }
 
 
@@ -147,7 +137,7 @@ public:
 
         try
         {
-            ValidateExtension(outputPath);
+            ValidateFormat(outputPath);
             image_write_image(input, outputPath, quality.as_int());
             AdvanceSequence();
         }

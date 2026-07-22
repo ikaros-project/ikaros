@@ -105,6 +105,21 @@ namespace
         }
         return false;
     }
+
+
+    bool
+    rejects_runtime_error(const std::function<void()> & function)
+    {
+        try
+        {
+            function();
+        }
+        catch(const std::runtime_error &)
+        {
+            return true;
+        }
+        return false;
+    }
 }
 
 
@@ -605,25 +620,35 @@ public:
         jpeg_write_image(grayscale_source, written_gray_jpeg.path(), 85);
         const auto [written_jpeg_width, written_jpeg_height, written_jpeg_channels] =
             jpeg_get_info(written_gray_jpeg.path());
+        const TemporaryFile written_color_jpeg("written-color.JPEG", "");
+        image_write_image(color_image, written_color_jpeg.path(), 85);
 
+        matrix invalid_image_shape(2);
+        const TemporaryFile invalid_jpeg_output("invalid-shape.jpg", "unchanged");
+        const TemporaryFile unsupported_output("unsupported-output.gif", "unchanged");
+        require(written_jpeg_width == 2 && written_jpeg_height == 2 &&
+                written_jpeg_channels == 1 &&
+                rejects_invalid_argument([&]
+                {
+                    jpeg_write_image(invalid_image_shape, invalid_jpeg_output.path());
+                }) &&
+                rejects_invalid_argument([&]
+                {
+                    image_write_image(color_image, unsupported_output.path());
+                }),
+                "JPEG file writers failed to round-trip data or reject invalid input");
+
+#if IKAROS_HAS_PNG
         const TemporaryFile written_gray_png("written-gray.png", "");
         png_write_image(grayscale_source, written_gray_png.path());
         const auto [written_gray_png_width, written_gray_png_height,
                     written_gray_png_channels] = png_get_info(written_gray_png.path());
         const matrix written_gray_png_image = png_get_image(written_gray_png.path());
-
-        const TemporaryFile written_color_jpeg("written-color.JPEG", "");
-        image_write_image(color_image, written_color_jpeg.path(), 85);
         const TemporaryFile written_color_png("written-color.PNG", "");
         image_write_image(color_image, written_color_png.path());
         const matrix written_color_png_image = image_get_image(written_color_png.path());
-
-        matrix invalid_image_shape(2);
         const TemporaryFile invalid_png_output("invalid-shape.png", "unchanged");
-        const TemporaryFile invalid_jpeg_output("invalid-shape.jpg", "unchanged");
-        const TemporaryFile unsupported_output("unsupported-output.gif", "unchanged");
-        require(written_jpeg_width == 2 && written_jpeg_height == 2 &&
-                written_jpeg_channels == 1 &&
+        require(image_file_format_available(written_gray_png.path()) &&
                 written_gray_png_width == 2 && written_gray_png_height == 2 &&
                 written_gray_png_channels == 1 &&
                 written_gray_png_image.shape() == std::vector<int>{3, 2, 2} &&
@@ -636,16 +661,16 @@ public:
                 rejects_invalid_argument([&]
                 {
                     png_write_image(invalid_image_shape, invalid_png_output.path());
-                }) &&
-                rejects_invalid_argument([&]
-                {
-                    jpeg_write_image(invalid_image_shape, invalid_jpeg_output.path());
-                }) &&
-                rejects_invalid_argument([&]
-                {
-                    image_write_image(color_image, unsupported_output.path());
                 }),
-                "Image file writers failed to round-trip data or reject invalid input");
+                "PNG file writers failed to round-trip data or reject invalid input");
+#else
+        require(!image_file_format_available("unavailable.png") &&
+                rejects_runtime_error([&]
+                {
+                    png_write_image(grayscale_source, "unavailable.png");
+                }),
+                "Unavailable PNG support was reported incorrectly");
+#endif
 
         auto rejected_malformed_jpeg = [](const std::function<void()> & read)
         {
@@ -685,6 +710,7 @@ public:
                 jpeg_get_image(valid_jpeg.path()).shape() == std::vector<int>{3, 2, 2},
                 "JPEG reader accepted truncated pixel data or did not recover afterward");
 
+#if IKAROS_HAS_PNG
         const std::array<unsigned char, 72> valid_png_data
         {
             0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
@@ -820,6 +846,72 @@ public:
                     static_cast<void>(png_get_image(truncated_png.path()));
                 }),
                 "PNG image reader did not recover from truncated pixel data");
+#endif
+
+#if IKAROS_HAS_TIFF
+        const TemporaryFile written_tiff("written-color.TIFF", "");
+        image_write_image(color_image, written_tiff.path());
+        const auto [tiff_width, tiff_height, tiff_channels] =
+            image_get_info(written_tiff.path());
+        matrix decoded_tiff = tiff_get_image(written_tiff.path());
+        float * decoded_tiff_storage = decoded_tiff.data();
+        tiff_get_image(decoded_tiff, written_tiff.path());
+        const TemporaryFile written_gray_tiff("written-gray.tif", "");
+        tiff_write_image(grayscale_source, written_gray_tiff.path());
+        require(image_file_format_available(written_tiff.path()) &&
+                tiff_width == 2 && tiff_height == 2 && tiff_channels == 3 &&
+                decoded_tiff.shape() == std::vector<int>{3, 2, 2} &&
+                decoded_tiff.data() == decoded_tiff_storage &&
+                decoded_tiff(0, 0, 0) == 1.0f &&
+                decoded_tiff(1, 0, 1) == 1.0f &&
+                decoded_tiff(2, 1, 0) == 1.0f &&
+                tiff_get_info(written_gray_tiff.path()).channels == 1 &&
+                rejects_invalid_argument([&]
+                {
+                    tiff_write_image(invalid_image_shape, written_tiff.path());
+                }),
+                "TIFF readers or writers failed to round-trip image data");
+#else
+        require(!image_file_format_available("unavailable.tiff") &&
+                rejects_runtime_error([&]
+                {
+                    tiff_write_image(grayscale_source, "unavailable.tiff");
+                }),
+                "Unavailable TIFF support was reported incorrectly");
+#endif
+
+#if IKAROS_HAS_WEBP
+        const TemporaryFile written_webp("written-color.WEBP", "");
+        image_write_image(color_image, written_webp.path(), 100);
+        const auto [webp_width, webp_height, webp_channels] =
+            webp_get_info(written_webp.path());
+        matrix decoded_webp = image_get_image(written_webp.path());
+        float * decoded_webp_storage = decoded_webp.data();
+        webp_get_image(decoded_webp, written_webp.path());
+        const TemporaryFile written_gray_webp("written-gray.webp", "");
+        webp_write_image(grayscale_source, written_gray_webp.path(), 90);
+        require(image_file_format_available(written_webp.path()) &&
+                webp_width == 2 && webp_height == 2 && webp_channels == 3 &&
+                decoded_webp.shape() == std::vector<int>{3, 2, 2} &&
+                decoded_webp.data() == decoded_webp_storage &&
+                webp_get_info(written_gray_webp.path()).width == 2 &&
+                rejects_invalid_argument([&]
+                {
+                    webp_write_image(invalid_image_shape, written_webp.path());
+                }) &&
+                rejects_invalid_argument([&]
+                {
+                    webp_write_image(color_image, written_webp.path(), 101);
+                }),
+                "WebP readers or writers failed to round-trip image data");
+#else
+        require(!image_file_format_available("unavailable.webp") &&
+                rejects_runtime_error([&]
+                {
+                    webp_write_image(grayscale_source, "unavailable.webp");
+                }),
+                "Unavailable WebP support was reported incorrectly");
+#endif
 
         std::cout << "UTILITIES TEST OK\n";
     }

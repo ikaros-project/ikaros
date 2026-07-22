@@ -1,9 +1,9 @@
 <group name="OutputImageFormats"
-       description="OutputImage writes JPEG and numbered PNG files"
+       description="OutputImage writes JPEG files, sequences, and rising-edge triggers"
        start="true"
        stop="2"
-       check_sum="1859819"
-       expected_file_exists="UserData/test_291_output_image.jpg||UserData/test_291_output_image_07.png||UserData/test_291_output_image_08.png||UserData/test_291_output_image_trigger_99.png"
+       check_sum="1858579"
+       expected_file_exists="UserData/test_291_output_image.jpg||UserData/test_291_output_image_07.jpg||UserData/test_291_output_image_08.jpg||UserData/test_291_output_image_trigger_99.jpg"
        expected_output_not_contains="OutputImage sequence stopped"
        cleanup_expected_files="true">
     <module name="ColorSource"
@@ -16,21 +16,21 @@
     <module name="GraySource"
             class="Constant"
             data="0,0.25;0.75,1" />
-    <module name="PNGOutput"
+    <module name="SequenceOutput"
             class="OutputImage"
-            filename="test_291_output_image_##.png"
+            filename="test_291_output_image_##.jpg"
             start_index="7" />
     <module name="Trigger"
             class="Constant"
             data="1" />
-    <module name="TriggeredPNGOutput"
+    <module name="TriggeredOutput"
             class="OutputImage"
-            filename="test_291_output_image_trigger_##.png"
+            filename="test_291_output_image_trigger_##.jpg"
             start_index="99"
             single_trigger="yes" />
 
     <connection source="ColorSource.OUTPUT" target="JPEGOutput.INPUT" />
-    <connection source="GraySource.OUTPUT" target="PNGOutput.INPUT" />
-    <connection source="GraySource.OUTPUT" target="TriggeredPNGOutput.INPUT" />
-    <connection source="Trigger.OUTPUT" target="TriggeredPNGOutput.WRITE" />
+    <connection source="GraySource.OUTPUT" target="SequenceOutput.INPUT" />
+    <connection source="GraySource.OUTPUT" target="TriggeredOutput.INPUT" />
+    <connection source="Trigger.OUTPUT" target="TriggeredOutput.WRITE" />
 </group>

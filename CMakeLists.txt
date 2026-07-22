@@ -43,6 +43,18 @@ endif()
 
 option(IKAROS_THREAD_SANITIZER "Build Ikaros with ThreadSanitizer" OFF)
 
+foreach(CODEC PNG TIFF WEBP)
+    set(IKAROS_${CODEC} "AUTO" CACHE STRING
+        "${CODEC} codec support: AUTO, ON (required), or OFF")
+    set_property(CACHE IKAROS_${CODEC} PROPERTY STRINGS AUTO ON OFF)
+    string(TOUPPER "${IKAROS_${CODEC}}" IKAROS_${CODEC}_MODE)
+    if(NOT IKAROS_${CODEC}_MODE STREQUAL "AUTO" AND
+       NOT IKAROS_${CODEC}_MODE STREQUAL "ON" AND
+       NOT IKAROS_${CODEC}_MODE STREQUAL "OFF")
+        message(FATAL_ERROR "IKAROS_${CODEC} must be AUTO, ON, or OFF")
+    endif()
+endforeach()
+
 if(NOT LOGGING STREQUAL "OFF" AND NOT LOGGING STREQUAL "MINIMAL" AND NOT LOGGING STREQUAL "FULL")
     message(FATAL_ERROR "LOGGING must be one of: OFF, MINIMAL, FULL")
 endif()
@@ -185,23 +197,76 @@ target_link_libraries(ikaros ${LAPACK_LIBRARIES})
 #    message(FATAL_ERROR "\nIkaros require the THREADS library.\nVisit www.ikaros-project.org for information about dependencies")
 #endif (Threads_FOUND)
 
-# Turbo JPEG
-find_package (Jpeg-Turbo)
-  if (TURBO_JPEG_FOUND)
-  	include_directories(${TURBO_JPEG_INCLUDE_DIRS})
-  	target_link_libraries (ikaros ${TURBO_JPEG_LIBRARIES})
-  	else()
-   		 message(FATAL_ERROR "\nIkaros require the Turbo-JPEG library. \nVisit www.ikaros-project.org for information about dependencies")
-	endif (TURBO_JPEG_FOUND)
+# JPEG is the required core image codec.
+find_package(Jpeg-Turbo)
+if(TURBO_JPEG_FOUND)
+    target_include_directories(ikaros PRIVATE ${TURBO_JPEG_INCLUDE_DIRS})
+    target_link_libraries(ikaros ${TURBO_JPEG_LIBRARIES})
+else()
+    message(FATAL_ERROR
+        "Ikaros requires the libjpeg-turbo library. Visit www.ikaros-project.org for dependency information.")
+endif()
 
- # PNG 
- find_package (PNG)
-if (PNG_FOUND)
-  include_directories(${PNG_PNG_INCLUDE_DIR})
-  target_link_libraries (ikaros ${PNG_LIBRARIES})
-    else()
-    message(FATAL_ERROR "\nIkaros require the PNG library. \nVisit www.ikaros-project.org for information about dependencies")
-endif (PNG_FOUND)
+# Other image codecs are enabled when available. Setting a codec option to ON
+# makes it a required dependency; OFF disables it even when installed.
+set(IKAROS_HAS_PNG 0)
+if(NOT IKAROS_PNG_MODE STREQUAL "OFF")
+    find_package(PNG QUIET)
+    if(PNG_FOUND)
+        set(IKAROS_HAS_PNG 1)
+        target_include_directories(ikaros PRIVATE ${PNG_PNG_INCLUDE_DIR})
+        target_link_libraries(ikaros ${PNG_LIBRARIES})
+    elseif(IKAROS_PNG_MODE STREQUAL "ON")
+        message(FATAL_ERROR "IKAROS_PNG=ON but libpng was not found")
+    endif()
+endif()
+
+set(IKAROS_HAS_TIFF 0)
+if(NOT IKAROS_TIFF_MODE STREQUAL "OFF")
+    find_package(TIFF QUIET)
+    if(TIFF_FOUND)
+        set(IKAROS_HAS_TIFF 1)
+        target_include_directories(ikaros PRIVATE ${TIFF_INCLUDE_DIRS} ${TIFF_INCLUDE_DIR})
+        target_link_libraries(ikaros ${TIFF_LIBRARIES})
+    elseif(IKAROS_TIFF_MODE STREQUAL "ON")
+        message(FATAL_ERROR "IKAROS_TIFF=ON but libtiff was not found")
+    endif()
+endif()
+
+set(IKAROS_HAS_WEBP 0)
+if(NOT IKAROS_WEBP_MODE STREQUAL "OFF")
+    find_package(WebP QUIET)
+    if(WebP_FOUND)
+        set(IKAROS_HAS_WEBP 1)
+        target_link_libraries(ikaros WebP::webp)
+    elseif(IKAROS_WEBP_MODE STREQUAL "ON")
+        message(FATAL_ERROR "IKAROS_WEBP=ON but libwebp was not found")
+    endif()
+endif()
+
+target_compile_definitions(ikaros PRIVATE
+    IKAROS_HAS_PNG=${IKAROS_HAS_PNG}
+    IKAROS_HAS_TIFF=${IKAROS_HAS_TIFF}
+    IKAROS_HAS_WEBP=${IKAROS_HAS_WEBP}
+)
+
+if(IKAROS_HAS_PNG)
+    set(IKAROS_PNG_STATUS ON)
+else()
+    set(IKAROS_PNG_STATUS OFF)
+endif()
+if(IKAROS_HAS_TIFF)
+    set(IKAROS_TIFF_STATUS ON)
+else()
+    set(IKAROS_TIFF_STATUS OFF)
+endif()
+if(IKAROS_HAS_WEBP)
+    set(IKAROS_WEBP_STATUS ON)
+else()
+    set(IKAROS_WEBP_STATUS OFF)
+endif()
+message(STATUS
+    "Image codecs: JPEG=ON PNG=${IKAROS_PNG_STATUS} TIFF=${IKAROS_TIFF_STATUS} WebP=${IKAROS_WEBP_STATUS}")
 
 
 

@@ -1,12 +1,9 @@
 <group name="InputImageFormats"
-       description="InputImage reads JPEG and PNG files"
+       description="InputImage reads JPEG files"
        start="true"
        stop="1"
-       check_sum="886052">
+       check_sum="210521">
     <module name="JPEG"
             class="InputImage"
             filename="../Examples/Media/colorrobot.jpg" />
-    <module name="PNG"
-            class="InputImage"
-            filename="../Examples/Media/robot.png" />
 </group>

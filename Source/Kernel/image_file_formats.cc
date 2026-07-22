@@ -29,12 +29,35 @@
 #define IKAROS_IMAGE_ACCELERATE 0
 #endif
 
+#ifndef IKAROS_HAS_PNG
+#define IKAROS_HAS_PNG 0
+#endif
+
+#ifndef IKAROS_HAS_TIFF
+#define IKAROS_HAS_TIFF 0
+#endif
+
+#ifndef IKAROS_HAS_WEBP
+#define IKAROS_HAS_WEBP 0
+#endif
+
 extern "C"
 {
 #include "jpeglib.h"
 #include <setjmp.h>
+#if IKAROS_HAS_PNG
 #include <png.h>
+#endif
 }
+
+#if IKAROS_HAS_TIFF
+#include <tiffio.h>
+#endif
+
+#if IKAROS_HAS_WEBP
+#include <webp/decode.h>
+#include <webp/encode.h>
+#endif
 namespace ikaros
 {
 
@@ -600,6 +623,7 @@ namespace ikaros
     // PNG Images
     //
 
+#if IKAROS_HAS_PNG
     struct png_error_context
     {
         char message[256]{};
@@ -944,12 +968,472 @@ namespace ikaros
         PngWriter writer;
         writer.write(image, filename);
     }
+#else
+    [[noreturn]] static void
+    throw_png_unavailable()
+    {
+        throw std::runtime_error("PNG support is unavailable in this Ikaros build");
+    }
+
+
+    image_info
+    png_get_info(const std::filesystem::path &)
+    {
+        throw_png_unavailable();
+    }
+
+
+    void
+    png_get_image(matrix &, const std::filesystem::path &)
+    {
+        throw_png_unavailable();
+    }
+
+
+    matrix
+    png_get_image(const std::filesystem::path &)
+    {
+        throw_png_unavailable();
+    }
+
+
+    void
+    png_write_image(const matrix &, const std::filesystem::path &)
+    {
+        throw_png_unavailable();
+    }
+#endif
+
+
+    static std::size_t
+    checked_image_storage_size(int width, int height, std::size_t components,
+                               std::string_view format)
+    {
+        if(width <= 0 || height <= 0)
+            throw std::invalid_argument(std::string(format) +
+                                        " image dimensions must be positive");
+
+        const std::size_t unsigned_width = static_cast<std::size_t>(width);
+        const std::size_t unsigned_height = static_cast<std::size_t>(height);
+        if(unsigned_height > std::numeric_limits<std::size_t>::max() / unsigned_width ||
+           unsigned_width * unsigned_height >
+               std::numeric_limits<std::size_t>::max() / components)
+            throw std::length_error(std::string(format) + " image size overflow");
+        return unsigned_width * unsigned_height * components;
+    }
+
+
+    static std::vector<unsigned char>
+    read_image_file(const std::filesystem::path & filename, std::string_view format)
+    {
+        std::ifstream file(filename, std::ios::binary | std::ios::ate);
+        if(!file)
+            throw std::runtime_error("Could not open " + std::string(format) +
+                                     " file: \"" + filename.string() + "\"");
+
+        const std::streampos end = file.tellg();
+        if(end <= 0 || end > std::numeric_limits<std::streamsize>::max())
+            throw std::runtime_error(std::string(format) + " file has an invalid size: \"" +
+                                     filename.string() + "\"");
+        const auto size = static_cast<std::size_t>(end);
+        std::vector<unsigned char> data(size);
+        file.seekg(0);
+        file.read(reinterpret_cast<char *>(data.data()),
+                  static_cast<std::streamsize>(size));
+        if(!file)
+            throw std::runtime_error("Could not read " + std::string(format) +
+                                     " file: \"" + filename.string() + "\"");
+        return data;
+    }
+
+
+    static void
+    write_image_file(std::span<const unsigned char> data,
+                     const std::filesystem::path & filename, std::string_view format)
+    {
+        if(data.size() > static_cast<std::size_t>(
+                             std::numeric_limits<std::streamsize>::max()))
+            throw std::length_error(std::string(format) + " file is too large to write");
+
+        std::ofstream file(filename, std::ios::binary | std::ios::trunc);
+        if(!file)
+            throw std::runtime_error("Could not open " + std::string(format) +
+                                     " file for writing: \"" + filename.string() + "\"");
+        file.write(reinterpret_cast<const char *>(data.data()),
+                   static_cast<std::streamsize>(data.size()));
+        file.close();
+        if(!file)
+            throw std::runtime_error("Could not write " + std::string(format) +
+                                     " file: \"" + filename.string() + "\"");
+    }
+
+
+    //
+    // TIFF Images
+    //
+
+#if IKAROS_HAS_TIFF
+    struct TiffCloser
+    {
+        void
+        operator()(TIFF * file) const noexcept
+        {
+            if(file != nullptr)
+                TIFFClose(file);
+        }
+    };
+
+
+    using TiffFile = std::unique_ptr<TIFF, TiffCloser>;
+
+
+    static TiffFile
+    open_tiff(const std::filesystem::path & filename, const char * mode)
+    {
+        TiffFile file(TIFFOpen(filename.string().c_str(), mode));
+        if(file == nullptr)
+            throw std::runtime_error("Could not open TIFF file \"" + filename.string() +
+                                     "\"");
+        return file;
+    }
+
+
+    static image_info
+    read_tiff_info(TIFF * file, const std::filesystem::path & filename)
+    {
+        std::uint32_t width = 0;
+        std::uint32_t height = 0;
+        std::uint16_t channels = 1;
+        if(TIFFGetField(file, TIFFTAG_IMAGEWIDTH, &width) != 1 ||
+           TIFFGetField(file, TIFFTAG_IMAGELENGTH, &height) != 1)
+            throw std::runtime_error("TIFF dimensions are missing from \"" +
+                                     filename.string() + "\"");
+        TIFFGetFieldDefaulted(file, TIFFTAG_SAMPLESPERPIXEL, &channels);
+        if(width == 0 || height == 0 ||
+           width > static_cast<std::uint32_t>(std::numeric_limits<int>::max()) ||
+           height > static_cast<std::uint32_t>(std::numeric_limits<int>::max()))
+            throw std::runtime_error("TIFF dimensions are unsupported for \"" +
+                                     filename.string() + "\"");
+        return image_info{static_cast<int>(width), static_cast<int>(height),
+                          static_cast<int>(channels)};
+    }
+
+
+    image_info
+    tiff_get_info(const std::filesystem::path & filename)
+    {
+        const TiffFile file = open_tiff(filename, "r");
+        return read_tiff_info(file.get(), filename);
+    }
+
+
+    void
+    tiff_get_image(matrix & image, const std::filesystem::path & filename)
+    {
+        const TiffFile file = open_tiff(filename, "r");
+        const image_info info = read_tiff_info(file.get(), filename);
+        const std::size_t pixel_count =
+            checked_image_storage_size(info.width, info.height, 1, "TIFF");
+        std::vector<std::uint32_t> pixels(pixel_count);
+        if(TIFFReadRGBAImageOriented(file.get(), static_cast<std::uint32_t>(info.width),
+                                     static_cast<std::uint32_t>(info.height), pixels.data(),
+                                     ORIENTATION_TOPLEFT, 0) != 1)
+            throw std::runtime_error("Could not decode TIFF file \"" +
+                                     filename.string() + "\"");
+
+        prepare_rgb_image(image, info.height, info.width, filename);
+        constexpr float scale = 1.0f / 255.0f;
+        for(int y = 0; y < info.height; ++y)
+        {
+            float * red = image.logical_block_data(y);
+            float * green = image.logical_block_data(info.height + y);
+            float * blue = image.logical_block_data(2 * info.height + y);
+            const std::uint32_t * source =
+                pixels.data() + static_cast<std::size_t>(y) * info.width;
+            for(int x = 0; x < info.width; ++x)
+            {
+                red[x] = TIFFGetR(source[x]) * scale;
+                green[x] = TIFFGetG(source[x]) * scale;
+                blue[x] = TIFFGetB(source[x]) * scale;
+            }
+        }
+    }
+
+
+    matrix
+    tiff_get_image(const std::filesystem::path & filename)
+    {
+        matrix image;
+        tiff_get_image(image, filename);
+        return image;
+    }
+
+
+    void
+    tiff_write_image(const matrix & image, const std::filesystem::path & filename)
+    {
+        const bool grayscale = image.rank() == 2;
+        if(!grayscale && (image.rank() != 3 || image.size(0) != 3))
+            throw std::invalid_argument(
+                "TIFF image must have shape [height, width] or [3, height, width]");
+
+        const int height = image.size(grayscale ? 0 : 1);
+        const int width = image.size(grayscale ? 1 : 2);
+        checked_image_storage_size(width, height, grayscale ? 1 : 3, "TIFF");
+        const std::size_t row_width = static_cast<std::size_t>(width);
+        std::vector<unsigned char> storage(
+            (grayscale ? 1 : (IKAROS_IMAGE_ACCELERATE ? 6 : 3)) * row_width);
+        std::span<unsigned char> row(storage.data(), (grayscale ? 1 : 3) * row_width);
+        std::span<unsigned char> planar_buffer;
+#if IKAROS_IMAGE_ACCELERATE
+        if(!grayscale)
+            planar_buffer = std::span(storage).subspan(3 * row_width);
+#endif
+
+        const TiffFile file = open_tiff(filename, "w");
+        const std::uint16_t samples = grayscale ? 1 : 3;
+        if(TIFFSetField(file.get(), TIFFTAG_IMAGEWIDTH,
+                        static_cast<std::uint32_t>(width)) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_IMAGELENGTH,
+                        static_cast<std::uint32_t>(height)) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_SAMPLESPERPIXEL, samples) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_BITSPERSAMPLE,
+                        static_cast<std::uint16_t>(8)) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_PHOTOMETRIC,
+                        grayscale ? PHOTOMETRIC_MINISBLACK : PHOTOMETRIC_RGB) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_COMPRESSION, COMPRESSION_LZW) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_ROWSPERSTRIP,
+                        TIFFDefaultStripSize(file.get(), 0)) != 1)
+            throw std::runtime_error("Could not configure TIFF file \"" +
+                                     filename.string() + "\"");
+
+        for(int y = 0; y < height; ++y)
+        {
+            if(grayscale)
+            {
+                const auto source = std::span(image.logical_block_data(y), row_width);
+                float_to_byte(row, source, 0, 1);
+            }
+            else
+            {
+                const auto red = std::span(image.logical_block_data(y), row_width);
+                const auto green = std::span(image.logical_block_data(height + y),
+                                             row_width);
+                const auto blue = std::span(image.logical_block_data(2 * height + y),
+                                            row_width);
+                float_rgb_to_byte(row, planar_buffer, red, green, blue);
+            }
+            if(TIFFWriteScanline(file.get(), row.data(), static_cast<std::uint32_t>(y), 0) < 0)
+                throw std::runtime_error("Could not write TIFF row to \"" +
+                                         filename.string() + "\"");
+        }
+    }
+#else
+    [[noreturn]] static void
+    throw_tiff_unavailable()
+    {
+        throw std::runtime_error("TIFF support is unavailable in this Ikaros build");
+    }
+
+
+    image_info
+    tiff_get_info(const std::filesystem::path &)
+    {
+        throw_tiff_unavailable();
+    }
+
+
+    void
+    tiff_get_image(matrix &, const std::filesystem::path &)
+    {
+        throw_tiff_unavailable();
+    }
+
+
+    matrix
+    tiff_get_image(const std::filesystem::path &)
+    {
+        throw_tiff_unavailable();
+    }
+
+
+    void
+    tiff_write_image(const matrix &, const std::filesystem::path &)
+    {
+        throw_tiff_unavailable();
+    }
+#endif
+
+
+    //
+    // WebP Images
+    //
+
+#if IKAROS_HAS_WEBP
+    static image_info
+    webp_info(std::span<const unsigned char> data, const std::filesystem::path & filename)
+    {
+        WebPBitstreamFeatures features{};
+        if(WebPGetFeatures(data.data(), data.size(), &features) != VP8_STATUS_OK)
+            throw std::runtime_error("Could not read WebP header from \"" +
+                                     filename.string() + "\"");
+        if(features.width <= 0 || features.height <= 0)
+            throw std::runtime_error("WebP dimensions are invalid in \"" +
+                                     filename.string() + "\"");
+        return image_info{features.width, features.height, features.has_alpha ? 4 : 3};
+    }
+
+
+    image_info
+    webp_get_info(const std::filesystem::path & filename)
+    {
+        const std::vector<unsigned char> data = read_image_file(filename, "WebP");
+        return webp_info(data, filename);
+    }
+
+
+    void
+    webp_get_image(matrix & image, const std::filesystem::path & filename)
+    {
+        const std::vector<unsigned char> data = read_image_file(filename, "WebP");
+        const image_info info = webp_info(data, filename);
+        if(info.width > std::numeric_limits<int>::max() / 3)
+            throw std::length_error("WebP row size overflow");
+        const std::size_t output_size =
+            checked_image_storage_size(info.width, info.height, 3, "WebP");
+        std::vector<unsigned char> pixels(output_size);
+        if(WebPDecodeRGBInto(data.data(), data.size(), pixels.data(), pixels.size(),
+                             info.width * 3) == nullptr)
+            throw std::runtime_error("Could not decode WebP file \"" +
+                                     filename.string() + "\"");
+
+        prepare_rgb_image(image, info.height, info.width, filename);
+        for(int y = 0; y < info.height; ++y)
+        {
+            const unsigned char * row =
+                pixels.data() + static_cast<std::size_t>(y) * info.width * 3;
+            rgb8_to_planar_float(row, image.logical_block_data(y),
+                                 image.logical_block_data(info.height + y),
+                                 image.logical_block_data(2 * info.height + y),
+                                 static_cast<std::size_t>(info.width));
+        }
+    }
+
+
+    matrix
+    webp_get_image(const std::filesystem::path & filename)
+    {
+        matrix image;
+        webp_get_image(image, filename);
+        return image;
+    }
+
+
+    void
+    webp_write_image(const matrix & image, const std::filesystem::path & filename,
+                     int quality)
+    {
+        const bool grayscale = image.rank() == 2;
+        if(!grayscale && (image.rank() != 3 || image.size(0) != 3))
+            throw std::invalid_argument(
+                "WebP image must have shape [height, width] or [3, height, width]");
+        if(quality < 1 || quality > 100)
+            throw std::invalid_argument("WebP quality must be between 1 and 100");
+
+        const int height = image.size(grayscale ? 0 : 1);
+        const int width = image.size(grayscale ? 1 : 2);
+        if(width > std::numeric_limits<int>::max() / 3)
+            throw std::length_error("WebP row size overflow");
+        const std::size_t storage_size =
+            checked_image_storage_size(width, height, 3, "WebP");
+        std::vector<unsigned char> pixels(storage_size);
+        const std::size_t row_width = static_cast<std::size_t>(width);
+        std::vector<unsigned char> conversion_storage(
+            grayscale ? row_width : (IKAROS_IMAGE_ACCELERATE ? 3 * row_width : 0));
+
+        for(int y = 0; y < height; ++y)
+        {
+            std::span<unsigned char> destination(
+                pixels.data() + static_cast<std::size_t>(y) * width * 3,
+                3 * row_width);
+            if(grayscale)
+            {
+                std::span<unsigned char> gray(conversion_storage.data(), row_width);
+                float_to_byte(gray,
+                              std::span(image.logical_block_data(y), row_width), 0, 1);
+                for(std::size_t x = 0; x < row_width; ++x)
+                    destination[3 * x] = destination[3 * x + 1] =
+                        destination[3 * x + 2] = gray[x];
+            }
+            else
+            {
+                std::span<unsigned char> planar_buffer;
+#if IKAROS_IMAGE_ACCELERATE
+                planar_buffer = conversion_storage;
+#endif
+                float_rgb_to_byte(
+                    destination, planar_buffer,
+                    std::span(image.logical_block_data(y), row_width),
+                    std::span(image.logical_block_data(height + y), row_width),
+                    std::span(image.logical_block_data(2 * height + y), row_width));
+            }
+        }
+
+        unsigned char * encoded = nullptr;
+        const std::size_t encoded_size =
+            WebPEncodeRGB(pixels.data(), width, height, width * 3,
+                          static_cast<float>(quality), &encoded);
+        std::unique_ptr<unsigned char, decltype(&WebPFree)> encoded_data(encoded, WebPFree);
+        if(encoded_size == 0 || encoded == nullptr)
+            throw std::runtime_error("Could not encode WebP file \"" +
+                                     filename.string() + "\"");
+        write_image_file(std::span(encoded, encoded_size), filename, "WebP");
+    }
+#else
+    [[noreturn]] static void
+    throw_webp_unavailable()
+    {
+        throw std::runtime_error("WebP support is unavailable in this Ikaros build");
+    }
+
+
+    image_info
+    webp_get_info(const std::filesystem::path &)
+    {
+        throw_webp_unavailable();
+    }
+
+
+    void
+    webp_get_image(matrix &, const std::filesystem::path &)
+    {
+        throw_webp_unavailable();
+    }
+
+
+    matrix
+    webp_get_image(const std::filesystem::path &)
+    {
+        throw_webp_unavailable();
+    }
+
+
+    void
+    webp_write_image(const matrix &, const std::filesystem::path &, int)
+    {
+        throw_webp_unavailable();
+    }
+#endif
 
 
     enum class image_format
     {
         jpeg,
         png,
+        tiff,
+        webp,
     };
 
 
@@ -967,20 +1451,89 @@ namespace ikaros
             return image_format::jpeg;
         if(extension == ".png")
             return image_format::png;
+        if(extension == ".tif" || extension == ".tiff")
+            return image_format::tiff;
+        if(extension == ".webp")
+            return image_format::webp;
         throw std::invalid_argument("Unsupported image file format for \"" +
                                     filename.string() + "\"");
+    }
+
+
+    static bool
+    image_format_available(image_format format)
+    {
+        switch(format)
+        {
+            case image_format::jpeg:
+                return true;
+            case image_format::png:
+                return IKAROS_HAS_PNG;
+            case image_format::tiff:
+                return IKAROS_HAS_TIFF;
+            case image_format::webp:
+                return IKAROS_HAS_WEBP;
+        }
+        return false;
+    }
+
+
+    bool
+    image_file_format_available(const std::filesystem::path & filename)
+    {
+        try
+        {
+            return image_format_available(image_format_from_extension(filename));
+        }
+        catch(const std::invalid_argument &)
+        {
+            return false;
+        }
+    }
+
+
+    static image_format
+    validated_image_format(const std::filesystem::path & filename)
+    {
+        const image_format format = image_format_from_extension(filename);
+        if(image_format_available(format))
+            return format;
+
+        switch(format)
+        {
+            case image_format::png:
+                throw std::runtime_error("PNG support is unavailable in this Ikaros build");
+            case image_format::tiff:
+                throw std::runtime_error("TIFF support is unavailable in this Ikaros build");
+            case image_format::webp:
+                throw std::runtime_error("WebP support is unavailable in this Ikaros build");
+            case image_format::jpeg:
+                break;
+        }
+        throw std::logic_error("Unhandled image file format");
+    }
+
+
+    void
+    validate_image_file_format(const std::filesystem::path & filename)
+    {
+        static_cast<void>(validated_image_format(filename));
     }
 
 
     image_info
     image_get_info(const std::filesystem::path & filename)
     {
-        switch(image_format_from_extension(filename))
+        switch(validated_image_format(filename))
         {
             case image_format::jpeg:
                 return jpeg_get_info(filename);
             case image_format::png:
                 return png_get_info(filename);
+            case image_format::tiff:
+                return tiff_get_info(filename);
+            case image_format::webp:
+                return webp_get_info(filename);
         }
         throw std::logic_error("Unhandled image file format");
     }
@@ -989,13 +1542,19 @@ namespace ikaros
     void
     image_get_image(matrix & image, const std::filesystem::path & filename)
     {
-        switch(image_format_from_extension(filename))
+        switch(validated_image_format(filename))
         {
             case image_format::jpeg:
                 jpeg_get_image(image, filename);
                 return;
             case image_format::png:
                 png_get_image(image, filename);
+                return;
+            case image_format::tiff:
+                tiff_get_image(image, filename);
+                return;
+            case image_format::webp:
+                webp_get_image(image, filename);
                 return;
         }
         throw std::logic_error("Unhandled image file format");
@@ -1015,13 +1574,19 @@ namespace ikaros
     image_write_image(const matrix & image, const std::filesystem::path & filename,
                       int jpeg_quality)
     {
-        switch(image_format_from_extension(filename))
+        switch(validated_image_format(filename))
         {
             case image_format::jpeg:
                 jpeg_write_image(image, filename, jpeg_quality);
                 return;
             case image_format::png:
                 png_write_image(image, filename);
+                return;
+            case image_format::tiff:
+                tiff_write_image(image, filename);
+                return;
+            case image_format::webp:
+                webp_write_image(image, filename, jpeg_quality);
                 return;
         }
         throw std::logic_error("Unhandled image file format");

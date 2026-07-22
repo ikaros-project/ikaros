@@ -2,14 +2,14 @@
        description="OutputImage reports a file error without stopping execution"
        start="true"
        stop="1"
-       check_sum="65659"
+       check_sum="65591"
        expected_output_contains="Could not write image">
     <module name="Source"
             class="Constant"
             data="0,1;1,0" />
     <module name="Output"
             class="OutputImage"
-            filename="test_292_missing_directory/output.png" />
+            filename="test_292_missing_directory/output.jpg" />
 
     <connection source="Source.OUTPUT" target="Output.INPUT" />
 </group>

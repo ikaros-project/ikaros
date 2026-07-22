@@ -91,8 +91,24 @@ namespace ikaros
     void png_write_image(const matrix & image, const std::filesystem::path & filename);
 
 
+    [[nodiscard]] image_info tiff_get_info(const std::filesystem::path & filename);
+    void tiff_get_image(matrix & image, const std::filesystem::path & filename);
+    [[nodiscard]] matrix tiff_get_image(const std::filesystem::path & filename);
+    void tiff_write_image(const matrix & image, const std::filesystem::path & filename);
+
+
+    [[nodiscard]] image_info webp_get_info(const std::filesystem::path & filename);
+    void webp_get_image(matrix & image, const std::filesystem::path & filename);
+    [[nodiscard]] matrix webp_get_image(const std::filesystem::path & filename);
+    void webp_write_image(const matrix & image, const std::filesystem::path & filename,
+                          int quality = 90);
+
+
     // Selects a decoder from the filename extension. Supported extensions are
-    // .jpg, .jpeg, and .png, matched case-insensitively.
+    // matched case-insensitively. JPEG is always available; other codecs depend
+    // on the libraries selected when Ikaros was built.
+    [[nodiscard]] bool image_file_format_available(const std::filesystem::path & filename);
+    void validate_image_file_format(const std::filesystem::path & filename);
     [[nodiscard]] image_info image_get_info(const std::filesystem::path & filename);
     void image_get_image(matrix & image, const std::filesystem::path & filename);
     [[nodiscard]] matrix image_get_image(const std::filesystem::path & filename);

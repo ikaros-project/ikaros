@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
-<class name="InputImage" description="reads JPEG and PNG files">
-	<parameter name="filename" type="string" description="JPEG or PNG file to read. Use # for an unpadded sequence number or multiple hashes such as #### for a fixed-width zero-padded number. Escape a literal hash as \#." />
+<class name="InputImage" description="reads image files">
+	<parameter name="filename" type="string" description="JPEG, PNG, TIFF, or WebP file to read. Formats other than JPEG require codec support in the current build. Use # for an unpadded sequence number or multiple hashes such as #### for a fixed-width zero-padded number. Escape a literal hash as \#." />
 	<parameter name="filecount" type="number" default="1" description="Number of files to read" min="1" />
 	<parameter name="iterations" type="number" default="0" description="Number of times to read the image(s); 0 means unlimited" min="0" />
 	<parameter name="read_once" type="bool" default="yes" description="Makes the module only read a single image once." />
