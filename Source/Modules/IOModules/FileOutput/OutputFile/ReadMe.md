@@ -2,16 +2,18 @@
 
 ## Description
 
-Writes its input to a file each tick. OutputFile records streamed data from an Ikaros graph to disk.
-The implementation opens a CSV- or TSV-style file, writes column labels when they are available on
-the input matrix, and appends one flattened row of numeric values on every tick. This makes it a
-simple sink for logging time-series activity or exporting module outputs for later analysis.
+OutputFile records streamed matrix data as CSV or TSV. It writes the flattened INPUT as one row
+whenever WRITE is disconnected or greater than zero. Column labels are escaped according to the
+selected format, and numeric values use a fixed number of decimal places.
 
-It receives INPUT, WRITE, and NEWFILE while parameters such as filename, format, decimals,
-timestamp, and directory shape its behavior. That makes it suitable for logging latent state
-trajectories from a cognitive model, capturing high-dimensional motor commands during imitation
-learning, or exporting synchronized internal signals for offline analysis of closed-loop robot
-behavior.
+Each completed row is explicitly flushed. This keeps rows that reached the operating system if the
+Ikaros process crashes, although it does not provide the stronger power-loss guarantee of an
+`fsync()` operation.
+
+NEWFILE reacts to a rising edge. When the filename contains `#`, it closes the current file and
+opens the next numbered file. A single `#` is an unpadded number of any length; multiple hashes
+specify a fixed zero-padded width, so `recording_####.csv` produces
+`recording_0000.csv`, `recording_0001.csv`, and so on. Write `\#` for a literal hash.
 
 ![OutputFile](OutputFile.svg)
 
@@ -19,18 +21,16 @@ behavior.
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| filename | File to write the data to. The name may include a %d to automatcially enumerate sequences of files. | string | output.csv |
-| format | File format: csv or tsv. | string | csv |
-| decimals | Number of decimals for all columns | int | 4 |
-| timestamp | Include time stamp column (T) in file | bool | yes |
-| directory | Create a new directory for the files each time Ikaros is started using this directory name with a number is added. | string |  |
+| filename | File to write inside UserData, optionally containing one `#` sequence placeholder. | string | output.csv |
+| format | Delimited text format: `csv` or `tsv`. | string | csv |
+| decimals | Number of digits after the decimal point, from 0 through 20. | int | 4 |
+| timestamp | Include a per-file tick counter as the first column. | bool | yes |
+| directory | Create a fresh numbered directory such as `recording.000`; empty writes directly inside UserData. | string |  |
 
 ## Inputs
 
 | Name | Description | Optional |
 | --- | --- | --- |
-| INPUT | The input to be written to file |  |
-| WRITE | The input to be written to file | yes |
-| NEWFILE | If connected, a 1 on the input will close the current file, increase the file number (if %d is in the name) and open a new file. | yes |
-
-*This description was automatically created and may not be an accurate description of the module.*
+| INPUT | Values written as one flattened row. |  |
+| WRITE | Write while greater than zero; a disconnected input writes every tick. | yes |
+| NEWFILE | A rising edge opens the next filename selected by the `#` placeholder. | yes |

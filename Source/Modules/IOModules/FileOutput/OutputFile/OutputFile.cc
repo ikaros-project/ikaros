@@ -1,109 +1,469 @@
-#include "ikaros.h"
-
-#include <iostream>
+#include <cmath>
+#include <cstdint>
+#include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <limits>
+#include <locale>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+
+#include "ikaros.h"
+#include "../../FileInput/image_sequence.h"
+
 
 using namespace ikaros;
 
-class OutputFile: public Module
+
+class OutputFile : public Module
 {
-    parameter       directory;
-    parameter       filename;
-    std::string     dirname;                    // Unsed internally
-    parameter       format;
-    std::string     column_separator;
-    std::fstream    file;
-    long		    time;						// Used to generate the time column in the output file
-    int             index;
-    matrix          input;
-    std::filesystem::path resolved_filename;
-    bool            has_opened_file = false;
+    parameter directory;
+    parameter filename;
+    parameter format;
+    parameter decimals;
+    parameter timestamp;
+
+    matrix input;
+    matrix write;
+    matrix newFile;
+
+    std::ofstream file;
+    std::filesystem::path outputDirectory;
+    std::filesystem::path resolvedFilename;
+    std::string columnSeparator;
+    std::uint64_t fileTick = 0;
+    int fileIndex = 0;
+    int decimalCount = 0;
+    bool previousNewFile = false;
+    bool sequenceFilename = false;
+    bool sequenceExhausted = false;
+    bool writeFailed = false;
+    bool warnedWithoutSequence = false;
+    bool warnedTickOverflow = false;
+
+    static bool
+    IsWithin(const std::filesystem::path & root,
+             const std::filesystem::path & path)
+    {
+        auto rootIterator = root.begin();
+        const auto rootEnd = root.end();
+        auto pathIterator = path.begin();
+        const auto pathEnd = path.end();
+
+        for(; rootIterator != rootEnd && pathIterator != pathEnd;
+            ++rootIterator, ++pathIterator)
+            if(*rootIterator != *pathIterator)
+                return false;
+        return rootIterator == rootEnd;
+    }
+
+
+    static std::string
+    DirectorySuffix(std::uint64_t index)
+    {
+        std::ostringstream suffix;
+        suffix.imbue(std::locale::classic());
+        suffix << '.' << std::setfill('0') << std::setw(3) << index;
+        return suffix.str();
+    }
+
+
+    static std::string
+    QuoteLabel(const std::string & label, char delimiter)
+    {
+        if(label.find(delimiter) == std::string::npos &&
+           label.find('"') == std::string::npos &&
+           label.find('\r') == std::string::npos &&
+           label.find('\n') == std::string::npos)
+            return label;
+
+        std::string result;
+        result.reserve(label.size() + 2);
+        result += '"';
+        for(char character : label)
+        {
+            if(character == '"')
+                result += '"';
+            result += character;
+        }
+        result += '"';
+        return result;
+    }
+
 
     void
-    OpenFile(bool append=false)
+    ResolveOutputDirectory()
     {
-        file.open(resolved_filename, std::ios::out | (append ? std::ios::app : std::ios::trunc));
+        if(directory.as_string().empty())
+            return;
+
+        std::filesystem::path baseDirectory;
+        if(!kernel().SanitizeWritePath(directory.as_string(), baseDirectory))
+            throw std::invalid_argument(
+                "OutputFile directory must be inside UserData");
+
+        std::error_code error;
+        std::filesystem::create_directories(baseDirectory.parent_path(), error);
+        if(error)
+            throw std::runtime_error(
+                "Could not create parent directory for OutputFile: " +
+                error.message());
+
+        for(std::uint64_t index = 0;
+            index <= static_cast<std::uint64_t>(std::numeric_limits<int>::max());
+            ++index)
+        {
+            const std::filesystem::path candidate =
+                baseDirectory.parent_path() /
+                (baseDirectory.filename().string() + DirectorySuffix(index));
+
+            std::filesystem::path sanitizedCandidate;
+            if(!kernel().SanitizeWritePath(candidate, sanitizedCandidate))
+                throw std::invalid_argument(
+                    "OutputFile directory must be inside UserData");
+
+            error.clear();
+            if(std::filesystem::create_directory(sanitizedCandidate, error))
+            {
+                outputDirectory = sanitizedCandidate;
+                return;
+            }
+            if(error)
+                throw std::runtime_error(
+                    "Could not create OutputFile directory \"" +
+                    sanitizedCandidate.string() + "\": " + error.message());
+        }
+
+        throw std::runtime_error(
+            "Could not find an available numbered OutputFile directory");
+    }
+
+
+    std::filesystem::path
+    ResolveFilename(int index)
+    {
+        const std::string formatted =
+            format_hash_image_sequence_filename(filename.as_string(), index);
+        std::filesystem::path candidate = formatted;
+
+        if(!outputDirectory.empty())
+        {
+            if(candidate.is_absolute())
+                throw std::invalid_argument(
+                    "OutputFile filename must be relative when directory is set");
+            candidate = outputDirectory / candidate;
+        }
+
+        std::filesystem::path result;
+        if(!kernel().SanitizeWritePath(candidate, result))
+            throw std::invalid_argument(
+                "OutputFile can only write files inside UserData");
+        if(!outputDirectory.empty() && !IsWithin(outputDirectory, result))
+            throw std::invalid_argument(
+                "OutputFile filename must stay inside its output directory");
+        return result;
+    }
+
+
+    void
+    WriteSeparator(bool & first)
+    {
+        if(!first)
+            file << columnSeparator;
+        first = false;
+    }
+
+
+    void
+    FinishRecord(const std::string & description)
+    {
+        file.put('\n');
+        file.flush();
         if(!file)
-            throw std::runtime_error("File could not be opened: " + resolved_filename.string());
-
-        if(!append)
-            WriteHeader();
-        has_opened_file = true;
-    }
-
-    void 
-    Init() override
-    {
-        Bind(input, "INPUT");
-        Bind(filename, "filename");
-        Bind(format, "format");
-
-        if(std::string(format) == "csv")
-            column_separator = ", ";
-        else
-            column_separator = "\t";
-
-        if(!kernel().SanitizeWritePath(filename.as_string(), resolved_filename))
-            throw std::runtime_error("OutputFile can only write files inside UserData.");
-
-        OpenFile(false);
+            throw std::runtime_error(
+                "Could not write and flush OutputFile " + description +
+                " to \"" + resolvedFilename.string() + "\"");
     }
 
 
-    void 
+    void
     WriteHeader()
     {
-        if(input.labels().empty())
+        const auto & labels = input.labels();
+        if(!static_cast<bool>(timestamp) && labels.empty())
             return;
-            
-        std::string sep;
-        for(const std::string & label : input.labels())
+
+        bool first = true;
+        if(static_cast<bool>(timestamp))
         {
-            file << sep << label;
-            sep = column_separator;
+            WriteSeparator(first);
+            file << "T/1";
         }
-        file << std::endl;
+
+        if(!labels.empty())
+        {
+            const char delimiter = columnSeparator == "\t" ? '\t' : ',';
+            for(int i = 0; i < input.size(); ++i)
+            {
+                WriteSeparator(first);
+                if(i < static_cast<int>(labels.size()))
+                    file << QuoteLabel(labels[static_cast<std::size_t>(i)],
+                                       delimiter);
+            }
+        }
+        FinishRecord("header");
     }
 
 
-    void 
+    void
     WriteRow()
     {
-        std::string sep;
+        bool first = true;
+        if(static_cast<bool>(timestamp))
+        {
+            WriteSeparator(first);
+            file << fileTick;
+        }
+
         for(int block = 0; block < input.logical_block_count(); ++block)
         {
             const float * values = input.logical_block_data(block);
             for(int i = 0; i < input.logical_block_size(); ++i)
             {
-                file << sep << values[i];
-                sep = column_separator;
+                WriteSeparator(first);
+                file << values[i];
             }
         }
-        file << std::endl;
+        FinishRecord("row");
     }
 
-    public:
 
-    ~OutputFile()
+    void
+    OpenFile(const std::filesystem::path & path)
     {
-        Stop();
+        resolvedFilename = path;
+        if(!outputDirectory.empty())
+        {
+            std::error_code error;
+            std::filesystem::create_directories(path.parent_path(), error);
+            if(error)
+                throw std::runtime_error(
+                    "Could not create OutputFile subdirectory for \"" +
+                    path.string() + "\": " + error.message());
+        }
+
+        file.clear();
+        file.open(path, std::ios::out | std::ios::trunc);
+        if(!file)
+            throw std::runtime_error(
+                "Could not open OutputFile \"" + path.string() + "\"");
+
+        file.imbue(std::locale::classic());
+        file << std::fixed << std::setprecision(decimalCount);
+        try
+        {
+            WriteHeader();
+        }
+        catch(...)
+        {
+            file.close();
+            throw;
+        }
+        writeFailed = false;
     }
+
+
+    bool
+    CloseFile(bool reportFailure)
+    {
+        if(!file.is_open())
+            return true;
+
+        file.flush();
+        bool succeeded = static_cast<bool>(file);
+        file.close();
+        succeeded = succeeded && !file.fail();
+        file.clear();
+
+        if(!succeeded && reportFailure)
+            Warning("Could not flush and close OutputFile \"" +
+                    resolvedFilename.string() + "\"", path_);
+        return succeeded;
+    }
+
+
+    bool
+    ShouldWrite() const
+    {
+        return !write.connected() || write(0) > 0.0f;
+    }
+
+
+    bool
+    NewFileRequested()
+    {
+        if(!newFile.connected())
+            return false;
+
+        const bool active = newFile(0) > 0.0f;
+        const bool requested = active && !previousNewFile;
+        previousNewFile = active;
+        return requested;
+    }
+
+
+    void
+    OpenNextFile()
+    {
+        if(!sequenceFilename)
+        {
+            if(!warnedWithoutSequence)
+            {
+                Warning("OutputFile NEWFILE was ignored because filename has "
+                        "no # placeholder", path_);
+                warnedWithoutSequence = true;
+            }
+            return;
+        }
+        if(sequenceExhausted)
+            return;
+        if(fileIndex == std::numeric_limits<int>::max())
+        {
+            sequenceExhausted = true;
+            Warning("OutputFile sequence reached the largest supported index",
+                    path_);
+            return;
+        }
+
+        const int nextIndex = fileIndex + 1;
+        std::filesystem::path nextFilename;
+        try
+        {
+            nextFilename = ResolveFilename(nextIndex);
+        }
+        catch(const std::out_of_range & error)
+        {
+            sequenceExhausted = true;
+            Warning("OutputFile sequence stopped: " + std::string(error.what()),
+                    path_);
+            return;
+        }
+        catch(const std::exception & error)
+        {
+            Warning("Could not resolve the next OutputFile filename: " +
+                    std::string(error.what()), path_);
+            return;
+        }
+
+        CloseFile(true);
+        try
+        {
+            OpenFile(nextFilename);
+            fileIndex = nextIndex;
+            fileTick = 0;
+        }
+        catch(const std::exception & error)
+        {
+            writeFailed = true;
+            Warning("Could not open the next OutputFile: " +
+                    std::string(error.what()), path_);
+        }
+    }
+
+
+    void
+    AdvanceFileTick()
+    {
+        if(fileTick != std::numeric_limits<std::uint64_t>::max())
+        {
+            ++fileTick;
+            return;
+        }
+        if(!warnedTickOverflow)
+        {
+            Warning("OutputFile timestamp reached its largest supported value",
+                    path_);
+            warnedTickOverflow = true;
+        }
+    }
+
+
+    void
+    Init() override
+    {
+        Bind(input, "INPUT");
+        Bind(write, "WRITE");
+        Bind(newFile, "NEWFILE");
+        Bind(directory, "directory");
+        Bind(filename, "filename");
+        Bind(format, "format");
+        Bind(decimals, "decimals");
+        Bind(timestamp, "timestamp");
+
+        if(filename.as_string().empty())
+            throw std::invalid_argument(
+                "OutputFile filename must not be empty");
+        if(write.connected() && write.size() != 1)
+            throw std::invalid_argument(
+                "OutputFile WRITE must be a scalar");
+        if(newFile.connected() && newFile.size() != 1)
+            throw std::invalid_argument(
+                "OutputFile NEWFILE must be a scalar");
+
+        const std::string selectedFormat = format.as_string();
+        if(selectedFormat == "csv")
+            columnSeparator = ",";
+        else if(selectedFormat == "tsv")
+            columnSeparator = "\t";
+        else
+            throw std::invalid_argument(
+                "OutputFile format must be \"csv\" or \"tsv\"");
+
+        const double requestedDecimals = decimals.as_double();
+        if(!std::isfinite(requestedDecimals) ||
+           std::trunc(requestedDecimals) != requestedDecimals ||
+           requestedDecimals < 0.0 || requestedDecimals > 20.0)
+            throw std::invalid_argument(
+                "OutputFile decimals must be an integer from 0 to 20");
+        decimalCount = static_cast<int>(requestedDecimals);
+
+        sequenceFilename =
+            contains_hash_image_sequence_format(filename.as_string());
+        ResolveOutputDirectory();
+        OpenFile(ResolveFilename(fileIndex));
+    }
+
 
     void
     Stop() override
     {
-        if(file.is_open())
-            file.close();
+        CloseFile(true);
     }
 
 
-    void 
+    void
     Tick() override
     {
-        if(!file.is_open())
-            OpenFile(has_opened_file);
-        WriteRow();
+        if(NewFileRequested())
+            OpenNextFile();
+
+        if(ShouldWrite() && !writeFailed && file.is_open())
+        {
+            try
+            {
+                WriteRow();
+            }
+            catch(const std::exception & error)
+            {
+                writeFailed = true;
+                Warning(error.what(), path_);
+                CloseFile(false);
+            }
+        }
+        AdvanceFileTick();
     }
 };
+
 
 INSTALL_CLASS(OutputFile)
