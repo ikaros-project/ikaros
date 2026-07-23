@@ -1,0 +1,12 @@
+<group internal="true"
+    name="TestLaunchpadAnimation"
+    description="Generate a changing bounded RGB Launchpad animation"
+    start="true"
+    stop="5"
+    tick_duration="0.05"
+    check_sum="5804"
+    expected_output_contains="LAUNCHPAD ANIMATION TEST OK">
+    <module class="LaunchpadAnimation" name="Animation" frame_rate="60" />
+    <module class="LaunchpadAnimationTestModule" name="Verifier" />
+    <connection source="Animation.COLOR" target="Verifier.COLOR" />
+</group>

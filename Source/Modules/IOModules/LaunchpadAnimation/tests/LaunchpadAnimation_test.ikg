@@ -1,0 +1,24 @@
+<group name="LaunchpadAnimationTest" title="Launchpad Animation Test" tick_duration="0.02">
+    <module class="MidiInput" name="Midi" source_index="-1" trig_hold_ticks="1"
+            _x="40" _y="260" />
+    <module class="LaunchpadAnimation" name="Animation" speed="1"
+            brightness="1" saturation="0.9" sparkle="0.65"
+            reactivity="1" frame_rate="30" _x="320" _y="220" />
+    <module class="LaunchpadLED" name="Launchpad" layout_width="8"
+            _x="620" _y="220" />
+
+    <connection source="Midi.KEY" target="Animation.KEY" />
+    <connection source="Midi.TRIG" target="Animation.TRIG" />
+    <connection source="Midi.EVENT_COUNT" target="Animation.EVENT_COUNT" />
+    <connection source="Animation.COLOR" target="Launchpad.COLOR" />
+
+    <widget class="text" name="Instructions" x="40" y="30" width="760" height="90"
+            show_title="false" show_frame="false"
+            text="Launchpad X animation. The grid shows a moving rainbow vortex with waves and sparkles. Press pads to launch overlapping color rings from their physical positions." />
+    <widget class="table" name="Colors" source="Animation.COLOR"
+            title="Animation RGB" x="40" y="480" width="520" height="300"
+            min="0" max="1" decimals="2" colorize="true" />
+    <widget class="table" name="Connected" source="Launchpad.CONNECTED"
+            title="Launchpad connected" x="620" y="480" width="180" height="90"
+            min="0" max="1" decimals="0" />
+</group>
