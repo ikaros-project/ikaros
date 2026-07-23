@@ -1,6 +1,7 @@
 <class name="OutputFile" description="writes its input to a file each tick">
     <parameter name="filename" type="string" default="output.csv" description="File to write inside UserData. Use # for an unpadded sequence number or multiple hashes such as #### for a fixed-width zero-padded number. Escape a literal hash as \#." />
     <parameter name="format" type="string" default="csv" description="Delimited text format: csv or tsv." />
+    <parameter name="delimiter" type="string" default="" description="Optional single-character field delimiter overriding the format preset. A literal space is allowed." />
     <parameter name="decimals" type="number" default="4" min="0" max="20" description="Number of digits after the decimal point in numeric columns." />
     <parameter name="timestamp" type="string" default="time" description="First-column timestamp mode: none, line for a per-file row number, tick, time for nominal simulation seconds, or real_time for elapsed wall-clock seconds." />
     <parameter name="existing_file" type="string" control="menu" options="error,overwrite,append" default="error" description="Behavior when the selected file exists: error, overwrite, or append. Append validates an existing header before writing." />

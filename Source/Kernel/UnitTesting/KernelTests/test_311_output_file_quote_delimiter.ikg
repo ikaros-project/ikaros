@@ -1,0 +1,15 @@
+<group internal="true"
+       name="TestOutputFileQuoteDelimiter"
+       description="OutputFile rejects a quotation-mark delimiter"
+       start="true"
+       stop="1"
+       expected_exit="1"
+       expected_output_contains="delimiter cannot be a line break, NUL, or quotation mark">
+    <module name="Data" class="Constant" data="1" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_311_output_file_quote_delimiter.txt"
+            delimiter="&quot;" />
+
+    <connection source="Data.OUTPUT" target="Output.INPUT" label="value" />
+</group>

@@ -54,6 +54,7 @@ class OutputFile : public Module
     parameter directory;
     parameter filename;
     parameter format;
+    parameter delimiter;
     parameter decimals;
     parameter timestamp;
     parameter existingFile;
@@ -67,7 +68,7 @@ class OutputFile : public Module
     std::ofstream file;
     std::filesystem::path outputDirectory;
     std::filesystem::path resolvedFilename;
-    std::string columnSeparator;
+    char columnDelimiter = ',';
     std::uint64_t lineNumber = 0;
     std::uint64_t rowsSinceFlush = 0;
     std::uint64_t flushIntervalRows = 1;
@@ -264,7 +265,7 @@ class OutputFile : public Module
         auto appendField = [&](const std::string & value)
         {
             if(!first)
-                result += columnSeparator;
+                result += columnDelimiter;
             result += value;
             first = false;
         };
@@ -274,13 +275,12 @@ class OutputFile : public Module
 
         if(!labels.empty())
         {
-            const char delimiter = columnSeparator == "\t" ? '\t' : ',';
             for(int i = 0; i < input.size(); ++i)
             {
                 if(i < static_cast<int>(labels.size()))
                     appendField(
                         QuoteLabel(labels[static_cast<std::size_t>(i)],
-                                   delimiter));
+                                   columnDelimiter));
                 else
                     appendField("");
             }
@@ -490,7 +490,7 @@ class OutputFile : public Module
     WriteSeparator(bool & first)
     {
         if(!first)
-            file << columnSeparator;
+            file.put(columnDelimiter);
         first = false;
     }
 
@@ -671,12 +671,28 @@ class OutputFile : public Module
     {
         const std::string selectedFormat = format.as_string();
         if(selectedFormat == "csv")
-            columnSeparator = ",";
+            columnDelimiter = ',';
         else if(selectedFormat == "tsv")
-            columnSeparator = "\t";
+            columnDelimiter = '\t';
         else
             throw std::invalid_argument(
                 "OutputFile format must be \"csv\" or \"tsv\"");
+
+        const std::string selectedDelimiter = delimiter.as_string();
+        if(!selectedDelimiter.empty())
+        {
+            if(selectedDelimiter.size() != 1)
+                throw std::invalid_argument(
+                    "OutputFile delimiter must be exactly one character");
+
+            const char requestedDelimiter = selectedDelimiter.front();
+            if(requestedDelimiter == '\0' || requestedDelimiter == '\r' ||
+               requestedDelimiter == '\n' || requestedDelimiter == '"')
+                throw std::invalid_argument(
+                    "OutputFile delimiter cannot be a line break, NUL, or "
+                    "quotation mark");
+            columnDelimiter = requestedDelimiter;
+        }
 
         const double requestedDecimals = decimals.as_double();
         if(!std::isfinite(requestedDecimals) ||
@@ -747,6 +763,7 @@ class OutputFile : public Module
         Bind(directory, "directory");
         Bind(filename, "filename");
         Bind(format, "format");
+        Bind(delimiter, "delimiter");
         Bind(decimals, "decimals");
         Bind(timestamp, "timestamp");
         Bind(existingFile, "existing_file");

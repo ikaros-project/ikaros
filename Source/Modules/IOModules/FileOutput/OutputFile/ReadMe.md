@@ -2,9 +2,15 @@
 
 ## Description
 
-OutputFile records streamed matrix data as CSV or TSV. It writes the flattened INPUT as one row
-whenever WRITE is disconnected or greater than zero. Column labels are escaped according to the
-selected format, and numeric values use a fixed number of decimal places.
+OutputFile records streamed matrix data as delimited text. It writes the flattened INPUT as one row
+whenever WRITE is disconnected or greater than zero. Column labels are escaped for the selected
+delimiter, and numeric values use a fixed number of decimal places.
+
+The `format` parameter selects comma or tab separation. A nonempty `delimiter` overrides that
+preset with exactly one literal character. For example, `delimiter=";"` produces semicolon-separated
+data and `delimiter=" "` produces space-separated data. Fields containing the selected delimiter
+are quoted. Line breaks, NUL, and `"` cannot be delimiters because they conflict with record and
+quoting syntax.
 
 By default, each completed row is explicitly flushed. This keeps rows that reached the operating
 system if the Ikaros process crashes, although it does not provide the stronger power-loss
@@ -55,6 +61,7 @@ when the file rolls over or the module stops. Headers are always flushed immedia
 | --- | --- | --- | --- |
 | filename | File to write inside UserData, optionally containing one `#` sequence placeholder. | string | output.csv |
 | format | Delimited text format: `csv` or `tsv`. | string | csv |
+| delimiter | Optional single-character delimiter overriding the format preset; a space is allowed. | string |  |
 | decimals | Number of digits after the decimal point, from 0 through 20. | int | 4 |
 | timestamp | First-column mode: `none`, `line`, `tick`, `time`, or `real_time`. | string | time |
 | existing_file | Existing-file policy: `error`, `overwrite`, or `append`. | string | error |
