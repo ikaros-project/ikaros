@@ -2,15 +2,30 @@
 
 ## Description
 
-OutputFile records streamed matrix data as delimited text. It writes the flattened INPUT as one row
-whenever WRITE is disconnected or greater than zero. Column labels are escaped for the selected
-delimiter, and numeric values use a fixed number of decimal places.
+OutputFile records streamed matrix data as delimited text or JSON Lines. It writes one record
+whenever WRITE is disconnected or greater than zero. Numeric values can use a fixed number of
+decimal places or their full stored precision.
 
-The `format` parameter selects comma or tab separation. A nonempty `delimiter` overrides that
-preset with exactly one literal character. For example, `delimiter=";"` produces semicolon-separated
-data and `delimiter=" "` produces space-separated data. Fields containing the selected delimiter
-are quoted. Line breaks, NUL, and `"` cannot be delimiters because they conflict with record and
-quoting syntax.
+The `format` parameter selects `csv`, `tsv`, or `jsonl`. For delimited formats, a nonempty
+`delimiter` overrides the preset with exactly one literal character. For example, `delimiter=";"`
+produces semicolon-separated data and `delimiter=" "` produces space-separated data. Fields
+containing the selected delimiter are quoted. Line breaks, NUL, and `"` cannot be delimiters because
+they conflict with record and quoting syntax. `delimiter` is not used with `jsonl`.
+
+JSONL writes one complete JSON object per line. Each connection label becomes a top-level key:
+
+```json
+{"tick":17,"weights":[[1,2,3],[4,5,6]],"temperature":[21.5]}
+```
+
+JSONL connections must have explicit, nonempty, unique labels. The timestamp names `line`, `tick`,
+`time`, and `real_time` are reserved even when the corresponding timestamp is not selected.
+Connection labels are JSON-escaped. Source matrix rank and singleton dimensions are retained:
+one-dimensional inputs remain arrays, multidimensional inputs become nested arrays, and true scalar
+inputs become numbers. When a connection selects multiple delays, delay is added as the outermost
+array dimension in the declared delay order. Non-finite matrix values are written as `null`, since
+JSON has no representation for NaN or infinity. CSV and TSV remain flattened and retain their
+existing label behavior.
 
 `number_format="fixed"` writes every matrix value with the number of fractional digits selected by
 `decimals`. `number_format="full"` instead writes the shortest decimal representation that
@@ -22,14 +37,14 @@ system if the Ikaros process crashes, although it does not provide the stronger 
 guarantee of an `fsync()` operation. `flush_interval` can trade some of that protection for higher
 throughput.
 
-The `timestamp` parameter controls the first column and its header:
+The `timestamp` parameter controls the first delimited column or JSONL top-level field:
 
 - `none` omits the column.
-- `line` writes `line/1` and numbers successfully written data rows. New files start at zero;
-  appended files continue from their existing row count.
-- `tick` writes the global kernel tick under `tick/1`.
-- `time` writes nominal simulation seconds under `time/1`.
-- `real_time` writes the kernel-wide elapsed wall clock under `real_time/1`.
+- `line` writes `line/1` in delimited output or `line` in JSONL and numbers successfully written
+  data records. New files start at zero; appended files continue from their existing record count.
+- `tick` writes the global kernel tick under `tick/1` or `tick`.
+- `time` writes nominal simulation seconds under `time/1` or `time`.
+- `real_time` writes the kernel-wide elapsed wall clock under `real_time/1` or `real_time`.
 
 The `tick`, `time`, and `real_time` values continue across NEWFILE boundaries and WRITE gaps.
 `line` advances only after a row is successfully written, so WRITE gaps do not create missing line
@@ -52,7 +67,9 @@ literal hash in either parameter.
 
 - `error` refuses to replace an existing file and is the safe default.
 - `overwrite` truncates the selected file.
-- `append` validates the existing header, preserves it, and continues `line` numbering.
+- `append` validates and preserves the existing delimited header or every existing JSONL record,
+  then continues `line` numbering. A complete final JSONL record without a trailing newline is
+  accepted and separated safely before the next record.
 
 `flush_interval="1"` flushes every completed row and provides the strongest process-crash
 protection. Larger values flush batches of rows for higher throughput. Zero flushes data rows only
@@ -65,11 +82,11 @@ when the file rolls over or the module stops. Headers are always flushed immedia
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
 | filename | File to write inside UserData, optionally containing one `#` sequence placeholder. | string | output.csv |
-| format | Delimited text format: `csv` or `tsv`. | string | csv |
-| delimiter | Optional single-character delimiter overriding the format preset; a space is allowed. | string |  |
+| format | Output format: `csv`, `tsv`, or `jsonl`. | string | csv |
+| delimiter | Optional single-character delimiter overriding `csv` or `tsv`; a space is allowed. | string |  |
 | number_format | Data formatting: `fixed` uses `decimals`; `full` preserves exact float values and selects scientific notation automatically. | string | fixed |
 | decimals | Number of digits after the decimal point, from 0 through 20. | int | 4 |
-| timestamp | First-column mode: `none`, `line`, `tick`, `time`, or `real_time`. | string | time |
+| timestamp | Timestamp column or field: `none`, `line`, `tick`, `time`, or `real_time`. | string | time |
 | existing_file | Existing-file policy: `error`, `overwrite`, or `append`. | string | error |
 | start_index | First filename sequence number. | int | 0 |
 | flush_interval | Written rows per flush; zero flushes on rollover or stop. | int | 1 |
@@ -79,6 +96,6 @@ when the file rolls over or the module stops. Headers are always flushed immedia
 
 | Name | Description | Optional |
 | --- | --- | --- |
-| INPUT | Values written as one flattened row. |  |
+| INPUT | Values written as one flattened delimited row or as labeled, shape-preserving JSONL fields. |  |
 | WRITE | Write while greater than zero; a disconnected input writes every tick. | yes |
 | NEWFILE | A rising edge opens the next filename selected by the `#` placeholder. | yes |

@@ -1,0 +1,23 @@
+<group internal="true"
+       name="TestOutputFileJSONLDuplicateLabel"
+       description="OutputFile JSONL rejects duplicate connection labels"
+       start="true"
+       stop="0"
+       expected_exit="1"
+       expected_output_contains="OutputFile JSONL connection label &quot;value&quot; is duplicated">
+    <module name="First" class="Constant" data="1" />
+    <module name="Second" class="Constant" data="2" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_317_output_file_jsonl_duplicate_label.jsonl"
+            format="jsonl" />
+
+    <connection delay="0"
+                source="First.OUTPUT"
+                target="Output.INPUT"
+                label="value" />
+    <connection delay="0"
+                source="Second.OUTPUT"
+                target="Output.INPUT"
+                label="value" />
+</group>

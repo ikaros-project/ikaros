@@ -1,10 +1,10 @@
 <group internal="true"
        name="TestOutputFileInvalidFormat"
-       description="OutputFile rejects unknown text formats"
+       description="OutputFile rejects unknown output formats"
        start="true"
        stop="1"
        expected_exit="1"
-       expected_output_contains="OutputFile format must be &quot;csv&quot; or &quot;tsv&quot;">
+       expected_output_contains="Invalid parameter value">
     <module name="Data" class="Constant" data="1" />
     <module name="Output"
             class="OutputFile"
