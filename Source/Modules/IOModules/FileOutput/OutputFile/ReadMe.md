@@ -13,12 +13,15 @@ Ikaros process crashes, although it does not provide the stronger power-loss gua
 The `timestamp` parameter controls the first `T/1` column:
 
 - `none` omits the column.
+- `line` numbers successfully written data rows from zero and resets for each file.
 - `tick` writes the global kernel tick.
 - `time` writes nominal simulation time in seconds.
 - `real_time` writes elapsed wall-clock seconds from the first tick.
 
-Timestamps continue across NEWFILE boundaries and WRITE gaps. Time values use independent
-round-trip formatting, so the `decimals` setting for data columns cannot reduce their resolution.
+The `tick`, `time`, and `real_time` values continue across NEWFILE boundaries and WRITE gaps.
+`line` advances only after a row is successfully written, so WRITE gaps do not create missing line
+numbers. Time values use independent round-trip formatting, so the `decimals` setting for data
+columns cannot reduce their resolution.
 
 NEWFILE reacts to a rising edge. When the filename contains `#`, it closes the current file and
 opens the next numbered file. A single `#` is an unpadded number of any length; multiple hashes
@@ -39,7 +42,7 @@ literal hash in either parameter.
 | filename | File to write inside UserData, optionally containing one `#` sequence placeholder. | string | output.csv |
 | format | Delimited text format: `csv` or `tsv`. | string | csv |
 | decimals | Number of digits after the decimal point, from 0 through 20. | int | 4 |
-| timestamp | First-column mode: `none`, `tick`, `time`, or `real_time`. | string | time |
+| timestamp | First-column mode: `none`, `line`, `tick`, `time`, or `real_time`. | string | time |
 | directory | Exact reusable directory, or a unique directory pattern containing `#`; empty writes directly inside UserData. | string |  |
 
 ## Inputs

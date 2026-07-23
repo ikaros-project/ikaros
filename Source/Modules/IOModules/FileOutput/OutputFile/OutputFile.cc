@@ -1,5 +1,6 @@
 #include <chrono>
 #include <cmath>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -21,6 +22,7 @@ class OutputFile : public Module
     enum class TimestampMode
     {
         none,
+        line,
         tick,
         time,
         realTime,
@@ -42,6 +44,7 @@ class OutputFile : public Module
     std::string columnSeparator;
     std::chrono::steady_clock::time_point realTimeOrigin;
     double realTimeTimestamp = 0.0;
+    std::uint64_t lineNumber = 0;
     int fileIndex = 0;
     int decimalCount = 0;
     TimestampMode timestampMode = TimestampMode::time;
@@ -50,6 +53,7 @@ class OutputFile : public Module
     bool sequenceFilename = false;
     bool sequenceExhausted = false;
     bool writeFailed = false;
+    bool warnedLineOverflow = false;
     bool warnedWithoutSequence = false;
 
     static bool
@@ -246,6 +250,9 @@ class OutputFile : public Module
         {
             case TimestampMode::none:
                 break;
+            case TimestampMode::line:
+                file << lineNumber;
+                break;
             case TimestampMode::tick:
                 file << GetTick();
                 break;
@@ -404,6 +411,8 @@ class OutputFile : public Module
         {
             OpenFile(nextFilename);
             fileIndex = nextIndex;
+            lineNumber = 0;
+            warnedLineOverflow = false;
         }
         catch(const std::exception & error)
         {
@@ -456,6 +465,8 @@ class OutputFile : public Module
         const std::string selectedTimestamp = timestamp.as_string();
         if(selectedTimestamp == "none")
             timestampMode = TimestampMode::none;
+        else if(selectedTimestamp == "line")
+            timestampMode = TimestampMode::line;
         else if(selectedTimestamp == "tick")
             timestampMode = TimestampMode::tick;
         else if(selectedTimestamp == "time")
@@ -464,8 +475,8 @@ class OutputFile : public Module
             timestampMode = TimestampMode::realTime;
         else
             throw std::invalid_argument(
-                "OutputFile timestamp must be \"none\", \"tick\", \"time\", "
-                "or \"real_time\"");
+                "OutputFile timestamp must be \"none\", \"line\", \"tick\", "
+                "\"time\", or \"real_time\"");
 
         sequenceFilename =
             contains_hash_image_sequence_format(filename.as_string());
@@ -504,6 +515,18 @@ class OutputFile : public Module
             try
             {
                 WriteRow();
+                if(timestampMode == TimestampMode::line)
+                {
+                    if(lineNumber !=
+                       std::numeric_limits<std::uint64_t>::max())
+                        ++lineNumber;
+                    else if(!warnedLineOverflow)
+                    {
+                        Warning("OutputFile line number reached its largest "
+                                "supported value", path_);
+                        warnedLineOverflow = true;
+                    }
+                }
             }
             catch(const std::exception & error)
             {

@@ -2,7 +2,7 @@
     <parameter name="filename" type="string" default="output.csv" description="File to write inside UserData. Use # for an unpadded sequence number or multiple hashes such as #### for a fixed-width zero-padded number. Escape a literal hash as \#." />
     <parameter name="format" type="string" default="csv" description="Delimited text format: csv or tsv." />
     <parameter name="decimals" type="number" default="4" min="0" max="20" description="Number of digits after the decimal point in numeric columns." />
-    <parameter name="timestamp" type="string" default="time" description="First-column timestamp mode: none, tick, time for nominal simulation seconds, or real_time for elapsed wall-clock seconds." />
+    <parameter name="timestamp" type="string" default="time" description="First-column timestamp mode: none, line for a per-file row number, tick, time for nominal simulation seconds, or real_time for elapsed wall-clock seconds." />
     <parameter name="directory" type="string" default="" description="Directory inside UserData. A name without # is reused exactly. Use # for an unpadded unique number or multiple hashes such as ### for a fixed-width zero-padded unique number. Escape a literal hash as \#." />
 
     <input name="INPUT" description="Values written as one flattened row." flatten="true" use_label="yes" />

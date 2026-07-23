@@ -4,7 +4,7 @@
        start="true"
        stop="1"
        expected_exit="1"
-       expected_output_contains="OutputFile timestamp must be &quot;none&quot;, &quot;tick&quot;, &quot;time&quot;, or &quot;real_time&quot;">
+       expected_output_contains="OutputFile timestamp must be &quot;none&quot;, &quot;line&quot;, &quot;tick&quot;, &quot;time&quot;, or &quot;real_time&quot;">
     <module name="Data" class="Constant" data="1" />
     <module name="Output"
             class="OutputFile"
