@@ -703,9 +703,11 @@ def run_test(item):
     elif root.get("stop") is None:
         cmd.insert(1, "-s0")
     expected_files = split_expected_paths(root.get("expected_file_exists"))
-    for expected_file in expected_files:
-        if expected_file.exists():
-            expected_file.unlink()
+    identical_files = split_expected_paths(root.get("expected_files_identical"))
+    output_files = list(dict.fromkeys(expected_files + identical_files))
+    for output_file in output_files:
+        if output_file.exists():
+            output_file.unlink()
     expected_exit = int(root.get("expected_exit", "0"))
     if http_requests:
         actual_exit, combined_output, http_error = run_http_test(cmd, root)
@@ -717,6 +719,16 @@ def run_test(item):
     missing_output = [text for text in split_expected_text(root.get("expected_output_contains")) if text not in combined_output]
     present_unexpected_output = [text for text in split_expected_text(root.get("expected_output_not_contains")) if text in combined_output]
     missing_files = [str(path) for path in expected_files if not path.exists()]
+    missing_identical_files = [
+        str(path) for path in identical_files if not path.exists()
+    ]
+    differing_identical_files = []
+    if len(identical_files) > 1 and not missing_identical_files:
+        reference_contents = identical_files[0].read_bytes()
+        differing_identical_files = [
+            str(path) for path in identical_files[1:]
+            if path.read_bytes() != reference_contents
+        ]
     expected_file_text = split_expected_text(root.get("expected_file_contains"))
     unexpected_file_text = split_expected_text(root.get("expected_file_not_contains"))
     file_contents = ""
@@ -726,11 +738,22 @@ def run_test(item):
     missing_file_text = [text for text in expected_file_text if text not in file_contents]
     present_unexpected_file_text = [text for text in unexpected_file_text if text in file_contents]
 
-    if actual_exit == expected_exit and not http_error and not missing_output and not present_unexpected_output and not missing_files and not missing_file_text and not present_unexpected_file_text:
+    test_passed = (
+        actual_exit == expected_exit
+        and not http_error
+        and not missing_output
+        and not present_unexpected_output
+        and not missing_files
+        and not missing_identical_files
+        and not differing_identical_files
+        and not missing_file_text
+        and not present_unexpected_file_text
+    )
+    if test_passed:
         if root.get("cleanup_expected_files") == "true":
-            for expected_file in expected_files:
-                if expected_file.exists():
-                    expected_file.unlink()
+            for output_file in output_files:
+                if output_file.exists():
+                    output_file.unlink()
         return f"[  OK  ]  {get_description(item)}{item.name}{reset}", False
     else:
         if missing_output:
@@ -739,6 +762,13 @@ def run_test(item):
             detail = f"unexpected output: {present_unexpected_output[0]}"
         elif missing_files:
             detail = f"missing file: {missing_files[0]}"
+        elif missing_identical_files:
+            detail = f"missing file for identity check: {missing_identical_files[0]}"
+        elif differing_identical_files:
+            detail = (
+                f"file differs from {identical_files[0]}: "
+                f"{differing_identical_files[0]}"
+            )
         elif missing_file_text:
             detail = f"missing file content: {missing_file_text[0]}"
         elif present_unexpected_file_text:

@@ -415,6 +415,7 @@ public:
     double GetTime() const;           // actual or nominal time depending om run mode
     double GetRealTime() const;       // actual time since start
     double GetNominalTime() const;    // nominal time at current tick
+    double GetRunTime() const;        // elapsed wall-clock time from the first tick
     double GetTimeOfDay() const;      // seconds since midnight
     double GetLag() const;
     double GetUptime() const;
@@ -559,6 +560,9 @@ public:
     double                                  last_cpu = 0;
     bool                                    cpu_usage_initialized = false;
     std::chrono::steady_clock::time_point   cpu_usage_sample_time;
+    std::chrono::steady_clock::time_point   run_clock_origin;
+    double                                  run_time = 0;
+    bool                                    run_clock_started = false;
 
     Timer                                   uptime_timer;   // Measues kernel uptime
     Timer                                   session_timer;  // Measures elapsed wall-clock time for a logged run
@@ -636,6 +640,7 @@ public:
     double GetTime();   // Time since start (in real time or simulated (tick) time depending on mode)
     double GetRealTime();
     double GetNominalTime(); 
+    double GetRunTime();
     double GetTimeOfDay();
     double GetLag();
     double GetUptime();

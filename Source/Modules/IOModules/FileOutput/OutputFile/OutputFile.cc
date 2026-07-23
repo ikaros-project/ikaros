@@ -1,4 +1,3 @@
-#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
@@ -9,6 +8,7 @@
 #include <stdexcept>
 #include <string>
 #include <system_error>
+#include <utility>
 
 #include "ikaros.h"
 #include "../../FileInput/image_sequence.h"
@@ -28,11 +28,37 @@ class OutputFile : public Module
         realTime,
     };
 
+    enum class ExistingFileMode
+    {
+        error,
+        overwrite,
+        append,
+    };
+
+    struct ExistingFileInfo
+    {
+        bool exists = false;
+        bool empty = true;
+        bool endsWithNewline = true;
+        std::uint64_t recordCount = 0;
+        std::string firstRecord;
+    };
+
+    struct PreparedFile
+    {
+        std::ofstream stream;
+        std::filesystem::path path;
+        std::uint64_t lineNumber = 0;
+    };
+
     parameter directory;
     parameter filename;
     parameter format;
     parameter decimals;
     parameter timestamp;
+    parameter existingFile;
+    parameter startIndex;
+    parameter flushInterval;
 
     matrix input;
     matrix write;
@@ -42,14 +68,14 @@ class OutputFile : public Module
     std::filesystem::path outputDirectory;
     std::filesystem::path resolvedFilename;
     std::string columnSeparator;
-    std::chrono::steady_clock::time_point realTimeOrigin;
-    double realTimeTimestamp = 0.0;
     std::uint64_t lineNumber = 0;
+    std::uint64_t rowsSinceFlush = 0;
+    std::uint64_t flushIntervalRows = 1;
     int fileIndex = 0;
     int decimalCount = 0;
     TimestampMode timestampMode = TimestampMode::time;
+    ExistingFileMode existingFileMode = ExistingFileMode::error;
     bool previousNewFile = false;
-    bool realTimeStarted = false;
     bool sequenceFilename = false;
     bool sequenceExhausted = false;
     bool writeFailed = false;
@@ -93,6 +119,18 @@ class OutputFile : public Module
         }
         result += '"';
         return result;
+    }
+
+
+    static void
+    IncrementRecordCount(std::uint64_t & count,
+                         const std::filesystem::path & path)
+    {
+        if(count == std::numeric_limits<std::uint64_t>::max())
+            throw std::runtime_error(
+                "OutputFile record count overflow in \"" + path.string() +
+                "\"");
+        ++count;
     }
 
 
@@ -193,6 +231,261 @@ class OutputFile : public Module
     }
 
 
+    std::string
+    TimestampHeader() const
+    {
+        switch(timestampMode)
+        {
+            case TimestampMode::none:
+                return "";
+            case TimestampMode::line:
+                return "line/1";
+            case TimestampMode::tick:
+                return "tick/1";
+            case TimestampMode::time:
+                return "time/1";
+            case TimestampMode::realTime:
+                return "real_time/1";
+        }
+        throw std::logic_error("OutputFile has an invalid timestamp mode");
+    }
+
+
+    std::string
+    HeaderRecord() const
+    {
+        const auto & labels = input.labels();
+        const std::string timestampHeader = TimestampHeader();
+        if(timestampHeader.empty() && labels.empty())
+            return "";
+
+        std::string result;
+        bool first = true;
+        auto appendField = [&](const std::string & value)
+        {
+            if(!first)
+                result += columnSeparator;
+            result += value;
+            first = false;
+        };
+
+        if(!timestampHeader.empty())
+            appendField(timestampHeader);
+
+        if(!labels.empty())
+        {
+            const char delimiter = columnSeparator == "\t" ? '\t' : ',';
+            for(int i = 0; i < input.size(); ++i)
+            {
+                if(i < static_cast<int>(labels.size()))
+                    appendField(
+                        QuoteLabel(labels[static_cast<std::size_t>(i)],
+                                   delimiter));
+                else
+                    appendField("");
+            }
+        }
+        return result;
+    }
+
+
+    ExistingFileInfo
+    InspectExistingFile(const std::filesystem::path & path) const
+    {
+        ExistingFileInfo info;
+        std::error_code error;
+        info.exists = std::filesystem::exists(path, error);
+        if(error)
+            throw std::runtime_error(
+                "Could not inspect OutputFile \"" + path.string() + "\": " +
+                error.message());
+        if(!info.exists)
+            return info;
+
+        if(!std::filesystem::is_regular_file(path, error) || error)
+            throw std::runtime_error(
+                "OutputFile path is not a regular file: \"" +
+                path.string() + "\"");
+
+        std::ifstream inputStream(path);
+        if(!inputStream)
+            throw std::runtime_error(
+                "Could not inspect existing OutputFile \"" + path.string() +
+                "\"");
+
+        bool inQuotes = false;
+        bool firstRecordComplete = false;
+        bool hasCharacters = false;
+        char lastCharacter = '\0';
+        char character = '\0';
+        while(inputStream.get(character))
+        {
+            hasCharacters = true;
+            lastCharacter = character;
+
+            if(character == '"')
+            {
+                if(inQuotes && inputStream.peek() == '"')
+                {
+                    if(!firstRecordComplete)
+                        info.firstRecord += character;
+                    inputStream.get(character);
+                    lastCharacter = character;
+                    if(!firstRecordComplete)
+                        info.firstRecord += character;
+                    continue;
+                }
+                inQuotes = !inQuotes;
+            }
+
+            if(character == '\n' && !inQuotes)
+            {
+                if(!firstRecordComplete)
+                {
+                    if(!info.firstRecord.empty() &&
+                       info.firstRecord.back() == '\r')
+                        info.firstRecord.pop_back();
+                    firstRecordComplete = true;
+                }
+                IncrementRecordCount(info.recordCount, path);
+            }
+            else if(!firstRecordComplete)
+                info.firstRecord += character;
+        }
+
+        if(inputStream.bad())
+            throw std::runtime_error(
+                "Could not read existing OutputFile \"" + path.string() +
+                "\"");
+        if(inQuotes)
+            throw std::runtime_error(
+                "Existing OutputFile has an unterminated quoted field: \"" +
+                path.string() + "\"");
+
+        info.empty = !hasCharacters;
+        info.endsWithNewline = !hasCharacters || lastCharacter == '\n';
+        if(hasCharacters && !info.endsWithNewline)
+        {
+            if(!firstRecordComplete && !info.firstRecord.empty() &&
+               info.firstRecord.back() == '\r')
+                info.firstRecord.pop_back();
+            IncrementRecordCount(info.recordCount, path);
+        }
+        return info;
+    }
+
+
+    void
+    EnsureParentDirectory(const std::filesystem::path & path) const
+    {
+        if(outputDirectory.empty())
+            return;
+
+        std::error_code error;
+        std::filesystem::create_directories(path.parent_path(), error);
+        if(error)
+            throw std::runtime_error(
+                "Could not create OutputFile subdirectory for \"" +
+                path.string() + "\": " + error.message());
+    }
+
+
+    static void
+    FlushPreparedStream(std::ofstream & stream,
+                        const std::filesystem::path & path,
+                        const std::string & description)
+    {
+        stream.flush();
+        if(!stream)
+            throw std::runtime_error(
+                "Could not write and flush OutputFile " + description +
+                " to \"" + path.string() + "\"");
+    }
+
+
+    PreparedFile
+    PrepareFile(const std::filesystem::path & path)
+    {
+        EnsureParentDirectory(path);
+        const ExistingFileInfo existing = InspectExistingFile(path);
+        const std::string header = HeaderRecord();
+
+        if(existingFileMode == ExistingFileMode::error && existing.exists)
+            throw std::runtime_error(
+                "OutputFile already exists: \"" + path.string() + "\"");
+
+        PreparedFile prepared;
+        prepared.path = path;
+        if(existingFileMode == ExistingFileMode::append &&
+           existing.exists && !existing.empty)
+        {
+            if(!header.empty())
+            {
+                if(existing.firstRecord != header)
+                    throw std::runtime_error(
+                        "Existing OutputFile header does not match the "
+                        "configured columns: \"" + path.string() + "\"");
+                prepared.lineNumber = existing.recordCount - 1;
+            }
+            else
+                prepared.lineNumber = existing.recordCount;
+        }
+
+        std::ios::openmode mode = std::ios::out;
+        if(existingFileMode == ExistingFileMode::append)
+            mode |= std::ios::app;
+        else
+            mode |= std::ios::trunc;
+
+        prepared.stream.imbue(std::locale::classic());
+        prepared.stream.open(path, mode);
+        if(!prepared.stream)
+            throw std::runtime_error(
+                "Could not open OutputFile \"" + path.string() + "\"");
+        prepared.stream << std::fixed << std::setprecision(decimalCount);
+
+        try
+        {
+            if(existingFileMode == ExistingFileMode::append &&
+               existing.exists && !existing.empty &&
+               !existing.endsWithNewline)
+            {
+                prepared.stream.put('\n');
+                FlushPreparedStream(prepared.stream, path,
+                                    "record separator");
+            }
+
+            if((!existing.exists || existing.empty ||
+                existingFileMode != ExistingFileMode::append) &&
+               !header.empty())
+            {
+                prepared.stream << header;
+                prepared.stream.put('\n');
+                FlushPreparedStream(prepared.stream, path, "header");
+            }
+        }
+        catch(...)
+        {
+            prepared.stream.close();
+            throw;
+        }
+        return prepared;
+    }
+
+
+    void
+    ActivatePreparedFile(PreparedFile && prepared, int index)
+    {
+        file = std::move(prepared.stream);
+        resolvedFilename = std::move(prepared.path);
+        fileIndex = index;
+        lineNumber = prepared.lineNumber;
+        rowsSinceFlush = 0;
+        warnedLineOverflow = false;
+        writeFailed = false;
+    }
+
+
     void
     WriteSeparator(bool & first)
     {
@@ -203,43 +496,30 @@ class OutputFile : public Module
 
 
     void
-    FinishRecord(const std::string & description)
+    FlushRows()
     {
-        file.put('\n');
         file.flush();
         if(!file)
             throw std::runtime_error(
-                "Could not write and flush OutputFile " + description +
-                " to \"" + resolvedFilename.string() + "\"");
+                "Could not flush OutputFile rows to \"" +
+                resolvedFilename.string() + "\"");
+        rowsSinceFlush = 0;
     }
 
 
     void
-    WriteHeader()
+    FinishRow()
     {
-        const auto & labels = input.labels();
-        if(timestampMode == TimestampMode::none && labels.empty())
-            return;
+        file.put('\n');
+        if(!file)
+            throw std::runtime_error(
+                "Could not write OutputFile row to \"" +
+                resolvedFilename.string() + "\"");
 
-        bool first = true;
-        if(timestampMode != TimestampMode::none)
-        {
-            WriteSeparator(first);
-            file << "T/1";
-        }
-
-        if(!labels.empty())
-        {
-            const char delimiter = columnSeparator == "\t" ? '\t' : ',';
-            for(int i = 0; i < input.size(); ++i)
-            {
-                WriteSeparator(first);
-                if(i < static_cast<int>(labels.size()))
-                    file << QuoteLabel(labels[static_cast<std::size_t>(i)],
-                                       delimiter);
-            }
-        }
-        FinishRecord("header");
+        if(rowsSinceFlush != std::numeric_limits<std::uint64_t>::max())
+            ++rowsSinceFlush;
+        if(flushIntervalRows > 0 && rowsSinceFlush >= flushIntervalRows)
+            FlushRows();
     }
 
 
@@ -260,7 +540,7 @@ class OutputFile : public Module
                 file << formatNumber(GetNominalTime());
                 break;
             case TimestampMode::realTime:
-                file << formatNumber(realTimeTimestamp);
+                file << formatNumber(GetRunTime());
                 break;
         }
     }
@@ -285,42 +565,7 @@ class OutputFile : public Module
                 file << values[i];
             }
         }
-        FinishRecord("row");
-    }
-
-
-    void
-    OpenFile(const std::filesystem::path & path)
-    {
-        resolvedFilename = path;
-        if(!outputDirectory.empty())
-        {
-            std::error_code error;
-            std::filesystem::create_directories(path.parent_path(), error);
-            if(error)
-                throw std::runtime_error(
-                    "Could not create OutputFile subdirectory for \"" +
-                    path.string() + "\": " + error.message());
-        }
-
-        file.clear();
-        file.open(path, std::ios::out | std::ios::trunc);
-        if(!file)
-            throw std::runtime_error(
-                "Could not open OutputFile \"" + path.string() + "\"");
-
-        file.imbue(std::locale::classic());
-        file << std::fixed << std::setprecision(decimalCount);
-        try
-        {
-            WriteHeader();
-        }
-        catch(...)
-        {
-            file.close();
-            throw;
-        }
-        writeFailed = false;
+        FinishRow();
     }
 
 
@@ -335,6 +580,7 @@ class OutputFile : public Module
         file.close();
         succeeded = succeeded && !file.fail();
         file.clear();
+        rowsSinceFlush = 0;
 
         if(!succeeded && reportFailure)
             Warning("Could not flush and close OutputFile \"" +
@@ -406,45 +652,23 @@ class OutputFile : public Module
             return;
         }
 
-        CloseFile(true);
         try
         {
-            OpenFile(nextFilename);
-            fileIndex = nextIndex;
-            lineNumber = 0;
-            warnedLineOverflow = false;
+            PreparedFile prepared = PrepareFile(nextFilename);
+            CloseFile(true);
+            ActivatePreparedFile(std::move(prepared), nextIndex);
         }
         catch(const std::exception & error)
         {
-            writeFailed = true;
-            Warning("Could not open the next OutputFile: " +
-                    std::string(error.what()), path_);
+            Warning("Could not open the next OutputFile; continuing with \"" +
+                    resolvedFilename.string() + "\": " + error.what(), path_);
         }
     }
 
 
     void
-    Init() override
+    ParseOptions()
     {
-        Bind(input, "INPUT");
-        Bind(write, "WRITE");
-        Bind(newFile, "NEWFILE");
-        Bind(directory, "directory");
-        Bind(filename, "filename");
-        Bind(format, "format");
-        Bind(decimals, "decimals");
-        Bind(timestamp, "timestamp");
-
-        if(filename.as_string().empty())
-            throw std::invalid_argument(
-                "OutputFile filename must not be empty");
-        if(write.connected() && write.size() != 1)
-            throw std::invalid_argument(
-                "OutputFile WRITE must be a scalar");
-        if(newFile.connected() && newFile.size() != 1)
-            throw std::invalid_argument(
-                "OutputFile NEWFILE must be a scalar");
-
         const std::string selectedFormat = format.as_string();
         if(selectedFormat == "csv")
             columnSeparator = ",";
@@ -478,10 +702,73 @@ class OutputFile : public Module
                 "OutputFile timestamp must be \"none\", \"line\", \"tick\", "
                 "\"time\", or \"real_time\"");
 
+        const std::string selectedExistingFile = existingFile.as_string();
+        if(selectedExistingFile == "error")
+            existingFileMode = ExistingFileMode::error;
+        else if(selectedExistingFile == "overwrite")
+            existingFileMode = ExistingFileMode::overwrite;
+        else if(selectedExistingFile == "append")
+            existingFileMode = ExistingFileMode::append;
+        else
+            throw std::invalid_argument(
+                "OutputFile existing_file must be \"error\", \"overwrite\", "
+                "or \"append\"");
+
+        const double requestedStartIndex = startIndex.as_double();
+        if(!std::isfinite(requestedStartIndex) ||
+           std::trunc(requestedStartIndex) != requestedStartIndex ||
+           requestedStartIndex < 0.0 ||
+           requestedStartIndex >
+               static_cast<double>(std::numeric_limits<int>::max()))
+            throw std::invalid_argument(
+                "OutputFile start_index must be a non-negative integer");
+        fileIndex = static_cast<int>(requestedStartIndex);
+
+        const double requestedFlushInterval = flushInterval.as_double();
+        if(!std::isfinite(requestedFlushInterval) ||
+           std::trunc(requestedFlushInterval) != requestedFlushInterval ||
+           requestedFlushInterval < 0.0 ||
+           requestedFlushInterval >
+               static_cast<double>(std::numeric_limits<int>::max()))
+            throw std::invalid_argument(
+                "OutputFile flush_interval must be an integer from 0 to " +
+                std::to_string(std::numeric_limits<int>::max()));
+        flushIntervalRows =
+            static_cast<std::uint64_t>(requestedFlushInterval);
+    }
+
+
+    void
+    Init() override
+    {
+        Bind(input, "INPUT");
+        Bind(write, "WRITE");
+        Bind(newFile, "NEWFILE");
+        Bind(directory, "directory");
+        Bind(filename, "filename");
+        Bind(format, "format");
+        Bind(decimals, "decimals");
+        Bind(timestamp, "timestamp");
+        Bind(existingFile, "existing_file");
+        Bind(startIndex, "start_index");
+        Bind(flushInterval, "flush_interval");
+
+        if(filename.as_string().empty())
+            throw std::invalid_argument(
+                "OutputFile filename must not be empty");
+        if(write.connected() && write.size() != 1)
+            throw std::invalid_argument(
+                "OutputFile WRITE must be a scalar");
+        if(newFile.connected() && newFile.size() != 1)
+            throw std::invalid_argument(
+                "OutputFile NEWFILE must be a scalar");
+
+        ParseOptions();
         sequenceFilename =
             contains_hash_image_sequence_format(filename.as_string());
         ResolveOutputDirectory();
-        OpenFile(ResolveFilename(fileIndex));
+        PreparedFile prepared = PrepareFile(ResolveFilename(fileIndex));
+        ActivatePreparedFile(std::move(prepared), fileIndex);
     }
 
 
@@ -495,18 +782,6 @@ class OutputFile : public Module
     void
     Tick() override
     {
-        if(timestampMode == TimestampMode::realTime)
-        {
-            const auto now = std::chrono::steady_clock::now();
-            if(!realTimeStarted)
-            {
-                realTimeOrigin = now;
-                realTimeStarted = true;
-            }
-            realTimeTimestamp =
-                std::chrono::duration<double>(now - realTimeOrigin).count();
-        }
-
         if(NewFileRequested())
             OpenNextFile();
 

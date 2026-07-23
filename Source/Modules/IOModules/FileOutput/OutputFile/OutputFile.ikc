@@ -3,6 +3,9 @@
     <parameter name="format" type="string" default="csv" description="Delimited text format: csv or tsv." />
     <parameter name="decimals" type="number" default="4" min="0" max="20" description="Number of digits after the decimal point in numeric columns." />
     <parameter name="timestamp" type="string" default="time" description="First-column timestamp mode: none, line for a per-file row number, tick, time for nominal simulation seconds, or real_time for elapsed wall-clock seconds." />
+    <parameter name="existing_file" type="string" control="menu" options="error,overwrite,append" default="error" description="Behavior when the selected file exists: error, overwrite, or append. Append validates an existing header before writing." />
+    <parameter name="start_index" type="number" default="0" min="0" max="2147483647" description="First number substituted into the filename # placeholder." />
+    <parameter name="flush_interval" type="number" default="1" min="0" max="2147483647" description="Flush after this many written rows. One preserves every completed row; zero flushes only on rollover or stop." />
     <parameter name="directory" type="string" default="" description="Directory inside UserData. A name without # is reused exactly. Use # for an unpadded unique number or multiple hashes such as ### for a fixed-width zero-padded unique number. Escape a literal hash as \#." />
 
     <input name="INPUT" description="Values written as one flattened row." flatten="true" use_label="yes" />

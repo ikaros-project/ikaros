@@ -66,6 +66,7 @@ namespace ikaros
             double time;
             double real_time;
             double nominal_time;
+            double run_time;
             double time_of_day;
             double lag;
             double uptime;
@@ -107,6 +108,7 @@ namespace ikaros
             snapshot.nominal_time = static_cast<double>(snapshot.tick) * snapshot.tick_duration;
             snapshot.real_time = k.GetRealTime();
             snapshot.time = k.GetRunMode() == run_mode_realtime ? snapshot.real_time : snapshot.nominal_time;
+            snapshot.run_time = k.GetRunTime();
             snapshot.time_of_day = k.GetTimeOfDay();
             snapshot.lag = k.GetRunMode() == run_mode_realtime ? snapshot.nominal_time - snapshot.real_time : 0;
             snapshot.uptime = k.GetUptime();
@@ -2447,6 +2449,7 @@ namespace ikaros
     double Module::GetTime() const            { return kernel().GetTime(); }
     double Module::GetRealTime() const        { return kernel().GetRealTime(); }
     double Module::GetNominalTime() const     { return kernel().GetNominalTime(); }
+    double Module::GetRunTime() const         { return kernel().GetRunTime(); }
     double Module::GetTimeOfDay() const       { return kernel().GetTimeOfDay(); }
     double Module::GetLag() const             { return kernel().GetLag(); }
     double Module::GetUptime() const          { return kernel().GetUptime(); }
@@ -3618,6 +3621,9 @@ bool operator==(Request & r, const std::string s)
         last_cpu = 0;
         cpu_usage_initialized = false;
         cpu_usage_sample_time = std::chrono::steady_clock::time_point{};
+        run_clock_origin = std::chrono::steady_clock::time_point{};
+        run_time = 0;
+        run_clock_started = false;
         tick_duration = 1; // default value
         task_timeout = 5.0;
         actual_tick_duration = tick_duration;
@@ -3704,6 +3710,14 @@ bool operator==(Request & r, const std::string s)
     Kernel::Tick()
     {
         UpdateProfilingState();
+        const auto now = std::chrono::steady_clock::now();
+        if(!run_clock_started)
+        {
+            run_clock_origin = now;
+            run_clock_started = true;
+        }
+        run_time =
+            std::chrono::duration<double>(now - run_clock_origin).count();
         tick++;
 
         PollAsyncComponents();
@@ -4548,6 +4562,14 @@ bool operator==(Request & r, const std::string s)
         if(active_async_runtime_snapshot)
             return active_async_runtime_snapshot->nominal_time;
         return static_cast<double>(tick)*tick_duration;
+    }
+
+    double
+    Kernel::GetRunTime()
+    {
+        if(active_async_runtime_snapshot)
+            return active_async_runtime_snapshot->run_time;
+        return run_time;
     }
 
     double
