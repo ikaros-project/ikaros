@@ -1,0 +1,24 @@
+<group internal="true"
+       name="TestOutputFileHeaderless"
+       description="OutputFile can suppress CSV and TSV column headers"
+       start="true"
+       stop="1"
+       check_sum="119987"
+       expected_file_exists="UserData/test_320_output_file_headerless.csv"
+       expected_file_contains="0,1.00,2.00"
+       expected_file_not_contains="line/1||value:0||value:1"
+       cleanup_expected_files="true">
+    <module name="Data" class="Constant" data="1,2" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_320_output_file_headerless.csv"
+            format="csv"
+            decimals="2"
+            timestamp="line"
+            header="false" />
+
+    <connection delay="0"
+                source="Data.OUTPUT"
+                target="Output.INPUT"
+                label="value" />
+</group>

@@ -12,6 +12,10 @@ produces semicolon-separated data and `delimiter=" "` produces space-separated d
 containing the selected delimiter are quoted. Line breaks, NUL, and `"` cannot be delimiters because
 they conflict with record and quoting syntax. `delimiter` is not used with `jsonl`.
 
+`header="false"` suppresses the column header in CSV and TSV output. It does not remove the first
+data record. In append mode, every existing record is then counted as data, so `timestamp="line"`
+continues from the total record count. JSONL has no separate header and ignores this option.
+
 JSONL writes one complete JSON object per line. Each connection label becomes a top-level key:
 
 ```json
@@ -90,6 +94,7 @@ when the file rolls over or the module stops. Headers are always flushed immedia
 | existing_file | Existing-file policy: `error`, `overwrite`, or `append`. | string | error |
 | start_index | First filename sequence number. | int | 0 |
 | flush_interval | Written rows per flush; zero flushes on rollover or stop. | int | 1 |
+| header | Write the column header in CSV and TSV output; ignored by JSONL. | bool | true |
 | directory | Exact reusable directory, or a unique directory pattern containing `#`; empty writes directly inside UserData. | string |  |
 
 ## Inputs

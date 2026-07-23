@@ -87,6 +87,7 @@ class OutputFile : public Module
     parameter existingFile;
     parameter startIndex;
     parameter flushInterval;
+    parameter header;
 
     matrix input;
     matrix write;
@@ -113,6 +114,7 @@ class OutputFile : public Module
     bool writeFailed = false;
     bool warnedLineOverflow = false;
     bool warnedWithoutSequence = false;
+    bool includeHeader = true;
 
     static bool
     IsWithin(const std::filesystem::path & root,
@@ -306,7 +308,7 @@ class OutputFile : public Module
     std::string
     HeaderRecord() const
     {
-        if(outputFormat == OutputFormat::jsonLines)
+        if(outputFormat == OutputFormat::jsonLines || !includeHeader)
             return "";
 
         const auto & labels = input.labels();
@@ -601,7 +603,7 @@ class OutputFile : public Module
     {
         EnsureParentDirectory(path);
         const ExistingFileInfo existing = InspectExistingFile(path);
-        const std::string header = HeaderRecord();
+        const std::string headerRecord = HeaderRecord();
 
         if(existingFileMode == ExistingFileMode::error && existing.exists)
             throw std::runtime_error(
@@ -612,9 +614,9 @@ class OutputFile : public Module
         if(existingFileMode == ExistingFileMode::append &&
            existing.exists && !existing.empty)
         {
-            if(!header.empty())
+            if(!headerRecord.empty())
             {
-                if(existing.firstRecord != header)
+                if(existing.firstRecord != headerRecord)
                     throw std::runtime_error(
                         "Existing OutputFile header does not match the "
                         "configured columns: \"" + path.string() + "\"");
@@ -651,9 +653,9 @@ class OutputFile : public Module
 
             if((!existing.exists || existing.empty ||
                 existingFileMode != ExistingFileMode::append) &&
-               !header.empty())
+               !headerRecord.empty())
             {
-                prepared.stream << header;
+                prepared.stream << headerRecord;
                 prepared.stream.put('\n');
                 FlushPreparedStream(prepared.stream, path, "header");
             }
@@ -1065,6 +1067,7 @@ class OutputFile : public Module
                 std::to_string(std::numeric_limits<int>::max()));
         flushIntervalRows =
             static_cast<std::uint64_t>(requestedFlushInterval);
+        includeHeader = header.as_bool();
     }
 
 
@@ -1180,6 +1183,7 @@ class OutputFile : public Module
         Bind(existingFile, "existing_file");
         Bind(startIndex, "start_index");
         Bind(flushInterval, "flush_interval");
+        Bind(header, "header");
 
         if(filename.as_string().empty())
             throw std::invalid_argument(

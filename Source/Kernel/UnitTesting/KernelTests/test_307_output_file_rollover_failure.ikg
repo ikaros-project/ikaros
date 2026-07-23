@@ -3,7 +3,7 @@
        description="OutputFile keeps the current recording active when the next file cannot open"
        start="true"
        stop="3"
-       check_sum="481675"
+       check_sum="505755"
        expected_output_contains="continuing with"
        expected_file_exists="UserData/test_307_output_file_00.csv||UserData/test_307_output_file_01.csv"
        expected_file_contains="tick/1,value||1,1.00||2,1.00||3,1.00"

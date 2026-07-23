@@ -4,7 +4,7 @@
        start="true"
        stop="2"
        tick_duration="0.25"
-       check_sum="4797401"
+       check_sum="5299809"
        expected_file_exists="UserData/test_303_output_file_none.csv||UserData/test_303_output_file_line.csv||UserData/test_303_output_file_tick.csv||UserData/test_303_output_file_time.csv||UserData/test_303_output_file_real_time.csv||UserData/test_303_output_file_real_time_b.csv"
        expected_files_identical="UserData/test_303_output_file_real_time.csv||UserData/test_303_output_file_real_time_b.csv"
        expected_file_contains="value&#10;1.00||line/1,value&#10;0,1.00&#10;1,1.00||tick/1,value&#10;1,1.00&#10;2,1.00||time/1,value&#10;0.25,1.00&#10;0.5,1.00||real_time/1,value&#10;0,1.00"

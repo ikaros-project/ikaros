@@ -3,7 +3,7 @@
        description="OutputFile applies # numbering, fixed decimals, escaped labels, continuous tick stamps, reset line numbers, and rising-edge file changes"
        start="true"
        stop="3"
-       check_sum="473967"
+       check_sum="493279"
        expected_file_exists="UserData/test_299_output_07.csv||UserData/test_299_output_08.csv||UserData/test_299_line_07.csv||UserData/test_299_line_08.csv"
        expected_file_contains="tick/1,&quot;value,quoted:0&quot;,&quot;value,quoted:1&quot;||line/1,&quot;value,quoted:0&quot;,&quot;value,quoted:1&quot;||0,1.23,-2.50||1,1.23,-2.50||2,1.23,-2.50||3,1.23,-2.50"
        cleanup_expected_files="true">

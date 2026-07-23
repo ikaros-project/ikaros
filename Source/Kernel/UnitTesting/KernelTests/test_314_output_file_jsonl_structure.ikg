@@ -3,7 +3,7 @@
        description="OutputFile JSONL preserves connection boundaries, matrix shapes, and escaped labels"
        start="true"
        stop="1"
-       check_sum="93572"
+       check_sum="93671"
        expected_file_exists="UserData/test_314_output_file_jsonl_structure.jsonl"
        expected_file_contains="{&quot;tick&quot;:1,&quot;weights&quot;:[[1,2],[3,4]],&quot;quoted\&quot;key&quot;:[5,6]}"
        cleanup_expected_files="true">
