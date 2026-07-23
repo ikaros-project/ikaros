@@ -1,4 +1,5 @@
 #include <cmath>
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -18,6 +19,14 @@ using namespace ikaros;
 
 class OutputFile : public Module
 {
+    enum class TimestampMode
+    {
+        none,
+        tick,
+        time,
+        realTime,
+    };
+
     parameter directory;
     parameter filename;
     parameter format;
@@ -32,15 +41,17 @@ class OutputFile : public Module
     std::filesystem::path outputDirectory;
     std::filesystem::path resolvedFilename;
     std::string columnSeparator;
-    std::uint64_t fileTick = 0;
+    std::chrono::steady_clock::time_point realTimeOrigin;
+    double realTimeTimestamp = 0.0;
     int fileIndex = 0;
     int decimalCount = 0;
+    TimestampMode timestampMode = TimestampMode::time;
     bool previousNewFile = false;
+    bool realTimeStarted = false;
     bool sequenceFilename = false;
     bool sequenceExhausted = false;
     bool writeFailed = false;
     bool warnedWithoutSequence = false;
-    bool warnedTickOverflow = false;
 
     static bool
     IsWithin(const std::filesystem::path & root,
@@ -191,11 +202,11 @@ class OutputFile : public Module
     WriteHeader()
     {
         const auto & labels = input.labels();
-        if(!static_cast<bool>(timestamp) && labels.empty())
+        if(timestampMode == TimestampMode::none && labels.empty())
             return;
 
         bool first = true;
-        if(static_cast<bool>(timestamp))
+        if(timestampMode != TimestampMode::none)
         {
             WriteSeparator(first);
             file << "T/1";
@@ -217,13 +228,33 @@ class OutputFile : public Module
 
 
     void
+    WriteTimestamp()
+    {
+        switch(timestampMode)
+        {
+            case TimestampMode::none:
+                break;
+            case TimestampMode::tick:
+                file << GetTick();
+                break;
+            case TimestampMode::time:
+                file << formatNumber(GetNominalTime());
+                break;
+            case TimestampMode::realTime:
+                file << formatNumber(realTimeTimestamp);
+                break;
+        }
+    }
+
+
+    void
     WriteRow()
     {
         bool first = true;
-        if(static_cast<bool>(timestamp))
+        if(timestampMode != TimestampMode::none)
         {
             WriteSeparator(first);
-            file << fileTick;
+            WriteTimestamp();
         }
 
         for(int block = 0; block < input.logical_block_count(); ++block)
@@ -361,30 +392,12 @@ class OutputFile : public Module
         {
             OpenFile(nextFilename);
             fileIndex = nextIndex;
-            fileTick = 0;
         }
         catch(const std::exception & error)
         {
             writeFailed = true;
             Warning("Could not open the next OutputFile: " +
                     std::string(error.what()), path_);
-        }
-    }
-
-
-    void
-    AdvanceFileTick()
-    {
-        if(fileTick != std::numeric_limits<std::uint64_t>::max())
-        {
-            ++fileTick;
-            return;
-        }
-        if(!warnedTickOverflow)
-        {
-            Warning("OutputFile timestamp reached its largest supported value",
-                    path_);
-            warnedTickOverflow = true;
         }
     }
 
@@ -428,6 +441,20 @@ class OutputFile : public Module
                 "OutputFile decimals must be an integer from 0 to 20");
         decimalCount = static_cast<int>(requestedDecimals);
 
+        const std::string selectedTimestamp = timestamp.as_string();
+        if(selectedTimestamp == "none")
+            timestampMode = TimestampMode::none;
+        else if(selectedTimestamp == "tick")
+            timestampMode = TimestampMode::tick;
+        else if(selectedTimestamp == "time")
+            timestampMode = TimestampMode::time;
+        else if(selectedTimestamp == "real_time")
+            timestampMode = TimestampMode::realTime;
+        else
+            throw std::invalid_argument(
+                "OutputFile timestamp must be \"none\", \"tick\", \"time\", "
+                "or \"real_time\"");
+
         sequenceFilename =
             contains_hash_image_sequence_format(filename.as_string());
         ResolveOutputDirectory();
@@ -445,6 +472,18 @@ class OutputFile : public Module
     void
     Tick() override
     {
+        if(timestampMode == TimestampMode::realTime)
+        {
+            const auto now = std::chrono::steady_clock::now();
+            if(!realTimeStarted)
+            {
+                realTimeOrigin = now;
+                realTimeStarted = true;
+            }
+            realTimeTimestamp =
+                std::chrono::duration<double>(now - realTimeOrigin).count();
+        }
+
         if(NewFileRequested())
             OpenNextFile();
 
@@ -461,7 +500,6 @@ class OutputFile : public Module
                 CloseFile(false);
             }
         }
-        AdvanceFileTick();
     }
 };
 
