@@ -1,7 +1,7 @@
 <group name="MidiInputTest" title="MidiInput Test" tick_duration="0.02">
-   <module class="MidiInput" name="Midi" source_index="-1" trig_hold_ticks="3" _x="80" _y="220" />
+   <module class="MidiInput" name="Midi" source_name="LPX MIDI Out" source_index="-1" trig_hold_ticks="3" _x="80" _y="220" />
 
-   <widget name="Info" class="text" text="Manual test for MidiInput. Connect a MIDI keyboard, run the graph on macOS, and press keys. KEY shows the latest note number, GATE stays high while a key is held, EVENT_COUNT increments on every note-on, and TRIG is held high briefly so the UI can show the event clearly." width="760" height="90" x="40" y="30" show_title="false" show_frame="false" />
+   <widget name="Info" class="text" text="Manual test for MidiInput using the named LPX MIDI Out source. Press pads on a Launchpad X. KEY shows the latest note number, GATE stays high while a pad is held, EVENT_COUNT increments on every note-on, and TRIG is held high briefly so the UI can show the event clearly." width="760" height="90" x="40" y="30" show_title="false" show_frame="false" />
    <widget name="KeyValue" class="table" source="Midi.KEY" title="KEY" width="170" height="90" x="40" y="150" show_title="true" show_frame="true" colorize="true" decimals="0" />
    <widget name="GateValue" class="table" source="Midi.GATE" title="GATE" width="170" height="90" x="240" y="150" show_title="true" show_frame="true" colorize="true" decimals="0" min="0" max="1" />
    <widget name="TrigValue" class="table" source="Midi.TRIG" title="TRIG" width="170" height="90" x="440" y="150" show_title="true" show_frame="true" colorize="true" decimals="0" min="0" max="1" />

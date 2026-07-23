@@ -1,5 +1,6 @@
 <group name="LaunchpadAnimationTest" title="Launchpad Animation Test" tick_duration="0.02">
-    <module class="MidiInput" name="Midi" source_index="-1" trig_hold_ticks="1"
+    <module class="MidiInput" name="Midi" source_name="LPX MIDI Out"
+            source_index="-1" trig_hold_ticks="1"
             _x="40" _y="260" />
     <module class="LaunchpadAnimation" name="Animation" speed="1"
             brightness="1" saturation="0.9" sparkle="0.65"

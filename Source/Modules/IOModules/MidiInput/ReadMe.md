@@ -16,10 +16,13 @@ It exposes these outputs:
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| `source_index` | MIDI source to connect to. Use `-1` to listen to all available sources. | number | `-1` |
+| `source_name` | Exact source name or unique name fragment. Takes precedence over `source_index` when set. | string | empty |
+| `source_index` | Legacy MIDI source index. Use `-1` to listen to all available sources when `source_name` is empty. | number | `-1` |
 | `trig_hold_ticks` | Number of ticks to hold `TRIG` high after a note-on event. | number | `1` |
 
-The module follows CoreMIDI device changes while it is running. If no matching
-source is available at startup, it waits and connects when the MIDI topology
-changes. Notes are tracked independently by source, group, channel, and note
-number, so `GATE` remains high until every held note has been released.
+Name matching first considers exact endpoint and display names, then unique
+substrings. Ambiguous names are rejected instead of selecting an arbitrary
+source. The module follows CoreMIDI device changes while it is running. If no
+matching source is available at startup, it waits and connects when the MIDI
+topology changes. Notes are tracked independently by source, group, channel,
+and note number, so `GATE` remains high until every held note has been released.

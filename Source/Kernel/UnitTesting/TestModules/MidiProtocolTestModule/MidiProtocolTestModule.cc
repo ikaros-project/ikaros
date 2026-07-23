@@ -9,6 +9,7 @@
 
 #include "ikaros.h"
 #include "Modules/IOModules/LaunchpadLED/LaunchpadProtocol.h"
+#include "Modules/IOModules/MidiInput/MidiEndpointSelection.h"
 #include "Modules/IOModules/MidiInput/MidiProtocol.h"
 
 using namespace ikaros;
@@ -331,6 +332,56 @@ namespace
         require(message.empty(),
                 "Launchpad emitted an empty RGB update message");
     }
+
+
+    void
+    testMIDIEndpointSelection()
+    {
+        const std::array<midi::EndpointNames, 3> endpoints
+        {{
+            {"LPX DAW Out", "Launchpad X LPX DAW Out"},
+            {"LPX MIDI Out", "Launchpad X LPX MIDI Out"},
+            {"Keyboard", "Studio Keyboard"},
+        }};
+
+        midi::EndpointMatch match =
+            midi::matchEndpoint(endpoints, "LPX MIDI Out");
+        require(match.status == midi::EndpointMatchStatus::matched &&
+                    match.index == 1,
+                "exact MIDI endpoint name did not select the expected source");
+
+        match = midi::matchEndpoint(endpoints, "Launchpad X LPX MIDI");
+        require(match.status == midi::EndpointMatchStatus::matched &&
+                    match.index == 1,
+                "unique MIDI display-name fragment was not selected");
+
+        match = midi::matchEndpoint(endpoints, "LPX");
+        require(match.status == midi::EndpointMatchStatus::ambiguous,
+                "ambiguous MIDI endpoint fragment was silently selected");
+
+        match = midi::matchEndpoint(endpoints, "Missing");
+        require(match.status == midi::EndpointMatchStatus::notFound,
+                "missing MIDI endpoint name was reported as available");
+
+        const std::array<midi::EndpointNames, 2> exactBeforeFragment
+        {{
+            {"LPX MIDI Out", "Launchpad X LPX MIDI Out"},
+            {"Other", "Clone LPX MIDI Out Extended"},
+        }};
+        match = midi::matchEndpoint(exactBeforeFragment, "LPX MIDI Out");
+        require(match.status == midi::EndpointMatchStatus::matched &&
+                    match.index == 0,
+                "a fragment match overrode an exact MIDI endpoint name");
+
+        const std::array<midi::EndpointNames, 2> duplicateNames
+        {{
+            {"Keyboard", "First Keyboard"},
+            {"Keyboard", "Second Keyboard"},
+        }};
+        match = midi::matchEndpoint(duplicateNames, "Keyboard");
+        require(match.status == midi::EndpointMatchStatus::ambiguous,
+                "duplicate exact MIDI endpoint names were silently selected");
+    }
 }
 
 
@@ -352,6 +403,7 @@ class MidiProtocolTestModule : public Module
         testLaunchpadPadMapping();
         testLaunchpadColors();
         testLaunchpadMessages();
+        testMIDIEndpointSelection();
         std::cout << "MIDI PROTOCOL TEST OK" << std::endl;
     }
 };

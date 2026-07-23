@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "ikaros.h"
+#include "MidiEndpointSelection.h"
 #include "MidiProtocol.h"
 
 #ifdef MAC_OS_X
@@ -82,6 +83,7 @@ public:
     void
     Init() override
     {
+        Bind(sourceName_, "source_name");
         Bind(sourceIndex_, "source_index");
         Bind(trigHoldTicks_, "trig_hold_ticks");
         Bind(key_, "KEY");
@@ -93,7 +95,14 @@ public:
         Bind(lastBatchCountOut_, "LAST_BATCH_COUNT");
 
         ValidateOutputs();
-        sourceIndexValue_ = IntegerParameter(sourceIndex_, "source_index");
+        sourceNameValue_ = trim(sourceName_.as_string());
+        if(sourceNameValue_.empty())
+        {
+            sourceIndexValue_ = IntegerParameter(sourceIndex_, "source_index");
+            if(sourceIndexValue_ < -1)
+                throw exception(
+                    "MidiInput source_index must be -1 or greater.");
+        }
         trigHoldTicksValue_ = IntegerParameter(trigHoldTicks_, "trig_hold_ticks");
 
         key_ = 0;
@@ -171,6 +180,7 @@ private:
     }
 
 
+    parameter sourceName_;
     parameter sourceIndex_;
     parameter trigHoldTicks_;
     matrix key_;
@@ -182,6 +192,7 @@ private:
     matrix lastBatchCountOut_;
 
     std::shared_ptr<midi::EventState> eventState_;
+    std::string sourceNameValue_;
     int sourceIndexValue_ = -1;
     int trigHoldTicksValue_ = 1;
     int trigCountdown_ = 0;
@@ -227,20 +238,41 @@ private:
 
 
     static std::string
-    SourceName(MIDIEndpointRef source)
+    MIDIObjectStringProperty(MIDIObjectRef object, CFStringRef property)
     {
-        if(source == 0)
-            return "Unknown";
+        if(object == 0)
+            return "";
 
         CFStringRef name = nullptr;
         const OSStatus status =
-            MIDIObjectGetStringProperty(source, kMIDIPropertyName, &name);
+            MIDIObjectGetStringProperty(object, property, &name);
         if(status != noErr || name == nullptr)
-            return "Unknown";
+            return "";
 
         std::string result = CFStringToStdString(name);
         CFRelease(name);
-        return result.empty() ? "Unknown" : result;
+        return result;
+    }
+
+
+    static midi::EndpointNames
+    SourceNames(MIDIEndpointRef source)
+    {
+        return {
+            MIDIObjectStringProperty(source, kMIDIPropertyName),
+            MIDIObjectStringProperty(source, kMIDIPropertyDisplayName),
+        };
+    }
+
+
+    static std::string
+    SourceDescription(const midi::EndpointNames & names)
+    {
+        if(!names.displayName.empty())
+            return names.displayName;
+        if(!names.name.empty())
+            return names.name;
+        return "Unknown";
     }
 
 
@@ -401,9 +433,14 @@ private:
         availableSources << "MidiInput found " << sourceCount << " MIDI source";
         if(sourceCount != 1)
             availableSources << "s";
+        std::vector<midi::EndpointNames> endpointNames;
+        endpointNames.reserve(sourceCount);
         for(ItemCount i = 0; i < sourceCount; ++i)
+        {
+            endpointNames.push_back(SourceNames(MIDIGetSource(i)));
             availableSources << " [" << i << ": "
-                             << SourceName(MIDIGetSource(i)) << "]";
+                             << SourceDescription(endpointNames.back()) << "]";
+        }
         Notify(msg_print, availableSources.str());
 
         if(sourceCount == 0)
@@ -415,7 +452,33 @@ private:
             return;
         }
 
-        if(sourceIndexValue_ >= 0)
+        if(!sourceNameValue_.empty())
+        {
+            const midi::EndpointMatch match =
+                midi::matchEndpoint(endpointNames, sourceNameValue_);
+            if(match.status == midi::EndpointMatchStatus::ambiguous)
+            {
+                Notify(msg_warning,
+                       "MidiInput source_name \"" + sourceNameValue_ +
+                           "\" matches more than one MIDI source. Use a more "
+                           "specific name.");
+                connectedOut_ = 0;
+                return;
+            }
+            if(match.status == midi::EndpointMatchStatus::notFound)
+            {
+                Notify(msg_warning,
+                       "MidiInput source_name \"" + sourceNameValue_ +
+                           "\" is not currently available and will be retried "
+                           "when the MIDI configuration changes.");
+                connectedOut_ = 0;
+                return;
+            }
+
+            ConnectSource(MIDIGetSource(match.index),
+                          static_cast<int>(match.index));
+        }
+        else if(sourceIndexValue_ >= 0)
         {
             if(static_cast<ItemCount>(sourceIndexValue_) >= sourceCount)
             {
@@ -457,9 +520,10 @@ private:
         }
 
         connections_.push_back({source, &sourceState});
+        const midi::EndpointNames names = SourceNames(source);
         Notify(msg_print,
                "MidiInput connected to source " + std::to_string(index) +
-                   ": " + SourceName(source));
+                   ": " + SourceDescription(names));
     }
 #endif
 };
