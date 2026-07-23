@@ -27,6 +27,16 @@ stops or the file rolls over, so the file is not valid JSON while recording and 
 incomplete after a crash. `jsonl` instead writes one independently valid object per line and is the
 appropriate choice for live reading or crash tolerance.
 
+For safer recording, use `format="jsonl"` and convert the completed JSONL file to a conventional
+JSON array afterwards:
+
+```sh
+jq -s . recording.jsonl > recording.json
+```
+
+This preserves every complete, flushed JSONL record if recording is interrupted. If a crash occurs
+partway through the final record, remove that incomplete final line before running `jq`.
+
 JSON connections must have explicit, nonempty, unique labels. The timestamp names `line`, `tick`,
 `time`, and `real_time` are reserved even when the corresponding timestamp is not selected.
 Connection labels are JSON-escaped. Source matrix rank and singleton dimensions are retained:
