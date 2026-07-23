@@ -3,7 +3,7 @@
        description="OutputFile supports custom single-character and whitespace delimiters"
        start="true"
        stop="1"
-       check_sum="375354"
+       check_sum="451940"
        expected_file_exists="UserData/test_309_output_file_semicolon.txt||UserData/test_309_output_file_space.txt"
        expected_file_contains="line/1;&quot;value;quoted:0&quot;;&quot;value;quoted:1&quot;&#10;0;1.00;2.00||line/1 &quot;spaced value:0&quot; &quot;spaced value:1&quot;&#10;0 1.00 2.00"
        cleanup_expected_files="true">

@@ -1,3 +1,4 @@
+#include <charconv>
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
@@ -35,6 +36,12 @@ class OutputFile : public Module
         append,
     };
 
+    enum class NumberFormat
+    {
+        fixed,
+        full,
+    };
+
     struct ExistingFileInfo
     {
         bool exists = false;
@@ -55,6 +62,7 @@ class OutputFile : public Module
     parameter filename;
     parameter format;
     parameter delimiter;
+    parameter numberFormat;
     parameter decimals;
     parameter timestamp;
     parameter existingFile;
@@ -76,6 +84,7 @@ class OutputFile : public Module
     int decimalCount = 0;
     TimestampMode timestampMode = TimestampMode::time;
     ExistingFileMode existingFileMode = ExistingFileMode::error;
+    NumberFormat dataNumberFormat = NumberFormat::fixed;
     bool previousNewFile = false;
     bool sequenceFilename = false;
     bool sequenceExhausted = false;
@@ -442,7 +451,8 @@ class OutputFile : public Module
         if(!prepared.stream)
             throw std::runtime_error(
                 "Could not open OutputFile \"" + path.string() + "\"");
-        prepared.stream << std::fixed << std::setprecision(decimalCount);
+        if(dataNumberFormat == NumberFormat::fixed)
+            prepared.stream << std::fixed << std::setprecision(decimalCount);
 
         try
         {
@@ -547,6 +557,25 @@ class OutputFile : public Module
 
 
     void
+    WriteValue(float value)
+    {
+        if(dataNumberFormat == NumberFormat::fixed)
+        {
+            file << value;
+            return;
+        }
+
+        char buffer[64];
+        const auto result =
+            std::to_chars(buffer, buffer + sizeof(buffer), value);
+        if(result.ec != std::errc())
+            throw std::runtime_error(
+                "Could not format a full-resolution OutputFile value");
+        file.write(buffer, result.ptr - buffer);
+    }
+
+
+    void
     WriteRow()
     {
         bool first = true;
@@ -562,7 +591,7 @@ class OutputFile : public Module
             for(int i = 0; i < input.logical_block_size(); ++i)
             {
                 WriteSeparator(first);
-                file << values[i];
+                WriteValue(values[i]);
             }
         }
         FinishRow();
@@ -694,6 +723,15 @@ class OutputFile : public Module
             columnDelimiter = requestedDelimiter;
         }
 
+        const std::string selectedNumberFormat = numberFormat.as_string();
+        if(selectedNumberFormat == "fixed")
+            dataNumberFormat = NumberFormat::fixed;
+        else if(selectedNumberFormat == "full")
+            dataNumberFormat = NumberFormat::full;
+        else
+            throw std::invalid_argument(
+                "OutputFile number_format must be \"fixed\" or \"full\"");
+
         const double requestedDecimals = decimals.as_double();
         if(!std::isfinite(requestedDecimals) ||
            std::trunc(requestedDecimals) != requestedDecimals ||
@@ -764,6 +802,7 @@ class OutputFile : public Module
         Bind(filename, "filename");
         Bind(format, "format");
         Bind(delimiter, "delimiter");
+        Bind(numberFormat, "number_format");
         Bind(decimals, "decimals");
         Bind(timestamp, "timestamp");
         Bind(existingFile, "existing_file");

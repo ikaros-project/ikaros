@@ -12,6 +12,11 @@ data and `delimiter=" "` produces space-separated data. Fields containing the se
 are quoted. Line breaks, NUL, and `"` cannot be delimiters because they conflict with record and
 quoting syntax.
 
+`number_format="fixed"` writes every matrix value with the number of fractional digits selected by
+`decimals`. `number_format="full"` instead writes the shortest decimal representation that
+round-trips to the exact stored float. Full formatting uses ordinary or scientific notation
+automatically according to the value and does not use `decimals`.
+
 By default, each completed row is explicitly flushed. This keeps rows that reached the operating
 system if the Ikaros process crashes, although it does not provide the stronger power-loss
 guarantee of an `fsync()` operation. `flush_interval` can trade some of that protection for higher
@@ -62,6 +67,7 @@ when the file rolls over or the module stops. Headers are always flushed immedia
 | filename | File to write inside UserData, optionally containing one `#` sequence placeholder. | string | output.csv |
 | format | Delimited text format: `csv` or `tsv`. | string | csv |
 | delimiter | Optional single-character delimiter overriding the format preset; a space is allowed. | string |  |
+| number_format | Data formatting: `fixed` uses `decimals`; `full` preserves exact float values and selects scientific notation automatically. | string | fixed |
 | decimals | Number of digits after the decimal point, from 0 through 20. | int | 4 |
 | timestamp | First-column mode: `none`, `line`, `tick`, `time`, or `real_time`. | string | time |
 | existing_file | Existing-file policy: `error`, `overwrite`, or `append`. | string | error |
