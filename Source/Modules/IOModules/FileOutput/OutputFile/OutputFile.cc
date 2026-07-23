@@ -1,14 +1,13 @@
-#include <cmath>
 #include <chrono>
-#include <cstdint>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <limits>
 #include <locale>
-#include <sstream>
 #include <stdexcept>
 #include <string>
+#include <system_error>
 
 #include "ikaros.h"
 #include "../../FileInput/image_sequence.h"
@@ -71,16 +70,6 @@ class OutputFile : public Module
 
 
     static std::string
-    DirectorySuffix(std::uint64_t index)
-    {
-        std::ostringstream suffix;
-        suffix.imbue(std::locale::classic());
-        suffix << '.' << std::setfill('0') << std::setw(3) << index;
-        return suffix.str();
-    }
-
-
-    static std::string
     QuoteLabel(const std::string & label, char delimiter)
     {
         if(label.find(delimiter) == std::string::npos &&
@@ -109,45 +98,68 @@ class OutputFile : public Module
         if(directory.as_string().empty())
             return;
 
-        std::filesystem::path baseDirectory;
-        if(!kernel().SanitizeWritePath(directory.as_string(), baseDirectory))
-            throw std::invalid_argument(
-                "OutputFile directory must be inside UserData");
-
-        std::error_code error;
-        std::filesystem::create_directories(baseDirectory.parent_path(), error);
-        if(error)
-            throw std::runtime_error(
-                "Could not create parent directory for OutputFile: " +
-                error.message());
-
-        for(std::uint64_t index = 0;
-            index <= static_cast<std::uint64_t>(std::numeric_limits<int>::max());
-            ++index)
+        const std::string pattern = directory.as_string();
+        const bool numbered =
+            contains_hash_image_sequence_format(pattern);
+        if(!numbered)
         {
-            const std::filesystem::path candidate =
-                baseDirectory.parent_path() /
-                (baseDirectory.filename().string() + DirectorySuffix(index));
-
-            std::filesystem::path sanitizedCandidate;
-            if(!kernel().SanitizeWritePath(candidate, sanitizedCandidate))
+            const std::string formatted =
+                format_hash_image_sequence_filename(pattern, 0);
+            if(!kernel().SanitizeWritePath(formatted, outputDirectory))
                 throw std::invalid_argument(
                     "OutputFile directory must be inside UserData");
 
-            error.clear();
-            if(std::filesystem::create_directory(sanitizedCandidate, error))
-            {
-                outputDirectory = sanitizedCandidate;
-                return;
-            }
+            std::error_code error;
+            std::filesystem::create_directories(outputDirectory, error);
             if(error)
                 throw std::runtime_error(
                     "Could not create OutputFile directory \"" +
-                    sanitizedCandidate.string() + "\": " + error.message());
+                    outputDirectory.string() + "\": " + error.message());
+            return;
+        }
+
+        for(int index = 0; ; ++index)
+        {
+            std::string formatted;
+            try
+            {
+                formatted =
+                    format_hash_image_sequence_filename(pattern, index);
+            }
+            catch(const std::out_of_range &)
+            {
+                break;
+            }
+
+            std::filesystem::path candidate;
+            if(!kernel().SanitizeWritePath(formatted, candidate))
+                throw std::invalid_argument(
+                    "OutputFile directory must be inside UserData");
+
+            std::error_code error;
+            std::filesystem::create_directories(candidate.parent_path(), error);
+            if(error)
+                throw std::runtime_error(
+                    "Could not create parent directory for OutputFile \"" +
+                    candidate.string() + "\": " + error.message());
+
+            error.clear();
+            if(std::filesystem::create_directory(candidate, error))
+            {
+                outputDirectory = candidate;
+                return;
+            }
+            if(error && error != std::errc::file_exists)
+                throw std::runtime_error(
+                    "Could not create OutputFile directory \"" +
+                    candidate.string() + "\": " + error.message());
+            if(index == std::numeric_limits<int>::max())
+                break;
         }
 
         throw std::runtime_error(
-            "Could not find an available numbered OutputFile directory");
+            "Could not find an available number for OutputFile directory \"" +
+            pattern + "\"");
     }
 
 

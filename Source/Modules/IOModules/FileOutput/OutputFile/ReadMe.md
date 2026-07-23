@@ -22,8 +22,13 @@ round-trip formatting, so the `decimals` setting for data columns cannot reduce 
 
 NEWFILE reacts to a rising edge. When the filename contains `#`, it closes the current file and
 opens the next numbered file. A single `#` is an unpadded number of any length; multiple hashes
-specify a fixed zero-padded width, so `recording_####.csv` produces
-`recording_0000.csv`, `recording_0001.csv`, and so on. Write `\#` for a literal hash.
+specify a fixed zero-padded width, so `samples_####.csv` produces
+`samples_0000.csv`, `samples_0001.csv`, and so on.
+
+The same notation controls directories. `directory="recording"` reuses exactly that directory,
+while `directory="recording_###"` selects the first available directory from `recording_000`,
+`recording_001`, and so on. Filename and directory numbering are independent. Write `\#` for a
+literal hash in either parameter.
 
 ![OutputFile](OutputFile.svg)
 
@@ -35,7 +40,7 @@ specify a fixed zero-padded width, so `recording_####.csv` produces
 | format | Delimited text format: `csv` or `tsv`. | string | csv |
 | decimals | Number of digits after the decimal point, from 0 through 20. | int | 4 |
 | timestamp | First-column mode: `none`, `tick`, `time`, or `real_time`. | string | time |
-| directory | Create a fresh numbered directory such as `recording.000`; empty writes directly inside UserData. | string |  |
+| directory | Exact reusable directory, or a unique directory pattern containing `#`; empty writes directly inside UserData. | string |  |
 
 ## Inputs
 
