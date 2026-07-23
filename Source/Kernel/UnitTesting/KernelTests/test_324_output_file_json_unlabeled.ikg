@@ -1,0 +1,17 @@
+<group internal="true"
+       name="TestOutputFileJSONUnlabeled"
+       description="OutputFile JSON arrays reject unlabeled connections"
+       start="true"
+       stop="0"
+       expected_exit="1"
+       expected_output_contains="OutputFile JSON connections require explicit labels">
+    <module name="Data" class="Constant" data="1" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_324_output_file_json_unlabeled.json"
+            format="json" />
+
+    <connection delay="0"
+                source="Data.OUTPUT"
+                target="Output.INPUT" />
+</group>

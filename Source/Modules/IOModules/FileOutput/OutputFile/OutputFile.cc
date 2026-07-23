@@ -27,6 +27,7 @@ class OutputFile : public Module
     enum class OutputFormat
     {
         delimited,
+        jsonArray,
         jsonLines,
     };
 
@@ -58,6 +59,7 @@ class OutputFile : public Module
         bool empty = true;
         bool endsWithNewline = true;
         std::uint64_t recordCount = 0;
+        std::uintmax_t jsonArrayAppendOffset = 0;
         std::string firstRecord;
     };
 
@@ -66,6 +68,7 @@ class OutputFile : public Module
         std::ofstream stream;
         std::filesystem::path path;
         std::uint64_t lineNumber = 0;
+        std::uint64_t jsonRecordCount = 0;
     };
 
     struct JSONField
@@ -98,6 +101,7 @@ class OutputFile : public Module
     std::filesystem::path resolvedFilename;
     char columnDelimiter = ',';
     std::uint64_t lineNumber = 0;
+    std::uint64_t jsonRecordCount = 0;
     std::uint64_t rowsSinceFlush = 0;
     std::uint64_t flushIntervalRows = 1;
     int fileIndex = 0;
@@ -115,6 +119,13 @@ class OutputFile : public Module
     bool warnedLineOverflow = false;
     bool warnedWithoutSequence = false;
     bool includeHeader = true;
+
+    bool
+    IsJSONOutput() const
+    {
+        return outputFormat == OutputFormat::jsonArray ||
+               outputFormat == OutputFormat::jsonLines;
+    }
 
     static bool
     IsWithin(const std::filesystem::path & root,
@@ -165,6 +176,14 @@ class OutputFile : public Module
                 "OutputFile record count overflow in \"" + path.string() +
                 "\"");
         ++count;
+    }
+
+
+    static bool
+    IsJSONWhitespace(char character)
+    {
+        return character == ' ' || character == '\t' ||
+               character == '\r' || character == '\n';
     }
 
 
@@ -308,7 +327,7 @@ class OutputFile : public Module
     std::string
     HeaderRecord() const
     {
-        if(outputFormat == OutputFormat::jsonLines || !includeHeader)
+        if(IsJSONOutput() || !includeHeader)
             return "";
 
         const auto & labels = input.labels();
@@ -382,6 +401,36 @@ class OutputFile : public Module
     }
 
 
+    void
+    ValidateJSONObject(
+        const dictionary & object,
+        const std::vector<std::string> & expectedKeys) const
+    {
+        const std::size_t keyCount =
+            static_cast<std::size_t>(
+                std::distance(object.begin(), object.end()));
+        if(keyCount != expectedKeys.size())
+            throw std::runtime_error(
+                "record keys do not match the configured fields");
+        for(const std::string & key : expectedKeys)
+            if(!object.contains(key))
+                throw std::runtime_error(
+                    "record is missing key \"" + key + "\"");
+
+        const std::string_view timestampKey = TimestampKey();
+        if(!timestampKey.empty() &&
+           !object.at(std::string(timestampKey)).is_number())
+            throw std::runtime_error(
+                "timestamp field is not numeric");
+        for(const JSONField & field : jsonFields)
+            if(!JSONValueMatchesShape(
+                   object.at(field.label), field.shape, 0))
+                throw std::runtime_error(
+                    "field \"" + field.label +
+                    "\" does not match its configured shape");
+    }
+
+
     ExistingFileInfo
     InspectExistingJSONLines(const std::filesystem::path & path,
                              ExistingFileInfo info) const
@@ -435,30 +484,8 @@ class OutputFile : public Module
                 if(!parsed.is_dictionary())
                     throw std::runtime_error(
                         "record is not a JSON object");
-
-                const dictionary & object = parsed.as_dictionary();
-                const std::size_t keyCount =
-                    static_cast<std::size_t>(
-                        std::distance(object.begin(), object.end()));
-                if(keyCount != expectedKeys.size())
-                    throw std::runtime_error(
-                        "record keys do not match the configured fields");
-                for(const std::string & key : expectedKeys)
-                    if(!object.contains(key))
-                        throw std::runtime_error(
-                            "record is missing key \"" + key + "\"");
-
-                const std::string_view timestampKey = TimestampKey();
-                if(!timestampKey.empty() &&
-                   !object.at(std::string(timestampKey)).is_number())
-                    throw std::runtime_error(
-                        "timestamp field is not numeric");
-                for(const JSONField & field : jsonFields)
-                    if(!JSONValueMatchesShape(
-                           object.at(field.label), field.shape, 0))
-                        throw std::runtime_error(
-                            "field \"" + field.label +
-                            "\" does not match its configured shape");
+                ValidateJSONObject(
+                    parsed.as_dictionary(), expectedKeys);
             }
             catch(const std::exception & exception)
             {
@@ -475,6 +502,76 @@ class OutputFile : public Module
             throw std::runtime_error(
                 "Could not read existing OutputFile \"" + path.string() +
                 "\"");
+        return info;
+    }
+
+
+    ExistingFileInfo
+    InspectExistingJSONArray(const std::filesystem::path & path,
+                             ExistingFileInfo info) const
+    {
+        std::ifstream inputStream(path, std::ios::binary);
+        if(!inputStream)
+            throw std::runtime_error(
+                "Could not inspect existing OutputFile \"" + path.string() +
+                "\"");
+
+        const std::string contents{
+            std::istreambuf_iterator<char>(inputStream),
+            std::istreambuf_iterator<char>()
+        };
+        if(inputStream.bad())
+            throw std::runtime_error(
+                "Could not read existing OutputFile \"" + path.string() +
+                "\"");
+
+        info.empty = contents.empty();
+        if(info.empty)
+            return info;
+        info.endsWithNewline = contents.back() == '\n';
+
+        try
+        {
+            const value parsed = parse_json(contents);
+            if(!parsed.is_list())
+                throw std::runtime_error(
+                    "top-level value is not an array");
+
+            const std::vector<std::string> expectedKeys = JSONSchemaKeys();
+            for(const value & record : parsed.as_list())
+            {
+                if(!record.is_dictionary())
+                    throw std::runtime_error(
+                        "array element " +
+                        std::to_string(info.recordCount) +
+                        " is not a JSON object");
+                ValidateJSONObject(
+                    record.as_dictionary(), expectedKeys);
+                IncrementRecordCount(info.recordCount, path);
+            }
+        }
+        catch(const std::exception & exception)
+        {
+            throw std::runtime_error(
+                "Existing OutputFile is not a valid compatible JSON array: " +
+                std::string(exception.what()) + ": \"" + path.string() +
+                "\"");
+        }
+
+        const std::size_t closingBracket =
+            contents.find_last_not_of(" \t\r\n");
+        if(closingBracket == std::string::npos ||
+           contents[closingBracket] != ']')
+            throw std::runtime_error(
+                "Existing OutputFile JSON array has no closing bracket: \"" +
+                path.string() + "\"");
+
+        std::size_t appendOffset = closingBracket;
+        while(appendOffset > 0 &&
+              IsJSONWhitespace(contents[appendOffset - 1]))
+            --appendOffset;
+        info.jsonArrayAppendOffset =
+            static_cast<std::uintmax_t>(appendOffset);
         return info;
     }
 
@@ -499,6 +596,8 @@ class OutputFile : public Module
 
         if(existingFileMode != ExistingFileMode::append)
             return info;
+        if(outputFormat == OutputFormat::jsonArray)
+            return InspectExistingJSONArray(path, std::move(info));
         if(outputFormat == OutputFormat::jsonLines)
             return InspectExistingJSONLines(path, std::move(info));
 
@@ -614,7 +713,20 @@ class OutputFile : public Module
         if(existingFileMode == ExistingFileMode::append &&
            existing.exists && !existing.empty)
         {
-            if(!headerRecord.empty())
+            if(outputFormat == OutputFormat::jsonArray)
+            {
+                prepared.lineNumber = existing.recordCount;
+                prepared.jsonRecordCount = existing.recordCount;
+
+                std::error_code error;
+                std::filesystem::resize_file(
+                    path, existing.jsonArrayAppendOffset, error);
+                if(error)
+                    throw std::runtime_error(
+                        "Could not reopen existing OutputFile JSON array \"" +
+                        path.string() + "\": " + error.message());
+            }
+            else if(!headerRecord.empty())
             {
                 if(existing.firstRecord != headerRecord)
                     throw std::runtime_error(
@@ -642,22 +754,36 @@ class OutputFile : public Module
 
         try
         {
-            if(existingFileMode == ExistingFileMode::append &&
-               existing.exists && !existing.empty &&
-               !existing.endsWithNewline)
+            if(outputFormat == OutputFormat::jsonArray)
             {
-                prepared.stream.put('\n');
-                FlushPreparedStream(prepared.stream, path,
-                                    "record separator");
+                if(existingFileMode != ExistingFileMode::append ||
+                   !existing.exists || existing.empty)
+                {
+                    prepared.stream.put('[');
+                    FlushPreparedStream(
+                        prepared.stream, path, "JSON array opening");
+                }
             }
-
-            if((!existing.exists || existing.empty ||
-                existingFileMode != ExistingFileMode::append) &&
-               !headerRecord.empty())
+            else
             {
-                prepared.stream << headerRecord;
-                prepared.stream.put('\n');
-                FlushPreparedStream(prepared.stream, path, "header");
+                if(existingFileMode == ExistingFileMode::append &&
+                   existing.exists && !existing.empty &&
+                   !existing.endsWithNewline)
+                {
+                    prepared.stream.put('\n');
+                    FlushPreparedStream(prepared.stream, path,
+                                        "record separator");
+                }
+
+                if((!existing.exists || existing.empty ||
+                    existingFileMode != ExistingFileMode::append) &&
+                   !headerRecord.empty())
+                {
+                    prepared.stream << headerRecord;
+                    prepared.stream.put('\n');
+                    FlushPreparedStream(
+                        prepared.stream, path, "header");
+                }
             }
         }
         catch(...)
@@ -676,6 +802,7 @@ class OutputFile : public Module
         resolvedFilename = std::move(prepared.path);
         fileIndex = index;
         lineNumber = prepared.lineNumber;
+        jsonRecordCount = prepared.jsonRecordCount;
         rowsSinceFlush = 0;
         warnedLineOverflow = false;
         writeFailed = false;
@@ -704,9 +831,10 @@ class OutputFile : public Module
 
 
     void
-    FinishRow()
+    FinishRecord(bool addNewline)
     {
-        file.put('\n');
+        if(addNewline)
+            file.put('\n');
         if(!file)
             throw std::runtime_error(
                 "Could not write OutputFile row to \"" +
@@ -716,6 +844,13 @@ class OutputFile : public Module
             ++rowsSinceFlush;
         if(flushIntervalRows > 0 && rowsSinceFlush >= flushIntervalRows)
             FlushRows();
+    }
+
+
+    void
+    FinishRow()
+    {
+        FinishRecord(true);
     }
 
 
@@ -805,7 +940,7 @@ class OutputFile : public Module
 
 
     void
-    WriteJSONRow()
+    WriteJSONObject()
     {
         const float * values = input.contiguous_data();
         bool first = true;
@@ -828,10 +963,34 @@ class OutputFile : public Module
                 WriteJSONArray(values, offset, field.shape, 0);
             if(offset != field.offset + field.valueCount)
                 throw std::logic_error(
-                    "OutputFile JSONL field shape does not match its input");
+                    "OutputFile JSON field shape does not match its input");
         }
 
         file.put('}');
+    }
+
+
+    void
+    WriteJSONRow()
+    {
+        if(outputFormat == OutputFormat::jsonArray)
+        {
+            if(jsonRecordCount ==
+               std::numeric_limits<std::uint64_t>::max())
+                throw std::runtime_error(
+                    "OutputFile JSON array record count overflow");
+
+            if(jsonRecordCount == 0)
+                file.put('\n');
+            else
+                file << ",\n";
+            WriteJSONObject();
+            FinishRecord(false);
+            ++jsonRecordCount;
+            return;
+        }
+
+        WriteJSONObject();
         FinishRow();
     }
 
@@ -839,7 +998,7 @@ class OutputFile : public Module
     void
     WriteRow()
     {
-        if(outputFormat == OutputFormat::jsonLines)
+        if(IsJSONOutput())
         {
             WriteJSONRow();
             return;
@@ -871,12 +1030,21 @@ class OutputFile : public Module
         if(!file.is_open())
             return true;
 
+        if(outputFormat == OutputFormat::jsonArray &&
+           reportFailure && file)
+        {
+            if(jsonRecordCount == 0)
+                file << "]\n";
+            else
+                file << "\n]\n";
+        }
         file.flush();
         bool succeeded = static_cast<bool>(file);
         file.close();
         succeeded = succeeded && !file.fail();
         file.clear();
         rowsSinceFlush = 0;
+        jsonRecordCount = 0;
 
         if(!succeeded && reportFailure)
             Warning("Could not flush and close OutputFile \"" +
@@ -976,18 +1144,21 @@ class OutputFile : public Module
             outputFormat = OutputFormat::delimited;
             columnDelimiter = '\t';
         }
+        else if(selectedFormat == "json")
+            outputFormat = OutputFormat::jsonArray;
         else if(selectedFormat == "jsonl")
             outputFormat = OutputFormat::jsonLines;
         else
             throw std::invalid_argument(
-                "OutputFile format must be \"csv\", \"tsv\", or \"jsonl\"");
+                "OutputFile format must be \"csv\", \"tsv\", \"json\", or "
+                "\"jsonl\"");
 
         const std::string selectedDelimiter = delimiter.as_string();
         if(!selectedDelimiter.empty())
         {
-            if(outputFormat == OutputFormat::jsonLines)
+            if(IsJSONOutput())
                 throw std::invalid_argument(
-                    "OutputFile delimiter is not used with JSONL format");
+                    "OutputFile delimiter is not used with JSON formats");
             if(selectedDelimiter.size() != 1)
                 throw std::invalid_argument(
                     "OutputFile delimiter must be exactly one character");
@@ -1074,11 +1245,13 @@ class OutputFile : public Module
     void
     ValidateJSONFields()
     {
-        if(outputFormat != OutputFormat::jsonLines)
+        if(!IsJSONOutput())
             return;
         if(!jsonSchemaError.empty())
             throw std::invalid_argument(jsonSchemaError);
 
+        const std::string formatName =
+            outputFormat == OutputFormat::jsonArray ? "JSON" : "JSONL";
         static const std::unordered_set<std::string> reservedKeys{
             "line", "tick", "time", "real_time",
         };
@@ -1089,14 +1262,17 @@ class OutputFile : public Module
         {
             if(field.label.empty())
                 throw std::invalid_argument(
-                    "OutputFile JSONL connections require explicit labels");
+                    "OutputFile " + formatName +
+                    " connections require explicit labels");
             if(reservedKeys.contains(field.label))
                 throw std::invalid_argument(
-                    "OutputFile JSONL connection label \"" + field.label +
+                    "OutputFile " + formatName + " connection label \"" +
+                    field.label +
                     "\" is reserved");
             if(!labels.insert(field.label).second)
                 throw std::invalid_argument(
-                    "OutputFile JSONL connection label \"" + field.label +
+                    "OutputFile " + formatName + " connection label \"" +
+                    field.label +
                     "\" is duplicated");
             field.escapedLabel = escape_json_string(field.label);
         }
@@ -1197,10 +1373,9 @@ class OutputFile : public Module
 
         ParseOptions();
         ValidateJSONFields();
-        if(outputFormat == OutputFormat::jsonLines &&
-           !input.is_contiguous())
+        if(IsJSONOutput() && !input.is_contiguous())
             throw std::invalid_argument(
-                "OutputFile JSONL input must have contiguous storage");
+                "OutputFile JSON input must have contiguous storage");
         sequenceFilename =
             contains_hash_image_sequence_format(filename.as_string());
         ResolveOutputDirectory();
