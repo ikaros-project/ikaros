@@ -1,0 +1,3 @@
+<class internal="true" name="AudioFileFixtureWriter" description="Creates temporary audio fixtures for kernel tests">
+    <parameter name="prefix" type="string" description="Unique fixture filename prefix" />
+</class>

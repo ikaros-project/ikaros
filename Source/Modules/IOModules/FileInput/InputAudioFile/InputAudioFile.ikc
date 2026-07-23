@@ -1,7 +1,14 @@
-<class name="InputAudioFile" description="Copies input">
-    <parameter name="filename" type="string" default="inputaudio.wav" description="Filename of audio file; supports wav and aiff" />
-    <parameter name="buffer_size" type="number" default="4096" description="Length of output buffer" />
-    <parameter name="channels" type="number" default="1" description="Number of audio channels in file, e.g. 2 for stereo files" />
-    <parameter name="repeat" type="bool" default="true" description="Whether to repeat playing the file" />
-	<output name="OUTPUT" description="The output" size="@channels,@buffer_size"/>
+<class name="InputAudioFile" description="Reads successive sample blocks from a WAV or AIFF file">
+    <description>
+        InputAudioFile loads an uncompressed WAV or AIFF file during initialization and emits the
+        next channel-by-frame sample block on each tick. The output is zero-padded after the end of
+        a non-repeating file and wraps without gaps when repeat is enabled.
+    </description>
+
+    <parameter name="filename" type="string" default="inputaudio.wav" description="WAV or AIFF file inside the project directory or UserData" />
+    <parameter name="buffer_size" type="number" default="4096" min="1" description="Number of audio frames emitted per tick" />
+    <parameter name="channels" type="number" default="1" min="1" description="Expected number of channels in the file" />
+    <parameter name="repeat" type="bool" default="true" description="Wrap to the beginning when the end of the file is reached" />
+
+    <output name="OUTPUT" description="Channel-first audio block" shape="@channels,@buffer_size"/>
 </class>

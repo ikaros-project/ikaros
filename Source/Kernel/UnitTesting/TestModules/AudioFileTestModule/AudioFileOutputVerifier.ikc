@@ -1,0 +1,4 @@
+<class internal="true" name="AudioFileOutputVerifier" description="Verifies InputAudioFile block progression">
+    <input name="ONCE" description="Non-repeating audio blocks" />
+    <input name="REPEAT" description="Repeating audio blocks" />
+</class>

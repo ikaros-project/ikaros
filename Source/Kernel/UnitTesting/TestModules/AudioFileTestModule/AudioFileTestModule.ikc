@@ -1,0 +1,3 @@
+<class internal="true" name="AudioFileTestModule" description="Tests the standalone audio-file parser">
+    <parameter name="prefix" type="string" description="Fixture filename prefix" />
+</class>
