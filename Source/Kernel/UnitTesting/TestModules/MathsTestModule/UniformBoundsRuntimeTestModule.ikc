@@ -1,0 +1,6 @@
+<class internal="true" name="UniformBoundsRuntimeTestModule"
+       description="Checks runtime uniform-bound fallback and recovery">
+    <input name="NOISE" />
+    <input name="RANDOMIZER" />
+    <parameter name="stage" type="number" default="0" />
+</class>

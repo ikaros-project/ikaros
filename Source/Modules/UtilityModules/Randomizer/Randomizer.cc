@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <random>
 
 #include "ikaros.h"
@@ -13,6 +14,27 @@ class Randomizer: public Module
     matrix output;
     std::mt19937 randomGenerator;
     std::uniform_real_distribution<float> uniformDistribution;
+    float uniformMin = 0.0f;
+    float uniformMax = 0.0f;
+    bool warnedAboutBounds = false;
+
+    bool UpdateBounds()
+    {
+        const float first = min_.as_float();
+        const float second = max_.as_float();
+        if(!std::isfinite(first) || !std::isfinite(second))
+            return false;
+
+        const float lo = std::min(first, second);
+        const float hi = std::max(first, second);
+        if(!std::isfinite(hi - lo))
+            return false;
+
+        uniformMin = lo;
+        uniformMax = hi;
+        warnedAboutBounds = false;
+        return true;
+    }
 
     void Init()
     {
@@ -26,15 +48,27 @@ class Randomizer: public Module
             randomGenerator.seed(std::random_device{}());
         else
             randomGenerator.seed(static_cast<std::mt19937::result_type>(seed));
+
+        if(!UpdateBounds())
+            throw exception(
+                "Randomizer: bounds must form a finite representable range.",
+                path_);
     }
 
 
     void Tick()
     {
-        const float lo = std::min(min_.as_float(), max_.as_float());
-        const float hi = std::max(min_.as_float(), max_.as_float());
+        if(!UpdateBounds() && !warnedAboutBounds)
+        {
+            Warning(
+                "Randomizer bounds must form a finite representable range; "
+                "using the last valid bounds.",
+                path_);
+            warnedAboutBounds = true;
+        }
+
         const std::uniform_real_distribution<float>::param_type bounds(
-            lo, hi);
+            uniformMin, uniformMax);
         output.apply([this, bounds](float) {
             return uniformDistribution(randomGenerator, bounds);
         });

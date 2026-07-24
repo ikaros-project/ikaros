@@ -341,6 +341,90 @@ class RotationUnitTestModule : public Module
 };
 
 
+class UniformBoundsRuntimeTestModule : public Module
+{
+    matrix noise;
+    matrix randomizer;
+    parameter stage_;
+    bool observedEqualBounds = false;
+    bool observedInvalidBounds = false;
+    bool completed = false;
+
+    void ValidateValues(const matrix & values, const std::string & name)
+    {
+        for(int index = 0; index < values.size(); ++index)
+        {
+            const float value = values.data()[index];
+            if(!std::isfinite(value) || value < -4.0f || value > 3.0f)
+                throw exception(
+                    "UniformBoundsRuntimeTestModule: " + name +
+                    " emitted an invalid value");
+        }
+    }
+
+    bool AllEqual(const matrix & values, float expected)
+    {
+        for(int index = 0; index < values.size(); ++index)
+            if(values.data()[index] != expected)
+                return false;
+        return true;
+    }
+
+    void Init() override
+    {
+        Bind(noise, "NOISE");
+        Bind(randomizer, "RANDOMIZER");
+        Bind(stage_, "stage");
+    }
+
+    void Tick() override
+    {
+        if(completed || GetTick() < 2)
+            return;
+
+        ValidateValues(noise, "Noise");
+        ValidateValues(randomizer, "Randomizer");
+
+        const bool noiseEqual = AllEqual(noise, 1.25f);
+        const bool randomizerEqual = AllEqual(randomizer, 1.25f);
+        const int stage = stage_.as_int();
+        if(stage == 1)
+        {
+            if(!noiseEqual || !randomizerEqual)
+                throw exception(
+                    "UniformBoundsRuntimeTestModule: equal bounds did not "
+                    "produce the bound value");
+            if(!observedEqualBounds)
+            {
+                observedEqualBounds = true;
+                std::cout << "UNIFORM BOUNDS EQUAL OK" << std::endl;
+            }
+        }
+        else if(stage == 2)
+        {
+            if(!noiseEqual || !randomizerEqual)
+                throw exception(
+                    "UniformBoundsRuntimeTestModule: invalid bounds did not "
+                    "retain the last valid range");
+            if(!observedInvalidBounds)
+            {
+                observedInvalidBounds = true;
+                std::cout << "UNIFORM BOUNDS FALLBACK OK" << std::endl;
+            }
+        }
+        else if(stage == 3)
+        {
+            if(noiseEqual || randomizerEqual)
+                throw exception(
+                    "UniformBoundsRuntimeTestModule: valid bounds did not "
+                    "recover after an invalid update");
+            completed = true;
+            std::cout << "UNIFORM BOUNDS RECOVERY OK" << std::endl;
+        }
+    }
+};
+
+
 class MathsBenchmarkModule : public Module
 {
     void Init() override
@@ -376,4 +460,5 @@ class MathsBenchmarkModule : public Module
 INSTALL_CLASS(MathsTestModule)
 INSTALL_CLASS(RandomSequenceTestModule)
 INSTALL_CLASS(RotationUnitTestModule)
+INSTALL_CLASS(UniformBoundsRuntimeTestModule)
 INSTALL_CLASS(MathsBenchmarkModule)

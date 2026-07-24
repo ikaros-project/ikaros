@@ -1,0 +1,27 @@
+<group internal="true"
+    name="TestUniformRuntimeBounds"
+    description="Retain valid uniform bounds across invalid runtime updates"
+    start="true"
+    stop="-1"
+    tick_duration="0.001"
+    webui_port="8352"
+    http_start_delay="0.05"
+    http_requests="control/TestUniformRuntimeBounds.Noise.min?value=3||control/TestUniformRuntimeBounds.Randomizer.min?value=3||control/TestUniformRuntimeBounds.Noise.max?value=-2||control/TestUniformRuntimeBounds.Randomizer.max?value=-2||sleep:0.03||control/TestUniformRuntimeBounds.Noise.min?value=1.25||control/TestUniformRuntimeBounds.Randomizer.min?value=1.25||control/TestUniformRuntimeBounds.Noise.max?value=1.25||control/TestUniformRuntimeBounds.Randomizer.max?value=1.25||sleep:0.03||control/TestUniformRuntimeBounds.Verifier.stage?value=1||sleep:0.03||control/TestUniformRuntimeBounds.Noise.min?value=nan||control/TestUniformRuntimeBounds.Randomizer.min?value=nan||sleep:0.03||control/TestUniformRuntimeBounds.Verifier.stage?value=2||sleep:0.03||control/TestUniformRuntimeBounds.Noise.max?value=inf||control/TestUniformRuntimeBounds.Randomizer.max?value=inf||sleep:0.03||control/TestUniformRuntimeBounds.Verifier.stage?value=0||control/TestUniformRuntimeBounds.Noise.min?value=-4||control/TestUniformRuntimeBounds.Randomizer.min?value=-4||control/TestUniformRuntimeBounds.Noise.max?value=1.25||control/TestUniformRuntimeBounds.Randomizer.max?value=1.25||sleep:0.03||control/TestUniformRuntimeBounds.Verifier.stage?value=3||sleep:0.1"
+    http_terminate_after_requests="true"
+    check_sum="1590682"
+    expected_output_contains="UNIFORM BOUNDS EQUAL OK||UNIFORM BOUNDS FALLBACK OK||UNIFORM BOUNDS RECOVERY OK"
+    expected_output_once="Noise uniform bounds must form a finite representable range; using the last valid bounds. (TestUniformRuntimeBounds.Noise)||Randomizer bounds must form a finite representable range; using the last valid bounds. (TestUniformRuntimeBounds.Randomizer)">
+
+    <module class="Constant" name="Input"
+            data="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" />
+    <module class="Noise" name="Noise" type="uniform"
+            min="-2" max="3" seed="12345" />
+    <module class="Randomizer" name="Randomizer" size="16"
+            min="-2" max="3" seed="12345" />
+    <module class="UniformBoundsRuntimeTestModule" name="Verifier" />
+
+    <connection source="Input.OUTPUT" target="Noise.INPUT" />
+    <connection source="Noise.OUTPUT" target="Verifier.NOISE" />
+    <connection source="Randomizer.OUTPUT" target="Verifier.RANDOMIZER" />
+
+</group>

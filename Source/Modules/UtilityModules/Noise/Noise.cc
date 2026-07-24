@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cmath>
 #include <random>
 
 #include "ikaros.h"
@@ -18,6 +20,29 @@ class Noise: public Module
     std::mt19937 randomGenerator;
     std::normal_distribution<float> gaussianDistribution;
     std::uniform_real_distribution<float> uniformDistribution;
+    float uniformMin = 0.0f;
+    float uniformMax = 0.0f;
+    bool hasUniformBounds = false;
+    bool warnedAboutUniformBounds = false;
+
+    bool UpdateUniformBounds()
+    {
+        const float first = min_.as_float();
+        const float second = max_.as_float();
+        if(!std::isfinite(first) || !std::isfinite(second))
+            return false;
+
+        const float lo = std::min(first, second);
+        const float hi = std::max(first, second);
+        if(!std::isfinite(hi - lo))
+            return false;
+
+        uniformMin = lo;
+        uniformMax = hi;
+        hasUniformBounds = true;
+        warnedAboutUniformBounds = false;
+        return true;
+    }
 
     void Init()
     {
@@ -36,6 +61,11 @@ class Noise: public Module
             randomGenerator.seed(std::random_device{}());
         else
             randomGenerator.seed(static_cast<std::mt19937::result_type>(seed));
+
+        if(!UpdateUniformBounds() && type.compare_string("uniform"))
+            throw exception(
+                "Noise: uniform bounds must form a finite representable range.",
+                path_);
     }
 
     void Tick()
@@ -56,10 +86,22 @@ class Noise: public Module
         }
         else if (type.compare_string("uniform"))
         {
-            const float lo = std::min(min_.as_float(), max_.as_float());
-            const float hi = std::max(min_.as_float(), max_.as_float());
+            if(!UpdateUniformBounds())
+            {
+                if(!warnedAboutUniformBounds)
+                {
+                    Warning(
+                        "Noise uniform bounds must form a finite representable "
+                        "range; using the last valid bounds.",
+                        path_);
+                    warnedAboutUniformBounds = true;
+                }
+                if(!hasUniformBounds)
+                    return;
+            }
+
             const std::uniform_real_distribution<float>::param_type bounds(
-                lo, hi);
+                uniformMin, uniformMax);
             output.apply([this, bounds](float x) {
                 return x + uniformDistribution(randomGenerator, bounds);
             });

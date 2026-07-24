@@ -151,7 +151,6 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 ### Random-source outstanding issues and questions
 
 - Fixed seeds reproduce sequences within the same C++ standard-library implementation. `std::uniform_real_distribution` does not guarantee bit-identical floating-point sequences across different standard-library implementations.
-- `Noise` and `Randomizer` still do not give a specific diagnostic for non-finite uniform bounds. Defining whether a runtime parameter error should stop the module or retain its previous valid bounds requires a separate policy decision.
 
 ## Status meanings
 
