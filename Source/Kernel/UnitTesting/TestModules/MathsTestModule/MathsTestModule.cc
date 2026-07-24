@@ -66,6 +66,32 @@ class MathsTestModule : public Module
             [infinity] { (void)sample_normal_distribution(infinity, 1.0f); },
             "infinite Gaussian mean was accepted");
 
+        const double largest = std::numeric_limits<double>::max();
+        if(angle_to_angle(largest, degrees, degrees) != largest ||
+           angle_to_angle(largest, radians, radians) != largest ||
+           angle_to_angle(largest, tau, tau) != largest)
+            throw exception("MathsTestModule: identity angle conversion changed its input");
+        require_close(angle_to_angle(180.0, degrees, radians),
+                      pi, 1.0e-15, "degrees to radians");
+        require_close(angle_to_angle(pi, radians, degrees),
+                      180.0, 1.0e-15, "radians to degrees");
+        require_close(angle_to_angle(1.0, tau, radians),
+                      2.0 * pi, 1.0e-15, "turns to radians");
+        require_close(angle_to_angle(360.0, degrees, tau),
+                      1.0, 1.0e-15, "degrees to turns");
+        require_invalid_argument(
+            [] {
+                (void)angle_to_angle(
+                    1.0, static_cast<angle_unit>(99), radians);
+            },
+            "invalid source angle unit was accepted");
+        require_invalid_argument(
+            [] {
+                (void)angle_to_angle(
+                    1.0, degrees, static_cast<angle_unit>(99));
+            },
+            "invalid target angle unit was accepted");
+
         require_close(exgaussian(0.0, 1.0, 0.0, 1.0),
                       0.2615782918651234, 1.0e-14,
                       "central ex-Gaussian density");

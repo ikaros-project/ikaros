@@ -46,23 +46,30 @@ namespace ikaros
 	}
     
 
-    double angle_to_angle(double angle, angle_unit from_angle_unit, angle_unit to_angle_unit)
+    double
+    angle_to_angle(double angle, angle_unit from_angle_unit,
+                   angle_unit to_angle_unit)
     {
-        switch(from_angle_unit)
+        auto radians_per_unit = [](angle_unit unit)
         {
-            default:
-            case degrees: angle = angle; break;
-            case radians: angle = (angle/(2.0*pi))*360; break;
-            case tau: angle = angle*360; break;
-        }
-        switch(to_angle_unit)
-        {
-            default:
-            case degrees: angle = angle;break;
-            case radians: angle = angle/360*(2.0*pi);break;
-            case tau: angle = angle/360;break;
-        }
-        return angle;
+            switch(unit)
+            {
+                case degrees:
+                    return pi / 180.0;
+                case radians:
+                    return 1.0;
+                case tau:
+                    return 2.0 * pi;
+                default:
+                    throw std::invalid_argument("Unknown angle unit.");
+            }
+        };
+
+        const double source_scale = radians_per_unit(from_angle_unit);
+        const double target_scale = radians_per_unit(to_angle_unit);
+        if(from_angle_unit == to_angle_unit)
+            return angle;
+        return angle * (source_scale / target_scale);
     }
 
 
