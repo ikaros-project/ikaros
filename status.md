@@ -140,7 +140,6 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 ### Outstanding issues and questions
 
 - `RotationConverter` documentation and its old test model mention an `angle_unit` parameter, but the class file does not declare it and the module does not bind it; the module therefore always uses degrees. This existing module defect is outside the scalar maths changes.
-- `Randomizer` still uses process-global POSIX random state.
 - The generator-only Gaussian overload intentionally cannot cache distribution state without mixing independent generators. Performance-sensitive callers should own a `std::normal_distribution<float>` and use the stateful overload.
 
 ## Random source follow-ups
@@ -148,7 +147,12 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | # | Priority | Task | Status | Verification | Commit |
 |---:|:---:|---|---|---|---|
 | 1 | P2 | Make uniform `Noise` use its module-owned generator so the existing `seed` parameter controls both distributions. | Addressed | Debug build; focused checksum-backed reproducibility regression; all 247 kernel tests passed | `Uniform Noise now uses module-owned random state` |
-| 2 | P2 | Replace `Randomizer`'s process-global POSIX random state with a module-owned generator and add a `seed` parameter. | Not addressed | — | — |
+| 2 | P2 | Replace `Randomizer`'s process-global POSIX random state with a module-owned generator and add a `seed` parameter. | Addressed | Debug build; focused checksum-backed reproducibility regression; updated dependent structural checksum; all 248 kernel tests passed | `Randomizer now uses reproducible module-owned random state` |
+
+### Random-source outstanding issues and questions
+
+- Fixed seeds reproduce sequences within the same C++ standard-library implementation. `std::uniform_real_distribution` does not guarantee bit-identical floating-point sequences across different standard-library implementations.
+- `Noise` and `Randomizer` still do not give a specific diagnostic for non-finite uniform bounds. Defining whether a runtime parameter error should stop the module or retain its previous valid bounds requires a separate policy decision.
 
 ## Status meanings
 

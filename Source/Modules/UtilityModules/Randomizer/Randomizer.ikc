@@ -1,9 +1,9 @@
 <class name="Randomizer" description="outputs a random value">
 	<parameter name="size" type="string" default="2,3" description="output from module" />
-	<parameter name="min" type="number" description="Minimum value of the output (inclusive)" default="0" />
-	<parameter name="max" type="number" description="Maximum value of the output (inclusive)" default="1" />
+	<parameter name="min" type="number" description="Lower bound of the output" default="0" />
+	<parameter name="max" type="number" description="Upper bound of the output" default="1" />
+	<parameter name="seed" type="number" default="-1" min="-1" description="Random seed; negative selects nondeterministic seeding" />
 
 	<output name="OUTPUT" description="The output" size="@size"/>
 </class>
-
 
