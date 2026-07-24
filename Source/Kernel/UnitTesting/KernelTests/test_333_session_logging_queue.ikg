@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestSessionLoggingQueue"
+    description="Test asynchronous bounded session-log delivery"
+    start="true"
+    stop="1"
+    check_sum="12"
+    expected_output_contains="SESSION LOGGING QUEUE TEST OK">
+    <module class="SessionLoggingTestModule" name="SessionLogging" />
+</group>

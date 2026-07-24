@@ -681,9 +681,9 @@ private:
     friend class Connection;
     friend class KernelTaskSequence;
     friend class ComputeEngine;
-    friend void SendSessionLogEvent(Kernel & kernel, const std::string & endpoint, const std::string & event_name);
-    friend void SendProcessStartLogEvent(Kernel & kernel);
-    friend void SendProcessExitLogEvent(Kernel & kernel);
+    friend void QueueSessionLogEvent(Kernel & kernel, const std::string & endpoint, const std::string & event_name);
+    friend void QueueProcessStartLogEvent(Kernel & kernel);
+    friend void QueueProcessExitLogEvent(Kernel & kernel);
 
     options                                 options_;
     std::map<std::string, Class>            classes;

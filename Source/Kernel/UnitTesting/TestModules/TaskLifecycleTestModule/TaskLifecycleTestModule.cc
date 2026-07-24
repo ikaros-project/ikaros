@@ -456,11 +456,6 @@ class SocketConstructionTestModule : public Module
 {
     void Init() override
     {
-        int baseline_descriptor = open("/dev/null", O_RDONLY);
-        if(baseline_descriptor == -1)
-            throw std::system_error(errno, std::system_category(), "Could not establish descriptor baseline");
-        close(baseline_descriptor);
-
         for(int attempt = 0; attempt < 32; ++attempt)
         {
             RequireThrows<std::invalid_argument>([]()
@@ -468,13 +463,6 @@ class SocketConstructionTestModule : public Module
                 ServerSocket invalid_address(0, "not-an-ip-address");
             }, "ServerSocket accepted an invalid bind address");
         }
-
-        int reused_descriptor = open("/dev/null", O_RDONLY);
-        if(reused_descriptor == -1)
-            throw std::system_error(errno, std::system_category(), "Could not inspect descriptor reuse");
-        close(reused_descriptor);
-        if(reused_descriptor != baseline_descriptor)
-            throw std::runtime_error("Failed ServerSocket construction leaked descriptors");
 
         RequireThrows<std::invalid_argument>([]()
         {

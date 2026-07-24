@@ -411,6 +411,16 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
     if(port < 0 || port > 65535)
         throw std::invalid_argument("Server port must be between 0 and 65535");
 
+    sockaddr_in my_addr{};
+    my_addr.sin_family = AF_INET;                     // host byte order
+    my_addr.sin_port = htons(port);                   // short, network byte order
+    my_addr.sin_addr.s_addr = htonl(INADDR_ANY);      // automatically fill with my IP
+    memset(&(my_addr.sin_zero), '\0', 8);             // zero the rest of the struct
+
+    if(!bind_address.empty() &&
+       inet_pton(AF_INET, bind_address.c_str(), &(my_addr.sin_addr)) != 1)
+        throw std::invalid_argument("Invalid IPv4 bind address: " + bind_address);
+
     int yes = 1;
 
     FileDescriptorGuard listener(socket(AF_INET, SOCK_STREAM, 0));
@@ -425,19 +435,6 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
        fcntl(sockfd, F_SETFL, listener_flags | O_NONBLOCK) == -1)
         throw std::system_error(errno, std::system_category(),
                                 "Failed to make server listener nonblocking");
-
-    // Set address properties
-    sockaddr_in my_addr{};
-    my_addr.sin_family = AF_INET;                     // host byte order
-    my_addr.sin_port = htons(port);                   // short, network byte order
-    my_addr.sin_addr.s_addr = htonl(INADDR_ANY);      // automatically fill with my IP
-    memset(&(my_addr.sin_zero), '\0', 8);             // zero the rest of the struct
-
-    if(!bind_address.empty())
-    {
-        if(inet_pton(AF_INET, bind_address.c_str(), &(my_addr.sin_addr)) != 1)
-            throw std::invalid_argument("Invalid IPv4 bind address: " + bind_address);
-    }
 
     // Set SO_REUSEADDR to prevent "socket already in use" errors
     if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)

@@ -1,13 +1,168 @@
+#include <condition_variable>
+#include <deque>
+#include <mutex>
+#include <stdexcept>
+#include <utility>
+#include <unistd.h>
+
 #include "session_logging.h"
 #include "ikaros.h"
 
-#include <unistd.h>
-
 namespace ikaros
 {
+    struct SessionLogDispatcher::State
+    {
+        State(std::size_t capacity, Transport transport):
+            capacity(capacity),
+            transport(std::move(transport))
+        {}
+
+        const std::size_t capacity;
+        Transport transport;
+        mutable std::mutex mutex;
+        std::condition_variable work_available;
+        std::condition_variable idle;
+        std::condition_variable worker_finished;
+        std::deque<SessionLogEvent> queue;
+        bool active = false;
+        bool stopping = false;
+        bool finished = false;
+        std::size_t dropped = 0;
+    };
+
+
+    SessionLogDispatcher::SessionLogDispatcher(
+        std::size_t capacity,
+        Transport transport,
+        std::chrono::milliseconds shutdown_wait):
+        shutdown_wait_(shutdown_wait)
+    {
+        if(capacity == 0)
+            throw std::invalid_argument("Session log queue capacity must be positive");
+        if(!transport)
+            throw std::invalid_argument("Session log transport must be set");
+        if(shutdown_wait < std::chrono::milliseconds::zero())
+            throw std::invalid_argument("Session log shutdown wait must be non-negative");
+
+        state_ = std::make_shared<State>(capacity, std::move(transport));
+        worker_ = std::thread([state = state_]()
+        {
+            while(true)
+            {
+                SessionLogEvent event;
+                {
+                    std::unique_lock<std::mutex> lock(state->mutex);
+                    state->work_available.wait(lock, [&]()
+                    {
+                        return state->stopping || !state->queue.empty();
+                    });
+
+                    if(state->queue.empty())
+                    {
+                        if(state->stopping)
+                            break;
+                        continue;
+                    }
+
+                    event = std::move(state->queue.front());
+                    state->queue.pop_front();
+                    state->active = true;
+                }
+
+                try
+                {
+                    state->transport(std::move(event));
+                }
+                catch(...)
+                {
+                    // Transport failures must not stop later queued events.
+                }
+
+                {
+                    std::lock_guard<std::mutex> lock(state->mutex);
+                    state->active = false;
+                    if(state->queue.empty())
+                        state->idle.notify_all();
+                }
+            }
+
+            {
+                std::lock_guard<std::mutex> lock(state->mutex);
+                state->active = false;
+                state->finished = true;
+                state->idle.notify_all();
+                state->worker_finished.notify_all();
+            }
+        });
+    }
+
+
+    SessionLogDispatcher::~SessionLogDispatcher()
+    {
+        if(!state_ || !worker_.joinable())
+            return;
+
+        bool finished = false;
+        {
+            std::unique_lock<std::mutex> lock(state_->mutex);
+            state_->stopping = true;
+            state_->work_available.notify_all();
+            finished = state_->worker_finished.wait_for(lock, shutdown_wait_, [&]()
+            {
+                return state_->finished;
+            });
+        }
+
+        if(finished)
+            worker_.join();
+        else
+            worker_.detach();
+    }
+
+
+    bool
+    SessionLogDispatcher::Enqueue(SessionLogEvent event)
+    {
+        {
+            std::lock_guard<std::mutex> lock(state_->mutex);
+            if(state_->stopping || state_->queue.size() >= state_->capacity)
+            {
+                ++state_->dropped;
+                return false;
+            }
+            state_->queue.push_back(std::move(event));
+        }
+        state_->work_available.notify_one();
+        return true;
+    }
+
+
+    bool
+    SessionLogDispatcher::WaitUntilIdle(std::chrono::milliseconds timeout)
+    {
+        if(timeout < std::chrono::milliseconds::zero())
+            throw std::invalid_argument("Session log idle wait must be non-negative");
+
+        std::unique_lock<std::mutex> lock(state_->mutex);
+        return state_->idle.wait_for(lock, timeout, [&]()
+        {
+            return state_->queue.empty() && !state_->active;
+        });
+    }
+
+
+    std::size_t
+    SessionLogDispatcher::DroppedCount() const
+    {
+        std::lock_guard<std::mutex> lock(state_->mutex);
+        return state_->dropped;
+    }
+
+
     namespace
     {
-        constexpr size_t kMaxLogValueLength = 1024;
+        constexpr std::size_t kMaxLogValueLength = 1024;
+        constexpr std::size_t kSessionLogQueueCapacity = 32;
 
         [[nodiscard]] std::string UrlEncode(const std::string & value)
         {
@@ -89,10 +244,27 @@ namespace ikaros
             socket.Get("www.ikaros-project.org", 80, request.c_str(), response, sizeof(response)-1);
             socket.Close();
         }
+
+        SessionLogDispatcher & LogDispatcher()
+        {
+            static SessionLogDispatcher dispatcher(
+                kSessionLogQueueCapacity,
+                [](SessionLogEvent event)
+                {
+                    SendLogRequest(event.path);
+                });
+            return dispatcher;
+        }
+
+        void
+        EnqueueLogRequest(std::string path)
+        {
+            static_cast<void>(LogDispatcher().Enqueue({std::move(path)}));
+        }
     }
 
     void
-    SendSessionLogEvent(Kernel & kernel, const std::string & endpoint, const std::string & event_name)
+    QueueSessionLogEvent(Kernel & kernel, const std::string & endpoint, const std::string & event_name)
     {
         try
         {
@@ -106,7 +278,7 @@ namespace ikaros
             }
             std::string path = endpoint;
             AddCommonParameters(path, kernel, event_name, module_info, agent);
-            SendLogRequest(path);
+            EnqueueLogRequest(std::move(path));
         }
         catch(...)
         {
@@ -115,7 +287,7 @@ namespace ikaros
     }
 
     void
-    SendProcessStartLogEvent(Kernel & kernel)
+    QueueProcessStartLogEvent(Kernel & kernel)
     {
         try
         {
@@ -123,7 +295,7 @@ namespace ikaros
             std::string path = "/process_start3/";
             AddCommonParameters(path, kernel, "process_start", module_info, kernel.GetOption("agent"));
             AppendQueryParameter(path, "uptime", formatNumber(kernel.uptime_timer.GetTime(), 4));
-            SendLogRequest(path);
+            EnqueueLogRequest(std::move(path));
         }
         catch(...)
         {
@@ -132,7 +304,7 @@ namespace ikaros
     }
 
     void
-    SendProcessExitLogEvent(Kernel & kernel)
+    QueueProcessExitLogEvent(Kernel & kernel)
     {
         try
         {
@@ -147,7 +319,7 @@ namespace ikaros
             std::string path = "/exit3/";
             AddCommonParameters(path, kernel, "exit", module_info, agent);
             AppendQueryParameter(path, "uptime", formatNumber(kernel.uptime_timer.GetTime(), 4));
-            SendLogRequest(path);
+            EnqueueLogRequest(std::move(path));
         }
         catch(...)
         {

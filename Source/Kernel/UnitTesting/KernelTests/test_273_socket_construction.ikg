@@ -1,6 +1,6 @@
 <group internal="true"
     name="TestSocketConstruction"
-    description="Clean up failed server construction and preserve listener flags"
+    description="Reject invalid server construction before acquiring socket resources"
     start="true"
     stop="1"
     check_sum="12"

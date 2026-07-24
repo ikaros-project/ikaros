@@ -6188,7 +6188,7 @@ bool operator==(Request & r, const std::string s)
             return;
 
         process_start_logged = true;
-        SendProcessStartLogEvent(*this);
+        QueueProcessStartLogEvent(*this);
 #endif
     }
 
@@ -6203,7 +6203,7 @@ bool operator==(Request & r, const std::string s)
             return;
 
         process_exit_logged = true;
-        SendProcessExitLogEvent(*this);
+        QueueProcessExitLogEvent(*this);
 #endif
     }
 
@@ -6211,7 +6211,7 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::LogSessionEvent(const std::string & endpoint, const std::string & event_name)
     {
-        SendSessionLogEvent(*this, endpoint, event_name);
+        QueueSessionLogEvent(*this, endpoint, event_name);
     }
 
     void 
