@@ -277,9 +277,7 @@ namespace ikaros
 
         [[nodiscard]] std::string LimitLogValue(const std::string & value, size_t max_length = kMaxLogValueLength)
         {
-            if(value.size() <= max_length)
-                return value;
-            return value.substr(0, max_length);
+            return valid_utf8_prefix(value, max_length);
         }
 
         void AppendQueryParameter(std::string & query, const std::string & key, const std::string & value)

@@ -663,19 +663,16 @@ base64_encode(const unsigned char * data, size_t size)
         return hex_str;
     }
 
-    bool
-    is_valid_utf8(const std::string & str)
+    namespace
     {
-        for(size_t i = 0; i < str.size();)
+        std::size_t
+        ValidUtf8SequenceLength(const std::string & str, std::size_t index)
         {
-            const unsigned char first = static_cast<unsigned char>(str[i]);
+            const unsigned char first = static_cast<unsigned char>(str[index]);
             if(first <= 0x7F)
-            {
-                ++i;
-                continue;
-            }
+                return 1;
 
-            size_t length = 0;
+            std::size_t length = 0;
             unsigned char second_min = 0x80;
             unsigned char second_max = 0xBF;
             if(first >= 0xC2 && first <= 0xDF)
@@ -707,23 +704,55 @@ base64_encode(const unsigned char * data, size_t size)
                 second_max = 0x8F;
             }
             else
-                return false;
+                return 0;
 
-            if(i + length > str.size())
-                return false;
+            if(length > str.size() - index)
+                return 0;
 
-            const unsigned char second = static_cast<unsigned char>(str[i + 1]);
+            const unsigned char second = static_cast<unsigned char>(str[index + 1]);
             if(second < second_min || second > second_max)
-                return false;
-            for(size_t j = 2; j < length; ++j)
+                return 0;
+            for(std::size_t j = 2; j < length; ++j)
             {
-                const unsigned char continuation = static_cast<unsigned char>(str[i + j]);
+                const unsigned char continuation = static_cast<unsigned char>(str[index + j]);
                 if(continuation < 0x80 || continuation > 0xBF)
-                    return false;
+                    return 0;
             }
+            return length;
+        }
+    }
+
+
+    bool
+    is_valid_utf8(const std::string & str)
+    {
+        for(std::size_t i = 0; i < str.size();)
+        {
+            const std::size_t length = ValidUtf8SequenceLength(str, i);
+            if(length == 0)
+                return false;
             i += length;
         }
         return true;
+    }
+
+
+    std::string
+    valid_utf8_prefix(const std::string & str, std::size_t max_bytes)
+    {
+        const std::size_t limit = std::min(max_bytes, str.size());
+        std::size_t prefix_size = 0;
+        while(prefix_size < limit)
+        {
+            const std::size_t length = ValidUtf8SequenceLength(str, prefix_size);
+            if(length == 0 || length > limit - prefix_size)
+                break;
+            prefix_size += length;
+        }
+
+        if(prefix_size == str.size())
+            return str;
+        return str.substr(0, prefix_size);
     }
 
 

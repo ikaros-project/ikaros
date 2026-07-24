@@ -394,6 +394,13 @@ public:
                 !is_valid_utf8("\xED\xA0\x80") &&
                 !is_valid_utf8("\xE2\x82"),
                 "UTF-8 validation accepted malformed input");
+        require(valid_utf8_prefix("abc", 2) == "ab" &&
+                valid_utf8_prefix("a\xC3\xA5z", 2) == "a" &&
+                valid_utf8_prefix("a\xC3\xA5z", 3) == "a\xC3\xA5" &&
+                valid_utf8_prefix("\xF0\x9F\x98\x80z", 3).empty() &&
+                valid_utf8_prefix("\xF0\x9F\x98\x80z", 4) == "\xF0\x9F\x98\x80" &&
+                valid_utf8_prefix("a\xE2\x82", 20) == "a",
+                "bounded UTF-8 prefixes split or retained malformed characters");
         require(escape_json_string("quote\"slash\\line\n") ==
                     "quote\\\"slash\\\\line\\n" &&
                 escape_json_string(std::string("a\0b", 3)) == "a\\u0000b",
