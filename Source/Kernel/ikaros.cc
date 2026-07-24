@@ -5712,14 +5712,12 @@ bool operator==(Request & r, const std::string s)
             std::cout << "Correct Check Sum: " << calculated_check_sum << '\n';
         else
         {
-            std::string msg = "Incorrect Check Sum: "+std::to_string(calculated_check_sum)+" != "+std::to_string(correct_check_sum);
-            Notify(msg_fatal_error, msg);
+            const std::string msg = "Incorrect Check Sum: " +
+                                    std::to_string(calculated_check_sum) + " != " +
+                                    std::to_string(correct_check_sum);
             if(info_.is_set("batch_mode"))
-            {
-                StopHTTPServer();
-                thread_pool.reset();
-                exit(1);
-            }
+                throw setup_failed(msg);
+            Notify(msg_fatal_error, msg);
         }
     }
 
