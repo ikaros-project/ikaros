@@ -140,8 +140,15 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 ### Outstanding issues and questions
 
 - `RotationConverter` documentation and its old test model mention an `angle_unit` parameter, but the class file does not declare it and the module does not bind it; the module therefore always uses degrees. This existing module defect is outside the scalar maths changes.
-- Uniform `Noise` and `Randomizer` still use process-global POSIX random state, so the new module-owned reproducibility applies only to Gaussian noise.
+- `Randomizer` still uses process-global POSIX random state.
 - The generator-only Gaussian overload intentionally cannot cache distribution state without mixing independent generators. Performance-sensitive callers should own a `std::normal_distribution<float>` and use the stateful overload.
+
+## Random source follow-ups
+
+| # | Priority | Task | Status | Verification | Commit |
+|---:|:---:|---|---|---|---|
+| 1 | P2 | Make uniform `Noise` use its module-owned generator so the existing `seed` parameter controls both distributions. | Addressed | Debug build; focused checksum-backed reproducibility regression; all 247 kernel tests passed | `Uniform Noise now uses module-owned random state` |
+| 2 | P2 | Replace `Randomizer`'s process-global POSIX random state with a module-owned generator and add a `seed` parameter. | Not addressed | — | — |
 
 ## Status meanings
 

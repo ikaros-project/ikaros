@@ -15,8 +15,9 @@ class Noise: public Module
 
     matrix input;
     matrix output;
-    std::mt19937 gaussianGenerator;
+    std::mt19937 randomGenerator;
     std::normal_distribution<float> gaussianDistribution;
+    std::uniform_real_distribution<float> uniformDistribution;
 
     void Init()
     {
@@ -32,9 +33,9 @@ class Noise: public Module
 
         const int seed = randomSeed.as_int();
         if(seed < 0)
-            gaussianGenerator.seed(std::random_device{}());
+            randomGenerator.seed(std::random_device{}());
         else
-            gaussianGenerator.seed(static_cast<std::mt19937::result_type>(seed));
+            randomGenerator.seed(static_cast<std::mt19937::result_type>(seed));
     }
 
     void Tick()
@@ -50,15 +51,17 @@ class Noise: public Module
 
             output.apply([this, mu, sigma](float x) {
                 return x + sample_normal_distribution(
-                    gaussianGenerator, gaussianDistribution, mu, sigma);
+                    randomGenerator, gaussianDistribution, mu, sigma);
             });
         }
         else if (type.compare_string("uniform"))
         {
             const float lo = std::min(min_.as_float(), max_.as_float());
             const float hi = std::max(min_.as_float(), max_.as_float());
-            output.apply([lo, hi](float x) {
-                return x + lo + (float(::random()) / float(RAND_MAX)) * (hi - lo);
+            const std::uniform_real_distribution<float>::param_type bounds(
+                lo, hi);
+            output.apply([this, bounds](float x) {
+                return x + uniformDistribution(randomGenerator, bounds);
             });
         }
         else

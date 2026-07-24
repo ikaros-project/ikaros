@@ -1,0 +1,5 @@
+<class internal="true" name="RandomSequenceTestModule"
+       description="Checks reproducible module-owned random sequences">
+    <input name="FIRST" />
+    <input name="SECOND" />
+</class>

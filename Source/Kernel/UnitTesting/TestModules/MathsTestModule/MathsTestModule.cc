@@ -228,7 +228,7 @@ class MathsTestModule : public Module
 };
 
 
-class GaussianSequenceTestModule : public Module
+class RandomSequenceTestModule : public Module
 {
     matrix first;
     matrix second;
@@ -245,20 +245,20 @@ class GaussianSequenceTestModule : public Module
         if(verified || GetTick() < 3)
             return;
         if(first.shape() != second.shape())
-            throw exception("GaussianSequenceTestModule: sequence shapes differ");
+            throw exception("RandomSequenceTestModule: sequence shapes differ");
 
         bool contains_nonzero_value = false;
         for(int index = 0; index < first.size(); ++index)
         {
             if(first(index) != second(index))
-                throw exception("GaussianSequenceTestModule: seeded module sequences differ");
+                throw exception("RandomSequenceTestModule: seeded module sequences differ");
             contains_nonzero_value = contains_nonzero_value || first(index) != 0.0f;
         }
         if(!contains_nonzero_value)
-            throw exception("GaussianSequenceTestModule: sequence was not populated");
+            throw exception("RandomSequenceTestModule: sequence was not populated");
 
         verified = true;
-        std::cout << "GAUSSIAN SEQUENCE TEST OK" << std::endl;
+        std::cout << "RANDOM SEQUENCE TEST OK" << std::endl;
     }
 };
 
@@ -296,5 +296,5 @@ class MathsBenchmarkModule : public Module
 
 
 INSTALL_CLASS(MathsTestModule)
-INSTALL_CLASS(GaussianSequenceTestModule)
+INSTALL_CLASS(RandomSequenceTestModule)
 INSTALL_CLASS(MathsBenchmarkModule)
