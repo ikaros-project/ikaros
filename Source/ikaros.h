@@ -921,7 +921,7 @@ private:
     void Propagate();
 
 public:
-    void Run();
+    bool Run(); // Returns true when no additional model Stop is required.
 
 private:
 

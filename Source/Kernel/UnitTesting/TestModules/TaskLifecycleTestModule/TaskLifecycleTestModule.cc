@@ -118,6 +118,7 @@ class TaskLifecycleTestModule : public Module
     parameter fail;
     parameter failAfterTasks;
     parameter failInit;
+    parameter terminateInit;
     parameter label;
     parameter outputValue;
     matrix output;
@@ -130,6 +131,7 @@ class TaskLifecycleTestModule : public Module
         Bind(fail, "fail");
         Bind(failAfterTasks, "fail_after_tasks");
         Bind(failInit, "fail_init");
+        Bind(terminateInit, "terminate_init");
         Bind(label, "label");
         Bind(outputValue, "output_value");
         Bind(output, "OUTPUT");
@@ -137,6 +139,8 @@ class TaskLifecycleTestModule : public Module
         Notify(msg_print, label.as_string() + " INIT");
         if(failInit.as_bool())
             throw std::runtime_error("TaskLifecycleTestModule Init failure " + label.as_string());
+        if(terminateInit.as_bool())
+            Notify(msg_terminate, label.as_string() + " TERMINATE_INIT");
 
         if(failAfterTasks.as_bool())
         {

@@ -256,8 +256,8 @@ namespace
             }
 
             StartRequestedRunMode();
-            k.Run();
-            model_stop_pending = false;
+            if(k.Run())
+                model_stop_pending = false;
 
             if(k.GetOptionFilename().empty() && o.is_set("batch_mode"))
                 k.run_mode = run_mode_quit;

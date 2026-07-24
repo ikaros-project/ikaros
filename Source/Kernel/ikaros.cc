@@ -6859,9 +6859,10 @@ bool operator==(Request & r, const std::string s)
     }
 
 
-    void
+    bool
     Kernel::Run()
     {
+        bool stop_completed = run_mode.load() == run_mode_quit;
         bool has_async_workers = false;
         if(options_.is_set("batch_mode"))
             for(auto & [name, parameter] : parameters)
@@ -6954,10 +6955,12 @@ bool operator==(Request & r, const std::string s)
                 }    
             }
             Stop();
+            stop_completed = true;
             if(!options_.is_set("batch_mode"))
                 Sleep(0.1);
 
         }
+        return stop_completed;
     }
 
         bool
