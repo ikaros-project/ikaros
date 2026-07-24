@@ -427,7 +427,16 @@ namespace ikaros
             {
                 auto root = kernel.components.find(std::string(kernel.info_["name"]));
                 if(root != kernel.components.end())
-                    agent = root->second->ComputeValueOf("agent");
+                {
+                    try
+                    {
+                        agent = root->second->ComputeValueOf("agent");
+                    }
+                    catch(...)
+                    {
+                        // Keep the command-line agent when the model expression cannot be evaluated.
+                    }
+                }
             }
             std::string path = endpoint;
             AddCommonParameters(path, kernel, event_name, module_info, agent);
@@ -467,7 +476,16 @@ namespace ikaros
             {
                 auto root = kernel.components.find(std::string(kernel.info_["name"]));
                 if(root != kernel.components.end())
-                    agent = root->second->ComputeValueOf("agent");
+                {
+                    try
+                    {
+                        agent = root->second->ComputeValueOf("agent");
+                    }
+                    catch(...)
+                    {
+                        // Keep the command-line agent when the model expression cannot be evaluated.
+                    }
+                }
             }
             std::string path = "/exit3/";
             AddCommonParameters(path, kernel, "exit", module_info, agent);
