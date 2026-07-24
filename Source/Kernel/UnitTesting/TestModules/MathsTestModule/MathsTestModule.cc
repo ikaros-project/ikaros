@@ -66,6 +66,20 @@ class MathsTestModule : public Module
             [infinity] { (void)sample_normal_distribution(infinity, 1.0f); },
             "infinite Gaussian mean was accepted");
 
+        std::mt19937 first_generator(12345);
+        std::mt19937 second_generator(12345);
+        for(int sample = 0; sample < 32; ++sample)
+            if(sample_normal_distribution(first_generator, 1.0f, 2.0f) !=
+               sample_normal_distribution(second_generator, 1.0f, 2.0f))
+                throw exception("MathsTestModule: seeded Gaussian sequences differ");
+
+        std::mt19937 zero_deviation_generator(54321);
+        std::mt19937 untouched_generator(54321);
+        (void)sample_normal_distribution(
+            zero_deviation_generator, 4.0f, 0.0f);
+        if(zero_deviation_generator() != untouched_generator())
+            throw exception("MathsTestModule: zero deviation advanced its generator");
+
         const double largest = std::numeric_limits<double>::max();
         if(angle_to_angle(largest, degrees, degrees) != largest ||
            angle_to_angle(largest, radians, radians) != largest ||
@@ -129,4 +143,41 @@ class MathsTestModule : public Module
     }
 };
 
+
+class GaussianSequenceTestModule : public Module
+{
+    matrix first;
+    matrix second;
+    bool verified = false;
+
+    void Init() override
+    {
+        Bind(first, "FIRST");
+        Bind(second, "SECOND");
+    }
+
+    void Tick() override
+    {
+        if(verified || GetTick() < 3)
+            return;
+        if(first.shape() != second.shape())
+            throw exception("GaussianSequenceTestModule: sequence shapes differ");
+
+        bool contains_nonzero_value = false;
+        for(int index = 0; index < first.size(); ++index)
+        {
+            if(first(index) != second(index))
+                throw exception("GaussianSequenceTestModule: seeded module sequences differ");
+            contains_nonzero_value = contains_nonzero_value || first(index) != 0.0f;
+        }
+        if(!contains_nonzero_value)
+            throw exception("GaussianSequenceTestModule: sequence was not populated");
+
+        verified = true;
+        std::cout << "GAUSSIAN SEQUENCE TEST OK" << std::endl;
+    }
+};
+
+
 INSTALL_CLASS(MathsTestModule)
+INSTALL_CLASS(GaussianSequenceTestModule)

@@ -1,3 +1,5 @@
+#include <random>
+
 #include "ikaros.h"
 
 
@@ -15,6 +17,7 @@ class Nucleus: public Module
     parameter   delta;          // decay rate
     parameter   psi;            // shunting weight
     parameter   sigma;          // standard deviation for noise
+    parameter   randomSeed;     // random seed for noise
     parameter   theta;          // threshold for output
     parameter   epsilon;        // time constant
     parameter   scale_inputs;   // use average instead of sum of inputs
@@ -30,6 +33,7 @@ class Nucleus: public Module
     matrix      output;
 
     double      burst_end_time = 0;
+    std::mt19937 gaussianGenerator;
 
     void Init()
     {
@@ -39,6 +43,7 @@ class Nucleus: public Module
         Bind(delta, "delta");
         Bind(psi, "psi");
         Bind(sigma, "sigma");
+        Bind(randomSeed, "seed");
         Bind(theta, "theta");
         Bind(epsilon, "epsilon");
 
@@ -56,6 +61,12 @@ class Nucleus: public Module
         Bind(shunting_inhibition, "SHUNTING_INHIBITION");
         Bind(x, "X");
         Bind(output, "OUTPUT");
+
+        const int seed = randomSeed.as_int();
+        if(seed < 0)
+            gaussianGenerator.seed(std::random_device{}());
+        else
+            gaussianGenerator.seed(static_cast<std::mt19937::result_type>(seed));
     }
 
     
@@ -82,7 +93,8 @@ class Nucleus: public Module
         }
 
         float & x_value = x.scalar();
-        float dx_dt = alpha + beta * (1/(1+psi*S)) * E - gamma * I - delta*x_value + sample_normal_distribution(0, sigma);
+        float dx_dt = alpha + beta * (1/(1+psi*S)) * E - gamma * I - delta*x_value +
+                      sample_normal_distribution(gaussianGenerator, 0, sigma);
 
         x_value += epsilon * dx_dt; // Euler integration
 

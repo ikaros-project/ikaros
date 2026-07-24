@@ -1,0 +1,4 @@
+<class internal="true" name="GaussianSequenceTestModule" description="Checks reproducible module-owned Gaussian sequences">
+    <input name="FIRST" />
+    <input name="SECOND" />
+</class>
