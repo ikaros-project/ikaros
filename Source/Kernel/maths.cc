@@ -3,6 +3,7 @@
 #include "maths.h"
 
 #include <random>
+#include <stdexcept>
 
 namespace ikaros
 {
@@ -74,6 +75,13 @@ namespace ikaros
 
 	float sample_normal_distribution(float mean, float stddev)
 	{
+		if(!std::isfinite(mean))
+			throw std::invalid_argument("Normal-distribution mean must be finite.");
+		if(!std::isfinite(stddev) || stddev < 0.0f)
+			throw std::invalid_argument("Normal-distribution standard deviation must be finite and non-negative.");
+		if(stddev == 0.0f)
+			return mean;
+
 		thread_local std::mt19937 gen(std::random_device{}());
 		std::normal_distribution<float> dist(mean, stddev);
 		return dist(gen);

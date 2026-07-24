@@ -28,6 +28,7 @@ add_subdirectory(AudioFileTestModule)
 add_subdirectory(DelayTestModule)
 add_subdirectory(ParameterTestModule)
 add_subdirectory(ComputeEngineTestModule)
+add_subdirectory(MathsTestModule)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)

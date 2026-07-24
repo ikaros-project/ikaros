@@ -124,6 +124,19 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 5 | P2/P3 | Avoid loading and parsing an entire existing JSON array when `OutputFile` appends records. | Implemented and verified | Debug build; checksum-backed append test validates and appends one JSON object at a time |
 | 6 | Testing | Add `OutputImage` regression coverage for a disabled `WRITE` gate, continuous writes, invalid `start_index`, and transient-error recovery. | Implemented and verified | Debug build; four behaviors covered by checksum-backed kernel tests where setup completes; all 232 kernel tests pass |
 
+## Scalar maths review
+
+| # | Priority | Task | Status | Verification | Commit |
+|---:|:---:|---|---|---|---|
+| 1 | P1 | Validate Gaussian sampling parameters and handle zero deviation without invoking `std::normal_distribution`. | Addressed | Debug build; focused checksum test; all 243 kernel tests passed | `Gaussian sampling now handles zero and invalid deviations` |
+| 2 | P1 | Prevent `OneHotVector` from producing out-of-range or invalid matrix indices. | Not addressed | — | — |
+| 3 | P2 | Make `exgaussian()` numerically stable and validate its finite parameter domain. | Not addressed | — | — |
+| 4 | P2 | Make angle conversion direct, identity-preserving, and strict about invalid units. | Not addressed | — | — |
+| 5 | P2 | Add a reproducible, caller-owned random-generator path for Gaussian sampling. | Not addressed | — | — |
+| 6 | P3 | Define safe scalar edge-case semantics and remove or replace the unused custom `min()` and `max()` APIs. | Not addressed | — | — |
+| 7 | Performance | Cache the standard-normal distribution and benchmark Gaussian sampling in Release mode. | Not addressed | — | — |
+| 8 | Modernization and testing | Optimize `short_angle()`, modernize the public maths API, and add focused checksum-based kernel coverage for the library. | Not addressed | — | — |
+
 ## Status meanings
 
 - **Not addressed**: no corrective implementation has been completed.
