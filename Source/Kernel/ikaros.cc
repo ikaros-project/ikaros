@@ -5578,7 +5578,7 @@ bool operator==(Request & r, const std::string s)
 
 
     void
-    Kernel::HandleFailedFileLoad(const exception & e)
+    Kernel::HandleFailedFileLoad()
     {
         dictionary failed_info = info_.copy();
         run_mode = run_mode_stop;
@@ -5589,7 +5589,6 @@ bool operator==(Request & r, const std::string s)
         Clear();
         info_ = failed_info;
         needs_reload = true;
-        Notify(msg_warning, e.what(), e.path());
     }
 
 
@@ -5631,9 +5630,9 @@ bool operator==(Request & r, const std::string s)
                 throw load_failed("Load or set-up failed for "s+options_.full_path()+". "+e.what());
             }
         }
-        catch(const exception & e)
+        catch(const exception &)
         {
-            HandleFailedFileLoad(e);
+            HandleFailedFileLoad();
             throw;
         }
     }
@@ -5672,9 +5671,9 @@ bool operator==(Request & r, const std::string s)
                 throw load_failed("Load or set-up failed for "s+options_.full_path()+". "+e.what());
             }
         }
-        catch(const exception & e)
+        catch(const exception &)
         {
-            HandleFailedFileLoad(e);
+            HandleFailedFileLoad();
             throw;
         }
     }

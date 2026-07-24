@@ -799,7 +799,7 @@ private:
     void RunTasksInSingleThread();
     void SetUp();
     void SetCommandLineParameters(dictionary & d);
-    void HandleFailedFileLoad(const exception & e);
+    void HandleFailedFileLoad();
     std::string GetTopLevelDefaultAttribute(const std::string & key) const;
 
 public:
