@@ -1,0 +1,41 @@
+<group internal="true"
+       name="TestInputFileJSONFormats"
+       description="InputFile preserves field shapes and legalizes names in JSON arrays and JSON Lines"
+       start="true"
+       stop="3"
+       threads="1"
+       check_sum="704308"
+       cli_args="-uSource/Kernel/UnitTesting/KernelTests"
+       expected_output_contains="{9, 10}||{11, 12}||{13, 14}||{15}||{16}||{nan, 2}||{5, 6}||{7, 8}||{22.5}">
+    <module name="JSONArray"
+            class="InputFile"
+            filename="fixture_input_file_output.json"
+            send_end_of_file="false" />
+    <module name="JSONLines"
+            class="InputFile"
+            filename="fixture_input_file_output.jsonl"
+            send_end_of_file="false" />
+
+    <module name="Weights" class="Print" />
+    <module name="QuotedKey" class="Print" />
+    <module name="SanitizedFirst" class="Print" />
+    <module name="SanitizedSecond" class="Print" />
+    <module name="Missing" class="Print" />
+    <module name="History" class="Print" />
+    <module name="Temperature" class="Print" />
+
+    <connection source="JSONArray.weights"
+                target="Weights.INPUT" />
+    <connection source="JSONArray.quoted_key"
+                target="QuotedKey.INPUT" />
+    <connection source="JSONArray.a_b"
+                target="SanitizedFirst.INPUT" />
+    <connection source="JSONArray.a_b_2"
+                target="SanitizedSecond.INPUT" />
+    <connection source="JSONArray.missing"
+                target="Missing.INPUT" />
+    <connection source="JSONLines.history"
+                target="History.INPUT" />
+    <connection source="JSONLines.temperature"
+                target="Temperature.INPUT" />
+</group>

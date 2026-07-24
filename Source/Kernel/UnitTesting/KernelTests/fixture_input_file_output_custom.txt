@@ -1,0 +1,3 @@
+time/1;"spaced value:0";"spaced value:1"
+0.1;10;20
+0.2;30;40
