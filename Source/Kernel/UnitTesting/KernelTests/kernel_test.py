@@ -652,6 +652,20 @@ def run_http_test(cmd, root):
 
     return process.returncode, (stdout or "") + (stderr or "") + "\n".join(http_output), ""
 
+
+def run_non_http_test(cmd, root):
+    if root.get("occupy_webui_port") != "true":
+        return subprocess.run(cmd, text=True, capture_output=True)
+
+    port = root.get("webui_port")
+    if port is None:
+        raise ValueError("occupy_webui_port requires webui_port")
+
+    with network_socket.socket(network_socket.AF_INET, network_socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", int(port)))
+        listener.listen(1)
+        return subprocess.run(cmd, text=True, capture_output=True)
+
 script_directory = Path(__file__).resolve().parent
 
 parser = argparse.ArgumentParser(description="Run Ikaros kernel tests")
@@ -730,7 +744,7 @@ def run_test(item):
     if http_requests:
         actual_exit, combined_output, http_error = run_http_test(cmd, root)
     else:
-        result = subprocess.run(cmd, text=True, capture_output=True)
+        result = run_non_http_test(cmd, root)
         actual_exit = result.returncode
         combined_output = (result.stdout or "") + (result.stderr or "")
         http_error = ""

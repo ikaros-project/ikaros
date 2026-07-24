@@ -164,6 +164,7 @@ namespace
         void RunIteration()
         {
             LoadModelIfNeeded();
+            model_stop_pending = true;
             EnsureSocketStarted();
             ApplyAutoStartFlags();
 
@@ -175,6 +176,7 @@ namespace
 
             StartRequestedRunMode();
             k.Run();
+            model_stop_pending = false;
 
             if(k.GetOptionFilename().empty() && o.is_set("batch_mode"))
                 k.run_mode = run_mode_quit;
@@ -185,11 +187,18 @@ namespace
         options & o;
         bool socket_initialized = false;
         bool automatic_model_reload_suppressed = false;
+        bool model_stop_pending = false;
+        bool shutdown_started = false;
 
         int Shutdown(int code, bool print_banner)
         {
-            k.LogProcessExit();
+            if(shutdown_started)
+                return code;
+
+            shutdown_started = true;
             ShutdownHttp();
+            StopModelIfNeeded();
+            LogProcessExit();
             if(print_banner)
                 std::cout << "\nIkaros 3.0 Ended\n";
             return code;
@@ -197,10 +206,64 @@ namespace
 
         void ShutdownHttp()
         {
-            if(socket_initialized)
+            socket_initialized = false;
+            try
             {
                 k.StopHTTPServer();
-                socket_initialized = false;
+            }
+            catch(const exception & e)
+            {
+                LogLoopError("Failed to stop the WebUI server: " + e.message(), e.path());
+            }
+            catch(const std::exception & e)
+            {
+                LogLoopError("Failed to stop the WebUI server: " + std::string(e.what()));
+            }
+            catch(...)
+            {
+                LogLoopError("Failed to stop the WebUI server: Unknown error.");
+            }
+        }
+
+        bool StopModelIfNeeded()
+        {
+            if(!model_stop_pending)
+                return true;
+
+            model_stop_pending = false;
+            try
+            {
+                k.Stop();
+                return true;
+            }
+            catch(const exception & e)
+            {
+                LogLoopError("Failed to stop the model: " + e.message(), e.path());
+            }
+            catch(const std::exception & e)
+            {
+                LogLoopError("Failed to stop the model: " + std::string(e.what()));
+            }
+            catch(...)
+            {
+                LogLoopError("Failed to stop the model: Unknown error.");
+            }
+            return false;
+        }
+
+        void LogProcessExit()
+        {
+            try
+            {
+                k.LogProcessExit();
+            }
+            catch(const std::exception & e)
+            {
+                std::cerr << "Failed to log process exit: " << e.what() << '\n';
+            }
+            catch(...)
+            {
+                std::cerr << "Failed to log process exit: Unknown error.\n";
             }
         }
 
@@ -226,25 +289,8 @@ namespace
             if(o.is_set("batch_mode"))
                 return FailFast(1);
 
-            try
+            if(!StopModelIfNeeded())
             {
-                k.Stop();
-            }
-            catch(const exception & e)
-            {
-                LogLoopError("Failed to stop after error: " + e.message(), e.path());
-                k.run_mode = run_mode_stop;
-                k.needs_reload = true;
-            }
-            catch(const std::exception & e)
-            {
-                LogLoopError("Failed to stop after error: " + std::string(e.what()));
-                k.run_mode = run_mode_stop;
-                k.needs_reload = true;
-            }
-            catch(...)
-            {
-                LogLoopError("Failed to stop after error: Unknown error.");
                 k.run_mode = run_mode_stop;
                 k.needs_reload = true;
             }
