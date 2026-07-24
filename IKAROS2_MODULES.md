@@ -5,8 +5,8 @@ Generated on 2026-07-20 by comparing `.ikc` module names in the Ikaros 2 `main` 
 Example and test `.ikc` files were excluded. Matching is by module/class filename, so renamed, merged, or split modules may need manual review.
 
 Total Ikaros 2 modules considered: 218
-Total ported by name: 58
-Total not yet ported by name: 160
+Total ported by name: 59
+Total not yet ported by name: 159
 
 ## Ported Modules
 
@@ -50,6 +50,7 @@ Total not yet ported by name: 160
 | `OneHotVector` | `Source/Modules/UtilityModules/OneHotVector/OneHotVector.ikc` | `Source/Modules/UtilityModules/OneHotVector/OneHotVector.ikc` |
 | `Or` | `Source/Modules/UtilityModules/Or/Or.ikc` | `Source/Modules/UtilityModules/CombineFunctions/Or/Or.ikc` |
 | `OutputFile` | `Source/Modules/IOModules/FileOutput/OutputFile/OutputFile.ikc` | `Source/Modules/IOModules/FileOutput/OutputFile/OutputFile.ikc` |
+| `OutputImage` (replaces `OutputJPEG`) | `Source/Modules/IOModules/FileOutput/OutputJPEG/OutputJPEG.ikc` | `Source/Modules/IOModules/FileOutput/OutputImage/OutputImage.ikc` |
 | `PIDController` | `Source/Modules/ControlModules/PIDController/PIDController.ikc` | `Source/Modules/ControlModules/PIDController/PIDController.ikc` |
 | `Product` | `Source/Modules/UtilityModules/Product/Product.ikc` | `Source/Modules/UtilityModules/ReduceFunctions/Product/Product.ikc` |
 | `Randomizer` | `Source/Modules/UtilityModules/Randomizer/Randomizer.ikc` | `Source/Modules/UtilityModules/Randomizer/Randomizer.ikc` |
@@ -189,7 +190,6 @@ Total not yet ported by name: 160
 | `Ones` | `Source/Modules/UtilityModules/Ones/Ones.ikc` |
 | `OscInterface` | `Source/Modules/UtilityModules/OscInterface/OscInterface.ikc` |
 | `OuterProduct` | `Source/Modules/UtilityModules/OuterProduct/OuterProduct.ikc` |
-| `OutputJPEG` | `Source/Modules/IOModules/FileOutput/OutputJPEG/OutputJPEG.ikc` |
 | `OutputPNG` | `Source/Modules/IOModules/FileOutput/OutputPNG/OutputPNG.ikc` |
 | `OutputRawImage` | `Source/Modules/IOModules/FileOutput/OutputRawImage/OutputRawImage.ikc` |
 | `OutputVideoFile` | `Source/Modules/IOModules/FileOutput/OutputVideoFile/OutputVideoFile.ikc` |

@@ -38,6 +38,25 @@ request a fixed width with leading zeros: `frame_####.jpg` starts at
 Without a placeholder, each write replaces the same file. Sequence numbers advance
 only after a file was written successfully.
 
+## Migrating from OutputJPEG
+
+`OutputImage` replaces the Ikaros 2 `OutputJPEG` module. Make these changes when
+porting a model:
+
+| OutputJPEG | OutputImage |
+|:-----------|:------------|
+| `INTENSITY` | `INPUT` with shape `[height, width]` |
+| `RED`, `GREEN`, and `BLUE` | One channel-first `INPUT` with shape `[3, height, width]` |
+| A `%d` filename placeholder such as `%04d` | A `#` placeholder such as `####` |
+| `offset` | `start_index` |
+| `single_trig` | `single_trigger` |
+
+There is no `suppress` parameter; use the `WRITE` input to control when files are
+written. Sequence numbers advance only after successful writes, which corresponds
+to the old `increase_file_no_on_trig` behavior. Apply any required scaling to the
+input matrix before connecting it because `OutputImage` has no `scale` parameter.
+The `quality` parameter remains available, but its default is 90 rather than 100.
+
 ## Codec availability
 
 JPEG support is required in every Ikaros build. PNG, TIFF, and WebP are included
