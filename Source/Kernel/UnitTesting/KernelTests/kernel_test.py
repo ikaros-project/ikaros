@@ -56,7 +56,8 @@ def run_http_test(cmd, root):
     http_output = []
     session_id = None
 
-    def request(path, retries=1, record=True, client_id=None):
+    def request(path, retries=1, record=True, client_id=None,
+                method="GET", data=None, content_type=None):
         nonlocal session_id
         url = f"http://127.0.0.1:{port}/{path}"
         last_error = None
@@ -67,8 +68,12 @@ def run_http_test(cmd, root):
                     headers["Session-Id"] = session_id
                 if client_id is not None:
                     headers["Client-Id"] = str(client_id)
-                request = urllib.request.Request(url, headers=headers)
-                with urllib.request.urlopen(request, timeout=5) as response:
+                if content_type is not None:
+                    headers["Content-Type"] = content_type
+                http_request = urllib.request.Request(
+                    url, headers=headers, data=data, method=method
+                )
+                with urllib.request.urlopen(http_request, timeout=5) as response:
                     response_session_id = response.headers.get("Session-Id")
                     if response_session_id:
                         session_id = response_session_id
@@ -106,6 +111,15 @@ def run_http_test(cmd, root):
             elif action.startswith("wait_contains:"):
                 _, path, expected = action.split(":", 2)
                 wait_contains(path, expected)
+            elif action.startswith("put_json_file:"):
+                _, path, relative_file = action.split(":", 2)
+                payload = (script_directory / relative_file).read_bytes()
+                request(
+                    path,
+                    method="PUT",
+                    data=payload,
+                    content_type="application/json",
+                )
             elif action.startswith("assert_min_duration:"):
                 _, path, minimum_seconds = action.split(":", 2)
                 request_started = time.monotonic()

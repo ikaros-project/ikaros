@@ -3690,6 +3690,7 @@ bool operator==(Request & r, const std::string s)
             SetUp();
             BuildUISnapshot();
             needs_reload = false;
+            automatic_reload_suppressed_until_save.store(false, std::memory_order_release);
         }
         catch(const setup_failed & e)
         {
@@ -5664,6 +5665,7 @@ bool operator==(Request & r, const std::string s)
                 CalculateCheckSum();
                 BuildUISnapshot();
                 needs_reload = false;
+                automatic_reload_suppressed_until_save.store(false, std::memory_order_release);
                 Pause(); // Reset clocks
             }
             catch(const load_failed & e)
@@ -5692,6 +5694,20 @@ bool operator==(Request & r, const std::string s)
     {
         LoadFileConfiguration();
         SetUpLoadedFile();
+    }
+
+
+    bool
+    Kernel::AutomaticReloadSuppressed() const
+    {
+        return automatic_reload_suppressed_until_save.load(std::memory_order_acquire);
+    }
+
+
+    void
+    Kernel::SuppressAutomaticReloadUntilSave()
+    {
+        automatic_reload_suppressed_until_save.store(true, std::memory_order_release);
     }
 
 
@@ -6880,9 +6896,13 @@ bool operator==(Request & r, const std::string s)
                 }
 
         // Main loop
-        while(run_mode.load() > run_mode_quit && !global_terminate.load())  // Not quit
+        while(run_mode.load() > run_mode_quit &&
+              run_mode.load() != run_mode_restart &&
+              !global_terminate.load())  // Not quit
         {
-            while (!Terminate() && run_mode.load() > run_mode_quit)
+            while(!Terminate() &&
+                  run_mode.load() > run_mode_quit &&
+                  run_mode.load() != run_mode_restart)
             {
 #if !defined(LOGGING_OFF)
                 ReportSessionLogStatus(*this);
@@ -6961,6 +6981,9 @@ bool operator==(Request & r, const std::string s)
                     idle_time = std::max(0.0, tick_duration - tick_time_usage);
                 }    
             }
+            if(run_mode.load() == run_mode_restart)
+                break;
+
             Stop();
             stop_completed = true;
             if(!options_.is_set("batch_mode"))
@@ -8003,6 +8026,8 @@ bool operator==(Request & r, const std::string s)
 
             d["filename"] = filename.stem().string();
             info_ = d;
+            if(automatic_reload_suppressed_until_save.exchange(false, std::memory_order_acq_rel))
+                run_mode = run_mode_restart;
 
             std::cout << "Saved file \"" << target_path.string() << "\".\n";
             std::string response = "{\n";

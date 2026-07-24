@@ -740,6 +740,7 @@ private:
 
     std::vector<std::vector<Task *>>        tasks;                  // Sorted tasks in groups
     std::unique_ptr<ThreadPool>             thread_pool;
+    std::atomic<bool>                       automatic_reload_suppressed_until_save = false;
 
 public:
     bool Terminate();
@@ -807,6 +808,8 @@ public:
     void LoadFileConfiguration();
     void SetUpLoadedFile();
     void LoadFile();
+    bool AutomaticReloadSuppressed() const;
+    void SuppressAutomaticReloadUntilSave();
 
 private:
     void Save();

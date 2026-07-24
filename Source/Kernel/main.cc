@@ -267,7 +267,6 @@ namespace
         Kernel & k;
         options & o;
         bool socket_initialized = false;
-        bool automatic_model_reload_suppressed = false;
         bool model_setup_pending = false;
         bool model_stop_pending = false;
         bool shutdown_started = false;
@@ -387,7 +386,7 @@ namespace
         {
             if(k.GetOptionFilename().empty())
                 k.New();
-            else if(k.needs_reload && !automatic_model_reload_suppressed)
+            else if(k.needs_reload && !k.AutomaticReloadSuppressed())
             {
                 try
                 {
@@ -397,7 +396,7 @@ namespace
                 catch(...)
                 {
                     if(!o.is_set("batch_mode"))
-                        automatic_model_reload_suppressed = true;
+                        k.SuppressAutomaticReloadUntilSave();
                     throw;
                 }
             }
@@ -417,7 +416,7 @@ namespace
             {
                 model_setup_pending = false;
                 if(!o.is_set("batch_mode"))
-                    automatic_model_reload_suppressed = true;
+                    k.SuppressAutomaticReloadUntilSave();
                 throw;
             }
         }
@@ -473,7 +472,7 @@ namespace
 
         void StartRequestedRunMode()
         {
-            if(automatic_model_reload_suppressed && k.needs_reload)
+            if(k.AutomaticReloadSuppressed() && k.needs_reload)
                 return;
 
             if(!k.info_.is_set("start"))
