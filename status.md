@@ -129,7 +129,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | # | Priority | Task | Status | Verification | Commit |
 |---:|:---:|---|---|---|---|
 | 1 | P1 | Validate Gaussian sampling parameters and handle zero deviation without invoking `std::normal_distribution`. | Addressed | Debug build; focused checksum test; all 243 kernel tests passed | `Gaussian sampling now handles zero and invalid deviations` |
-| 2 | P1 | Prevent `OneHotVector` from producing out-of-range or invalid matrix indices. | Not addressed | — | — |
+| 2 | P1 | Prevent `OneHotVector` from producing out-of-range or invalid matrix indices. | Addressed | Debug build; finite, non-finite, and empty-output regressions; all 245 kernel tests passed | `OneHotVector indices now remain within output bounds` |
 | 3 | P2 | Make `exgaussian()` numerically stable and validate its finite parameter domain. | Not addressed | — | — |
 | 4 | P2 | Make angle conversion direct, identity-preserving, and strict about invalid units. | Not addressed | — | — |
 | 5 | P2 | Add a reproducible, caller-owned random-generator path for Gaussian sampling. | Not addressed | — | — |

@@ -1,6 +1,6 @@
 <class name="OneHotVector" description="generate a one hot vector from input value">
     <parameter name="value" type="number" default="1" description="value" />
-    <parameter name="output_size" type="number" default="10" description="Size of output array" />
+    <parameter name="output_size" type="number" default="10" min="1" description="Size of output array" />
     <input name="INPUT" description="" />
     <output name="OUTPUT" description="One hot vector array" size = "@output_size" />
 </class>

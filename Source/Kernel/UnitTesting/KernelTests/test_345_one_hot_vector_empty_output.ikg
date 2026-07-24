@@ -1,0 +1,13 @@
+<group internal="true"
+    name="TestOneHotVectorEmptyOutput"
+    description="Reject an empty OneHotVector output"
+    start="true"
+    stop="1"
+    expected_exit="1"
+    expected_output_contains="Numeric parameter value 0 is below minimum 1">
+
+    <module class="Constant" name="Index" data="0" />
+    <module class="OneHotVector" name="OneHot" output_size="0" />
+    <connection source="Index.OUTPUT" target="OneHot.INPUT" />
+
+</group>
