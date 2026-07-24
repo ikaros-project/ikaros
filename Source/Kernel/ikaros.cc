@@ -5595,12 +5595,14 @@ bool operator==(Request & r, const std::string s)
                 {
                     dictionary d;
                     LoadXMLWithRestrictedIncludes(d, options_.full_path());
-                    SetCommandLineParameters(d);
                     d["filename"] = options_.stem();
+                    info_ = d.copy();
+                    session_id = new_session_id();
+                    ResetUISnapshotCache();
+                    SetCommandLineParameters(d);
+                    info_ = d.copy();
                     BuildGroup(d);
                     info_ = d;
-                    session_id = new_session_id(); 
-                    ResetUISnapshotCache();
                     Notify(msg_print, "Loaded "s+options_.full_path());
                     SetUp();
                     if(options_.is_explicitly_set("load_state"))

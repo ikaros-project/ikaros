@@ -184,6 +184,7 @@ namespace
         Kernel & k;
         options & o;
         bool socket_initialized = false;
+        bool automatic_model_reload_suppressed = false;
 
         int Shutdown(int code, bool print_banner)
         {
@@ -255,8 +256,19 @@ namespace
         {
             if(k.GetOptionFilename().empty())
                 k.New();
-            else if(k.needs_reload)
-                k.LoadFile();
+            else if(k.needs_reload && !automatic_model_reload_suppressed)
+            {
+                try
+                {
+                    k.LoadFile();
+                }
+                catch(...)
+                {
+                    if(!o.is_set("batch_mode"))
+                        automatic_model_reload_suppressed = true;
+                    throw;
+                }
+            }
         }
 
         void EnsureSocketStarted()
@@ -269,10 +281,23 @@ namespace
             if(!should_start_socket || socket_initialized)
                 return;
 
-            std::string port_value = o.get("webui_port");
+            const std::string fallback_port_value = o.get("webui_port");
+            long port = ParseWebUIPort(fallback_port_value);
             if(k.info_.contains("webui_port"))
-                port_value = std::string(k.info_["webui_port"]);
-            const long port = ParseWebUIPort(port_value);
+            {
+                const std::string model_port_value = std::string(k.info_["webui_port"]);
+                try
+                {
+                    port = ParseWebUIPort(model_port_value);
+                }
+                catch(const std::invalid_argument & e)
+                {
+                    if(o.is_set("batch_mode"))
+                        throw;
+                    k.Notify(msg_warning, std::string(e.what()) +
+                             " Using WebUI port " + std::to_string(port) + " instead.");
+                }
+            }
             k.InitSocket(port);
             socket_initialized = true;
         }
@@ -297,6 +322,9 @@ namespace
 
         void StartRequestedRunMode()
         {
+            if(automatic_model_reload_suppressed && k.needs_reload)
+                return;
+
             if(!k.info_.is_set("start"))
                 return;
 
