@@ -164,8 +164,9 @@ namespace
         void RunIteration()
         {
             LoadModelIfNeeded();
-            model_stop_pending = true;
             EnsureSocketStarted();
+            SetUpModelIfNeeded();
+            model_stop_pending = true;
             ApplyAutoStartFlags();
 
             if(ShouldQuitEmptyBatchModel())
@@ -187,6 +188,7 @@ namespace
         options & o;
         bool socket_initialized = false;
         bool automatic_model_reload_suppressed = false;
+        bool model_setup_pending = false;
         bool model_stop_pending = false;
         bool shutdown_started = false;
 
@@ -306,7 +308,8 @@ namespace
             {
                 try
                 {
-                    k.LoadFile();
+                    k.LoadFileConfiguration();
+                    model_setup_pending = true;
                 }
                 catch(...)
                 {
@@ -314,6 +317,25 @@ namespace
                         automatic_model_reload_suppressed = true;
                     throw;
                 }
+            }
+        }
+
+        void SetUpModelIfNeeded()
+        {
+            if(!model_setup_pending)
+                return;
+
+            try
+            {
+                k.SetUpLoadedFile();
+                model_setup_pending = false;
+            }
+            catch(...)
+            {
+                model_setup_pending = false;
+                if(!o.is_set("batch_mode"))
+                    automatic_model_reload_suppressed = true;
+                throw;
             }
         }
 

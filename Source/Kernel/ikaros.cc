@@ -5577,8 +5577,24 @@ bool operator==(Request & r, const std::string s)
     }
 
 
-    void 
-    Kernel::LoadFile()
+    void
+    Kernel::HandleFailedFileLoad(const exception & e)
+    {
+        dictionary failed_info = info_.copy();
+        run_mode = run_mode_stop;
+        timer.Pause();
+        timer.SetPauseTime(0);
+        if(!components.empty())
+            StopComponents();
+        Clear();
+        info_ = failed_info;
+        needs_reload = true;
+        Notify(msg_warning, e.what(), e.path());
+    }
+
+
+    void
+    Kernel::LoadFileConfiguration()
     {
         std::lock_guard<std::recursive_mutex> lock(kernelLock);
         try
@@ -5591,56 +5607,84 @@ bool operator==(Request & r, const std::string s)
             if(!std::filesystem::exists(options_.full_path()))
                 throw load_failed("File \""+options_.full_path()+"\" does not exist.");
 
-                try
-                {
-                    dictionary d;
-                    LoadXMLWithRestrictedIncludes(d, options_.full_path());
-                    d["filename"] = options_.stem();
-                    info_ = d.copy();
-                    session_id = new_session_id();
-                    ResetUISnapshotCache();
-                    SetCommandLineParameters(d);
-                    info_ = d.copy();
-                    BuildGroup(d);
-                    info_ = d;
-                    Notify(msg_print, "Loaded "s+options_.full_path());
-                    SetUp();
-                    if(options_.is_explicitly_set("load_state"))
-                        LoadState(resolve_state_filename(options_, "load_state"));
-                    CalculateCheckSum();
-                    BuildUISnapshot();
-                    needs_reload = false;
-                    Pause(); // Reset clocks
-                }
-
-                catch(const load_failed& e)
-                {
-                    throw load_failed("Load file failed for "s+options_.full_path()+". "+e.message(), e.path());
-                }
-                catch(const setup_failed& e)
-                {
-                    throw setup_failed("Set-up file failed for "s+options_.full_path()+". "+e.message(), e.path());
-                }
-                catch(const std::exception& e)
-                {
-                    throw load_failed("Load or set-up failed for "s+options_.full_path()+". "+e.what());
-                }
-
+            try
+            {
+                dictionary d;
+                LoadXMLWithRestrictedIncludes(d, options_.full_path());
+                d["filename"] = options_.stem();
+                info_ = d.copy();
+                session_id = new_session_id();
+                ResetUISnapshotCache();
+                SetCommandLineParameters(d);
+                info_ = d.copy();
+            }
+            catch(const load_failed & e)
+            {
+                throw load_failed("Load file failed for "s+options_.full_path()+". "+e.message(), e.path());
+            }
+            catch(const setup_failed & e)
+            {
+                throw setup_failed("Set-up file failed for "s+options_.full_path()+". "+e.message(), e.path());
+            }
+            catch(const std::exception & e)
+            {
+                throw load_failed("Load or set-up failed for "s+options_.full_path()+". "+e.what());
+            }
         }
-        catch(const exception& e)
+        catch(const exception & e)
         {
-            dictionary failed_info = info_.copy();
-            run_mode = run_mode_stop;
-            timer.Pause();
-            timer.SetPauseTime(0);
-            if(!components.empty())
-                StopComponents();
-            Clear();
-            info_ = failed_info;
-            needs_reload = true;
-            Notify(msg_warning, e.what(), e.path());
+            HandleFailedFileLoad(e);
             throw;
         }
+    }
+
+
+    void
+    Kernel::SetUpLoadedFile()
+    {
+        std::lock_guard<std::recursive_mutex> lock(kernelLock);
+        try
+        {
+            try
+            {
+                dictionary d = info_.copy();
+                BuildGroup(d);
+                info_ = d;
+                Notify(msg_print, "Loaded "s+options_.full_path());
+                SetUp();
+                if(options_.is_explicitly_set("load_state"))
+                    LoadState(resolve_state_filename(options_, "load_state"));
+                CalculateCheckSum();
+                BuildUISnapshot();
+                needs_reload = false;
+                Pause(); // Reset clocks
+            }
+            catch(const load_failed & e)
+            {
+                throw load_failed("Load file failed for "s+options_.full_path()+". "+e.message(), e.path());
+            }
+            catch(const setup_failed & e)
+            {
+                throw setup_failed("Set-up file failed for "s+options_.full_path()+". "+e.message(), e.path());
+            }
+            catch(const std::exception & e)
+            {
+                throw load_failed("Load or set-up failed for "s+options_.full_path()+". "+e.what());
+            }
+        }
+        catch(const exception & e)
+        {
+            HandleFailedFileLoad(e);
+            throw;
+        }
+    }
+
+
+    void
+    Kernel::LoadFile()
+    {
+        LoadFileConfiguration();
+        SetUpLoadedFile();
     }
 
 

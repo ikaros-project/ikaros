@@ -799,10 +799,13 @@ private:
     void RunTasksInSingleThread();
     void SetUp();
     void SetCommandLineParameters(dictionary & d);
+    void HandleFailedFileLoad(const exception & e);
     std::string GetTopLevelDefaultAttribute(const std::string & key) const;
 
 public:
     void RegisterClass(const char * name, ModuleCreator mc);
+    void LoadFileConfiguration();
+    void SetUpLoadedFile();
     void LoadFile();
 
 private:
