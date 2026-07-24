@@ -6,6 +6,10 @@ OutputFile records streamed matrix data as delimited text, a JSON array, or JSON
 one record whenever WRITE is disconnected or greater than zero. Numeric values can use a fixed
 number of decimal places or their full stored precision.
 
+With `single_trigger="yes"`, a connected `WRITE` input writes one record on each rising edge
+instead of writing continuously while positive. A disconnected `WRITE` input still writes every
+tick.
+
 The `format` parameter selects `csv`, `tsv`, `json`, or `jsonl`. For delimited formats, a nonempty
 `delimiter` overrides the preset with exactly one literal character. For example, `delimiter=";"`
 produces semicolon-separated data and `delimiter=" "` produces space-separated data. Fields
@@ -113,6 +117,7 @@ incomplete until it is closed.
 | start_index | First filename sequence number. | int | 0 |
 | flush_interval | Written rows per flush; zero flushes on rollover or stop. | int | 1 |
 | header | Write the column header in CSV and TSV output; ignored by JSON formats. | bool | true |
+| single_trigger | With WRITE connected, write only on its rising edge. | bool | no |
 | directory | Exact reusable directory, or a unique directory pattern containing `#`; empty writes directly inside UserData. | string |  |
 
 ## Inputs

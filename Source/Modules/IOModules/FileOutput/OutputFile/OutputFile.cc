@@ -91,6 +91,7 @@ class OutputFile : public Module
     parameter startIndex;
     parameter flushInterval;
     parameter header;
+    parameter singleTrigger;
 
     matrix input;
     matrix write;
@@ -112,6 +113,7 @@ class OutputFile : public Module
     NumberFormat dataNumberFormat = NumberFormat::fixed;
     std::vector<JSONField> jsonFields;
     std::string jsonSchemaError;
+    bool previousWrite = false;
     bool previousNewFile = false;
     bool sequenceFilename = false;
     bool sequenceExhausted = false;
@@ -1054,9 +1056,16 @@ class OutputFile : public Module
 
 
     bool
-    ShouldWrite() const
+    ShouldWrite()
     {
-        return !write.connected() || write(0) > 0.0f;
+        if(!write.connected())
+            return true;
+
+        const bool active = write(0) > 0.0f;
+        const bool result = static_cast<bool>(singleTrigger) ?
+                            active && !previousWrite : active;
+        previousWrite = active;
+        return result;
     }
 
 
@@ -1360,6 +1369,7 @@ class OutputFile : public Module
         Bind(startIndex, "start_index");
         Bind(flushInterval, "flush_interval");
         Bind(header, "header");
+        Bind(singleTrigger, "single_trigger");
 
         if(filename.as_string().empty())
             throw std::invalid_argument(

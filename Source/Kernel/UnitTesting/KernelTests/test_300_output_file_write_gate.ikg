@@ -3,7 +3,7 @@
        description="OutputFile suppresses rows while WRITE is zero"
        start="true"
        stop="2"
-       check_sum="133631"
+       check_sum="133637"
        expected_file_exists="UserData/test_300_output_file_write_gate.tsv"
        expected_file_contains="value"
        expected_file_not_contains="line/1||tick/1||time/1||real_time/1||1.23"
