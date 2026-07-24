@@ -5,7 +5,7 @@
     stop="100000"
     tick_duration="0.01"
     webui_port="8340"
-    check_sum="15681"
+    check_sum="16765"
     log_level="7"
     http_real_time="false"
     http_ready_path="json/TestSIGTERMCleanup.Lifecycle.label"

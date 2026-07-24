@@ -279,7 +279,10 @@ namespace
 
             shutdown_started = true;
             ShutdownHttp();
-            StopModelIfNeeded();
+            if(!StopModelIfNeeded() && code == 0)
+                code = 1;
+            if(code == 0)
+                code = k.process_exit_code.load();
             LogProcessExit();
             if(print_banner)
                 std::cout << "\nIkaros 3.0 Ended\n";

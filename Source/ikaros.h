@@ -831,7 +831,7 @@ public:
     void Realtime();
 
 private:
-    void StopComponents();
+    bool StopComponents();
     void Pause();
     void Restart(); // Save and reload
 

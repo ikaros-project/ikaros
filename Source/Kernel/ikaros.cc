@@ -3570,9 +3570,10 @@ bool operator==(Request & r, const std::string s)
     }
 
 
-    void
+    bool
     Kernel::StopComponents()
     {
+        bool stopped = true;
         WaitForAsyncComponents(true);
 
         for(auto & [path, component] : components)
@@ -3586,8 +3587,15 @@ bool operator==(Request & r, const std::string s)
             catch(const std::exception & e)
             {
                 Notify(msg_warning, "Could not stop component \"" + path + "\": " + e.what(), path);
+                stopped = false;
+            }
+            catch(...)
+            {
+                Notify(msg_warning, "Could not stop component \"" + path + "\": Unknown error.", path);
+                stopped = false;
             }
         }
+        return stopped;
     }
 
 
@@ -7093,7 +7101,11 @@ bool operator==(Request & r, const std::string s)
             }
 #endif
             //PrintProfiling(); // FIXME: Use option to turn on and off
-            StopComponents();
+            if(!StopComponents())
+            {
+                int successful_exit = 0;
+                process_exit_code.compare_exchange_strong(successful_exit, 1);
+            }
         }
     }
 

@@ -118,6 +118,7 @@ class TaskLifecycleTestModule : public Module
     parameter fail;
     parameter failAfterTasks;
     parameter failInit;
+    parameter failStop;
     parameter terminateInit;
     parameter label;
     parameter outputValue;
@@ -131,6 +132,7 @@ class TaskLifecycleTestModule : public Module
         Bind(fail, "fail");
         Bind(failAfterTasks, "fail_after_tasks");
         Bind(failInit, "fail_init");
+        Bind(failStop, "fail_stop");
         Bind(terminateInit, "terminate_init");
         Bind(label, "label");
         Bind(outputValue, "output_value");
@@ -176,7 +178,10 @@ class TaskLifecycleTestModule : public Module
 
     void Stop() override
     {
-        Notify(msg_print, label.as_string() + (tickActive.load() ? " STOP_DURING_TICK" : " STOP_AFTER_TICK"));
+        const std::string taskLabel = label.as_string();
+        Notify(msg_print, taskLabel + (tickActive.load() ? " STOP_DURING_TICK" : " STOP_AFTER_TICK"));
+        if(failStop.as_bool())
+            throw std::runtime_error("TaskLifecycleTestModule Stop failure " + taskLabel);
     }
 };
 
