@@ -268,7 +268,7 @@ namespace ikaros
             const std::string url = "https://www.ikaros-project.org" + path;
             bool configured =
                 curl_easy_setopt(request, CURLOPT_URL, url.c_str()) == CURLE_OK &&
-                curl_easy_setopt(request, CURLOPT_HTTPGET, 1L) == CURLE_OK &&
+                curl_easy_setopt(request, CURLOPT_CUSTOMREQUEST, "PUT") == CURLE_OK &&
                 curl_easy_setopt(request, CURLOPT_NOSIGNAL, 1L) == CURLE_OK &&
                 curl_easy_setopt(request, CURLOPT_CONNECTTIMEOUT_MS, 3000L) == CURLE_OK &&
                 curl_easy_setopt(request, CURLOPT_TIMEOUT_MS, 5000L) == CURLE_OK &&
