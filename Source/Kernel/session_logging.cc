@@ -1,9 +1,13 @@
 #include <condition_variable>
+#include <cstddef>
 #include <deque>
 #include <filesystem>
+#include <limits>
 #include <mutex>
 #include <stdexcept>
 #include <utility>
+
+#include <curl/curl.h>
 
 #include "session_logging.h"
 #include "ikaros.h"
@@ -231,14 +235,57 @@ namespace ikaros
 #endif
         }
 
-        void SendLogRequest(const std::string & path)
+        bool
+        InitializeCurl()
         {
-            std::string request = "GET " + path + " HTTP/1.1\r\nHost: www.ikaros-project.org\r\nConnection: close\r\n\r\n";
+            static std::once_flag initialization;
+            static CURLcode result = CURLE_FAILED_INIT;
+            std::call_once(initialization, []()
+            {
+                result = curl_global_init(CURL_GLOBAL_DEFAULT);
+            });
+            return result == CURLE_OK;
+        }
 
-            Socket socket;
-            char response[2048] = {0};
-            socket.Get("www.ikaros-project.org", 80, request.c_str(), response, sizeof(response)-1);
-            socket.Close();
+        std::size_t
+        DiscardResponse(char *, std::size_t size, std::size_t count, void *)
+        {
+            if(size != 0 && count > std::numeric_limits<std::size_t>::max() / size)
+                return 0;
+            return size * count;
+        }
+
+        void
+        SendLogRequest(const std::string & path)
+        {
+            if(!InitializeCurl())
+                return;
+
+            CURL * request = curl_easy_init();
+            if(request == nullptr)
+                return;
+
+            const std::string url = "https://www.ikaros-project.org" + path;
+            bool configured =
+                curl_easy_setopt(request, CURLOPT_URL, url.c_str()) == CURLE_OK &&
+                curl_easy_setopt(request, CURLOPT_HTTPGET, 1L) == CURLE_OK &&
+                curl_easy_setopt(request, CURLOPT_NOSIGNAL, 1L) == CURLE_OK &&
+                curl_easy_setopt(request, CURLOPT_CONNECTTIMEOUT_MS, 3000L) == CURLE_OK &&
+                curl_easy_setopt(request, CURLOPT_TIMEOUT_MS, 5000L) == CURLE_OK &&
+                curl_easy_setopt(request, CURLOPT_SSL_VERIFYPEER, 1L) == CURLE_OK &&
+                curl_easy_setopt(request, CURLOPT_SSL_VERIFYHOST, 2L) == CURLE_OK &&
+                curl_easy_setopt(request, CURLOPT_FOLLOWLOCATION, 0L) == CURLE_OK &&
+                curl_easy_setopt(request, CURLOPT_WRITEFUNCTION, DiscardResponse) == CURLE_OK;
+#if LIBCURL_VERSION_NUM >= 0x075500
+            configured = configured &&
+                curl_easy_setopt(request, CURLOPT_PROTOCOLS_STR, "https") == CURLE_OK;
+#else
+            configured = configured &&
+                curl_easy_setopt(request, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS) == CURLE_OK;
+#endif
+            if(configured)
+                static_cast<void>(curl_easy_perform(request));
+            curl_easy_cleanup(request);
         }
 
         SessionLogDispatcher & LogDispatcher()

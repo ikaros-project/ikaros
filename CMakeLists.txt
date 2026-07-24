@@ -188,6 +188,10 @@ endif (BLAS_FOUND)
 find_package(LAPACK REQUIRED)
 target_link_libraries(ikaros ${LAPACK_LIBRARIES})
 
+# Remote session logging requires a certificate-validating HTTPS client.
+find_package(CURL REQUIRED)
+target_link_libraries(ikaros CURL::libcurl)
+
 # Threads Not part of the core
 #find_package(Threads)
 #if (Threads_FOUND)
