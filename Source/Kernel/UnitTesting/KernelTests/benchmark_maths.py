@@ -29,7 +29,7 @@ def require_release_build(build_directory: Path) -> None:
         )
 
 
-def run_once(command: list[str]) -> float:
+def run_once(command: list[str]) -> tuple[float, float]:
     result = subprocess.run(
         command,
         text=True,
@@ -40,10 +40,14 @@ def run_once(command: list[str]) -> float:
     if "Starting (Debug)" in result.stdout:
         raise RuntimeError("the selected Ikaros executable is a Debug build")
 
-    match = re.search(r"MATHS BENCHMARK.*gaussian_ns=([0-9.]+)", result.stdout)
+    match = re.search(
+        r"MATHS BENCHMARK.*gaussian_ns=([0-9.]+)"
+        r".*short_angle_ns=([0-9.]+)",
+        result.stdout,
+    )
     if match is None:
         raise RuntimeError("maths benchmark output was not found")
-    return float(match.group(1))
+    return float(match.group(1)), float(match.group(2))
 
 
 def main() -> int:
@@ -83,7 +87,11 @@ def main() -> int:
 
     print("Release scalar maths benchmark")
     print(f"repeats={args.repeats}")
-    print(f"gaussian_ns={statistics.median(samples):.3f}")
+    print(f"gaussian_ns={statistics.median(sample[0] for sample in samples):.3f}")
+    print(
+        "short_angle_ns="
+        f"{statistics.median(sample[1] for sample in samples):.3f}"
+    )
     return 0
 
 

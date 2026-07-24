@@ -3,13 +3,14 @@
 #include "maths.h"
 
 #include <limits>
+#include <numbers>
 #include <random>
 #include <stdexcept>
 
 namespace ikaros
 {
 
-	double sgn(double x)
+	double sgn(double x) noexcept
 	{
 		if(std::isnan(x))
 			return x;
@@ -41,12 +42,12 @@ namespace ikaros
         {
             switch(unit)
             {
-                case degrees:
-                    return pi / 180.0;
-                case radians:
+                case angle_unit::degrees:
+                    return std::numbers::pi_v<double> / 180.0;
+                case angle_unit::radians:
                     return 1.0;
-                case tau:
-                    return 2.0 * pi;
+                case angle_unit::turns:
+                    return 2.0 * std::numbers::pi_v<double>;
                 default:
                     throw std::invalid_argument("Unknown angle unit.");
             }
@@ -61,9 +62,29 @@ namespace ikaros
 
 
     double
-    short_angle(double a1, double a2)
+    short_angle(double a1, double a2) noexcept
     {
-        return atan2(sin(a2-a1), cos(a2-a1));
+        constexpr double full_turn =
+            2.0 * std::numbers::pi_v<double>;
+        if(!std::isfinite(a1) || !std::isfinite(a2))
+            return std::numeric_limits<double>::quiet_NaN();
+
+        const double difference = a2 - a1;
+        if(!std::isfinite(difference))
+            return std::remainder(
+                std::remainder(a2, full_turn) -
+                    std::remainder(a1, full_turn),
+                full_turn);
+
+        constexpr double accurate_arithmetic_limit =
+            full_turn / std::numeric_limits<double>::epsilon();
+        if(std::fabs(difference) >= accurate_arithmetic_limit)
+            return std::remainder(difference, full_turn);
+
+        return difference -
+               full_turn * std::floor(
+                   (difference + std::numbers::pi_v<double>) /
+                   full_turn);
     }
 
 

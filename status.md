@@ -135,7 +135,14 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 5 | P2 | Add a reproducible, caller-owned random-generator path for Gaussian sampling. | Addressed | Debug build; generator-state and seeded-module regressions; all 246 kernel tests passed | `Gaussian noise modules now support reproducible seeds` |
 | 6 | P3 | Define safe scalar edge-case semantics and remove or replace the unused custom `min()` and `max()` APIs. | Addressed | Debug build; scalar sign and clipping edge-case tests; all 246 kernel tests passed | `Scalar maths helpers now have defined edge-case semantics` |
 | 7 | Performance | Cache the standard-normal distribution and benchmark Gaussian sampling in Release mode. | Addressed | Release median improved from 15.309 ns to 11.728 ns per sample (23.4%); Debug build; focused seeded regressions; all 246 kernel tests passed | `Gaussian sampling now reuses distribution state` |
-| 8 | Modernization and testing | Optimize `short_angle()`, modernize the public maths API, and add focused checksum-based kernel coverage for the library. | Not addressed | — | — |
+| 8 | Modernization and testing | Optimize `short_angle()`, modernize the public maths API, and add focused checksum-based kernel coverage for the library. | Addressed | Release median improved from 11.638 ns to 1.595 ns per ordinary `short_angle()` call (86.3%); Debug build; focused angle-edge regressions; all 246 kernel tests passed | `Scalar maths API now uses scoped units and faster angle wrapping` |
+
+### Outstanding issues and questions
+
+- `RotationConverter` documentation and its old test model mention an `angle_unit` parameter, but the class file does not declare it and the module does not bind it; the module therefore always uses degrees. This existing module defect is outside the scalar maths changes.
+- Uniform `Noise` and `Randomizer` still use process-global POSIX random state, so the new module-owned reproducibility applies only to Gaussian noise.
+- The generator-only Gaussian overload intentionally cannot cache distribution state without mixing independent generators. Performance-sensitive callers should own a `std::normal_distribution<float>` and use the stateful overload.
+- `Nucleus.cc` still contains an unused file-local `max()` helper that can be removed as a separate cleanup.
 
 ## Status meanings
 

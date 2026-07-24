@@ -44,7 +44,7 @@ class RotationConverter : public Module
     matrix outputMatrix;
     // Internally
     h_matrix m;
-    angle_unit angleUnit = degrees; // Only used in xyzaxayaz and axayaz mode.
+    angle_unit angleUnit = angle_unit::degrees; // Only used in xyzaxayaz and axayaz mode.
 
     void Init()
     {
@@ -148,13 +148,19 @@ class RotationConverter : public Module
             m(2, 3) = inputMatrix(2);
             break;
         case 1: // xyzaxayaz
-            m.set_rotation_matrix(angle_to_angle(inputMatrix(3), angleUnit, radians), angle_to_angle(inputMatrix(4), angleUnit, radians), angle_to_angle(inputMatrix(5), angleUnit, radians));
+            m.set_rotation_matrix(
+                angle_to_angle(inputMatrix(3), angleUnit, angle_unit::radians),
+                angle_to_angle(inputMatrix(4), angleUnit, angle_unit::radians),
+                angle_to_angle(inputMatrix(5), angleUnit, angle_unit::radians));
             m(0, 3) = inputMatrix(0);
             m(1, 3) = inputMatrix(1);
             m(2, 3) = inputMatrix(2);
             break;
         case 2: // axayaz
-            m.set_rotation_matrix(angle_to_angle(inputMatrix(0), angleUnit, radians), angle_to_angle(inputMatrix(1), angleUnit, radians), angle_to_angle(inputMatrix(2), angleUnit, radians));
+            m.set_rotation_matrix(
+                angle_to_angle(inputMatrix(0), angleUnit, angle_unit::radians),
+                angle_to_angle(inputMatrix(1), angleUnit, angle_unit::radians),
+                angle_to_angle(inputMatrix(2), angleUnit, angle_unit::radians));
             break;
         case 3: // matrix
             m.copy(inputMatrix); // Get a subset of input matrix.
@@ -178,18 +184,24 @@ class RotationConverter : public Module
             break;
         case 1: // xyzaxayaz
             m.get_euler_angles(ax, ay, az);
-            outputMatrix(0, 3) = angle_to_angle(ax, radians, angleUnit);
-            outputMatrix(0, 4) = angle_to_angle(ay, radians, angleUnit);
-            outputMatrix(0, 5) = angle_to_angle(az, radians, angleUnit);
+            outputMatrix(0, 3) =
+                angle_to_angle(ax, angle_unit::radians, angleUnit);
+            outputMatrix(0, 4) =
+                angle_to_angle(ay, angle_unit::radians, angleUnit);
+            outputMatrix(0, 5) =
+                angle_to_angle(az, angle_unit::radians, angleUnit);
             outputMatrix(0, 0) = m(0, 3);
             outputMatrix(0, 1) = m(1, 3);
             outputMatrix(0, 2) = m(2, 3);
             break;
         case 2: // axayaz
             m.get_euler_angles(ax, ay, az);
-            outputMatrix(0, 0) = angle_to_angle(ax, radians, angleUnit);
-            outputMatrix(0, 1) = angle_to_angle(ay, radians, angleUnit);
-            outputMatrix(0, 2) = angle_to_angle(az, radians, angleUnit);
+            outputMatrix(0, 0) =
+                angle_to_angle(ax, angle_unit::radians, angleUnit);
+            outputMatrix(0, 1) =
+                angle_to_angle(ay, angle_unit::radians, angleUnit);
+            outputMatrix(0, 2) =
+                angle_to_angle(az, angle_unit::radians, angleUnit);
             break;
         case 3: // matrix
             //outputMatrix.copy(m); // how can i get this to work?

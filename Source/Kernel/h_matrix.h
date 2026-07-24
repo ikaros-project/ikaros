@@ -5,8 +5,9 @@
 
 #pragma once
 
-    #include "maths.h"
-    #include "matrix.h"
+#include <numbers>
+
+#include "matrix.h"
 
 
 namespace ikaros 
@@ -234,14 +235,14 @@ namespace ikaros
                 }
                 else // m8 = -1
                 {
-                    y = +pi/2;
+                    y = +std::numbers::pi_v<float> / 2;
                     z = -::atan2(-m[6],m[5]);
                     x = 0;
                 }
             }
             else // m8 = +1
             {
-                y = -pi/2;
+                y = -std::numbers::pi_v<float> / 2;
                 z = ::atan2(-m[6],m[5]);
                 x = 0;
             }
@@ -263,11 +264,11 @@ namespace ikaros
             
             case Y:
                 if(m[8] >= +1)
-                    return  -pi/2;
+                    return  -std::numbers::pi_v<float> / 2;
                 else if (m[8] > -1)
                     return asin(-m[8]);
                 else
-                    return +pi/2;
+                    return +std::numbers::pi_v<float> / 2;
 
             case Z:
                 if(m[8] >= +1)

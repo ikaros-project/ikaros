@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iomanip>
 #include <limits>
+#include <numbers>
 #include <stdexcept>
 #include <string>
 
@@ -125,30 +126,69 @@ class MathsTestModule : public Module
             throw exception("MathsTestModule: zero deviation advanced its generator");
 
         const double largest = std::numeric_limits<double>::max();
-        if(angle_to_angle(largest, degrees, degrees) != largest ||
-           angle_to_angle(largest, radians, radians) != largest ||
-           angle_to_angle(largest, tau, tau) != largest)
+        if(angle_to_angle(largest, angle_unit::degrees,
+                         angle_unit::degrees) != largest ||
+           angle_to_angle(largest, angle_unit::radians,
+                         angle_unit::radians) != largest ||
+           angle_to_angle(largest, angle_unit::turns,
+                         angle_unit::turns) != largest)
             throw exception("MathsTestModule: identity angle conversion changed its input");
-        require_close(angle_to_angle(180.0, degrees, radians),
-                      pi, 1.0e-15, "degrees to radians");
-        require_close(angle_to_angle(pi, radians, degrees),
+        require_close(
+            angle_to_angle(
+                180.0, angle_unit::degrees, angle_unit::radians),
+            std::numbers::pi_v<double>, 1.0e-15, "degrees to radians");
+        require_close(angle_to_angle(
+                          std::numbers::pi_v<double>,
+                          angle_unit::radians, angle_unit::degrees),
                       180.0, 1.0e-15, "radians to degrees");
-        require_close(angle_to_angle(1.0, tau, radians),
-                      2.0 * pi, 1.0e-15, "turns to radians");
-        require_close(angle_to_angle(360.0, degrees, tau),
+        require_close(
+            angle_to_angle(
+                1.0, angle_unit::turns, angle_unit::radians),
+            2.0 * std::numbers::pi_v<double>, 1.0e-15,
+            "turns to radians");
+        require_close(angle_to_angle(
+                          360.0, angle_unit::degrees,
+                          angle_unit::turns),
                       1.0, 1.0e-15, "degrees to turns");
         require_invalid_argument(
             [] {
                 (void)angle_to_angle(
-                    1.0, static_cast<angle_unit>(99), radians);
+                    1.0, static_cast<angle_unit>(99),
+                    angle_unit::radians);
             },
             "invalid source angle unit was accepted");
         require_invalid_argument(
             [] {
                 (void)angle_to_angle(
-                    1.0, degrees, static_cast<angle_unit>(99));
+                    1.0, angle_unit::degrees,
+                    static_cast<angle_unit>(99));
             },
             "invalid target angle unit was accepted");
+
+        const double math_pi = std::numbers::pi_v<double>;
+        require_close(short_angle(0.0, 0.5 * math_pi),
+                      0.5 * math_pi, 1.0e-15,
+                      "positive short angle");
+        require_close(short_angle(0.0, 1.5 * math_pi),
+                      -0.5 * math_pi, 1.0e-15,
+                      "wrapped short angle");
+        require_close(short_angle(1.5 * math_pi, 0.0),
+                      0.5 * math_pi, 1.0e-15,
+                      "reverse wrapped short angle");
+        if(std::fabs(std::fabs(short_angle(0.0, 3.0 * math_pi)) -
+                     math_pi) > 1.0e-15)
+            throw exception(
+                "MathsTestModule: antipodal short angle had wrong magnitude");
+        const double finite_extreme =
+            short_angle(-largest, largest);
+        if(!std::isfinite(finite_extreme) ||
+           std::fabs(finite_extreme) > math_pi)
+            throw exception(
+                "MathsTestModule: finite extreme angles did not wrap safely");
+        if(!std::isnan(short_angle(
+               0.0, std::numeric_limits<double>::infinity())))
+            throw exception(
+                "MathsTestModule: non-finite short angle did not produce NaN");
 
         require_close(exgaussian(0.0, 1.0, 0.0, 1.0),
                       0.2615782918651234, 1.0e-14,
@@ -236,9 +276,20 @@ class MathsBenchmarkModule : public Module
         const double elapsed = std::chrono::duration<double, std::nano>(
             std::chrono::steady_clock::now() - start).count();
 
+        double angle = 0.0;
+        const auto angle_start = std::chrono::steady_clock::now();
+        for(int sample = 0; sample < samples; ++sample)
+        {
+            angle += 0.001;
+            checksum += short_angle(angle, -0.5 * angle);
+        }
+        const double angle_elapsed = std::chrono::duration<double, std::nano>(
+            std::chrono::steady_clock::now() - angle_start).count();
+
         std::cout << std::fixed << std::setprecision(3)
                   << "MATHS BENCHMARK"
                   << " gaussian_ns=" << elapsed / samples
+                  << " short_angle_ns=" << angle_elapsed / samples
                   << " checksum=" << checksum << std::endl;
     }
 };
