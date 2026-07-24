@@ -87,6 +87,47 @@ namespace
 #endif
     }
 
+
+    void ReportStartupError(const exception & e) noexcept
+    {
+        try
+        {
+            std::cerr << "Ikaros error: " << e.what();
+            const std::string path = e.path();
+            if(!path.empty())
+                std::cerr << " (" << path << ")";
+            std::cerr << '\n';
+        }
+        catch(...)
+        {
+        }
+    }
+
+
+    void ReportStartupError(const std::exception & e) noexcept
+    {
+        try
+        {
+            std::cerr << e.what() << '\n';
+        }
+        catch(...)
+        {
+        }
+    }
+
+
+    void ReportUnknownStartupError() noexcept
+    {
+        try
+        {
+            std::cerr << "Ikaros: Internal Error\n";
+        }
+        catch(...)
+        {
+        }
+    }
+
+
     class MainLoopController
     {
     public:
@@ -112,6 +153,45 @@ namespace
         int FailFast(int code)
         {
             return Shutdown(code, false);
+        }
+
+        int FailFast(const exception & e)
+        {
+            try
+            {
+                LogLoopError("Ikaros error: " + e.message(), e.path());
+            }
+            catch(...)
+            {
+                ReportStartupError(e);
+            }
+            return FailFast(1);
+        }
+
+        int FailFast(const std::exception & e)
+        {
+            try
+            {
+                LogLoopError("Standard exception: " + std::string(e.what()));
+            }
+            catch(...)
+            {
+                ReportStartupError(e);
+            }
+            return FailFast(1);
+        }
+
+        int FailFastUnknown()
+        {
+            try
+            {
+                LogLoopError("Unknown exception.");
+            }
+            catch(...)
+            {
+                ReportUnknownStartupError();
+            }
+            return FailFast(1);
         }
 
         int HandleLoopException(const socket_startup_error & e)
@@ -433,25 +513,43 @@ main(int argc, char *argv[])
         PrintStartupBanner();
         MainLoopController session(kernel(), o);
 
-        while(session.ShouldKeepRunning())
+        try
         {
-            int exit_code = session.RunProtected([&]() { session.RunIteration(); });
-            if(exit_code >= 0)
-                return exit_code;
-        }
+            while(session.ShouldKeepRunning())
+            {
+                int exit_code = session.RunProtected([&]() { session.RunIteration(); });
+                if(exit_code >= 0)
+                    return exit_code;
+            }
 
-        return session.Finish();
+            return session.Finish();
+        }
+        catch(const exception & e)
+        {
+            return session.FailFast(e);
+        }
+        catch(const std::exception & e)
+        {
+            return session.FailFast(e);
+        }
+        catch(...)
+        {
+            return session.FailFastUnknown();
+        }
     }
-    catch(std::exception & e)
+    catch(const exception & e)
     {
-        kernel().LogProcessExit();
-        std::cerr << std::string(e.what()) << '\n';
+        ReportStartupError(e);
+        return 1;
+    }
+    catch(const std::exception & e)
+    {
+        ReportStartupError(e);
         return 1;
     }
     catch(...)
     {
-        kernel().LogProcessExit();
-        std::cout << "Ikaros: Internal Error\n";
+        ReportUnknownStartupError();
         return 1;
     }
 }
