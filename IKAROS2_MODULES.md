@@ -32,7 +32,7 @@ Total not yet ported by name: 160
 | `FadeCandy` | `Source/Modules/RobotModules/FadeCandy/FadeCandy.ikc` | `Source/Modules/RobotModules/FadeCandy/FadeCandy.ikc` |
 | `FunctionGenerator` | `Source/Modules/UtilityModules/FunctionGenerator/FunctionGenerator.ikc` | `Source/Modules/UtilityModules/FunctionGenerator/FunctionGenerator.ikc` |
 | `InputFile` | `Source/Modules/IOModules/FileInput/InputFile/InputFile.ikc` | `Source/Modules/IOModules/FileInput/InputFile/InputFile.ikc` |
-| `InputJPEG` | `Source/Modules/IOModules/FileInput/InputJPEG/InputJPEG.ikc` | `Source/Modules/IOModules/FileInput/InputJPEG/InputJPEG.ikc` |
+| `InputImage` (replaces `InputJPEG`) | `Source/Modules/IOModules/FileInput/InputJPEG/InputJPEG.ikc` | `Source/Modules/IOModules/FileInput/InputImage/InputImage.ikc` |
 | `InputVideo` | `Source/Modules/IOModules/Video/InputVideo/InputVideo.ikc` | `Source/Modules/IOModules/Video/InputVideo/InputVideo.ikc` |
 | `InputVideoFile` | `Source/Modules/IOModules/FileInput/InputVideoFile/InputVideoFile.ikc` | `Source/Modules/IOModules/FileInput/InputVideoFile/InputVideoFile.ikc` |
 | `InputVideoStream` | `Source/Modules/IOModules/Video/InputVideoStream/InputVideoStream.ikc` | `Source/Modules/IOModules/Video/InputVideoStream/InputVideoStream.ikc` |

@@ -2,7 +2,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(InputFile)
 add_subdirectory(InputAudioFile)
-add_subdirectory(InputJPEG)
 add_subdirectory(InputImage)
 add_subdirectory(InputVideoFile)
 

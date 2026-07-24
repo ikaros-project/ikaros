@@ -62,7 +62,7 @@
         type="sin"
     />
     <module
-        class="InputJPEG"
+        class="InputImage"
         name="GalleryImage"
         filename="Media/colorrobot.jpg"
         iterations="1000"

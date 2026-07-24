@@ -1,5 +1,5 @@
 <group name="AppleVisionFaceDetector_Image_Test" start="true">
-    <module class="InputJPEG" name="Image" filename="faces/test.jpg" iterations="0" read_once="yes" />
+    <module class="InputImage" name="Image" filename="faces/test.jpg" iterations="0" read_once="yes" />
     <module class="AppleVisionFaceDetector" name="Detector" max_faces="16" downsample="1" />
     <module class="Print" name="PrintCount" />
     <module class="Print" name="PrintBoxes" />

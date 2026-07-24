@@ -1,5 +1,5 @@
 <group name="DlibFaceRecognizer_Test" start="true">
-    <module class="InputJPEG" name="Image" filename="faces/test.jpg" iterations="0" read_once="yes" />
+    <module class="InputImage" name="Image" filename="faces/test.jpg" iterations="0" read_once="yes" />
     <module class="DlibFaceDetector" name="Detector" max_faces="8" upsample="1" />
     <module class="DlibFaceRecognizer" name="Recognizer"
         max_faces="8"
