@@ -34,6 +34,7 @@ class Nucleus: public Module
 
     double      burst_end_time = 0;
     std::mt19937 gaussianGenerator;
+    std::normal_distribution<float> gaussianDistribution;
 
     void Init()
     {
@@ -94,7 +95,8 @@ class Nucleus: public Module
 
         float & x_value = x.scalar();
         float dx_dt = alpha + beta * (1/(1+psi*S)) * E - gamma * I - delta*x_value +
-                      sample_normal_distribution(gaussianGenerator, 0, sigma);
+                      sample_normal_distribution(
+                          gaussianGenerator, gaussianDistribution, 0, sigma);
 
         x_value += epsilon * dx_dt; // Euler integration
 

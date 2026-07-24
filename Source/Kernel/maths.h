@@ -20,8 +20,10 @@ namespace ikaros
    	double short_angle(double a1, double a2); // in radians
 
     template<typename RandomGenerator>
-    float sample_normal_distribution(RandomGenerator & generator,
-                                     float mean, float stddev)
+    float sample_normal_distribution(
+        RandomGenerator & generator,
+        std::normal_distribution<float> & distribution,
+        float mean, float stddev)
     {
         if(!std::isfinite(mean))
             throw std::invalid_argument("Normal-distribution mean must be finite.");
@@ -30,8 +32,18 @@ namespace ikaros
         if(stddev == 0.0f)
             return mean;
 
-        std::normal_distribution<float> distribution(mean, stddev);
-        return distribution(generator);
+        return distribution(
+            generator,
+            std::normal_distribution<float>::param_type(mean, stddev));
+    }
+
+    template<typename RandomGenerator>
+    float sample_normal_distribution(RandomGenerator & generator,
+                                     float mean, float stddev)
+    {
+        std::normal_distribution<float> distribution;
+        return sample_normal_distribution(
+            generator, distribution, mean, stddev);
     }
 
 	float sample_normal_distribution(float mean, float stddev);

@@ -71,7 +71,9 @@ namespace ikaros
 	float sample_normal_distribution(float mean, float stddev)
 	{
 		thread_local std::mt19937 gen(std::random_device{}());
-		return sample_normal_distribution(gen, mean, stddev);
+		thread_local std::normal_distribution<float> distribution;
+		return sample_normal_distribution(
+			gen, distribution, mean, stddev);
 	}
 
 

@@ -1,5 +1,7 @@
 #include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <iomanip>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -104,6 +106,16 @@ class MathsTestModule : public Module
             if(sample_normal_distribution(first_generator, 1.0f, 2.0f) !=
                sample_normal_distribution(second_generator, 1.0f, 2.0f))
                 throw exception("MathsTestModule: seeded Gaussian sequences differ");
+
+        std::normal_distribution<float> first_distribution;
+        std::normal_distribution<float> second_distribution;
+        for(int sample = 0; sample < 32; ++sample)
+            if(sample_normal_distribution(
+                   first_generator, first_distribution, 1.0f, 2.0f) !=
+               sample_normal_distribution(
+                   second_generator, second_distribution, 1.0f, 2.0f))
+                throw exception(
+                    "MathsTestModule: cached seeded Gaussian sequences differ");
 
         std::mt19937 zero_deviation_generator(54321);
         std::mt19937 untouched_generator(54321);
@@ -211,5 +223,27 @@ class GaussianSequenceTestModule : public Module
 };
 
 
+class MathsBenchmarkModule : public Module
+{
+    void Init() override
+    {
+        constexpr int samples = 20000000;
+        double checksum = 0.0;
+
+        const auto start = std::chrono::steady_clock::now();
+        for(int sample = 0; sample < samples; ++sample)
+            checksum += sample_normal_distribution(1.0f, 2.0f);
+        const double elapsed = std::chrono::duration<double, std::nano>(
+            std::chrono::steady_clock::now() - start).count();
+
+        std::cout << std::fixed << std::setprecision(3)
+                  << "MATHS BENCHMARK"
+                  << " gaussian_ns=" << elapsed / samples
+                  << " checksum=" << checksum << std::endl;
+    }
+};
+
+
 INSTALL_CLASS(MathsTestModule)
 INSTALL_CLASS(GaussianSequenceTestModule)
+INSTALL_CLASS(MathsBenchmarkModule)

@@ -16,6 +16,7 @@ class Noise: public Module
     matrix input;
     matrix output;
     std::mt19937 gaussianGenerator;
+    std::normal_distribution<float> gaussianDistribution;
 
     void Init()
     {
@@ -49,7 +50,7 @@ class Noise: public Module
 
             output.apply([this, mu, sigma](float x) {
                 return x + sample_normal_distribution(
-                    gaussianGenerator, mu, sigma);
+                    gaussianGenerator, gaussianDistribution, mu, sigma);
             });
         }
         else if (type.compare_string("uniform"))

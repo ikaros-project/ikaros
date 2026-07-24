@@ -1,0 +1,6 @@
+<group internal="true"
+    name="BenchmarkMaths"
+    description="Measure scalar maths helper performance in Release mode"
+    stop="1">
+    <module class="MathsBenchmarkModule" name="Maths" />
+</group>
