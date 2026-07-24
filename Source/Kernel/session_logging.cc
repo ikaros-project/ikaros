@@ -1,9 +1,9 @@
 #include <condition_variable>
 #include <deque>
+#include <filesystem>
 #include <mutex>
 #include <stdexcept>
 #include <utility>
-#include <unistd.h>
 
 #include "session_logging.h"
 #include "ikaros.h"
@@ -213,18 +213,14 @@ namespace ikaros
 
         void AddCommonParameters(std::string & path, Kernel & kernel, const std::string & event_name, const dictionary & module_info, const std::string & agent)
         {
-            char hostname[256] = {0};
-            if(gethostname(hostname, sizeof(hostname)-1) != 0)
-                hostname[0] = '\0';
-
             AppendQueryParameter(path, "event", event_name);
             AppendQueryParameter(path, "sid", std::to_string(kernel.session_id));
             AppendQueryParameter(path, "timestamp", std::to_string(GetTimeStamp()));
             AppendQueryParameter(path, "session_name", kernel.info_.contains("name") ? std::string(kernel.info_["name"]) : "");
             AppendQueryParameter(path, "file", kernel.info_.contains("filename") ? std::string(kernel.info_["filename"]) : kernel.GetOptionFilename());
-            AppendQueryParameter(path, "file_path", kernel.GetOptionFullPath());
+            AppendQueryParameter(path, "file_path",
+                                 std::filesystem::path(kernel.GetOptionFullPath()).filename().string());
             AppendQueryParameter(path, "clock_time", formatNumber(kernel.session_timer.GetTime(), 4));
-            AppendQueryParameter(path, "host", hostname);
             AppendQueryParameter(path, "agent", agent);
             AppendQueryParameter(path, "cpu_cores", std::to_string(kernel.cpu_cores));
             AppendQueryParameter(path, "classes", module_info.contains("classes") ? std::string(module_info["classes"]) : "");
