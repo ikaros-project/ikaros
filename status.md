@@ -113,6 +113,17 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 9 | P3 | Obsolete utility APIs are unused, inefficient, or have misleading semantics. | Addressed | `Obsolete utility APIs were removed and string helpers streamlined` |
 | 10 | P2/P3 | Utility tests are not integrated with the normal checksum-based kernel suite and cover little behavior. | Addressed | `Utility coverage joined the checksum-based kernel suite` |
 
+## File output improvements
+
+| # | Priority | Task | Status | Verification |
+|---:|:---:|---|---|---|
+| 1 | P2 | Rate-limit persistent `OutputImage` failures so a bad destination does not repeat expensive encoding and warnings every simulation tick. | Implemented and verified | Debug build; 100-tick persistent-error smoke test produced one warning |
+| 2 | P2 | Prevent accidental image-sequence overwrites by adding `OutputFile`-style numbered output directories to `OutputImage`. | Implemented and verified | Debug build; two-run smoke test selected directories `000` and `001` |
+| 3 | P2 | Publish completed images atomically so readers cannot observe partially written files. | Implemented and verified | Debug build; JPEG sequence smoke test left only complete destination files and no temporary files |
+| 4 | Performance | Buffer complete `OutputFile` records and benchmark the change in Release mode. | Implemented and verified | All 232 kernel tests; Release benchmark improved from 170.68 to 59.47 ns/value (65.2%) |
+| 5 | P2/P3 | Avoid loading and parsing an entire existing JSON array when `OutputFile` appends records. | Implemented and verified | Debug build; checksum-backed append test validates and appends one JSON object at a time |
+| 6 | Testing | Add `OutputImage` regression coverage for a disabled `WRITE` gate, continuous writes, invalid `start_index`, and transient-error recovery. | Implemented and verified | Debug build; four behaviors covered by checksum-backed kernel tests where setup completes; all 232 kernel tests pass |
+
 ## Status meanings
 
 - **Not addressed**: no corrective implementation has been completed.

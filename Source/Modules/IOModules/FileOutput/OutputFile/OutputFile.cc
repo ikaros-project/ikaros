@@ -1,10 +1,9 @@
+#include <algorithm>
 #include <charconv>
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
-#include <iomanip>
-#include <iterator>
 #include <limits>
 #include <locale>
 #include <stdexcept>
@@ -113,6 +112,7 @@ class OutputFile : public Module
     NumberFormat dataNumberFormat = NumberFormat::fixed;
     std::vector<JSONField> jsonFields;
     std::string jsonSchemaError;
+    std::string recordBuffer;
     bool previousWrite = false;
     bool previousNewFile = false;
     bool sequenceFilename = false;
@@ -518,39 +518,147 @@ class OutputFile : public Module
                 "Could not inspect existing OutputFile \"" + path.string() +
                 "\"");
 
-        const std::string contents{
-            std::istreambuf_iterator<char>(inputStream),
-            std::istreambuf_iterator<char>()
-        };
-        if(inputStream.bad())
-            throw std::runtime_error(
-                "Could not read existing OutputFile \"" + path.string() +
-                "\"");
-
-        info.empty = contents.empty();
-        if(info.empty)
-            return info;
-        info.endsWithNewline = contents.back() == '\n';
-
         try
         {
-            const value parsed = parse_json(contents);
-            if(!parsed.is_list())
+            std::uintmax_t offset = 0;
+            char lastCharacter = '\0';
+            auto readCharacter = [&](char & character)
+            {
+                if(!inputStream.get(character))
+                    return false;
+                if(offset == std::numeric_limits<std::uintmax_t>::max())
+                    throw std::runtime_error(
+                        "file is too large to inspect");
+                ++offset;
+                lastCharacter = character;
+                return true;
+            };
+
+            char character = '\0';
+            while(readCharacter(character) &&
+                  IsJSONWhitespace(character))
+            {
+            }
+            info.empty = offset == 0;
+            if(info.empty)
+                return info;
+            if(!inputStream && inputStream.bad())
+                throw std::runtime_error(
+                    "could not read the file");
+            if(character != '[')
                 throw std::runtime_error(
                     "top-level value is not an array");
 
             const std::vector<std::string> expectedKeys = JSONSchemaKeys();
-            for(const value & record : parsed.as_list())
+            const std::uintmax_t arrayContentOffset = offset;
+            std::uintmax_t appendOffset = arrayContentOffset;
+            bool closingBracketAllowed = true;
+            bool arrayComplete = false;
+
+            while(!arrayComplete)
             {
-                if(!record.is_dictionary())
+                while(readCharacter(character) &&
+                      IsJSONWhitespace(character))
+                {
+                }
+                if(!inputStream && inputStream.bad())
+                    throw std::runtime_error(
+                        "could not read the file");
+                if(!inputStream)
+                    throw std::runtime_error(
+                        "array has no closing bracket");
+                if(character == ']')
+                {
+                    if(!closingBracketAllowed)
+                        throw std::runtime_error(
+                            "array has a trailing comma");
+                    arrayComplete = true;
+                    break;
+                }
+                if(character == ',')
+                    throw std::runtime_error(
+                        "array contains an empty element");
+
+                std::string record;
+                std::size_t nestingDepth = 0;
+                bool inString = false;
+                bool escaped = false;
+                char boundary = '\0';
+
+                while(true)
+                {
+                    if(!inString && nestingDepth == 0 &&
+                       (character == ',' || character == ']'))
+                    {
+                        boundary = character;
+                        break;
+                    }
+
+                    const bool topLevelWhitespace =
+                        !inString && nestingDepth == 0 &&
+                        IsJSONWhitespace(character);
+                    if(!topLevelWhitespace)
+                    {
+                        record += character;
+                        appendOffset = offset;
+                    }
+
+                    if(inString)
+                    {
+                        if(escaped)
+                            escaped = false;
+                        else if(character == '\\')
+                            escaped = true;
+                        else if(character == '"')
+                            inString = false;
+                    }
+                    else if(character == '"')
+                        inString = true;
+                    else if(character == '{' || character == '[')
+                        ++nestingDepth;
+                    else if(character == '}' || character == ']')
+                    {
+                        if(nestingDepth == 0)
+                            throw std::runtime_error(
+                                "array element has unmatched brackets");
+                        --nestingDepth;
+                    }
+
+                    if(!readCharacter(character))
+                    {
+                        if(inputStream.bad())
+                            throw std::runtime_error(
+                                "could not read the file");
+                        throw std::runtime_error(
+                            "array has no closing bracket");
+                    }
+                }
+
+                const value parsed = parse_json(record);
+                if(!parsed.is_dictionary())
                     throw std::runtime_error(
                         "array element " +
                         std::to_string(info.recordCount) +
                         " is not a JSON object");
-                ValidateJSONObject(
-                    record.as_dictionary(), expectedKeys);
+                ValidateJSONObject(parsed.as_dictionary(), expectedKeys);
                 IncrementRecordCount(info.recordCount, path);
+
+                if(boundary == ']')
+                    arrayComplete = true;
+                else
+                    closingBracketAllowed = false;
             }
+
+            while(readCharacter(character))
+                if(!IsJSONWhitespace(character))
+                    throw std::runtime_error(
+                        "unexpected characters after the array");
+            if(inputStream.bad())
+                throw std::runtime_error(
+                    "could not read the file");
+
+            info.endsWithNewline = lastCharacter == '\n';
+            info.jsonArrayAppendOffset = appendOffset;
         }
         catch(const std::exception & exception)
         {
@@ -559,21 +667,6 @@ class OutputFile : public Module
                 std::string(exception.what()) + ": \"" + path.string() +
                 "\"");
         }
-
-        const std::size_t closingBracket =
-            contents.find_last_not_of(" \t\r\n");
-        if(closingBracket == std::string::npos ||
-           contents[closingBracket] != ']')
-            throw std::runtime_error(
-                "Existing OutputFile JSON array has no closing bracket: \"" +
-                path.string() + "\"");
-
-        std::size_t appendOffset = closingBracket;
-        while(appendOffset > 0 &&
-              IsJSONWhitespace(contents[appendOffset - 1]))
-            --appendOffset;
-        info.jsonArrayAppendOffset =
-            static_cast<std::uintmax_t>(appendOffset);
         return info;
     }
 
@@ -751,9 +844,6 @@ class OutputFile : public Module
         if(!prepared.stream)
             throw std::runtime_error(
                 "Could not open OutputFile \"" + path.string() + "\"");
-        if(dataNumberFormat == NumberFormat::fixed)
-            prepared.stream << std::fixed << std::setprecision(decimalCount);
-
         try
         {
             if(outputFormat == OutputFormat::jsonArray)
@@ -815,7 +905,7 @@ class OutputFile : public Module
     WriteSeparator(bool & first)
     {
         if(!first)
-            file.put(columnDelimiter);
+            recordBuffer += columnDelimiter;
         first = false;
     }
 
@@ -836,11 +926,21 @@ class OutputFile : public Module
     FinishRecord(bool addNewline)
     {
         if(addNewline)
-            file.put('\n');
+            recordBuffer += '\n';
+        if(recordBuffer.size() >
+           static_cast<std::size_t>(
+               std::numeric_limits<std::streamsize>::max()))
+            throw std::length_error(
+                "OutputFile row is too large to write to \"" +
+                resolvedFilename.string() + "\"");
+        file.write(
+            recordBuffer.data(),
+            static_cast<std::streamsize>(recordBuffer.size()));
         if(!file)
             throw std::runtime_error(
                 "Could not write OutputFile row to \"" +
                 resolvedFilename.string() + "\"");
+        recordBuffer.clear();
 
         if(rowsSinceFlush != std::numeric_limits<std::uint64_t>::max())
             ++rowsSinceFlush;
@@ -856,6 +956,21 @@ class OutputFile : public Module
     }
 
 
+    template<typename Integer>
+    void
+    WriteInteger(Integer value)
+    {
+        char buffer[32];
+        const auto result =
+            std::to_chars(buffer, buffer + sizeof(buffer), value);
+        if(result.ec != std::errc())
+            throw std::runtime_error(
+                "Could not format an OutputFile integer");
+        recordBuffer.append(
+            buffer, static_cast<std::size_t>(result.ptr - buffer));
+    }
+
+
     void
     WriteTimestamp()
     {
@@ -864,16 +979,16 @@ class OutputFile : public Module
             case TimestampMode::none:
                 break;
             case TimestampMode::line:
-                file << lineNumber;
+                WriteInteger(lineNumber);
                 break;
             case TimestampMode::tick:
-                file << GetTick();
+                WriteInteger(GetTick());
                 break;
             case TimestampMode::time:
-                file << formatNumber(GetNominalTime());
+                recordBuffer += formatNumber(GetNominalTime());
                 break;
             case TimestampMode::realTime:
-                file << formatNumber(GetRunTime());
+                recordBuffer += formatNumber(GetRunTime());
                 break;
         }
     }
@@ -882,19 +997,16 @@ class OutputFile : public Module
     void
     WriteValue(float value)
     {
-        if(dataNumberFormat == NumberFormat::fixed)
-        {
-            file << value;
-            return;
-        }
-
-        char buffer[64];
-        const auto result =
+        char buffer[128];
+        const auto result = dataNumberFormat == NumberFormat::fixed ?
+            std::to_chars(buffer, buffer + sizeof(buffer), value,
+                          std::chars_format::fixed, decimalCount) :
             std::to_chars(buffer, buffer + sizeof(buffer), value);
         if(result.ec != std::errc())
             throw std::runtime_error(
-                "Could not format a full-resolution OutputFile value");
-        file.write(buffer, result.ptr - buffer);
+                "Could not format an OutputFile value");
+        recordBuffer.append(
+            buffer, static_cast<std::size_t>(result.ptr - buffer));
     }
 
 
@@ -903,7 +1015,7 @@ class OutputFile : public Module
     {
         if(!std::isfinite(value))
         {
-            file << "null";
+            recordBuffer += "null";
             return;
         }
         WriteValue(value);
@@ -914,17 +1026,17 @@ class OutputFile : public Module
     WriteJSONArray(const float * values, int & offset,
                    const std::vector<int> & shape, int dimension)
     {
-        file.put('[');
+        recordBuffer += '[';
         for(int i = 0; i < shape[static_cast<std::size_t>(dimension)]; ++i)
         {
             if(i > 0)
-                file.put(',');
+                recordBuffer += ',';
             if(dimension + 1 == static_cast<int>(shape.size()))
                 WriteJSONNumber(values[offset++]);
             else
                 WriteJSONArray(values, offset, shape, dimension + 1);
         }
-        file.put(']');
+        recordBuffer += ']';
     }
 
 
@@ -932,11 +1044,10 @@ class OutputFile : public Module
     WriteJSONFieldPrefix(bool & first, std::string_view escapedKey)
     {
         if(!first)
-            file.put(',');
-        file.put('"');
-        file.write(escapedKey.data(),
-                   static_cast<std::streamsize>(escapedKey.size()));
-        file << "\":";
+            recordBuffer += ',';
+        recordBuffer += '"';
+        recordBuffer.append(escapedKey.data(), escapedKey.size());
+        recordBuffer += "\":";
         first = false;
     }
 
@@ -946,7 +1057,7 @@ class OutputFile : public Module
     {
         const float * values = input.contiguous_data();
         bool first = true;
-        file.put('{');
+        recordBuffer += '{';
 
         const std::string_view timestampKey = TimestampKey();
         if(!timestampKey.empty())
@@ -968,7 +1079,7 @@ class OutputFile : public Module
                     "OutputFile JSON field shape does not match its input");
         }
 
-        file.put('}');
+        recordBuffer += '}';
     }
 
 
@@ -983,9 +1094,9 @@ class OutputFile : public Module
                     "OutputFile JSON array record count overflow");
 
             if(jsonRecordCount == 0)
-                file.put('\n');
+                recordBuffer += '\n';
             else
-                file << ",\n";
+                recordBuffer += ",\n";
             WriteJSONObject();
             FinishRecord(false);
             ++jsonRecordCount;
@@ -1000,6 +1111,7 @@ class OutputFile : public Module
     void
     WriteRow()
     {
+        recordBuffer.clear();
         if(IsJSONOutput())
         {
             WriteJSONRow();
@@ -1047,6 +1159,7 @@ class OutputFile : public Module
         file.clear();
         rowsSinceFlush = 0;
         jsonRecordCount = 0;
+        recordBuffer.clear();
 
         if(!succeeded && reportFailure)
             Warning("Could not flush and close OutputFile \"" +
@@ -1248,6 +1361,9 @@ class OutputFile : public Module
         flushIntervalRows =
             static_cast<std::uint64_t>(requestedFlushInterval);
         includeHeader = header.as_bool();
+        const int reservedValues = std::min(input.size(), 65536);
+        recordBuffer.reserve(
+            128 + 16 * static_cast<std::size_t>(reservedValues));
     }
 
 

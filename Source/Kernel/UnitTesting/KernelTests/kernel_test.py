@@ -39,6 +39,14 @@ def split_expected_paths(value):
         return []
     return [Path(item) for item in value.split("||") if item]
 
+
+def remove_test_artifact(path):
+    if path.is_symlink() or path.is_file():
+        path.unlink()
+    elif path.is_dir():
+        path.rmdir()
+
+
 def run_http_test(cmd, root):
     port = root.get("webui_port")
     if port is None:
@@ -703,11 +711,21 @@ def run_test(item):
     elif root.get("stop") is None:
         cmd.insert(1, "-s0")
     expected_files = split_expected_paths(root.get("expected_file_exists"))
+    absent_files = split_expected_paths(root.get("expected_file_not_exists"))
     identical_files = split_expected_paths(root.get("expected_files_identical"))
-    output_files = list(dict.fromkeys(expected_files + identical_files))
+    output_files = list(
+        dict.fromkeys(expected_files + absent_files + identical_files)
+    )
+    initial_file_value = root.get("initial_file")
+    initial_file = Path(initial_file_value) if initial_file_value else None
+    if initial_file is not None and initial_file not in output_files:
+        output_files.append(initial_file)
     for output_file in output_files:
-        if output_file.exists():
-            output_file.unlink()
+        remove_test_artifact(output_file)
+    if initial_file is not None:
+        initial_file.write_text(
+            root.get("initial_file_contents", ""), encoding="utf-8"
+        )
     expected_exit = int(root.get("expected_exit", "0"))
     if http_requests:
         actual_exit, combined_output, http_error = run_http_test(cmd, root)
@@ -719,6 +737,10 @@ def run_test(item):
     missing_output = [text for text in split_expected_text(root.get("expected_output_contains")) if text not in combined_output]
     present_unexpected_output = [text for text in split_expected_text(root.get("expected_output_not_contains")) if text in combined_output]
     missing_files = [str(path) for path in expected_files if not path.exists()]
+    unexpected_files = [
+        str(path) for path in absent_files
+        if path.exists() or path.is_symlink()
+    ]
     missing_identical_files = [
         str(path) for path in identical_files if not path.exists()
     ]
@@ -744,6 +766,7 @@ def run_test(item):
         and not missing_output
         and not present_unexpected_output
         and not missing_files
+        and not unexpected_files
         and not missing_identical_files
         and not differing_identical_files
         and not missing_file_text
@@ -752,8 +775,7 @@ def run_test(item):
     if test_passed:
         if root.get("cleanup_expected_files") == "true":
             for output_file in output_files:
-                if output_file.exists():
-                    output_file.unlink()
+                remove_test_artifact(output_file)
         return f"[  OK  ]  {get_description(item)}{item.name}{reset}", False
     else:
         if missing_output:
@@ -762,6 +784,8 @@ def run_test(item):
             detail = f"unexpected output: {present_unexpected_output[0]}"
         elif missing_files:
             detail = f"missing file: {missing_files[0]}"
+        elif unexpected_files:
+            detail = f"unexpected file: {unexpected_files[0]}"
         elif missing_identical_files:
             detail = f"missing file for identity check: {missing_identical_files[0]}"
         elif differing_identical_files:

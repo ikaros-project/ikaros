@@ -2,7 +2,7 @@
        description="OutputImage reports a file error without stopping execution"
        start="true"
        stop="1"
-       check_sum="65591"
+       check_sum="73451"
        expected_output_contains="Could not write image">
     <module name="Source"
             class="Constant"

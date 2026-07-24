@@ -1,0 +1,17 @@
+<group internal="true"
+       name="TestOutputImageInvalidStartIndex"
+       description="OutputImage rejects a fractional sequence start index"
+       start="true"
+       stop="1"
+       expected_exit="1"
+       expected_output_contains="start_index"
+       expected_file_not_exists="UserData/test_331_output_image_01.jpg"
+       cleanup_expected_files="true">
+    <module name="Image" class="Constant" data="0,1;1,0" />
+    <module name="Output"
+            class="OutputImage"
+            filename="test_331_output_image_##.jpg"
+            start_index="1.5" />
+
+    <connection source="Image.OUTPUT" target="Output.INPUT" />
+</group>

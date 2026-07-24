@@ -1,0 +1,21 @@
+<group internal="true"
+       name="TestOutputImageTransientRecovery"
+       description="OutputImage retries immediately on a new WRITE edge after a transient destination failure"
+       start="true"
+       stop="5"
+       check_sum="224775"
+       expected_output_contains="Could not write image"
+       expected_file_exists="UserData/test_332_output_image_recovery.jpg"
+       cleanup_expected_files="true">
+    <module name="Image" class="Constant" data="0,1;1,0" />
+    <module name="Fixture"
+            class="OutputImageRecoveryFixture"
+            filename="test_332_output_image_recovery.jpg" />
+    <module name="Output"
+            class="OutputImage"
+            filename="test_332_output_image_recovery.jpg"
+            single_trigger="yes" />
+
+    <connection source="Image.OUTPUT" target="Output.INPUT" />
+    <connection source="Fixture.WRITE" target="Output.WRITE" />
+</group>

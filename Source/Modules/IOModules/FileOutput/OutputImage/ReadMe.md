@@ -8,7 +8,10 @@ extension selects the format. Values below zero or above one are clipped to the
 supported image range.
 
 Output files are restricted to the Ikaros `UserData` directory. Encoding and file
-errors generate warnings during execution and do not stop the model.
+errors generate warnings during execution and do not stop the model. Images are
+encoded to a hidden sibling file and atomically moved into place, so readers see
+either the previous complete image or the new complete image. Persistent failures
+are retried at most once per second; a new `WRITE` edge retries immediately.
 
 ![OutputImage](OutputImage.svg)
 
@@ -23,9 +26,10 @@ errors generate warnings during execution and do not stop the model.
 
 | Name | Description | Type | Default |
 |:-----|:------------|:-----|:--------|
+| directory | Exact reusable directory, or a unique directory pattern containing `#`; empty writes directly inside UserData. | string |  |
 | filename | Output filename ending in `.jpg`, `.jpeg`, `.png`, `.tif`, `.tiff`, or `.webp`. | string | `output.jpg` |
 | quality | JPEG and WebP quality from 1 to 100; ignored for PNG and TIFF. | number | 90 |
-| start_index | First sequence number. | number | 0 |
+| start_index | First non-negative integer sequence number. | number | 0 |
 | single_trigger | With WRITE connected, write only on its rising edge. | bool | no |
 
 ## Image sequences
@@ -37,6 +41,12 @@ request a fixed width with leading zeros: `frame_####.jpg` starts at
 
 Without a placeholder, each write replaces the same file. Sequence numbers advance
 only after a file was written successfully.
+
+The `directory` parameter uses the same notation independently of the filename.
+`directory="recording"` reuses that directory, while
+`directory="recording_###"` claims the first available directory such as
+`recording_000` or `recording_001`. Numbered directories keep separate runs from
+overwriting one another. A filename must be relative when `directory` is set.
 
 ## Migrating from OutputJPEG
 
