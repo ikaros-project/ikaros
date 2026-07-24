@@ -66,6 +66,38 @@ class MathsTestModule : public Module
             [infinity] { (void)sample_normal_distribution(infinity, 1.0f); },
             "infinite Gaussian mean was accepted");
 
+        if(sgn(-3.0) != -1.0 || sgn(0.0) != 0.0 || sgn(3.0) != 1.0)
+            throw exception("MathsTestModule: sign function returned an incorrect value");
+        if(!std::isnan(sgn(std::numeric_limits<double>::quiet_NaN())))
+            throw exception("MathsTestModule: sign function did not propagate NaN");
+
+        require_close(clip(-2.0, -1.0, 1.0), -1.0, 0.0,
+                      "clip lower bound");
+        require_close(clip(2.0, -1.0, 1.0), 1.0, 0.0,
+                      "clip upper bound");
+        require_close(
+            clip(2.0, -std::numeric_limits<double>::infinity(),
+                 std::numeric_limits<double>::infinity()),
+            2.0, 0.0, "clip infinite bounds");
+        if(!std::isnan(clip(std::numeric_limits<double>::quiet_NaN(),
+                            -1.0, 1.0)))
+            throw exception("MathsTestModule: clip did not propagate a NaN value");
+        require_invalid_argument(
+            [] { (void)clip(0.0, 1.0, -1.0); },
+            "reversed clip bounds were accepted");
+        require_invalid_argument(
+            [] {
+                (void)clip(
+                    0.0, std::numeric_limits<double>::quiet_NaN(), 1.0);
+            },
+            "NaN lower clip bound was accepted");
+        require_invalid_argument(
+            [] {
+                (void)clip(
+                    0.0, -1.0, std::numeric_limits<double>::quiet_NaN());
+            },
+            "NaN upper clip bound was accepted");
+
         std::mt19937 first_generator(12345);
         std::mt19937 second_generator(12345);
         for(int sample = 0; sample < 32; ++sample)

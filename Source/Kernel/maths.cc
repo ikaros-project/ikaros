@@ -11,6 +11,8 @@ namespace ikaros
 
 	double sgn(double x)
 	{
+		if(std::isnan(x))
+			return x;
 		if(x>0)
 			return 1;
 		else if(x<0)
@@ -18,25 +20,10 @@ namespace ikaros
 		else	return 0;
 	}
 
-	double min(double x, double y)
-	{
-		if(x<y)
-			return x;
-		else
-			return y;
-	}
-
-	double max(double x, double y)
-	{
-		if(x>y)
-			return x;
-		else
-			return y;
-	}
-
-
 	double clip(double x, double low, double high)
 	{
+		if(std::isnan(low) || std::isnan(high) || low > high)
+			throw std::invalid_argument("clip() requires ordered, non-NaN bounds.");
 		if (x < low)
 			return low;
 		else if (x > high)

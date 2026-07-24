@@ -133,7 +133,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 3 | P2 | Make `exgaussian()` numerically stable and validate its finite parameter domain. | Addressed | Debug build; central, small-K, tail, amplitude, and invalid-domain tests; all 245 kernel tests passed | `Ex-Gaussian evaluation now remains stable across valid parameters` |
 | 4 | P2 | Make angle conversion direct, identity-preserving, and strict about invalid units. | Addressed | Debug build; identity, direct-conversion, and invalid-unit tests; all 245 kernel tests passed | `Angle conversion now preserves identities and validates units` |
 | 5 | P2 | Add a reproducible, caller-owned random-generator path for Gaussian sampling. | Addressed | Debug build; generator-state and seeded-module regressions; all 246 kernel tests passed | `Gaussian noise modules now support reproducible seeds` |
-| 6 | P3 | Define safe scalar edge-case semantics and remove or replace the unused custom `min()` and `max()` APIs. | Not addressed | — | — |
+| 6 | P3 | Define safe scalar edge-case semantics and remove or replace the unused custom `min()` and `max()` APIs. | Addressed | Debug build; scalar sign and clipping edge-case tests; all 246 kernel tests passed | `Scalar maths helpers now have defined edge-case semantics` |
 | 7 | Performance | Cache the standard-normal distribution and benchmark Gaussian sampling in Release mode. | Not addressed | — | — |
 | 8 | Modernization and testing | Optimize `short_angle()`, modernize the public maths API, and add focused checksum-based kernel coverage for the library. | Not addressed | — | — |
 

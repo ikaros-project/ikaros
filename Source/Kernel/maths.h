@@ -14,8 +14,6 @@ namespace ikaros
 	
 	double sgn(double x);
 
-	double min(double x, double y);
-	double max(double x, double y);
 	double clip(double x, double low, double high);
 
 	double angle_to_angle(double angle, angle_unit from_angle_unit, angle_unit to_angle_unit);
