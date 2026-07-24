@@ -6832,6 +6832,9 @@ bool operator==(Request & r, const std::string s)
         {
             while (!Terminate() && run_mode.load() > run_mode_quit)
             {
+#if !defined(LOGGING_OFF)
+                ReportSessionLogStatus(*this);
+#endif
                 if(run_mode.load() == run_mode_realtime)
                 {
                     const double target_time = double(tick+1)*tick_duration;

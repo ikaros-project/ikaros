@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <vector>
 
 namespace ikaros
 {
@@ -34,6 +35,7 @@ namespace ikaros
         bool Enqueue(SessionLogEvent event);
         bool WaitUntilIdle(std::chrono::milliseconds timeout);
         std::size_t DroppedCount() const;
+        std::vector<std::string> TakeStatusMessages();
 
     private:
         struct State;
@@ -46,4 +48,5 @@ namespace ikaros
     void QueueSessionLogEvent(Kernel & kernel, const std::string & endpoint, const std::string & event_name);
     void QueueProcessStartLogEvent(Kernel & kernel);
     void QueueProcessExitLogEvent(Kernel & kernel);
+    void ReportSessionLogStatus(Kernel & kernel);
 }

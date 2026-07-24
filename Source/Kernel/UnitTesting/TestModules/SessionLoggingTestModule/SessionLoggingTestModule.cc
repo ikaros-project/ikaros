@@ -102,6 +102,16 @@ public:
         require(dispatcher.DroppedCount() == 1,
                 "queue did not count the rejected event");
 
+        const auto initial_status = dispatcher.TakeStatusMessages();
+        require(initial_status.size() == 3,
+                "queue overflow, transport failure, and recovery did not produce status messages");
+        require(initial_status[0].find("queue is full") != std::string::npos,
+                "queue overflow status was not reported");
+        require(initial_status[1].find("expected transport failure") != std::string::npos,
+                "transport failure status did not preserve the diagnostic");
+        require(initial_status[2].find("recovered after 1 failed delivery") != std::string::npos,
+                "transport recovery status did not report the failure count");
+
         require(dispatcher.Enqueue({"after_failure"}),
                 "worker stopped accepting events after a transport exception");
         require(dispatcher.WaitUntilIdle(1s),
@@ -113,6 +123,24 @@ public:
                         std::vector<std::string>({"first", "throws", "third", "after_failure"}),
                     "worker did not continue after a transport exception");
         }
+
+        require(dispatcher.TakeStatusMessages().empty(),
+                "successful delivery produced an unexpected status message");
+
+        require(dispatcher.Enqueue({"throws"}) && dispatcher.WaitUntilIdle(1s),
+                "first repeated failure was not processed");
+        require(dispatcher.Enqueue({"throws"}) && dispatcher.WaitUntilIdle(1s),
+                "second repeated failure was not processed");
+        require(dispatcher.Enqueue({"recovery"}) && dispatcher.WaitUntilIdle(1s),
+                "recovery event was not processed");
+
+        const auto repeated_failure_status = dispatcher.TakeStatusMessages();
+        require(repeated_failure_status.size() == 2,
+                "an ongoing outage produced repeated warnings");
+        require(repeated_failure_status[0].find("expected transport failure") != std::string::npos,
+                "a new outage did not produce a warning");
+        require(repeated_failure_status[1].find("recovered after 2 failed deliveries") != std::string::npos,
+                "recovery did not summarize suppressed failures");
 
         std::cout << "SESSION LOGGING QUEUE TEST OK\n";
     }

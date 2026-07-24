@@ -1,3 +1,4 @@
+#include <atomic>
 #include <condition_variable>
 #include <cstddef>
 #include <deque>
@@ -32,6 +33,17 @@ namespace ikaros
         bool stopping = false;
         bool finished = false;
         std::size_t dropped = 0;
+        bool delivery_outage = false;
+        std::size_t consecutive_delivery_failures = 0;
+        bool queue_overflow_reported = false;
+        std::deque<std::string> status_messages;
+        std::atomic<bool> status_pending = false;
+
+        void QueueStatusMessage(std::string message)
+        {
+            status_messages.push_back(std::move(message));
+            status_pending.store(true, std::memory_order_release);
+        }
     };
 
 
@@ -73,17 +85,56 @@ namespace ikaros
                     state->active = true;
                 }
 
+                bool delivered = true;
+                std::string failure;
                 try
                 {
                     state->transport(std::move(event));
                 }
+                catch(const std::exception & e)
+                {
+                    delivered = false;
+                    failure = e.what();
+                }
                 catch(...)
                 {
-                    // Transport failures must not stop later queued events.
+                    delivered = false;
+                    failure = "unknown transport error";
                 }
 
                 {
                     std::lock_guard<std::mutex> lock(state->mutex);
+                    try
+                    {
+                        if(delivered)
+                        {
+                            if(state->delivery_outage)
+                            {
+                                const std::size_t failures = state->consecutive_delivery_failures;
+                                state->QueueStatusMessage(
+                                    "Session logging recovered after " + std::to_string(failures) +
+                                    (failures == 1 ? " failed delivery." : " failed deliveries."));
+                                state->delivery_outage = false;
+                                state->consecutive_delivery_failures = 0;
+                            }
+                        }
+                        else
+                        {
+                            ++state->consecutive_delivery_failures;
+                            if(!state->delivery_outage)
+                            {
+                                state->delivery_outage = true;
+                                state->QueueStatusMessage(
+                                    "Session logging failed: " + failure +
+                                    ". Further failures will be suppressed until delivery recovers.");
+                            }
+                        }
+                    }
+                    catch(...)
+                    {
+                        // Diagnostic reporting must not stop the delivery worker.
+                    }
+
                     state->active = false;
                     if(state->queue.empty())
                         state->idle.notify_all();
@@ -132,6 +183,19 @@ namespace ikaros
             if(state_->stopping || state_->queue.size() >= state_->capacity)
             {
                 ++state_->dropped;
+                if(!state_->queue_overflow_reported)
+                {
+                    state_->queue_overflow_reported = true;
+                    try
+                    {
+                        state_->QueueStatusMessage(
+                            "Session logging queue is full; additional log events are being dropped.");
+                    }
+                    catch(...)
+                    {
+                        // Dropping the diagnostic is preferable to interrupting the kernel.
+                    }
+                }
                 return false;
             }
             state_->queue.push_back(std::move(event));
@@ -160,6 +224,25 @@ namespace ikaros
     {
         std::lock_guard<std::mutex> lock(state_->mutex);
         return state_->dropped;
+    }
+
+
+    std::vector<std::string>
+    SessionLogDispatcher::TakeStatusMessages()
+    {
+        if(!state_->status_pending.load(std::memory_order_acquire))
+            return {};
+
+        std::lock_guard<std::mutex> lock(state_->mutex);
+        std::vector<std::string> messages;
+        messages.reserve(state_->status_messages.size());
+        while(!state_->status_messages.empty())
+        {
+            messages.push_back(std::move(state_->status_messages.front()));
+            state_->status_messages.pop_front();
+        }
+        state_->status_pending.store(false, std::memory_order_release);
+        return messages;
     }
 
 
@@ -235,7 +318,7 @@ namespace ikaros
 #endif
         }
 
-        bool
+        CURLcode
         InitializeCurl()
         {
             static std::once_flag initialization;
@@ -244,7 +327,7 @@ namespace ikaros
             {
                 result = curl_global_init(CURL_GLOBAL_DEFAULT);
             });
-            return result == CURLE_OK;
+            return result;
         }
 
         std::size_t
@@ -258,34 +341,61 @@ namespace ikaros
         void
         SendLogRequest(const std::string & path)
         {
-            if(!InitializeCurl())
-                return;
+            const CURLcode initialization_result = InitializeCurl();
+            if(initialization_result != CURLE_OK)
+                throw std::runtime_error(
+                    "libcurl initialization failed: " +
+                    std::string(curl_easy_strerror(initialization_result)));
 
             CURL * request = curl_easy_init();
             if(request == nullptr)
-                return;
+                throw std::runtime_error("libcurl could not create a request");
 
             const std::string url = "https://www.ikaros-project.org" + path;
-            bool configured =
-                curl_easy_setopt(request, CURLOPT_URL, url.c_str()) == CURLE_OK &&
-                curl_easy_setopt(request, CURLOPT_CUSTOMREQUEST, "PUT") == CURLE_OK &&
-                curl_easy_setopt(request, CURLOPT_NOSIGNAL, 1L) == CURLE_OK &&
-                curl_easy_setopt(request, CURLOPT_CONNECTTIMEOUT_MS, 3000L) == CURLE_OK &&
-                curl_easy_setopt(request, CURLOPT_TIMEOUT_MS, 5000L) == CURLE_OK &&
-                curl_easy_setopt(request, CURLOPT_SSL_VERIFYPEER, 1L) == CURLE_OK &&
-                curl_easy_setopt(request, CURLOPT_SSL_VERIFYHOST, 2L) == CURLE_OK &&
-                curl_easy_setopt(request, CURLOPT_FOLLOWLOCATION, 0L) == CURLE_OK &&
-                curl_easy_setopt(request, CURLOPT_WRITEFUNCTION, DiscardResponse) == CURLE_OK;
+            CURLcode result = CURLE_OK;
+            auto set_option = [request, &result](CURLoption option, auto value)
+            {
+                if(result == CURLE_OK)
+                    result = curl_easy_setopt(request, option, value);
+            };
+            set_option(CURLOPT_URL, url.c_str());
+            set_option(CURLOPT_CUSTOMREQUEST, "PUT");
+            set_option(CURLOPT_NOSIGNAL, 1L);
+            set_option(CURLOPT_CONNECTTIMEOUT_MS, 3000L);
+            set_option(CURLOPT_TIMEOUT_MS, 5000L);
+            set_option(CURLOPT_SSL_VERIFYPEER, 1L);
+            set_option(CURLOPT_SSL_VERIFYHOST, 2L);
+            set_option(CURLOPT_FOLLOWLOCATION, 0L);
+            set_option(CURLOPT_WRITEFUNCTION, DiscardResponse);
 #if LIBCURL_VERSION_NUM >= 0x075500
-            configured = configured &&
-                curl_easy_setopt(request, CURLOPT_PROTOCOLS_STR, "https") == CURLE_OK;
+            set_option(CURLOPT_PROTOCOLS_STR, "https");
 #else
-            configured = configured &&
-                curl_easy_setopt(request, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS) == CURLE_OK;
+            set_option(CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
 #endif
-            if(configured)
-                static_cast<void>(curl_easy_perform(request));
+
+            std::string failure;
+            if(result != CURLE_OK)
+                failure = "request setup failed: " + std::string(curl_easy_strerror(result));
+            else
+            {
+                result = curl_easy_perform(request);
+                if(result != CURLE_OK)
+                    failure = curl_easy_strerror(result);
+                else
+                {
+                    long response_code = 0;
+                    result = curl_easy_getinfo(request, CURLINFO_RESPONSE_CODE, &response_code);
+                    if(result != CURLE_OK)
+                        failure = "could not read the HTTP response: " +
+                                  std::string(curl_easy_strerror(result));
+                    else if(response_code < 200 || response_code >= 300)
+                        failure = "server returned HTTP " + std::to_string(response_code);
+                }
+            }
+
             curl_easy_cleanup(request);
+            if(!failure.empty())
+                throw std::runtime_error(failure);
         }
 
         SessionLogDispatcher & LogDispatcher()
@@ -368,5 +478,13 @@ namespace ikaros
         {
             // Process exit logging is best-effort and must never interrupt shutdown.
         }
+    }
+
+
+    void
+    ReportSessionLogStatus(Kernel & kernel)
+    {
+        for(auto & message : LogDispatcher().TakeStatusMessages())
+            kernel.Warning(std::move(message));
     }
 }
