@@ -263,6 +263,84 @@ class RandomSequenceTestModule : public Module
 };
 
 
+class RotationUnitTestModule : public Module
+{
+    matrix degreeMatrix;
+    matrix radianMatrix;
+    matrix turnMatrix;
+    matrix tauMatrix;
+    matrix degreeAngles;
+    matrix radianAngles;
+    matrix turnAngles;
+    matrix tauAngles;
+    bool verified = false;
+
+    void RequireSameMatrix(
+        const matrix & actual, const matrix & expected,
+        const std::string & message)
+    {
+        if(actual.shape() != expected.shape())
+            throw exception(
+                "RotationUnitTestModule: " + message + " shape differs");
+        for(int index = 0; index < actual.size(); ++index)
+            require_close(
+                actual.data()[index], expected.data()[index],
+                1.0e-5, message);
+    }
+
+    void RequireAngles(
+        const matrix & actual, double expectedX,
+        const std::string & message)
+    {
+        if(actual.size() != 3)
+            throw exception(
+                "RotationUnitTestModule: " + message + " shape differs");
+        require_close(actual.data()[0], expectedX, 1.0e-5, message + " x");
+        require_close(actual.data()[1], 0.0, 1.0e-5, message + " y");
+        require_close(actual.data()[2], 0.0, 1.0e-5, message + " z");
+    }
+
+    void Init() override
+    {
+        Bind(degreeMatrix, "DEGREE_MATRIX");
+        Bind(radianMatrix, "RADIAN_MATRIX");
+        Bind(turnMatrix, "TURN_MATRIX");
+        Bind(tauMatrix, "TAU_MATRIX");
+        Bind(degreeAngles, "DEGREE_ANGLES");
+        Bind(radianAngles, "RADIAN_ANGLES");
+        Bind(turnAngles, "TURN_ANGLES");
+        Bind(tauAngles, "TAU_ANGLES");
+    }
+
+    void Tick() override
+    {
+        if(verified || GetTick() < 3)
+            return;
+
+        RequireSameMatrix(radianMatrix, degreeMatrix, "radian input");
+        RequireSameMatrix(turnMatrix, degreeMatrix, "turn input");
+        RequireSameMatrix(tauMatrix, degreeMatrix, "tau input");
+
+        require_close(degreeMatrix(0, 0), 1.0, 1.0e-5,
+                      "degree rotation xx");
+        require_close(degreeMatrix(1, 2), -1.0, 1.0e-5,
+                      "degree rotation yz");
+        require_close(degreeMatrix(2, 1), 1.0, 1.0e-5,
+                      "degree rotation zy");
+
+        RequireAngles(degreeAngles, 90.0, "degree output");
+        RequireAngles(
+            radianAngles, 0.5 * std::numbers::pi_v<double>,
+            "radian output");
+        RequireAngles(turnAngles, 0.25, "turn output");
+        RequireAngles(tauAngles, 0.25, "tau output");
+
+        verified = true;
+        std::cout << "ROTATION UNIT TEST OK" << std::endl;
+    }
+};
+
+
 class MathsBenchmarkModule : public Module
 {
     void Init() override
@@ -297,4 +375,5 @@ class MathsBenchmarkModule : public Module
 
 INSTALL_CLASS(MathsTestModule)
 INSTALL_CLASS(RandomSequenceTestModule)
+INSTALL_CLASS(RotationUnitTestModule)
 INSTALL_CLASS(MathsBenchmarkModule)

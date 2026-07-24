@@ -31,7 +31,7 @@ Converts between rotation notations
 |:----|:-----------|:----|:-------------|
 |input_format|Format of the input|list|xyz|
 |output_format|Format of the output|list|xyz|
-|angle_unit|What units should be used for angles (only in euler angle mode)? 0-360 (degrees), 0-2π (radians), or 0-1, where 1  corresponds to 360° (tau).|list|degrees|
+|angle_unit|Angle unit used in Euler-angle modes: degrees, radians, or turns. The legacy name tau is accepted as an alias for turns.|list|degrees|
 
 <br><br>
 ## Long description

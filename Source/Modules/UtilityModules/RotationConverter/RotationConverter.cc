@@ -36,6 +36,7 @@ class RotationConverter : public Module
 {
     parameter inputFormat;
     parameter outputFormat;
+    parameter angleUnitParameter;
     parameter size_x;
     parameter size_y;
     parameter size_z;
@@ -44,16 +45,36 @@ class RotationConverter : public Module
     matrix outputMatrix;
     // Internally
     h_matrix m;
-    angle_unit angleUnit = angle_unit::degrees; // Only used in xyzaxayaz and axayaz mode.
+
+    angle_unit
+    GetAngleUnit()
+    {
+        switch(angleUnitParameter.as_int())
+        {
+            case 0:
+                return angle_unit::degrees;
+            case 1:
+                return angle_unit::radians;
+            case 2:
+            case 3:
+                return angle_unit::turns;
+            default:
+                throw exception(
+                    "RotationConverter: unknown angle_unit option.", path_);
+        }
+    }
 
     void Init()
     {
         Trace("ROTATION Init");
 
         Bind(inputFormat, "input_format");
+        Bind(angleUnitParameter, "angle_unit");
         // Bind(outputFormat, "output_format"); // Done in setParameters ()
         Bind(inputMatrix, "INPUT");
         Bind(outputMatrix, "OUTPUT");
+
+        (void)GetAngleUnit();
 
       
         // Do a few input checks...
@@ -108,6 +129,8 @@ class RotationConverter : public Module
 
     void Tick()
     {
+        const angle_unit angleUnit = GetAngleUnit();
+
         if (path_ == "ExperimentalSetup.Epi.ForwardModel.L1_R1_C")
         {
             inputMatrix.print();

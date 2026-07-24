@@ -139,7 +139,6 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 
 ### Outstanding issues and questions
 
-- `RotationConverter` documentation and its old test model mention an `angle_unit` parameter, but the class file does not declare it and the module does not bind it; the module therefore always uses degrees. This existing module defect is outside the scalar maths changes.
 - The generator-only Gaussian overload intentionally cannot cache distribution state without mixing independent generators. Performance-sensitive callers should own a `std::normal_distribution<float>` and use the stateful overload.
 
 ## Random source follow-ups
