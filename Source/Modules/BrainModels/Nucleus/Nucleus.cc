@@ -6,9 +6,6 @@
 using namespace ikaros;
 
 
-    static double max(double x, double y) { return x>y ? x : y; } // std::max does not work since it is a template function that requires identical types of x and y
-
-
 class Nucleus: public Module
 {
     parameter   alpha;          // resting level

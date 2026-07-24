@@ -142,7 +142,6 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 - `RotationConverter` documentation and its old test model mention an `angle_unit` parameter, but the class file does not declare it and the module does not bind it; the module therefore always uses degrees. This existing module defect is outside the scalar maths changes.
 - Uniform `Noise` and `Randomizer` still use process-global POSIX random state, so the new module-owned reproducibility applies only to Gaussian noise.
 - The generator-only Gaussian overload intentionally cannot cache distribution state without mixing independent generators. Performance-sensitive callers should own a `std::normal_distribution<float>` and use the stateful overload.
-- `Nucleus.cc` still contains an unused file-local `max()` helper that can be removed as a separate cleanup.
 
 ## Status meanings
 
