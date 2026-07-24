@@ -22,6 +22,18 @@
 - Route warnings intended for users or the WebUI through `Warning()` or Ikaros notification functions, not `std::cerr`.
 - Use exceptions for startup and module `Init()` failures; during execution, report runtime conditions through `Notify()`, `Warning()`, or related Ikaros notification functions.
 
+## Multiple-Task Workflow
+
+When the user asks for multiple issues or tasks to be addressed, use this workflow:
+
+1. Before implementation, add every requested task to `status.md` with a stable number, concise description, initial status, and space for verification and commit information.
+2. Show the user the recorded task list, ask whether there is any additional information or constraints for any task, and wait for the answer before starting implementation.
+3. Work through the tasks sequentially unless the user explicitly requests another order. Keep only one task marked **In progress** at a time, and update `status.md` to **In progress** before changing code for that task.
+4. Complete and verify the current task in isolation. Do not silently fold unrelated fixes into it; record newly discovered work for the final outstanding-items list unless it is required to complete the current task.
+5. When the task is ready, update its `status.md` entry with its completed status and verification results. Commit the implementation, tests, documentation, and status update together using a suitable commit message. Do not combine separate listed tasks in one commit.
+6. Continue with the next listed task only after the preceding task has been committed.
+7. After every listed task is complete, add an **Outstanding issues and questions** section to `status.md`. List any potential follow-up defects, risks, skipped verification, performance questions, or decisions still needed; explicitly state `None` when nothing remains. Include the same summary in the final response.
+
 ## Ikaros Programming Rules
 
 - Treat module outputs as setup-owned buffers. Declare output `size` or `shape` in `.ikc` and do not `realloc()` public outputs from module code.
@@ -60,6 +72,7 @@
 ## Tests
 
 - For kernel behavior changes, run `python3 Source/Kernel/UnitTesting/KernelTests/kernel_test.py`.
+- When testing an `.ikg` from the Ikaros command line, first inspect its top-level `agent` value. If it is unset, pass an agent override that identifies the active Codex model and reasoning level, formatted as `Codex: <model> <reasoning level>`, for example `-A "Codex: 5.6 Sol Extra High"`. Translate internal model and effort identifiers into readable names, do not override an `agent` value already set by the model, and do not hardcode the example identity.
 - When adding or updating a kernel unit-test `.ikg`, always consider whether a top-level `check_sum` should be included.
 - Use `check_sum` to pin deterministic setup structure such as task grouping, resolved buffer shapes, and parameter values. Keep explicit assertions for runtime behavior, matrix contents, and other state the kernel checksum does not cover.
 - Put module-local test `.ikg` files in a separate `tests` subdirectory under the module directory.
