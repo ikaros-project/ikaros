@@ -1,0 +1,4 @@
+<class internal="true" name="SoftmaxNonfiniteSourceModule"
+       description="Generates non-finite Softmax test inputs">
+    <output name="OUTPUT" size="4" />
+</class>

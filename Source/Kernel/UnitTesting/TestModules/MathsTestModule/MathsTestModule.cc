@@ -717,6 +717,108 @@ class RegressionMaskTestModule : public Module
 };
 
 
+class SoftmaxNonfiniteSourceModule : public Module
+{
+    matrix output;
+
+    void Init() override
+    {
+        Bind(output, "OUTPUT");
+    }
+
+    void Tick() override
+    {
+        if(GetTick() < 3)
+        {
+            output(0) = std::numeric_limits<float>::infinity();
+            output(1) = 1.0f;
+            output(2) = std::numeric_limits<float>::infinity();
+            output(3) = -std::numeric_limits<float>::infinity();
+        }
+        else if(GetTick() < 6)
+            output.set(-std::numeric_limits<float>::infinity());
+        else if(GetTick() < 9)
+        {
+            output(0) = std::numeric_limits<float>::quiet_NaN();
+            output(1) = 0.0f;
+            output(2) = 1.0f;
+            output(3) = 2.0f;
+        }
+        else
+        {
+            output(0) = 0.0f;
+            output(1) = 1.0f;
+            output(2) = 2.0f;
+            output(3) = 3.0f;
+        }
+    }
+};
+
+
+class SoftmaxNonfiniteVerifierModule : public Module
+{
+    matrix input;
+    bool verified = false;
+
+    void Init() override
+    {
+        Bind(input, "INPUT");
+    }
+
+    void Tick() override
+    {
+        if(verified)
+            return;
+        if(input.size() != 4)
+            throw exception(
+                "SoftmaxNonfiniteVerifierModule: unexpected input size");
+
+        if(GetTick() < 3)
+        {
+            require_close(input(0), 0.5, 0.0,
+                          "positive-infinity probability");
+            require_close(input(1), 0.0, 0.0,
+                          "finite probability beside positive infinity");
+            require_close(input(2), 0.5, 0.0,
+                          "second positive-infinity probability");
+            require_close(input(3), 0.0, 0.0,
+                          "negative-infinity probability");
+        }
+        else if(GetTick() < 6)
+        {
+            for(int index = 0; index < input.size(); ++index)
+                require_close(input(index), 0.25, 0.0,
+                              "all-negative-infinity probability");
+        }
+        else if(GetTick() < 9)
+        {
+            for(int index = 0; index < input.size(); ++index)
+                if(!std::isnan(input(index)))
+                    throw exception(
+                        "SoftmaxNonfiniteVerifierModule: NaN input did not "
+                        "produce NaN output");
+        }
+        else
+        {
+            double sum = 0.0;
+            for(int index = 0; index < input.size(); ++index)
+            {
+                if(!std::isfinite(input(index)))
+                    throw exception(
+                        "SoftmaxNonfiniteVerifierModule: Softmax did not "
+                        "recover after NaN input");
+                sum += input(index);
+            }
+            require_close(
+                sum, 1.0, 1.0e-6,
+                "recovered Softmax probabilities");
+            verified = true;
+            std::cout << "SOFTMAX NONFINITE TEST OK" << std::endl;
+        }
+    }
+};
+
+
 class MathsBenchmarkModule : public Module
 {
     void Init() override
@@ -759,4 +861,6 @@ INSTALL_CLASS(NormalizeFiniteTestModule)
 INSTALL_CLASS(RegressionCapacityTestModule)
 INSTALL_CLASS(RegressionModelComparisonTestModule)
 INSTALL_CLASS(RegressionMaskTestModule)
+INSTALL_CLASS(SoftmaxNonfiniteSourceModule)
+INSTALL_CLASS(SoftmaxNonfiniteVerifierModule)
 INSTALL_CLASS(MathsBenchmarkModule)

@@ -2,7 +2,10 @@
 
 ## Description
 
-Outputs the softmax of the input. Compute exp(x - max(x)) for numerical stability
+Outputs the softmax of the input using `exp(x - max(x))` for numerical
+stability. Positive-infinity inputs share the entire probability mass, and an
+input containing only negative infinities produces a uniform distribution. A
+NaN input produces NaN output and a rate-limited warning.
 
 It receives INPUT and produces OUTPUT. A meaningful use case is to place the module inside a larger
 sensorimotor or cognitive architecture where it helps transform, summarize, or route signals between
