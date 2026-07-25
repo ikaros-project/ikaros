@@ -38,7 +38,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
     static html()
     {
-        return "<button type='button class=''></button>";
+        return "<button type='button' class=''></button>";
     }
 
 
