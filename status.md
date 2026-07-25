@@ -163,11 +163,15 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 5 | P2 | Replace numerically fragile normal-equation model comparison with a scale-robust calculation. | Addressed | Debug build; checksum-backed small-scale model comparison with finite statistics and validated degrees of freedom; all 260 kernel tests passed | `Regression model comparisons now remain stable across scales` |
 | 6 | P2 | Ensure non-finite `RegressionStatistics` sampling-mask values do not enable sampling. | Addressed | Debug build; checksum-backed NaN and positive/negative infinity mask coverage; all 261 kernel tests passed | `Non-finite regression masks now suppress sampling` |
 | 7 | P2 | Define and implement safe `Softmax` behavior for non-finite inputs. | Addressed | Debug build; checksum-backed positive/negative infinity, NaN, warning-rate, and recovery coverage; all 262 kernel tests passed | `Softmax now defines non-finite input behavior` |
-| 8 | P2/P3 | Validate `RegressionStatistics` topology during startup and remove runtime shape adaptation. | Not addressed | — | — |
+| 8 | P2/P3 | Validate `RegressionStatistics` topology during startup and remove runtime shape adaptation. | Addressed | Debug build; startup-failure regressions for incompatible X and SAMPLE inputs; fixed output-shape validation; all 264 kernel tests passed | `RegressionStatistics now validates fixed topology at startup` |
 
 ### Numerical utility outstanding issues and questions
 
-- To be completed after all listed tasks have been addressed.
+- No known high- or medium-priority correctness defect remains from this review.
+- `RegressionStatistics` still erases the oldest vector element and recomputes scatter and regression results from retained samples every tick. Benchmark before replacing this with circular storage and incremental sufficient statistics.
+- Runtime changes to `RegressionStatistics.labels` remain ignored. A later API decision should either make labels explicitly startup-only or refresh output labels when the parameter changes.
+- Non-finite X/Y samples continue to occupy retained-sample capacity while being excluded from regression fits, following the policy chosen for this work.
+- The double-precision `Normalize` accumulation path was functionally verified but not benchmarked in Release mode.
 
 ## Status meanings
 

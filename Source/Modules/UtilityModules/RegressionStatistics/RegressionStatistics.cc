@@ -55,27 +55,15 @@ class RegressionStatistics: public Module
             throw exception(
                 "RegressionStatistics: max_samples must be at least 1.",
                 path_);
-        if (scatter_x.rows() != sample_capacity_ ||
-            scatter_y.rows() != sample_capacity_)
-            throw exception(
-                "RegressionStatistics: scatter output rows must match "
-                "max_samples.",
-                path_);
 
+        ValidateTopology();
         samples_.resize(y.size());
         SetMatrixLabels();
     }
 
     void Tick()
     {
-        ValidateInputs();
         WarnAboutRuntimeCapacityChange();
-
-        if (samples_.size() != static_cast<std::size_t>(y.size()))
-        {
-            samples_.resize(y.size());
-            SetMatrixLabels();
-        }
 
         for (int channel = 0; channel < y.size(); ++channel)
         {
@@ -95,7 +83,7 @@ class RegressionStatistics: public Module
         WriteModelComparison();
     }
 
-    void ValidateInputs() const
+    void ValidateTopology() const
     {
         if (x.size() != 1 && x.size() != y.size())
             throw exception("RegressionStatistics: X must have size 1 or the same size as Y.", path_);
@@ -103,6 +91,35 @@ class RegressionStatistics: public Module
         if (sample.connected() && sample.size() != y.size())
             throw exception("RegressionStatistics: SAMPLE must have the same size as Y.", path_);
 
+        if (scatter_x.rank() != 2 ||
+            scatter_x.rows() != sample_capacity_ ||
+            scatter_x.cols() != y.size() ||
+            scatter_y.shape() != scatter_x.shape())
+            throw exception(
+                "RegressionStatistics: scatter output shapes must be "
+                "max_samples by Y size.",
+                path_);
+
+        if (sample_count.size() != y.size())
+            throw exception(
+                "RegressionStatistics: SAMPLE_COUNT size must match Y.",
+                path_);
+
+        if (linear_regression.rank() != 2 ||
+            linear_regression.rows() != 6 ||
+            linear_regression.cols() != y.size())
+            throw exception(
+                "RegressionStatistics: LINEAR_REGRESSION shape must be "
+                "6 by Y size.",
+                path_);
+
+        if (model_comparison.rank() != 2 ||
+            model_comparison.rows() != 7 ||
+            model_comparison.cols() != 2)
+            throw exception(
+                "RegressionStatistics: MODEL_COMPARISON shape must be 7 by "
+                "2.",
+                path_);
     }
 
     void WarnAboutRuntimeCapacityChange()
