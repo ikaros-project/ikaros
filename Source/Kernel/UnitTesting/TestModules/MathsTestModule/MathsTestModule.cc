@@ -675,6 +675,48 @@ class RegressionModelComparisonTestModule : public Module
 };
 
 
+class RegressionMaskTestModule : public Module
+{
+    matrix x;
+    matrix y;
+    matrix sample;
+    matrix sampleCount;
+    bool verified = false;
+
+    void Init() override
+    {
+        Bind(x, "X");
+        Bind(y, "Y");
+        Bind(sample, "SAMPLE");
+        Bind(sampleCount, "SAMPLE_COUNT");
+    }
+
+    void Tick() override
+    {
+        x(0) = static_cast<float>(GetTick());
+        y(0) = static_cast<float>(2 * GetTick());
+
+        if(GetTick() < 5)
+            sample(0) = std::numeric_limits<float>::quiet_NaN();
+        else if(GetTick() < 8)
+            sample(0) = 1.0f;
+        else if(GetTick() % 2 == 0)
+            sample(0) = std::numeric_limits<float>::infinity();
+        else
+            sample(0) = -std::numeric_limits<float>::infinity();
+
+        if(verified || GetTick() < 14)
+            return;
+        if(sampleCount.size() != 1 || sampleCount(0) != 3.0f)
+            throw exception(
+                "RegressionMaskTestModule: non-finite mask sampled data");
+
+        verified = true;
+        std::cout << "REGRESSION MASK TEST OK" << std::endl;
+    }
+};
+
+
 class MathsBenchmarkModule : public Module
 {
     void Init() override
@@ -716,4 +758,5 @@ INSTALL_CLASS(NormalizeZeroTestModule)
 INSTALL_CLASS(NormalizeFiniteTestModule)
 INSTALL_CLASS(RegressionCapacityTestModule)
 INSTALL_CLASS(RegressionModelComparisonTestModule)
+INSTALL_CLASS(RegressionMaskTestModule)
 INSTALL_CLASS(MathsBenchmarkModule)

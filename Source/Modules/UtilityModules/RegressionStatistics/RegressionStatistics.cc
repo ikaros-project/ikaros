@@ -79,8 +79,12 @@ class RegressionStatistics: public Module
 
         for (int channel = 0; channel < y.size(); ++channel)
         {
-            if (sample.connected() && sample(channel) < 1.0f)
-                continue;
+            if (sample.connected())
+            {
+                const float sample_value = sample(channel);
+                if (!std::isfinite(sample_value) || sample_value < 1.0f)
+                    continue;
+            }
 
             const int x_index = x.size() == 1 ? 0 : channel;
             AddSample(channel, x(x_index), y(channel));
