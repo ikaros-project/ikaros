@@ -73,12 +73,14 @@ namespace ikaros
                         return state->stopping || !state->queue.empty();
                     });
 
-                    if(state->queue.empty())
+                    if(state->stopping)
                     {
-                        if(state->stopping)
-                            break;
-                        continue;
+                        state->queue.clear();
+                        break;
                     }
+
+                    if(state->queue.empty())
+                        continue;
 
                     event = std::move(state->queue.front());
                     state->queue.pop_front();
@@ -250,6 +252,7 @@ namespace ikaros
     {
         constexpr std::size_t kMaxLogValueLength = 1024;
         constexpr std::size_t kSessionLogQueueCapacity = 32;
+        constexpr auto kSessionLogShutdownWait = std::chrono::milliseconds(5500);
 
         [[nodiscard]] std::string UrlEncode(const std::string & value)
         {
@@ -398,12 +401,16 @@ namespace ikaros
 
         SessionLogDispatcher & LogDispatcher()
         {
+            // Register curl's process cleanup before the dispatcher destructor.
+            // The dispatcher must stop its worker before curl and OpenSSL shut down.
+            static_cast<void>(InitializeCurl());
             static SessionLogDispatcher dispatcher(
                 kSessionLogQueueCapacity,
                 [](SessionLogEvent event)
                 {
                     SendLogRequest(event.path);
-                });
+                },
+                kSessionLogShutdownWait);
             return dispatcher;
         }
 
