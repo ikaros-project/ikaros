@@ -42,11 +42,11 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			</script>
 			<script type="x-shader/x-fragment" id="fragmentshader">
 			uniform vec3 color;
-			uniform sampler2D texture;
+			uniform sampler2D pointTexture;
 			varying vec3 vColor;
 			void main() {
 				gl_FragColor = vec4( color * vColor, 1.0 );
-				gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
+				gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
 			}
 			</script>
 
@@ -72,7 +72,6 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.canvasElement.style.pointerEvents = "auto";
 		this.canvasElement.style.position = "relative";
 		this.canvasElement.style.zIndex = "6";
-		this.canvas = this.canvasElement.getContext("webgl");
 		this.models_loaded = false;
 		this._cachedPointColorKey = null;
 		this._cachedPointColors = [[0, 0, 0]];
@@ -158,7 +157,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		}
 
 		// Renderer
-		this.renderer = new THREE.WebGLRenderer({ antialias: true, clearColor: 0x335588, canvas: this.canvas.canvas });
+		this.renderer = new THREE.WebGLRenderer({ antialias: true, clearColor: 0x335588, canvas: this.canvasElement });
+		this.canvas = this.renderer.getContext();
 		this.renderer.setClearColor( 0x263238 );
 		this.renderer.setPixelRatio(window.devicePixelRatio);
 		this.renderer.setSize(this.parameters.width, this.parameters.height);
@@ -542,7 +542,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				var material = new THREE.ShaderMaterial({
 					uniforms: {
 						color: { value: new THREE.Color(0xffffff) },
-						texture: { value: new THREE.TextureLoader().load("/Models/Texture/circle.png") }
+						pointTexture: { value: new THREE.TextureLoader().load("/Models/Texture/circle.png") }
 					},
 					vertexShader: document.getElementById('vertexshader').textContent,
 					fragmentShader: document.getElementById('fragmentshader').textContent,

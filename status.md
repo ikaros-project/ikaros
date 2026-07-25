@@ -213,3 +213,16 @@ None.
 - Dynamixel support and hardware-dependent module behavior are not exercised by hosted Linux CI.
 - Optional modules are compile-tested, but their hardware and runtime behavior is not covered.
 - The GitHub wiki is stored separately from this repository. Its Linux section should be replaced with or linked to `docs/LINUX.md` so it does not drift from the CI-tested instructions.
+
+## WebUI Chrome compatibility fixes
+
+| # | Priority | Task | Status | Verification | Commit |
+|---:|:---:|---|---|---|---|
+| 1 | P1 | Let Three.js select and own the Canvas 3D WebGL context so Chromium does not reject a conflicting context type. | Implemented and verified | JavaScript syntax check; Chromium gallery rendered without WebGL context or shader errors | `Canvas 3D now initializes with Chromium WebGL` |
+| 2 | P2 | Replace the obsolete, unclosed loading-screen `blink` element with valid HTML. | Not addressed | — | — |
+| 3 | P2 | Correct the malformed component-inspector toolbar closing tag. | Not addressed | — | — |
+| 4 | P2 | Correct the WebUI button template's malformed `type` and `class` attributes. | Not addressed | — | — |
+
+### WebUI Chrome compatibility outstanding issues and questions
+
+- Pending implementation and verification.
