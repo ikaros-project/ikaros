@@ -76,6 +76,7 @@ When the user asks for multiple issues or tasks to be addressed, use this workfl
 - When adding or updating a kernel unit-test `.ikg`, always consider whether a top-level `check_sum` should be included.
 - Use `check_sum` to pin deterministic setup structure such as task grouping, resolved buffer shapes, and parameter values. Keep explicit assertions for runtime behavior, matrix contents, and other state the kernel checksum does not cover.
 - Put module-local test `.ikg` files in a separate `tests` subdirectory under the module directory.
+- Never commit machine- or user-specific absolute filesystem paths in source files, tests, fixtures, expected output, configuration, or documentation. Such paths expose local information and make the repository non-portable. Use repository-relative paths, temporary directories, or runner-provided placeholders such as `${IKAROS_ROOT}`, `${TEST_DIR}`, and `${USER_DATA}`.
 - For module or CLI changes, run the smallest relevant model or test first, then broaden if the change touches shared behavior.
 - When changing C++ module code, run the smallest relevant `.ikg` smoke test after building when practical.
 - If a requested verification cannot be run, report what was skipped and why.
