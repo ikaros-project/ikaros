@@ -1,0 +1,17 @@
+<group internal="true"
+    name="TestSoftmaxInputIntegrity"
+    description="Preserve Softmax input while producing finite probabilities"
+    start="true"
+    stop="4"
+    check_sum="397"
+    expected_output_contains="SOFTMAX INPUT TEST OK">
+
+    <module class="Constant" name="Input" data="-1,0,1,2" />
+    <module class="Softmax" name="Softmax" />
+    <module class="SoftmaxInputTestModule" name="Verifier" />
+
+    <connection source="Input.OUTPUT" target="Softmax.INPUT" delay="0" />
+    <connection source="Input.OUTPUT" target="Verifier.ORIGINAL" delay="0" />
+    <connection source="Softmax.OUTPUT" target="Verifier.SOFTMAX" delay="0" />
+
+</group>

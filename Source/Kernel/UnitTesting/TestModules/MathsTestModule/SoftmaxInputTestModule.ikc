@@ -1,0 +1,5 @@
+<class internal="true" name="SoftmaxInputTestModule"
+       description="Checks Softmax input integrity and finite probabilities">
+    <input name="ORIGINAL" />
+    <input name="SOFTMAX" />
+</class>

@@ -152,6 +152,23 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 
 - Fixed seeds reproduce sequences within the same C++ standard-library implementation. `std::uniform_real_distribution` does not guarantee bit-identical floating-point sequences across different standard-library implementations.
 
+## Numerical utility modules
+
+| # | Priority | Task | Status | Verification | Commit |
+|---:|:---:|---|---|---|---|
+| 1 | P1 | Prevent `Softmax` from modifying its shared input buffer. | Addressed | Debug build; checksum-backed input-integrity and probability regression; all 256 kernel tests passed | `Softmax now preserves its input buffer` |
+| 2 | P1 | Make zero-denominator `Normalize` modes produce a zero matrix instead of attempting scalar assignment. | Not addressed | — | — |
+| 3 | P2 | Make range, Euclidean, and city-block normalization stable for large finite values. | Not addressed | — | — |
+| 4 | P2 | Keep `RegressionStatistics` sample capacity consistent with its fixed startup output shapes. | Not addressed | — | — |
+| 5 | P2 | Replace numerically fragile normal-equation model comparison with a scale-robust calculation. | Not addressed | — | — |
+| 6 | P2 | Ensure non-finite `RegressionStatistics` sampling-mask values do not enable sampling. | Not addressed | — | — |
+| 7 | P2 | Define and implement safe `Softmax` behavior for non-finite inputs. | Not addressed | — | — |
+| 8 | P2/P3 | Validate `RegressionStatistics` topology during startup and remove runtime shape adaptation. | Not addressed | — | — |
+
+### Numerical utility outstanding issues and questions
+
+- To be completed after all listed tasks have been addressed.
+
 ## Status meanings
 
 - **Not addressed**: no corrective implementation has been completed.

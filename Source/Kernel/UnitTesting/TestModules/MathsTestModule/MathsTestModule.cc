@@ -425,6 +425,53 @@ class UniformBoundsRuntimeTestModule : public Module
 };
 
 
+class SoftmaxInputTestModule : public Module
+{
+    matrix original;
+    matrix softmax;
+    bool verified = false;
+
+    void Init() override
+    {
+        Bind(original, "ORIGINAL");
+        Bind(softmax, "SOFTMAX");
+    }
+
+    void Tick() override
+    {
+        if(verified || GetTick() < 2)
+            return;
+        if(original.size() != 4 || softmax.size() != 4)
+            throw exception("SoftmaxInputTestModule: unexpected matrix size");
+
+        constexpr float logits[] = {-1.0f, 0.0f, 1.0f, 2.0f};
+        double exponentialSum = 0.0;
+        for(float logit : logits)
+            exponentialSum += std::exp(static_cast<double>(logit));
+
+        double probabilitySum = 0.0;
+        for(int index = 0; index < 4; ++index)
+        {
+            require_close(
+                original(index), logits[index], 0.0,
+                "Softmax changed its input");
+            require_close(
+                softmax(index),
+                std::exp(static_cast<double>(logits[index])) /
+                    exponentialSum,
+                1.0e-6, "Softmax probability");
+            probabilitySum += softmax(index);
+        }
+        require_close(
+            probabilitySum, 1.0, 1.0e-6,
+            "Softmax probabilities did not sum to one");
+
+        verified = true;
+        std::cout << "SOFTMAX INPUT TEST OK" << std::endl;
+    }
+};
+
+
 class MathsBenchmarkModule : public Module
 {
     void Init() override
@@ -461,4 +508,5 @@ INSTALL_CLASS(MathsTestModule)
 INSTALL_CLASS(RandomSequenceTestModule)
 INSTALL_CLASS(RotationUnitTestModule)
 INSTALL_CLASS(UniformBoundsRuntimeTestModule)
+INSTALL_CLASS(SoftmaxInputTestModule)
 INSTALL_CLASS(MathsBenchmarkModule)
