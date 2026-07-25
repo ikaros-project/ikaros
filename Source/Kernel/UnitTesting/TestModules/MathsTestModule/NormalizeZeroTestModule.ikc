@@ -1,0 +1,7 @@
+<class internal="true" name="NormalizeZeroTestModule"
+       description="Checks zero-denominator normalization">
+    <input name="RANGE" />
+    <input name="EUCLIDEAN" />
+    <input name="CITY_BLOCK" />
+    <input name="MAXIMUM" />
+</class>

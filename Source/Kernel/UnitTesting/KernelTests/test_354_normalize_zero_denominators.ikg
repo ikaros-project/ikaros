@@ -1,0 +1,29 @@
+<group internal="true"
+    name="TestNormalizeZeroDenominators"
+    description="Produce zero matrices for zero normalization denominators"
+    start="true"
+    stop="4"
+    check_sum="2422"
+    expected_output_contains="NORMALIZE ZERO TEST OK">
+
+    <module class="Constant" name="ConstantInput" data="5,5,5" />
+    <module class="Constant" name="ZeroInput" data="0,0,0" />
+    <module class="Normalize" name="Range" type="range" />
+    <module class="Normalize" name="Euclidean" type="euclidean" />
+    <module class="Normalize" name="CityBlock" type="cityblock" />
+    <module class="Normalize" name="Maximum" type="max" />
+    <module class="NormalizeZeroTestModule" name="Verifier" />
+
+    <connection source="ConstantInput.OUTPUT" target="Range.INPUT" delay="0" />
+    <connection source="ZeroInput.OUTPUT" target="Euclidean.INPUT" delay="0" />
+    <connection source="ZeroInput.OUTPUT" target="CityBlock.INPUT" delay="0" />
+    <connection source="ZeroInput.OUTPUT" target="Maximum.INPUT" delay="0" />
+    <connection source="Range.OUTPUT" target="Verifier.RANGE" delay="0" />
+    <connection source="Euclidean.OUTPUT"
+                target="Verifier.EUCLIDEAN" delay="0" />
+    <connection source="CityBlock.OUTPUT"
+                target="Verifier.CITY_BLOCK" delay="0" />
+    <connection source="Maximum.OUTPUT"
+                target="Verifier.MAXIMUM" delay="0" />
+
+</group>

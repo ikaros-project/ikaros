@@ -472,6 +472,50 @@ class SoftmaxInputTestModule : public Module
 };
 
 
+class NormalizeZeroTestModule : public Module
+{
+    matrix range;
+    matrix euclidean;
+    matrix cityBlock;
+    matrix maximum;
+    bool verified = false;
+
+    void RequireZero(const matrix & values, const std::string & name)
+    {
+        if(values.size() != 3)
+            throw exception(
+                "NormalizeZeroTestModule: unexpected " + name + " size");
+        for(int index = 0; index < values.size(); ++index)
+            if(values(index) != 0.0f)
+                throw exception(
+                    "NormalizeZeroTestModule: " + name +
+                    " did not produce zeros");
+    }
+
+    void Init() override
+    {
+        Bind(range, "RANGE");
+        Bind(euclidean, "EUCLIDEAN");
+        Bind(cityBlock, "CITY_BLOCK");
+        Bind(maximum, "MAXIMUM");
+    }
+
+    void Tick() override
+    {
+        if(verified || GetTick() < 2)
+            return;
+
+        RequireZero(range, "range");
+        RequireZero(euclidean, "euclidean");
+        RequireZero(cityBlock, "city-block");
+        RequireZero(maximum, "maximum");
+
+        verified = true;
+        std::cout << "NORMALIZE ZERO TEST OK" << std::endl;
+    }
+};
+
+
 class MathsBenchmarkModule : public Module
 {
     void Init() override
@@ -509,4 +553,5 @@ INSTALL_CLASS(RandomSequenceTestModule)
 INSTALL_CLASS(RotationUnitTestModule)
 INSTALL_CLASS(UniformBoundsRuntimeTestModule)
 INSTALL_CLASS(SoftmaxInputTestModule)
+INSTALL_CLASS(NormalizeZeroTestModule)
 INSTALL_CLASS(MathsBenchmarkModule)

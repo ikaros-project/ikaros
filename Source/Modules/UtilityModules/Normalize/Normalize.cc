@@ -58,7 +58,7 @@ class Normalize: public Module
 
         if(range == 0.0f)
         {
-            output = 0.0f;
+            output.set(0.0f);
             return;
         }
 
@@ -97,7 +97,7 @@ class Normalize: public Module
     {
         if(scale == 0.0f)
         {
-            output = 0.0f;
+            output.set(0.0f);
             return;
         }
 
