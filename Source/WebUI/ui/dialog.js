@@ -8,6 +8,15 @@ const dialog =
 
     fetchFileList()
     {
+        if(typeof controller.consumeWebUITestFailure === "function" &&
+           controller.consumeWebUITestFailure("files"))
+            return new Promise((resolve, reject) => {
+                setTimeout(function()
+                {
+                    reject(new Error("injected WebUI /files test failure"));
+                }, controller.webui_test_delay_ms);
+            });
+
         return fetch('/files', {method: 'GET', headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id}})
         .then(response => {
             if(!response.ok)

@@ -1068,5 +1068,11 @@ const brainstudio =
 
         window.addEventListener("keydown", brainstudio.keydownHandler, true);
 
+        if(new URLSearchParams(window.location.search).get("webui_test") === "save_recovery")
+        {
+            const script = document.createElement("script");
+            script.src = "UnitTesting/live_save_test.js";
+            document.body.appendChild(script);
+        }
     }
 }

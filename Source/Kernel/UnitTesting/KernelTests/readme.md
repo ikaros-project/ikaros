@@ -7,6 +7,23 @@ are in the sibling `PythonTests` directory and have their own runner. A default
 run also executes the dependency-free WebUI dialog and save-recovery regressions with Node.js;
 Node.js must be available on `PATH`.
 
+The live browser save-recovery regression runs inside BrainStudio against a
+real Ikaros server. Start Ikaros with a disposable user directory, then open:
+
+```
+http://127.0.0.1:PORT/?webui_test=save_recovery
+```
+
+The page injects one delayed `/files` failure and one delayed Save As failure,
+then opens, saves, retries, and verifies the copied model appears in the Open
+dialog. The result is exposed as
+`#webui_live_save_test_result[data-status="pass"]`. Optional query parameters
+`webui_test_delay`, `webui_test_fail_files`, and `webui_test_fail_save` control
+the injected delay and failure counts. These controls are ignored unless
+`webui_test=save_recovery` is present. Use a disposable user directory because
+the test creates `webui_live_save_recovery.ikg` and
+`webui_live_save_recovery_copy.ikg`.
+
 Tests run in parallel, using 30 workers by default. Pass `--jobs N` (or
 `-j N`) to choose another limit; use `--jobs 1` for sequential execution.
 

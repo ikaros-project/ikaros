@@ -168,7 +168,8 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 2 | P2 | Extend dialog regression coverage to stale Save-to-Open and list-selection races. | Addressed | Three dependency-free dialog race regressions pass | `Dialog tests now cover stale request ordering` |
 | 3 | Testing | Register the WebUI dialog regression test with the standard automated test workflow. | Addressed | Standard runner passed all 253 tests, including WebUI dialog regressions | `WebUI dialog regressions now run with kernel tests` |
 | 4 | Testing | Run the complete Open-to-Save-As browser scenario when localhost browser access is available. | Addressed | Browser opened the saved user model and saved a copy; server confirmed both operations; no WebUI alert, warning, error, or temporary file remained | `Browser workflow verified Open and Save As dialogs` |
-| 5 | Testing | Stress delayed and failed WebUI file-list and save requests, including recovery without reloading. | Implemented and verified | Delayed transport retries, queued saves, `/files` recovery, and 50 HTTP failure/recovery cycles pass; all 254 standard tests pass | `WebUI save failures now have automated recovery coverage` |
+| 5 | Testing | Stress delayed and failed WebUI file-list and save requests, including recovery without reloading. | Addressed | Delayed transport retries, queued saves, `/files` recovery, and 50 HTTP failure/recovery cycles pass; all 254 standard tests pass | `WebUI save failures now have automated recovery coverage` |
+| 6 | Testing | Add a self-running live-browser Open-to-Save-As recovery regression with deterministic failure injection. | Implemented and verified | Live BrainStudio test passed with delayed `/files` and Save As failures; both complete files were written and no temporary files remained | `Live WebUI save recovery is now reproducible` |
 
 ### WebUI dialog outstanding issues and questions
 

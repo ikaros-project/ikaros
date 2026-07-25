@@ -30,6 +30,10 @@ const controller =
     slow_ui_delay_ms: 0,
     slow_ui_jitter_ms: 0,
     drop_update_rate: 0,
+    webui_test_mode: "",
+    webui_test_delay_ms: 0,
+    webui_test_fail_files_remaining: 0,
+    webui_test_fail_save_remaining: 0,
     data_package: {},
 
     cloneNetworkForStorage(source)
@@ -126,6 +130,16 @@ const controller =
         controller.slow_ui_delay_ms = Math.max(0, controller.getURLNumberParam("slow_ui", 0));
         controller.slow_ui_jitter_ms = Math.max(0, controller.getURLNumberParam("slow_ui_jitter", 0));
         controller.drop_update_rate = Math.min(1, Math.max(0, controller.getURLNumberParam("drop_updates", 0)));
+        const parameters = new URLSearchParams(window.location.search);
+        controller.webui_test_mode = parameters.get("webui_test") || "";
+        if(controller.webui_test_mode === "save_recovery")
+        {
+            controller.webui_test_delay_ms = Math.max(0, controller.getURLNumberParam("webui_test_delay", 25));
+            controller.webui_test_fail_files_remaining =
+                Math.max(0, Math.floor(controller.getURLNumberParam("webui_test_fail_files", 1)));
+            controller.webui_test_fail_save_remaining =
+                Math.max(0, Math.floor(controller.getURLNumberParam("webui_test_fail_save", 1)));
+        }
 
         if(controller.slow_ui_delay_ms > 0 || controller.slow_ui_jitter_ms > 0 || controller.drop_update_rate > 0)
         {
@@ -138,6 +152,18 @@ const controller =
                 parts.push(`drop_updates=${controller.drop_update_rate}`);
             log.print(`Slow-link test mode active (${parts.join(", ")}).`);
         }
+    },
+
+    consumeWebUITestFailure(type)
+    {
+        if(controller.webui_test_mode !== "save_recovery")
+            return false;
+
+        const property = `webui_test_fail_${type}_remaining`;
+        if(!Object.prototype.hasOwnProperty.call(controller, property) || controller[property] <= 0)
+            return false;
+        controller[property]--;
+        return true;
     },
 
     getSlowLinkDelay()
@@ -214,6 +240,15 @@ const controller =
         const saveRetryDelays = [150, 350, 800, 1600];
         const sendSaveRequest = function(attempt)
         {
+            if(attempt === 0 && controller.consumeWebUITestFailure("save"))
+            {
+                setTimeout(function()
+                {
+                    saveFailed(new Error("Save failed with HTTP 503 Service Unavailable: injected WebUI test failure"));
+                }, controller.webui_test_delay_ms);
+                return;
+            }
+
             const xhr = new XMLHttpRequest();
             xhr.open("PUT", "/save?request=" + Date.now() + "-" + attempt, true);
             xhr.setRequestHeader("Content-Type", "application/json");

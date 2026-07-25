@@ -731,31 +731,36 @@ def run_webui_javascript_tests():
         / "WebUI"
         / "UnitTesting"
     )
-    test_paths = [
-        test_directory / "dialog_test.js",
-        test_directory / "save_test.js",
-    ]
     node = shutil.which("node")
+    tests = [
+        ("WebUI regressions", [node, str(test_directory / "dialog_test.js")]),
+        ("WebUI regressions", [node, str(test_directory / "save_test.js")]),
+        (
+            "WebUI live regression syntax",
+            [node, "--check", str(test_directory / "live_save_test.js")],
+        ),
+    ]
     if node is None:
         return [
             (
                 f"{red}{bold}[ FAIL ]  WebUI regressions – "
-                f"{test_path.name}{reset} (Node.js was not found)",
+                f"{command[-1]}{reset} (Node.js was not found)",
                 True,
             )
-            for test_path in test_paths
+            for _, command in tests
         ]
 
     results = []
-    for test_path in test_paths:
+    for label, command in tests:
         result = subprocess.run(
-            [node, str(test_path)],
+            command,
             text=True,
             capture_output=True,
         )
+        test_name = Path(command[-1]).name
         if result.returncode == 0:
             results.append((
-                f"[  OK  ]  WebUI regressions – {test_path.name}{reset}",
+                f"[  OK  ]  {label} – {test_name}{reset}",
                 False,
             ))
             continue
@@ -763,8 +768,8 @@ def run_webui_javascript_tests():
         output = ((result.stdout or "") + (result.stderr or "")).strip().splitlines()
         detail = output[-1] if output else f"exit={result.returncode}"
         results.append((
-            f"{red}{bold}[ FAIL ]  WebUI regressions – "
-            f"{test_path.name}{reset} ({detail})",
+            f"{red}{bold}[ FAIL ]  {label} – "
+            f"{test_name}{reset} ({detail})",
             True,
         ))
     return results
