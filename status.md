@@ -203,7 +203,7 @@ None.
 | 1 | P1 | Diagnose and fix the remaining Linux kernel-test failures. | Implemented and verified | Linux GCC Debug build; Linux kernel tests pass except the three Node.js tests assigned to task 3; all 264 macOS tests pass | `Linux kernel behavior now passes the portable test suite` |
 | 2 | Testing | Expand Linux CI from focused smoke tests to the complete kernel test suite. | Implemented and verified | Exact Ubuntu CI command passed all 261 C++/HTTP kernel tests in Debug mode | `Linux CI now runs the complete kernel test suite` |
 | 3 | Testing | Install Node.js in Linux CI and run the WebUI JavaScript regression tests. | Implemented and verified | Ubuntu with Node.js passed all 264 kernel and WebUI JavaScript tests | `Linux CI now includes WebUI JavaScript regressions` |
-| 4 | Testing | Add a Linux CI WebUI smoke test that starts Ikaros and verifies the main page and logo over HTTP. | Not addressed | — | — |
+| 4 | Testing | Add a Linux CI WebUI smoke test that starts Ikaros and verifies the main page and logo over HTTP. | Implemented and verified | Ubuntu smoke test launched Ikaros and validated `index.html` plus the PNG signature of `Images/logo.png` | `Linux CI now verifies the WebUI and logo` |
 | 5 | Testing | Test Linux builds with both GCC and Clang. | Not addressed | — | — |
 | 6 | Testing | Add Linux CI coverage for optional dependencies and the modules they enable. | Not addressed | — | — |
 | 7 | Documentation | Update the Linux installation documentation to match the CI-verified dependencies and optional-module support. | Not addressed | — | — |
