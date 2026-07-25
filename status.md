@@ -206,4 +206,11 @@ None.
 | 4 | Testing | Add a Linux CI WebUI smoke test that starts Ikaros and verifies the main page and logo over HTTP. | Implemented and verified | Ubuntu smoke test launched Ikaros and validated `index.html` plus the PNG signature of `Images/logo.png` | `Linux CI now verifies the WebUI and logo` |
 | 5 | Testing | Test Linux builds with both GCC and Clang. | Implemented and verified | Ubuntu Clang 18 build passed all 264 tests and the WebUI smoke test; GCC verification retained | `Linux CI now tests GCC and Clang` |
 | 6 | Testing | Add Linux CI coverage for optional dependencies and the modules they enable. | Implemented and verified | Ubuntu 24.04 Release build passed with Dlib, FFmpeg, libusb, PNG, TIFF, and WebP support enabled | `Linux CI now builds optional modules` |
-| 7 | Documentation | Update the Linux installation documentation to match the CI-verified dependencies and optional-module support. | Not addressed | — | — |
+| 7 | Documentation | Update the Linux installation documentation to match the CI-verified dependencies and optional-module support. | Implemented and verified | Instructions match the Ubuntu 24.04 GCC/Clang and optional-module CI package sets and commands | `Linux installation documentation now matches CI` |
+
+### Outstanding issues and questions
+
+- Dynamixel support and hardware-dependent module behavior are not exercised by hosted Linux CI.
+- Optional modules are compile-tested, but their hardware and runtime behavior is not covered.
+- Clang reports existing conversion warnings in `SequenceRecorder` and `DeepNetwork`, and floating-point calls to the integer `abs` overload in `PositionSelection` and `CurrentPositionMapping`.
+- The GitHub wiki is stored separately from this repository. Its Linux section should be replaced with or linked to `docs/LINUX.md` so it does not drift from the CI-tested instructions.

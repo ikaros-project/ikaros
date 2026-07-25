@@ -10,6 +10,9 @@ Version 3 is completely rewritten in modern C++ and includes a number of new fea
 
 Up to date information is available in the [wiki](https://github.com/ikaros-project/ikaros/wiki).
 
+[Linux build and installation instructions](docs/LINUX.md) are also available
+in this repository.
+
 ## Ikaros Status - 21 April, 2026
 
 | Component | State | Comments |
@@ -65,6 +68,5 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
         filename :   ikg-file to load
 
 All parameters can be set in the root element of the ikg-file as well.
-
 
 
