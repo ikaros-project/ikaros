@@ -1,0 +1,29 @@
+<group internal="true"
+    name="TestNormalizeFiniteExtremes"
+    description="Normalize large finite values without arithmetic overflow"
+    start="true"
+    stop="4"
+    check_sum="1074"
+    expected_output_contains="NORMALIZE FINITE TEST OK">
+
+    <module class="Constant" name="RangeInput"
+            data="-3.402823e38,3.402823e38" />
+    <module class="Constant" name="NormInput"
+            data="3.402823e38,3.402823e38" />
+    <module class="Normalize" name="Range" type="range" />
+    <module class="Normalize" name="Euclidean" type="euclidean" />
+    <module class="Normalize" name="CityBlock" type="cityblock" />
+    <module class="NormalizeFiniteTestModule" name="Verifier" />
+
+    <connection source="RangeInput.OUTPUT" target="Range.INPUT" delay="0" />
+    <connection source="NormInput.OUTPUT"
+                target="Euclidean.INPUT" delay="0" />
+    <connection source="NormInput.OUTPUT"
+                target="CityBlock.INPUT" delay="0" />
+    <connection source="Range.OUTPUT" target="Verifier.RANGE" delay="0" />
+    <connection source="Euclidean.OUTPUT"
+                target="Verifier.EUCLIDEAN" delay="0" />
+    <connection source="CityBlock.OUTPUT"
+                target="Verifier.CITY_BLOCK" delay="0" />
+
+</group>

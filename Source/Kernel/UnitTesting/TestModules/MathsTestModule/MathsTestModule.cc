@@ -516,6 +516,53 @@ class NormalizeZeroTestModule : public Module
 };
 
 
+class NormalizeFiniteTestModule : public Module
+{
+    matrix range;
+    matrix euclidean;
+    matrix cityBlock;
+    bool verified = false;
+
+    void Init() override
+    {
+        Bind(range, "RANGE");
+        Bind(euclidean, "EUCLIDEAN");
+        Bind(cityBlock, "CITY_BLOCK");
+    }
+
+    void Tick() override
+    {
+        if(verified || GetTick() < 2)
+            return;
+        if(range.size() != 2 || euclidean.size() != 2 ||
+           cityBlock.size() != 2)
+            throw exception(
+                "NormalizeFiniteTestModule: unexpected matrix size");
+
+        require_close(range(0), 0.0, 0.0, "finite range minimum");
+        require_close(range(1), 1.0, 0.0, "finite range maximum");
+
+        const double inverseSquareRootOfTwo =
+            1.0 / std::sqrt(2.0);
+        require_close(
+            euclidean(0), inverseSquareRootOfTwo, 1.0e-6,
+            "finite Euclidean first value");
+        require_close(
+            euclidean(1), inverseSquareRootOfTwo, 1.0e-6,
+            "finite Euclidean second value");
+        require_close(
+            cityBlock(0), 0.5, 1.0e-6,
+            "finite city-block first value");
+        require_close(
+            cityBlock(1), 0.5, 1.0e-6,
+            "finite city-block second value");
+
+        verified = true;
+        std::cout << "NORMALIZE FINITE TEST OK" << std::endl;
+    }
+};
+
+
 class MathsBenchmarkModule : public Module
 {
     void Init() override
@@ -554,4 +601,5 @@ INSTALL_CLASS(RotationUnitTestModule)
 INSTALL_CLASS(UniformBoundsRuntimeTestModule)
 INSTALL_CLASS(SoftmaxInputTestModule)
 INSTALL_CLASS(NormalizeZeroTestModule)
+INSTALL_CLASS(NormalizeFiniteTestModule)
 INSTALL_CLASS(MathsBenchmarkModule)

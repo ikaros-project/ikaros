@@ -1,0 +1,6 @@
+<class internal="true" name="NormalizeFiniteTestModule"
+       description="Checks normalization of large finite values">
+    <input name="RANGE" />
+    <input name="EUCLIDEAN" />
+    <input name="CITY_BLOCK" />
+</class>

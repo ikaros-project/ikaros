@@ -52,35 +52,40 @@ class Normalize: public Module
         if(input.size() == 0)
             return;
 
-        const float minimum = input.min();
-        const float maximum = input.max();
-        const float range = maximum - minimum;
+        const double minimum = input.min();
+        const double maximum = input.max();
+        const double range = maximum - minimum;
 
-        if(range == 0.0f)
+        if(range == 0.0)
         {
             output.set(0.0f);
             return;
         }
 
         output.copy(input);
-        output.apply([minimum, range](float x) { return (x - minimum) / range; });
+        output.apply([minimum, range](float value) {
+            return static_cast<float>(
+                (static_cast<double>(value) - minimum) / range);
+        });
     }
 
     void NormalizeEuclidean()
     {
-        float norm = 0.0f;
+        double squaredNorm = 0.0;
         for(int i = 0; i < input.size(); ++i)
-            norm += input.data()[i] * input.data()[i];
+        {
+            const double value = input.data()[i];
+            squaredNorm += value * value;
+        }
 
-        norm = std::sqrt(norm);
-        CopyOrZeroScaled(norm);
+        CopyOrZeroScaled(std::sqrt(squaredNorm));
     }
 
     void NormalizeCityBlock()
     {
-        float norm = 0.0f;
+        double norm = 0.0;
         for(int i = 0; i < input.size(); ++i)
-            norm += std::fabs(input.data()[i]);
+            norm += std::fabs(static_cast<double>(input.data()[i]));
 
         CopyOrZeroScaled(norm);
     }
@@ -93,16 +98,25 @@ class Normalize: public Module
         CopyOrZeroScaled(input.max());
     }
 
-    void CopyOrZeroScaled(float scale)
+    void CopyOrZeroScaled(double scale)
     {
-        if(scale == 0.0f)
+        if(scale == 0.0)
         {
             output.set(0.0f);
             return;
         }
 
         output.copy(input);
-        output.scale(1.0f / scale);
+        const float multiplier = static_cast<float>(1.0 / scale);
+        if(std::isfinite(multiplier) && multiplier != 0.0f)
+        {
+            output.scale(multiplier);
+            return;
+        }
+
+        output.apply([scale](float value) {
+            return static_cast<float>(static_cast<double>(value) / scale);
+        });
     }
 };
 
