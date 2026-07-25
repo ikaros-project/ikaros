@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <exception>
 #include <limits>
 #include <string>
 #include <vector>
@@ -22,6 +23,9 @@ class RegressionStatistics: public Module
     matrix sample_count;
     matrix linear_regression;
     matrix model_comparison;
+
+    int sample_capacity_ = 0;
+    bool warned_about_sample_capacity_ = false;
 
     struct SamplePair
     {
@@ -46,6 +50,18 @@ class RegressionStatistics: public Module
         Bind(linear_regression, "LINEAR_REGRESSION");
         Bind(model_comparison, "MODEL_COMPARISON");
 
+        sample_capacity_ = max_samples_.as_int();
+        if (sample_capacity_ < 1)
+            throw exception(
+                "RegressionStatistics: max_samples must be at least 1.",
+                path_);
+        if (scatter_x.rows() != sample_capacity_ ||
+            scatter_y.rows() != sample_capacity_)
+            throw exception(
+                "RegressionStatistics: scatter output rows must match "
+                "max_samples.",
+                path_);
+
         samples_.resize(y.size());
         SetMatrixLabels();
     }
@@ -53,6 +69,7 @@ class RegressionStatistics: public Module
     void Tick()
     {
         ValidateInputs();
+        WarnAboutRuntimeCapacityChange();
 
         if (samples_.size() != static_cast<std::size_t>(y.size()))
         {
@@ -82,14 +99,36 @@ class RegressionStatistics: public Module
         if (sample.connected() && sample.size() != y.size())
             throw exception("RegressionStatistics: SAMPLE must have the same size as Y.", path_);
 
-        if (max_samples_.as_int() < 1)
-            throw exception("RegressionStatistics: max_samples must be at least 1.", path_);
+    }
+
+    void WarnAboutRuntimeCapacityChange()
+    {
+        bool changed = true;
+        try
+        {
+            changed = max_samples_.as_int() != sample_capacity_;
+        }
+        catch (const std::exception &)
+        {
+        }
+
+        if (changed && !warned_about_sample_capacity_)
+        {
+            Warning(
+                "RegressionStatistics max_samples is fixed after startup; "
+                "using the startup capacity.",
+                path_);
+            warned_about_sample_capacity_ = true;
+        }
+        else if (!changed)
+            warned_about_sample_capacity_ = false;
     }
 
     void AddSample(int channel, double x_value, double y_value)
     {
         std::vector<SamplePair> & channel_samples = samples_[channel];
-        const std::size_t capacity = static_cast<std::size_t>(std::max(1, max_samples_.as_int()));
+        const std::size_t capacity =
+            static_cast<std::size_t>(sample_capacity_);
 
         if (channel_samples.size() >= capacity)
             channel_samples.erase(channel_samples.begin());

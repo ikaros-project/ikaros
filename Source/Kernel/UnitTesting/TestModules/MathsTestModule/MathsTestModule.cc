@@ -563,6 +563,40 @@ class NormalizeFiniteTestModule : public Module
 };
 
 
+class RegressionCapacityTestModule : public Module
+{
+    matrix scatterX;
+    matrix sampleCount;
+    parameter stage_;
+    bool completed = false;
+
+    void Init() override
+    {
+        Bind(scatterX, "SCATTER_X");
+        Bind(sampleCount, "SAMPLE_COUNT");
+        Bind(stage_, "stage");
+    }
+
+    void Tick() override
+    {
+        if(completed || stage_.as_int() == 0)
+            return;
+        if(scatterX.size() != 3)
+            throw exception(
+                "RegressionCapacityTestModule: scatter shape changed");
+        if(sampleCount.size() != 1 || sampleCount(0) != 3.0f)
+            throw exception(
+                "RegressionCapacityTestModule: sample capacity changed");
+
+        if(stage_.as_int() == 3)
+        {
+            completed = true;
+            std::cout << "REGRESSION CAPACITY TEST OK" << std::endl;
+        }
+    }
+};
+
+
 class MathsBenchmarkModule : public Module
 {
     void Init() override
@@ -602,4 +636,5 @@ INSTALL_CLASS(UniformBoundsRuntimeTestModule)
 INSTALL_CLASS(SoftmaxInputTestModule)
 INSTALL_CLASS(NormalizeZeroTestModule)
 INSTALL_CLASS(NormalizeFiniteTestModule)
+INSTALL_CLASS(RegressionCapacityTestModule)
 INSTALL_CLASS(MathsBenchmarkModule)
