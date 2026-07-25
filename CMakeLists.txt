@@ -113,7 +113,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # Linux specific code
  	message( STATUS "Detected a Linux system")
 	add_definitions(-DLINUX)
-	add_definitions(-DLINUX)
   # Remove a few warnings
   add_definitions(-Wno-unused-value)
   add_definitions(-Wno-unused-result)
@@ -192,14 +191,11 @@ target_link_libraries(ikaros ${LAPACK_LIBRARIES})
 find_package(CURL REQUIRED)
 target_link_libraries(ikaros CURL::libcurl)
 
-# Threads Not part of the core
-#find_package(Threads)
-#if (Threads_FOUND)
-#  include_directories(${Threads_INCLUDE_DIRS})
-#  target_link_libraries (ikaros ${CMAKE_THREAD_LIBS_INIT})
-#  else()
-#    message(FATAL_ERROR "\nIkaros require the THREADS library.\nVisit www.ikaros-project.org for information about dependencies")
-#endif (Threads_FOUND)
+# The kernel and several modules use std::thread. The imported target supplies
+# any platform-specific compile and link flags, including -pthread on Linux.
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+target_link_libraries(ikaros Threads::Threads)
 
 # JPEG is the required core image codec.
 find_package(Jpeg-Turbo)
