@@ -159,3 +159,12 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 - **Implemented and verified**: implementation and required verification have completed, but the change has not yet been committed.
 - **Addressed**: implementation and required verification have completed and the change has been committed.
 - **Excluded by decision**: the finding was deliberately left unchanged.
+
+## WebUI dialog follow-ups
+
+| # | Priority | Task | Status | Verification | Commit |
+|---:|:---:|---|---|---|---|
+| 1 | P2 | Preserve and report the underlying Open-dialog confirmation and callback errors. | Implemented and verified | Dialog regression test; JavaScript syntax check | `Open dialog errors now expose their underlying cause` |
+| 2 | P2 | Extend dialog regression coverage to stale Save-to-Open and list-selection races. | Not addressed | — | — |
+| 3 | Testing | Register the WebUI dialog regression test with the standard automated test workflow. | Not addressed | — | — |
+| 4 | Testing | Run the complete Open-to-Save-As browser scenario when localhost browser access is available. | Not addressed | — | — |

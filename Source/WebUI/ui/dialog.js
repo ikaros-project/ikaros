@@ -64,13 +64,31 @@ const dialog =
 
     confirmOpen()
     {
-        try {
-            const dialogType = this.getDialogType();
+        let text = "";
+        let dialogType = "";
+        try
+        {
+            dialogType = this.getDialogType();
             const sel = document.getElementById(`open_dialog_${dialogType}_items`);
-            const text = sel.options[sel.selectedIndex].text;
+            if(!sel || sel.selectedIndex < 0)
+                throw new Error("No file is selected.");
+            text = sel.options[sel.selectedIndex].text;
             const openDialog = document.getElementById('open_dialog');
+            if(!openDialog)
+                throw new Error("Open dialog is unavailable.");
             this.requestGeneration++;
             openDialog.close(text);
+        }
+        catch(err)
+        {
+            const message = err && err.message ? err.message : String(err);
+            console.error("Could not confirm Open dialog:", err);
+            alert("Could not confirm Open dialog: " + message);
+            return;
+        }
+
+        try
+        {
             const callback = this.openCallback;
             this.openCallback = null;
             if(callback)
@@ -78,7 +96,9 @@ const dialog =
         }
         catch(err)
         {
-            alert("Error opening file");
+            const message = err && err.message ? err.message : String(err);
+            console.error("Could not start opening file:", err);
+            alert("Could not start opening file: " + message);
         }
     },
 
