@@ -15,10 +15,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-smoke-test:
+  build-and-test:
     name: Ubuntu 24.04 / GCC
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     env:
       CC: gcc
@@ -39,24 +39,19 @@ jobs:
             liblapack-dev \
             libopenblas-dev \
             libpng-dev \
+            libssl-dev \
             libtiff-dev \
             libwebp-dev
 
       - name: Configure
-        run: cmake -S . -B Build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B Build -DCMAKE_BUILD_TYPE=Debug
 
       - name: Build
         run: cmake --build Build --parallel 2
 
-      - name: Run kernel smoke tests
+      - name: Run kernel test suite
         run: |
-          ./Bin/ikaros \
-            -A "GitHub Actions: Ubuntu 24.04 GCC" \
-            -s0 \
-            -b \
-            Source/Kernel/UnitTesting/KernelTests/test_01_parameters_defaults.ikg
-          ./Bin/ikaros \
-            -A "GitHub Actions: Ubuntu 24.04 GCC" \
-            -s0 \
-            -b \
-            Source/Kernel/UnitTesting/KernelTests/test_333_session_logging_queue.ikg
+          python3 Source/Kernel/UnitTesting/KernelTests/kernel_test.py \
+            --ikaros Bin/ikaros \
+            --jobs 2 \
+            --skip-webui-js

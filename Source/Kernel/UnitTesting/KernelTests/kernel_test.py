@@ -720,6 +720,11 @@ parser.add_argument(
     default=30,
     help="number of tests to run in parallel (default: 30)",
 )
+parser.add_argument(
+    "--skip-webui-js",
+    action="store_true",
+    help="skip WebUI JavaScript tests",
+)
 arguments = parser.parse_args()
 
 current_directory = arguments.directory.expanduser().resolve()
@@ -955,7 +960,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=arguments.jobs) as execut
     test_futures = [submit(item) for item in test_files]
     results = [future.result() for future in test_futures]
 
-if current_directory == script_directory:
+if current_directory == script_directory and not arguments.skip_webui_js:
     results.extend(run_webui_javascript_tests())
 
 for line, _ in results:
