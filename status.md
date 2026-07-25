@@ -164,7 +164,11 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 
 | # | Priority | Task | Status | Verification | Commit |
 |---:|:---:|---|---|---|---|
-| 1 | P2 | Preserve and report the underlying Open-dialog confirmation and callback errors. | Implemented and verified | Dialog regression test; JavaScript syntax check | `Open dialog errors now expose their underlying cause` |
-| 2 | P2 | Extend dialog regression coverage to stale Save-to-Open and list-selection races. | Implemented and verified | Three dependency-free dialog race regressions pass | `Dialog tests now cover stale request ordering` |
-| 3 | Testing | Register the WebUI dialog regression test with the standard automated test workflow. | Implemented and verified | Standard runner passed all 253 tests, including WebUI dialog regressions | `WebUI dialog regressions now run with kernel tests` |
-| 4 | Testing | Run the complete Open-to-Save-As browser scenario when localhost browser access is available. | Not addressed | — | — |
+| 1 | P2 | Preserve and report the underlying Open-dialog confirmation and callback errors. | Addressed | Dialog regression test; JavaScript syntax check | `Open dialog errors now expose their underlying cause` |
+| 2 | P2 | Extend dialog regression coverage to stale Save-to-Open and list-selection races. | Addressed | Three dependency-free dialog race regressions pass | `Dialog tests now cover stale request ordering` |
+| 3 | Testing | Register the WebUI dialog regression test with the standard automated test workflow. | Addressed | Standard runner passed all 253 tests, including WebUI dialog regressions | `WebUI dialog regressions now run with kernel tests` |
+| 4 | Testing | Run the complete Open-to-Save-As browser scenario when localhost browser access is available. | Implemented and verified | Browser opened the saved user model and saved a copy; server confirmed both operations; no WebUI alert, warning, error, or temporary file remained | `Browser workflow verified Open and Save As dialogs` |
+
+### WebUI dialog outstanding issues and questions
+
+None.
