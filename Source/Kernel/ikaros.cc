@@ -14,7 +14,15 @@
 #include <optional>
 #include <random>
 #include <sstream>
+#include <system_error>
 #include <sys/resource.h>
+
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 
 #if __has_include(<CommonCrypto/CommonDigest.h>) && __has_include(<CommonCrypto/CommonHMAC.h>)
 #include <CommonCrypto/CommonDigest.h>
@@ -58,6 +66,60 @@ namespace ikaros
     {
         constexpr size_t default_max_retained_webui_log_messages = 500;
         constexpr int maximum_connection_delay = 100;
+
+        std::filesystem::path
+        temporary_save_path(const std::filesystem::path & target_path)
+        {
+            static std::atomic<unsigned long long> serial{0};
+            const auto timestamp =
+                std::chrono::steady_clock::now().time_since_epoch().count();
+
+            for(int attempt = 0; attempt < 100; attempt++)
+            {
+                const auto id = serial.fetch_add(1, std::memory_order_relaxed);
+                const std::string temporary_name =
+                    "." + target_path.filename().string() + ".ikaros-save-" +
+                    std::to_string(timestamp) + "-" + std::to_string(id) +
+                    ".tmp";
+                const std::filesystem::path temporary_path =
+                    target_path.parent_path() / temporary_name;
+                std::error_code error;
+                const bool exists = std::filesystem::exists(temporary_path, error);
+                if(error)
+                    throw std::system_error(
+                        error, "Could not inspect temporary save file \"" +
+                                   temporary_path.string() + "\"");
+                if(!exists)
+                    return temporary_path;
+            }
+
+            throw std::runtime_error(
+                "Could not create a unique temporary save filename for \"" +
+                target_path.string() + "\"");
+        }
+
+
+        void
+        replace_file_atomically(const std::filesystem::path & source,
+                                const std::filesystem::path & target)
+        {
+#if defined(_WIN32)
+            if(!MoveFileExW(source.c_str(), target.c_str(),
+                            MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
+                throw std::system_error(
+                    static_cast<int>(GetLastError()), std::system_category(),
+                    "Could not atomically replace model \"" +
+                    target.string() + "\"");
+#else
+            std::error_code error;
+            std::filesystem::rename(source, target, error);
+            if(error)
+                throw std::system_error(
+                    error, "Could not atomically replace model \"" +
+                               target.string() + "\"");
+#endif
+        }
+
 
         struct AsyncRuntimeSnapshot
         {
@@ -8007,18 +8069,28 @@ bool operator==(Request & r, const std::string s)
                 return;
             }
 
-            std::ofstream file(target_path);
-            if(!file)
+            const std::filesystem::path temporary_path =
+                temporary_save_path(target_path);
+            try
             {
-                DoSendError("500 Internal Server Error", "Could not save file \"" + target_path.string() + "\".");
-                return;
+                std::ofstream file(temporary_path);
+                if(!file)
+                    throw exception(
+                        "Could not create temporary save file \"" +
+                        temporary_path.string() + "\".");
+                file << data;
+                file.close();
+                if(!file)
+                    throw exception(
+                        "Could not finish writing temporary save file \"" +
+                        temporary_path.string() + "\".");
+                replace_file_atomically(temporary_path, target_path);
             }
-            file << data;
-            file.close();
-            if(!file)
+            catch(...)
             {
-                DoSendError("500 Internal Server Error", "Could not finish writing file \"" + target_path.string() + "\".");
-                return;
+                std::error_code cleanup_error;
+                std::filesystem::remove(temporary_path, cleanup_error);
+                throw;
             }
 
             options_.path_ = target_path.string();
