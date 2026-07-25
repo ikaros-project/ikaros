@@ -68,6 +68,15 @@ namespace
         }
     };
 
+    struct FileCloser
+    {
+        void operator()(FILE * file) const
+        {
+            if(file != nullptr)
+                fclose(file);
+        }
+    };
+
     using AddressInfoPtr = std::unique_ptr<addrinfo, AddressInfoDeleter>;
 
     struct ResolutionResult
@@ -962,8 +971,7 @@ ServerSocket::SendFile(const std::filesystem::path & filename, dictionary hdr)
     if(filename.empty()) return false;
 
     std::filesystem::path resolved_filename = filename;
-    std::unique_ptr<FILE, decltype(&fclose)> file(
-        fopen(resolved_filename.c_str(), "rb"), &fclose);
+    std::unique_ptr<FILE, FileCloser> file(fopen(resolved_filename.c_str(), "rb"));
     if(!file)
         return false;
 

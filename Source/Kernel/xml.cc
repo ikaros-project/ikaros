@@ -17,6 +17,16 @@ static constexpr int max_xml_element_depth = 256;
 using owned_c_string = std::unique_ptr<char[]>;
 
 
+struct FileCloser
+{
+    void operator()(FILE * file) const
+    {
+        if(file != nullptr)
+            fclose(file);
+    }
+};
+
+
 class XMLDepthGuard
 {
 public:
@@ -632,7 +642,7 @@ XMLDocument::XMLDocument(const char * filename, bool included, const std::vector
         throw ikaros::exception("Recursive XML include", filename_.string());
     include_stack_.push_back(filename_);
 
-    std::unique_ptr<FILE, decltype(&fclose)> input(fopen(filename, "rb"), &fclose);
+    std::unique_ptr<FILE, FileCloser> input(fopen(filename, "rb"));
     if(input == nullptr)
         throw ikaros::exception("Could not open XML file", filename_.string());
     f = input.get();
