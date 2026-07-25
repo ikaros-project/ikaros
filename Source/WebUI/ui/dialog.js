@@ -1,7 +1,9 @@
 const dialog =
 {
-    window: null,
-    callback: null,
+    requestGeneration: 0,
+    openCallback: null,
+    saveCallback: null,
+    listSelectCallback: null,
     infoDialogBound: false,
 
     fetchFileList()
@@ -70,9 +72,10 @@ const dialog =
             const dialogType = this.getDialogType();
             const sel = document.getElementById(`open_dialog_${dialogType}_items`);
             const text = sel.options[sel.selectedIndex].text;
-            this.window.close(text);
-            if(this.callback)
-                this.callback(text, dialogType);
+            const openDialog = document.getElementById('open_dialog');
+            openDialog.close(text);
+            if(this.openCallback)
+                this.openCallback(text, dialogType);
         }
         catch(err)
         {
@@ -82,18 +85,24 @@ const dialog =
 
     cancelOpen()
     {
+        this.requestGeneration++;
         controller.open_mode = false;
-        this.window.close(null);
+        const openDialog = document.getElementById('open_dialog');
+        if(openDialog)
+            openDialog.close(null);
     },
 
     showOpenDialog(callback, message)
     {
         const options = arguments.length > 2 && arguments[2] ? arguments[2] : {};
+        const requestGeneration = ++this.requestGeneration;
+        this.openCallback = callback;
         this.configureOpenDialogSources(options);
         this.setOpenDialogButtonText(options.confirmLabel || "Open");
         dialog.fetchFileList()
         .then(json => {
-            this.setupDialog(callback);
+            if(requestGeneration !== this.requestGeneration)
+                return;
             this.populateFileList(json, options);
             if(options.userOnly)
                 this.showUserFileList();
@@ -103,15 +112,19 @@ const dialog =
                 this.showSystemFileList();
             this.selectDialogOption("open_dialog_user_items", options.defaultFilename || "");
             this.displayMessage(message);
-            this.window.showModal();
+            const openDialog = document.getElementById('open_dialog');
+            if(openDialog && !openDialog.open)
+                openDialog.showModal();
         });
     },
 
     showSaveDialog(callback, message)
     {
         const options = arguments.length > 2 && arguments[2] ? arguments[2] : {};
-        this.callback = callback;
-        this.window = document.getElementById('save_dialog');
+        const requestGeneration = ++this.requestGeneration;
+        controller.open_mode = false;
+        this.saveCallback = callback;
+        const saveDialog = document.getElementById('save_dialog');
         this.populateSaveFileList(controller.filelist || {}, options);
         this.setSaveDialogButtonText(options.confirmLabel || "Save");
         const filenameLabel = document.querySelector("label[for='save_dialog_filename']");
@@ -137,8 +150,8 @@ const dialog =
             };
         }
         this.showUserSaveFileList();
-        if(this.window && !this.window.open)
-            this.window.showModal();
+        if(saveDialog && !saveDialog.open)
+            saveDialog.showModal();
         if(filenameInput)
         {
             setTimeout(function()
@@ -150,6 +163,8 @@ const dialog =
 
         dialog.fetchFileList()
         .then(json => {
+            if(requestGeneration !== this.requestGeneration)
+                return;
             this.populateSaveFileList(json, options);
             this.showUserSaveFileList();
             this.selectDialogOption("save_dialog_user_items", options.defaultFilename || "");
@@ -208,12 +223,6 @@ const dialog =
         if(examples && examples.style.display === 'block')
             return 'examples';
         return 'user';
-    },
-
-    setupDialog(callback)
-    {
-        this.callback = callback;
-        this.window = document.getElementById('open_dialog');
     },
 
     populateFileList(file_list, options)
@@ -318,7 +327,10 @@ const dialog =
             }
             if(!text)
                 return;
-            this.window.close(text);
+            const saveDialog = document.getElementById('save_dialog');
+            if(!saveDialog)
+                throw new Error("Save As dialog is unavailable.");
+            saveDialog.close(text);
         }
         catch(err)
         {
@@ -330,8 +342,8 @@ const dialog =
 
         try
         {
-            if(this.callback)
-                this.callback(text, dialogType);
+            if(this.saveCallback)
+                this.saveCallback(text, dialogType);
         }
         catch(err)
         {
@@ -343,8 +355,10 @@ const dialog =
 
     cancelSave()
     {
-        if(this.window)
-            this.window.close(null);
+        this.requestGeneration++;
+        const saveDialog = document.getElementById('save_dialog');
+        if(saveDialog)
+            saveDialog.close(null);
     },
 
     displayMessage(message)
@@ -375,20 +389,27 @@ const dialog =
             return;
 
         let text = sel.options[sel.selectedIndex].text;
-        dialog.window.close(text);
-        if(dialog.callback)
-            dialog.callback(text);
+        const listSelectDialog = document.getElementById('list_select_dialog');
+        if(listSelectDialog)
+            listSelectDialog.close(text);
+        if(dialog.listSelectCallback)
+            dialog.listSelectCallback(text);
     },
 
     cancelListSelect()
     {
-        dialog.window.close(null);
+        dialog.requestGeneration++;
+        const listSelectDialog = document.getElementById('list_select_dialog');
+        if(listSelectDialog)
+            listSelectDialog.close(null);
     },
 
     showListSelectDialog(list, callback, message)
     {
-        dialog.callback = callback;
-        dialog.window = document.getElementById('list_select_dialog');
+        dialog.requestGeneration++;
+        controller.open_mode = false;
+        dialog.listSelectCallback = callback;
+        const listSelectDialog = document.getElementById('list_select_dialog');
         let sel = document.getElementById('listSelectDialogItems');
         sel.innerHTML = '';
         if(list)
@@ -411,7 +432,8 @@ const dialog =
             if(event.key === "Enter")
                 dialog.confirmListSelect();
         };
-        dialog.window.showModal();
+        if(listSelectDialog && !listSelectDialog.open)
+            listSelectDialog.showModal();
         setTimeout(function() { sel.focus(); }, 0);
     },
 
