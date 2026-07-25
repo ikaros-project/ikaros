@@ -881,7 +881,9 @@ def run_test(item):
                 remove_test_artifact(output_file)
         return f"[  OK  ]  {get_description(item)}{item.name}{reset}", False
     else:
-        if missing_output:
+        if http_error:
+            detail = http_error
+        elif missing_output:
             detail = f"missing output: {missing_output[0]}"
         elif present_unexpected_output:
             detail = f"unexpected output: {present_unexpected_output[0]}"
@@ -903,8 +905,6 @@ def run_test(item):
             detail = f"missing file content: {missing_file_text[0]}"
         elif present_unexpected_file_text:
             detail = f"unexpected file content: {present_unexpected_file_text[0]}"
-        elif http_error:
-            detail = http_error
         else:
             output = combined_output.strip().split('\n')
             detail = output[-1] if output and output[-1] else f"exit={actual_exit}, expected={expected_exit}"

@@ -189,6 +189,14 @@ target_link_libraries(ikaros ${LAPACK_LIBRARIES})
 find_package(CURL REQUIRED)
 target_link_libraries(ikaros CURL::libcurl)
 
+# Authenticated WebUI sessions use HMAC-SHA256. Apple platforms provide
+# CommonCrypto; Linux uses OpenSSL.
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    find_package(OpenSSL REQUIRED COMPONENTS Crypto)
+    target_link_libraries(ikaros OpenSSL::Crypto)
+    target_compile_definitions(ikaros PRIVATE IKAROS_HAVE_OPENSSL=1)
+endif()
+
 # The kernel and several modules use std::thread. The imported target supplies
 # any platform-specific compile and link flags, including -pthread on Linux.
 set(THREADS_PREFER_PTHREAD_FLAG ON)

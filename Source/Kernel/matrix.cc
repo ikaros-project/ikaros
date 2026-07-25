@@ -4925,7 +4925,7 @@ matrix::min() const
         return s;
     }
 #endif
-    float s = std::numeric_limits<float>::max();
+    float s = std::numeric_limits<float>::infinity();
     reduce([&s](float x) { if(x<s) s=x;});
     return s; 
 }
@@ -4944,7 +4944,7 @@ matrix::max() const
         return s;
     }
 #endif
-    float s = -std::numeric_limits<float>::max();
+    float s = -std::numeric_limits<float>::infinity();
     reduce([&s](float x) { if(x>s) s=x;});
     return s; 
 }

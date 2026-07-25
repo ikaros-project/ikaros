@@ -30,6 +30,11 @@
 #define IKAROS_HAVE_COMMONCRYPTO 1
 #endif
 
+#if IKAROS_HAVE_OPENSSL
+#include <openssl/evp.h>
+#include <openssl/hmac.h>
+#endif
+
 using namespace ikaros;
 using namespace std::chrono;
 using namespace std::literals;
@@ -328,6 +333,21 @@ namespace ikaros
                    message.size(),
                    digest);
             return hex_encode(digest, sizeof(digest));
+        }
+#elif IKAROS_HAVE_OPENSSL
+        std::string hmac_sha256_hex(const std::string & key, const std::string & message)
+        {
+            unsigned char digest[EVP_MAX_MD_SIZE];
+            unsigned int digest_size = 0;
+            if(HMAC(EVP_sha256(),
+                    key.data(),
+                    static_cast<int>(key.size()),
+                    reinterpret_cast<const unsigned char *>(message.data()),
+                    message.size(),
+                    digest,
+                    &digest_size) == nullptr)
+                throw exception("Could not calculate authentication HMAC.");
+            return hex_encode(digest, digest_size);
         }
 #endif
 
@@ -4833,7 +4853,7 @@ bool operator==(Request & r, const std::string s)
             random_hex_string(16) + "." +
             PasswordMarker();
 
-#if IKAROS_HAVE_COMMONCRYPTO
+#if IKAROS_HAVE_COMMONCRYPTO || IKAROS_HAVE_OPENSSL
         return payload + "." + hmac_sha256_hex(auth_cookie_secret_, payload);
 #else
         return "";
@@ -4843,7 +4863,7 @@ bool operator==(Request & r, const std::string s)
     std::string
     Kernel::PasswordMarker() const
     {
-#if IKAROS_HAVE_COMMONCRYPTO
+#if IKAROS_HAVE_COMMONCRYPTO || IKAROS_HAVE_OPENSSL
         if(auth_cookie_secret_.empty() || auth_password_.empty())
             return "";
         return hmac_sha256_hex(auth_cookie_secret_, "password:" + auth_password_).substr(0, 32);
@@ -4855,7 +4875,7 @@ bool operator==(Request & r, const std::string s)
     bool
     Kernel::LoadOrCreateAuthCookieSecret()
     {
-#if !IKAROS_HAVE_COMMONCRYPTO
+#if !IKAROS_HAVE_COMMONCRYPTO && !IKAROS_HAVE_OPENSSL
         return false;
 #else
         std::lock_guard<std::mutex> lock(auth_mutex_);
@@ -4938,7 +4958,7 @@ bool operator==(Request & r, const std::string s)
         if(!constant_time_equals(parts[2], PasswordMarker()))
             return false;
 
-#if IKAROS_HAVE_COMMONCRYPTO
+#if IKAROS_HAVE_COMMONCRYPTO || IKAROS_HAVE_OPENSSL
         std::lock_guard<std::mutex> lock(auth_mutex_);
         if(auth_cookie_secret_.empty())
             return false;

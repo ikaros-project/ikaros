@@ -195,3 +195,15 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 ### WebUI dialog outstanding issues and questions
 
 None.
+
+## Linux CI and portability follow-ups
+
+| # | Priority | Task | Status | Verification | Commit |
+|---:|:---:|---|---|---|---|
+| 1 | P1 | Diagnose and fix the remaining Linux kernel-test failures. | Implemented and verified | Linux GCC Debug build; Linux kernel tests pass except the three Node.js tests assigned to task 3; all 264 macOS tests pass | `Linux kernel behavior now passes the portable test suite` |
+| 2 | Testing | Expand Linux CI from focused smoke tests to the complete kernel test suite. | Not addressed | — | — |
+| 3 | Testing | Install Node.js in Linux CI and run the WebUI JavaScript regression tests. | Not addressed | — | — |
+| 4 | Testing | Add a Linux CI WebUI smoke test that starts Ikaros and verifies the main page and logo over HTTP. | Not addressed | — | — |
+| 5 | Testing | Test Linux builds with both GCC and Clang. | Not addressed | — | — |
+| 6 | Testing | Add Linux CI coverage for optional dependencies and the modules they enable. | Not addressed | — | — |
+| 7 | Documentation | Update the Linux installation documentation to match the CI-verified dependencies and optional-module support. | Not addressed | — | — |

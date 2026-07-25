@@ -2,7 +2,7 @@
     name="TestWebUISubscriptionSnapshotRefresh"
     description="Refresh WebUI snapshots immediately when subscriptions change"
     start="true"
-    stop="100"
+    stop="1000"
     tick_duration="0.001"
     webui_req_int="1"
     webui_port="8219"
