@@ -302,11 +302,14 @@ const dialog =
 
     confirmSave()
     {
-        try {
-            const dialogType = this.getSaveDialogType();
+        let text = "";
+        let dialogType = "";
+        try
+        {
+            dialogType = this.getSaveDialogType();
             const sel = document.getElementById(`save_dialog_${dialogType}_items`);
             const filenameInput = document.getElementById("save_dialog_filename");
-            let text = filenameInput ? filenameInput.value.trim() : "";
+            text = filenameInput ? filenameInput.value.trim() : "";
             if(!text && sel)
             {
                 if(sel.selectedIndex < 0 && sel.options.length > 0)
@@ -316,12 +319,25 @@ const dialog =
             if(!text)
                 return;
             this.window.close(text);
+        }
+        catch(err)
+        {
+            const message = err && err.message ? err.message : String(err);
+            console.error("Could not confirm Save As dialog:", err);
+            alert("Could not confirm Save As dialog: " + message);
+            return;
+        }
+
+        try
+        {
             if(this.callback)
                 this.callback(text, dialogType);
         }
         catch(err)
         {
-            alert("Error saving file");
+            const message = err && err.message ? err.message : String(err);
+            console.error("Could not start saving file:", err);
+            alert("Could not start saving file: " + message);
         }
     },
 
