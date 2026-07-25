@@ -725,39 +725,49 @@ if arguments.jobs < 1:
 print(f"\n{bold}Running Ikaros {suite_name}{reset}\n")
 
 
-def run_webui_dialog_test():
-    test_path = (
+def run_webui_javascript_tests():
+    test_directory = (
         script_directory.parents[2]
         / "WebUI"
         / "UnitTesting"
-        / "dialog_test.js"
     )
+    test_paths = [
+        test_directory / "dialog_test.js",
+        test_directory / "save_test.js",
+    ]
     node = shutil.which("node")
     if node is None:
-        return (
-            f"{red}{bold}[ FAIL ]  WebUI dialog regressions – "
-            f"{test_path.name}{reset} (Node.js was not found)",
+        return [
+            (
+                f"{red}{bold}[ FAIL ]  WebUI regressions – "
+                f"{test_path.name}{reset} (Node.js was not found)",
+                True,
+            )
+            for test_path in test_paths
+        ]
+
+    results = []
+    for test_path in test_paths:
+        result = subprocess.run(
+            [node, str(test_path)],
+            text=True,
+            capture_output=True,
+        )
+        if result.returncode == 0:
+            results.append((
+                f"[  OK  ]  WebUI regressions – {test_path.name}{reset}",
+                False,
+            ))
+            continue
+
+        output = ((result.stdout or "") + (result.stderr or "")).strip().splitlines()
+        detail = output[-1] if output else f"exit={result.returncode}"
+        results.append((
+            f"{red}{bold}[ FAIL ]  WebUI regressions – "
+            f"{test_path.name}{reset} ({detail})",
             True,
-        )
-
-    result = subprocess.run(
-        [node, str(test_path)],
-        text=True,
-        capture_output=True,
-    )
-    if result.returncode == 0:
-        return (
-            f"[  OK  ]  WebUI dialog regressions – {test_path.name}{reset}",
-            False,
-        )
-
-    output = ((result.stdout or "") + (result.stderr or "")).strip().splitlines()
-    detail = output[-1] if output else f"exit={result.returncode}"
-    return (
-        f"{red}{bold}[ FAIL ]  WebUI dialog regressions – "
-        f"{test_path.name}{reset} ({detail})",
-        True,
-    )
+        ))
+    return results
 
 
 def run_test(item):
@@ -923,7 +933,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=arguments.jobs) as execut
     results = [future.result() for future in test_futures]
 
 if current_directory == script_directory:
-    results.append(run_webui_dialog_test())
+    results.extend(run_webui_javascript_tests())
 
 for line, _ in results:
     print(line)

@@ -424,9 +424,127 @@ async function testListSelectionSupersedesPendingOpen()
 }
 
 
+async function testFileListFailureDoesNotPoisonNextSave()
+{
+    const failedFiles = deferred();
+    const recoveredFiles = deferred();
+    const requests = [failedFiles.promise, recoveredFiles.promise];
+    const filenameInput = {
+        value: "recovered_after_file_list_failure",
+        focus() {},
+        select() {},
+    };
+    let openShowCount = 0;
+    let saveShowCount = 0;
+    let saveCallbackCount = 0;
+    const alerts = [];
+
+    const elements = {
+        open_dialog: {
+            open: false,
+            close() {},
+            showModal()
+            {
+                openShowCount++;
+                this.open = true;
+            },
+        },
+        save_dialog: {
+            open: false,
+            close()
+            {
+                this.open = false;
+            },
+            showModal()
+            {
+                saveShowCount++;
+                this.open = true;
+            },
+        },
+        save_dialog_filename: filenameInput,
+    };
+    const controller = {
+        session_id: 1,
+        client_id: 2,
+        filelist: {cached: true},
+        open_mode: true,
+    };
+    const context = vm.createContext({
+        alert(message)
+        {
+            alerts.push(message);
+        },
+        console: {
+            error() {},
+        },
+        controller,
+        document: {
+            getElementById(id)
+            {
+                return elements[id] || null;
+            },
+            querySelector()
+            {
+                return null;
+            },
+        },
+        fetch()
+        {
+            return requests.shift();
+        },
+        setTimeout(callback)
+        {
+            callback();
+        },
+    });
+    const dialog = loadDialog(context);
+
+    dialog.configureOpenDialogSources = function() {};
+    dialog.setOpenDialogButtonText = function() {};
+    dialog.populateFileList = function() {};
+    dialog.showUserFileList = function() {};
+    dialog.showSystemFileList = function() {};
+    dialog.showExamplesFileList = function() {};
+    dialog.selectDialogOption = function() {};
+    dialog.displayMessage = function() {};
+    dialog.populateSaveFileList = function() {};
+    dialog.setSaveDialogButtonText = function() {};
+    dialog.showUserSaveFileList = function() {};
+
+    dialog.showOpenDialog(function() {}, "Open");
+    failedFiles.reject(new Error("injected /files failure"));
+    await flushPromises();
+
+    assert.equal(openShowCount, 0);
+    assert.equal(controller.open_mode, false);
+    assert.deepEqual(alerts, [
+        "Could not get file list from server: injected /files failure",
+    ]);
+
+    dialog.showSaveDialog(function() {
+        saveCallbackCount++;
+    }, "Save");
+    recoveredFiles.resolve({
+        ok: true,
+        json()
+        {
+            return Promise.resolve({user_files: ["recovered.ikg"]});
+        },
+    });
+    await flushPromises();
+
+    assert.equal(saveShowCount, 1);
+    dialog.confirmSave();
+    assert.equal(saveCallbackCount, 1);
+    assert.equal(dialog.openCallback, null);
+    assert.equal(dialog.saveCallback, null);
+}
+
+
 testStaleOpenDoesNotReplaceSave()
 .then(testStaleSaveDoesNotReplaceOpen)
 .then(testListSelectionSupersedesPendingOpen)
+.then(testFileListFailureDoesNotPoisonNextSave)
 .then(() => {
     console.log("dialog tests passed");
 })

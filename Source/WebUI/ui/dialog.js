@@ -116,6 +116,8 @@ const dialog =
     {
         const options = arguments.length > 2 && arguments[2] ? arguments[2] : {};
         const requestGeneration = ++this.requestGeneration;
+        this.saveCallback = null;
+        this.listSelectCallback = null;
         this.openCallback = callback;
         this.configureOpenDialogSources(options);
         this.setOpenDialogButtonText(options.confirmLabel || "Open");
@@ -150,6 +152,8 @@ const dialog =
         const options = arguments.length > 2 && arguments[2] ? arguments[2] : {};
         const requestGeneration = ++this.requestGeneration;
         controller.open_mode = false;
+        this.openCallback = null;
+        this.listSelectCallback = null;
         this.saveCallback = callback;
         const saveDialog = document.getElementById('save_dialog');
         this.populateSaveFileList(controller.filelist || {}, options);
@@ -449,6 +453,8 @@ const dialog =
     {
         dialog.requestGeneration++;
         controller.open_mode = false;
+        dialog.openCallback = null;
+        dialog.saveCallback = null;
         dialog.listSelectCallback = callback;
         const listSelectDialog = document.getElementById('list_select_dialog');
         let sel = document.getElementById('listSelectDialogItems');
