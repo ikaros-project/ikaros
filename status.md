@@ -165,6 +165,6 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | # | Priority | Task | Status | Verification | Commit |
 |---:|:---:|---|---|---|---|
 | 1 | P2 | Preserve and report the underlying Open-dialog confirmation and callback errors. | Implemented and verified | Dialog regression test; JavaScript syntax check | `Open dialog errors now expose their underlying cause` |
-| 2 | P2 | Extend dialog regression coverage to stale Save-to-Open and list-selection races. | Not addressed | — | — |
+| 2 | P2 | Extend dialog regression coverage to stale Save-to-Open and list-selection races. | Implemented and verified | Three dependency-free dialog race regressions pass | `Dialog tests now cover stale request ordering` |
 | 3 | Testing | Register the WebUI dialog regression test with the standard automated test workflow. | Not addressed | — | — |
 | 4 | Testing | Run the complete Open-to-Save-As browser scenario when localhost browser access is available. | Not addressed | — | — |
