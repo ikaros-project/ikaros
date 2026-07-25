@@ -13,6 +13,7 @@
 #include <algorithm> // For std::min
 #include <array>
 #include <charconv>
+#include <cstdarg>
 #include <future>
 #include <memory>
 #include <optional>
