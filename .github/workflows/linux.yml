@@ -1,0 +1,62 @@
+name: Linux
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linux-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-smoke-test:
+    name: Ubuntu 24.04 / GCC
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    env:
+      CC: gcc
+      CXX: g++
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            build-essential \
+            cmake \
+            libcurl4-openssl-dev \
+            libjpeg-turbo8-dev \
+            liblapack-dev \
+            libopenblas-dev \
+            libpng-dev \
+            libtiff-dev \
+            libwebp-dev
+
+      - name: Configure
+        run: cmake -S . -B Build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build Build --parallel 2
+
+      - name: Run kernel smoke tests
+        run: |
+          ./Bin/ikaros \
+            -A "GitHub Actions: Ubuntu 24.04 GCC" \
+            -s0 \
+            -b \
+            Source/Kernel/UnitTesting/KernelTests/test_01_parameters_defaults.ikg
+          ./Bin/ikaros \
+            -A "GitHub Actions: Ubuntu 24.04 GCC" \
+            -s0 \
+            -b \
+            Source/Kernel/UnitTesting/KernelTests/test_333_session_logging_queue.ikg
