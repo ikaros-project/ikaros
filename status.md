@@ -205,5 +205,5 @@ None.
 | 3 | Testing | Install Node.js in Linux CI and run the WebUI JavaScript regression tests. | Implemented and verified | Ubuntu with Node.js passed all 264 kernel and WebUI JavaScript tests | `Linux CI now includes WebUI JavaScript regressions` |
 | 4 | Testing | Add a Linux CI WebUI smoke test that starts Ikaros and verifies the main page and logo over HTTP. | Implemented and verified | Ubuntu smoke test launched Ikaros and validated `index.html` plus the PNG signature of `Images/logo.png` | `Linux CI now verifies the WebUI and logo` |
 | 5 | Testing | Test Linux builds with both GCC and Clang. | Implemented and verified | Ubuntu Clang 18 build passed all 264 tests and the WebUI smoke test; GCC verification retained | `Linux CI now tests GCC and Clang` |
-| 6 | Testing | Add Linux CI coverage for optional dependencies and the modules they enable. | Not addressed | — | — |
+| 6 | Testing | Add Linux CI coverage for optional dependencies and the modules they enable. | Implemented and verified | Ubuntu 24.04 Release build passed with Dlib, FFmpeg, libusb, PNG, TIFF, and WebP support enabled | `Linux CI now builds optional modules` |
 | 7 | Documentation | Update the Linux installation documentation to match the CI-verified dependencies and optional-module support. | Not addressed | — | — |
