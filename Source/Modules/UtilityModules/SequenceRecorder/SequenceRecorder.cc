@@ -2255,8 +2255,8 @@ public:
 
         for (int c = 0; c < channel_count; c++)
         {
-            left_index[c] = 0;
-            right_index[c] = INT_MAX;
+            left_index(c) = 0;
+            right_index(c) = std::numeric_limits<float>::max();
         }
 
         if (!std::string(filename).empty() && fs::exists(resolved_directory / std::string(filename)))

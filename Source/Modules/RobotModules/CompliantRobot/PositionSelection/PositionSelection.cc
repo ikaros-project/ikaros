@@ -1,6 +1,8 @@
 #include "ikaros.h"
 //#include "dynamixel_sdk.h"
 
+#include <cmath>
+
 using namespace ikaros;
 
 class PositionSelection: public Module
@@ -68,7 +70,7 @@ class PositionSelection: public Module
             return {false, -1};
         for(int i=0; i<m1.rank(); i++)
         { 
-        if (abs(m1[i].sum() - m2[i].sum()) > margin && m1[i].sum() >0 && m2[i].sum() >0)
+        if (std::abs(m1[i].sum() - m2[i].sum()) > margin && m1[i].sum() >0 && m2[i].sum() >0)
             return {true, i};
         
         }

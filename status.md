@@ -212,5 +212,4 @@ None.
 
 - Dynamixel support and hardware-dependent module behavior are not exercised by hosted Linux CI.
 - Optional modules are compile-tested, but their hardware and runtime behavior is not covered.
-- Clang reports existing conversion warnings in `SequenceRecorder` and `DeepNetwork`, and floating-point calls to the integer `abs` overload in `PositionSelection` and `CurrentPositionMapping`.
 - The GitHub wiki is stored separately from this repository. Its Linux section should be replaced with or linked to `docs/LINUX.md` so it does not drift from the CI-tested instructions.

@@ -109,7 +109,7 @@ FullyConnectedLayer::FullyConnectedLayer(int input_size, int output_size) {
     output = matrix(1, output_size);
     d_input = matrix(1, input_size);
     for (int i = 0; i < weights.size(); ++i) {
-        weights.data()[i] = static_cast<float>(rand()) / RAND_MAX * 0.01f;
+        weights.data()[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 0.01f;
     }
     
     // set names on the matrices
@@ -209,7 +209,7 @@ ConvolutionalLayer::ConvolutionalLayer(int num_filters, int kernel_size){
         filter = matrix(kernel_size, kernel_size);
         
         for (int i = 0; i < filter.size(); ++i) {
-            filter.data()[i] = static_cast<float>(rand()) / RAND_MAX * 0.01f;
+            filter.data()[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 0.01f;
         }
     }
 
