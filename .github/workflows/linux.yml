@@ -28,6 +28,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Install build dependencies
         run: |
           sudo apt-get update
@@ -53,5 +58,4 @@ jobs:
         run: |
           python3 Source/Kernel/UnitTesting/KernelTests/kernel_test.py \
             --ikaros Bin/ikaros \
-            --jobs 2 \
-            --skip-webui-js
+            --jobs 2
