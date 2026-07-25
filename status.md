@@ -160,7 +160,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 | 2 | P1 | Make zero-denominator `Normalize` modes produce a zero matrix instead of attempting scalar assignment. | Addressed | Debug build; checksum-backed coverage for all four zero-denominator modes; all 257 kernel tests passed | `Normalize now zeroes outputs for zero denominators` |
 | 3 | P2 | Make range, Euclidean, and city-block normalization stable for large finite values. | Addressed | Debug build; checksum-backed finite-extreme coverage for all affected modes; all 258 kernel tests passed | `Normalize now remains stable for finite extremes` |
 | 4 | P2 | Keep `RegressionStatistics` sample capacity consistent with its fixed startup output shapes. | Addressed | Debug build; checksum-backed runtime shrink/growth attempts and rate-limited warning; all 259 kernel tests passed | `RegressionStatistics now keeps its startup sample capacity` |
-| 5 | P2 | Replace numerically fragile normal-equation model comparison with a scale-robust calculation. | Not addressed | — | — |
+| 5 | P2 | Replace numerically fragile normal-equation model comparison with a scale-robust calculation. | Addressed | Debug build; checksum-backed small-scale model comparison with finite statistics and validated degrees of freedom; all 260 kernel tests passed | `Regression model comparisons now remain stable across scales` |
 | 6 | P2 | Ensure non-finite `RegressionStatistics` sampling-mask values do not enable sampling. | Not addressed | — | — |
 | 7 | P2 | Define and implement safe `Softmax` behavior for non-finite inputs. | Not addressed | — | — |
 | 8 | P2/P3 | Validate `RegressionStatistics` topology during startup and remove runtime shape adaptation. | Not addressed | — | — |

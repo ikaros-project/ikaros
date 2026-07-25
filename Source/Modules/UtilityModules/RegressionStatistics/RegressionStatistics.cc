@@ -196,6 +196,28 @@ class RegressionStatistics: public Module
         bool valid = false;
     };
 
+    struct CenteredSums
+    {
+        int samples = 0;
+        double mean_x = 0.0;
+        double mean_y = 0.0;
+        double sxx = 0.0;
+        double syy = 0.0;
+        double sxy = 0.0;
+
+        void Add(double x_value, double y_value)
+        {
+            ++samples;
+            const double dx = x_value - mean_x;
+            mean_x += dx / static_cast<double>(samples);
+            const double dy = y_value - mean_y;
+            mean_y += dy / static_cast<double>(samples);
+            sxx += dx * (x_value - mean_x);
+            syy += dy * (y_value - mean_y);
+            sxy += dx * (y_value - mean_y);
+        }
+    };
+
     void WriteModelComparison()
     {
         model_comparison.set(std::numeric_limits<float>::quiet_NaN());
@@ -271,35 +293,44 @@ class RegressionStatistics: public Module
         if (fit.samples <= fit.parameters)
             return fit;
 
-        std::vector<std::vector<double>> xtx(fit.parameters, std::vector<double>(fit.parameters, 0.0));
-        std::vector<double> xty(fit.parameters, 0.0);
-
+        CenteredSums total;
+        std::vector<CenteredSums> groups(group_count);
         for (const GroupSample & sample : data)
         {
-            const std::vector<double> row = DesignRow(sample, group_count, separate_intercepts, separate_slopes);
-            for (int i = 0; i < fit.parameters; ++i)
+            if (sample.group < 0 || sample.group >= group_count)
+                return fit;
+            total.Add(sample.x, sample.y);
+            groups[sample.group].Add(sample.x, sample.y);
+        }
+
+        if (separate_slopes)
+        {
+            fit.sse = 0.0;
+            for (const CenteredSums & group : groups)
             {
-                xty[i] += row[i] * sample.y;
-                for (int j = 0; j < fit.parameters; ++j)
-                    xtx[i][j] += row[i] * row[j];
+                const double group_sse = RegressionSSE(group);
+                if (!std::isfinite(group_sse))
+                {
+                    fit.sse = std::numeric_limits<double>::quiet_NaN();
+                    return fit;
+                }
+                fit.sse += group_sse;
             }
         }
-
-        std::vector<double> beta;
-        if (!SolveLinearSystem(xtx, xty, beta))
-            return fit;
-
-        fit.sse = 0.0;
-        for (const GroupSample & sample : data)
+        else if (separate_intercepts)
         {
-            const std::vector<double> row = DesignRow(sample, group_count, separate_intercepts, separate_slopes);
-            double predicted = 0.0;
-            for (int i = 0; i < fit.parameters; ++i)
-                predicted += row[i] * beta[i];
-
-            const double residual = sample.y - predicted;
-            fit.sse += residual * residual;
+            CenteredSums within_groups;
+            for (const CenteredSums & group : groups)
+            {
+                within_groups.samples += group.samples;
+                within_groups.sxx += group.sxx;
+                within_groups.syy += group.syy;
+                within_groups.sxy += group.sxy;
+            }
+            fit.sse = RegressionSSE(within_groups);
         }
+        else
+            fit.sse = RegressionSSE(total);
 
         fit.valid = std::isfinite(fit.sse);
         return fit;
@@ -314,73 +345,15 @@ class RegressionStatistics: public Module
         return 2;
     }
 
-    std::vector<double> DesignRow(const GroupSample & sample, int group_count, bool separate_intercepts, bool separate_slopes) const
+    double RegressionSSE(const CenteredSums & sums) const
     {
-        std::vector<double> row(ModelParameterCount(group_count, separate_intercepts, separate_slopes), 0.0);
+        if (sums.samples < 2 || !(sums.sxx > 0.0) ||
+            !std::isfinite(sums.sxx) || !std::isfinite(sums.syy) ||
+            !std::isfinite(sums.sxy))
+            return std::numeric_limits<double>::quiet_NaN();
 
-        if (separate_slopes)
-        {
-            row[sample.group] = 1.0;
-            row[group_count + sample.group] = sample.x;
-            return row;
-        }
-
-        if (separate_intercepts)
-        {
-            row[sample.group] = 1.0;
-            row[group_count] = sample.x;
-            return row;
-        }
-
-        row[0] = 1.0;
-        row[1] = sample.x;
-        return row;
-    }
-
-    bool SolveLinearSystem(std::vector<std::vector<double>> a, std::vector<double> b, std::vector<double> & x) const
-    {
-        const int n = static_cast<int>(b.size());
-        if (n == 0 || static_cast<int>(a.size()) != n)
-            return false;
-
-        for (int col = 0; col < n; ++col)
-        {
-            int pivot = col;
-            for (int row = col + 1; row < n; ++row)
-                if (std::fabs(a[row][col]) > std::fabs(a[pivot][col]))
-                    pivot = row;
-
-            if (std::fabs(a[pivot][col]) < 1.0e-12)
-                return false;
-
-            if (pivot != col)
-            {
-                std::swap(a[pivot], a[col]);
-                std::swap(b[pivot], b[col]);
-            }
-
-            const double divisor = a[col][col];
-            for (int j = col; j < n; ++j)
-                a[col][j] /= divisor;
-            b[col] /= divisor;
-
-            for (int row = 0; row < n; ++row)
-            {
-                if (row == col)
-                    continue;
-
-                const double factor = a[row][col];
-                if (factor == 0.0)
-                    continue;
-
-                for (int j = col; j < n; ++j)
-                    a[row][j] -= factor * a[col][j];
-                b[row] -= factor * b[col];
-            }
-        }
-
-        x = std::move(b);
-        return true;
+        const double explained = sums.sxy * sums.sxy / sums.sxx;
+        return std::max(0.0, sums.syy - explained);
     }
 
     void WriteModelComparisonColumn(int column, const ModelFit & reduced, const ModelFit & full, int group_count, int total_samples)

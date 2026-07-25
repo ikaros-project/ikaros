@@ -597,6 +597,84 @@ class RegressionCapacityTestModule : public Module
 };
 
 
+class RegressionModelComparisonTestModule : public Module
+{
+    matrix x;
+    matrix y;
+    matrix modelComparison;
+    bool verified = false;
+
+    void Init() override
+    {
+        Bind(x, "X");
+        Bind(y, "Y");
+        Bind(modelComparison, "MODEL_COMPARISON");
+    }
+
+    void Tick() override
+    {
+        const double sample = static_cast<double>(GetTick());
+        const double xValue = sample * 1.0e-8;
+        const double noise0 =
+            GetTick() % 2 == 0 ? -0.001 : 0.001;
+        const double noise1 =
+            GetTick() % 3 == 0 ? -0.0015 : 0.00075;
+        x(0) = static_cast<float>(xValue);
+        y(0) = static_cast<float>(1.0 + 1.0e6 * xValue + noise0);
+        y(1) = static_cast<float>(2.0 + 2.0e6 * xValue + noise1);
+
+        if(verified || GetTick() < 20)
+            return;
+        if(modelComparison.rank() != 2 ||
+           modelComparison.rows() != 7 ||
+           modelComparison.cols() != 2)
+            throw exception(
+                "RegressionModelComparisonTestModule: unexpected output "
+                "shape");
+
+        for(int index = 0; index < modelComparison.size(); ++index)
+            if(!std::isfinite(modelComparison.data()[index]))
+                throw exception(
+                    "RegressionModelComparisonTestModule: non-finite "
+                    "model comparison");
+        for(int column = 0; column < 2; ++column)
+        {
+            if(modelComparison(0, column) < 0.0f ||
+               modelComparison(0, column) > 1.0f ||
+               modelComparison(4, column) < 0.0f ||
+               modelComparison(4, column) > 1.0f)
+                throw exception(
+                    "RegressionModelComparisonTestModule: probability or "
+                    "effect size is out of range");
+        }
+        require_close(
+            modelComparison(2, 0), 1.0, 0.0,
+            "intercept-comparison numerator degrees of freedom");
+        require_close(
+            modelComparison(2, 1), 1.0, 0.0,
+            "slope-comparison numerator degrees of freedom");
+        require_close(
+            modelComparison(5, 0), 2.0, 0.0,
+            "intercept-comparison group count");
+        require_close(
+            modelComparison(5, 1), 2.0, 0.0,
+            "slope-comparison group count");
+        require_close(
+            modelComparison(6, 0), modelComparison(6, 1), 0.0,
+            "model-comparison sample counts");
+        require_close(
+            modelComparison(3, 0), modelComparison(6, 0) - 3.0, 0.0,
+            "intercept-comparison denominator degrees of freedom");
+        require_close(
+            modelComparison(3, 1), modelComparison(6, 1) - 4.0, 0.0,
+            "slope-comparison denominator degrees of freedom");
+
+        verified = true;
+        std::cout << "REGRESSION MODEL TEST OK" << std::endl;
+    }
+};
+
+
 class MathsBenchmarkModule : public Module
 {
     void Init() override
@@ -637,4 +715,5 @@ INSTALL_CLASS(SoftmaxInputTestModule)
 INSTALL_CLASS(NormalizeZeroTestModule)
 INSTALL_CLASS(NormalizeFiniteTestModule)
 INSTALL_CLASS(RegressionCapacityTestModule)
+INSTALL_CLASS(RegressionModelComparisonTestModule)
 INSTALL_CLASS(MathsBenchmarkModule)
