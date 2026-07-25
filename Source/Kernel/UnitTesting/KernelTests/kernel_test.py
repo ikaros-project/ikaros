@@ -41,6 +41,17 @@ def split_expected_paths(value):
     return [Path(item) for item in value.split("||") if item]
 
 
+def expand_test_paths(value, test_file):
+    replacements = {
+        "${IKAROS_ROOT}": str(ikaros_binary.parent.parent),
+        "${TEST_DIR}": str(test_file.parent),
+        "${USER_DATA}": str(ikaros_binary.parent.parent / "UserData"),
+    }
+    for placeholder, path in replacements.items():
+        value = value.replace(placeholder, path)
+    return value
+
+
 def remove_test_artifact(path):
     if path.is_symlink() or path.is_file():
         path.unlink()
@@ -777,10 +788,17 @@ def run_webui_javascript_tests():
 
 def run_test(item):
     root = ET.parse(item).getroot()
+    cli_args = root.get("cli_args")
+    for key, value in root.attrib.items():
+        if key != "cli_args":
+            root.set(key, expand_test_paths(value, item))
     http_requests = root.get("http_requests") is not None
     cmd = [str(ikaros_binary), str(item)] if http_requests else [str(ikaros_binary), "-b", str(item)]
-    if root.get("cli_args") is not None:
-        cmd[1:1] = shlex.split(root.get("cli_args"))
+    if cli_args is not None:
+        cmd[1:1] = [
+            expand_test_paths(argument, item)
+            for argument in shlex.split(cli_args)
+        ]
     if (root.get("webui_port") is not None and
             root.get("pass_webui_port_as_cli", "true") == "true"):
         cmd.insert(1, f"-w{root.get('webui_port')}")

@@ -5,7 +5,7 @@
     stop="100"
     tick_duration="0.01"
     webui_port="8208"
-    cli_args="-u/Users/cba/ikaros/Source/Kernel/UnitTesting/KernelTests"
+    cli_args="-u${TEST_DIR}"
     http_start_delay="0.2"
     http_requests="open?file=fixture_reload_tick_target||sleep:0.1"
     http_terminate_after_requests="true"
