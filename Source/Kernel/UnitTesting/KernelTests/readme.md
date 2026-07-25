@@ -3,7 +3,9 @@
 This directory contains ikg files that test kernel functionality in Ikaros.
 
 Run `python3 kernel_test.py` to check the kernel tests. Python-backed kernel tests
-are in the sibling `PythonTests` directory and have their own runner.
+are in the sibling `PythonTests` directory and have their own runner. A default
+run also executes the dependency-free WebUI dialog regressions with Node.js;
+Node.js must be available on `PATH`.
 
 Tests run in parallel, using 30 workers by default. Pass `--jobs N` (or
 `-j N`) to choose another limit; use `--jobs 1` for sequential execution.

@@ -10,6 +10,7 @@ with ".ikg". Use --ikaros to select the executable under test.
 
 import argparse
 import concurrent.futures
+import shutil
 import subprocess
 import shlex
 import sys
@@ -724,6 +725,41 @@ if arguments.jobs < 1:
 print(f"\n{bold}Running Ikaros {suite_name}{reset}\n")
 
 
+def run_webui_dialog_test():
+    test_path = (
+        script_directory.parents[2]
+        / "WebUI"
+        / "UnitTesting"
+        / "dialog_test.js"
+    )
+    node = shutil.which("node")
+    if node is None:
+        return (
+            f"{red}{bold}[ FAIL ]  WebUI dialog regressions – "
+            f"{test_path.name}{reset} (Node.js was not found)",
+            True,
+        )
+
+    result = subprocess.run(
+        [node, str(test_path)],
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode == 0:
+        return (
+            f"[  OK  ]  WebUI dialog regressions – {test_path.name}{reset}",
+            False,
+        )
+
+    output = ((result.stdout or "") + (result.stderr or "")).strip().splitlines()
+    detail = output[-1] if output else f"exit={result.returncode}"
+    return (
+        f"{red}{bold}[ FAIL ]  WebUI dialog regressions – "
+        f"{test_path.name}{reset} ({detail})",
+        True,
+    )
+
+
 def run_test(item):
     root = ET.parse(item).getroot()
     http_requests = root.get("http_requests") is not None
@@ -886,6 +922,9 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=arguments.jobs) as execut
     test_futures = [submit(item) for item in test_files]
     results = [future.result() for future in test_futures]
 
+if current_directory == script_directory:
+    results.append(run_webui_dialog_test())
+
 for line, _ in results:
     print(line)
 errors = sum(failed for _, failed in results)
@@ -894,4 +933,4 @@ if errors > 0:
     print(f"\n{red}{bold}***** Ikaros failed {errors} tests *****{reset}\n")
     sys.exit(1)
 else:
-    print(f"\nIkaros passed all {len(test_files)} tests\n")
+    print(f"\nIkaros passed all {len(results)} tests\n")
