@@ -10,21 +10,17 @@ const dialog =
     {
         return fetch('/files', {method: 'GET', headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id}})
         .then(response => {
-            if(!response.ok) {
-                alert("Could not get file list from server.");
+            if(!response.ok)
                 throw new Error("HTTP error " + response.status);
-            }
             return response.json();
-        })
-        .then(json => {
-            controller.filelist = json;
-            return json;
-        })
-        .catch(function(error) {
-            alert("Could not get file list from server.");
-            console.log("Could not get file list from server.");
-            throw error;
         });
+    },
+
+    reportFileListError(error)
+    {
+        const message = error && error.message ? error.message : String(error);
+        console.error("Could not get file list from server:", error);
+        alert("Could not get file list from server: " + message);
     },
 
     setActiveFileSource(prefix, activeType)
@@ -73,9 +69,12 @@ const dialog =
             const sel = document.getElementById(`open_dialog_${dialogType}_items`);
             const text = sel.options[sel.selectedIndex].text;
             const openDialog = document.getElementById('open_dialog');
+            this.requestGeneration++;
             openDialog.close(text);
-            if(this.openCallback)
-                this.openCallback(text, dialogType);
+            const callback = this.openCallback;
+            this.openCallback = null;
+            if(callback)
+                callback(text, dialogType);
         }
         catch(err)
         {
@@ -86,6 +85,7 @@ const dialog =
     cancelOpen()
     {
         this.requestGeneration++;
+        this.openCallback = null;
         controller.open_mode = false;
         const openDialog = document.getElementById('open_dialog');
         if(openDialog)
@@ -103,6 +103,7 @@ const dialog =
         .then(json => {
             if(requestGeneration !== this.requestGeneration)
                 return;
+            controller.filelist = json;
             this.populateFileList(json, options);
             if(options.userOnly)
                 this.showUserFileList();
@@ -115,6 +116,12 @@ const dialog =
             const openDialog = document.getElementById('open_dialog');
             if(openDialog && !openDialog.open)
                 openDialog.showModal();
+        })
+        .catch(error => {
+            if(requestGeneration !== this.requestGeneration)
+                return;
+            controller.open_mode = false;
+            this.reportFileListError(error);
         });
     },
 
@@ -165,9 +172,15 @@ const dialog =
         .then(json => {
             if(requestGeneration !== this.requestGeneration)
                 return;
+            controller.filelist = json;
             this.populateSaveFileList(json, options);
             this.showUserSaveFileList();
             this.selectDialogOption("save_dialog_user_items", options.defaultFilename || "");
+        })
+        .catch(error => {
+            if(requestGeneration !== this.requestGeneration)
+                return;
+            this.reportFileListError(error);
         });
     },
 
@@ -330,6 +343,7 @@ const dialog =
             const saveDialog = document.getElementById('save_dialog');
             if(!saveDialog)
                 throw new Error("Save As dialog is unavailable.");
+            this.requestGeneration++;
             saveDialog.close(text);
         }
         catch(err)
@@ -342,8 +356,10 @@ const dialog =
 
         try
         {
-            if(this.saveCallback)
-                this.saveCallback(text, dialogType);
+            const callback = this.saveCallback;
+            this.saveCallback = null;
+            if(callback)
+                callback(text, dialogType);
         }
         catch(err)
         {
@@ -356,6 +372,7 @@ const dialog =
     cancelSave()
     {
         this.requestGeneration++;
+        this.saveCallback = null;
         const saveDialog = document.getElementById('save_dialog');
         if(saveDialog)
             saveDialog.close(null);
@@ -390,15 +407,19 @@ const dialog =
 
         let text = sel.options[sel.selectedIndex].text;
         const listSelectDialog = document.getElementById('list_select_dialog');
+        dialog.requestGeneration++;
         if(listSelectDialog)
             listSelectDialog.close(text);
-        if(dialog.listSelectCallback)
-            dialog.listSelectCallback(text);
+        const callback = dialog.listSelectCallback;
+        dialog.listSelectCallback = null;
+        if(callback)
+            callback(text);
     },
 
     cancelListSelect()
     {
         dialog.requestGeneration++;
+        dialog.listSelectCallback = null;
         const listSelectDialog = document.getElementById('list_select_dialog');
         if(listSelectDialog)
             listSelectDialog.close(null);
