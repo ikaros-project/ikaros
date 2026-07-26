@@ -17,13 +17,6 @@
 #include <system_error>
 #include <sys/resource.h>
 
-#if defined(_WIN32)
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#include <windows.h>
-#endif
-
 #if __has_include(<CommonCrypto/CommonDigest.h>) && __has_include(<CommonCrypto/CommonHMAC.h>)
 #include <CommonCrypto/CommonDigest.h>
 #include <CommonCrypto/CommonHMAC.h>
@@ -108,21 +101,12 @@ namespace ikaros
         replace_file_atomically(const std::filesystem::path & source,
                                 const std::filesystem::path & target)
         {
-#if defined(_WIN32)
-            if(!MoveFileExW(source.c_str(), target.c_str(),
-                            MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
-                throw std::system_error(
-                    static_cast<int>(GetLastError()), std::system_category(),
-                    "Could not atomically replace model \"" +
-                    target.string() + "\"");
-#else
             std::error_code error;
             std::filesystem::rename(source, target, error);
             if(error)
                 throw std::system_error(
                     error, "Could not atomically replace model \"" +
                                target.string() + "\"");
-#endif
         }
 
 
@@ -496,11 +480,7 @@ namespace ikaros
             auto now = system_clock::now();
             std::time_t now_time = system_clock::to_time_t(now);
             std::tm utc {};
-#if defined(_WIN32)
-            gmtime_s(&utc, &now_time);
-#else
             gmtime_r(&now_time, &utc);
-#endif
             std::ostringstream result;
             result << std::put_time(&utc, "%Y-%m-%dT%H:%M:%SZ");
             return result.str();

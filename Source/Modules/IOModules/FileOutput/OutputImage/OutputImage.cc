@@ -8,10 +8,6 @@
 #include <string_view>
 #include <system_error>
 
-#if defined(_WIN32)
-#include <windows.h>
-#endif
-
 #include "ikaros.h"
 #include "../../FileInput/image_sequence.h"
 
@@ -215,21 +211,12 @@ class OutputImage : public Module
     ReplaceFileAtomically(const std::filesystem::path & source,
                           const std::filesystem::path & target)
     {
-#if defined(_WIN32)
-        if(!MoveFileExW(source.c_str(), target.c_str(),
-                        MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
-            throw std::system_error(
-                static_cast<int>(GetLastError()), std::system_category(),
-                "Could not atomically replace image \"" + target.string() +
-                "\"");
-#else
         std::error_code error;
         std::filesystem::rename(source, target, error);
         if(error)
             throw std::system_error(
                 error, "Could not atomically replace image \"" +
                            target.string() + "\"");
-#endif
     }
 
 

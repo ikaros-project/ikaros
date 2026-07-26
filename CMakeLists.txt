@@ -119,12 +119,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    # Windows specific code
-	message( STATUS "Windows is not supported. More info at www.ikaros-project.org")
-	add_definitions(-DWIN32)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
 # Compiler-specific standard-library selection.
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
@@ -295,8 +289,6 @@ target_link_libraries (ikaros ${MODULES_LIBS})
 
 # Set binary name to ikaros_d in debug mode
 #set_target_properties(ikaros PROPERTIES DEBUG_POSTFIX "_d")
-
-add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
 
 if(LOGGING STREQUAL "OFF")
 add_compile_definitions(LOGGING_OFF)

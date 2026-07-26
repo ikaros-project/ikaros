@@ -139,11 +139,7 @@ GetClockTimeString()
 {
     const std::time_t time = std::time(nullptr);
     std::tm local_time{};
-#if defined(_WIN32)
-    if(localtime_s(&local_time, &time) != 0)
-#else
     if(localtime_r(&time, &local_time) == nullptr)
-#endif
         throw std::runtime_error("Could not convert the current time to local time");
 
     std::ostringstream out;

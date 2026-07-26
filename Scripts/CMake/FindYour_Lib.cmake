@@ -17,10 +17,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-
 # Find one header file and lib
 #############################################
 
