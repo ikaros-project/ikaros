@@ -255,3 +255,43 @@ None.
 - `EpiServos` and `ServoControlTuning` remain deferred by request. Their direct console diagnostics and C-style constants/aggregate should be handled together in a later task.
 - The XML parser's manual linked-tree and C-string ownership, external C API buffer boundaries, and class-registration macro are the judgment-heavy modernization cases listed above; no change was made without an API or architecture decision.
 - No other known locale, lifecycle-diagnostic, include, capitalization, Markdown, escaping, or UTF-8 correctness issue remains from this audit.
+
+## Kernel refactoring plan
+
+Each task is executed sequentially. Before implementation, its status changes to **In progress**; after focused and full verification, it is committed independently before the next task begins.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Split the self-contained circular-buffer, connection, class, and request implementations out of `ikaros.cc`; later subsystem moves remain paired with their corresponding refactoring steps. | Implemented and verified | Debug build; all 266 kernel and WebUI tests passed | `Kernel support types now have cohesive implementation units` |
+| 2 | Consolidate the five scalar-state `Component::Bind()` implementations behind one type-safe internal helper while retaining the public overloads. | Not addressed | Pending | Pending |
+| 3 | Decompose `Component::ResolveParameter()` into value-source, expression/type resolution, and matrix-shaping helpers without changing diagnostic context. | Not addressed | Pending | Pending |
+| 4 | Separate state capture and restoration from state-file I/O while preserving the `ikaros-state-v1` format and scoped remapping. | Not addressed | Pending | Pending |
+| 5 | Decompose flattened, stacked, simple, dynamic, and indexed input-shape resolution after adding characterization coverage for existing behavior. | Not addressed | Pending | Pending |
+| 6 | Extract buffer-size convergence and startup-step propagation into independently testable setup algorithms without changing setup order or semantics. | Not addressed | Pending | Pending |
+| 7 | Separate task submission, watchdog waiting, completion barriers, and failure collection while preserving exception and notification behavior. | Not addressed | Pending | Pending |
+| 8 | Extract realtime waiting, lag, catch-up, resynchronization, and warning policy from the kernel run-state loop. | Not addressed | Pending | Pending |
+| 9 | Decompose WebUI subscription management, snapshot policy, value serialization, publication, and data-response construction. | Not addressed | Pending | Pending |
+| 10 | Replace the authenticated endpoint dispatch chain with a small explicit route table while keeping authentication, public-file handling, aliases, and static-file fallback clear. | Not addressed | Pending | Pending |
+
+### Refactoring-wide constraints
+
+- Preserve public behavior and file formats unless a separately approved defect is discovered.
+- Keep setup and `Init()` exception behavior distinct from runtime `Tick()` notification behavior.
+- Preserve component and value paths, plus useful call-chain context, in errors sent to the WebUI.
+- Add characterization tests before restructuring compatibility-sensitive algorithms.
+- Run the Debug build and complete kernel suite for every step; run the smallest focused tests first.
+- Run Release benchmarks before and after changes to matrix shape resolution, scheduling, runtime timing, or WebUI snapshot work where the affected path is performance-sensitive.
+- Do not begin a later task until the preceding task is verified and committed.
+
+### Planned commit boundaries
+
+1. `Kernel support types now have cohesive implementation units`
+2. `Scalar state binding now shares type-safe validation`
+3. `Parameter resolution now has explicit processing stages`
+4. `State persistence now separates representation from file I/O`
+5. `Input shape resolution now uses mode-specific helpers`
+6. `Kernel setup calculations are now independently testable`
+7. `Task execution now separates dispatch, barriers, and failures`
+8. `Realtime timing policy is now separate from the run loop`
+9. `WebUI snapshots now have explicit construction stages`
+10. `WebUI endpoint dispatch now uses explicit routes`

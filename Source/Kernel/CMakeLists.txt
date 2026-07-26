@@ -14,6 +14,9 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/profiler.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/compute_engine.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/ikaros.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/circular_buffer.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/connection.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/request.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/session_logging.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/serial_bsd.cc
@@ -38,6 +41,9 @@ ${CMAKE_CURRENT_SOURCE_DIR}/thread_pool.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/profiler.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/compute_engine.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/ikaros.cc
+${CMAKE_CURRENT_SOURCE_DIR}/circular_buffer.cc
+${CMAKE_CURRENT_SOURCE_DIR}/connection.cc
+${CMAKE_CURRENT_SOURCE_DIR}/request.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/session_logging.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/main.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/serial_bsd.cc
