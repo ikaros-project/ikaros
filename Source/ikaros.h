@@ -27,8 +27,6 @@
 #include <variant>
 #include <vector>
 
-#define INSTALL_CLASS(class_name)  static InitClass init_##class_name(#class_name, []() { return new class_name(); });
-
 #include "Kernel/exceptions.h"
 #include "Kernel/utilities.h"
 #include "Kernel/dictionary.h"
@@ -46,11 +44,11 @@
 #include "Kernel/profiler.h"
 #include "Kernel/parameter.h"
 #include "Kernel/component.h"
+#include "Kernel/module.h"
 
 
 namespace ikaros 
 {
-class Module;
 class Kernel;
 class KernelMainAccess;
 class KernelSessionLoggingAccess;
@@ -77,47 +75,6 @@ public:
 private:
     std::vector<matrix> buffer_;
     int index_;
-};
-
-using ModuleCreator = std::function<Module *()>;
-
-//
-// MODULE
-//
-
-class Module : public Component
-{
-public:
-    Module();
-    ~Module() override = default;
-
-    int SetOutputShape(dictionary d, input_map ingoing_connections) override;
-    int SetOutputShapes(input_map ingoing_connections) override; // Uses the size/shape attribute
-    int SetStateShapes(input_map ingoing_connections) override;
-    int SetSizes(input_map ingoing_connections) override; // Sets input and output if possible
-
-    tick_count GetTick() const;       // First Tick() call is tick 1; tick 0 is the initialized state
-    double GetTickDuration() const;
-    double GetTime() const;           // actual or nominal time depending om run mode
-    double GetRealTime() const;       // actual time since start
-    double GetNominalTime() const;    // current tick * tick duration; endpoint of the tick interval
-    double GetRunTime() const;        // elapsed wall-clock time from the first tick
-    double GetTimeOfDay() const;      // seconds since midnight
-    double GetLag() const;
-    double GetUptime() const;
-    double GetActualTickDuration() const;
-    double GetTickTimeUsage() const;
-    double GetCPUUsage() const;
-    double GetIdleTime() const;
-    int GetRunMode() const;
-    int GetCPUCoreCount() const;
-    int GetModuleCount() const;
-    int GetClassCount() const;
-    tick_count GetStopAfter() const;
-
-    bool TryProfilingBegin() override;
-    void ProfilingBegin() override;
-    void ProfilingEnd() override;
 };
 
 //
@@ -685,16 +642,6 @@ private:
     std::vector<std::vector<std::string>> FindSubgraphs(const std::vector<std::string> & nodes, const std::vector<std::pair<std::string, std::string>> & edges);
     std::vector<std::string> TopologicalSort(const std::vector<std::string> & component, const std::unordered_map<std::string, std::vector<std::string>> & graph);
     std::vector<std::vector<std::string>> Sort(const std::vector<std::string> & nodes, const std::vector<std::pair<std::string, std::string>> & edges);
-};
-
-//
-// INITIALIZATION CLASS
-//
-
-class InitClass
-{
-public:
-    InitClass(const char * name, ModuleCreator mc);
 };
 
 }; // namespace ikaros

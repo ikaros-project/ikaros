@@ -12,7 +12,7 @@ The work proceeds sequentially without introducing PImpl or changing public beha
 | 4 | Build and run the complete kernel test suite for the `Kernel` privacy change. | Completed | Debug build succeeded; all 266 kernel and WebUI tests passed. | `Verified private kernel implementation state` |
 | 5 | Commit the verified `Kernel` privacy change independently. | Completed | Implementation commit `5f9f0565`; full verification recorded in `b9e04533`. | `Kernel implementation state is now private` |
 | 6 | Extract the `parameter` declarations into a focused, self-contained header and verify and commit the change independently. | Completed | Standalone header syntax check; Debug build; all 266 kernel and WebUI tests passed. | `Parameter declarations now have a focused header` |
-| 7 | Extract the `Component`/`Group` and `Module`/registration declarations into focused, self-contained headers, verifying and committing each extraction independently. | In progress | `component.h` standalone syntax check, Debug build, and all 266 tests passed; module extraction pending. | `Component declarations now have a focused header` (partial) |
+| 7 | Extract the `Component`/`Group` and `Module`/registration declarations into focused, self-contained headers, verifying and committing each extraction independently. | Completed | Standalone syntax checks for both headers; Debug builds; all 266 kernel and WebUI tests passed after each extraction. | `Component declarations now have a focused header`; `Module declarations now have a focused header` |
 
 ### Constraints
 
@@ -21,6 +21,10 @@ The work proceeds sequentially without introducing PImpl or changing public beha
 - Preserve public behavior and avoid unrelated API changes.
 - Keep headers self-contained and remove reliance on indirect includes where touched.
 - Do not migrate module include sites as part of these declaration extractions; that remains a later, separately reviewed step.
+
+### Outstanding issues and questions
+
+None.
 
 
 This file tracks the high-, medium-, and lower-priority findings from the joint review. Findings remain pending commit until implementation, focused tests, the full kernel test suite, and any relevant performance verification have completed.
