@@ -9,6 +9,6 @@ The public kernel API is declared in `Source/ikaros.h`. Its implementation is di
 - `kernel_webui.cc` contains WebUI subscriptions, snapshots, value serialization, image serialization, log delivery, and data-response construction.
 - `kernel_http.cc` contains authentication, HTTP server lifecycle, request dispatch, endpoint handlers, and public or project file serving.
 
-Smaller support types retain their own implementation files, including `circular_buffer.cc`, `connection.cc`, `request.cc`, `compute_engine.cc`, and `session_logging.cc`.
+Smaller support types retain their own implementation files, including `circular_buffer.cc`, `connection.cc`, `request.cc`, `compute_engine.cc`, and `session_logging.cc`. Shared strict parsing used only by kernel implementation files lives in `kernel_parsing.cc` and its private header.
 
 The split is organizational: these files still implement the same `ikaros::Kernel`, `ikaros::Component`, and related classes and share the state declared in `ikaros.h`. It does not introduce subsystem objects or change public interfaces.

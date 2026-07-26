@@ -167,33 +167,6 @@ namespace ikaros
             return value.at(zero_index);
         }
 
-        std::string canonicalize_shape_aliases(const std::string & xml)
-        {
-            std::string out;
-            out.reserve(xml.size());
-
-            for(size_t i = 0; i < xml.size();)
-            {
-                if(i + 5 <= xml.size() && xml.compare(i, 5, ".size") == 0)
-                {
-                    const char next = (i + 5 < xml.size()) ? xml[i + 5] : '\0';
-                    const bool is_alias = next == '[' || next == '\0'
-                        || (!ascii_is_alnum(static_cast<unsigned char>(next)) && next != '_');
-                    if(is_alias)
-                    {
-                        out += ".shape";
-                        i += 5;
-                        continue;
-                    }
-                }
-
-                out.push_back(xml[i]);
-                ++i;
-            }
-
-            return out;
-        }
-
         void ensure_component_collections(dictionary & info)
         {
             info.ensure_list("inputs");
@@ -2860,7 +2833,7 @@ namespace ikaros
     std::string 
     Component::xml()
     {
-        return canonicalize_shape_aliases(info_.xml("group"));
+        return info_.model_xml("group");
     }
 
 

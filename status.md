@@ -337,7 +337,7 @@ These tasks follow the preferred helper restructuring identified after the physi
 | 3 | Add `dictionary::ensure_list()` and replace the duplicated kernel helpers. | Completed | Debug build; all 266 kernel tests passed | `Dictionary now normalizes list members` |
 | 4 | Add matrix-owned shape formatting and replace duplicated `format_shape` helpers. | Completed | Debug build; all 266 kernel tests passed | `Matrix now owns diagnostic shape formatting` |
 | 5 | Consolidate strict parameter and scalar-state numeric parsing in a shared private kernel utility, and remove obsolete scalar/setup parser copies from `ikaros.cc`. | Completed | Debug build; all 266 kernel tests passed | `Kernel parsing helpers are now shared internally` |
-| 6 | Move `.size` to `.shape` alias canonicalization into the XML/model-serialization layer and remove the duplicated kernel helpers. | Not addressed | Pending | Pending |
+| 6 | Move `.size` to `.shape` alias canonicalization into the XML/model-serialization layer and remove the duplicated kernel helpers. | Completed | Debug build; all 266 kernel tests passed | `Model XML serialization now canonicalizes shape aliases` |
 
 ### Helper ownership constraints
 
@@ -345,3 +345,7 @@ These tasks follow the preferred helper restructuring identified after the physi
 - Prefer an existing owning class over a new abstraction; keep shared utilities private when no public API is justified.
 - Do not expose implementation-only helpers through the public API solely to share code between translation units.
 - Do not begin a later task until the preceding task is verified and committed.
+
+### Outstanding issues and questions
+
+None.

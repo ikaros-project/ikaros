@@ -177,33 +177,6 @@ namespace ikaros
 
 
 
-        std::string canonicalize_shape_aliases(const std::string & xml)
-        {
-            std::string out;
-            out.reserve(xml.size());
-
-            for(size_t i = 0; i < xml.size();)
-            {
-                if(i + 5 <= xml.size() && xml.compare(i, 5, ".size") == 0)
-                {
-                    const char next = (i + 5 < xml.size()) ? xml[i + 5] : '\0';
-                    const bool is_alias = next == '[' || next == '\0'
-                        || (!ascii_is_alnum(static_cast<unsigned char>(next)) && next != '_');
-                    if(is_alias)
-                    {
-                        out += ".shape";
-                        i += 5;
-                        continue;
-                    }
-                }
-
-                out.push_back(xml[i]);
-                ++i;
-            }
-
-            return out;
-        }
-
         std::string normalize_request_value_path(const std::string & path)
         {
             if(!path.empty() && path[0] == '.')
@@ -546,7 +519,7 @@ namespace ikaros
             std::filesystem::path target_path = std::filesystem::path(user_dir) / filename;
 
             d.erase("filename");
-            std::string data = canonicalize_shape_aliases(d.xml("group", {"module/parameters","module/inputs","module/outputs","module/states", "module/authors","module/descriptions", "group/views", "module.description"}));
+            std::string data = d.model_xml("group", {"module/parameters","module/inputs","module/outputs","module/states", "module/authors","module/descriptions", "group/views", "module.description"});
             std::error_code ec;
             std::filesystem::create_directories(target_path.parent_path(), ec);
             if(ec)

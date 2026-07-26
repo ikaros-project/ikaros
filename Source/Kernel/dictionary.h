@@ -101,6 +101,7 @@ namespace ikaros
 
         [[nodiscard]] std::string json() const;
         std::string xml(std::string name="dictionary", exclude_set exclude={}, int depth=0) const;
+        std::string model_xml(std::string name="group", exclude_set exclude={}, int depth=0) const;
         friend std::ostream& operator<<(std::ostream& os, const dictionary & v);
         //void print();
 
