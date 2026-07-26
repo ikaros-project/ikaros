@@ -511,4 +511,63 @@ namespace ikaros
         for(auto & message : LogDispatcher().TakeStatusMessages())
             kernel.Warning(std::move(message));
     }
+
+
+    void
+    Kernel::LogStart()
+    {
+#if defined(LOGGING_OFF)
+        return;
+#else
+        LogSessionEvent("/start3/", "start");
+#endif
+    }
+
+
+    void
+    Kernel::LogStop()
+    {
+#if defined(LOGGING_FULL)
+        LogSessionEvent("/stop3/", "stop");
+#else
+        return;
+#endif
+    }
+
+
+    void
+    Kernel::LogProcessStart()
+    {
+#if !defined(LOGGING_FULL)
+        return;
+#else
+        if(process_start_logged)
+            return;
+
+        process_start_logged = true;
+        QueueProcessStartLogEvent(*this);
+#endif
+    }
+
+
+    void
+    Kernel::LogProcessExit()
+    {
+#if !defined(LOGGING_FULL)
+        return;
+#else
+        if(process_exit_logged)
+            return;
+
+        process_exit_logged = true;
+        QueueProcessExitLogEvent(*this);
+#endif
+    }
+
+
+    void
+    Kernel::LogSessionEvent(const std::string & endpoint, const std::string & event_name)
+    {
+        QueueSessionLogEvent(*this, endpoint, event_name);
+    }
 }
