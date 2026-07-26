@@ -4,7 +4,6 @@
 
 #include <cmath>
 #include <random>
-#include <stdexcept>
 
 namespace ikaros
 {

@@ -1,8 +1,9 @@
+#include "image_sequence.h"
+
 #include <stdexcept>
 #include <string>
 #include <string_view>
 
-#include "image_sequence.h"
 #include "../../../Kernel/utilities.h"
 
 

@@ -1,9 +1,10 @@
+#include "network.h"
+
 #include <random>
 #include <cmath>
 #include <fstream>
 #include <stdexcept>
 #include <limits>
-#include "network.h"
 
 
 NeuralNetwork::NeuralNetwork(const std::string &json_spec) {

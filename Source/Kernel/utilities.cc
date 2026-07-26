@@ -1,7 +1,9 @@
 // utilities.cc
 
-#include <charconv>
+#include "utilities.h"
+
 #include <algorithm>
+#include <charconv>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -9,8 +11,6 @@
 #include <stdexcept>
 #include <system_error>
 #include <type_traits>
-
-#include "utilities.h"
 
 namespace ikaros
 {

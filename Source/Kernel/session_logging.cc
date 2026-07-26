@@ -1,3 +1,5 @@
+#include "session_logging.h"
+
 #include <atomic>
 #include <condition_variable>
 #include <cstddef>
@@ -10,7 +12,6 @@
 
 #include <curl/curl.h>
 
-#include "session_logging.h"
 #include "ikaros.h"
 
 namespace ikaros

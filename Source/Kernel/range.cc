@@ -1,5 +1,7 @@
 // range.cc   (c) Christian Balkenius 2023
 
+#include "range.h"
+
 #include <algorithm>
 #include <charconv>
 #include <iostream>
@@ -8,7 +10,6 @@
 #include <stdexcept>
 #include <system_error>
 
-#include "range.h"
 #include "utilities.h"
 
 namespace ikaros

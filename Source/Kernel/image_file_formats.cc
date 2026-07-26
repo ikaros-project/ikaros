@@ -1,6 +1,8 @@
 // image_file_format.cc
 // Copyright (C) 2023-2025  Christian Balkenius
 
+#include "image_file_formats.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cmath>
@@ -17,9 +19,8 @@
 #include <utility>
 #include <vector>
 
-#include "matrix.h"
-#include "image_file_formats.h"
 #include "color_tables.h"
+#include "matrix.h"
 
 #if defined(__APPLE__) && defined(IKAROS_MATRIX_ACCELERATE) && IKAROS_MATRIX_ACCELERATE
 // Avoid Accelerate.h, which pulls deprecated compatibility headers into C++ builds.
