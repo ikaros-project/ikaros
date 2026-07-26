@@ -141,6 +141,12 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 
 None.
 
+## Kernel CMake source-list consolidation
+
+| Task | Status | Verification | Commit |
+|---|---|---|---|
+| Replace the duplicated macOS and Linux kernel source lists with one shared platform-gated list. | Completed | CMake Debug configuration and full build succeeded; all 266 kernel tests passed. | `Kernel platforms now share one source list` |
+
 ## Parameter implementation split
 
 | Task | Status | Verification | Commit |
