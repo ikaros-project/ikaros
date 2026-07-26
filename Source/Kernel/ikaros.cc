@@ -6458,116 +6458,134 @@ namespace ikaros
     };
 
 
-    std::optional<exception>
-    Kernel::RunTasks()
+    void
+    Kernel::RecordTaskFailure(std::optional<exception> & failure,
+                              const std::string & context,
+                              const std::string & fallback_path)
     {
-        std::vector<std::shared_ptr<TaskSequence>> sequences;
-        sequences.reserve(tasks.size());
+        if(failure)
+            return;
 
+        try
+        {
+            std::rethrow_exception(std::current_exception());
+        }
+        catch(const exception & e)
+        {
+            failure = exception(context + ": " + e.message(),
+                                e.path().empty() ? fallback_path : e.path());
+        }
+        catch(const std::exception & e)
+        {
+            failure = exception(context + ": " + e.what(), fallback_path);
+        }
+        catch(...)
+        {
+            failure = exception(context + ": Unknown error.", fallback_path);
+        }
+    }
+
+
+    std::optional<exception>
+    Kernel::SubmitTaskSequences(submitted_task_sequences & sequences)
+    {
+        sequences.reserve(tasks.size());
         std::optional<exception> failure;
         try
         {
             for(auto & task_sequence : tasks)
             {
-                auto ts = std::make_shared<KernelTaskSequence>(*this, task_sequence);
-                thread_pool->submit(ts);
-                sequences.push_back(ts);
+                auto sequence = std::make_shared<KernelTaskSequence>(*this, task_sequence);
+                thread_pool->submit(sequence);
+                sequences.push_back(sequence);
             }
-        }
-        catch(const exception & e)
-        {
-            failure = exception("While submitting task sequences: " + e.message(), e.path());
-        }
-        catch(const std::exception & e)
-        {
-            failure = exception("While submitting task sequences: " + std::string(e.what()));
         }
         catch(...)
         {
-            failure = exception("While submitting task sequences: Unknown error.");
+            RecordTaskFailure(failure, "While submitting task sequences");
         }
+        return failure;
+    }
 
-        bool timed_out = false;
-        if(!failure && task_timeout > 0)
+
+    bool
+    Kernel::WaitForTaskWatchdog(const submitted_task_sequences & sequences)
+    {
+        if(task_timeout <= 0)
+            return false;
+
+        const auto timeout = duration_cast<steady_clock::duration>(duration<double>(task_timeout));
+        const auto deadline = steady_clock::now() + timeout;
+        for(const auto & sequence : sequences)
         {
-            const auto timeout = duration_cast<steady_clock::duration>(duration<double>(task_timeout));
-            const auto deadline = steady_clock::now() + timeout;
-            for(auto & ts : sequences)
-            {
-                if(ts->isCompleted())
-                    continue;
+            if(sequence->isCompleted())
+                continue;
 
-                const auto now = steady_clock::now();
-                if(now >= deadline || !ts->waitForCompletion(duration<double>(deadline - now).count()))
-                {
-                    timed_out = true;
-                    break;
-                }
-            }
-
-            if(timed_out)
+            const auto now = steady_clock::now();
+            if(now >= deadline ||
+               !sequence->waitForCompletion(duration<double>(deadline - now).count()))
             {
                 try
                 {
                     Notify(msg_warning, "Task execution exceeded " + formatNumber(task_timeout) +
-                        " seconds. Waiting for active tasks to finish before stopping safely.");
+                           " seconds. Waiting for active tasks to finish before stopping safely.");
                 }
                 catch(...)
                 {
-                    // The completion barrier below must still run if reporting the watchdog fails.
+                    // The completion barrier must still run if watchdog reporting fails.
                 }
+                return true;
             }
         }
+        return false;
+    }
 
-        // Do not inspect failures or return while submitted sequences can still access kernel data.
-        for(auto & ts : sequences)
-        {
+
+    void
+    Kernel::WaitForTaskCompletionBarrier(const submitted_task_sequences & sequences,
+                                         std::optional<exception> & failure)
+    {
+        // Do not inspect failures or return while sequences can still access kernel data.
+        for(const auto & sequence : sequences)
             try
             {
-                ts->waitForCompletion();
-            }
-            catch(const exception & e)
-            {
-                if(!failure)
-                    failure = exception("While waiting for task sequence completion: " + e.message(), e.path());
-            }
-            catch(const std::exception & e)
-            {
-                if(!failure)
-                    failure = exception("While waiting for task sequence completion: " + std::string(e.what()));
+                sequence->waitForCompletion();
             }
             catch(...)
             {
-                if(!failure)
-                    failure = exception("While waiting for task sequence completion: Unknown error.");
+                RecordTaskFailure(failure, "While waiting for task sequence completion");
             }
-        }
+    }
 
+
+    void
+    Kernel::CollectTaskSequenceFailures(const submitted_task_sequences & sequences,
+                                        std::optional<exception> & failure)
+    {
+        for(const auto & sequence : sequences)
+            try
+            {
+                sequence->rethrowIfError();
+            }
+            catch(...)
+            {
+                RecordTaskFailure(failure, "During task execution");
+            }
+    }
+
+
+    std::optional<exception>
+    Kernel::RunTasks()
+    {
+        submitted_task_sequences sequences;
+        std::optional<exception> failure = SubmitTaskSequences(sequences);
+        bool timed_out = !failure && WaitForTaskWatchdog(sequences);
+
+        WaitForTaskCompletionBarrier(sequences, failure);
         if(timed_out)
-            failure = exception("Task execution timed out after " + formatNumber(task_timeout) + " seconds.");
-
-        for(auto & ts : sequences)
-        {
-            try
-            {
-                ts->rethrowIfError();
-            }
-            catch(const exception & e)
-            {
-                if(!failure)
-                    failure = exception("During task execution: " + e.message(), e.path());
-            }
-            catch(const std::exception & e)
-            {
-                if(!failure)
-                    failure = exception("During task execution: " + std::string(e.what()));
-            }
-            catch(...)
-            {
-                if(!failure)
-                    failure = exception("During task execution: Unknown error.");
-            }
-        }
+            failure = exception("Task execution timed out after " +
+                                formatNumber(task_timeout) + " seconds.");
+        CollectTaskSequenceFailures(sequences, failure);
 
         return failure;
     }

@@ -835,6 +835,16 @@ private:
     bool ValueOwnedByRunningAsyncComponent(const std::string & value_path) const;
     Component * ComponentForValuePath(const std::string & value_path) const;
     void WaitForAsyncComponents(bool discard_pending_actions);
+    using submitted_task_sequences = std::vector<std::shared_ptr<TaskSequence>>;
+    void RecordTaskFailure(std::optional<exception> & failure,
+                           const std::string & context,
+                           const std::string & fallback_path = "");
+    std::optional<exception> SubmitTaskSequences(submitted_task_sequences & sequences);
+    bool WaitForTaskWatchdog(const submitted_task_sequences & sequences);
+    void WaitForTaskCompletionBarrier(const submitted_task_sequences & sequences,
+                                      std::optional<exception> & failure);
+    void CollectTaskSequenceFailures(const submitted_task_sequences & sequences,
+                                     std::optional<exception> & failure);
     std::optional<exception> RunTasks();
     void RunTasksInSingleThread();
     void SetUp();
