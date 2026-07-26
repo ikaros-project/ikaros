@@ -94,46 +94,6 @@ namespace ikaros
 
 
 
-    void
-    Kernel::InitSocket(long port)
-    {
-        try
-        {
-            if(port < 0 || port > 65535)
-                throw std::invalid_argument("Server port must be between 0 and 65535");
-            shutdown.store(false, std::memory_order_release);
-            socket = std::make_unique<ServerSocket>(static_cast<int>(port), GetOption("bind_address"));
-        }
-        catch (const exception& e)
-        {
-            throw socket_startup_error("Ikaros is unable to start the webserver on port " + std::to_string(port) + ": " + e.message(), e.path());
-        }
-        catch (const std::exception& e)
-        {
-            throw socket_startup_error("Ikaros is unable to start the webserver on port " + std::to_string(port) + ": " + std::string(e.what()));
-        }
-
-        httpThread = std::thread(Kernel::StartHTTPThread, this);
-    }
-
-
-    void
-    Kernel::StopHTTPServer()
-    {
-        shutdown.store(true, std::memory_order_release);
-
-        if(socket != nullptr)
-            socket->StopListening();
-
-        if(httpThread.joinable())
-        {
-            httpThread.join();
-        }
-
-        socket.reset();
-    }
-
-
     void 
     Kernel::PruneConnections()
     {

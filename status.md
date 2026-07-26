@@ -310,7 +310,7 @@ Each task moves existing definitions without intentional behavioral changes. Tas
 | 2 | Move task execution, propagation, the run loop, and realtime timing implementation into `kernel_execution.cc`. | Implemented and verified | Debug build; task, watchdog, propagation, async, run-mode, and realtime coverage; all 266 tests passed | `Kernel execution now has its own translation unit` |
 | 3 | Move state capture, restoration, save, load, and reset implementation into `kernel_state.cc`. | Implemented and verified | Debug build; matrix, scalar, scoped, reset, file-format, and WebUI state coverage; all 266 tests passed | `Kernel state persistence now has its own translation unit` |
 | 4 | Move WebUI subscriptions, snapshots, value serialization, and data-response construction into `kernel_webui.cc`. | Implemented and verified | Debug build; subscription, snapshot timing, image refresh, logging, serialization, and response coverage; all 266 tests passed | `Kernel WebUI data handling now has its own translation unit` |
-| 5 | Move HTTP parsing and dispatch, authentication, file serving, and endpoint handlers into `kernel_http.cc`. | Not addressed | Pending | Pending |
+| 5 | Move HTTP parsing and dispatch, authentication, file serving, and endpoint handlers into `kernel_http.cc`. | Implemented and verified | Debug build; authentication, public/static files, save/load endpoints, routing aliases, controls, and HTTP lifecycle coverage; all 266 tests passed | `Kernel HTTP handling now has its own translation unit` |
 | 6 | Review the remaining `ikaros.cc`, move only clearly misplaced cohesive definitions, update build registration, and document the resulting implementation boundaries. | Not addressed | Pending | Pending |
 
 ### Physical split constraints
