@@ -23,6 +23,8 @@ namespace ikaros
     [[nodiscard]] double short_angle(double a1, double a2) noexcept;
 
     template<std::uniform_random_bit_generator RandomGenerator>
+    // Keep the distribution paired with this generator. Reset it before using
+    // it with a different independent generator.
     [[nodiscard]] float sample_normal_distribution(
         RandomGenerator & generator,
         std::normal_distribution<float> & distribution,

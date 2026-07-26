@@ -139,7 +139,7 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 
 ### Outstanding issues and questions
 
-- The generator-only Gaussian overload intentionally cannot cache distribution state without mixing independent generators. Performance-sensitive callers should own a `std::normal_distribution<float>` and use the stateful overload.
+None.
 
 ## Random source follow-ups
 
