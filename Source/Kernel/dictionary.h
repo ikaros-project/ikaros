@@ -88,6 +88,7 @@ namespace ikaros
         size_t count(const std::string & s) const;
         [[nodiscard]]
         bool empty() const { return dict_->empty(); }
+        void ensure_list(const std::string & key);
         void merge(const dictionary & source, bool overwrite=false); // shallow merge: copy from source to this
 
         void erase(const std::string & key);

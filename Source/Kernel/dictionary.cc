@@ -634,6 +634,14 @@ namespace ikaros
                 (*dict_)[key] = value(val);
         }
 
+        void
+        dictionary::ensure_list(const std::string & key)
+        {
+            if(!contains_non_null(key) || !(*this)[key].is_list())
+                (*this)[key] = list();
+        }
+
+
         void dictionary::merge(const dictionary & source, bool overwrite) // shallow merge: copy from source to this
         {
             for(const auto & [key, value] : *(source.dict_))

@@ -278,20 +278,14 @@ namespace ikaros
             return out;
         }
 
-        void ensure_list(dictionary & info, const std::string & key)
-        {
-            if(!info.contains_non_null(key) || !info[key].is_list())
-                info[key] = list();
-        }
-
         void ensure_component_collections(dictionary & info)
         {
-            ensure_list(info, "inputs");
-            ensure_list(info, "outputs");
-            ensure_list(info, "states");
-            ensure_list(info, "parameters");
-            ensure_list(info, "groups");
-            ensure_list(info, "modules");
+            info.ensure_list("inputs");
+            info.ensure_list("outputs");
+            info.ensure_list("states");
+            info.ensure_list("parameters");
+            info.ensure_list("groups");
+            info.ensure_list("modules");
         }
 
         int default_thread_pool_size(unsigned int cpu_cores)

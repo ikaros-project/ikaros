@@ -185,12 +185,6 @@ namespace ikaros
             return parameter;
         }
 
-        void ensure_list(dictionary & info, const std::string & key)
-        {
-            if(!info.contains_non_null(key) || !info[key].is_list())
-                info[key] = list();
-        }
-
     }
 
     bool
@@ -2109,7 +2103,7 @@ namespace ikaros
                         throw exception("Declared class name \"" + declared_name +
                                         "\" does not match filename \"" + name + "\".");
 
-                    ensure_list(class_info, "parameters");
+                    class_info.ensure_list("parameters");
 
                     bool has_log_level = false;
                     bool has_module_start = false;

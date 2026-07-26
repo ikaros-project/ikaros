@@ -334,7 +334,7 @@ These tasks follow the preferred helper restructuring identified after the physi
 |---:|---|---|---|---|
 | 1 | Replace duplicated `resolve_state_filename` helpers with a private `Kernel::ResolveStateFilename()` member. | Completed | Debug build; all 266 kernel tests passed | `Kernel now owns state filename resolution` |
 | 2 | Consolidate built-in `log_level`, `module_start`, `start_tick`, and `async` parameter metadata construction under `Component`. | Completed | Debug build; all 266 kernel tests passed | `Component now owns built-in parameter metadata` |
-| 3 | Add `dictionary::ensure_list()` and replace the duplicated kernel helpers. | Not addressed | Pending | Pending |
+| 3 | Add `dictionary::ensure_list()` and replace the duplicated kernel helpers. | Completed | Debug build; all 266 kernel tests passed | `Dictionary now normalizes list members` |
 | 4 | Add matrix-owned shape formatting and replace duplicated `format_shape` helpers. | Not addressed | Pending | Pending |
 | 5 | Consolidate strict parameter and scalar-state numeric parsing in a shared private kernel utility, and remove obsolete scalar/setup parser copies from `ikaros.cc`. | Not addressed | Pending | Pending |
 | 6 | Move `.size` to `.shape` alias canonicalization into the XML/model-serialization layer and remove the duplicated kernel helpers. | Not addressed | Pending | Pending |
