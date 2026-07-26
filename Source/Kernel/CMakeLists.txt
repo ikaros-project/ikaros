@@ -17,6 +17,7 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/component.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/module.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/ikaros.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/kernel_diagnostics.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/kernel_parsing.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/kernel_http.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/kernel_execution.cc
@@ -53,6 +54,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/parameter.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/component.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/module.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/ikaros.cc
+${CMAKE_CURRENT_SOURCE_DIR}/kernel_diagnostics.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/kernel_parsing.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/kernel_http.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/kernel_execution.cc
