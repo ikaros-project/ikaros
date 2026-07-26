@@ -2533,7 +2533,59 @@ namespace ikaros
     }
 
 
-    int 
+    std::string
+    Component::ShapeString(const std::vector<int> & shape) const
+    {
+        std::vector<std::string> parts;
+        parts.reserve(shape.size());
+        for(int dimension : shape)
+            parts.push_back(std::to_string(dimension));
+        return join(",", parts);
+    }
+
+
+    void
+    Component::ValidateFixedInputTarget(const std::string & name,
+                                        const std::string & full_name,
+                                        const Connection & connection,
+                                        const range & target_range,
+                                        bool flattened)
+    {
+        const matrix & input_buffer = kernel().buffers.at(full_name);
+        const std::vector<int> & shape = input_buffer.shape();
+        if(flattened && input_buffer.rank() != 1)
+            throw setup_failed("Input \"" + name + "\" in \"" + path_ +
+                               "\" uses flatten and must have a one-dimensional fixed size, got \"" +
+                               ShapeString(shape) + "\".", path_);
+
+        bool outside = target_range.rank() != input_buffer.rank();
+        for(int dimension = 0; !outside && dimension < target_range.rank(); ++dimension)
+            outside = (flattened ? target_range.step(dimension) <= 0
+                                 : target_range.step(dimension) == 0) ||
+                      target_range.start(dimension) < 0 ||
+                      target_range.start(dimension) > target_range.stop(dimension) ||
+                      target_range.stop(dimension) > input_buffer.size(dimension);
+
+        if(outside)
+            throw setup_failed("Connection \"" + connection.Info() +
+                               "\" writes outside fixed size of input \"" + name +
+                               "\" in \"" + path_ + "\" (" + ShapeString(shape) + ").",
+                               path_);
+    }
+
+
+    void
+    Component::ApplyInputLabel(const dictionary & input, const std::string & full_name,
+                               const std::vector<Connection *> & connections)
+    {
+        if(!input.is_set("use_label"))
+            return;
+        if(connections.size() == 1 && !connections[0]->label_.empty())
+            kernel().buffers.at(full_name).set_name(connections[0]->label_);
+    }
+
+
+    int
     Component::SetInputShape_Flat(dictionary d, input_map ingoing_connections)
     {
         Trace("\t\t\t\t\tComponent::SetInputShape_Flat", path_);
@@ -2541,27 +2593,6 @@ namespace ikaros
         std::string name = d.at("name");
         std::string full_name = path_ +"."+ name;
         bool has_fixed_size = d.contains("size");
-
-        auto shape_string = [](const std::vector<int> & shape) -> std::string
-        {
-            std::vector<std::string> parts;
-            parts.reserve(shape.size());
-            for(int dim : shape)
-                parts.push_back(std::to_string(dim));
-            return join(",", parts);
-        };
-
-        auto validate_fixed_target = [&](const Connection & connection, const range & target_range)
-        {
-            const matrix & input_buffer = kernel().buffers.at(full_name);
-            const std::vector<int> & shape = input_buffer.shape();
-            if(input_buffer.rank() != 1)
-                throw setup_failed("Input \"" + name + "\" in \"" + path_ + "\" uses flatten and must have a one-dimensional fixed size, got \"" + shape_string(shape) + "\".", path_);
-
-            if(target_range.rank() != 1 || target_range.step(0) <= 0 ||
-               target_range.start(0) < 0 || target_range.stop(0) > input_buffer.size())
-                throw setup_failed("Connection \"" + connection.Info() + "\" writes outside fixed size of input \"" + name + "\" in \"" + path_ + "\" (" + shape_string(shape) + ").", path_);
-        };
 
         if(!ingoing_connections.count(full_name)) // Not connected
             return has_fixed_size ? 0 : 1;
@@ -2595,7 +2626,7 @@ namespace ikaros
             const int end_index = static_cast<int>(flattened_input_size);
             c->target_range = range(begin_index, end_index);
             if(has_fixed_size)
-                validate_fixed_target(*c, c->target_range);
+                ValidateFixedInputTarget(name, full_name, *c, c->target_range, true);
         }
     
         if(!has_fixed_size && flattened_input_size != 0)
@@ -2622,52 +2653,149 @@ namespace ikaros
     }
 
 
-    int 
+    int
+    Component::SetStackedInputShape(const dictionary & input, const std::string & name,
+                                    const std::string & full_name, bool has_fixed_size,
+                                    const std::vector<Connection *> & connections)
+    {
+        range input_size;
+        int target_rank = has_fixed_size ? kernel().buffers[full_name].rank() : 0;
+
+        for(int stack_index = 0; stack_index < static_cast<int>(connections.size()); ++stack_index)
+        {
+            Connection * connection = connections[stack_index];
+            matrix & output_buffer = kernel().buffers[connection->source];
+            if(output_buffer.is_dynamic())
+                throw setup_failed("Connection \"" + connection->Info() +
+                                   "\" can not feed stacked input \"" + name +
+                                   "\" from dynamic output \"" + connection->source + "\".",
+                                   path_);
+
+            if(!connection->stacked_)
+            {
+                range output_matrix = output_buffer.get_range();
+                if(output_matrix.rank() == 0)
+                    return 0;
+
+                range resolved_target = connection->Resolve(output_matrix);
+                resolved_target.push_front(stack_index, stack_index + 1);
+                connection->target_range = resolved_target;
+                connection->stacked_ = true;
+            }
+            target_rank = std::max(target_rank, connection->target_range.rank());
+        }
+
+        if(target_rank == 0)
+            return 0;
+
+        for(Connection * connection : connections)
+        {
+            while(connection->target_range.rank() < target_rank)
+                connection->target_range.push(0, 1);
+
+            if(has_fixed_size)
+                ValidateFixedInputTarget(name, full_name, *connection,
+                                         connection->target_range, false);
+            else if(input_size.rank() == 0)
+                input_size = connection->target_range;
+            else
+                input_size.extend(connection->target_range);
+        }
+
+        if(!has_fixed_size)
+        {
+            kernel().buffers[full_name].realloc(input_size.extent());
+            Trace("\t\t\tComponent::SetInputShape Stacked Alloc" +
+                  std::string(input_size), full_name);
+        }
+
+        ApplyInputLabel(input, full_name, connections);
+        return 1;
+    }
+
+
+    int
+    Component::SetSimpleInputShape(const dictionary & input, const std::string & full_name,
+                                   Connection & connection,
+                                   const std::vector<Connection *> & connections)
+    {
+        matrix & output_buffer = kernel().buffers[connection.source];
+        range output_matrix = output_buffer.get_range();
+        if(output_matrix.rank() == 0)
+            return 0;
+
+        if(output_buffer.is_dynamic())
+        {
+            kernel().buffers[full_name].reserve(output_buffer.capacity());
+            kernel().buffers[full_name].set_dynamic().set_fixed_capacity();
+            kernel().buffers[full_name].resize(output_buffer.shape());
+        }
+        else
+            kernel().buffers[full_name].realloc(output_matrix.extent());
+
+        Trace("\t\t\tComponent::SetInputShape Simple Alloc", full_name);
+        ApplyInputLabel(input, full_name, connections);
+        return 1;
+    }
+
+
+    int
+    Component::SetGeneralInputShape(const dictionary & input, const std::string & name,
+                                    const std::string & full_name, bool has_fixed_size,
+                                    const std::vector<Connection *> & connections)
+    {
+        range input_size;
+        for(Connection * connection : connections)
+        {
+            matrix & output_buffer = kernel().buffers[connection->source];
+            if(output_buffer.is_dynamic())
+            {
+                if(connection->IsWholeMatrixConnection() && connection->DelayCount() > 1)
+                    throw setup_failed("Connection \"" + connection->Info() +
+                                       "\" requests multiple delay values from dynamic output \"" +
+                                       connection->source +
+                                       "\". Dynamic outputs support only a single whole-matrix delay.",
+                                       path_);
+                throw setup_failed("Connection \"" + connection->Info() +
+                                   "\" uses an indexed or ranged connection from dynamic output \"" +
+                                   connection->source +
+                                   "\". Dynamic outputs only support whole-matrix connections.",
+                                   path_);
+            }
+
+            range output_matrix = output_buffer.get_range();
+            if(output_matrix.rank() == 0)
+                return 0;
+            range resolved_target = connection->Resolve(output_matrix);
+            if(has_fixed_size)
+                ValidateFixedInputTarget(name, full_name, *connection, resolved_target, false);
+            else
+                input_size.extend(resolved_target);
+        }
+
+        if(!has_fixed_size)
+        {
+            kernel().buffers[full_name].realloc(input_size.extent());
+            Trace("\t\t\tComponent::SetInputShape Alloc" + std::string(input_size), full_name);
+        }
+
+        ApplyInputLabel(input, full_name, connections);
+        return 1;
+    }
+
+
+    int
     Component::SetInputShape_Index(dictionary d, input_map ingoing_connections)
     {
        Trace("\t\t\tComponent::SetInputShape_Index ", path_ + "." + std::string(d["name"]));
 
-        range input_size;
         std::string name = d.at("name");
         std::string full_name = path_ +"."+ name;
         bool has_fixed_size = d.contains("size");
         bool stack = ComputeAttributeBool(d, "stack");
 
-        auto shape_string = [](const std::vector<int> & shape) -> std::string
-        {
-            std::vector<std::string> parts;
-            parts.reserve(shape.size());
-            for(int dim : shape)
-                parts.push_back(std::to_string(dim));
-            return join(",", parts);
-        };
-
-        auto validate_fixed_target = [&](const Connection & connection, const range & target_range)
-        {
-            const matrix & input_buffer = kernel().buffers.at(full_name);
-            const std::vector<int> & shape = input_buffer.shape();
-            if(target_range.rank() != input_buffer.rank())
-                throw setup_failed("Connection \"" + connection.Info() + "\" writes outside fixed size of input \"" + name + "\" in \"" + path_ + "\" (" + shape_string(shape) + ").", path_);
-
-            for(int i = 0; i < target_range.rank(); ++i)
-                if(target_range.step(i) == 0 || target_range.start(i) < 0 ||
-                   target_range.start(i) > target_range.stop(i) ||
-                   target_range.stop(i) > input_buffer.size(i))
-                    throw setup_failed("Connection \"" + connection.Info() + "\" writes outside fixed size of input \"" + name + "\" in \"" + path_ + "\" (" + shape_string(shape) + ").", path_);
-        };
-
         if(!ingoing_connections.count(full_name)) // Not connected
             return 1;
-
-        auto set_input_label = [&]()
-        {
-            if(!d.is_set("use_label"))
-                return;
-
-            const auto & connections = ingoing_connections.at(full_name);
-            if(connections.size() == 1 && !connections[0]->label_.empty())
-                kernel().buffers.at(full_name).set_name(connections[0]->label_);
-        };
 
         if(has_fixed_size)
         {
@@ -2681,58 +2809,8 @@ namespace ikaros
         // Handle stacked inputs by assigning each connection to one slice along a new first dimension.
 
         if(stack)
-        {
-            auto connections = ingoing_connections.at(full_name);
-            int target_rank = 0;
-            if(has_fixed_size)
-                target_rank = kernel().buffers[full_name].rank();
-
-            for(int stack_index = 0; stack_index < static_cast<int>(connections.size()); ++stack_index)
-            {
-                Connection * c = connections[stack_index];
-                matrix & output_buffer = kernel().buffers[c->source];
-                if(output_buffer.is_dynamic())
-                    throw setup_failed("Connection \"" + c->Info() + "\" can not feed stacked input \"" + name + "\" from dynamic output \"" + c->source + "\".", path_);
-
-                if(!c->stacked_)
-                {
-                    range output_matrix = output_buffer.get_range();
-                    if(output_matrix.rank() == 0)
-                        return 0;
-
-                    range resolved_target = c->Resolve(output_matrix);
-                    resolved_target.push_front(stack_index, stack_index + 1);
-                    c->target_range = resolved_target;
-                    c->stacked_ = true;
-                }
-                target_rank = std::max(target_rank, c->target_range.rank());
-            }
-
-            if(target_rank == 0)
-                return 0;
-
-            for(Connection * c : connections)
-            {
-                while(c->target_range.rank() < target_rank)
-                    c->target_range.push(0, 1);
-
-                if(has_fixed_size)
-                    validate_fixed_target(*c, c->target_range);
-                else if(input_size.rank() == 0)
-                    input_size = c->target_range;
-                else
-                    input_size.extend(c->target_range);
-            }
-
-            if(!has_fixed_size)
-            {
-                kernel().buffers[full_name].realloc(input_size.extent());
-                Trace("\t\t\tComponent::SetInputShape Stacked Alloc" + std::string(input_size), full_name);
-            }
-
-            set_input_label();
-            return 1;
-        }
+            return SetStackedInputShape(d, name, full_name, has_fixed_size,
+                                        ingoing_connections.at(full_name));
 
         // Handle single connection without inidices - do not collapse dimensions
 
@@ -2755,62 +2833,11 @@ namespace ikaros
         {
             Connection * connection = old_style_simple_connection ?
                                       ingoing_connections.begin()->second[0] : single_connection;
-            matrix & output_buffer = kernel().buffers[connection->source];
-            range output_matrix = output_buffer.get_range();
-            if(output_matrix.rank() == 0)
-                return 0;
-
-            if(output_buffer.is_dynamic())
-            {
-                kernel().buffers[full_name].reserve(output_buffer.capacity());
-                kernel().buffers[full_name].set_dynamic().set_fixed_capacity();
-                kernel().buffers[full_name].resize(output_buffer.shape());
-            }
-            else
-                kernel().buffers[full_name].realloc(output_matrix.extent());
-
-            Trace("\t\t\tComponent::SetInputShape Simple Alloc" + std::string(input_size), full_name);
-
-            set_input_label();
-            return 1;
+            return SetSimpleInputShape(d, full_name, *connection, input_connections);
         }
 
-        for(auto c : ingoing_connections.at(full_name))
-        {
-            matrix & output_buffer = kernel().buffers[c->source];
-            if(output_buffer.is_dynamic())
-            {
-                if(c->IsWholeMatrixConnection() && c->DelayCount() > 1)
-                    throw setup_failed("Connection \"" + c->Info() +
-                                       "\" requests multiple delay values from dynamic output \"" +
-                                       c->source +
-                                       "\". Dynamic outputs support only a single whole-matrix delay.",
-                                       path_);
-                throw setup_failed("Connection \"" + c->Info() +
-                                   "\" uses an indexed or ranged connection from dynamic output \"" +
-                                   c->source +
-                                   "\". Dynamic outputs only support whole-matrix connections.",
-                                   path_);
-            }
-
-            range output_matrix = output_buffer.get_range();
-            if(output_matrix.rank() == 0)
-                return 0;
-            range resolved_target = c->Resolve(output_matrix);
-            if(has_fixed_size)
-                validate_fixed_target(*c, resolved_target);
-            else
-                input_size.extend(resolved_target);
-        }
-        if(!has_fixed_size)
-        {
-            kernel().buffers[full_name].realloc(input_size.extent());
-            Trace("\t\t\tComponent::SetInputShape Alloc" + std::string(input_size), full_name);
-        }
-
-        set_input_label();
-
-        return 1;
+        return SetGeneralInputShape(d, name, full_name, has_fixed_size,
+                                    ingoing_connections.at(full_name));
     }
 
 

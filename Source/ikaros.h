@@ -290,6 +290,21 @@ private:
     matrix ApplyParameterShape(const parameter & p, const matrix & value);
     void ResolveParameterValue(parameter & p, const std::string & name,
                                const std::string & raw_value, Component * context);
+    std::string ShapeString(const std::vector<int> & shape) const;
+    void ValidateFixedInputTarget(const std::string & name, const std::string & full_name,
+                                  const Connection & connection, const range & target_range,
+                                  bool flattened);
+    void ApplyInputLabel(const dictionary & input, const std::string & full_name,
+                         const std::vector<Connection *> & connections);
+    int SetStackedInputShape(const dictionary & input, const std::string & name,
+                             const std::string & full_name, bool has_fixed_size,
+                             const std::vector<Connection *> & connections);
+    int SetSimpleInputShape(const dictionary & input, const std::string & full_name,
+                            Connection & connection,
+                            const std::vector<Connection *> & connections);
+    int SetGeneralInputShape(const dictionary & input, const std::string & name,
+                             const std::string & full_name, bool has_fixed_size,
+                             const std::vector<Connection *> & connections);
 
 protected:
     dictionary      info_;
