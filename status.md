@@ -325,3 +325,23 @@ Each task moves existing definitions without intentional behavioral changes. Tas
 
 - A few small file-local policy helpers are duplicated where setup, execution, and HTTP paths require the same legacy behavior. Consolidating them would require introducing a private shared kernel-support interface; no such abstraction was added during this behavior-preserving split.
 - `parameter`, `Component`, and `Module` implementations remain together in `ikaros.cc` because they share its core conversion, binding, and runtime-context helpers. Splitting those types cleanly would be a separate internal-API refactoring rather than a physical move.
+
+## Kernel helper ownership cleanup
+
+These tasks follow the preferred helper restructuring identified after the physical split. They are executed sequentially, verified with a Debug build and all kernel tests, and committed independently.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Replace duplicated `resolve_state_filename` helpers with a private `Kernel::ResolveStateFilename()` member. | Completed | Debug build; all 266 kernel tests passed | `Kernel now owns state filename resolution` |
+| 2 | Consolidate built-in `log_level`, `module_start`, `start_tick`, and `async` parameter metadata construction under `Component`. | Not addressed | Pending | Pending |
+| 3 | Add `dictionary::ensure_list()` and replace the duplicated kernel helpers. | Not addressed | Pending | Pending |
+| 4 | Add matrix-owned shape formatting and replace duplicated `format_shape` helpers. | Not addressed | Pending | Pending |
+| 5 | Consolidate strict parameter and scalar-state numeric parsing in a shared private kernel utility, and remove obsolete scalar/setup parser copies from `ikaros.cc`. | Not addressed | Pending | Pending |
+| 6 | Move `.size` to `.shape` alias canonicalization into the XML/model-serialization layer and remove the duplicated kernel helpers. | Not addressed | Pending | Pending |
+
+### Helper ownership constraints
+
+- Preserve public behavior, diagnostics, serialized formats, and checksum results.
+- Prefer an existing owning class over a new abstraction; keep shared utilities private when no public API is justified.
+- Do not expose implementation-only helpers through the public API solely to share code between translation units.
+- Do not begin a later task until the preceding task is verified and committed.

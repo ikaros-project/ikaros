@@ -84,21 +84,6 @@ namespace ikaros
             return result;
         }
 
-        std::string resolve_state_filename(const options & opts,
-                                           const std::string & option_name)
-        {
-            std::string filename = opts.get(option_name);
-            if(!filename.empty() && filename != "true")
-                return filename;
-
-            std::filesystem::path model_path = opts.full_path();
-            if(model_path.empty())
-                throw exception("Can not derive state filename because no model file is loaded.");
-
-            model_path.replace_extension(".state");
-            return model_path.string();
-        }
-
         double parse_parameter_number(const std::string & value,
                                       const std::string & conversion_name)
         {
@@ -2093,7 +2078,7 @@ namespace ikaros
                 Notify(msg_print, "Loaded "s+options_.full_path());
                 SetUp();
                 if(options_.is_explicitly_set("load_state"))
-                    LoadState(resolve_state_filename(options_, "load_state"));
+                    LoadState(ResolveStateFilename("load_state"));
                 CalculateCheckSum();
                 BuildUISnapshot();
                 needs_reload = false;

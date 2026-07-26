@@ -10,6 +10,45 @@ using namespace std::chrono;
 
 namespace ikaros
 {
+    std::string
+    Kernel::ResolveStateFilename(const std::string & option_name) const
+    {
+        std::string filename = options_.get(option_name);
+        if(!filename.empty() && filename != "true")
+            return filename;
+
+        std::filesystem::path model_path = options_.full_path();
+        if(model_path.empty())
+            throw exception("Can not derive state filename because no model file is loaded.");
+
+        model_path.replace_extension(".state");
+        return model_path.string();
+    }
+
+
+    std::string
+    Kernel::ResolveStateFilenameFromRequest(const Request & request,
+                                            const std::string & option_name) const
+    {
+        std::string requested_filename;
+        if(request.parameters.contains("filename"))
+            requested_filename = std::string(request.parameters["filename"]);
+        else if(request.parameters.contains("file"))
+            requested_filename = std::string(request.parameters["file"]);
+
+        requested_filename = trim(requested_filename);
+        if(requested_filename.empty())
+            return ResolveStateFilename(option_name);
+
+        std::filesystem::path path = add_extension(requested_filename, ".state");
+        std::filesystem::path filename = path.filename();
+        if(filename.empty() || filename == "." || filename == ".." || filename.stem().empty())
+            throw exception("State filename is invalid.");
+
+        return (std::filesystem::path(user_dir) / filename).string();
+    }
+
+
     namespace
     {
         bool path_is_in_scope(const std::string & path, const std::string & scope)

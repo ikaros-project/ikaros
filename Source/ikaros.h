@@ -884,6 +884,9 @@ public:
 
 private:
     void Save();
+    std::string ResolveStateFilename(const std::string & option_name) const;
+    std::string ResolveStateFilenameFromRequest(const Request & request,
+                                                const std::string & option_name) const;
     void SaveState(const std::string & filename, const std::string & component_path="");
     void LoadState(const std::string & filename, const std::string & component_path="");
     void ResetState(const std::string & component_path="");

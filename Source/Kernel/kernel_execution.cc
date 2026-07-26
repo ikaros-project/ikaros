@@ -12,25 +12,6 @@ extern std::atomic<bool> global_terminate;
 
 namespace ikaros
 {
-    namespace
-    {
-        std::string resolve_state_filename(const options & opts,
-                                           const std::string & option_name)
-        {
-            std::string filename = opts.get(option_name);
-            if(!filename.empty() && filename != "true")
-                return filename;
-
-            std::filesystem::path model_path = opts.full_path();
-            if(model_path.empty())
-                throw exception("Can not derive state filename because no model file is loaded.");
-
-            model_path.replace_extension(".state");
-            return model_path.string();
-        }
-    }
-
-
     bool
     Kernel::Tick()
     {
@@ -928,7 +909,7 @@ namespace ikaros
         {
             std::lock_guard<std::recursive_mutex> lock(kernelLock);
             if(options_.is_explicitly_set("save_state") && !components.empty())
-                SaveState(resolve_state_filename(options_, "save_state"));
+                SaveState(ResolveStateFilename("save_state"));
             tick = 0;
 #if !defined(LOGGING_OFF)
             if(session_logging_active)

@@ -159,40 +159,6 @@ namespace ikaros
 
 
 
-        std::string resolve_state_filename(const options & opts, const std::string & option_name)
-        {
-            std::string filename = opts.get(option_name);
-            if(!filename.empty() && filename != "true")
-                return filename;
-
-            std::filesystem::path model_path = opts.full_path();
-            if(model_path.empty())
-                throw exception("Can not derive state filename because no model file is loaded.");
-
-            model_path.replace_extension(".state");
-            return model_path.string();
-        }
-
-        std::string resolve_state_filename_from_request(const Request & request, const std::string & user_dir, const options & opts, const std::string & option_name)
-        {
-            std::string requested_filename;
-            if(request.parameters.contains("filename"))
-                requested_filename = std::string(request.parameters["filename"]);
-            else if(request.parameters.contains("file"))
-                requested_filename = std::string(request.parameters["file"]);
-
-            requested_filename = trim(requested_filename);
-            if(requested_filename.empty())
-                return resolve_state_filename(opts, option_name);
-
-            std::filesystem::path path = add_extension(requested_filename, ".state");
-            std::filesystem::path filename = path.filename();
-            if(filename.empty() || filename == "." || filename == ".." || filename.stem().empty())
-                throw exception("State filename is invalid.");
-
-            return (std::filesystem::path(user_dir) / filename).string();
-        }
-
         std::string component_path_from_request(const Request & request)
         {
             std::string component_path;
@@ -647,7 +613,7 @@ namespace ikaros
     {
         try
         {
-            std::string filename = resolve_state_filename_from_request(request, user_dir, options_, "save_state");
+            std::string filename = ResolveStateFilenameFromRequest(request, "save_state");
             std::string component_path = component_path_from_request(request);
             {
                 std::lock_guard<std::recursive_mutex> lock(kernelLock);
@@ -683,7 +649,7 @@ namespace ikaros
     {
         try
         {
-            std::string filename = resolve_state_filename_from_request(request, user_dir, options_, "load_state");
+            std::string filename = ResolveStateFilenameFromRequest(request, "load_state");
             std::string component_path = component_path_from_request(request);
             {
                 std::lock_guard<std::recursive_mutex> lock(kernelLock);
