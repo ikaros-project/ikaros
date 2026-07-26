@@ -6654,6 +6654,73 @@ namespace ikaros
     }
 
 
+    void
+    Kernel::WaitForRealtimeTick()
+    {
+        const double target_time = double(tick + 1) * tick_duration;
+        lag = timer.WaitUntil(target_time);
+
+        const bool catch_up =
+            !info_.contains("real_time_catch_up") || info_.is_set("real_time_catch_up");
+        double resync_lag = 1.0;
+        if(info_.contains_non_null("real_time_resync_lag"))
+            resync_lag = std::max(0.0, info_["real_time_resync_lag"].as_double());
+
+        const bool resync_lag_exceeded = resync_lag > 0 && lag > resync_lag;
+        if(!resync_lag_exceeded && (catch_up || lag <= 0))
+            return;
+
+        if(resync_lag_exceeded &&
+           (!realtime_resync_warning_sent ||
+            realtime_resync_warning_timer->GetTime() >= 1.0))
+        {
+            Notify(msg_warning, "Realtime lag exceeded " + formatNumber(resync_lag) +
+                   " seconds. Resynchronizing realtime clock instead of catching up missed ticks.");
+            if(!realtime_resync_warning_timer)
+                realtime_resync_warning_timer.emplace();
+            realtime_resync_warning_timer->Restart();
+            realtime_resync_warning_sent = true;
+        }
+
+        timer.SetTime(target_time);
+        lag = 0;
+    }
+
+
+    void
+    Kernel::WaitForRunMode(bool has_async_workers)
+    {
+        if(run_mode.load() == run_mode_realtime)
+            WaitForRealtimeTick();
+        else if(run_mode.load() == run_mode_play)
+        {
+            timer.SetTime(double(tick + 1) * tick_duration);
+            lag = 0;
+            if(!options_.is_set("batch_mode") || has_async_workers)
+                Sleep(0.01);
+        }
+        else
+            Sleep(0.01);
+    }
+
+
+    void
+    Kernel::ReportRealtimeLag()
+    {
+        if(run_mode.load() != run_mode_realtime)
+            return;
+
+        if(!realtime_lag_warning_timer)
+            realtime_lag_warning_timer.emplace();
+        if(lag > 1.0 && realtime_lag_warning_timer->GetTime() >= 1.0)
+        {
+            Notify(msg_warning, "Performance warning: System is " + formatNumber(lag) +
+                   " seconds behind real time. Consider increasing tick_duration.");
+            realtime_lag_warning_timer->Restart();
+        }
+    }
+
+
     bool
     Kernel::Run()
     {
@@ -6679,53 +6746,8 @@ namespace ikaros
 #if !defined(LOGGING_OFF)
                 ReportSessionLogStatus(*this);
 #endif
-                if(run_mode.load() == run_mode_realtime)
-                {
-                    const double target_time = double(tick+1)*tick_duration;
-                    lag = timer.WaitUntil(target_time);
-
-                    const bool real_time_catch_up =
-                        !info_.contains("real_time_catch_up") || info_.is_set("real_time_catch_up");
-                    double real_time_resync_lag = 1.0;
-                    if(info_.contains_non_null("real_time_resync_lag"))
-                        real_time_resync_lag = std::max(0.0, info_["real_time_resync_lag"].as_double());
-
-                    const bool resync_lag_exceeded = real_time_resync_lag > 0 && lag > real_time_resync_lag;
-                    const bool should_resync = resync_lag_exceeded || (!real_time_catch_up && lag > 0);
-                    if(should_resync)
-                    {
-                        static Timer resync_warning_timer;
-                        static bool has_warned_about_resync = false;
-                        if(resync_lag_exceeded && (!has_warned_about_resync || resync_warning_timer.GetTime() >= 1.0))
-                        {
-                            Notify(msg_warning, "Realtime lag exceeded " + formatNumber(real_time_resync_lag) +
-                                " seconds. Resynchronizing realtime clock instead of catching up missed ticks.");
-                            resync_warning_timer.Restart();
-                            has_warned_about_resync = true;
-                        }
-                        timer.SetTime(target_time);
-                        lag = 0;
-                    }
-                }
-                else if(run_mode.load() == run_mode_play)
-                {
-                    timer.SetTime(double(tick+1)*tick_duration); // Fake time increase
-                    lag = 0;
-                    if(!options_.is_set("batch_mode") || has_async_workers)
-                        Sleep(0.01);
-                }
-                else
-                    Sleep(0.01); // Wait 10 ms to avoid wasting cycles if there are no requests
-
-                if(run_mode.load() == run_mode_realtime)
-                {
-                    static Timer lag_warning_timer;
-                    if(lag > 1.0 && lag_warning_timer.GetTime() >= 1.0)
-                    {
-                        Notify(msg_warning, "Performance warning: System is " + formatNumber(lag) +  " seconds behind real time. Consider increasing tick_duration.");
-                        lag_warning_timer.Restart();
-                    }
-                }
+                WaitForRunMode(has_async_workers);
+                ReportRealtimeLag();
 
                 // Run_mode may have changed during the delay - needs to be checked again
 

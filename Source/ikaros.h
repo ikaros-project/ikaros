@@ -603,6 +603,9 @@ public:
     double                                  lag_min;        // Largest negative lag
     double                                  lag_max;        // Largest positive lag
     double                                  lag_sum;        // Sum |lag|
+    std::optional<Timer>                    realtime_resync_warning_timer;
+    bool                                    realtime_resync_warning_sent = false;
+    std::optional<Timer>                    realtime_lag_warning_timer;
 
     std::unique_ptr<ServerSocket>           socket;
     std::mutex                              log_mutex;
@@ -845,6 +848,9 @@ private:
                                       std::optional<exception> & failure);
     void CollectTaskSequenceFailures(const submitted_task_sequences & sequences,
                                      std::optional<exception> & failure);
+    void WaitForRealtimeTick();
+    void WaitForRunMode(bool has_async_workers);
+    void ReportRealtimeLag();
     std::optional<exception> RunTasks();
     void RunTasksInSingleThread();
     void SetUp();
