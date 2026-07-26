@@ -35,7 +35,9 @@ class WebUIWidgetRectangle extends WebUIWidgetControl
         let fw = this.parameters.frame_width;
         this.parentElement.style.borderWidth = fw ? fw+"px" : "";
         this.parentElement.style.background = this.parameters.background;
-        this.firstChild.innerHTML = "<span>"+this.parameters.label+"</span>"
+        const label = document.createElement("span");
+        label.textContent = this.parameters.label;
+        this.firstChild.replaceChildren(label);
 
         super.updateFrame();
     }

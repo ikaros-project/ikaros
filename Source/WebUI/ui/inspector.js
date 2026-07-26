@@ -986,9 +986,17 @@ const inspector =
         html = html.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_match, alt, url) =>
         {
             const src = inspector.resolveMarkdownAssetUrl(url, options.className);
-            return `<img src="${src}" alt="${inspector.escapeHtml(alt)}" loading="lazy">`;
+            if(!src)
+                return inspector.escapeHtml(alt);
+            return `<img src="${inspector.escapeHtml(src)}" alt="${inspector.escapeHtml(alt)}" loading="lazy">`;
         });
-        html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+        html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_match, label, url) =>
+        {
+            const href = inspector.safeMarkdownUrl(url, false);
+            if(!href)
+                return label;
+            return `<a href="${inspector.escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+        });
         html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
         html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
         return html;
@@ -996,10 +1004,10 @@ const inspector =
 
     resolveMarkdownAssetUrl(url, className = "")
     {
-        const value = String(url || "").trim();
+        const value = inspector.safeMarkdownUrl(url, true);
         if(!value)
             return "";
-        if(/^(?:[a-z]+:)?\/\//i.test(value) || value.startsWith("data:") || value.startsWith("/"))
+        if(/^(?:https?:)?\/\//i.test(value) || value.startsWith("data:image/") || value.startsWith("/"))
             return value;
         if(className && network.classinfo && network.classinfo[className] && network.classinfo[className].path)
         {
@@ -1013,6 +1021,20 @@ const inspector =
             }
         }
         return value;
+    },
+
+    safeMarkdownUrl(url, image)
+    {
+        const value = String(url || "").trim();
+        if(!value || /[\u0000-\u001f\u007f]/.test(value))
+            return "";
+        const scheme = value.match(/^([a-z][a-z0-9+.-]*):/i);
+        if(!scheme)
+            return value;
+        const allowed = image
+            ? /^(?:https?)$/i.test(scheme[1]) || /^data:image\//i.test(value)
+            : /^(?:https?|mailto)$/i.test(scheme[1]);
+        return allowed ? value : "";
     },
 
     renderMarkdown(text, options = {})
@@ -1639,23 +1661,23 @@ const inspector =
 
         let opts = p.options.split(',').map(o=>o.trim());
                         
-        let s = '<select name="'+p.name+'">';
+        const select = document.createElement("select");
+        select.name = p.name;
         for(let j in opts)
         {
             let optionValue = p.type == 'int' ? j : opts[j];
             let optionLabel = opts[j];
-            let optionStyle = "";
             if(p.option_labels && Object.prototype.hasOwnProperty.call(p.option_labels, optionValue))
                 optionLabel = p.option_labels[optionValue];
+            const option = document.createElement("option");
+            option.value = optionValue;
+            option.textContent = optionLabel;
+            option.selected = opts[j] == item[p.name];
             if(p.option_styles && Object.prototype.hasOwnProperty.call(p.option_styles, optionValue))
-                optionStyle = ` style="${p.option_styles[optionValue]}"`;
-            if(opts[j] == item[p.name])
-                s += '<option value="'+optionValue+'" selected'+optionStyle+'>'+optionLabel+'</option>';
-            else
-                s += '<option value="'+optionValue+'"'+optionStyle+'>'+optionLabel+'</option>';
+                option.style.cssText = p.option_styles[optionValue];
+            select.appendChild(option);
         }
-        s += '</select>';
-        cell2.innerHTML= s;
+        cell2.replaceChildren(select);
         cell2.addEventListener("input", function(evt) { 
                 inspector.syncNotifiedParameter(item, p, evt.target.value.trim());
             });

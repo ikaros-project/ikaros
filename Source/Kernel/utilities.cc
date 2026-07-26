@@ -795,6 +795,10 @@ base64_encode(const unsigned char * data, size_t size)
             decoded += static_cast<char>((high << 4) | low);
             i += 2;
         }
+        if(!is_valid_utf8(decoded))
+            throw std::invalid_argument("URL components must contain valid UTF-8.");
+        if(decoded.find('\0') != std::string::npos)
+            throw std::invalid_argument("URL components must not contain null bytes.");
         return decoded;
     }
 

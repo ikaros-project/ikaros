@@ -86,12 +86,12 @@ class WebUIWidgetTable extends WebUIWidget {
                 ix = 0
                 for (var i = 0; i < xCells.length; i++) {
                     ix = (ix >= xLabel.length) ? 0 : ix;
-                    xCells[i].innerHTML = xLabel[ix++]
+                    xCells[i].textContent = xLabel[ix++]
                 }
                 ix = 0
                 for (var i = 0; i < yCells.length; i++) {
                     ix = (ix >= yLabel.length) ? 0 : ix;
-                    yCells[i].innerHTML = yLabel[ix++]
+                    yCells[i].textContent = yLabel[ix++]
                     yCells[i].style.borderBottom = "none";
                 }
             }
@@ -99,13 +99,13 @@ class WebUIWidgetTable extends WebUIWidget {
                 ix = 0
                 for (var i = 0; i < xCells.length; i++) {
                     ix = (ix >= yLabel.length) ? 0 : ix;
-                    xCells[i].innerHTML = yLabel[ix++]
+                    xCells[i].textContent = yLabel[ix++]
 
                 }
                 ix = 0
                 for (var i = 0; i < yCells.length; i++) {
                     ix = (ix >= xLabel.length) ? 0 : ix;
-                    yCells[i].innerHTML = xLabel[ix++]
+                    yCells[i].textContent = xLabel[ix++]
                     yCells[i].style.borderBottom = "none";
                 }
             }

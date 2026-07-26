@@ -159,6 +159,43 @@ main()
     XMLDocument xml_document("/tmp/test_dictionary_multiline.xml");
     dictionary reparsed_xml(xml_document.xml);
     assert(reparsed_xml["title"].as_string() == "line 1\nline \"2\" & <3>\t");
+    dictionary invalid_xml;
+    invalid_xml["bad_utf8"] = std::string(1, char(0x80));
+    bool threw_on_invalid_xml_utf8 = false;
+    try
+    {
+        static_cast<void>(invalid_xml.xml("group"));
+    }
+    catch(const std::invalid_argument &)
+    {
+        threw_on_invalid_xml_utf8 = true;
+    }
+    assert(threw_on_invalid_xml_utf8);
+
+    invalid_xml["bad_utf8"] = std::string("a\0b", 3);
+    bool threw_on_invalid_xml_control = false;
+    try
+    {
+        static_cast<void>(invalid_xml.xml("group"));
+    }
+    catch(const std::invalid_argument &)
+    {
+        threw_on_invalid_xml_control = true;
+    }
+    assert(threw_on_invalid_xml_control);
+
+    dictionary invalid_xml_name;
+    invalid_xml_name["bad name"] = "value";
+    bool threw_on_invalid_xml_name = false;
+    try
+    {
+        static_cast<void>(invalid_xml_name.xml("group"));
+    }
+    catch(const std::invalid_argument &)
+    {
+        threw_on_invalid_xml_name = true;
+    }
+    assert(threw_on_invalid_xml_name);
 
     dictionary scalar_list_xml;
     list scalar_values;

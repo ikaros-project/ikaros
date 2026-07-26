@@ -2,6 +2,7 @@
 
 #include "xml.h"
 #include "exceptions.h"
+#include "utilities.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,6 +53,8 @@ create_string(const char * c)
 {
     if (c)
     {
+        if(!ikaros::is_valid_utf8(c))
+            throw std::invalid_argument("XML text must contain valid UTF-8.");
         char * p = strcpy(new char [strlen(c)+1], c);
         return p;
     }

@@ -453,6 +453,19 @@ public:
                     static_cast<void>(escape_json_string("\xC0\x80"));
                 }),
                 "JSON string escaping accepted invalid UTF-8");
+        require(rejects_invalid_argument([]()
+                {
+                    dictionary data;
+                    data["value"] = std::string(1, char(0x80));
+                    static_cast<void>(data.xml("group"));
+                }) &&
+                rejects_invalid_argument([]()
+                {
+                    dictionary data;
+                    data["bad name"] = "value";
+                    static_cast<void>(data.xml("group"));
+                }),
+                "XML serialization accepted invalid UTF-8 or names");
 
         require(decode_url_component("alpha%20beta") == "alpha beta" &&
                 decode_url_component("alpha+beta", true) == "alpha beta" &&
@@ -465,8 +478,16 @@ public:
                 rejects_invalid_argument([]()
                 {
                     static_cast<void>(decode_url_component("%GG"));
+                }) &&
+                rejects_invalid_argument([]()
+                {
+                    static_cast<void>(decode_url_component("%C0%80"));
+                }) &&
+                rejects_invalid_argument([]()
+                {
+                    static_cast<void>(decode_url_component("%00"));
                 }),
-                "URL decoding accepted malformed escapes");
+                "URL decoding accepted malformed or unsafe text");
         require(remove_comment("1 # first\n2#second\n3") == "1 \n2\n3",
                 "comment removal returned an incorrect value");
 

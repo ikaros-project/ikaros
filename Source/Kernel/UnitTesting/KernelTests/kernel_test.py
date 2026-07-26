@@ -751,6 +751,7 @@ def run_webui_javascript_tests():
     tests = [
         ("WebUI regressions", [node, str(test_directory / "dialog_test.js")]),
         ("WebUI regressions", [node, str(test_directory / "save_test.js")]),
+        ("WebUI escaping regressions", [node, str(test_directory / "escaping_test.js")]),
         (
             "WebUI live regression syntax",
             [node, "--check", str(test_directory / "live_save_test.js")],

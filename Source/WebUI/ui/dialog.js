@@ -476,7 +476,7 @@ const dialog =
 
                 const opt = document.createElement('option');
                 opt.value = i;
-                opt.innerHTML = i;
+                opt.textContent = i;
                 document.getElementById('listSelectDialogItems').appendChild(opt);
             }
         if(message)

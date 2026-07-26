@@ -7,6 +7,7 @@
 #include <cctype>
 #include <climits>
 #include <cmath>
+#include <cstdint>
 #include <stdexcept>
 #include <fstream>
 
@@ -105,6 +106,9 @@ namespace ikaros
 
         static std::string escape_xml_attribute(const std::string & value)
         {
+            if(!is_valid_utf8(value))
+                throw std::invalid_argument("XML attributes must contain valid UTF-8.");
+
             std::string escaped;
             escaped.reserve(value.size());
             for(unsigned char c : value)
@@ -119,10 +123,59 @@ namespace ikaros
                     case '\n': escaped += "&#10;"; break;
                     case '\r': escaped += "&#13;"; break;
                     case '\t': escaped += "&#9;"; break;
-                    default: escaped += static_cast<char>(c); break;
+                    default:
+                        if(c < 0x20)
+                            throw std::invalid_argument("XML attributes must not contain control characters.");
+                        escaped += static_cast<char>(c);
+                        break;
                 }
             }
             return escaped;
+        }
+
+
+        static void validate_xml_name(const std::string & name)
+        {
+            if(name.empty() || !is_valid_utf8(name))
+                throw std::invalid_argument("XML names must be non-empty valid UTF-8.");
+
+            auto next_codepoint = [&](std::size_t & offset)
+            {
+                const unsigned char first = static_cast<unsigned char>(name[offset++]);
+                if(first < 0x80)
+                    return static_cast<std::uint32_t>(first);
+                const int continuation_count = first < 0xE0 ? 1 : first < 0xF0 ? 2 : 3;
+                std::uint32_t codepoint = first & (0x7F >> continuation_count);
+                for(int i = 0; i < continuation_count; ++i)
+                    codepoint = (codepoint << 6) |
+                                (static_cast<unsigned char>(name[offset++]) & 0x3F);
+                return codepoint;
+            };
+            auto is_name_start = [](std::uint32_t c)
+            {
+                return c == ':' || c == '_' || (c >= 'A' && c <= 'Z') ||
+                       (c >= 'a' && c <= 'z') || (c >= 0xC0 && c <= 0xD6) ||
+                       (c >= 0xD8 && c <= 0xF6) || (c >= 0xF8 && c <= 0x2FF) ||
+                       (c >= 0x370 && c <= 0x37D) || (c >= 0x37F && c <= 0x1FFF) ||
+                       (c >= 0x200C && c <= 0x200D) || (c >= 0x2070 && c <= 0x218F) ||
+                       (c >= 0x2C00 && c <= 0x2FEF) || (c >= 0x3001 && c <= 0xD7FF) ||
+                       (c >= 0xF900 && c <= 0xFDCF) || (c >= 0xFDF0 && c <= 0xFFFD) ||
+                       (c >= 0x10000 && c <= 0xEFFFF);
+            };
+            std::size_t offset = 0;
+            bool first = true;
+            while(offset < name.size())
+            {
+                const std::uint32_t c = next_codepoint(offset);
+                const bool valid = is_name_start(c) ||
+                                   (!first && ((c >= '0' && c <= '9') || c == '-' ||
+                                              c == '.' || c == 0xB7 ||
+                                              (c >= 0x300 && c <= 0x36F) ||
+                                              (c >= 0x203F && c <= 0x2040)));
+                if(!valid)
+                    throw std::invalid_argument("Invalid XML name: " + name);
+                first = false;
+            }
         }
 
 
@@ -642,6 +695,7 @@ namespace ikaros
     std::string  
     dictionary::xml(std::string name,exclude_set exclude, int depth) const
     {
+        validate_xml_name(name);
         std::string s = tab(depth)+"<"+name;
         for(auto & [key, value] : *dict_)
             if(exclude.count(name+"."+key))
@@ -649,13 +703,18 @@ namespace ikaros
             else if(!value.is_list())
                     if(!value.is_null()) // Do not include null attributes - but include empty strings
                     if(key != "_tag") // Do not include tag attributes since the are used as element name
+                    {
+                        validate_xml_name(key);
                         s += " "+key + "=\"" + escape_xml_attribute(std::string(value)) + "\"";
+                    }
 
         std::string sep = ">\n";
         for(auto & [key, value] : *dict_)
             if(value.is_list() && !exclude.count(name+"/"+key))
             {
-                std::string sub = value.xml(key.substr(0, key.size()-1), exclude, depth);
+                const std::string element_name = key.substr(0, key.size()-1);
+                validate_xml_name(element_name);
+                std::string sub = value.xml(element_name, exclude, depth);
                 if(!sub.empty())
                 {
                     s += sep + sub;

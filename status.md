@@ -237,7 +237,7 @@ None.
 | 4 | Find C-style idioms that can be replaced with C++ idioms; implement straightforward replacements and retain a discussion list of cases requiring judgment for review after all tasks are complete. | Addressed | Debug build; mechanical cast, null, constant, buffer-length, initialization, and type-alias cleanup; all 265 standard tests passed | `Straightforward C idioms now use modern C++ forms` |
 | 5 | Audit path and include-name capitalization for code that works on commonly case-insensitive macOS filesystems but can fail on case-sensitive Linux filesystems. | Addressed | Exact-case audit found no mismatched quoted includes or case-colliding tracked paths; reusable checker added; Debug build passed | `Path capitalization now has a regression check` |
 | 6 | Review all Markdown files for current and accurate content, and place each document in the appropriate repository location. | Addressed | All 547 Markdown files inventoried; maintained docs checked for content type, portable paths, module titles, and `.ikc` interface agreement; stale pages corrected; misplaced files removed or relocated | `Markdown documentation now matches the current tree` |
-| 7 | Audit string escaping and UTF-8 handling across parsing, serialization, messages, paths, and WebUI boundaries; correct unsafe or inconsistent behavior and verify whether handling is sound throughout. | Pending | Not started | — |
+| 7 | Audit string escaping and UTF-8 handling across parsing, serialization, messages, paths, and WebUI boundaries; correct unsafe or inconsistent behavior and verify whether handling is sound throughout. | Addressed | JSON, XML, URL, filesystem/request, notification, DOM, and Markdown-rendering boundaries audited; malformed UTF-8, unsafe URL bytes/schemes, XML names/control bytes, and HTML insertion covered; Debug build; all 266 standard tests passed | `Text boundaries now validate UTF-8 and escape by context` |
 
 ### Major code cleanup deferred items
 
@@ -250,3 +250,9 @@ None.
 - The public `matrix::realloc()` name is C-like, but renaming it would be a broad API migration and its behavior is matrix storage allocation rather than direct use of C `realloc()`.
 - The `INSTALL_CLASS` registration macro and build-feature macros remain because they perform preprocessing or conditional compilation that `constexpr` cannot replace directly.
 - The deferred `EpiServos` and `ServoControlTuning` modules contain many macro constants and a C-style aggregate that should be modernized together with their later diagnostic cleanup.
+
+### Major code cleanup outstanding issues and questions
+
+- `EpiServos` and `ServoControlTuning` remain deferred by request. Their direct console diagnostics and C-style constants/aggregate should be handled together in a later task.
+- The XML parser's manual linked-tree and C-string ownership, external C API buffer boundaries, public `matrix::realloc()` name, and class-registration macro are the judgment-heavy modernization cases listed above; no change was made without an API or architecture decision.
+- No other known locale, lifecycle-diagnostic, include, capitalization, Markdown, escaping, or UTF-8 correctness issue remains from this audit.

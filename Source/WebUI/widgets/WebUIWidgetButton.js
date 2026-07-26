@@ -296,7 +296,10 @@ class WebUIWidgetButton extends WebUIWidgetControl
         if(this.parameters.icon)
         {
             const iconClass = String(this.parameters.icon).endsWith("record.png") ? "button-icon button-icon-preserve-color" : "button-icon";
-            this.firstChild.innerHTML = "<img src='"+this.parameters.icon+"' class='"+iconClass+"'>"; // ' style='width: 70%;height: 70%;object-fit: contain;'
+            const icon = document.createElement("img");
+            icon.src = this.parameters.icon;
+            icon.className = iconClass;
+            this.firstChild.replaceChildren(icon);
         }
         else
             this.firstChild.innerText = this.parameters.label;
