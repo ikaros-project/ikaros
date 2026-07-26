@@ -643,6 +643,22 @@ public:
         bool log_delivery_initialized = false;
     };
 
+    struct UISnapshotBuildPlan
+    {
+        std::chrono::steady_clock::time_point now;
+        std::shared_ptr<const UISnapshot> previous_snapshot;
+        std::unordered_set<std::string> subscriptions;
+        uint64_t subscription_revision = 0;
+        bool has_active_clients = false;
+        bool snapshot_due = false;
+    };
+
+    struct DataSnapshotItem
+    {
+        std::string prefix;
+        std::string value;
+    };
+
     uint64_t                                next_ui_snapshot_id = 1;
     uint64_t                                ui_subscription_revision = 1;
     std::shared_ptr<const UISnapshot>       current_ui_snapshot;
@@ -940,7 +956,16 @@ private:
     bool SerializeRequestedValue(RequestedUIValue requested_value, std::string & serialized_value, long long * compute_us = nullptr, long long * value_us = nullptr);
     std::string ConsumeLogForClient(long ui_client_id);
     void ResetUISnapshotCache();
+    UISnapshotBuildPlan PlanUISnapshotBuild(bool respect_rate_limit);
+    void PopulateUISnapshot(UISnapshot & snapshot, const UISnapshotBuildPlan & plan);
+    void PublishUISnapshot(std::shared_ptr<UISnapshot> snapshot);
     void BuildUISnapshot(bool respect_rate_limit = false);
+    bool UpdateUIClientSubscriptions(long client_id,
+                                     const std::vector<RequestedUIValue> & requested_values);
+    std::shared_ptr<const UISnapshot> CurrentUISnapshot();
+    std::string BuildUIDataResponse(const std::string & status,
+                                    const std::vector<DataSnapshotItem> & response_items,
+                                    const std::string & log_json) const;
 
     void DoSendData(Request & request, bool refresh_paused_snapshot = true, bool use_snapshot_status = false);
     void DoUpdate(Request & request);

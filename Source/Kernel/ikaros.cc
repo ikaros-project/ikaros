@@ -701,12 +701,6 @@ namespace ikaros
             return cpu_cores > 1 ? static_cast<int>(cpu_cores) - 1 : 1;
         }
 
-        struct DataSnapshotItem
-        {
-            std::string prefix;
-            std::string value;
-        };
-
         constexpr char ui_subscription_separator = '\n';
         constexpr double ui_subscription_timeout_seconds = 10.0;
         constexpr double profiling_subscription_timeout_seconds = 3.0;
@@ -7388,26 +7382,23 @@ namespace ikaros
     }
 
 
-    void
-    Kernel::BuildUISnapshot(bool respect_rate_limit)
+    Kernel::UISnapshotBuildPlan
+    Kernel::PlanUISnapshotBuild(bool respect_rate_limit)
     {
-        std::unordered_set<std::string> subscriptions;
-        const auto now = steady_clock::now();
-        std::shared_ptr<const UISnapshot> previous_snapshot;
+        UISnapshotBuildPlan plan;
+        plan.now = steady_clock::now();
         {
             std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
-            previous_snapshot = current_ui_snapshot;
+            plan.previous_snapshot = current_ui_snapshot;
         }
 
-        bool has_active_clients = false;
-        bool snapshot_due = !respect_rate_limit || previous_snapshot == nullptr;
-        uint64_t subscription_revision = 0;
+        plan.snapshot_due = !respect_rate_limit || plan.previous_snapshot == nullptr;
         {
             std::lock_guard<std::mutex> lock(ui_client_mutex);
             bool removed_client = false;
             for(auto it = ui_client_states.begin(); it != ui_client_states.end();)
             {
-                if(now - it->second.last_seen_time > duration<double>(ui_subscription_timeout_seconds))
+                if(plan.now - it->second.last_seen_time > duration<double>(ui_subscription_timeout_seconds))
                 {
                     it = ui_client_states.erase(it);
                     removed_client = true;
@@ -7419,58 +7410,54 @@ namespace ikaros
             if(removed_client)
                 ++ui_subscription_revision;
 
-            has_active_clients = !ui_client_states.empty();
-            subscription_revision = ui_subscription_revision;
-            const bool subscriptions_changed = previous_snapshot == nullptr ||
-                previous_snapshot->subscription_revision != subscription_revision;
+            plan.has_active_clients = !ui_client_states.empty();
+            plan.subscription_revision = ui_subscription_revision;
+            const bool subscriptions_changed = plan.previous_snapshot == nullptr ||
+                plan.previous_snapshot->subscription_revision != plan.subscription_revision;
             if(subscriptions_changed)
-                snapshot_due = true;
-            else if(!snapshot_due)
-                snapshot_due = now - previous_snapshot->timestamp >=
+                plan.snapshot_due = true;
+            else if(!plan.snapshot_due)
+                plan.snapshot_due = plan.now - plan.previous_snapshot->timestamp >=
                     duration<double>(WebUIRequestInterval());
 
-            if(snapshot_due)
+            if(plan.snapshot_due)
                 for(const auto & client_entry : ui_client_states)
-                    subscriptions.insert(client_entry.second.keys.begin(), client_entry.second.keys.end());
+                    plan.subscriptions.insert(client_entry.second.keys.begin(), client_entry.second.keys.end());
         }
 
-        if(!has_active_clients)
-        {
-            std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
-            current_ui_snapshot.reset();
-            return;
-        }
+        return plan;
+    }
 
-        if(!snapshot_due)
-            return;
 
-        bool refresh_images = previous_snapshot == nullptr ||
-            now - previous_snapshot->image_timestamp >= duration<double>(SnapshotInterval());
-        auto snapshot = std::make_shared<UISnapshot>();
-        snapshot->snapshot_id = next_ui_snapshot_id++;
-        snapshot->subscription_revision = subscription_revision;
-        snapshot->session_id = session_id;
-        snapshot->tick = tick;
-        snapshot->image_timestamp = refresh_images ? now : (previous_snapshot ? previous_snapshot->image_timestamp : now);
-        snapshot->status_json = DoSendDataStatus();
+    void
+    Kernel::PopulateUISnapshot(UISnapshot & snapshot, const UISnapshotBuildPlan & plan)
+    {
+        const bool refresh_images = plan.previous_snapshot == nullptr ||
+            plan.now - plan.previous_snapshot->image_timestamp >= duration<double>(SnapshotInterval());
+        snapshot.snapshot_id = next_ui_snapshot_id++;
+        snapshot.subscription_revision = plan.subscription_revision;
+        snapshot.session_id = session_id;
+        snapshot.tick = tick;
+        snapshot.image_timestamp = refresh_images ? plan.now : plan.previous_snapshot->image_timestamp;
+        snapshot.status_json = DoSendDataStatus();
 
         std::vector<std::future<std::pair<std::string, std::string>>> image_futures;
-        for(const auto & subscription_key : subscriptions)
+        for(const auto & subscription_key : plan.subscriptions)
         {
             RequestedUIValue requested_value = ParseSubscribedUIValue(subscription_key);
             if(is_snapshot_image_format(requested_value.format))
             {
-                if(!refresh_images && previous_snapshot != nullptr)
+                if(!refresh_images)
                 {
-                    auto it = previous_snapshot->serialized_values.find(subscription_key);
-                    if(it != previous_snapshot->serialized_values.end())
+                    auto it = plan.previous_snapshot->serialized_values.find(subscription_key);
+                    if(it != plan.previous_snapshot->serialized_values.end())
                     {
-                        snapshot->serialized_values[subscription_key] = it->second;
+                        snapshot.serialized_values[subscription_key] = it->second;
                         continue;
                     }
                 }
 
-                image_futures.push_back(std::async(std::launch::async, [this, subscription_key, requested_value, previous_snapshot]() mutable
+                image_futures.push_back(std::async(std::launch::async, [this, subscription_key, requested_value, previous_snapshot = plan.previous_snapshot]() mutable
                 {
                     std::string serialized_value;
                     if(SerializeRequestedValue(requested_value, serialized_value))
@@ -7490,12 +7477,12 @@ namespace ikaros
                 {
                     std::string serialized_value;
                     if(SerializeRequestedValue(requested_value, serialized_value))
-                        snapshot->serialized_values[subscription_key] = std::move(serialized_value);
-                    else if(previous_snapshot != nullptr)
+                        snapshot.serialized_values[subscription_key] = std::move(serialized_value);
+                    else if(plan.previous_snapshot != nullptr)
                     {
-                        auto it = previous_snapshot->serialized_values.find(subscription_key);
-                        if(it != previous_snapshot->serialized_values.end())
-                            snapshot->serialized_values[subscription_key] = it->second;
+                        auto it = plan.previous_snapshot->serialized_values.find(subscription_key);
+                        if(it != plan.previous_snapshot->serialized_values.end())
+                            snapshot.serialized_values[subscription_key] = it->second;
                     }
                 }
                 catch(const std::exception & e)
@@ -7511,7 +7498,7 @@ namespace ikaros
             {
                 auto result = future.get();
                 if(!result.first.empty())
-                    snapshot->serialized_values[result.first] = std::move(result.second);
+                    snapshot.serialized_values[result.first] = std::move(result.second);
             }
             catch(const std::exception & e)
             {
@@ -7519,9 +7506,33 @@ namespace ikaros
             }
         }
 
-        snapshot->timestamp = steady_clock::now();
+        snapshot.timestamp = steady_clock::now();
+    }
+
+
+    void
+    Kernel::PublishUISnapshot(std::shared_ptr<UISnapshot> snapshot)
+    {
         std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
         current_ui_snapshot = std::move(snapshot);
+    }
+
+
+    void
+    Kernel::BuildUISnapshot(bool respect_rate_limit)
+    {
+        UISnapshotBuildPlan plan = PlanUISnapshotBuild(respect_rate_limit);
+        if(!plan.has_active_clients)
+        {
+            PublishUISnapshot(nullptr);
+            return;
+        }
+        if(!plan.snapshot_due)
+            return;
+
+        auto snapshot = std::make_shared<UISnapshot>();
+        PopulateUISnapshot(*snapshot, plan);
+        PublishUISnapshot(std::move(snapshot));
     }
 
 
@@ -7532,26 +7543,68 @@ namespace ikaros
     }
 
 
-    void
-    Kernel::DoSendData(Request & request, bool refresh_paused_snapshot, bool use_snapshot_status)
+    bool
+    Kernel::UpdateUIClientSubscriptions(long client_id,
+                                        const std::vector<RequestedUIValue> & requested_values)
     {
-        auto requested_values = ParseRequestedUIValues(request);
         std::unordered_set<std::string> requested_subscriptions;
         requested_subscriptions.reserve(requested_values.size());
         for(const auto & requested_value : requested_values)
             requested_subscriptions.insert(SubscriptionKeyFor(requested_value));
-        bool client_subscriptions_changed = false;
+
+        std::lock_guard<std::mutex> lock(ui_client_mutex);
+        auto & client_state = ui_client_states[client_id];
+        const bool subscriptions_changed = client_state.keys != requested_subscriptions;
+        if(subscriptions_changed)
+            ++ui_subscription_revision;
+        client_state.keys = std::move(requested_subscriptions);
+        client_state.last_seen_time = steady_clock::now();
+        return subscriptions_changed;
+    }
+
+
+    std::shared_ptr<const Kernel::UISnapshot>
+    Kernel::CurrentUISnapshot()
+    {
+        std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
+        return current_ui_snapshot;
+    }
+
+
+    std::string
+    Kernel::BuildUIDataResponse(const std::string & status,
+                                const std::vector<DataSnapshotItem> & response_items,
+                                const std::string & log_json) const
+    {
+        std::string response = "{\n";
+        response += status;
+        response += "\t\"data\":\n\t{\n";
+
+        std::string sep;
+        for(const auto & item : response_items)
         {
-            std::lock_guard<std::mutex> lock(ui_client_mutex);
-            auto & client_state = ui_client_states[request.client_id];
-            if(client_state.keys != requested_subscriptions)
-            {
-                ++ui_subscription_revision;
-                client_subscriptions_changed = true;
-            }
-            client_state.keys = std::move(requested_subscriptions);
-            client_state.last_seen_time = steady_clock::now();
+            if(item.value.empty())
+                continue;
+            response += sep;
+            response += item.prefix;
+            response += item.value;
+            sep = ",\n";
         }
+
+        response += "\n\t}";
+        response += log_json.empty() ? ",\n\"log\": []" : log_json;
+        response += ",\n\t\"has_data\": 1\n";
+        response += "}\n";
+        return response;
+    }
+
+
+    void
+    Kernel::DoSendData(Request & request, bool refresh_paused_snapshot, bool use_snapshot_status)
+    {
+        auto requested_values = ParseRequestedUIValues(request);
+        const bool client_subscriptions_changed =
+            UpdateUIClientSubscriptions(request.client_id, requested_values);
 
         if((refresh_paused_snapshot && run_mode.load() == run_mode_pause) ||
            (use_snapshot_status && client_subscriptions_changed))
@@ -7560,11 +7613,7 @@ namespace ikaros
             BuildUISnapshot();
         }
 
-        std::shared_ptr<const UISnapshot> snapshot;
-        {
-            std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
-            snapshot = current_ui_snapshot;
-        }
+        std::shared_ptr<const UISnapshot> snapshot = CurrentUISnapshot();
 
         long response_session_id = 0;
         std::string status;
@@ -7639,26 +7688,7 @@ namespace ikaros
             {"Expires", "0"}
         });
 
-        std::string response = "{\n";
-        response += status;
-        response += "\t\"data\":\n\t{\n";
-
-        std::string sep;
-        for(auto & item : response_items)
-        {
-            if(item.value.empty())
-                continue;
-            response += sep;
-            response += item.prefix;
-            response += item.value;
-            sep = ",\n";
-        }
-
-        response += "\n\t}";
-        response += log_json.empty() ? ",\n\"log\": []" : log_json;
-        response += ",\n\t\"has_data\": 1\n";
-        response += "}\n";
-        SendStringResponse(header, response);
+        SendStringResponse(header, BuildUIDataResponse(status, response_items, log_json));
     }
 
 
