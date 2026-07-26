@@ -273,6 +273,10 @@ private:
     std::map<std::string, DeferredParameterChange> deferred_parameter_changes;
     std::vector<DeferredCommand> deferred_commands;
 
+    static dictionary LogLevelParameterInfo();
+    static dictionary ModuleStartParameterInfo();
+    static dictionary StartTickParameterInfo();
+    static dictionary AsyncParameterInfo();
     int EffectiveFirstTick() const;
     void SyncFirstTickFromParameter();
     bool IsAsyncPending() const;

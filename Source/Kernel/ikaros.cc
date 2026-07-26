@@ -278,51 +278,6 @@ namespace ikaros
             return out;
         }
 
-        dictionary make_log_level_parameter()
-        {
-            dictionary log_param;
-            log_param["_tag"] = "parameter";
-            log_param["name"] = "log_level";
-            log_param["type"] = "number";
-            log_param["control"] = "menu";
-            log_param["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
-            log_param["default"] = 0;
-            return log_param;
-        }
-
-        dictionary make_module_start_parameter()
-        {
-            dictionary module_start_param;
-            module_start_param["_tag"] = "parameter";
-            module_start_param["name"] = "module_start";
-            module_start_param["type"] = "number";
-            module_start_param["control"] = "menu";
-            module_start_param["options"] = "at_tick,first_data,all_data";
-            module_start_param["default"] = 0;
-            return module_start_param;
-        }
-
-        dictionary make_start_tick_parameter()
-        {
-            dictionary start_tick_param;
-            start_tick_param["_tag"] = "parameter";
-            start_tick_param["name"] = "start_tick";
-            start_tick_param["type"] = "number";
-            start_tick_param["default"] = 0;
-            return start_tick_param;
-        }
-
-        dictionary make_async_parameter()
-        {
-            dictionary async_param;
-            async_param["_tag"] = "parameter";
-            async_param["name"] = "async";
-            async_param["type"] = "bool";
-            async_param["default"] = "no";
-            async_param["description"] = "Run this module asynchronously.";
-            return async_param;
-        }
-
         void ensure_list(dictionary & info, const std::string & key)
         {
             if(!info.contains_non_null(key) || !info[key].is_list())
@@ -1852,8 +1807,62 @@ namespace ikaros
             if(p["name"].as_string()=="log_level")
                 return;
 
-        info_["parameters"].push_back(make_log_level_parameter().copy());
+        info_["parameters"].push_back(LogLevelParameterInfo().copy());
     }
+
+
+    dictionary
+    Component::LogLevelParameterInfo()
+    {
+        dictionary parameter;
+        parameter["_tag"] = "parameter";
+        parameter["name"] = "log_level";
+        parameter["type"] = "number";
+        parameter["control"] = "menu";
+        parameter["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
+        parameter["default"] = 0;
+        return parameter;
+    }
+
+
+    dictionary
+    Component::ModuleStartParameterInfo()
+    {
+        dictionary parameter;
+        parameter["_tag"] = "parameter";
+        parameter["name"] = "module_start";
+        parameter["type"] = "number";
+        parameter["control"] = "menu";
+        parameter["options"] = "at_tick,first_data,all_data";
+        parameter["default"] = 0;
+        return parameter;
+    }
+
+
+    dictionary
+    Component::StartTickParameterInfo()
+    {
+        dictionary parameter;
+        parameter["_tag"] = "parameter";
+        parameter["name"] = "start_tick";
+        parameter["type"] = "number";
+        parameter["default"] = 0;
+        return parameter;
+    }
+
+
+    dictionary
+    Component::AsyncParameterInfo()
+    {
+        dictionary parameter;
+        parameter["_tag"] = "parameter";
+        parameter["name"] = "async";
+        parameter["type"] = "bool";
+        parameter["default"] = "no";
+        parameter["description"] = "Run this module asynchronously.";
+        return parameter;
+    }
+
 
     void
     Component::AddFirstTick()
@@ -1870,12 +1879,12 @@ namespace ikaros
                     }
 
                 if(!has_start_tick)
-                    info_["parameters"].push_back(make_start_tick_parameter().copy());
+                    info_["parameters"].push_back(StartTickParameterInfo().copy());
                 return;
             }
 
-        info_["parameters"].push_back(make_module_start_parameter().copy());
-        info_["parameters"].push_back(make_start_tick_parameter().copy());
+        info_["parameters"].push_back(ModuleStartParameterInfo().copy());
+        info_["parameters"].push_back(StartTickParameterInfo().copy());
     }
 
     Component::Component():

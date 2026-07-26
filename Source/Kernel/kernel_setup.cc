@@ -118,39 +118,6 @@ namespace ikaros
             return parsed_value;
         }
 
-        dictionary make_module_start_parameter()
-        {
-            dictionary parameter;
-            parameter["_tag"] = "parameter";
-            parameter["name"] = "module_start";
-            parameter["type"] = "number";
-            parameter["control"] = "menu";
-            parameter["options"] = "at_tick,first_data,all_data";
-            parameter["default"] = 0;
-            return parameter;
-        }
-
-        dictionary make_start_tick_parameter()
-        {
-            dictionary parameter;
-            parameter["_tag"] = "parameter";
-            parameter["name"] = "start_tick";
-            parameter["type"] = "number";
-            parameter["default"] = 0;
-            return parameter;
-        }
-
-        dictionary make_async_parameter()
-        {
-            dictionary parameter;
-            parameter["_tag"] = "parameter";
-            parameter["name"] = "async";
-            parameter["type"] = "bool";
-            parameter["default"] = "no";
-            parameter["description"] = "Run this module asynchronously.";
-            return parameter;
-        }
-
         dictionary make_color_parameter()
         {
             dictionary parameter;
@@ -215,18 +182,6 @@ namespace ikaros
             parameter["type"] = "number";
             parameter["default"] = static_cast<int>(default_max_retained_webui_log_messages);
             parameter["description"] = "Maximum number of recent log messages retained for delivery to WebUI clients.";
-            return parameter;
-        }
-
-        dictionary make_log_level_parameter()
-        {
-            dictionary parameter;
-            parameter["_tag"] = "parameter";
-            parameter["name"] = "log_level";
-            parameter["type"] = "number";
-            parameter["control"] = "menu";
-            parameter["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
-            parameter["default"] = 0;
             return parameter;
         }
 
@@ -1755,24 +1710,17 @@ namespace ikaros
 
         if(!has_log_level)
         {
-            dictionary log_param;
-            log_param["_tag"] = "parameter";
-            log_param["name"] = "log_level";
-            log_param["type"] = "number";
-            log_param["control"] = "menu";
-            log_param["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
-            log_param["default"] = 0;
-            info["parameters"].push_back(log_param);
+            info["parameters"].push_back(Component::LogLevelParameterInfo().copy());
         }
 
         if(!has_module_start)
-            info["parameters"].push_back(make_module_start_parameter().copy());
+            info["parameters"].push_back(Component::ModuleStartParameterInfo().copy());
 
         if(!has_start_tick)
-            info["parameters"].push_back(make_start_tick_parameter().copy());
+            info["parameters"].push_back(Component::StartTickParameterInfo().copy());
 
         if(!has_async)
-            info["parameters"].push_back(make_async_parameter().copy());
+            info["parameters"].push_back(Component::AsyncParameterInfo().copy());
 
         if(!has_color)
         {
@@ -2184,16 +2132,16 @@ namespace ikaros
                     }
 
                     if(!has_log_level)
-                        class_info["parameters"].push_back(make_log_level_parameter().copy());
+                        class_info["parameters"].push_back(Component::LogLevelParameterInfo().copy());
 
                     if(!has_module_start)
-                        class_info["parameters"].push_back(make_module_start_parameter().copy());
+                        class_info["parameters"].push_back(Component::ModuleStartParameterInfo().copy());
 
                     if(!has_start_tick)
-                        class_info["parameters"].push_back(make_start_tick_parameter().copy());
+                        class_info["parameters"].push_back(Component::StartTickParameterInfo().copy());
 
                     if(!has_async)
-                        class_info["parameters"].push_back(make_async_parameter().copy());
+                        class_info["parameters"].push_back(Component::AsyncParameterInfo().copy());
 
                     if(!has_color)
                         class_info["parameters"].push_back(make_color_parameter().copy());
