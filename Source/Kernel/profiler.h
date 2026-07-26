@@ -5,6 +5,8 @@
 #include <cstddef>
 #include <iostream>
 #include <iomanip>
+#include <charconv>
+#include <locale>
 #include <mutex>
 #include <sstream>
 #include <stdexcept>
@@ -135,6 +137,7 @@ public:
     {
         const Snapshot data = snapshot();
         std::ostringstream out;
+        out.imbue(std::locale::classic());
 
         if (!msg.empty())
             out << msg << "\t";
@@ -201,9 +204,11 @@ private:
         if(!std::isfinite(value))
             return "null";
 
-        std::ostringstream out;
-        out << std::setprecision(17) << value;
-        return out.str();
+        char buffer[64];
+        const auto result = std::to_chars(buffer, buffer + sizeof(buffer), value);
+        if(result.ec != std::errc())
+            return "null";
+        return std::string(buffer, result.ptr);
     }
 
     static std::string

@@ -15,6 +15,7 @@
 #include <charconv>
 #include <cstdarg>
 #include <future>
+#include <locale>
 #include <memory>
 #include <optional>
 #include <string_view>
@@ -177,7 +178,7 @@ namespace
     to_lower_copy(std::string value)
     {
         std::transform(value.begin(), value.end(), value.begin(),
-            [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+            ascii_to_lower);
         return value;
     }
 }
@@ -698,6 +699,7 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
 
     std::string header_text = connection->input_buffer.substr(0, header_end);
     std::istringstream request_stream(header_text);
+    request_stream.imbue(std::locale::classic());
     std::string request_line;
     if(!std::getline(request_stream, request_line))
         return RequestReadResult::bad_request;
@@ -705,6 +707,7 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
         request_line.pop_back();
 
     std::istringstream request_line_stream(request_line);
+    request_line_stream.imbue(std::locale::classic());
     std::string method;
     std::string uri;
     std::string http_version;

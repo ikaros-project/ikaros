@@ -45,6 +45,7 @@ extern "C"
 #endif
 
 #include <array>
+#include <charconv>
 #include <mutex>
 #include <new>
 #include <optional>
@@ -552,6 +553,18 @@ quote_csv_field(const std::string & field, const std::string & separator)
     }
     result += '"';
     return result;
+}
+
+
+std::string
+format_csv_number(float value)
+{
+    char buffer[64];
+    const auto result = std::to_chars(buffer, buffer + sizeof(buffer), value,
+                                      std::chars_format::fixed, 6);
+    if(result.ec != std::errc())
+        throw std::runtime_error("Could not format matrix CSV value.");
+    return std::string(buffer, result.ptr);
 }
 
 
@@ -1957,7 +1970,7 @@ matrix::csv(std::string separator) const
         for(int i = 0; i < shape(0); ++i)
         {
             s += sep;
-            s += std::to_string((*this)(i));
+            s += format_csv_number((*this)(i));
             sep = separator;
         }
         s += "\n";
@@ -1986,7 +1999,7 @@ matrix::csv(std::string separator) const
             for(int col = 0; col < cols(); ++col)
             {
                 s += row_sep;
-                s += std::to_string((*this)(row, col));
+                s += format_csv_number((*this)(row, col));
                 row_sep = separator;
             }
             s += "\n";

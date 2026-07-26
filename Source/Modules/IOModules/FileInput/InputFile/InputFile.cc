@@ -75,7 +75,7 @@ class InputFile : public Module
             value.begin(), value.end(), value.begin(),
             [](unsigned char character)
             {
-                return static_cast<char>(std::tolower(character));
+                return ascii_to_lower(character);
             });
         return value;
     }
@@ -306,11 +306,7 @@ class InputFile : public Module
         while(std::getline(input, line))
         {
             line = replace_characters(remove_comment(line));
-            std::istringstream lineStream(line);
-            std::vector<std::string> record;
-            std::string field;
-            while(lineStream >> field)
-                record.push_back(std::move(field));
+            std::vector<std::string> record = split(line, "");
             if(!record.empty())
                 records.push_back(std::move(record));
         }

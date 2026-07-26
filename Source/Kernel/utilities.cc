@@ -2,7 +2,6 @@
 
 #include <charconv>
 #include <algorithm>
-#include <cctype>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -43,8 +42,8 @@ validate_delimiter(const std::string & delimiter)
 
 std::string trim(const std::string &s)
 {
-   auto wsfront=std::find_if_not(s.begin(),s.end(),[](unsigned char c){return std::isspace(c);});
-   auto wsback=std::find_if_not(s.rbegin(),s.rend(),[](unsigned char c){return std::isspace(c);}).base();
+   auto wsfront=std::find_if_not(s.begin(),s.end(),ascii_is_space);
+   auto wsback=std::find_if_not(s.rbegin(),s.rend(),ascii_is_space).base();
    return (wsback<=wsfront ? std::string() : std::string(wsfront,wsback));
 }
 
@@ -60,10 +59,10 @@ split(const std::string & s, const std::string & separator, int maxsplit)
     {
         while(i < len)
         {
-            while(i < len && std::isspace(static_cast<unsigned char>(s[i])))
+            while(i < len && ascii_is_space(static_cast<unsigned char>(s[i])))
                 ++i;
             j = i;
-            while(i < len && !std::isspace(static_cast<unsigned char>(s[i])))
+            while(i < len && !ascii_is_space(static_cast<unsigned char>(s[i])))
                 ++i;
 
             if(j < i)
@@ -73,7 +72,7 @@ split(const std::string & s, const std::string & separator, int maxsplit)
                 r.push_back(s.substr(j, i - j));
                 if(maxsplit > 0)
                     --maxsplit;
-                while(i < len && std::isspace(static_cast<unsigned char>(s[i])))
+                while(i < len && ascii_is_space(static_cast<unsigned char>(s[i])))
                     ++i;
                 j = i;
             }
@@ -573,10 +572,12 @@ base64_encode(const unsigned char * data, size_t size)
             return std::string(buffer, result.ptr);
         }
 
-        std::ostringstream oss;
-        oss.precision(decimals); // Set precision to handle floating-point accuracy
-        oss << std::fixed << value;
-        std::string str = oss.str();
+        char buffer[128];
+        auto result = std::to_chars(buffer, buffer + sizeof(buffer), value,
+                                    std::chars_format::fixed, decimals);
+        if(result.ec != std::errc())
+            throw std::runtime_error("Could not format number.");
+        std::string str(buffer, result.ptr);
 
         const std::string::size_type decimal_point = str.find('.');
         if(decimal_point != std::string::npos)

@@ -4,7 +4,7 @@
 //    Copyright (C) 2026 Birger Johansson, Pierre Klintefors, and Christian Balkenius
 
 #include <algorithm>
-#include <cctype>
+#include <charconv>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
@@ -51,7 +51,7 @@ namespace
                 continue;
             }
 
-            if (std::isspace(static_cast<unsigned char>(c)))
+            if (ascii_is_space(static_cast<unsigned char>(c)))
                 continue;
 
             switch (c)
@@ -100,17 +100,13 @@ namespace
     bool
     ParsePositiveInt(const std::string & value, int & parsedValue)
     {
-        try
-        {
-            size_t parsedLength = 0;
-            parsedValue = std::stoi(value, &parsedLength);
-            return parsedLength == value.size() && parsedValue > 0;
-        }
-        catch (...)
-        {
-            parsedValue = 0;
-            return false;
-        }
+        const char * begin = value.data();
+        const char * end = begin + value.size();
+        const auto result = std::from_chars(begin, end, parsedValue);
+        if(result.ec == std::errc() && result.ptr == end && parsedValue > 0)
+            return true;
+        parsedValue = 0;
+        return false;
     }
 
     bool

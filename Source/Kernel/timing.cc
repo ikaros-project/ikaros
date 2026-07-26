@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <iostream>
 #include <iomanip>
+#include <locale>
 #include <ctime>
 #include <sstream>
 #include <stdexcept>
@@ -107,6 +108,7 @@ TimeString(double time)
     const std::uint64_t milliseconds = remaining % 1000;
 
     std::ostringstream out;
+    out.imbue(std::locale::classic());
     if(days > 0)
         out << days << " ";
     out << std::setfill('0')
@@ -143,6 +145,7 @@ GetClockTimeString()
         throw std::runtime_error("Could not convert the current time to local time");
 
     std::ostringstream out;
+    out.imbue(std::locale::classic());
     out << std::put_time(&local_time, "%Y-%m-%d %H:%M:%S");
     return out.str();
 }

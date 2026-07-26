@@ -9,6 +9,31 @@
 
 namespace ikaros
 {
+    [[nodiscard]] constexpr bool ascii_is_space(unsigned char c)
+    {
+        return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v';
+    }
+
+    [[nodiscard]] constexpr bool ascii_is_digit(unsigned char c)
+    {
+        return c >= '0' && c <= '9';
+    }
+
+    [[nodiscard]] constexpr bool ascii_is_alpha(unsigned char c)
+    {
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+    }
+
+    [[nodiscard]] constexpr bool ascii_is_alnum(unsigned char c)
+    {
+        return ascii_is_alpha(c) || ascii_is_digit(c);
+    }
+
+    [[nodiscard]] constexpr char ascii_to_lower(unsigned char c)
+    {
+        return c >= 'A' && c <= 'Z' ? static_cast<char>(c + ('a' - 'A')) : static_cast<char>(c);
+    }
+
     [[nodiscard]] std::vector<std::string> split(const std::string & s, const std::string & separator, int maxsplit=-1);
     [[nodiscard]] std::string join(const std::string & separator, const std::vector<std::string> & values);
 

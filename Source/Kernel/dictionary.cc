@@ -1288,12 +1288,12 @@ namespace ikaros
         if(s[pos] == '0')
         {
             ++pos;
-            if(pos < s.length() && std::isdigit(static_cast<unsigned char>(s[pos])))
+            if(pos < s.length() && ascii_is_digit(static_cast<unsigned char>(s[pos])))
                 throw std::runtime_error("Invalid JSON number with leading zero at position " + std::to_string(start));
         }
-        else if(std::isdigit(static_cast<unsigned char>(s[pos])))
+        else if(ascii_is_digit(static_cast<unsigned char>(s[pos])))
         {
-            while(pos < s.length() && std::isdigit(static_cast<unsigned char>(s[pos])))
+            while(pos < s.length() && ascii_is_digit(static_cast<unsigned char>(s[pos])))
                 ++pos;
         }
         else
@@ -1302,10 +1302,10 @@ namespace ikaros
         if(pos < s.length() && s[pos] == '.')
         {
             ++pos;
-            if(pos >= s.length() || !std::isdigit(static_cast<unsigned char>(s[pos])))
+            if(pos >= s.length() || !ascii_is_digit(static_cast<unsigned char>(s[pos])))
                 throw std::runtime_error("Invalid JSON number fractional part at position " + std::to_string(start));
 
-            while(pos < s.length() && std::isdigit(static_cast<unsigned char>(s[pos])))
+            while(pos < s.length() && ascii_is_digit(static_cast<unsigned char>(s[pos])))
                 ++pos;
         }
 
@@ -1315,10 +1315,10 @@ namespace ikaros
             if(pos < s.length() && (s[pos] == '+' || s[pos] == '-'))
                 ++pos;
 
-            if(pos >= s.length() || !std::isdigit(static_cast<unsigned char>(s[pos])))
+            if(pos >= s.length() || !ascii_is_digit(static_cast<unsigned char>(s[pos])))
                 throw std::runtime_error("Invalid JSON number exponent at position " + std::to_string(start));
 
-            while(pos < s.length() && std::isdigit(static_cast<unsigned char>(s[pos])))
+            while(pos < s.length() && ascii_is_digit(static_cast<unsigned char>(s[pos])))
                 ++pos;
         }
 
@@ -1372,7 +1372,7 @@ namespace ikaros
                 throw std::runtime_error("Maximum JSON nesting depth exceeded at position " + std::to_string(pos));
             return value(parse_object(s, pos, depth + 1));
         }
-        else if(std::isdigit(static_cast<unsigned char>(s[pos])) || s[pos] == '-')
+        else if(ascii_is_digit(static_cast<unsigned char>(s[pos])) || s[pos] == '-')
         {
             return parse_number(s, pos);
         }

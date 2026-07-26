@@ -776,8 +776,8 @@ class World2D: public Module
         x_ = parameters["x"];
         y_ = parameters["y"];
         clamp_to_world();
-        SetParameter("creature_x", std::to_string(x_));
-        SetParameter("creature_y", std::to_string(y_));
+        SetParameter("creature_x", formatNumber(x_));
+        SetParameter("creature_y", formatNumber(y_));
         emit_outputs();
     }
 

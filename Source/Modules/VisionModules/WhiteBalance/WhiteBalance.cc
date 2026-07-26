@@ -152,9 +152,10 @@ class WhiteBalance: public Module
         const float afterGreen = AverageOutputChannel(1, left, right, top, bottom);
         const float afterBlue = AverageOutputChannel(2, left, right, top, bottom);
 
-        char message[160];
-        std::snprintf(message, sizeof(message), "WhiteBalance: RGB before and after\t%.2f\t%.2f\t%.2f\t=>\t\t%.2f\t%.2f\t%.2f\n",
-            beforeRed, beforeGreen, beforeBlue, afterRed, afterGreen, afterBlue);
+        const std::string message = "WhiteBalance: RGB before and after\t" + formatNumber(beforeRed, 2) +
+            "\t" + formatNumber(beforeGreen, 2) + "\t" + formatNumber(beforeBlue, 2) + "\t=>\t\t" +
+            formatNumber(afterRed, 2) + "\t" + formatNumber(afterGreen, 2) + "\t" +
+            formatNumber(afterBlue, 2) + "\n";
         Notify(msg_debug, message);
     }
 

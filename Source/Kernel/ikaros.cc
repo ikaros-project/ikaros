@@ -481,9 +481,16 @@ namespace ikaros
             std::time_t now_time = system_clock::to_time_t(now);
             std::tm utc {};
             gmtime_r(&now_time, &utc);
-            std::ostringstream result;
-            result << std::put_time(&utc, "%Y-%m-%dT%H:%M:%SZ");
-            return result.str();
+            auto padded = [](int value, int width)
+            {
+                std::string result = std::to_string(value);
+                if(result.size() < static_cast<std::size_t>(width))
+                    result.insert(0, static_cast<std::size_t>(width) - result.size(), '0');
+                return result;
+            };
+            return padded(utc.tm_year + 1900, 4) + "-" + padded(utc.tm_mon + 1, 2) + "-" +
+                   padded(utc.tm_mday, 2) + "T" + padded(utc.tm_hour, 2) + ":" +
+                   padded(utc.tm_min, 2) + ":" + padded(utc.tm_sec, 2) + "Z";
         }
 
         constexpr const char * ikaros_version = "3.0";
@@ -532,7 +539,7 @@ namespace ikaros
                 {
                     const char next = (i + 5 < xml.size()) ? xml[i + 5] : '\0';
                     const bool is_alias = next == '[' || next == '\0'
-                        || (!std::isalnum(static_cast<unsigned char>(next)) && next != '_');
+                        || (!ascii_is_alnum(static_cast<unsigned char>(next)) && next != '_');
                     if(is_alias)
                     {
                         out += ".shape";
@@ -937,7 +944,7 @@ namespace ikaros
                 state_->value = (v != 0.0);
                 break;
             case string_type:
-                state_->value = std::to_string(v);
+                state_->value = formatNumber(v);
                 break;
             case matrix_type:
                 set_matrix(scalar_parameter_matrix(v));
@@ -4922,14 +4929,11 @@ bool operator==(Request & r, const std::string s)
             return false;
 
         long long expires_at = 0;
-        try
-        {
-            expires_at = std::stoll(parts[0]);
-        }
-        catch(const std::exception &)
-        {
+        const char * expiration_begin = parts[0].data();
+        const char * expiration_end = expiration_begin + parts[0].size();
+        const auto expiration_result = std::from_chars(expiration_begin, expiration_end, expires_at);
+        if(expiration_result.ec != std::errc() || expiration_result.ptr != expiration_end)
             return false;
-        }
 
         if(expires_at < unix_time_seconds())
             return false;
@@ -5619,7 +5623,7 @@ bool operator==(Request & r, const std::string s)
     Kernel::GetTopLevelDefaultAttribute(const std::string & key) const
     {
         if(key == "tick_duration")
-            return std::to_string(tick_duration);
+            return formatNumber(tick_duration);
         if(key == "stop")
             return std::to_string(stop_after);
         if(key == "filename")
@@ -6988,7 +6992,7 @@ bool operator==(Request & r, const std::string s)
                         static bool has_warned_about_resync = false;
                         if(resync_lag_exceeded && (!has_warned_about_resync || resync_warning_timer.GetTime() >= 1.0))
                         {
-                            Notify(msg_warning, "Realtime lag exceeded " + std::to_string(real_time_resync_lag) +
+                            Notify(msg_warning, "Realtime lag exceeded " + formatNumber(real_time_resync_lag) +
                                 " seconds. Resynchronizing realtime clock instead of catching up missed ticks.");
                             resync_warning_timer.Restart();
                             has_warned_about_resync = true;
@@ -7012,7 +7016,7 @@ bool operator==(Request & r, const std::string s)
                     static Timer lag_warning_timer;
                     if(lag > 1.0 && lag_warning_timer.GetTime() >= 1.0)
                     {
-                        Notify(msg_warning, "Performance warning: System is " + std::to_string(lag) +  " seconds behind real time. Consider increasing tick_duration.");
+                        Notify(msg_warning, "Performance warning: System is " + formatNumber(lag) +  " seconds behind real time. Consider increasing tick_duration.");
                         lag_warning_timer.Restart();
                     }
                 }

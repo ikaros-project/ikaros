@@ -1,9 +1,9 @@
-#include <cctype>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 
 #include "image_sequence.h"
+#include "../../../Kernel/utilities.h"
 
 
 namespace ikaros
@@ -36,18 +36,14 @@ namespace ikaros
                           std::string_view::npos)
                     ++index;
                 while(index < pattern.size() &&
-                      std::isdigit(
-                          static_cast<unsigned char>(
-                              pattern[index])))
+                      ascii_is_digit(static_cast<unsigned char>(pattern[index])))
                     ++index;
                 if(index < pattern.size() &&
                    pattern[index] == '.')
                 {
                     ++index;
                     while(index < pattern.size() &&
-                          std::isdigit(
-                              static_cast<unsigned char>(
-                                  pattern[index])))
+                          ascii_is_digit(static_cast<unsigned char>(pattern[index])))
                         ++index;
                 }
                 if(index < pattern.size() &&

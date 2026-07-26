@@ -269,12 +269,20 @@ const inspector =
             const bValue = inspector.getProfilingSortValue(b, sortKey);
 
             if(typeof aValue === "string" || typeof bValue === "string")
-                return String(aValue).localeCompare(String(bValue)) * direction;
+            {
+                const aText = String(aValue);
+                const bText = String(bValue);
+                return (aText < bText ? -1 : aText > bText ? 1 : 0) * direction;
+            }
 
             const aScore = Number.isFinite(aValue) ? aValue : -Infinity;
             const bScore = Number.isFinite(bValue) ? bValue : -Infinity;
             if(aScore === bScore)
-                return String(a && a.path ? a.path : "").localeCompare(String(b && b.path ? b.path : ""));
+            {
+                const aPath = String(a && a.path ? a.path : "");
+                const bPath = String(b && b.path ? b.path : "");
+                return aPath < bPath ? -1 : aPath > bPath ? 1 : 0;
+            }
             return (aScore - bScore) * direction;
         });
     },
@@ -329,7 +337,11 @@ const inspector =
         inspector.sortProfilingComponents(components);
         inspector.updateProfilingSortIndicators();
 
-        meta.textContent = `tick ${Number.isFinite(data && data.tick) ? data.tick : "-"} | updated ${new Date().toLocaleTimeString()}`;
+        const updated = new Date();
+        const updatedTime = [updated.getHours(), updated.getMinutes(), updated.getSeconds()]
+            .map((value) => String(value).padStart(2, "0"))
+            .join(":");
+        meta.textContent = `tick ${Number.isFinite(data && data.tick) ? data.tick : "-"} | updated ${updatedTime}`;
 
         if(components.length === 0)
         {
@@ -506,12 +518,20 @@ const inspector =
             const bValue = inspector.getStartupStepsSortValue(b, sortKey);
 
             if(typeof aValue === "string" || typeof bValue === "string")
-                return String(aValue).localeCompare(String(bValue)) * direction;
+            {
+                const aText = String(aValue);
+                const bText = String(bValue);
+                return (aText < bText ? -1 : aText > bText ? 1 : 0) * direction;
+            }
 
             const aScore = Number.isFinite(aValue) ? aValue : Infinity;
             const bScore = Number.isFinite(bValue) ? bValue : Infinity;
             if(aScore === bScore)
-                return String(a && a.path ? a.path : "").localeCompare(String(b && b.path ? b.path : ""));
+            {
+                const aPath = String(a && a.path ? a.path : "");
+                const bPath = String(b && b.path ? b.path : "");
+                return aPath < bPath ? -1 : aPath > bPath ? 1 : 0;
+            }
             return (aScore - bScore) * direction;
         });
     },

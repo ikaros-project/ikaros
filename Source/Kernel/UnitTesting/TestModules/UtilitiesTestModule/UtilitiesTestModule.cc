@@ -6,6 +6,7 @@
 #include <functional>
 #include <iostream>
 #include <limits>
+#include <locale>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -18,6 +19,29 @@ using namespace ikaros;
 
 namespace
 {
+    class HostileCharacterClassification : public std::ctype<char>
+    {
+    public:
+        HostileCharacterClassification(): std::ctype<char>(classification_table().data())
+        {}
+
+    private:
+        static const std::array<mask, table_size> &
+        classification_table()
+        {
+            static const std::array<mask, table_size> table = []()
+            {
+                std::array<mask, table_size> result{};
+                std::copy_n(classic_table(), table_size, result.begin());
+                result[static_cast<unsigned char>('x')] |= space;
+                result[static_cast<unsigned char>(' ')] &= static_cast<mask>(~space);
+                return result;
+            }();
+            return table;
+        }
+    };
+
+
     class TemporaryFile
     {
     public:
@@ -150,6 +174,25 @@ public:
     void
     Init() override
     {
+        const std::locale previous_locale = std::locale();
+        std::locale::global(std::locale(previous_locale, new HostileCharacterClassification));
+        try
+        {
+            require(trim(" x ") == "x" && split("a x b", "") == std::vector<std::string>{"a", "x", "b"},
+                    "ASCII whitespace handling changed with the global locale");
+            require(ascii_is_alpha('A') && ascii_is_digit('7') && ascii_is_alnum('z') &&
+                    ascii_is_space('\t') && ascii_to_lower('Q') == 'q',
+                    "ASCII character helpers returned incorrect results");
+            require(formatNumber(12.5, 2) == "12.5" && parse_double("12.5") == 12.5,
+                    "numeric conversion changed with the global locale");
+        }
+        catch(...)
+        {
+            std::locale::global(previous_locale);
+            throw;
+        }
+        std::locale::global(previous_locale);
+
         double double_value = 0;
         require(parse_double("+1.25", double_value) && double_value == 1.25,
                 "parse_double rejected a leading plus sign");

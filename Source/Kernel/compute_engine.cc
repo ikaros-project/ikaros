@@ -3,7 +3,6 @@
 #include "compute_engine.h"
 
 #include <algorithm>
-#include <cctype>
 #include <limits>
 #include <map>
 #include <memory>
@@ -54,7 +53,7 @@ bool ParseNonNegativeIndex(const std::string & text, std::size_t & value)
     value = 0;
     for(char c : trimmed)
     {
-        if(!std::isdigit(static_cast<unsigned char>(c)))
+        if(!ascii_is_digit(static_cast<unsigned char>(c)))
             return false;
         const std::size_t digit = static_cast<std::size_t>(c - '0');
         if(value > (std::numeric_limits<std::size_t>::max() - digit) / 10)
@@ -154,7 +153,7 @@ ArithmeticParser::current() const
 void
 ArithmeticParser::skip_whitespace()
 {
-    while(!at_end() && std::isspace(static_cast<unsigned char>(source_[position_])))
+    while(!at_end() && ascii_is_space(static_cast<unsigned char>(source_[position_])))
         ++position_;
 }
 
@@ -276,9 +275,9 @@ ArithmeticParser::parse_primary()
     }
 
     const char c = current();
-    if(std::isdigit(static_cast<unsigned char>(c)) ||
+    if(ascii_is_digit(static_cast<unsigned char>(c)) ||
        (c == '.' && position_ + 1 < source_.size() &&
-        std::isdigit(static_cast<unsigned char>(source_[position_ + 1]))))
+        ascii_is_digit(static_cast<unsigned char>(source_[position_ + 1]))))
         return parse_number();
 
     if(IsExpressionIdentifierStart(c) ||
@@ -295,7 +294,7 @@ ArithmeticParser::parse_number()
 {
     const std::size_t start = position_;
     bool digits = false;
-    while(!at_end() && std::isdigit(static_cast<unsigned char>(current())))
+    while(!at_end() && ascii_is_digit(static_cast<unsigned char>(current())))
     {
         digits = true;
         ++position_;
@@ -304,7 +303,7 @@ ArithmeticParser::parse_number()
     if(current() == '.')
     {
         ++position_;
-        while(!at_end() && std::isdigit(static_cast<unsigned char>(current())))
+        while(!at_end() && ascii_is_digit(static_cast<unsigned char>(current())))
         {
             digits = true;
             ++position_;
@@ -321,7 +320,7 @@ ArithmeticParser::parse_number()
             ++position_;
 
         const std::size_t exponent_start = position_;
-        while(!at_end() && std::isdigit(static_cast<unsigned char>(current())))
+        while(!at_end() && ascii_is_digit(static_cast<unsigned char>(current())))
             ++position_;
         if(position_ == exponent_start)
             fail("Invalid exponent");
@@ -675,7 +674,7 @@ ComputeEngine::EvaluateShapeList(const std::string & s)
         const std::string rewritten = expression.substitute(replacements);
         const bool purely_numeric_expression = std::none_of(rewritten.begin(), rewritten.end(), [](unsigned char c)
         {
-            return std::isalpha(c) || c == '@' || c == '_';
+            return ascii_is_alpha(c) || c == '@' || c == '_';
         });
         const bool contains_top_level_comma = SplitTopLevel(context, rewritten, ',').size() > 1;
 
@@ -918,7 +917,7 @@ ComputeEngine::ShouldReturnLiteral(EvalContext & context, const std::string & s,
 
     return std::any_of(s.begin(), s.end(), [](unsigned char c)
     {
-        return std::isalpha(c);
+        return ascii_is_alpha(c);
     });
 }
 
@@ -1272,7 +1271,7 @@ ComputeEngine::EvalFinalSegment(EvalContext & context, const std::string & s, in
 
     bool has_alpha = std::any_of(value.begin(), value.end(), [](unsigned char c)
     {
-        return std::isalpha(c);
+        return ascii_is_alpha(c);
     });
 
     if(has_explicit_syntax || (!has_alpha && (LooksLikeNumber(context, value) || HasTopLevelMath(context, value))))
@@ -1417,7 +1416,7 @@ ComputeEngine::EvalScalar(EvalContext & context, const std::string & s, int dept
            !HasExplicitSyntax(context, current) &&
            !HasResolvableMath(context, current) &&
            !IsFunction(current) &&
-           std::any_of(current.begin(), current.end(), [](unsigned char c) { return std::isalpha(c); }))
+           std::any_of(current.begin(), current.end(), ascii_is_alpha))
             return current;
 
         if(current == previous)

@@ -1571,7 +1571,7 @@ namespace ikaros
         std::transform(extension.begin(), extension.end(), extension.begin(),
                        [](unsigned char character)
                        {
-                           return static_cast<char>(std::tolower(character));
+                           return ascii_to_lower(character);
                        });
 
         if(extension == ".jpg" || extension == ".jpeg")
