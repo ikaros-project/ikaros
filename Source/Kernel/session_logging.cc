@@ -16,6 +16,30 @@
 
 namespace ikaros
 {
+    class KernelSessionLoggingAccess
+    {
+    public:
+        static long SessionID(const Kernel & kernel)
+        {
+            return kernel.session_id;
+        }
+
+        static const dictionary & ModelInfo(const Kernel & kernel)
+        {
+            return kernel.info_;
+        }
+
+        static double SessionTime(const Kernel & kernel)
+        {
+            return kernel.session_timer.GetTime();
+        }
+
+        static int CPUCoreCount(const Kernel & kernel)
+        {
+            return kernel.cpu_cores;
+        }
+    };
+
     struct SessionLogDispatcher::State
     {
         State(std::size_t capacity, Transport transport):
@@ -303,15 +327,16 @@ namespace ikaros
         void AddCommonParameters(std::string & path, Kernel & kernel, const std::string & event_name, const dictionary & module_info, const std::string & agent)
         {
             AppendQueryParameter(path, "event", event_name);
-            AppendQueryParameter(path, "sid", std::to_string(kernel.session_id));
+            AppendQueryParameter(path, "sid", std::to_string(KernelSessionLoggingAccess::SessionID(kernel)));
             AppendQueryParameter(path, "timestamp", std::to_string(GetTimeStamp()));
-            AppendQueryParameter(path, "session_name", kernel.info_.contains("name") ? std::string(kernel.info_["name"]) : "");
-            AppendQueryParameter(path, "file", kernel.info_.contains("filename") ? std::string(kernel.info_["filename"]) : kernel.GetOptionFilename());
+            const dictionary & model_info = KernelSessionLoggingAccess::ModelInfo(kernel);
+            AppendQueryParameter(path, "session_name", model_info.contains("name") ? std::string(model_info["name"]) : "");
+            AppendQueryParameter(path, "file", model_info.contains("filename") ? std::string(model_info["filename"]) : kernel.GetOptionFilename());
             AppendQueryParameter(path, "file_path",
                                  std::filesystem::path(kernel.GetOptionFullPath()).filename().string());
-            AppendQueryParameter(path, "clock_time", formatNumber(kernel.session_timer.GetTime(), 4));
+            AppendQueryParameter(path, "clock_time", formatNumber(KernelSessionLoggingAccess::SessionTime(kernel), 4));
             AppendQueryParameter(path, "agent", agent);
-            AppendQueryParameter(path, "cpu_cores", std::to_string(kernel.cpu_cores));
+            AppendQueryParameter(path, "cpu_cores", std::to_string(KernelSessionLoggingAccess::CPUCoreCount(kernel)));
             AppendQueryParameter(path, "classes", module_info.contains("classes") ? std::string(module_info["classes"]) : "");
 #if DEBUG
             AppendQueryParameter(path, "debug", "1");

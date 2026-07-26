@@ -10,6 +10,60 @@ using namespace ikaros;
 
 extern std::atomic<bool> global_terminate;
 
+namespace ikaros
+{
+    class KernelMainAccess
+    {
+    public:
+        static void SetDirectories(Kernel & kernel, std::string webui_dir, std::string user_dir)
+        {
+            kernel.webui_dir = std::move(webui_dir);
+            kernel.user_dir = std::move(user_dir);
+        }
+
+        static const std::string & UserDirectory(const Kernel & kernel)
+        {
+            return kernel.user_dir;
+        }
+
+        static void ResetProcessControl(Kernel & kernel)
+        {
+            kernel.notify_stop_requested = false;
+            kernel.process_exit_code = 0;
+        }
+
+        static bool ShouldKeepRunning(const Kernel & kernel)
+        {
+            return kernel.run_mode.load() != run_mode_quit && !global_terminate.load();
+        }
+
+        static int ProcessExitCode(const Kernel & kernel)
+        {
+            return kernel.process_exit_code.load();
+        }
+
+        static void SetRunMode(Kernel & kernel, int mode)
+        {
+            kernel.run_mode = mode;
+        }
+
+        static bool NeedsReload(const Kernel & kernel)
+        {
+            return kernel.needs_reload;
+        }
+
+        static void SetNeedsReload(Kernel & kernel, bool needs_reload)
+        {
+            kernel.needs_reload = needs_reload;
+        }
+
+        static dictionary & ModelInfo(Kernel & kernel)
+        {
+            return kernel.info_;
+        }
+    };
+}
+
 namespace
 {
     long
@@ -69,13 +123,13 @@ namespace
 
     void InitializeKernelPaths(Kernel & k, const options & o)
     {
-        k.webui_dir = o.ikaros_root+"/Source/WebUI/";
-        k.user_dir = ResolveUserDirectory(o);
+        KernelMainAccess::SetDirectories(k, o.ikaros_root+"/Source/WebUI/",
+                                         ResolveUserDirectory(o));
         k.ScanClasses(o.ikaros_root+"/Source/Modules");
         k.ScanClasses(o.ikaros_root+"/Source/Kernel/UnitTesting/TestModules");
         k.ScanClasses(o.ikaros_root+"/Source/UserModules");
 
-        std::filesystem::current_path(k.user_dir);
+        std::filesystem::current_path(KernelMainAccess::UserDirectory(k));
     }
 
     void PrintStartupBanner()
@@ -135,19 +189,18 @@ namespace
             : k(kernel), o(opts)
         {
             k.SetOptions(o);
-            k.notify_stop_requested = false;
-            k.process_exit_code = 0;
+            KernelMainAccess::ResetProcessControl(k);
             k.LogProcessStart();
         }
 
         bool ShouldKeepRunning() const
         {
-            return k.run_mode.load() != run_mode_quit && !global_terminate.load();
+            return KernelMainAccess::ShouldKeepRunning(k);
         }
 
         int Finish()
         {
-            return Shutdown(k.process_exit_code.load(), true);
+            return Shutdown(KernelMainAccess::ProcessExitCode(k), true);
         }
 
         int FailFast(int code)
@@ -251,7 +304,7 @@ namespace
 
             if(ShouldQuitEmptyBatchModel())
             {
-                k.run_mode = run_mode_quit;
+                KernelMainAccess::SetRunMode(k, run_mode_quit);
                 return;
             }
 
@@ -260,7 +313,7 @@ namespace
                 model_stop_pending = false;
 
             if(k.GetOptionFilename().empty() && o.is_set("batch_mode"))
-                k.run_mode = run_mode_quit;
+                KernelMainAccess::SetRunMode(k, run_mode_quit);
         }
 
     private:
@@ -281,7 +334,7 @@ namespace
             if(!StopModelIfNeeded() && code == 0)
                 code = 1;
             if(code == 0)
-                code = k.process_exit_code.load();
+                code = KernelMainAccess::ProcessExitCode(k);
             LogProcessExit();
             if(print_banner)
                 std::cout << "\nIkaros 3.0 Ended\n";
@@ -375,8 +428,8 @@ namespace
 
             if(!StopModelIfNeeded())
             {
-                k.run_mode = run_mode_stop;
-                k.needs_reload = true;
+                KernelMainAccess::SetRunMode(k, run_mode_stop);
+                KernelMainAccess::SetNeedsReload(k, true);
             }
 
             return -1;
@@ -386,7 +439,7 @@ namespace
         {
             if(k.GetOptionFilename().empty())
                 k.New();
-            else if(k.needs_reload && !k.AutomaticReloadSuppressed())
+            else if(KernelMainAccess::NeedsReload(k) && !k.AutomaticReloadSuppressed())
             {
                 try
                 {
@@ -426,16 +479,16 @@ namespace
             bool should_start_socket =
                 !o.is_set("batch_mode")
                 || o.is_explicitly_set("webui_port")
-                || k.info_.contains("webui_port");
+                || KernelMainAccess::ModelInfo(k).contains("webui_port");
 
             if(!should_start_socket || socket_initialized)
                 return;
 
             const std::string fallback_port_value = o.get("webui_port");
             long port = ParseWebUIPort(fallback_port_value);
-            if(k.info_.contains("webui_port"))
+            if(KernelMainAccess::ModelInfo(k).contains("webui_port"))
             {
-                const std::string model_port_value = std::string(k.info_["webui_port"]);
+                const std::string model_port_value = std::string(KernelMainAccess::ModelInfo(k)["webui_port"]);
                 try
                 {
                     port = ParseWebUIPort(model_port_value);
@@ -455,10 +508,10 @@ namespace
         void ApplyAutoStartFlags()
         {
             if(o.is_set("batch_mode"))
-                k.info_["start"] = true;
+                KernelMainAccess::ModelInfo(k)["start"] = true;
 
-            if(k.info_.is_set("real_time"))
-                k.info_["start"] = true;
+            if(KernelMainAccess::ModelInfo(k).is_set("real_time"))
+                KernelMainAccess::ModelInfo(k)["start"] = true;
         }
 
         bool ShouldQuitEmptyBatchModel() const
@@ -466,19 +519,19 @@ namespace
             return
                 k.GetOptionFilename().empty()
                 && o.is_set("batch_mode")
-                && k.info_.contains("stop")
-                && long(k.info_["stop"]) == 0;
+                && KernelMainAccess::ModelInfo(k).contains("stop")
+                && long(KernelMainAccess::ModelInfo(k)["stop"]) == 0;
         }
 
         void StartRequestedRunMode()
         {
-            if(k.AutomaticReloadSuppressed() && k.needs_reload)
+            if(k.AutomaticReloadSuppressed() && KernelMainAccess::NeedsReload(k))
                 return;
 
-            if(!k.info_.is_set("start"))
+            if(!KernelMainAccess::ModelInfo(k).is_set("start"))
                 return;
 
-            if(k.info_.is_set("real_time"))
+            if(KernelMainAccess::ModelInfo(k).is_set("real_time"))
                 k.Realtime();
             else
                 k.Play();

@@ -75,6 +75,8 @@ class Module;
 class Connection;
 class Kernel;
 class ComputeEngine;
+class KernelMainAccess;
+class KernelSessionLoggingAccess;
 
 using connection_map = std::map<std::string, std::vector<Connection *>>;
 using input_map = const connection_map &;
@@ -553,7 +555,7 @@ struct Request
 
 class Kernel
 {
-public:
+private:
     dictionary                              info_;
     std::string                             webui_dir;
     std::string                             user_dir;
@@ -671,6 +673,7 @@ public:
     std::mutex                                    profiling_clients_mutex;
     std::atomic<bool>                             profiling_enabled = false;
 
+public:
     Kernel();
     ~Kernel();
 
@@ -724,6 +727,8 @@ private:
     friend class Connection;
     friend class KernelTaskSequence;
     friend class ComputeEngine;
+    friend class KernelMainAccess;
+    friend class KernelSessionLoggingAccess;
     friend void QueueSessionLogEvent(Kernel & kernel, const std::string & endpoint, const std::string & event_name);
     friend void QueueProcessStartLogEvent(Kernel & kernel);
     friend void QueueProcessExitLogEvent(Kernel & kernel);

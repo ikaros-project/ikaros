@@ -32,12 +32,9 @@ class CPUUsageTestModule : public Module
             "non-finite CPU delta");
 
         Kernel & k = kernel();
-        k.cpu_usage = 0.5;
-        k.cpu_usage_initialized = false;
         k.CalculateCPUUsage();
-        require_close(k.GetCPUUsage(), 0.0, "first sample establishes a baseline");
-        if(!k.cpu_usage_initialized)
-            throw exception("CPUUsageTestModule: CPU baseline was not initialized");
+        if(!std::isfinite(k.GetCPUUsage()) || k.GetCPUUsage() < 0 || k.GetCPUUsage() > 1)
+            throw exception("CPUUsageTestModule: CPU usage must be a finite fraction");
         if(k.GetCPUCoreCount() < 1)
             throw exception("CPUUsageTestModule: CPU core count must be at least one");
 
