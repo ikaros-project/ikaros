@@ -307,7 +307,7 @@ Each task moves existing definitions without intentional behavioral changes. Tas
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Move model construction, buffer sizing, input-shape resolution, and startup-step implementation into `kernel_setup.cc`. | Implemented and verified | Debug build; complete setup, shape, startup-step, and WebUI recovery coverage; all 266 tests passed | `Kernel setup implementation now has its own translation unit` |
-| 2 | Move task execution, propagation, the run loop, and realtime timing implementation into `kernel_execution.cc`. | Not addressed | Pending | Pending |
+| 2 | Move task execution, propagation, the run loop, and realtime timing implementation into `kernel_execution.cc`. | Implemented and verified | Debug build; task, watchdog, propagation, async, run-mode, and realtime coverage; all 266 tests passed | `Kernel execution now has its own translation unit` |
 | 3 | Move state capture, restoration, save, load, and reset implementation into `kernel_state.cc`. | Not addressed | Pending | Pending |
 | 4 | Move WebUI subscriptions, snapshots, value serialization, and data-response construction into `kernel_webui.cc`. | Not addressed | Pending | Pending |
 | 5 | Move HTTP parsing and dispatch, authentication, file serving, and endpoint handlers into `kernel_http.cc`. | Not addressed | Pending | Pending |
