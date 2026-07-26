@@ -70,8 +70,6 @@ const int    msg_trace          =    9;
 
 using tick_count = long long int;
 
-std::string  validate_identifier(std::string s);
-
 class Component;
 class Module;
 class Connection;
@@ -729,6 +727,8 @@ private:
     friend void QueueSessionLogEvent(Kernel & kernel, const std::string & endpoint, const std::string & event_name);
     friend void QueueProcessStartLogEvent(Kernel & kernel);
     friend void QueueProcessExitLogEvent(Kernel & kernel);
+
+    static long NewSessionID();
 
     options                                 options_;
     std::map<std::string, Class>            classes;

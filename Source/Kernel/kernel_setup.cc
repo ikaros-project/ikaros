@@ -11,8 +11,6 @@ using namespace std::literals;
 
 namespace ikaros
 {
-    long new_session_id();
-
     namespace
     {
         constexpr int maximum_connection_delay = 100;
@@ -1853,7 +1851,7 @@ namespace ikaros
                 LoadXMLWithRestrictedIncludes(d, options_.full_path());
                 d["filename"] = options_.stem();
                 info_ = d.copy();
-                session_id = new_session_id();
+                session_id = NewSessionID();
                 ResetUISnapshotCache();
                 SetCommandLineParameters(d);
                 info_ = d.copy();

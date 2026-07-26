@@ -1,6 +1,7 @@
 // utilities.cc
 
 #include "utilities.h"
+#include "exceptions.h"
 
 #include <algorithm>
 #include <charconv>
@@ -39,6 +40,21 @@ validate_delimiter(const std::string & delimiter)
         throw std::invalid_argument("String delimiter must not be empty.");
 }
 }
+
+std::string
+validate_identifier(std::string s)
+{
+    static const std::string legal = "_0123456789aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ";
+    if(s.empty())
+        throw exception("Identifier cannot be empty string");
+    if('0' <= s[0] && s[0] <= '9')
+        throw exception("Identifier cannot start with a number: " + s);
+    for(char c : s)
+        if(legal.find(c) == std::string::npos)
+            throw exception("Illegal character in identifier: " + s);
+    return s;
+}
+
 
 std::string trim(const std::string &s)
 {

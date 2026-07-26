@@ -179,13 +179,17 @@ None.
 | 2 | Move kernel session-logging wrappers into `session_logging.cc`. | Completed | Debug build; all 266 kernel tests passed | `Session logging now owns kernel logging wrappers` |
 | 3 | Move listing, log-printing, and profiling diagnostics into `kernel_diagnostics.cc`. | Completed | Debug build; all 266 kernel tests passed | `Kernel diagnostics now have their own translation unit` |
 | 4 | Move general module-facing read/write path policy into `kernel_paths.cc`. | Completed | Debug build; all 266 kernel tests passed | `Kernel path policy now has its own translation unit` |
-| 5 | Move `validate_identifier()` to utilities and replace `new_session_id()` with private `Kernel::NewSessionID()`. | Not addressed | Pending | Pending |
+| 5 | Move `validate_identifier()` to utilities and replace `new_session_id()` with private `Kernel::NewSessionID()`. | Completed | Debug build; all 266 kernel tests passed | `Kernel helper ownership is now explicit` |
 
 ### Constraints
 
 - Preserve behavior, diagnostics, serialized formats, and synchronization semantics.
 - Keep each task isolated, fully verified, and independently committed.
 - Leave lifecycle, construction, runtime queries, options, notification forwarding, serialization, `Message`, and `kernel()` in `ikaros.cc`.
+
+### Outstanding issues and questions
+
+None.
 
 ## Random source follow-ups
 

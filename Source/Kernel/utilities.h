@@ -54,6 +54,7 @@ namespace ikaros
     [[nodiscard]] std::string peek_rtail(const std::string & s, const std::string & delimiter); // return string after last delimiter
 
     [[nodiscard]] std::string trim(const std::string &s);
+    [[nodiscard]] std::string validate_identifier(std::string s);
 
     [[nodiscard]] std::string cut_head(std::string & s, const std::string & delimiter); // return string before delimiter and remove it from s
 

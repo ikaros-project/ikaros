@@ -37,20 +37,8 @@ namespace ikaros
 
     }
 
-    std::string  validate_identifier(std::string s)
-    {
-        static std::string legal = "_0123456789aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ";
-        if(s.empty())
-            throw exception("Identifier cannot be empty string");
-        if('0' <= s[0] && s[0] <= '9')
-            throw exception("Identifier cannot start with a number: "+s);
-        for(auto c : s)
-            if(legal.find(c) == std::string::npos)
-                throw exception("Illegal character in identifier: "+s);
-        return s;
-    }
-
-    long new_session_id()
+    long
+    Kernel::NewSessionID()
     {
         return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
     }
@@ -202,7 +190,7 @@ namespace ikaros
         info_ = d;
 
         run_mode = run_mode_stop;
-        session_id = new_session_id();
+        session_id = NewSessionID();
         ResetUISnapshotCache();
         try
         {
@@ -249,7 +237,7 @@ namespace ikaros
 
 
     Kernel::Kernel():
-        session_id(new_session_id()),
+        session_id(NewSessionID()),
         needs_reload(true),
         shutdown(false),
         run_mode(run_mode_pause),
