@@ -4,7 +4,8 @@ The public kernel API is declared in `Source/ikaros.h`. Its implementation is di
 
 - `parameter.cc` contains parameter storage, validation, conversion, binding, and serialization.
 - `component.cc` contains component parameter resolution, binding, asynchronous execution, lifecycle hooks, and notifications.
-- `ikaros.cc` contains the core module and kernel lifecycle implementation.
+- `module.cc` contains module time queries, profiling hooks, output and state shape resolution, and base-class registration.
+- `ikaros.cc` contains the core kernel lifecycle implementation.
 - `kernel_setup.cc` contains model construction, class discovery, shape resolution, startup-step analysis, checksum calculation, and setup orchestration.
 - `kernel_execution.cc` contains delayed-buffer maintenance, task scheduling and execution, propagation, run-mode control, and realtime timing.
 - `kernel_state.cc` contains state capture, restoration, file I/O, scoped remapping, and reset behavior.

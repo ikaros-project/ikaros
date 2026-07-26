@@ -15,6 +15,7 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/compute_engine.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/parameter.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/component.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/module.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/ikaros.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/kernel_parsing.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/kernel_http.cc
@@ -50,6 +51,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/profiler.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/compute_engine.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/parameter.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/component.cc
+${CMAKE_CURRENT_SOURCE_DIR}/module.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/ikaros.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/kernel_parsing.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/kernel_http.cc

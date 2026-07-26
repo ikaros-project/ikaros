@@ -161,6 +161,16 @@ None.
 
 None.
 
+## Module implementation split
+
+| Task | Status | Verification | Commit |
+|---|---|---|---|
+| Move every `Module` implementation, including module-specific setup and shape resolution, into `module.cc`. | Completed | Debug build; all 266 kernel tests passed | `Module implementation now has its own translation unit` |
+
+### Outstanding issues and questions
+
+None.
+
 ## Random source follow-ups
 
 | # | Priority | Task | Status | Verification | Commit |
