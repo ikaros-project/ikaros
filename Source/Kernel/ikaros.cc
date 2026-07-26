@@ -167,19 +167,6 @@ namespace ikaros
             return value.at(zero_index);
         }
 
-        std::string format_shape(const std::vector<int> & shape)
-        {
-            std::string result = "{";
-            std::string separator;
-            for(int dimension : shape)
-            {
-                result += separator + std::to_string(dimension);
-                separator = ", ";
-            }
-            result += "}";
-            return result;
-        }
-
         bool is_scalar_state_type(const std::string & type)
         {
             return type == "float" || type == "double" || type == "int" || type == "bool" || type == "string";
@@ -571,8 +558,8 @@ namespace ikaros
                                    stored_matrix->size() != replacement.size();
         if(state_->resolved && shape_changed && !state_->dynamic)
             throw exception("Matrix parameter shape cannot change after startup from " +
-                            format_shape(stored_matrix->shape()) + " to " +
-                            format_shape(replacement.shape()) + ".");
+                            matrix::format_shape(stored_matrix->shape()) + " to " +
+                            matrix::format_shape(replacement.shape()) + ".");
 
         if(shape_changed)
             stored_matrix->realloc(replacement.shape());

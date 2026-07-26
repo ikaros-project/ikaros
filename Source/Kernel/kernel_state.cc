@@ -96,18 +96,6 @@ namespace ikaros
 
         constexpr const char * ikaros_version = "3.0";
 
-        std::string format_shape(const std::vector<int> & shape)
-        {
-            std::string result = "{";
-            std::string separator;
-            for(int dimension : shape)
-            {
-                result += separator + std::to_string(dimension);
-                separator = ", ";
-            }
-            result += "}";
-            return result;
-        }
     }
 
 
@@ -332,7 +320,7 @@ namespace ikaros
 
             matrix restored(item["value"].json());
             if(restored.shape() != target->second.shape())
-                throw exception("State item \"" + path + "\" has shape " + format_shape(restored.shape()) + " but target " + kind + " has shape " + format_shape(target->second.shape()) + ".");
+                throw exception("State item \"" + path + "\" has shape " + matrix::format_shape(restored.shape()) + " but target " + kind + " has shape " + matrix::format_shape(target->second.shape()) + ".");
 
             target->second.copy(restored);
         }

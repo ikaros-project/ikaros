@@ -2491,6 +2491,21 @@ matrix::shape() const
 }
 
 
+std::string
+matrix::format_shape(const std::vector<int> & shape)
+{
+    std::string result = "{";
+    std::string separator;
+    for(int dimension : shape)
+    {
+        result += separator + std::to_string(dimension);
+        separator = ", ";
+    }
+    result += "}";
+    return result;
+}
+
+
 const std::vector<int> &
 matrix::capacity() const
 {

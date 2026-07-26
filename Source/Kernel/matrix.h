@@ -749,6 +749,7 @@ namespace ikaros
 
         const std::vector<int>& shape() const;
         const std::vector<int>& capacity() const;
+        static std::string format_shape(const std::vector<int> & shape);
         int size() const; // Number of logical elements, i.e. product of shape()
         int shape(int dim) const; // Size of one dimension; negative indices means from the back
         int shape_or_zero(int dim) const noexcept; // Compatibility query returning zero for an invalid dimension
