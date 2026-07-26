@@ -9,7 +9,7 @@ The work proceeds sequentially without introducing PImpl or changing public beha
 | 1 | Audit direct access to public `Kernel` fields outside `Kernel` member functions and existing friends. | Completed | No production module directly accesses `Kernel` fields; direct access is limited to kernel implementation, startup control in `main.cc`, and the CPU accounting test. | `Audited kernel public field access` |
 | 2 | Move implementation-only `Kernel` fields and nested WebUI structures under `private:`. | Completed | Debug build succeeded; kernel-owned startup and session-logging access is isolated through private friends, and the CPU test uses only public behavior. | `Kernel implementation state is now private` |
 | 3 | Add only narrowly scoped accessors required by legitimate external callers found by the audit. | Completed | The audit found no legitimate external field caller; no public accessor was added. | `Confirmed kernel fields need no public accessors` |
-| 4 | Build and run the complete kernel test suite for the `Kernel` privacy change. | Pending | Pending | Pending |
+| 4 | Build and run the complete kernel test suite for the `Kernel` privacy change. | Completed | Debug build succeeded; all 266 kernel and WebUI tests passed. | `Verified private kernel implementation state` |
 | 5 | Commit the verified `Kernel` privacy change independently. | Pending | Pending | Pending |
 | 6 | Extract the `parameter` declarations into a focused, self-contained header and verify and commit the change independently. | Pending | Pending | Pending |
 | 7 | Extract the `Component`/`Group` and `Module`/registration declarations into focused, self-contained headers, verifying and committing each extraction independently. | Pending | Pending | Pending |
