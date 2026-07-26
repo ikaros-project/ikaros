@@ -1,6 +1,6 @@
 # `ikaros::matrix` review history
 
-Last reviewed: 2026-07-19
+Last reviewed: 2026-07-26
 
 This document preserves the completed `ikaros::matrix` review, including its
 design decisions, tests, and benchmark results. All listed items are complete;
@@ -38,6 +38,7 @@ Status values: **Open**, **In progress**, **Blocked**, **Done**, **Declined**.
 | M24 | TEST | Done | Expand matrix tests, sanitizer coverage, and Release benchmarks |
 | M25 | DOC | Done | Update the matrix contract and API documentation |
 | M26 | P3 | Done | Retire unsafe legacy pointer and growth APIs |
+| M27 | P1 | Done | Make scalar access, construction, assignment, and comparison consistent |
 
 ## Correctness and safety
 
@@ -127,9 +128,9 @@ Completed 2026-07-19:
 - Made scalar slices the only rank-zero slices with one logical element;
   slices such as a row of `[2,0]` remain initialized rank-one `[0]` matrices
   with zero elements.
-- Kept legacy conversion and scalar assignment behavior for any matrix with
-  exactly one element, independently of the stricter rank-zero `is_scalar()`
-  predicate.
+- Initially kept legacy conversion and scalar assignment behavior for any
+  matrix with exactly one element. M27 later replaced that compatibility rule
+  with consistent rank-zero scalar access and element-wise scalar operands.
 - Audited kernel callers and changed allocation/setup/persistence checks that
   meant “not initialized” to use `is_uninitialized()`. The downsample scratch
   path intentionally retained `empty()` because an initialized zero-length
@@ -1240,3 +1241,39 @@ Completed 2026-07-19:
 - Verification: Debug, Release, and forced-portable Release builds; focused
   native and portable tests 71, 79, and 223; the standalone normal and UBSan
   harnesses; YAML parsing; `git diff --check`; and all 123 kernel tests passed.
+
+### M27 — Make scalar access, construction, assignment, and comparison consistent
+
+Priority: **P1**
+Status: **Done**
+
+The matrix API used two meanings of scalar. `is_scalar()` required an
+initialized rank-zero matrix, while `scalar()` and numeric assignment accepted
+any one-element shape. Numeric comparison accepted only rank-zero scalars even
+though its syntax suggested an element-wise scalar operand.
+
+Completed 2026-07-26:
+
+- Made mutable and const `scalar()` access require an initialized rank-zero
+  matrix in every build mode. One-element vectors and tables now use indexed
+  access.
+- Made numeric assignment construct a rank-zero scalar when the destination is
+  uninitialized and fill every logical element when its shape is already
+  established. Added `matrix::make_scalar()` for unambiguous one-line scalar
+  construction.
+- Made numeric equality mean that a matrix is nonempty and all of its logical
+  values equal the operand. Numeric inequality is the exact negation, and
+  matrix-to-matrix equality remains shape-sensitive.
+- Preserved contiguous fast paths and logical-row traversal for row-gapped
+  views. Assignment delegates to the existing `set()` implementation.
+- Migrated input reads from legacy one-element scalar access to `sum()` and
+  fixed one-element output access to `operator()(0)`.
+- Expanded scalar tests for construction, factories, shallow aliases, strict
+  access, whole-matrix and row-gapped fills, comparisons, empty states, NaN,
+  const views, shape-sensitive equality, and injected allocation failure.
+- Release five-run medians for 200 operations over 32,768 contiguous elements
+  were 0.220 ms for `set()` and 0.218 ms for numeric assignment. Full successful
+  scalar comparison took 1.698 ms, first-element failure took 0.00025 ms, and
+  successful row-gapped comparison over 4,096 logical elements took 0.264 ms.
+- Verification: Debug and Release builds, focused test 71, `git diff --check`,
+  and all 266 kernel tests passed.

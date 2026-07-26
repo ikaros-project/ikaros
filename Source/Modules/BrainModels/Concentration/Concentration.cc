@@ -27,7 +27,7 @@ class Concentration: public Module
 
     void Tick()
     {
-        float & output_value = output.scalar();
+        float & output_value = output(0);
         output_value += alpha * input.sum() - beta * (output_value - gamma);
 
         if(output_value < gamma)

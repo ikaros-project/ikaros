@@ -90,7 +90,7 @@ class Nucleus: public Module
             S = shunting_inhibition.sum();
         }
 
-        float & x_value = x.scalar();
+        float & x_value = x(0);
         float dx_dt = alpha + beta * (1/(1+psi*S)) * E - gamma * I - delta*x_value +
                       sample_normal_distribution(
                           gaussianGenerator, gaussianDistribution, 0, sigma);

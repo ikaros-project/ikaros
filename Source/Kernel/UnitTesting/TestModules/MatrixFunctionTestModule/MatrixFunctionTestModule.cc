@@ -319,6 +319,24 @@ class MatrixFunctionTestModule : public Module
         require_throws([&]() { uninitialized[0]; }, "operator[] should reject uninitialized rank-zero matrices");
         const matrix & const_uninitialized = uninitialized;
         require_throws([&]() { const_uninitialized[0]; }, "const operator[] should reject rank-zero matrices");
+        matrix assigned_scalar;
+        matrix & assigned_scalar_result = (assigned_scalar = 5.0f);
+        require_true(&assigned_scalar_result == &assigned_scalar,
+                     "scalar construction assignment returns its destination");
+        require_true(assigned_scalar.is_scalar(),
+                     "scalar assignment initializes an uninitialized matrix as rank zero");
+        require_close(assigned_scalar.scalar(), 5.0f,
+                      "scalar assignment initializes the scalar value");
+        matrix assigned_scalar_alias = assigned_scalar;
+        assigned_scalar = 7;
+        require_close(assigned_scalar_alias.scalar(), 7.0f,
+                      "scalar construction preserves shallow aliases");
+        assigned_scalar = 5.0f;
+
+        matrix factory_scalar = matrix::make_scalar(6.0f);
+        require_true(factory_scalar.is_scalar(), "make_scalar() creates a rank-zero scalar");
+        require_close(factory_scalar.scalar(), 6.0f, "make_scalar() initializes its value");
+
         matrix scalar_source(1);
         matrix scalar = scalar_source[0];
         require_true(scalar.size() == 1, "size() is one for scalar matrix");
@@ -463,20 +481,72 @@ class MatrixFunctionTestModule : public Module
         require_throws([&]() { const_row_gapped_view.contiguous_data(); },
                        "const view contiguous_data() rejects row gaps");
 
-        matrix reshaped_scalar = make_matrix("7");
-        require_close(reshaped_scalar.scalar(), 7.0f, "single-element vector scalar access");
-        matrix & scalar_assignment_result = (reshaped_scalar = 8.0f);
-        require_true(&scalar_assignment_result == &reshaped_scalar,
+        matrix single_element_vector = make_matrix("7");
+        require_throws_as<std::invalid_argument>(
+            [&]() { (void)single_element_vector.scalar(); },
+            "scalar() rejects a one-element vector");
+        const matrix & const_single_element_vector = single_element_vector;
+        require_throws_as<std::invalid_argument>(
+            [&]() { (void)const_single_element_vector.scalar(); },
+            "const scalar() rejects a one-element vector");
+        matrix & scalar_assignment_result = (single_element_vector = 8.0f);
+        require_true(&scalar_assignment_result == &single_element_vector,
                      "scalar assignment returns its destination");
-        require_close(reshaped_scalar(0), 8.0f, "single-element vector accepts scalar assignment");
+        require_close(single_element_vector(0), 8.0f,
+                      "scalar assignment fills a single-element vector");
+        matrix filled_matrix = make_matrix("1, 2; 3, 4");
+        filled_matrix = 9.0f;
+        require_matrix_close(filled_matrix, make_matrix("9, 9; 9, 9"),
+                             "scalar assignment fills every matrix element");
         matrix nonscalar(2);
         require_throws(
             [&]() { (void)nonscalar.scalar(); },
             "scalar() rejects matrices with more than one element"
         );
-        reshaped_scalar.reshape(std::vector<int>{});
-        require_true(reshaped_scalar.is_scalar(), "reshape to rank zero creates a scalar");
-        require_close(reshaped_scalar.scalar(), 8.0f, "reshaped scalar retains its value");
+        single_element_vector.reshape(std::vector<int>{});
+        require_true(single_element_vector.is_scalar(), "reshape to rank zero creates a scalar");
+        require_close(single_element_vector.scalar(), 8.0f, "reshaped scalar retains its value");
+
+        require_true(assigned_scalar == 5.0f,
+                     "scalar matrix compares equal to its value");
+        require_true(assigned_scalar != 4,
+                     "scalar matrix compares unequal to another value");
+        matrix equal_values = make_matrix("5, 5; 5, 5");
+        require_true(equal_values == 5.0f,
+                     "scalar comparison accepts an all-equal matrix");
+        require_true(!(equal_values != 5.0f),
+                     "scalar inequality negates all-elements equality");
+        equal_values(1, 1) = 4.0f;
+        require_true(equal_values != 5.0f,
+                     "scalar comparison rejects a matrix with one differing element");
+        require_true(!(equal_values == 5.0f),
+                     "scalar equality detects one differing element");
+        require_true(matrix::make_scalar(5.0f) != make_matrix("5"),
+                     "matrix equality remains shape-sensitive");
+
+        matrix row_gapped_comparison(2, 4);
+        row_gapped_comparison = 3.0f;
+        row_gapped_comparison.resize(std::vector<int>{2, 2});
+        require_true(row_gapped_comparison == 3.0f,
+                     "scalar comparison traverses non-contiguous logical rows");
+        row_gapped_comparison(1, 1) = 2.0f;
+        require_true(row_gapped_comparison != 3.0f,
+                     "scalar comparison detects differences in non-contiguous rows");
+        row_gapped_comparison = 4.0f;
+        require_true(row_gapped_comparison == 4.0f,
+                     "scalar assignment fills non-contiguous logical rows");
+        row_gapped_comparison.resize(std::vector<int>{2, 4});
+        require_matrix_close(row_gapped_comparison, make_matrix("4, 4, 3, 3; 4, 4, 3, 3"),
+                             "scalar assignment leaves row gaps unchanged");
+        const matrix & const_comparison_source = equal_values;
+        const_matrix_view const_comparison = const_comparison_source[0];
+        require_true(const_comparison == 5.0f,
+                     "const views use all-elements scalar comparison");
+
+        matrix nan_values(1);
+        nan_values(0) = std::numeric_limits<float>::quiet_NaN();
+        require_true(nan_values != std::numeric_limits<float>::quiet_NaN(),
+                     "scalar comparison retains IEEE NaN behavior");
 
         matrix zero_vector(0);
         require_shape(zero_vector, {0}, "zero-length vector retains its rank");
@@ -484,6 +554,13 @@ class MatrixFunctionTestModule : public Module
         require_true(zero_vector.empty(), "zero-length vector is logically empty");
         require_true(zero_vector.unfilled(), "zero-length vector is unfilled");
         require_true(!zero_vector.is_uninitialized(), "zero-length vector is initialized");
+        zero_vector = 7.0f;
+        require_shape(zero_vector, {0}, "scalar assignment preserves an empty vector shape");
+        require_true(!(zero_vector == 7.0f) && zero_vector != 7.0f,
+                     "empty matrices do not compare equal to a scalar");
+        matrix uninitialized_comparison;
+        require_true(!(uninitialized_comparison == 0.0f) && uninitialized_comparison != 0.0f,
+                     "uninitialized matrices do not compare equal to a scalar");
         require_true(zero_vector.data() == nullptr && zero_vector.contiguous_data() == nullptr,
                      "initialized zero-length vector has no physical data pointer");
 
@@ -805,6 +882,18 @@ class MatrixFunctionTestModule : public Module
                              "reshape() preserves contiguous reserved values");
 
 #ifndef NDEBUG
+        matrix failed_scalar_assignment;
+        matrix failed_scalar_assignment_alias = failed_scalar_assignment;
+        matrix::set_allocation_failure_countdown_for_testing(0);
+        require_throws_as<out_of_memory_matrix_error>(
+            [&]() { failed_scalar_assignment = 1.0f; },
+            "scalar construction should translate injected allocation failure"
+        );
+        matrix::set_allocation_failure_countdown_for_testing(-1);
+        require_true(failed_scalar_assignment.is_uninitialized() &&
+                     failed_scalar_assignment_alias.is_uninitialized(),
+                     "failed scalar construction preserves shared uninitialized state");
+
         matrix::set_allocation_failure_countdown_for_testing(0);
         require_throws_as<out_of_memory_matrix_error>(
             [&]() { matrix failed_constructor(4); },
@@ -1198,7 +1287,7 @@ class MatrixFunctionTestModule : public Module
         require_close(move_alias(0), 13.0f,
                       "move construction preserves existing shallow aliases");
         move_source = make_matrix("21");
-        require_close(move_source.scalar(), 21.0f,
+        require_close(move_source(0), 21.0f,
                       "a moved-from matrix can be assigned a new value");
 
         matrix move_assignment_source = make_matrix("31, 32");
@@ -1210,7 +1299,7 @@ class MatrixFunctionTestModule : public Module
         require_matrix_close(move_assignment_target, make_matrix("31, 32"),
                              "move assignment preserves values");
         move_assignment_source = make_matrix("41");
-        require_close(move_assignment_source.scalar(), 41.0f,
+        require_close(move_assignment_source(0), 41.0f,
                       "a move-assigned-from matrix can be assigned a new value");
 
         {
@@ -3154,6 +3243,41 @@ class MatrixFunctionTestModule : public Module
         matrix rank_four_source(std::vector<int>{4, 4, 32, 32});
         fill_sequence(rank_four_source);
 
+        matrix scalar_operand_target(std::vector<int>{channels, rows, cols});
+        double set_fill_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                scalar_operand_target.set(static_cast<float>(i & 1));
+            checksum += scalar_operand_target(0, 0, 0);
+        });
+        double scalar_assignment_fill_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                scalar_operand_target = static_cast<float>(i & 1);
+            checksum += scalar_operand_target(0, 0, 0);
+        });
+        scalar_operand_target = 1.0f;
+        double scalar_comparison_full_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                checksum += scalar_operand_target == 1.0f;
+        });
+        scalar_operand_target(0, 0, 0) = 0.0f;
+        double scalar_comparison_early_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                checksum += scalar_operand_target == 1.0f;
+        });
+
+        matrix row_gapped_scalar_operand(64, 128);
+        row_gapped_scalar_operand = 1.0f;
+        row_gapped_scalar_operand.resize(64, 64);
+        double row_gapped_scalar_comparison_ms = measure_ms([&]()
+        {
+            for(int i = 0; i < iterations; ++i)
+                checksum += row_gapped_scalar_operand == 1.0f;
+        });
+
         matrix image_source(64, 64);
         fill_sequence(image_source);
         matrix downsample_target(32, 32);
@@ -3657,6 +3781,11 @@ class MatrixFunctionTestModule : public Module
         std::cout << "MATRIX BENCHMARK hotspots"
                   << " rank_two_construction_ms=" << rank_two_construction_ms
                   << " input_file_growth_ms=" << input_file_growth_ms
+                  << " set_fill_ms=" << set_fill_ms
+                  << " scalar_assignment_fill_ms=" << scalar_assignment_fill_ms
+                  << " scalar_comparison_full_ms=" << scalar_comparison_full_ms
+                  << " scalar_comparison_early_ms=" << scalar_comparison_early_ms
+                  << " row_gapped_scalar_comparison_ms=" << row_gapped_scalar_comparison_ms
                   << " downsample_ms=" << downsample_ms
                   << " upsample_ms=" << upsample_ms
                   << " search_ms=" << search_ms

@@ -16,7 +16,7 @@ of four relevant states:
 | State | Example | Rank | Shape | Size | `empty()` |
 |---|---|---:|---|---:|---|
 | Uninitialized | `matrix m;` | 0 | `{}` | 0 | true |
-| Scalar | one value reshaped to `{}` | 0 | `{}` | 1 | false |
+| Scalar | `matrix::make_scalar(1)` | 0 | `{}` | 1 | false |
 | Initialized, zero elements | `matrix m(2, 0);` | 2 | `{2, 0}` | 0 | true |
 | Initialized, nonempty | `matrix m(2, 3);` | 2 | `{2, 3}` | 6 | false |
 
@@ -52,6 +52,16 @@ The default constructor creates an uninitialized matrix:
 
 ```cpp
 matrix destination;
+```
+
+Assigning a number to an uninitialized matrix constructs a rank-zero scalar.
+`make_scalar()` provides the equivalent one-line form:
+
+```cpp
+matrix scalar;
+scalar = 5;
+
+matrix another_scalar = matrix::make_scalar(6);
 ```
 
 An explicitly shaped matrix owns zero-initialized storage:
@@ -173,9 +183,25 @@ m[1][2] = 42;             // compatible, but creates temporary views
 m(1, 2) = 42;             // preferred
 ```
 
-`scalar()` returns the sole value of any matrix whose logical size is one. It
-throws if the matrix contains zero or multiple values. `at(indices)` provides a
-vector-indexed, checked access path.
+`scalar()` accesses an initialized rank-zero scalar matrix. A one-element
+vector or table is not a scalar and must be accessed with the corresponding
+indices, such as `vector(0)` or `table(0, 0)`. This distinction is enforced in
+all build modes. `at(indices)` provides a vector-indexed, checked access path.
+
+Numeric assignment and comparison use a scalar as an element-wise operand. If
+the matrix is already initialized, assignment fills every logical element
+without changing its shape:
+
+```cpp
+matrix values(2, 3);
+values = 4;              // all six elements become 4
+bool all_four = values == 4;
+```
+
+Scalar equality is true when the matrix is nonempty and every logical element
+equals the value. Scalar inequality is its logical negation. Uninitialized and
+initialized zero-element matrices do not compare equal to a scalar.
+Matrix-to-matrix equality remains shape-sensitive.
 
 Mutable and const iterators iterate over first-axis slices, not scalar values.
 Rank-zero matrices have no first-axis slices. A matrix with shape `{0, N}` has

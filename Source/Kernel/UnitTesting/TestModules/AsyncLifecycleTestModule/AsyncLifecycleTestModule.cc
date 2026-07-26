@@ -55,7 +55,7 @@ class AsyncLifecycleTestModule : public Module
             Notify(msg_warning, "ASYNC_RUNTIME_SNAPSHOT_STABLE tick=" + std::to_string(tick_at_start));
         }
 
-        const double result = input.scalar() * gain.as_double();
+        const double result = input.sum() * gain.as_double();
         output(0) = result;
         ++completedTicks;
         runtimePhase = 2;

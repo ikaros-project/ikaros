@@ -1316,6 +1316,15 @@ matrix::matrix(int rows, int cols, float ** source):
 }
 
 
+matrix
+matrix::make_scalar(float value)
+{
+    matrix result;
+    result = value;
+    return result;
+}
+
+
 namespace
 {
 struct parsed_matrix_literal
@@ -2278,10 +2287,9 @@ matrix::submatrix(const matrix & m, const rect & region)
 float &
 matrix::scalar()
 {
-#if IKAROS_MATRIX_CHECKS
-    if(size() != 1)
-        throw empty_matrix_error(get_name() + " Not a matrix element.");
-#endif
+    if(!is_scalar())
+        throw std::invalid_argument(
+            get_name() + "Scalar access requires an initialized rank-zero matrix.");
     return (*data_)[info_->offset_];
 }
 
@@ -2289,10 +2297,9 @@ matrix::scalar()
 const float &
 matrix::scalar() const
 {
-#if IKAROS_MATRIX_CHECKS
-    if(size() != 1)
-        throw empty_matrix_error(get_name() + " Not a matrix element.");
-#endif
+    if(!is_scalar())
+        throw std::invalid_argument(
+            get_name() + "Scalar access requires an initialized rank-zero matrix.");
     return (*data_)[info_->offset_];
 }
 
@@ -2922,11 +2929,14 @@ const_matrix_view::operator[](const std::string & n) const
 matrix &
 matrix::operator=(float v)
 {
-#if IKAROS_MATRIX_CHECKS
-    if(size() != 1)
-        throw std::out_of_range(get_name() + "Not a matrix element.");
-#endif
-    data_->at(info_->offset_) = v;
+    if(!is_uninitialized())
+        return set(v);
+
+    matrix_info prepared = prepare_matrix_layout(
+        *info_, std::vector<int>{}, std::vector<int>{}, true);
+    resize_matrix_storage(*data_, prepared.storage_size_);
+    (*data_)[0] = v;
+    commit_matrix_layout(*info_, prepared);
     return *this;
 }
 
@@ -4736,18 +4746,27 @@ matrix::eig() const
 bool
 matrix::operator==(float v) const
 {
-    if(!is_scalar())
-        throw std::invalid_argument("Matrix must be scalar.");
-    return ((*data_)[info_->offset_] == v);
+    if(empty())
+        return false;
+
+    if(info_->has_contiguous_logical_storage)
+        return std::all_of(data_->begin() + info_->offset_,
+                           data_->begin() + info_->offset_ + size(),
+                           [v](float value) { return value == v; });
+
+    return for_each_logical_row_while(*this, [&](const auto & offsets, int row_length)
+    {
+        const float * values = data_->data() + offsets[0];
+        return std::all_of(values, values + row_length,
+                           [v](float value) { return value == v; });
+    });
 }
 
 
 bool
 matrix::operator==(int v) const
 {
-    if(!is_scalar())
-        throw std::invalid_argument("Matrix must be scalar.");
-    return ((*data_)[info_->offset_] == v);
+    return *this == static_cast<float>(v);
 }
 
 
@@ -4783,18 +4802,14 @@ matrix::operator!=(const matrix & other) const
 bool
 matrix::operator!=(float v) const
 {
-    if(!is_scalar())
-        throw std::invalid_argument("Matrix must be scalar.");
-    return ((*data_)[info_->offset_] != v);
+    return !(*this == v);
 }
 
 
 bool
 matrix::operator!=(int v) const
 {
-    if(!is_scalar())
-        throw std::invalid_argument("Matrix must be scalar.");
-    return ((*data_)[info_->offset_] != v);
+    return !(*this == v);
 }
 
 

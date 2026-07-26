@@ -395,7 +395,7 @@ EpiSpeech::Tick()
 
     // Start play if sound in queue and no inhibition
 
-        if(current_sound == -1 && queued_sound != -1 && (!inhibition .connected()|| inhibition == 0))   // FIXME: PROBABLY NOT WORKING
+        if(current_sound == -1 && queued_sound != -1 && (!inhibition.connected() || inhibition == 0))
         {
             current_sound = queued_sound;
             queued_sound = -1;

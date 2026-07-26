@@ -308,6 +308,7 @@ namespace ikaros
         matrix(int cols, float * data);
         matrix(int rows, int cols, float ** data);
         matrix(const const_matrix_view &) = delete;
+        static matrix make_scalar(float value);
 
         matrix & operator=(const std::string & data_string);
         matrix(const std::string & data_string);
@@ -519,7 +520,7 @@ namespace ikaros
 
 
 
-        float & scalar();
+        float & scalar(); // Access an initialized rank-zero scalar matrix
         const float & scalar() const;
         [[deprecated("Use scalar().")]] explicit operator float & ();
         [[deprecated("Use scalar().")]] explicit operator const float & () const;
@@ -837,7 +838,7 @@ namespace ikaros
         const_matrix_view operator[](const std::string & n) const;
         matrix operator[](const char * n);
         const_matrix_view operator[](const char * n) const;
-        matrix & operator=(float v); // Set the element of the single element matrix to a value
+        matrix & operator=(float v); // Create a scalar if uninitialized; otherwise fill all elements
         
         // Element-wise functions
 

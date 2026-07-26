@@ -26,8 +26,8 @@ class KernelSizeTestModule: public Module
         Print("Tick-Print");
         Warning("Tick-Warning");
 
-        double x = input.scalar();
-        double y = input.last().scalar();
+        double x = input.sum();
+        double y = input.last().sum();
 
         std::cout << "DIFF: " << x << " " << y << std::endl;
     }

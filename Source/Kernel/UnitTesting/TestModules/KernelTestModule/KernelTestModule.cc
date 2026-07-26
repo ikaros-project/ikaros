@@ -95,8 +95,8 @@ class KernelTestModule: public Module
     {
         output.copy(input);
 
-        double x = input.scalar();
-        double y = input.last().scalar();
+        double x = input.sum();
+        double y = input.last().sum();
 
         std::cout << "DIFF: " << x << " " << y << std::endl;
 
