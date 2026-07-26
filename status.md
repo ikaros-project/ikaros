@@ -263,7 +263,7 @@ Each task is executed sequentially. Before implementation, its status changes to
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Split the self-contained circular-buffer, connection, class, and request implementations out of `ikaros.cc`; later subsystem moves remain paired with their corresponding refactoring steps. | Implemented and verified | Debug build; all 266 kernel and WebUI tests passed | `Kernel support types now have cohesive implementation units` |
-| 2 | Consolidate the five scalar-state `Component::Bind()` implementations behind one type-safe internal helper while retaining the public overloads. | Not addressed | Pending | Pending |
+| 2 | Consolidate the five scalar-state `Component::Bind()` implementations behind one type-safe internal helper while retaining the public overloads. | Implemented and verified | Debug build; duplicate-binding diagnostic regression; all 266 kernel and WebUI tests passed | `Scalar state binding now shares type-safe validation` |
 | 3 | Decompose `Component::ResolveParameter()` into value-source, expression/type resolution, and matrix-shaping helpers without changing diagnostic context. | Not addressed | Pending | Pending |
 | 4 | Separate state capture and restoration from state-file I/O while preserving the `ikaros-state-v1` format and scoped remapping. | Not addressed | Pending | Pending |
 | 5 | Decompose flattened, stacked, simple, dynamic, and indexed input-shape resolution after adding characterization coverage for existing behavior. | Not addressed | Pending | Pending |

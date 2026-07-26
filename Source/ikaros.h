@@ -719,6 +719,12 @@ private:
         std::string * string_ptr = nullptr;
     };
     std::map<std::string, ScalarState>       scalar_states;
+    template<typename T>
+    void BindScalarState(T & value, const std::string & name,
+                         const std::string & component_path,
+                         const std::string & expected_type,
+                         T ScalarState::* stored_value,
+                         T * ScalarState::* bound_value);
     struct DelayedSourceHistory
     {
         CircularBuffer buffer;

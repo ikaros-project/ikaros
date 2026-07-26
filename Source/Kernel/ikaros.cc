@@ -1984,103 +1984,76 @@ namespace ikaros
     }
 
 
+    template<typename T>
+    void
+    Kernel::BindScalarState(T & value, const std::string & name,
+                            const std::string & component_path,
+                            const std::string & expected_type,
+                            T ScalarState::* stored_value,
+                            T * ScalarState::* bound_value)
+    {
+        auto it = scalar_states.find(name);
+        if(it == scalar_states.end())
+            throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", component_path);
+
+        ScalarState & state = it->second;
+        if(state.type != expected_type)
+            throw exception("Bind:\"" + name + "\" failed. Expected state type " +
+                            expected_type + " but got " + state.type + ".",
+                            component_path);
+
+        T *& binding = state.*bound_value;
+        if(binding)
+        {
+            if(binding == &value)
+                return;
+            throw exception("Bind:\"" + name +
+                            "\" failed. Scalar state is already bound to another variable.",
+                            component_path);
+        }
+
+        value = state.*stored_value;
+        binding = &value;
+    }
+
+
     void Component::Bind(float & v, std::string n)
     {
-        std::string name = path_+"."+n;
-        Kernel & k = kernel();
-        auto it = k.scalar_states.find(name);
-        if(it == k.scalar_states.end())
-            throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
-        if(it->second.type != "float")
-            throw exception("Bind:\"" + name + "\" failed. Expected state type float but got " + it->second.type + ".", path_);
-        if(it->second.float_ptr)
-        {
-            if(it->second.float_ptr == &v)
-                return;
-            throw exception("Bind:\"" + name + "\" failed. Scalar state is already bound to another variable.", path_);
-        }
-        v = it->second.float_value;
-        it->second.float_ptr = &v;
+        kernel().BindScalarState(v, path_ + "." + n, path_, "float",
+                                 &Kernel::ScalarState::float_value,
+                                 &Kernel::ScalarState::float_ptr);
     }
 
 
     void Component::Bind(double & v, std::string n)
     {
-        std::string name = path_+"."+n;
-        Kernel & k = kernel();
-        auto it = k.scalar_states.find(name);
-        if(it == k.scalar_states.end())
-            throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
-        if(it->second.type != "double")
-            throw exception("Bind:\"" + name + "\" failed. Expected state type double but got " + it->second.type + ".", path_);
-        if(it->second.double_ptr)
-        {
-            if(it->second.double_ptr == &v)
-                return;
-            throw exception("Bind:\"" + name + "\" failed. Scalar state is already bound to another variable.", path_);
-        }
-        v = it->second.double_value;
-        it->second.double_ptr = &v;
+        kernel().BindScalarState(v, path_ + "." + n, path_, "double",
+                                 &Kernel::ScalarState::double_value,
+                                 &Kernel::ScalarState::double_ptr);
     }
 
 
     void Component::Bind(int & v, std::string n)
     {
-        std::string name = path_+"."+n;
-        Kernel & k = kernel();
-        auto it = k.scalar_states.find(name);
-        if(it == k.scalar_states.end())
-            throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
-        if(it->second.type != "int")
-            throw exception("Bind:\"" + name + "\" failed. Expected state type int but got " + it->second.type + ".", path_);
-        if(it->second.int_ptr)
-        {
-            if(it->second.int_ptr == &v)
-                return;
-            throw exception("Bind:\"" + name + "\" failed. Scalar state is already bound to another variable.", path_);
-        }
-        v = it->second.int_value;
-        it->second.int_ptr = &v;
+        kernel().BindScalarState(v, path_ + "." + n, path_, "int",
+                                 &Kernel::ScalarState::int_value,
+                                 &Kernel::ScalarState::int_ptr);
     }
 
 
     void Component::Bind(bool & v, std::string n)
     {
-        std::string name = path_+"."+n;
-        Kernel & k = kernel();
-        auto it = k.scalar_states.find(name);
-        if(it == k.scalar_states.end())
-            throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
-        if(it->second.type != "bool")
-            throw exception("Bind:\"" + name + "\" failed. Expected state type bool but got " + it->second.type + ".", path_);
-        if(it->second.bool_ptr)
-        {
-            if(it->second.bool_ptr == &v)
-                return;
-            throw exception("Bind:\"" + name + "\" failed. Scalar state is already bound to another variable.", path_);
-        }
-        v = it->second.bool_value;
-        it->second.bool_ptr = &v;
+        kernel().BindScalarState(v, path_ + "." + n, path_, "bool",
+                                 &Kernel::ScalarState::bool_value,
+                                 &Kernel::ScalarState::bool_ptr);
     }
 
 
     void Component::Bind(std::string & v, std::string n)
     {
-        std::string name = path_+"."+n;
-        Kernel & k = kernel();
-        auto it = k.scalar_states.find(name);
-        if(it == k.scalar_states.end())
-            throw exception("Bind:\"" + name + "\" failed. Scalar state does not exist.", path_);
-        if(it->second.type != "string")
-            throw exception("Bind:\"" + name + "\" failed. Expected state type string but got " + it->second.type + ".", path_);
-        if(it->second.string_ptr)
-        {
-            if(it->second.string_ptr == &v)
-                return;
-            throw exception("Bind:\"" + name + "\" failed. Scalar state is already bound to another variable.", path_);
-        }
-        v = it->second.string_value;
-        it->second.string_ptr = &v;
+        kernel().BindScalarState(v, path_ + "." + n, path_, "string",
+                                 &Kernel::ScalarState::string_value,
+                                 &Kernel::ScalarState::string_ptr);
     }
 
 
