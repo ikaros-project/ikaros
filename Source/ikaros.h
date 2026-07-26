@@ -887,7 +887,6 @@ public:
     void SuppressAutomaticReloadUntilSave();
 
 private:
-    void Save();
     std::string ResolveStateFilename(const std::string & option_name) const;
     std::string ResolveStateFilenameFromRequest(const Request & request,
                                                 const std::string & option_name) const;

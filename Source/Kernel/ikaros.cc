@@ -5,7 +5,6 @@
 #include "session_logging.h"
 
 #include <ctime>
-#include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <sys/resource.h>
@@ -791,23 +790,6 @@ namespace ikaros
         profiling_enabled.store(!profiling_clients.empty(), std::memory_order_relaxed);
     }
 
-
-    void 
-    Kernel::Save() // Simple save function in present file from kernel data
-    {
-        std::cout << "ERROR: SAVE SHOULD NEVER BE CALLED\n";
-
-        std::string data = xml();
-
-        //std::cout << data << std::endl;
-
-        std::ofstream file;
-        std::string filename = add_extension(info_["filename"], ".ikg");
-        file.open (filename);
-        file << data;
-        file.close();
-        //needs_reload = true;
-    }
 
     void
     Kernel::LogStart()

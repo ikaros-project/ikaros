@@ -171,6 +171,22 @@ None.
 
 None.
 
+## Final kernel core ownership cleanup
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Remove the unused private `Kernel::Save()` implementation and declaration. | Completed | Debug build; all 266 kernel tests passed | `Removed obsolete kernel save stub` |
+| 2 | Move kernel session-logging wrappers into `session_logging.cc`. | Not addressed | Pending | Pending |
+| 3 | Move listing, log-printing, and profiling diagnostics into `kernel_diagnostics.cc`. | Not addressed | Pending | Pending |
+| 4 | Move general module-facing read/write path policy into `kernel_paths.cc`. | Not addressed | Pending | Pending |
+| 5 | Move `validate_identifier()` to utilities and replace `new_session_id()` with private `Kernel::NewSessionID()`. | Not addressed | Pending | Pending |
+
+### Constraints
+
+- Preserve behavior, diagnostics, serialized formats, and synchronization semantics.
+- Keep each task isolated, fully verified, and independently committed.
+- Leave lifecycle, construction, runtime queries, options, notification forwarding, serialization, `Message`, and `kernel()` in `ikaros.cc`.
+
 ## Random source follow-ups
 
 | # | Priority | Task | Status | Verification | Commit |
