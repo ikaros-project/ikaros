@@ -1,5 +1,28 @@
 # Kernel Review Status
 
+## Kernel API encapsulation and header extraction
+
+The work proceeds sequentially without introducing PImpl or changing public behavior. Each implementation change is verified and committed independently.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Audit direct access to public `Kernel` fields outside `Kernel` member functions and existing friends. | Completed | No production module directly accesses `Kernel` fields; direct access is limited to kernel implementation, startup control in `main.cc`, and the CPU accounting test. | `Audited kernel public field access` |
+| 2 | Move implementation-only `Kernel` fields and nested WebUI structures under `private:`. | Pending | Pending | Pending |
+| 3 | Add only narrowly scoped accessors required by legitimate external callers found by the audit. | Pending | Pending | Pending |
+| 4 | Build and run the complete kernel test suite for the `Kernel` privacy change. | Pending | Pending | Pending |
+| 5 | Commit the verified `Kernel` privacy change independently. | Pending | Pending | Pending |
+| 6 | Extract the `parameter` declarations into a focused, self-contained header and verify and commit the change independently. | Pending | Pending | Pending |
+| 7 | Extract the `Component`/`Group` and `Module`/registration declarations into focused, self-contained headers, verifying and committing each extraction independently. | Pending | Pending | Pending |
+
+### Constraints
+
+- Do not introduce PImpl.
+- Preserve the existing top-level `ikaros.h` as a source-compatible umbrella header.
+- Preserve public behavior and avoid unrelated API changes.
+- Keep headers self-contained and remove reliance on indirect includes where touched.
+- Do not migrate module include sites as part of these declaration extractions; that remains a later, separately reviewed step.
+
+
 This file tracks the high-, medium-, and lower-priority findings from the joint review. Findings remain pending commit until implementation, focused tests, the full kernel test suite, and any relevant performance verification have completed.
 
 ## Thread and task review
