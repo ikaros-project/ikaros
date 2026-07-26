@@ -16,6 +16,7 @@ set(SOURCE
 	${CMAKE_CURRENT_SOURCE_DIR}/ikaros.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/kernel_execution.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/kernel_setup.cc
+	${CMAKE_CURRENT_SOURCE_DIR}/kernel_state.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/circular_buffer.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/connection.cc
 	${CMAKE_CURRENT_SOURCE_DIR}/request.cc
@@ -45,6 +46,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/compute_engine.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/ikaros.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/kernel_execution.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/kernel_setup.cc
+${CMAKE_CURRENT_SOURCE_DIR}/kernel_state.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/circular_buffer.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/connection.cc
 ${CMAKE_CURRENT_SOURCE_DIR}/request.cc
