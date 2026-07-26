@@ -251,11 +251,6 @@ namespace ikaros
             return uri == path || uri.rfind(path + "?", 0) == 0 || uri.rfind(path + "/", 0) == 0;
         }
 
-        bool is_internal(const dictionary & info)
-        {
-            return info.is_set("internal");
-        }
-
     }
 
 
@@ -1572,7 +1567,7 @@ namespace ikaros
         std::string s = "";
         for(auto & [name, component_class]: classes)
         {
-            if(is_internal(component_class.info_))
+            if(component_class.info_.is_set("internal"))
                 continue;
 
             body += s;
@@ -1597,7 +1592,7 @@ namespace ikaros
         std::string s = "";
         for(auto & [name, component_class]: classes)
         {
-            if(is_internal(component_class.info_))
+            if(component_class.info_.is_set("internal"))
                 continue;
 
             body += s;

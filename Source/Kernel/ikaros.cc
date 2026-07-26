@@ -110,11 +110,6 @@ namespace ikaros
             return snapshot;
         }
 
-        bool is_internal(const dictionary & info)
-        {
-            return info.is_set("internal");
-        }
-
         bool try_parse_matrix_literal(matrix & out, const std::string & value)
         {
             try

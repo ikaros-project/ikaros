@@ -251,10 +251,6 @@ namespace ikaros
                 info[key] = list();
         }
 
-        bool is_internal(const dictionary & info)
-        {
-            return info.is_set("internal");
-        }
     }
 
     bool
@@ -2251,7 +2247,7 @@ namespace ikaros
                 {
                     dictionary file_info;
                     LoadXMLWithRestrictedIncludes(file_info, p.path());
-                    if(is_internal(file_info))
+                    if(file_info.is_set("internal"))
                         continue;
                 }
                 catch(const std::exception &)
