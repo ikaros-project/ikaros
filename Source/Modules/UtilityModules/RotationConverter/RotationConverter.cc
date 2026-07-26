@@ -26,11 +26,10 @@
 
 using namespace ikaros;
 
-#define size_xyz 3
-#define size_xyzaxayaz 6
-#define size_axayaz 3
-#define size_matrix 4     // 4x4
-#define size_quaternion 4 // 4x4
+constexpr int size_xyz = 3;
+constexpr int size_xyzaxayaz = 6;
+constexpr int size_axayaz = 3;
+constexpr int size_matrix = 4;
 
 class RotationConverter : public Module
 {

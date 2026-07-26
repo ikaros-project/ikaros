@@ -229,7 +229,7 @@ private:
         if(CFStringGetCString(value, result.data(), maxSize,
                               kCFStringEncodingUTF8))
         {
-            result.resize(std::strlen(result.c_str()));
+            result.resize(result.find('\0'));
             return result;
         }
 

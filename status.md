@@ -234,7 +234,7 @@ None.
 | 1 | Check that no locale-sensitive code remains and replace it with locale-free code. | Addressed | Debug build; hostile-global-locale regression; WebUI syntax check; all 264 standard tests passed | `Ikaros text handling is now locale-independent` |
 | 2 | Audit error handling so startup and `Init()` failures use exceptions, `Tick()` problems use `Notify()` or related functions, exceptions propagate as high as suitable, and WebUI messages identify the involved module and buffer where applicable while including enough call-chain context to locate the failure. | Addressed | Debug build; focused startup, synchronous, asynchronous, and delayed-propagation lifecycle regressions; all 265 standard tests passed; remaining `EpiServos` and `ServoControlTuning` console diagnostics explicitly deferred | `Runtime diagnostics now preserve lifecycle and component context` |
 | 3 | Audit header dependencies: remove unnecessary includes while making files include what they directly use instead of relying on transitive includes in most cases. | Addressed | All project headers compile standalone; strict clangd missing/unused-include diagnostics enabled; Debug build; all 265 standard tests passed | `Header dependencies are now explicit and leaner` |
-| 4 | Find C-style idioms that can be replaced with C++ idioms; implement straightforward replacements and retain a discussion list of cases requiring judgment for review after all tasks are complete. | Pending | Not started | — |
+| 4 | Find C-style idioms that can be replaced with C++ idioms; implement straightforward replacements and retain a discussion list of cases requiring judgment for review after all tasks are complete. | Addressed | Debug build; mechanical cast, null, constant, buffer-length, initialization, and type-alias cleanup; all 265 standard tests passed | `Straightforward C idioms now use modern C++ forms` |
 | 5 | Audit path and include-name capitalization for code that works on commonly case-insensitive macOS filesystems but can fail on case-sensitive Linux filesystems. | Pending | Not started | — |
 | 6 | Review all Markdown files for current and accurate content, and place each document in the appropriate repository location. | Pending | Not started | — |
 | 7 | Audit string escaping and UTF-8 handling across parsing, serialization, messages, paths, and WebUI boundaries; correct unsafe or inconsistent behavior and verify whether handling is sound throughout. | Pending | Not started | — |
@@ -242,3 +242,11 @@ None.
 ### Major code cleanup deferred items
 
 - Task 2: Remaining direct console diagnostics in the legacy `EpiServos` and `ServoControlTuning` modules were explicitly deferred for later review.
+
+### C++ modernization cases for discussion
+
+- The XML implementation still owns a linked object tree and copied C strings manually. Converting it to `std::string` and smart pointers would improve ownership clarity, but changes parser object identity and requires a focused API redesign.
+- Codec, FFmpeg, CoreAudio, POSIX spawn, socket, and shared-memory boundaries retain C buffers, casts, and memory operations where those types are imposed by the external API or preserve contiguous fast paths.
+- The public `matrix::realloc()` name is C-like, but renaming it would be a broad API migration and its behavior is matrix storage allocation rather than direct use of C `realloc()`.
+- The `INSTALL_CLASS` registration macro and build-feature macros remain because they perform preprocessing or conditional compilation that `constexpr` cannot replace directly.
+- The deferred `EpiServos` and `ServoControlTuning` modules contain many macro constants and a C-style aggregate that should be modernized together with their later diagnostic cleanup.

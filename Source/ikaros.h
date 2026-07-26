@@ -389,7 +389,7 @@ public:
 
 };
 
-typedef std::function<Module *()> ModuleCreator;
+using ModuleCreator = std::function<Module *()>;
 
 class Group : public Component
 {

@@ -82,7 +82,7 @@ namespace
                               kCFStringEncodingUTF8))
             return "";
 
-        result.resize(std::strlen(result.c_str()));
+        result.resize(result.find('\0'));
         return result;
     }
 

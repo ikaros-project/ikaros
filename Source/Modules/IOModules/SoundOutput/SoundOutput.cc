@@ -145,10 +145,14 @@ public:
 
         timer->Restart();
         frame = 0;
-        char *argv[5] = {(char *)command, (char *)sound_path.c_str(), NULL};
+        char * argv[] = {
+            const_cast<char *>(command),
+            const_cast<char *>(sound_path.c_str()),
+            nullptr,
+        };
         pid_t pid;
 
-        int status = posix_spawn(&pid, (char *)command, NULL, NULL, argv, NULL);
+        int status = posix_spawn(&pid, command, nullptr, nullptr, argv, nullptr);
         if (status != 0)
         {
             error = "Could not start playback command \"" + std::string(command) + "\" for \"" + sound_path + "\": " + std::strerror(status);

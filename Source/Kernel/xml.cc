@@ -443,7 +443,8 @@ const char *
 XMLElement::GetAttribute(const char * attribute_name)       // Implement variables and inheritance here - not standard XML but implemented here for simpicity
                                                             // FIXME: move to kernel and always use kernel function exept for raw acces to XML
 {
-    for (XMLAttribute * a = attributes; a != nullptr; a = (XMLAttribute *)(a->next))
+    for(XMLAttribute * a = attributes; a != nullptr;
+        a = static_cast<XMLAttribute *>(a->next))
         if (!strcmp(a->name, attribute_name))
         {
             if(a->value[0] != '@')
@@ -461,7 +462,7 @@ XMLElement::GetAttribute(const char * attribute_name)       // Implement variabl
     // Inhertiance
     if(parent != nullptr && parent->IsElement())
     {
-        return ((XMLElement *)(parent))->GetAttribute(attribute_name);
+        return static_cast<XMLElement *>(parent)->GetAttribute(attribute_name);
     }
 
     return nullptr;
@@ -473,7 +474,8 @@ XMLElement::GetAttribute(const char * attribute_name)       // Implement variabl
 const char *
 XMLElement::GetActualAttribute(const char * attribute_name)
 {
-    for (XMLAttribute * a = attributes; a != nullptr; a = (XMLAttribute *)(a->next))
+    for(XMLAttribute * a = attributes; a != nullptr;
+        a = static_cast<XMLAttribute *>(a->next))
         if (!strcmp(a->name, attribute_name))
         {
             if(a->value[0] != '@')
@@ -495,7 +497,8 @@ XMLElement::GetActualAttribute(const char * attribute_name)
 void
 XMLElement::SetAttribute(const char * attribute_name, const char * value)
 {
-    for (XMLAttribute * a = attributes; a != nullptr; a = (XMLAttribute *)(a->next))
+    for(XMLAttribute * a = attributes; a != nullptr;
+        a = static_cast<XMLAttribute *>(a->next))
         if (!strcmp(a->name, attribute_name))
         {
 			owned_c_string new_value(create_string(value));
@@ -565,7 +568,7 @@ XMLElement::GetNextElement(const char * element_name)
 XMLElement *
 XMLElement::GetParentElement()
 {
-    return (XMLElement *)parent;
+    return static_cast<XMLElement *>(parent);
 }
 
 
@@ -1210,7 +1213,8 @@ XMLDocument::ParseAttribute(const char * element_name, bool & empty)
 void
 XMLAttribute::RemoveDuplicates()
 {
-    for (XMLAttribute * a = this; a != nullptr; a = (XMLAttribute *)(a->next))
+    for(XMLAttribute * a = this; a != nullptr;
+        a = static_cast<XMLAttribute *>(a->next))
         for(XMLAttribute * b = static_cast<XMLAttribute *>(a->next);
             b != nullptr;
             b = static_cast<XMLAttribute *>(b->next))

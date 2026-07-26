@@ -674,7 +674,8 @@ namespace ikaros
         dictionary()
     {
         (*dict_)["_tag"] = xml_node->name;
-        for(XMLAttribute * a = xml_node->attributes; a!=nullptr; a=(XMLAttribute *)(a->next))
+        for(XMLAttribute * a = xml_node->attributes; a != nullptr;
+            a = static_cast<XMLAttribute *>(a->next))
             (*dict_)[std::string(a->name)] = a->value;
 
         for(XMLElement * xml_element = xml_node->GetContentElement();

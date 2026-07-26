@@ -70,9 +70,9 @@ find_index_for_time(KeypointList &keypoints, float t)
     {
 
         i = (low + high) / 2;
-        if ((float)(keypoints[i]["time"]) > t)
+        if(static_cast<float>(keypoints[i]["time"]) > t)
             high = i - 1;
-        else if ((float)(keypoints[i]["time"]) < t)
+        else if(static_cast<float>(keypoints[i]["time"]) < t)
             low = i + 1;
         else
         {

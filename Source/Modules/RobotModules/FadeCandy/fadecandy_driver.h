@@ -67,12 +67,12 @@ private:
   //!
   //! \brief context_ Lib USB Context
   //!
-  libusb_context* context_ = NULL;
+  libusb_context* context_ = nullptr;
 
   //!
   //! \brief dev_handle_ USB device handle
   //!
-  libusb_device_handle* dev_handle_ = NULL;
+  libusb_device_handle* dev_handle_ = nullptr;
 
   //!
   //! \brief findUsbDevice Search the fadcandy device with particular vendor and

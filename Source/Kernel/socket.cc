@@ -25,7 +25,7 @@
 #include <vector>
 
 
-#define BACKLOG		10 		// how many pending connections queue will hold
+constexpr int backlog = 10;
 
 using namespace ikaros;
 
@@ -426,7 +426,6 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
     my_addr.sin_family = AF_INET;                     // host byte order
     my_addr.sin_port = htons(port);                   // short, network byte order
     my_addr.sin_addr.s_addr = htonl(INADDR_ANY);      // automatically fill with my IP
-    memset(&(my_addr.sin_zero), '\0', 8);             // zero the rest of the struct
 
     if(!bind_address.empty() &&
        inet_pton(AF_INET, bind_address.c_str(), &(my_addr.sin_addr)) != 1)
@@ -461,7 +460,7 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
         throw std::system_error(errno, std::system_category(), "Failed to bind socket");
 
     // Listen for incoming connections
-    if(listen(sockfd, BACKLOG) == -1)
+    if(listen(sockfd, backlog) == -1)
         throw std::system_error(errno, std::system_category(), "Failed to listen on socket");
 
     int wakeup_pipe[2];
