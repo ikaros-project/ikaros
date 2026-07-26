@@ -271,7 +271,7 @@ Each task is executed sequentially. Before implementation, its status changes to
 | 7 | Separate task submission, watchdog waiting, completion barriers, and failure collection while preserving exception and notification behavior. | Implemented and verified | Debug build; watchdog, barrier, task-error, and thread-pool coverage; all 266 tests passed; Release delayed propagation improved from 65.18 to 62.85 ns/connection | `Task execution now separates dispatch, barriers, and failures` |
 | 8 | Extract realtime waiting, lag, catch-up, resynchronization, and warning policy from the kernel run-state loop. | Implemented and verified | Debug build; realtime/play/pause and timing coverage; all 266 tests passed; Release delayed propagation improved from 62.85 to 60.35 ns/connection | `Realtime timing policy is now separate from the run loop` |
 | 9 | Decompose WebUI subscription management, snapshot policy, value serialization, publication, and data-response construction. | Implemented and verified | Debug build; subscription, rate-limit, image-refresh, and first-client snapshot coverage; all 266 tests passed; Release five-test WebUI snapshot median improved from 7.01 s to 6.19 s | `WebUI data snapshots now have explicit processing stages` |
-| 10 | Replace the authenticated endpoint dispatch chain with a small explicit route table while keeping authentication, public-file handling, aliases, and static-file fallback clear. | Not addressed | Pending | Pending |
+| 10 | Replace the authenticated endpoint dispatch chain with a small explicit route table while keeping authentication, public-file handling, aliases, and static-file fallback clear. | Implemented and verified | Debug build; authentication, public-file, command alias, data endpoint, and static-file coverage; all 266 tests passed | `WebUI endpoint dispatch now uses explicit routes` |
 
 ### Refactoring-wide constraints
 
@@ -293,5 +293,9 @@ Each task is executed sequentially. Before implementation, its status changes to
 6. `Kernel setup calculations are now independently testable`
 7. `Task execution now separates dispatch, barriers, and failures`
 8. `Realtime timing policy is now separate from the run loop`
-9. `WebUI snapshots now have explicit construction stages`
+9. `WebUI data snapshots now have explicit processing stages`
 10. `WebUI endpoint dispatch now uses explicit routes`
+
+### Kernel refactoring outstanding issues and questions
+
+None.

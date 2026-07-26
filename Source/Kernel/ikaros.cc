@@ -9115,78 +9115,53 @@ namespace ikaros
             return;
         }
 
-        // std::cout << "Request: " << request.url << std::endl;
+        using RequestHandler = void (Kernel::*)(Request &);
+        static const std::unordered_map<std::string, RequestHandler> authenticated_routes = {
+            {"network", &Kernel::DoNetwork},
+            {"update", &Kernel::DoUpdate},
+            {"quit", &Kernel::DoQuit},
+            {"stop", &Kernel::DoStop},
+            {"pause", &Kernel::DoPause},
+            {"step", &Kernel::DoStep},
+            {"play", &Kernel::DoPlay},
+            {"realtime", &Kernel::DoRealtime},
+            {"new", &Kernel::DoNew},
+            {"open", &Kernel::DoOpen},
+            {"save", &Kernel::DoSave},
+            {"savestate", &Kernel::DoSaveState},
+            {"save_state", &Kernel::DoSaveState},
+            {"loadstate", &Kernel::DoLoadState},
+            {"load_state", &Kernel::DoLoadState},
+            {"resetstate", &Kernel::DoResetState},
+            {"reset_state", &Kernel::DoResetState},
+            {"classes", &Kernel::DoSendClasses},
+            {"classinfo", &Kernel::DoSendClassInfo},
+            {"classreadme", &Kernel::DoSendClassReadMe},
+            {"files", &Kernel::DoSendFileList},
+            {"data", &Kernel::DoData},
+            {"json", &Kernel::DoJSON},
+            {"csv", &Kernel::DoCSV},
+            {"image", &Kernel::DoImage},
+            {"profiling", &Kernel::DoProfiling},
+            {"startupsteps", &Kernel::DoStartupSteps},
+            {"command", &Kernel::DoCommand},
+            {"control", &Kernel::DoControl},
+        };
 
-        if(request == "network")
-            DoNetwork(request);
-
-        else if(request == "update")
-            DoUpdate(request);
-
-        // Run mode commands
-
-        else if(request == "quit")
-            DoQuit(request);
-        else if(request == "stop")
-            DoStop(request);
-        else if(request == "pause")
-            DoPause(request);
-        else if(request == "step")
-            DoStep(request);
-        else if(request == "play")
-            DoPlay(request);
-        else if(request == "realtime")
-            DoRealtime(request);
-
-        // File handling commands
-
-        else if(request == "new")
-            DoNew(request);
-        else if(request == "open")
-            DoOpen(request);
-        else if(request == "save")
-            DoSave(request);
-        else if(request == "savestate" || request == "save_state")
-            DoSaveState(request);
-        else if(request == "loadstate" || request == "load_state")
-            DoLoadState(request);
-        else if(request == "resetstate" || request == "reset_state")
-            DoResetState(request);
-
-        // Start up commands
-
-        else if(request == "classes") 
-            DoSendClasses(request);
-        else if(request == "classinfo") 
-            DoSendClassInfo(request);
-        else if(request == "classreadme")
-            DoSendClassReadMe(request);
-        else if(request == "files") 
-            DoSendFileList(request);
-        else if(request == "")
+        if(request.command.empty())
+        {
             DoSendFile("index.html");
+            return;
+        }
 
-        else if(request == "data")
-            DoData(request);
-        else if(request == "json")
-            DoJSON(request);
-        else if(request == "csv")
-            DoCSV(request);
-        else if(request == "image")
-            DoImage(request);
-        else if(request == "profiling")
-            DoProfiling(request);
-        else if(request == "startupsteps")
-            DoStartupSteps(request);
+        auto route = authenticated_routes.find(request.command);
+        if(route != authenticated_routes.end())
+        {
+            (this->*route->second)(request);
+            return;
+        }
 
-        // Control commands
-
-        else if(request == "command")
-            DoCommand(request);
-        else if(request == "control")
-            DoControl(request);
-        else 
-            DoSendFile(request.url);
+        DoSendFile(request.url);
     }
 
 
