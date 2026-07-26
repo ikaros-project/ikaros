@@ -299,3 +299,24 @@ Each task is executed sequentially. Before implementation, its status changes to
 ### Kernel refactoring outstanding issues and questions
 
 None.
+
+## Physical kernel implementation split
+
+Each task moves existing definitions without intentional behavioral changes. Tasks are executed sequentially, verified with a Debug build and the complete kernel test suite, and committed independently.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Move model construction, buffer sizing, input-shape resolution, and startup-step implementation into `kernel_setup.cc`. | Implemented and verified | Debug build; complete setup, shape, startup-step, and WebUI recovery coverage; all 266 tests passed | `Kernel setup implementation now has its own translation unit` |
+| 2 | Move task execution, propagation, the run loop, and realtime timing implementation into `kernel_execution.cc`. | Not addressed | Pending | Pending |
+| 3 | Move state capture, restoration, save, load, and reset implementation into `kernel_state.cc`. | Not addressed | Pending | Pending |
+| 4 | Move WebUI subscriptions, snapshots, value serialization, and data-response construction into `kernel_webui.cc`. | Not addressed | Pending | Pending |
+| 5 | Move HTTP parsing and dispatch, authentication, file serving, and endpoint handlers into `kernel_http.cc`. | Not addressed | Pending | Pending |
+| 6 | Review the remaining `ikaros.cc`, move only clearly misplaced cohesive definitions, update build registration, and document the resulting implementation boundaries. | Not addressed | Pending | Pending |
+
+### Physical split constraints
+
+- Preserve behavior, public interfaces, file formats, diagnostics, and synchronization semantics.
+- Do not introduce subsystem classes or redesign shared `Kernel` state as part of this split.
+- Keep small helpers with the subsystem that owns them; avoid one-function files.
+- Keep headers self-contained and register every new implementation unit explicitly in CMake.
+- Do not begin a later task until the preceding task is verified and committed.

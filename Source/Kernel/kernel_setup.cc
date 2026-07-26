@@ -1,0 +1,2126 @@
+// Ikaros 3.0
+
+#include "ikaros.h"
+
+#include <charconv>
+#include <cmath>
+
+using namespace ikaros;
+using namespace std::literals;
+
+namespace ikaros
+{
+    long new_session_id();
+
+    namespace
+    {
+        constexpr int maximum_connection_delay = 100;
+        constexpr size_t default_max_retained_webui_log_messages = 500;
+
+        void
+        ValidateConnectionDelayRange(const range & delays,
+                                     const std::string & source,
+                                     const std::string & target,
+                                     const std::string & path)
+        {
+            const std::string connection = "Connection \"" + source + " => " + target + "\" delay range ";
+            if(delays.rank() != 1)
+                throw build_failed(connection + "must be one-dimensional.", path);
+            const int delay_start = delays.start(0);
+            const int delay_stop = delays.stop(0);
+            const int delay_step = delays.step(0);
+            if(delay_start == delay_stop)
+                throw build_failed(connection + "must not be empty.", path);
+            if(delay_step <= 0)
+                throw build_failed(connection + "must have a positive increment.", path);
+            if(delay_start < 0)
+                throw build_failed(connection + "must be non-negative.", path);
+            if(delay_stop <= delay_start)
+                throw build_failed(connection + "must be an ascending, non-empty range.", path);
+
+            const long long distance = static_cast<long long>(delay_stop) - delay_start;
+            const long long count = 1 + (distance - 1) / delay_step;
+            const long long max_delay = static_cast<long long>(delay_start) +
+                                        (count - 1) * delay_step;
+            if(max_delay > maximum_connection_delay)
+                throw build_failed(connection + "must not exceed " +
+                                   std::to_string(maximum_connection_delay) + " ticks.", path);
+        }
+
+        bool is_scalar_state_type(const std::string & type)
+        {
+            return type == "float" || type == "double" || type == "int" ||
+                   type == "bool" || type == "string";
+        }
+
+        tick_count
+        parse_stop_after(const std::string & value)
+        {
+            const std::string text = trim(value);
+            tick_count result = 0;
+            const char * begin = text.data();
+            const char * end = begin + text.size();
+            bool valid_sign = true;
+            if(begin != end && *begin == '+')
+            {
+                ++begin;
+                valid_sign = begin != end && *begin != '+' && *begin != '-';
+            }
+            const auto conversion = std::from_chars(begin, end, result);
+            if(text.empty() || !valid_sign || conversion.ec != std::errc() ||
+               conversion.ptr != end || result < -1)
+                throw setup_failed("Invalid stop tick \"" + value +
+                                   "\". Expected -1 or a non-negative integer.");
+            return result;
+        }
+
+        double
+        parse_tick_duration(const std::string & value)
+        {
+            double result = 0;
+            if(!parse_double(value, result) || !std::isfinite(result) || result <= 0)
+                throw setup_failed("Invalid tick duration \"" + value +
+                                   "\". Expected a finite positive number of seconds.");
+            return result;
+        }
+
+        std::string resolve_state_filename(const options & opts,
+                                           const std::string & option_name)
+        {
+            std::string filename = opts.get(option_name);
+            if(!filename.empty() && filename != "true")
+                return filename;
+
+            std::filesystem::path model_path = opts.full_path();
+            if(model_path.empty())
+                throw exception("Can not derive state filename because no model file is loaded.");
+
+            model_path.replace_extension(".state");
+            return model_path.string();
+        }
+
+        double parse_parameter_number(const std::string & value,
+                                      const std::string & conversion_name)
+        {
+            try
+            {
+                return parse_double(value);
+            }
+            catch(const std::invalid_argument &)
+            {
+                throw exception("Could not convert string \"" + value + "\" to " + conversion_name + ".");
+            }
+            catch(const std::out_of_range &)
+            {
+                throw exception("String \"" + value + "\" is out of range for " + conversion_name + ".");
+            }
+        }
+
+        int parse_scalar_state_int(const std::string & value)
+        {
+            const std::string trimmed_value = trim(value);
+            if(trimmed_value.empty())
+                throw std::invalid_argument("Expected an integer.");
+
+            int parsed_value = 0;
+            const char * begin = trimmed_value.data();
+            const char * end = begin + trimmed_value.size();
+            const auto result = std::from_chars(begin, end, parsed_value);
+            if(result.ec == std::errc::result_out_of_range)
+                throw std::out_of_range("Integer is outside the supported range.");
+            if(result.ec != std::errc() || result.ptr != end)
+                throw std::invalid_argument("Expected an integer.");
+            return parsed_value;
+        }
+
+        dictionary make_module_start_parameter()
+        {
+            dictionary parameter;
+            parameter["_tag"] = "parameter";
+            parameter["name"] = "module_start";
+            parameter["type"] = "number";
+            parameter["control"] = "menu";
+            parameter["options"] = "at_tick,first_data,all_data";
+            parameter["default"] = 0;
+            return parameter;
+        }
+
+        dictionary make_start_tick_parameter()
+        {
+            dictionary parameter;
+            parameter["_tag"] = "parameter";
+            parameter["name"] = "start_tick";
+            parameter["type"] = "number";
+            parameter["default"] = 0;
+            return parameter;
+        }
+
+        dictionary make_async_parameter()
+        {
+            dictionary parameter;
+            parameter["_tag"] = "parameter";
+            parameter["name"] = "async";
+            parameter["type"] = "bool";
+            parameter["default"] = "no";
+            parameter["description"] = "Run this module asynchronously.";
+            return parameter;
+        }
+
+        dictionary make_color_parameter()
+        {
+            dictionary parameter;
+            parameter["_tag"] = "parameter";
+            parameter["name"] = "color";
+            parameter["type"] = "string";
+            parameter["default"] = "black";
+            parameter["description"] = "Selected ui color";
+            parameter["control"] = "ui_color";
+            return parameter;
+        }
+
+        dictionary make_ui_snapshot_rgb_quality_parameter()
+        {
+            dictionary parameter;
+            parameter["_tag"] = "parameter";
+            parameter["name"] = "rgb_quality";
+            parameter["type"] = "number";
+            parameter["default"] = 75;
+            parameter["description"] = "JPEG quality used for RGB images in WebUI update snapshots.";
+            return parameter;
+        }
+
+        dictionary make_ui_snapshot_gray_quality_parameter()
+        {
+            dictionary parameter;
+            parameter["_tag"] = "parameter";
+            parameter["name"] = "gray_quality";
+            parameter["type"] = "number";
+            parameter["default"] = 70;
+            parameter["description"] = "JPEG quality used for grayscale and pseudocolor images in WebUI update snapshots.";
+            return parameter;
+        }
+
+        dictionary make_snapshot_interval_parameter()
+        {
+            dictionary parameter;
+            parameter["_tag"] = "parameter";
+            parameter["name"] = "snapshot_interval";
+            parameter["type"] = "number";
+            parameter["default"] = 0.1;
+            parameter["description"] = "Minimum interval in seconds between image refreshes in WebUI update snapshots.";
+            return parameter;
+        }
+
+        dictionary make_webui_request_interval_parameter()
+        {
+            dictionary parameter;
+            parameter["_tag"] = "parameter";
+            parameter["name"] = "webui_req_int";
+            parameter["type"] = "number";
+            parameter["default"] = 0.1;
+            parameter["description"] = "WebUI update request and snapshot construction interval in seconds.";
+            return parameter;
+        }
+
+        dictionary make_webui_log_buffer_limit_parameter()
+        {
+            dictionary parameter;
+            parameter["_tag"] = "parameter";
+            parameter["name"] = "webui_log_buffer_limit";
+            parameter["type"] = "number";
+            parameter["default"] = static_cast<int>(default_max_retained_webui_log_messages);
+            parameter["description"] = "Maximum number of recent log messages retained for delivery to WebUI clients.";
+            return parameter;
+        }
+    }
+
+    bool
+    Component::InputsReady(dictionary d,  input_map ingoing_connections)
+    {
+        if(d.contains("size"))
+            return true;
+
+        if(d.contains("inputs") && d["inputs"].is_list())
+            return true;
+
+        std::string full_name = path_ + "." + std::string(d["name"]);
+        Trace("\t\t\tComponent::InputReady", full_name);
+        Kernel& k = kernel();
+
+        if(!ingoing_connections.count(full_name))
+            return d.is_set("optional");
+
+        for(auto & c : ingoing_connections.at(full_name))
+            if(k.buffers.at(c->source).rank()==0)
+                return false;
+        return true;
+    }
+
+
+    std::string
+    Component::ShapeString(const std::vector<int> & shape) const
+    {
+        std::vector<std::string> parts;
+        parts.reserve(shape.size());
+        for(int dimension : shape)
+            parts.push_back(std::to_string(dimension));
+        return join(",", parts);
+    }
+
+
+    void
+    Component::ValidateFixedInputTarget(const std::string & name,
+                                        const std::string & full_name,
+                                        const Connection & connection,
+                                        const range & target_range,
+                                        bool flattened)
+    {
+        const matrix & input_buffer = kernel().buffers.at(full_name);
+        const std::vector<int> & shape = input_buffer.shape();
+        if(flattened && input_buffer.rank() != 1)
+            throw setup_failed("Input \"" + name + "\" in \"" + path_ +
+                               "\" uses flatten and must have a one-dimensional fixed size, got \"" +
+                               ShapeString(shape) + "\".", path_);
+
+        bool outside = target_range.rank() != input_buffer.rank();
+        for(int dimension = 0; !outside && dimension < target_range.rank(); ++dimension)
+            outside = (flattened ? target_range.step(dimension) <= 0
+                                 : target_range.step(dimension) == 0) ||
+                      target_range.start(dimension) < 0 ||
+                      target_range.start(dimension) > target_range.stop(dimension) ||
+                      target_range.stop(dimension) > input_buffer.size(dimension);
+
+        if(outside)
+            throw setup_failed("Connection \"" + connection.Info() +
+                               "\" writes outside fixed size of input \"" + name +
+                               "\" in \"" + path_ + "\" (" + ShapeString(shape) + ").",
+                               path_);
+    }
+
+
+    void
+    Component::ApplyInputLabel(const dictionary & input, const std::string & full_name,
+                               const std::vector<Connection *> & connections)
+    {
+        if(!input.is_set("use_label"))
+            return;
+        if(connections.size() == 1 && !connections[0]->label_.empty())
+            kernel().buffers.at(full_name).set_name(connections[0]->label_);
+    }
+
+
+    int
+    Component::SetInputShape_Flat(dictionary d, input_map ingoing_connections)
+    {
+        Trace("\t\t\t\t\tComponent::SetInputShape_Flat", path_);
+
+        std::string name = d.at("name");
+        std::string full_name = path_ +"."+ name;
+        bool has_fixed_size = d.contains("size");
+
+        if(!ingoing_connections.count(full_name)) // Not connected
+            return has_fixed_size ? 0 : 1;
+
+        if(has_fixed_size)
+        {
+            std::string shape_expr = std::string(d.at("size"));
+            if(shape_expr.empty())
+                throw setup_failed("Input \""+name+"\" must have a value for \"size\".", path_);
+            std::vector<int> shape = EvaluateShapeList(shape_expr);
+            kernel().buffers[full_name].realloc(shape);
+        }
+
+        long long flattened_input_size = 0;
+        for(auto & c : ingoing_connections.at(full_name))
+        {
+            c->flatten_ = true;
+
+            matrix & output_buffer = kernel().buffers[c->source];
+            if(output_buffer.is_dynamic())
+                throw setup_failed("Connection \"" + c->Info() + "\" can not flatten dynamic output \"" + c->source + "\".", path_);
+
+            range output_matrix = output_buffer.get_range();
+            c->Resolve(output_matrix);  //**NEW  
+
+            const long long required_size = static_cast<long long>(c->source_range.size()) * c->DelayCount();
+            if(required_size > std::numeric_limits<int>::max() - flattened_input_size)
+                throw setup_failed("Connection \"" + c->Info() + "\" requires an input larger than the supported size.", path_);
+            const int begin_index = static_cast<int>(flattened_input_size);
+            flattened_input_size += required_size;
+            const int end_index = static_cast<int>(flattened_input_size);
+            c->target_range = range(begin_index, end_index);
+            if(has_fixed_size)
+                ValidateFixedInputTarget(name, full_name, *c, c->target_range, true);
+        }
+    
+        if(!has_fixed_size && flattened_input_size != 0)
+        {
+            kernel().buffers[full_name].realloc(static_cast<int>(flattened_input_size));
+          Trace("\t\t\tComponent::SetInputShape_Index Alloc "+std::to_string(flattened_input_size), path_);
+        }
+
+        if(d.is_set("use_label"))
+        {
+            for(auto & c : ingoing_connections.at(full_name))
+            {
+                const long long required_size = static_cast<long long>(c->source_range.size()) * c->DelayCount();
+                if(required_size > std::numeric_limits<int>::max())
+                    throw setup_failed("Connection \"" + c->Info() + "\" requires an input larger than the supported size.", path_);
+                int s = static_cast<int>(required_size);
+                if(c->label_.empty())
+                    kernel().buffers[full_name].push_label(0, c->source, s); // WAS: kernel().buffers[d.at(full_name)].push_label(0, c->source, s);
+                else
+                    kernel().buffers[full_name].push_label(0, c->label_, s); // WAS: kernel().buffers[d.at(full_name)].push_label(0, c->label_, s);
+            }
+        }
+        return 0;
+    }
+
+
+    int
+    Component::SetStackedInputShape(const dictionary & input, const std::string & name,
+                                    const std::string & full_name, bool has_fixed_size,
+                                    const std::vector<Connection *> & connections)
+    {
+        range input_size;
+        int target_rank = has_fixed_size ? kernel().buffers[full_name].rank() : 0;
+
+        for(int stack_index = 0; stack_index < static_cast<int>(connections.size()); ++stack_index)
+        {
+            Connection * connection = connections[stack_index];
+            matrix & output_buffer = kernel().buffers[connection->source];
+            if(output_buffer.is_dynamic())
+                throw setup_failed("Connection \"" + connection->Info() +
+                                   "\" can not feed stacked input \"" + name +
+                                   "\" from dynamic output \"" + connection->source + "\".",
+                                   path_);
+
+            if(!connection->stacked_)
+            {
+                range output_matrix = output_buffer.get_range();
+                if(output_matrix.rank() == 0)
+                    return 0;
+
+                range resolved_target = connection->Resolve(output_matrix);
+                resolved_target.push_front(stack_index, stack_index + 1);
+                connection->target_range = resolved_target;
+                connection->stacked_ = true;
+            }
+            target_rank = std::max(target_rank, connection->target_range.rank());
+        }
+
+        if(target_rank == 0)
+            return 0;
+
+        for(Connection * connection : connections)
+        {
+            while(connection->target_range.rank() < target_rank)
+                connection->target_range.push(0, 1);
+
+            if(has_fixed_size)
+                ValidateFixedInputTarget(name, full_name, *connection,
+                                         connection->target_range, false);
+            else if(input_size.rank() == 0)
+                input_size = connection->target_range;
+            else
+                input_size.extend(connection->target_range);
+        }
+
+        if(!has_fixed_size)
+        {
+            kernel().buffers[full_name].realloc(input_size.extent());
+            Trace("\t\t\tComponent::SetInputShape Stacked Alloc" +
+                  std::string(input_size), full_name);
+        }
+
+        ApplyInputLabel(input, full_name, connections);
+        return 1;
+    }
+
+
+    int
+    Component::SetSimpleInputShape(const dictionary & input, const std::string & full_name,
+                                   Connection & connection,
+                                   const std::vector<Connection *> & connections)
+    {
+        matrix & output_buffer = kernel().buffers[connection.source];
+        range output_matrix = output_buffer.get_range();
+        if(output_matrix.rank() == 0)
+            return 0;
+
+        if(output_buffer.is_dynamic())
+        {
+            kernel().buffers[full_name].reserve(output_buffer.capacity());
+            kernel().buffers[full_name].set_dynamic().set_fixed_capacity();
+            kernel().buffers[full_name].resize(output_buffer.shape());
+        }
+        else
+            kernel().buffers[full_name].realloc(output_matrix.extent());
+
+        Trace("\t\t\tComponent::SetInputShape Simple Alloc", full_name);
+        ApplyInputLabel(input, full_name, connections);
+        return 1;
+    }
+
+
+    int
+    Component::SetGeneralInputShape(const dictionary & input, const std::string & name,
+                                    const std::string & full_name, bool has_fixed_size,
+                                    const std::vector<Connection *> & connections)
+    {
+        range input_size;
+        for(Connection * connection : connections)
+        {
+            matrix & output_buffer = kernel().buffers[connection->source];
+            if(output_buffer.is_dynamic())
+            {
+                if(connection->IsWholeMatrixConnection() && connection->DelayCount() > 1)
+                    throw setup_failed("Connection \"" + connection->Info() +
+                                       "\" requests multiple delay values from dynamic output \"" +
+                                       connection->source +
+                                       "\". Dynamic outputs support only a single whole-matrix delay.",
+                                       path_);
+                throw setup_failed("Connection \"" + connection->Info() +
+                                   "\" uses an indexed or ranged connection from dynamic output \"" +
+                                   connection->source +
+                                   "\". Dynamic outputs only support whole-matrix connections.",
+                                   path_);
+            }
+
+            range output_matrix = output_buffer.get_range();
+            if(output_matrix.rank() == 0)
+                return 0;
+            range resolved_target = connection->Resolve(output_matrix);
+            if(has_fixed_size)
+                ValidateFixedInputTarget(name, full_name, *connection, resolved_target, false);
+            else
+                input_size.extend(resolved_target);
+        }
+
+        if(!has_fixed_size)
+        {
+            kernel().buffers[full_name].realloc(input_size.extent());
+            Trace("\t\t\tComponent::SetInputShape Alloc" + std::string(input_size), full_name);
+        }
+
+        ApplyInputLabel(input, full_name, connections);
+        return 1;
+    }
+
+
+    int
+    Component::SetInputShape_Index(dictionary d, input_map ingoing_connections)
+    {
+       Trace("\t\t\tComponent::SetInputShape_Index ", path_ + "." + std::string(d["name"]));
+
+        std::string name = d.at("name");
+        std::string full_name = path_ +"."+ name;
+        bool has_fixed_size = d.contains("size");
+        bool stack = ComputeAttributeBool(d, "stack");
+
+        if(!ingoing_connections.count(full_name)) // Not connected
+            return 1;
+
+        if(has_fixed_size)
+        {
+            std::string shape_expr = std::string(d.at("size"));
+            if(shape_expr.empty())
+                throw setup_failed("Input \""+name+"\" must have a value for \"size\".", path_);
+            std::vector<int> shape = EvaluateShapeList(shape_expr);
+            kernel().buffers[full_name].realloc(shape);
+        }
+
+        // Handle stacked inputs by assigning each connection to one slice along a new first dimension.
+
+        if(stack)
+            return SetStackedInputShape(d, name, full_name, has_fixed_size,
+                                        ingoing_connections.at(full_name));
+
+        // Handle single connection without inidices - do not collapse dimensions
+
+        auto & input_connections = ingoing_connections.at(full_name);
+        Connection * single_connection = input_connections.size() == 1 ? input_connections[0] : nullptr;
+        bool old_style_simple_connection =
+            !has_fixed_size &&
+            ingoing_connections.size() == 1 &&
+            ingoing_connections.begin()->second[0]->DelayCount() == 1 &&
+            ingoing_connections.begin()->second[0]->source_range.rank() == 0 &&
+            ingoing_connections.begin()->second[0]->target_range.rank() == 0;
+        bool dynamic_simple_connection =
+            !has_fixed_size &&
+            single_connection != nullptr &&
+            single_connection->DelayCount() == 1 &&
+            kernel().buffers[single_connection->source].is_dynamic() &&
+            single_connection->IsWholeMatrixConnection();
+
+        if(old_style_simple_connection || dynamic_simple_connection)
+        {
+            Connection * connection = old_style_simple_connection ?
+                                      ingoing_connections.begin()->second[0] : single_connection;
+            return SetSimpleInputShape(d, full_name, *connection, input_connections);
+        }
+
+        return SetGeneralInputShape(d, name, full_name, has_fixed_size,
+                                    ingoing_connections.at(full_name));
+    }
+
+
+// ****************************** COMPONENT Sizes ******************************
+
+
+    int 
+    Component::SetInputSize(dictionary d, input_map ingoing_connections)
+    {
+        Trace("\t\t\tComponent::SetInputSize ", path_ + "."+ std::string(d["name"]));
+
+        if(d.is_set("flatten"))
+            SetInputShape_Flat(d, ingoing_connections);
+        else
+            SetInputShape_Index(d, ingoing_connections);
+        return 0;
+    }
+
+
+
+    int
+    Component:: SetInputSizes(input_map ingoing_connections)
+    {
+        Kernel& k = kernel();
+
+        Trace("\t\tComponent::SetInputSizes", path_);
+
+        // Set input sizes (if possible)
+
+        for(auto d : info_["inputs"])
+        {
+            dictionary input = d;
+            std::string full_name = path_+"."+std::string(input["name"]);
+            bool has_fixed_size = input.contains("size");
+            if(has_fixed_size || k.buffers[full_name].is_uninitialized())
+                if(InputsReady(input, ingoing_connections))
+                    SetInputSize(input, ingoing_connections);
+        }
+        return 0;
+    }
+
+
+    int 
+    Component::SetOutputShape(dictionary d, input_map ingoing_connections)
+    {
+       Trace("\t\t\tComponent::SetOutputShape " , path_ + "." + std::string(d["name"]));
+
+        if(d.contains_non_null("alias"))
+            return 0;
+
+        if(d.contains("size") || d.contains("shape"))
+        {
+            std::string attribute = d.contains("size") ? "size" : "shape";
+            throw setup_failed("Output \"" + std::string(d["name"]) + "\" in group \"" + path_ +
+                               "\" can not have a " + attribute + " attribute.", path_);
+        }
+
+        if(d.is_set("dynamic"))
+            throw setup_failed("Group output \"" + std::string(d["name"]) + "\" in \"" + path_ + "\" can not be dynamic.", path_);
+
+        range output_range;
+        std::string name = d.at("name");
+        std::string full_name = path_ +"."+ name;
+
+        if(!ingoing_connections.count(full_name))
+            return 0;
+
+        for(auto c : ingoing_connections.at(full_name))
+        {
+            matrix & output_buffer = kernel().buffers[c->source];
+            if(output_buffer.is_dynamic())
+                throw setup_failed("Connection \"" + c->Info() + "\" can not map dynamic output \"" + c->source + "\" through group output \"" + full_name + "\".", path_);
+
+            range output_matrix = output_buffer.get_range();
+            
+            if(output_matrix.rank() == 0)
+                return 0;
+            
+            output_range.extend(c->Resolve(output_matrix));
+        }
+        kernel().buffers[full_name].realloc(output_range);
+      Trace("\t\t\t\t\tComponent:: Alloc" + std::string(output_range), path_);
+
+        return 1;
+    }
+
+
+    int
+    Component::ApplyOutputAliases()
+    {
+        Kernel & k = kernel();
+
+        for(auto & output_value : info_["outputs"])
+        {
+            dictionary d = output_value;
+            if(!d.contains_non_null("alias"))
+                continue;
+
+            std::string output_name = d["name"].as_string();
+            std::string full_output_name = path_ + "." + output_name;
+            std::string alias_spec = trim(d["alias"].as_string());
+
+            if(alias_spec.empty())
+                throw setup_failed("Output \"" + output_name + "\" has an empty alias.", path_);
+
+            if(d.contains("size") || d.contains("shape"))
+                throw setup_failed("Aliased output \"" + output_name + "\" can not also specify a size or shape.", path_);
+
+            std::string alias_source_name = peek_head(alias_spec, "[");
+            std::string alias_selector = peek_tail(alias_spec, "[", true);
+            if(alias_source_name.empty())
+                throw setup_failed("Output \"" + output_name + "\" has malformed alias \"" + alias_spec + "\".", path_);
+
+            if(alias_source_name.find('.') == std::string::npos)
+                alias_source_name = path_ + "." + alias_source_name;
+
+            if(alias_source_name == full_output_name)
+                throw setup_failed("Output \"" + output_name + "\" can not alias itself.", path_);
+
+            if(!k.buffers.count(alias_source_name))
+                throw setup_failed("Output \"" + output_name + "\" aliases unknown output \"" + alias_source_name + "\".", path_);
+
+            matrix aliased_output = k.buffers[alias_source_name];
+            if(aliased_output.is_uninitialized())
+                return 0;
+
+            try
+            {
+                if(!alias_selector.empty())
+                {
+                    range selector(alias_selector);
+                    for(int i = 0; i < selector.rank(); ++i)
+                    {
+                        bool is_single_index = !selector.empty(i) && selector.step(i) == 1 &&
+                                               selector.stop(i) == selector.start(i) + 1;
+                        if(!is_single_index)
+                            throw setup_failed("Output \"" + output_name + "\" alias must use single indices only.", path_);
+
+                        if(aliased_output.rank() == 0)
+                            throw setup_failed("Output \"" + output_name + "\" alias indexes deeper than its source output.", path_);
+
+                        aliased_output = aliased_output[selector.start(i)];
+                    }
+                }
+            }
+            catch(const setup_failed &)
+            {
+                throw;
+            }
+            catch(const std::exception & e)
+            {
+                throw setup_failed("Output \"" + output_name + "\" has invalid alias \"" + alias_spec + "\". " + std::string(e.what()), path_);
+            }
+
+            if(!alias_selector.empty())
+                aliased_output.set_name(output_name);
+            k.buffers[full_output_name] = aliased_output;
+        }
+
+        return 1;
+    }
+
+
+    int 
+    Component::SetOutputShapes(input_map ingoing_connections)
+    {
+        Trace("\t\tComponent::SetOutputShapes", path_);
+        for(auto & d : info_["outputs"])
+            SetOutputShape(d, ingoing_connections);
+        ApplyOutputAliases();
+
+        return 0;
+    }
+
+
+    int
+    Component::SetStateShape(dictionary d)
+    {
+        Trace("\t\t\tComponent::SetStateShape ", path_ + "." + std::string(d["name"]));
+
+        if(d.contains_non_null("type") && std::string(d["type"]) != "matrix")
+            return 0;
+
+        if(!d.contains_non_null("type") || std::string(d["type"]) != "matrix")
+            throw setup_failed("State \"" + std::string(d["name"]) + "\" in \"" + path_ + "\" must have type=\"matrix\" in this implementation.", path_);
+
+        std::string shape_expr;
+        if(d.contains("size"))
+            shape_expr = std::string(d.at("size"));
+        else if(d.contains("shape"))
+            shape_expr = std::string(d.at("shape"));
+        else
+            throw setup_failed("State \"" + std::string(d["name"]) + "\" in \"" + path_ + "\" must have a value for \"size\" or \"shape\".", path_);
+
+        if(shape_expr.empty())
+            throw setup_failed("State \"" + std::string(d["name"]) + "\" in \"" + path_ + "\" must have a value for \"size\" or \"shape\".", path_);
+
+        try
+        {
+            std::vector<int> shape = EvaluateShapeList(shape_expr);
+            matrix state;
+            Bind(state, d.at("name"));
+            state.realloc(shape);
+        }
+        catch(const std::invalid_argument & e)
+        {
+            throw setup_failed("Size expression for state \"" + std::string(d["name"]) + "\" is invalid. " + e.what(), path_);
+        }
+        catch(const std::exception & e)
+        {
+            throw setup_failed("Size expression for state \"" + std::string(d["name"]) + "\" is invalid. " + std::string(e.what()), path_);
+        }
+
+        return 0;
+    }
+
+
+    int
+    Component::SetStateShapes(input_map)
+    {
+        Trace("\t\tComponent::SetStateShapes", path_);
+        for(auto & d : info_["states"])
+            SetStateShape(d);
+
+        return 0;
+    }
+
+
+    int
+    Component::SetSizes(input_map ingoing_connections)
+    {
+        
+        Trace("\tComponent::SetSizes",path_);
+        SetInputSizes(ingoing_connections);
+        SetOutputShapes(ingoing_connections);
+        SetStateShapes(ingoing_connections);
+
+        return 0;
+    }
+
+
+    void
+    Component::CheckRequiredInputs()
+    {
+        Kernel & k = kernel();
+        for(dictionary d : info_["inputs"])
+        if(!d.is_set("optional") && k.buffers[path_+"."+d["name"].as_string()].is_uninitialized())
+        {
+            // Unconnected group inputs that are never referenced internally are harmless.
+            if(dynamic_cast<Group *>(this) != nullptr)
+            {
+                std::string full_input_name = path_+"."+d["name"].as_string();
+                bool consumed_inside_group = false;
+                for(auto & c : k.connections)
+                    if(c.source == full_input_name)
+                    {
+                        consumed_inside_group = true;
+                        break;
+                    }
+                if(!consumed_inside_group)
+                    continue;
+            }
+
+            throw setup_failed("Component \""+info_["name"].as_string()+"\" has required input \""+d["name"].as_string()+"\" that is not connected.", path_);
+        }
+    }
+
+
+
+// ****************************** MODULE Sizes ******************************
+
+    int 
+    Module::SetOutputShape(dictionary d, input_map)
+    {
+        try
+        {
+            if(d.contains_non_null("alias"))
+                return 0;
+
+            bool dynamic_output = d.is_set("dynamic");
+            if(dynamic_output && !d.contains("capacity"))
+                throw setup_failed("Dynamic output \""+std::string(d.at("name")) +"\" must have a capacity attribute.", path_);
+
+            std::string shape_expr;
+            if(dynamic_output)
+                shape_expr = std::string(d.at("capacity"));
+            else if(d.contains("size"))
+                shape_expr = std::string(d.at("size"));
+            else if(d.contains("shape"))
+                shape_expr = std::string(d.at("shape"));
+            else if(info_.contains("size"))
+                shape_expr = std::string(info_.at("size"));
+            else
+                throw setup_failed("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\" or \"shape\".", path_);
+            
+            if(shape_expr.empty())
+                throw setup_failed("Output \""+std::string(d.at("name")) +"\" must have a value for \"size\" or \"shape\".", path_);
+            std::vector<int> shape = EvaluateShapeList(shape_expr);
+            matrix o;
+            Bind(o, d.at("name"));
+            if(dynamic_output)
+            {
+                if(shape.empty())
+                    return 0;
+                o.reserve(shape);
+                o.set_dynamic().set_fixed_capacity();
+            }
+            else
+                o.realloc(shape);
+            return 0;
+        }
+        catch(const std::invalid_argument & e)
+        {
+            throw setup_failed("Size expression for output \""+std::string(d.at("name")) +"\" is invalid. "+e.what(), path_);
+        }
+        catch(const std::exception & e)
+        {
+            throw setup_failed("Size expression for output \""+std::string(d.at("name")) +"\" is invalid. "+std::string(e.what()), path_);
+        }
+        catch(...)
+        {
+            throw setup_failed("Size expression for output \""+std::string(d.at("name")) +"\" is invalid.", path_);
+        }
+    }
+
+
+    int 
+    Module::SetOutputShapes(input_map ingoing_connections)
+    {
+        if(!InputsReady(info_, ingoing_connections))
+            return 0; // Cannot set size yet
+
+        for(auto & d : info_["outputs"])
+            SetOutputShape(d, ingoing_connections);
+        ApplyOutputAliases();
+
+        return 0;
+    }
+
+
+    int
+    Module::SetStateShapes(input_map ingoing_connections)
+    {
+        if(!InputsReady(info_, ingoing_connections))
+            return 0;
+
+        for(auto & d : info_["states"])
+            SetStateShape(d);
+
+        return 0;
+    }
+
+
+    int 
+    Module::SetSizes(input_map ingoing_connections)
+    {
+        SetInputSizes(ingoing_connections);
+        SetOutputShapes(ingoing_connections);
+        SetStateShapes(ingoing_connections);
+        return 0;
+    }   
+
+
+    void
+    Component::CalculateCheckSum(long & check_sum, prime & prime_number) // Calculates a value that depends on all parameters and output sizes; used for integrity testing of kernel and module
+    {
+        // Iterate over all outputs
+        for(auto & d : info_["outputs"])
+        {
+            matrix output;
+            Bind(output, d["name"]);
+            for(long d : output.shape())
+                check_sum += prime_number.next() * d;
+        } 
+
+        // Iterate over all inputs
+
+        for(auto & d : info_["inputs"])
+        {
+            matrix input;
+            Bind(input, d["name"]);
+            for(long d : input.shape())
+                check_sum += prime_number.next() * d;
+        } 
+
+
+        // Iterate obver all parameters
+    
+        for(auto & d : info_["parameters"])
+        {
+            std::string parameter_name = d["name"].as_string();
+            if(parameter_name == "log_level" || parameter_name == "module_start" || parameter_name == "start_tick" || parameter_name == "async" || parameter_name == "color" || parameter_name == "rgb_quality" || parameter_name == "gray_quality" || parameter_name == "snapshot_interval" || parameter_name == "webui_req_int" || parameter_name == "webui_log_buffer_limit")
+                continue;
+
+            parameter p;
+            Bind(p, parameter_name);
+            //std::cout << "Parameter: " << d["name"] << std::endl;
+
+            if(p.get_type() == string_type)
+                check_sum += prime_number.next() * character_sum(p);
+            else
+            if(p.get_type() == matrix_type)
+            {
+                const matrix & matrix_value = p.matrix_ref();
+                check_sum += prime_number.next() * matrix_value.size();
+            }
+            else
+                check_sum += prime_number.next() * p.as_long();
+        }
+        // std::cout << "Check sum: " << check_sum << std::endl;
+    }
+
+
+
+// Kernel
+
+    void 
+    Kernel::ResolveParameter(parameter & p,  std::string & name)
+    {
+        if(p.is_resolved())
+            return; // Already set from SetParameters
+
+        std::size_t i = name.rfind(".");
+        if(i == std::string::npos)
+            throw exception("Malformed parameter name \"" + name + "\".");
+
+        Component * c = components.at(name.substr(0, i)).get();
+        std::string parameter_name = name.substr(i+1, name.size());
+        c->ResolveParameter(p, parameter_name);
+    }
+
+
+    void 
+    Kernel::ResolveParameters() // Find and evaluate value or default
+    {
+        // All all componenets to initialize parameters programmatically
+
+        for(auto & [name, component] : components)
+        {
+            (void)name;
+            component->SetParameters();
+        }
+
+        // resolve
+        bool ok = true;
+        for (auto p=parameters.rbegin(); p!=parameters.rend(); p++) // Reverse order equals outside in in groups
+        {
+            std::size_t i = p->first.rfind(".");
+            if(i == std::string::npos)
+                throw setup_failed("Malformed parameter name \""+p->first+"\".", p->first);
+
+            Component * c = components.at(p->first.substr(0, i)).get();
+            std::string parameter_name = p->first.substr(i+1, p->first.size());
+            ok &= c->ResolveParameter(p->second, parameter_name);
+        }
+
+        for(auto & [name, component] : components)
+        {
+            (void)name;
+            component->SyncFirstTickFromParameter();
+            if(dynamic_cast<Module *>(component.get()))
+                component->SyncAsyncModeFromParameter();
+            else
+                component->async_mode = false;
+        }
+
+        if(!ok)
+        {
+            for(auto & [name, parameter] : parameters)
+                if(!parameter.is_resolved())
+                    throw setup_failed("Parameter \""+name+"\" could not be resolved.", name);
+            throw setup_failed("All parameters could not be resolved.");
+        }
+    }
+
+
+    connection_map
+    Kernel::BuildIncomingConnections()
+    {
+        connection_map incoming_connections;
+        for(auto & connection : connections)
+            incoming_connections[connection.target].push_back(&connection);
+        return incoming_connections;
+    }
+
+
+    std::vector<std::string>
+    Kernel::PendingBufferSizes(input_map incoming_connections)
+    {
+        std::vector<std::string> pending;
+        for(auto & [name, component] : components)
+        {
+            for(dictionary input : component->info_["inputs"])
+            {
+                std::string full_name = name + "." + input["name"].as_string();
+                if(!input.is_set("optional") && incoming_connections.count(full_name) &&
+                   buffers.at(full_name).is_uninitialized())
+                    pending.push_back(full_name);
+            }
+
+            bool is_module = dynamic_cast<Module *>(component.get()) != nullptr;
+            for(dictionary output : component->info_["outputs"])
+            {
+                std::string full_name = name + "." + output["name"].as_string();
+                if((is_module || incoming_connections.count(full_name)) &&
+                   buffers.at(full_name).is_uninitialized())
+                    pending.push_back(full_name);
+            }
+
+            for(dictionary state : component->info_["states"])
+            {
+                std::string full_name = name + "." + state["name"].as_string();
+                if(state_buffers.count(full_name) && buffers.at(full_name).is_uninitialized())
+                    pending.push_back(full_name);
+            }
+        }
+        return pending;
+    }
+
+
+    std::size_t
+    Kernel::BufferSizeSignature() const
+    {
+        std::size_t signature = 0;
+        for(const auto & [name, buffer] : buffers)
+        {
+            std::size_t local = std::hash<std::string>{}(name);
+            local ^= std::hash<int>{}(buffer.rank()) + 0x9e3779b9 +
+                     (local << 6) + (local >> 2);
+            for(int dimension : buffer.shape())
+                local ^= std::hash<int>{}(dimension) + 0x9e3779b9 +
+                         (local << 6) + (local >> 2);
+            signature ^= local + 0x9e3779b9 + (signature << 6) + (signature >> 2);
+        }
+        return signature;
+    }
+
+
+    void
+    Kernel::PropagateBufferSizes(input_map incoming_connections)
+    {
+        std::size_t previous_pending = PendingBufferSizes(incoming_connections).size();
+        std::size_t previous_signature = BufferSizeSignature();
+        for(std::size_t iteration = 0; iteration < components.size(); ++iteration)
+        {
+            for(auto & [name, component] : components)
+            {
+                (void)name;
+                component->SetSizes(incoming_connections);
+            }
+
+            std::size_t pending = PendingBufferSizes(incoming_connections).size();
+            std::size_t signature = BufferSizeSignature();
+            if(signature == previous_signature && pending == previous_pending)
+                break;
+            previous_pending = pending;
+            previous_signature = signature;
+        }
+    }
+
+
+    void
+    Kernel::CalculateSizes()
+    {
+        try
+        {
+            connection_map incoming_connections = BuildIncomingConnections();
+            PropagateBufferSizes(incoming_connections);
+
+            for(auto & [n, c] : components)
+                c->CheckRequiredInputs();
+
+            std::vector<std::string> pending = PendingBufferSizes(incoming_connections);
+            if(!pending.empty())
+                throw setup_failed("Could not resolve all input and output sizes. " +
+                                   std::to_string(pending.size()) +
+                                   " buffers remain unresolved: " + join(", ", pending) + ".");
+        }
+        catch(fatal_error & e)
+        {
+            throw setup_failed("Could not calculate input and output sizes. "+e.message(), e.path());
+        }
+
+        catch(setup_failed & e)
+        {
+            throw setup_failed("Could not calculate input and output sizes. "+e.message(), e.path());
+        }
+
+        catch(const std::exception & e)
+        {
+            throw setup_failed("Could not calculate input and output sizes. " + std::string(e.what()));
+        }
+
+        catch(...)
+        {
+            throw setup_failed("Could not calculate input and output sizes.");
+        }
+    }
+
+
+    void
+    Kernel::ShareZeroDelayConnectionBuffers()
+    {
+        std::map<std::string, std::vector<Connection *>> incoming_connections;
+        for(auto & connection : connections)
+            incoming_connections[connection.target].push_back(&connection);
+
+        for(auto & connection : connections)
+        {
+            connection.shared_memory_ = false;
+
+            if(!connection.IsSingleDelay(0))
+                continue;
+
+            if(Component * source_component = ComponentForValuePath(connection.source); source_component != nullptr && source_component->async_mode)
+                continue;
+
+            if(Component * target_component = ComponentForValuePath(connection.target); target_component != nullptr && target_component->async_mode)
+                continue;
+
+            if(!connection.IsWholeMatrixConnection() || connection.stacked_)
+                continue;
+
+            if(incoming_connections[connection.target].size() != 1)
+                continue;
+
+            auto source_buffer = buffers.find(connection.source);
+            auto target_buffer = buffers.find(connection.target);
+            if(source_buffer == buffers.end() || target_buffer == buffers.end())
+                continue;
+
+            if(connection.source == connection.target)
+                continue;
+
+            if(source_buffer->second.is_dynamic() || target_buffer->second.is_dynamic())
+                continue;
+
+            if(source_buffer->second.shape() != target_buffer->second.shape())
+                continue;
+
+            target_buffer->second.share_storage(source_buffer->second);
+            connection.shared_memory_ = true;
+        }
+    }
+
+
+    void 
+    Kernel::CalculateDelays()
+    {
+        max_delays.clear();
+        for(auto & c : connections)
+        {
+            if(!c.UsesCircularBuffer())
+                continue;
+            max_delays[c.source] = std::max(max_delays[c.source], c.MaxDelay());
+        }
+
+        enum class DataSnapshotKind
+        {
+            json,
+            image
+        };
+
+        struct DataSnapshotItem
+        {
+            std::string prefix;
+            DataSnapshotKind kind = DataSnapshotKind::json;
+            std::string json_value;
+            matrix image;
+            std::string image_format;
+        };
+    }
+
+    namespace
+    {
+        constexpr int unresolved_startup_step = std::numeric_limits<int>::max();
+
+        int
+        ConnectionDelayMin(const Connection & connection)
+        {
+            return connection.MinDelay();
+        }
+
+
+        int
+        ConnectionDelayMax(const Connection & connection)
+        {
+            return connection.MaxDelay();
+        }
+
+    }
+
+
+    std::map<std::string, int>
+    Kernel::PropagateStartupBufferSteps(input_map incoming_connections)
+    {
+        std::map<std::string, int> buffer_first_real_step;
+
+        for(auto & [buffer_name, buffer] : buffers)
+        {
+            (void)buffer;
+            buffer_first_real_step[buffer_name] = unresolved_startup_step;
+        }
+
+        for(auto & [path, component] : components)
+        {
+            if(dynamic_cast<Module *>(component.get()) == nullptr)
+                continue;
+
+            bool has_connected_input = false;
+            if(component->info_.contains("inputs") && component->info_["inputs"].is_list())
+                for(auto & input : component->info_["inputs"])
+                {
+                    std::string input_name = path + "." + std::string(input["name"]);
+                    if(incoming_connections.count(input_name))
+                    {
+                        has_connected_input = true;
+                        break;
+                    }
+                }
+
+            if(has_connected_input)
+                continue;
+
+            if(component->info_.contains("outputs") && component->info_["outputs"].is_list())
+                for(auto & output : component->info_["outputs"])
+                {
+                    std::string output_name = path + "." + std::string(output["name"]);
+                    buffer_first_real_step[output_name] = 0;
+                }
+        }
+
+        size_t max_iterations = std::max<size_t>(1, buffers.size() + components.size() + connections.size());
+        for(size_t iteration = 0; iteration < max_iterations; ++iteration)
+        {
+            bool changed = false;
+
+            for(auto & [path, component] : components)
+            {
+                auto * module = dynamic_cast<Module *>(component.get());
+                if(module == nullptr)
+                    continue;
+
+                int first_input_step = unresolved_startup_step;
+                bool has_connected_input = false;
+
+                if(component->info_.contains("inputs") && component->info_["inputs"].is_list())
+                    for(auto & input : component->info_["inputs"])
+                    {
+                        std::string input_name = path + "." + std::string(input["name"]);
+                        if(!incoming_connections.count(input_name))
+                            continue;
+
+                        has_connected_input = true;
+                        first_input_step = std::min(first_input_step, buffer_first_real_step[input_name]);
+                    }
+
+                int first_output_step = has_connected_input ? first_input_step : 0;
+                if(first_output_step == unresolved_startup_step)
+                    continue;
+
+                if(component->info_.contains("outputs") && component->info_["outputs"].is_list())
+                    for(auto & output : component->info_["outputs"])
+                    {
+                        std::string output_name = path + "." + std::string(output["name"]);
+                        if(first_output_step < buffer_first_real_step[output_name])
+                        {
+                            buffer_first_real_step[output_name] = first_output_step;
+                            changed = true;
+                        }
+                    }
+            }
+
+            for(auto & connection : connections)
+            {
+                auto source_it = buffer_first_real_step.find(connection.source);
+                if(source_it == buffer_first_real_step.end() || source_it->second == unresolved_startup_step)
+                    continue;
+
+                int candidate_step = source_it->second + ConnectionDelayMin(connection);
+                int & target_step = buffer_first_real_step[connection.target];
+                if(candidate_step < target_step)
+                {
+                    target_step = candidate_step;
+                    changed = true;
+                }
+            }
+
+            if(!changed)
+                break;
+        }
+
+        return buffer_first_real_step;
+    }
+
+
+    void
+    Kernel::ApplyStartupComponentSteps(
+        input_map incoming_connections,
+        const std::map<std::string, int> & buffer_first_real_step)
+    {
+
+        for(auto & [path, component] : components)
+        {
+            int first_real_input_step = unresolved_startup_step;
+            int all_real_inputs_step = 0;
+            bool has_connected_input = false;
+            bool all_inputs_resolved = true;
+
+            if(component->info_.contains("inputs") && component->info_["inputs"].is_list())
+                for(auto & input : component->info_["inputs"])
+                {
+                    std::string input_name = path + "." + std::string(input["name"]);
+                    if(!incoming_connections.count(input_name))
+                        continue;
+
+                    for(auto * connection : incoming_connections.at(input_name))
+                    {
+                        has_connected_input = true;
+
+                        auto source_it = buffer_first_real_step.find(connection->source);
+                        if(source_it == buffer_first_real_step.end() || source_it->second == unresolved_startup_step)
+                        {
+                            all_inputs_resolved = false;
+                            continue;
+                        }
+
+                        int connection_first_step = source_it->second + ConnectionDelayMin(*connection);
+                        int connection_all_step = source_it->second + ConnectionDelayMax(*connection);
+
+                        first_real_input_step = std::min(first_real_input_step, connection_first_step);
+                        all_real_inputs_step = std::max(all_real_inputs_step, connection_all_step);
+                    }
+                }
+
+            if(!has_connected_input)
+            {
+                first_real_input_step = 0;
+                all_real_inputs_step = 0;
+            }
+            else if(!all_inputs_resolved)
+            {
+                all_real_inputs_step = unresolved_startup_step;
+            }
+
+            component->startup_first_real_input_step = first_real_input_step;
+            component->startup_all_real_inputs_step = all_real_inputs_step;
+        }
+    }
+
+
+    void
+    Kernel::CalculateStartupSteps()
+    {
+        connection_map incoming_connections = BuildIncomingConnections();
+        std::map<std::string, int> buffer_first_real_step =
+            PropagateStartupBufferSteps(incoming_connections);
+        ApplyStartupComponentSteps(incoming_connections, buffer_first_real_step);
+    }
+
+
+
+    // Functions for creating the network
+
+    void 
+    Kernel::AddInput(std::string name, dictionary parameters) 
+    {
+        buffers[name] = matrix().set_name(parameters["name"]);
+    }
+
+    void 
+    Kernel::AddOutput(std::string name, dictionary parameters)
+    {
+        buffers[name] = matrix().set_name(parameters["name"]);
+        if(parameters.is_set("persistent"))
+            persistent_outputs.insert(name);
+    }
+
+
+    void
+    Kernel::AddState(std::string name, dictionary parameters)
+    {
+        if(!parameters.contains_non_null("type"))
+            throw exception("State \"" + name + "\" must have a type.");
+
+        std::string type = parameters["type"];
+        if(type == "matrix")
+        {
+            buffers[name] = matrix().set_name(parameters["name"]);
+            state_buffers.insert(name);
+            if(parameters.is_set("persistent"))
+                persistent_state_buffers.insert(name);
+            return;
+        }
+
+        if(!is_scalar_state_type(type))
+            throw exception("State \"" + name + "\" has unsupported type \"" + type + "\".");
+
+        ScalarState state;
+        state.type = type;
+        state.persistent = parameters.is_set("persistent");
+        std::string default_value = parameters.contains_non_null("default") ? std::string(parameters["default"]) : "";
+        try
+        {
+            if(type == "float")
+                state.default_float_value = state.float_value = default_value.empty() ? 0 : static_cast<float>(parse_parameter_number(default_value, "float"));
+            else if(type == "double")
+                state.default_double_value = state.double_value = default_value.empty() ? 0 : parse_parameter_number(default_value, "double");
+            else if(type == "int")
+                state.default_int_value = state.int_value = default_value.empty() ? 0 : parse_scalar_state_int(default_value);
+            else if(type == "bool")
+            {
+                bool parsed_value = false;
+                if(!default_value.empty() && !parse_bool(default_value, parsed_value))
+                    throw std::invalid_argument("Expected true, false, yes, no, on, off, 1, or 0.");
+                state.default_bool_value = state.bool_value = parsed_value;
+            }
+            else if(type == "string")
+                state.default_string_value = state.string_value = default_value;
+        }
+        catch(const std::exception & e)
+        {
+            throw exception("State \"" + name + "\" has invalid default value \"" + default_value + "\": " + e.what());
+        }
+
+        scalar_states[name] = state;
+    }
+
+    void 
+    Kernel::AddParameter(std::string name, dictionary params)
+    {
+         parameters.emplace(name, parameter(params));
+    }
+
+
+    void 
+    Kernel::SetParameter(std::string name, std::string value)
+    {
+        if(!parameters.count(name))
+            throw exception("Parameter \""+name+"\" could not be set because it does not exist.");
+
+        try
+        {
+            parameters[name] = value;
+            parameters[name].set_source_value(value);
+        }
+        catch(const exception & e)
+        {
+            throw exception("Parameter \""+name+"\" could not be set: "+e.message());
+        }
+        catch(const std::exception & e)
+        {
+            throw exception("Parameter \""+name+"\" could not be set: "+std::string(e.what()));
+        }
+        catch(...)
+        {
+            throw exception("Parameter \""+name+"\" could not be set. Check that the parameter exists and that the data type and value is correct.");
+        }
+    }
+
+
+    void
+    Kernel::SetParameter(std::string name, const matrix & value, const std::string & source_value)
+    {
+        if(!parameters.count(name))
+            throw exception("Parameter \""+name+"\" could not be set because it does not exist.");
+
+        try
+        {
+            parameters[name].set_matrix(value);
+            matrix stored_value = value;
+            parameters[name].set_source_value(source_value.empty() ? stored_value.json() : source_value);
+        }
+        catch(const exception & e)
+        {
+            throw exception("Parameter \""+name+"\" could not be set: "+e.message());
+        }
+        catch(const std::exception & e)
+        {
+            throw exception("Parameter \""+name+"\" could not be set: "+std::string(e.what()));
+        }
+        catch(...)
+        {
+            throw exception("Parameter \""+name+"\" could not be set. Check that the parameter exists and that the data type and value is correct.");
+        }
+    }
+
+
+    void 
+    Kernel::AddGroup(dictionary info, std::string path, bool is_top_group)
+    {
+        if(info["parameters"].is_null())
+            info["parameters"] = list();
+
+        if(is_top_group)
+        {
+            top_group_path = path;
+            bool has_color = false;
+            bool has_rgb_quality = false;
+            bool has_gray_quality = false;
+            bool has_snapshot_interval = false;
+            bool has_webui_req_int = false;
+            bool has_webui_log_buffer_limit = false;
+            for(auto parameter : info["parameters"])
+            {
+                std::string parameter_name = parameter["name"];
+                if(parameter_name == "color")
+                    has_color = true;
+                else if(parameter_name == "rgb_quality")
+                    has_rgb_quality = true;
+                else if(parameter_name == "gray_quality")
+                    has_gray_quality = true;
+                else if(parameter_name == "snapshot_interval")
+                    has_snapshot_interval = true;
+                else if(parameter_name == "webui_req_int")
+                    has_webui_req_int = true;
+                else if(parameter_name == "webui_log_buffer_limit")
+                    has_webui_log_buffer_limit = true;
+            }
+
+            if(!has_color)
+                info["parameters"].push_back(make_color_parameter().copy());
+            if(!has_rgb_quality)
+                info["parameters"].push_back(make_ui_snapshot_rgb_quality_parameter().copy());
+            if(!has_gray_quality)
+                info["parameters"].push_back(make_ui_snapshot_gray_quality_parameter().copy());
+            if(!has_snapshot_interval)
+                info["parameters"].push_back(make_snapshot_interval_parameter().copy());
+            if(!has_webui_req_int)
+                info["parameters"].push_back(make_webui_request_interval_parameter().copy());
+            if(!has_webui_log_buffer_limit)
+                info["parameters"].push_back(make_webui_log_buffer_limit_parameter().copy());
+        }
+
+        current_component_info = info;
+        current_component_path = path;
+
+        if(components.count(current_component_path)> 0)
+            throw build_failed("Module or group named \""+current_component_path+"\" already exists.", path);
+
+        components[current_component_path] = std::make_unique<Group>(); // Implicit argument passing as for components
+    }
+
+
+    void 
+    Kernel::InstantiatePythonModule(dictionary & info, const std::string & path)
+    {
+        current_component_info = info;
+        current_component_path = path+"."+std::string(info["name"]);
+
+        if(!classes.count("PythonModule") || classes["PythonModule"].module_creator == nullptr)
+            throw build_failed("Internal PythonModule runtime class is not installed.", path);
+
+        components[current_component_path] = std::unique_ptr<Component>(classes["PythonModule"].module_creator());
+    }
+
+
+    bool
+    Kernel::PreparePythonModule(dictionary & info, const std::string & classname)
+    {
+        std::filesystem::path class_path = classes[classname].path;
+        std::filesystem::path class_directory = class_path.parent_path();
+
+        std::filesystem::path python_path = class_directory / (classname + ".py");
+        bool is_python_backed = std::filesystem::exists(python_path);
+
+        if(!is_python_backed)
+            return false;
+
+        std::error_code ec;
+        std::filesystem::path canonical_class_directory = std::filesystem::weakly_canonical(class_directory, ec);
+        if(ec)
+            throw build_failed("Could not resolve python class directory for class \"" + classname + "\".");
+
+        if(classes.count("PythonModule"))
+        {
+            dictionary python_runtime_info = classes["PythonModule"].info_.copy();
+            python_runtime_info.erase("name");
+            python_runtime_info.erase("description");
+            info.merge(python_runtime_info);
+
+            if(info["parameters"].is_null())
+                info["parameters"] = list();
+
+            std::set<std::string> parameter_names;
+            for(auto parameter : info["parameters"])
+                parameter_names.insert(std::string(parameter["name"]));
+
+            for(auto parameter : python_runtime_info["parameters"])
+            {
+                std::string parameter_name = parameter["name"];
+                if(!parameter_names.count(parameter_name))
+                {
+                    info["parameters"].push_back(parameter);
+                    parameter_names.insert(parameter_name);
+                }
+            }
+        }
+
+        std::filesystem::path canonical_python_path = std::filesystem::weakly_canonical(python_path, ec);
+        if(ec)
+            throw build_failed("Python script for class \"" + classname + "\" could not be resolved: " + python_path.string());
+
+        auto class_it = canonical_class_directory.begin();
+        auto class_end = canonical_class_directory.end();
+        auto python_it = canonical_python_path.begin();
+        auto python_end = canonical_python_path.end();
+        for(; class_it != class_end && python_it != python_end; ++class_it, ++python_it)
+            if(*class_it != *python_it)
+                throw build_failed("Python script for class \"" + classname + "\" must stay within its class directory.");
+        if(class_it != class_end)
+            throw build_failed("Python script for class \"" + classname + "\" must stay within its class directory.");
+
+        info["python"] = canonical_python_path.string();
+        return true;
+    }
+
+
+    void
+    Kernel::InstantiateStandardModule(dictionary & info, const std::string & classname, const std::string & path)
+    {
+        current_component_info = info;
+        current_component_path = path+"."+std::string(info["name"]);
+
+        if(classes[classname].module_creator == nullptr)
+        {
+            if(info.is_not_set("no_code"))
+                std::cout << "Class \""<< classname << "\" has no installed code. Creating group." << std::endl; // throw exception("Class \""+classname+"\" has no installed code. Check that it is included in CMakeLists.txt."); // TODO: Check that this works for classes that are allowed to have no code
+            info["_tag"]="group";
+            BuildGroup(info, path); 
+        }
+        else
+            components[current_component_path] = std::unique_ptr<Component>(classes[classname].module_creator());
+    }
+
+
+    void 
+    Kernel::AddModule(dictionary info, std::string path)
+    {
+        current_component_info = info;
+        current_component_path = path+"."+std::string(info["name"]);
+
+        if(components.count(current_component_path)> 0)
+            throw build_failed("Module or group with this name already exists. \""+std::string(info["name"])+"\".", path);
+
+        std::string classname = info["class"];
+
+        if(!classname.empty() && (classname.find('@') != std::string::npos || classname.find('{') != std::string::npos))
+        {
+            Component * c = components.at(path).get();
+            classname = c->ComputeValue(classname);
+            info["class"] = classname;
+        }
+
+        if(!classes.count(classname))
+            throw build_failed("Class \""+classname+"\" does not exist.", path);
+
+        if(classes[classname].path.empty())
+            throw build_failed("Class file \""+classname+".ikc\" could not be found.", path);
+
+        info.merge(classes[classname].info_);  // merge with scanned class data, including injected defaults
+
+        bool is_python_backed = PreparePythonModule(info, classname);
+
+        if(info["parameters"].is_null())
+            info["parameters"] = list();
+
+        bool has_log_level = false;
+        bool has_module_start = false;
+        bool has_start_tick = false;
+        bool has_async = false;
+        bool has_color = false;
+        for(auto parameter : info["parameters"])
+        {
+            std::string parameter_name = parameter["name"];
+            if(parameter_name == "log_level")
+                has_log_level = true;
+            else if(parameter_name == "module_start")
+                has_module_start = true;
+            else if(parameter_name == "start_tick")
+                has_start_tick = true;
+            else if(parameter_name == "async")
+                has_async = true;
+            else if(parameter_name == "color")
+                has_color = true;
+        }
+
+        if(!has_log_level)
+        {
+            dictionary log_param;
+            log_param["_tag"] = "parameter";
+            log_param["name"] = "log_level";
+            log_param["type"] = "number";
+            log_param["control"] = "menu";
+            log_param["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
+            log_param["default"] = 0;
+            info["parameters"].push_back(log_param);
+        }
+
+        if(!has_module_start)
+            info["parameters"].push_back(make_module_start_parameter().copy());
+
+        if(!has_start_tick)
+            info["parameters"].push_back(make_start_tick_parameter().copy());
+
+        if(!has_async)
+            info["parameters"].push_back(make_async_parameter().copy());
+
+        if(!has_color)
+        {
+            dictionary color_param;
+            color_param["_tag"] = "parameter";
+            color_param["name"] = "color";
+            color_param["type"] = "string";
+            color_param["default"] = "black";
+            color_param["description"] = "Selected ui color";
+            color_param["control"] = "ui_color";
+            info["parameters"].push_back(color_param);
+        }
+
+        if(is_python_backed)
+            InstantiatePythonModule(info, path);
+        else
+            InstantiateStandardModule(info, classname, path);
+    }
+
+
+    void 
+    Kernel::AddConnection(dictionary info, std::string path)
+    {
+         std::string source = path + "." + std::string(info["source"]); 
+         std::string target = path + "." + std::string(info["target"]);
+
+        if(state_buffers.count(source) || scalar_states.count(source))
+            throw build_failed("Connection source \"" + source + "\" is private state and can not be connected.", source);
+        if(state_buffers.count(target) || scalar_states.count(target))
+            throw build_failed("Connection target \"" + target + "\" is private state and can not be connected.", target);
+
+         std::string delay_range = info.contains_non_null("delay") ? info["delay"] : "";
+         std::string label = info.contains_non_null("label") ? info["label"] : "";
+
+        if(delay_range.empty() || delay_range=="null")
+            delay_range = "[1]";
+        else if(delay_range[0] != '[')
+            delay_range = "["+delay_range+"]";
+        range r;
+        try
+        {
+            r = range(delay_range);
+        }
+        catch(const std::exception &)
+        {
+            throw build_failed("Connection \"" + source + " => " + target +
+                               "\" has malformed delay range \"" + delay_range + "\".", path);
+        }
+        ValidateConnectionDelayRange(r, source, target, path);
+        connections.push_back(Connection(source, target, r, label));
+    }
+
+
+
+    void Kernel::LoadExternalGroup(dictionary & d)
+    {
+        std::filesystem::path sanitized_path;
+        if(!SanitizeImportPath(std::string(d["external"]), sanitized_path))
+            throw build_failed("External group path must stay within the project root or user data directory.");
+
+        dictionary external;
+        LoadXMLWithRestrictedIncludes(external, sanitized_path);
+        external["name"] = d["name"];
+        d.merge(external);
+        d.erase("external");
+    }
+
+
+
+    void 
+    Kernel::BuildGroup(dictionary d, std::string path) // Traverse dictionary and build all items at each level
+    {
+        try
+        {
+            if(std::string(d["_tag"]) != "group")
+                throw build_failed("Main element is '"+std::string(d["_tag"])+"' but must be 'group' for ikg-file.");
+
+            if(!d.contains("name"))
+                throw build_failed("Groups must have a name.", path);
+
+            if(path.empty())
+            {
+                std::string log_level = d.contains_non_null("log_level") ? std::string(d["log_level"]) : "";
+                if(log_level.empty() || log_level == "0")
+                    d["log_level"] = msg_warning;
+            }
+
+            std::string name = validate_identifier(d["name"]);
+            if(!path.empty())
+                name = path+"."+name;
+
+            if(d.contains("external"))
+                LoadExternalGroup(d);
+
+            AddGroup(d, name, path.empty());
+
+            for(auto g : d["groups"])
+                BuildGroup(g, name);
+            for(auto m : d["modules"])
+                AddModule(m, name);
+            for(auto c : d["connections"])
+                AddConnection(c, name);
+
+            if(d["widgets"].is_null())
+                d["widgets"] = list();
+        }
+        catch(const exception& e)
+        {
+            throw build_failed("Build group failed for "+path+": "+e.message());
+        }
+        catch(const std::exception& e)
+        {
+            throw build_failed("Build group failed for "+path+": "+std::string(e.what()), path);
+        }
+    }
+
+
+    void 
+    Kernel::InitComponents()
+    {
+        // Call Init for all modules (after CalcalateSizes and Allocate)
+        for(auto & [name, component] : components)
+        {
+            (void)name;
+            try
+            {
+                component->Init();
+                component->initialized_ = true;
+            }
+            catch(const fatal_error & e)
+            {
+                throw init_error("While initializing module \"" + component->path_ + "\": " + e.message(),
+                                 e.path().empty() ? component->path_ : e.path());
+            }
+            catch(const exception & e)
+            {
+                throw init_error("While initializing module \"" + component->path_ + "\": " + e.message(),
+                                 e.path().empty() ? component->path_ : e.path());
+            }
+            catch(const std::exception & e)
+            {
+                throw init_error("While initializing module \"" + component->path_ + "\": " + e.what(),
+                                 component->path_);
+            }
+            catch(...)
+            {
+                throw init_error("While initializing module \"" + component->path_ + "\": Unknown error.",
+                                 component->path_);
+            }
+        }
+    }
+
+
+    void 
+    Kernel::SetCommandLineParameters(dictionary & d) // Add explicit command line overrides without clobbering file values with defaults
+    {
+        // user_data is intentionally CLI-only and must never be sourced from a model file.
+        if(d.contains("user_data"))
+            d.erase("user_data");
+
+        for(auto & [name, value] : options_.d)
+            if(options_.is_explicitly_set(name))
+                if(name != "user_data" && name != "auth_password")
+                    d[name] = value;
+
+        if(d.contains("stop"))
+            stop_after = parse_stop_after(std::string(d["stop"]));
+
+        if(d.contains("tick_duration"))
+            tick_duration = parse_tick_duration(std::string(d["tick_duration"]));
+
+        if(d.contains_non_null("threads"))
+        {
+            std::string thread_pool_value = std::string(d["threads"]);
+            std::string trimmed_thread_pool_value = trim(thread_pool_value);
+            int requested_threads = 0;
+            const char * begin = trimmed_thread_pool_value.data();
+            const char * end = begin + trimmed_thread_pool_value.size();
+            bool valid_sign = true;
+            if(begin != end && *begin == '+')
+            {
+                ++begin;
+                valid_sign = begin != end && *begin != '+' && *begin != '-';
+            }
+            const auto result = std::from_chars(begin, end, requested_threads);
+            if(trimmed_thread_pool_value.empty() || !valid_sign ||
+               result.ec != std::errc() || result.ptr != end)
+                throw setup_failed("Invalid thread pool size \"" + thread_pool_value + "\". Expected a positive integer.");
+
+            if(requested_threads < 1)
+                throw setup_failed("Invalid thread pool size \"" + thread_pool_value + "\". Expected a positive integer.");
+
+            thread_pool = std::make_unique<ThreadPool>(requested_threads);
+        }
+    }
+
+
+    std::string
+    Kernel::GetTopLevelDefaultAttribute(const std::string & key) const
+    {
+        if(key == "tick_duration")
+            return formatNumber(tick_duration);
+        if(key == "stop")
+            return std::to_string(stop_after);
+        if(key == "filename")
+            return options_.stem();
+        if(key == "batch_mode")
+            return options_.is_set("batch_mode") ? "true" : "false";
+        if(key == "info")
+            return options_.is_set("info") ? "true" : "false";
+        if(key == "real_time")
+            return options_.is_set("real_time") ? "true" : "false";
+        if(key == "start")
+            return options_.is_set("start") ? "true" : "false";
+
+        auto it = options_.d.find(key);
+        if(it != options_.d.end())
+            return it->second;
+
+        return "";
+    }
+
+    void
+    Kernel::RegisterClass(const char * name, ModuleCreator mc)
+    {
+        classes[name].name = name;
+        classes[name].module_creator = mc;
+    }
+
+
+    void
+    Kernel::HandleFailedFileLoad()
+    {
+        dictionary failed_info = info_.copy();
+        run_mode = run_mode_stop;
+        timer.Pause();
+        timer.SetPauseTime(0);
+        if(!components.empty())
+            StopComponents();
+        Clear();
+        info_ = failed_info;
+        needs_reload = true;
+    }
+
+
+    void
+    Kernel::LoadFileConfiguration()
+    {
+        std::lock_guard<std::recursive_mutex> lock(kernelLock);
+        try
+        {
+            if(components.size() > 0)
+            {
+                StopComponents();
+                Clear();
+            }
+            if(!std::filesystem::exists(options_.full_path()))
+                throw load_failed("File \""+options_.full_path()+"\" does not exist.");
+
+            try
+            {
+                dictionary d;
+                LoadXMLWithRestrictedIncludes(d, options_.full_path());
+                d["filename"] = options_.stem();
+                info_ = d.copy();
+                session_id = new_session_id();
+                ResetUISnapshotCache();
+                SetCommandLineParameters(d);
+                info_ = d.copy();
+            }
+            catch(const load_failed & e)
+            {
+                throw load_failed("Load file failed for "s+options_.full_path()+". "+e.message(), e.path());
+            }
+            catch(const setup_failed & e)
+            {
+                throw setup_failed("Set-up file failed for "s+options_.full_path()+". "+e.message(), e.path());
+            }
+            catch(const std::exception & e)
+            {
+                throw load_failed("Load or set-up failed for "s+options_.full_path()+". "+e.what());
+            }
+        }
+        catch(const exception &)
+        {
+            HandleFailedFileLoad();
+            throw;
+        }
+    }
+
+
+    void
+    Kernel::SetUpLoadedFile()
+    {
+        std::lock_guard<std::recursive_mutex> lock(kernelLock);
+        try
+        {
+            try
+            {
+                dictionary d = info_.copy();
+                BuildGroup(d);
+                info_ = d;
+                Notify(msg_print, "Loaded "s+options_.full_path());
+                SetUp();
+                if(options_.is_explicitly_set("load_state"))
+                    LoadState(resolve_state_filename(options_, "load_state"));
+                CalculateCheckSum();
+                BuildUISnapshot();
+                needs_reload = false;
+                automatic_reload_suppressed_until_save.store(false, std::memory_order_release);
+                Pause(); // Reset clocks
+            }
+            catch(const load_failed & e)
+            {
+                throw load_failed("Load file failed for "s+options_.full_path()+". "+e.message(), e.path());
+            }
+            catch(const setup_failed & e)
+            {
+                throw setup_failed("Set-up file failed for "s+options_.full_path()+". "+e.message(), e.path());
+            }
+            catch(const std::exception & e)
+            {
+                throw load_failed("Load or set-up failed for "s+options_.full_path()+". "+e.what());
+            }
+        }
+        catch(const exception &)
+        {
+            HandleFailedFileLoad();
+            throw;
+        }
+    }
+
+
+    void
+    Kernel::LoadFile()
+    {
+        LoadFileConfiguration();
+        SetUpLoadedFile();
+    }
+
+
+    bool
+    Kernel::AutomaticReloadSuppressed() const
+    {
+        return automatic_reload_suppressed_until_save.load(std::memory_order_acquire);
+    }
+
+
+    void
+    Kernel::SuppressAutomaticReloadUntilSave()
+    {
+        automatic_reload_suppressed_until_save.store(true, std::memory_order_release);
+    }
+
+}; // namespace ikaros
