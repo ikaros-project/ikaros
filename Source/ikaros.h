@@ -78,7 +78,8 @@ class Connection;
 class Kernel;
 class ComputeEngine;
 
-using input_map = const std::map<std::string,std::vector<Connection *>> &;
+using connection_map = std::map<std::string, std::vector<Connection *>>;
+using input_map = const connection_map &;
 
 Kernel& kernel();
 
@@ -749,6 +750,14 @@ private:
     dictionary CaptureState(const std::string & component_path) const;
     void RestoreState(const dictionary & state, const std::string & component_path,
                       const std::string & source_name);
+    connection_map BuildIncomingConnections();
+    std::vector<std::string> PendingBufferSizes(input_map incoming_connections);
+    std::size_t BufferSizeSignature() const;
+    void PropagateBufferSizes(input_map incoming_connections);
+    std::map<std::string, int> PropagateStartupBufferSteps(
+        input_map incoming_connections);
+    void ApplyStartupComponentSteps(input_map incoming_connections,
+                                    const std::map<std::string, int> & buffer_first_real_step);
     struct DelayedSourceHistory
     {
         CircularBuffer buffer;

@@ -3690,112 +3690,107 @@ namespace ikaros
     }
 
 
-    void 
-    Kernel::CalculateSizes()    
+    connection_map
+    Kernel::BuildIncomingConnections()
     {
-        try 
+        connection_map incoming_connections;
+        for(auto & connection : connections)
+            incoming_connections[connection.target].push_back(&connection);
+        return incoming_connections;
+    }
+
+
+    std::vector<std::string>
+    Kernel::PendingBufferSizes(input_map incoming_connections)
+    {
+        std::vector<std::string> pending;
+        for(auto & [name, component] : components)
         {
-            // Build input table
-            std::map<std::string,std::vector<Connection *>> ingoing_connections; 
-            for(auto & c : connections)
-                ingoing_connections[c.target].push_back(&c);
-
-            auto count_pending_sizes = [&]() -> std::size_t
+            for(dictionary input : component->info_["inputs"])
             {
-                std::size_t pending = 0;
-                for(auto & [name, component] : components)
-                {
-                    for(dictionary d : component->info_["inputs"])
-                    {
-                        std::string full_name = name + "." + d["name"].as_string();
-                        if(!d.is_set("optional") && ingoing_connections.count(full_name) && buffers[full_name].is_uninitialized())
-                            pending++;
-                    }
-
-                    bool is_module = dynamic_cast<Module *>(component.get()) != nullptr;
-                    for(dictionary d : component->info_["outputs"])
-                    {
-                        std::string full_name = name + "." + d["name"].as_string();
-                        if((is_module || ingoing_connections.count(full_name)) && buffers[full_name].is_uninitialized())
-                            pending++;
-                    }
-
-                    for(dictionary d : component->info_["states"])
-                    {
-                        std::string full_name = name + "." + d["name"].as_string();
-                        if(state_buffers.count(full_name) && buffers[full_name].is_uninitialized())
-                            pending++;
-                    }
-                }
-                return pending;
-            };
-
-            auto pending_size_names = [&]() -> std::vector<std::string>
-            {
-                std::vector<std::string> pending;
-                for(auto & [name, component] : components)
-                {
-                    for(dictionary d : component->info_["inputs"])
-                    {
-                        std::string full_name = name + "." + d["name"].as_string();
-                        if(!d.is_set("optional") && ingoing_connections.count(full_name) && buffers[full_name].is_uninitialized())
-                            pending.push_back(full_name);
-                    }
-
-                    bool is_module = dynamic_cast<Module *>(component.get()) != nullptr;
-                    for(dictionary d : component->info_["outputs"])
-                    {
-                        std::string full_name = name + "." + d["name"].as_string();
-                        if((is_module || ingoing_connections.count(full_name)) && buffers[full_name].is_uninitialized())
-                            pending.push_back(full_name);
-                    }
-
-                    for(dictionary d : component->info_["states"])
-                    {
-                        std::string full_name = name + "." + d["name"].as_string();
-                        if(state_buffers.count(full_name) && buffers[full_name].is_uninitialized())
-                            pending.push_back(full_name);
-                    }
-                }
-                return pending;
-            };
-
-            auto size_signature = [&]() -> std::size_t
-            {
-                std::size_t signature = 0;
-                for(auto & [name, buffer] : buffers)
-                {
-                    std::size_t local = std::hash<std::string>{}(name);
-                    local ^= std::hash<int>{}(buffer.rank()) + 0x9e3779b9 + (local << 6) + (local >> 2);
-                    for(int dim : buffer.shape())
-                        local ^= std::hash<int>{}(dim) + 0x9e3779b9 + (local << 6) + (local >> 2);
-                    signature ^= local + 0x9e3779b9 + (signature << 6) + (signature >> 2);
-                }
-                return signature;
-            };
-
-            std::size_t previous_pending = count_pending_sizes();
-            std::size_t previous_signature = size_signature();
-            for(std::size_t i = 0; i < components.size(); ++i)
-            {
-                for(auto & [n, c] : components)
-                    c->SetSizes(ingoing_connections);
-
-                std::size_t pending = count_pending_sizes();
-                std::size_t signature = size_signature();
-                if(signature == previous_signature && pending == previous_pending)
-                    break;
-                previous_pending = pending;
-                previous_signature = signature;
+                std::string full_name = name + "." + input["name"].as_string();
+                if(!input.is_set("optional") && incoming_connections.count(full_name) &&
+                   buffers.at(full_name).is_uninitialized())
+                    pending.push_back(full_name);
             }
+
+            bool is_module = dynamic_cast<Module *>(component.get()) != nullptr;
+            for(dictionary output : component->info_["outputs"])
+            {
+                std::string full_name = name + "." + output["name"].as_string();
+                if((is_module || incoming_connections.count(full_name)) &&
+                   buffers.at(full_name).is_uninitialized())
+                    pending.push_back(full_name);
+            }
+
+            for(dictionary state : component->info_["states"])
+            {
+                std::string full_name = name + "." + state["name"].as_string();
+                if(state_buffers.count(full_name) && buffers.at(full_name).is_uninitialized())
+                    pending.push_back(full_name);
+            }
+        }
+        return pending;
+    }
+
+
+    std::size_t
+    Kernel::BufferSizeSignature() const
+    {
+        std::size_t signature = 0;
+        for(const auto & [name, buffer] : buffers)
+        {
+            std::size_t local = std::hash<std::string>{}(name);
+            local ^= std::hash<int>{}(buffer.rank()) + 0x9e3779b9 +
+                     (local << 6) + (local >> 2);
+            for(int dimension : buffer.shape())
+                local ^= std::hash<int>{}(dimension) + 0x9e3779b9 +
+                         (local << 6) + (local >> 2);
+            signature ^= local + 0x9e3779b9 + (signature << 6) + (signature >> 2);
+        }
+        return signature;
+    }
+
+
+    void
+    Kernel::PropagateBufferSizes(input_map incoming_connections)
+    {
+        std::size_t previous_pending = PendingBufferSizes(incoming_connections).size();
+        std::size_t previous_signature = BufferSizeSignature();
+        for(std::size_t iteration = 0; iteration < components.size(); ++iteration)
+        {
+            for(auto & [name, component] : components)
+            {
+                (void)name;
+                component->SetSizes(incoming_connections);
+            }
+
+            std::size_t pending = PendingBufferSizes(incoming_connections).size();
+            std::size_t signature = BufferSizeSignature();
+            if(signature == previous_signature && pending == previous_pending)
+                break;
+            previous_pending = pending;
+            previous_signature = signature;
+        }
+    }
+
+
+    void
+    Kernel::CalculateSizes()
+    {
+        try
+        {
+            connection_map incoming_connections = BuildIncomingConnections();
+            PropagateBufferSizes(incoming_connections);
 
             for(auto & [n, c] : components)
                 c->CheckRequiredInputs();
 
-            std::size_t pending = count_pending_sizes();
-            if(pending != 0)
-                throw setup_failed("Could not resolve all input and output sizes. " + std::to_string(pending) +
-                                   " buffers remain unresolved: " + join(", ", pending_size_names()) + ".");
+            std::vector<std::string> pending = PendingBufferSizes(incoming_connections);
+            if(!pending.empty())
+                throw setup_failed("Could not resolve all input and output sizes. " +
+                                   std::to_string(pending.size()) +
+                                   " buffers remain unresolved: " + join(", ", pending) + ".");
         }
         catch(fatal_error & e)
         {
@@ -3912,10 +3907,9 @@ namespace ikaros
     }
 
 
-    void
-    Kernel::CalculateStartupSteps()
+    std::map<std::string, int>
+    Kernel::PropagateStartupBufferSteps(input_map incoming_connections)
     {
-        std::map<std::string, std::vector<Connection *>> incoming_connections;
         std::map<std::string, int> buffer_first_real_step;
 
         for(auto & [buffer_name, buffer] : buffers)
@@ -3923,9 +3917,6 @@ namespace ikaros
             (void)buffer;
             buffer_first_real_step[buffer_name] = unresolved_startup_step;
         }
-
-        for(auto & connection : connections)
-            incoming_connections[connection.target].push_back(&connection);
 
         for(auto & [path, component] : components)
         {
@@ -4015,6 +4006,16 @@ namespace ikaros
                 break;
         }
 
+        return buffer_first_real_step;
+    }
+
+
+    void
+    Kernel::ApplyStartupComponentSteps(
+        input_map incoming_connections,
+        const std::map<std::string, int> & buffer_first_real_step)
+    {
+
         for(auto & [path, component] : components)
         {
             int first_real_input_step = unresolved_startup_step;
@@ -4029,7 +4030,7 @@ namespace ikaros
                     if(!incoming_connections.count(input_name))
                         continue;
 
-                    for(auto * connection : incoming_connections[input_name])
+                    for(auto * connection : incoming_connections.at(input_name))
                     {
                         has_connected_input = true;
 
@@ -4061,6 +4062,16 @@ namespace ikaros
             component->startup_first_real_input_step = first_real_input_step;
             component->startup_all_real_inputs_step = all_real_inputs_step;
         }
+    }
+
+
+    void
+    Kernel::CalculateStartupSteps()
+    {
+        connection_map incoming_connections = BuildIncomingConnections();
+        std::map<std::string, int> buffer_first_real_step =
+            PropagateStartupBufferSteps(incoming_connections);
+        ApplyStartupComponentSteps(incoming_connections, buffer_first_real_step);
     }
 
 
