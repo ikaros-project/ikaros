@@ -1,6 +1,7 @@
 // Ikaros 3.0
 
 #include "ikaros.h"
+#include "kernel_parsing.h"
 
 #include <charconv>
 #include <cmath>
@@ -82,40 +83,6 @@ namespace ikaros
                 throw setup_failed("Invalid tick duration \"" + value +
                                    "\". Expected a finite positive number of seconds.");
             return result;
-        }
-
-        double parse_parameter_number(const std::string & value,
-                                      const std::string & conversion_name)
-        {
-            try
-            {
-                return parse_double(value);
-            }
-            catch(const std::invalid_argument &)
-            {
-                throw exception("Could not convert string \"" + value + "\" to " + conversion_name + ".");
-            }
-            catch(const std::out_of_range &)
-            {
-                throw exception("String \"" + value + "\" is out of range for " + conversion_name + ".");
-            }
-        }
-
-        int parse_scalar_state_int(const std::string & value)
-        {
-            const std::string trimmed_value = trim(value);
-            if(trimmed_value.empty())
-                throw std::invalid_argument("Expected an integer.");
-
-            int parsed_value = 0;
-            const char * begin = trimmed_value.data();
-            const char * end = begin + trimmed_value.size();
-            const auto result = std::from_chars(begin, end, parsed_value);
-            if(result.ec == std::errc::result_out_of_range)
-                throw std::out_of_range("Integer is outside the supported range.");
-            if(result.ec != std::errc() || result.ptr != end)
-                throw std::invalid_argument("Expected an integer.");
-            return parsed_value;
         }
 
         dictionary make_color_parameter()
@@ -1420,11 +1387,11 @@ namespace ikaros
         try
         {
             if(type == "float")
-                state.default_float_value = state.float_value = default_value.empty() ? 0 : static_cast<float>(parse_parameter_number(default_value, "float"));
+                state.default_float_value = state.float_value = default_value.empty() ? 0 : static_cast<float>(kernel_detail::parse_parameter_number(default_value, "float"));
             else if(type == "double")
-                state.default_double_value = state.double_value = default_value.empty() ? 0 : parse_parameter_number(default_value, "double");
+                state.default_double_value = state.double_value = default_value.empty() ? 0 : kernel_detail::parse_parameter_number(default_value, "double");
             else if(type == "int")
-                state.default_int_value = state.int_value = default_value.empty() ? 0 : parse_scalar_state_int(default_value);
+                state.default_int_value = state.int_value = default_value.empty() ? 0 : kernel_detail::parse_strict_int(default_value);
             else if(type == "bool")
             {
                 bool parsed_value = false;

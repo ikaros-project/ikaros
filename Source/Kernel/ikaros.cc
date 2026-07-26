@@ -1,10 +1,10 @@
 // Ikaros 3.0
 
 #include "ikaros.h"
+#include "kernel_parsing.h"
 #include "compute_engine.h"
 #include "session_logging.h"
 
-#include <charconv>
 #include <cctype>
 #include <cmath>
 #include <ctime>
@@ -165,77 +165,6 @@ namespace ikaros
 
             std::vector<int> zero_index(value.rank(), 0);
             return value.at(zero_index);
-        }
-
-        bool is_scalar_state_type(const std::string & type)
-        {
-            return type == "float" || type == "double" || type == "int" || type == "bool" || type == "string";
-        }
-
-
-        tick_count
-        parse_stop_after(const std::string & value)
-        {
-            const std::string text = trim(value);
-            tick_count result = 0;
-            const char * begin = text.data();
-            const char * end = begin + text.size();
-            bool valid_sign = true;
-            if(begin != end && *begin == '+')
-            {
-                ++begin;
-                valid_sign = begin != end && *begin != '+' && *begin != '-';
-            }
-            const auto conversion = std::from_chars(begin, end, result);
-            if(text.empty() || !valid_sign || conversion.ec != std::errc() ||
-               conversion.ptr != end || result < -1)
-                throw setup_failed("Invalid stop tick \"" + value +
-                                   "\". Expected -1 or a non-negative integer.");
-            return result;
-        }
-
-
-        double
-        parse_tick_duration(const std::string & value)
-        {
-            double result = 0;
-            if(!parse_double(value, result) || !std::isfinite(result) || result <= 0)
-                throw setup_failed("Invalid tick duration \"" + value +
-                                   "\". Expected a finite positive number of seconds.");
-            return result;
-        }
-
-        double parse_parameter_number(const std::string & value, const std::string & conversion_name)
-        {
-            try
-            {
-                return parse_double(value);
-            }
-            catch(const std::invalid_argument &)
-            {
-                throw exception("Could not convert string \"" + value + "\" to " + conversion_name + ".");
-            }
-            catch(const std::out_of_range &)
-            {
-                throw exception("String \"" + value + "\" is out of range for " + conversion_name + ".");
-            }
-        }
-
-        int parse_scalar_state_int(const std::string & value)
-        {
-            const std::string trimmed_value = trim(value);
-            if(trimmed_value.empty())
-                throw std::invalid_argument("Expected an integer.");
-
-            int parsed_value = 0;
-            const char * begin = trimmed_value.data();
-            const char * end = begin + trimmed_value.size();
-            const auto result = std::from_chars(begin, end, parsed_value);
-            if(result.ec == std::errc::result_out_of_range)
-                throw std::out_of_range("Integer is outside the supported range.");
-            if(result.ec != std::errc() || result.ptr != end)
-                throw std::invalid_argument("Expected an integer.");
-            return parsed_value;
         }
 
         std::string canonicalize_shape_aliases(const std::string & xml)
@@ -462,7 +391,7 @@ namespace ikaros
                 state_->value = int(std::distance(state_->options.begin(), it));
             else if(is_number(v))
                 state_->value = clamp_option_index(
-                    checked_truncating_int(std::round(parse_parameter_number(v, "option index")), "option index"),
+                    checked_truncating_int(std::round(kernel_detail::parse_parameter_number(v, "option index")), "option index"),
                     state_->options
                 );
             else
@@ -473,7 +402,7 @@ namespace ikaros
         }
         else if(is_number(v))
         {
-            val = parse_parameter_number(v, "number");
+            val = kernel_detail::parse_parameter_number(v, "number");
             has_numeric_value = true;
         }
 
@@ -692,7 +621,7 @@ namespace ikaros
         else if(auto bool_value = std::get_if<bool>(&state_->value))
             return *bool_value ? 1.0 : 0.0;
         else if(auto string_value = std::get_if<std::string>(&state_->value))
-            return parse_parameter_number(*string_value, "double");
+            return kernel_detail::parse_parameter_number(*string_value, "double");
         else if(auto stored_matrix = matrix_value())
             return get_scalar_matrix_value(*stored_matrix, "double");
         else
@@ -766,7 +695,7 @@ namespace ikaros
                 break;
             case string_type:
                 if(auto string_value = std::get_if<std::string>(&state_->value))
-                    return checked_truncating_long(parse_parameter_number(*string_value, "long"), "long");
+                    return checked_truncating_long(kernel_detail::parse_parameter_number(*string_value, "long"), "long");
                 break;
             case matrix_type:
                 if(auto stored_matrix = matrix_value())
@@ -805,7 +734,7 @@ namespace ikaros
                 break;
             case string_type:
                 if(auto string_value = std::get_if<std::string>(&state_->value))
-                    return checked_truncating_int(parse_parameter_number(*string_value, "int"), "int");
+                    return checked_truncating_int(kernel_detail::parse_parameter_number(*string_value, "int"), "int");
                 break;
             case matrix_type:
                 if(auto stored_matrix = matrix_value())
@@ -1240,7 +1169,7 @@ namespace ikaros
                 if(p.get_type() == matrix_type)
                 {
                     matrix & matrix_value = p.matrix_ref();
-                    double value = parse_parameter_number(change.value, "matrix parameter cell");
+                    double value = kernel_detail::parse_parameter_number(change.value, "matrix parameter cell");
                     if(matrix_value.rank() == 1)
                         matrix_value(change.x)= value;
                     else if(matrix_value.rank() == 2)
@@ -1513,7 +1442,7 @@ namespace ikaros
             return d;
         try
         {
-            return parse_scalar_state_int(value);
+            return kernel_detail::parse_strict_int(value);
         }
         catch(const std::exception & e)
         {
