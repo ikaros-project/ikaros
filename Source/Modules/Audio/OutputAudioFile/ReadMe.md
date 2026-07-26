@@ -25,3 +25,9 @@ dependency.
 - `32` writes float WAV samples.
 - The module supports mono rank-1 buffers and simple rank-2 channel-by-frame buffers.
 - The WAV header is finalized when the module is destroyed, so the file is most reliable after the run has ended cleanly.
+
+## Inputs
+
+| Name | Description | Optional |
+| --- | --- | --- |
+| INPUT | Audio buffer to write |  |

@@ -422,6 +422,6 @@ This is the safest subset to use for new `.ikc` files:
 
 This reference is based on the current implementation in:
 
-- `/Users/cba/ikaros/Source/Kernel/ikaros.cc`
-- `/Users/cba/ikaros/Source/ikaros.h`
-- `/Users/cba/ikaros/Source/Kernel/dictionary.cc`
+- `Source/Kernel/ikaros.cc`
+- `Source/ikaros.h`
+- `Source/Kernel/dictionary.cc`

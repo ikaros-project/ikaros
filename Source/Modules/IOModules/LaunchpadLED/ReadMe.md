@@ -20,3 +20,30 @@ grid on shutdown, and restores Live mode.
 
 The module is available on macOS and defaults to the `LPX MIDI In`
 destination.
+
+## Parameters
+
+| Name | Description | Type | Default |
+| --- | --- | --- | --- |
+| destination_name | Name or unique name fragment of the CoreMIDI destination. | string | LPX MIDI In |
+| layout_width | Number of sequence pads per physical row. | number | 8 |
+| idle_brightness | Brightness multiplier for sequences that are not playing. | number | 0.2 |
+| playing_brightness | Brightness multiplier for sequences that are playing. | number | 1 |
+| programmer_mode | Switch the Launchpad X to Programmer mode while the module is active. | bool | true |
+| clear_on_stop | Turn off the pad grid when the module stops. | bool | true |
+| restore_live_mode | Return the Launchpad X to Live mode when the module stops. | bool | true |
+
+## Inputs
+
+| Name | Description | Optional |
+| --- | --- | --- |
+| COLOR | One RGB row per sequence. Components normally use the range 0 to 1; legacy 0 to 255 values are also accepted. |  |
+| PLAYING | One value per sequence; values above zero select playing brightness. | yes |
+
+## Outputs
+
+| Name | Description |
+| --- | --- |
+| CONNECTED | 1 while the configured Launchpad X MIDI destination is available. |
+| DESTINATION_COUNT | Number of CoreMIDI destinations currently available. |
+| LAST_UPDATE_COUNT | Number of pad colors transmitted on the latest tick. |

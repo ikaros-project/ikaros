@@ -26,3 +26,15 @@ source. The module follows CoreMIDI device changes while it is running. If no
 matching source is available at startup, it waits and connects when the MIDI
 topology changes. Notes are tracked independently by source, group, channel,
 and note number, so `GATE` remains high until every held note has been released.
+
+## Outputs
+
+| Name | Description |
+| --- | --- |
+| KEY | Most recent MIDI note number from a note-on event |
+| GATE | High while at least one MIDI key is held down |
+| TRIG | One-tick pulse when a MIDI note-on event is received |
+| EVENT_COUNT | Count of note-on events received since initialization; large counts have float precision limits |
+| SOURCE_COUNT | Current number of MIDI sources reported by CoreMIDI |
+| CONNECTED | 1 if the module is connected to at least one MIDI source, otherwise 0 |
+| LAST_BATCH_COUNT | Number of note-on events consumed on the most recent tick |

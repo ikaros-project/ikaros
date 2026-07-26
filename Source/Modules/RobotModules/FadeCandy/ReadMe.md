@@ -1,45 +1,26 @@
 # FadeCandy
 
-<br><br>
-## Short description
+## Description
 
-Minimal example module
-
-<br><br>
+Controls the four NeoPixel groups on an Epi robot through a USB FadeCandy board. Set `simulate`
+when developing without attached hardware.
 
 ![FadeCandy](FadeCandy.svg)
 
 ## Inputs
 
-|Name|Description|Optional|
-|:----|:-----------|:-------|
-|*|The channels can have arbitrary names|No|
-
-<br><br>
-
-## Outputs
-
-|Name|Description|
-|:----|:-----------|
-
-<br><br>
+| Name | Description | Optional |
+| --- | --- | --- |
+| LEFT_EYE | RGB matrix with shape `[3, 12]`. | No |
+| RIGHT_EYE | RGB matrix with shape `[3, 12]`. | No |
+| MOUTH_HIGH | RGB matrix with shape `[3, 8]`. | No |
+| MOUTH_LOW | RGB matrix with shape `[3, 8]`. | No |
 
 ## Parameters
 
-|Name|Description|Type|Default value|
-|:----|:-----------|:----|:-------------|
-|command|Name of the fadecandy server|string|fcserver-osx|
-|start_server|Should the module start the fadecandy server|bool|true|
+| Name | Description | Type | Default |
+| --- | --- | --- | --- |
+| simulate | Do not connect to a FadeCandy board or send LED updates. | bool | False |
 
-<br><br>
-## Long description
-Ikaros modele for FadeCandy that allows Ikaros to control NeoPixels through a FadeCandy (https://github.com/scanlime fadecandy). 
-		The module starts the fadecandy server using the name set by command. The binary is assumed to be placed next to the module. 
-		If command is set to "" (empty string), the server will not be started.
-
-        The different channels of NeoPixels are defined by a channel-elemnt that sets the name, channel numer and size. 
-		Three inputs for the red, green and blue colours values are created for each channel. 
-		If the channel is named X, the input will be named X_RED, X_GREEN and X_BLUE.
-
-        The data sent uses the default format for FadeCandy where the data for each channel 
-		sent to the server is assumed to start at position 4+64*channel*3 within a single package.
+Input values are converted from normalized RGB values to device bytes. The module reconnects when
+the USB device is unavailable and reports connection problems through Ikaros notifications.

@@ -27,14 +27,15 @@ Reads JPEG, PNG, TIFF, and WebP files
 
 ## Parameters
 
-|Name|Description|Type|Default value|
-|:----|:-----------|:----|:-------------|
-|filename|JPEG, PNG, TIFF, or WebP file to read. Formats other than JPEG require codec support in the current build. Use # for an unpadded sequence number or multiple hashes such as #### for a fixed-width zero-padded number. Escape a literal hash as \#.|string||
-|filecount|Number of files to read|int|1|
-|iterations|Number of times to read the image(s); 0 means unlimited|int|0|
-|read_once|Makes the module only read a single image once.|bool|yes|
+| Name | Description | Type | Default |
+| --- | --- | --- | --- |
+| filename | JPEG, PNG, TIFF, or WebP file to read. Formats other than JPEG require codec support in the current build. Use # for an unpadded sequence number or multiple hashes such as #### for a fixed-width zero-padded number. Escape a literal hash as \#. | string |  |
+| filecount | Number of files to read | number | 1 |
+| iterations | Number of times to read the image(s); 0 means unlimited | number | 0 |
+| read_once | Makes the module only read a single image once. | bool | yes |
+| size_x | Size of image (will be set in code) | number | 640 |
+| size_y | Size of image (will be set in code) | number | 480 |
 
-<br><br>
 ## Long description
 The module reads JPEG images and, when their codec libraries were available at
 build time, PNG, TIFF, and WebP images or numbered image sequences. Images are

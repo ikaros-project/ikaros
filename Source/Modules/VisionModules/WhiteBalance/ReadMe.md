@@ -10,14 +10,28 @@ An optional log rectangle can be configured with `log_x0`, `log_x1`, `log_y0`, a
 
 ## Inputs
 
-- `INPUT`: color image `[3, rows, cols]`
+| Name | Description | Optional |
+| --- | --- | --- |
+| INPUT | Color image [3, rows, cols] |  |
 
 ## Outputs
 
-- `OUTPUT`: white-balanced color image `[3, rows, cols]`
+| Name | Description |
+| --- | --- |
+| OUTPUT | White-balanced color image [3, rows, cols] |
 
 ## Parameters
 
-- `red_target`, `green_target`, `blue_target`: target color for the reference region
-- `x0`, `x1`, `y0`, `y1`: reference rectangle
-- `log_x0`, `log_x1`, `log_y0`, `log_y1`: optional debug log rectangle
+| Name | Description | Type | Default |
+| --- | --- | --- | --- |
+| red_target | Target value for the red channel in the reference region | number | 1 |
+| green_target | Target value for the green channel in the reference region | number | 1 |
+| blue_target | Target value for the blue channel in the reference region | number | 1 |
+| x0 | Left coordinate of the reference region, inclusive | number | 0 |
+| x1 | Right coordinate of the reference region, exclusive | number | 1 |
+| y0 | Top coordinate of the reference region, inclusive | number | 0 |
+| y1 | Bottom coordinate of the reference region, exclusive | number | 1 |
+| log_x0 | Left coordinate of the optional logged region, inclusive | number | 0 |
+| log_x1 | Right coordinate of the optional logged region, exclusive | number | 0 |
+| log_y0 | Top coordinate of the optional logged region, inclusive | number | 0 |
+| log_y1 | Bottom coordinate of the optional logged region, exclusive | number | 0 |

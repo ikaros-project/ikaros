@@ -30,5 +30,6 @@ inertial information must be reconciled in a common reference frame.
 | ROLL | Estimated Roll |
 | PITCH | Estimated Pitch |
 | YAW | Estimated Yaw |
-
-*This description was automatically created and may not be an accurate description of the module.*
+| ProcessedGyro | Processed Gyro data (XYZ) |
+| ProcessedAccel | Processed accelerometer data (XYZ) |
+| EulerAngles | Euler angles data (XYZ) |

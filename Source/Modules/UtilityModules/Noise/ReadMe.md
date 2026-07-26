@@ -13,11 +13,12 @@ sample noise from a normal distribution with the configured `mean` and `stddev`.
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| type | Noise distribution: `uniform` or `gaussian` | string | uniform |
+| type | Noise distribution | string | uniform |
 | min | Minimum value for uniform noise | number | -0.1 |
 | max | Maximum value for uniform noise | number | 0.1 |
 | mean | Mean for gaussian noise | number | 0 |
 | stddev | Standard deviation for gaussian noise | number | 0.1 |
+| seed | Random seed; negative selects nondeterministic seeding | number | -1 |
 
 ## Inputs
 

@@ -21,19 +21,10 @@ buffer without the stepped artifacts you get from a low-rate control signal.
 
 ## Inputs
 
-### `GATE`
-
-Optional gate input. A positive value means the note is held open. While the gate is high, the
-envelope will move through attack and decay and then remain in sustain.
-
-When the gate falls to `0`, the envelope enters the release phase.
-
-### `TRIG`
-
-Optional trigger input. A positive sample retriggers the attack phase immediately, even if the
-envelope is currently in decay, sustain, or release.
-
-This is useful when you want explicit note onsets from a sequencer like `TimeSeries.TRIG`.
+| Name | Description | Optional |
+| --- | --- | --- |
+| GATE | Gate signal; values above zero hold the envelope open | true |
+| TRIG | Trigger signal; a positive sample retriggers the attack | true |
 
 ## Output
 
@@ -95,3 +86,9 @@ The segments are linear:
 - Negative times are treated as `0`.
 - Retriggering during `Release` restarts the attack from the current level.
 - The implementation is single-channel and expects a 1D output buffer.
+
+## Outputs
+
+| Name | Description |
+| --- | --- |
+| OUTPUT | Audio-rate envelope buffer |

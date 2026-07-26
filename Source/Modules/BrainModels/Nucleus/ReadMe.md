@@ -24,6 +24,7 @@ are embedded in the surrounding circuit.
 | delta | decay rate | number | 1 |
 | psi | shunting weight | number | 1.0 |
 | sigma | gaussian noise standard deviation | number | 0 |
+| seed | Gaussian random seed; negative selects nondeterministic seeding | number | -1 |
 | theta | threshold | number | 0 |
 | epsilon | time constant (1/s) | rate | 1 |
 | scale_inputs | scale by number of inputs | bool | yes |

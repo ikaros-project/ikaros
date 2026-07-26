@@ -1,13 +1,9 @@
-# Delta
+# Cerebellum
 
 ## Description
 
-A neuron model with delta function response.
-
-It receives INPUT and produces W and OUTPUT while parameters such as learning_rate, ISI_mean,
-ISI_sigma, and ISI_tau shape its behavior. Within a larger brain-inspired architecture, this module
-can be used as one component in a pathway for sensory integration, value-based gating, rhythmic
-control, or state estimation, depending on how its inputs are embedded in the surrounding circuit.
+A cerebellar learning model. It combines flattened `INPUT`, `STATE`, and `TARGET` signals and
+produces a scalar learned response on `OUTPUT`.
 
 ![Cerebellum](Cerebellum.svg)
 
@@ -16,21 +12,20 @@ control, or state estimation, depending on how its inputs are embedded in the su
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
 | learning_rate | learning rate | rate | 0.1 |
-| ISI_mean | optimal inter-stimulus interval (in seconds) | number | 0 |
-| ISI_sigma | standard deviation of the curve (in seconds) | number | 0 |
-| ISI_tau | exponential decay of the curve (in seconds) | number | 0 |
+| isi_mu | Optimal inter-stimulus interval in seconds. | number | 0 |
+| isi_sigma | Standard deviation of the interval curve in seconds. | number | 0 |
+| isi_tau | Exponential decay time in seconds. | number | 0 |
 
 ## Inputs
 
 | Name | Description | Optional |
 | --- | --- | --- |
 | INPUT | The  input |  |
+| STATE | The current state. |  |
+| TARGET | The target signal. |  |
 
 ## Outputs
 
 | Name | Description |
 | --- | --- |
-| W | The weights |
 | OUTPUT | The output |
-
-*This description was automatically created and may not be an accurate description of the module.*

@@ -22,21 +22,21 @@ emit one descriptor row for the current face.
 
 ## Outputs
 
-| Output | Description |
+| Name | Description |
 | --- | --- |
-| `OUTPUT` | One-hot vector with length `capacity`. |
-| `NOVELTY` | Scalar, `1` when a new class was stored, otherwise `0`. |
-| `DISTANCE` | Distance to the selected nearest neighbor, or `0` when a new class was stored. |
-| `CLASSES` | Number of currently stored classes. |
-| `COUNT` | Selection count for each class, with length `capacity`. |
-| `VECTORS` | Stored descriptor vector count for each class, with length `capacity`. |
+| OUTPUT | One-hot representation of the matched or newly stored class |
+| NOVELTY | 1 when a new class is stored on this tick, otherwise 0 |
+| DISTANCE | Distance to the selected nearest neighbor, or 0 when a new class is stored |
+| CLASSES | Number of currently stored classes |
+| COUNT | Selection count for each class |
+| VECTORS | Stored descriptor vector count for each class |
 
 ## Inputs
 
-| Input | Description |
-| --- | --- |
-| `INPUT` | Descriptor vector, or first row of a descriptor matrix. |
-| `LEARN` | Optional scalar learning gate. Nonzero enables new class storage. |
+| Name | Description | Optional |
+| --- | --- | --- |
+| INPUT | Descriptor vector, or first row of a descriptor matrix |  |
+| LEARN | Optional scalar learning gate; nonzero enables storing new classes | yes |
 
 ## Parameters
 

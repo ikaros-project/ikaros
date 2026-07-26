@@ -80,39 +80,43 @@ No PID update is computed for that element on the reset tick.
 
 ## Inputs
 
-- `INPUT`: current measured signal
-- `SETPOINT`: desired value
-- `RESET`: optional reset signal; nonzero resets the corresponding element
+| Name | Description | Optional |
+| --- | --- | --- |
+| INPUT | Current signal |  |
+| SETPOINT | Desired value |  |
+| RESET | Optional reset signal | yes |
 
 ## Outputs
 
-- `OUTPUT`: control output
-- `DELTA`: current filtered set-point error, `FILTERED_SETPOINT - FILTERED_INPUT`
-- `FILTERED_SETPOINT`: filtered set point
-- `FILTERED_INPUT`: filtered measurement
-- `FILTERED_ERROR_P`: filtered proportional error
-- `FILTERED_ERROR_I`: filtered integral error contribution before integration
-- `FILTERED_ERROR_D`: filtered derivative term
-- `INTEGRAL`: accumulated integral state
+| Name | Description |
+| --- | --- |
+| OUTPUT | Control output |
+| DELTA | Filtered set point minus filtered input |
+| FILTERED_SETPOINT | Filtered set point |
+| FILTERED_INPUT | Filtered input |
+| FILTERED_ERROR_P | Filtered proportional error |
+| FILTERED_ERROR_I | Filtered integral error |
+| FILTERED_ERROR_D | Filtered derivative of error |
+| INTEGRAL | Integrated error |
 
 ## Parameters
 
-| Parameter | Type | Default | Role |
+| Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| `Kb` | number | `0` | Bias added to the control output. Also used as the reset output value. |
-| `Kp` | number | `0.1` | Proportional gain. Higher values react more strongly to current error. |
-| `Ki` | number | `0` | Integral gain. Removes steady-state error, but too much can cause overshoot or slow recovery from saturation. |
-| `Kd` | number | `0` | Derivative gain. Adds damping from the selected derivative source. |
-| `derivative_mode` | option | `measurement` | Selects `measurement` or `error` derivative mode. |
-| `Fs` | rate | `0` | Set-point filter rate. `0` disables filtering. |
-| `Fm` | rate | `0` | Measurement filter rate. `0` disables filtering. |
-| `Fp` | rate | `0` | Proportional error filter rate. `0` disables filtering. |
-| `Fi` | rate | `0` | Integral error filter rate. `0` disables filtering. |
-| `Fd` | rate | `0` | Derivative filter rate. `0` disables filtering. |
-| `Fc` | rate | `0` | Control output filter rate. `0` disables filtering. |
-| `Cmin` | number | `-1000` | Minimum output value. |
-| `Cmax` | number | `1000` | Maximum output value. |
-| `output_rate_limit` | rate | `0` | Maximum output change per second. `0` disables limiting. |
+| Kb | Controller bias | number | 0 |
+| Kp | Proportional gain | number | 0.1 |
+| Ki | Integral gain applied to the time integral of error | number | 0 |
+| Kd | Derivative gain applied to the selected derivative term in units per second | number | 0 |
+| derivative_mode | Derivative source: error uses d(SETPOINT-INPUT)/dt; measurement uses -d(INPUT)/dt to avoid set-point derivative kick | number | 1 |
+| Fs | Set-point filter rate; 0 disables filtering | rate | 0 |
+| Fm | Measurement filter rate; 0 disables filtering | rate | 0 |
+| Fp | Proportional error filter rate; 0 disables filtering | rate | 0 |
+| Fi | Integral error filter rate; 0 disables filtering | rate | 0 |
+| Fd | Derivative error filter rate; 0 disables filtering | rate | 0 |
+| Fc | Control output filter rate; 0 disables filtering | rate | 0 |
+| Cmax | Maximum control output | number | 1000 |
+| Cmin | Minimum control output | number | -1000 |
+| output_rate_limit | Maximum output change per second; 0 disables slew-rate limiting | rate | 0 |
 
 ## Tuning Notes
 

@@ -14,37 +14,16 @@ Up to date information is available in the [wiki](https://github.com/ikaros-proj
 [Raspberry Pi](docs/RASPBERRY_PI.md) build and installation instructions are
 also available in this repository.
 
-## Ikaros Status - 21 April, 2026
+## Documentation
 
-| Component | State | Comments |
-| ----|----|----|
-| CMake             |<div style="color:green">🟢 OK |   |
-| Matrices          |<div style="color:green">🟢 OK | |
-| Ranges            |<div style="color:green">🟢 OK | no enumerated ranges |
-| Dictionary        |<div style="color:green">🟢 OK |  |
-| Options           |<div style="color:green">🟢 OK |
-| Maths             |<div style="color:green">🟢 OK |  |
-| Parameters        |<div style="color:green">🟢 OK | |
-| Expressions       |<div style="color:green">🟢 OK |  |
-| XML               |<div style="color:green">🟢 OK | |
-| Kernel            |<div style="color:green">🟢 OK |
-| Exception handling |<div style="color:green">🟢 OK | |
-| Shared dict       |<div style="color:green">🟢  OK |  |
-| Scheduler         |<div style="color:#green">🟢 OK |  |
-| Task sorting      |<div style="color:green">🟢 OK |  |
-| Real time         |<div style="color:green">🟢 OK |  |
-| SetSizes    |     <div style="color:green">🟢 OK |
-| Input resizing    |<div style="color:green">🟢 OK |     |  |
-| Delays            |<div style="color:#green">🟢 OK |  |
-| WebUI             |<div style="color:green">🟢 OK |  |
-| API               |<div style="color:green">🟢 OK | |
-| BrainStudio       |<div style="color:green">🟢 OK | brain template missing |
-| Message queue     |<div style="color:green">🟢 OK |  |
-| Log               |<div style="color:green">🟢 OK | |
-| Editing           |<div style="color:green">🟢 OK  | |
-| Sockets           |<div style="color:green">🟢 OK |  |
-| UtilityModules    |<div style="color:#green">🟢 OK | 79 modules |
-| Named Dimensions  |<div style="color:green">🟢 OK |  |
+- [IKG model files](docs/IKG_REFERENCE.md)
+- [IKC class files](docs/IKC_REFERENCE.md)
+- [Expressions](docs/EXPRESSION_REFERENCE.md)
+- [Parameter rules](docs/PARAMETER_RULES.md)
+- [State files](docs/STATE_FILES.md)
+- [Asynchronous modules](docs/ASYNC_MODULES.md)
+- [Command-line cheat sheet](IKAROS_CLI_CHEATSHEET.md)
+- [Kernel API](API/API.md)
 
 ## Basic Start-up Parameters
 

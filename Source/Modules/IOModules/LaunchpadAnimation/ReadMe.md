@@ -21,3 +21,28 @@ For reactive bursts, connect:
 Each MIDI event creates an expanding ring at the pressed pad. Up to eight rings
 can overlap. Notes outside the 8 by 8 Programmer-mode grid create a centered
 burst.
+
+## Parameters
+
+| Name | Description | Type | Default |
+| --- | --- | --- | --- |
+| speed | Animation speed multiplier. | number | 1 |
+| brightness | Overall output brightness. | number | 1 |
+| saturation | Color saturation. | number | 0.9 |
+| sparkle | Strength of the deterministic sparkle layer. | number | 0.65 |
+| reactivity | Strength of pad-triggered color bursts. | number | 1 |
+| frame_rate | Maximum number of generated animation frames per second. | number | 30 |
+
+## Inputs
+
+| Name | Description | Optional |
+| --- | --- | --- |
+| KEY | Latest Launchpad MIDI note number, normally from MidiInput.KEY. | yes |
+| TRIG | Fallback trigger for a new burst when EVENT_COUNT is not connected. | yes |
+| EVENT_COUNT | MIDI event counter; each change creates a burst at KEY. | yes |
+
+## Outputs
+
+| Name | Description |
+| --- | --- |
+| COLOR | One normalized RGB row for each Launchpad pad, ordered from top left to bottom right. |

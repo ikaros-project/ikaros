@@ -626,7 +626,7 @@ This is the safest subset for hand-authored `.ikg` files:
 
 This reference is based on the current implementation in:
 
-- `/Users/cba/ikaros/Source/Kernel/ikaros.cc`
-- `/Users/cba/ikaros/Source/ikaros.h`
-- `/Users/cba/ikaros/Source/WebUI/brainstudio.js`
-- `/Users/cba/ikaros/Source/WebUI/WebUIWidget.js`
+- `Source/Kernel/ikaros.cc`
+- `Source/ikaros.h`
+- `Source/WebUI/core/brainstudio.js`
+- `Source/WebUI/widgets/WebUIWidget.js`

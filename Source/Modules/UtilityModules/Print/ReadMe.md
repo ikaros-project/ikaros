@@ -1,12 +1,11 @@
-# Add
+# Print
 
 ## Description
 
 Prints its input to the console each tick; the connection label is used if set on the connection.
 
-It receives INPUT. A meaningful use case is to place the module inside a larger sensorimotor or
-cognitive architecture where it helps transform, summarize, or route signals between neural
-subsystems and robot effectors.
+`INPUT` is optional and may have any shape. When connected, the module prints its values once per
+tick and uses the connection label when one is available.
 
 ![Print](Print.svg)
 
@@ -15,5 +14,3 @@ subsystems and robot effectors.
 | Name | Description | Optional |
 | --- | --- | --- |
 | INPUT | The input to be printed. |  |
-
-*This description was automatically created and may not be an accurate description of the module.*

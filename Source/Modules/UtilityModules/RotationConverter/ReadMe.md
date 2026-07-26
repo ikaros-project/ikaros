@@ -27,12 +27,13 @@ Converts between rotation notations
 
 ## Parameters
 
-|Name|Description|Type|Default value|
-|:----|:-----------|:----|:-------------|
-|input_format|Format of the input|list|xyz|
-|output_format|Format of the output|list|xyz|
-|angle_unit|Angle unit used in Euler-angle modes: degrees, radians, or turns. The legacy name tau is accepted as an alias for turns.|list|degrees|
+| Name | Description | Type | Default |
+| --- | --- | --- | --- |
+| input_format | Format of the input | number | xyz |
+| output_format | Format of the output | number | xyz |
+| angle_unit | Angle unit; tau is a legacy alias for turns | number | degrees |
+| size_x | Size of the output | number | 4 |
+| size_y | Size of the output | number | 4 |
 
-<br><br>
 ## Long description
 Module that converts between different 3d point/angle notations.

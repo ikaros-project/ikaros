@@ -600,8 +600,8 @@ data="{base}{i}.@value"
 
 This reference is based on the current implementation in:
 
-- `/Users/cba/ikaros/Source/Kernel/compute_engine.cc`
-- `/Users/cba/ikaros/Source/Kernel/compute_engine.h`
-- `/Users/cba/ikaros/Source/Kernel/ikaros.cc`
-- `/Users/cba/ikaros/Source/Kernel/UnitTesting/TestModules/ComputeEngineTestModule/ComputeEngineTestModule.cc`
-- `/Users/cba/ikaros/Source/Kernel/UnitTesting/KernelTests/test_240_compute_engine.ikg`
+- `Source/Kernel/compute_engine.cc`
+- `Source/Kernel/compute_engine.h`
+- `Source/Kernel/ikaros.cc`
+- `Source/Kernel/UnitTesting/TestModules/ComputeEngineTestModule/ComputeEngineTestModule.cc`
+- `Source/Kernel/UnitTesting/KernelTests/test_240_compute_engine.ikg`

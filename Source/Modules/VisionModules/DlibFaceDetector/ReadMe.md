@@ -39,3 +39,19 @@ The current dlib detector does not expose calibrated confidence scores through t
 | --- | --- |
 | `max_faces` | Maximum number of detections emitted per tick. |
 | `upsample` | Number of dlib pyramid-up passes before detection. Higher values find smaller faces but cost more. |
+
+## Inputs
+
+| Name | Description | Optional |
+| --- | --- | --- |
+| INPUT | Grayscale image, or RGB image with shape 3,height,width |  |
+
+## Outputs
+
+| Name | Description |
+| --- | --- |
+| BOXES | Detected faces as centered coordinate rows: x, y, width, height, score |
+| CENTER_BOX | Detected face closest to image center as one centered coordinate row: x, y, width, height, score |
+| FACE_CENTERS | Face center rows: center_x, center_y, width in centered image coordinates |
+| FACE_WIDTHS | Face width rows in centered image coordinates |
+| COUNT | Number of detected faces emitted in BOXES |

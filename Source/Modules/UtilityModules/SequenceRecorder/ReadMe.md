@@ -20,48 +20,51 @@ Records a sequence
 
 ## Outputs
 
-|Name|Description|
-|:----|:-----------|
-|PLAYING|Element for each sequence set to 1 while that sequence is playing|
-|COMPLETED|Element for each sequence set to 1 for one tick when that sequence is completed|
-|COLOR|Copy of the RGB color matrix for each sequence|
-|LIMITING|Set to 1 while the max_speed limiter is reducing output motion|
-|ERROR|Set to 1 when a playback error has occurred|
-|TRIG_OUT|A single 1 for one tick when a behavior is started|
-|MODE|Off/stop/play/record mode for each channel coded as a matrix|
-|OUTPUT|Position data to the servos|
-|TORQUE|Current torque for the motors|
-|ENABLE|Enable the motors|
-|KEYPOINTS|The keypoint vectors|
-|TIMESTAMPS|Timestamp in seconds for each keypoint in version 2 sequence files|
-|LENGTHS|Lenghts of the recording|
-|STATE|State is 1 when the module records|
-|TIME|Current record or play position|
-
-<br><br>
+| Name | Description |
+| --- | --- |
+| PLAYING | Element for each sequence set to 1 while that sequence is playing |
+| COMPLETED | Element for each sequence set to 1 for one tick when that sequence is completed |
+| COLOR | Copy of the RGB color matrix for each sequence |
+| LIMITING | Set to 1 while the max_speed limiter is reducing output motion |
+| ERROR | Set to 1 when a playback error has occurred |
+| SMOOTHING_START | Sposition to smooth from. Used only for debugging. |
+| TARGET | The target positions or the interpolated keypoint positions that the output moves towards |
+| OUTPUT | The current output positions |
+| ACTIVE | Indicates that the data on the output should be used, for example for torque enable. |
+| CAN_PLAY | A one on a channel indicates that there is data to be played. Used to enable play buttons |
 
 ## Parameters
 
-|Name|Description|Type|Default value|
-|:----|:-----------|:----|:-------------|
-|positions|Positions of recorder that can be used by for example sliders to control the input.|array||
-|output_size|Requested output size. can be larger than connected input.|int||
-|max_sequences|The maximum number of different behaviors that can be recorded|int|64|
-|layout_width|Number of sequence buttons per row in WebUI layouts|int|8|
-|color|RGB color for each sequence, with one row per sequence and three columns.|matrix|zeros shaped @max_sequences,3|
-|current_motion|The behavior that will be recorded|int|0|
-|position_data_max|The maximum number of datapoints that can be stored|int|1000|
-|mode_string|The current mode as a string|string|stop|
-|filename|The name(s) of the files where the data will be stored.|string|motion.%02d.dat|
-|directory|The directory where the files will be stored.|string|motions|
-|torque|Initial torque used during play. single value or array of values for each servo.|array|0.2|
-|smoothing_time|Number of ticks to smooth the output position and torque.|float|100|
-|max_speed|Maximum output speed for each channel in units per second. A value of 0 disables speed limiting for that channel.|matrix|zeros shaped @channels|
-|auto_load|Load all saved behaviors on start-up|bool|yes|
-|auto_save|Save all behaviors before termination|bool|no|
-|record_on_trig|Start record on trig input.|bool|false|
+| Name | Description | Type | Default |
+| --- | --- | --- | --- |
+| directory | Directory for sequence files | string | Sequences |
+| filename | Default name for sequence file | string | sequence.json |
+| max_sequences | The maximum number of different behaviors that can be recorded | number | 64 |
+| layout_width | Number of sequence buttons per row in WebUI layouts | number | 8 |
+| color | RGB color for each sequence, with one row per sequence and three columns. | matrix |  |
+| smoothing_time | Maximum time in seconds to smooth sudden output position jumps. | number | 1 |
+| max_speed | Maximum output speed for each channel in units per second. A value of 0 disables speed limiting for that channel. | matrix |  |
+| simplify_epsilon | Maximum interpolation error allowed when simplifying keypoints. | number | 1 |
+| state | State array used to remember control button state. Only for output to control buttons. | matrix | 1, 0, 0, 0, 0 |
+| channel_mode | Mode for each channel: lock, play, record, etc. | matrix | 0, 0, 0, 0 |
+| interpolation | Type of interpolation for each channel: 0 = none; 1 = linear | matrix | 1, 1, 1, 1 |
+| range_min | Min value | matrix | 0, 0, 0, 0 |
+| range_max | Max value | matrix | 1, 1, 1, 1 |
+| time | String representation of the current time. | string | 00:00:000 |
+| end_time | String representation of the end time. | string | 00:00:000 |
+| position | Position in sequence from 0 to 1. | number | 0 |
+| mark_start | Position of start mark in sequence from 0 to 1. | number | 0 |
+| mark_end | Position of end mark in sequence from 0 to 1. | number | 0 |
+| loop | Loop sequence. | bool | false |
+| shuffle | Shuffle sequence. | bool | false |
+| channels | The number of channels to record and/or play. | number | 4 |
+| default_output | Default outputs to be used when not defined in any other way. | matrix | 0, 0, 0, 0 |
+| internal_control | A 1 indicates that the parameter sliders should be used to set the values to be recorded and not the input. | matrix | 0, 0, 0, 0 |
+| positions | Current positions for all channels; input/output for WebUI | matrix | 0, 0, 0, 0 |
+| current_sequence | Index of the currently selected sequence | number | 0 |
+| sequence_names | List of names for the different sequences | string | Sequence A |
+| file_names | List of file names for sequence files in the current directory | string |  |
 
-<br><br>
 ## Long description
 Module that records a sequence of values and saves them into a file.
 

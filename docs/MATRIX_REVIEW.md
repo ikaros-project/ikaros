@@ -1,11 +1,10 @@
-# `ikaros::matrix` review and todo list
+# `ikaros::matrix` review history
 
 Last reviewed: 2026-07-19
 
-This file is the persistent checklist for the `ikaros::matrix` review. Update an
-item's status, notes, tests, and benchmark results as work proceeds. Do not
-remove completed items; mark them **Done** so that the design history remains
-visible.
+This document preserves the completed `ikaros::matrix` review, including its
+design decisions, tests, and benchmark results. All listed items are complete;
+new matrix work should be tracked separately rather than reopening this record.
 
 Status values: **Open**, **In progress**, **Blocked**, **Done**, **Declined**.
 

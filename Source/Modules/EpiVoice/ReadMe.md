@@ -26,7 +26,6 @@ where it helps transform, summarize, or route signals between neural subsystems 
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| command | the command to use to play sounds, The dafult is the OS X command afplay | string | /usr/bin/afplay |
 | sounds | comma separated list of sound file names (including path). | string |  |
 | scale_volume | factor for scaling the volume output (not the actual volume). | number | 1.0 |
 | lag | Lag in ms before the sound starts. Used to correct timing of volume output for better animations. | number | 100.0 |

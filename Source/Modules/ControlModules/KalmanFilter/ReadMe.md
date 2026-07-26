@@ -155,37 +155,41 @@ No prediction or correction is computed on the reset tick.
 
 ## Inputs
 
-- `INPUT`: optional control input vector `u`
-- `INPUT_VALID`: optional validity signal for `INPUT`; all zero means ignore `INPUT`
-- `OBSERVATION`: observation vector `z`
-- `OBSERVATION_VALID`: optional validity signal for `OBSERVATION`; all zero means prediction only
-- `RESET`: optional reset signal; any nonzero value resets the filter
+| Name | Description | Optional |
+| --- | --- | --- |
+| INPUT | Optional control input vector [m] | yes |
+| INPUT_VALID | Optional control input validity signal; zero ignores INPUT for this tick | yes |
+| OBSERVATION | Observation vector [k] |  |
+| OBSERVATION_VALID | Optional observation validity signal; zero runs prediction only for this tick | yes |
+| RESET | Optional reset signal | yes |
 
 ## Outputs
 
-- `STATE`: estimated state vector `x`
-- `INNOVATION`: observation residual `y = z - H*x'`
-- `KALMAN_GAIN`: Kalman gain matrix `K`
-- `GATED`: `1` when the current observation was rejected by `innovation_gate`, otherwise `0`
-- `NORMALIZED_INNOVATION`: squared normalized innovation `y^T*S^-1*y`
+| Name | Description |
+| --- | --- |
+| STATE | Estimated state vector [n] |
+| INNOVATION | Observation innovation [k] |
+| KALMAN_GAIN | Kalman gain [n, k] |
+| GATED | One when the observation was rejected by innovation_gate, otherwise zero |
+| NORMALIZED_INNOVATION | Squared normalized innovation y^T*S^-1*y |
 
 ## Parameters
 
-| Parameter | Type | Default | Role |
+| Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| `process_noise` | rate | `1` | Diagonal process covariance per second when `Q` is not explicitly set. Higher values make the filter trust the model less and adapt faster to observations. |
-| `observation_noise` | number | `1` | Diagonal observation covariance when `R` is not explicitly set. Higher values make the filter trust observations less. |
-| `state_size` | number | `1` | Number of state variables in `STATE`. |
-| `input_size` | number | `1` | Number of control input variables used to size default `B` when `INPUT` is disconnected at setup. |
-| `innovation_gate` | number | `0` | Maximum allowed squared normalized innovation. `0` disables outlier rejection. |
-| `inversion_jitter` | number | `0` | Diagonal jitter added to `S` if inversion fails. `0` disables the retry. |
-| `A` | matrix | `0` | State transition matrix. A zero matrix is replaced by identity where possible. |
-| `B` | matrix | `0` | Control input matrix. Used only when `INPUT` is connected and valid. |
-| `H` | matrix | `0` | Observation matrix. A zero matrix is replaced by identity where possible. |
-| `Q` | matrix | `0` | Process covariance. A zero matrix uses diagonal `process_noise`. |
-| `R` | matrix | `0` | Observation covariance. A zero matrix uses diagonal `observation_noise`. |
-| `INITIAL_STATE` | matrix | `0` | State copied to `STATE` on reset. |
-| `INITIAL_P` | matrix | `0` | Covariance copied to `P` on reset. A zero matrix uses the initialized `P`. |
+| process_noise | Diagonal process noise covariance per second when Q is not explicitly set | rate | 1 |
+| observation_noise | Diagonal observation noise covariance | number | 1 |
+| state_size | State vector size | number | 1 |
+| input_size | Control input vector size | number | 1 |
+| innovation_gate | Maximum squared normalized innovation; 0 disables gating | number | 0 |
+| inversion_jitter | Diagonal value added to the residual covariance if inversion fails; 0 disables retry | number | 0 |
+| A | State transition matrix [n, n]; zero matrix uses identity | matrix | 0 |
+| B | Input matrix [n, m] | matrix | 0 |
+| H | Observation matrix [k, n]; zero matrix uses identity where possible | matrix | 0 |
+| Q | Process covariance [n, n]; zero matrix uses process_noise | matrix | 0 |
+| R | Observation covariance [k, k]; zero matrix uses observation_noise | matrix | 0 |
+| INITIAL_STATE | State used when RESET is active | matrix | 0 |
+| INITIAL_P | Covariance used when RESET is active; zero matrix uses initial P | matrix | 0 |
 
 ## State
 

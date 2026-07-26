@@ -26,3 +26,16 @@ The output map size is controlled by `size_x` and `size_y`.
 | `size_x` | Output width in pixels. |
 | `size_y` | Output height in pixels. |
 | `standard_deviation` | Fallback Gaussian standard deviation in centered coordinate scale. |
+
+## Inputs
+
+| Name | Description | Optional |
+| --- | --- | --- |
+| POINTS | Point rows in centered coordinates: x, y |  |
+| WIDTHS | Optional per-point Gaussian standard deviations in centered coordinate scale | yes |
+
+## Outputs
+
+| Name | Description |
+| --- | --- |
+| OUTPUT | Salience map |

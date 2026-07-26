@@ -27,3 +27,9 @@ subsequent blocks are filled with zero.
 
 The configured channel count must match the file. This keeps the public output
 shape fixed after startup and reports configuration mistakes immediately.
+
+## Outputs
+
+| Name | Description |
+| --- | --- |
+| OUTPUT | Channel-first audio block |

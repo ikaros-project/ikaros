@@ -17,34 +17,25 @@ modules.
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| latent_size | Number of latent variables | number | 8 |
+| latent_mode | Latent bottleneck architecture | number | dense |
+| latent_size | Number of latent variables in dense mode | number | 8 |
+| latent_maps | Number of latent feature maps in spatial mode | number | 4 |
+| latent_kernel_size | Encoder neighborhood size used to form spatial latent maps | number | 1 |
 | feature_maps | Number of convolutional feature maps | number | 4 |
 | kernel_size | Convolution kernel size | number | 3 |
-| padding | Convolution padding mode: `valid` or `same` | number | valid |
+| padding | Convolution padding mode | number | valid |
 | learning_rate | Learning rate used when training | number | 0.001 |
-| optimizer | Optimizer used for training: `adam` or `sgd` | string | adam |
+| optimizer | Optimizer used for training | string | adam |
 | adam_beta1 | Adam first moment decay | number | 0.9 |
 | adam_beta2 | Adam second moment decay | number | 0.999 |
 | adam_epsilon | Adam numerical stability term | number | 0.00000001 |
 | beta | Weight of the KL-divergence term | number | 1 |
 | train | Enable online training | bool | yes |
 | train_interval | Run a training update every N ticks | number | 1 |
-| dense_train_interval | Update dense or spatial latent weights every N training updates | number | 1 |
-| sample | Sample from the latent distribution instead of using the mean; when disabled, `LATENT_SAMPLE` is the mean | bool | yes |
-| reconstruction_source | Latent source used by the decoder: `sample`, `mean`, or `top_down` | number | sample |
-| output_activation | Reconstruction activation: `linear` or `sigmoid` | number | linear |
-
-The learned parameters are persistent private state, so they can be saved and loaded with the Ikaros
-state mechanism, for example with `-W`/`--save_state` and `-L`/`--load_state`.
-
-With `padding="valid"`, convolutional feature maps shrink by `kernel_size-1` pixels per spatial
-dimension. With `padding="same"`, zero padding keeps the spatial dimensions unchanged.
-`OUTPUT` follows the `INPUT` shape. In dense mode the latent outputs publish vectors, while spatial mode publishes
-`[latent_maps,latent_height,latent_width]`, with `same` producing the largest spatial latent maps.
-
-Use `output_activation="sigmoid"` when reconstructing image values normalized to `[0,1]`. Keep
-`output_activation="linear"` when reconstructing latent-space signals, because latent means can be
-negative and should not be clipped to an image-like range.
+| dense_train_interval | Update dense VAE weights every N training updates | number | 1 |
+| sample | Sample from the latent distribution instead of using the mean | bool | yes |
+| reconstruction_source | Latent source used by the decoder reconstruction path | number | sample |
+| output_activation | Activation applied to the reconstructed output | number | linear |
 
 ## Inputs
 

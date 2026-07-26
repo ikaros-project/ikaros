@@ -73,8 +73,9 @@ from the goal inputs using a simple first-order approximation.
 
 | Name | Description |
 | --- | --- |
-| `PRESENT_POSITION` | Present servo positions in selected robot order, size `ServoCount`, using the units defined by the robot type configuration. |
-| `PRESENT_CURRENT` | Present current feedback in mA where supported, size `ServoCount`. |
+| PRESENT_POSITION | Present positions in the units defined by the selected robot type configuration. |
+| PRESENT_CURRENT | Present current (if supported by the servo) in mA. |
+| STATE | One-hot controller state: idle, initialization, detect-range, ramp-up, start-up, operate-transition, operation, shut-down, ramp-down, torque-off. |
 
 ## Configuration Files
 

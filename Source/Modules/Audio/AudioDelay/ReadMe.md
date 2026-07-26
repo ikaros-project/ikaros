@@ -33,9 +33,9 @@ This produces a classic feedback delay with one repeat path.
 
 ## Inputs
 
-### `INPUT`
-
-Audio buffer to delay.
+| Name | Description | Optional |
+| --- | --- | --- |
+| INPUT | Audio input buffer |  |
 
 ## Output
 
@@ -59,3 +59,9 @@ Delayed audio buffer for the current tick.
 - `mix` is clamped to the range `0 .. 1`.
 - `lowpass_cutoff` is clamped to a safe range between `20 Hz` and `0.45 * sample_rate`.
 - Changing `delay_time` resizes the delay buffer and clears previous delay history.
+
+## Outputs
+
+| Name | Description |
+| --- | --- |
+| OUTPUT | Delayed audio buffer |

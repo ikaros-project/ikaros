@@ -37,3 +37,15 @@ more obvious ambient space.
 - `damping` is clamped to `0 .. 1`.
 - Changing `pre_delay` resizes the pre-delay line and clears its history.
 - The comb and all-pass sizes are fixed internally to keep the implementation compact.
+
+## Inputs
+
+| Name | Description | Optional |
+| --- | --- | --- |
+| INPUT | Audio input buffer |  |
+
+## Outputs
+
+| Name | Description |
+| --- | --- |
+| OUTPUT | Reverberated audio buffer |
