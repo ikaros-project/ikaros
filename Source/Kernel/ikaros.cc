@@ -1735,82 +1735,120 @@ namespace ikaros
 
 
 
-    bool 
+    bool
+    Component::GetRawParameterValue(const parameter & p, const std::string & name,
+                                    std::string & raw_value, Component *& context) const
+    {
+        const Component * value_owner = GetValueOwner(name);
+        if(value_owner && value_owner->info_.contains_non_null(name))
+        {
+            raw_value = std::string(value_owner->info_[name]);
+            context = const_cast<Component *>(value_owner);
+            return true;
+        }
+
+        context = const_cast<Component *>(this);
+        if(p.metadata().contains("default"))
+        {
+            raw_value = std::string(p.metadata()["default"]);
+            return true;
+        }
+
+        if(p.get_type() == matrix_type && !MatrixParameterShapeExpression(p).empty())
+        {
+            raw_value.clear();
+            return true;
+        }
+
+        return false;
+    }
+
+
+    std::string
+    Component::MatrixParameterShapeExpression(const parameter & p) const
+    {
+        if(p.metadata().contains_non_null("shape"))
+            return std::string(p.metadata()["shape"]);
+        if(p.metadata().contains_non_null("size"))
+            return std::string(p.metadata()["size"]);
+        return "";
+    }
+
+
+    matrix
+    Component::ApplyParameterShape(const parameter & p, const matrix & value)
+    {
+        std::string shape_expression = MatrixParameterShapeExpression(p);
+        if(shape_expression.empty())
+            return value;
+
+        std::vector<int> shape = EvaluateShapeList(shape_expression);
+        if(shape.empty())
+            throw exception("Matrix parameter shape \"" + shape_expression +
+                            "\" did not resolve to a valid shape.");
+
+        matrix shaped(shape);
+        if(value.is_uninitialized() || value.empty())
+            return shaped;
+
+        if(value.size() > shaped.size())
+            throw exception("Matrix parameter value has " + std::to_string(value.size()) +
+                            " elements but shape \"" + shape_expression +
+                            "\" only allows " + std::to_string(shaped.size()) + ".");
+
+        float * target = shaped.contiguous_data();
+        int target_index = 0;
+        for(int block = 0; block < value.logical_block_count(); ++block)
+        {
+            std::copy_n(value.logical_block_data(block), value.logical_block_size(),
+                        target + target_index);
+            target_index += value.logical_block_size();
+        }
+        return shaped;
+    }
+
+
+    void
+    Component::ResolveParameterValue(parameter & p, const std::string & name,
+                                     const std::string & raw_value, Component * context)
+    {
+        if((p.get_type() == number_type || p.get_type() == rate_type) && !p.has_options())
+        {
+            SetParameter(name, formatNumber(context->ComputeDouble(raw_value)));
+            return;
+        }
+
+        if(p.get_type() == matrix_type)
+        {
+            matrix literal;
+            if(raw_value.empty() && !MatrixParameterShapeExpression(p).empty())
+                SetParameter(name, ApplyParameterShape(p, matrix()), raw_value);
+            else if(try_parse_matrix_literal(literal, raw_value))
+                SetParameter(name, ApplyParameterShape(p, literal), raw_value);
+            else
+                SetParameter(name, ApplyParameterShape(p, matrix(context->ComputeValue(raw_value))),
+                             raw_value);
+            return;
+        }
+
+        if(p.get_type() == bool_type && !p.has_options())
+        {
+            SetParameter(name, std::string(context->ComputeBool(raw_value) ? "true" : "false"));
+            return;
+        }
+
+        if(raw_value.find('@') != std::string::npos || raw_value.find('{') != std::string::npos)
+            SetParameter(name, context->ComputeValue(raw_value));
+        else
+            SetParameter(name, raw_value);
+    }
+
+
+    bool
     Component::ResolveParameter(parameter & p,  std::string & name)
     {
         if(p.is_resolved())
             return true; // Already set from SetParameters
-
-        auto resolve_value = [&](const std::string & raw_value, Component * owner)
-        {
-            Component * context = owner ? owner : this;
-
-            auto matrix_parameter_shape_expression = [&]() -> std::string
-            {
-                if(p.metadata().contains_non_null("shape"))
-                    return std::string(p.metadata()["shape"]);
-                if(p.metadata().contains_non_null("size"))
-                    return std::string(p.metadata()["size"]);
-                return "";
-            };
-
-            auto apply_sized_matrix_parameter = [&](const matrix & value) -> matrix
-            {
-                std::string shape_expr = matrix_parameter_shape_expression();
-                if(shape_expr.empty())
-                    return value;
-
-                std::vector<int> shape = EvaluateShapeList(shape_expr);
-                if(shape.empty())
-                    throw exception("Matrix parameter shape \"" + shape_expr + "\" did not resolve to a valid shape.");
-
-                matrix shaped(shape);
-                if(!value.is_uninitialized() && !value.empty())
-                {
-                    if(value.size() > shaped.size())
-                        throw exception("Matrix parameter value has " + std::to_string(value.size()) +
-                            " elements but shape \"" + shape_expr + "\" only allows " + std::to_string(shaped.size()) + ".");
-
-                    float * target = shaped.contiguous_data();
-                    int target_index = 0;
-                    for(int block = 0; block < value.logical_block_count(); ++block)
-                    {
-                        std::copy_n(value.logical_block_data(block), value.logical_block_size(), target + target_index);
-                        target_index += value.logical_block_size();
-                    }
-                }
-                return shaped;
-            };
-
-            if((p.get_type() == number_type || p.get_type() == rate_type) && !p.has_options())
-            {
-                SetParameter(name, formatNumber(context->ComputeDouble(raw_value)));
-                return;
-            }
-
-            if(p.get_type() == matrix_type)
-            {
-                matrix literal;
-                if(raw_value.empty() && !matrix_parameter_shape_expression().empty())
-                    SetParameter(name, apply_sized_matrix_parameter(matrix()), raw_value);
-                else if(try_parse_matrix_literal(literal, raw_value))
-                    SetParameter(name, apply_sized_matrix_parameter(literal), raw_value);
-                else
-                    SetParameter(name, apply_sized_matrix_parameter(matrix(context->ComputeValue(raw_value))), raw_value);
-                return;
-            }
-
-            if(p.get_type() == bool_type && !p.has_options())
-            {
-                SetParameter(name, std::string(context->ComputeBool(raw_value) ? "true" : "false"));
-                return;
-            }
-
-            if(raw_value.find('@') != std::string::npos || raw_value.find('{') != std::string::npos)
-                SetParameter(name, context->ComputeValue(raw_value));
-            else
-                SetParameter(name, raw_value);
-        };
 
         try
         {
@@ -1822,28 +1860,15 @@ namespace ikaros
                     return true;
             }
 
-            const Component * value_owner = GetValueOwner(name);
-            bool has_explicit_value = value_owner && value_owner->info_.contains_non_null(name);
-            if(!has_explicit_value)
+            std::string raw_value;
+            Component * context = nullptr;
+            if(!GetRawParameterValue(p, name, raw_value, context))
             {
-                if(!p.metadata().contains("default"))
-                {
-                    if(p.get_type() == matrix_type &&
-                       (p.metadata().contains_non_null("size") || p.metadata().contains_non_null("shape")))
-                    {
-                        resolve_value("", this);
-                        return true;
-                    }
-
-                    Error("Parameter \""+name+"\" has no default value in the ikc file.");   
-                    return false;
-                }
-
-                resolve_value(std::string(p.metadata()["default"]), this);
-                return true;
+                Error("Parameter \""+name+"\" has no default value in the ikc file.");
+                return false;
             }
 
-            resolve_value(std::string(value_owner->info_[name]), const_cast<Component *>(value_owner));
+            ResolveParameterValue(p, name, raw_value, context);
             return true;
         }
         catch(exception & e)

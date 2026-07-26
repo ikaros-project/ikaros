@@ -284,6 +284,12 @@ private:
     void QueueDeferredParameterChange(const DeferredParameterChange & change);
     void QueueDeferredCommand(const std::string & command_name, const dictionary & parameters);
     void ApplyPendingAsyncActions();
+    bool GetRawParameterValue(const parameter & p, const std::string & name,
+                              std::string & raw_value, Component *& context) const;
+    std::string MatrixParameterShapeExpression(const parameter & p) const;
+    matrix ApplyParameterShape(const parameter & p, const matrix & value);
+    void ResolveParameterValue(parameter & p, const std::string & name,
+                               const std::string & raw_value, Component * context);
 
 protected:
     dictionary      info_;
