@@ -178,7 +178,7 @@ None.
 | 1 | Remove the unused private `Kernel::Save()` implementation and declaration. | Completed | Debug build; all 266 kernel tests passed | `Removed obsolete kernel save stub` |
 | 2 | Move kernel session-logging wrappers into `session_logging.cc`. | Completed | Debug build; all 266 kernel tests passed | `Session logging now owns kernel logging wrappers` |
 | 3 | Move listing, log-printing, and profiling diagnostics into `kernel_diagnostics.cc`. | Completed | Debug build; all 266 kernel tests passed | `Kernel diagnostics now have their own translation unit` |
-| 4 | Move general module-facing read/write path policy into `kernel_paths.cc`. | Not addressed | Pending | Pending |
+| 4 | Move general module-facing read/write path policy into `kernel_paths.cc`. | Completed | Debug build; all 266 kernel tests passed | `Kernel path policy now has its own translation unit` |
 | 5 | Move `validate_identifier()` to utilities and replace `new_session_id()` with private `Kernel::NewSessionID()`. | Not addressed | Pending | Pending |
 
 ### Constraints
