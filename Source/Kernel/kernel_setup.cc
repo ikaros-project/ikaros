@@ -232,6 +232,29 @@ namespace ikaros
             parameter["description"] = "Maximum number of recent log messages retained for delivery to WebUI clients.";
             return parameter;
         }
+
+        dictionary make_log_level_parameter()
+        {
+            dictionary parameter;
+            parameter["_tag"] = "parameter";
+            parameter["name"] = "log_level";
+            parameter["type"] = "number";
+            parameter["control"] = "menu";
+            parameter["options"] = "inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace";
+            parameter["default"] = 0;
+            return parameter;
+        }
+
+        void ensure_list(dictionary & info, const std::string & key)
+        {
+            if(!info.contains_non_null(key) || !info[key].is_list())
+                info[key] = list();
+        }
+
+        bool is_internal(const dictionary & info)
+        {
+            return info.is_set("internal");
+        }
     }
 
     bool
@@ -978,7 +1001,7 @@ namespace ikaros
 
 // Kernel
 
-    void 
+    void
     Kernel::ResolveParameter(parameter & p,  std::string & name)
     {
         if(p.is_resolved())
@@ -2123,4 +2146,288 @@ namespace ikaros
         automatic_reload_suppressed_until_save.store(true, std::memory_order_release);
     }
 
+
+    void
+    Kernel::ScanClasses(std::string path)
+    {
+        if(!std::filesystem::exists(path))
+        {
+            std::cout << "Could not scan for classes \"" + path + "\". Directory not found.\n";
+            return;
+        }
+        for(auto& p: std::filesystem::recursive_directory_iterator(path))
+            if(std::string(p.path().extension())==".ikc")
+            {
+                const std::string name = p.path().stem();
+                auto existing_class = classes.find(name);
+                if(existing_class != classes.end() && !existing_class->second.path.empty())
+                    throw exception("Duplicate class \"" + name +
+                                    "\" was found in more than one .ikc file: \"" +
+                                    existing_class->second.path + "\" and \"" +
+                                    p.path().string() + "\".", p.path().string());
+
+                try
+                {
+                    dictionary class_info;
+                    LoadXMLWithRestrictedIncludes(class_info, p.path());
+
+                    const std::string root_element = class_info["_tag"];
+                    if(root_element != "class")
+                        throw exception("Root element must be <class>, not <" + root_element + ">.");
+
+                    const std::string declared_name = class_info["name"];
+                    if(declared_name != name)
+                        throw exception("Declared class name \"" + declared_name +
+                                        "\" does not match filename \"" + name + "\".");
+
+                    ensure_list(class_info, "parameters");
+
+                    bool has_log_level = false;
+                    bool has_module_start = false;
+                    bool has_start_tick = false;
+                    bool has_async = false;
+                    bool has_color = false;
+                    for(auto parameter : class_info["parameters"])
+                    {
+                        std::string parameter_name = parameter["name"];
+                        if(parameter_name == "log_level")
+                            has_log_level = true;
+                        else if(parameter_name == "module_start")
+                            has_module_start = true;
+                        else if(parameter_name == "start_tick")
+                            has_start_tick = true;
+                        else if(parameter_name == "async")
+                            has_async = true;
+                        else if(parameter_name == "color")
+                            has_color = true;
+                    }
+
+                    if(!has_log_level)
+                        class_info["parameters"].push_back(make_log_level_parameter().copy());
+
+                    if(!has_module_start)
+                        class_info["parameters"].push_back(make_module_start_parameter().copy());
+
+                    if(!has_start_tick)
+                        class_info["parameters"].push_back(make_start_tick_parameter().copy());
+
+                    if(!has_async)
+                        class_info["parameters"].push_back(make_async_parameter().copy());
+
+                    if(!has_color)
+                        class_info["parameters"].push_back(make_color_parameter().copy());
+
+                    Class & scanned_class = classes[name];
+                    scanned_class.info_ = std::move(class_info);
+                    scanned_class.name = name;
+                    scanned_class.path = p.path();
+                }
+                catch(const exception & e)
+                {
+                    Notify(msg_warning, "Could not load class file \"" + p.path().string() + "\": " + e.message(), p.path().string());
+                }
+                catch(const std::exception & e)
+                {
+                    Notify(msg_warning, "Could not load class file \"" + p.path().string() + "\": " + e.what(), p.path().string());
+                }
+            }
+    }
+
+
+    void
+    Kernel::ScanFiles(std::string path, bool system, bool examples)
+    {
+        if(!std::filesystem::exists(path))
+        {
+            std::cout << "Could not scan for files in \"" + path + "\". Directory not found.\n";
+            return;
+        }
+        for(auto& p: std::filesystem::recursive_directory_iterator(path))
+        {
+            const std::string extension = p.path().extension().string();
+            if(extension==".ikg")
+            {
+                try
+                {
+                    dictionary file_info;
+                    LoadXMLWithRestrictedIncludes(file_info, p.path());
+                    if(is_internal(file_info))
+                        continue;
+                }
+                catch(const std::exception &)
+                {
+                }
+
+                std::string name = p.path().stem();
+
+                if(system)
+                     system_files[name] = p.path();
+                else if(examples)
+                     examples_files[name] = p.path();
+                else
+                     user_files[name] = p.path();
+            }
+            else if(!system && !examples && extension==".state")
+            {
+                std::string name = p.path().filename().string();
+                user_state_files[name] = p.path();
+            }
+        }
+    }
+
+
+    void
+    Kernel::ListClasses()
+    {
+        std::cout << "\nClasses:\n";
+        for(auto & [name, component_class] : classes)
+        {
+            (void)name;
+            component_class.Print();
+        }
+    }
+
+
+
+    void
+    Kernel::CalculateCheckSum()
+    {
+        if(!info_.contains("check_sum"))
+            return;
+
+        long correct_check_sum = info_["check_sum"];
+        long calculated_check_sum = 0;
+        prime prime_number;
+
+        // Iterate over task lists to test partitioning
+
+        calculated_check_sum += prime_number.next() * tasks.size();
+        for(auto & t : tasks)
+            calculated_check_sum += prime_number.next() * t.size();
+
+        // Iterate over components
+
+        for(auto & [n,c] : components)
+            c->CalculateCheckSum(calculated_check_sum, prime_number);
+        if(correct_check_sum == calculated_check_sum)
+            std::cout << "Correct Check Sum: " << calculated_check_sum << '\n';
+        else
+        {
+            const std::string msg = "Incorrect Check Sum: " +
+                                    std::to_string(calculated_check_sum) + " != " +
+                                    std::to_string(correct_check_sum);
+            if(info_.is_set("batch_mode"))
+                throw setup_failed(msg);
+            Notify(msg_fatal_error, msg);
+        }
+    }
+
+
+    std::string
+    Kernel::GetStartupStepsJSON() const
+    {
+        std::ostringstream body;
+        body << "{";
+        body << "\"tick\": " << tick << ", ";
+        body << "\"run_mode\": " << run_mode.load() << ", ";
+        body << "\"components\": [";
+
+        std::string separator;
+        for(const auto & [path, component] : components)
+        {
+            if(component == nullptr)
+                continue;
+
+            body << separator;
+            body << "{";
+            body << "\"path\": \"" << escape_json_string(path) << "\", ";
+            body << "\"name\": \"" << escape_json_string(component->Info()) << "\", ";
+
+            std::string class_name;
+            if(component->info_.contains_non_null("class"))
+                class_name = std::string(component->info_["class"]);
+
+            body << "\"class\": ";
+            if(class_name.empty())
+                body << "null";
+            else
+                body << "\"" << escape_json_string(class_name) << "\"";
+            body << ", ";
+            body << "\"module_start\": " << component->module_start << ", ";
+            body << "\"start_tick\": " << component->start_tick << ", ";
+            body << "\"startup_first_real_input_step\": ";
+            if(component->startup_first_real_input_step == std::numeric_limits<int>::max())
+                body << "null";
+            else
+                body << component->startup_first_real_input_step;
+            body << ", ";
+            body << "\"startup_all_real_inputs_step\": ";
+            if(component->startup_all_real_inputs_step == std::numeric_limits<int>::max())
+                body << "null";
+            else
+                body << component->startup_all_real_inputs_step;
+            body << "}";
+            separator = ", ";
+        }
+
+        body << "]";
+        body << "}";
+        return body.str();
+    }
+
+
+    void
+    Kernel::SetUp()
+    {
+        try
+        {
+            task_timeout = 5.0;
+            if(info_.contains_non_null("task_timeout"))
+            {
+                task_timeout = info_["task_timeout"].as_double();
+                if(!std::isfinite(task_timeout) || task_timeout < 0)
+                    throw setup_failed("task_timeout must be a finite non-negative number of seconds.");
+            }
+
+            PruneConnections();
+            SortTasks();
+            CalculateStartupSteps();
+            ResolveParameters();
+            CalculateDelays();
+            CalculateSizes();
+            ShareZeroDelayConnectionBuffers();
+
+            InitCircularBuffers();
+            for(auto & connection : connections)
+                connection.ResolveRuntimeState();
+            InitComponents();
+
+            if(info_.is_set("info"))
+            {
+                ListOutputs();
+                ListParameters();
+                //ListComponents();
+                ListConnections();
+                ListInputs();
+                ListOutputs();
+                //ListBuffers();
+                //ListCircularBuffers();
+                //ListTasks();
+            }
+
+            //PrintLog();
+        }
+        catch(exception & e)
+        {
+            throw setup_failed("SetUp Failed. "+e.message(), e.path());
+        }
+        catch(std::exception & e)
+        {
+            throw setup_failed("SetUp Failed. "+std::string(+e.what()));
+        }
+    }
+
+
+    //
+    //  Serialization
 }; // namespace ikaros

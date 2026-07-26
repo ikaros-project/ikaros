@@ -1,0 +1,14 @@
+# Kernel implementation structure
+
+The public kernel API is declared in `Source/ikaros.h`. Its implementation is divided by responsibility:
+
+- `ikaros.cc` contains the core parameter, component, module, and kernel lifecycle implementation.
+- `kernel_setup.cc` contains model construction, class discovery, shape resolution, startup-step analysis, checksum calculation, and setup orchestration.
+- `kernel_execution.cc` contains delayed-buffer maintenance, task scheduling and execution, propagation, run-mode control, and realtime timing.
+- `kernel_state.cc` contains state capture, restoration, file I/O, scoped remapping, and reset behavior.
+- `kernel_webui.cc` contains WebUI subscriptions, snapshots, value serialization, image serialization, log delivery, and data-response construction.
+- `kernel_http.cc` contains authentication, HTTP server lifecycle, request dispatch, endpoint handlers, and public or project file serving.
+
+Smaller support types retain their own implementation files, including `circular_buffer.cc`, `connection.cc`, `request.cc`, `compute_engine.cc`, and `session_logging.cc`.
+
+The split is organizational: these files still implement the same `ikaros::Kernel`, `ikaros::Component`, and related classes and share the state declared in `ikaros.h`. It does not introduce subsystem objects or change public interfaces.

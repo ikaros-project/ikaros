@@ -311,7 +311,7 @@ Each task moves existing definitions without intentional behavioral changes. Tas
 | 3 | Move state capture, restoration, save, load, and reset implementation into `kernel_state.cc`. | Implemented and verified | Debug build; matrix, scalar, scoped, reset, file-format, and WebUI state coverage; all 266 tests passed | `Kernel state persistence now has its own translation unit` |
 | 4 | Move WebUI subscriptions, snapshots, value serialization, and data-response construction into `kernel_webui.cc`. | Implemented and verified | Debug build; subscription, snapshot timing, image refresh, logging, serialization, and response coverage; all 266 tests passed | `Kernel WebUI data handling now has its own translation unit` |
 | 5 | Move HTTP parsing and dispatch, authentication, file serving, and endpoint handlers into `kernel_http.cc`. | Implemented and verified | Debug build; authentication, public/static files, save/load endpoints, routing aliases, controls, and HTTP lifecycle coverage; all 266 tests passed | `Kernel HTTP handling now has its own translation unit` |
-| 6 | Review the remaining `ikaros.cc`, move only clearly misplaced cohesive definitions, update build registration, and document the resulting implementation boundaries. | Not addressed | Pending | Pending |
+| 6 | Review the remaining `ikaros.cc`, move only clearly misplaced cohesive definitions, update build registration, and document the resulting implementation boundaries. | Implemented and verified | Debug build; class discovery, setup orchestration, delayed buffers, run modes, checksums, startup reporting, and image serialization coverage; all 266 tests passed; implementation map added to `Source/Kernel/README.md` | `Kernel implementation boundaries are now documented and complete` |
 
 ### Physical split constraints
 
@@ -320,3 +320,8 @@ Each task moves existing definitions without intentional behavioral changes. Tas
 - Keep small helpers with the subsystem that owns them; avoid one-function files.
 - Keep headers self-contained and register every new implementation unit explicitly in CMake.
 - Do not begin a later task until the preceding task is verified and committed.
+
+### Physical kernel split outstanding issues and questions
+
+- A few small file-local policy helpers are duplicated where setup, execution, and HTTP paths require the same legacy behavior. Consolidating them would require introducing a private shared kernel-support interface; no such abstraction was added during this behavior-preserving split.
+- `parameter`, `Component`, and `Module` implementations remain together in `ikaros.cc` because they share its core conversion, binding, and runtime-context helpers. Splitting those types cleanly would be a separate internal-API refactoring rather than a physical move.

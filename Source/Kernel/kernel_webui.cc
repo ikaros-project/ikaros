@@ -716,4 +716,30 @@ namespace ikaros
         SendStringResponse(header, BuildUIDataResponse(status, response_items, log_json));
     }
 
+
+    std::string
+    Kernel::SendImage(const matrix & image, const std::string & format, int quality) // Compress image to jpg and return a base64 data URI
+    {
+        jpeg_data jpeg;
+
+        if(format=="rgb" && image.rank() == 3 && image.size(0) == 3)
+            jpeg = create_color_jpeg(image, quality);
+
+        else if(format=="gray" && image.rank() == 2)
+            jpeg = create_gray_jpeg(image, 0, 1, quality);
+
+        else if(image.rank() == 2) // taking our chances with the format...
+            jpeg = create_pseudocolor_jpeg(image, 0, 1, format, quality);
+
+        if(jpeg.empty())
+            return "\"\"";
+
+        const std::string jpeg_base64 = base64_encode(jpeg.data(), jpeg.size());
+        std::string result = "\"data:image/jpeg;base64,";
+        result += jpeg_base64;
+        result += "\"";
+        return result;
+    }
+
+
 }; // namespace ikaros

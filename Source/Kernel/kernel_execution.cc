@@ -12,6 +12,24 @@ extern std::atomic<bool> global_terminate;
 
 namespace ikaros
 {
+    namespace
+    {
+        std::string resolve_state_filename(const options & opts,
+                                           const std::string & option_name)
+        {
+            std::string filename = opts.get(option_name);
+            if(!filename.empty() && filename != "true")
+                return filename;
+
+            std::filesystem::path model_path = opts.full_path();
+            if(model_path.empty())
+                throw exception("Can not derive state filename because no model file is loaded.");
+
+            model_path.replace_extension(".state");
+            return model_path.string();
+        }
+    }
+
 
     bool
     Kernel::Tick()
@@ -813,4 +831,190 @@ namespace ikaros
         }
         return true;
         }
+
+    void
+    Kernel::InitCircularBuffers()
+    {
+        for(const auto & [buffer_name, delay] : max_delays)
+        {
+            if(delay < 1)
+                continue;
+            auto source_buffer = buffers.find(buffer_name);
+            if(source_buffer == buffers.end())
+                continue;
+
+            try
+            {
+                circular_buffers.try_emplace(buffer_name,
+                                             source_buffer->second,
+                                             delay,
+                                             ComponentForValuePath(buffer_name));
+            }
+            catch(const out_of_memory_matrix_error &)
+            {
+                throw setup_failed("Could not allocate " + std::to_string(delay) +
+                                   " ticks of delay history for \"" + buffer_name + "\".",
+                                   buffer_name);
+            }
+            catch(const std::bad_alloc &)
+            {
+                throw setup_failed("Could not allocate " + std::to_string(delay) +
+                                   " ticks of delay history for \"" + buffer_name + "\".", buffer_name);
+            }
+            catch(const std::length_error &)
+            {
+                throw setup_failed("Delay history for \"" + buffer_name + "\" is too large.", buffer_name);
+            }
+        }
+    }
+
+
+    void
+    Kernel::RotateBuffers()
+    {
+        for(auto & [name, history] : circular_buffers)
+        {
+            tick_count completed_tick = -1;
+            bool record_async_completion = false;
+
+            if(history.source_component != nullptr && history.source_component->async_mode)
+            {
+                if(history.source_component->IsAsyncRunning() ||
+                   history.source_component->IsAsyncFailed())
+                    continue;
+
+                completed_tick = history.source_component->async_completed_tick.load();
+                if(completed_tick < 0 || completed_tick == history.last_async_completion)
+                    continue;
+                record_async_completion = true;
+            }
+
+            try
+            {
+                history.buffer.rotate(*history.source_buffer);
+            }
+            catch(const std::exception & e)
+            {
+                throw fatal_runtime_error("Error updating delay history for \"" +
+                                          name + "\": " + e.what(), name);
+            }
+            catch(...)
+            {
+                throw fatal_runtime_error("Unknown error updating delay history for \"" +
+                                          name + "\".", name);
+            }
+
+            if(record_async_completion)
+                history.last_async_completion = completed_tick;
+        }
+    }
+
+
+
+    void
+    Kernel::Stop()
+    {
+        notify_stop_requested = false;
+
+        {
+            std::lock_guard<std::recursive_mutex> lock(kernelLock);
+            run_mode.store(std::min(run_mode_stop, run_mode.load()));
+            timer.Pause();
+            timer.SetPauseTime(0);
+        }
+
+        WaitForAsyncComponents(true);
+
+        {
+            std::lock_guard<std::recursive_mutex> lock(kernelLock);
+            if(options_.is_explicitly_set("save_state") && !components.empty())
+                SaveState(resolve_state_filename(options_, "save_state"));
+            tick = 0;
+#if !defined(LOGGING_OFF)
+            if(session_logging_active)
+            {
+                LogStop();
+                session_logging_active = false;
+            }
+#endif
+            //PrintProfiling(); // FIXME: Use option to turn on and off
+            if(!StopComponents())
+            {
+                int successful_exit = 0;
+                process_exit_code.compare_exchange_strong(successful_exit, 1);
+            }
+        }
+    }
+
+
+
+    void
+    Kernel::Pause()
+    {
+        if(needs_reload)
+        {
+            if(GetOptionFilename().empty())
+                New();
+            else
+                LoadFile();
+            run_mode = run_mode_pause;
+        }
+        else
+        {
+            run_mode = run_mode_pause;
+            timer.Pause();
+            timer.SetPauseTime(GetTime()+tick_duration);
+            WaitForAsyncComponents(false);
+        }
+    }
+
+
+    void
+    Kernel::Realtime()
+    {
+        if(needs_reload)
+        {
+            if(GetOptionFilename().empty())
+                New();
+            else
+                LoadFile();
+        }
+
+        Pause();
+#if !defined(LOGGING_OFF)
+        if(!session_logging_active)
+        {
+            session_timer.Restart();
+            LogStart();
+            session_logging_active = true;
+        }
+#endif
+        timer.Continue();
+        run_mode = run_mode_realtime;
+    }
+
+
+
+    void
+    Kernel::Play()
+    {
+        if(needs_reload)
+        {
+            if(GetOptionFilename().empty())
+                New();
+            else
+                LoadFile();
+        }
+
+#if !defined(LOGGING_OFF)
+        if(!session_logging_active)
+        {
+            session_timer.Restart();
+            LogStart();
+            session_logging_active = true;
+        }
+#endif
+        run_mode = run_mode_play;
+        timer.Continue();
+    }
 }; // namespace ikaros
