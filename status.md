@@ -247,12 +247,11 @@ None.
 
 - The XML implementation still owns a linked object tree and copied C strings manually. Converting it to `std::string` and smart pointers would improve ownership clarity, but changes parser object identity and requires a focused API redesign.
 - Codec, FFmpeg, CoreAudio, POSIX spawn, socket, and shared-memory boundaries retain C buffers, casts, and memory operations where those types are imposed by the external API or preserve contiguous fast paths.
-- The public `matrix::realloc()` name is C-like, but renaming it would be a broad API migration and its behavior is matrix storage allocation rather than direct use of C `realloc()`.
 - The `INSTALL_CLASS` registration macro and build-feature macros remain because they perform preprocessing or conditional compilation that `constexpr` cannot replace directly.
 - The deferred `EpiServos` and `ServoControlTuning` modules contain many macro constants and a C-style aggregate that should be modernized together with their later diagnostic cleanup.
 
 ### Major code cleanup outstanding issues and questions
 
 - `EpiServos` and `ServoControlTuning` remain deferred by request. Their direct console diagnostics and C-style constants/aggregate should be handled together in a later task.
-- The XML parser's manual linked-tree and C-string ownership, external C API buffer boundaries, public `matrix::realloc()` name, and class-registration macro are the judgment-heavy modernization cases listed above; no change was made without an API or architecture decision.
+- The XML parser's manual linked-tree and C-string ownership, external C API buffer boundaries, and class-registration macro are the judgment-heavy modernization cases listed above; no change was made without an API or architecture decision.
 - No other known locale, lifecycle-diagnostic, include, capitalization, Markdown, escaping, or UTF-8 correctness issue remains from this audit.
