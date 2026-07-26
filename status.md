@@ -141,6 +141,16 @@ This file tracks the high-, medium-, and lower-priority findings from the joint 
 
 None.
 
+## Parameter implementation split
+
+| Task | Status | Verification | Commit |
+|---|---|---|---|
+| Move the `parameter` implementation and its private conversion helpers from `ikaros.cc` into `parameter.cc`. | Completed | Debug build; all 266 kernel tests passed | `Parameter implementation now has its own translation unit` |
+
+### Outstanding issues and questions
+
+None.
+
 ## Random source follow-ups
 
 | # | Priority | Task | Status | Verification | Commit |
