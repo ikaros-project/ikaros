@@ -5642,30 +5642,24 @@ namespace ikaros
     }
 
 
-    void
-    Kernel::SaveState(const std::string & filename, const std::string & component_path)
+    dictionary
+    Kernel::CaptureState(const std::string & component_path) const
     {
-        if(filename.empty())
-            throw exception("State filename is empty.");
-
         const std::string scope = trim(component_path);
         if(!scope.empty() && components.find(scope) == components.end())
             throw exception("Component \"" + scope + "\" could not be found.");
 
-        std::ofstream file(filename);
-        if(!file)
-            throw exception("Could not open state file \"" + filename + "\" for writing.");
+        dictionary captured;
+        captured["format"] = "ikaros-state-v1";
+        captured["tick"] = static_cast<double>(tick);
+        captured["saved_at_utc"] = current_utc_timestamp();
+        captured["ikaros_version"] = ikaros_version;
+        captured["model_filename"] = options_.filename();
+        captured["model_name"] = std::string(info_["name"]);
+        captured["scope"] = scope.empty() ? "network" : scope;
 
-        struct StateItem
-        {
-            std::string path;
-            std::string kind;
-            const matrix * buffer = nullptr;
-            const ScalarState * scalar = nullptr;
-        };
-
-        std::vector<StateItem> items;
-        auto collect_matrix_item = [&](const std::string & path, const std::string & kind)
+        dictionary items;
+        auto capture_matrix = [&](const std::string & path, const std::string & kind)
         {
             if(!path_is_in_scope(path, scope))
                 return;
@@ -5674,102 +5668,67 @@ namespace ikaros
                 throw exception("Persistent " + kind + " \"" + path + "\" does not exist.");
             if(buffer->second.is_uninitialized())
                 throw exception("Persistent " + kind + " \"" + path + "\" has no allocated value.");
-            items.push_back({path, kind, &buffer->second, nullptr});
+
+            dictionary item;
+            item["kind"] = kind;
+            item["type"] = "matrix";
+            list shape;
+            for(int dimension : buffer->second.shape())
+                shape.push_back(value(static_cast<double>(dimension)));
+            item["shape"] = std::move(shape);
+            item["value"] = parse_json(buffer->second.json());
+            items[path] = std::move(item);
         };
 
         for(const auto & path : persistent_outputs)
-            collect_matrix_item(path, "output");
+            capture_matrix(path, "output");
         for(const auto & path : persistent_state_buffers)
-            collect_matrix_item(path, "state");
+            capture_matrix(path, "state");
+
         for(const auto & [path, state] : scalar_states)
             if(state.persistent && path_is_in_scope(path, scope))
-                items.push_back({path, "state", nullptr, &state});
-
-        file << "{\n";
-        file << "  \"format\": \"ikaros-state-v1\",\n";
-        file << "  \"tick\": " << tick << ",\n";
-        file << "  \"saved_at_utc\": \"" << current_utc_timestamp() << "\",\n";
-        file << "  \"ikaros_version\": \"" << ikaros_version << "\",\n";
-        file << "  \"model_filename\": \"" << escape_json_string(options_.filename()) << "\",\n";
-        file << "  \"model_name\": \"" << escape_json_string(info_["name"]) << "\",\n";
-        file << "  \"scope\": \"" << escape_json_string(scope.empty() ? "network" : scope) << "\",\n";
-        file << "  \"item_count\": " << items.size() << ",\n";
-        file << "  \"items\": {\n";
-
-        std::string separator;
-        auto write_matrix_item = [&](const StateItem & item)
-        {
-            file << separator;
-            file << "    \"" << escape_json_string(item.path) << "\": {\n";
-            file << "      \"kind\": \"" << item.kind << "\",\n";
-            file << "      \"type\": \"matrix\",\n";
-            file << "      \"shape\": [";
-            std::string shape_separator;
-            for(int dimension : item.buffer->shape())
             {
-                file << shape_separator << dimension;
-                shape_separator = ", ";
+                dictionary item;
+                item["kind"] = "state";
+                item["type"] = state.type;
+                if(state.type == "float")
+                    item["value"] = static_cast<double>(state.float_ptr ? *state.float_ptr : state.float_value);
+                else if(state.type == "double")
+                    item["value"] = state.double_ptr ? *state.double_ptr : state.double_value;
+                else if(state.type == "int")
+                    item["value"] = state.int_ptr ? *state.int_ptr : state.int_value;
+                else if(state.type == "bool")
+                    item["value"] = state.bool_ptr ? *state.bool_ptr : state.bool_value;
+                else if(state.type == "string")
+                    item["value"] = state.string_ptr ? *state.string_ptr : state.string_value;
+                else
+                    throw exception("Unsupported scalar state type \"" + state.type + "\".");
+                items[path] = std::move(item);
             }
-            file << "],\n";
-            file << "      \"value\": " << item.buffer->json() << "\n";
-            file << "    }";
-            separator = ",\n";
-        };
 
-        auto write_scalar_item = [&](const StateItem & item)
-        {
-            const ScalarState & state = *item.scalar;
+        captured["item_count"] = static_cast<double>(items.dict_->size());
+        captured["items"] = std::move(items);
+        return captured;
+    }
 
-            file << separator;
-            file << "    \"" << escape_json_string(item.path) << "\": {\n";
-            file << "      \"kind\": \"" << item.kind << "\",\n";
-            file << "      \"type\": \"" << state.type << "\",\n";
-            file << "      \"value\": ";
-            if(state.type == "float")
-            {
-                double value = state.float_ptr ? *state.float_ptr : state.float_value;
-                file << format_json_number(value);
-            }
-            else if(state.type == "double")
-            {
-                double value = state.double_ptr ? *state.double_ptr : state.double_value;
-                file << format_json_number(value);
-            }
-            else if(state.type == "int")
-            {
-                int value = state.int_ptr ? *state.int_ptr : state.int_value;
-                file << value;
-            }
-            else if(state.type == "bool")
-            {
-                bool value = state.bool_ptr ? *state.bool_ptr : state.bool_value;
-                file << (value ? "true" : "false");
-            }
-            else if(state.type == "string")
-            {
-                const std::string & value = state.string_ptr ? *state.string_ptr : state.string_value;
-                file << ikaros::value(value).json();
-            }
-            file << "\n";
-            file << "    }";
-            separator = ",\n";
-        };
 
-        for(const auto & item : items)
-        {
-            if(item.buffer)
-                write_matrix_item(item);
-            else
-                write_scalar_item(item);
-        }
+    void
+    Kernel::SaveState(const std::string & filename, const std::string & component_path)
+    {
+        if(filename.empty())
+            throw exception("State filename is empty.");
 
-        file << "\n";
-        file << "  }\n";
-        file << "}\n";
+        dictionary state = CaptureState(component_path);
+        std::ofstream file(filename);
+        if(!file)
+            throw exception("Could not open state file \"" + filename + "\" for writing.");
+
+        file << state.json() << '\n';
 
         if(!file)
             throw exception("Could not write state file \"" + filename + "\".");
 
+        const std::string scope = trim(component_path);
         Notify(msg_print, "Saved state to " + filename + (scope.empty() ? "" : " for " + scope));
     }
 
@@ -5779,10 +5738,6 @@ namespace ikaros
     {
         if(filename.empty())
             throw exception("State filename is empty.");
-
-        const std::string target_scope = trim(component_path);
-        if(!target_scope.empty() && components.find(target_scope) == components.end())
-            throw exception("Component \"" + target_scope + "\" could not be found.");
 
         dictionary state;
         try
@@ -5794,10 +5749,26 @@ namespace ikaros
             throw exception("Could not load state file \"" + filename + "\": " + e.what());
         }
 
+        RestoreState(state, component_path, filename);
+        const std::string target_scope = trim(component_path);
+        Notify(msg_print, "Loaded state from " + filename +
+                          (target_scope.empty() ? "" : " into " + target_scope));
+    }
+
+
+    void
+    Kernel::RestoreState(const dictionary & state, const std::string & component_path,
+                         const std::string & source_name)
+    {
+        const std::string target_scope = trim(component_path);
+        if(!target_scope.empty() && components.find(target_scope) == components.end())
+            throw exception("Component \"" + target_scope + "\" could not be found.");
+
         if(std::string(state["format"]) != "ikaros-state-v1")
-            throw exception("State file \"" + filename + "\" has unsupported format \"" + std::string(state["format"]) + "\".");
+            throw exception("State file \"" + source_name + "\" has unsupported format \"" +
+                            std::string(state["format"]) + "\".");
         if(!state["items"].is_dictionary())
-            throw exception("State file \"" + filename + "\" does not contain an items object.");
+            throw exception("State file \"" + source_name + "\" does not contain an items object.");
 
         std::string saved_scope = state["scope"].is_string() ? state["scope"].as_string() : "";
         dictionary items = std::get<dictionary>(state["items"].value_);
@@ -5897,7 +5868,6 @@ namespace ikaros
             target->second.copy(restored);
         }
 
-        Notify(msg_print, "Loaded state from " + filename + (target_scope.empty() ? "" : " into " + target_scope));
     }
 
 

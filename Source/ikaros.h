@@ -731,6 +731,9 @@ private:
                          const std::string & expected_type,
                          T ScalarState::* stored_value,
                          T * ScalarState::* bound_value);
+    dictionary CaptureState(const std::string & component_path) const;
+    void RestoreState(const dictionary & state, const std::string & component_path,
+                      const std::string & source_name);
     struct DelayedSourceHistory
     {
         CircularBuffer buffer;
