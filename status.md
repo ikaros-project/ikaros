@@ -12,7 +12,7 @@ The work proceeds sequentially without introducing PImpl or changing public beha
 | 4 | Build and run the complete kernel test suite for the `Kernel` privacy change. | Completed | Debug build succeeded; all 266 kernel and WebUI tests passed. | `Verified private kernel implementation state` |
 | 5 | Commit the verified `Kernel` privacy change independently. | Completed | Implementation commit `5f9f0565`; full verification recorded in `b9e04533`. | `Kernel implementation state is now private` |
 | 6 | Extract the `parameter` declarations into a focused, self-contained header and verify and commit the change independently. | Completed | Standalone header syntax check; Debug build; all 266 kernel and WebUI tests passed. | `Parameter declarations now have a focused header` |
-| 7 | Extract the `Component`/`Group` and `Module`/registration declarations into focused, self-contained headers, verifying and committing each extraction independently. | Pending | Pending | Pending |
+| 7 | Extract the `Component`/`Group` and `Module`/registration declarations into focused, self-contained headers, verifying and committing each extraction independently. | In progress | `component.h` standalone syntax check, Debug build, and all 266 tests passed; module extraction pending. | `Component declarations now have a focused header` (partial) |
 
 ### Constraints
 

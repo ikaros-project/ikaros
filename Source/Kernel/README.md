@@ -2,7 +2,7 @@
 
 The public kernel API is declared in `Source/ikaros.h`. Its implementation is divided by responsibility:
 
-`Source/ikaros.h` remains the compatibility umbrella for module code. Focused public declarations begin with `parameter.h`, which owns the parameter type, metadata, storage, conversion, and binding interface.
+`Source/ikaros.h` remains the compatibility umbrella for module code. Focused public declarations live in `kernel_types.h`, `parameter.h`, and `component.h`; these own common runtime constants, the parameter interface, and the component/group interface respectively.
 
 - `parameter.cc` contains parameter storage, validation, conversion, binding, and serialization.
 - `component.cc` contains component parameter resolution, binding, asynchronous execution, lifecycle hooks, and notifications.
