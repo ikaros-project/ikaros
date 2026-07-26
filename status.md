@@ -151,6 +151,16 @@ None.
 
 None.
 
+## Component implementation split
+
+| Task | Status | Verification | Commit |
+|---|---|---|---|
+| Move the `Component` implementation and its private helpers from `ikaros.cc` into `component.cc`, retaining the asynchronous runtime snapshot boundary. | Completed | Debug build; all 266 kernel tests passed | `Component implementation now has its own translation unit` |
+
+### Outstanding issues and questions
+
+None.
+
 ## Random source follow-ups
 
 | # | Priority | Task | Status | Verification | Commit |
