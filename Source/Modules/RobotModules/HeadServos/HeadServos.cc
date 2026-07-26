@@ -1,5 +1,4 @@
 #include "dynamixel_sdk.h" 
-#include <iostream>
 #include <string>
 
 #include "ikaros.h"
@@ -51,19 +50,17 @@ public:
         // Open port
         if (!portHandler->openPort())
         {
-            std::cerr << "Failed to open port: " << serialPort << std::endl;
-            connected = false;
-            return;
+            throw exception("HeadServos could not open serial port \"" + serialPort + "\".", path_);
         }
 
         // Set baud rate
         if (!portHandler->setBaudRate(baudRate)) 
         {
-            std::cerr << "Failed to set baud rate: " << baudRate << std::endl;
-            return;
+            throw exception("HeadServos could not set baud rate " + std::to_string(baudRate) +
+                            " on \"" + serialPort + "\".", path_);
         }
 
-        std::cout << "Successfully connected to port: " << serialPort << " with baud rate: " << baudRate << std::endl;
+        Print("HeadServos connected to \"" + serialPort + "\" at " + std::to_string(baudRate) + " baud.");
 
         connected = true;
     }
@@ -86,18 +83,20 @@ public:
         dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, 0, ADDR_MX_GOAL_POSITION, positionServo0, &dxl_error);
 
         if (dxl_comm_result != COMM_SUCCESS) {
-            std::cerr << "Failed to send position to servo ID 0: " << packetHandler->getTxRxResult(dxl_comm_result) << std::endl;
+            Warning("HeadServos failed to send position to servo 0: " +
+                    std::string(packetHandler->getTxRxResult(dxl_comm_result)));
         } else if (dxl_error != 0) {
-            std::cerr << "Servo ID 0 error: " << packetHandler->getRxPacketError(dxl_error) << std::endl;
+            Warning("HeadServos servo 0 error: " + std::string(packetHandler->getRxPacketError(dxl_error)));
         }
 
         // Send position command to servo ID 1
         dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, 1, ADDR_MX_GOAL_POSITION, positionServo1, &dxl_error);
         if (dxl_comm_result != COMM_SUCCESS) {
-            std::cerr << "Failed to send position to servo ID 1: " << packetHandler->getTxRxResult(dxl_comm_result) << std::endl;
+            Warning("HeadServos failed to send position to servo 1: " +
+                    std::string(packetHandler->getTxRxResult(dxl_comm_result)));
         } else if (dxl_error != 0) 
         {
-            std::cerr << "Servo ID 1 error: " << packetHandler->getRxPacketError(dxl_error) << std::endl;
+            Warning("HeadServos servo 1 error: " + std::string(packetHandler->getRxPacketError(dxl_error)));
         }
     }
 
@@ -109,9 +108,11 @@ public:
         // Send position command to the specified servo
         dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, servoID, ADDR_MX_GOAL_POSITION, position, &dxl_error);
         if (dxl_comm_result != COMM_SUCCESS) {
-            std::cerr << "Failed to send position to servo ID " << servoID << ": " << packetHandler->getTxRxResult(dxl_comm_result) << std::endl;
+            Warning("HeadServos failed to send position to servo " + std::to_string(servoID) + ": " +
+                    packetHandler->getTxRxResult(dxl_comm_result));
         } else if (dxl_error != 0) {
-            std::cerr << "Servo ID " << servoID << " error: " << packetHandler->getRxPacketError(dxl_error) << std::endl;
+            Warning("HeadServos servo " + std::to_string(servoID) + " error: " +
+                    packetHandler->getRxPacketError(dxl_error));
         }
     }
 
@@ -126,11 +127,12 @@ public:
         dxl_comm_result = packetHandler->read2ByteTxRx(portHandler, 0, ADDR_MX_PRESENT_POSITION, &positionServo0, &dxl_error);
         if (dxl_comm_result != COMM_SUCCESS) 
         {
-            std::cerr << "Failed to read position of servo ID 0: " << packetHandler->getTxRxResult(dxl_comm_result) << std::endl;
+            Warning("HeadServos failed to read position from servo 0: " +
+                    std::string(packetHandler->getTxRxResult(dxl_comm_result)));
         } 
         else if (dxl_error != 0) 
         {
-            std::cerr << "Servo ID 0 error: " << packetHandler->getRxPacketError(dxl_error) << std::endl;
+            Warning("HeadServos servo 0 error: " + std::string(packetHandler->getRxPacketError(dxl_error)));
         } 
         else 
         {
@@ -141,11 +143,12 @@ public:
         dxl_comm_result = packetHandler->read2ByteTxRx(portHandler, 1, ADDR_MX_PRESENT_POSITION, &positionServo1, &dxl_error);
         if (dxl_comm_result != COMM_SUCCESS) 
         {
-            // std::cerr << "Failed to read position of servo ID 1: " << packetHandler->getTxRxResult(dxl_comm_result) << std::endl;
+            Warning("HeadServos failed to read position from servo 1: " +
+                    std::string(packetHandler->getTxRxResult(dxl_comm_result)));
         } 
         else if (dxl_error != 0) 
         {
-            std::cerr << "Servo ID 1 error: " << packetHandler->getRxPacketError(dxl_error) << std::endl;
+            Warning("HeadServos servo 1 error: " + std::string(packetHandler->getRxPacketError(dxl_error)));
         } 
         else 
         {

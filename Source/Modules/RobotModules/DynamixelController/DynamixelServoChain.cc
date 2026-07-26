@@ -400,8 +400,6 @@ DynamixelServoChain::Warn(const std::string & message) const
 {
     if (warning)
         warning(message);
-    else
-        std::cerr << message << std::endl;
 }
 
 void
@@ -417,7 +415,7 @@ DynamixelServoChain::Fatal(const std::string & message) const
     if (fatal)
         fatal(message);
     else
-        std::cerr << message << std::endl;
+        throw std::runtime_error(message);
 }
 
 bool

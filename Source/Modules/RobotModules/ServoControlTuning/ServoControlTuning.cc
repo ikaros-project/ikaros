@@ -235,11 +235,11 @@ class ServoControlTuning : public Module
         int byte_increment = 0;
         int val;
 
-        std::cout << "ID: " << ID << std::endl;
+        Debug("Communicating with servo " + std::to_string(ID) + ".");
        
         if (!groupSyncRead->addParam(ID))
         {
-            std::cout << "Add param failed" << std::endl;
+            Warning("Could not add servo " + std::to_string(ID) + " to the synchronous read.");
             groupSyncWrite->clearParam();
             groupSyncRead->clearParam();
             return false;
@@ -250,15 +250,9 @@ class ServoControlTuning : public Module
         dxl_comm_result = groupSyncRead->txRxPacket();
 
         if (dxl_comm_result != COMM_SUCCESS) {
-            std::cout << "Sync read failed" << std::endl;
-            // Display a detailed communication error
-            std::cout << "Communication Error: " 
-            << groupSyncRead->getPacketHandler()->getTxRxResult(dxl_comm_result) 
-            << std::endl;
-            // Optionally show the packet error if applicabl
-            std::cout << "Packet Error: " 
-            << groupSyncRead->getPacketHandler()->getRxPacketError(dxl_error) 
-            << std::endl;
+            Warning("Synchronous read failed for servo " + std::to_string(ID) + ": " +
+                    groupSyncRead->getPacketHandler()->getTxRxResult(dxl_comm_result) +
+                    "; packet error: " + groupSyncRead->getPacketHandler()->getRxPacketError(dxl_error));
             groupSyncWrite->clearParam();
             groupSyncRead->clearParam();
             return false;
@@ -269,7 +263,7 @@ class ServoControlTuning : public Module
         dxl_comm_result = groupSyncRead->isAvailable(ID, INDIRECTDATA_FOR_READ, LEN_INDIRECTDATA_FOR_READ);
         if (!dxl_comm_result)
         {
-            std::cout << "Data not available" << std::endl;
+            Warning("Synchronous read data is unavailable for servo " + std::to_string(ID) + ".");
             groupSyncWrite->clearParam();
             groupSyncRead->clearParam();
             return false;
@@ -380,9 +374,9 @@ class ServoControlTuning : public Module
         if (!dxl_addparam_result)
         {
             Notify(msg_fatal_error, "Add param failed\n");
-            std::cout << "result: "
-            << groupSyncWrite->getPacketHandler()->getTxRxResult(dxl_comm_result) 
-            << "error: " << groupSyncWrite->getPacketHandler()->getRxPacketError(dxl_error) << std::endl;
+            Warning("Could not add servo " + std::to_string(ID) + " to the synchronous write: " +
+                    groupSyncWrite->getPacketHandler()->getTxRxResult(dxl_comm_result) +
+                    "; packet error: " + groupSyncWrite->getPacketHandler()->getRxPacketError(dxl_error));
             groupSyncWrite->clearParam();
             groupSyncRead->clearParam();
             return false;
@@ -394,11 +388,8 @@ class ServoControlTuning : public Module
         dxl_comm_result = groupSyncWrite->txPacket();
         if (dxl_comm_result != COMM_SUCCESS)
         {
-            std::cout << "Sync write failed" << std::endl;
-            // Display a detailed communication error
-            std::cout << "Communication Error: "
-            << groupSyncWrite->getPacketHandler()->getTxRxResult(dxl_comm_result)
-            << std::endl;
+            Warning("Synchronous write failed for servo " + std::to_string(ID) + ": " +
+                    groupSyncWrite->getPacketHandler()->getTxRxResult(dxl_comm_result));
             groupSyncWrite->clearParam();
             groupSyncRead->clearParam();
             return false;
@@ -626,7 +617,8 @@ class ServoControlTuning : public Module
             // Ping all the servos to make sure they are all there.
             dxl_comm_result = packetHandlerHead->broadcastPing(portHandlerHead, vec);
             if (dxl_comm_result != COMM_SUCCESS)
-                std::cout << "ping failed for head. Error: " << packetHandlerHead->getTxRxResult(dxl_comm_result) << std::endl;
+                Warning("Head-servo broadcast ping failed: " +
+                        std::string(packetHandlerHead->getTxRxResult(dxl_comm_result)));
 
             Notify(msg_debug, "Detected Dynamixel (Head): \n");
             // for (int i = 0; i < (int)vec.size(); i++)
@@ -807,7 +799,6 @@ class ServoControlTuning : public Module
         Notify(msg_debug, "Setting up indirect addresses done\n");
         if(!SetPupilParameters()){
             Notify(msg_fatal_error, "Unable to set pupil parameters\n");
-            std::cout << "Unable to set pupil parameters" << std::endl;
             return;
         }
         Notify(msg_debug, "Setting up pupil done\n");

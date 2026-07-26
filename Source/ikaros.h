@@ -796,7 +796,7 @@ private:
     bool ValueOwnedByRunningAsyncComponent(const std::string & value_path) const;
     Component * ComponentForValuePath(const std::string & value_path) const;
     void WaitForAsyncComponents(bool discard_pending_actions);
-    std::optional<std::string> RunTasks();
+    std::optional<exception> RunTasks();
     void RunTasksInSingleThread();
     void SetUp();
     void SetCommandLineParameters(dictionary & d);

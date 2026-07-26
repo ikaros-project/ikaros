@@ -26,6 +26,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <string>
 
 class FFMpegGrab
 {
@@ -44,6 +45,7 @@ class FFMpegGrab
 	void SetSynchronized(bool enabled);
 	bool Init();
 	bool ReadFrame(uint8_t * destination, std::size_t bytes, bool wait_for_new_frame);
+	const std::string & LastError() const;
 
 	private:
 	void loop();

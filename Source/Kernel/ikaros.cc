@@ -2490,6 +2490,11 @@ namespace ikaros
     bool
     Component::Notify(int msg, std::string message, std::string path)
     {
+        if(path.empty())
+            path = path_;
+        if(msg == msg_fatal_error && !initialized_)
+            throw fatal_error(message, path);
+
         try
         {
             int log_level = GetParameter("log_level");
@@ -3079,7 +3084,6 @@ namespace ikaros
         }
         catch(const std::invalid_argument & e)
         {
-            Notify(msg_warning, e.what());
             throw setup_failed("Size expression for state \"" + std::string(d["name"]) + "\" is invalid. " + e.what(), path_);
         }
         catch(const std::exception & e)
@@ -3187,7 +3191,6 @@ namespace ikaros
         }
         catch(const std::invalid_argument & e)
         {
-            Notify(msg_warning, e.what());
             throw setup_failed("Size expression for output \""+std::string(d.at("name")) +"\" is invalid. "+e.what(), path_);
         }
         catch(const std::exception & e)
@@ -3787,6 +3790,30 @@ bool operator==(Request & r, const std::string s)
     bool
     Kernel::Tick()
     {
+        auto run_stage = [](const char * description, auto && operation)
+        {
+            try
+            {
+                operation();
+            }
+            catch(const fatal_runtime_error & e)
+            {
+                throw fatal_runtime_error(std::string("While ") + description + ": " + e.message(), e.path());
+            }
+            catch(const exception & e)
+            {
+                throw exception(std::string("While ") + description + ": " + e.message(), e.path());
+            }
+            catch(const std::exception & e)
+            {
+                throw exception(std::string("While ") + description + ": " + e.what());
+            }
+            catch(...)
+            {
+                throw exception(std::string("While ") + description + ": Unknown error.");
+            }
+        };
+
         UpdateProfilingState();
         const auto now = std::chrono::steady_clock::now();
         if(!run_clock_started)
@@ -3801,16 +3828,15 @@ bool operator==(Request & r, const std::string s)
         PollAsyncComponents();
         if(auto failure = RunTasks())
         {
-            Notify(msg_fatal_error, *failure);
+            Notify(msg_fatal_error, failure->message(), failure->path());
             return false;
         }
         //RunTasksInSingleThread();
 
-        save_matrix_states();
-        RotateBuffers();
-        Propagate();
-
-        CalculateCPUUsage();
+        run_stage("saving matrix state after task execution", []() { save_matrix_states(); });
+        run_stage("rotating delayed buffers", [this]() { RotateBuffers(); });
+        run_stage("propagating connection buffers", [this]() { Propagate(); });
+        run_stage("calculating CPU usage", [this]() { CalculateCPUUsage(); });
         return true;
     }
 
@@ -4140,13 +4166,11 @@ bool operator==(Request & r, const std::string s)
         }
         catch(fatal_error & e)
         {
-            Notify(msg_warning, e.message());
             throw setup_failed("Could not calculate input and output sizes. "+e.message(), e.path());
         }
 
         catch(setup_failed & e)
         {
-            Notify(msg_warning, e.message());
             throw setup_failed("Could not calculate input and output sizes. "+e.message(), e.path());
         }
 
@@ -5559,17 +5583,25 @@ bool operator==(Request & r, const std::string s)
                 component->Init();
                 component->initialized_ = true;
             }
-            catch(const fatal_error& e)
+            catch(const fatal_error & e)
             {
-                throw init_error("Fatal error. Init failed for \""+component->path_+"\": "+std::string(e.what()), component->path_);
+                throw init_error("While initializing module \"" + component->path_ + "\": " + e.message(),
+                                 e.path().empty() ? component->path_ : e.path());
             }
-            catch(const std::exception& e)
+            catch(const exception & e)
             {
-                throw init_error("Init failed for "+component->path_+": "+std::string(e.what()), component->path_);
+                throw init_error("While initializing module \"" + component->path_ + "\": " + e.message(),
+                                 e.path().empty() ? component->path_ : e.path());
+            }
+            catch(const std::exception & e)
+            {
+                throw init_error("While initializing module \"" + component->path_ + "\": " + e.what(),
+                                 component->path_);
             }
             catch(...)
             {
-                throw init_error("Init failed");
+                throw init_error("While initializing module \"" + component->path_ + "\": Unknown error.",
+                                 component->path_);
             }
         }
     }
@@ -6715,11 +6747,24 @@ bool operator==(Request & r, const std::string s)
         {
             task->Tick();
         }
+        catch(const exception & e)
+        {
+            if(profiling_started)
+                task->ProfilingEnd();
+            throw exception("While running task \"" + task->Info() + "\": " + e.message(),
+                            e.path().empty() ? task->Info() : e.path());
+        }
+        catch(const std::exception & e)
+        {
+            if(profiling_started)
+                task->ProfilingEnd();
+            throw exception("While running task \"" + task->Info() + "\": " + e.what(), task->Info());
+        }
         catch(...)
         {
             if(profiling_started)
                 task->ProfilingEnd();
-            throw;
+            throw exception("While running task \"" + task->Info() + "\": Unknown error.", task->Info());
         }
         if(profiling_started)
             task->ProfilingEnd();
@@ -6738,13 +6783,21 @@ bool operator==(Request & r, const std::string s)
             {
                 component->PollAsyncCompletion();
             }
+            catch(const exception & e)
+            {
+                Notify(msg_fatal_error,
+                       "While completing asynchronous Tick for module \"" + path + "\": " + e.message(),
+                       e.path().empty() ? path : e.path());
+            }
             catch(const std::exception & e)
             {
-                Notify(msg_fatal_error, "Error during asynchronous task completion for \"" + path + "\": " + std::string(e.what()), path);
+                Notify(msg_fatal_error,
+                       "While completing asynchronous Tick for module \"" + path + "\": " + e.what(), path);
             }
             catch(...)
             {
-                Notify(msg_fatal_error, "Error during asynchronous task completion for \"" + path + "\": Unknown error.", path);
+                Notify(msg_fatal_error,
+                       "While completing asynchronous Tick for module \"" + path + "\": Unknown error.", path);
             }
         }
     }
@@ -6768,13 +6821,20 @@ bool operator==(Request & r, const std::string s)
                 {
                     kernel_.RunTask(task);
                 }
+                catch(const exception & e)
+                {
+                    throw exception("While executing task sequence: " + e.message(), e.path());
+                }
                 catch(const std::exception & e)
                 {
-                    throw std::runtime_error("Error in task \"" + (task ? task->Info() : std::string("<null>")) + "\": " + e.what());
+                    throw exception("While executing task sequence: " + std::string(e.what()),
+                                    task ? task->Info() : std::string());
                 }
                 catch(...)
                 {
-                    throw std::runtime_error("Error in task \"" + (task ? task->Info() : std::string("<null>")) + "\": Unknown error.");
+                    throw exception("While executing task sequence for task \"" +
+                                    (task ? task->Info() : std::string("<null>")) + "\": Unknown error.",
+                                    task ? task->Info() : std::string());
                 }
             }
         }
@@ -6784,13 +6844,13 @@ bool operator==(Request & r, const std::string s)
     };
 
 
-    std::optional<std::string>
+    std::optional<exception>
     Kernel::RunTasks()
     {
         std::vector<std::shared_ptr<TaskSequence>> sequences;
         sequences.reserve(tasks.size());
 
-        std::optional<std::string> failure;
+        std::optional<exception> failure;
         try
         {
             for(auto & task_sequence : tasks)
@@ -6800,13 +6860,17 @@ bool operator==(Request & r, const std::string s)
                 sequences.push_back(ts);
             }
         }
+        catch(const exception & e)
+        {
+            failure = exception("While submitting task sequences: " + e.message(), e.path());
+        }
         catch(const std::exception & e)
         {
-            failure = "Could not submit task sequence: " + std::string(e.what());
+            failure = exception("While submitting task sequences: " + std::string(e.what()));
         }
         catch(...)
         {
-            failure = "Could not submit task sequence: Unknown error.";
+            failure = exception("While submitting task sequences: Unknown error.");
         }
 
         bool timed_out = false;
@@ -6848,20 +6912,25 @@ bool operator==(Request & r, const std::string s)
             {
                 ts->waitForCompletion();
             }
+            catch(const exception & e)
+            {
+                if(!failure)
+                    failure = exception("While waiting for task sequence completion: " + e.message(), e.path());
+            }
             catch(const std::exception & e)
             {
                 if(!failure)
-                    failure = "Could not wait for task sequence: " + std::string(e.what());
+                    failure = exception("While waiting for task sequence completion: " + std::string(e.what()));
             }
             catch(...)
             {
                 if(!failure)
-                    failure = "Could not wait for task sequence: Unknown error.";
+                    failure = exception("While waiting for task sequence completion: Unknown error.");
             }
         }
 
         if(timed_out)
-            failure = "Task execution timed out after " + formatNumber(task_timeout) + " seconds.";
+            failure = exception("Task execution timed out after " + formatNumber(task_timeout) + " seconds.");
 
         for(auto & ts : sequences)
         {
@@ -6869,15 +6938,20 @@ bool operator==(Request & r, const std::string s)
             {
                 ts->rethrowIfError();
             }
+            catch(const exception & e)
+            {
+                if(!failure)
+                    failure = exception("During task execution: " + e.message(), e.path());
+            }
             catch(const std::exception & e)
             {
                 if(!failure)
-                    failure = "Error during task execution: " + std::string(e.what());
+                    failure = exception("During task execution: " + std::string(e.what()));
             }
             catch(...)
             {
                 if(!failure)
-                    failure = "Error during task execution: Unknown error.";
+                    failure = exception("During task execution: Unknown error.");
             }
         }
 
@@ -7033,9 +7107,15 @@ bool operator==(Request & r, const std::string s)
                         if(Tick() && socket != nullptr)
                             BuildUISnapshot(true);
                     }
+                    catch(const exception & e)
+                    {
+                        Notify(msg_fatal_error, "During kernel tick " + std::to_string(tick) + ": " + e.message(),
+                               e.path());
+                        break;
+                    }
                     catch(const std::exception & e)
                     {
-                        Notify(msg_fatal_error, e.what());
+                        Notify(msg_fatal_error, "During kernel tick " + std::to_string(tick) + ": " + e.what());
                         break;
                     }
                     catch(...)
@@ -8036,10 +8116,10 @@ bool operator==(Request & r, const std::string s)
                 throw exception("Save request body must be a JSON object.");
             d = dictionary(request.json_body).copy();
         }
-        catch(const std::exception& e)
+        catch(const std::exception & e)
         {
-            std::cerr << e.what() << '\n';
-            std::cout << "INTERNAL ERROR: Could not parse json.\n" << request.body << '\n';
+            Notify(msg_warning, "While handling WebUI Save request: Could not parse JSON body: " +
+                   std::string(e.what()));
             DoSendError("400 Bad Request", "Save request body is not valid JSON.");
             return;
         }
@@ -8880,11 +8960,12 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoCommand(Request & request)
     {
+        std::string key;
         try
         {
             request.MergeJsonBodyIntoParameters();
 
-            std::string key = normalize_request_value_path(request.component_path);
+            key = normalize_request_value_path(request.component_path);
 
             std::lock_guard<std::recursive_mutex> lock(kernelLock);
 
@@ -8907,9 +8988,14 @@ bool operator==(Request & r, const std::string s)
                 components.at(key)->Command(request.parameters["command"], request.parameters);
             }
         }
-        catch(const std::exception& e)
+        catch(const exception & e)
         {
-            std::cerr << e.what() << '\n';
+            Notify(msg_warning, "While handling WebUI command for module \"" + key + "\": " + e.message(),
+                   e.path().empty() ? key : e.path());
+        }
+        catch(const std::exception & e)
+        {
+            Notify(msg_warning, "While handling WebUI command for module \"" + key + "\": " + e.what(), key);
         }
         DoSendData(request);
     }
@@ -8919,11 +9005,12 @@ bool operator==(Request & r, const std::string s)
     void
     Kernel::DoControl(Request & request)
     {
+        std::string key;
         try
         {
             request.MergeJsonBodyIntoParameters();
 
-            std::string key = normalize_request_value_path(request.component_path);
+            key = normalize_request_value_path(request.component_path);
 
             std::lock_guard<std::recursive_mutex> lock(kernelLock);
 
@@ -8987,10 +9074,14 @@ bool operator==(Request & r, const std::string s)
                 }
             }
         }
-        catch(const std::exception& e)
+        catch(const exception & e)
         {
-            std::cerr << e.what() << '\n';
-
+            Notify(msg_warning, "While handling WebUI control for \"" + key + "\": " + e.message(),
+                   e.path().empty() ? key : e.path());
+        }
+        catch(const std::exception & e)
+        {
+            Notify(msg_warning, "While handling WebUI control for \"" + key + "\": " + e.what(), key);
         }
         DoSendData(request);
     }
@@ -9511,11 +9602,11 @@ Kernel::CalculateCPUUsage() // Fraction of total CPU capacity
                     socket->FinishActiveRequest();
                 }
             }
-            catch(const std::exception& e)
+            catch(const std::exception & e)
             {
                 if(shutdown.load(std::memory_order_acquire))
                     break;
-                std::cerr << "HTTP request failed: " << e.what() << '\n';
+                Notify(msg_warning, "While handling HTTP request: " + std::string(e.what()));
                 if(socket != nullptr)
                     socket->Close();
             }

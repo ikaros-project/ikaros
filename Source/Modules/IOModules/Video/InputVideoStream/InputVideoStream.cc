@@ -148,13 +148,15 @@ class InputVideoStream : public Module
 		{
 			if (!InitializeFrameGrabber())
 			{
-				Notify(msg_fatal_error, "Can not start frame grabber");
+				Notify(msg_fatal_error, "InputVideoStream could not start its frame grabber: " +
+				       framegrabber->LastError());
 				return;
 			}
 		}
-		catch (const std::exception &)
+		catch (const std::exception & e)
 		{
-			Notify(msg_fatal_error, "Can not create frame grabber");
+			Notify(msg_fatal_error, "InputVideoStream could not create its frame grabber: " +
+			       std::string(e.what()));
 			return;
 		}
 

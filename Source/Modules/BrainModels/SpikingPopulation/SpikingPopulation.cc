@@ -168,7 +168,7 @@ class SpikingPopulation: public Module
                 && excitation_topology.size_x() == excitation.size())
                     exc_syn_tmp.multiply(excitation_topology);
                 else
-                    std::cout << "Warning: SpikingPopulation::Tick(): excitation_topology wrong size, not used.\n";
+                    Warning("SpikingPopulation Tick ignored excitation_topology because its size is invalid.");
             }
             composed_ext_syn_length += excitation.size();
         } 
