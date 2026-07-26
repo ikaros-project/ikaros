@@ -197,8 +197,8 @@ The context object provides:
 | `ctx.inputs` | Dictionary-like access to input arrays. |
 | `ctx.outputs` | Dictionary-like access to output arrays. |
 | `ctx.parameters` | Dictionary-like access to parameter values. |
-| `ctx.tick` | Current tick number. |
-| `ctx.time` | Current simulation time. |
+| `ctx.tick` | Current tick number. The first `tick(ctx)` call is tick 1; tick 0 is the initialized state. |
+| `ctx.time` | Current simulation time at the nominal endpoint of the tick interval. |
 | `ctx.dt` | Tick duration. |
 | `ctx.log` | Logging bridge into the Ikaros log. |
 

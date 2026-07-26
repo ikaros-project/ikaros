@@ -410,11 +410,11 @@ public:
     int SetStateShapes(input_map ingoing_connections) override;
     int SetSizes(input_map ingoing_connections) override; // Sets input and output if possible
 
-    tick_count GetTick() const;
+    tick_count GetTick() const;       // First Tick() call is tick 1; tick 0 is the initialized state
     double GetTickDuration() const;
     double GetTime() const;           // actual or nominal time depending om run mode
     double GetRealTime() const;       // actual time since start
-    double GetNominalTime() const;    // nominal time at current tick
+    double GetNominalTime() const;    // current tick * tick duration; endpoint of the tick interval
     double GetRunTime() const;        // elapsed wall-clock time from the first tick
     double GetTimeOfDay() const;      // seconds since midnight
     double GetLag() const;
@@ -635,11 +635,11 @@ public:
 
     static void *   StartHTTPThread(Kernel * k);
 
-    tick_count GetTick();
+    tick_count GetTick(); // First execution tick is 1; tick 0 is the initialized state
     double GetTickDuration(); // Time for each tick in seconds (s)
     double GetTime();   // Time since start (in real time or simulated (tick) time depending on mode)
     double GetRealTime();
-    double GetNominalTime(); 
+    double GetNominalTime(); // Current tick * tick duration; endpoint of the tick interval
     double GetRunTime();
     double GetTimeOfDay();
     double GetLag();

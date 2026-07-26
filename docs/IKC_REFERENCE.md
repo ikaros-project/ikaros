@@ -298,6 +298,20 @@ Available values can come from:
   - `real_time`
   - `start`
 
+## Execution Ticks and Nominal Time
+
+Tick 0 represents the initialized model state before any processing cycle has
+run. The first call to a module's `Tick()` occurs at tick 1. During tick `n`,
+the nominal time is:
+
+```text
+n * tick_duration
+```
+
+The nominal time therefore represents the endpoint of the interval processed
+by that tick. For example, with `tick_duration="0.01"`, the first `Tick()` call
+sees tick 1 and a nominal time of 0.01 seconds.
+
 ## Auto-Injected Parameters
 
 Even if you do not declare them, the kernel adds these to every class:
@@ -319,6 +333,11 @@ Exception and notification use: use exceptions for failures detected during star
 ### `start_tick`
 
 - Type: `number`
+
+The component runs when the current tick is greater than or equal to
+`start_tick`. Because the first processing cycle is tick 1, values 0 and 1 both
+allow the component to run on the first cycle. A value of 2 starts it on the
+second cycle.
 
 ### `color`
 
