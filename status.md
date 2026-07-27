@@ -10,11 +10,11 @@ The tasks below will be completed sequentially, with one focused commit per task
 | 2 | Audit `kernel_shapes.cc` and `kernel_scheduling.cc` for self-contained, minimal direct includes and declarations. | Completed | Both units require the private `Kernel` definition and already use only `ikaros.h`; CMake target build passed. No source change required. | `New kernel units now have verified include boundaries` |
 | 3 | Re-run the unused-function audit across the split kernel implementation and resolve confirmed internal dead code. | Completed | Removed five private diagnostics functions referenced only by comments; member-pointer handlers and retained/public APIs excluded; CMake Debug build and all 266 tests passed. | `Removed unused kernel diagnostics functions` |
 | 4 | Review the remaining responsibilities in `kernel_setup.cc` and extract another unit only if a clear cohesive boundary remains. | Completed | Startup-step analysis and JSON reporting moved intact to `kernel_startup_steps.cc`; stale local snapshot declarations removed; CMake Debug build and all 266 tests passed. | `Startup-step analysis now has its own implementation unit` |
-| 5 | Review repository-unused public APIs (`Kernel::HasOption()`, `Kernel::GetOptionLong()`, `Component::BindParameter()`, and `Component::info()`) for external compatibility and document or implement the appropriate disposition. | Pending | Pending | Pending |
+| 5 | Review repository-unused public APIs (`Kernel::HasOption()`, `Kernel::GetOptionLong()`, `Component::BindParameter()`, and `Component::info()`) for external compatibility and document or implement the appropriate disposition. | Completed | `HasOption()` and `GetOptionLong()` retained as coherent module-facing option queries; obsolete duplicate `BindParameter()` and malformed debugging `info()` removed; CMake Debug build and all 266 tests passed. | `Obsolete Component APIs were removed` |
 
 ### Outstanding issues and questions
 
-Pending implementation and verification.
+None.
 
 
 ## Connection encapsulation completion
@@ -120,11 +120,11 @@ This is a read-only review. Each split implementation and focused declaration fi
 - `Kernel::AllocateInputs()`, `Kernel::AuthEnabled()`, and `Kernel::DoSendLog()` were removed in `Removed unused kernel functions`.
 - `Kernel::ListClasses()` was deliberately retained for class diagnostics.
 
-### Repository-unused public API candidates
+### Disposition of repository-unused public API candidates
 
-- `Kernel::HasOption()` and `Kernel::GetOptionLong()` have no in-repository callers. They should only be removed after deciding whether external modules are expected to use them.
-- `Component::BindParameter()` has no in-repository callers. Its lower-level behavior is still used through `ResolveParameter()` and `LookupParameter()`.
-- `Component::info()` has no identifiable call site, but its generic name makes textual auditing less definitive; external-module compatibility should be considered.
+- `Kernel::HasOption()` and `Kernel::GetOptionLong()` are retained as coherent module-facing option queries alongside `GetOption()` and `IsOptionExplicitlySet()`.
+- Obsolete `Component::BindParameter()` was removed; parameter binding remains part of the active `ResolveParameter()` and `LookupParameter()` path.
+- Lowercase `Component::info()` was removed; it was an unused debugging printer with duplicated and mislabeled output.
 - `msg_inherit`, `msg_quiet`, and `msg_exception` are not referenced in repository C++ code. They are public protocol constants and should not be removed as an internal cleanup.
 
 ### Disposition of proposed simplifications and refactorings

@@ -351,26 +351,6 @@ namespace ikaros
         return StartupStepString(startup_all_real_inputs_step);
     }
 
-        void 
-        Component::info() const
-        {
-            std::cout << "Component: " << info_["name"]  << '\n';
-            std::cout << "Path: " << path_  << '\n';
-            std::cout << "Path: " << info_  << '\n';
-        }
-
-    bool 
-    Component::BindParameter(parameter & p,  std::string & name) // Handle parameter sharing
-    {
-        std::string bind_to = GetBind(name);
-        if(bind_to.empty())
-            return false;
-        else
-            return LookupParameter(p, bind_to);
-    }
-
-
-
     bool
     Component::GetRawParameterValue(const parameter & p, const std::string & name,
                                     std::string & raw_value, Component *& context) const

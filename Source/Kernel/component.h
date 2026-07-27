@@ -154,7 +154,6 @@ namespace ikaros
         void SetParameter(std::string name, std::string value);
         void SetParameter(std::string name, const matrix & value,
                           const std::string & source_value = "");
-        bool BindParameter(parameter & p, std::string & name);
         bool ResolveParameter(parameter & p, std::string & name);
         void Bind(parameter & p, std::string n);
         void Bind(matrix & m, std::string n);
@@ -173,7 +172,6 @@ namespace ikaros
         virtual void Command(std::string command_name, dictionary & parameters);
 
         void print() const;
-        void info() const;
         std::string json() const;
         virtual std::string json(const std::string &);
         std::string xml();
