@@ -27,7 +27,7 @@
         width="640"
         height="480"
         source="Detector.BOXES"
-        color="#00ff66"
+        box_color="#00ff66"
         line_width="3"
         show_score="yes"
         show_title="false"
