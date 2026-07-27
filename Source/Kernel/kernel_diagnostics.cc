@@ -18,18 +18,6 @@ namespace ikaros
     }
 
     void
-    Kernel::ListComponents()
-    {
-        std::cout << "\nComponents:\n";
-        for(auto & [name, component] : components)
-        {
-            (void)name;
-            component->print();
-        }
-    }
-
-
-    void
     Kernel::ListConnections()
     {
         std::cout << "\nConnections:\n";
@@ -48,49 +36,11 @@ namespace ikaros
 
 
     void
-    Kernel::ListCircularBuffers()
-    {
-        if(circular_buffers.empty())
-            return;
-
-        std::cout << "\nCircularBuffers:\n";
-        for(auto & [name, history] : circular_buffers)
-        {
-            const matrix & latest = history.buffer.get(1);
-            std::cout << "\t" << name << " " << history.buffer.size() << " "
-                      << latest.rank() << latest.shape() << '\n';
-        }
-    }
-
-
-    void
-    Kernel::ListTasks()
-    {
-        for(auto & task_group : tasks)
-        {
-            std::cout << "\nTasks:\n";
-            for(auto & task: task_group)
-                std::cout << "\t" << task->Info() << '\n';
-        }
-    }
-
-   void
-   Kernel::ListParameters()
+    Kernel::ListParameters()
     {
         std::cout << "\nParameters:\n";
         for(auto & [name, parameter] : parameters)
             std::cout  << "\t" << name << ": " << parameter << '\n';
-    }
-
-
-    void
-    Kernel::PrintLog()
-    {
-        std::lock_guard<std::mutex> lock(log_mutex);
-        for(auto & s : log)
-            std::cout << "ikaros: " << s.level_ << ": " << s.message_ << '\n';
-        log.clear();
-        first_webui_log_sequence = next_webui_log_sequence;
     }
 
 
@@ -99,17 +49,6 @@ namespace ikaros
     {
         return profiling_enabled.load(std::memory_order_relaxed);
     }
-
-    void
-        Kernel::PrintProfiling()
-        {
-            for(auto & [name, component] : components)
-            {
-                (void)name;
-                component->profiler_.print(component->path_);
-            }
-        }
-
 
     dictionary 
     Kernel::GetModuleInstantiationInfo()

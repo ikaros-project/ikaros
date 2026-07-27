@@ -352,14 +352,9 @@ private:
     void ShareZeroDelayConnectionBuffers();
     void InitCircularBuffers();
     void RotateBuffers();
-    void ListComponents();
     void ListConnections();
     void ListBuffers();
-    void ListCircularBuffers();
     void ListParameters();
-    void ListTasks();
-    void PrintLog();
-    void PrintProfiling();
 
     // Functions for creating the network
 

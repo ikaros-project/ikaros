@@ -8,7 +8,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 |---:|---|---|---|---|
 | 1 | Bring historical `status.md` findings up to date with the completed removals, moves, and retained APIs. | Completed | Historical findings reconciled against the current source tree and completed commits; Markdown diff check passed. | `Kernel review status now reflects completed work` |
 | 2 | Audit `kernel_shapes.cc` and `kernel_scheduling.cc` for self-contained, minimal direct includes and declarations. | Completed | Both units require the private `Kernel` definition and already use only `ikaros.h`; CMake target build passed. No source change required. | `New kernel units now have verified include boundaries` |
-| 3 | Re-run the unused-function audit across the split kernel implementation and resolve confirmed internal dead code. | Pending | Pending | Pending |
+| 3 | Re-run the unused-function audit across the split kernel implementation and resolve confirmed internal dead code. | Completed | Removed five private diagnostics functions referenced only by comments; member-pointer handlers and retained/public APIs excluded; CMake Debug build and all 266 tests passed. | `Removed unused kernel diagnostics functions` |
 | 4 | Review the remaining responsibilities in `kernel_setup.cc` and extract another unit only if a clear cohesive boundary remains. | Pending | Pending | Pending |
 | 5 | Review repository-unused public APIs (`Kernel::HasOption()`, `Kernel::GetOptionLong()`, `Component::BindParameter()`, and `Component::info()`) for external compatibility and document or implement the appropriate disposition. | Pending | Pending | Pending |
 

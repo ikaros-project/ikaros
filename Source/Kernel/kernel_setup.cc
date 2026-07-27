@@ -2075,14 +2075,9 @@ namespace ikaros
             if(info_.is_set("info"))
             {
                 ListParameters();
-                //ListComponents();
                 ListConnections();
                 ListBuffers();
-                //ListCircularBuffers();
-                //ListTasks();
             }
-
-            //PrintLog();
         }
         catch(exception & e)
         {
