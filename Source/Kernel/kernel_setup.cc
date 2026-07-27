@@ -1816,8 +1816,23 @@ namespace ikaros
             ShareZeroDelayConnectionBuffers();
 
             InitCircularBuffers();
-            for(auto & connection : connections)
+            post_task_connection_spans.clear();
+            std::size_t propagation_run_start = 0;
+            for(std::size_t i = 0; i < connections.size(); ++i)
+            {
+                Connection & connection = connections[i];
                 connection.ResolveRuntimeState();
+                if(!connection.HasZeroDelay())
+                    continue;
+
+                if(propagation_run_start < i)
+                    post_task_connection_spans.emplace_back(
+                        &connections[propagation_run_start], i - propagation_run_start);
+                propagation_run_start = i + 1;
+            }
+            if(propagation_run_start < connections.size())
+                post_task_connection_spans.emplace_back(
+                    &connections[propagation_run_start], connections.size() - propagation_run_start);
             InitComponents();
 
             if(info_.is_set("info"))

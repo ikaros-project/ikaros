@@ -19,6 +19,7 @@
 #include <optional>
 #include <random>
 #include <set>
+#include <span>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -267,6 +268,7 @@ private:
     std::vector<Component *>                async_components;
     std::mutex                              component_lifecycle_mutex;
     std::vector<Connection>                 connections;
+    std::vector<std::span<Connection>>      post_task_connection_spans;
     std::map<std::string, matrix>           buffers;                // IO-structure
     std::set<std::string>                   state_buffers;
     std::set<std::string>                   persistent_outputs;

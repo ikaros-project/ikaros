@@ -116,6 +116,7 @@ namespace ikaros
         async_components.clear();
         components.clear();
 
+        post_task_connection_spans.clear();
         connections.clear();
         buffers.clear();
         state_buffers.clear();

@@ -70,26 +70,25 @@ namespace ikaros
     void 
     Kernel::Propagate()
     {
-        for(auto & c : connections)
-            if(c.HasZeroDelay())
-                continue;
-            else if(!c.ShouldTick())
-                continue;
-            else
-                try
-                {
-                    c.Tick();
-                }
-                catch(const std::exception & e)
-                {
-                    throw std::runtime_error("Error propagating connection \"" +
-                                             c.Info() + "\": " + e.what());
-                }
-                catch(...)
-                {
-                    throw std::runtime_error("Unknown error propagating connection \"" +
-                                             c.Info() + "\".");
-                }
+        for(std::span<Connection> connection_span : post_task_connection_spans)
+            for(Connection & connection : connection_span)
+                if(!connection.ShouldTick())
+                    continue;
+                else
+                    try
+                    {
+                        connection.Tick();
+                    }
+                    catch(const std::exception & e)
+                    {
+                        throw std::runtime_error("Error propagating connection \"" +
+                                                 connection.Info() + "\": " + e.what());
+                    }
+                    catch(...)
+                    {
+                        throw std::runtime_error("Unknown error propagating connection \"" +
+                                                 connection.Info() + "\".");
+                    }
     }
 
 
