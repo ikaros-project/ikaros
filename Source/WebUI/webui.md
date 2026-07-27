@@ -95,6 +95,7 @@ The following parameters are built into the top group and can be set directly as
 - `snapshot_interval`
   Minimum wall-clock interval in seconds between image refreshes in update snapshots.
   This is independent of the complete snapshot cadence controlled by `webui_req_int`.
+  Image matrices are captured synchronously, then JPEG-encoded by bounded background workers; the latest completed image is returned while a refresh is in progress.
   Default: `0.1`
 
 - `rgb_quality`

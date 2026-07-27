@@ -544,6 +544,8 @@ InitClass::InitClass(const char * name, ModuleCreator mc)
 Kernel::~Kernel()
 {
     StopHTTPServer();
+    ui_image_encoder_access.store(nullptr, std::memory_order_release);
+    ui_image_encoder.reset();
 }
 
 }; // namespace ikaros

@@ -6,6 +6,7 @@ The WebUI update path now uses a server-side snapshot cache to keep `/update` re
 
 - During steady-state execution with active clients, the kernel builds a shared UI snapshot no more often than the configured WebUI request interval.
 - `/update` responses read from that snapshot instead of serializing everything on demand.
+- Subscribed image matrices are copied while the kernel is stable and encoded by a small persistent worker pool. Simulation ticks do not wait for JPEG compression or Base64 encoding.
 - If a requested value is missing from the current snapshot, it is computed once as a fallback and then included in future snapshots.
 - The first active client and subscription changes trigger an immediate snapshot instead of waiting for the next interval.
 
@@ -20,6 +21,8 @@ This means one browser can change view without disturbing another browser that i
 ## Snapshot And Image Throttling
 
 Scalar values and status data are refreshed at the WebUI request cadence. Image entries can be refreshed less often because encoding them is substantially more expensive.
+
+The browser receives the most recently completed image. A new subscription or image refresh can therefore leave the previous image in place for one poll while encoding finishes. Only one image generation is admitted at a time; if encoding is slower than the requested cadence, intermediate refreshes are coalesced instead of accumulating stale work.
 
 These parameters are built into the top group and can be set directly as attributes on the top-level `<group>` element:
 
@@ -53,6 +56,7 @@ Log delivery is independent of snapshot replacement. Each client advances its ow
 
 - `/update` latency stays very low.
 - Expensive image encoding is moved off the request path.
+- JPEG work no longer holds the kernel lock or delays the next simulation tick.
 - Snapshot serialization follows the browser polling cadence instead of the simulation tick rate.
 - If the browser polls slower than the simulation ticks, scalar serialization and image work are no longer repeated every tick unnecessarily.
 

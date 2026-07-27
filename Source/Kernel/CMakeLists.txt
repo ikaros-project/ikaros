@@ -8,6 +8,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin|Linux")
         ${CMAKE_CURRENT_SOURCE_DIR}/signal.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/xml.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/thread_pool.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/webui_image_encoder.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/profiler.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/compute_engine.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/parameter.cc

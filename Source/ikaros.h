@@ -39,6 +39,7 @@
 #include "Kernel/socket.h"
 #include "Kernel/timing.h"
 #include "Kernel/image_file_formats.h"
+#include "Kernel/webui_image_encoder.h"
 #include "Kernel/serial.h"
 #include "Kernel/thread_pool.h"
 #include "Kernel/statistics.h"
@@ -184,12 +185,34 @@ private:
     {
         std::string prefix;
         std::string value;
+        std::shared_ptr<const std::string> shared_value;
+
+        bool HasValue() const
+        {
+            return shared_value != nullptr ? !shared_value->empty() : !value.empty();
+        }
+
+        const std::string & Value() const
+        {
+            return shared_value != nullptr ? *shared_value : value;
+        }
+    };
+
+    enum class UIImageCaptureResult
+    {
+        captured,
+        unavailable,
+        not_buffer,
     };
 
     uint64_t                                next_ui_snapshot_id = 1;
     uint64_t                                ui_subscription_revision = 1;
     std::shared_ptr<const UISnapshot>       current_ui_snapshot;
     std::mutex                              ui_snapshot_mutex;
+    std::unique_ptr<WebUIImageEncoderPool>  ui_image_encoder;
+    std::atomic<WebUIImageEncoderPool *>    ui_image_encoder_access = nullptr;
+    std::mutex                              ui_image_encoder_init_mutex;
+    std::atomic<std::uint64_t>              ui_image_generation = 1;
     std::unordered_map<long, UIClientState>       ui_client_states;
     std::mutex                                    ui_client_mutex;
     std::unordered_map<long, std::chrono::steady_clock::time_point> profiling_clients;
@@ -487,7 +510,14 @@ private:
     RequestedUIValue ParseSubscribedUIValue(const std::string & subscription_key) const;
     std::string SubscriptionKeyFor(const RequestedUIValue & requested_value) const;
     bool SerializeRequestedValue(RequestedUIValue requested_value, std::string & serialized_value, long long * compute_us = nullptr, long long * value_us = nullptr);
+    UIImageCaptureResult CaptureRequestedUIImage(
+        RequestedUIValue requested_value,
+        std::shared_ptr<const matrix> & captured_image,
+        std::string & source_path);
     std::string ConsumeLogForClient(long ui_client_id);
+    WebUIImageEncoderPool * CurrentUIImageEncoder() const;
+    WebUIImageEncoderPool & EnsureUIImageEncoder();
+    void ResetUIImageEncoding();
     void ResetUISnapshotCache();
     UISnapshotBuildPlan PlanUISnapshotBuild(bool respect_rate_limit);
     void PopulateUISnapshot(UISnapshot & snapshot, const UISnapshotBuildPlan & plan);

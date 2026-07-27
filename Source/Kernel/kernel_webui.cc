@@ -2,7 +2,6 @@
 
 #include "ikaros.h"
 
-#include <future>
 #include <sstream>
 
 using namespace ikaros;
@@ -344,6 +343,37 @@ namespace ikaros
     }
 
 
+    Kernel::UIImageCaptureResult
+    Kernel::CaptureRequestedUIImage(RequestedUIValue requested_value,
+                                    std::shared_ptr<const matrix> & captured_image,
+                                    std::string & source_path)
+    {
+        if((requested_value.source.find('@') != std::string::npos ||
+            requested_value.source.find('{') != std::string::npos) &&
+           components.count(requested_value.root) > 0)
+        {
+            Component * component = components.at(requested_value.root).get();
+            requested_value.source = component->ComputeValue(requested_value.source);
+        }
+
+        source_path = requested_value.root + "." + requested_value.source;
+        if(!requested_value.source.empty() && requested_value.source[0] == '.')
+            source_path = requested_value.source.substr(1);
+
+        auto buffer = buffers.find(source_path);
+        if(buffer == buffers.end() || state_buffers.count(source_path) > 0)
+            return UIImageCaptureResult::not_buffer;
+        if(ValueOwnedByRunningAsyncComponent(source_path))
+            return UIImageCaptureResult::unavailable;
+
+        const std::uint64_t generation = ui_image_generation.load(std::memory_order_acquire);
+        captured_image = EnsureUIImageEncoder().Capture(
+            generation, source_path, buffer->second);
+        return captured_image == nullptr ? UIImageCaptureResult::unavailable :
+                                           UIImageCaptureResult::captured;
+    }
+
+
     std::string
     Kernel::ConsumeLogForClient(long ui_client_id)
     {
@@ -389,6 +419,7 @@ namespace ikaros
     void
     Kernel::ResetUISnapshotCache()
     {
+        ResetUIImageEncoding();
         {
             std::lock_guard<std::mutex> lock(ui_snapshot_mutex);
             current_ui_snapshot.reset();
@@ -404,6 +435,47 @@ namespace ikaros
             }
             ++ui_subscription_revision;
         }
+    }
+
+
+    void
+    Kernel::ResetUIImageEncoding()
+    {
+        std::lock_guard<std::mutex> lock(ui_image_encoder_init_mutex);
+        const std::uint64_t generation =
+            ui_image_generation.fetch_add(1, std::memory_order_acq_rel) + 1;
+        if(WebUIImageEncoderPool * encoder = CurrentUIImageEncoder())
+            encoder->Reset(generation);
+    }
+
+
+    WebUIImageEncoderPool *
+    Kernel::CurrentUIImageEncoder() const
+    {
+        return ui_image_encoder_access.load(std::memory_order_acquire);
+    }
+
+
+    WebUIImageEncoderPool &
+    Kernel::EnsureUIImageEncoder()
+    {
+        WebUIImageEncoderPool * encoder = CurrentUIImageEncoder();
+        if(encoder == nullptr)
+        {
+            std::lock_guard<std::mutex> lock(ui_image_encoder_init_mutex);
+            encoder = CurrentUIImageEncoder();
+            if(encoder == nullptr)
+            {
+                const std::size_t image_workers = cpu_cores > 2 ? 2 : 1;
+                ui_image_encoder =
+                    std::make_unique<WebUIImageEncoderPool>(image_workers);
+                ui_image_encoder->Reset(
+                    ui_image_generation.load(std::memory_order_acquire));
+                encoder = ui_image_encoder.get();
+                ui_image_encoder_access.store(encoder, std::memory_order_release);
+            }
+        }
+        return *encoder;
     }
 
 
@@ -457,44 +529,73 @@ namespace ikaros
     void
     Kernel::PopulateUISnapshot(UISnapshot & snapshot, const UISnapshotBuildPlan & plan)
     {
+        const std::uint64_t image_generation =
+            ui_image_generation.load(std::memory_order_acquire);
+        if(WebUIImageEncoderPool * encoder = CurrentUIImageEncoder())
+            for(const auto & failure :
+                encoder->TakeFailures(image_generation))
+                Notify(msg_warning, "Could not build UI image snapshot for \"" +
+                       failure.key + "\": " + failure.message);
+
         const bool refresh_images = plan.previous_snapshot == nullptr ||
             plan.now - plan.previous_snapshot->image_timestamp >= duration<double>(SnapshotInterval());
         snapshot.snapshot_id = next_ui_snapshot_id++;
         snapshot.subscription_revision = plan.subscription_revision;
         snapshot.session_id = session_id;
         snapshot.tick = tick;
-        snapshot.image_timestamp = refresh_images ? plan.now : plan.previous_snapshot->image_timestamp;
+        snapshot.image_timestamp = plan.previous_snapshot == nullptr ?
+            steady_clock::time_point{} : plan.previous_snapshot->image_timestamp;
         snapshot.status_json = DoSendDataStatus();
 
-        std::vector<std::future<std::pair<std::string, std::string>>> image_futures;
+        WebUIImageEncoderPool * encoder = CurrentUIImageEncoder();
+        if(encoder != nullptr)
+            encoder->RetainLatest(image_generation, plan.subscriptions);
+        const bool encoder_available = encoder == nullptr || !encoder->Busy();
+        std::vector<WebUIImageEncoderPool::Request> image_requests;
         for(const auto & subscription_key : plan.subscriptions)
         {
             RequestedUIValue requested_value = ParseSubscribedUIValue(subscription_key);
             if(is_snapshot_image_format(requested_value.format))
             {
-                if(!refresh_images)
+                if(plan.previous_snapshot != nullptr)
                 {
                     auto it = plan.previous_snapshot->serialized_values.find(subscription_key);
                     if(it != plan.previous_snapshot->serialized_values.end())
-                    {
                         snapshot.serialized_values[subscription_key] = it->second;
-                        continue;
-                    }
                 }
 
-                image_futures.push_back(std::async(std::launch::async, [this, subscription_key, requested_value, previous_snapshot = plan.previous_snapshot]() mutable
+                if(!refresh_images || !encoder_available)
+                    continue;
+
+                try
                 {
-                    std::string serialized_value;
-                    if(SerializeRequestedValue(requested_value, serialized_value))
-                        return std::make_pair(subscription_key, std::move(serialized_value));
-                    if(previous_snapshot != nullptr)
+                    std::shared_ptr<const matrix> captured_image;
+                    std::string source_path;
+                    const UIImageCaptureResult result = CaptureRequestedUIImage(
+                        requested_value, captured_image, source_path);
+                    if(result == UIImageCaptureResult::captured)
                     {
-                        auto it = previous_snapshot->serialized_values.find(subscription_key);
-                        if(it != previous_snapshot->serialized_values.end())
-                            return std::make_pair(subscription_key, it->second);
+                        image_requests.push_back({
+                            subscription_key,
+                            std::move(source_path),
+                            requested_value.format,
+                            SnapshotJPEGQualityForFormat(requested_value.format),
+                            std::move(captured_image),
+                        });
                     }
-                    return std::make_pair(std::string(), std::string());
-                }));
+                    else if(result == UIImageCaptureResult::not_buffer)
+                    {
+                        std::string serialized_value;
+                        if(SerializeRequestedValue(requested_value, serialized_value))
+                            snapshot.serialized_values[subscription_key] =
+                                std::move(serialized_value);
+                    }
+                }
+                catch(const std::exception & e)
+                {
+                    Notify(msg_warning, "Could not capture UI image snapshot for \"" +
+                           requested_value.token + "\": " + e.what());
+                }
             }
             else
             {
@@ -517,19 +618,23 @@ namespace ikaros
             }
         }
 
-        for(auto & future : image_futures)
+        bool image_refresh_accepted = refresh_images && encoder_available;
+        if(!image_requests.empty())
         {
             try
             {
-                auto result = future.get();
-                if(!result.first.empty())
-                    snapshot.serialized_values[result.first] = std::move(result.second);
+                image_refresh_accepted = EnsureUIImageEncoder().Submit(
+                    image_generation, std::move(image_requests));
             }
             catch(const std::exception & e)
             {
-                Notify(msg_warning, "Could not build UI image snapshot: " + std::string(e.what()));
+                image_refresh_accepted = false;
+                Notify(msg_warning, "Could not queue UI image snapshot: " +
+                       std::string(e.what()));
             }
         }
+        if(image_refresh_accepted)
+            snapshot.image_timestamp = plan.now;
 
         snapshot.timestamp = steady_clock::now();
     }
@@ -549,6 +654,8 @@ namespace ikaros
         UISnapshotBuildPlan plan = PlanUISnapshotBuild(respect_rate_limit);
         if(!plan.has_active_clients)
         {
+            if(plan.previous_snapshot != nullptr)
+                ResetUIImageEncoding();
             PublishUISnapshot(nullptr);
             return;
         }
@@ -601,11 +708,11 @@ namespace ikaros
         std::string sep;
         for(const auto & item : response_items)
         {
-            if(item.value.empty())
+            if(!item.HasValue())
                 continue;
             response += sep;
             response += item.prefix;
-            response += item.value;
+            response += item.Value();
             sep = ",\n";
         }
 
@@ -646,12 +753,15 @@ namespace ikaros
         std::vector<DataSnapshotItem> response_items;
         std::vector<std::pair<size_t, RequestedUIValue>> fallback_items;
         response_items.reserve(requested_values.size());
+        const std::uint64_t image_generation =
+            ui_image_generation.load(std::memory_order_acquire);
 
         for(const auto & requested_value : requested_values)
         {
             response_items.push_back({
                 "\t\t\"" + escape_json_string(requested_value.key) + "\": ",
-                ""
+                "",
+                nullptr,
             });
 
             if(snapshot != nullptr)
@@ -662,6 +772,14 @@ namespace ikaros
                     response_items.back().value = it->second;
                     continue;
                 }
+            }
+
+            if(is_snapshot_image_format(requested_value.format))
+            {
+                if(WebUIImageEncoderPool * encoder = CurrentUIImageEncoder())
+                    response_items.back().shared_value = encoder->Latest(
+                        image_generation, SubscriptionKeyFor(requested_value));
+                continue;
             }
 
             fallback_items.emplace_back(response_items.size() - 1, requested_value);
@@ -713,25 +831,7 @@ namespace ikaros
     std::string
     Kernel::SendImage(const matrix & image, const std::string & format, int quality) // Compress image to jpg and return a base64 data URI
     {
-        jpeg_data jpeg;
-
-        if(format=="rgb" && image.rank() == 3 && image.size(0) == 3)
-            jpeg = create_color_jpeg(image, quality);
-
-        else if(format=="gray" && image.rank() == 2)
-            jpeg = create_gray_jpeg(image, 0, 1, quality);
-
-        else if(image.rank() == 2) // taking our chances with the format...
-            jpeg = create_pseudocolor_jpeg(image, 0, 1, format, quality);
-
-        if(jpeg.empty())
-            return "\"\"";
-
-        const std::string jpeg_base64 = base64_encode(jpeg.data(), jpeg.size());
-        std::string result = "\"data:image/jpeg;base64,";
-        result += jpeg_base64;
-        result += "\"";
-        return result;
+        return serialize_webui_image(image, format, quality);
     }
 
 

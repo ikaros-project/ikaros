@@ -525,16 +525,32 @@ def run_http_test(cmd, root):
 
                 request("network", record=False, client_id=301)
 
-                def image_value(path):
+                def image_value(path, required=True):
                     body = request(path, client_id=301)
                     try:
-                        return json.loads(body)["data"][data_key]
+                        value = json.loads(body)["data"].get(data_key)
                     except (json.JSONDecodeError, KeyError) as error:
                         raise AssertionError(
                             f"Invalid WebUI image response for {path}: {body!r}"
                         ) from error
+                    if required and value is None:
+                        raise AssertionError(
+                            f"WebUI image was missing from {path}: {body!r}"
+                        )
+                    return value
 
-                initial = image_value(update_path)
+                def wait_for_image(path, previous=None, timeout=5.0):
+                    deadline = time.monotonic() + timeout
+                    while time.monotonic() < deadline:
+                        value = image_value(path, required=False)
+                        if value is not None and value != previous:
+                            return value
+                        time.sleep(0.01)
+                    raise AssertionError(
+                        f"WebUI image did not complete for {path} within {timeout} seconds"
+                    )
+
+                initial = wait_for_image(update_path)
                 request(
                     f"control/{root_path}.{module_name}.data?x=1&y=1&value=1",
                     client_id=302,
@@ -546,11 +562,7 @@ def run_http_test(cmd, root):
                     )
 
                 time.sleep(wait_seconds)
-                refreshed = image_value(update_path)
-                if refreshed == initial:
-                    raise AssertionError(
-                        "WebUI image did not refresh after the wall-clock snapshot interval elapsed"
-                    )
+                wait_for_image(update_path, previous=initial)
             elif action.startswith("assert_async_profiling:"):
                 action_parts = action.split(":")
                 if len(action_parts) == 3:
