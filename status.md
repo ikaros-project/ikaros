@@ -1,5 +1,16 @@
 # Kernel Review Status
 
+## Confirmed unused kernel cleanup
+
+| Task | Status | Verification | Commit |
+|---|---|---|---|
+| Keep `Kernel::ListClasses()` and remove only `Kernel::AllocateInputs()`, `Kernel::AuthEnabled()`, and `Kernel::DoSendLog()`. | Completed | Reference check confirms only `ListClasses()` remains; Debug build; all 266 kernel and WebUI tests passed. | `Removed unused kernel functions` |
+
+### Outstanding issues and questions
+
+None.
+
+
 ## Split kernel file review
 
 This is a read-only review. Each split implementation and focused declaration file is checked for unused functions, unnecessary exposure, simplification opportunities, and potential follow-up refactoring. No implementation changes are included.

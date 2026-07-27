@@ -561,13 +561,6 @@ namespace ikaros
     }
 
 
-    std::string
-    Kernel::DoSendLog(Request & request)
-    {
-        return ConsumeLogForClient(request.client_id);
-    }
-
-
     bool
     Kernel::UpdateUIClientSubscriptions(long client_id,
                                         const std::vector<RequestedUIValue> & requested_values)

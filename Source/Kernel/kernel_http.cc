@@ -194,12 +194,6 @@ namespace ikaros
 
 
     bool
-    Kernel::AuthEnabled() const
-    {
-        return auth_enabled_;
-    }
-
-    bool
     Kernel::CheckPassword(const std::string & candidate) const
     {
         return auth_enabled_ && constant_time_equals(candidate, auth_password_);

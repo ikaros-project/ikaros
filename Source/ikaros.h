@@ -364,7 +364,6 @@ private:
     void LoadExternalGroup(dictionary & d);
     void BuildGroup(dictionary d, std::string path="");
 
-    void AllocateInputs();
     void InitComponents();
     void PruneConnections();
     void SortTasks();
@@ -495,7 +494,6 @@ private:
     void DoUnauthorized();
 
     void DoNetwork(Request & request);
-    std::string DoSendLog(Request & request);
     void DoSendClasses(Request & request);
     void DoSendClassInfo(Request & request);
     void DoSendClassReadMe(Request & request);
@@ -511,7 +509,6 @@ private:
     void DoSendPublicWebUIFile(std::string file);
     void DoSendError(const std::string & status = "404 Not Found", const std::string & message = "404 Not Found\n");
     std::string SendImage(const matrix & image, const std::string & format, int quality=90);
-    bool AuthEnabled() const;
     bool IsRequestAuthenticated() const;
     bool IsPublicRequest(const Request & request) const;
     bool CheckPassword(const std::string & candidate) const;
