@@ -10,7 +10,7 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
             {'name':'sequence_names', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'playing', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'layout_width', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'color', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'color_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
@@ -96,7 +96,7 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
         this.addSource(data_set, this.parameters.sequence_names);
         this.addSource(data_set, this.parameters.playing);
         this.addSource(data_set, this.parameters.layout_width);
-        this.addSource(data_set, this.parameters.color);
+        this.addSource(data_set, this.parameters.color_source);
     }
 
     asFlatArray(value)
@@ -158,7 +158,7 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
 
     getSequenceColors()
     {
-        const value = this.getSource("color", []);
+        const value = this.getSource("color_source", []);
         if(!Array.isArray(value))
             return [];
         if(value.length == 0)

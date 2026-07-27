@@ -10,7 +10,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
             { name: "enableSource", default: "", type: "source", control: "textedit" },
             { name: "select_x", default: 0, type: "int", control: "textedit" },
             { name: "select_y", default: "", type: "string", control: "textedit" },
-            { name: "count", default: 1, type: "int", control: "textedit" },
+            { name: "control_count", default: 1, type: "int", control: "textedit" },
 
             { name: "STYLE", control: "header" },
             { name: "labels", default: "", type: "string", control: "textedit" },
@@ -137,7 +137,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
 
     _syncAllSliders(value) {
         const sliders = this._getSliders();
-        const count = Number(this.parameters.count);
+        const count = Number(this.parameters.control_count);
 
         for (let i = 0; i < count; i += 1) {
             this._sendControlValue(value, i);
@@ -173,7 +173,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
     slider_moved(value, index = 0, shiftPressed = false) {
         this.is_active = true;
         this.active_until = Date.now() + 500;
-        const shouldSync = Number(this.parameters.count) > 1 && (shiftPressed || this.sync);
+        const shouldSync = Number(this.parameters.control_count) > 1 && (shiftPressed || this.sync);
 
         if (!shouldSync) {
             this._sendControlValue(value, index);
@@ -190,7 +190,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
         super.updateAll();
 
         const container = this.firstChild;
-        const count = Number(this.parameters.count);
+        const count = Number(this.parameters.control_count);
 
         while (container.childElementCount > count) {
             container.removeChild(container.lastElementChild);

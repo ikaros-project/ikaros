@@ -30,6 +30,38 @@ The tasks below will be completed sequentially, with one focused commit per task
 None.
 
 
+## WebUI widget parameter standardization
+
+This is an intentionally breaking migration. Old parameter names will not be retained as aliases. Each task includes migration of affected repository models and focused verification, and will be committed independently before the next task begins.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Resolve parameters whose current names have conflicting meanings: separate frame and scene backgrounds, rename Sequence Grid's color source, rename Grid's color-map selector, and distinguish control counts from point counts. | Completed | JavaScript syntax checks; XML validation for every changed `.ikg`; stale-name audit; `git diff --check`. | `WebUI widget parameters now avoid conflicting meanings` |
+| 2 | Standardize source-binding names with snake_case and `_source` suffixes across graph, Key Points, Sequence Grid, Drop-down, Color Picker, and control widgets. | Pending | — | — |
+| 3 | Standardize writable target, command, selection-index, and enabled-state names and declared binding types across Button, Switch, sliders, Joystick, Drop-down, Color Picker, Grid, Text, Image, and Sequence Grid. | Pending | — | — |
+| 4 | Standardize common drawing-style names, including line, marker, label, color, fill, and legend parameters, using semantic snake_case names. | Pending | — | — |
+| 5 | Standardize coordinate ranges, axes, scales, grid lines, margins, canvas flips, graph orientation, and Table transposition names and Boolean types. | Pending | — | — |
+| 6 | Define and apply a consistent common graph parameter set across Bar Graph, Histogram, Box Plot, Scatter Plot, and Plot, adding meaningful missing axis, range, legend, precision, and layout controls. | Pending | — | — |
+| 7 | Standardize the general control-family API and add missing parity features, including Joystick enabled state and Vertical Slider command support. | Pending | — | — |
+| 8 | Standardize Canvas 3D parameters and add title, scene background, line width, and explicit camera controls. | Pending | — | — |
+| 9 | Align World 2D View and World 3D View shared parameters and defaults, separate scene styling from frame styling, and add appropriate 3D visibility, camera, and opacity controls. | Pending | — | — |
+| 10 | Expand Target Boxes presentation parameters and normalize its score visibility type and defaults. | Pending | — | — |
+| 11 | Align Rectangle and Text presentation parameters for text color, font, alignment, padding, formatting, editability, and placeholder behavior where applicable. | Pending | — | — |
+| 12 | Perform a final repository-wide parameter audit, update documentation and gallery/example models, run WebUI tests and relevant `.ikg` smoke tests, and record outstanding issues. | Pending | — | — |
+
+### Constraints
+
+- Do not provide backward-compatible aliases for renamed parameters.
+- Prefer `yes`/`no` over `true`/`false` for serialized and user-facing Boolean values.
+- Update affected repository `.ikg` files in the same commit as each breaking rename.
+- Keep one task in progress at a time and make one focused commit per task.
+- Preserve widget behavior except where a task explicitly adds a missing control.
+
+### Outstanding issues and questions
+
+- Awaiting confirmation of the task breakdown and any additional naming or scope constraints before implementation starts.
+
+
 ## Connection encapsulation completion
 
 | Task | Status | Verification | Commit |

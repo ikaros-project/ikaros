@@ -28,7 +28,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name': "STYLE", 'control':'header'},
 
             {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'fill', 'default':"gray", 'type':'string', 'control': 'menu', 'options': "gray,fire,spectrum,custom,rgb"},
+            {'name':'color_map', 'default':"gray", 'type':'string', 'control': 'menu', 'options': "gray,fire,spectrum,custom,rgb"},
             {'name':'colorTable', 'default':'', 'type':'string', 'control': 'textedit'},
             {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'shape', 'default':"rectangle", 'type':'string', 'control': 'menu', 'options': "rectangle,square,circle"},
@@ -322,7 +322,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         if(this.parameters.order !== "col")
             return data;
 
-        if(this.parameters.fill == "rgb")
+        if(this.parameters.color_map == "rgb")
         {
             if(!Array.isArray(data))
                 return data;
@@ -363,7 +363,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         if (!Array.isArray(d) || d.length === 0)
             return;
         
-        if(this.parameters.fill == "rgb")
+        if(this.parameters.color_map == "rgb")
         {
             if(!Array.isArray(d[0]) || !Array.isArray(d[0][0]))
                 return;
@@ -383,9 +383,9 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         this.canvas.textBaseline = 'middle';
 
         let ct = LUT_gray;
-        if(this.parameters.fill == 'fire')
+        if(this.parameters.color_map == 'fire')
             ct = LUT_fire;
-        else if(this.parameters.fill == 'spectrum')
+        else if(this.parameters.color_map == 'spectrum')
             ct = LUT_spectrum;
 
         if(String(this.parameters.colorTable ?? "").trim() != "")
@@ -411,7 +411,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             sy = minimum;
         }
 
-        if(this.parameters.fill == "rgb")
+        if(this.parameters.color_map == "rgb")
         {
             for(var i=0; i<rows; i++)
                 {
@@ -506,7 +506,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
     update()
     {
-        if(this.parameters.fill == "rgb")
+        if(this.parameters.color_map == "rgb")
         {
             this.data = [this.getSource('red'), this.getSource('green'), this.getSource('blue')];
             if(!this.data[0] || !this.data[1] || !this.data[2])

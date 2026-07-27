@@ -12,7 +12,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
 //            {'name':'length_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'order', 'default':"col", 'type':'string', 'control': 'menu', 'options': "col,row"},
             {'name':'select_x', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name':'count', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'point_count', 'default':0, 'type':'int', 'control': 'textedit'},
 
              {'name': "STYLE", 'control':'header'},
 
@@ -77,7 +77,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         this.canvas.lineCap = this.format.lineCap;
         this.canvas.lineJoin = this.format.lineJoin;
 
-        let xx = (this.parameters.count ? selectX+2*this.parameters.count : d[0].length);
+        let xx = (this.parameters.point_count ? selectX+2*this.parameters.point_count : d[0].length);
         xx = Math.min(xx, d[0].length);
         
         for(var i=0; i<rows; i++)
@@ -126,7 +126,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         this.canvas.lineCap = this.format.lineCap;
         this.canvas.lineJoin = this.format.lineJoin;
 
-        let xx = (this.parameters.count ? selectX+2*this.parameters.count : d[0].length);
+        let xx = (this.parameters.point_count ? selectX+2*this.parameters.point_count : d[0].length);
         xx = Math.min(xx, d[0].length);
         let c = 0;
         for(var i=selectX; i<xx; i+=2)

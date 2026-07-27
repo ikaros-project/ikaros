@@ -18,7 +18,7 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
             {'name':'whisker_angle', 'default':0.55, 'type':'float', 'control': 'textedit'},
             {'name':'show_grid', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'grid_step', 'default':10, 'type':'float', 'control': 'textedit'},
-            {'name':'background', 'default':"#f7f5ef", 'type':'string', 'control': 'textedit'},
+            {'name':'scene_background', 'default':"#f7f5ef", 'type':'string', 'control': 'textedit'},
             {'name':'wall_color', 'default':"#31343a", 'type':'string', 'control': 'textedit'}
         ];
     }
@@ -1034,7 +1034,7 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
 
         this.canvas.save();
         this.canvas.setLineDash([]);
-        this.canvas.fillStyle = this.parameters.background || "#f7f5ef";
+        this.canvas.fillStyle = this.parameters.scene_background || "#f7f5ef";
         this.canvas.fillRect(bounds.ox, bounds.oy, bounds.width, bounds.height);
         this.drawGrid(bounds);
         this.canvas.strokeStyle = this.parameters.wall_color || "#31343a";

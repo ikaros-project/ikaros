@@ -11,7 +11,7 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
             { name: "value", default: 1, type: "int", control: "textedit" },
             { name: "select_x", default: 0, type: "int", control: "textedit" },
             { name: "select_y", default: "", type: "string", control: "textedit" },
-            { name: "count", default: 1, type: "int", control: "textedit" }
+            { name: "control_count", default: 1, type: "int", control: "textedit" }
         ];
     }
 
@@ -109,7 +109,7 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
         super.updateAll();
 
         const container = this.firstChild;
-        const count = Math.max(1, Number(this.parameters.count) || 1);
+        const count = Math.max(1, Number(this.parameters.control_count) || 1);
 
         while (container.childElementCount > count) {
             container.removeChild(container.lastElementChild);

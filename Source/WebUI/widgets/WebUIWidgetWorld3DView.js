@@ -22,7 +22,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
             {'name':'show_grid', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'grid_step', 'default':10, 'type':'float', 'control': 'textedit'},
             {'name':'ground_color', 'default':"#ece1c9", 'type':'string', 'control': 'textedit'},
-            {'name':'background', 'default':"#f7f5ef", 'type':'string', 'control': 'textedit'}
+            {'name':'scene_background', 'default':"#f7f5ef", 'type':'string', 'control': 'textedit'}
         ];
     }
 
@@ -48,7 +48,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         this.animationFrame = null;
 
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(this.parameters.background || "#f7f5ef");
+        this.scene.background = new THREE.Color(this.parameters.scene_background || "#f7f5ef");
 
         this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 2000);
         this.camera.position.set(160, 170, 220);
@@ -210,7 +210,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         const height = this.worldHeight();
         const step = Math.max(1, Number(this.parameters.grid_step) || 10);
         const groundColor = this.parameters.ground_color || "#ece1c9";
-        const background = this.parameters.background || "#f7f5ef";
+        const background = this.parameters.scene_background || "#f7f5ef";
         const key = `${width}:${height}:${step}:${this.parameters.show_grid}:${background}:${groundColor}`;
         if(this.sceneKey === key)
             return;
