@@ -1,5 +1,22 @@
 # Kernel Review Status
 
+## Post-refactoring consistency pass
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Bring historical `status.md` findings up to date with the completed removals, moves, and retained APIs. | Completed | Historical findings reconciled against the current source tree and completed commits; Markdown diff check passed. | `Kernel review status now reflects completed work` |
+| 2 | Audit `kernel_shapes.cc` and `kernel_scheduling.cc` for self-contained, minimal direct includes and declarations. | Pending | Pending | Pending |
+| 3 | Re-run the unused-function audit across the split kernel implementation and resolve confirmed internal dead code. | Pending | Pending | Pending |
+| 4 | Review the remaining responsibilities in `kernel_setup.cc` and extract another unit only if a clear cohesive boundary remains. | Pending | Pending | Pending |
+| 5 | Review repository-unused public APIs (`Kernel::HasOption()`, `Kernel::GetOptionLong()`, `Component::BindParameter()`, and `Component::info()`) for external compatibility and document or implement the appropriate disposition. | Pending | Pending | Pending |
+
+### Outstanding issues and questions
+
+Pending implementation and verification.
+
+
 ## Connection encapsulation completion
 
 | Task | Status | Verification | Commit |
@@ -98,12 +115,10 @@ This is a read-only review. Each split implementation and focused declaration fi
 - Treat apparent unused private functions conservatively when callbacks, registration, or external API use may apply.
 - Separate straightforward cleanup from architectural proposals.
 
-### Confirmed unused internal code
+### Disposition of originally identified internal code
 
-- `Kernel::AllocateInputs()` is declared but has no definition or call site.
-- Private `Kernel::AuthEnabled()` has a declaration and definition but no call site.
-- Private `Kernel::DoSendLog()` only forwards to `ConsumeLogForClient()` and has no call site.
-- Private `Kernel::ListClasses()` has a declaration and definition but no call site; class listing already occurs through the active diagnostics path.
+- `Kernel::AllocateInputs()`, `Kernel::AuthEnabled()`, and `Kernel::DoSendLog()` were removed in `Removed unused kernel functions`.
+- `Kernel::ListClasses()` was deliberately retained for class diagnostics.
 
 ### Repository-unused public API candidates
 
@@ -112,23 +127,19 @@ This is a read-only review. Each split implementation and focused declaration fi
 - `Component::info()` has no identifiable call site, but its generic name makes textual auditing less definitive; external-module compatibility should be considered.
 - `msg_inherit`, `msg_quiet`, and `msg_exception` are not referenced in repository C++ code. They are public protocol constants and should not be removed as an internal cleanup.
 
-### Straightforward simplifications
+### Disposition of proposed simplifications and refactorings
 
-1. Move the `Class` constructor and `Print()` implementation out of `request.cc` into a matching `module_class.cc`.
-2. Remove the four confirmed unused internal declarations/functions above in one focused cleanup.
-3. Replace the duplicated `StartupFirstRealInputStepString()` and `StartupAllRealInputsStepString()` formatting with one private formatting helper.
-4. Remove stale `WAS:` comments in `kernel_setup.cc` and the commented-out `PrintProfiling()` call in `kernel_execution.cc`.
-5. Consolidate `ListInputs()`, `ListOutputs()`, and `ListBuffers()`, which currently perform the same full-buffer traversal and differ only in their heading. If inputs and outputs were intended to be filtered, fix that behavior as a separately characterized change.
-
-### Larger refactoring opportunities
-
-1. Encapsulate scalar-state type-specific capture, restore, and reset operations in `ScalarState`; the same float/double/int/bool/string dispatch is repeated across component reset and state persistence.
-2. Consolidate the repeated numeric conversion structure in `parameter.cc` while preserving option-index and rate semantics.
-3. Split `Connection::Tick()` into named whole-buffer, flattened-delay, and indexed-delay propagation helpers. Keep them allocation-free and benchmark the result.
-4. Split class discovery/model construction from shape convergence inside `kernel_setup.cc`; at 2,227 lines it still contains two independently cohesive responsibilities.
-5. Extract the graph-analysis implementation (`HasCycle`, `FindSubgraphs`, `TopologicalSort`, and `Sort`) from `kernel_execution.cc` into a private scheduling unit with characterization tests.
-6. Give session logging one immutable metadata snapshot instead of four small friend accessors, and share common process/session event construction.
-7. Review the public data members of `Connection` after its behavior is decomposed. They are kernel implementation state, but privatizing them requires coordinated friend/member changes and should not be mixed with propagation refactoring.
+- `Class` implementation now resides in `module_class.cc`.
+- Startup-step formatting now shares one private helper.
+- Stale `WAS:` comments and commented profiling code were removed.
+- Startup diagnostics now use one truthful `ListBuffers()` listing; the misleading input/output variants were removed.
+- `ScalarState` now owns capture, restore, and reset operations.
+- Parameter numeric conversions now share one conversion path while retaining option and rate semantics.
+- `Connection::Tick()` now delegates to named propagation paths and retained Release performance.
+- Shape convergence now resides in `kernel_shapes.cc`.
+- Graph scheduling now resides in `kernel_scheduling.cc`.
+- Session logging now captures one metadata snapshot and shares event-path construction.
+- All `Connection` fields are private; modules inspect connection metadata through const accessors.
 
 ### Files requiring no targeted cleanup
 
