@@ -286,9 +286,9 @@ namespace ikaros
                     throw setup_failed("Connection \"" + c->Info() + "\" requires an input larger than the supported size.", path_);
                 int s = static_cast<int>(required_size);
                 if(c->label_.empty())
-                    kernel().buffers[full_name].push_label(0, c->source, s); // WAS: kernel().buffers[d.at(full_name)].push_label(0, c->source, s);
+                    kernel().buffers[full_name].push_label(0, c->source, s);
                 else
-                    kernel().buffers[full_name].push_label(0, c->label_, s); // WAS: kernel().buffers[d.at(full_name)].push_label(0, c->label_, s);
+                    kernel().buffers[full_name].push_label(0, c->label_, s);
             }
         }
         return 0;

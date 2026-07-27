@@ -918,7 +918,6 @@ namespace ikaros
                 session_logging_active = false;
             }
 #endif
-            //PrintProfiling(); // FIXME: Use option to turn on and off
             if(!StopComponents())
             {
                 int successful_exit = 0;
