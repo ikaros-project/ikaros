@@ -48,6 +48,7 @@
 #include "Kernel/circular_buffer.h"
 #include "Kernel/connection.h"
 #include "Kernel/request.h"
+#include "Kernel/module_class.h"
 
 
 namespace ikaros 
@@ -57,27 +58,6 @@ class KernelMainAccess;
 class KernelSessionLoggingAccess;
 
 Kernel& kernel();
-
-//
-// CLASS
-//
-
-class Class
-{
-private:
-    friend class Kernel;
-
-    dictionary      info_;
-    ModuleCreator   module_creator;
-    std::string     name;
-    std::string     path;
-
-public:
-    Class();
-
-    void Print() const;
-};
-
 
 //
 // KERNEL
