@@ -15,6 +15,8 @@ const widget_classes =
     "grid",
     "image",
     "target-boxes",
+    "world2d",
+    "world2d-3d",
     "text",
     "rectangle",
     "button",
