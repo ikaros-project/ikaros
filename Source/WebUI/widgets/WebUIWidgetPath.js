@@ -23,8 +23,8 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             {'name':'line_cap', 'default':"butt", 'type':'string', 'control': 'menu', 'options': "butt,round,quare"},
             {'name':'line_join', 'default':"miter", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
             
-            {'name':'close', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'arrow', 'default':false, 'type':'bool', 'control': 'checkbox'},
+            {'name':'close', 'default':"no", 'type':'bool', 'control': 'checkbox'},
+            {'name':'arrow', 'default':"no", 'type':'bool', 'control': 'checkbox'},
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 

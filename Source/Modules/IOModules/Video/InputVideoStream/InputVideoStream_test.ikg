@@ -8,8 +8,8 @@
 		info = "false"
 	/>
 
-   <widget _index_="0" _x="360" _y="96" class="image" command="" file="" flip_x_axis="no" flip_x_canvas="no" flip_y_axis="no" flip_y_canvas="no" format="gray" frame-style="" height="313" index_source="" max="1" x_max="1" y_max="1" min="0" x_min="0" y_min="0" name="Widget_1" opacity="1" opacity_source="" scale="both" scale_visibility="no" select="" show_frame="true" show_title="true" source="InputVideoStream.INTENSITY" style="" title="Gray" width="361"/>
-   <widget _index_="2" _x="360" _y="408" class="image" command="" file="" flip_x_axis="no" flip_x_canvas="no" flip_y_axis="no" flip_y_canvas="no" format="rgb" frame-style="" height="313" index_source="" max="1" x_max="1" y_max="1" min="0" x_min="0" y_min="0" name="Widget_2" opacity="1" opacity_source="" scale="both" scale_visibility="no" select="" show_frame="true" show_title="true" source="InputVideoStream.OUTPUT" style="" title="Color" width="361"/>
+   <widget _index_="0" _x="360" _y="96" class="image" command="" file="" flip_x_axis="no" flip_x_canvas="no" flip_y_axis="no" flip_y_canvas="no" format="gray" frame-style="" height="313" index_source="" max="1" x_max="1" y_max="1" min="0" x_min="0" y_min="0" name="Widget_1" opacity="1" opacity_source="" scale="both" scale_visibility="no" select="" show_frame="yes" show_title="yes" source="InputVideoStream.INTENSITY" style="" title="Gray" width="361"/>
+   <widget _index_="2" _x="360" _y="408" class="image" command="" file="" flip_x_axis="no" flip_x_canvas="no" flip_y_axis="no" flip_y_canvas="no" format="rgb" frame-style="" height="313" index_source="" max="1" x_max="1" y_max="1" min="0" x_min="0" y_min="0" name="Widget_2" opacity="1" opacity_source="" scale="both" scale_visibility="no" select="" show_frame="yes" show_title="yes" source="InputVideoStream.OUTPUT" style="" title="Color" width="361"/>
 
 </group>
  

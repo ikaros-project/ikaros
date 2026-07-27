@@ -20,7 +20,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
             {'name':'whisker_length', 'default':10, 'type':'float', 'control': 'textedit'},
             {'name':'whisker_angle', 'default':0.7853981633974483, 'type':'float', 'control': 'textedit'},
             {'name':'show_whiskers', 'default':'yes', 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_grid', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_grid', 'default':"yes", 'type':'bool', 'control': 'checkbox'},
             {'name':'grid_step', 'default':10, 'type':'float', 'control': 'textedit'},
             {'name':'ground_color', 'default':"#ece1c9", 'type':'string', 'control': 'textedit'},
             {'name':'camera_distance', 'default':320, 'type':'float', 'control': 'textedit'},

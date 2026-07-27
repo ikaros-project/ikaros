@@ -47,7 +47,7 @@ This is an intentionally breaking migration. Old parameter names will not be ret
 | 9 | Align World 2D View and World 3D View shared parameters and defaults, separate scene styling from frame styling, and add appropriate 3D visibility, camera, and opacity controls. | Completed | JavaScript syntax checks; shared-template and rendering-path review; `git diff --check`. | `World views now share consistent display controls` |
 | 10 | Expand Target Boxes presentation parameters and normalize its score visibility type and defaults. | Completed | JavaScript syntax check; affected model XML validation; rendering-path review; `git diff --check`. | `Target Boxes now has complete presentation controls` |
 | 11 | Align Rectangle and Text presentation parameters for text color, font, alignment, padding, formatting, editability, and placeholder behavior where applicable. | Completed | JavaScript syntax checks; presentation and formatting-path review; `git diff --check`. | `Rectangle and Text now share presentation controls` |
-| 12 | Perform a final repository-wide parameter audit, update documentation and gallery/example models, run WebUI tests and relevant `.ikg` smoke tests, and record outstanding issues. | Pending | — | — |
+| 12 | Perform a final repository-wide parameter audit, update documentation and gallery/example models, run WebUI tests and relevant `.ikg` smoke tests, and record outstanding issues. | Completed | All widget JavaScript syntax checks; changed-model XML validation except one documented pre-existing malformed model; WebUI HTTP smoke test; two-tick World2D model smoke test; public camelCase and Boolean-value audits; `git diff --check`. | `WebUI widget parameters are now standardized` |
 
 ### Constraints
 
@@ -59,7 +59,8 @@ This is an intentionally breaking migration. Old parameter names will not be ret
 
 ### Outstanding issues and questions
 
-- Awaiting confirmation of the task breakdown and any additional naming or scope constraints before implementation starts.
+- `Source/Modules/IOModules/Video/InputVideoStream/InputVideoStream_test.ikg` has a pre-existing trailing single quote after its closing group, so strict XML validation remains impossible until that unrelated defect is fixed.
+- WebGL implementations may ignore `LineBasicMaterial.linewidth`; the Canvas 3D parameter is exposed consistently but platform rendering support varies.
 
 
 ## Connection encapsulation completion

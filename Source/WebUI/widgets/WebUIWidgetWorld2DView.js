@@ -17,7 +17,7 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
             {'name':'whisker_length', 'default':10, 'type':'float', 'control': 'textedit'},
             {'name':'whisker_angle', 'default':0.7853981633974483, 'type':'float', 'control': 'textedit'},
             {'name':'show_whiskers', 'default':'yes', 'type':'bool', 'control': 'checkbox'},
-            {'name':'show_grid', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_grid', 'default':"yes", 'type':'bool', 'control': 'checkbox'},
             {'name':'grid_step', 'default':10, 'type':'float', 'control': 'textedit'},
             {'name':'scene_background', 'default':"#f7f5ef", 'type':'string', 'control': 'textedit'},
             {'name':'wall_color', 'default':"#31343a", 'type':'string', 'control': 'textedit'}

@@ -10,8 +10,8 @@ class WebUIWidgetTable extends WebUIWidget {
             { 'name': 'label_y', 'default': "", 'type': 'string', 'control': 'textedit' },
             { 'name': 'transpose', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
             { 'name': 'decimals', 'default': 4, 'type': 'int', 'control': 'textedit' },
-            { 'name': 'colorize', 'default': true, 'type': 'bool', 'control': 'checkbox' },
-            { 'name': 'scrollable', 'default': false, 'type': 'bool', 'control': 'checkbox' }
+            { 'name': 'colorize', 'default': "yes", 'type': 'bool', 'control': 'checkbox' },
+            { 'name': 'scrollable', 'default': "no", 'type': 'bool', 'control': 'checkbox' }
         ]
     };
 

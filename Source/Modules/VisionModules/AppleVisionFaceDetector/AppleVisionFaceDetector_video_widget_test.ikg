@@ -18,8 +18,8 @@
         source="Camera.OUTPUT"
         format="rgb"
         scale="both"
-        show_title="false"
-        show_frame="false" />
+        show_title="no"
+        show_frame="no" />
     <widget class="target-boxes"
         name="TargetBoxes"
         _x="40"
@@ -30,6 +30,6 @@
         box_color="#00ff66"
         line_width="3"
         show_score="yes"
-        show_title="false"
-        show_frame="false" />
+        show_title="no"
+        show_frame="no" />
 </group>

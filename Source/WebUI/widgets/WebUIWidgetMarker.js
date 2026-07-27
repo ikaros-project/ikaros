@@ -28,7 +28,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
 
             {'name': "LABEL STYLE", 'control':'header'},
 
-            {'name':'labelType', 'default':"none", 'type':'string', 'control': 'menu', 'options': "none,labels, alphabetical, numbered, x_value, y_value, z_value, xy_value, value"},
+            {'name':'label_type', 'default':"none", 'type':'string', 'control': 'menu', 'options': "none,labels, alphabetical, numbered, x_value, y_value, z_value, xy_value, value"},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'label_font', 'default':"18px sans-serif", 'type':'string', 'control': 'textedit'},
             {'name':'label_decimals', 'default':2, 'type':'int', 'control': 'textedit'},
@@ -197,22 +197,22 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
                 this.canvas.fill();
                 this.canvas.stroke();
                 
-                if(this.parameters.labelType != "none")
+                if(this.parameters.label_type != "none")
                 {
                     let lbl = n > 0 ? l[j % n] : "";
-                    if(this.parameters.labelType == "alphabetical")
+                    if(this.parameters.label_type == "alphabetical")
                         lbl = String.fromCharCode(65+j);
-                    if(this.parameters.labelType == "numbered")
+                    if(this.parameters.label_type == "numbered")
                         lbl = j;
-                    if(this.parameters.labelType == "x_value")
+                    if(this.parameters.label_type == "x_value")
                         lbl = d[j][i+0].toFixed(this.parameters.label_decimals);
-                    else if(this.parameters.labelType == "y_value")
+                    else if(this.parameters.label_type == "y_value")
                         lbl = d[j][i+1].toFixed(this.parameters.label_decimals);
-                    else if(this.parameters.labelType == "xy_value")
+                    else if(this.parameters.label_type == "xy_value")
                         lbl = d[j][i+0].toFixed(this.parameters.label_decimals)+", "+d[j][i+1].toFixed(this.parameters.label_decimals);
-                    else if(this.parameters.labelType == "z_value")
+                    else if(this.parameters.label_type == "z_value")
                          lbl = d[j][i+2].toFixed(this.parameters.label_decimals);
-                    else if(this.parameters.labelType == "value")
+                    else if(this.parameters.label_type == "value")
                         lbl = d[j][this.parameters.select_value_column].toFixed(this.parameters.label_decimals);
 
                     this.canvas.fillText(this.parameters.label_prefix+lbl+this.parameters.label_suffix, ...transform(x+this.parameters.label_offset_x, y+this.parameters.label_offset_y));

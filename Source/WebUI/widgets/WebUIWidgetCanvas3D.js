@@ -12,13 +12,13 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			{ 'name': 'line_color', 'default': "blue", 'type': 'string', 'control': 'textedit' },
 			{ 'name': 'line_width', 'default': 1, 'type': 'float', 'control': 'textedit' },
 
-			{ 'name': 'show_points', 'default': true, 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'show_points', 'default': "yes", 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'point_color', 'default': "black", 'type': 'string', 'control': 'textedit' },
 			{ 'name': 'point_size', 'default': "0.15", 'type': 'string', 'control': 'textedit' },
 
-			{ 'name': 'show_axis', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-			{ 'name': 'show_ground_grid', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-			{ 'name': 'show_stats', 'default': false, 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'show_axis', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'show_ground_grid', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'show_stats', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'offset_x', 'default': "0", 'type': 'float', 'control': 'textedit' },
 			{ 'name': 'offset_y', 'default': "0", 'type': 'float', 'control': 'textedit' },
 			{ 'name': 'offset_z', 'default': "0", 'type': 'float', 'control': 'textedit' },

@@ -17,8 +17,8 @@
             height="70"
             x="40"
             y="30"
-            show_title="false"
-            show_frame="false" />
+            show_title="no"
+            show_frame="no" />
     <widget class="plot"
             name="AudioPlot"
             source="Audio.OUTPUT"
@@ -27,8 +27,8 @@
             height="260"
             x="40"
             y="120"
-            show_title="true"
-            show_frame="true"
+            show_title="yes"
+            show_frame="yes"
             auto_range="yes"
-            include_zero="true" />
+            include_zero="yes" />
 </group>

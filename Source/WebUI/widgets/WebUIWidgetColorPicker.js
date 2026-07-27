@@ -10,7 +10,7 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
             { name: "row_source", default: "", type: "source", control: "textedit" },
 
             { name: "STYLE", control: "header" },
-            { name: "show_values", default: true, type: "bool", control: "checkbox" },
+            { name: "show_values", default: "yes", type: "bool", control: "checkbox" },
             { name: "step", default: 0.01, type: "float", control: "textedit" }
         ];
     }

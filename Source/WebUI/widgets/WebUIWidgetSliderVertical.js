@@ -17,7 +17,7 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
             { name: "min", default: 0, type: "string", control: "textedit" },
             { name: "max", default: 1, type: "string", control: "textedit" },
             { name: "step", default: 0.01, type: "float", control: "textedit" },
-            { name: "show_values", default: false, type: "bool", control: "checkbox" }
+            { name: "show_values", default: "no", type: "bool", control: "checkbox" }
         ];
     }
 

@@ -26,7 +26,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
             {'name': "STYLE", 'control':'header'},
             {'name':'orientation', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'options': "horizontal,vertical", 'class':'true'},
-            {'name':'transpose', 'default':false, 'type':'bool', 'control': 'checkbox'},
+            {'name':'transpose', 'default':"no", 'type':'bool', 'control': 'checkbox'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
             {'name':'fill_color', 'default':'', 'type':'string', 'control': 'textedit'},
@@ -38,8 +38,8 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name': "COORDINATE SYSTEM", 'control':'header'},
             {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'auto_range', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'include_zero', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'auto_range', 'default':"yes", 'type':'bool', 'control': 'checkbox'},
+            {'name':'include_zero', 'default':"yes", 'type':'bool', 'control': 'checkbox'},
             {'name':'show_x_axis', 'default':'yes', 'type':'bool', 'control': 'checkbox'},
             {'name':'show_y_axis', 'default':'yes', 'type':'bool', 'control': 'checkbox'},
             {'name':'left_scale_ticks', 'default':5, 'type':'int', 'control': 'textedit'},

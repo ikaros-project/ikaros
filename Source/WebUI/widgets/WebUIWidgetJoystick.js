@@ -12,7 +12,7 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
             { name: "select_y", default: "", type: "string", control: "textedit" },
 
             { name: "BEHAVIOR", control: "header" },
-            { name: "return_to_center", default: true, type: "bool", control: "checkbox" },
+            { name: "return_to_center", default: "yes", type: "bool", control: "checkbox" },
             { name: "range", default: "bipolar", type: "string", control: "menu", options: "bipolar,unipolar" }
         ];
     }

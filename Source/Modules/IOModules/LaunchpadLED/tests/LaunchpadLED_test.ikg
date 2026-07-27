@@ -12,7 +12,7 @@
     <connection source="Playing.OUTPUT" target="Launchpad.PLAYING" />
 
     <widget class="text" name="Instructions" x="40" y="30" width="720" height="70"
-            show_title="false" show_frame="false"
+            show_title="no" show_frame="no"
             text="Manual Launchpad X output test. The top row should show red, orange, yellow, bright green, cyan, blue, magenta, and white. All pads except green use idle brightness." />
     <widget class="table" name="Connected" source="Launchpad.CONNECTED"
             title="Connected" x="600" y="150" width="160" height="90"

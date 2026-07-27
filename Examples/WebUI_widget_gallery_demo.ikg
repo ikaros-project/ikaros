@@ -75,8 +75,8 @@
         y="20"
         width="2020"
         height="70"
-        show_title="false"
-        show_frame="true"
+        show_title="no"
+        show_frame="yes"
         label="WebUI Widget Gallery"
         style="font-size:28px;font-weight:700;background:linear-gradient(90deg,#e8f4ff,#f9efe1);"
     />
@@ -88,8 +88,8 @@
         y="105"
         width="420"
         height="80"
-        show_title="false"
-        show_frame="true"
+        show_title="no"
+        show_frame="yes"
         text="One view with interactive controls, graphs, geometry, tables, and image widgets."
         style="font-size:18px;line-height:1.3;padding:10px;"
     />
@@ -103,10 +103,10 @@
         height="150"
         source="Controls.data"
         title="Shared Control State"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
         decimals="2"
-        colorize="true"
+        colorize="yes"
         min="0"
         max="3"
      transpose="no"/>
@@ -124,8 +124,8 @@
         select_x="4"
         value_type="number"
         options="Off,Low,Medium,High"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -142,8 +142,8 @@
         select_x="2"
         value="1"
         release_value="0"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -159,8 +159,8 @@
         select_x="2"
         control_count="2"
         value="1"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -178,9 +178,9 @@
         min="0"
         max="1"
         step="0.01"
-        show_values="true"
-        show_title="true"
-        show_frame="true"
+        show_values="yes"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -198,9 +198,9 @@
         min="0"
         max="1"
         step="0.01"
-        show_values="true"
-        show_title="true"
-        show_frame="true"
+        show_values="yes"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -218,8 +218,8 @@
         color_map_colors="#1f2937,#ff6b35,#ffd166,#4ecdc4"
         value_min="0"
         value_max="1"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -235,8 +235,8 @@
         auto_range="no"
         y_min="-1"
         y_max="1"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -250,11 +250,11 @@
         source="Oscillator.OUTPUT"
         buffer_size="120"
         auto_range="no"
-        include_zero="true"
+        include_zero="yes"
         y_min="-1"
         y_max="1"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -268,8 +268,8 @@
         source="GalleryImage.OUTPUT"
         format="rgb"
         scale="both"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -287,15 +287,15 @@
         marker_type="circle"
         fill_color="#ff7043,#4db6ac,#9575cd,#64b5f6,#ffd54f"
         stroke_color="#111827"
-        labelType="value"
+        label_type="value"
         label_offset_y="-12"
         x_min="0"
         x_max="1"
         y_min="0"
         y_max="1"
         scale_visibility="yes"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -310,7 +310,7 @@
         order="row"
         select_x="0"
         point_count="5"
-        arrow="true"
+        arrow="yes"
         line_width="2"
         stroke_color="#0f172a"
         fill_color="rgba(0,0,0,0)"
@@ -319,8 +319,8 @@
         y_min="0"
         y_max="1"
         scale_visibility="yes"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -333,12 +333,12 @@
         title="Tensor Table"
         source="Tensor4D.OUTPUT"
         decimals="2"
-        colorize="true"
+        colorize="yes"
         min="0"
         max="1"
-        scrollable="true"
-        show_title="true"
-        show_frame="true"
+        scrollable="yes"
+        show_title="yes"
+        show_frame="yes"
      transpose="no"/>
 
     <widget
@@ -357,8 +357,8 @@
         show_axis="yes"
         show_ground_grid="yes"
         view="Home"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -372,10 +372,10 @@
         eye_direction_source="EyeDirection.OUTPUT"
         pupil_size_source="PupilSize.OUTPUT"
         head_position_source="HeadPosition.OUTPUT"
-        EyeColor="#f59e0b"
-        MouthColor="#ef4444"
-        show_title="true"
-        show_frame="true"
+        eye_color="#f59e0b"
+        mouth_color="#ef4444"
+        show_title="yes"
+        show_frame="yes"
     />
 
 </group>

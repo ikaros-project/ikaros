@@ -11,12 +11,12 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
       { name: "lower_mouth_color_source", default: "", type: "source", control: "textedit" },
       { name: "head_position_source", default: "", type: "source", control: "textedit" },
       { name: "PARAMETERS", control: "header" },
-      { name: "EyeColor", default: "#ffdd88", type: "string", control: "textedit" },
-      { name: "MouthColor", default: "#ffdd88", type: "string", control: "textedit" },
-      { name: "Gaze", default: 0, type: "float", control: "slider", min: -45, max: 45 },
-      { name: "Vergence", default: 0, type: "float", control: "slider", min: -20, max: 20 },
-      { name: "PupilInMM", default: 11, type: "float", control: "slider", min: 6, max: 16 },
-      { name: "EpiName", default: "EpiRed", type: "string", control: "textedit" },
+      { name: "eye_color", default: "#ffdd88", type: "string", control: "textedit" },
+      { name: "mouth_color", default: "#ffdd88", type: "string", control: "textedit" },
+      { name: "gaze", default: 0, type: "float", control: "slider", min: -45, max: 45 },
+      { name: "vergence", default: 0, type: "float", control: "slider", min: -20, max: 20 },
+      { name: "pupil_size_mm", default: 11, type: "float", control: "slider", min: 6, max: 16 },
+      { name: "epi_name", default: "EpiRed", type: "string", control: "textedit" },
       { name: "STYLE", control: "header" },
       { name: "color", default: "black", type: "string", control: "textedit" },
       { name: "fill", default: "white", type: "string", control: "textedit" },
@@ -50,7 +50,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
     );
 
     // Figure out color of Epi.
-    const epiName = String(this.parameters.EpiName ?? "EpiRed");
+    const epiName = String(this.parameters.epi_name ?? "EpiRed");
     let epiColor = epiName.length >= 3 ? epiName.substring(3) : epiName;
     if (!epiColor)
       epiColor = "red";
@@ -117,7 +117,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
       if (i === 0 || i === 7) continue;
       this.canvas.beginPath();
       this.canvas.arc(77 - 3.25 * 6.3 + i * 6.3, yOffset, 2, 0, 2 * Math.PI); // 3.25?
-      this.canvas.fillStyle = this.MouthColors[sourceIndex][i];
+      this.canvas.fillStyle = this.mouth_colors[sourceIndex][i];
       this.canvas.fill();
       this.canvas.stroke();
     }
@@ -155,7 +155,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
       this.canvas.fill();
       this.canvas.clip(); // Woll make it hard to click
 
-      // Gaze
+      // gaze
       this.canvas.translate(27.5, 20); // Translate to center of the eye
 
       this.canvas.translate(27.5 * Math.sin((this.gaze[sourceIndex] * Math.PI) / 180),0 ); // Change angle
@@ -188,7 +188,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
       neoPixelRing.forEach((led, index) => {
         this.canvas.beginPath();
         this.canvas.arc(led.x, led.y, ledRadius, 0, 2 * Math.PI);
-        this.canvas.fillStyle = this.EyeColors[sourceIndex][index];
+        this.canvas.fillStyle = this.eye_colors[sourceIndex][index];
         this.canvas.fill();
       });
 
@@ -236,44 +236,44 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
 
     // Get values from source input or fill it with default values
     // Eyes
-    let defaultEyeColor = String(this.parameters.EyeColor ?? "").split(',').map((c) => c.trim()).filter((c) => c !== ""); // Is this suppose to get the default value from template?
-    if (defaultEyeColor.length === 0 || (defaultEyeColor.length === 1 && defaultEyeColor[0] === '')) {
-        defaultEyeColor = ['yellow'];
+    let defaulteye_color = String(this.parameters.eye_color ?? "").split(',').map((c) => c.trim()).filter((c) => c !== ""); // Is this suppose to get the default value from template?
+    if (defaulteye_color.length === 0 || (defaulteye_color.length === 1 && defaulteye_color[0] === '')) {
+        defaulteye_color = ['yellow'];
     }
-    if (defaultEyeColor.length == 12)
-         this.EyeColors = [defaultEyeColor, defaultEyeColor];
+    if (defaulteye_color.length == 12)
+         this.eye_colors = [defaulteye_color, defaulteye_color];
     else
-        this.EyeColors = [Array(12).fill(defaultEyeColor[0]), Array(12).fill(defaultEyeColor[0])];
+        this.eye_colors = [Array(12).fill(defaulteye_color[0]), Array(12).fill(defaulteye_color[0])];
     
-    let l_eye = this.getSource("left_eye_color_source", this.getSource("LeftEyeColor", defaultEyeColor));
-    let r_eye = this.getSource("right_eye_color_source", this.getSource("RightEyeColor", defaultEyeColor));
+    let l_eye = this.getSource("left_eye_color_source", this.getSource("Lefteye_color", defaulteye_color));
+    let r_eye = this.getSource("right_eye_color_source", this.getSource("Righteye_color", defaulteye_color));
     
     // Convert the input to a hex representation of color 
     if (l_eye && l_eye.length === 3 && l_eye[0].length === 12 && l_eye[1].length === 12 && l_eye[2].length === 12 )
-      this.EyeColors[0] = l_eye[0].map((_, i) => rgbToHex(Math.round(l_eye[0][i] * 255), Math.round(l_eye[1][i] * 255), Math.round(l_eye[2][i] * 255)));
+      this.eye_colors[0] = l_eye[0].map((_, i) => rgbToHex(Math.round(l_eye[0][i] * 255), Math.round(l_eye[1][i] * 255), Math.round(l_eye[2][i] * 255)));
     if (r_eye && r_eye.length === 3 && r_eye[0].length === 12 && r_eye[1].length === 12 && r_eye[2].length === 12 )
-      this.EyeColors[1] = r_eye[0].map((_, i) => rgbToHex(Math.round(r_eye[0][i] * 255), Math.round(r_eye[1][i] * 255), Math.round(r_eye[2][i] * 255)));
+      this.eye_colors[1] = r_eye[0].map((_, i) => rgbToHex(Math.round(r_eye[0][i] * 255), Math.round(r_eye[1][i] * 255), Math.round(r_eye[2][i] * 255)));
     
     // Mouth
-    let defaultMouthColor = String(this.parameters.MouthColor ?? "").split(',').map((c) => c.trim()).filter((c) => c !== "");
-    if (defaultMouthColor.length === 0 || (defaultMouthColor.length === 1 && defaultMouthColor[0] === '')) {
-        defaultMouthColor = ['yellow'];
+    let defaultmouth_color = String(this.parameters.mouth_color ?? "").split(',').map((c) => c.trim()).filter((c) => c !== "");
+    if (defaultmouth_color.length === 0 || (defaultmouth_color.length === 1 && defaultmouth_color[0] === '')) {
+        defaultmouth_color = ['yellow'];
     }
-    if (defaultMouthColor.length == 8)
-         this.MouthColors = [defaultMouthColor, defaultMouthColor];
+    if (defaultmouth_color.length == 8)
+         this.mouth_colors = [defaultmouth_color, defaultmouth_color];
     else
-        this.MouthColors = [Array(8).fill(defaultMouthColor[0]), Array(8).fill(defaultMouthColor[0])];
-    let t_mouth = this.getSource("top_mouth_color_source", defaultMouthColor);
-    let l_mouth = this.getSource("lower_mouth_color_source", defaultMouthColor);
+        this.mouth_colors = [Array(8).fill(defaultmouth_color[0]), Array(8).fill(defaultmouth_color[0])];
+    let t_mouth = this.getSource("top_mouth_color_source", defaultmouth_color);
+    let l_mouth = this.getSource("lower_mouth_color_source", defaultmouth_color);
     // Convert the input to a hex representation of color
     if (t_mouth && t_mouth.length === 3 && t_mouth[0].length === 8 && t_mouth[1].length === 8 && t_mouth[2].length === 8 )
-      this.MouthColors[0] = t_mouth[0].map((_, i) => rgbToHex(Math.round(t_mouth[0][i] * 255), Math.round(t_mouth[1][i] * 255), Math.round(t_mouth[2][i] * 255)));
+      this.mouth_colors[0] = t_mouth[0].map((_, i) => rgbToHex(Math.round(t_mouth[0][i] * 255), Math.round(t_mouth[1][i] * 255), Math.round(t_mouth[2][i] * 255)));
     if (l_mouth && l_mouth.length === 3 && l_mouth[0].length === 8 && l_mouth[1].length === 8 && l_mouth[2].length === 8 )
-      this.MouthColors[1] = l_mouth[0].map((_, i) => rgbToHex(Math.round(l_mouth[0][i] * 255), Math.round(l_mouth[1][i] * 255), Math.round(l_mouth[2][i] * 255)));
+      this.mouth_colors[1] = l_mouth[0].map((_, i) => rgbToHex(Math.round(l_mouth[0][i] * 255), Math.round(l_mouth[1][i] * 255), Math.round(l_mouth[2][i] * 255)));
 
-    // Gaze. Only x wise and setting Gaze in webUI will controll both eyes.
-    const gazeValue = parseFloat(this.parameters.Gaze);
-    const vergenceValue = parseFloat(this.parameters.Vergence);
+    // gaze. Only x wise and setting gaze in webUI will controll both eyes.
+    const gazeValue = parseFloat(this.parameters.gaze);
+    const vergenceValue = parseFloat(this.parameters.vergence);
     let defaultGaze = [
       (Number.isFinite(gazeValue) ? gazeValue : 0) - (Number.isFinite(vergenceValue) ? vergenceValue : 0),
       (Number.isFinite(gazeValue) ? gazeValue : 0) + (Number.isFinite(vergenceValue) ? vergenceValue : 0),
@@ -285,8 +285,8 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
       this.gaze = defaultGaze;
     if (this.gaze.length < 2) this.gaze = [this.gaze[0], this.gaze[0]];
     
-    // Gaze. Only x wise and setting Gaze in webUI will controll both eyes. // What happens if source input is only one element?
-    const pupilValue = parseFloat(this.parameters.PupilInMM);
+    // gaze. Only x wise and setting gaze in webUI will controll both eyes. // What happens if source input is only one element?
+    const pupilValue = parseFloat(this.parameters.pupil_size_mm);
     let defaultPupil = [Number.isFinite(pupilValue) ? pupilValue : 11, Number.isFinite(pupilValue) ? pupilValue : 11];
     this.pupil = this.getSource("pupil_size_source", defaultPupil);
     if (!Array.isArray(this.pupil))

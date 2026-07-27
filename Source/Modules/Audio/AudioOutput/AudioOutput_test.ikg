@@ -2,6 +2,6 @@
    <connection delay="1" source="Osc.OUTPUT" target="audio.INPUT"/>
    <module _x="100" _y="100" class="AudioOscillator" frequency="880" name="Osc" size="4096" type="sine"/>
    <module _x="336" _y="96" class="AudioOutput" description="Plays audio received as input" name="audio"/>
-   <widget _index_="0" _x="264" _y="168" auto_range="no" class="bar-graph" stroke_color="" orientation="vertical" fill_color="" frame-style="" height="200" labels="" line_cap="" line_join="" line_width="1" y_max="1" y_min="0" name="Widget_5" show_frame="false" show_title="true" source="Osc.OUTPUT" style="" title="Widget_5" transpose="no" width="200"/>
-   <widget _index_="2" _x="96" _y="360" class="slider-horizontal" control_count="1" frame-style="" height="200" labels="" max="1500" min="440" name="Widget_6" parameter="OscOsc.frequency" show_frame="false" show_title="true" show_values="true" source="" step="10" style="" title="freq" width="200"/>
+   <widget _index_="0" _x="264" _y="168" auto_range="no" class="bar-graph" stroke_color="" orientation="vertical" fill_color="" frame-style="" height="200" labels="" line_cap="" line_join="" line_width="1" y_max="1" y_min="0" name="Widget_5" show_frame="no" show_title="yes" source="Osc.OUTPUT" style="" title="Widget_5" transpose="no" width="200"/>
+   <widget _index_="2" _x="96" _y="360" class="slider-horizontal" control_count="1" frame-style="" height="200" labels="" max="1500" min="440" name="Widget_6" parameter="OscOsc.frequency" show_frame="no" show_title="yes" show_values="yes" source="" step="10" style="" title="freq" width="200"/>
 </group>
