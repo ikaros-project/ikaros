@@ -1057,37 +1057,7 @@ namespace ikaros
             auto scalar = k.scalar_states.find(state_path);
             if(scalar != k.scalar_states.end())
             {
-                Kernel::ScalarState & state = scalar->second;
-                if(state.type == "float")
-                {
-                    state.float_value = state.default_float_value;
-                    if(state.float_ptr)
-                        *state.float_ptr = state.default_float_value;
-                }
-                else if(state.type == "double")
-                {
-                    state.double_value = state.default_double_value;
-                    if(state.double_ptr)
-                        *state.double_ptr = state.default_double_value;
-                }
-                else if(state.type == "int")
-                {
-                    state.int_value = state.default_int_value;
-                    if(state.int_ptr)
-                        *state.int_ptr = state.default_int_value;
-                }
-                else if(state.type == "bool")
-                {
-                    state.bool_value = state.default_bool_value;
-                    if(state.bool_ptr)
-                        *state.bool_ptr = state.default_bool_value;
-                }
-                else if(state.type == "string")
-                {
-                    state.string_value = state.default_string_value;
-                    if(state.string_ptr)
-                        *state.string_ptr = state.default_string_value;
-                }
+                scalar->second.Reset();
                 continue;
             }
 

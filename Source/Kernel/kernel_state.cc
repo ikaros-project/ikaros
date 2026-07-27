@@ -10,6 +10,111 @@ using namespace std::chrono;
 
 namespace ikaros
 {
+    value
+    Kernel::ScalarState::CurrentValue() const
+    {
+        if(type == "float")
+            return static_cast<double>(float_ptr ? *float_ptr : float_value);
+        if(type == "double")
+            return double_ptr ? *double_ptr : double_value;
+        if(type == "int")
+            return static_cast<double>(int_ptr ? *int_ptr : int_value);
+        if(type == "bool")
+            return bool_ptr ? *bool_ptr : bool_value;
+        if(type == "string")
+            return string_ptr ? *string_ptr : string_value;
+        throw exception("Unsupported scalar state type \"" + type + "\".");
+    }
+
+
+    void
+    Kernel::ScalarState::RestoreValue(const value & saved_value)
+    {
+        if(type == "float")
+        {
+            float_value = saved_value.as_float();
+            if(float_ptr)
+                *float_ptr = float_value;
+            return;
+        }
+        if(type == "double")
+        {
+            double_value = saved_value.as_double();
+            if(double_ptr)
+                *double_ptr = double_value;
+            return;
+        }
+        if(type == "int")
+        {
+            int_value = saved_value.as_int();
+            if(int_ptr)
+                *int_ptr = int_value;
+            return;
+        }
+        if(type == "bool")
+        {
+            if(!saved_value.is_bool())
+                throw exception("Expected Boolean value.");
+            bool_value = saved_value.is_true();
+            if(bool_ptr)
+                *bool_ptr = bool_value;
+            return;
+        }
+        if(type == "string")
+        {
+            if(!saved_value.is_string())
+                throw exception("Expected string value.");
+            string_value = saved_value.as_string();
+            if(string_ptr)
+                *string_ptr = string_value;
+            return;
+        }
+        throw exception("Unsupported scalar state type \"" + type + "\".");
+    }
+
+
+    void
+    Kernel::ScalarState::Reset()
+    {
+        if(type == "float")
+        {
+            float_value = default_float_value;
+            if(float_ptr)
+                *float_ptr = float_value;
+            return;
+        }
+        if(type == "double")
+        {
+            double_value = default_double_value;
+            if(double_ptr)
+                *double_ptr = double_value;
+            return;
+        }
+        if(type == "int")
+        {
+            int_value = default_int_value;
+            if(int_ptr)
+                *int_ptr = int_value;
+            return;
+        }
+        if(type == "bool")
+        {
+            bool_value = default_bool_value;
+            if(bool_ptr)
+                *bool_ptr = bool_value;
+            return;
+        }
+        if(type == "string")
+        {
+            string_value = default_string_value;
+            if(string_ptr)
+                *string_ptr = string_value;
+            return;
+        }
+        throw exception("Unsupported scalar state type \"" + type + "\".");
+    }
+
+
     std::string
     Kernel::ResolveStateFilename(const std::string & option_name) const
     {
@@ -148,18 +253,7 @@ namespace ikaros
                 dictionary item;
                 item["kind"] = "state";
                 item["type"] = state.type;
-                if(state.type == "float")
-                    item["value"] = static_cast<double>(state.float_ptr ? *state.float_ptr : state.float_value);
-                else if(state.type == "double")
-                    item["value"] = state.double_ptr ? *state.double_ptr : state.double_value;
-                else if(state.type == "int")
-                    item["value"] = state.int_ptr ? *state.int_ptr : state.int_value;
-                else if(state.type == "bool")
-                    item["value"] = state.bool_ptr ? *state.bool_ptr : state.bool_value;
-                else if(state.type == "string")
-                    item["value"] = state.string_ptr ? *state.string_ptr : state.string_value;
-                else
-                    throw exception("Unsupported scalar state type \"" + state.type + "\".");
+                item["value"] = state.CurrentValue();
                 items[path] = std::move(item);
             }
 
@@ -258,47 +352,7 @@ namespace ikaros
 
                 try
                 {
-                    if(type == "float")
-                    {
-                        double value = item["value"].as_double();
-                        scalar->second.float_value = static_cast<float>(value);
-                        if(scalar->second.float_ptr)
-                            *scalar->second.float_ptr = static_cast<float>(value);
-                    }
-                    else if(type == "double")
-                    {
-                        double value = item["value"].as_double();
-                        scalar->second.double_value = value;
-                        if(scalar->second.double_ptr)
-                            *scalar->second.double_ptr = value;
-                    }
-                    else if(type == "int")
-                    {
-                        int value = item["value"].as_int();
-                        scalar->second.int_value = value;
-                        if(scalar->second.int_ptr)
-                            *scalar->second.int_ptr = value;
-                    }
-                    else if(type == "bool")
-                    {
-                        if(!item["value"].is_bool())
-                            throw exception("Expected Boolean value.");
-                        bool value = item["value"].is_true();
-                        scalar->second.bool_value = value;
-                        if(scalar->second.bool_ptr)
-                            *scalar->second.bool_ptr = value;
-                    }
-                    else if(type == "string")
-                    {
-                        if(!item["value"].is_string())
-                            throw exception("Expected string value.");
-                        std::string value = item["value"].as_string();
-                        scalar->second.string_value = value;
-                        if(scalar->second.string_ptr)
-                            *scalar->second.string_ptr = value;
-                    }
-                    else
-                        throw exception("Unsupported scalar state type \"" + type + "\".");
+                    scalar->second.RestoreValue(item["value"]);
                 }
                 catch(const exception &)
                 {

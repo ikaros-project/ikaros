@@ -277,6 +277,10 @@ private:
         int * int_ptr = nullptr;
         bool * bool_ptr = nullptr;
         std::string * string_ptr = nullptr;
+
+        value CurrentValue() const;
+        void RestoreValue(const value & saved_value);
+        void Reset();
     };
     std::map<std::string, ScalarState>       scalar_states;
     template<typename T>
