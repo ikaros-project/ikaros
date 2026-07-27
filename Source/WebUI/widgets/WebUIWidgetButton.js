@@ -17,19 +17,19 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {'name': "CONTROL", 'control':'header'},
 
             { 'name': 'type', 'default': "push", 'type': 'string', 'control': 'menu', 'options': "push,toggle,radio,multi,input,open" },
-            { 'name':'radioGroup', 'default':"", 'type':'string', 'control': 'textedit'},
-            { 'name':'multiGroup', 'default':"", 'type':'string', 'control': 'textedit'},
+            { 'name':'radio_group', 'default':"", 'type':'string', 'control': 'textedit'},
+            { 'name':'multi_group', 'default':"", 'type':'string', 'control': 'textedit'},
 
 
             {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'commandUp', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'release_command', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             
-            {'name':'file_names', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'file_names_source', 'default':"", 'type':'source', 'control': 'textedit'},
         
 //            {'name':'state', 'default':"0", 'type':'int', 'control': 'textedit'},
             {'name':'value', 'default':1, 'type':'string', 'control': 'textedit'},
-            {'name':'valueUp', 'default':0, 'type':'string', 'control': 'textedit'},
+            {'name':'release_value', 'default':0, 'type':'string', 'control': 'textedit'},
  
             {'name':'select_x', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'select_y', 'default':"", 'type':'string', 'control': 'textedit'},
@@ -46,8 +46,8 @@ class WebUIWidgetButton extends WebUIWidgetControl
     requestData(data_set)
     {
         this.addSource(data_set, this.parameters.parameter);
-        if(this.parameters.file_names)
-            this.addSource(data_set, this.parameters.file_names);
+        if(this.parameters.file_names_source)
+            this.addSource(data_set, this.parameters.file_names_source);
         if(this.parameters.enabled_source)
             this.addSource(data_set, this.parameters.enabled_source);
     }
@@ -56,14 +56,14 @@ class WebUIWidgetButton extends WebUIWidgetControl
     {
         if(this.parameters.select_x !== undefined && this.parameters.select_x !== "")
             return Number(this.parameters.select_x);
-        return Number(this.parameters.xindex ?? 0);
+        return 0;
     }
 
     getSelectY()
     {
         if(this.parameters.select_y !== undefined && this.parameters.select_y !== "")
             return Math.trunc(Number(this.parameters.select_y));
-        return Math.trunc(Number(this.parameters.yindex ?? 0));
+        return 0;
     }
 
     getButtonBackground()
@@ -136,9 +136,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {
                 thisbutton.parentElement.setSelected(false);
                 if(p.parameter)
-                    this.parentElement.send_control_change(p.parameter, p.valueUp, selectX, selectY);
-                if(p.commandUp)
-                    this.parentElement.send_command(p.commandUp, p.valueUp, selectX, selectY);
+                    this.parentElement.send_control_change(p.parameter, p.release_value, selectX, selectY);
+                if(p.release_command)
+                    this.parentElement.send_command(p.release_command, p.release_value, selectX, selectY);
 
             }
         }
@@ -149,12 +149,12 @@ class WebUIWidgetButton extends WebUIWidgetControl
                 let buttons = document.getElementsByTagName("webui-widget-button");
                 for(let b of buttons)
                 {
-                    if(b.parameters.radioGroup == p.radioGroup && b.firstChild.classList.contains("button-selected"))
+                    if(b.parameters.radio_group == p.radio_group && b.firstChild.classList.contains("button-selected"))
                     {
                         b.setSelected(false);
                         let q = b.parameters;
                         if(q.parameter)
-                            this.parentElement.send_control_change(q.parameter, q.valueUp, b.getSelectX(), b.getSelectY());
+                            this.parentElement.send_control_change(q.parameter, q.release_value, b.getSelectX(), b.getSelectY());
                     }
                 }
                 thisbutton.parentElement.setSelected(true);
@@ -171,7 +171,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
                 let buttons = document.getElementsByTagName("webui-widget-button");
                 for(let b of buttons)
                 {
-                    if(b.parameters.multiGroup == p.multiGroup)
+                    if(b.parameters.multi_group == p.multi_group)
                         if(b.firstElementChild!=this)
                         {
                             b.firstElementChild.dispatchEvent(new Event('mousedown'));
@@ -213,10 +213,10 @@ class WebUIWidgetButton extends WebUIWidgetControl
             this.parentElement.setPressed(false);
             if(p.parameter)
             {
-                this.parentElement.send_control_change(p.parameter, p.valueUp, selectX, selectY);
+                this.parentElement.send_control_change(p.parameter, p.release_value, selectX, selectY);
             }
-            if(p.commandUp)
-                this.parentElement.send_command(p.commandUp, p.valueUp, selectX, selectY);
+            if(p.release_command)
+                this.parentElement.send_command(p.release_command, p.release_value, selectX, selectY);
         }
 
         else if(p.type=="toggle")
@@ -255,8 +255,8 @@ class WebUIWidgetButton extends WebUIWidgetControl
                 thisbutton.parentElement.send_command(p.command, selected_item, selectX, selectY);
             }
 
-            if(this.file_names)
-                dialog.showListSelectDialog(this.file_names, callback, p.title);
+            if(this.file_names_source)
+                dialog.showListSelectDialog(this.file_names_source, callback, p.title);
             else
                 dialog.showListSelectDialog("", callback, p.title);
         }
@@ -291,8 +291,8 @@ class WebUIWidgetButton extends WebUIWidgetControl
         if(this.usesLegacyButtonBackground())
             this.parentElement.style.background = "";
 
-        if(this.parameters.file_names)
-            this.firstChild.file_names = this.getSource("file_names");
+        if(this.parameters.file_names_source)
+            this.firstChild.file_names_source = this.getSource("file_names_source");
         if(this.parameters.icon)
         {
             const iconClass = String(this.parameters.icon).endsWith("record.png") ? "button-icon button-icon-preserve-color" : "button-icon";

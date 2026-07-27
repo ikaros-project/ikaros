@@ -19,11 +19,11 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
             {'name': "CONTROL", 'control':'header'},
             
-            {'name':'command', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'parameter', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'interaction', 'default':"toggle", 'type':'string', 'control': 'menu', 'options': "toggle,slider"},
-            {'name':'valueHigh', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'valueLow', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'on_value', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'off_value', 'default':0, 'type':'float', 'control': 'textedit'},
             
             {'name': "STYLE", 'control':'header'},
 
@@ -176,15 +176,15 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             const {x, y} = cell;
 
             if(this.parameters.command)
-                this.send_command(this.parameters.command, this.parameters.valueHigh, x, y)
-                //this.get("/command/"+this.parameters.command+"/"+x+"/"+y+"/"+this.parameters.valueHigh);
+                this.send_command(this.parameters.command, this.parameters.on_value, x, y)
+                //this.get("/command/"+this.parameters.command+"/"+x+"/"+y+"/"+this.parameters.on_value);
             
             else if(this.parameters.parameter)
             {
-                if(this.displayData[y][x] < this.parameters.valueHigh)
-                    this.send_control_change(this.parameters.parameter, this.parameters.valueHigh, x, y);
+                if(this.displayData[y][x] < this.parameters.on_value)
+                    this.send_control_change(this.parameters.parameter, this.parameters.on_value, x, y);
                 else
-                    this.send_control_change(this.parameters.parameter, this.parameters.valueLow, x, y);
+                    this.send_control_change(this.parameters.parameter, this.parameters.off_value, x, y);
             }
         }
 
@@ -193,7 +193,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         const currentValue = Number(this.displayData?.[y]?.[x]);
         if(Number.isFinite(currentValue))
             return currentValue;
-        const low = Number(this.parameters.valueLow);
+        const low = Number(this.parameters.off_value);
         return Number.isFinite(low) ? low : 0;
     }
 
@@ -244,8 +244,8 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         evt.preventDefault();
         evt.stopPropagation();
 
-        const low = Number(this.parameters.valueLow);
-        const high = Number(this.parameters.valueHigh);
+        const low = Number(this.parameters.off_value);
+        const high = Number(this.parameters.on_value);
         const rangeMin = Math.min(Number.isFinite(low) ? low : 0, Number.isFinite(high) ? high : 1);
         const rangeMax = Math.max(Number.isFinite(low) ? low : 0, Number.isFinite(high) ? high : 1);
         const span = rangeMax - rangeMin;

@@ -502,7 +502,6 @@ class WebUIWidget extends HTMLElement
                 let r = this.canvasElement.getBoundingClientRect();
                 let x = (evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw);
                 let y = (evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom);
-                //this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+x+"/"+y+"/1");
                 send_command(this.parameters.command, 1, x, y);
             }
             else

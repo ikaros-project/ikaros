@@ -122,8 +122,8 @@
         label="Preset"
         parameter="Controls.data"
         select_x="4"
-        parameter_type="number"
-        list="Off,Low,Medium,High"
+        value_type="number"
+        options="Off,Low,Medium,High"
         show_title="true"
         show_frame="true"
     />
@@ -141,7 +141,7 @@
         parameter="Controls.data"
         select_x="2"
         value="1"
-        valueUp="0"
+        release_value="0"
         show_title="true"
         show_frame="true"
     />

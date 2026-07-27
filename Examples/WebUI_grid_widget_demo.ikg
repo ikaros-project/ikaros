@@ -122,8 +122,8 @@
         source="GridToggle.data"
         style=""
         title="Interactive Grid"
-        valueHigh="1"
-        valueLow="0"
+        on_value="1"
+        off_value="0"
         width="260"
     />
 
@@ -154,8 +154,8 @@
         source="GridSlider.data"
         style=""
         title="Slider Grid"
-        valueHigh="1"
-        valueLow="0"
+        on_value="1"
+        off_value="0"
         width="260"
     />
 </group>

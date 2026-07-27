@@ -10,8 +10,8 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             {'name':'select_x', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'select_y', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'options_source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'parameter_type', 'default':"number", 'type':'string', 'control': 'menu', 'options': "number,string"},
-            {'name':'list', 'default':"X,Y,Z", 'type':'string', 'control': 'textedit'},
+            {'name':'value_type', 'default':"number", 'type':'string', 'control': 'menu', 'options': "number,string"},
+            {'name':'options', 'default':"X,Y,Z", 'type':'string', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
             {'name':'label', 'default':"", 'type':'string', 'control': 'textedit'},
@@ -58,7 +58,7 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
 
         const x = this.getSelectX();
         const y = this.getSelectY();
-        const selectedValue = this.parameters.parameter_type=='string' ? text : value;
+        const selectedValue = this.parameters.value_type=='string' ? text : value;
         if(y === "")
             this.send_control_change(this.parameters.parameter, selectedValue, x);
         else
@@ -69,7 +69,7 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
     {
         if(this.parameters.select_x !== undefined && this.parameters.select_x !== "")
             return Number(this.parameters.select_x);
-        return Number(this.parameters.index ?? 0);
+        return 0;
     }
 
     getSelectY()
@@ -115,7 +115,7 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             e.stopPropagation();
         };
 
-        this.changeOptions(this.parameters.list);
+        this.changeOptions(this.parameters.options);
         this.querySelector("label").innerText = this.parameters.label;
         this.syncEnabledState();
     }
@@ -136,7 +136,7 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
                 // FIXME: Check parameter type here
                 // FIXME: Populate menu from parameter here or at init
 
-                if(this.parameters.parameter_type=='number')
+                if(this.parameters.value_type=='number')
             {
                 const selectX = this.getSelectX();
                 const selectY = this.getSelectY();

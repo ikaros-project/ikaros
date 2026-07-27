@@ -5,8 +5,8 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
             { name: "title", default: "Joystick", type: "string", control: "textedit" },
 
             { name: "CONTROL", control: "header" },
-            { name: "parameter_x", default: "", type: "source", control: "textedit" },
-            { name: "parameter_y", default: "", type: "source", control: "textedit" },
+            { name: "x_parameter", default: "", type: "source", control: "textedit" },
+            { name: "y_parameter", default: "", type: "source", control: "textedit" },
             { name: "select_x", default: 0, type: "int", control: "textedit" },
             { name: "select_y", default: "", type: "string", control: "textedit" },
 
@@ -100,8 +100,8 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
     }
 
     _sendPosition(position) {
-        this._sendAxisValue(this.parameters.parameter_x, this._normalizedToValue(position.x));
-        this._sendAxisValue(this.parameters.parameter_y, this._normalizedToValue(position.y));
+        this._sendAxisValue(this.parameters.x_parameter, this._normalizedToValue(position.x));
+        this._sendAxisValue(this.parameters.y_parameter, this._normalizedToValue(position.y));
     }
 
     _setThumbPosition(position) {
@@ -255,10 +255,10 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
         }
 
         try {
-            const hasXParameter = !!this.parameters.parameter_x;
-            const hasYParameter = !!this.parameters.parameter_y;
-            const x = this._readSourceValue("parameter_x");
-            const y = this._readSourceValue("parameter_y");
+            const hasXParameter = !!this.parameters.x_parameter;
+            const hasYParameter = !!this.parameters.y_parameter;
+            const x = this._readSourceValue("x_parameter");
+            const y = this._readSourceValue("y_parameter");
 
             this._setThumbPosition({
                 x: hasXParameter && x !== undefined ? this._valueToNormalized(x) : 0.5,

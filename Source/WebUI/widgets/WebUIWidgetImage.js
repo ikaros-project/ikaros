@@ -9,12 +9,11 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             {'name':'opacity_source', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name':'file', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'index', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'index_source', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
                 
-            {'name':'module', 'default':"", 'type':'module', 'control': 'textedit'},
-            {'name':'command', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
 
@@ -48,8 +47,8 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             let x = (evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw);
             let y = (evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom);
             
-            if(this.parameters.command && this.parameters.module)
-                this.send_command(`${this.parameters.module}.${this.parameters.command}`, 1, x, y);
+            if(this.parameters.command)
+                this.send_command(this.parameters.command, 1, x, y);
         }
     }
 
@@ -57,8 +56,8 @@ class WebUIWidgetImage extends WebUIWidgetGraph
     {
         if(!this.parameters.file)
             data_set.add(this.resolveControlPath(this.parameters.source)+":"+this.parameters.format);
-        if(this.parameters.index)
-            this.addSource(data_set, this.parameters.index);
+        if(this.parameters.index_source)
+            this.addSource(data_set, this.parameters.index_source);
         if(this.parameters.opacity_source)
             this.addSource(data_set, this.parameters.opacity_source);
     }
@@ -140,7 +139,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
                 h = this.imageObjects[0].height;
             }
             let ix = 0;
-            let index = this.getSource("index");
+            let index = this.getSource("index_source");
             if(index)
             {
                 if (Array.isArray(index))

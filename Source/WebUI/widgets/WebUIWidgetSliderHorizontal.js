@@ -6,7 +6,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
 
             { name: "CONTROL", control: "header" },
             { name: "parameter", default: "", type: "source", control: "textedit" },
-            { name: "command", default: "", type: "string", control: "textedit" },
+            { name: "command", default: "", type: "source", control: "textedit" },
             { name: "enabled_source", default: "", type: "source", control: "textedit" },
             { name: "select_x", default: 0, type: "int", control: "textedit" },
             { name: "select_y", default: "", type: "string", control: "textedit" },

@@ -125,13 +125,6 @@ class WebUIWidgetText extends WebUIWidgetControl
             this.addSource(data_set, this.parameters.parameter);
         this.addSource(data_set, this.parameters.select_source);
     }
-/*
-    text_edited(index, value)
-    {
-        if(this.parameters.module && this.parameters.parameter)
-            this.get("/control/"+this.parameters.module+"/"+this.parameters.parameter+"/"+index+"/0/"+value);
-    }
-*/
     init()
     {
         this.text = this.parameters.text;
