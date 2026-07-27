@@ -24,7 +24,6 @@ const widget_classes =
     "color-picker",
     "switch",
     "drop-down-menu",
-    "control-grid",
     "canvas3d",
     "epi-head",
     "key-points",

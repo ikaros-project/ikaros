@@ -135,7 +135,3 @@ class WebUIWidgetCanvas extends WebUIWidget
     }
 
 };
-
-
-
-webui_widgets.add('webui-widget-canvas', WebUIWidgetCanvas);

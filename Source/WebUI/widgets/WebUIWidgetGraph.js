@@ -628,6 +628,3 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         }
     }
 };
-
-
-webui_widgets.add('webui-widget-graph', WebUIWidgetGraph);
