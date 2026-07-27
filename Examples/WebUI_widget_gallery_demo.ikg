@@ -378,20 +378,4 @@
         show_frame="true"
     />
 
-    <widget
-        name="TestObjectWidget"
-        class="test-object"
-        x="860"
-        y="675"
-        width="660"
-        height="340"
-        title="Test Object"
-        blend="mix"
-        direction="all"
-        red="255"
-        green="150"
-        blue="40"
-        show_title="true"
-        show_frame="true"
-    />
 </group>
