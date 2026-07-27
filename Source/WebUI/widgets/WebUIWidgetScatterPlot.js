@@ -5,9 +5,9 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         return [
             {'name': "SCATTER PLOT", 'control':'header'},
             {'name':'title', 'default':"Scatter Plot", 'type':'string', 'control': 'textedit'},
-            {'name':'sourceX', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'sourceY', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'regressionSource', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'x_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'y_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'regression_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'xAxisLabel', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'yAxisLabel', 'default':"", 'type':'string', 'control': 'textedit'},
@@ -64,7 +64,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
     requestData(data_set)
     {
         super.requestData(data_set);
-        this.addSourceMetadata(data_set, this.parameters.sourceY);
+        this.addSourceMetadata(data_set, this.parameters.y_source);
     }
 
     roundUpToSignificantFigure(value)
@@ -546,10 +546,10 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
 
     update()
     {
-        this.xData = this.normalizeMatrix(this.getSource('sourceX'));
-        this.yData = this.normalizeMatrix(this.getSource('sourceY'));
-        this.regression = this.normalizeMatrix(this.getSource('regressionSource'));
-        this.metadata = this.getSourceMetadata('sourceY', null);
+        this.xData = this.normalizeMatrix(this.getSource('x_source'));
+        this.yData = this.normalizeMatrix(this.getSource('y_source'));
+        this.regression = this.normalizeMatrix(this.getSource('regression_source'));
+        this.metadata = this.getSourceMetadata('y_source', null);
         this.inferOrientation();
 
         if(this.getChannelCount() === 0)

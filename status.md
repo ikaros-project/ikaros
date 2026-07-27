@@ -37,7 +37,7 @@ This is an intentionally breaking migration. Old parameter names will not be ret
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Resolve parameters whose current names have conflicting meanings: separate frame and scene backgrounds, rename Sequence Grid's color source, rename Grid's color-map selector, and distinguish control counts from point counts. | Completed | JavaScript syntax checks; XML validation for every changed `.ikg`; stale-name audit; `git diff --check`. | `WebUI widget parameters now avoid conflicting meanings` |
-| 2 | Standardize source-binding names with snake_case and `_source` suffixes across graph, Key Points, Sequence Grid, Drop-down, Color Picker, and control widgets. | Pending | — | — |
+| 2 | Standardize source-binding names with snake_case and `_source` suffixes across graph, Key Points, Sequence Grid, Drop-down, Color Picker, and control widgets. | Completed | JavaScript syntax checks; XML validation for every changed `.ikg`; repository-wide stale-name audit; `git diff --check`. | `WebUI source bindings now use consistent names` |
 | 3 | Standardize writable target, command, selection-index, and enabled-state names and declared binding types across Button, Switch, sliders, Joystick, Drop-down, Color Picker, Grid, Text, Image, and Sequence Grid. | Pending | — | — |
 | 4 | Standardize common drawing-style names, including line, marker, label, color, fill, and legend parameters, using semantic snake_case names. | Pending | — | — |
 | 5 | Standardize coordinate ranges, axes, scales, grid lines, margins, canvas flips, graph orientation, and Table transposition names and Boolean types. | Pending | — | — |

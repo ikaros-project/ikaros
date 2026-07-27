@@ -6,10 +6,10 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             {'name': "DROP DOWN MENU", 'control':'header'},
             {'name':'title', 'default':"Menu", 'type':'string', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'enableSource', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'enabled_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'select_x', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'select_y', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'list_parameter', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'options_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'parameter_type', 'default':"number", 'type':'string', 'control': 'menu', 'options': "number,string"},
             {'name':'list', 'default':"X,Y,Z", 'type':'string', 'control': 'textedit'},
 
@@ -26,19 +26,19 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
     requestData(data_set)
     {
         this.addSource(data_set, this.parameters.parameter);
-        if(this.parameters.enableSource)
-            this.addSource(data_set, this.parameters.enableSource);
-        if(this.parameters.list_parameter)
-            this.addSource(data_set, this.parameters.list_parameter);
+        if(this.parameters.enabled_source)
+            this.addSource(data_set, this.parameters.enabled_source);
+        if(this.parameters.options_source)
+            this.addSource(data_set, this.parameters.options_source);
     }
 
     isEnabled()
     {
-        if(!this.parameters.enableSource)
+        if(!this.parameters.enabled_source)
             return true;
 
-        const enableSource = this.getSource('enableSource', 1);
-        const enableValue = Array.isArray(enableSource) ? (Array.isArray(enableSource[0]) ? enableSource[0][0] : enableSource[0]) : enableSource;
+        const enabled_source = this.getSource('enabled_source', 1);
+        const enableValue = Array.isArray(enabled_source) ? (Array.isArray(enabled_source[0]) ? enabled_source[0][0] : enabled_source[0]) : enabled_source;
         return Number(enableValue) !== 0;
     }
 
@@ -128,9 +128,9 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             if(!d)
                 return;
             let selectElement = this.querySelector("select");
-            if(this.parameters.list_parameter)
+            if(this.parameters.options_source)
             {
-                let l = this.getSource('list_parameter');
+                let l = this.getSource('options_source');
                 this.changeOptions(l)
             }
                 // FIXME: Check parameter type here

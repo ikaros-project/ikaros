@@ -6,8 +6,8 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
 
             { name: "CONTROL", control: "header" },
             { name: "parameter", default: "", type: "source", control: "textedit" },
-            { name: "enableSource", default: "", type: "source", control: "textedit" },
-            { name: "row_parameter", default: "", type: "source", control: "textedit" },
+            { name: "enabled_source", default: "", type: "source", control: "textedit" },
+            { name: "row_source", default: "", type: "source", control: "textedit" },
 
             { name: "STYLE", control: "header" },
             { name: "show_values", default: true, type: "bool", control: "checkbox" },
@@ -30,11 +30,11 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
 
     requestData(data_set) {
         this.addSource(data_set, this.parameters.parameter);
-        if (this.parameters.enableSource) {
-            this.addSource(data_set, this.parameters.enableSource);
+        if (this.parameters.enabled_source) {
+            this.addSource(data_set, this.parameters.enabled_source);
         }
-        if (this.parameters.row_parameter) {
-            this.addSource(data_set, this.parameters.row_parameter);
+        if (this.parameters.row_source) {
+            this.addSource(data_set, this.parameters.row_source);
         }
     }
 
@@ -76,14 +76,14 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
     }
 
     _isEnabled() {
-        if (!this.parameters.enableSource) {
+        if (!this.parameters.enabled_source) {
             return true;
         }
 
-        const enableSource = this.getSource("enableSource", 1);
-        const enableValue = Array.isArray(enableSource)
-            ? (Array.isArray(enableSource[0]) ? enableSource[0][0] : enableSource[0])
-            : enableSource;
+        const enabled_source = this.getSource("enabled_source", 1);
+        const enableValue = Array.isArray(enabled_source)
+            ? (Array.isArray(enabled_source[0]) ? enabled_source[0][0] : enabled_source[0])
+            : enabled_source;
         return Number(enableValue) !== 0;
     }
 
@@ -106,11 +106,11 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
     }
 
     _getRowParameterValue() {
-        if (!this.parameters.row_parameter) {
+        if (!this.parameters.row_source) {
             return "";
         }
 
-        const rowSource = this.getSource("row_parameter", [[0]]);
+        const rowSource = this.getSource("row_source", [[0]]);
         const rowValue = Array.isArray(rowSource)
             ? (Array.isArray(rowSource[0]) ? rowSource[0][0] : rowSource[0])
             : rowSource;
@@ -126,7 +126,7 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
 
         let values = Array.isArray(data) ? data : [data];
 
-        if (this.parameters.row_parameter) {
+        if (this.parameters.row_source) {
             if (!Array.isArray(data) || !Array.isArray(data[0])) {
                 return null;
             }

@@ -6,7 +6,7 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
 
             { name: "CONTROL", control: "header" },
             { name: "parameter", default: "", type: "source", control: "textedit" },
-            { name: "enableSource", default: "", type: "source", control: "textedit" },
+            { name: "enabled_source", default: "", type: "source", control: "textedit" },
             { name: "select_x", default: 0, type: "int", control: "textedit" },
             { name: "select_y", default: "", type: "string", control: "textedit" },
             { name: "control_count", default: 1, type: "int", control: "textedit" },
@@ -28,8 +28,8 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
         if (this.parameters.parameter) {
             this.addSource(data_set, this.parameters.parameter);
         }
-        if (this.parameters.enableSource) {
-            this.addSource(data_set, this.parameters.enableSource);
+        if (this.parameters.enabled_source) {
+            this.addSource(data_set, this.parameters.enabled_source);
         }
     }
 
@@ -75,14 +75,14 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
     }
 
     _isEnabled() {
-        if (!this.parameters.enableSource) {
+        if (!this.parameters.enabled_source) {
             return true;
         }
 
-        const enableSource = this.getSource("enableSource", 1);
-        const enableValue = Array.isArray(enableSource)
-            ? (Array.isArray(enableSource[0]) ? enableSource[0][0] : enableSource[0])
-            : enableSource;
+        const enabled_source = this.getSource("enabled_source", 1);
+        const enableValue = Array.isArray(enabled_source)
+            ? (Array.isArray(enabled_source[0]) ? enabled_source[0][0] : enabled_source[0])
+            : enabled_source;
         return Number(enableValue) !== 0;
     }
 

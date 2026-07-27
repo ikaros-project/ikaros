@@ -7,14 +7,14 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'red', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'green', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'blue', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'red_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'green_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'blue_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'order', 'default':"row", 'type':'string', 'control': 'menu', 'options': "row,col"},
             {'name':'min', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'max', 'default':2, 'type':'float', 'control': 'textedit'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'label_parameter', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'label_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'labelWidth', 'default':100, 'type':'int', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
@@ -532,9 +532,9 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
         }
 
-        if(this.parameters.label_parameter)
+        if(this.parameters.label_source)
         {
-            let l = this.getSource('label_parameter');
+            let l = this.getSource('label_source');
             if(l)
             {
                 if (Array.isArray(l))

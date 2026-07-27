@@ -33,7 +33,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
  
             {'name':'select_x', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'select_y', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'enableSource', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'enabled_source', 'default':"", 'type':'source', 'control': 'textedit'},
         ]};
 
     static html()
@@ -48,8 +48,8 @@ class WebUIWidgetButton extends WebUIWidgetControl
         this.addSource(data_set, this.parameters.parameter);
         if(this.parameters.file_names)
             this.addSource(data_set, this.parameters.file_names);
-        if(this.parameters.enableSource)
-            this.addSource(data_set, this.parameters.enableSource);
+        if(this.parameters.enabled_source)
+            this.addSource(data_set, this.parameters.enabled_source);
     }
 
     getSelectX()
@@ -306,10 +306,10 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
         try
         {
-            if(this.parameters.enableSource)
+            if(this.parameters.enabled_source)
             {
-                const enableSource = this.getSource('enableSource');
-                const enableValue = Array.isArray(enableSource) ? (Array.isArray(enableSource[0]) ? enableSource[0][0] : enableSource[0]) : enableSource;
+                const enabled_source = this.getSource('enabled_source');
+                const enableValue = Array.isArray(enabled_source) ? (Array.isArray(enabled_source[0]) ? enabled_source[0][0] : enabled_source[0]) : enabled_source;
                 this.firstChild.disabled = (enableValue == 0 ? true : false);
             }
         }

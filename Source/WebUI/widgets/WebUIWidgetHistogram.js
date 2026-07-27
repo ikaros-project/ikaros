@@ -23,10 +23,10 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             {'name':'title', 'default':"Histogram", 'type':'string', 'control': 'textedit'},
  //           {'name':'module', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'histogramMinSource', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'histogramMaxSource', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'meanSource', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'stdevSource', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'histogram_min_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'histogram_max_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'mean_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'standard_deviation_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'xAxisLabel', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'yAxisLabel', 'default':"", 'type':'string', 'control': 'textedit'},
 
@@ -194,11 +194,11 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
     {
         const rawRange = this.getHistogramRawXRange();
         const scaleRange = this.getHistogramXRange();
-        if(!rawRange || !scaleRange || !this.parameters.meanSource || !this.parameters.stdevSource)
+        if(!rawRange || !scaleRange || !this.parameters.mean_source || !this.parameters.standard_deviation_source)
             return;
 
-        const mean = this.getSourceFloatValueAt('meanSource', y);
-        let stdev = this.getSourceFloatValueAt('stdevSource', y);
+        const mean = this.getSourceFloatValueAt('mean_source', y);
+        let stdev = this.getSourceFloatValueAt('standard_deviation_source', y);
         if(!Number.isFinite(mean))
             return;
 
@@ -442,11 +442,11 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
 
     getHistogramRawXRange()
     {
-        if(!this.parameters.histogramMinSource || !this.parameters.histogramMaxSource)
+        if(!this.parameters.histogram_min_source || !this.parameters.histogram_max_source)
             return null;
 
-        let min = this.getSourceFloatValue('histogramMinSource');
-        let max = this.getSourceFloatValue('histogramMaxSource');
+        let min = this.getSourceFloatValue('histogram_min_source');
+        let max = this.getSourceFloatValue('histogram_max_source');
         if(!Number.isFinite(min) || !Number.isFinite(max))
             return null;
 

@@ -7,9 +7,9 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
             {'name':'title', 'default':"Sequence Grid", 'type':'string', 'control': 'textedit'},
 
             {'name': "SOURCES", 'control':'header'},
-            {'name':'sequence_names', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'playing', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'layout_width', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'sequence_names_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'playing_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'layout_width_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'color_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
 
@@ -93,9 +93,9 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
 
     requestData(data_set)
     {
-        this.addSource(data_set, this.parameters.sequence_names);
-        this.addSource(data_set, this.parameters.playing);
-        this.addSource(data_set, this.parameters.layout_width);
+        this.addSource(data_set, this.parameters.sequence_names_source);
+        this.addSource(data_set, this.parameters.playing_source);
+        this.addSource(data_set, this.parameters.layout_width_source);
         this.addSource(data_set, this.parameters.color_source);
     }
 
@@ -110,7 +110,7 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
 
     getSequenceNames()
     {
-        const names = this.getSource("sequence_names", "");
+        const names = this.getSource("sequence_names_source", "");
         if(Array.isArray(names))
             return this.asFlatArray(names).map((name) => String(name));
         return String(names)
@@ -121,7 +121,7 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
 
     getPlaying()
     {
-        return this.asFlatArray(this.getSource("playing", []))
+        return this.asFlatArray(this.getSource("playing_source", []))
             .map((value) => Number(value) > 0);
     }
 
@@ -172,7 +172,7 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
     {
         let width = Number(this.parameters.columns);
         if(!Number.isFinite(width) || width <= 0)
-            width = Number(this.asFlatArray(this.getSource("layout_width", []))[0]);
+            width = Number(this.asFlatArray(this.getSource("layout_width_source", []))[0]);
         if(!Number.isFinite(width) || width <= 0)
             width = 8;
         return Math.max(1, Math.min(Math.trunc(width), Math.max(1, sequence_count)));

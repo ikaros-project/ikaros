@@ -3,13 +3,13 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
     return [
       { name: "SOURCE", control: "header" },
       { name: "title", default: "Epi Head", type: "string", control: "textedit" },
-      { name: "eyeDirection", default: "", type: "source", control: "textedit" },
-      { name: "pupilSize", default: "", type: "source", control: "textedit" },
-      { name: "leftEyeColor", default: "", type: "source", control: "textedit" },
-      { name: "rightEyeColor", default: "", type: "source", control: "textedit" },
-      { name: "topMouthColor", default: "", type: "source", control: "textedit" },
-      { name: "lowMouthColor", default: "", type: "source", control: "textedit" },
-      { name: "headPosition", default: "", type: "source", control: "textedit" },
+      { name: "eye_direction_source", default: "", type: "source", control: "textedit" },
+      { name: "pupil_size_source", default: "", type: "source", control: "textedit" },
+      { name: "left_eye_color_source", default: "", type: "source", control: "textedit" },
+      { name: "right_eye_color_source", default: "", type: "source", control: "textedit" },
+      { name: "top_mouth_color_source", default: "", type: "source", control: "textedit" },
+      { name: "lower_mouth_color_source", default: "", type: "source", control: "textedit" },
+      { name: "head_position_source", default: "", type: "source", control: "textedit" },
       { name: "PARAMETERS", control: "header" },
       { name: "EyeColor", default: "#ffdd88", type: "string", control: "textedit" },
       { name: "MouthColor", default: "#ffdd88", type: "string", control: "textedit" },
@@ -45,8 +45,8 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
 
     // Move head
     this.canvas.translate(
-      27.5 * Math.sin((this.headPosition[0] * Math.PI) / 180),
-      27.5 * Math.sin((this.headPosition[1] * Math.PI) / 180)
+      27.5 * Math.sin((this.head_position_source[0] * Math.PI) / 180),
+      27.5 * Math.sin((this.head_position_source[1] * Math.PI) / 180)
     );
 
     // Figure out color of Epi.
@@ -245,8 +245,8 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
     else
         this.EyeColors = [Array(12).fill(defaultEyeColor[0]), Array(12).fill(defaultEyeColor[0])];
     
-    let l_eye = this.getSource("leftEyeColor", this.getSource("LeftEyeColor", defaultEyeColor));
-    let r_eye = this.getSource("rightEyeColor", this.getSource("RightEyeColor", defaultEyeColor));
+    let l_eye = this.getSource("left_eye_color_source", this.getSource("LeftEyeColor", defaultEyeColor));
+    let r_eye = this.getSource("right_eye_color_source", this.getSource("RightEyeColor", defaultEyeColor));
     
     // Convert the input to a hex representation of color 
     if (l_eye && l_eye.length === 3 && l_eye[0].length === 12 && l_eye[1].length === 12 && l_eye[2].length === 12 )
@@ -263,8 +263,8 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
          this.MouthColors = [defaultMouthColor, defaultMouthColor];
     else
         this.MouthColors = [Array(8).fill(defaultMouthColor[0]), Array(8).fill(defaultMouthColor[0])];
-    let t_mouth = this.getSource("topMouthColor", defaultMouthColor);
-    let l_mouth = this.getSource("lowMouthColor", defaultMouthColor);
+    let t_mouth = this.getSource("top_mouth_color_source", defaultMouthColor);
+    let l_mouth = this.getSource("lower_mouth_color_source", defaultMouthColor);
     // Convert the input to a hex representation of color
     if (t_mouth && t_mouth.length === 3 && t_mouth[0].length === 8 && t_mouth[1].length === 8 && t_mouth[2].length === 8 )
       this.MouthColors[0] = t_mouth[0].map((_, i) => rgbToHex(Math.round(t_mouth[0][i] * 255), Math.round(t_mouth[1][i] * 255), Math.round(t_mouth[2][i] * 255)));
@@ -278,7 +278,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
       (Number.isFinite(gazeValue) ? gazeValue : 0) - (Number.isFinite(vergenceValue) ? vergenceValue : 0),
       (Number.isFinite(gazeValue) ? gazeValue : 0) + (Number.isFinite(vergenceValue) ? vergenceValue : 0),
     ];
-    this.gaze = this.getSource("eyeDirection", defaultGaze);
+    this.gaze = this.getSource("eye_direction_source", defaultGaze);
     if (!Array.isArray(this.gaze))
       this.gaze = [this.gaze];
     if (this.gaze.length === 0)
@@ -288,7 +288,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
     // Gaze. Only x wise and setting Gaze in webUI will controll both eyes. // What happens if source input is only one element?
     const pupilValue = parseFloat(this.parameters.PupilInMM);
     let defaultPupil = [Number.isFinite(pupilValue) ? pupilValue : 11, Number.isFinite(pupilValue) ? pupilValue : 11];
-    this.pupil = this.getSource("pupilSize", defaultPupil);
+    this.pupil = this.getSource("pupil_size_source", defaultPupil);
     if (!Array.isArray(this.pupil))
       this.pupil = [this.pupil];
     if (this.pupil.length === 0)
@@ -297,14 +297,14 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
       this.pupil = [this.pupil[0], this.pupil[0]];
 
     // Head position. Fake tilt and pan of the robot. One value is treated as only tilt and two values tilt and pan.
-    this.headPosition = this.getSource("headPosition", this.getSource("HeadPosition", [0, 0]));
-    if (!Array.isArray(this.headPosition))
-      this.headPosition = [this.headPosition];
-    if (this.headPosition.length === 0)
-      this.headPosition = [0, 0];
+    this.head_position_source = this.getSource("head_position_source", this.getSource("HeadPosition", [0, 0]));
+    if (!Array.isArray(this.head_position_source))
+      this.head_position_source = [this.head_position_source];
+    if (this.head_position_source.length === 0)
+      this.head_position_source = [0, 0];
 
-    if (this.headPosition.length < 2)
-      this.headPosition = [this.headPosition[0], 0];
+    if (this.head_position_source.length < 2)
+      this.head_position_source = [this.head_position_source[0], 0];
     this.draw();
   }
 }

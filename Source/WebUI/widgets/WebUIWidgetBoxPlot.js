@@ -22,7 +22,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
             {'name': "BOX PLOT", 'control':'header'},
             {'name':'title', 'default':"Box Plot", 'type':'string', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'outlierSource', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'outlier_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'direction', 'default':"vertical", 'type':'string', 'control': 'menu', 'options': "vertical", 'class':'true'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'xAxisLabel', 'default':"", 'type':'string', 'control': 'textedit'},
@@ -297,7 +297,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
         if(this.data = this.getSource('source'))
         {
             this.metadata = this.getSourceMetadata('source', null);
-            const outliers = this.getSource('outlierSource');
+            const outliers = this.getSource('outlier_source');
             this.outliers = Array.isArray(outliers) ? outliers : [];
             if(Array.isArray(this.outliers) && this.outliers.length > 0 && !Array.isArray(this.outliers[0]))
                 this.outliers = [this.outliers];
