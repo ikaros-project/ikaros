@@ -8,7 +8,7 @@ All modules continue to include `ikaros.h`; the focused headers establish intern
 |---:|---|---|---|---|
 | 1 | Move the `CircularBuffer` declaration into a self-contained `circular_buffer.h`. | Completed | Standalone header syntax check; Debug build; all 266 kernel and WebUI tests passed. | `Circular buffer declarations now have a focused header` |
 | 2 | Move the `Connection` declaration into a self-contained `connection.h`. | Completed | Standalone header syntax check; Debug build; all 266 kernel and WebUI tests passed. | `Connection declarations now have a focused header` |
-| 3 | Move the `Request` declaration into a self-contained `request.h`. | Pending | Pending | Pending |
+| 3 | Move the `Request` declaration into a self-contained `request.h`. | Completed | Standalone header syntax check; Debug build; all 266 kernel and WebUI tests passed. | `Request declarations now have a focused header` |
 | 4 | Move the internal class-registration metadata declaration into a focused kernel header with an unambiguous name. | Pending | Pending | Pending |
 
 ### Constraints

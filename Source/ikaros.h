@@ -47,6 +47,7 @@
 #include "Kernel/module.h"
 #include "Kernel/circular_buffer.h"
 #include "Kernel/connection.h"
+#include "Kernel/request.h"
 
 
 namespace ikaros 
@@ -77,28 +78,6 @@ public:
     void Print() const;
 };
 
-
-//
-// REQUEST
-//
-
-struct Request
-    {
-        long       session_id;
-        long       client_id;
-        dictionary parameters;
-        value      json_body;
-        std::string url;
-        std::string command; 
-        std::string component_path;
-        std::string body;
-
-        Request(std::string uri, long sid=0, std::string body="", std::string content_type="", long cid=0);
-        bool HasJsonBody() const;
-        void MergeJsonBodyIntoParameters(bool overwrite=true);
-    };
-
-    bool operator==(Request & r, const std::string s);
 
 //
 // KERNEL
