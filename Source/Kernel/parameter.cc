@@ -438,6 +438,13 @@ namespace ikaros
 
     parameter::operator double() const
     {
+        return numeric_value("double");
+    }
+
+
+    double
+    parameter::numeric_value(const std::string & conversion_name) const
+    {
         if(state_->has_options)
         {
             if(auto option_index = std::get_if<int>(&state_->value))
@@ -445,21 +452,33 @@ namespace ikaros
             throw exception("Option parameter missing index value.");
         }
 
-        if(state_->type == rate_type)
+        switch(state_->type)
         {
-            if(auto number_value = std::get_if<double>(&state_->value))
-                return *number_value * kernel().GetTickDuration();
+            case no_type:
+                throw exception("Uninitialized parameter.");
+            case number_type:
+            case rate_type:
+                if(auto number_value = std::get_if<double>(&state_->value))
+                    return state_->type == rate_type
+                               ? *number_value * kernel().GetTickDuration()
+                               : *number_value;
+                break;
+            case bool_type:
+                if(auto bool_value = std::get_if<bool>(&state_->value))
+                    return *bool_value ? 1.0 : 0.0;
+                break;
+            case string_type:
+                if(auto string_value = std::get_if<std::string>(&state_->value))
+                    return kernel_detail::parse_parameter_number(*string_value, conversion_name);
+                break;
+            case matrix_type:
+                if(auto stored_matrix = matrix_value())
+                    return get_scalar_matrix_value(*stored_matrix, conversion_name);
+                break;
+            default:
+                break;
         }
-        if(auto number_value = std::get_if<double>(&state_->value))
-            return *number_value;
-        else if(auto bool_value = std::get_if<bool>(&state_->value))
-            return *bool_value ? 1.0 : 0.0;
-        else if(auto string_value = std::get_if<std::string>(&state_->value))
-            return kernel_detail::parse_parameter_number(*string_value, "double");
-        else if(auto stored_matrix = matrix_value())
-            return get_scalar_matrix_value(*stored_matrix, "double");
-        else
-            throw exception("Type conversion error. Parameter does not have a type Check spelling IKC and cc file.");
+        throw exception("Type conversion error for parameter.");
     }
 
 
@@ -505,78 +524,14 @@ namespace ikaros
     long
     parameter::as_long() const
     {
-        if(state_->has_options)
-        {
-            if(auto option_index = std::get_if<int>(&state_->value))
-                return static_cast<long>(*option_index);
-            throw exception("Option parameter missing index value.");
-        }
-
-        switch(state_->type)
-        {
-            case no_type: throw exception("Uninitialized_parameter.");
-            case number_type:
-            case rate_type:
-                if(auto number_value = std::get_if<double>(&state_->value))
-                    return checked_truncating_long(
-                        state_->type == rate_type ? *number_value * kernel().GetTickDuration() : *number_value,
-                        "long"
-                    );
-                break;
-            case bool_type:
-                if(auto bool_value = std::get_if<bool>(&state_->value))
-                    return *bool_value ? 1L : 0L;
-                break;
-            case string_type:
-                if(auto string_value = std::get_if<std::string>(&state_->value))
-                    return checked_truncating_long(kernel_detail::parse_parameter_number(*string_value, "long"), "long");
-                break;
-            case matrix_type:
-                if(auto stored_matrix = matrix_value())
-                    return checked_truncating_long(get_scalar_matrix_value(*stored_matrix, "long"), "long");
-                throw exception("Could not convert matrix to long");
-            default: ;
-        }
-        throw exception("Type conversion error for parameter");
+        return checked_truncating_long(numeric_value("long"), "long");
     }
 
 
     int
     parameter::as_int() const
     {
-        if(state_->has_options)
-        {
-            if(auto option_index = std::get_if<int>(&state_->value))
-                return *option_index;
-            throw exception("Option parameter missing index value.");
-        }
-
-        switch(state_->type)
-        {
-            case no_type: throw exception("Uninitialized_parameter.");
-            case number_type:
-            case rate_type:
-                if(auto number_value = std::get_if<double>(&state_->value))
-                    return checked_truncating_int(
-                        state_->type == rate_type ? *number_value * kernel().GetTickDuration() : *number_value,
-                        "int"
-                    );
-                break;
-            case bool_type:
-                if(auto bool_value = std::get_if<bool>(&state_->value))
-                    return *bool_value ? 1 : 0;
-                break;
-            case string_type:
-                if(auto string_value = std::get_if<std::string>(&state_->value))
-                    return checked_truncating_int(kernel_detail::parse_parameter_number(*string_value, "int"), "int");
-                break;
-            case matrix_type:
-                if(auto stored_matrix = matrix_value())
-                    return checked_truncating_int(get_scalar_matrix_value(*stored_matrix, "int"), "int");
-                throw exception("Could not convert matrix to int");
-            default: ;
-        }
-        throw exception("Type conversion error for  parameter");
+        return checked_truncating_int(numeric_value("int"), "int");
     }
 
 

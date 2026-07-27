@@ -7,7 +7,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Encapsulate scalar-state capture, restore, and reset type dispatch in `ScalarState`. | Completed | CMake Debug build; all 266 kernel and WebUI tests passed. | `ScalarState now owns persistence operations` |
-| 2 | Consolidate repeated numeric conversion logic in `parameter.cc` while preserving option-index and rate semantics. | Pending | Pending | Pending |
+| 2 | Consolidate repeated numeric conversion logic in `parameter.cc` while preserving option-index and rate semantics. | Completed | CMake Debug build; all 266 kernel and WebUI tests passed. | `Parameter numeric conversions now share one path` |
 | 3 | Split `Connection::Tick()` into named whole-buffer, flattened-delay, and indexed-delay propagation paths; preserve allocation-free execution and benchmark it. | Pending | Pending | Pending |
 | 4 | Separate model construction from shape convergence in `kernel_setup.cc` without changing startup behavior. | Pending | Pending | Pending |
 | 5 | Extract graph scheduling from `kernel_execution.cc` into a private implementation unit with characterization coverage. | Pending | Pending | Pending |

@@ -61,6 +61,7 @@ namespace ikaros
         std::shared_ptr<parameter_state> clone_state() const;
         void bind_to(const parameter & p);
         void validate_numeric_value(double value) const;
+        double numeric_value(const std::string & conversion_name) const;
         matrix * matrix_value() noexcept;
         const matrix * matrix_value() const noexcept;
         matrix & matrix_ref();
