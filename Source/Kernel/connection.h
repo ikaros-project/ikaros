@@ -19,7 +19,12 @@ namespace ikaros
         friend class Component;
         friend class Kernel;
 
+        std::string source;
+        range source_range;
+        std::string target;
+        range target_range;
         range delay_range_;
+        std::string label_;
         bool flatten_;
         bool source_indexed_;
         bool target_indexed_;
@@ -37,12 +42,6 @@ namespace ikaros
         void PropagateIndexedDelays();
 
     public:
-        std::string source;
-        range source_range;
-        std::string target;
-        range target_range;
-        std::string label_;
-
         Connection(std::string s, std::string t, range & delay_range,
                    std::string label = "");
         virtual ~Connection() = default;
@@ -55,6 +54,11 @@ namespace ikaros
         bool UsesCircularBuffer() const;
         bool ShouldTick() const override;
         void ResolveRuntimeState();
+        const std::string & Source() const noexcept { return source; }
+        const range & SourceRange() const noexcept { return source_range; }
+        const std::string & Target() const noexcept { return target; }
+        const range & TargetRange() const noexcept { return target_range; }
+        const std::string & Label() const noexcept { return label_; }
 
         range Resolve(const range & source_output);
         bool IsWholeMatrixConnection() const;

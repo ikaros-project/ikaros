@@ -1421,8 +1421,8 @@ class OutputFile : public Module
         std::string schemaError;
         for(const Connection * connection : connectionIterator->second)
         {
-            if(connection->target_range.rank() != 1 ||
-               connection->target_range.step(0) != 1)
+            if(connection->TargetRange().rank() != 1 ||
+               connection->TargetRange().step(0) != 1)
             {
                 schemaError =
                     "OutputFile flattened input connection has an invalid "
@@ -1431,9 +1431,9 @@ class OutputFile : public Module
             }
 
             JSONField field;
-            field.label = connection->label_;
-            field.offset = connection->target_range.start(0);
-            field.valueCount = connection->target_range.size();
+            field.label = connection->Label();
+            field.offset = connection->TargetRange().start(0);
+            field.valueCount = connection->TargetRange().size();
             if(field.offset < 0 || field.valueCount < 0 ||
                field.offset > inputSize - field.valueCount)
             {
@@ -1445,9 +1445,9 @@ class OutputFile : public Module
             if(connection->DelayCount() > 1)
                 field.shape.push_back(connection->DelayCount());
             for(int dimension = 0;
-                dimension < connection->source_range.rank(); ++dimension)
+                dimension < connection->SourceRange().rank(); ++dimension)
                 field.shape.push_back(
-                    connection->source_range.size(dimension));
+                    connection->SourceRange().size(dimension));
 
             long long shapeSize = 1;
             for(int dimensionSize : field.shape)

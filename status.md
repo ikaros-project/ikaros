@@ -1,5 +1,16 @@
 # Kernel Review Status
 
+## Connection encapsulation completion
+
+| Task | Status | Verification | Commit |
+|---|---|---|---|
+| Privatize all `Connection` fields and provide read-only accessors where external inspection is required. | Completed | CMake Debug build; all 266 kernel and WebUI tests passed, including `OutputFile` connection metadata coverage. | `Connection metadata is now read-only outside the kernel` |
+
+### Outstanding issues and questions
+
+None.
+
+
 ## Remaining kernel refactoring
 
 The tasks below will be completed sequentially, with one focused commit per task.
