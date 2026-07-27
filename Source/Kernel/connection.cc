@@ -180,79 +180,81 @@ namespace ikaros
 
 
 
-    void 
+    bool
+    Connection::PropagateWholeBuffer()
+    {
+        if(!IsWholeMatrixConnection() || DelayCount() != 1)
+            return false;
+
+        const matrix & sample =
+            (IsSingleDelay(0) || IsSingleDelay(1)) ?
+            *source_buffer_ : circular_buffer_->get(MinDelay());
+
+        if(target_buffer_->is_dynamic())
+            target_buffer_->resize(sample.shape());
+        if(target_buffer_->shape() != sample.shape())
+            return false;
+
+        target_buffer_->copy(sample);
+        return true;
+    }
+
+
+    void
+    Connection::PropagateFlattenedDelays()
+    {
+        matrix ctarget = *target_buffer_;
+        int target_offset = target_range.a_[0];
+        for(auto delay = delay_range_; delay.more(); ++delay)
+        {
+            const int delay_value = delay.index()[0];
+            const matrix & sample = delay_value == 0 ? *source_buffer_ :
+                                    circular_buffer_->get(delay_value);
+
+            for(auto index = source_range; index.more(); ++index)
+                ctarget(target_offset++) = sample.at(index.index());
+        }
+    }
+
+
+    void
+    Connection::PropagateIndexedDelays()
+    {
+        if(DelayCount() == 1)
+        {
+            const matrix & sample = circular_buffer_->get(MinDelay());
+            target_buffer_->copy(sample, target_range, source_range);
+            return;
+        }
+
+        int target_index = 0;
+        int delay_dimension = stacked_ ? 1 : 0;
+        for(auto delay = delay_range_; delay.more(); ++delay, ++target_index)
+        {
+            const int delay_value = delay.index()[0];
+            const matrix & sample = delay_value == 0 ? *source_buffer_ :
+                                    circular_buffer_->get(delay_value);
+            range delayed_target_range = target_range;
+            delayed_target_range.set(delay_dimension, target_index, target_index + 1, 1);
+            target_buffer_->copy(sample, delayed_target_range, source_range);
+        }
+    }
+
+
+    void
     Connection::Tick()
     {
-        if(shared_memory_)
+        if(shared_memory_ || PropagateWholeBuffer())
             return;
 
-        if(IsWholeMatrixConnection() && DelayCount() == 1)
-        {
-            const matrix & sample =
-                (IsSingleDelay(0) || IsSingleDelay(1)) ?
-                *source_buffer_ : circular_buffer_->get(MinDelay());
-
-            if(target_buffer_->is_dynamic())
-                target_buffer_->resize(sample.shape());
-            if(target_buffer_->shape() == sample.shape())
-            {
-                target_buffer_->copy(sample);
-                return;
-            }
-        }
-
         if(IsSingleDelay(0))
-        {
             target_buffer_->copy(*source_buffer_, target_range, source_range);
-            //std::cout << source << " =0=> " << target << std::endl; 
-        }
         else if(IsSingleDelay(1))
-        {
-            //std::cout << source << " =1=> " << target << std::endl; 
             target_buffer_->copy(*source_buffer_, target_range, source_range);
-        }
-
         else if(flatten_) // Copy flattened delayed values
-        {
-            //std::cout << source << " =F=> " << target << std::endl; 
-            matrix ctarget = *target_buffer_;
-            int target_offset = target_range.a_[0];
-            for(auto delay = delay_range_; delay.more(); ++delay)
-            {
-                const int delay_value = delay.index()[0];
-                const matrix & s = delay_value == 0 ? *source_buffer_ :
-                                   circular_buffer_->get(delay_value);
-
-                for(auto ix=source_range; ix.more(); ++ix)
-                {
-                    ctarget(target_offset++) = s.at(ix.index());
-                }
-            }
-        }
-
-        else if(DelayCount() == 1) // Copy indexed delayed value with single delay
-        {
-            //std::cout << source << " =D=> " << target << std::endl;
-            const matrix & s = circular_buffer_->get(MinDelay());
-            target_buffer_->copy(s, target_range, source_range);
-        }
-
-        else // Copy indexed delayed values with more than one element
-        {
-            //std::cout << source << " =DD=> " << target << std::endl;
-            int target_ix = 0;
-            int delay_dimension = stacked_ ? 1 : 0;
-            for(auto delay = delay_range_; delay.more(); ++delay, ++target_ix)
-            {
-                const int delay_value = delay.index()[0];
-                const matrix & s = delay_value == 0 ? *source_buffer_ :
-                                   circular_buffer_->get(delay_value);
-                range tr = target_range;
-                tr.set(delay_dimension, target_ix, target_ix + 1, 1);
-                target_buffer_->copy(s, tr, source_range);
-
-            }
-        }
+            PropagateFlattenedDelays();
+        else
+            PropagateIndexedDelays();
     };
 
 

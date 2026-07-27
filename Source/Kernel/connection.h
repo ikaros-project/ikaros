@@ -15,6 +15,11 @@ namespace ikaros
 
     class Connection : public Task
     {
+    private:
+        bool PropagateWholeBuffer();
+        void PropagateFlattenedDelays();
+        void PropagateIndexedDelays();
+
     public:
         std::string source;
         range source_range;
