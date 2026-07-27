@@ -16,17 +16,10 @@ namespace ikaros
     class Connection : public Task
     {
     private:
-        bool PropagateWholeBuffer();
-        void PropagateFlattenedDelays();
-        void PropagateIndexedDelays();
+        friend class Component;
+        friend class Kernel;
 
-    public:
-        std::string source;
-        range source_range;
-        std::string target;
-        range target_range;
         range delay_range_;
-        std::string label_;
         bool flatten_;
         bool source_indexed_;
         bool target_indexed_;
@@ -38,6 +31,17 @@ namespace ikaros
         Component * source_component_ = nullptr;
         Component * target_component_ = nullptr;
         bool has_async_endpoint_ = false;
+
+        bool PropagateWholeBuffer();
+        void PropagateFlattenedDelays();
+        void PropagateIndexedDelays();
+
+    public:
+        std::string source;
+        range source_range;
+        std::string target;
+        range target_range;
+        std::string label_;
 
         Connection(std::string s, std::string t, range & delay_range,
                    std::string label = "");

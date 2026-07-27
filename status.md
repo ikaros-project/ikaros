@@ -12,11 +12,11 @@ The tasks below will be completed sequentially, with one focused commit per task
 | 4 | Separate model construction from shape convergence in `kernel_setup.cc` without changing startup behavior. | Completed | CMake Debug build; all 266 kernel and WebUI tests passed. | `Shape convergence now has its own implementation unit` |
 | 5 | Extract graph scheduling from `kernel_execution.cc` into a private implementation unit with characterization coverage. | Completed | CMake Debug build; all 266 kernel and WebUI tests passed, including cycle and parallel zero-delay scheduling coverage. | `Graph scheduling now has its own implementation unit` |
 | 6 | Replace session logging's small friend accessors with one immutable metadata snapshot and share common event construction. | Completed | CMake Debug build; all 266 kernel and WebUI tests passed, including asynchronous session-log delivery. | `Session logging now uses metadata snapshots` |
-| 7 | Privatize appropriate `Connection` implementation fields after propagation restructuring, preserving the required kernel interface. | Pending | Pending | Pending |
+| 7 | Privatize appropriate `Connection` implementation fields after propagation restructuring, preserving the required kernel interface. | Completed | CMake Debug build; all 266 kernel and WebUI tests passed, including external module compilation. | `Connection runtime state is now private` |
 
 ### Outstanding issues and questions
 
-Pending implementation and verification.
+None.
 
 
 ## Buffer diagnostics consolidation
