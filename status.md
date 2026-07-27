@@ -1,5 +1,72 @@
 # Kernel Review Status
 
+## Split kernel file review
+
+This is a read-only review. Each split implementation and focused declaration file is checked for unused functions, unnecessary exposure, simplification opportunities, and potential follow-up refactoring. No implementation changes are included.
+
+| # | Review area | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Core declarations and lifecycle: `ikaros.h`, `ikaros.cc`, `kernel_types.h` | Completed | Declaration/definition and repository-wide reference audit | `Reviewed split kernel files` |
+| 2 | Parameters: `parameter.h`, `parameter.cc`, `kernel_parsing.h`, `kernel_parsing.cc` | Completed | Declaration/definition and helper-use audit | `Reviewed split kernel files` |
+| 3 | Components and modules: `component.h`, `component.cc`, `module.h`, `module.cc`, `component_runtime.h` | Completed | Override, registration, and repository-wide call-site audit | `Reviewed split kernel files` |
+| 4 | Setup and class metadata: `kernel_setup.cc`, `module_class.h` | Completed | Helper-use, ownership, and diagnostic-path audit | `Reviewed split kernel files` |
+| 5 | Execution and buffering: `kernel_execution.cc`, `circular_buffer.h`, `circular_buffer.cc`, `connection.h`, `connection.cc` | Completed | Scheduling, callback, and propagation-path audit | `Reviewed split kernel files` |
+| 6 | State persistence: `kernel_state.cc` | Completed | Capture/restore/reset call-chain and duplication audit | `Reviewed split kernel files` |
+| 7 | WebUI data and HTTP: `kernel_webui.cc`, `kernel_http.cc`, `request.h`, `request.cc` | Completed | Route, endpoint, serialization, and reference audit | `Reviewed split kernel files` |
+| 8 | Diagnostics, paths, and session logging: `kernel_diagnostics.cc`, `kernel_paths.cc`, `session_logging.h`, `session_logging.cc` | Completed | Diagnostic option, path-policy, queue, and helper-use audit | `Reviewed split kernel files` |
+| 9 | Cross-file synthesis: confirm unused candidates, rank simplifications, and propose staged refactoring | Completed | Low-reference candidates manually validated against callbacks, overrides, friends, registration, and public API exposure | `Reviewed split kernel files` |
+
+### Review constraints
+
+- Keep `ikaros.h` as the overarching include for all modules.
+- Do not introduce PImpl.
+- Do not change code during this review.
+- Treat apparent unused private functions conservatively when callbacks, registration, or external API use may apply.
+- Separate straightforward cleanup from architectural proposals.
+
+### Confirmed unused internal code
+
+- `Kernel::AllocateInputs()` is declared but has no definition or call site.
+- Private `Kernel::AuthEnabled()` has a declaration and definition but no call site.
+- Private `Kernel::DoSendLog()` only forwards to `ConsumeLogForClient()` and has no call site.
+- Private `Kernel::ListClasses()` has a declaration and definition but no call site; class listing already occurs through the active diagnostics path.
+
+### Repository-unused public API candidates
+
+- `Kernel::HasOption()` and `Kernel::GetOptionLong()` have no in-repository callers. They should only be removed after deciding whether external modules are expected to use them.
+- `Component::BindParameter()` has no in-repository callers. Its lower-level behavior is still used through `ResolveParameter()` and `LookupParameter()`.
+- `Component::info()` has no identifiable call site, but its generic name makes textual auditing less definitive; external-module compatibility should be considered.
+- `msg_inherit`, `msg_quiet`, and `msg_exception` are not referenced in repository C++ code. They are public protocol constants and should not be removed as an internal cleanup.
+
+### Straightforward simplifications
+
+1. Move the `Class` constructor and `Print()` implementation out of `request.cc` into a matching `module_class.cc`.
+2. Remove the four confirmed unused internal declarations/functions above in one focused cleanup.
+3. Replace the duplicated `StartupFirstRealInputStepString()` and `StartupAllRealInputsStepString()` formatting with one private formatting helper.
+4. Remove stale `WAS:` comments in `kernel_setup.cc` and the commented-out `PrintProfiling()` call in `kernel_execution.cc`.
+5. Consolidate `ListInputs()`, `ListOutputs()`, and `ListBuffers()`, which currently perform the same full-buffer traversal and differ only in their heading. If inputs and outputs were intended to be filtered, fix that behavior as a separately characterized change.
+
+### Larger refactoring opportunities
+
+1. Encapsulate scalar-state type-specific capture, restore, and reset operations in `ScalarState`; the same float/double/int/bool/string dispatch is repeated across component reset and state persistence.
+2. Consolidate the repeated numeric conversion structure in `parameter.cc` while preserving option-index and rate semantics.
+3. Split `Connection::Tick()` into named whole-buffer, flattened-delay, and indexed-delay propagation helpers. Keep them allocation-free and benchmark the result.
+4. Split class discovery/model construction from shape convergence inside `kernel_setup.cc`; at 2,227 lines it still contains two independently cohesive responsibilities.
+5. Extract the graph-analysis implementation (`HasCycle`, `FindSubgraphs`, `TopologicalSort`, and `Sort`) from `kernel_execution.cc` into a private scheduling unit with characterization tests.
+6. Give session logging one immutable metadata snapshot instead of four small friend accessors, and share common process/session event construction.
+7. Review the public data members of `Connection` after its behavior is decomposed. They are kernel implementation state, but privatizing them requires coordinated friend/member changes and should not be mixed with propagation refactoring.
+
+### Files requiring no targeted cleanup
+
+- `kernel_parsing.cc`, `circular_buffer.cc`, and `kernel_paths.cc` are small, cohesive, and showed no unused functions or compelling simplification.
+- `module.cc` is cohesive; its forwarding time/profiling methods are intentional module API, not redundant dead code.
+
+### Outstanding issues and questions
+
+- Decide whether repository-unused public methods remain supported external module API before removing them.
+- Decide whether identical input/output/buffer diagnostics are intentional aliases or should filter by buffer role.
+
+
 ## Kernel support declaration extraction
 
 All modules continue to include `ikaros.h`; the focused headers establish internal ownership and are included by that umbrella. Each extraction is built, tested, and committed independently.
