@@ -14,8 +14,9 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
             {'name':'whisker_angle_parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'world_width', 'default':300, 'type':'float', 'control': 'textedit'},
             {'name':'world_height', 'default':300, 'type':'float', 'control': 'textedit'},
-            {'name':'whisker_length', 'default':35, 'type':'float', 'control': 'textedit'},
-            {'name':'whisker_angle', 'default':0.55, 'type':'float', 'control': 'textedit'},
+            {'name':'whisker_length', 'default':10, 'type':'float', 'control': 'textedit'},
+            {'name':'whisker_angle', 'default':0.7853981633974483, 'type':'float', 'control': 'textedit'},
+            {'name':'show_whiskers', 'default':'yes', 'type':'bool', 'control': 'checkbox'},
             {'name':'show_grid', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'grid_step', 'default':10, 'type':'float', 'control': 'textedit'},
             {'name':'scene_background', 'default':"#f7f5ef", 'type':'string', 'control': 'textedit'},
@@ -149,8 +150,11 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
 
         const whiskerLength = this.sourceNumber('whisker_length_parameter', this.parameters.whisker_length);
         const whiskerAngle = this.sourceNumber('whisker_angle_parameter', this.parameters.whisker_angle);
-        this.drawWhisker(-whiskerAngle, whiskerLength, Number(this.whiskers[0]) || 0, p.r);
-        this.drawWhisker(whiskerAngle, whiskerLength, Number(this.whiskers[1]) || 0, p.r);
+        if(this.toBool(this.parameters.show_whiskers))
+        {
+            this.drawWhisker(-whiskerAngle, whiskerLength, Number(this.whiskers[0]) || 0, p.r);
+            this.drawWhisker(whiskerAngle, whiskerLength, Number(this.whiskers[1]) || 0, p.r);
+        }
 
         this.canvas.restore();
     }

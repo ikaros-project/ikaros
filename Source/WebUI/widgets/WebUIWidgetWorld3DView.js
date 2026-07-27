@@ -19,9 +19,13 @@ class WebUIWidgetWorld3DView extends WebUIWidget
             {'name':'wall_depth', 'default':2, 'type':'float', 'control': 'textedit'},
             {'name':'whisker_length', 'default':10, 'type':'float', 'control': 'textedit'},
             {'name':'whisker_angle', 'default':0.7853981633974483, 'type':'float', 'control': 'textedit'},
+            {'name':'show_whiskers', 'default':'yes', 'type':'bool', 'control': 'checkbox'},
             {'name':'show_grid', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'grid_step', 'default':10, 'type':'float', 'control': 'textedit'},
             {'name':'ground_color', 'default':"#ece1c9", 'type':'string', 'control': 'textedit'},
+            {'name':'camera_distance', 'default':320, 'type':'float', 'control': 'textedit'},
+            {'name':'object_opacity', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'wall_opacity', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'scene_background', 'default':"#f7f5ef", 'type':'string', 'control': 'textedit'}
         ];
     }
@@ -51,7 +55,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         this.scene.background = new THREE.Color(this.parameters.scene_background || "#f7f5ef");
 
         this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 2000);
-        this.camera.position.set(160, 170, 220);
+        this.camera.position.set(160, 170, 220).setLength(Number(this.parameters.camera_distance) || 320);
 
         this.renderer = new THREE.WebGLRenderer({canvas: this.canvasElement, antialias: true});
         this.renderer.setPixelRatio(window.devicePixelRatio || 1);
@@ -281,7 +285,9 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         const material = new THREE.MeshStandardMaterial({
             color,
             roughness: 0.58,
-            side: THREE.FrontSide
+            side: THREE.FrontSide,
+            opacity: Number(this.parameters.object_opacity),
+            transparent: Number(this.parameters.object_opacity) < 1
         });
         const mesh = new THREE.Mesh(geometry, material);
         const x = this.worldX(row[2]);
@@ -316,7 +322,12 @@ class WebUIWidgetWorld3DView extends WebUIWidget
             const dotRadius = Math.max(0.35, wallDepth * 0.45);
             const dotSpacing = Math.max(dotRadius * 2.8, wallDepth * 2.6);
             const count = Math.max(2, Math.floor(length / dotSpacing) + 1);
-            const material = new THREE.MeshStandardMaterial({color, roughness: 0.5});
+            const material = new THREE.MeshStandardMaterial({
+                color,
+                roughness: 0.5,
+                opacity: Number(this.parameters.wall_opacity),
+                transparent: Number(this.parameters.wall_opacity) < 1
+            });
             for(let i = 0; i < count; ++i)
             {
                 const t = count === 1 ? 0.5 : i / (count - 1);
@@ -331,7 +342,9 @@ class WebUIWidgetWorld3DView extends WebUIWidget
 
         const material = new THREE.MeshStandardMaterial({
             color,
-            roughness: 0.5
+            roughness: 0.5,
+            opacity: Number(this.parameters.wall_opacity),
+            transparent: Number(this.parameters.wall_opacity) < 1
         });
         const mesh = new THREE.Mesh(new THREE.BoxGeometry(length, wallHeight * 2, wallDepth), material);
         mesh.position.set((x1 + x2) * 0.5, 0, (z1 + z2) * 0.5);
@@ -365,7 +378,8 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         body.receiveShadow = true;
         group.add(body);
 
-        this.addWhiskers(group, radius, height);
+        if(this.toBool(this.parameters.show_whiskers))
+            this.addWhiskers(group, radius, height);
         this.root.add(group);
     }
 
