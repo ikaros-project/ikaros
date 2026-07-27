@@ -46,6 +46,7 @@
 #include "Kernel/component.h"
 #include "Kernel/module.h"
 #include "Kernel/circular_buffer.h"
+#include "Kernel/connection.h"
 
 
 namespace ikaros 
@@ -55,52 +56,6 @@ class KernelMainAccess;
 class KernelSessionLoggingAccess;
 
 Kernel& kernel();
-
-//
-// CONNECTION
-//
-
-class Connection: public Task
-{
-public:
-    std::string source;             // FIXME: Add undescore to names ****
-    range       source_range;
-    std::string target;
-    range       target_range;
-    range       delay_range_;
-    std::string label_;
-    bool        flatten_;
-    bool        source_indexed_;
-    bool        target_indexed_;
-    bool        stacked_;
-    bool        shared_memory_;
-    matrix *    source_buffer_ = nullptr;
-    matrix *    target_buffer_ = nullptr;
-    CircularBuffer * circular_buffer_ = nullptr;
-    Component * source_component_ = nullptr;
-    Component * target_component_ = nullptr;
-    bool        has_async_endpoint_ = false;
-
-    Connection(std::string s, std::string t, range & delay_range, std::string label="");
-    virtual ~Connection() = default;
-
-    int DelayCount() const;
-    int MinDelay() const;
-    int MaxDelay() const;
-    bool HasZeroDelay() const;
-    bool IsSingleDelay(int delay) const;
-    bool UsesCircularBuffer() const;
-    bool ShouldTick() const override;
-    void ResolveRuntimeState();
-
-    range Resolve(const range & source_output);
-    bool IsWholeMatrixConnection() const;
-
-    void Tick() override;
-    void Print() const;
-
-    std::string Info() const override; // FIXME: Make consistent with other classes
-};
 
 //
 // CLASS
