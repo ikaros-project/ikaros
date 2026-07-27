@@ -13,6 +13,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin|Linux")
         ${CMAKE_CURRENT_SOURCE_DIR}/parameter.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/component.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/module.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/module_class.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/ikaros.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/kernel_diagnostics.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/kernel_paths.cc

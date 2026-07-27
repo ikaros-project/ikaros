@@ -1,5 +1,16 @@
 # Kernel Review Status
 
+## Module class implementation ownership
+
+| Task | Status | Verification | Commit |
+|---|---|---|---|
+| Move `Class` implementation from `request.cc` to `module_class.cc`. | Completed | CMake Debug build; all 266 kernel and WebUI tests passed. | `Module class implementation now has its own file` |
+
+### Outstanding issues and questions
+
+None.
+
+
 ## Confirmed unused kernel cleanup
 
 | Task | Status | Verification | Commit |

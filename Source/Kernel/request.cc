@@ -6,17 +6,6 @@ using namespace ikaros;
 
 namespace ikaros
 {
-// Class
-Class::Class() : info_(), module_creator(nullptr), name(), path()
-{
-}
-
-    void 
-    Class::Print() const
-    {
-        std::cout << name << ": " << path  << '\n';
-    }
-
     // Request
 
     Request::Request(std::string uri, long sid, std::string b, std::string content_type, long cid):
