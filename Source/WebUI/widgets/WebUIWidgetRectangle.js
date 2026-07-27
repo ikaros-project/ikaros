@@ -6,6 +6,11 @@ class WebUIWidgetRectangle extends WebUIWidgetControl
             {'name': "RECTANGLE", 'control':'header'},
             {'name':'title', 'default':"Default Title", 'type':'string', 'control': 'textedit'},
             {'name':'label', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'text_color', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'font', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'text_align', 'default':"center", 'type':'string', 'control': 'menu', 'options': "left,center,right"},
+            {'name':'vertical_align', 'default':"center", 'type':'string', 'control': 'menu', 'options': "top,center,bottom"},
+            {'name':'padding', 'default':0, 'type':'int', 'control': 'textedit'},
         ]};
 
     static html()
@@ -38,6 +43,12 @@ class WebUIWidgetRectangle extends WebUIWidgetControl
         const label = document.createElement("span");
         label.textContent = this.parameters.label;
         this.firstChild.replaceChildren(label);
+        this.firstChild.style.color = this.parameters.text_color;
+        this.firstChild.style.font = this.parameters.font;
+        this.firstChild.style.textAlign = this.parameters.text_align;
+        this.firstChild.style.justifyContent = this.parameters.text_align;
+        this.firstChild.style.alignItems = ({top:"flex-start", center:"center", bottom:"flex-end"})[this.parameters.vertical_align] || "center";
+        this.firstChild.style.padding = `${Number(this.parameters.padding) || 0}px`;
 
         super.updateFrame();
     }

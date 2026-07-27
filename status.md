@@ -46,7 +46,7 @@ This is an intentionally breaking migration. Old parameter names will not be ret
 | 8 | Standardize Canvas 3D parameters and add title, scene background, line width, and explicit camera controls. | Completed | JavaScript syntax check; affected model XML validation; source-request and camera-path review; `git diff --check`. | `Canvas 3D now has a consistent configurable interface` |
 | 9 | Align World 2D View and World 3D View shared parameters and defaults, separate scene styling from frame styling, and add appropriate 3D visibility, camera, and opacity controls. | Completed | JavaScript syntax checks; shared-template and rendering-path review; `git diff --check`. | `World views now share consistent display controls` |
 | 10 | Expand Target Boxes presentation parameters and normalize its score visibility type and defaults. | Completed | JavaScript syntax check; affected model XML validation; rendering-path review; `git diff --check`. | `Target Boxes now has complete presentation controls` |
-| 11 | Align Rectangle and Text presentation parameters for text color, font, alignment, padding, formatting, editability, and placeholder behavior where applicable. | Pending | — | — |
+| 11 | Align Rectangle and Text presentation parameters for text color, font, alignment, padding, formatting, editability, and placeholder behavior where applicable. | Completed | JavaScript syntax checks; presentation and formatting-path review; `git diff --check`. | `Rectangle and Text now share presentation controls` |
 | 12 | Perform a final repository-wide parameter audit, update documentation and gallery/example models, run WebUI tests and relevant `.ikg` smoke tests, and record outstanding issues. | Pending | — | — |
 
 ### Constraints

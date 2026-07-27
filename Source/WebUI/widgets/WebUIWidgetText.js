@@ -12,6 +12,12 @@ class WebUIWidgetText extends WebUIWidgetControl
             {'name':'separator', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'strings', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'select_source', 'default':"", 'type':'source', 'control': 'textedit'}
+            ,{'name':'text_color', 'default':"", 'type':'string', 'control': 'textedit'}
+            ,{'name':'font', 'default':"", 'type':'string', 'control': 'textedit'}
+            ,{'name':'text_align', 'default':"left", 'type':'string', 'control': 'menu', 'options': "left,center,right"}
+            ,{'name':'padding', 'default':0, 'type':'int', 'control': 'textedit'}
+            ,{'name':'decimals', 'default':-1, 'type':'int', 'control': 'textedit'}
+            ,{'name':'placeholder', 'default':"", 'type':'string', 'control': 'textedit'}
         ]};
 
     static html()
@@ -81,10 +87,16 @@ class WebUIWidgetText extends WebUIWidgetControl
 
     setDisplayedText(value)
     {
+        let displayValue = value;
+        const decimals = Number(this.parameters.decimals);
+        if(Number.isInteger(decimals) && decimals >= 0 && Number.isFinite(Number(value)))
+            displayValue = Number(value).toFixed(decimals);
+        if(displayValue === undefined || displayValue === null || displayValue === "")
+            displayValue = this.parameters.placeholder || "";
         if(this.firstChild)
-            this.firstChild.textContent = value ?? "";
+            this.firstChild.textContent = displayValue;
         else
-            this.textContent = value ?? "";
+            this.textContent = displayValue;
     }
 
     normalizeEditedText(content)
@@ -116,6 +128,10 @@ class WebUIWidgetText extends WebUIWidgetControl
         let fw = this.parameters.frame_width;
         this.parentElement.style.borderWidth = fw ? fw + "px" : "";
         this.parentElement.style.background = this.parameters.background;
+        this.firstChild.style.color = this.parameters.text_color;
+        this.firstChild.style.font = this.parameters.font;
+        this.firstChild.style.textAlign = this.parameters.text_align;
+        this.firstChild.style.padding = `${Number(this.parameters.padding) || 0}px`;
 
         super.updateFrame();
     }
