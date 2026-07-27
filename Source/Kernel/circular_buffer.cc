@@ -1,6 +1,8 @@
 // Ikaros 3.0
 
-#include "ikaros.h"
+#include "circular_buffer.h"
+
+#include <stdexcept>
 
 using namespace ikaros;
 

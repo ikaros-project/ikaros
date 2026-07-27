@@ -45,6 +45,7 @@
 #include "Kernel/parameter.h"
 #include "Kernel/component.h"
 #include "Kernel/module.h"
+#include "Kernel/circular_buffer.h"
 
 
 namespace ikaros 
@@ -54,28 +55,6 @@ class KernelMainAccess;
 class KernelSessionLoggingAccess;
 
 Kernel& kernel();
-
-//
-// CIRCULAR BUFFER
-//
-
-class CircularBuffer
-{
-public:
-    CircularBuffer() = delete;
-    CircularBuffer(const matrix & m, int size);
-    CircularBuffer(const CircularBuffer &) = delete;
-    CircularBuffer & operator=(const CircularBuffer &) = delete;
-    CircularBuffer(CircularBuffer &&) noexcept = default;
-    CircularBuffer & operator=(CircularBuffer &&) noexcept = default;
-    void rotate(const matrix & m);
-    const matrix & get(int i) const;
-    int size() const noexcept;
-
-private:
-    std::vector<matrix> buffer_;
-    int index_;
-};
 
 //
 // CONNECTION

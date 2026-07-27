@@ -1,5 +1,25 @@
 # Kernel Review Status
 
+## Kernel support declaration extraction
+
+All modules continue to include `ikaros.h`; the focused headers establish internal ownership and are included by that umbrella. Each extraction is built, tested, and committed independently.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Move the `CircularBuffer` declaration into a self-contained `circular_buffer.h`. | Completed | Standalone header syntax check; Debug build; all 266 kernel and WebUI tests passed. | `Circular buffer declarations now have a focused header` |
+| 2 | Move the `Connection` declaration into a self-contained `connection.h`. | Pending | Pending | Pending |
+| 3 | Move the `Request` declaration into a self-contained `request.h`. | Pending | Pending | Pending |
+| 4 | Move the internal class-registration metadata declaration into a focused kernel header with an unambiguous name. | Pending | Pending | Pending |
+
+### Constraints
+
+- Keep `ikaros.h` as the overarching, documented include for all modules.
+- Preserve source compatibility, behavior, diagnostics, and serialized formats.
+- Do not migrate module include sites.
+- Keep every extracted header self-contained.
+- Verify and commit each extraction independently.
+
+
 ## Kernel API encapsulation and header extraction
 
 The work proceeds sequentially without introducing PImpl or changing public behavior. Each implementation change is verified and committed independently.
