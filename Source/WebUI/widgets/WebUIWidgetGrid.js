@@ -15,7 +15,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name':'max', 'default':2, 'type':'float', 'control': 'textedit'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'label_source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'labelWidth', 'default':100, 'type':'int', 'control': 'textedit'},
+            {'name':'label_width', 'default':100, 'type':'int', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
             
@@ -27,10 +27,10 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             
             {'name': "STYLE", 'control':'header'},
 
-            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},
             {'name':'color_map', 'default':"gray", 'type':'string', 'control': 'menu', 'options': "gray,fire,spectrum,custom,rgb"},
-            {'name':'colorTable', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'color_map_colors', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'shape', 'default':"rectangle", 'type':'string', 'control': 'menu', 'options': "rectangle,square,circle"},
             {'name':'size', 'default':1, 'type':'float', 'control': 'textedit'},
 
@@ -110,11 +110,11 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             return null;
 
         const hasLabels = String(this.parameters.labels ?? "").trim() !== "";
-        const labelWidth = hasLabels ? parseInt(this.parameters.labelWidth) : 0;
+        const label_width = hasLabels ? parseInt(this.parameters.label_width) : 0;
         const rect = this.canvasElement.getBoundingClientRect();
         const rows = this.displayData.length;
         const cols = this.displayData[0].length;
-        const usableWidth = rect.width - this.format.spaceLeft - this.format.spaceRight - labelWidth;
+        const usableWidth = rect.width - this.format.spaceLeft - this.format.spaceRight - label_width;
         const usableHeight = rect.height - this.format.spaceTop - this.format.spaceBottom;
         if(usableWidth <= 0 || usableHeight <= 0 || rows <= 0 || cols <= 0)
             return null;
@@ -123,7 +123,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             rect,
             rows,
             cols,
-            labelWidth,
+            label_width,
             usableWidth,
             usableHeight,
             cellWidth: usableWidth / cols,
@@ -137,7 +137,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         if(!metrics)
             return null;
 
-        const x = Math.floor(metrics.cols * (evt.clientX - metrics.rect.left - this.format.spaceLeft - metrics.labelWidth) / metrics.usableWidth);
+        const x = Math.floor(metrics.cols * (evt.clientX - metrics.rect.left - this.format.spaceLeft - metrics.label_width) / metrics.usableWidth);
         const y = Math.floor(metrics.rows * (evt.clientY - metrics.rect.top - this.format.spaceTop) / metrics.usableHeight);
         if(x < 0 || x >= metrics.cols || y < 0 || y >= metrics.rows)
             return null;
@@ -378,7 +378,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             cols = d[0].length;
         }
         
-        this.canvas.lineWidth = this.format.lineWidth;
+        this.canvas.lineWidth = this.format.line_width;
         this.canvas.textAlign = 'left';
         this.canvas.textBaseline = 'middle';
 
@@ -388,16 +388,16 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         else if(this.parameters.color_map == 'spectrum')
             ct = LUT_spectrum;
 
-        if(String(this.parameters.colorTable ?? "").trim() != "")
+        if(String(this.parameters.color_map_colors ?? "").trim() != "")
         {
-            ct = String(this.parameters.colorTable).split(',').map((entry) => entry.trim()).filter((entry) => entry !== "");
+            ct = String(this.parameters.color_map_colors).split(',').map((entry) => entry.trim()).filter((entry) => entry !== "");
             if (ct.length === 0)
                 ct = LUT_gray;
         }
 
         let labels = this.getDisplayLabels();
         let ln = labels.length;
-        let ls = (ln ? parseInt(this.parameters.labelWidth) : 0);
+        let ls = (ln ? parseInt(this.parameters.label_width) : 0);
         let n = ct.length;
         let dx = (width-ls)/cols;
         let dy = height/rows;

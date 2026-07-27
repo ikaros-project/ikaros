@@ -15,7 +15,7 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
 
             {'name': "STYLE", 'control':'header'},
             {'name':'label', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'labelWidth', 'default':50, 'type':'int', 'control': 'textedit'},
+            {'name':'label_width', 'default':50, 'type':'int', 'control': 'textedit'},
         ]};
 
     static html()

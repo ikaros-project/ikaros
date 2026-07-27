@@ -30,10 +30,10 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
             {'name':'drawLabelsX', 'default':true, 'type':'bool', 'control': 'checkbox'},
 
             {'name': "STYLE", 'control':'header'},
-            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'fill', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'outlierRadius', 'default':3, 'type':'float', 'control': 'textedit'},
+            {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'fill_color', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'outlier_radius', 'default':3, 'type':'float', 'control': 'textedit'},
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
@@ -145,7 +145,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
         const boxHeight = Math.max(1, Math.abs(yQ3 - yQ1));
 
         this.setColor(i);
-        this.canvas.lineWidth = parseFloat(this.parameters.lineWidth) || 1;
+        this.canvas.lineWidth = parseFloat(this.parameters.line_width) || 1;
         this.canvas.lineCap = "butt";
         this.canvas.lineJoin = "miter";
 
@@ -180,11 +180,11 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
             return;
 
         const centerX = width / 2;
-        const radius = Math.max(1, parseFloat(this.parameters.outlierRadius) || 3);
+        const radius = Math.max(1, parseFloat(this.parameters.outlier_radius) || 3);
 
         this.canvas.save();
         this.setColor(i);
-        this.canvas.lineWidth = parseFloat(this.parameters.lineWidth) || 1;
+        this.canvas.lineWidth = parseFloat(this.parameters.line_width) || 1;
 
         for(const value of values)
         {
@@ -230,7 +230,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
         const boxSpacing = (1 + this.format.spacing) * boxSlotWidth;
 
         this.canvas.save();
-        this.canvas.font = this.format.labelFont;
+        this.canvas.font = this.format.label_font;
         this.canvas.fillStyle = this.format.labelColor;
         this.canvas.textAlign = "center";
         this.canvas.textBaseline = "top";
@@ -264,7 +264,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
 
         this.resetCanvasTransform(-0.5, -0.5);
         this.canvas.save();
-        this.canvas.font = this.format.labelFont;
+        this.canvas.font = this.format.label_font;
         this.canvas.fillStyle = this.format.labelColor;
 
         if(xAxisLabel !== "")

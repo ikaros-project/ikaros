@@ -394,9 +394,9 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
 
         const from = this.worldToCanvas(this.wallX1(row), this.wallY1(row));
         const to = this.worldToCanvas(this.wallX2(row), this.wallY2(row));
-        const lineWidth = Math.max(1, this.wallLineWidth(row) * from.r);
+        const line_width = Math.max(1, this.wallLineWidth(row) * from.r);
         const distance = this.distanceToCanvasSegment(x, y, from.x, from.y, to.x, to.y);
-        const tolerance = Math.max(6, lineWidth * 0.5 + 4);
+        const tolerance = Math.max(6, line_width * 0.5 + 4);
         if(distance > tolerance)
             return null;
 
@@ -938,7 +938,7 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
 
         const from = this.worldToCanvas(this.wallX1(row), this.wallY1(row));
         const to = this.worldToCanvas(this.wallX2(row), this.wallY2(row));
-        const lineWidth = Math.max(1, this.wallLineWidth(row) * from.r);
+        const line_width = Math.max(1, this.wallLineWidth(row) * from.r);
         const opaque = this.wallOpaque(row);
 
         this.canvas.save();
@@ -946,7 +946,7 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
         {
             this.canvas.beginPath();
             this.canvas.strokeStyle = "#f6c945";
-            this.canvas.lineWidth = Math.max(3, lineWidth + 5);
+            this.canvas.lineWidth = Math.max(3, line_width + 5);
             this.canvas.lineCap = "round";
             this.canvas.moveTo(from.x, from.y);
             this.canvas.lineTo(to.x, to.y);
@@ -955,10 +955,10 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
 
         this.canvas.beginPath();
         this.canvas.strokeStyle = this.rowColor(row, 6, this.parameters.wall_color || "#31343a");
-        this.canvas.lineWidth = lineWidth;
+        this.canvas.lineWidth = line_width;
         this.canvas.lineCap = "round";
         if(!opaque)
-            this.canvas.setLineDash([0.01, Math.max(3, lineWidth * 2.5)]);
+            this.canvas.setLineDash([0.01, Math.max(3, line_width * 2.5)]);
         else
             this.canvas.setLineDash([]);
         this.canvas.moveTo(from.x, from.y);

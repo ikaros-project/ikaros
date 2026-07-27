@@ -58,11 +58,11 @@ class WebUIWidgetCanvas extends WebUIWidget
 
     setColor(i)
     {
-        var l = this.format.color.split(",");
+        var l = this.format.stroke_color.split(",");
         var n = l.length;
         this.canvas.strokeStyle = l[i % n].trim();
 
-        l = this.format.fill.split(",");
+        l = this.format.fill_color.split(",");
         n = l.length;
         this.canvas.fillStyle = l[i % n].trim();
     }

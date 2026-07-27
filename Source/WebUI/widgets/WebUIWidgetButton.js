@@ -9,8 +9,8 @@ class WebUIWidgetButton extends WebUIWidgetControl
             {'name':'label', 'default':"Button", 'type':'string', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
-            {'name':'color', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'button_background', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'text_color', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'background_color', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'icon', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'tooltip', 'default':"", 'type':'string', 'control': 'textedit'},
 
@@ -68,15 +68,15 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
     getButtonBackground()
     {
-        if(this.parameters.button_background !== undefined && this.parameters.button_background !== "")
-            return this.parameters.button_background;
+        if(this.parameters.background_color !== undefined && this.parameters.background_color !== "")
+            return this.parameters.background_color;
         return this.parameters.background ?? "";
     }
 
     usesLegacyButtonBackground()
     {
         return (
-            (this.parameters.button_background === undefined || this.parameters.button_background === "") &&
+            (this.parameters.background_color === undefined || this.parameters.background_color === "") &&
             this.parameters.background !== undefined &&
             this.parameters.background !== ""
         );
@@ -281,8 +281,8 @@ class WebUIWidgetButton extends WebUIWidgetControl
         this.parameters.select_x = this.getSelectX();
         this.parameters.select_y = this.getSelectY();
 
-        if(this.parameters.color)
-            this.firstChild.style.color = this.parameters.color;
+        if(this.parameters.text_color)
+            this.firstChild.style.color = this.parameters.text_color;
 
         this.firstChild.title = this.parameters.tooltip || "";
 

@@ -17,27 +17,27 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
 
             {'name': "MARKER STYLE", 'control':'header'},
 
-            {'name':'markerType', 'default':"circle", 'type':'string', 'control': 'menu', 'options': "none,circle,cross"}, // dot, square, rectangle?
+            {'name':'marker_type', 'default':"circle", 'type':'string', 'control': 'menu', 'options': "none,circle,cross"}, // dot, square, rectangle?
             {'name':'size', 'default':0.02, 'type':'float', 'control': 'textedit'},
-            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},   // no default = get from CSS would be a good functionality
-            {'name':'fill', 'default':'gray', 'type':'string', 'control': 'textedit'},
-            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
- //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'options': "butt,round,square"},
-            {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
+            {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},   // no default = get from CSS would be a good functionality
+            {'name':'fill_color', 'default':'gray', 'type':'string', 'control': 'textedit'},
+            {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
+ //           {'name':'line_dash', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'line_cap', 'default':"butt", 'type':'string', 'control': 'menu', 'options': "butt,round,square"},
+            {'name':'line_join', 'default':"miter", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
 
             {'name': "LABEL STYLE", 'control':'header'},
 
             {'name':'labelType', 'default':"none", 'type':'string', 'control': 'menu', 'options': "none,labels, alphabetical, numbered, x_value, y_value, z_value, xy_value, value"},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'labelFont', 'default':"18px sans-serif", 'type':'string', 'control': 'textedit'},
-            {'name':'labelDecimals', 'default':2, 'type':'int', 'control': 'textedit'},
-            {'name':'labelPrefix', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'labelPostfix', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'labelAlign', 'default':"center", 'type':'string', 'control': 'menu', 'options': "left, center, right"},
-            {'name':'labelBaseline', 'default':"middle", 'type':'string', 'control': 'menu', 'options': "top, bottom, middle, alphabetic, hanging"},
-            {'name':'labelOffsetX', 'default':"0", 'type':'float', 'control': 'textedit'},
-            {'name':'labelOffsetY', 'default':"0", 'type':'float', 'control': 'textedit'},
+            {'name':'label_font', 'default':"18px sans-serif", 'type':'string', 'control': 'textedit'},
+            {'name':'label_decimals', 'default':2, 'type':'int', 'control': 'textedit'},
+            {'name':'label_prefix', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'label_suffix', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'label_align', 'default':"center", 'type':'string', 'control': 'menu', 'options': "left, center, right"},
+            {'name':'label_baseline', 'default':"middle", 'type':'string', 'control': 'menu', 'options': "top, bottom, middle, alphabetic, hanging"},
+            {'name':'label_offset_x', 'default':"0", 'type':'float', 'control': 'textedit'},
+            {'name':'label_offset_y', 'default':"0", 'type':'float', 'control': 'textedit'},
 
             
             {'name': "COORDINATE SYSTEM", 'control':'header'},
@@ -92,9 +92,9 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             return;
 
         let rows = d.length;
-        this.canvas.lineWidth = this.format.lineWidth;
-        this.canvas.lineCap = this.format.lineCap;
-        this.canvas.lineJoin = this.format.lineJoin;
+        this.canvas.lineWidth = this.format.line_width;
+        this.canvas.lineCap = this.format.line_cap;
+        this.canvas.lineJoin = this.format.line_join;
 
         //let xx = (this.parameters.point_count ? this.parameters.select+2*this.parameters.point_count : d[0].length);
         
@@ -117,11 +117,11 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
                 x = (d[i][j++]-this.parameters.min_x)*this.parameters.scale_x * width;
                 y = (d[i][j++]-this.parameters.min_y)*this.parameters.scale_y * height;
                 
-                if(this.parameters.markerType == "circle")
+                if(this.parameters.marker_type == "circle")
                 {
                     this.canvas.arc(...transform(x, y), s, 0, 2*Math.PI);
                 }
-                else if(this.parameters.markerType == "cross")
+                else if(this.parameters.marker_type == "cross")
                 {
                     this.canvas.moveTo(...transform(x-s, y));
                     this.canvas.lineTo(...transform(x+s, y));
@@ -149,16 +149,16 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             return;
         let rows = d.length;
         
-        this.parameters.labelOffsetX = parseFloat(this.parameters.labelOffsetX);    // FIXME: should be converted somewhere else
-        this.parameters.labelOffsetY = parseFloat(this.parameters.labelOffsetY);
+        this.parameters.label_offset_x = parseFloat(this.parameters.label_offset_x);    // FIXME: should be converted somewhere else
+        this.parameters.label_offset_y = parseFloat(this.parameters.label_offset_y);
 
-        this.canvas.lineWidth = this.format.lineWidth;
-        this.canvas.lineCap = this.format.lineCap;
-        this.canvas.lineJoin = this.format.lineJoin;
+        this.canvas.lineWidth = this.format.line_width;
+        this.canvas.lineCap = this.format.line_cap;
+        this.canvas.lineJoin = this.format.line_join;
 
-        this.canvas.font = this.parameters.labelFont;
-        this.canvas.textAlign = this.parameters.labelAlign;
-        this.canvas.textBaseline = this.parameters.labelBaseline;
+        this.canvas.font = this.parameters.label_font;
+        this.canvas.textAlign = this.parameters.label_align;
+        this.canvas.textBaseline = this.parameters.label_baseline;
 
         let xx = (this.parameters.point_count ? selectX+2*this.parameters.point_count : d[0].length);
         xx = Math.min(xx, d[0].length);
@@ -182,11 +182,11 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
                 this.setColor(c);
                 this.canvas.beginPath();
                 
-                if(this.parameters.markerType == "circle")
+                if(this.parameters.marker_type == "circle")
                 {
                     this.canvas.arc(...transform(x, y), s, 0, 2*Math.PI);
                 }
-                else if(this.parameters.markerType == "cross")
+                else if(this.parameters.marker_type == "cross")
                 {
                     this.canvas.moveTo(...transform(x-s/2, y));
                     this.canvas.lineTo(...transform(x+s/2, y));
@@ -205,17 +205,17 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
                     if(this.parameters.labelType == "numbered")
                         lbl = j;
                     if(this.parameters.labelType == "x_value")
-                        lbl = d[j][i+0].toFixed(this.parameters.labelDecimals);
+                        lbl = d[j][i+0].toFixed(this.parameters.label_decimals);
                     else if(this.parameters.labelType == "y_value")
-                        lbl = d[j][i+1].toFixed(this.parameters.labelDecimals);
+                        lbl = d[j][i+1].toFixed(this.parameters.label_decimals);
                     else if(this.parameters.labelType == "xy_value")
-                        lbl = d[j][i+0].toFixed(this.parameters.labelDecimals)+", "+d[j][i+1].toFixed(this.parameters.labelDecimals);
+                        lbl = d[j][i+0].toFixed(this.parameters.label_decimals)+", "+d[j][i+1].toFixed(this.parameters.label_decimals);
                     else if(this.parameters.labelType == "z_value")
-                         lbl = d[j][i+2].toFixed(this.parameters.labelDecimals);
+                         lbl = d[j][i+2].toFixed(this.parameters.label_decimals);
                     else if(this.parameters.labelType == "value")
-                        lbl = d[j][this.parameters.select_value_column].toFixed(this.parameters.labelDecimals);
+                        lbl = d[j][this.parameters.select_value_column].toFixed(this.parameters.label_decimals);
 
-                    this.canvas.fillText(this.parameters.labelPrefix+lbl+this.parameters.labelPostfix, ...transform(x+this.parameters.labelOffsetX, y+this.parameters.labelOffsetY));
+                    this.canvas.fillText(this.parameters.label_prefix+lbl+this.parameters.label_suffix, ...transform(x+this.parameters.label_offset_x, y+this.parameters.label_offset_y));
                 }
             }
             c++;

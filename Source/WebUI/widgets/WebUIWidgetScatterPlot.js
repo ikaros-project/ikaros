@@ -13,12 +13,12 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
             {'name':'yAxisLabel', 'default':"", 'type':'string', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
-            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'fill', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'pointRadius', 'default':3, 'type':'float', 'control': 'textedit'},
-            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'drawLines', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'drawLegend', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'fill_color', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'point_radius', 'default':3, 'type':'float', 'control': 'textedit'},
+            {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'show_lines', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_legend', 'default':true, 'type':'bool', 'control': 'checkbox'},
 
             {'name': "LAYOUT", 'control':'header'},
             {'name':'marginLeft', 'default':4, 'type':'int', 'control': 'textedit'},
@@ -228,7 +228,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
             }
         }
 
-        if(this.isTrue(this.parameters.drawLines))
+        if(this.isTrue(this.parameters.show_lines))
         {
             const xMin = xValues.length ? Math.min(...xValues) : 0;
             const xMax = xValues.length ? Math.max(...xValues) : 1;
@@ -424,7 +424,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         const yAxisLabel = String(this.parameters.yAxisLabel || "").trim();
 
         this.canvas.save();
-        this.canvas.font = this.format.labelFont;
+        this.canvas.font = this.format.label_font;
         this.canvas.fillStyle = this.format.labelColor;
 
         if(xAxisLabel !== "")
@@ -448,7 +448,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
 
     drawPoints(rect)
     {
-        const radius = Math.max(1, parseFloat(this.parameters.pointRadius) || 3);
+        const radius = Math.max(1, parseFloat(this.parameters.point_radius) || 3);
         const channelCount = this.getChannelCount();
 
         this.canvas.save();
@@ -473,13 +473,13 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
 
     drawRegressionLines(rect)
     {
-        if(!this.isTrue(this.parameters.drawLines))
+        if(!this.isTrue(this.parameters.show_lines))
             return;
 
         const channelCount = this.getChannelCount();
         this.canvas.save();
         this.canvas.translate(rect.left, rect.top);
-        this.canvas.lineWidth = Math.max(1, parseFloat(this.parameters.lineWidth) || 1);
+        this.canvas.lineWidth = Math.max(1, parseFloat(this.parameters.line_width) || 1);
         for(let channel=0; channel<channelCount; channel++)
         {
             const slope = this.getRegressionValue(0, channel);
@@ -498,9 +498,9 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         this.canvas.restore();
     }
 
-    drawLegend(rect)
+    show_legend(rect)
     {
-        if(!this.isTrue(this.parameters.drawLegend))
+        if(!this.isTrue(this.parameters.show_legend))
             return;
 
         const labels = this.getLabels();
@@ -509,7 +509,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
             return;
 
         this.canvas.save();
-        this.canvas.font = this.format.labelFont;
+        this.canvas.font = this.format.label_font;
         this.canvas.textAlign = "left";
         this.canvas.textBaseline = "middle";
 
@@ -567,7 +567,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         this.drawAxes(rect);
         this.drawFrame(rect);
         this.drawAxisLabels(rect);
-        this.drawLegend(rect);
+        this.show_legend(rect);
     }
 }
 

@@ -34,13 +34,13 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'options': "horizontal,vertical", 'class':'true'},
             {'name':'transpose', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
-            {'name':'fill', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'curveColor', 'default':'black', 'type':'string', 'control': 'textedit'},
-            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
- //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'lineCap', 'default':"", 'type':'string', 'control': 'menu', 'options': "butt,round,quare"},
-            {'name':'lineJoin', 'default':"", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
+            {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
+            {'name':'fill_color', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'curve_color', 'default':'black', 'type':'string', 'control': 'textedit'},
+            {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
+ //           {'name':'line_dash', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'line_cap', 'default':"", 'type':'string', 'control': 'menu', 'options': "butt,round,quare"},
+            {'name':'line_join', 'default':"", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
 
             {'name': "LAYOUT", 'control':'header'},
             {'name':'marginLeft', 'default':4, 'type':'int', 'control': 'textedit'},
@@ -235,9 +235,9 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
         const steps = Math.max(200, row.length * 24, Math.round(width));
 
         this.canvas.save();
-        const curveColors = String(this.parameters.curveColor || "").split(",").map(c => c.trim()).filter(c => c !== "");
-        this.canvas.strokeStyle = curveColors.length ? curveColors[y % curveColors.length] : "black";
-        this.canvas.lineWidth = Math.max(2, (parseFloat(this.parameters.lineWidth) || 1) + 1);
+        const curve_colors = String(this.parameters.curve_color || "").split(",").map(c => c.trim()).filter(c => c !== "");
+        this.canvas.strokeStyle = curve_colors.length ? curve_colors[y % curve_colors.length] : "black";
+        this.canvas.lineWidth = Math.max(2, (parseFloat(this.parameters.line_width) || 1) + 1);
         this.canvas.lineCap = "round";
         this.canvas.lineJoin = "round";
         this.canvas.fillStyle = "transparent";
@@ -276,7 +276,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             return 0;
 
         this.canvas.save();
-        this.canvas.font = this.format.labelFont;
+        this.canvas.font = this.format.label_font;
         let width = 0;
         for(const label of labels)
             width = Math.max(width, this.canvas.measureText(label.trim()).width);
@@ -343,7 +343,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             return;
 
         this.canvas.save();
-        this.canvas.font = this.format.labelFont;
+        this.canvas.font = this.format.label_font;
         this.canvas.fillStyle = this.format.labelColor;
         this.canvas.textAlign = "right";
         this.canvas.textBaseline = "middle";
@@ -547,7 +547,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
         const plotLeft = contentLeft + effectiveSpaceLeft;
         const plotWidth = this.format.width - effectiveSpaceLeft - this.format.spaceRight;
         const hasXAxisLabel = xAxisLabel !== "";
-        const labelGap = hasXAxisLabel ? Math.max(14, parseInt(this.format.labelFont) || 14) : 0;
+        const labelGap = hasXAxisLabel ? Math.max(14, parseInt(this.format.label_font) || 14) : 0;
         const y = contentTop + contentHeight - effectiveSpaceBottom + this.format.spaceBottom;
 
         this.resetCanvasTransform(-0.5, -0.5);
@@ -585,7 +585,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
 
         if(hasXAxisLabel)
         {
-            this.canvas.font = this.format.labelFont;
+            this.canvas.font = this.format.label_font;
             this.canvas.textAlign = "center";
             this.canvas.textBaseline = "top";
             this.canvas.fillText(xAxisLabel, plotLeft + plotWidth / 2, y + this.format.scaleOffset + 14);
@@ -593,7 +593,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
 
         if(yAxisLabel !== "")
         {
-            this.canvas.font = this.format.labelFont;
+            this.canvas.font = this.format.label_font;
             this.canvas.textAlign = "center";
             this.canvas.textBaseline = "middle";
             this.canvas.save();

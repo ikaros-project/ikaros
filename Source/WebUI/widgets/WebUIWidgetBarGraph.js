@@ -28,12 +28,12 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'options': "horizontal,vertical", 'class':'true'},
             {'name':'transpose', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
-            {'name':'fill', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
- //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'lineCap', 'default':"", 'type':'string', 'control': 'menu', 'options': "butt,round,quare"},
-            {'name':'lineJoin', 'default':"", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
+            {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
+            {'name':'fill_color', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
+ //           {'name':'line_dash', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'line_cap', 'default':"", 'type':'string', 'control': 'menu', 'options': "butt,round,quare"},
+            {'name':'line_join', 'default':"", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
             {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},

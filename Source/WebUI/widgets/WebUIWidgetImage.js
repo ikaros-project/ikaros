@@ -42,7 +42,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         {
             if(main.edit_mode)
                 return;
-            let lw = this.parameters.labels ? parseInt(this.parameters.labelWidth) : 0;
+            let lw = this.parameters.labels ? parseInt(this.parameters.label_width) : 0;
             let r = this.canvasElement.getBoundingClientRect();
             let x = (evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw);
             let y = (evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom);

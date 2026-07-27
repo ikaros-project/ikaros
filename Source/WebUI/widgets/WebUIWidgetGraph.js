@@ -386,7 +386,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         if(!labels)
             return;
         
-        this.canvas.font = this.format.labelFont;
+        this.canvas.font = this.format.label_font;
         this.canvas.fillStyle = this.format.labelColor;
         this.canvas.textAlign = "center";
         this.canvas.textBaseline= "top";
@@ -419,7 +419,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         if(!labels)
             return;
 
-        this.canvas.font = this.format.labelFont;
+        this.canvas.font = this.format.label_font;
         this.canvas.fillStyle = this.format.labelColor;
         this.canvas.textAlign = "right";
         this.canvas.textBaseline= "middle";

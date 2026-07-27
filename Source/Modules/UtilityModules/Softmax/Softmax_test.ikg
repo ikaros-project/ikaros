@@ -2,5 +2,5 @@
    <connection delay="1" source="vector.OUTPUT" target="softmax.INPUT"/>
    <module _x="552" _y="216" class="Softmax" description="outputs the softmax of the input" name="softmax"/>
    <module _x="336" _y="192" class="Randomizer" description="outputs a random value" max="1" min="0" name="vector" size="5"/>
-   <widget _index_="0" _x="744" _y="192" auto="false" class="bar-graph" color="" direction="vertical" fill="" frame-style="" height="200" labels="" lineCap="" lineJoin="" lineWidth="1" max="1" min="0" name="Widget_4" show_frame="false" show_title="true" source="softmax.OUTPUT" style="" title="softmax" transpose="false" width="200"/>
+   <widget _index_="0" _x="744" _y="192" auto="false" class="bar-graph" stroke_color="" direction="vertical" fill_color="" frame-style="" height="200" labels="" line_cap="" line_join="" line_width="1" max="1" min="0" name="Widget_4" show_frame="false" show_title="true" source="softmax.OUTPUT" style="" title="softmax" transpose="false" width="200"/>
 </group>

@@ -23,7 +23,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             {'name':'ranges_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'channel_mode_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name': "STYLE", 'control':'header'},
-            {'name':'color', 'default':"", 'type':'string', 'control': 'textedit'}
+            {'name':'stroke_color', 'default':"", 'type':'string', 'control': 'textedit'}
         ]
     };
 
@@ -430,7 +430,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
         let context = canvas.getContext('2d');
 
         context.strokeStyle = "yellow";
-        context.lineWidth = 0.75;
+        context.line_width = 0.75;
         context.setLineDash([0]);
 
         for(let c=0; c<channels; c++)

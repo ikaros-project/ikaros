@@ -16,12 +16,12 @@ class WebUIWidgetPath extends WebUIWidgetGraph
 
              {'name': "STYLE", 'control':'header'},
 
-            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
-            {'name':'fill', 'default':'gray', 'type':'string', 'control': 'textedit'},
-            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
- //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'options': "butt,round,quare"},
-            {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
+            {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
+            {'name':'fill_color', 'default':'gray', 'type':'string', 'control': 'textedit'},
+            {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
+ //           {'name':'line_dash', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'line_cap', 'default':"butt", 'type':'string', 'control': 'menu', 'options': "butt,round,quare"},
+            {'name':'line_join', 'default':"miter", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
             
             {'name':'close', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'arrow', 'default':false, 'type':'bool', 'control': 'checkbox'},
@@ -73,9 +73,9 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         if(!Array.isArray(d) || d.length === 0 || !Array.isArray(d[0]))
             return;
         let rows = this.data.length;
-        this.canvas.lineWidth = this.format.lineWidth;
-        this.canvas.lineCap = this.format.lineCap;
-        this.canvas.lineJoin = this.format.lineJoin;
+        this.canvas.lineWidth = this.format.line_width;
+        this.canvas.lineCap = this.format.line_cap;
+        this.canvas.lineJoin = this.format.line_join;
 
         let xx = (this.parameters.point_count ? selectX+2*this.parameters.point_count : d[0].length);
         xx = Math.min(xx, d[0].length);
@@ -122,9 +122,9 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         if(!Array.isArray(d) || d.length === 0 || !Array.isArray(d[0]) || d[0].length < selectX + 2)
             return;
         let rows = this.data.length;
-        this.canvas.lineWidth = this.format.lineWidth;
-        this.canvas.lineCap = this.format.lineCap;
-        this.canvas.lineJoin = this.format.lineJoin;
+        this.canvas.lineWidth = this.format.line_width;
+        this.canvas.lineCap = this.format.line_cap;
+        this.canvas.lineJoin = this.format.line_join;
 
         let xx = (this.parameters.point_count ? selectX+2*this.parameters.point_count : d[0].length);
         xx = Math.min(xx, d[0].length);

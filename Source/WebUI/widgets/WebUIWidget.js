@@ -391,16 +391,16 @@ class WebUIWidget extends HTMLElement
 
         this.setFormat('spacing', '--spacing', 'int');
 
-        this.setFormat('color', '--color', 'string')
+        this.setFormat('stroke_color', '--color', 'string')
         this.setFormat('positiveColor', '--positive-color', 'string');
         this.setFormat('negativeColor', '--negative-color', 'string');
-        this.setFormat('lineWidth', '--line-width', 'string');
-        this.setFormat('lineDash', '--line-dash', 'string');
-        this.setFormat('lineCap', '--line-cap', 'string');
-        this.setFormat('lineJoin', '--line-join', 'string');
+        this.setFormat('line_width', '--line-width', 'string');
+        this.setFormat('line_dash', '--line-dash', 'string');
+        this.setFormat('line_cap', '--line-cap', 'string');
+        this.setFormat('line_join', '--line-join', 'string');
         this.setFormat('close', '--close', 'bool');
         this.setFormat('arrow', '--arrow', 'bool');
-        this.setFormat('fill', '--fill', 'string');
+        this.setFormat('fill_color', '--fill', 'string');
 
         this.setFormat('gridColor', '--grid-color', 'string');
         this.setFormat('gridLineWidth', '--grid-line-width', 'string');
@@ -430,7 +430,7 @@ class WebUIWidget extends HTMLElement
 
         this.setFormat('labels', '--labels', 'bool');
         this.setFormat('labelColor', '--label-color', 'string');
-        this.setFormat('labelFont', '--label-font', 'string');
+        this.setFormat('label_font', '--label-font', 'string');
         this.setFormat('drawLabelsX', '--draw-labels-x', 'bool');
         this.setFormat('drawLabelsY', '--draw-labels-y', 'bool');
         
@@ -458,7 +458,7 @@ class WebUIWidget extends HTMLElement
             }
             else
             {
-                let l = this.format.color.split(",");
+                let l = this.format.stroke_color.split(",");
                 let n = l.length;
                 return l[i % n].trim();
             }
@@ -498,7 +498,7 @@ class WebUIWidget extends HTMLElement
             return;
            if(this.parameters.command)
            {
-                let lw = this.parameters.labels ? parseInt(this.parameters.labelWidth) : 0;
+                let lw = this.parameters.labels ? parseInt(this.parameters.label_width) : 0;
                 let r = this.canvasElement.getBoundingClientRect();
                 let x = (evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw);
                 let y = (evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom);
