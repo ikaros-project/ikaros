@@ -42,6 +42,7 @@ else()
 endif()
 
 option(IKAROS_THREAD_SANITIZER "Build Ikaros with ThreadSanitizer" OFF)
+option(IKAROS_RELEASE_IPO "Enable interprocedural optimization in Release builds" ON)
 
 foreach(CODEC PNG TIFF WEBP)
     set(IKAROS_${CODEC} "AUTO" CACHE STRING
@@ -152,6 +153,23 @@ add_subdirectory(Source)
 
 # Crete a binary with source files
 add_executable(ikaros ${SOURCE})
+
+if(IKAROS_RELEASE_IPO)
+    include(CheckIPOSupported)
+    check_ipo_supported(
+        RESULT IKAROS_IPO_SUPPORTED
+        OUTPUT IKAROS_IPO_ERROR
+        LANGUAGES CXX
+    )
+    if(IKAROS_IPO_SUPPORTED)
+        set_property(TARGET ikaros PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+        message(STATUS "Release IPO/LTO: enabled for Release configurations")
+    else()
+        message(WARNING "Release IPO/LTO is unavailable: ${IKAROS_IPO_ERROR}")
+    endif()
+else()
+    message(STATUS "Release IPO/LTO: disabled")
+endif()
 
 if(IKAROS_THREAD_SANITIZER)
     if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
