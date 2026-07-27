@@ -113,6 +113,7 @@ namespace ikaros
         std::lock_guard<std::mutex> lifecycle_lock(component_lifecycle_mutex);
         // FIXME: retain persistent components
 
+        async_components.clear();
         components.clear();
 
         connections.clear();

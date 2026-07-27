@@ -842,6 +842,8 @@ namespace ikaros
             ok &= c->ResolveParameter(p->second, parameter_name);
         }
 
+        async_components.clear();
+        async_components.reserve(components.size());
         for(auto & [name, component] : components)
         {
             (void)name;
@@ -850,6 +852,9 @@ namespace ikaros
                 component->SyncAsyncModeFromParameter();
             else
                 component->async_mode = false;
+
+            if(component->async_mode)
+                async_components.push_back(component.get());
         }
 
         if(!ok)

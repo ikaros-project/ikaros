@@ -191,10 +191,9 @@ namespace ikaros
     void
     Kernel::PollAsyncComponents()
     {
-        for(auto & [path, component] : components)
+        for(Component * component : async_components)
         {
-            if(!component->async_mode)
-                continue;
+            const std::string & path = component->path_;
 
             try
             {
@@ -475,14 +474,7 @@ namespace ikaros
     Kernel::Run()
     {
         bool stop_completed = run_mode.load() == run_mode_quit;
-        bool has_async_workers = false;
-        if(options_.is_set("batch_mode"))
-            for(auto & [name, parameter] : parameters)
-                if(ends_with(name, ".async") && parameter.as_bool())
-                {
-                    has_async_workers = true;
-                    break;
-                }
+        const bool has_async_workers = !async_components.empty();
 
         // Main loop
         while(run_mode.load() > run_mode_quit &&

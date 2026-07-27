@@ -264,6 +264,7 @@ private:
     std::map<std::string, std::string>      user_files;   // ikg-files
     std::map<std::string, std::string>      user_state_files; // state-files
     std::map<std::string, std::unique_ptr<Component>> components;
+    std::vector<Component *>                async_components;
     std::mutex                              component_lifecycle_mutex;
     std::vector<Connection>                 connections;
     std::map<std::string, matrix>           buffers;                // IO-structure
