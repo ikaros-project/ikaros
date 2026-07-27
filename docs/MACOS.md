@@ -135,5 +135,34 @@ The tests use a Debug build because some kernel regressions use Debug-only
 failure injection. Both build directories write the executable to
 `Bin/ikaros`, so the most recently built configuration is the one that runs.
 
+### Run ThreadSanitizer with Homebrew LLVM
+
+Apple Clang's ThreadSanitizer runtime can fail before `main()` on some macOS
+versions. Ikaros therefore provides a separate preset that uses Homebrew LLVM.
+Install LLVM, configure the preset, and build it:
+
+```sh
+brew install llvm
+cmake --preset macos-homebrew-tsan
+cmake --build --preset macos-homebrew-tsan --parallel
+```
+
+The preset asks Homebrew for LLVM's installation prefix, so the same command
+works with the normal Apple Silicon and Intel Homebrew locations. It writes
+the instrumented executable to `Bin-tsan-homebrew/ikaros` without replacing
+the normal `Bin/ikaros` executable.
+
+Run a focused model or the complete kernel suite with the instrumented binary:
+
+```sh
+./Bin-tsan-homebrew/ikaros -b path/to/model.ikg
+python3 Source/Kernel/UnitTesting/KernelTests/kernel_test.py \
+    --ikaros Bin-tsan-homebrew/ikaros \
+    --jobs 2
+```
+
+ThreadSanitizer substantially increases execution time and memory use. Start
+with the smallest relevant test before running the complete suite.
+
 For general Unix build information and CMake codec controls, see
 [Building Ikaros on Linux](LINUX.md).

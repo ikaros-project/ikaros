@@ -62,6 +62,8 @@ Thumbs.db
 /Build/
 /Build-tsan/
 /Bin-tsan/
+/Build-tsan-homebrew/
+/Bin-tsan-homebrew/
 
 # Python
 __pycache__/

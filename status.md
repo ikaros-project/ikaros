@@ -1,5 +1,18 @@
 # Kernel Review Status
 
+## WebUI image encoding follow-ups
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a documented CMake preset for running ThreadSanitizer with Homebrew LLVM on macOS. | Completed | Preset listing and configuration; full Homebrew Clang 22.1.8 TSan build; `test_363_webui_image_encoder.ikg` passed without sanitizer reports. | `Homebrew LLVM TSan now has a CMake preset` |
+| 2 | Add a repeatable Release benchmark for WebUI image capture, JPEG encoding, response latency, and image-active tick throughput. | Pending | — | — |
+
+### Outstanding issues and questions
+
+- None identified so far; task 2 remains pending.
+
 ## Post-refactoring consistency pass
 
 The tasks below will be completed sequentially, with one focused commit per task.

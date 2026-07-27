@@ -1,0 +1,35 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "macos-homebrew-tsan",
+            "displayName": "macOS Homebrew LLVM ThreadSanitizer",
+            "description": "Build Ikaros with Homebrew LLVM and ThreadSanitizer",
+            "binaryDir": "${sourceDir}/Build-tsan-homebrew",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/Bin-tsan-homebrew",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/Scripts/CMake/HomebrewLLVM.cmake",
+                "IKAROS_RELEASE_IPO": "OFF",
+                "IKAROS_THREAD_SANITIZER": "ON"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "macos-homebrew-tsan",
+            "displayName": "Build macOS Homebrew LLVM ThreadSanitizer",
+            "configurePreset": "macos-homebrew-tsan"
+        }
+    ]
+}
