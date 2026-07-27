@@ -39,23 +39,6 @@ namespace ikaros
 
 
     void
-    Kernel::ListInputs()
-    {
-        std::cout << "\nInputs:\n";
-        for(auto & [name, buffer] : buffers)
-            std::cout << "\t" << name <<  buffer.shape() << '\n';
-    }
-
-
-   void Kernel::ListOutputs()
-    {
-        std::cout << "\nOutputs:\n";
-        for(auto & [name, buffer] : buffers)
-            std::cout  << "\t" << name << buffer.shape() << '\n';
-    }
-
-
-    void
     Kernel::ListBuffers()
     {
         std::cout << "\nBuffers:\n";

@@ -338,8 +338,6 @@ private:
     void RotateBuffers();
     void ListComponents();
     void ListConnections();
-    void ListInputs();
-    void ListOutputs();
     void ListBuffers();
     void ListCircularBuffers();
     void ListParameters();

@@ -2198,13 +2198,10 @@ namespace ikaros
 
             if(info_.is_set("info"))
             {
-                ListOutputs();
                 ListParameters();
                 //ListComponents();
                 ListConnections();
-                ListInputs();
-                ListOutputs();
-                //ListBuffers();
+                ListBuffers();
                 //ListCircularBuffers();
                 //ListTasks();
             }

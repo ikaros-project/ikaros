@@ -1,5 +1,16 @@
 # Kernel Review Status
 
+## Buffer diagnostics consolidation
+
+| Task | Status | Verification | Commit |
+|---|---|---|---|
+| Replace the duplicate, unfiltered input/output buffer listings with one truthful buffer listing. | Completed | CMake Debug build; all 266 kernel and WebUI tests passed, including both `info="true"` models. | `Buffer diagnostics now use one truthful listing` |
+
+### Outstanding issues and questions
+
+None.
+
+
 ## Startup-step formatting cleanup
 
 | Task | Status | Verification | Commit |
