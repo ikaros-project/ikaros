@@ -40,6 +40,7 @@ namespace ikaros
         };
 
         UpdateProfilingState();
+        const bool profiling_enabled = ProfilingEnabled();
         const auto now = std::chrono::steady_clock::now();
         if(!run_clock_started)
         {
@@ -51,7 +52,7 @@ namespace ikaros
         tick++;
 
         PollAsyncComponents();
-        if(auto failure = RunTasks())
+        if(auto failure = RunTasks(profiling_enabled))
         {
             Notify(msg_fatal_error, failure->message(), failure->path());
             return false;
@@ -135,7 +136,7 @@ namespace ikaros
 
 
     void
-    Kernel::RunTask(Task * task)
+    Kernel::RunTask(Task * task, bool profiling_enabled)
     {
         if(task == nullptr)
             return;
@@ -159,31 +160,32 @@ namespace ikaros
             }
         }
 
-        const bool profiling_started = task->TryProfilingBegin();
+        if(profiling_enabled)
+            task->ProfilingBegin();
         try
         {
             task->Tick();
         }
         catch(const exception & e)
         {
-            if(profiling_started)
+            if(profiling_enabled)
                 task->ProfilingEnd();
             throw exception("While running task \"" + task->Info() + "\": " + e.message(),
                             e.path().empty() ? task->Info() : e.path());
         }
         catch(const std::exception & e)
         {
-            if(profiling_started)
+            if(profiling_enabled)
                 task->ProfilingEnd();
             throw exception("While running task \"" + task->Info() + "\": " + e.what(), task->Info());
         }
         catch(...)
         {
-            if(profiling_started)
+            if(profiling_enabled)
                 task->ProfilingEnd();
             throw exception("While running task \"" + task->Info() + "\": Unknown error.", task->Info());
         }
-        if(profiling_started)
+        if(profiling_enabled)
             task->ProfilingEnd();
     }
 
@@ -222,9 +224,11 @@ namespace ikaros
     class KernelTaskSequence: public TaskSequence
     {
     public:
-        KernelTaskSequence(Kernel & kernel, const std::vector<Task *> & tasks):
+        KernelTaskSequence(Kernel & kernel, const std::vector<Task *> & tasks,
+                           bool profiling_enabled):
             TaskSequence(tasks),
-            kernel_(kernel)
+            kernel_(kernel),
+            profiling_enabled_(profiling_enabled)
         {
         }
 
@@ -235,7 +239,7 @@ namespace ikaros
             {
                 try
                 {
-                    kernel_.RunTask(task);
+                    kernel_.RunTask(task, profiling_enabled_);
                 }
                 catch(const exception & e)
                 {
@@ -257,6 +261,7 @@ namespace ikaros
 
     private:
         Kernel & kernel_;
+        bool profiling_enabled_;
     };
 
 
@@ -289,7 +294,8 @@ namespace ikaros
 
 
     std::optional<exception>
-    Kernel::SubmitTaskSequences(submitted_task_sequences & sequences)
+    Kernel::SubmitTaskSequences(submitted_task_sequences & sequences,
+                                bool profiling_enabled)
     {
         sequences.reserve(tasks.size());
         std::optional<exception> failure;
@@ -297,7 +303,8 @@ namespace ikaros
         {
             for(auto & task_sequence : tasks)
             {
-                auto sequence = std::make_shared<KernelTaskSequence>(*this, task_sequence);
+                auto sequence = std::make_shared<KernelTaskSequence>(*this, task_sequence,
+                                                                     profiling_enabled);
                 thread_pool->submit(sequence);
                 sequences.push_back(sequence);
             }
@@ -377,10 +384,10 @@ namespace ikaros
 
 
     std::optional<exception>
-    Kernel::RunTasks()
+    Kernel::RunTasks(bool profiling_enabled)
     {
         submitted_task_sequences sequences;
-        std::optional<exception> failure = SubmitTaskSequences(sequences);
+        std::optional<exception> failure = SubmitTaskSequences(sequences, profiling_enabled);
         bool timed_out = !failure && WaitForTaskWatchdog(sequences);
 
         WaitForTaskCompletionBarrier(sequences, failure);
@@ -397,9 +404,10 @@ namespace ikaros
     void
     Kernel::RunTasksInSingleThread()
     {
+        const bool profiling_enabled = ProfilingEnabled();
         for(auto & task_group : tasks)
             for(auto & task: task_group)
-                RunTask(task);
+                RunTask(task, profiling_enabled);
     }
 
 

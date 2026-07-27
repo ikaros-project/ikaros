@@ -552,61 +552,78 @@ def run_http_test(cmd, root):
                         "WebUI image did not refresh after the wall-clock snapshot interval elapsed"
                     )
             elif action.startswith("assert_async_profiling:"):
-                _, component_path, request_count = action.split(":", 2)
+                action_parts = action.split(":")
+                if len(action_parts) == 3:
+                    _, component_path, request_count = action_parts
+                    synchronous_component_path = None
+                elif len(action_parts) == 4:
+                    _, component_path, synchronous_component_path, request_count = action_parts
+                else:
+                    raise AssertionError(f"Invalid profiling assertion: {action!r}")
                 request_count = int(request_count)
                 saw_running = False
-                maximum_count = 0
+                component_paths = [component_path]
+                if synchronous_component_path is not None:
+                    component_paths.append(synchronous_component_path)
+                maximum_counts = {path: 0 for path in component_paths}
                 last_body = ""
 
-                def profiling_for_component(body):
+                def profiling_for_component(body, path):
                     package = json.loads(body)
                     components = [
                         component
                         for component in package["components"]
-                        if component["path"] == component_path
+                        if component["path"] == path
                     ]
                     if len(components) != 1:
                         raise AssertionError(
                             f"Profiling response contains {len(components)} components "
-                            f"at {component_path!r}"
+                            f"at {path!r}"
                         )
                     return package, components[0]["profiling"]
 
                 inactive_body = request("profiling?active=false", record=False)
-                inactive_package, inactive_profiling = profiling_for_component(inactive_body)
-                if inactive_package["enabled"]:
-                    raise AssertionError("Profiling remained enabled without an active client")
-                if inactive_profiling["wall"]["count"] != 0 or inactive_profiling["cpu"]["count"] != 0:
-                    raise AssertionError("Profiling collected samples before it was enabled")
+                for path in component_paths:
+                    inactive_package, inactive_profiling = profiling_for_component(inactive_body, path)
+                    if inactive_package["enabled"]:
+                        raise AssertionError("Profiling remained enabled without an active client")
+                    if inactive_profiling["wall"]["count"] != 0 or inactive_profiling["cpu"]["count"] != 0:
+                        raise AssertionError(
+                            f"Profiling collected samples for {path!r} before it was enabled"
+                        )
 
                 for _ in range(request_count):
                     last_body = request("profiling", record=False)
-                    package, profiling = profiling_for_component(last_body)
-                    if not package["enabled"]:
-                        raise AssertionError("Profiling request did not enable collection")
-                    wall_count = profiling["wall"]["count"]
-                    cpu_count = profiling["cpu"]["count"]
-                    if wall_count != cpu_count:
-                        raise AssertionError(
-                            f"Profiling snapshot has wall count {wall_count} and "
-                            f"CPU count {cpu_count}"
-                        )
-                    if wall_count < maximum_count:
-                        raise AssertionError(
-                            f"Profiling count decreased from {maximum_count} to {wall_count}"
-                        )
+                    for path in component_paths:
+                        package, profiling = profiling_for_component(last_body, path)
+                        if not package["enabled"]:
+                            raise AssertionError("Profiling request did not enable collection")
+                        wall_count = profiling["wall"]["count"]
+                        cpu_count = profiling["cpu"]["count"]
+                        if wall_count != cpu_count:
+                            raise AssertionError(
+                                f"Profiling snapshot for {path!r} has wall count {wall_count} and "
+                                f"CPU count {cpu_count}"
+                            )
+                        if wall_count < maximum_counts[path]:
+                            raise AssertionError(
+                                f"Profiling count for {path!r} decreased from "
+                                f"{maximum_counts[path]} to {wall_count}"
+                            )
 
-                    saw_running = saw_running or profiling["running"]
-                    maximum_count = max(maximum_count, wall_count)
+                        if path == component_path:
+                            saw_running = saw_running or profiling["running"]
+                        maximum_counts[path] = max(maximum_counts[path], wall_count)
 
                 if not saw_running:
                     raise AssertionError(
                         f"Profiling never reported {component_path!r} as running"
                     )
-                if maximum_count == 0:
-                    raise AssertionError(
-                        f"Profiling recorded no completed runs for {component_path!r}"
-                    )
+                for path, maximum_count in maximum_counts.items():
+                    if maximum_count == 0:
+                        raise AssertionError(
+                            f"Profiling recorded no completed runs for {path!r}"
+                        )
 
                 request("profiling?active=false", record=False)
                 request("profiling", record=False, client_id=101)

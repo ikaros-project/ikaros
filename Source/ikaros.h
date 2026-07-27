@@ -377,7 +377,7 @@ private:
     void InitComponents();
     void PruneConnections();
     void SortTasks();
-    void RunTask(Task * task);
+    void RunTask(Task * task, bool profiling_enabled);
     void PollAsyncComponents();
     bool ValueOwnedByRunningAsyncComponent(const std::string & value_path) const;
     Component * ComponentForValuePath(const std::string & value_path) const;
@@ -386,7 +386,8 @@ private:
     void RecordTaskFailure(std::optional<exception> & failure,
                            const std::string & context,
                            const std::string & fallback_path = "");
-    std::optional<exception> SubmitTaskSequences(submitted_task_sequences & sequences);
+    std::optional<exception> SubmitTaskSequences(submitted_task_sequences & sequences,
+                                                 bool profiling_enabled);
     bool WaitForTaskWatchdog(const submitted_task_sequences & sequences);
     void WaitForTaskCompletionBarrier(const submitted_task_sequences & sequences,
                                       std::optional<exception> & failure);
@@ -395,7 +396,7 @@ private:
     void WaitForRealtimeTick();
     void WaitForRunMode(bool has_async_workers);
     void ReportRealtimeLag();
-    std::optional<exception> RunTasks();
+    std::optional<exception> RunTasks(bool profiling_enabled);
     void RunTasksInSingleThread();
     void SetUp();
     void SetCommandLineParameters(dictionary & d);
