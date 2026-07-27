@@ -120,6 +120,7 @@ namespace ikaros
         int SetGeneralInputShape(const dictionary & input, const std::string & name,
                                  const std::string & full_name, bool has_fixed_size,
                                  const std::vector<Connection *> & connections);
+        static std::string StartupStepString(int step);
 
     protected:
         dictionary info_;

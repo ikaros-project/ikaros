@@ -1,5 +1,16 @@
 # Kernel Review Status
 
+## Startup-step formatting cleanup
+
+| Task | Status | Verification | Commit |
+|---|---|---|---|
+| Share startup-step formatting through one private `Component` helper. | Completed | CMake Debug build; all 266 kernel and WebUI tests passed. | `Startup step formatting now shares one helper` |
+
+### Outstanding issues and questions
+
+None.
+
+
 ## Module class implementation ownership
 
 | Task | Status | Verification | Commit |

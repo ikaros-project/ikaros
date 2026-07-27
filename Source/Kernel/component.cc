@@ -332,16 +332,23 @@ namespace ikaros
 
 
     std::string
+    Component::StartupStepString(int step)
+    {
+        return step == std::numeric_limits<int>::max() ? "unknown" : std::to_string(step);
+    }
+
+
+    std::string
     Component::StartupFirstRealInputStepString() const
     {
-        return startup_first_real_input_step == std::numeric_limits<int>::max() ? "unknown" : std::to_string(startup_first_real_input_step);
+        return StartupStepString(startup_first_real_input_step);
     }
 
 
     std::string
     Component::StartupAllRealInputsStepString() const
     {
-        return startup_all_real_inputs_step == std::numeric_limits<int>::max() ? "unknown" : std::to_string(startup_all_real_inputs_step);
+        return StartupStepString(startup_all_real_inputs_step);
     }
 
         void 
