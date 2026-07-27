@@ -2,13 +2,15 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	static template() {
 		return [
 			{ 'name': "CANVAS 3D", 'control': 'header' },
-			{ 'name': 'matrix', 'default': "", 'type': 'source', 'control': 'textedit' },
+			{ 'name': 'title', 'default': "Canvas 3D", 'type': 'string', 'control': 'textedit' },
+			{ 'name': 'source', 'default': "", 'type': 'source', 'control': 'textedit' },
 
 			{ 'name': "CONTROL", 'control': 'header' },
-			{ 'name': 'show_models', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-			{ 'name': 'models', 'default': "", 'type': 'source', 'control': 'textedit' },
-			{ 'name': 'show_lines', 'default': false, 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'show_models', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'model_source', 'default': "", 'type': 'source', 'control': 'textedit' },
+			{ 'name': 'show_lines', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'line_color', 'default': "blue", 'type': 'string', 'control': 'textedit' },
+			{ 'name': 'line_width', 'default': 1, 'type': 'float', 'control': 'textedit' },
 
 			{ 'name': 'show_points', 'default': true, 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'point_color', 'default': "black", 'type': 'string', 'control': 'textedit' },
@@ -21,10 +23,12 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			{ 'name': 'offset_y', 'default': "0", 'type': 'float', 'control': 'textedit' },
 			{ 'name': 'offset_z', 'default': "0", 'type': 'float', 'control': 'textedit' },
 
-			{ 'name': 'views', 'default': "Home", 'type': 'string', 'control': 'menu', 'options': "Home, Top, Bottom, Front, Back, Left, Right" },
-			{ 'name': 'look_at_X', 'default': "0", 'type': 'float', 'control': 'textedit' },
-			{ 'name': 'look_at_Y', 'default': "0.8", 'type': 'float', 'control': 'textedit' },
-			{ 'name': 'look_at_Z', 'default': "0", 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'view', 'default': "Home", 'type': 'string', 'control': 'menu', 'options': "Home, Top, Bottom, Front, Back, Left, Right" },
+			{ 'name': 'look_at_x', 'default': "0", 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'look_at_y', 'default': "0.8", 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'look_at_z', 'default': "0", 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'camera_distance', 'default': 2.2, 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'scene_background', 'default': "#263238", 'type': 'string', 'control': 'textedit' },
 		]
 	};
 	static html() {
@@ -59,6 +63,11 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	{
 		this._lastViewName = null;
 		super.updateAll();
+	}
+
+	requestData(data_set) {
+		this.addSource(data_set, this.parameters.source);
+		this.addSource(data_set, this.parameters.model_source);
 	}
 
 	init() {
@@ -110,7 +119,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		// Camera
 		this.camera = new THREE.PerspectiveCamera();
-		this.cameraTarget = new THREE.Vector3(this.parameters.look_at_X, this.parameters.look_at_Y, this.parameters.look_at_Z);
+		this.cameraTarget = new THREE.Vector3(this.parameters.look_at_x, this.parameters.look_at_y, this.parameters.look_at_z);
 		this.camera.aspect = this.parameters.width / this.parameters.height;
 		this.camera.position.set(0,0,0);
 		
@@ -159,7 +168,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		// Renderer
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, clearColor: 0x335588, canvas: this.canvasElement });
 		this.canvas = this.renderer.getContext();
-		this.renderer.setClearColor( 0x263238 );
+		this.renderer.setClearColor(this.parameters.scene_background || "#263238");
 		this.renderer.setPixelRatio(window.devicePixelRatio);
 		this.renderer.setSize(this.parameters.width, this.parameters.height);
 		this.renderer.shadowMap.enabled = true;
@@ -326,9 +335,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			this.camera.updateProjectionMatrix();
 		}
 
-		const lookAtX = Number(this.parameters.look_at_X);
-		const lookAtY = Number(this.parameters.look_at_Y);
-		const lookAtZ = Number(this.parameters.look_at_Z);
+		const lookAtX = Number(this.parameters.look_at_x);
+		const lookAtY = Number(this.parameters.look_at_y);
+		const lookAtZ = Number(this.parameters.look_at_z);
 		const resolvedLookAtX = Number.isFinite(lookAtX) ? lookAtX : 0;
 		const resolvedLookAtY = Number.isFinite(lookAtY) ? lookAtY : 0;
 		const resolvedLookAtZ = Number.isFinite(lookAtZ) ? lookAtZ : 0;
@@ -341,7 +350,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			this._lastLookAtZ = resolvedLookAtZ;
 		}
 
-		const viewName = String(this.parameters.views ?? "").trim();
+		const viewName = String(this.parameters.view ?? "").trim();
 		const shouldApplyPresetView = this._lastViewName !== viewName;
 		if (shouldApplyPresetView) {
 			switch (viewName) {
@@ -368,6 +377,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 					break;
 				default:
 			}
+			const cameraDistance = Number(this.parameters.camera_distance);
+			if(Number.isFinite(cameraDistance) && cameraDistance > 0)
+				this.camera.position.sub(this.cameraTarget).setLength(cameraDistance).add(this.cameraTarget);
 			if (this.controls)
 				this.controls.update();
 		}
@@ -377,8 +389,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 	update()
 	{
+		this.renderer.setClearColor(this.parameters.scene_background || "#263238");
 		this.updateFrame();
-		const incomingData = this.getSource('matrix');
+		const incomingData = this.getSource('source');
 		if (incomingData)
 			this.data = incomingData;
 		if (!this.data)
@@ -424,14 +437,14 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			return colors;
 		};
 
-		const modelsParameter = String(this.parameters.models ?? "");
+		const modelsParameter = String(this.parameters.model_source ?? "");
 		if(modelsParameter.includes("@"))	// Minimal fix to load models list from Ikaros
 		{
-			const modelSource = this.getSource("models");
+			const modelSource = this.getSource("model_source");
 			if (Array.isArray(modelSource))
-				this.parameters.models = (modelSource.flat ? modelSource.flat(Infinity) : modelSource).join(",");
+				this.parameters.model_source = (modelSource.flat ? modelSource.flat(Infinity) : modelSource).join(",");
 			else
-				this.parameters.models = String(modelSource ?? "");
+				this.parameters.model_source = String(modelSource ?? "");
 		}
 
 		//console.log("Formating data")
@@ -460,7 +473,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		// Models
 		if (this.toBool(this.parameters.show_models)) {
 			//console.log('Models')
-			this.modelNames = parseList(this.parameters.models);
+			this.modelNames = parseList(this.parameters.model_source);
 			if (this.modelNames.length === 0)
 				this.modelNames = ["head"];
 
@@ -630,7 +643,10 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 				this.lines_loaded = true;
 
 				var geometry = new THREE.BufferGeometry();
-				var material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
+				var material = new THREE.LineBasicMaterial({
+					vertexColors: THREE.VertexColors,
+					linewidth: Number(this.parameters.line_width) || 1
+				});
 
 				var colors = [];
 
