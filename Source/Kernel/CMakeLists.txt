@@ -20,6 +20,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin|Linux")
         ${CMAKE_CURRENT_SOURCE_DIR}/kernel_parsing.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/kernel_http.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/kernel_execution.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/kernel_scheduling.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/kernel_setup.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/kernel_shapes.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/kernel_state.cc
