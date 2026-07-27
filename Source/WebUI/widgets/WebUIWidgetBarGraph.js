@@ -25,7 +25,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
-            {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'options': "horizontal,vertical", 'class':'true'},
+            {'name':'orientation', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'options': "horizontal,vertical", 'class':'true'},
             {'name':'transpose', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
@@ -36,9 +36,9 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name':'line_join', 'default':"", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
-            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'auto', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'auto_range', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'include_zero', 'default':true, 'type':'bool', 'control': 'checkbox'},
         ]};
 
@@ -163,7 +163,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             if(!this.data.length || !Array.isArray(this.data[0]) || !this.data[0].length)
                 return;
 
-            if(this.parameters.auto)
+            if(this.parameters.auto_range)
             {
                 const values = this.getFiniteValues(this.data);
                 if(values.length > 0)

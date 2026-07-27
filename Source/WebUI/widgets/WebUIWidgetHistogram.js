@@ -27,11 +27,11 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             {'name':'histogram_max_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'mean_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'standard_deviation_source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'xAxisLabel', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'yAxisLabel', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'x_axis_label', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'y_axis_label', 'default':"", 'type':'string', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
-            {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'options': "horizontal,vertical", 'class':'true'},
+            {'name':'orientation', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'options': "horizontal,vertical", 'class':'true'},
             {'name':'transpose', 'default':false, 'type':'bool', 'control': 'checkbox'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
@@ -43,27 +43,27 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             {'name':'line_join', 'default':"", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
 
             {'name': "LAYOUT", 'control':'header'},
-            {'name':'marginLeft', 'default':4, 'type':'int', 'control': 'textedit'},
-            {'name':'marginRight', 'default':4, 'type':'int', 'control': 'textedit'},
-            {'name':'marginTop', 'default':4, 'type':'int', 'control': 'textedit'},
-            {'name':'marginBottom', 'default':4, 'type':'int', 'control': 'textedit'},
-            {'name':'spaceLeft', 'default':4, 'type':'int', 'control': 'textedit'},
-            {'name':'spaceRight', 'default':4, 'type':'int', 'control': 'textedit'},
-            {'name':'spaceTop', 'default':4, 'type':'int', 'control': 'textedit'},
-            {'name':'spaceBottom', 'default':4, 'type':'int', 'control': 'textedit'},
+            {'name':'margin_left', 'default':4, 'type':'int', 'control': 'textedit'},
+            {'name':'margin_right', 'default':4, 'type':'int', 'control': 'textedit'},
+            {'name':'margin_top', 'default':4, 'type':'int', 'control': 'textedit'},
+            {'name':'margin_bottom', 'default':4, 'type':'int', 'control': 'textedit'},
+            {'name':'space_left', 'default':4, 'type':'int', 'control': 'textedit'},
+            {'name':'space_right', 'default':4, 'type':'int', 'control': 'textedit'},
+            {'name':'space_top', 'default':4, 'type':'int', 'control': 'textedit'},
+            {'name':'space_bottom', 'default':4, 'type':'int', 'control': 'textedit'},
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
-            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'auto', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'auto_range', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'include_zero', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'xAxis', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'yAxis', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'leftScale', 'default':5, 'type':'int', 'control': 'textedit'},
-            {'name':'leftTickMarks', 'default':5, 'type':'int', 'control': 'textedit'},
-            {'name':'bottomScale', 'default':5, 'type':'int', 'control': 'textedit'},
-            {'name':'bottomTickMarks', 'default':5, 'type':'int', 'control': 'textedit'},
-            {'name':'horizontalGridlines', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'show_x_axis', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_y_axis', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'left_scale_ticks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'left_tick_marks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'bottom_scale_ticks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'bottom_tick_marks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'horizontal_grid_lines', 'default':5, 'type':'int', 'control': 'textedit'},
             {'name':'decimals', 'default':2, 'type':'int', 'control': 'textedit'},
         ]};
 
@@ -287,26 +287,26 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
 
     getYAxisTitleWidth()
     {
-        return String(this.parameters.yAxisLabel || "").trim() === "" ? 0 : 18;
+        return String(this.parameters.y_axis_label || "").trim() === "" ? 0 : 18;
     }
 
     getEffectiveSpaceLeft(height)
     {
         const rowLabelWidth = this.getHistogramLabelWidth();
-        const yAxisTitleWidth = this.getYAxisTitleWidth();
+        const y_axis_title_width = this.getYAxisTitleWidth();
 
         if(!this.isYAxisEnabled())
-            return rowLabelWidth + yAxisTitleWidth;
+            return rowLabelWidth + y_axis_title_width;
 
         const yDecorations =
-            this.format.yAxis ||
-            this.format.leftScale > 0 ||
-            this.format.leftTickMarks > 0 ||
-            this.format.horizontalGridlines > 0 ||
-            this.format.horizontalGridlinesOver > 0;
+            this.format.show_y_axis ||
+            this.format.left_scale_ticks > 0 ||
+            this.format.left_tick_marks > 0 ||
+            this.format.horizontal_grid_lines > 0 ||
+            this.format.horizontal_grid_lines_over > 0;
 
         const base = yDecorations ? super.getEffectiveSpaceLeft(height) : 0;
-        return base + rowLabelWidth + yAxisTitleWidth;
+        return base + rowLabelWidth + y_axis_title_width;
     }
 
     getEffectiveSpaceBottom()
@@ -315,16 +315,16 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             return 0;
 
         const range = this.getHistogramXRange();
-        const xAxisLabel = String(this.parameters.xAxisLabel || "").trim();
+        const x_axis_label = String(this.parameters.x_axis_label || "").trim();
         const xDecorations =
-            this.format.xAxis ||
-            (range && (this.format.bottomScale > 0 || this.format.bottomTickMarks > 0)) ||
-            xAxisLabel !== "";
-        let space = xDecorations ? (this.format.spaceBottom || 0) : 0;
+            this.format.show_x_axis ||
+            (range && (this.format.bottom_scale_ticks > 0 || this.format.bottom_tick_marks > 0)) ||
+            x_axis_label !== "";
+        let space = xDecorations ? (this.format.space_bottom || 0) : 0;
 
-        if(range && this.format.bottomScale > 0)
-            space = Math.max(space, this.format.scaleOffset + 14);
-        if(xAxisLabel !== "")
+        if(range && this.format.bottom_scale_ticks > 0)
+            space = Math.max(space, this.format.scale_offset + 14);
+        if(x_axis_label !== "")
             space += 20;
 
         return space;
@@ -337,7 +337,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             return;
 
         const paneHeight = height / Math.max(1, n);
-        const yAxisTitleWidth = this.getYAxisTitleWidth();
+        const y_axis_title_width = this.getYAxisTitleWidth();
         const labelColumnWidth = this.getHistogramLabelWidth();
         if(labelColumnWidth <= 0)
             return;
@@ -352,7 +352,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
         {
             const label = (labels[i] ?? "").trim();
             if(label !== "")
-                this.canvas.fillText(label, yAxisTitleWidth + labelColumnWidth - 8, i * paneHeight + paneHeight / 2);
+                this.canvas.fillText(label, y_axis_title_width + labelColumnWidth - 8, i * paneHeight + paneHeight / 2);
         }
 
         this.canvas.restore();
@@ -383,7 +383,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
         if(min === max)
             max = min + 1;
 
-        const ticks = Math.max(2, this.format.bottomScale || 5);
+        const ticks = Math.max(2, this.format.bottom_scale_ticks || 5);
         const nice = this.getNiceAxisRange(min, max, ticks);
         return nice || {min, max};
     }
@@ -529,31 +529,31 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             return;
 
         const range = this.getHistogramXRange();
-        const xAxisLabel = String(this.parameters.xAxisLabel || "").trim();
-        const yAxisLabel = String(this.parameters.yAxisLabel || "").trim();
-        if(!range && xAxisLabel === "" && yAxisLabel === "")
+        const x_axis_label = String(this.parameters.x_axis_label || "").trim();
+        const y_axis_label = String(this.parameters.y_axis_label || "").trim();
+        if(!range && x_axis_label === "" && y_axis_label === "")
             return;
 
-        const nScale = this.format.bottomScale;
-        const nTicks = this.format.bottomTickMarks;
-        if(!range && xAxisLabel === "")
+        const nScale = this.format.bottom_scale_ticks;
+        const nTicks = this.format.bottom_tick_marks;
+        if(!range && x_axis_label === "")
             return;
 
-        const contentLeft = this.format.marginLeft;
-        const contentTop = this.format.marginTop;
+        const contentLeft = this.format.margin_left;
+        const contentTop = this.format.margin_top;
         const contentHeight = this.format.height;
         const effectiveSpaceBottom = this.getEffectiveSpaceBottom();
         const effectiveSpaceLeft = this.getEffectiveSpaceLeft(contentHeight);
         const plotLeft = contentLeft + effectiveSpaceLeft;
-        const plotWidth = this.format.width - effectiveSpaceLeft - this.format.spaceRight;
-        const hasXAxisLabel = xAxisLabel !== "";
+        const plotWidth = this.format.width - effectiveSpaceLeft - this.format.space_right;
+        const hasXAxisLabel = x_axis_label !== "";
         const labelGap = hasXAxisLabel ? Math.max(14, parseInt(this.format.label_font) || 14) : 0;
-        const y = contentTop + contentHeight - effectiveSpaceBottom + this.format.spaceBottom;
+        const y = contentTop + contentHeight - effectiveSpaceBottom + this.format.space_bottom;
 
         this.resetCanvasTransform(-0.5, -0.5);
         this.canvas.save();
-        this.canvas.strokeStyle = this.format.axisColor;
-        this.canvas.fillStyle = this.format.axisColor;
+        this.canvas.strokeStyle = this.format.axis_color;
+        this.canvas.fillStyle = this.format.axis_color;
 
         if(range && nTicks > 0)
         {
@@ -571,7 +571,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
 
         if(range && nScale > 0)
         {
-            this.canvas.font = this.format.scaleFont;
+            this.canvas.font = this.format.scale_font;
             this.canvas.textAlign = "center";
             this.canvas.textBaseline = "top";
             const labelCount = nScale === 1 ? 1 : nScale;
@@ -579,7 +579,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             {
                 const x = plotLeft + (labelCount === 1 ? 0 : i * plotWidth / (labelCount - 1));
                 const value = range.min + (labelCount === 1 ? 0 : i * (range.max - range.min) / (labelCount - 1));
-                this.canvas.fillText(this.formatScaleValue(value), x, y + this.format.scaleOffset);
+                this.canvas.fillText(this.formatScaleValue(value), x, y + this.format.scale_offset);
             }
         }
 
@@ -588,10 +588,10 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             this.canvas.font = this.format.label_font;
             this.canvas.textAlign = "center";
             this.canvas.textBaseline = "top";
-            this.canvas.fillText(xAxisLabel, plotLeft + plotWidth / 2, y + this.format.scaleOffset + 14);
+            this.canvas.fillText(x_axis_label, plotLeft + plotWidth / 2, y + this.format.scale_offset + 14);
         }
 
-        if(yAxisLabel !== "")
+        if(y_axis_label !== "")
         {
             this.canvas.font = this.format.label_font;
             this.canvas.textAlign = "center";
@@ -599,7 +599,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             this.canvas.save();
             this.canvas.translate(contentLeft + this.getYAxisTitleWidth() / 2, contentTop + contentHeight / 2);
             this.canvas.rotate(-Math.PI / 2);
-            this.canvas.fillText(yAxisLabel, 0, 0);
+            this.canvas.fillText(y_axis_label, 0, 0);
             this.canvas.restore();
         }
 
@@ -608,43 +608,43 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
 
     draw(size_x, size_y)
     {
-        const originalSpaceBottom = this.format.spaceBottom;
-        const originalXAxis = this.format.xAxis;
-        const originalYAxis = this.format.yAxis;
-        const originalLeftScale = this.format.leftScale;
-        const originalLeftTickMarks = this.format.leftTickMarks;
-        const originalHorizontalGridlines = this.format.horizontalGridlines;
-        const originalHorizontalGridlinesOver = this.format.horizontalGridlinesOver;
-        this.format.spaceBottom = this.getEffectiveSpaceBottom();
-        this.format.xAxis = this.isXAxisEnabled();
-        const yAxisEnabled = this.isYAxisEnabled();
-        this.format.yAxis = yAxisEnabled;
-        if(!yAxisEnabled)
+        const originalSpaceBottom = this.format.space_bottom;
+        const originalXAxis = this.format.show_x_axis;
+        const originalYAxis = this.format.show_y_axis;
+        const originalLeftScale = this.format.left_scale_ticks;
+        const originalLeftTickMarks = this.format.left_tick_marks;
+        const originalHorizontalGridlines = this.format.horizontal_grid_lines;
+        const originalHorizontalGridlinesOver = this.format.horizontal_grid_lines_over;
+        this.format.space_bottom = this.getEffectiveSpaceBottom();
+        this.format.show_x_axis = this.isXAxisEnabled();
+        const y_axis_enabled = this.isYAxisEnabled();
+        this.format.show_y_axis = y_axis_enabled;
+        if(!y_axis_enabled)
         {
-            this.format.leftScale = 0;
-            this.format.leftTickMarks = 0;
-            this.format.horizontalGridlines = 0;
-            this.format.horizontalGridlinesOver = 0;
+            this.format.left_scale_ticks = 0;
+            this.format.left_tick_marks = 0;
+            this.format.horizontal_grid_lines = 0;
+            this.format.horizontal_grid_lines_over = 0;
         }
         super.draw(size_x, size_y);
-        this.format.spaceBottom = originalSpaceBottom;
-        this.format.xAxis = originalXAxis;
-        this.format.yAxis = originalYAxis;
-        this.format.leftScale = originalLeftScale;
-        this.format.leftTickMarks = originalLeftTickMarks;
-        this.format.horizontalGridlines = originalHorizontalGridlines;
-        this.format.horizontalGridlinesOver = originalHorizontalGridlinesOver;
+        this.format.space_bottom = originalSpaceBottom;
+        this.format.show_x_axis = originalXAxis;
+        this.format.show_y_axis = originalYAxis;
+        this.format.left_scale_ticks = originalLeftScale;
+        this.format.left_tick_marks = originalLeftTickMarks;
+        this.format.horizontal_grid_lines = originalHorizontalGridlines;
+        this.format.horizontal_grid_lines_over = originalHorizontalGridlinesOver;
         this.drawHistogramBottomScale();
     }
 
     isXAxisEnabled()
     {
-        return this.toBool(this.parameters.xAxis);
+        return this.toBool(this.parameters.show_x_axis);
     }
 
     isYAxisEnabled()
     {
-        return this.toBool(this.parameters.yAxis);
+        return this.toBool(this.parameters.show_y_axis);
     }
 
     // update() get the data for the graph and calls WebUIWidgetGraph::draw() which in turn calls
@@ -674,7 +674,7 @@ class WebUIWidgetHistogram extends WebUIWidgetGraph
             if(!this.data.length || !Array.isArray(this.data[0]) || !this.data[0].length)
                 return;
 
-            if(this.parameters.auto)
+            if(this.parameters.auto_range)
             {
                 const values = this.getFiniteValues(this.data);
                 if(values.length > 0)

@@ -23,15 +23,15 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
-            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no", 'class':'true'},
-            {'name':'min_x', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_x', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'min_y', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_y', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'scale_visibility', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no", 'class':'true'},
+            {'name':'x_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'x_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'flip_x_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_x_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
         ]};
 
     init()
@@ -44,8 +44,8 @@ class WebUIWidgetImage extends WebUIWidgetGraph
                 return;
             let lw = this.parameters.labels ? parseInt(this.parameters.label_width) : 0;
             let r = this.canvasElement.getBoundingClientRect();
-            let x = (evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw);
-            let y = (evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom);
+            let x = (evt.clientX - r.left - this.format.space_left - lw)/(r.width - this.format.space_left - this.format.space_right- lw);
+            let y = (evt.clientY - r.top - this.format.space_top)/(r.height - this.format.space_top - this.format.space_bottom);
             
             if(this.parameters.command)
                 this.send_command(this.parameters.command, 1, x, y);
@@ -181,7 +181,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             }
             this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
+            this.canvas.translate(this.format.margin_left, this.format.margin_top); //
 
             this.drawHorizontal(1, 1);  // Draw grid over image
         }

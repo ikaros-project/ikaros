@@ -8,7 +8,7 @@ class WebUIWidgetTable extends WebUIWidget {
             { 'name': "STYLE", 'control': 'header' },
             { 'name': 'label_x', 'default': "", 'type': 'string', 'control': 'textedit' },
             { 'name': 'label_y', 'default': "", 'type': 'string', 'control': 'textedit' },
-            { 'name': 'direction', 'default': "normal", 'type': 'string', 'control': 'menu', 'options': "normal,flip x/y" },
+            { 'name': 'transpose', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
             { 'name': 'decimals', 'default': 4, 'type': 'int', 'control': 'textedit' },
             { 'name': 'colorize', 'default': true, 'type': 'bool', 'control': 'checkbox' },
             { 'name': 'scrollable', 'default': false, 'type': 'bool', 'control': 'checkbox' }
@@ -204,7 +204,7 @@ class WebUIWidgetTable extends WebUIWidget {
             return "";
 
         const labels = this.getDisplayLabels(displayState);
-        return `${this.parameters.direction}:${displayState.shape.join("x")}:${displayState.size_y}x${displayState.size_x}:${JSON.stringify(labels)}`;
+        return `${this.parameters.transpose}:${displayState.shape.join("x")}:${displayState.size_y}x${displayState.size_x}:${JSON.stringify(labels)}`;
     }
     renderSliceControls(displayState) {
         if (!this.sliceControls)
@@ -268,11 +268,11 @@ class WebUIWidgetTable extends WebUIWidget {
         this._tableShapeKey = this.getShapeKey(displayState);
         const labels = this.getDisplayLabels(displayState);
 
-        if (this.parameters.direction == "normal")
+        if (!this.toBool(this.parameters.transpose))
             this.reshapeTable(displayState.size_y, displayState.size_x, this.hasLabels(labels.x), this.hasLabels(labels.y));
         else
             this.reshapeTable(displayState.size_x, displayState.size_y, this.hasLabels(labels.y), this.hasLabels(labels.x));
-        this.fillLabels(this.parameters.direction, labels.x, this.xHeader, labels.y, this.yHeader)
+        this.fillLabels(this.toBool(this.parameters.transpose) ? "flip x/y" : "normal", labels.x, this.xHeader, labels.y, this.yHeader)
         this.scrollable()
     }
     update() {
@@ -306,7 +306,7 @@ class WebUIWidgetTable extends WebUIWidget {
 
             for (let j = 0; j < size_y; j++)
                 for (let i = 0; i < size_x; i++)
-                    if (this.parameters.direction == "normal") {
+                    if (!this.toBool(this.parameters.transpose)) {
                         try {
                             this.tData[j][i].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);
                         }

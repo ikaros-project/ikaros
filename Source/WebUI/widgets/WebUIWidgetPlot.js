@@ -62,13 +62,13 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'select', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'buffer_size', 'default':50, 'type':'int', 'control': 'textedit'},
-            {'name':'direction', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'options': "vertical", 'class':'true'},
+            {'name':'orientation', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'options': "vertical", 'class':'true'},
             {'name': "STYLE", 'control':'header'},
             {'name':'stroke_color', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name': "COORDINATE SYSTEM", 'control':'header'},
-            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'auto', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'auto_range', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'include_zero', 'default':true, 'type':'bool', 'control': 'checkbox'},
 
         ]};
@@ -197,7 +197,7 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
                 this.ix = (this.ix + 1) % this.getBufferSize();
             }
 
-            if(this.parameters.auto)
+            if(this.parameters.auto_range)
             {
                 const values = this.getFiniteValues(this.getSelectedData(this.data));
                 if(values.length > 0)

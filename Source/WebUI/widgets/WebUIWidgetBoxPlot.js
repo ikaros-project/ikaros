@@ -23,11 +23,11 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
             {'name':'title', 'default':"Box Plot", 'type':'string', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'outlier_source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'direction', 'default':"vertical", 'type':'string', 'control': 'menu', 'options': "vertical", 'class':'true'},
+            {'name':'orientation', 'default':"vertical", 'type':'string', 'control': 'menu', 'options': "vertical", 'class':'true'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'xAxisLabel', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'yAxisLabel', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'drawLabelsX', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'x_axis_label', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'y_axis_label', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'show_x_labels', 'default':true, 'type':'bool', 'control': 'checkbox'},
 
             {'name': "STYLE", 'control':'header'},
             {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},
@@ -36,14 +36,14 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
             {'name':'outlier_radius', 'default':3, 'type':'float', 'control': 'textedit'},
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
-            {'name':'min', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'auto', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'auto_range', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'include_zero', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'yAxis', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'leftScale', 'default':5, 'type':'int', 'control': 'textedit'},
-            {'name':'leftTickMarks', 'default':5, 'type':'int', 'control': 'textedit'},
-            {'name':'horizontalGridlines', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'show_y_axis', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'left_scale_ticks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'left_tick_marks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'horizontal_grid_lines', 'default':5, 'type':'int', 'control': 'textedit'},
             {'name':'decimals', 'default':2, 'type':'int', 'control': 'textedit'},
         ];
     }
@@ -218,7 +218,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
 
     drawLabelsVertical(width, height, n)
     {
-        if(!this.format.drawLabelsX)
+        if(!this.format.show_x_labels)
             return;
 
         const labels = this.getLabels();
@@ -235,7 +235,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
         this.canvas.textAlign = "center";
         this.canvas.textBaseline = "top";
 
-        const y = -this.format.spaceBottom + 6;
+        const y = -this.format.space_bottom + 6;
         for(let i=0; i<n; i++)
         {
             const label = (labels[i] ?? "").trim();
@@ -247,40 +247,40 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
 
     drawAxisTitles()
     {
-        const xAxisLabel = String(this.parameters.xAxisLabel || "").trim();
-        const yAxisLabel = String(this.parameters.yAxisLabel || "").trim();
-        if(xAxisLabel === "" && yAxisLabel === "")
+        const x_axis_label = String(this.parameters.x_axis_label || "").trim();
+        const y_axis_label = String(this.parameters.y_axis_label || "").trim();
+        if(x_axis_label === "" && y_axis_label === "")
             return;
 
-        const contentLeft = this.format.marginLeft;
-        const contentTop = this.format.marginTop;
+        const contentLeft = this.format.margin_left;
+        const contentTop = this.format.margin_top;
         const contentWidth = this.format.width;
         const contentHeight = this.format.height;
         const effectiveSpaceLeft = this.getEffectiveSpaceLeft(contentHeight);
-        const plotWidth = contentWidth - effectiveSpaceLeft - this.format.spaceRight;
+        const plotWidth = contentWidth - effectiveSpaceLeft - this.format.space_right;
         const plotLeft = contentLeft + effectiveSpaceLeft;
         const plotCenterX = plotLeft + plotWidth / 2;
-        const plotCenterY = contentTop + this.format.spaceTop + (contentHeight - this.format.spaceTop - this.format.spaceBottom) / 2;
+        const plotCenterY = contentTop + this.format.space_top + (contentHeight - this.format.space_top - this.format.space_bottom) / 2;
 
         this.resetCanvasTransform(-0.5, -0.5);
         this.canvas.save();
         this.canvas.font = this.format.label_font;
         this.canvas.fillStyle = this.format.labelColor;
 
-        if(xAxisLabel !== "")
+        if(x_axis_label !== "")
         {
             this.canvas.textAlign = "center";
             this.canvas.textBaseline = "top";
-            this.canvas.fillText(xAxisLabel, plotCenterX, contentTop + contentHeight + 8);
+            this.canvas.fillText(x_axis_label, plotCenterX, contentTop + contentHeight + 8);
         }
 
-        if(yAxisLabel !== "")
+        if(y_axis_label !== "")
         {
             this.canvas.translate(Math.max(10, contentLeft * 0.35), plotCenterY);
             this.canvas.rotate(-Math.PI / 2);
             this.canvas.textAlign = "center";
             this.canvas.textBaseline = "middle";
-            this.canvas.fillText(yAxisLabel, 0, 0);
+            this.canvas.fillText(y_axis_label, 0, 0);
         }
 
         this.canvas.restore();
@@ -309,7 +309,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
             if(this.data.length < 5 || !Array.isArray(this.data[0]) || this.data[0].length === 0)
                 return;
 
-            if(this.parameters.auto)
+            if(this.parameters.auto_range)
             {
                 const values = this.getFiniteValues(this.data).concat(this.getFiniteValues(this.outliers));
                 if(values.length > 0)

@@ -34,8 +34,8 @@ class WebUIWidgetCanvas extends WebUIWidget
 
         this.width = cssWidth;
         this.height = cssHeight;
-        this.format.width = this.width - this.format.marginLeft - this.format.marginRight;
-        this.format.height = this.height - this.format.marginTop - this.format.marginBottom;
+        this.format.width = this.width - this.format.margin_left - this.format.margin_right;
+        this.format.height = this.height - this.format.margin_top - this.format.margin_bottom;
     }
 
     resetCanvasTransform(offsetX=0, offsetY=0)
@@ -119,17 +119,17 @@ class WebUIWidgetCanvas extends WebUIWidget
         this.canvas.canvas.lineWidth = 1;
         this.canvas.canvas.strokeStyle = "gray";
 
-        this.canvas.moveTo(0, this.format.marginTop);
-        this.canvas.lineTo(this.width, this.format.marginTop);
+        this.canvas.moveTo(0, this.format.margin_top);
+        this.canvas.lineTo(this.width, this.format.margin_top);
 
         this.canvas.moveTo(0, this.format.height);
         this.canvas.lineTo(this.width, this.format.height);
 
-        this.canvas.moveTo(this.format.marginLeft, 0);
-        this.canvas.lineTo(this.format.marginLeft, this.height);
+        this.canvas.moveTo(this.format.margin_left, 0);
+        this.canvas.lineTo(this.format.margin_left, this.height);
 
-        this.canvas.moveTo(this.width-this.format.marginRight, 0);
-        this.canvas.lineTo(this.width-this.format.marginRight, this.height);
+        this.canvas.moveTo(this.width-this.format.margin_right, 0);
+        this.canvas.lineTo(this.width-this.format.margin_right, this.height);
 
         this.canvas.stroke();
     }

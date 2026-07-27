@@ -29,6 +29,6 @@
             y="120"
             show_title="true"
             show_frame="true"
-            auto="true"
+            auto_range="yes"
             include_zero="true" />
 </group>

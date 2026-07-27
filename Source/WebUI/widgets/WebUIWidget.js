@@ -379,15 +379,15 @@ class WebUIWidget extends HTMLElement
     //    this.setFormat('ViewX', '--title-offset','int', 0);
     //    this.setFormat('ViewY', '--title-offset','int', 1);
 
-        this.setFormat('marginLeft', '--margin-left', 'int');
-        this.setFormat('marginRight', '--margin-right', 'int');
-        this.setFormat('marginTop', '--margin-top', 'int');
-        this.setFormat('marginBottom', '--margin-bottom', 'int');
+        this.setFormat('margin_left', '--margin-left', 'int');
+        this.setFormat('margin_right', '--margin-right', 'int');
+        this.setFormat('margin_top', '--margin-top', 'int');
+        this.setFormat('margin_bottom', '--margin-bottom', 'int');
 
-        this.setFormat('spaceLeft', '--space-left', 'int');
-        this.setFormat('spaceRight', '--space-right', 'int');
-        this.setFormat('spaceTop', '--space-top', 'int');
-        this.setFormat('spaceBottom', '--space-bottom', 'int');
+        this.setFormat('space_left', '--space-left', 'int');
+        this.setFormat('space_right', '--space-right', 'int');
+        this.setFormat('space_top', '--space-top', 'int');
+        this.setFormat('space_bottom', '--space-bottom', 'int');
 
         this.setFormat('spacing', '--spacing', 'int');
 
@@ -402,37 +402,37 @@ class WebUIWidget extends HTMLElement
         this.setFormat('arrow', '--arrow', 'bool');
         this.setFormat('fill_color', '--fill', 'string');
 
-        this.setFormat('gridColor', '--grid-color', 'string');
-        this.setFormat('gridLineWidth', '--grid-line-width', 'string');
-        this.setFormat('gridFill', '--grid-fill', 'string');
+        this.setFormat('grid_color', '--grid-color', 'string');
+        this.setFormat('grid_line_width', '--grid-line-width', 'string');
+        this.setFormat('grid_fill', '--grid-fill', 'string');
 
-        this.setFormat('flipXAxis', '--flip-x-axis', 'bool');
-        this.setFormat('flipYAxis', '--flip-y-axis', 'bool');
-        this.setFormat('flipXCanvas', '--flip-x-canvas', 'bool');
-        this.setFormat('flipYCanvas', '--flip-y-canvas', 'bool');
+        this.setFormat('flip_x_axis', '--flip-x-axis', 'bool');
+        this.setFormat('flip_y_axis', '--flip-y-axis', 'bool');
+        this.setFormat('flip_x_canvas', '--flip-x-canvas', 'bool');
+        this.setFormat('flip_y_canvas', '--flip-y-canvas', 'bool');
 
         this.setFormat('frame', '--frame', 'string');
-        this.setFormat('xAxis', '--x-axis', 'bool');
-        this.setFormat('yAxis', '--y-axis', 'bool');
-        this.setFormat('axisColor', '--axis-color', 'string');
-        this.setFormat('verticalGridlines', '--vertical-gridlines', 'int');
-        this.setFormat('horizontalGridlines', '--horizontal-gridlines', 'int');
-        this.setFormat('verticalGridlinesOver', '--vertical-gridlines-over', 'int');
-        this.setFormat('horizontalGridlinesOver', '--horizontal-gridlines-over', 'int');
-        this.setFormat('leftTickMarks', '--left-tick-marks', 'int');
-        this.setFormat('rightTickMarks', '--right-tick-marks', 'int');
-        this.setFormat('bottomTickMarks', '--bottom-tick-marks', 'int');
-        this.setFormat('leftScale', '--left-scale', 'int');
-        this.setFormat('rightScale', '--right-scale', 'int');
-        this.setFormat('bottomScale', '--bottom-scale', 'int');
-        this.setFormat('scaleOffset', '--scale-offset', 'int');
-        this.setFormat('scaleFont', '--scale-font', 'string');
+        this.setFormat('show_x_axis', '--x-axis', 'bool');
+        this.setFormat('show_y_axis', '--y-axis', 'bool');
+        this.setFormat('axis_color', '--axis-color', 'string');
+        this.setFormat('vertical_grid_lines', '--vertical-gridlines', 'int');
+        this.setFormat('horizontal_grid_lines', '--horizontal-gridlines', 'int');
+        this.setFormat('vertical_grid_lines_over', '--vertical-gridlines-over', 'int');
+        this.setFormat('horizontal_grid_lines_over', '--horizontal-gridlines-over', 'int');
+        this.setFormat('left_tick_marks', '--left-tick-marks', 'int');
+        this.setFormat('right_tick_marks', '--right-tick-marks', 'int');
+        this.setFormat('bottom_tick_marks', '--bottom-tick-marks', 'int');
+        this.setFormat('left_scale_ticks', '--left-scale', 'int');
+        this.setFormat('right_scale_ticks', '--right-scale', 'int');
+        this.setFormat('bottom_scale_ticks', '--bottom-scale', 'int');
+        this.setFormat('scale_offset', '--scale-offset', 'int');
+        this.setFormat('scale_font', '--scale-font', 'string');
 
         this.setFormat('labels', '--labels', 'bool');
         this.setFormat('labelColor', '--label-color', 'string');
         this.setFormat('label_font', '--label-font', 'string');
-        this.setFormat('drawLabelsX', '--draw-labels-x', 'bool');
-        this.setFormat('drawLabelsY', '--draw-labels-y', 'bool');
+        this.setFormat('show_x_labels', '--draw-labels-x', 'bool');
+        this.setFormat('show_y_labels', '--draw-labels-y', 'bool');
         
         this.setFormat('decimals', '--decimals', 'int');
 
@@ -500,8 +500,8 @@ class WebUIWidget extends HTMLElement
            {
                 let lw = this.parameters.labels ? parseInt(this.parameters.label_width) : 0;
                 let r = this.canvasElement.getBoundingClientRect();
-                let x = (evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw);
-                let y = (evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom);
+                let x = (evt.clientX - r.left - this.format.space_left - lw)/(r.width - this.format.space_left - this.format.space_right- lw);
+                let y = (evt.clientY - r.top - this.format.space_top)/(r.height - this.format.space_top - this.format.space_bottom);
                 send_command(this.parameters.command, 1, x, y);
             }
             else

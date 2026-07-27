@@ -109,7 +109,7 @@
         colorize="true"
         min="0"
         max="3"
-    />
+     transpose="no"/>
 
     <widget
         name="MenuWidget"
@@ -216,8 +216,8 @@
         interaction="toggle"
         color_map="custom"
         color_map_colors="#1f2937,#ff6b35,#ffd166,#4ecdc4"
-        min="0"
-        max="1"
+        value_min="0"
+        value_max="1"
         show_title="true"
         show_frame="true"
     />
@@ -231,10 +231,10 @@
         height="260"
         title="Bar Graph"
         source="Oscillator.OUTPUT"
-        direction="vertical"
-        auto="false"
-        min="-1"
-        max="1"
+        orientation="vertical"
+        auto_range="no"
+        y_min="-1"
+        y_max="1"
         show_title="true"
         show_frame="true"
     />
@@ -249,10 +249,10 @@
         title="Plot"
         source="Oscillator.OUTPUT"
         buffer_size="120"
-        auto="false"
+        auto_range="no"
         include_zero="true"
-        min="-1"
-        max="1"
+        y_min="-1"
+        y_max="1"
         show_title="true"
         show_frame="true"
     />
@@ -289,11 +289,11 @@
         stroke_color="#111827"
         labelType="value"
         label_offset_y="-12"
-        min_x="0"
-        max_x="1"
-        min_y="0"
-        max_y="1"
-        scales="yes"
+        x_min="0"
+        x_max="1"
+        y_min="0"
+        y_max="1"
+        scale_visibility="yes"
         show_title="true"
         show_frame="true"
     />
@@ -314,11 +314,11 @@
         line_width="2"
         stroke_color="#0f172a"
         fill_color="rgba(0,0,0,0)"
-        min_x="0"
-        max_x="1"
-        min_y="0"
-        max_y="1"
-        scales="yes"
+        x_min="0"
+        x_max="1"
+        y_min="0"
+        y_max="1"
+        scale_visibility="yes"
         show_title="true"
         show_frame="true"
     />
@@ -339,7 +339,7 @@
         scrollable="true"
         show_title="true"
         show_frame="true"
-    />
+     transpose="no"/>
 
     <widget
         name="Canvas3DWidget"

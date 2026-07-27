@@ -41,7 +41,6 @@
         class="table"
         colorize="true"
         decimals="0"
-        direction="normal"
         frame-style=""
         height="180"
         label_x=""
@@ -54,7 +53,7 @@
         style=""
         title="2D Matrix (3x4)"
         width="280"
-    />
+     transpose="no"/>
 
     <widget
         _index_="2"
@@ -63,7 +62,6 @@
         class="table"
         colorize="true"
         decimals="0"
-        direction="normal"
         frame-style=""
         height="180"
         label_x=""
@@ -76,7 +74,7 @@
         style=""
         title="3D Matrix (2x3x4)"
         width="280"
-    />
+     transpose="no"/>
 
     <widget
         _index_="4"
@@ -85,7 +83,6 @@
         class="table"
         colorize="true"
         decimals="0"
-        direction="normal"
         frame-style=""
         height="180"
         label_x=""
@@ -98,7 +95,7 @@
         style=""
         title="4D Matrix (2x2x3x4)"
         width="280"
-    />
+     transpose="no"/>
 
     <widget
         _index_="6"
@@ -107,7 +104,6 @@
         class="table"
         colorize="true"
         decimals="0"
-        direction="normal"
         frame-style=""
         height="180"
         label_x=""
@@ -120,7 +116,7 @@
         style=""
         title="5D Matrix (2x2x2x3x4)"
         width="280"
-    />
+     transpose="no"/>
 
     <widget
         _index_="8"
@@ -129,7 +125,6 @@
         class="table"
         colorize="true"
         decimals="0"
-        direction="normal"
         frame-style=""
         height="180"
         label_x=""
@@ -142,5 +137,5 @@
         style=""
         title="Scrollable 2D Matrix (12x4)"
         width="280"
-    />
+     transpose="no"/>
 </group>

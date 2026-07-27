@@ -11,8 +11,8 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             {'name':'green_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'blue_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'order', 'default':"row", 'type':'string', 'control': 'menu', 'options': "row,col"},
-            {'name':'min', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'max', 'default':2, 'type':'float', 'control': 'textedit'},
+            {'name':'value_min', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'value_max', 'default':2, 'type':'float', 'control': 'textedit'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'label_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'label_width', 'default':100, 'type':'int', 'control': 'textedit'},
@@ -36,15 +36,15 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
-            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no,invisible", 'class':'true'},
-            {'name':'min_x', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_x', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'min_y', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_y', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'scale_visibility', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no,invisible", 'class':'true'},
+            {'name':'x_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'x_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'flip_x_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_x_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
         ]
     }
 
@@ -114,8 +114,8 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         const rect = this.canvasElement.getBoundingClientRect();
         const rows = this.displayData.length;
         const cols = this.displayData[0].length;
-        const usableWidth = rect.width - this.format.spaceLeft - this.format.spaceRight - label_width;
-        const usableHeight = rect.height - this.format.spaceTop - this.format.spaceBottom;
+        const usableWidth = rect.width - this.format.space_left - this.format.space_right - label_width;
+        const usableHeight = rect.height - this.format.space_top - this.format.space_bottom;
         if(usableWidth <= 0 || usableHeight <= 0 || rows <= 0 || cols <= 0)
             return null;
 
@@ -137,8 +137,8 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         if(!metrics)
             return null;
 
-        const x = Math.floor(metrics.cols * (evt.clientX - metrics.rect.left - this.format.spaceLeft - metrics.label_width) / metrics.usableWidth);
-        const y = Math.floor(metrics.rows * (evt.clientY - metrics.rect.top - this.format.spaceTop) / metrics.usableHeight);
+        const x = Math.floor(metrics.cols * (evt.clientX - metrics.rect.left - this.format.space_left - metrics.label_width) / metrics.usableWidth);
+        const y = Math.floor(metrics.rows * (evt.clientY - metrics.rect.top - this.format.space_top) / metrics.usableHeight);
         if(x < 0 || x >= metrics.cols || y < 0 || y >= metrics.rows)
             return null;
 
@@ -286,7 +286,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
     {
         this.resetCanvasTransform(-0.5, -0.5);
         this.canvas.clearRect(0, 0, this.width, this.height);
-        this.canvas.translate(this.format.marginLeft, this.format.marginTop);
+        this.canvas.translate(this.format.margin_left, this.format.margin_top);
         this.drawHorizontal(1, 1);
     }
 
@@ -472,7 +472,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                     this.setColor(i+j);
                     this.canvas.beginPath();
                     try {
-                        let f = (d[i][j]-this.parameters.min)/(this.parameters.max-this.parameters.min);
+                        let f = (d[i][j]-this.parameters.value_min)/(this.parameters.value_max-this.parameters.value_min);
                         let ix = Math.min(Math.floor(n*f), n-1);
                         this.canvas.fillStyle = String(ct[ix] ?? "black").trim();
                     } catch (error) {
@@ -519,7 +519,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             this.displayData = this.getDisplayData(this.data);
             this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
+            this.canvas.translate(this.format.margin_left, this.format.margin_top); //
             this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
         }
         else if(this.data = this.getSource('source'))
@@ -528,7 +528,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             this.displayData = this.getDisplayData(this.data);
             this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
+            this.canvas.translate(this.format.margin_left, this.format.margin_top); //
             this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
         }
 

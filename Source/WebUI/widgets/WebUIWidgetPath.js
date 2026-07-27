@@ -28,15 +28,15 @@ class WebUIWidgetPath extends WebUIWidgetGraph
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
-            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no,invisible", 'class':'true'},
-            {'name':'min_x', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_x', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'min_y', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_y', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'scale_visibility', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no,invisible", 'class':'true'},
+            {'name':'x_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'x_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'flip_x_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_x_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
         ]
     }
 
@@ -89,8 +89,8 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             
             let lx = 0;
             let ly = 0;
-            let x = (d[i][selectX+0]-this.parameters.min_x)*this.parameters.scale_x * width;
-            let y = (d[i][selectX+1]-this.parameters.min_y)*this.parameters.scale_y * height;
+            let x = (d[i][selectX+0]-this.parameters.x_min)*this.parameters.scale_x * width;
+            let y = (d[i][selectX+1]-this.parameters.y_min)*this.parameters.scale_y * height;
             this.canvas.moveTo(...transform(x, y));
             
             for(var j=selectX+2; j<xx;)
@@ -99,8 +99,8 @@ class WebUIWidgetPath extends WebUIWidgetGraph
                     break;
                 lx = x;
                 ly = y;
-                x = (d[i][j++]-this.parameters.min_x)*this.parameters.scale_x * width;
-                y = (d[i][j++]-this.parameters.min_y)*this.parameters.scale_y * height;
+                x = (d[i][j++]-this.parameters.x_min)*this.parameters.scale_x * width;
+                y = (d[i][j++]-this.parameters.y_min)*this.parameters.scale_y * height;
                 
                 this.canvas.lineTo(...transform(x, y));
             }
@@ -138,8 +138,8 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             
             let lx = 0;
             let ly = 0;
-            let x = (d[0][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
-            let y = (d[0][i+1]-this.parameters.min_y)*this.parameters.scale_y * height;
+            let x = (d[0][i+0]-this.parameters.x_min)*this.parameters.scale_x * width;
+            let y = (d[0][i+1]-this.parameters.y_min)*this.parameters.scale_y * height;
             this.canvas.moveTo(...transform(x, y));
             
             for(var j=1; j<rows;j++)
@@ -148,8 +148,8 @@ class WebUIWidgetPath extends WebUIWidgetGraph
                     break;
                 lx = x;
                 ly = y;
-                x = (d[j][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
-                y = (d[j][i+1]-this.parameters.min_y)*this.parameters.scale_y * height;
+                x = (d[j][i+0]-this.parameters.x_min)*this.parameters.scale_x * width;
+                y = (d[j][i+1]-this.parameters.y_min)*this.parameters.scale_y * height;
                 
                 this.canvas.lineTo(...transform(x, y));
             }
@@ -181,13 +181,9 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         
         this.parameters.select_x = this.getSelectX();
 
-        this.parameters.min_x = (typeof this.parameters.min_x !== 'undefined' ? this.parameters.min_x : this.parameters.min);
-        this.parameters.max_x = (typeof this.parameters.max_x !== 'undefined' ? this.parameters.max_x : this.parameters.max);
-        this.parameters.scale_x = 1/(this.parameters.max_x == this.parameters.min_x ? 1 : this.parameters.max_x-this.parameters.min_x);
-        
-        this.parameters.min_y = (typeof this.parameters.min_y !== 'undefined' ? this.parameters.min_y : this.parameters.min);
-        this.parameters.max_y = (typeof this.parameters.max_y !== 'undefined' ? this.parameters.max_y : this.parameters.max);
-        this.parameters.scale_y = 1/(this.parameters.max_y == this.parameters.min_y ? 1 : this.parameters.max_y-this.parameters.min_y);
+        this.parameters.scale_x = 1/(this.parameters.x_max == this.parameters.x_min ? 1 : this.parameters.x_max-this.parameters.x_min);
+
+        this.parameters.scale_y = 1/(this.parameters.y_max == this.parameters.y_min ? 1 : this.parameters.y_max-this.parameters.y_min);
 
         // draw if data available
         if(!d)
@@ -202,7 +198,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
 
             this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
+            this.canvas.translate(this.format.margin_left, this.format.margin_top); //
 
             this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
         }

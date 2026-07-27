@@ -18,10 +18,10 @@
    <connection source="Envelope.OUTPUT" target="VCA.INPUT2" delay="0" />
    <connection source="VCA.OUTPUT" target="AudioOutput.INPUT" delay="0" />
 
-   <widget name="EnvelopePlot" class="plot" source="Envelope.OUTPUT" width="250" height="180" _x="40" _y="40" title="Envelope" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
-   <widget name="FilterPlot" class="plot" source="Filter.OUTPUT" width="250" height="180" _x="320" _y="40" title="Filtered" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
-   <widget name="SignalPlot" class="plot" source="VCA.OUTPUT" width="250" height="180" _x="600" _y="40" title="VCA" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
-   <widget name="NotePlot" class="plot" source="Notes.OUTPUT" width="250" height="180" _x="880" _y="40" title="Note" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
+   <widget name="EnvelopePlot" class="plot" source="Envelope.OUTPUT" width="250" height="180" _x="40" _y="40" title="Envelope" show_title="true" show_frame="true" auto_range="yes" include_zero="true" buffer_size="50" orientation="vertical" />
+   <widget name="FilterPlot" class="plot" source="Filter.OUTPUT" width="250" height="180" _x="320" _y="40" title="Filtered" show_title="true" show_frame="true" auto_range="yes" include_zero="true" buffer_size="50" orientation="vertical" />
+   <widget name="SignalPlot" class="plot" source="VCA.OUTPUT" width="250" height="180" _x="600" _y="40" title="VCA" show_title="true" show_frame="true" auto_range="yes" include_zero="true" buffer_size="50" orientation="vertical" />
+   <widget name="NotePlot" class="plot" source="Notes.OUTPUT" width="250" height="180" _x="880" _y="40" title="Note" show_title="true" show_frame="true" auto_range="yes" include_zero="true" buffer_size="50" orientation="vertical" />
 
    <widget name="OscWaveShape" class="slider-horizontal" parameter="Oscillator.wave_shape" title="Osc Wave" labels="" source="" select_x="0" control_count="1" min="0" max="5" step="1" show_title="true" show_values="true" show_frame="false" frame-style="" style="" width="260" height="49" _x="40" _y="280" />
    <widget name="OscMultiplier" class="slider-horizontal" parameter="Oscillator.multiplier" title="Osc Mult" labels="" source="" select_x="0" control_count="1" min="0.25" max="4" step="0.01" show_title="true" show_values="true" show_frame="false" frame-style="" style="" width="260" height="49" _x="320" _y="280" />
