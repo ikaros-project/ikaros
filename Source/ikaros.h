@@ -223,7 +223,7 @@ public:
     tick_count GetStopAfter() const;
     bool ProfilingEnabled() const;
 
-    void CalculateCPUUsage();
+    bool CalculateCPUUsage(); // Return true after updating the cached value; calls within 100 ms return false
 
     bool Notify(int msg, std::string message, std::string path="");
     bool Print(std::string message);

@@ -29,6 +29,7 @@ namespace ikaros
 
     namespace
     {
+        constexpr auto cpu_usage_sample_interval = 100ms;
 
         int default_thread_pool_size(unsigned int cpu_cores)
         {
@@ -497,16 +498,20 @@ Kernel::GetTimeOfDay()
 }
 
 
-void
+bool
 Kernel::CalculateCPUUsage() // Fraction of total CPU capacity
 {
     const auto sample_time = std::chrono::steady_clock::now();
+    if(cpu_usage_initialized &&
+       sample_time - cpu_usage_sample_time < cpu_usage_sample_interval)
+        return false;
+
     struct rusage usage{};
     if(getrusage(RUSAGE_SELF, &usage) != 0)
     {
         cpu_usage = 0;
         cpu_usage_initialized = false;
-        return;
+        return false;
     }
 
     const double user_cpu = double(usage.ru_utime.tv_sec) + double(usage.ru_utime.tv_usec) / 1000000.0;
@@ -519,13 +524,14 @@ Kernel::CalculateCPUUsage() // Fraction of total CPU capacity
         cpu_usage = 0;
         cpu_usage_initialized = true;
         cpu_usage_sample_time = sample_time;
-        return;
+        return true;
     }
 
     const double wall_time_delta = std::chrono::duration<double>(sample_time - cpu_usage_sample_time).count();
     cpu_usage = CPUUsageFraction(cpu - last_cpu, wall_time_delta, cpu_cores);
     last_cpu = cpu;
     cpu_usage_sample_time = sample_time;
+    return true;
 }
 
 InitClass::InitClass(const char * name, ModuleCreator mc)

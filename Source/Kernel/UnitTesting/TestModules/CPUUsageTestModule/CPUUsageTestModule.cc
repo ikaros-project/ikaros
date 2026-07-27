@@ -32,7 +32,17 @@ class CPUUsageTestModule : public Module
             "non-finite CPU delta");
 
         Kernel & k = kernel();
-        k.CalculateCPUUsage();
+        if(!k.CalculateCPUUsage())
+            throw exception("CPUUsageTestModule: initial CPU usage sample must run immediately");
+        const double initial_cpu_usage = k.GetCPUUsage();
+        if(k.CalculateCPUUsage())
+            throw exception("CPUUsageTestModule: CPU usage must not be sampled twice within 100 ms");
+        require_close(k.GetCPUUsage(), initial_cpu_usage,
+                      "rate-limited sampling retains the previous value");
+
+        Sleep(0.11);
+        if(!k.CalculateCPUUsage())
+            throw exception("CPUUsageTestModule: CPU usage must be sampled after 100 ms");
         if(!std::isfinite(k.GetCPUUsage()) || k.GetCPUUsage() < 0 || k.GetCPUUsage() > 1)
             throw exception("CPUUsageTestModule: CPU usage must be a finite fraction");
         if(k.GetCPUCoreCount() < 1)
