@@ -40,6 +40,12 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'auto_range', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'include_zero', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_x_axis', 'default':'yes', 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_y_axis', 'default':'yes', 'type':'bool', 'control': 'checkbox'},
+            {'name':'left_scale_ticks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'left_tick_marks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'horizontal_grid_lines', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'decimals', 'default':2, 'type':'int', 'control': 'textedit'},
         ]};
 
     init()

@@ -65,11 +65,18 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
             {'name':'orientation', 'default':"vertical", 'type':'string', 'min':0, 'max':2, 'control': 'menu', 'options': "vertical", 'class':'true'},
             {'name': "STYLE", 'control':'header'},
             {'name':'stroke_color', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name': "COORDINATE SYSTEM", 'control':'header'},
             {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'auto_range', 'default':true, 'type':'bool', 'control': 'checkbox'},
             {'name':'include_zero', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_x_axis', 'default':'yes', 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_y_axis', 'default':'yes', 'type':'bool', 'control': 'checkbox'},
+            {'name':'left_scale_ticks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'left_tick_marks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'horizontal_grid_lines', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'decimals', 'default':2, 'type':'int', 'control': 'textedit'},
 
         ]};
 
