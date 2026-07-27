@@ -101,3 +101,25 @@ python3 Source/Kernel/UnitTesting/KernelTests/benchmark_image_conversion.py
 The script reports median milliseconds per frame and speedups over seven measured processes. Use
 `--width`, `--height`, `--iterations`, or `--block-rows` to explore other image and block sizes.
 This benchmark requires Apple Accelerate support and is not included in the correctness suite.
+
+## WebUI Image Release Benchmark
+
+The WebUI image benchmark measures the complete asynchronous image path. An in-process probe reports
+the median time to copy a matrix into a reusable capture buffer and to JPEG-encode and Base64-wrap
+the image. A Python HTTP probe then reports the first refresh response latency, time until the encoded
+image becomes available, cached image response latency, and maximum tick throughput with and without
+an active image subscription.
+
+Build Ikaros in Release mode and run:
+
+```sh
+cmake -S . -B Release -DCMAKE_BUILD_TYPE=Release
+cmake --build Release --parallel
+python3 Source/Kernel/UnitTesting/KernelTests/benchmark_webui_image.py
+```
+
+The default is a 1024 by 1024 grayscale image, JPEG quality 75, and a 100 ms image refresh interval.
+The script alternates the order of baseline and image-active throughput phases, reports medians, and
+can save individual measurements with `--output results.csv`. It is a timing probe without fixed
+performance thresholds and is not part of the correctness suite. Use `--help` to adjust dimensions,
+quality, sample counts, phase duration, executable, or Release build directory.

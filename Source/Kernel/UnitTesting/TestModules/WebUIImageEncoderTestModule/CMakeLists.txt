@@ -3,5 +3,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(SOURCE
     ${SOURCE}
     ${CMAKE_CURRENT_SOURCE_DIR}/WebUIImageEncoderTestModule.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/WebUIImageBenchmarkModule.cc
     PARENT_SCOPE
 )

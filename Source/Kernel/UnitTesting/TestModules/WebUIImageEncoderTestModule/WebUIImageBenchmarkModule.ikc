@@ -1,0 +1,9 @@
+<class internal="true"
+       name="WebUIImageBenchmarkModule"
+       description="Provides a synthetic image and core timing probes for the WebUI image benchmark">
+    <parameter name="width" type="number" default="1024" min="1" />
+    <parameter name="height" type="number" default="1024" min="1" />
+    <parameter name="iterations" type="number" default="10" min="1" />
+    <parameter name="quality" type="number" default="75" min="1" max="100" />
+    <output name="IMAGE" size="@height,@width" />
+</class>

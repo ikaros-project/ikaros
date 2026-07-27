@@ -7,11 +7,11 @@ The tasks below will be completed sequentially, with one focused commit per task
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Add a documented CMake preset for running ThreadSanitizer with Homebrew LLVM on macOS. | Completed | Preset listing and configuration; full Homebrew Clang 22.1.8 TSan build; `test_363_webui_image_encoder.ikg` passed without sanitizer reports. | `Homebrew LLVM TSan now has a CMake preset` |
-| 2 | Add a repeatable Release benchmark for WebUI image capture, JPEG encoding, response latency, and image-active tick throughput. | Pending | — | — |
+| 2 | Add a repeatable Release benchmark for WebUI image capture, JPEG encoding, response latency, and image-active tick throughput. | Completed | Debug and Release builds; Python syntax and short HTTP/CSV smoke probes; default five-repeat 1024×1024 Release run measured 0.057 ms capture, 2.465 ms JPEG/Base64, 1.193 ms first response, 10.939 ms completion, 0.931 ms cached response, and 99.99% tick-throughput retention; all 267 tests passed. | `WebUI image performance now has a repeatable benchmark` |
 
 ### Outstanding issues and questions
 
-- None identified so far; task 2 remains pending.
+- None.
 
 ## Post-refactoring consistency pass
 
