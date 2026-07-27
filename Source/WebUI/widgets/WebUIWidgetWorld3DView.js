@@ -1,10 +1,10 @@
-class WebUIWidgetWorld2D3D extends WebUIWidget
+class WebUIWidgetWorld3DView extends WebUIWidget
 {
     static template()
     {
         return [
             {'name': "WORLD2D 3D", 'control':'header'},
-            {'name':'title', 'default':"World2D 3D", 'type':'string', 'control': 'textedit'},
+            {'name':'title', 'default':"World 3D View", 'type':'string', 'control': 'textedit'},
             {'name':'creature_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'objects_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'walls_source', 'default':"", 'type':'source', 'control': 'textedit'},
@@ -458,4 +458,4 @@ class WebUIWidgetWorld2D3D extends WebUIWidget
     }
 }
 
-webui_widgets.add('webui-widget-world2d-3d', WebUIWidgetWorld2D3D);
+webui_widgets.add('webui-widget-world3dview', WebUIWidgetWorld3DView);

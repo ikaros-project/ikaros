@@ -1,10 +1,10 @@
-class WebUIWidgetWorld2D extends WebUIWidgetCanvas
+class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
 {
     static template()
     {
         return [
             {'name': "WORLD2D", 'control':'header'},
-            {'name':'title', 'default':"World2D", 'type':'string', 'control': 'textedit'},
+            {'name':'title', 'default':"World 2D View", 'type':'string', 'control': 'textedit'},
             {'name':'creature_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'objects_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'walls_source', 'default':"", 'type':'source', 'control': 'textedit'},
@@ -1051,7 +1051,7 @@ class WebUIWidgetWorld2D extends WebUIWidgetCanvas
             }
             catch(err)
             {
-                console.warn("World2D skipped a wall row:", err);
+                console.warn("World2DView skipped a wall row:", err);
             }
         }
 
@@ -1062,7 +1062,7 @@ class WebUIWidgetWorld2D extends WebUIWidgetCanvas
         }
         catch(err)
         {
-            console.warn("World2D skipped wall edit overlay:", err);
+            console.warn("World2DView skipped wall edit overlay:", err);
         }
 
         for(const row of this.objects)
@@ -1074,7 +1074,7 @@ class WebUIWidgetWorld2D extends WebUIWidgetCanvas
             }
             catch(err)
             {
-                console.warn("World2D skipped an object row:", err);
+                console.warn("World2DView skipped an object row:", err);
             }
         }
 
@@ -1085,7 +1085,7 @@ class WebUIWidgetWorld2D extends WebUIWidgetCanvas
         }
         catch(err)
         {
-            console.warn("World2D skipped creature draw:", err);
+            console.warn("World2DView skipped creature draw:", err);
         }
     }
 
@@ -1114,4 +1114,4 @@ class WebUIWidgetWorld2D extends WebUIWidgetCanvas
     }
 }
 
-webui_widgets.add('webui-widget-world2d', WebUIWidgetWorld2D);
+webui_widgets.add('webui-widget-world2dview', WebUIWidgetWorld2DView);
