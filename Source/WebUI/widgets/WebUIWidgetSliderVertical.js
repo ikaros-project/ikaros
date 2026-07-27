@@ -6,6 +6,7 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
 
             { name: "CONTROL", control: "header" },
             { name: "parameter", default: "", type: "source", control: "textedit" },
+            { name: "command", default: "", type: "source", control: "textedit" },
             { name: "enabled_source", default: "", type: "source", control: "textedit" },
             { name: "select_x", default: 0, type: "int", control: "textedit" },
             { name: "select_y", default: "", type: "string", control: "textedit" },
@@ -157,6 +158,16 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
     _sendControlValue(value, index) {
         const x = this._getBaseSelectX() + index;
         const y = this._getSelectY();
+
+        if (this.parameters.command) {
+            const commandY = y === "" ? x : Math.trunc(Number(y));
+            this.send_command(this.parameters.command, 0, Number(value), commandY);
+            return;
+        }
+
+        if (!this.parameters.parameter) {
+            return;
+        }
 
         if (y === "") {
             this.send_control_change(this.parameters.parameter, value, x);

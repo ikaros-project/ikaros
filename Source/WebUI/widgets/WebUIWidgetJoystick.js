@@ -7,6 +7,7 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
             { name: "CONTROL", control: "header" },
             { name: "x_parameter", default: "", type: "source", control: "textedit" },
             { name: "y_parameter", default: "", type: "source", control: "textedit" },
+            { name: "enabled_source", default: "", type: "source", control: "textedit" },
             { name: "select_x", default: 0, type: "int", control: "textedit" },
             { name: "select_y", default: "", type: "string", control: "textedit" },
 
@@ -170,7 +171,7 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
     }
 
     _startDrag(event) {
-        if (main.edit_mode) {
+        if (main.edit_mode || !this._isEnabled()) {
             return;
         }
 
@@ -234,6 +235,23 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
         return data;
     }
 
+    requestData(data_set) {
+        this.addSource(data_set, this.parameters.x_parameter);
+        this.addSource(data_set, this.parameters.y_parameter);
+        if (this.parameters.enabled_source) {
+            this.addSource(data_set, this.parameters.enabled_source);
+        }
+    }
+
+    _isEnabled() {
+        if (!this.parameters.enabled_source) {
+            return true;
+        }
+        const value = this.getSource("enabled_source", 1);
+        const scalar = Array.isArray(value) ? (Array.isArray(value[0]) ? value[0][0] : value[0]) : value;
+        return Number(scalar) !== 0;
+    }
+
     updateAll() {
         super.updateAll();
 
@@ -255,6 +273,8 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
         }
 
         try {
+            const enabled = this._isEnabled();
+            this.classList.toggle("widget-control-disabled", !enabled);
             const hasXParameter = !!this.parameters.x_parameter;
             const hasYParameter = !!this.parameters.y_parameter;
             const x = this._readSourceValue("x_parameter");
