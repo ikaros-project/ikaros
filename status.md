@@ -11,7 +11,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 | 3 | Split `Connection::Tick()` into named whole-buffer, flattened-delay, and indexed-delay propagation paths; preserve allocation-free execution and benchmark it. | Completed | CMake Debug and Release builds; all 266 kernel and WebUI tests passed; Release probe changed from 123.73 to 71.69 ns/connection (3 repeats, no regression). | `Connection propagation now uses named paths` |
 | 4 | Separate model construction from shape convergence in `kernel_setup.cc` without changing startup behavior. | Completed | CMake Debug build; all 266 kernel and WebUI tests passed. | `Shape convergence now has its own implementation unit` |
 | 5 | Extract graph scheduling from `kernel_execution.cc` into a private implementation unit with characterization coverage. | Completed | CMake Debug build; all 266 kernel and WebUI tests passed, including cycle and parallel zero-delay scheduling coverage. | `Graph scheduling now has its own implementation unit` |
-| 6 | Replace session logging's small friend accessors with one immutable metadata snapshot and share common event construction. | Pending | Pending | Pending |
+| 6 | Replace session logging's small friend accessors with one immutable metadata snapshot and share common event construction. | Completed | CMake Debug build; all 266 kernel and WebUI tests passed, including asynchronous session-log delivery. | `Session logging now uses metadata snapshots` |
 | 7 | Privatize appropriate `Connection` implementation fields after propagation restructuring, preserving the required kernel interface. | Pending | Pending | Pending |
 
 ### Outstanding issues and questions

@@ -16,29 +16,37 @@
 
 namespace ikaros
 {
-    class KernelSessionLoggingAccess
+    SessionLogMetadata
+    Kernel::CaptureSessionLogMetadata(bool resolve_model_agent)
     {
-    public:
-        static long SessionID(const Kernel & kernel)
+        dictionary module_info = GetModuleInstantiationInfo();
+        std::string agent = GetOption("agent");
+        if(resolve_model_agent && info_.contains_non_null("name"))
         {
-            return kernel.session_id;
+            auto root = components.find(std::string(info_["name"]));
+            if(root != components.end())
+                try
+                {
+                    agent = root->second->ComputeValueOf("agent");
+                }
+                catch(...)
+                {
+                    // Keep the command-line agent when the model expression cannot be evaluated.
+                }
         }
 
-        static const dictionary & ModelInfo(const Kernel & kernel)
-        {
-            return kernel.info_;
-        }
-
-        static double SessionTime(const Kernel & kernel)
-        {
-            return kernel.session_timer.GetTime();
-        }
-
-        static int CPUCoreCount(const Kernel & kernel)
-        {
-            return kernel.cpu_cores;
-        }
-    };
+        return {
+            session_id,
+            info_.contains("name") ? std::string(info_["name"]) : "",
+            info_.contains("filename") ? std::string(info_["filename"]) : GetOptionFilename(),
+            std::filesystem::path(GetOptionFullPath()).filename().string(),
+            session_timer.GetTime(),
+            uptime_timer.GetTime(),
+            std::move(agent),
+            cpu_cores,
+            module_info.contains("classes") ? std::string(module_info["classes"]) : "",
+        };
+    }
 
     struct SessionLogDispatcher::State
     {
@@ -324,25 +332,34 @@ namespace ikaros
         }
 
 
-        void AddCommonParameters(std::string & path, Kernel & kernel, const std::string & event_name, const dictionary & module_info, const std::string & agent)
+        void AddCommonParameters(std::string & path, const std::string & event_name,
+                                 const SessionLogMetadata & metadata)
         {
             AppendQueryParameter(path, "event", event_name);
-            AppendQueryParameter(path, "sid", std::to_string(KernelSessionLoggingAccess::SessionID(kernel)));
+            AppendQueryParameter(path, "sid", std::to_string(metadata.session_id));
             AppendQueryParameter(path, "timestamp", std::to_string(GetTimeStamp()));
-            const dictionary & model_info = KernelSessionLoggingAccess::ModelInfo(kernel);
-            AppendQueryParameter(path, "session_name", model_info.contains("name") ? std::string(model_info["name"]) : "");
-            AppendQueryParameter(path, "file", model_info.contains("filename") ? std::string(model_info["filename"]) : kernel.GetOptionFilename());
-            AppendQueryParameter(path, "file_path",
-                                 std::filesystem::path(kernel.GetOptionFullPath()).filename().string());
-            AppendQueryParameter(path, "clock_time", formatNumber(KernelSessionLoggingAccess::SessionTime(kernel), 4));
-            AppendQueryParameter(path, "agent", agent);
-            AppendQueryParameter(path, "cpu_cores", std::to_string(KernelSessionLoggingAccess::CPUCoreCount(kernel)));
-            AppendQueryParameter(path, "classes", module_info.contains("classes") ? std::string(module_info["classes"]) : "");
+            AppendQueryParameter(path, "session_name", metadata.session_name);
+            AppendQueryParameter(path, "file", metadata.filename);
+            AppendQueryParameter(path, "file_path", metadata.file_path);
+            AppendQueryParameter(path, "clock_time", formatNumber(metadata.session_time, 4));
+            AppendQueryParameter(path, "agent", metadata.agent);
+            AppendQueryParameter(path, "cpu_cores", std::to_string(metadata.cpu_cores));
+            AppendQueryParameter(path, "classes", metadata.classes);
 #if DEBUG
             AppendQueryParameter(path, "debug", "1");
 #else
             AppendQueryParameter(path, "debug", "0");
 #endif
+        }
+
+        std::string BuildLogPath(const std::string & endpoint, const std::string & event_name,
+                                 const SessionLogMetadata & metadata, bool include_uptime)
+        {
+            std::string path = endpoint;
+            AddCommonParameters(path, event_name, metadata);
+            if(include_uptime)
+                AppendQueryParameter(path, "uptime", formatNumber(metadata.uptime, 4));
+            return path;
         }
 
         CURLcode
@@ -452,26 +469,8 @@ namespace ikaros
     {
         try
         {
-            dictionary module_info = kernel.GetModuleInstantiationInfo();
-            std::string agent = kernel.GetOption("agent");
-            if(kernel.info_.contains_non_null("name"))
-            {
-                auto root = kernel.components.find(std::string(kernel.info_["name"]));
-                if(root != kernel.components.end())
-                {
-                    try
-                    {
-                        agent = root->second->ComputeValueOf("agent");
-                    }
-                    catch(...)
-                    {
-                        // Keep the command-line agent when the model expression cannot be evaluated.
-                    }
-                }
-            }
-            std::string path = endpoint;
-            AddCommonParameters(path, kernel, event_name, module_info, agent);
-            EnqueueLogRequest(std::move(path));
+            SessionLogMetadata metadata = kernel.CaptureSessionLogMetadata(true);
+            EnqueueLogRequest(BuildLogPath(endpoint, event_name, metadata, false));
         }
         catch(...)
         {
@@ -484,11 +483,8 @@ namespace ikaros
     {
         try
         {
-            dictionary module_info = kernel.GetModuleInstantiationInfo();
-            std::string path = "/process_start3/";
-            AddCommonParameters(path, kernel, "process_start", module_info, kernel.GetOption("agent"));
-            AppendQueryParameter(path, "uptime", formatNumber(kernel.uptime_timer.GetTime(), 4));
-            EnqueueLogRequest(std::move(path));
+            SessionLogMetadata metadata = kernel.CaptureSessionLogMetadata(false);
+            EnqueueLogRequest(BuildLogPath("/process_start3/", "process_start", metadata, true));
         }
         catch(...)
         {
@@ -501,27 +497,8 @@ namespace ikaros
     {
         try
         {
-            dictionary module_info = kernel.GetModuleInstantiationInfo();
-            std::string agent = kernel.GetOption("agent");
-            if(kernel.info_.contains_non_null("name"))
-            {
-                auto root = kernel.components.find(std::string(kernel.info_["name"]));
-                if(root != kernel.components.end())
-                {
-                    try
-                    {
-                        agent = root->second->ComputeValueOf("agent");
-                    }
-                    catch(...)
-                    {
-                        // Keep the command-line agent when the model expression cannot be evaluated.
-                    }
-                }
-            }
-            std::string path = "/exit3/";
-            AddCommonParameters(path, kernel, "exit", module_info, agent);
-            AppendQueryParameter(path, "uptime", formatNumber(kernel.uptime_timer.GetTime(), 4));
-            EnqueueLogRequest(std::move(path));
+            SessionLogMetadata metadata = kernel.CaptureSessionLogMetadata(true);
+            EnqueueLogRequest(BuildLogPath("/exit3/", "exit", metadata, true));
         }
         catch(...)
         {

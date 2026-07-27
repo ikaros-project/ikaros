@@ -55,7 +55,19 @@ namespace ikaros
 {
 class Kernel;
 class KernelMainAccess;
-class KernelSessionLoggingAccess;
+
+struct SessionLogMetadata
+{
+    long session_id;
+    std::string session_name;
+    std::string filename;
+    std::string file_path;
+    double session_time;
+    double uptime;
+    std::string agent;
+    int cpu_cores;
+    std::string classes;
+};
 
 Kernel& kernel();
 
@@ -238,12 +250,12 @@ private:
     friend class KernelTaskSequence;
     friend class ComputeEngine;
     friend class KernelMainAccess;
-    friend class KernelSessionLoggingAccess;
     friend void QueueSessionLogEvent(Kernel & kernel, const std::string & endpoint, const std::string & event_name);
     friend void QueueProcessStartLogEvent(Kernel & kernel);
     friend void QueueProcessExitLogEvent(Kernel & kernel);
 
     static long NewSessionID();
+    SessionLogMetadata CaptureSessionLogMetadata(bool resolve_model_agent);
 
     options                                 options_;
     std::map<std::string, Class>            classes;
