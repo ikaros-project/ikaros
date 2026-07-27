@@ -16,6 +16,17 @@ namespace ikaros
     class Connection : public Task
     {
     private:
+        enum class PropagationPlan
+        {
+            unresolved,
+            shared_memory,
+            whole_current,
+            whole_historical,
+            ranged_current,
+            flattened_delays,
+            indexed_delays,
+        };
+
         friend class Component;
         friend class Kernel;
 
@@ -36,8 +47,11 @@ namespace ikaros
         Component * source_component_ = nullptr;
         Component * target_component_ = nullptr;
         bool has_async_endpoint_ = false;
+        PropagationPlan propagation_plan_ = PropagationPlan::unresolved;
+        int delay_count_ = 0;
+        int min_delay_ = 0;
 
-        bool PropagateWholeBuffer();
+        void PropagateWholeBuffer(const matrix & sample);
         void PropagateFlattenedDelays();
         void PropagateIndexedDelays();
 

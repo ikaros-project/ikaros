@@ -100,6 +100,21 @@ namespace ikaros
         has_async_endpoint_ =
             (source_component_ != nullptr && source_component_->async_mode) ||
             (target_component_ != nullptr && target_component_->async_mode);
+
+        delay_count_ = DelayCount();
+        min_delay_ = MinDelay();
+        if(shared_memory_)
+            propagation_plan_ = PropagationPlan::shared_memory;
+        else if(IsWholeMatrixConnection() && delay_count_ == 1)
+            propagation_plan_ = IsSingleDelay(0) || IsSingleDelay(1) ?
+                                PropagationPlan::whole_current :
+                                PropagationPlan::whole_historical;
+        else if(IsSingleDelay(0) || IsSingleDelay(1))
+            propagation_plan_ = PropagationPlan::ranged_current;
+        else if(flatten_)
+            propagation_plan_ = PropagationPlan::flattened_delays;
+        else
+            propagation_plan_ = PropagationPlan::indexed_delays;
     }
 
 
@@ -180,23 +195,15 @@ namespace ikaros
 
 
 
-    bool
-    Connection::PropagateWholeBuffer()
+    void
+    Connection::PropagateWholeBuffer(const matrix & sample)
     {
-        if(!IsWholeMatrixConnection() || DelayCount() != 1)
-            return false;
-
-        const matrix & sample =
-            (IsSingleDelay(0) || IsSingleDelay(1)) ?
-            *source_buffer_ : circular_buffer_->get(MinDelay());
-
         if(target_buffer_->is_dynamic())
             target_buffer_->resize(sample.shape());
-        if(target_buffer_->shape() != sample.shape())
-            return false;
-
-        target_buffer_->copy(sample);
-        return true;
+        if(target_buffer_->shape() == sample.shape())
+            target_buffer_->copy(sample);
+        else
+            target_buffer_->copy(sample, target_range, source_range);
     }
 
 
@@ -220,9 +227,9 @@ namespace ikaros
     void
     Connection::PropagateIndexedDelays()
     {
-        if(DelayCount() == 1)
+        if(delay_count_ == 1)
         {
-            const matrix & sample = circular_buffer_->get(MinDelay());
+            const matrix & sample = circular_buffer_->get(min_delay_);
             target_buffer_->copy(sample, target_range, source_range);
             return;
         }
@@ -244,17 +251,28 @@ namespace ikaros
     void
     Connection::Tick()
     {
-        if(shared_memory_ || PropagateWholeBuffer())
+        switch(propagation_plan_)
+        {
+        case PropagationPlan::shared_memory:
             return;
-
-        if(IsSingleDelay(0))
+        case PropagationPlan::whole_current:
+            PropagateWholeBuffer(*source_buffer_);
+            return;
+        case PropagationPlan::whole_historical:
+            PropagateWholeBuffer(circular_buffer_->get(min_delay_));
+            return;
+        case PropagationPlan::ranged_current:
             target_buffer_->copy(*source_buffer_, target_range, source_range);
-        else if(IsSingleDelay(1))
-            target_buffer_->copy(*source_buffer_, target_range, source_range);
-        else if(flatten_) // Copy flattened delayed values
+            return;
+        case PropagationPlan::flattened_delays:
             PropagateFlattenedDelays();
-        else
+            return;
+        case PropagationPlan::indexed_delays:
             PropagateIndexedDelays();
+            return;
+        case PropagationPlan::unresolved:
+            throw exception("Connection propagation plan was not resolved: " + Info());
+        }
     };
 
 
