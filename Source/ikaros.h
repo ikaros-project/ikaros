@@ -458,6 +458,7 @@ public:
     void New();
     void Stop();
     void Play();
+    void FastForward();
     void Realtime();
 
 private:
@@ -484,6 +485,7 @@ private:
     void DoPause(Request & request);
     void DoStep(Request & request);
     void DoPlay(Request & request);
+    void DoFastForward(Request & request);
     void DoRealtime(Request & request);
     
     void DoData(Request & request);

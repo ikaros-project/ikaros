@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestFastForward"
+    description="Fast-forward runs continuously while serving WebUI state"
+    tick_duration="0.001"
+    webui_port="8366"
+    http_start_delay="0.03"
+    http_requests="assert_json_field:fastforward/TestFastForward:state:5||sleep:0.03||assert_json_field:pause/TestFastForward:state:2||quit"
+    http_terminate_after_requests="true">
+    <module class="DelaySequenceSource" name="Source" />
+</group>

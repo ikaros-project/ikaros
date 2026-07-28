@@ -770,6 +770,17 @@ const controller =
         main.setViewMode()
         controller.sendRunModeCommand("play");
     },
+
+    fastForward()
+    {
+        if(controller.isRunModeBlockedByTaintedNetwork("fastforward"))
+            return;
+
+        controller.run_mode = 'fastforward';
+        controller.syncTransportButtons();
+        main.setViewMode();
+        controller.sendRunModeCommand("fastforward");
+    },
     
     realtime()
     {
@@ -843,7 +854,7 @@ const controller =
                 (network && network.network && network.network.filename != null && network.network.filename !== "" && network.network.filename !== "null") ? network.network.filename :
                 (response.filename != null && response.filename !== "" && response.filename !== "null") ? response.filename :
                 "-";
-            const responseRunMode = ['quit', 'stop','pause','play','realtime','restart'][response.state];
+            const responseRunMode = ['quit', 'stop', 'pause', 'play', 'realtime', 'fastforward', 'restart'][response.state];
             if(responseRunMode)
                 controller.run_mode = responseRunMode;
             document.querySelector("#file").innerText = displayedFile;
@@ -937,7 +948,7 @@ const controller =
 
     isRunModeBlockedByTaintedNetwork(command)
     {
-        return !!(network && network.tainted && ["pause", "step", "play", "realtime"].includes(command));
+        return !!(network && network.tainted && ["pause", "step", "play", "fastforward", "realtime"].includes(command));
     },
 
     update(response, session_id, package_type)

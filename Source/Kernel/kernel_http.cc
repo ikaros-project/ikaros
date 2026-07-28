@@ -1072,6 +1072,22 @@ namespace ikaros
     }
 
 
+    void
+    Kernel::DoFastForward(Request & request)
+    {
+        Notify(msg_print, "fast forward");
+        try
+        {
+            FastForward();
+        }
+        catch(const exception& e)
+        {
+            Notify(msg_warning, e.what(), e.path());
+        }
+        DoSendData(request);
+    }
+
+
 
     void
     Kernel::DoData(Request & request)
@@ -1809,6 +1825,7 @@ namespace ikaros
             {"pause", &Kernel::DoPause},
             {"step", &Kernel::DoStep},
             {"play", &Kernel::DoPlay},
+            {"fastforward", &Kernel::DoFastForward},
             {"realtime", &Kernel::DoRealtime},
             {"new", &Kernel::DoNew},
             {"open", &Kernel::DoOpen},

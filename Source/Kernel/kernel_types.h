@@ -9,7 +9,8 @@ namespace ikaros
     inline constexpr int run_mode_pause = 2;
     inline constexpr int run_mode_play = 3;
     inline constexpr int run_mode_realtime = 4;
-    inline constexpr int run_mode_restart = 5;
+    inline constexpr int run_mode_fast_forward = 5;
+    inline constexpr int run_mode_restart = 6;
 
     inline constexpr int msg_inherit = 0;
     inline constexpr int msg_quiet = 1;

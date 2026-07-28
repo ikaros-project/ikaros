@@ -11,7 +11,7 @@ Exposes selected kernel status, timing, and load values as ordinary Ikaros outpu
 | NOMINAL_TIME | Nominal tick-based time in seconds. |
 | REAL_TIME | Wall-clock run time in seconds. |
 | UPTIME | Kernel uptime in seconds. |
-| RUN_STATE | One-hot run mode: stop, pause, play, realtime. |
+| RUN_STATE | One-hot run mode: stop, pause, play, realtime, fast forward. |
 | STATE | Numeric run mode. |
 | TICK_DURATION | Target tick duration in seconds. |
 | ACTUAL_DURATION | Measured duration between ticks in seconds. |

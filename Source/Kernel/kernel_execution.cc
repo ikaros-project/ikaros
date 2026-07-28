@@ -455,6 +455,13 @@ namespace ikaros
             if(!options_.is_set("batch_mode") || has_async_workers)
                 Sleep(0.01);
         }
+        else if(run_mode.load() == run_mode_fast_forward)
+        {
+            timer.SetTime(double(tick + 1) * tick_duration);
+            lag = 0;
+            if(has_async_workers)
+                Sleep(0.01);
+        }
         else
             Sleep(0.01);
     }
@@ -500,7 +507,9 @@ namespace ikaros
 
                 // Run_mode may have changed during the delay - needs to be checked again
 
-                if(run_mode.load() == run_mode_realtime || run_mode.load() == run_mode_play) 
+                if(run_mode.load() == run_mode_realtime ||
+                   run_mode.load() == run_mode_play ||
+                   run_mode.load() == run_mode_fast_forward)
                 {
                     actual_tick_duration = intra_tick_timer.GetTime();
                     intra_tick_timer.Restart();
@@ -765,6 +774,30 @@ namespace ikaros
         }
 #endif
         run_mode = run_mode_play;
+        timer.Continue();
+    }
+
+
+    void
+    Kernel::FastForward()
+    {
+        if(needs_reload)
+        {
+            if(GetOptionFilename().empty())
+                New();
+            else
+                LoadFile();
+        }
+
+#if !defined(LOGGING_OFF)
+        if(!session_logging_active)
+        {
+            session_timer.Restart();
+            LogStart();
+            session_logging_active = true;
+        }
+#endif
+        run_mode = run_mode_fast_forward;
         timer.Continue();
     }
 }; // namespace ikaros

@@ -139,7 +139,7 @@ const selector =
 
     setLogLevel(level)
     {
-        if(!["pause", "play", "realtime"].includes(controller.run_mode))
+        if(!["pause", "play", "fastforward", "realtime"].includes(controller.run_mode))
             return;
 
         let component = "";
