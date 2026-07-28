@@ -3,7 +3,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
     static template()
     {
         return [
-            {'name': "WORLD2D 3D", 'control':'header'},
+            {'name': "WORLD 3D VIEW", 'control':'header'},
             {'name':'title', 'default':"World 3D View", 'type':'string', 'control': 'textedit'},
             {'name':'creature_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'objects_source', 'default':"", 'type':'source', 'control': 'textedit'},
@@ -50,6 +50,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         this.sceneWidth = 0;
         this.sceneHeight = 0;
         this.animationFrame = null;
+        this.lastCameraDistance = null;
 
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(this.parameters.scene_background || "#f7f5ef");
@@ -92,14 +93,16 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         this.worldOutline = null;
         this.sceneKey = "";
 
-        this.canvasElement.addEventListener("wheel", (event) => {
+        this.wheelHandler = (event) => {
             if(event.cancelable)
                 event.preventDefault();
             event.stopPropagation();
-        }, {passive: false});
+        };
+        this.canvasElement.addEventListener("wheel", this.wheelHandler, {passive: false});
 
         this.resizeRenderer();
         this.refreshWorldBase();
+        this.updateCameraDistance();
         this.animate();
     }
 
@@ -108,6 +111,14 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         if(this.animationFrame !== null)
             cancelAnimationFrame(this.animationFrame);
         this.animationFrame = null;
+        if(this.canvasElement && this.wheelHandler)
+            this.canvasElement.removeEventListener("wheel", this.wheelHandler);
+        if(this.controls && typeof this.controls.dispose === "function")
+            this.controls.dispose();
+        if(this.root)
+            this.clearGroup(this.root);
+        if(this.renderer && typeof this.renderer.dispose === "function")
+            this.renderer.dispose();
     }
 
     animate()
@@ -167,9 +178,12 @@ class WebUIWidgetWorld3DView extends WebUIWidget
     {
         if(row.length > offset + 2)
         {
-            const r = Math.max(0, Math.min(1, Number(row[offset])));
-            const g = Math.max(0, Math.min(1, Number(row[offset + 1])));
-            const b = Math.max(0, Math.min(1, Number(row[offset + 2])));
+            const components = [row[offset], row[offset + 1], row[offset + 2]].map(Number);
+            if(!components.every(Number.isFinite))
+                return new THREE.Color(fallback);
+            const r = Math.max(0, Math.min(1, components[0]));
+            const g = Math.max(0, Math.min(1, components[1]));
+            const b = Math.max(0, Math.min(1, components[2]));
             return new THREE.Color(r, g, b);
         }
         return new THREE.Color(fallback);
@@ -179,7 +193,8 @@ class WebUIWidgetWorld3DView extends WebUIWidget
     {
         while(group.children.length > 0)
         {
-            const child = group.children.pop();
+            const child = group.children[group.children.length - 1];
+            group.remove(child);
             child.traverse((node) => {
                 if(node.geometry)
                     node.geometry.dispose();
@@ -244,7 +259,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         this.shadowPlane.receiveShadow = true;
         this.root.add(this.shadowPlane);
 
-        if(this.parameters.show_grid)
+        if(this.toBool(this.parameters.show_grid))
         {
             const size = Math.max(width, height);
             const divisions = Math.max(1, Math.round(size / step));
@@ -267,9 +282,31 @@ class WebUIWidgetWorld3DView extends WebUIWidget
 
         const distance = Math.max(width, height);
         this.camera.position.set(distance * 0.55, distance * 0.58, distance * 0.75);
+        this.lastCameraDistance = null;
         this.controls.target.set(0, 0, 0);
         this.controls.maxDistance = Math.max(100, distance * 2.5);
         this.controls.update();
+    }
+
+    updateCameraDistance()
+    {
+        const configuredDistance = Number(this.parameters.camera_distance);
+        const distance = Number.isFinite(configuredDistance) && configuredDistance > 0 ? configuredDistance : 320;
+        if(this.lastCameraDistance === distance)
+            return;
+
+        const direction = this.camera.position.clone().sub(this.controls.target);
+        if(direction.lengthSq() === 0)
+            direction.set(1, 1, 1);
+        this.camera.position.copy(this.controls.target).add(direction.setLength(distance));
+        this.lastCameraDistance = distance;
+        this.controls.update();
+    }
+
+    opacity(value)
+    {
+        const number = Number(value);
+        return Number.isFinite(number) ? Math.max(0, Math.min(1, number)) : 1;
     }
 
     addObject(row)
@@ -277,22 +314,27 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         if(!Array.isArray(row) || row.length < 9)
             return;
 
+        const coordinates = [row[2], row[3]].map(Number);
+        if(!coordinates.every(Number.isFinite))
+            return;
+
         const radius = Math.max(0.1, Number(row[4]) || 1);
         const solid = Number(row[9]) > 0.5;
         const objectHeight = solid ? Math.max(0.1, Number(this.parameters.object_height) || 8) : 0.36;
         const geometry = new THREE.CylinderGeometry(radius, radius, solid ? objectHeight * 2 : objectHeight, 32);
         const color = this.rowColor(row, 6, 0x8c8f92);
+        const opacity = this.opacity(this.parameters.object_opacity);
         const material = new THREE.MeshStandardMaterial({
             color,
             roughness: 0.58,
             side: THREE.FrontSide,
-            opacity: Number(this.parameters.object_opacity),
-            transparent: Number(this.parameters.object_opacity) < 1
+            opacity,
+            transparent: opacity < 1
         });
         const mesh = new THREE.Mesh(geometry, material);
-        const x = this.worldX(row[2]);
-        const z = this.worldZ(row[3]);
-        mesh.position.set(x, solid ? 0 : objectHeight * 0.5, z);
+        const x = this.worldX(coordinates[0]);
+        const z = this.worldZ(coordinates[1]);
+        mesh.position.set(x, solid ? objectHeight : objectHeight * 0.5, z);
         mesh.castShadow = solid;
         mesh.receiveShadow = true;
         this.root.add(mesh);
@@ -303,10 +345,14 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         if(!Array.isArray(row) || row.length < 11)
             return;
 
-        const x1 = this.worldX(row[2]);
-        const z1 = this.worldZ(row[3]);
-        const x2 = this.worldX(row[4]);
-        const z2 = this.worldZ(row[5]);
+        const coordinates = [row[2], row[3], row[4], row[5]].map(Number);
+        if(!coordinates.every(Number.isFinite))
+            return;
+
+        const x1 = this.worldX(coordinates[0]);
+        const z1 = this.worldZ(coordinates[1]);
+        const x2 = this.worldX(coordinates[2]);
+        const z2 = this.worldZ(coordinates[3]);
         const dx = x2 - x1;
         const dz = z2 - z1;
         const length = Math.sqrt(dx * dx + dz * dz);
@@ -322,32 +368,35 @@ class WebUIWidgetWorld3DView extends WebUIWidget
             const dotRadius = Math.max(0.35, wallDepth * 0.45);
             const dotSpacing = Math.max(dotRadius * 2.8, wallDepth * 2.6);
             const count = Math.max(2, Math.floor(length / dotSpacing) + 1);
+            const opacity = this.opacity(this.parameters.wall_opacity);
             const material = new THREE.MeshStandardMaterial({
                 color,
                 roughness: 0.5,
-                opacity: Number(this.parameters.wall_opacity),
-                transparent: Number(this.parameters.wall_opacity) < 1
+                opacity,
+                transparent: opacity < 1
             });
             for(let i = 0; i < count; ++i)
             {
                 const t = count === 1 ? 0.5 : i / (count - 1);
                 const dot = new THREE.Mesh(new THREE.CylinderGeometry(dotRadius, dotRadius, wallHeight * 2, 12), material.clone());
-                dot.position.set(x1 + dx * t, 0, z1 + dz * t);
+                dot.position.set(x1 + dx * t, wallHeight, z1 + dz * t);
                 dot.castShadow = true;
                 dot.receiveShadow = true;
                 this.root.add(dot);
             }
+            material.dispose();
             return;
         }
 
+        const opacity = this.opacity(this.parameters.wall_opacity);
         const material = new THREE.MeshStandardMaterial({
             color,
             roughness: 0.5,
-            opacity: Number(this.parameters.wall_opacity),
-            transparent: Number(this.parameters.wall_opacity) < 1
+            opacity,
+            transparent: opacity < 1
         });
         const mesh = new THREE.Mesh(new THREE.BoxGeometry(length, wallHeight * 2, wallDepth), material);
-        mesh.position.set((x1 + x2) * 0.5, 0, (z1 + z2) * 0.5);
+        mesh.position.set((x1 + x2) * 0.5, wallHeight, (z1 + z2) * 0.5);
         mesh.rotation.y = -Math.atan2(dz, dx);
         mesh.castShadow = true;
         mesh.receiveShadow = true;
@@ -359,13 +408,17 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         if(!Array.isArray(row) || row.length < 4)
             return;
 
+        const coordinates = [row[0], row[1]].map(Number);
+        if(!coordinates.every(Number.isFinite))
+            return;
+
         const radius = Math.max(0.1, Number(row[2]) || 4);
         const height = Math.max(0.1, Number(this.parameters.creature_height) || 4);
         const heading = Number(row[3]) || 0;
         const color = this.rowColor(row, 4, 0x215fc7);
         const group = new THREE.Group();
-        const x = this.worldX(row[0]);
-        const z = this.worldZ(row[1]);
+        const x = this.worldX(coordinates[0]);
+        const z = this.worldZ(coordinates[1]);
         group.position.set(x, 0, z);
         group.rotation.y = -heading;
 
@@ -373,7 +426,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
             new THREE.CylinderGeometry(radius, radius, height * 2, 32),
             new THREE.MeshStandardMaterial({color, roughness: 0.45})
         );
-        body.position.y = 0;
+        body.position.y = height;
         body.castShadow = true;
         body.receiveShadow = true;
         group.add(body);
@@ -387,7 +440,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
     {
         const length = this.sourceNumber('whisker_length_parameter', this.parameters.whisker_length);
         const angle = this.sourceNumber('whisker_angle_parameter', this.parameters.whisker_angle);
-        const y = height * 0.5;
+        const y = height;
         this.addWhisker(group, -angle, length, Number(this.whiskers[0]) || 0, y, radius);
         this.addWhisker(group, angle, length, Number(this.whiskers[1]) || 0, y, radius);
     }
@@ -418,6 +471,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
     updateSceneObjects()
     {
         this.refreshWorldBase();
+        this.updateCameraDistance();
         const baseChildren = [this.ground, this.shadowPlane, this.grid, this.worldOutline].filter(Boolean);
         const keep = new Set(baseChildren);
         const dynamic = this.root.children.filter((child) => !keep.has(child));
