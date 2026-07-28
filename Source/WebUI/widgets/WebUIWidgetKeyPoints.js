@@ -1,6 +1,6 @@
 function map(x, low, high)
 {
-    return (x-low)/(high-low);
+    return high != low ? (x-low)/(high-low) : 0.5;
 }
 
 
@@ -77,7 +77,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
                 return default_data;
 
             let v = this.receivedData[this.resolveControlPath(source)];
-            return v ? v : default_data;
+            return v ?? default_data;
         }
         catch(err)
         {
@@ -156,6 +156,8 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
     updateSequenceCache(sequence)
     {
         sequence = this.unpackSequencePayload(sequence);
+        if(sequence == undefined || typeof sequence !== "object" || !Array.isArray(sequence.keypoints))
+            return;
         let sequence_changed =
             this.cached_sequence_revision != sequence.revision ||
             this.cached_sequence_index != sequence.current_sequence;
@@ -348,6 +350,18 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
     }
 
 
+    disconnectedCallback()
+    {
+        if(typeof super.disconnectedCallback === "function")
+            super.disconnectedCallback();
+        document.removeEventListener("mousemove", this.drag_move_handler, true);
+        document.removeEventListener("mouseup", this.drag_end_handler, true);
+        this.drag_move_handler = undefined;
+        this.drag_end_handler = undefined;
+        this.drag_selection = undefined;
+    }
+
+
     startTimeSelection(event)
     {
         if(main.edit_mode || event.button != 0 || this.last_draw == undefined)
@@ -430,7 +444,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
         let context = canvas.getContext('2d');
 
         context.strokeStyle = "yellow";
-        context.line_width = 0.75;
+        context.lineWidth = 0.75;
         context.setLineDash([0]);
 
         for(let c=0; c<channels; c++)
@@ -488,7 +502,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
     draw(sequence, f, start_time, end_time, mark_start, mark_end, target, output, input, active, ranges, channel_mode)
     {
-        if(ranges==undefined)
+        if(ranges==undefined || sequence == undefined || !Array.isArray(sequence.keypoints))
             return;
 
         this.last_draw = { sequence, start_time, end_time, target, output, input, active, ranges, channel_mode };
@@ -583,13 +597,24 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
        // draw selection
 
-       if(mark_start != 0)
+       if(end_time > 0 && Number.isFinite(Number(mark_start)) && mark_start >= 0)
        {
            this.setColor(1);
            this.canvas.setLineDash([3]);
            this.canvas.beginPath();
            this.canvas.moveTo(mark_start/end_time*this.width, 0);
            this.canvas.lineTo(mark_start/end_time*this.width, this.height);
+           this.canvas.stroke();
+       }
+
+       if(end_time > 0 && Number.isFinite(Number(mark_end)) && mark_end >= 0)
+       {
+           this.setColor(2);
+           this.canvas.setLineDash([3]);
+           this.canvas.beginPath();
+           this.canvas.moveTo(mark_end/end_time*this.width, 0);
+           this.canvas.lineTo(mark_end/end_time*this.width, this.height);
+           this.canvas.stroke();
        }
    
  
@@ -607,15 +632,18 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
         // Draw target
 
-        if(target != undefined)
+        const targetValues = Array.isArray(target?.[0]) ? target[0] : target;
+        if(Array.isArray(targetValues))
         {
             for(let c=0; c<channels;c++)
             {
+                if(!Array.isArray(ranges[c]) || !Number.isFinite(Number(targetValues[c])))
+                    continue;
                 let pos = f*this.width;
                 this.canvas.setLineDash([]);
                 this.canvas.lineWidth = 5.0;
                 this.canvas.beginPath();
-                let y = this.height * map(target[0][c],ranges[c][0],ranges[c][1])
+                let y = this.height * map(Number(targetValues[c]),ranges[c][0],ranges[c][1])
                 this.canvas.arc(pos, y, 4, 0, 2 * Math.PI, false);
                 this.canvas.moveTo(pos-8, y);
                 this.canvas.lineTo(pos+8, y);
@@ -836,10 +864,8 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
     }
 */
 
-    update(d)
+    update()
     {
-        if(!d)
-            return;
         try {
 
             let f = this.getSource("position_source");
@@ -880,7 +906,9 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             let end_time = sequence_state["end_time"];
             let start_mark_time = sequence_state["start_mark_time"];
             let end_mark_time = sequence_state["end_mark_time"];
-            let position = f[0];
+            const positionValue = Array.isArray(f) ? (Array.isArray(f[0]) ? f[0][0] : f[0]) : f;
+            let position = Number(positionValue);
+            position = Number.isFinite(position) ? this.clamp(position, 0, 1) : 0;
 
             if(this.drag_selection != undefined)
             {
