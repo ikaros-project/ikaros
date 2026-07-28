@@ -66,20 +66,27 @@ class WebUIWidgetTargetBoxes extends WebUIWidgetCanvas
         if(!Number.isFinite(score))
             return;
 
-        const label = score.toFixed(Math.max(0, Number(this.parameters.score_decimals) || 0));
+        const configuredDecimals = Number(this.parameters.score_decimals);
+        const decimals = Number.isFinite(configuredDecimals) ? Math.max(0, Math.min(20, Math.trunc(configuredDecimals))) : 0;
+        const configuredFontSize = Number(this.parameters.font_size);
+        const fontSize = Number.isFinite(configuredFontSize) ? Math.max(1, configuredFontSize) : 13;
+        const label = score.toFixed(decimals);
         const paddingX = 4;
         const paddingY = 2;
-        this.canvas.font = `${this.parameters.font_size}px sans-serif`;
+        this.canvas.font = `${fontSize}px sans-serif`;
         const metrics = this.canvas.measureText(label);
         const textWidth = Math.ceil(metrics.width);
-        const textHeight = this.parameters.font_size + paddingY * 2;
+        const textHeight = fontSize + paddingY * 2;
+        const labelWidth = textWidth + paddingX * 2;
+        const labelX = Math.max(0, Math.min(this.width - labelWidth, x));
         const labelY = Math.max(0, y - textHeight);
 
         this.canvas.fillStyle = this.parameters.score_background;
-        this.canvas.fillRect(x, labelY, textWidth + paddingX * 2, textHeight);
+        this.canvas.fillRect(labelX, labelY, labelWidth, textHeight);
         this.canvas.fillStyle = this.parameters.score_color;
         this.canvas.textBaseline = "middle";
-        this.canvas.fillText(label, x + paddingX, labelY + textHeight / 2);
+        this.canvas.textAlign = "left";
+        this.canvas.fillText(label, labelX + paddingX, labelY + textHeight / 2);
     }
 
     update()
