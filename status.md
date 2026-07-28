@@ -23,7 +23,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 15 | World 3D View | Completed | JavaScript syntax; focused camera-distance, opacity, color fallback, vertical placement, invalid-coordinate, and resource-cleanup checks; `git diff --check`. | `World 3D View resources and camera are now reliable` |
 | 16 | Grid | Completed | JavaScript syntax; focused RGB source-name, current-label, RGB metrics, invalid label width, and missing-source clearing checks; color-range review; `git diff --check`. | `Grid sources and rendering now handle edge cases` |
 | 17 | Text | Completed | JavaScript syntax; focused zero-value, missing-source placeholder, selection formatting/clearing, and decimal-bound checks; `git diff --check`. | `Text values now update without stale or lost content` |
-| 18 | Rectangle | Pending | — | — |
+| 18 | Rectangle | Completed | JavaScript syntax; focused horizontal alignment, null-label, and negative dimension checks; `git diff --check`. | `Rectangle labels now align correctly` |
 | 19 | Table | Pending | — | — |
 | 20 | Button | Pending | — | — |
 | 21 | Joystick | Pending | — | — |

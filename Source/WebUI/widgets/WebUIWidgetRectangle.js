@@ -37,18 +37,21 @@ class WebUIWidgetRectangle extends WebUIWidgetControl
             this.parentElement.style.borderLeftColor = "";
         }
 
-        let fw = this.parameters.frame_width;
-        this.parentElement.style.borderWidth = fw ? fw+"px" : "";
+        const configuredFrameWidth = Number(this.parameters.frame_width);
+        const frameWidth = Number.isFinite(configuredFrameWidth) ? Math.max(0, configuredFrameWidth) : 0;
+        this.parentElement.style.borderWidth = frameWidth ? `${frameWidth}px` : "";
         this.parentElement.style.background = this.parameters.background;
         const label = document.createElement("span");
-        label.textContent = this.parameters.label;
+        label.textContent = this.parameters.label ?? "";
         this.firstChild.replaceChildren(label);
         this.firstChild.style.color = this.parameters.text_color;
         this.firstChild.style.font = this.parameters.font;
         this.firstChild.style.textAlign = this.parameters.text_align;
-        this.firstChild.style.justifyContent = this.parameters.text_align;
+        this.firstChild.style.justifyContent = ({left:"flex-start", center:"center", right:"flex-end"})[this.parameters.text_align] || "center";
         this.firstChild.style.alignItems = ({top:"flex-start", center:"center", bottom:"flex-end"})[this.parameters.vertical_align] || "center";
-        this.firstChild.style.padding = `${Number(this.parameters.padding) || 0}px`;
+        const configuredPadding = Number(this.parameters.padding);
+        const padding = Number.isFinite(configuredPadding) ? Math.max(0, configuredPadding) : 0;
+        this.firstChild.style.padding = `${padding}px`;
 
         super.updateFrame();
     }
@@ -60,16 +63,7 @@ class WebUIWidgetRectangle extends WebUIWidgetControl
  //       this.innerText = this.text;
     }
     
-    update()
-    {
-        try {
-
-        }
-        catch(err)
-        {
-        
-        }
-    }
+    update() {}
 };
 
 webui_widgets.add('webui-widget-rectangle', WebUIWidgetRectangle);
