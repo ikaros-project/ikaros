@@ -8,7 +8,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 |---:|---|---|---|---|
 | 1 | `WebUIWidget` framework base | Completed | JavaScript syntax; focused source, metadata, indexed CSS, Boolean, and zero-color behavior check; `git diff --check`. | `WebUIWidget base values are now handled safely` |
 | 2 | `WebUIWidgetControl` framework base | Completed | JavaScript syntax; subclass inheritance and non-registration audit. No defect required a source change. | `Reviewed WebUIWidgetControl framework base` |
-| 3 | `WebUIWidgetCanvas` framework base | Pending | — | — |
+| 3 | `WebUIWidgetCanvas` framework base | Completed | JavaScript syntax; focused layout-guide context and margin-position check; `git diff --check`. | `Canvas layout guides now use the drawing context` |
 | 4 | `WebUIWidgetGraph` framework base | Pending | — | — |
 | 5 | Image | Pending | — | — |
 | 6 | Target Boxes | Pending | — | — |

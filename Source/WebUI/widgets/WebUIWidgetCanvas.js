@@ -115,15 +115,15 @@ class WebUIWidgetCanvas extends WebUIWidget
 
     drawLayout()
     {
-        this.canvas.canvas.beginPath();
-        this.canvas.canvas.lineWidth = 1;
-        this.canvas.canvas.strokeStyle = "gray";
+        this.canvas.beginPath();
+        this.canvas.lineWidth = 1;
+        this.canvas.strokeStyle = "gray";
 
         this.canvas.moveTo(0, this.format.margin_top);
         this.canvas.lineTo(this.width, this.format.margin_top);
 
-        this.canvas.moveTo(0, this.format.height);
-        this.canvas.lineTo(this.width, this.format.height);
+        this.canvas.moveTo(0, this.height-this.format.margin_bottom);
+        this.canvas.lineTo(this.width, this.height-this.format.margin_bottom);
 
         this.canvas.moveTo(this.format.margin_left, 0);
         this.canvas.lineTo(this.format.margin_left, this.height);
