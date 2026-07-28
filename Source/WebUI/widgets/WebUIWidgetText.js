@@ -148,8 +148,8 @@ class WebUIWidgetText extends WebUIWidgetControl
         const content = this.firstChild;
         if(content)
         {
-            content.addEventListener("dblclick", this.beginInlineTextEdit.bind(this), false);
-            content.addEventListener("keydown", (evt) =>
+            this.addManagedListener(content, "dblclick", this.beginInlineTextEdit.bind(this), false);
+            this.addManagedListener(content, "keydown", (evt) =>
             {
                 if(!this.inline_text_edit)
                     return;
@@ -167,7 +167,7 @@ class WebUIWidgetText extends WebUIWidgetControl
                     content.blur();
                 }
             }, true);
-            content.addEventListener("blur", () =>
+            this.addManagedListener(content, "blur", () =>
             {
                 if(this.inline_text_edit)
                     this.finishInlineTextEdit(true);

@@ -88,9 +88,8 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
     disconnectedCallback()
     {
-        if (typeof super.disconnectedCallback === "function")
-            super.disconnectedCallback();
         this.endSliderInteraction();
+        super.disconnectedCallback();
     }
 
     requestData(data_set)
@@ -234,10 +233,12 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             }
         }
 
-        window.addEventListener("pointermove", this._boundSliderMove, true);
-        window.addEventListener("pointerup", this._boundSliderEnd, true);
-        window.addEventListener("pointercancel", this._boundSliderEnd, true);
-        window.addEventListener("click", this._boundSliderClickSuppressor, true);
+        this._sliderListenerRemovers = [
+            this.addManagedListener(window, "pointermove", this._boundSliderMove, true),
+            this.addManagedListener(window, "pointerup", this._boundSliderEnd, true),
+            this.addManagedListener(window, "pointercancel", this._boundSliderEnd, true),
+            this.addManagedListener(window, "click", this._boundSliderClickSuppressor, true)
+        ];
         this.updateSliderInteraction(evt);
     }
 
@@ -270,13 +271,11 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             return;
 
         const pointerId = this.sliderInteraction.pointerId;
-        window.removeEventListener("pointermove", this._boundSliderMove, true);
-        window.removeEventListener("pointerup", this._boundSliderEnd, true);
-        window.removeEventListener("pointercancel", this._boundSliderEnd, true);
-        setTimeout(() =>
-        {
-            window.removeEventListener("click", this._boundSliderClickSuppressor, true);
-        }, 0);
+        const removers = this._sliderListenerRemovers || [];
+        removers.slice(0, 3).forEach((remove) => remove());
+        if(removers[3])
+            setTimeout(removers[3], 0);
+        this._sliderListenerRemovers = [];
         if(this.releasePointerCapture && pointerId !== undefined)
         {
             try {

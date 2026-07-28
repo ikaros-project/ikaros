@@ -192,7 +192,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.controls.update();
 
 		// Prevent browser/page scrolling while zooming the 3D canvas.
-		this.canvasElement.addEventListener("wheel", function (evt) {
+		this.addManagedListener(this.canvasElement, "wheel", function (evt) {
 			if (main.edit_mode)
 				return;
 			if (evt.cancelable)
@@ -227,16 +227,16 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			catch (error) {
 			}
 		};
-		this.addEventListener("pointerdown", forwardToCanvas, true);
-		this.addEventListener("pointermove", forwardToCanvas, true);
-		this.addEventListener("pointerup", forwardToCanvas, true);
-		this.addEventListener("mousedown", forwardToCanvas, true);
-		this.addEventListener("mousemove", forwardToCanvas, true);
-		this.addEventListener("mouseup", forwardToCanvas, true);
-		this.addEventListener("wheel", forwardToCanvas, { capture: true, passive: false });
+		this.addManagedListener(this, "pointerdown", forwardToCanvas, true);
+		this.addManagedListener(this, "pointermove", forwardToCanvas, true);
+		this.addManagedListener(this, "pointerup", forwardToCanvas, true);
+		this.addManagedListener(this, "mousedown", forwardToCanvas, true);
+		this.addManagedListener(this, "mousemove", forwardToCanvas, true);
+		this.addManagedListener(this, "mouseup", forwardToCanvas, true);
+		this.addManagedListener(this, "wheel", forwardToCanvas, { capture: true, passive: false });
 
 		// Hard-stop wheel scrolling at widget root as an extra guard.
-		this.addEventListener("wheel", function (evt) {
+		this.addManagedListener(this, "wheel", function (evt) {
 			if (main.edit_mode)
 				return;
 			const targetIsCanvas = evt.target === this.canvasElement || this.canvasElement.contains(evt.target);
@@ -274,6 +274,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 	disconnectedCallback()
 	{
+		super.disconnectedCallback();
 		this.cancelModelLoading();
 		if (this._animationFrame !== undefined)
 			cancelAnimationFrame(this._animationFrame);

@@ -30,10 +30,9 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
     }
 
     disconnectedCallback() {
-        if (typeof super.disconnectedCallback === "function") {
-            super.disconnectedCallback();
-        }
         this._unbindDocumentDragHandlers();
+        super.disconnectedCallback();
+        this._joystickHandlersBound = false;
     }
 
     _getPad() {
@@ -132,17 +131,11 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
     }
 
     _unbindDocumentDragHandlers() {
-        if (this._dragMoveHandler) {
-            document.removeEventListener("mousemove", this._dragMoveHandler, true);
-            document.removeEventListener("touchmove", this._dragMoveHandler, true);
-            this._dragMoveHandler = null;
-        }
-        if (this._dragEndHandler) {
-            document.removeEventListener("mouseup", this._dragEndHandler, true);
-            document.removeEventListener("touchend", this._dragEndHandler, true);
-            document.removeEventListener("touchcancel", this._dragEndHandler, true);
-            this._dragEndHandler = null;
-        }
+        for (const remove of this._dragListenerRemovers || [])
+            remove();
+        this._dragListenerRemovers = [];
+        this._dragMoveHandler = null;
+        this._dragEndHandler = null;
     }
 
     _eventPoint(event) {
@@ -186,11 +179,13 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
             this.is_active = false;
         };
 
-        document.addEventListener("mousemove", this._dragMoveHandler, true);
-        document.addEventListener("mouseup", this._dragEndHandler, true);
-        document.addEventListener("touchmove", this._dragMoveHandler, { capture: true, passive: false });
-        document.addEventListener("touchend", this._dragEndHandler, true);
-        document.addEventListener("touchcancel", this._dragEndHandler, true);
+        this._dragListenerRemovers = [
+            this.addManagedListener(document, "mousemove", this._dragMoveHandler, true),
+            this.addManagedListener(document, "mouseup", this._dragEndHandler, true),
+            this.addManagedListener(document, "touchmove", this._dragMoveHandler, { capture: true, passive: false }),
+            this.addManagedListener(document, "touchend", this._dragEndHandler, true),
+            this.addManagedListener(document, "touchcancel", this._dragEndHandler, true)
+        ];
     }
 
     requestData(data_set) {
@@ -206,8 +201,8 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
 
         const pad = this._getPad();
         if (pad && !this._joystickHandlersBound) {
-            pad.addEventListener("mousedown", (event) => this._startDrag(event), false);
-            pad.addEventListener("touchstart", (event) => this._startDrag(event), { passive: false });
+            this.addManagedListener(pad, "mousedown", (event) => this._startDrag(event), false);
+            this.addManagedListener(pad, "touchstart", (event) => this._startDrag(event), { passive: false });
             this._joystickHandlersBound = true;
         }
 

@@ -123,7 +123,41 @@ class WebUIWidget extends HTMLElement
                 this.param_types[pt[i].name] = pt[i]['type'];
             }
         this.parameter_template = pt;        
-     }
+    }
+
+    addManagedListener(target, type, handler, options=undefined)
+    {
+        if(!target || typeof target.addEventListener !== "function")
+            return () => {};
+
+        target.addEventListener(type, handler, options);
+        if(!this.managedListeners)
+            this.managedListeners = new Set();
+
+        let active = true;
+        const remove = () => {
+            if(!active)
+                return;
+            active = false;
+            target.removeEventListener(type, handler, options);
+            this.managedListeners?.delete(remove);
+        };
+        this.managedListeners.add(remove);
+        return remove;
+    }
+
+    removeManagedListeners()
+    {
+        if(!this.managedListeners)
+            return;
+        for(const remove of [...this.managedListeners])
+            remove();
+    }
+
+    disconnectedCallback()
+    {
+        this.removeManagedListeners();
+    }
 
     get(url, callback) // FIXME: This function should instead call the get function in webui.js to maintain update
     {

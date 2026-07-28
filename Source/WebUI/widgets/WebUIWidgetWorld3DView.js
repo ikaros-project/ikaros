@@ -105,7 +105,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
                 event.preventDefault();
             event.stopPropagation();
         };
-        this.canvasElement.addEventListener("wheel", this.wheelHandler, {passive: false});
+        this.addManagedListener(this.canvasElement, "wheel", this.wheelHandler, {passive: false});
 
         this.resizeRenderer();
         this.refreshWorldBase();
@@ -115,11 +115,10 @@ class WebUIWidgetWorld3DView extends WebUIWidget
 
     disconnectedCallback()
     {
+        super.disconnectedCallback();
         if(this.animationFrame !== null)
             cancelAnimationFrame(this.animationFrame);
         this.animationFrame = null;
-        if(this.canvasElement && this.wheelHandler)
-            this.canvasElement.removeEventListener("wheel", this.wheelHandler);
         if(this.controls && typeof this.controls.dispose === "function")
             this.controls.dispose();
         if(this.root)

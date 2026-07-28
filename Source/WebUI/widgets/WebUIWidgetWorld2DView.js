@@ -48,14 +48,12 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
             keydown: (event) => this.handleKeyDown(event)
         };
         for(const [type, handler] of Object.entries(this.eventHandlers))
-            this.canvasElement.addEventListener(type, handler);
+            this.addManagedListener(this.canvasElement, type, handler);
     }
 
     disconnectedCallback()
     {
-        if(this.canvasElement && this.eventHandlers)
-            for(const [type, handler] of Object.entries(this.eventHandlers))
-                this.canvasElement.removeEventListener(type, handler);
+        super.disconnectedCallback();
     }
 
     worldToCanvas(x, y)

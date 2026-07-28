@@ -250,14 +250,14 @@ class WebUIWidgetButton extends WebUIWidgetControl
     init()
     {
         super.init();
-        this.firstChild.addEventListener("mousedown", this.button_down, true);
-        this.firstChild.addEventListener("mouseup", this.button_up, true);
-        this.firstChild.addEventListener("mouseleave", (evt) =>
+        this.addManagedListener(this.firstChild, "mousedown", this.button_down, true);
+        this.addManagedListener(this.firstChild, "mouseup", this.button_up, true);
+        this.addManagedListener(this.firstChild, "mouseleave", (evt) =>
         {
             if(this.isPressed())
                 this.button_up.call(this.firstChild, evt);
         }, true);
-        this.firstChild.addEventListener('click', e => {
+        this.addManagedListener(this.firstChild, 'click', e => {
             if(main.edit_mode)
                 return; 
             e.stopPropagation();

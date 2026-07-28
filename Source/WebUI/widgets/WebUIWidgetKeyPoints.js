@@ -44,7 +44,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             if(main.edit_mode)
                 return;
         }; // last matrix
-        this.addEventListener("mousedown", (event) => this.startTimeSelection(event));
+        this.addManagedListener(this, "mousedown", (event) => this.startTimeSelection(event));
     }
 
 
@@ -343,8 +343,9 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
         this.updateTimeSelection(event, true);
         this.drag_selection = undefined;
 
-        document.removeEventListener("mousemove", this.drag_move_handler, true);
-        document.removeEventListener("mouseup", this.drag_end_handler, true);
+        for(const remove of this.drag_listener_removers || [])
+            remove();
+        this.drag_listener_removers = [];
         this.drag_move_handler = undefined;
         this.drag_end_handler = undefined;
     }
@@ -352,10 +353,8 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
     disconnectedCallback()
     {
-        if(typeof super.disconnectedCallback === "function")
-            super.disconnectedCallback();
-        document.removeEventListener("mousemove", this.drag_move_handler, true);
-        document.removeEventListener("mouseup", this.drag_end_handler, true);
+        super.disconnectedCallback();
+        this.drag_listener_removers = [];
         this.drag_move_handler = undefined;
         this.drag_end_handler = undefined;
         this.drag_selection = undefined;
@@ -388,10 +387,14 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             this.send_command(seek_command, 0, fraction, 0);
         controller.flushCommandQueue();
 
+        for(const remove of this.drag_listener_removers || [])
+            remove();
         this.drag_move_handler = (move_event) => this.updateTimeSelection(move_event);
         this.drag_end_handler = (up_event) => this.finishTimeSelection(up_event);
-        document.addEventListener("mousemove", this.drag_move_handler, true);
-        document.addEventListener("mouseup", this.drag_end_handler, true);
+        this.drag_listener_removers = [
+            this.addManagedListener(document, "mousemove", this.drag_move_handler, true),
+            this.addManagedListener(document, "mouseup", this.drag_end_handler, true)
+        ];
 
         this.updateTimeSelection(event);
     }

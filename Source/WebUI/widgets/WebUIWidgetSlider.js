@@ -33,12 +33,7 @@ class WebUIWidgetSlider extends WebUIWidgetControl
 
     disconnectedCallback()
     {
-        if(typeof super.disconnectedCallback === "function")
-            super.disconnectedCallback();
-        if(this.keyDownHandler)
-            document.removeEventListener("keydown", this.keyDownHandler);
-        if(this.keyUpHandler)
-            document.removeEventListener("keyup", this.keyUpHandler);
+        super.disconnectedCallback();
         this.keyDownHandler = null;
         this.keyUpHandler = null;
     }
@@ -55,8 +50,8 @@ class WebUIWidgetSlider extends WebUIWidgetControl
             if(!event.shiftKey)
                 this.sync = false;
         };
-        document.addEventListener("keydown", this.keyDownHandler);
-        document.addEventListener("keyup", this.keyUpHandler);
+        this.addManagedListener(document, "keydown", this.keyDownHandler);
+        this.addManagedListener(document, "keyup", this.keyUpHandler);
     }
 
     getSliders()
