@@ -108,17 +108,22 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
     }
 
     _sendControlValue(value, index) {
-        const x = Number(this.parameters.select_x) + index;
+        const configuredX = Number(this.parameters.select_x);
+        const x = (Number.isFinite(configuredX) ? Math.max(0, Math.trunc(configuredX)) : 0) + index;
         const y = this.parameters.select_y;
 
         if (this.parameters.command) {
-            const commandY = y === "" ? x : Math.trunc(Number(y));
+            const commandY = y === "" ? x : (Number.isFinite(Number(y)) ? Math.max(0, Math.trunc(Number(y))) : 0);
             this.send_command(
                 this.parameters.command,
                 0,
                 Number(value),
                 commandY
             );
+            return;
+        }
+
+        if (!this.parameters.parameter) {
             return;
         }
 
@@ -131,13 +136,14 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
             this.parameters.parameter,
             value,
             x,
-            Math.trunc(Number(y))
+            Number.isFinite(Number(y)) ? Math.max(0, Math.trunc(Number(y))) : 0
         );
     }
 
     _syncAllSliders(value) {
         const sliders = this._getSliders();
-        const count = Number(this.parameters.control_count);
+        const configuredCount = Number(this.parameters.control_count);
+        const count = Number.isFinite(configuredCount) ? Math.max(1, Math.trunc(configuredCount)) : 1;
 
         for (let i = 0; i < count; i += 1) {
             this._sendControlValue(value, i);
@@ -146,7 +152,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
             }
         }
 
-        if (this.parameters.show_values) {
+        if (this.toBool(this.parameters.show_values)) {
             this._updateValueLabels();
         }
     }
@@ -177,7 +183,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
 
         if (!shouldSync) {
             this._sendControlValue(value, index);
-            if (this.parameters.show_values) {
+            if (this.toBool(this.parameters.show_values)) {
                 this._updateValueLabels();
             }
             return;
@@ -190,7 +196,8 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
         super.updateAll();
 
         const container = this.firstChild;
-        const count = Number(this.parameters.control_count);
+        const configuredCount = Number(this.parameters.control_count);
+        const count = Number.isFinite(configuredCount) ? Math.max(1, Math.trunc(configuredCount)) : 1;
 
         while (container.childElementCount > count) {
             container.removeChild(container.lastElementChild);
@@ -219,7 +226,8 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
 
         const minValues = this._getNumericParameterList("min", 0);
         const maxValues = this._getNumericParameterList("max", 1);
-        const step = Number(this.parameters.step);
+        const configuredStep = Number(this.parameters.step);
+        const step = Number.isFinite(configuredStep) && configuredStep > 0 ? configuredStep : 0.01;
 
         sliders.forEach((slider, index) => {
             slider.min = this._getNumericParameterValue(minValues, index);
@@ -237,7 +245,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
         });
 
         for (const value of values) {
-            value.style.display = this.parameters.show_values ? "block" : "none";
+            value.style.display = this.toBool(this.parameters.show_values) ? "block" : "none";
         }
 
         this._updateValueLabels();
@@ -247,8 +255,16 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
 
         sliders.forEach((slider, index) => {
             slider.oninput = (event) => {
+                if (main.edit_mode) {
+                    return;
+                }
                 this.slider_moved(slider.value, index, event.shiftKey);
             };
+            slider.onchange = () => {
+                this.is_active = false;
+                this.active_until = Date.now() + 500;
+            };
+            slider.onblur = slider.onchange;
 
             const stopWidgetPropagation = (event) => {
                 if (main.edit_mode) {
@@ -284,7 +300,7 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
     }
 
     update() {
-        if (this.parameters.show_values) {
+        if (this.toBool(this.parameters.show_values)) {
             this._updateValueLabels();
         }
         this._syncEnabledState();
@@ -308,8 +324,10 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
                     return;
                 }
 
-                const selectedY = Math.trunc(Number(this.parameters.select_y));
-                let x = Number(this.parameters.select_x);
+                const configuredY = Number(this.parameters.select_y);
+                const selectedY = Number.isFinite(configuredY) ? Math.max(0, Math.trunc(configuredY)) : 0;
+                const configuredX = Number(this.parameters.select_x);
+                let x = Number.isFinite(configuredX) ? Math.max(0, Math.trunc(configuredX)) : 0;
 
                 for (const slider of sliders) {
                     slider.value = data[selectedY]?.[x] ?? slider.value;
@@ -319,13 +337,14 @@ class WebUIWidgetSliderHorizontal extends WebUIWidgetControl {
             }
 
             const values = isMatrix ? data[0] : (Array.isArray(data) ? data : [data]);
-            let x = Number(this.parameters.select_x);
+            const configuredX = Number(this.parameters.select_x);
+            let x = Number.isFinite(configuredX) ? Math.max(0, Math.trunc(configuredX)) : 0;
             for (const slider of sliders) {
                 slider.value = values[x] ?? slider.value;
                 x += 1;
             }
 
-            if (this.parameters.show_values) {
+            if (this.toBool(this.parameters.show_values)) {
                 this._updateValueLabels();
             }
         }

@@ -28,7 +28,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 20 | Button | Completed | JavaScript syntax; focused edit-mode suppression, push/release, index normalization, scalar state, and stale enabled/file-source checks; multi-button recursion and icon reuse review; `git diff --check`. | `Button interactions now release and update safely` |
 | 21 | Joystick | Completed | JavaScript syntax; focused non-finite position/value, invalid index, and indexed source checks; drag-handler lifecycle review; `git diff --check`. | `Joystick values and indices are now normalized safely` |
 | 22 | Switch | Completed | JavaScript syntax; focused scalar zero/one, missing-source clearing, and invalid-index checks; edit-mode input and control-count review; `git diff --check`. | `Switch values now synchronize without stale state` |
-| 23 | Horizontal Slider | Pending | — | — |
+| 23 | Horizontal Slider | Completed | JavaScript syntax; focused invalid-index, empty-target, and yes/no value-label checks; keyboard/edit interaction and numeric configuration review; `git diff --check`. | `Horizontal Slider interaction state now recovers safely` |
 | 24 | Vertical Slider | Pending | — | — |
 | 25 | Color Picker | Pending | — | — |
 | 26 | Drop-down Menu | Pending | — | — |
