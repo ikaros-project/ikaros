@@ -54,7 +54,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
 
     requestData(data_set)
     {
-        if(!this.parameters.file)
+        if(!this.parameters.file && this.parameters.source)
             data_set.add(this.resolveControlPath(this.parameters.source)+":"+this.parameters.format);
         if(this.parameters.index_source)
             this.addSource(data_set, this.parameters.index_source);
@@ -64,8 +64,8 @@ class WebUIWidgetImage extends WebUIWidgetGraph
 
     updateFrame()
     {
-        if(this.parameters.opacity != 1)
-            this.canvas.canvas.style.opacity = this.parameters.opacity;
+        const configuredOpacity = Number(this.parameters.opacity);
+        this.canvas.canvas.style.opacity = Number.isFinite(configuredOpacity) ? Math.max(0, Math.min(1, configuredOpacity)) : 1;
         
         this.oversampling = 1; //(this.parameters.file ? 4 : 1);
         this.imageObj = new Image();
@@ -79,6 +79,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             for(let img_name of img_names)
             {
                 this.imageObjects[i] = new Image();
+                this.imageObjects[i].onload = () => this.update();
                 this.imageObjects[i].src = "/"+img_name;
                 i++;
             }
@@ -173,11 +174,13 @@ class WebUIWidgetImage extends WebUIWidgetGraph
     {
         try
         {
-            let o = this.getSource('opacity_source');
-            if(o)
+            const opacitySource = this.getSource('opacity_source');
+            if(opacitySource !== undefined && opacitySource !== null)
             {
-                const opacityValue = Array.isArray(o) ? (Array.isArray(o[0]) ? o[0][0] : o[0]) : o;
-                this.canvas.canvas.style.opacity = opacityValue;
+                const opacityValue = Array.isArray(opacitySource) ? (Array.isArray(opacitySource[0]) ? opacitySource[0][0] : opacitySource[0]) : opacitySource;
+                const numericOpacity = Number(opacityValue);
+                if(Number.isFinite(numericOpacity))
+                    this.canvas.canvas.style.opacity = Math.max(0, Math.min(1, numericOpacity));
             }
             this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);

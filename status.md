@@ -10,7 +10,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 2 | `WebUIWidgetControl` framework base | Completed | JavaScript syntax; subclass inheritance and non-registration audit. No defect required a source change. | `Reviewed WebUIWidgetControl framework base` |
 | 3 | `WebUIWidgetCanvas` framework base | Completed | JavaScript syntax; focused layout-guide context and margin-position check; `git diff --check`. | `Canvas layout guides now use the drawing context` |
 | 4 | `WebUIWidgetGraph` framework base | Completed | JavaScript syntax; focused single-tick, non-zero flipped range, decimal clamping, and finite-coordinate check; `git diff --check`. | `Graph axes now handle edge-case tick counts` |
-| 5 | Image | Pending | — | — |
+| 5 | Image | Completed | JavaScript syntax; focused empty-source and zero-opacity behavior check; static image load-path review; `git diff --check`. | `Image widget opacity and loading are now reliable` |
 | 6 | Target Boxes | Pending | — | — |
 | 7 | Bar Graph | Pending | — | — |
 | 8 | Histogram | Pending | — | — |
