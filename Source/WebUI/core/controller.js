@@ -20,6 +20,7 @@ const controller =
     update_in_flight: false,
     pending_network_session_id: null,
     open_mode: false,
+    opening_overlay_timer: null,
     preserve_clean_open: false,
     preserve_clean_new: false,
     clean_new_session_id: null,
@@ -103,6 +104,28 @@ const controller =
             stateElement.innerHTML = 'waiting to reconnect <span class="status-spinner" aria-hidden="true"></span>';
         if(main && typeof main.showReconnectOverlay === "function")
             main.showReconnectOverlay();
+    },
+
+    beginOpeningFeedback(filename)
+    {
+        controller.endOpeningFeedback();
+        controller.opening_overlay_timer = setTimeout(function()
+        {
+            controller.opening_overlay_timer = null;
+            if(controller.open_mode && main && typeof main.showOpeningOverlay === "function")
+                main.showOpeningOverlay(filename);
+        }, 3000);
+    },
+
+    endOpeningFeedback()
+    {
+        if(controller.opening_overlay_timer !== null)
+        {
+            clearTimeout(controller.opening_overlay_timer);
+            controller.opening_overlay_timer = null;
+        }
+        if(main && typeof main.hideReconnectOverlay === "function")
+            main.hideReconnectOverlay();
     },
 
     setTainted(nextValue, reason = "")
@@ -328,6 +351,7 @@ const controller =
         const request_update_generation = controller.update_generation;
         const request_session_id = controller.session_id;
         const is_update_request = url.startsWith("update");
+        const is_open_request = url.startsWith("open?");
         let xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.setRequestHeader("Session-Id", controller.session_id);
@@ -357,6 +381,8 @@ const controller =
                   if(is_update_request)
                       controller.update_in_flight = false;
                   controller.open_mode = false;
+                  if(is_open_request)
+                      controller.endOpeningFeedback();
                   auth.handleUnauthorized();
                   return;
               }
@@ -380,6 +406,8 @@ const controller =
         {
             if(is_update_request)
                 controller.update_in_flight = false;
+            if(is_open_request)
+                controller.endOpeningFeedback();
             controller.open_mode = false;
             controller.schedule_reconnect();
         }
@@ -388,12 +416,14 @@ const controller =
         {
             if(is_update_request)
                 controller.update_in_flight = false;
+            if(is_open_request)
+                controller.endOpeningFeedback();
             controller.open_mode = false;
             controller.schedule_reconnect();
         };
 
         xhr.responseType = 'json';
-        xhr.timeout = 2000;
+        xhr.timeout = is_open_request ? 30000 : 2000;
         try {
             xhr.send();
         }
@@ -401,6 +431,12 @@ const controller =
         {
             if(is_update_request)
                 controller.update_in_flight = false;
+            if(is_open_request)
+            {
+                controller.endOpeningFeedback();
+                controller.open_mode = false;
+                controller.schedule_reconnect();
+            }
             console.log("console.get: "+error);
         }
     },
@@ -497,6 +533,7 @@ const controller =
 
     openCallback(filename, where)
     {
+        controller.beginOpeningFeedback(filename);
         controller.get("open?where="+where+"&file="+filename, controller.update);
     },
 
@@ -914,7 +951,9 @@ const controller =
         const isNetworkPackage = package_type == "network" || response._tag == "group";
         const sessionChanged = (!isNetworkPackage && controller.session_id != session_id);
 
-        if(main && typeof main.hideReconnectOverlay === "function")
+        if(isNetworkPackage && controller.open_mode)
+            controller.endOpeningFeedback();
+        else if(!controller.open_mode && main && typeof main.hideReconnectOverlay === "function")
             main.hideReconnectOverlay();
         controller.ping = Date.now() - controller.send_stamp;
         controller.defer_reconnect();

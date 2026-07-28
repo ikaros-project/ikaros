@@ -1373,12 +1373,29 @@ const main =
 
     showReconnectOverlay()
     {
+        main.showStatusOverlay("waiting to reconnect");
+    },
+
+    showOpeningOverlay(filename)
+    {
+        const displayName = filename == null || String(filename).trim() === "" ?
+            "system" : String(filename).trim();
+        main.showStatusOverlay(`opening ${displayName}…`);
+    },
+
+    showStatusOverlay(label)
+    {
         if(!main.main)
             return;
         if(!main.reconnect_overlay)
             main.createReconnectOverlay();
         if(main.reconnect_overlay)
+        {
+            const labelElement = main.reconnect_overlay.querySelector(".reconnect-overlay-label");
+            if(labelElement)
+                labelElement.textContent = label;
             main.reconnect_overlay.classList.add("visible");
+        }
     },
 
     hideReconnectOverlay()
