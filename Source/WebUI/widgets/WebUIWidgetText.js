@@ -89,7 +89,7 @@ class WebUIWidgetText extends WebUIWidgetControl
     {
         let displayValue = value;
         const decimals = Number(this.parameters.decimals);
-        if(Number.isInteger(decimals) && decimals >= 0 && Number.isFinite(Number(value)))
+        if(Number.isInteger(decimals) && decimals >= 0 && decimals <= 100 && Number.isFinite(Number(value)))
             displayValue = Number(value).toFixed(decimals);
         if(displayValue === undefined || displayValue === null || displayValue === "")
             displayValue = this.parameters.placeholder || "";
@@ -137,7 +137,7 @@ class WebUIWidgetText extends WebUIWidgetControl
     }
     requestData(data_set)
     {
-        if(!this.parameters.text)
+        if(this.parameters.text === undefined || this.parameters.text === null || this.parameters.text === "")
             this.addSource(data_set, this.parameters.parameter);
         this.addSource(data_set, this.parameters.select_source);
     }
@@ -177,44 +177,36 @@ class WebUIWidgetText extends WebUIWidgetControl
     
     update()
     {
-         try {
-            if(this.inline_text_edit)
-                return;
-            if(this.parameters.text)
-            {
-                this.text = this.parameters.text;
-                this.setDisplayedText(this.text);
-                return;
-            }
-         
-            else if(this.text = this.getSource('parameter'))
-            {
-                this.setDisplayedText(this.text);
-            }
-
-            this.data = this.getSource('select_source')
-            if(this.data && this.parameters.strings)
-            {
-                let sep = this.parameters.separator || "";
-                let ss = String(this.parameters.strings ?? "").split(",")
-                let s = [];
-                if (!Array.isArray(this.data))
-                    return;
-                if (!Array.isArray(this.data[0]))
-                    this.data = [this.data];
-                if (!Array.isArray(this.data[0]))
-                    return;
-                for(let i=0; i<this.data[0].length; i++)
-                    if(this.data[0][i] > 0 && typeof ss[i] !== "undefined")
-                        s.push(ss[i].trim());
-                this.setDisplayedText((this.parameters.prefix || "") + s.join(sep) + (this.parameters.postfix || ""));
-
-            }
-        }
-        catch(err)
+        if(this.inline_text_edit)
+            return;
+        if(this.parameters.text !== undefined && this.parameters.text !== null && this.parameters.text !== "")
         {
-        
+            this.text = this.parameters.text;
+            this.setDisplayedText(this.text);
+            return;
         }
+
+        if(this.parameters.select_source && this.parameters.strings)
+        {
+            this.data = this.getSource('select_source');
+            const values = Array.isArray(this.data?.[0]) ? this.data[0] : this.data;
+            if(Array.isArray(values))
+            {
+                const separator = this.parameters.separator || "";
+                const strings = String(this.parameters.strings).split(",");
+                const selected = [];
+                for(let i = 0; i < values.length; i++)
+                    if(Number(values[i]) > 0 && strings[i] !== undefined)
+                        selected.push(strings[i].trim());
+                this.setDisplayedText((this.parameters.prefix || "") + selected.join(separator) + (this.parameters.postfix || ""));
+            }
+            else
+                this.setDisplayedText("");
+            return;
+        }
+
+        this.text = this.getSource('parameter', undefined);
+        this.setDisplayedText(this.text);
     }
 };
 
