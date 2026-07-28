@@ -10,7 +10,7 @@ The refactor will reduce repeated widget code while preserving public widget reg
 | 2 | Add a framework-only slider superclass and reduce Horizontal and Vertical Slider to shared behavior plus orientation-specific structure/layout. | Completed | JavaScript syntax; focused registration, template, indexed-write, command, numeric-list, and control-count checks; `git diff --check`. Net 416 lines removed. | `Sliders now share a framework base` |
 | 3 | Add listener lifecycle helpers to `WebUIWidget` and migrate widgets with document/window or retained element handlers. | Completed | JavaScript syntax for the base and ten migrated widgets; focused registration/removal, idempotent early cleanup, option preservation, and disconnect cleanup checks; direct-listener inventory; `git diff --check`. | `Widget listeners now share lifecycle management` |
 | 4 | Add shared source normalization and numeric access helpers to `WebUIWidget` and migrate repeated widget implementations. | Completed | JavaScript syntax for the base and nine migrated widgets; focused nested flattening, scalar/fallback, finite/positive number, source-number, and matrix-row checks; `git diff --check`. Net 20 lines removed. | `Widgets now share source normalization` |
-| 5 | Add canvas clearing/begin-draw helpers to `WebUIWidgetCanvas` and migrate repeated canvas setup sequences. | Pending | — | — |
+| 5 | Add canvas clearing/begin-draw helpers to `WebUIWidgetCanvas` and migrate repeated canvas setup sequences. | Completed | JavaScript syntax for all widget files; focused scaled-transform, default/explicit offset, clear bounds, and margin-translation checks; `git diff --check`. Net 7 lines removed. | `Canvas widgets now share drawing setup` |
 
 ### Superclass consolidation constraints
 
@@ -18,6 +18,11 @@ The refactor will reduce repeated widget code while preserving public widget reg
 - Preserve public parameters, yes/no values, widget tag names, serialized models, and runtime behavior.
 - Keep World 2D's intentional Edit-mode interaction and Text's inline editing behavior unchanged.
 - Complete, verify, and commit each task independently in the listed order.
+
+### Superclass consolidation outstanding issues and questions
+
+- Browser-level visual and interaction regression testing remains manual because the repository has no automated browser widget suite.
+- World 2D's specialized editor redraw path and Epi Head's custom oversized clear remain intentionally separate from the generic canvas helpers.
 
 ## WebUI Edit-mode interaction fixes
 

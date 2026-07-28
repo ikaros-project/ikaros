@@ -91,8 +91,7 @@ class WebUIWidgetTargetBoxes extends WebUIWidgetCanvas
 
     update()
     {
-        this.resetCanvasTransform();
-        this.canvas.clearRect(0, 0, this.width, this.height);
+        this.clearCanvas(0, 0);
 
         const boxes = this.normalizeBoxes(this.getSource('source'));
         if(boxes.length === 0)

@@ -212,16 +212,14 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         if(!Array.isArray(this.data))
         {
             this.data = [];
-            this.resetCanvasTransform(-0.5, -0.5);
-            this.canvas.clearRect(0, 0, this.width, this.height);
+            this.clearCanvas();
             return;
         }
         if(!Array.isArray(this.data[0])) // FIXME: Fix for arbitrary matrix sizes
             this.data = [this.data];
         if(!this.data.length || !Array.isArray(this.data[0]) || !this.data[0].length)
         {
-            this.resetCanvasTransform(-0.5, -0.5);
-            this.canvas.clearRect(0, 0, this.width, this.height);
+            this.clearCanvas();
             return;
         }
 
@@ -268,8 +266,7 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         const selectedData = this.getSelectedData(this.data);
         if(!selectedData.length || !Array.isArray(selectedData[0]) || selectedData[0].length === 0)
         {
-            this.resetCanvasTransform(-0.5, -0.5);
-            this.canvas.clearRect(0, 0, this.width, this.height);
+            this.clearCanvas();
             return;
         }
 

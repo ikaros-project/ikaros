@@ -263,14 +263,11 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             this.data = [this.data];
         if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
         {
-            this.resetCanvasTransform(-0.5, -0.5);
-            this.canvas.clearRect(0, 0, this.width, this.height);
+            this.clearCanvas();
             return;
         }
 
-        this.resetCanvasTransform(-0.5, -0.5);
-        this.canvas.clearRect(0, 0, this.width, this.height);
-        this.canvas.translate(this.format.margin_left, this.format.margin_top); //
+        this.beginCanvasDraw();
 
         this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
     }

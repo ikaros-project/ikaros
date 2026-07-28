@@ -600,8 +600,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
 
     draw(size_x, size_y)    // draw handles the layout of the graphs in horizontal or vertical sections
     {
-        this.resetCanvasTransform(-0.5, -0.5);
-        this.canvas.clearRect(0, 0, this.width, this.height);
+        this.clearCanvas();
         if(size_x <= 0 || size_y <= 0)
             return;
 //        this.drawTitle();
@@ -619,9 +618,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
 
     update(d) // USED ONLY FOR TESTING
     {
-        this.resetCanvasTransform(-0.5, -0.5);
-        this.canvas.clearRect(0, 0, this.width, this.height);
-        this.canvas.translate(this.format.margin_left, this.format.margin_top); // +0*this.format.titleHeight
+        this.beginCanvasDraw();
         try {
 //            this.drawVertical(1, 1);
                 this.drawHorizontal(1, 1, 0, this.transform);

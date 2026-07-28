@@ -44,6 +44,18 @@ class WebUIWidgetCanvas extends WebUIWidget
         this.canvas.setTransform(s, 0, 0, s, offsetX*s, offsetY*s);
     }
 
+    clearCanvas(offsetX=-0.5, offsetY=-0.5)
+    {
+        this.resetCanvasTransform(offsetX, offsetY);
+        this.canvas.clearRect(0, 0, this.width, this.height);
+    }
+
+    beginCanvasDraw(offsetX=-0.5, offsetY=-0.5)
+    {
+        this.clearCanvas(offsetX, offsetY);
+        this.canvas.translate(this.format.margin_left, this.format.margin_top);
+    }
+
     setCanvasTransform(a, b, c, d, e, f)
     {
         const s = this.canvas_scale || 1;

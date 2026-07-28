@@ -182,9 +182,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
                 if(Number.isFinite(numericOpacity))
                     this.canvas.canvas.style.opacity = Math.max(0, Math.min(1, numericOpacity));
             }
-            this.resetCanvasTransform(-0.5, -0.5);
-            this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.margin_left, this.format.margin_top); //
+            this.beginCanvasDraw();
 
             this.drawHorizontal(1, 1);  // Draw grid over image
         }

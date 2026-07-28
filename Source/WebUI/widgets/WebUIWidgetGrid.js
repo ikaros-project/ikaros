@@ -288,9 +288,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
     redrawGrid()
     {
-        this.resetCanvasTransform(-0.5, -0.5);
-        this.canvas.clearRect(0, 0, this.width, this.height);
-        this.canvas.translate(this.format.margin_left, this.format.margin_top);
+        this.beginCanvasDraw();
         this.drawHorizontal(1, 1);
     }
 
@@ -530,8 +528,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         else
             this.element_labels = [];
 
-        this.resetCanvasTransform(-0.5, -0.5);
-        this.canvas.clearRect(0, 0, this.width, this.height);
+        this.clearCanvas();
 
         if(this.parameters.color_map == "rgb")
         {

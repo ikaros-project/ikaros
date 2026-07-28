@@ -556,8 +556,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         this.metadata = this.getSourceMetadata('y_source', null);
         this.inferOrientation();
 
-        this.resetCanvasTransform(-0.5, -0.5);
-        this.canvas.clearRect(0, 0, this.width, this.height);
+        this.clearCanvas();
         if(this.getChannelCount() === 0)
             return;
 
