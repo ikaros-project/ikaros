@@ -10,7 +10,8 @@ World 2D View remains intentionally interactive in Edit mode. All other runtime 
 | 2 | Add central Edit-mode command suppression while preserving the direct World 2D editor command path. | Completed | JavaScript syntax; focused Edit/runtime command-queue checks; confirmed World 2D uses its separate direct command path; `git diff --check`. | `Widget commands are now suppressed in Edit mode` |
 | 3 | Disable Drop-down Menu and Table slice controls in Edit mode and allow their events to reach component dragging. | Completed | JavaScript syntax; focused Edit/runtime disabled-state checks; reviewed event propagation and change guards; `git diff --check`. | `Menu controls now yield to Edit-mode dragging` |
 | 4 | Disable Switch, Color Picker, Horizontal Slider, and Vertical Slider interaction in Edit mode without blocking component dragging. | Completed | JavaScript syntax for all four widgets; focused Edit/runtime disabled and pointer-transparency checks; event-propagation review; `git diff --check`. | `Control inputs now yield to Edit-mode dragging` |
-| 5 | Stop Canvas 3D input forwarding and wheel interception from interfering with component editing. | Pending | — | — |
+| 5 | Stop Canvas 3D input forwarding and wheel interception from interfering with component editing. | Completed | JavaScript syntax; reviewed all forwarding/wheel Edit-mode guards and per-frame canvas pointer transparency; `git diff --check`. | `Canvas 3D now yields input while editing` |
+| 6 | Make disabled Drop-down Menu and Table slice selectors pointer-transparent in Edit mode for consistent cross-browser dragging. | Pending | — | — |
 
 ### Edit-mode constraints
 

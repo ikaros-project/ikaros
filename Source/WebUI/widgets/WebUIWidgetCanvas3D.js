@@ -193,6 +193,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		// Prevent browser/page scrolling while zooming the 3D canvas.
 		this.canvasElement.addEventListener("wheel", function (evt) {
+			if (main.edit_mode)
+				return;
 			if (evt.cancelable)
 				evt.preventDefault();
 			evt.stopPropagation();
@@ -201,6 +203,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		// Safari can occasionally target an overlay sibling instead of the canvas.
 		// Forward core mouse/pointer/wheel events to the canvas so OrbitControls always receives input.
 		const forwardToCanvas = (evt) => {
+			if (main.edit_mode)
+				return;
 			if (!this.canvasElement || evt.target === this.canvasElement || this.canvasElement.contains(evt.target))
 				return;
 			if (evt.type === "wheel") {
@@ -233,6 +237,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		// Hard-stop wheel scrolling at widget root as an extra guard.
 		this.addEventListener("wheel", function (evt) {
+			if (main.edit_mode)
+				return;
 			const targetIsCanvas = evt.target === this.canvasElement || this.canvasElement.contains(evt.target);
 			if (evt.cancelable)
 				evt.preventDefault();
@@ -254,8 +260,10 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		function animate(o, time) {
 			o._animationFrame = requestAnimationFrame(animate.bind(null, o));
+			const editing = main.edit_mode;
+			o.canvasElement.style.pointerEvents = editing ? "none" : "auto";
 			if (o.controls)
-				o.controls.enabled = !main.edit_mode;
+				o.controls.enabled = !editing;
 			o.controls.update();
 			o.stats.update();
 			render(o);
