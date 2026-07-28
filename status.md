@@ -7,7 +7,7 @@ The refactor will reduce repeated widget code while preserving public widget reg
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Expand `WebUIWidgetControl` with shared enabled-state, Edit-mode, index, selected-source, and indexed-write behavior; migrate applicable controls. | Completed | JavaScript syntax for the base and six migrated controls; focused selection, indexed-write, enabled, and Edit-mode checks; `git diff --check`. Net 129 lines removed. | `Control widgets now share indexed source behavior` |
-| 2 | Add a framework-only slider superclass and reduce Horizontal and Vertical Slider to shared behavior plus orientation-specific structure/layout. | Pending | — | — |
+| 2 | Add a framework-only slider superclass and reduce Horizontal and Vertical Slider to shared behavior plus orientation-specific structure/layout. | Completed | JavaScript syntax; focused registration, template, indexed-write, command, numeric-list, and control-count checks; `git diff --check`. Net 416 lines removed. | `Sliders now share a framework base` |
 | 3 | Add listener lifecycle helpers to `WebUIWidget` and migrate widgets with document/window or retained element handlers. | Pending | — | — |
 | 4 | Add shared source normalization and numeric access helpers to `WebUIWidget` and migrate repeated widget implementations. | Pending | — | — |
 | 5 | Add canvas clearing/begin-draw helpers to `WebUIWidgetCanvas` and migrate repeated canvas setup sequences. | Pending | — | — |
