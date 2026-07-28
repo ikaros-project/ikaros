@@ -97,6 +97,9 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
     {
         super.requestData(data_set);
         this.addSourceMetadata(data_set, this.parameters.source);
+        this.addSourceMetadata(data_set, this.parameters.red_source);
+        this.addSourceMetadata(data_set, this.parameters.green_source);
+        this.addSourceMetadata(data_set, this.parameters.blue_source);
     }
 
     hasDrawableGrid()
@@ -109,11 +112,13 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         if(!this.hasDrawableGrid())
             return null;
 
-        const hasLabels = String(this.parameters.labels ?? "").trim() !== "";
-        const label_width = hasLabels ? parseInt(this.parameters.label_width) : 0;
+        const hasLabels = this.getDisplayLabels().length > 0;
+        const configuredLabelWidth = Number(this.parameters.label_width);
+        const label_width = hasLabels && Number.isFinite(configuredLabelWidth) ? Math.max(0, configuredLabelWidth) : 0;
         const rect = this.canvasElement.getBoundingClientRect();
-        const rows = this.displayData.length;
-        const cols = this.displayData[0].length;
+        const rgb = this.parameters.color_map === "rgb";
+        const rows = rgb ? this.displayData[0].length : this.displayData.length;
+        const cols = rgb ? this.displayData[0][0]?.length : this.displayData[0].length;
         const usableWidth = rect.width - this.format.space_left - this.format.space_right - label_width;
         const usableHeight = rect.height - this.format.space_top - this.format.space_bottom;
         if(usableWidth <= 0 || usableHeight <= 0 || rows <= 0 || cols <= 0)
@@ -397,12 +402,15 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
         let labels = this.getDisplayLabels();
         let ln = labels.length;
-        let ls = (ln ? parseInt(this.parameters.label_width) : 0);
+        const configuredLabelWidth = Number(this.parameters.label_width);
+        let ls = ln && Number.isFinite(configuredLabelWidth) ? Math.max(0, configuredLabelWidth) : 0;
         let n = ct.length;
         let dx = (width-ls)/cols;
         let dy = height/rows;
-        let sx = dx*this.parameters.size;
-        let sy = dy*this.parameters.size;
+        const configuredSize = Number(this.parameters.size);
+        const size = Number.isFinite(configuredSize) ? Math.max(0, configuredSize) : 1;
+        let sx = dx*size;
+        let sy = dy*size;
 
         if(this.parameters.shape == 'square' || this.parameters.shape == 'circle')
         {
@@ -472,8 +480,12 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                     this.setColor(i+j);
                     this.canvas.beginPath();
                     try {
-                        let f = (d[i][j]-this.parameters.value_min)/(this.parameters.value_max-this.parameters.value_min);
-                        let ix = Math.min(Math.floor(n*f), n-1);
+                        const value = Number(d[i][j]);
+                        const minimum = Number(this.parameters.value_min);
+                        const maximum = Number(this.parameters.value_max);
+                        const span = maximum - minimum;
+                        const f = Number.isFinite(value) && Number.isFinite(span) && span !== 0 ? (value - minimum) / span : 0;
+                        let ix = Math.max(0, Math.min(Math.floor(n*f), n-1));
                         this.canvas.fillStyle = String(ct[ix] ?? "black").trim();
                     } catch (error) {
                         this.canvas.fillStyle = "black";
@@ -506,42 +518,57 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
     update()
     {
-        if(this.parameters.color_map == "rgb")
-        {
-            this.data = [this.getSource('red'), this.getSource('green'), this.getSource('blue')];
-            if(!this.data[0] || !this.data[1] || !this.data[2])
-                return;
-            if(!Array.isArray(this.data[0]) || !Array.isArray(this.data[1]) || !Array.isArray(this.data[2]))
-                return;
-            if(this.data[0].length != this.data[1].length || this.data[1].length != this.data[2].length)
-                return;
-            this.metadata = this.getSourceMetadata('source', null);
-            this.displayData = this.getDisplayData(this.data);
-            this.resetCanvasTransform(-0.5, -0.5);
-            this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.margin_left, this.format.margin_top); //
-            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
-        }
-        else if(this.data = this.getSource('source'))
-        {
-            this.metadata = this.getSourceMetadata('source', null);
-            this.displayData = this.getDisplayData(this.data);
-            this.resetCanvasTransform(-0.5, -0.5);
-            this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.margin_left, this.format.margin_top); //
-            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
-        }
-
         if(this.parameters.label_source)
         {
-            let l = this.getSource('label_source');
-            if(l)
+            const labels = this.getSource('label_source');
+            if(Array.isArray(labels))
+                this.element_labels = labels.flat ? labels.flat(Infinity).map((entry) => String(entry)) : labels.map((entry) => String(entry));
+            else if(labels !== undefined && labels !== null)
+                this.element_labels = String(labels).split(',');
+            else
+                this.element_labels = [];
+        }
+        else
+            this.element_labels = [];
+
+        this.resetCanvasTransform(-0.5, -0.5);
+        this.canvas.clearRect(0, 0, this.width, this.height);
+
+        if(this.parameters.color_map == "rgb")
+        {
+            this.data = [this.getSource('red_source'), this.getSource('green_source'), this.getSource('blue_source')];
+            if(!this.data[0] || !this.data[1] || !this.data[2])
             {
-                if (Array.isArray(l))
-                    this.element_labels = l.flat ? l.flat(Infinity).map((entry) => String(entry)) : l.map((entry) => String(entry));
-                else
-                    this.element_labels = String(l).split(',');
+                this.displayData = [];
+                return;
             }
+            if(!Array.isArray(this.data[0]) || !Array.isArray(this.data[1]) || !Array.isArray(this.data[2]))
+            {
+                this.displayData = [];
+                return;
+            }
+            if(this.data[0].length != this.data[1].length || this.data[1].length != this.data[2].length)
+            {
+                this.displayData = [];
+                return;
+            }
+            this.metadata = this.getSourceMetadata('red_source', null);
+            this.displayData = this.getDisplayData(this.data);
+            this.canvas.translate(this.format.margin_left, this.format.margin_top); //
+            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
+        }
+        else
+        {
+            this.data = this.getSource('source');
+            if(!Array.isArray(this.data) || this.data.length === 0)
+            {
+                this.displayData = [];
+                return;
+            }
+            this.metadata = this.getSourceMetadata('source', null);
+            this.displayData = this.getDisplayData(this.data);
+            this.canvas.translate(this.format.margin_left, this.format.margin_top); //
+            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
         }
     }
 };

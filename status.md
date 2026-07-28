@@ -21,7 +21,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 13 | Marker | Completed | JavaScript syntax; focused selection, label precision/value fallback, parameter redraw, and missing-source clearing checks; non-finite coordinate review; `git diff --check`. | `Marker rendering now handles invalid values safely` |
 | 14 | World 2D View | Completed | JavaScript syntax; focused scaling, color fallback, nested command path, and parameter-redraw checks; two-tick World2D model smoke test; `git diff --check`. | `World 2D View interaction paths are now robust` |
 | 15 | World 3D View | Completed | JavaScript syntax; focused camera-distance, opacity, color fallback, vertical placement, invalid-coordinate, and resource-cleanup checks; `git diff --check`. | `World 3D View resources and camera are now reliable` |
-| 16 | Grid | Pending | — | — |
+| 16 | Grid | Completed | JavaScript syntax; focused RGB source-name, current-label, RGB metrics, invalid label width, and missing-source clearing checks; color-range review; `git diff --check`. | `Grid sources and rendering now handle edge cases` |
 | 17 | Text | Pending | — | — |
 | 18 | Rectangle | Pending | — | — |
 | 19 | Table | Pending | — | — |
