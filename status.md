@@ -16,7 +16,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 8 | Histogram | Completed | JavaScript syntax; focused negative auto-range, missing-source clearing, single-tick centering, and line-cap review; `git diff --check`. | `Histogram ranges and axes now handle edge cases` |
 | 9 | Box Plot | Completed | JavaScript syntax; focused negative auto-range and missing-source clearing check; narrow-slot and line-width review; `git diff --check`. | `Box Plot now handles ranges and narrow layouts safely` |
 | 10 | Scatter Plot | Completed | JavaScript syntax; focused negative range, plot-margin, single-tick, and precision checks; absent-data clearing review; `git diff --check`. | `Scatter Plot ranges and layout now handle edge cases` |
-| 11 | Plot | Pending | — | — |
+| 11 | Plot | Completed | JavaScript syntax; focused ring-buffer resize/order, invalid capacity, and negative auto-range checks; missing/non-finite data review; `git diff --check`. | `Plot history now resizes and renders safely` |
 | 12 | Path | Pending | — | — |
 | 13 | Marker | Pending | — | — |
 | 14 | World 2D View | Pending | — | — |

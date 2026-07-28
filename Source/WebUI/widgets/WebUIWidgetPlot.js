@@ -88,6 +88,7 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         this.data = [];
         this.buffer = [];
         this.ix = 0;
+        this.bufferCapacity = null;
 
         this.onclick = function ()
         {
@@ -99,19 +100,30 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
 
     getBufferSize()
     {
-        if(this.parameters.buffer_size == 0)
-            return this.width;
-        else
-            return this.parameters.buffer_size;
+        const configuredSize = Number(this.parameters.buffer_size);
+        if(configuredSize === 0)
+            return Math.max(1, Math.floor(Number(this.width) || 1));
+        return Number.isFinite(configuredSize) ? Math.max(1, Math.floor(configuredSize)) : 50;
     }
 
     getOrderedBuffer()
     {
         if(this.buffer.length === 0)
             return [];
-        if(this.buffer.length < this.getBufferSize())
+        const capacity = this.bufferCapacity || this.getBufferSize();
+        if(this.buffer.length < capacity)
             return this.buffer.slice();
         return this.buffer.slice(this.ix).concat(this.buffer.slice(0, this.ix));
+    }
+
+    resizeBuffer(capacity)
+    {
+        if(this.bufferCapacity === capacity)
+            return;
+
+        this.buffer = this.getOrderedBuffer().slice(-capacity);
+        this.ix = 0;
+        this.bufferCapacity = capacity;
     }
 /*
     drawBarHorizontal(width, height, i) // not used
@@ -163,20 +175,30 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         const selectedIndices = this.getSelectedIndices(this.data[0].length);
         if(selectedIndices.length === 0)
             return;
-        let dx = width/Math.max(1, this.getBufferSize());
+        let dx = width/Math.max(1, this.getBufferSize() - 1);
+        this.canvas.lineWidth = Math.max(1, parseFloat(this.parameters.line_width) || 1);
 
         for(let xx=0; xx<selectedIndices.length; xx++)
         {
             const selectedIndex = selectedIndices[xx];
             this.canvas.beginPath();
             this.setColor(selectedIndex);
+            let started = false;
             for(let i=0; i<history.length; i++)
             {
                 const x = i * dx;
-                const value = history[i]?.[y]?.[selectedIndex];
+                const value = parseFloat(history[i]?.[y]?.[selectedIndex]);
+                if(!Number.isFinite(value))
+                {
+                    started = false;
+                    continue;
+                }
                 const yy = this.getPlotYForValue(value, height);
-                if(i === 0)
+                if(!started)
+                {
                     this.canvas.moveTo(x, yy);
+                    started = true;
+                }
                 else
                     this.canvas.lineTo(x, yy);
             }
@@ -186,64 +208,72 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
 
     update()
     {
-
-        if(this.data = this.getSource('source'))
+        this.data = this.getSource('source');
+        if(!Array.isArray(this.data))
         {
-            if(!Array.isArray(this.data))
-                return;
-            if(!Array.isArray(this.data[0])) // FIXME: Fix for arbitrary matrix sizes
-                this.data = [this.data];
-            if(!this.data.length || !Array.isArray(this.data[0]) || !this.data[0].length)
-                return;
-
-            if(this.buffer.length < this.getBufferSize())
-                this.buffer.push(this.data);
-            else
-            {
-                this.buffer[this.ix] = this.data;
-                this.ix = (this.ix + 1) % this.getBufferSize();
-            }
-
-            if(this.parameters.auto_range)
-            {
-                const values = this.getFiniteValues(this.getSelectedData(this.data));
-                if(values.length > 0)
-                {
-                    let nextMax = Math.max(...values);
-                    let nextMin = Math.min(...values);
-                    if(this.parameters.include_zero)
-                    {
-                        nextMax = Math.max(0, nextMax);
-                        nextMin = Math.min(0, nextMin);
-                    }
-
-                    if(!Number.isFinite(this.computedMax))
-                        this.computedMax = this.roundUpToSignificantFigure(nextMax || 1);
-                    else if(nextMax > this.computedMax)
-                        this.computedMax = this.roundUpToSignificantFigure(nextMax || 1);
-
-                    if(!Number.isFinite(this.computedMin))
-                        this.computedMin = this.roundDownToSignificantFigure(nextMin || 0);
-                    else if(nextMin < this.computedMin)
-                        this.computedMin = this.roundDownToSignificantFigure(nextMin || 0);
-                }
-            }
-            else
-            {
-                this.computedMin = null;
-                this.computedMax = null;
-            }
-
-            const selectedData = this.getSelectedData(this.data);
-            if(!selectedData.length || !Array.isArray(selectedData[0]) || selectedData[0].length === 0)
-            {
-                this.resetCanvasTransform(-0.5, -0.5);
-                this.canvas.clearRect(0, 0, this.width, this.height);
-                return;
-            }
-
-            this.draw(selectedData[0].length, selectedData.length);
+            this.data = [];
+            this.resetCanvasTransform(-0.5, -0.5);
+            this.canvas.clearRect(0, 0, this.width, this.height);
+            return;
         }
+        if(!Array.isArray(this.data[0])) // FIXME: Fix for arbitrary matrix sizes
+            this.data = [this.data];
+        if(!this.data.length || !Array.isArray(this.data[0]) || !this.data[0].length)
+        {
+            this.resetCanvasTransform(-0.5, -0.5);
+            this.canvas.clearRect(0, 0, this.width, this.height);
+            return;
+        }
+
+        const bufferSize = this.getBufferSize();
+        this.resizeBuffer(bufferSize);
+        if(this.buffer.length < bufferSize)
+            this.buffer.push(this.data);
+        else
+        {
+            this.buffer[this.ix] = this.data;
+            this.ix = (this.ix + 1) % bufferSize;
+        }
+
+        if(this.parameters.auto_range)
+        {
+            const values = this.getFiniteValues(this.getSelectedData(this.data));
+            if(values.length > 0)
+            {
+                let nextMax = Math.max(...values);
+                let nextMin = Math.min(...values);
+                if(this.parameters.include_zero)
+                {
+                    nextMax = Math.max(0, nextMax);
+                    nextMin = Math.min(0, nextMin);
+                }
+
+                if(!Number.isFinite(this.computedMax))
+                    this.computedMax = this.roundUpToSignificantFigure(nextMax);
+                else if(nextMax > this.computedMax)
+                    this.computedMax = this.roundUpToSignificantFigure(nextMax);
+
+                if(!Number.isFinite(this.computedMin))
+                    this.computedMin = this.roundDownToSignificantFigure(nextMin);
+                else if(nextMin < this.computedMin)
+                    this.computedMin = this.roundDownToSignificantFigure(nextMin);
+            }
+        }
+        else
+        {
+            this.computedMin = null;
+            this.computedMax = null;
+        }
+
+        const selectedData = this.getSelectedData(this.data);
+        if(!selectedData.length || !Array.isArray(selectedData[0]) || selectedData[0].length === 0)
+        {
+            this.resetCanvasTransform(-0.5, -0.5);
+            this.canvas.clearRect(0, 0, this.width, this.height);
+            return;
+        }
+
+        this.draw(selectedData[0].length, selectedData.length);
     }
 };
 
