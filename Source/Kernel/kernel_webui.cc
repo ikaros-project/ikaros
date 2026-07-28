@@ -398,7 +398,7 @@ namespace ikaros
             const std::string dropped_message =
                 "WebUI log truncated. Dropped " + std::to_string(dropped_count) +
                 " older log message" + (dropped_count == 1 ? "" : "s") + " for this client.";
-            response += Message(msg_warning, dropped_message).json();
+            response += Message(msg_print, dropped_message).json();
             sep = ",";
             next_sequence = first_webui_log_sequence;
         }
