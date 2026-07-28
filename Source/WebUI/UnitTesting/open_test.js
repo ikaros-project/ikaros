@@ -141,8 +141,24 @@ function testOrdinaryRequestKeepsShortTimeout()
 }
 
 
+function testSupersededUpdateTimeoutDoesNotReconnect()
+{
+    const harness = createHarness();
+    harness.controller.get("update", function() {});
+    const request = harness.requests[0];
+
+    harness.controller.update_generation++;
+    request.ontimeout();
+
+    assert.equal(harness.controller.update_in_flight, false);
+    assert.deepEqual(harness.overlays, []);
+    assert.equal(harness.controller.reconnect_timer, null);
+}
+
+
 testOpeningFeedbackIsDelayedAndCancelled();
 testSlowOpeningShowsNamedOverlay();
 testOpenRequestUsesLongTimeoutAndReconnectsAfterFailure();
 testOrdinaryRequestKeepsShortTimeout();
+testSupersededUpdateTimeoutDoesNotReconnect();
 console.log("WebUI opening tests passed");

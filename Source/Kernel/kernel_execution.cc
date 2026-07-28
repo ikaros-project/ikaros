@@ -4,6 +4,7 @@
 #include "session_logging.h"
 
 #include <cmath>
+#include <thread>
 
 using namespace ikaros;
 using namespace std::chrono;
@@ -535,6 +536,8 @@ namespace ikaros
                         Notify(msg_fatal_error, "Unknown error during kernel execution.");
                         break;
                     }
+                    if(run_mode.load() == run_mode_fast_forward)
+                        std::this_thread::yield();
                     tick_time_usage = intra_tick_timer.GetTime();
                     idle_time = std::max(0.0, tick_duration - tick_time_usage);
                 }    

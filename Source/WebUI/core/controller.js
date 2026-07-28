@@ -352,6 +352,14 @@ const controller =
         const request_session_id = controller.session_id;
         const is_update_request = url.startsWith("update");
         const is_open_request = url.startsWith("open?");
+        const updateRequestIsObsolete = function()
+        {
+            return is_update_request &&
+                (
+                    request_update_generation !== controller.update_generation ||
+                    request_session_id !== controller.session_id
+                );
+        };
         let xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.setRequestHeader("Session-Id", controller.session_id);
@@ -406,6 +414,8 @@ const controller =
         {
             if(is_update_request)
                 controller.update_in_flight = false;
+            if(updateRequestIsObsolete())
+                return;
             if(is_open_request)
                 controller.endOpeningFeedback();
             controller.open_mode = false;
@@ -416,6 +426,8 @@ const controller =
         {
             if(is_update_request)
                 controller.update_in_flight = false;
+            if(updateRequestIsObsolete())
+                return;
             if(is_open_request)
                 controller.endOpeningFeedback();
             controller.open_mode = false;
