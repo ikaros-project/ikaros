@@ -59,7 +59,6 @@ This is an intentionally breaking migration. Old parameter names will not be ret
 
 ### Outstanding issues and questions
 
-- `Source/Modules/IOModules/Video/InputVideoStream/InputVideoStream_test.ikg` has a pre-existing trailing single quote after its closing group, so strict XML validation remains impossible until that unrelated defect is fixed.
 - WebGL implementations may ignore `LineBasicMaterial.linewidth`; the Canvas 3D parameter is exposed consistently but platform rendering support varies.
 
 
