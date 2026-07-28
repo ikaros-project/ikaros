@@ -90,6 +90,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this._cachedLineColors = [[0, 0, 1]];
 		this._cachedLineKey = null;
 		this._cachedLineIndices = [];
+		this._lastLineTopologyKey = null;
 		this._lastRendererWidth = null;
 		this._lastRendererHeight = null;
 		this._lastCameraAspect = null;
@@ -328,6 +329,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			this.renderer.setSize(rendererWidth, rendererHeight, false);
 			this._lastRendererWidth = rendererWidth;
 			this._lastRendererHeight = rendererHeight;
+			if (this.linesObject)
+				this.linesObject.material.resolution.set(rendererWidth, rendererHeight);
 		}
 		if (this._lastCameraAspect !== cameraAspect) {
 			this.camera.aspect = cameraAspect;
@@ -639,71 +642,56 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			this.l = this._cachedLineIndices;
 			//console.log('Lines')
 
+			const lineColorKey = String(this.parameters.line_color ?? "").toLowerCase();
+			if (this._cachedLineColorKey !== lineColorKey) {
+				this._cachedLineColorKey = lineColorKey;
+				this._cachedLineColors = parseColorTriplets(this.parameters.line_color, [0, 0, 1]);
+			}
+
+			const vertexCount = Math.floor(this.vertices.length / 3);
+			const segmentIndices = this.l.length > 0 ? this.l : null;
+			const segmentCount = segmentIndices ? Math.floor(segmentIndices.length / 2) : Math.floor(vertexCount / 2);
+			const topologyKey = `${this._cachedLineKey}:${vertexCount}:${segmentCount}`;
+
 			if (!this.lines_loaded) {
 				this.lines_loaded = true;
-
-				var geometry = new THREE.BufferGeometry();
-				var material = new THREE.LineBasicMaterial({
-					vertexColors: THREE.VertexColors,
-					linewidth: Number(this.parameters.line_width) || 1
-				});
-
-				var colors = [];
-
-				for (var i = 0; i < this.vertices.length; i++) {
-					colors.push(0, 0, 0);
-				}
-				geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-				geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.vertices, 3));
-				if (this.l.length > 0)
-					geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(this.l), 1));
-
-
-				this.linesObject = new THREE.LineSegments(geometry, material);
+				const geometry = new THREE.LineSegmentsGeometry();
+				const material = new THREE.LineMaterial({ vertexColors: true, worldUnits: false });
+				material.resolution.set(this._lastRendererWidth || 1, this._lastRendererHeight || 1);
+				this.linesObject = new THREE.Mesh(geometry, material);
+				this.linesObject.frustumCulled = false;
 				this.scene.add(this.linesObject);
 			}
-			else {
-				// Calculate point color
-				const lineColorKey = String(this.parameters.line_color ?? "").toLowerCase();
-				if (this._cachedLineColorKey !== lineColorKey) {
-					this._cachedLineColorKey = lineColorKey;
-					this._cachedLineColors = parseColorTriplets(this.parameters.line_color, [0, 0, 1]);
-				}
-				var colors = this.linesObject.geometry.attributes.color.array;
 
-				// Update position from an array 16xi
-				var cIndex = 0;
-
-				for (var i = 0; i < this.nrOfModels; i++) {
-					if (cIndex >= this._cachedLineColors.length)
-						cIndex = 0;
-					const color = this._cachedLineColors[cIndex];
-					cIndex++;
-					colors[i * 3 + 0] = color[0]
-					colors[i * 3 + 1] = color[1]
-					colors[i * 3 + 2] = color[2]
-				}
-				this.linesObject.geometry.attributes.color.needsUpdate = true;
-
-				var positions = this.linesObject.geometry.attributes.position.array;
-
-				var geometry = this.linesObject.geometry;
-				if (this._lastLineIndexAppliedKey !== this._cachedLineKey) {
-					this._lastLineIndexAppliedKey = this._cachedLineKey;
-					if (this.l.length > 0)
-						geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(this.l), 1));
-					else
-						geometry.setIndex(null);
-				}
-
-				for (var i = 0; i < this.vertices.length; i++)
-					positions[i] = this.vertices[i]
-
-				this.linesObject.geometry.attributes.position.needsUpdate = true;
-				this.linesObject.visible = true;
-				//console.log('Updated Line')
-
+			const geometry = this.linesObject.geometry;
+			if (this._lastLineTopologyKey !== topologyKey) {
+				this._lastLineTopologyKey = topologyKey;
+				const bufferSegmentCount = Math.max(segmentCount, 1);
+				geometry.setPositions(new Float32Array(bufferSegmentCount * 6));
+				geometry.setColors(new Float32Array(bufferSegmentCount * 6));
 			}
+
+			const positions = geometry.attributes.instanceStart.data.array;
+			const colors = geometry.attributes.instanceColorStart.data.array;
+			for (let segment = 0; segment < segmentCount; segment++) {
+				for (let endpoint = 0; endpoint < 2; endpoint++) {
+					const vertexIndex = segmentIndices ? segmentIndices[segment * 2 + endpoint] : segment * 2 + endpoint;
+					const targetOffset = segment * 6 + endpoint * 3;
+					const sourceOffset = vertexIndex * 3;
+					const color = this._cachedLineColors[vertexIndex % this._cachedLineColors.length];
+					positions[targetOffset + 0] = this.vertices[sourceOffset + 0] ?? 0;
+					positions[targetOffset + 1] = this.vertices[sourceOffset + 1] ?? 0;
+					positions[targetOffset + 2] = this.vertices[sourceOffset + 2] ?? 0;
+					colors[targetOffset + 0] = color[0];
+					colors[targetOffset + 1] = color[1];
+					colors[targetOffset + 2] = color[2];
+				}
+			}
+			geometry.attributes.instanceStart.data.needsUpdate = true;
+			geometry.attributes.instanceColorStart.data.needsUpdate = true;
+			const lineWidth = Number(this.parameters.line_width);
+			this.linesObject.material.linewidth = Number.isFinite(lineWidth) && lineWidth > 0 ? lineWidth : 1;
+			this.linesObject.visible = segmentCount > 0;
 		}
 		else  // Hide 
 		{
