@@ -662,6 +662,8 @@ class WebUIWidget extends HTMLElement
 
     send_command(command, value=0, index_x=0, index_y=0)
     {
+        if(main.edit_mode)
+            return;
         const resolvedCommand = this.resolveControlPath(command);
         let path =  resolvedCommand.substring(0, resolvedCommand.lastIndexOf('.'));
         let name = resolvedCommand.substring(resolvedCommand.lastIndexOf('.') + 1);

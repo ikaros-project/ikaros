@@ -7,7 +7,7 @@ World 2D View remains intentionally interactive in Edit mode. All other runtime 
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Finalize and commit the already implemented Canvas 3D cancellable model loading change before further edits to that file. | Completed | JavaScript syntax; focused fetch-abort and stale-parse disposal checks; `git diff --check`. | `Canvas 3D model loading is now cancellable` |
-| 2 | Add central Edit-mode command suppression while preserving the direct World 2D editor command path. | Pending | — | — |
+| 2 | Add central Edit-mode command suppression while preserving the direct World 2D editor command path. | Completed | JavaScript syntax; focused Edit/runtime command-queue checks; confirmed World 2D uses its separate direct command path; `git diff --check`. | `Widget commands are now suppressed in Edit mode` |
 | 3 | Disable Drop-down Menu and Table slice controls in Edit mode and allow their events to reach component dragging. | Pending | — | — |
 | 4 | Disable Switch, Color Picker, Horizontal Slider, and Vertical Slider interaction in Edit mode without blocking component dragging. | Pending | — | — |
 | 5 | Stop Canvas 3D input forwarding and wheel interception from interfering with component editing. | Pending | — | — |
