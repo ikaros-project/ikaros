@@ -24,7 +24,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 16 | Grid | Completed | JavaScript syntax; focused RGB source-name, current-label, RGB metrics, invalid label width, and missing-source clearing checks; color-range review; `git diff --check`. | `Grid sources and rendering now handle edge cases` |
 | 17 | Text | Completed | JavaScript syntax; focused zero-value, missing-source placeholder, selection formatting/clearing, and decimal-bound checks; `git diff --check`. | `Text values now update without stale or lost content` |
 | 18 | Rectangle | Completed | JavaScript syntax; focused horizontal alignment, null-label, and negative dimension checks; `git diff --check`. | `Rectangle labels now align correctly` |
-| 19 | Table | Pending | — | — |
+| 19 | Table | Completed | JavaScript syntax; focused first-update rendering, numeric-string/non-finite formatting, decimal bounds, yes/no colorization, and stale-table clearing checks; `git diff --check`. | `Table data now renders immediately and clears safely` |
 | 20 | Button | Pending | — | — |
 | 21 | Joystick | Pending | — | — |
 | 22 | Switch | Pending | — | — |

@@ -79,7 +79,7 @@ class WebUIWidgetTable extends WebUIWidget {
             var ix
 
             this.table.style.border = "none"
-            if (label_x && label_y)
+            if (this.hasLabels(label_x) && this.hasLabels(label_y))
                 this.table.rows[0].cells[0].style.border = "none"
 
             if (type == "normal") {
@@ -259,6 +259,8 @@ class WebUIWidgetTable extends WebUIWidget {
         if (!displayState) {
             this.loaded = false;
             this._tableShapeKey = "";
+            while (this.table.rows.length)
+                this.table.deleteRow(-1);
             this.scrollable();
             return;
         }
@@ -275,62 +277,57 @@ class WebUIWidgetTable extends WebUIWidget {
         this.fillLabels(this.toBool(this.parameters.transpose) ? "flip x/y" : "normal", labels.x, this.xHeader, labels.y, this.yHeader)
         this.scrollable()
     }
+    formatValue(value) {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric))
+            return "-";
+        const configuredDecimals = Number(this.parameters.decimals);
+        const decimals = Number.isInteger(configuredDecimals) ? Math.max(0, Math.min(100, configuredDecimals)) : 4;
+        return numeric.toFixed(decimals);
+    }
     update() {
-
         if (!this.loaded)
             this.updateAll()
 
-        else {
-            const source = this.getSource('source');
-            this.metadata = this.getSourceMetadata('source', null);
-            const displayState = this.getDisplayState(source);
-            if (!displayState) {
-                this.loaded = false;
-                this.renderSliceControls(null);
-                return;
-            }
-            const nextShapeKey = this.getShapeKey(displayState);
-            if(nextShapeKey !== this._tableShapeKey)
-            {
-                this.loaded = false;
-                this.updateAll();
-                return;
-            }
+        if (!this.loaded)
+            return;
 
-            this.data = displayState.matrix;
-            let size_y = displayState.size_y;
-            let size_x = displayState.size_x;
-            if (!size_x)
-                return;
-
-
-            for (let j = 0; j < size_y; j++)
-                for (let i = 0; i < size_x; i++)
-                    if (!this.toBool(this.parameters.transpose)) {
-                        try {
-                            this.tData[j][i].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);
-                        }
-                        catch (err) {
-                            this.tData[j][i].innerHTML = "-";
-                        }
-                        if (this.parameters.colorize)
-                            this.tData[j][i].style.color = this.getColor(i, this.data[j][i]);
-                        else
-                            this.tData[j][i].style.color = this.getColor(i);
-                    }
-                    else {
-                        try {
-                            this.tData[i][j].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);
-                        }
-                        catch (err) {
-                            this.tData[i][j].innerHTML = "-";
-                        }
-                        if (this.parameters.colorize)
-                            this.tData[i][j].style.color = this.getColor(i, this.data[j][i]);
-                        else
-                            this.tData[i][j].style.color = this.getColor(i);
-                    }
+        const source = this.getSource('source');
+        this.metadata = this.getSourceMetadata('source', null);
+        const displayState = this.getDisplayState(source);
+        if (!displayState) {
+            this.loaded = false;
+            this._tableShapeKey = "";
+            this.renderSliceControls(null);
+            while (this.table.rows.length)
+                this.table.deleteRow(-1);
+            return;
         }
+
+        const nextShapeKey = this.getShapeKey(displayState);
+        if(nextShapeKey !== this._tableShapeKey)
+        {
+            this.loaded = false;
+            this.updateAll();
+            if (!this.loaded)
+                return;
+        }
+        else
+            this.data = displayState.matrix;
+
+        const size_y = this.data.length;
+        const size_x = this.data[0]?.length || 0;
+        const transpose = this.toBool(this.parameters.transpose);
+        const colorize = this.toBool(this.parameters.colorize);
+        for (let j = 0; j < size_y; j++)
+            for (let i = 0; i < size_x; i++) {
+                const cell = transpose ? this.tData[i]?.[j] : this.tData[j]?.[i];
+                if (!cell)
+                    continue;
+                const value = this.data[j]?.[i];
+                cell.textContent = this.formatValue(value);
+                cell.style.color = colorize ? this.getColor(i, value) : this.getColor(i);
+            }
     }
 };
 
