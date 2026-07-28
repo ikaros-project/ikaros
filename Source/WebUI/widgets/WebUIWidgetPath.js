@@ -20,7 +20,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             {'name':'fill_color', 'default':'gray', 'type':'string', 'control': 'textedit'},
             {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
  //           {'name':'line_dash', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'line_cap', 'default':"butt", 'type':'string', 'control': 'menu', 'options': "butt,round,quare"},
+            {'name':'line_cap', 'default':"butt", 'type':'string', 'control': 'menu', 'options': "butt,round,square"},
             {'name':'line_join', 'default':"miter", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
             
             {'name':'close', 'default':"no", 'type':'bool', 'control': 'checkbox'},
@@ -62,8 +62,8 @@ class WebUIWidgetPath extends WebUIWidgetGraph
     getSelectX()
     {
         if(this.parameters.select_x !== undefined && this.parameters.select_x !== "")
-            return Number(this.parameters.select_x);
-        return Number(this.parameters.select ?? 0);
+            return Math.max(0, Math.trunc(Number(this.parameters.select_x) || 0));
+        return Math.max(0, Math.trunc(Number(this.parameters.select) || 0));
     }
 
     drawRows(width, height, index, transform)
@@ -77,18 +77,19 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         this.canvas.lineCap = this.format.line_cap;
         this.canvas.lineJoin = this.format.line_join;
 
-        let xx = (this.parameters.point_count ? selectX+2*this.parameters.point_count : d[0].length);
-        xx = Math.min(xx, d[0].length);
-        
         for(var i=0; i<rows; i++)
         {
             if(!Array.isArray(d[i]) || d[i].length < selectX + 2)
                 continue;
+            const pointCount = Math.max(0, Math.trunc(Number(this.parameters.point_count) || 0));
+            let xx = pointCount ? selectX + 2 * pointCount : d[i].length;
+            xx = Math.min(xx, d[i].length);
             this.setColor(i);
             this.canvas.beginPath();
             
             let lx = 0;
             let ly = 0;
+            let hasSegment = false;
             let x = (d[i][selectX+0]-this.parameters.x_min)*this.parameters.scale_x * width;
             let y = (d[i][selectX+1]-this.parameters.y_min)*this.parameters.scale_y * height;
             this.canvas.moveTo(...transform(x, y));
@@ -101,16 +102,18 @@ class WebUIWidgetPath extends WebUIWidgetGraph
                 ly = y;
                 x = (d[i][j++]-this.parameters.x_min)*this.parameters.scale_x * width;
                 y = (d[i][j++]-this.parameters.y_min)*this.parameters.scale_y * height;
-                
+                hasSegment = true;
                 this.canvas.lineTo(...transform(x, y));
             }
             
-            this.canvas.fill();
             if(this.parameters.close)
+            {
                 this.canvas.closePath();
+                this.canvas.fill();
+            }
             this.canvas.stroke();
             
-            if(this.parameters.arrow && (lx!=x||ly!=y))
+            if(this.parameters.arrow && hasSegment && (lx!=x||ly!=y))
                 this.drawArrowHead(...transform(lx, ly), ...transform(x, y));
         }
     }
@@ -138,6 +141,7 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             
             let lx = 0;
             let ly = 0;
+            let hasSegment = false;
             let x = (d[0][i+0]-this.parameters.x_min)*this.parameters.scale_x * width;
             let y = (d[0][i+1]-this.parameters.y_min)*this.parameters.scale_y * height;
             this.canvas.moveTo(...transform(x, y));
@@ -150,16 +154,18 @@ class WebUIWidgetPath extends WebUIWidgetGraph
                 ly = y;
                 x = (d[j][i+0]-this.parameters.x_min)*this.parameters.scale_x * width;
                 y = (d[j][i+1]-this.parameters.y_min)*this.parameters.scale_y * height;
-                
+                hasSegment = true;
                 this.canvas.lineTo(...transform(x, y));
             }
 
-            this.canvas.fill();
             if(this.parameters.close)
+            {
                 this.canvas.closePath();
+                this.canvas.fill();
+            }
             this.canvas.stroke();
             
-            if(this.parameters.arrow)
+            if(this.parameters.arrow && hasSegment)
                 this.drawArrowHead(...transform(lx, ly), ...transform(x, y));
 
             c++;
@@ -185,23 +191,21 @@ class WebUIWidgetPath extends WebUIWidgetGraph
 
         this.parameters.scale_y = 1/(this.parameters.y_max == this.parameters.y_min ? 1 : this.parameters.y_max-this.parameters.y_min);
 
-        // draw if data available
-        if(!d)
-            return;
-        
-        if(this.data = this.getSource('source'))
+        this.data = this.getSource('source');
+        if(this.getMatrixRank(this.data) == 1)
+            this.data = [this.data];
+        if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
         {
-            if (this.getMatrixRank(this.data) == 1)
-                this.data = [this.data];
-            if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
-                return;
-
             this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.margin_left, this.format.margin_top); //
-
-            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
+            return;
         }
+
+        this.resetCanvasTransform(-0.5, -0.5);
+        this.canvas.clearRect(0, 0, this.width, this.height);
+        this.canvas.translate(this.format.margin_left, this.format.margin_top); //
+
+        this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
      }
 };
 
