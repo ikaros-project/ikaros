@@ -18,7 +18,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 10 | Scatter Plot | Completed | JavaScript syntax; focused negative range, plot-margin, single-tick, and precision checks; absent-data clearing review; `git diff --check`. | `Scatter Plot ranges and layout now handle edge cases` |
 | 11 | Plot | Completed | JavaScript syntax; focused ring-buffer resize/order, invalid capacity, and negative auto-range checks; missing/non-finite data review; `git diff --check`. | `Plot history now resizes and renders safely` |
 | 12 | Path | Completed | JavaScript syntax; focused open-path fill, single-point arrow, selection normalization, parameter redraw, and missing-source clearing checks; `git diff --check`. | `Path rendering now respects open paths and valid segments` |
-| 13 | Marker | Pending | — | — |
+| 13 | Marker | Completed | JavaScript syntax; focused selection, label precision/value fallback, parameter redraw, and missing-source clearing checks; non-finite coordinate review; `git diff --check`. | `Marker rendering now handles invalid values safely` |
 | 14 | World 2D View | Pending | — | — |
 | 15 | World 3D View | Pending | — | — |
 | 16 | Grid | Pending | — | — |

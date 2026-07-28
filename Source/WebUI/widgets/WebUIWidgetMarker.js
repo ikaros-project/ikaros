@@ -76,13 +76,23 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
     getSelectX()
     {
         if(this.parameters.select_x !== undefined && this.parameters.select_x !== "")
-            return Number(this.parameters.select_x);
-        return Number(this.parameters.select ?? 0);
+            return Math.max(0, Math.trunc(Number(this.parameters.select_x) || 0));
+        return Math.max(0, Math.trunc(Number(this.parameters.select) || 0));
+    }
+
+    formatLabelValue(value)
+    {
+        const numeric = Number(value);
+        if(!Number.isFinite(numeric))
+            return "";
+        const configuredDecimals = Number(this.parameters.label_decimals);
+        const decimals = Number.isFinite(configuredDecimals) ? Math.max(0, Math.min(20, Math.trunc(configuredDecimals))) : 0;
+        return numeric.toFixed(decimals);
     }
 
     drawRows(width, height, index, transform)
     {
-        let s = this.parameters.size*(width+height)/2
+        let s = Math.max(0, Number(this.parameters.size) || 0) * (width+height) / 2;
         let d = this.data;
         const selectX = this.getSelectX();
 
@@ -92,7 +102,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             return;
 
         let rows = d.length;
-        this.canvas.lineWidth = this.format.line_width;
+        this.canvas.lineWidth = Math.max(1, Number(this.format.line_width) || 1);
         this.canvas.lineCap = this.format.line_cap;
         this.canvas.lineJoin = this.format.line_join;
 
@@ -109,6 +119,8 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             let ly = 0;
             let x = (d[i][selectX+0]-this.parameters.x_min)*this.parameters.scale_x * width;
             let y = (d[i][selectX+1]-this.parameters.y_min)*this.parameters.scale_y * height;
+            if(!Number.isFinite(x) || !Number.isFinite(y))
+                continue;
             
             for(var j=selectX; j<selectX+2;)
             {
@@ -140,7 +152,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
         let l = String(this.parameters.labels ?? "").trim() === "" ? [] : String(this.parameters.labels).split(',');
         let n = l.length;
     
-        let s = this.parameters.size*(width+height)/2
+        let s = Math.max(0, Number(this.parameters.size) || 0) * (width+height) / 2;
         let d = this.data;
         const selectX = this.getSelectX();
         if (Array.isArray(d) && (d.length === 0 || !Array.isArray(d[0])))
@@ -149,10 +161,12 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             return;
         let rows = d.length;
         
-        this.parameters.label_offset_x = parseFloat(this.parameters.label_offset_x);    // FIXME: should be converted somewhere else
-        this.parameters.label_offset_y = parseFloat(this.parameters.label_offset_y);
+        const configuredLabelOffsetX = Number(this.parameters.label_offset_x);
+        const configuredLabelOffsetY = Number(this.parameters.label_offset_y);
+        const labelOffsetX = Number.isFinite(configuredLabelOffsetX) ? configuredLabelOffsetX : 0;
+        const labelOffsetY = Number.isFinite(configuredLabelOffsetY) ? configuredLabelOffsetY : 0;
 
-        this.canvas.lineWidth = this.format.line_width;
+        this.canvas.lineWidth = Math.max(1, Number(this.format.line_width) || 1);
         this.canvas.lineCap = this.format.line_cap;
         this.canvas.lineJoin = this.format.line_join;
 
@@ -160,7 +174,8 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
         this.canvas.textAlign = this.parameters.label_align;
         this.canvas.textBaseline = this.parameters.label_baseline;
 
-        let xx = (this.parameters.point_count ? selectX+2*this.parameters.point_count : d[0].length);
+        const pointCount = Math.max(0, Math.trunc(Number(this.parameters.point_count) || 0));
+        let xx = pointCount ? selectX + 2 * pointCount : d[0].length;
         xx = Math.min(xx, d[0].length);
         let c = 0;
         for(var i=selectX; i<xx; i+=2)
@@ -178,6 +193,8 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
                     continue;
                 x = (d[j][i+0]-this.parameters.x_min)*this.parameters.scale_x * width;
                 y = (d[j][i+1]-this.parameters.y_min)*this.parameters.scale_y * height;
+                if(!Number.isFinite(x) || !Number.isFinite(y))
+                    continue;
 
                 this.setColor(c);
                 this.canvas.beginPath();
@@ -205,17 +222,20 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
                     if(this.parameters.label_type == "numbered")
                         lbl = j;
                     if(this.parameters.label_type == "x_value")
-                        lbl = d[j][i+0].toFixed(this.parameters.label_decimals);
+                        lbl = this.formatLabelValue(d[j][i+0]);
                     else if(this.parameters.label_type == "y_value")
-                        lbl = d[j][i+1].toFixed(this.parameters.label_decimals);
+                        lbl = this.formatLabelValue(d[j][i+1]);
                     else if(this.parameters.label_type == "xy_value")
-                        lbl = d[j][i+0].toFixed(this.parameters.label_decimals)+", "+d[j][i+1].toFixed(this.parameters.label_decimals);
+                        lbl = this.formatLabelValue(d[j][i+0])+", "+this.formatLabelValue(d[j][i+1]);
                     else if(this.parameters.label_type == "z_value")
-                         lbl = d[j][i+2].toFixed(this.parameters.label_decimals);
+                         lbl = this.formatLabelValue(d[j][i+2]);
                     else if(this.parameters.label_type == "value")
-                        lbl = d[j][this.parameters.select_value_column].toFixed(this.parameters.label_decimals);
+                    {
+                        const valueColumn = Math.max(0, Math.trunc(Number(this.parameters.select_value_column) || 0));
+                        lbl = this.formatLabelValue(d[j][valueColumn]);
+                    }
 
-                    this.canvas.fillText(this.parameters.label_prefix+lbl+this.parameters.label_suffix, ...transform(x+this.parameters.label_offset_x, y+this.parameters.label_offset_y));
+                    this.canvas.fillText(this.parameters.label_prefix+lbl+this.parameters.label_suffix, ...transform(x+labelOffsetX, y+labelOffsetY));
                 }
             }
             c++;
@@ -238,29 +258,21 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
 
         this.parameters.scale_y = 1/(this.parameters.y_max == this.parameters.y_min ? 1 : this.parameters.y_max-this.parameters.y_min);
 
-        // draw if data available
-        if(!d)
-            return;
-        
-        try {
-            this.data = this.getSource('source');
-
-            if(!this.data)
-                return;
-            if(this.getMatrixRank(this.data) == 1)
-                this.data = [this.data];
-            if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
-                return;
-
+        this.data = this.getSource('source');
+        if(this.getMatrixRank(this.data) == 1)
+            this.data = [this.data];
+        if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
+        {
             this.resetCanvasTransform(-0.5, -0.5);
             this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.margin_left, this.format.margin_top); //
+            return;
+        }
 
-            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
-        }
-        catch(err)
-        {
-        }
+        this.resetCanvasTransform(-0.5, -0.5);
+        this.canvas.clearRect(0, 0, this.width, this.height);
+        this.canvas.translate(this.format.margin_left, this.format.margin_top); //
+
+        this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
     }
 };
 
