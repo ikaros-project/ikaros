@@ -116,7 +116,7 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
             : rowSource;
         const row = Math.trunc(Number(rowValue));
 
-        return Number.isFinite(row) ? row : 0;
+        return Number.isFinite(row) ? Math.max(0, row) : 0;
     }
 
     _readRgbFromData(data) {
@@ -194,7 +194,7 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
             }
             if (value) {
                 value.innerText = normalized[channel].toFixed(2);
-                value.style.display = this.parameters.show_values ? "block" : "none";
+                value.style.display = this.toBool(this.parameters.show_values) ? "block" : "none";
             }
         });
     }
@@ -266,13 +266,24 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
             const slider = row.querySelector("input[type=range]");
 
             label.innerText = labels[channel];
-            slider.step = Number(this.parameters.step) || 0.01;
+            const configuredStep = Number(this.parameters.step);
+            slider.step = Number.isFinite(configuredStep) && configuredStep > 0 ? configuredStep : 0.01;
             slider.oninput = () => {
+                if (main.edit_mode) {
+                    return;
+                }
                 this._markActive();
                 const current = this._readRgbFromData(this.getSource("parameter")) ?? [0, 0, 0];
                 current[channel] = this._clamp01(slider.value);
                 this._setDisplayedRgb(current);
                 this._sendChannelValue(channel, current[channel]);
+            };
+            slider.onchange = () => {
+                this.is_active = false;
+                this.active_until = Date.now() + 500;
+            };
+            slider.onblur = () => {
+                this.is_active = false;
             };
 
             slider.onmousedown = (event) => this._stopWidgetPropagation(event);
@@ -282,6 +293,9 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
 
         const nativePicker = this.querySelector(".color-picker-native");
         nativePicker.oninput = () => {
+            if (main.edit_mode) {
+                return;
+            }
             this._markActive();
             const rgb = this._hexToRgb(nativePicker.value);
             this._setDisplayedRgb(rgb);
