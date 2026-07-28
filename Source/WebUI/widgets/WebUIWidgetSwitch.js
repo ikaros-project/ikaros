@@ -52,7 +52,8 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
     }
 
     _getBaseSelectX() {
-        return Number(this.parameters.select_x ?? 0);
+        const value = Number(this.parameters.select_x);
+        return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
     }
 
     _getSelectY() {
@@ -82,7 +83,7 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
             this.parameters.parameter,
             value,
             x,
-            Math.trunc(Number(y))
+            Number.isFinite(Number(y)) ? Math.max(0, Math.trunc(Number(y))) : 0
         );
     }
 
@@ -109,7 +110,8 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
         super.updateAll();
 
         const container = this.firstChild;
-        const count = Math.max(1, Number(this.parameters.control_count) || 1);
+        const configuredCount = Number(this.parameters.control_count);
+        const count = Number.isFinite(configuredCount) ? Math.max(1, Math.trunc(configuredCount)) : 1;
 
         while (container.childElementCount > count) {
             container.removeChild(container.lastElementChild);
@@ -151,6 +153,7 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
                     if (componentName) {
                         selector.selectItems([componentName], null, event.shiftKey);
                     }
+                    event.preventDefault();
                     event.stopPropagation();
                 }
             };
@@ -173,43 +176,28 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
     }
 
     update() {
-        try {
-            this._syncEnabledState();
-            let data = this.getSource("parameter");
-            if (!data) {
-                return;
-            }
-
-            if (Array.isArray(data) && !Array.isArray(data[0])) {
-                data = [data];
-            }
-
-            const rows = this._getRows();
-            const selectedY = this._getSelectY();
-            let x = this._getBaseSelectX();
-
-            if (selectedY !== "") {
-                const y = Math.trunc(Number(selectedY));
-                if (!Array.isArray(data[y])) {
-                    return;
-                }
-
-                rows.forEach((row) => {
-                    const input = row.querySelector("input");
-                    input.checked = ((data[y][x] ?? 0) > 0);
-                    x += 1;
-                });
-                return;
-            }
-
-            rows.forEach((row) => {
-                const input = row.querySelector("input");
-                input.checked = ((data[x] ?? 0) > 0);
-                x += 1;
-            });
+        this._syncEnabledState();
+        const data = this.getSource("parameter");
+        const rows = this._getRows();
+        const selectedY = this._getSelectY();
+        let values;
+        if (selectedY !== "") {
+            const configuredY = Number(selectedY);
+            const y = Number.isFinite(configuredY) ? Math.max(0, Math.trunc(configuredY)) : 0;
+            values = Array.isArray(data?.[y]) ? data[y] : [];
         }
-        catch (err) {
-        }
+        else if (Array.isArray(data) && Array.isArray(data[0]))
+            values = data[0];
+        else if (Array.isArray(data))
+            values = data;
+        else
+            values = data === undefined || data === null ? [] : [data];
+
+        let x = this._getBaseSelectX();
+        rows.forEach((row) => {
+            row.querySelector("input").checked = Number(values[x] ?? 0) > 0;
+            x += 1;
+        });
     }
 }
 
