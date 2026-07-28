@@ -75,26 +75,8 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
         return this.querySelectorAll(".color-picker-row");
     }
 
-    _isEnabled() {
-        if (!this.parameters.enabled_source) {
-            return true;
-        }
-
-        const enabled_source = this.getSource("enabled_source", 1);
-        const enableValue = Array.isArray(enabled_source)
-            ? (Array.isArray(enabled_source[0]) ? enabled_source[0][0] : enabled_source[0])
-            : enabled_source;
-        return Number(enableValue) !== 0;
-    }
-
     _syncEnabledState() {
-        const enabled = this._isEnabled();
-        const interactive = enabled && !main.edit_mode;
-        this.classList.toggle("widget-control-disabled", !interactive);
-        for (const input of this.querySelectorAll("input")) {
-            input.disabled = !interactive;
-            input.style.pointerEvents = main.edit_mode ? "none" : "";
-        }
+        this.syncControlEnabledState(this.querySelectorAll("input"));
     }
 
     _setError(message) {

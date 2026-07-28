@@ -81,28 +81,8 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
         return (Number.isFinite(number) ? number : 0).toFixed(4).replace(/\.?0+$/, "");
     }
 
-    _getSelectY() {
-        if (this.parameters.select_y === undefined || this.parameters.select_y === null) {
-            return "";
-        }
-        return this.parameters.select_y;
-    }
-
     _sendAxisValue(parameter, value) {
-        if (!parameter) {
-            return;
-        }
-
-        const configuredX = Number(this.parameters.select_x);
-        const x = Number.isFinite(configuredX) ? Math.max(0, Math.trunc(configuredX)) : 0;
-        const y = this._getSelectY();
-        if (y === "") {
-            this.send_control_change(parameter, this._formatValue(value), x);
-            return;
-        }
-        const configuredY = Number(y);
-        const indexY = Number.isFinite(configuredY) ? Math.max(0, Math.trunc(configuredY)) : 0;
-        this.send_control_change(parameter, this._formatValue(value), x, indexY);
+        this.sendIndexedControlChange(parameter, this._formatValue(value));
     }
 
     _sendPosition(position) {
@@ -176,7 +156,7 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
     }
 
     _startDrag(event) {
-        if (main.edit_mode || !this._isEnabled()) {
+        if (main.edit_mode || !this.isControlEnabled()) {
             return;
         }
 
@@ -213,52 +193,12 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
         document.addEventListener("touchcancel", this._dragEndHandler, true);
     }
 
-    _readSourceValue(parameterName) {
-        if (!this.parameters[parameterName]) {
-            return undefined;
-        }
-
-        let data = this.getSource(parameterName);
-        if (data === undefined || data === null) {
-            return undefined;
-        }
-
-        const y = this._getSelectY();
-        const configuredX = Number(this.parameters.select_x);
-        const x = Number.isFinite(configuredX) ? Math.max(0, Math.trunc(configuredX)) : 0;
-
-        if (Array.isArray(data) && y !== "") {
-            const configuredY = Number(y);
-            const indexY = Number.isFinite(configuredY) ? Math.max(0, Math.trunc(configuredY)) : 0;
-            return data[indexY]?.[x];
-        }
-
-        if (Array.isArray(data) && Array.isArray(data[0])) {
-            return data[0]?.[x];
-        }
-
-        if (Array.isArray(data)) {
-            return data[x];
-        }
-
-        return data;
-    }
-
     requestData(data_set) {
         this.addSource(data_set, this.parameters.x_parameter);
         this.addSource(data_set, this.parameters.y_parameter);
         if (this.parameters.enabled_source) {
             this.addSource(data_set, this.parameters.enabled_source);
         }
-    }
-
-    _isEnabled() {
-        if (!this.parameters.enabled_source) {
-            return true;
-        }
-        const value = this.getSource("enabled_source", 1);
-        const scalar = Array.isArray(value) ? (Array.isArray(value[0]) ? value[0][0] : value[0]) : value;
-        return Number(scalar) !== 0;
     }
 
     updateAll() {
@@ -281,12 +221,11 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
             return;
         }
 
-        const enabled = this._isEnabled();
-        this.classList.toggle("widget-control-disabled", !enabled);
+        this.syncControlEnabledState();
         const hasXParameter = !!this.parameters.x_parameter;
         const hasYParameter = !!this.parameters.y_parameter;
-        const x = this._readSourceValue("x_parameter");
-        const y = this._readSourceValue("y_parameter");
+        const x = this.getSelectedSourceValue("x_parameter");
+        const y = this.getSelectedSourceValue("y_parameter");
 
         this._setThumbPosition({
             x: hasXParameter && x !== undefined ? this._valueToNormalized(x) : 0.5,

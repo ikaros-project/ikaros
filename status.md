@@ -1,5 +1,24 @@
 # Kernel Review Status
 
+## WebUI superclass consolidation
+
+The refactor will reduce repeated widget code while preserving public widget registrations, parameters, serialized models, runtime behavior, and framework-only base-class visibility.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Expand `WebUIWidgetControl` with shared enabled-state, Edit-mode, index, selected-source, and indexed-write behavior; migrate applicable controls. | Completed | JavaScript syntax for the base and six migrated controls; focused selection, indexed-write, enabled, and Edit-mode checks; `git diff --check`. Net 129 lines removed. | `Control widgets now share indexed source behavior` |
+| 2 | Add a framework-only slider superclass and reduce Horizontal and Vertical Slider to shared behavior plus orientation-specific structure/layout. | Pending | — | — |
+| 3 | Add listener lifecycle helpers to `WebUIWidget` and migrate widgets with document/window or retained element handlers. | Pending | — | — |
+| 4 | Add shared source normalization and numeric access helpers to `WebUIWidget` and migrate repeated widget implementations. | Pending | — | — |
+| 5 | Add canvas clearing/begin-draw helpers to `WebUIWidgetCanvas` and migrate repeated canvas setup sequences. | Pending | — | — |
+
+### Superclass consolidation constraints
+
+- Keep all new base classes framework-only and absent from the widget selector.
+- Preserve public parameters, yes/no values, widget tag names, serialized models, and runtime behavior.
+- Keep World 2D's intentional Edit-mode interaction and Text's inline editing behavior unchanged.
+- Complete, verify, and commit each task independently in the listed order.
+
 ## WebUI Edit-mode interaction fixes
 
 World 2D View remains intentionally interactive in Edit mode. All other runtime controls should yield mouse interaction to the component editor and must not issue runtime commands or parameter changes.

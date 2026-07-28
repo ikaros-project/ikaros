@@ -30,39 +30,8 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
         return this.querySelectorAll(".switch-row");
     }
 
-    _isEnabled() {
-        if (!this.parameters.enabled_source) {
-            return true;
-        }
-
-        const enabled_source = this.getSource("enabled_source", 1);
-        const enableValue = Array.isArray(enabled_source)
-            ? (Array.isArray(enabled_source[0]) ? enabled_source[0][0] : enabled_source[0])
-            : enabled_source;
-        return Number(enableValue) !== 0;
-    }
-
     _syncEnabledState() {
-        const enabled = this._isEnabled();
-        const interactive = enabled && !main.edit_mode;
-        this.classList.toggle("widget-control-disabled", !interactive);
-        for (const input of this.querySelectorAll("input")) {
-            input.disabled = !interactive;
-            input.style.pointerEvents = main.edit_mode ? "none" : "";
-            input.closest(".switch-row")?.classList.toggle("widget-control-disabled", !interactive);
-        }
-    }
-
-    _getBaseSelectX() {
-        const value = Number(this.parameters.select_x);
-        return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
-    }
-
-    _getSelectY() {
-        if (this.parameters.select_y === undefined || this.parameters.select_y === null) {
-            return "";
-        }
-        return this.parameters.select_y;
+        this.syncControlEnabledState(this.querySelectorAll("input"), ".switch-row");
     }
 
     _sendControlValue(checked, index) {
@@ -70,23 +39,10 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
             return;
         }
 
-        const x = this._getBaseSelectX() + index;
-        const y = this._getSelectY();
         const onValue = this.parameters.value;
         const offValue = 0;
         const value = checked ? onValue : offValue;
-
-        if (y === "") {
-            this.send_control_change(this.parameters.parameter, value, x);
-            return;
-        }
-
-        this.send_control_change(
-            this.parameters.parameter,
-            value,
-            x,
-            Number.isFinite(Number(y)) ? Math.max(0, Math.trunc(Number(y))) : 0
-        );
+        this.sendIndexedControlChange(this.parameters.parameter, value, index);
     }
 
     _handleRowInput(rowIndex, event) {
@@ -154,26 +110,9 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
 
     update() {
         this._syncEnabledState();
-        const data = this.getSource("parameter");
         const rows = this._getRows();
-        const selectedY = this._getSelectY();
-        let values;
-        if (selectedY !== "") {
-            const configuredY = Number(selectedY);
-            const y = Number.isFinite(configuredY) ? Math.max(0, Math.trunc(configuredY)) : 0;
-            values = Array.isArray(data?.[y]) ? data[y] : [];
-        }
-        else if (Array.isArray(data) && Array.isArray(data[0]))
-            values = data[0];
-        else if (Array.isArray(data))
-            values = data;
-        else
-            values = data === undefined || data === null ? [] : [data];
-
-        let x = this._getBaseSelectX();
-        rows.forEach((row) => {
-            row.querySelector("input").checked = Number(values[x] ?? 0) > 0;
-            x += 1;
+        rows.forEach((row, index) => {
+            row.querySelector("input").checked = Number(this.getSelectedSourceValue("parameter", 0, index)) > 0;
         });
     }
 }

@@ -32,27 +32,10 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             this.addSource(data_set, this.parameters.options_source);
     }
 
-    isEnabled()
-    {
-        if(!this.parameters.enabled_source)
-            return true;
-
-        const enabled_source = this.getSource('enabled_source', 1);
-        const enableValue = Array.isArray(enabled_source) ? (Array.isArray(enabled_source[0]) ? enabled_source[0][0] : enabled_source[0]) : enabled_source;
-        return Number(enableValue) !== 0;
-    }
-
     syncEnabledState()
     {
         const selector = this.querySelector("select");
-        const enabled = this.isEnabled();
-        const interactive = enabled && !main.edit_mode;
-        this.classList.toggle("widget-control-disabled", !interactive);
-        if(selector)
-        {
-            selector.disabled = !interactive;
-            selector.style.pointerEvents = main.edit_mode ? "none" : "";
-        }
+        this.syncControlEnabledState(selector ? [selector] : []);
     }
 
     option_selected(index, value, text)
@@ -60,26 +43,8 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
         if(!this.parameters.parameter)
             return;
 
-        const x = this.getSelectX();
-        const y = this.getSelectY();
         const selectedValue = this.parameters.value_type=='string' ? text : value;
-        if(y === "")
-            this.send_control_change(this.parameters.parameter, selectedValue, x);
-        else
-            this.send_control_change(this.parameters.parameter, selectedValue, x, Number.isFinite(Number(y)) ? Math.max(0, Math.trunc(Number(y))) : 0);
-    }
-
-    getSelectX()
-    {
-        const value = Number(this.parameters.select_x);
-        return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
-    }
-
-    getSelectY()
-    {
-        if(this.parameters.select_y === undefined || this.parameters.select_y === null)
-            return "";
-        return this.parameters.select_y;
+        this.sendIndexedControlChange(this.parameters.parameter, selectedValue);
     }
 
 
@@ -140,27 +105,12 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
         if(this.parameters.options_source)
             this.changeOptions(this.getSource('options_source'));
 
-        const d = this.getSource('parameter');
+        const value = this.getSelectedSourceValue('parameter');
         const selectElement = this.querySelector("select");
-        if(d === undefined || d === null)
+        if(value === undefined || value === null)
         {
             selectElement.selectedIndex = -1;
             return;
-        }
-
-        const selectX = this.getSelectX();
-        const selectY = this.getSelectY();
-        let value = d;
-        if(Array.isArray(d))
-        {
-            if(selectY !== "" && Array.isArray(d[0]))
-            {
-                const configuredY = Number(selectY);
-                const y = Number.isFinite(configuredY) ? Math.max(0, Math.trunc(configuredY)) : 0;
-                value = d[y]?.[selectX];
-            }
-            else
-                value = Array.isArray(d[0]) ? d[0][selectX] : d[selectX];
         }
 
         if(this.parameters.value_type=='number')

@@ -52,18 +52,6 @@ class WebUIWidgetButton extends WebUIWidgetControl
             this.addSource(data_set, this.parameters.enabled_source);
     }
 
-    getSelectX()
-    {
-        const value = Number(this.parameters.select_x);
-        return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
-    }
-
-    getSelectY()
-    {
-        const value = Number(this.parameters.select_y);
-        return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
-    }
-
     getButtonBackground()
     {
         if(this.parameters.background_color !== undefined && this.parameters.background_color !== "")
@@ -108,7 +96,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
         let thisbutton = this;
         let p = this.parentElement.parameters;
         const selectX = this.parentElement.getSelectX();
-        const selectY = this.parentElement.getSelectY();
+        const selectY = this.parentElement.getSelectY(0);
 
         if(p.type == "push")
         {
@@ -152,7 +140,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
                         b.setSelected(false);
                         let q = b.parameters;
                         if(q.parameter)
-                            this.parentElement.send_control_change(q.parameter, q.release_value, b.getSelectX(), b.getSelectY());
+                            this.parentElement.send_control_change(q.parameter, q.release_value, b.getSelectX(), b.getSelectY(0));
                     }
                 }
                 thisbutton.parentElement.setSelected(true);
@@ -203,7 +191,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
             return;
         let p = this.parentElement.parameters;
         const selectX = this.parentElement.getSelectX();
-        const selectY = this.parentElement.getSelectY();
+        const selectY = this.parentElement.getSelectY(0);
 
         if(p.type == "push")
         {
@@ -279,7 +267,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
     update(d)
     {
         this.parameters.select_x = this.getSelectX();
-        this.parameters.select_y = this.getSelectY();
+        this.parameters.select_y = this.getSelectY(0);
 
         this.firstChild.style.color = this.parameters.text_color || "";
 
@@ -307,24 +295,11 @@ class WebUIWidgetButton extends WebUIWidgetControl
         else
             this.firstChild.innerText = this.parameters.label;
 
-        if(this.parameters.enabled_source)
-        {
-            const enabledSource = this.getSource('enabled_source');
-            const enableValue = Array.isArray(enabledSource) ? (Array.isArray(enabledSource[0]) ? enabledSource[0][0] : enabledSource[0]) : enabledSource;
-            this.firstChild.disabled = Number(enableValue) === 0;
-        }
-        else
-            this.firstChild.disabled = false;
+        this.syncControlEnabledState([this.firstChild]);
 
         if(this.parameters.parameter)
         {
-            const parameterSource = this.getSource('parameter');
-            let sourceValue = parameterSource;
-            if(Array.isArray(parameterSource))
-            {
-                const matrix = Array.isArray(parameterSource[0]) ? parameterSource : [parameterSource];
-                sourceValue = matrix[this.getSelectY()]?.[this.getSelectX()];
-            }
+            const sourceValue = this.getSelectedSourceValue('parameter');
             this.setSelected(sourceValue == this.parameters.value);
         }
     }
