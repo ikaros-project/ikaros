@@ -266,6 +266,45 @@ class WebUIWidget extends HTMLElement
         return parseFloat(this.getSource(source, [[default_value]])[0][0]);
     }
 
+    flattenSource(value)
+    {
+        if(value === undefined || value === null)
+            return [];
+        if(!Array.isArray(value))
+            return [value];
+        return value.flat ? value.flat(Infinity) : value.reduce((items, item) => items.concat(this.flattenSource(item)), []);
+    }
+
+    sourceScalar(value, fallback=undefined)
+    {
+        const values = this.flattenSource(value);
+        return values.length > 0 ? values[0] : fallback;
+    }
+
+    finiteNumber(value, fallback=0)
+    {
+        const number = Number(this.sourceScalar(value, fallback));
+        return Number.isFinite(number) ? number : Number(fallback);
+    }
+
+    positiveNumber(value, fallback=0)
+    {
+        const number = Number(this.sourceScalar(value, fallback));
+        return Number.isFinite(number) && number > 0 ? number : fallback;
+    }
+
+    sourceNumber(sourceName, fallback=0)
+    {
+        return this.finiteNumber(this.getSource(sourceName, undefined), fallback);
+    }
+
+    matrixRows(value)
+    {
+        if(this.getMatrixRank(value) == 1)
+            return [value];
+        return Array.isArray(value) ? value : [];
+    }
+
     addSource(data_set, source) // this will be default function for all widgets later
     {
         if(source)

@@ -144,7 +144,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             if(index)
             {
                 if (Array.isArray(index))
-                    ix = Math.floor(Array.isArray(index[0]) ? index[0][0] : index[0]);
+                    ix = Math.floor(this.sourceScalar(index, 0));
                 else
                     ix = Math.floor(index);
                 if(ix < 0)
@@ -177,7 +177,7 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             const opacitySource = this.getSource('opacity_source');
             if(opacitySource !== undefined && opacitySource !== null)
             {
-                const opacityValue = Array.isArray(opacitySource) ? (Array.isArray(opacitySource[0]) ? opacitySource[0][0] : opacitySource[0]) : opacitySource;
+                const opacityValue = this.sourceScalar(opacitySource);
                 const numericOpacity = Number(opacityValue);
                 if(Number.isFinite(numericOpacity))
                     this.canvas.canvas.style.opacity = Math.max(0, Math.min(1, numericOpacity));

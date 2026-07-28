@@ -139,27 +139,6 @@ class WebUIWidgetWorld3DView extends WebUIWidget
             this.renderer.render(this.scene, this.camera);
     }
 
-    sourceNumber(sourceName, fallback)
-    {
-        const value = this.getSource(sourceName, undefined);
-        if(Array.isArray(value))
-        {
-            const first = Array.isArray(value[0]) ? value[0][0] : value[0];
-            const number = Number(first);
-            return Number.isFinite(number) ? number : Number(fallback);
-        }
-
-        const number = Number(value);
-        return Number.isFinite(number) ? number : Number(fallback);
-    }
-
-    matrixRows(value)
-    {
-        if(this.getMatrixRank(value) == 1)
-            return [value];
-        return Array.isArray(value) ? value : [];
-    }
-
     worldWidth()
     {
         return Math.max(1, Number(this.parameters.world_width) || 300);

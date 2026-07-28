@@ -198,26 +198,6 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
         return fallback;
     }
 
-    positiveNumber(value, fallback)
-    {
-        const number = Number(value);
-        return Number.isFinite(number) && number > 0 ? number : fallback;
-    }
-
-    sourceNumber(sourceName, fallback)
-    {
-        const value = this.getSource(sourceName, undefined);
-        if(Array.isArray(value))
-        {
-            const first = Array.isArray(value[0]) ? value[0][0] : value[0];
-            const number = Number(first);
-            return Number.isFinite(number) ? number : Number(fallback);
-        }
-
-        const number = Number(value);
-        return Number.isFinite(number) ? number : Number(fallback);
-    }
-
     currentTool()
     {
         return Math.trunc(this.sourceNumber('tool_parameter', 0));
@@ -1116,13 +1096,6 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
         {
             console.warn("World2DView skipped creature draw:", err);
         }
-    }
-
-    matrixRows(value)
-    {
-        if(this.getMatrixRank(value) == 1)
-            return [value];
-        return Array.isArray(value) ? value : [];
     }
 
     update(d)

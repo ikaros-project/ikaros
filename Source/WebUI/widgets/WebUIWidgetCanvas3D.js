@@ -511,7 +511,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		const parseList = (value) => {
 			if (Array.isArray(value)) {
-				const flattened = value.flat ? value.flat(Infinity) : value;
+				const flattened = this.flattenSource(value);
 				return flattened.map((entry) => String(entry).trim()).filter((entry) => entry !== "");
 			}
 			const text = String(value ?? "").trim();

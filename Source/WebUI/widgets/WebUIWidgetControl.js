@@ -39,7 +39,7 @@ class WebUIWidgetControl extends WebUIWidget
         if(!this.parameters[sourceName])
             return true;
         const source = this.getSource(sourceName, 1);
-        const value = Array.isArray(source) ? (Array.isArray(source[0]) ? source[0][0] : source[0]) : source;
+        const value = this.sourceScalar(source, 1);
         return Number(value) !== 0;
     }
 

@@ -95,9 +95,7 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
         }
 
         const rowSource = this.getSource("row_source", [[0]]);
-        const rowValue = Array.isArray(rowSource)
-            ? (Array.isArray(rowSource[0]) ? rowSource[0][0] : rowSource[0])
-            : rowSource;
+        const rowValue = this.sourceScalar(rowSource);
         const row = Math.trunc(Number(rowValue));
 
         return Number.isFinite(row) ? Math.max(0, row) : 0;

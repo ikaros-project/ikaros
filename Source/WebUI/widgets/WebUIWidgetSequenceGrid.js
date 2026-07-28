@@ -99,20 +99,11 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
         this.addSource(data_set, this.parameters.color_source);
     }
 
-    asFlatArray(value)
-    {
-        if(value == undefined)
-            return [];
-        if(Array.isArray(value))
-            return value.flat ? value.flat(Infinity) : value.reduce((a, b) => a.concat(Array.isArray(b) ? this.asFlatArray(b) : b), []);
-        return [value];
-    }
-
     getSequenceNames()
     {
         const names = this.getSource("sequence_names_source", "");
         if(Array.isArray(names))
-            return this.asFlatArray(names).map((name) => String(name ?? "").trim()).filter((name) => name !== "");
+            return this.flattenSource(names).map((name) => String(name ?? "").trim()).filter((name) => name !== "");
         return String(names)
             .split(",")
             .map((name) => name.trim())
@@ -121,7 +112,7 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
 
     getPlaying()
     {
-        return this.asFlatArray(this.getSource("playing_source", []))
+        return this.flattenSource(this.getSource("playing_source", []))
             .map((value) => Number(value) > 0);
     }
 
@@ -174,7 +165,7 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
     {
         let width = Number(this.parameters.columns);
         if(!Number.isFinite(width) || width <= 0)
-            width = Number(this.asFlatArray(this.getSource("layout_width_source", []))[0]);
+            width = Number(this.sourceScalar(this.getSource("layout_width_source", [])));
         if(!Number.isFinite(width) || width <= 0)
             width = 8;
         return Math.max(1, Math.min(Math.trunc(width), Math.max(1, sequence_count)));

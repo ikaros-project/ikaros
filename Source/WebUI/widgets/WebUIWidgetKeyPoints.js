@@ -909,7 +909,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             let end_time = sequence_state["end_time"];
             let start_mark_time = sequence_state["start_mark_time"];
             let end_mark_time = sequence_state["end_mark_time"];
-            const positionValue = Array.isArray(f) ? (Array.isArray(f[0]) ? f[0][0] : f[0]) : f;
+            const positionValue = this.sourceScalar(f);
             let position = Number(positionValue);
             position = Number.isFinite(position) ? this.clamp(position, 0, 1) : 0;
 

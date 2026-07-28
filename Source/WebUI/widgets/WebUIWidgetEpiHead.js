@@ -32,7 +32,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
   }
 
   flatNumbers(value, fallback, count) {
-    const flattened = Array.isArray(value) && value.flat ? value.flat(Infinity) : (Array.isArray(value) ? value : [value]);
+    const flattened = this.flattenSource(value);
     const numbers = flattened.map(Number).filter(Number.isFinite);
     const defaults = Array.isArray(fallback) ? fallback : [fallback];
     const result = [];
