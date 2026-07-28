@@ -67,10 +67,16 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
 
     formatScaleValue(value)
     {
-        const decimals = this.format.decimals;
+        const configuredDecimals = Number(this.format.decimals);
+        const decimals = Number.isFinite(configuredDecimals) ? Math.max(0, Math.min(20, Math.trunc(configuredDecimals))) : 0;
         if(!Number.isFinite(value))
             return "";
         return value.toFixed(decimals).replace(/\.?0+$/, "");
+    }
+
+    tickFraction(index, count)
+    {
+        return count > 1 ? index / (count - 1) : 0.5;
     }
 
     getEffectiveSpaceLeft(height)
@@ -86,9 +92,10 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let maxWidth = 0;
         for(let j=0; j<n; j++)
         {
-            let v = min + (n-j-1)*(max-min)/(n-1);
+            const fraction = this.tickFraction(j, n);
+            let v = max - fraction * (max - min);
             if(this.format.flip_y_axis)
-                v = max - v;
+                v = min + max - v;
             const text = this.formatScaleValue(v);
             maxWidth = Math.max(maxWidth, this.canvas.measureText(text).width);
         }
@@ -102,9 +109,9 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         if(n==0)
             return;
 
-        let i=0;
         for(let j=0; j<n; j++)
         {
+            const i = bottom * this.tickFraction(j, n);
             this.canvas.beginPath();
             this.canvas.lineWidth = 1;
             this.canvas.strokeStyle = this.format.axis_color;    // maybe also have axis properties
@@ -112,7 +119,6 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
             this.canvas.lineTo(-7, i);
             this.canvas.stroke();
             
-            i += (bottom)/(n-1);
         }
     }
 
@@ -122,9 +128,9 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         if(n==0)
             return;
 
-        let i=0;
         for(let j=0; j<n; j++)
         {
+            const i = bottom * this.tickFraction(j, n);
             this.canvas.beginPath();
             this.canvas.lineWidth = 1;
             this.canvas.strokeStyle = this.format.axis_color;
@@ -132,7 +138,6 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
             this.canvas.lineTo(this.format.width+7, i);
             this.canvas.stroke();
             
-            i += (bottom)/(n-1);
         }
     }
 
@@ -142,16 +147,15 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         if(n==0)
             return;
 
-        let i=0;
         for(let j=0; j<n; j++)
         {
+            const i = width * this.tickFraction(j, n);
             this.canvas.beginPath();
             this.canvas.lineWidth = 1;
             this.canvas.strokeStyle = this.format.axis_color;
             this.canvas.moveTo(i, height);
             this.canvas.lineTo(i, height+7);
             this.canvas.stroke();
-            i += width/(n-1);
         }
     }
 
@@ -168,14 +172,14 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.textAlign = "right";
         this.canvas.textBaseline = "middle";
 
-        let i=0;
         for(let j=0; j<n; j++)
         {
-            let v = min + (n-j-1)*(max-min)/(n-1);
+            const fraction = this.tickFraction(j, n);
+            const i = height * fraction;
+            let v = max - fraction * (max - min);
             if(this.format.flip_y_axis)
-                v = max - v;
+                v = min + max - v;
             this.canvas.fillText(this.formatScaleValue(v), -this.format.scale_offset, i);
-            i += height/(n-1);
         }
         this.canvas.textBaseline="bottom";
     }
@@ -193,14 +197,14 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.textAlign = "left";
         this.canvas.textBaseline="middle";
 
-        let i=0;
         for(let j=0; j<n; j++)
         {
-            let v = min + (n-j-1)*(max-min)/(n-1);
+            const fraction = this.tickFraction(j, n);
+            const i = height * fraction;
+            let v = max - fraction * (max - min);
             if(this.format.flip_y_axis)
-                v = max - v;
+                v = min + max - v;
             this.canvas.fillText(this.formatScaleValue(v), width+this.format.scale_offset, i);
-            i += height/(n-1);
         }
         this.canvas.textBaseline="bottom";
     }
@@ -227,14 +231,14 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.textAlign = "center";
         this.canvas.textBaseline="top";
 
-        let i=0;
         for(let j=0; j<n; j++)
         {
-            let v = min + j*(max-min)/(n-1);
+            const fraction = this.tickFraction(j, n);
+            const i = width * fraction;
+            let v = min + fraction * (max - min);
             if(this.format.flip_x_axis)
-                v = max - v;
-            this.canvas.fillText(v.toFixed(this.format.decimals), i, height+this.format.scale_offset);
-            i += width/(n-1);
+                v = min + max - v;
+            this.canvas.fillText(this.formatScaleValue(v), i, height+this.format.scale_offset);
         }
         this.canvas.textBaseline="bottom";
     }
@@ -290,7 +294,8 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         const {min, max} = this.getYRange();
         for(let j=0; j<n; j++)
         {
-            const value = min + (n-j-1) * (max-min) / (n-1);
+            const fraction = this.tickFraction(j, n);
+            const value = max - fraction * (max - min);
             let q = Math.round(this.getPlotYForValue(value, height));
             this.canvas.beginPath();
             this.canvas.strokeStyle = this.format.grid_color;
@@ -306,16 +311,14 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         if(n==0)
             return;
         
-        let p=0;
         for(let j=0; j<n; j++)
         {
-            let q = Math.round(p)
+            let q = Math.round(width * this.tickFraction(j, n));
             this.canvas.beginPath();
             this.canvas.strokeStyle = this.format.grid_color;
             this.canvas.moveTo(q, 0);
             this.canvas.lineTo(q, height);
             this.canvas.stroke();
-            p += width/(n-1);
         }
     }
 
@@ -328,7 +331,8 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         const {min, max} = this.getYRange();
         for(let j=0; j<n; j++)
         {
-            const value = min + (n-j-1) * (max-min) / (n-1);
+            const fraction = this.tickFraction(j, n);
+            const value = max - fraction * (max - min);
             let q = Math.round(this.getPlotYForValue(value, height));
             this.canvas.beginPath();
             this.canvas.strokeStyle = this.format.grid_color;
@@ -344,16 +348,14 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         if(n==0)
             return;
         
-        let p=0;
         for(let j=0; j<n; j++)
         {
-            let q = Math.round(p)
+            let q = Math.round(width * this.tickFraction(j, n));
             this.canvas.beginPath();
             this.canvas.strokeStyle = this.format.grid_color;
             this.canvas.moveTo(q, 0);
             this.canvas.lineTo(q, height);
             this.canvas.stroke();
-            p += width/(n-1);
         }
     }
     drawPlotVertical(width, height)
@@ -379,7 +381,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
 //        this.canvas.fillStyle = '#ffffcc';
  //       this.canvas.fillRect(0, 0, width, height);
         
-        if(!this.format.show_x_labels)
+        if(!this.format.show_x_labels || n <= 0)
             return;
         
         let labels = (this.parameters.labels_x ? this.parameters.labels_x : this.parameters.labels);
@@ -412,7 +414,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
 //        this.canvas.fillStyle = '#ccffcc';
 //        this.canvas.fillRect(0, 0, width, height);
 
-        if(!this.format.show_y_labels)
+        if(!this.format.show_y_labels || n <= 0)
             return;
         
         let labels = (this.parameters.labels_y ? this.parameters.labels_y : this.parameters.labels);
@@ -600,6 +602,8 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
     {
         this.resetCanvasTransform(-0.5, -0.5);
         this.canvas.clearRect(0, 0, this.width, this.height);
+        if(size_x <= 0 || size_y <= 0)
+            return;
 //        this.drawTitle();
         this.canvas.translate(this.format.margin_left, this.format.margin_top); // +0*this.format.titleHeight
         
