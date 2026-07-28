@@ -139,14 +139,14 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
         const yUpperWhisker = this.getPlotYForValue(upperWhisker, height);
 
         const centerX = width / 2;
-        const boxWidth = Math.max(8, width * 0.58);
-        const whiskerWidth = Math.max(6, width * 0.36);
+        const boxWidth = Math.max(1, width * 0.58);
+        const whiskerWidth = Math.max(1, width * 0.36);
         const boxLeft = centerX - boxWidth / 2;
         const boxTop = Math.min(yQ1, yQ3);
         const boxHeight = Math.max(1, Math.abs(yQ3 - yQ1));
 
         this.setColor(i);
-        this.canvas.lineWidth = parseFloat(this.parameters.line_width) || 1;
+        this.canvas.lineWidth = Math.max(1, parseFloat(this.parameters.line_width) || 1);
         this.canvas.lineCap = "butt";
         this.canvas.lineJoin = "miter";
 
@@ -185,7 +185,7 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
 
         this.canvas.save();
         this.setColor(i);
-        this.canvas.lineWidth = parseFloat(this.parameters.line_width) || 1;
+        this.canvas.lineWidth = Math.max(1, parseFloat(this.parameters.line_width) || 1);
 
         for(const value of values)
         {
@@ -295,46 +295,53 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
 
     update()
     {
-        if(this.data = this.getSource('source'))
+        this.data = this.getSource('source');
+        if(!Array.isArray(this.data))
         {
-            this.metadata = this.getSourceMetadata('source', null);
-            const outliers = this.getSource('outlier_source');
-            this.outliers = Array.isArray(outliers) ? outliers : [];
-            if(Array.isArray(this.outliers) && this.outliers.length > 0 && !Array.isArray(this.outliers[0]))
-                this.outliers = [this.outliers];
-
-            if(!Array.isArray(this.data))
-                return;
-            if(!Array.isArray(this.data[0]))
-                this.data = [this.data];
-            if(this.data.length < 5 || !Array.isArray(this.data[0]) || this.data[0].length === 0)
-                return;
-
-            if(this.parameters.auto_range)
-            {
-                const values = this.getFiniteValues(this.data).concat(this.getFiniteValues(this.outliers));
-                if(values.length > 0)
-                {
-                    let nextMax = Math.max(...values);
-                    let nextMin = Math.min(...values);
-                    if(this.parameters.include_zero)
-                    {
-                        nextMax = Math.max(0, nextMax);
-                        nextMin = Math.min(0, nextMin);
-                    }
-
-                    this.computedMax = this.roundUpToSignificantFigure(nextMax || 1);
-                    this.computedMin = this.roundDownToSignificantFigure(nextMin || 0);
-                }
-            }
-            else
-            {
-                this.computedMin = null;
-                this.computedMax = null;
-            }
-
-            this.draw(this.getBoxCount(), 1);
+            this.data = [];
+            this.outliers = [];
+            this.metadata = null;
+            this.draw(0, 0);
+            return;
         }
+        this.metadata = this.getSourceMetadata('source', null);
+        const outliers = this.getSource('outlier_source');
+        this.outliers = Array.isArray(outliers) ? outliers : [];
+        if(Array.isArray(this.outliers) && this.outliers.length > 0 && !Array.isArray(this.outliers[0]))
+            this.outliers = [this.outliers];
+
+        if(!Array.isArray(this.data[0]))
+            this.data = [this.data];
+        if(this.data.length < 5 || !Array.isArray(this.data[0]) || this.data[0].length === 0)
+        {
+            this.draw(0, 0);
+            return;
+        }
+
+        if(this.parameters.auto_range)
+        {
+            const values = this.getFiniteValues(this.data).concat(this.getFiniteValues(this.outliers));
+            if(values.length > 0)
+            {
+                let nextMax = Math.max(...values);
+                let nextMin = Math.min(...values);
+                if(this.parameters.include_zero)
+                {
+                    nextMax = Math.max(0, nextMax);
+                    nextMin = Math.min(0, nextMin);
+                }
+
+                this.computedMax = this.roundUpToSignificantFigure(nextMax);
+                this.computedMin = this.roundDownToSignificantFigure(nextMin);
+            }
+        }
+        else
+        {
+            this.computedMin = null;
+            this.computedMax = null;
+        }
+
+        this.draw(this.getBoxCount(), 1);
     }
 };
 
