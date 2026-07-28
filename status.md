@@ -1,5 +1,24 @@
 # Kernel Review Status
 
+## WebUI Edit-mode interaction fixes
+
+World 2D View remains intentionally interactive in Edit mode. All other runtime controls should yield mouse interaction to the component editor and must not issue runtime commands or parameter changes.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Finalize and commit the already implemented Canvas 3D cancellable model loading change before further edits to that file. | Completed | JavaScript syntax; focused fetch-abort and stale-parse disposal checks; `git diff --check`. | `Canvas 3D model loading is now cancellable` |
+| 2 | Add central Edit-mode command suppression while preserving the direct World 2D editor command path. | Pending | — | — |
+| 3 | Disable Drop-down Menu and Table slice controls in Edit mode and allow their events to reach component dragging. | Pending | — | — |
+| 4 | Disable Switch, Color Picker, Horizontal Slider, and Vertical Slider interaction in Edit mode without blocking component dragging. | Pending | — | — |
+| 5 | Stop Canvas 3D input forwarding and wheel interception from interfering with component editing. | Pending | — | — |
+
+### Edit-mode constraints
+
+- Preserve World 2D View as the explicit interactive Edit-mode exception.
+- Preserve Text's intentional inline editing behavior.
+- Keep runtime behavior unchanged outside Edit mode.
+- Complete, verify, and commit each task independently in the listed order.
+
 ## WebUI widget bug review
 
 Each widget implementation will be reviewed sequentially for concrete defects. Straightforward, narrowly scoped fixes will be implemented and verified as part of that widget's task. Framework-only base classes are included in the review but remain unavailable in the widget selector. Each task will be committed independently before the next begins.
