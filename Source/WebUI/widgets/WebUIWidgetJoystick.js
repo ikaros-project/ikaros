@@ -53,7 +53,8 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
     }
 
     _clamp01(value) {
-        return Math.max(0, Math.min(1, Number(value)));
+        const number = Number(value);
+        return Number.isFinite(number) ? Math.max(0, Math.min(1, number)) : 0.5;
     }
 
     _normalizedToValue(value) {
@@ -76,7 +77,8 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
     }
 
     _formatValue(value) {
-        return Number(value).toFixed(4).replace(/\.?0+$/, "");
+        const number = Number(value);
+        return (Number.isFinite(number) ? number : 0).toFixed(4).replace(/\.?0+$/, "");
     }
 
     _getSelectY() {
@@ -91,13 +93,16 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
             return;
         }
 
-        const x = Math.trunc(Number(this.parameters.select_x || 0));
+        const configuredX = Number(this.parameters.select_x);
+        const x = Number.isFinite(configuredX) ? Math.max(0, Math.trunc(configuredX)) : 0;
         const y = this._getSelectY();
         if (y === "") {
             this.send_control_change(parameter, this._formatValue(value), x);
             return;
         }
-        this.send_control_change(parameter, this._formatValue(value), x, Math.trunc(Number(y)));
+        const configuredY = Number(y);
+        const indexY = Number.isFinite(configuredY) ? Math.max(0, Math.trunc(configuredY)) : 0;
+        this.send_control_change(parameter, this._formatValue(value), x, indexY);
     }
 
     _sendPosition(position) {
@@ -177,6 +182,7 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
 
         event.preventDefault();
         event.stopPropagation();
+        this._unbindDocumentDragHandlers();
         this.is_active = true;
 
         this._dragTo(this._eventPoint(event));
@@ -218,10 +224,13 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
         }
 
         const y = this._getSelectY();
-        const x = Math.trunc(Number(this.parameters.select_x || 0));
+        const configuredX = Number(this.parameters.select_x);
+        const x = Number.isFinite(configuredX) ? Math.max(0, Math.trunc(configuredX)) : 0;
 
         if (Array.isArray(data) && y !== "") {
-            return data[Math.trunc(Number(y))]?.[x];
+            const configuredY = Number(y);
+            const indexY = Number.isFinite(configuredY) ? Math.max(0, Math.trunc(configuredY)) : 0;
+            return data[indexY]?.[x];
         }
 
         if (Array.isArray(data) && Array.isArray(data[0])) {
@@ -272,21 +281,17 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
             return;
         }
 
-        try {
-            const enabled = this._isEnabled();
-            this.classList.toggle("widget-control-disabled", !enabled);
-            const hasXParameter = !!this.parameters.x_parameter;
-            const hasYParameter = !!this.parameters.y_parameter;
-            const x = this._readSourceValue("x_parameter");
-            const y = this._readSourceValue("y_parameter");
+        const enabled = this._isEnabled();
+        this.classList.toggle("widget-control-disabled", !enabled);
+        const hasXParameter = !!this.parameters.x_parameter;
+        const hasYParameter = !!this.parameters.y_parameter;
+        const x = this._readSourceValue("x_parameter");
+        const y = this._readSourceValue("y_parameter");
 
-            this._setThumbPosition({
-                x: hasXParameter && x !== undefined ? this._valueToNormalized(x) : 0.5,
-                y: hasYParameter && y !== undefined ? this._valueToNormalized(y) : 0.5
-            });
-        }
-        catch (err) {
-        }
+        this._setThumbPosition({
+            x: hasXParameter && x !== undefined ? this._valueToNormalized(x) : 0.5,
+            y: hasYParameter && y !== undefined ? this._valueToNormalized(y) : 0.5
+        });
     }
 }
 
