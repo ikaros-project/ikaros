@@ -29,7 +29,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 21 | Joystick | Completed | JavaScript syntax; focused non-finite position/value, invalid index, and indexed source checks; drag-handler lifecycle review; `git diff --check`. | `Joystick values and indices are now normalized safely` |
 | 22 | Switch | Completed | JavaScript syntax; focused scalar zero/one, missing-source clearing, and invalid-index checks; edit-mode input and control-count review; `git diff --check`. | `Switch values now synchronize without stale state` |
 | 23 | Horizontal Slider | Completed | JavaScript syntax; focused invalid-index, empty-target, and yes/no value-label checks; keyboard/edit interaction and numeric configuration review; `git diff --check`. | `Horizontal Slider interaction state now recovers safely` |
-| 24 | Vertical Slider | Pending | — | — |
+| 24 | Vertical Slider | Completed | JavaScript syntax; focused invalid-index and yes/no value-label checks; keyboard/edit interaction and numeric configuration review; `git diff --check`. | `Vertical Slider interaction state now recovers safely` |
 | 25 | Color Picker | Pending | — | — |
 | 26 | Drop-down Menu | Pending | — | — |
 | 27 | Canvas 3D | Pending | — | — |

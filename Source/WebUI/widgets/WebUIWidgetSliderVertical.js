@@ -145,7 +145,8 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
     }
 
     _getBaseSelectX() {
-        return Number(this.parameters.select_x ?? 0);
+        const value = Number(this.parameters.select_x);
+        return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
     }
 
     _getSelectY() {
@@ -160,7 +161,7 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
         const y = this._getSelectY();
 
         if (this.parameters.command) {
-            const commandY = y === "" ? x : Math.trunc(Number(y));
+            const commandY = y === "" ? x : (Number.isFinite(Number(y)) ? Math.max(0, Math.trunc(Number(y))) : 0);
             this.send_command(this.parameters.command, 0, Number(value), commandY);
             return;
         }
@@ -178,13 +179,14 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
             this.parameters.parameter,
             value,
             x,
-            Math.trunc(Number(y))
+            Number.isFinite(Number(y)) ? Math.max(0, Math.trunc(Number(y))) : 0
         );
     }
 
     _syncAllSliders(value) {
         const sliders = this._getSliders();
-        const count = Number(this.parameters.control_count);
+        const configuredCount = Number(this.parameters.control_count);
+        const count = Number.isFinite(configuredCount) ? Math.max(1, Math.trunc(configuredCount)) : 1;
 
         for (let i = 0; i < count; i += 1) {
             this._sendControlValue(value, i);
@@ -193,7 +195,7 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
             }
         }
 
-        if (this.parameters.show_values) {
+        if (this.toBool(this.parameters.show_values)) {
             this._updateValueLabels();
         }
     }
@@ -224,7 +226,7 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
 
         if (!shouldSync) {
             this._sendControlValue(value, index);
-            if (this.parameters.show_values) {
+            if (this.toBool(this.parameters.show_values)) {
                 this._updateValueLabels();
             }
             return;
@@ -237,7 +239,8 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
         super.updateAll();
 
         const container = this.firstChild;
-        const count = Number(this.parameters.control_count);
+        const configuredCount = Number(this.parameters.control_count);
+        const count = Number.isFinite(configuredCount) ? Math.max(1, Math.trunc(configuredCount)) : 1;
 
         while (container.childElementCount > count) {
             container.removeChild(container.lastElementChild);
@@ -270,7 +273,8 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
 
         const minValues = this._getNumericParameterList("min", 0);
         const maxValues = this._getNumericParameterList("max", 1);
-        const step = Number(this.parameters.step);
+        const configuredStep = Number(this.parameters.step);
+        const step = Number.isFinite(configuredStep) && configuredStep > 0 ? configuredStep : 0.01;
 
         sliders.forEach((slider, index) => {
             slider.min = this._getNumericParameterValue(minValues, index);
@@ -288,7 +292,7 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
         });
 
         for (const value of values) {
-            value.style.display = this.parameters.show_values ? "block" : "none";
+            value.style.display = this.toBool(this.parameters.show_values) ? "block" : "none";
         }
 
         this._layoutSliders();
@@ -299,8 +303,16 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
 
         sliders.forEach((slider, index) => {
             slider.oninput = (event) => {
+                if (main.edit_mode) {
+                    return;
+                }
                 this.slider_moved(slider.value, index, event.shiftKey);
             };
+            slider.onchange = () => {
+                this.is_active = false;
+                this.active_until = Date.now() + 500;
+            };
+            slider.onblur = slider.onchange;
 
             const stopWidgetPropagation = (event) => {
                 if (main.edit_mode) {
@@ -336,7 +348,7 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
     }
 
     update() {
-        if (this.parameters.show_values) {
+        if (this.toBool(this.parameters.show_values)) {
             this._updateValueLabels();
         }
         this._syncEnabledState();
@@ -361,14 +373,15 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
                     return;
                 }
 
-                const y = Math.trunc(Number(selectedY));
+                const configuredY = Number(selectedY);
+                const y = Number.isFinite(configuredY) ? Math.max(0, Math.trunc(configuredY)) : 0;
                 let x = this._getBaseSelectX();
 
                 for (const slider of sliders) {
                     slider.value = data[y]?.[x] ?? slider.value;
                     x += 1;
                 }
-                if (this.parameters.show_values) {
+                if (this.toBool(this.parameters.show_values)) {
                     this._updateValueLabels();
                 }
                 return;
@@ -380,7 +393,7 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
                 slider.value = values[x] ?? slider.value;
                 x += 1;
             }
-            if (this.parameters.show_values) {
+            if (this.toBool(this.parameters.show_values)) {
                 this._updateValueLabels();
             }
         }
