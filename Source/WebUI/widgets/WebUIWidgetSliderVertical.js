@@ -89,10 +89,12 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
 
     _syncEnabledState() {
         const enabled = this._isEnabled();
-        this.classList.toggle("widget-control-disabled", !enabled);
+        const interactive = enabled && !main.edit_mode;
+        this.classList.toggle("widget-control-disabled", !interactive);
         for (const slider of this._getSliders()) {
-            slider.disabled = !enabled;
-            slider.closest("div")?.classList.toggle("widget-control-disabled", !enabled);
+            slider.disabled = !interactive;
+            slider.style.pointerEvents = main.edit_mode ? "none" : "";
+            slider.closest("div")?.classList.toggle("widget-control-disabled", !interactive);
         }
     }
 
@@ -316,24 +318,8 @@ class WebUIWidgetSliderVertical extends WebUIWidgetControl {
 
             const stopWidgetPropagation = (event) => {
                 if (main.edit_mode) {
-                    const component = this.parentElement;
-                    const componentName = component?.dataset?.name || component?.id;
-
-                    if (event.type === "mousedown") {
-                        if (componentName) {
-                            selector.selectItems([componentName], null, event.shiftKey);
-                        }
-                    }
-
-                    if (event.detail === 2 && (event.type === "mousedown" || event.type === "click")) {
-                        if (componentName) {
-                            selector.selectItems([componentName], null, event.shiftKey);
-                        }
-                        inspector.toggleComponent();
-                    }
                     this.is_active = false;
                     this.active_until = 0;
-                    event.stopPropagation();
                     return;
                 }
                 this.is_active = false;

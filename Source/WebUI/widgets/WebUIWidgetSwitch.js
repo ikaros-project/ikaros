@@ -44,10 +44,12 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
 
     _syncEnabledState() {
         const enabled = this._isEnabled();
-        this.classList.toggle("widget-control-disabled", !enabled);
+        const interactive = enabled && !main.edit_mode;
+        this.classList.toggle("widget-control-disabled", !interactive);
         for (const input of this.querySelectorAll("input")) {
-            input.disabled = !enabled;
-            input.closest(".switch-row")?.classList.toggle("widget-control-disabled", !enabled);
+            input.disabled = !interactive;
+            input.style.pointerEvents = main.edit_mode ? "none" : "";
+            input.closest(".switch-row")?.classList.toggle("widget-control-disabled", !interactive);
         }
     }
 
@@ -89,16 +91,6 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
 
     _handleRowInput(rowIndex, event) {
         if (main.edit_mode) {
-            const component = this.parentElement;
-            const componentName = component?.dataset?.name || component?.id;
-            if (componentName) {
-                selector.selectItems([componentName], null, event.shiftKey);
-            }
-            if (event.detail === 2 || event.type === "dblclick") {
-                inspector.toggleComponent();
-            }
-            event.preventDefault();
-            event.stopPropagation();
             return;
         }
 
@@ -147,28 +139,13 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
             };
 
             input.onmousedown = (event) => {
-                if (main.edit_mode) {
-                    const component = this.parentElement;
-                    const componentName = component?.dataset?.name || component?.id;
-                    if (componentName) {
-                        selector.selectItems([componentName], null, event.shiftKey);
-                    }
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
+                if (main.edit_mode)
+                    return;
             };
 
             input.ondblclick = (event) => {
-                if (main.edit_mode) {
-                    const component = this.parentElement;
-                    const componentName = component?.dataset?.name || component?.id;
-                    if (componentName) {
-                        selector.selectItems([componentName], null, event.shiftKey);
-                    }
-                    inspector.toggleComponent();
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
+                if (main.edit_mode)
+                    return;
             };
         });
 
