@@ -463,6 +463,23 @@ def run_http_test(cmd, root):
                     raise AssertionError(
                         f"JSON field {field!r} is {actual!r}; expected {expected!r}"
                     )
+            elif action.startswith("assert_step_realtime_alignment:"):
+                _, root_path, tick_duration = action.split(":", 2)
+                tick_duration = float(tick_duration)
+                stepped = json.loads(request(f"step/{root_path}"))
+                realtime = json.loads(request(f"realtime/{root_path}"))
+                if realtime["tick"] != stepped["tick"]:
+                    raise AssertionError(
+                        "Realtime executed a tick during the mode transition: "
+                        f"step tick={stepped['tick']!r}, realtime tick={realtime['tick']!r}"
+                    )
+                maximum_transition_time = stepped["time"] + tick_duration / 2.0
+                if not stepped["time"] <= realtime["time"] < maximum_transition_time:
+                    raise AssertionError(
+                        "Realtime time was not aligned with the completed step: "
+                        f"step time={stepped['time']!r}, realtime time={realtime['time']!r}, "
+                        f"expected below {maximum_transition_time!r}"
+                    )
             elif action.startswith("assert_webui_parameters:"):
                 (
                     _, path, request_interval, snapshot_interval,

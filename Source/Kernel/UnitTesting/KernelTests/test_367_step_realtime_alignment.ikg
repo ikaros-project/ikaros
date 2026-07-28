@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestStepRealtimeAlignment"
+    description="Step-to-realtime transitions keep displayed time aligned with the completed tick"
+    tick_duration="1"
+    webui_port="8367"
+    http_start_delay="0.03"
+    http_requests="assert_step_realtime_alignment:TestStepRealtimeAlignment:1||quit"
+    http_terminate_after_requests="true">
+    <module class="DelaySequenceSource" name="Source" />
+</group>

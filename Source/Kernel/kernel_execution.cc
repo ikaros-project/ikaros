@@ -751,6 +751,8 @@ namespace ikaros
             session_logging_active = true;
         }
 #endif
+        if(tick > 0)
+            timer.SetPauseTime(static_cast<double>(tick) * tick_duration);
         timer.Continue();
         run_mode = run_mode_realtime;
     }
