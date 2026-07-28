@@ -692,6 +692,7 @@ namespace ikaros
                 int successful_exit = 0;
                 process_exit_code.compare_exchange_strong(successful_exit, 1);
             }
+            needs_reload = true;
         }
     }
 

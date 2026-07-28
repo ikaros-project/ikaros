@@ -873,6 +873,11 @@ def run_test(item):
         for text in split_expected_text(root.get("expected_output_once"))
         if combined_output.count(text) != 1
     ]
+    incorrect_twice_output_counts = [
+        (text, combined_output.count(text))
+        for text in split_expected_text(root.get("expected_output_twice"))
+        if combined_output.count(text) != 2
+    ]
     missing_files = [str(path) for path in expected_files if not path.exists()]
     unexpected_files = [
         str(path) for path in absent_files
@@ -903,6 +908,7 @@ def run_test(item):
         and not missing_output
         and not present_unexpected_output
         and not incorrect_output_counts
+        and not incorrect_twice_output_counts
         and not missing_files
         and not unexpected_files
         and not missing_identical_files
@@ -925,6 +931,9 @@ def run_test(item):
         elif incorrect_output_counts:
             text, count = incorrect_output_counts[0]
             detail = f"output count for {text!r} is {count}; expected 1"
+        elif incorrect_twice_output_counts:
+            text, count = incorrect_twice_output_counts[0]
+            detail = f"output count for {text!r} is {count}; expected 2"
         elif missing_files:
             detail = f"missing file: {missing_files[0]}"
         elif unexpected_files:

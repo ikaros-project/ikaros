@@ -135,7 +135,7 @@ The tasks below address the synchronized blinking seen with eight image streams 
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Make WebUI image updates generation-safe, retain the last successfully decoded frame until its replacement is ready, and prevent stale callbacks or timeouts from triggering synchronized blank redraws. | Completed | JavaScript syntax; focused generation dispatch, superseded decode, failed decode, latest-frame swap, and redraw checks; live six-pane `AppleVisionFaceDetector_video_widget_test.ikg` browser stress run with sustained updates and no browser warnings/errors; `git diff --check`. | `Image streams now retain frames during decoding` |
-| 2 | Make Stop followed by Play restart systems containing destructively stopped modules such as `InputVideo`, without changing Pause/Play behavior. | Pending | Focused run-mode lifecycle coverage; `InputVideo` Stop/Play smoke test where practical; Debug build and relevant kernel tests; `git diff --check`. | Pending |
+| 2 | Make Stop followed by Play restart systems containing destructively stopped modules such as `InputVideo`, without changing Pause/Play behavior. | Completed | Focused Stop/Play reload and Pause/Play continuation tests; real `AppleVisionFaceDetector_video_widget_test.ikg` Stop/Play smoke test resumed ticks and returned `Camera.OUTPUT:rgb`; Debug build; all 269 kernel and WebUI tests passed; `git diff --check`. | `Stopped systems now reload before playing` |
 
 ### Constraints
 
@@ -147,7 +147,7 @@ The tasks below address the synchronized blinking seen with eight image streams 
 
 ### Outstanding issues and questions
 
-Pending implementation and verification.
+None.
 
 
 ## WebUI widget parameter standardization
