@@ -9,6 +9,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			{ 'name': 'show_models', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'model_source', 'default': "", 'type': 'source', 'control': 'textedit' },
 			{ 'name': 'show_lines', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'line', 'default': "", 'type': 'string', 'control': 'textedit' },
 			{ 'name': 'line_color', 'default': "blue", 'type': 'string', 'control': 'textedit' },
 			{ 'name': 'line_width', 'default': 1, 'type': 'float', 'control': 'textedit' },
 
@@ -62,6 +63,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	updateAll() 
 	{
 		this._lastViewName = null;
+		this._lastCameraDistance = null;
 		super.updateAll();
 	}
 
@@ -247,7 +249,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		};
 
 		function animate(o, time) {
-			requestAnimationFrame(animate.bind(null, o));
+			o._animationFrame = requestAnimationFrame(animate.bind(null, o));
 			if (o.controls)
 				o.controls.enabled = !main.edit_mode;
 			o.controls.update();
@@ -256,6 +258,25 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		};
 
 		animate(this, 0);
+	}
+
+	disconnectedCallback()
+	{
+		if (this._animationFrame !== undefined)
+			cancelAnimationFrame(this._animationFrame);
+		if (this.controls && typeof this.controls.dispose === "function")
+			this.controls.dispose();
+		if (this.scene)
+			this.scene.traverse((object) => {
+				if (object.geometry)
+					object.geometry.dispose();
+				if (Array.isArray(object.material))
+					object.material.forEach((material) => material.dispose());
+				else if (object.material)
+					object.material.dispose();
+			});
+		if (this.renderer)
+			this.renderer.dispose();
 	}
 
 	IkaorsToThreeBase(m) {
@@ -354,7 +375,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		}
 
 		const viewName = String(this.parameters.view ?? "").trim();
-		const shouldApplyPresetView = this._lastViewName !== viewName;
+		const configuredCameraDistance = Number(this.parameters.camera_distance);
+		const cameraDistance = Number.isFinite(configuredCameraDistance) && configuredCameraDistance > 0 ? configuredCameraDistance : 2.2;
+		const shouldApplyPresetView = this._lastViewName !== viewName || this._lastCameraDistance !== cameraDistance;
 		if (shouldApplyPresetView) {
 			switch (viewName) {
 				case "Top":
@@ -380,13 +403,12 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 					break;
 				default:
 			}
-			const cameraDistance = Number(this.parameters.camera_distance);
-			if(Number.isFinite(cameraDistance) && cameraDistance > 0)
-				this.camera.position.sub(this.cameraTarget).setLength(cameraDistance).add(this.cameraTarget);
+			this.camera.position.sub(this.cameraTarget).setLength(cameraDistance).add(this.cameraTarget);
 			if (this.controls)
 				this.controls.update();
 		}
 		this._lastViewName = viewName;
+		this._lastCameraDistance = cameraDistance;
 		this.FixedView = false;
 	}
 
@@ -395,15 +417,15 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.renderer.setClearColor(this.parameters.scene_background || "#263238");
 		this.updateFrame();
 		const incomingData = this.getSource('source');
-		if (incomingData)
-			this.data = incomingData;
+		this.data = Array.isArray(incomingData) ? incomingData : null;
 		if (!this.data)
 		{
-			this.updateCameraAndView();
-			return;
-		}
-		if (!Array.isArray(this.data))
-		{
+			if (this.particles)
+				this.particles.visible = false;
+			if (this.linesObject)
+				this.linesObject.visible = false;
+			if (this.model_objects)
+				this.model_objects.forEach((model) => { if (model) model.visible = false; });
 			this.updateCameraAndView();
 			return;
 		}
@@ -459,14 +481,18 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		for (var i = 0; i < this.data.length; i++) {
 			if (!Array.isArray(this.data[i]) || this.data[i].length < 16)
 				continue;
+			const matrixValues = this.data[i].slice(0, 16).map(Number);
+			if (!matrixValues.every(Number.isFinite))
+				continue;
 			this.mat.push(new THREE.Matrix4());
 			//this.mat[i].fromArray(this.data[i]) // Not the right order
-			this.mat[i].set(this.data[i][0], this.data[i][1], this.data[i][2], this.data[i][3], this.data[i][4], this.data[i][5], this.data[i][6], this.data[i][7], this.data[i][8], this.data[i][9], this.data[i][10], this.data[i][11], this.data[i][12], this.data[i][13], this.data[i][14], this.data[i][15]);
-			this.mat[i] = this.IkaorsToThreeBase(this.mat[i]);
-			this.mat[i].elements[12] += offsetX;
-			this.mat[i].elements[13] += offsetY;
-			this.mat[i].elements[14] += offsetZ;
-			this.vertices.push(this.mat[i].elements[12], this.mat[i].elements[13], this.mat[i].elements[14])
+			const matrixIndex = this.mat.length - 1;
+			this.mat[matrixIndex].set(...matrixValues);
+			this.mat[matrixIndex] = this.IkaorsToThreeBase(this.mat[matrixIndex]);
+			this.mat[matrixIndex].elements[12] += offsetX;
+			this.mat[matrixIndex].elements[13] += offsetY;
+			this.mat[matrixIndex].elements[14] += offsetZ;
+			this.vertices.push(this.mat[matrixIndex].elements[12], this.mat[matrixIndex].elements[13], this.mat[matrixIndex].elements[14])
 		}
 		this.nrOfModels = this.mat.length
 		//console.log("Formating data done")
@@ -480,7 +506,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			if (this.modelNames.length === 0)
 				this.modelNames = ["head"];
 
-			const modelListKey = this.modelNames.join(",");
+			const modelListKey = `${this.modelNames.join(",")}:${this.nrOfModels}`;
 			if (this.lastmodels != modelListKey) // Remove object if list changed
 			{
 				if (this.model_objects)
@@ -491,7 +517,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			this.lastmodels = modelListKey
 
 			// Load models at first update or change of models array
-			if (!this.models_loaded) {
+			if (!this.models_loaded && this.nrOfModels > 0) {
 				this.widget_loading(true)
 				//console.log('Loading models')
 				this.model_objects = new Array(this.nrOfModels) 
@@ -535,26 +561,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		// Point
 		if (this.toBool(this.parameters.show_points)) {
-			//console.log('Points')
-
 			if (!this.points_loaded) {
 				this.points_loaded = true;
-
-				var colors = [];
-				var color = new THREE.Color();
-
-				sizes = [];
-
 				var geometry = new THREE.BufferGeometry();
-				//console.log("Adding points")
-				for (var i = 0; i < this.vertices.length; i++) {
-					colors.push(0, 0, 0);
-					sizes.push(0)
-				}
-				geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.vertices, 3));
-				geometry.setAttribute('customColor', new THREE.Float32BufferAttribute(colors, 3));
-				geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-
 				var material = new THREE.ShaderMaterial({
 					uniforms: {
 						color: { value: new THREE.Color(0xffffff) },
@@ -569,37 +578,39 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 				this.particles = new THREE.Points(geometry, material);
 				this.scene.add(this.particles);
-
 			}
 
-			else {
-				//console.log('Updated Points')
+			const pointColorKey = String(this.parameters.point_color ?? "").toLowerCase();
+			if (this._cachedPointColorKey !== pointColorKey) {
+				this._cachedPointColorKey = pointColorKey;
+				this._cachedPointColors = parseColorTriplets(this.parameters.point_color, [0, 0, 0]);
+			}
+			const pointSizeKey = String(this.parameters.point_size ?? "");
+			if (this._cachedPointSizeKey !== pointSizeKey) {
+				this._cachedPointSizeKey = pointSizeKey;
+				this._cachedPointSizes = parseList(this.parameters.point_size).map((entry) => parseFloat(entry)).filter((value) => Number.isFinite(value) && value >= 0);
+				if (this._cachedPointSizes.length === 0)
+					this._cachedPointSizes = [0.15];
+			}
 
-				// Calculate point color
-				const pointColorKey = String(this.parameters.point_color ?? "").toLowerCase();
-				if (this._cachedPointColorKey !== pointColorKey) {
-					this._cachedPointColorKey = pointColorKey;
-					this._cachedPointColors = parseColorTriplets(this.parameters.point_color, [0, 0, 0]);
-				}
-				const pointSizeKey = String(this.parameters.point_size ?? "");
-				if (this._cachedPointSizeKey !== pointSizeKey) {
-					this._cachedPointSizeKey = pointSizeKey;
-					this._cachedPointSizes = parseList(this.parameters.point_size).map((entry) => parseFloat(entry)).filter((value) => Number.isFinite(value));
-					if (this._cachedPointSizes.length === 0)
-						this._cachedPointSizes = [0.15];
-				}
+			if (this._pointCount !== this.nrOfModels) {
+				this._pointCount = this.nrOfModels;
+				this.particles.geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(this.nrOfModels * 3), 3));
+				this.particles.geometry.setAttribute('customColor', new THREE.Float32BufferAttribute(new Float32Array(this.nrOfModels * 3), 3));
+				this.particles.geometry.setAttribute('size', new THREE.Float32BufferAttribute(new Float32Array(this.nrOfModels), 1));
+			}
 
-				var positions = this.particles.geometry.attributes.position.array;
-				var colors = this.particles.geometry.attributes.customColor.array;
-				var sizes = this.particles.geometry.attributes.size.array;
+			var positions = this.particles.geometry.attributes.position.array;
+			var colors = this.particles.geometry.attributes.customColor.array;
+			var sizes = this.particles.geometry.attributes.size.array;
 
 				// Update position from an array 16xi
 				var cIndex = 0;
 				var pIndex = 0
-				for (var i = 0; i < this.vertices.length; i++)
-					positions[i] = this.vertices[i]
+			for (var i = 0; i < this.vertices.length; i++)
+				positions[i] = this.vertices[i]
 
-				for (var i = 0; i < this.nrOfModels; i++) {
+			for (var i = 0; i < this.nrOfModels; i++) {
 					// positions[i * 3 + 0] = this.mat[i].elements[12]
 					// positions[i * 3 + 1] = this.mat[i].elements[13]
 					// positions[i * 3 + 2] = this.mat[i].elements[14]
@@ -616,11 +627,10 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 						pIndex = 0;
 					sizes[i] = this._cachedPointSizes[pIndex]
 					pIndex++;
-				}
-				this.particles.geometry.attributes.position.needsUpdate = true;
-				this.particles.geometry.attributes.customColor.needsUpdate = true;
-				this.particles.geometry.attributes.size.needsUpdate = true;
 			}
+			this.particles.geometry.attributes.position.needsUpdate = true;
+			this.particles.geometry.attributes.customColor.needsUpdate = true;
+			this.particles.geometry.attributes.size.needsUpdate = true;
 			if (this.particles)
 				this.particles.visible = true;
 		}
