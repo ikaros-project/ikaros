@@ -6,8 +6,7 @@ const controller =
     session_id: 0,
     client_id: Date.now(),
     files: {},
-    load_count: 0,
-    load_count_timeout: null,
+    image_update_generation: 0,
     g_data: null,
     send_stamp: 0,
     tick_duration: 0,
@@ -746,26 +745,10 @@ const controller =
         controller.sendRunModeCommand("realtime");
     },
 
-    clear_wait()
-    {
-        controller.load_count = 0;
-    },
-
-    wait_for_load(data)
-    {
-        if(controller.load_count > 0)
-            setTimeout(controller.wait_for_load, 1);
-        else
-        {
-            clearTimeout(controller.load_count_timeout);
-            controller.updateWidgets(controller.g_data);
-        }
-    },
-    
     updateImages(data)
     {
-        controller.load_count = 0;
         controller.g_data = data;
+        const generation = ++controller.image_update_generation;
 
         try
         {
@@ -774,11 +757,9 @@ const controller =
             {
                 const widgetElement = main.getFrameWidget(w[i]);
                 if(widgetElement && widgetElement.loadData)
-                    controller.load_count += widgetElement.loadData(data);
+                    widgetElement.loadData(data, generation);
             }
-     
-            controller.load_count_timeout = setTimeout(controller.clear_wait, 200);
-            setTimeout(controller.wait_for_load, 1);
+            controller.updateWidgets(data);
         }
         catch(err)
         {

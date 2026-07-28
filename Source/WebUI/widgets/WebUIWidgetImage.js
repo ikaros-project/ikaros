@@ -68,57 +68,80 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         this.canvas.canvas.style.opacity = Number.isFinite(configuredOpacity) ? Math.max(0, Math.min(1, configuredOpacity)) : 1;
         
         this.oversampling = 1; //(this.parameters.file ? 4 : 1);
-        this.imageObj = new Image();
+        if(!this.imageObj)
+            this.imageObj = new Image();
         this.imageCount = 0;
         if(this.parameters.file) //  && this.parameters.file.indexOf(",")!=-1
         {
-            this.imageObjects = [];
             let img_names = String(this.parameters.file ?? "").split(',').map((name) => name.trim()).filter((name) => name !== "");
             this.imageCount = img_names.length;
-            let i = 0;
-            for(let img_name of img_names)
+            const imageKey = img_names.join(',');
+            if(this.static_image_key !== imageKey)
             {
-                this.imageObjects[i] = new Image();
-                this.imageObjects[i].onload = () => this.update();
-                this.imageObjects[i].src = "/"+img_name;
-                i++;
+                this.static_image_key = imageKey;
+                this.imageObjects = [];
+                let i = 0;
+                for(let img_name of img_names)
+                {
+                    this.imageObjects[i] = new Image();
+                    this.imageObjects[i].onload = () => this.update();
+                    this.imageObjects[i].src = "/"+img_name;
+                    i++;
+                }
             }
         }
         else
         {
+            this.static_image_key = null;
             this.canvas.fillStyle="black";
             this.canvas.fillRect(0, 0, this.width, this.height);
         }
         super.updateFrame();
+        if((this.imageCount && this.imageObjects?.some((image) => image.complete && image.naturalWidth > 0)) ||
+           (!this.imageCount && this.imageObj.complete && this.imageObj.naturalWidth > 0))
+            this.update();
     }
 
-    loadData(data)
+    loadData(data, generation)
     {
-        if(this.parameters.source)
-        {
-            let d = data[this.resolveControlPath(this.parameters.source)+":"+this.parameters.format];
-            if(!d)
-                return 0;
-            const image = this.imageObj;
-            const loadToken = (this.image_load_token || 0) + 1;
-            this.image_load_token = loadToken;
-            let completed = false;
-            const finishLoad = () =>
-            {
-                if(completed || this.image_load_token !== loadToken)
-                    return;
-                completed = true;
-                controller.load_count--;
-            };
-            image.onload = finishLoad;
-            image.onerror = finishLoad;
-            if(image.src === d && image.complete)
-                return 0;
-            image.src = d;
-            return 1;
-        }
+        if(!this.parameters.source)
+            return;
 
-        return 0;
+        const source = data[this.resolveControlPath(this.parameters.source)+":"+this.parameters.format];
+        if(!source)
+            return;
+        if(this.imageObj.src === source && this.imageObj.complete && this.imageObj.naturalWidth > 0)
+            return;
+
+        if(this.cancel_pending_image)
+            this.cancel_pending_image();
+
+        const image = new Image();
+        const loadToken = (this.image_load_token || 0) + 1;
+        this.image_load_token = loadToken;
+        this.pending_image_generation = generation;
+
+        let completed = false;
+        const finishLoad = (loaded) =>
+        {
+            if(completed)
+                return;
+            completed = true;
+            if(this.cancel_pending_image === cancelLoad)
+                this.cancel_pending_image = null;
+            image.onload = null;
+            image.onerror = null;
+            if(!loaded || this.image_load_token !== loadToken || this.pending_image_generation !== generation)
+                return;
+            this.imageObj = image;
+            this.receivedData = data;
+            this.update(data);
+        };
+        const cancelLoad = () => finishLoad(false);
+        this.cancel_pending_image = cancelLoad;
+        image.onload = () => finishLoad(true);
+        image.onerror = () => finishLoad(false);
+        image.src = source;
     }
 
     drawPlotHorizontal(width, height)   // Draw actual image in a coordinate system

@@ -128,6 +128,27 @@ The tasks below will be completed sequentially, with one focused commit per task
 
 None.
 
+## BrainStudio multi-stream image stability
+
+The tasks below address the synchronized blinking seen with eight image streams in split panes and the separate inability of `InputVideo` to resume after Stop followed by Play. They will be completed sequentially and committed independently.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Make WebUI image updates generation-safe, retain the last successfully decoded frame until its replacement is ready, and prevent stale callbacks or timeouts from triggering synchronized blank redraws. | Completed | JavaScript syntax; focused generation dispatch, superseded decode, failed decode, latest-frame swap, and redraw checks; live six-pane `AppleVisionFaceDetector_video_widget_test.ikg` browser stress run with sustained updates and no browser warnings/errors; `git diff --check`. | `Image streams now retain frames during decoding` |
+| 2 | Make Stop followed by Play restart systems containing destructively stopped modules such as `InputVideo`, without changing Pause/Play behavior. | Pending | Focused run-mode lifecycle coverage; `InputVideo` Stop/Play smoke test where practical; Debug build and relevant kernel tests; `git diff --check`. | Pending |
+
+### Constraints
+
+- Preserve the last valid image under decode or encoder pressure; overload may drop frames but must not blank the view.
+- Keep image-update work generation-scoped and avoid polling loops or per-refresh timer accumulation.
+- Keep the WebUI image fix independent from the kernel/module lifecycle fix.
+- Preserve Pause/Play as a non-destructive continuation path.
+- Complete, verify, and commit task 1 before starting task 2.
+
+### Outstanding issues and questions
+
+Pending implementation and verification.
+
 
 ## WebUI widget parameter standardization
 
