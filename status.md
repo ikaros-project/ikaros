@@ -1,5 +1,55 @@
 # Kernel Review Status
 
+## WebUI widget bug review
+
+Each widget implementation will be reviewed sequentially for concrete defects. Straightforward, narrowly scoped fixes will be implemented and verified as part of that widget's task. Framework-only base classes are included in the review but remain unavailable in the widget selector. Each task will be committed independently before the next begins.
+
+| # | Widget or framework class | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | `WebUIWidget` framework base | Completed | JavaScript syntax; focused source, metadata, indexed CSS, Boolean, and zero-color behavior check; `git diff --check`. | `WebUIWidget base values are now handled safely` |
+| 2 | `WebUIWidgetControl` framework base | Pending | — | — |
+| 3 | `WebUIWidgetCanvas` framework base | Pending | — | — |
+| 4 | `WebUIWidgetGraph` framework base | Pending | — | — |
+| 5 | Image | Pending | — | — |
+| 6 | Target Boxes | Pending | — | — |
+| 7 | Bar Graph | Pending | — | — |
+| 8 | Histogram | Pending | — | — |
+| 9 | Box Plot | Pending | — | — |
+| 10 | Scatter Plot | Pending | — | — |
+| 11 | Plot | Pending | — | — |
+| 12 | Path | Pending | — | — |
+| 13 | Marker | Pending | — | — |
+| 14 | World 2D View | Pending | — | — |
+| 15 | World 3D View | Pending | — | — |
+| 16 | Grid | Pending | — | — |
+| 17 | Text | Pending | — | — |
+| 18 | Rectangle | Pending | — | — |
+| 19 | Table | Pending | — | — |
+| 20 | Button | Pending | — | — |
+| 21 | Joystick | Pending | — | — |
+| 22 | Switch | Pending | — | — |
+| 23 | Horizontal Slider | Pending | — | — |
+| 24 | Vertical Slider | Pending | — | — |
+| 25 | Color Picker | Pending | — | — |
+| 26 | Drop-down Menu | Pending | — | — |
+| 27 | Canvas 3D | Pending | — | — |
+| 28 | Key Points | Pending | — | — |
+| 29 | Sequence Grid | Pending | — | — |
+| 30 | Epi Head | Pending | — | — |
+
+### Review constraints
+
+- Review tasks in the listed order with only one task in progress at a time.
+- Include framework-only base classes in the review without making them selectable.
+- Implement only straightforward, narrowly scoped bug fixes discovered during each review.
+- Record architectural improvements, ambiguous behavior, and nontrivial changes as outstanding issues instead of implementing them implicitly.
+- Preserve the standardized public parameter names and `yes`/`no` Boolean values unless correcting an unambiguous defect.
+- Verify and commit every task independently, including its `status.md` update.
+
+### Outstanding issues and questions
+
+- To be completed after all widget reviews.
+
 ## WebUI image encoding follow-ups
 
 The tasks below will be completed sequentially, with one focused commit per task.

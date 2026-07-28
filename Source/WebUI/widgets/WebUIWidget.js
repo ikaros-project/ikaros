@@ -104,7 +104,7 @@ class WebUIWidget extends HTMLElement
             return parseFloat(x);
         
         if(t == 'bool')
-            return ['on','yes','true'].includes(x.toString().toLowerCase());
+            return x !== undefined && x !== null && ['on','yes','true','1'].includes(x.toString().toLowerCase());
         
         return x;
     }
@@ -195,7 +195,7 @@ class WebUIWidget extends HTMLElement
             //if(v != undefined && typeof v[0] != "object") // FIXME: Temporary fix for arrays
              //   v = [v];
 
-            if(v)
+            if(v !== undefined && v !== null)
                 return v;
             else
                 return default_data;
@@ -214,7 +214,7 @@ class WebUIWidget extends HTMLElement
                 return default_data;
 
             let v = this.receivedData[`${resolvedSource}:metadata`];
-            return v ? v : default_data;
+            return v !== undefined && v !== null ? v : default_data;
         }
         catch(err)
         {
@@ -260,7 +260,7 @@ class WebUIWidget extends HTMLElement
         try
         {
             let v = getComputedStyle(this).getPropertyValue(attribute);
-            if(index)
+            if(index !== undefined)
                 return v.split(",")[index].trim();
             else
                 return v.trim();
@@ -287,7 +287,7 @@ class WebUIWidget extends HTMLElement
     {
         try
         {
-            if(index)
+            if(index !== undefined)
                 return parseInt(this.getProp(attribute).split(",")[index]);
             else
                 return parseInt(this.getProp(attribute));
@@ -302,7 +302,7 @@ class WebUIWidget extends HTMLElement
     {
         try
         {
-            if(index)
+            if(index !== undefined)
                 return parseFloat(this.getProp(attribute).split(",")[index]);
             else
                 return parseFloat(this.getProp(attribute));
@@ -315,14 +315,14 @@ class WebUIWidget extends HTMLElement
 
     toBool(x)
     {
-        return ['on','yes','true','1'].includes(x.toString().toLowerCase());
+        return x !== undefined && x !== null && ['on','yes','true','1'].includes(x.toString().toLowerCase());
     }
 
     getBool(attribute, index)
     {
         try
         {
-            if(index)
+            if(index !== undefined)
                 return ['yes','true','on','1'].includes(this.getProp(attribute).split(",")[index].toLowerCase());
             else
                 return ['yes','true','on','1'].includes(this.getProp(attribute).toLowerCase());
@@ -350,8 +350,8 @@ class WebUIWidget extends HTMLElement
         let v = null;
         if(variable in this.parameters && this.parameters[variable] != "")  // use style if parameter has no value (or no default)
         {
-            if(index)
-                v = this.parameters[variable].split(",")[index].toLowerCase()
+            if(index !== undefined)
+                v = String(this.parameters[variable]).split(",")[index].toLowerCase()
             else
                 v = this.parameters[variable];
             v = this.setType(v, type);
@@ -444,7 +444,7 @@ class WebUIWidget extends HTMLElement
     {
         try
         {
-            if(v && v>=0 && this.format.positiveColor)
+            if(v !== undefined && v !== null && v >= 0 && this.format.positiveColor)
             {
                 let l = this.format.positiveColor.split(",");
                 let n = l.length;
@@ -560,8 +560,7 @@ class WebUIWidget extends HTMLElement
         let fw = this.parameters.frame_width;
         this.parentElement.style.borderWidth = fw ? fw + "px" : "";
         this.parentElement.style.background = this.parameters.background;
-        this.parentElement.className = this.parentElement.className.replace(/visible/,'');
-        this.parentElement.className += this.toBool(this.parameters.show_frame) ? ' visible' : '';
+        this.parentElement.classList.toggle('visible', this.toBool(this.parameters.show_frame));
         const titleContainer = this.parentElement.firstChild;
         titleContainer.style.display = this.toBool(this.parameters.show_title) ? 'block' : 'none';
 
