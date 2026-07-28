@@ -54,16 +54,14 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
     getSelectX()
     {
-        if(this.parameters.select_x !== undefined && this.parameters.select_x !== "")
-            return Number(this.parameters.select_x);
-        return 0;
+        const value = Number(this.parameters.select_x);
+        return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
     }
 
     getSelectY()
     {
-        if(this.parameters.select_y !== undefined && this.parameters.select_y !== "")
-            return Math.trunc(Number(this.parameters.select_y));
-        return 0;
+        const value = Number(this.parameters.select_y);
+        return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
     }
 
     getButtonBackground()
@@ -104,9 +102,9 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
     button_down(evt)
     {
-        console.log("button down");
-        if(!main.edit_mode)
-            evt.stopPropagation();
+        if(main.edit_mode)
+            return;
+        evt.stopPropagation();
         let thisbutton = this;
         let p = this.parentElement.parameters;
         const selectX = this.parentElement.getSelectX();
@@ -171,7 +169,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
                 let buttons = document.getElementsByTagName("webui-widget-button");
                 for(let b of buttons)
                 {
-                    if(b.parameters.multi_group == p.multi_group)
+                    if(b.parameters.multi_group == p.multi_group && b.parameters.type !== "multi")
                         if(b.firstElementChild!=this)
                         {
                             b.firstElementChild.dispatchEvent(new Event('mousedown'));
@@ -200,7 +198,6 @@ class WebUIWidgetButton extends WebUIWidgetControl
 
     button_up(evt)
     {
-        console.log("button up");
         evt.stopPropagation();
         if(main.edit_mode)
             return;
@@ -267,9 +264,12 @@ class WebUIWidgetButton extends WebUIWidgetControl
         super.init();
         this.firstChild.addEventListener("mousedown", this.button_down, true);
         this.firstChild.addEventListener("mouseup", this.button_up, true);
-        this.firstChild.addEventListener("mouseleave", () => this.setPressed(false), true);
+        this.firstChild.addEventListener("mouseleave", (evt) =>
+        {
+            if(this.isPressed())
+                this.button_up.call(this.firstChild, evt);
+        }, true);
         this.firstChild.addEventListener('click', e => {
-            console.log("button click");
             if(main.edit_mode)
                 return; 
             e.stopPropagation();
@@ -281,8 +281,7 @@ class WebUIWidgetButton extends WebUIWidgetControl
         this.parameters.select_x = this.getSelectX();
         this.parameters.select_y = this.getSelectY();
 
-        if(this.parameters.text_color)
-            this.firstChild.style.color = this.parameters.text_color;
+        this.firstChild.style.color = this.parameters.text_color || "";
 
         this.firstChild.title = this.parameters.tooltip || "";
 
@@ -291,52 +290,43 @@ class WebUIWidgetButton extends WebUIWidgetControl
         if(this.usesLegacyButtonBackground())
             this.parentElement.style.background = "";
 
-        if(this.parameters.file_names_source)
-            this.firstChild.file_names_source = this.getSource("file_names_source");
+        this.firstChild.file_names_source = this.parameters.file_names_source ? this.getSource("file_names_source") : "";
         if(this.parameters.icon)
         {
             const iconClass = String(this.parameters.icon).endsWith("record.png") ? "button-icon button-icon-preserve-color" : "button-icon";
-            const icon = document.createElement("img");
-            icon.src = this.parameters.icon;
+            let icon = this.firstChild.firstElementChild;
+            if(!icon || icon.tagName !== "IMG")
+            {
+                icon = document.createElement("img");
+                this.firstChild.replaceChildren(icon);
+            }
+            if(icon.getAttribute("src") !== String(this.parameters.icon))
+                icon.src = this.parameters.icon;
             icon.className = iconClass;
-            this.firstChild.replaceChildren(icon);
         }
         else
             this.firstChild.innerText = this.parameters.label;
 
-        try
+        if(this.parameters.enabled_source)
         {
-            if(this.parameters.enabled_source)
+            const enabledSource = this.getSource('enabled_source');
+            const enableValue = Array.isArray(enabledSource) ? (Array.isArray(enabledSource[0]) ? enabledSource[0][0] : enabledSource[0]) : enabledSource;
+            this.firstChild.disabled = Number(enableValue) === 0;
+        }
+        else
+            this.firstChild.disabled = false;
+
+        if(this.parameters.parameter)
+        {
+            const parameterSource = this.getSource('parameter');
+            let sourceValue = parameterSource;
+            if(Array.isArray(parameterSource))
             {
-                const enabled_source = this.getSource('enabled_source');
-                const enableValue = Array.isArray(enabled_source) ? (Array.isArray(enabled_source[0]) ? enabled_source[0][0] : enabled_source[0]) : enabled_source;
-                this.firstChild.disabled = (enableValue == 0 ? true : false);
+                const matrix = Array.isArray(parameterSource[0]) ? parameterSource : [parameterSource];
+                sourceValue = matrix[this.getSelectY()]?.[this.getSelectX()];
             }
+            this.setSelected(sourceValue == this.parameters.value);
         }
-        catch(err)
-        {}
-        try {
-                if(this.parameters.parameter)
-                {
-                    let value = this.parameters.value;                   
-                    const parameterSource = this.getSource('parameter');
-                    if(!Array.isArray(parameterSource))
-                        return;
-                    const matrix = Array.isArray(parameterSource[0]) ? parameterSource : [parameterSource];
-                    if(!Array.isArray(matrix[this.parameters.select_y]))
-                        return;
-                    let v = matrix[this.parameters.select_y][this.parameters.select_x]
-
-                    if(v == value)
-
-                        this.setSelected(true)
-                    else
-                        this.setSelected(false)
-                }
-
-        }
-        catch(err)
-        {}
     }
 
 }
