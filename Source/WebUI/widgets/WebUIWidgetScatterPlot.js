@@ -254,8 +254,8 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         const rawYMin = yValues.length ? Math.min(...yValues) : 0;
         const rawYMax = yValues.length ? Math.max(...yValues) : 1;
 
-        this.xRange = this.validRange(this.roundDownToSignificantFigure(rawXMin), this.roundUpToSignificantFigure(rawXMax || 1), 0, 1);
-        this.yRange = this.validRange(this.roundDownToSignificantFigure(rawYMin), this.roundUpToSignificantFigure(rawYMax || 1), 0, 1);
+        this.xRange = this.validRange(this.roundDownToSignificantFigure(rawXMin), this.roundUpToSignificantFigure(rawXMax), 0, 1);
+        this.yRange = this.validRange(this.roundDownToSignificantFigure(rawYMin), this.roundUpToSignificantFigure(rawYMax), 0, 1);
     }
 
     validRange(min, max, fallbackMin, fallbackMax)
@@ -286,7 +286,8 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
 
     formatValue(value)
     {
-        const decimals = parseInt(this.parameters.decimals) || 0;
+        const configuredDecimals = Number(this.parameters.decimals);
+        const decimals = Number.isFinite(configuredDecimals) ? Math.max(0, Math.min(20, Math.trunc(configuredDecimals))) : 0;
         if(!Number.isFinite(value))
             return "";
         return value.toFixed(decimals).replace(/\.?0+$/, "");
@@ -298,8 +299,8 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         const top = parseFloat(this.parameters.margin_top || 0) + parseFloat(this.parameters.space_top || 0);
         const right = parseFloat(this.parameters.margin_right || 0) + parseFloat(this.parameters.space_right || 0);
         const bottom = parseFloat(this.parameters.margin_bottom || 0) + parseFloat(this.parameters.space_bottom || 0);
-        const width = Math.max(1, this.format.width - left - right);
-        const height = Math.max(1, this.format.height - top - bottom);
+        const width = Math.max(1, this.width - left - right);
+        const height = Math.max(1, this.height - top - bottom);
         return {left, top, width, height};
     }
 
@@ -318,7 +319,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         const horizontal = parseInt(this.parameters.horizontal_grid_lines) || 0;
         for(let i=0; i<horizontal; i++)
         {
-            const y = horizontal <= 1 ? 0 : i * rect.height / (horizontal - 1);
+            const y = this.tickFraction(i, horizontal) * rect.height;
             this.canvas.beginPath();
             this.canvas.moveTo(0, y);
             this.canvas.lineTo(rect.width, y);
@@ -328,7 +329,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         const vertical = parseInt(this.parameters.vertical_grid_lines) || 0;
         for(let i=0; i<vertical; i++)
         {
-            const x = vertical <= 1 ? 0 : i * rect.width / (vertical - 1);
+            const x = this.tickFraction(i, vertical) * rect.width;
             this.canvas.beginPath();
             this.canvas.moveTo(x, 0);
             this.canvas.lineTo(x, rect.height);
@@ -370,8 +371,9 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
             this.canvas.textBaseline = "middle";
             for(let i=0; i<left_scale_ticks; i++)
             {
-                const value = this.yRange.min + (left_scale_ticks - 1 - i) * (this.yRange.max - this.yRange.min) / Math.max(1, left_scale_ticks - 1);
-                const y = i * rect.height / Math.max(1, left_scale_ticks - 1);
+                const fraction = this.tickFraction(i, left_scale_ticks);
+                const value = this.yRange.max - fraction * (this.yRange.max - this.yRange.min);
+                const y = fraction * rect.height;
                 this.canvas.fillText(this.formatValue(value), -8, y);
             }
         }
@@ -383,8 +385,9 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
             this.canvas.textBaseline = "top";
             for(let i=0; i<bottom_scale_ticks; i++)
             {
-                const value = this.xRange.min + i * (this.xRange.max - this.xRange.min) / Math.max(1, bottom_scale_ticks - 1);
-                const x = i * rect.width / Math.max(1, bottom_scale_ticks - 1);
+                const fraction = this.tickFraction(i, bottom_scale_ticks);
+                const value = this.xRange.min + fraction * (this.xRange.max - this.xRange.min);
+                const x = fraction * rect.width;
                 this.canvas.fillText(this.formatValue(value), x, rect.height + 8);
             }
         }
@@ -394,7 +397,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         {
             for(let i=0; i<leftTicks; i++)
             {
-                const y = i * rect.height / Math.max(1, leftTicks - 1);
+                const y = this.tickFraction(i, leftTicks) * rect.height;
                 this.canvas.beginPath();
                 this.canvas.moveTo(0, y);
                 this.canvas.lineTo(-5, y);
@@ -407,7 +410,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         {
             for(let i=0; i<bottomTicks; i++)
             {
-                const x = i * rect.width / Math.max(1, bottomTicks - 1);
+                const x = this.tickFraction(i, bottomTicks) * rect.width;
                 this.canvas.beginPath();
                 this.canvas.moveTo(x, rect.height);
                 this.canvas.lineTo(x, rect.height + 5);
@@ -453,6 +456,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
 
         this.canvas.save();
         this.canvas.translate(rect.left, rect.top);
+        this.canvas.lineWidth = Math.max(1, parseFloat(this.parameters.line_width) || 1);
         for(let channel=0; channel<channelCount; channel++)
         {
             this.setSeriesColor(channel);
@@ -552,13 +556,13 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         this.metadata = this.getSourceMetadata('y_source', null);
         this.inferOrientation();
 
+        this.resetCanvasTransform(-0.5, -0.5);
+        this.canvas.clearRect(0, 0, this.width, this.height);
         if(this.getChannelCount() === 0)
             return;
 
         this.computeRanges();
 
-        this.resetCanvasTransform(-0.5, -0.5);
-        this.canvas.clearRect(0, 0, this.width, this.height);
         const rect = this.getPlotRect();
 
         this.drawGrid(rect);

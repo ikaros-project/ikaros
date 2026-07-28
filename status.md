@@ -15,7 +15,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 7 | Bar Graph | Completed | JavaScript syntax; focused negative auto-range, missing-source clearing, and line-cap option check; `git diff --check`. | `Bar Graph now handles negative and missing data correctly` |
 | 8 | Histogram | Completed | JavaScript syntax; focused negative auto-range, missing-source clearing, single-tick centering, and line-cap review; `git diff --check`. | `Histogram ranges and axes now handle edge cases` |
 | 9 | Box Plot | Completed | JavaScript syntax; focused negative auto-range and missing-source clearing check; narrow-slot and line-width review; `git diff --check`. | `Box Plot now handles ranges and narrow layouts safely` |
-| 10 | Scatter Plot | Pending | — | — |
+| 10 | Scatter Plot | Completed | JavaScript syntax; focused negative range, plot-margin, single-tick, and precision checks; absent-data clearing review; `git diff --check`. | `Scatter Plot ranges and layout now handle edge cases` |
 | 11 | Plot | Pending | — | — |
 | 12 | Path | Pending | — | — |
 | 13 | Marker | Pending | — | — |
