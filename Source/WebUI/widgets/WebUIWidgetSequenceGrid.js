@@ -112,7 +112,7 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
     {
         const names = this.getSource("sequence_names_source", "");
         if(Array.isArray(names))
-            return this.asFlatArray(names).map((name) => String(name));
+            return this.asFlatArray(names).map((name) => String(name ?? "").trim()).filter((name) => name !== "");
         return String(names)
             .split(",")
             .map((name) => name.trim())
@@ -138,6 +138,8 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
     rgbToCss(row)
     {
         if(!Array.isArray(row) || row.length < 3)
+            return "";
+        if(!row.slice(0, 3).map(Number).every(Number.isFinite))
             return "";
         const r = this.colorComponentToByte(row[0]);
         const g = this.colorComponentToByte(row[1]);
@@ -206,6 +208,8 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
         {
             if(event.button !== undefined && event.button != 0)
                 return;
+            if(main.edit_mode)
+                return;
             event.preventDefault();
             event.stopPropagation();
             this.triggerSequence(index);
@@ -259,7 +263,9 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
 
         this.gridElement.style.gridTemplateColumns = `repeat(${columns}, minmax(0, 1fr))`;
         this.gridElement.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
-        this.gridElement.style.gap = `${Math.max(0, Number(this.parameters.cell_gap) || 0)}px`;
+        const configuredGap = Number(this.parameters.cell_gap);
+        const cellGap = Number.isFinite(configuredGap) ? Math.max(0, configuredGap) : 0;
+        this.gridElement.style.gap = `${cellGap}px`;
         this.gridElement.style.setProperty("--sequence-grid-playing", this.parameters.playing_color || "#67c1ff");
 
         const signature = JSON.stringify({names, sequence_count, columns, rows});

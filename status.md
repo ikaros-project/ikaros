@@ -34,7 +34,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 26 | Drop-down Menu | Completed | JavaScript syntax; focused numeric zero, missing-source clearing, and indexed string selection checks; option caching and label-width review; `git diff --check`. | `Drop-down Menu options and values now stay synchronized` |
 | 27 | Canvas 3D | Completed | JavaScript syntax; focused camera-distance update and line-parameter checks; point-buffer resizing/first-frame, missing-data clearing, invalid-matrix, model-count, and resource-lifecycle review; `git diff --check`. | `Canvas 3D data and resources now update reliably` |
 | 28 | Key Points | Completed | JavaScript syntax; focused zero-range and invalid-sequence cache checks; parameter-only redraw, mark-line stroke, scalar position/target, and drag-listener lifecycle review; `git diff --check`. | `Key Points drawing now handles incomplete data safely` |
-| 29 | Sequence Grid | Pending | — | — |
+| 29 | Sequence Grid | Completed | JavaScript syntax; focused array-name normalization and valid/invalid RGB checks; edit-mode event propagation and gap validation review; `git diff --check`. | `Sequence Grid cells now handle edit mode and malformed data safely` |
 | 30 | Epi Head | Pending | — | — |
 
 ### Review constraints
