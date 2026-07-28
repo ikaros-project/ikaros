@@ -470,16 +470,32 @@ def run_http_test(cmd, root):
                 realtime = json.loads(request(f"realtime/{root_path}"))
                 if realtime["tick"] != stepped["tick"]:
                     raise AssertionError(
-                        "Realtime executed a tick during the mode transition: "
+                        "Realtime advanced during the mode transition: "
                         f"step tick={stepped['tick']!r}, realtime tick={realtime['tick']!r}"
                     )
-                maximum_transition_time = stepped["time"] + tick_duration / 2.0
-                if not stepped["time"] <= realtime["time"] < maximum_transition_time:
+                nominal_realtime_time = realtime["tick"] * tick_duration
+                if not nominal_realtime_time <= realtime["time"] < nominal_realtime_time + tick_duration / 2.0:
                     raise AssertionError(
-                        "Realtime time was not aligned with the completed step: "
+                        "Realtime time was not aligned with its displayed tick: "
                         f"step time={stepped['time']!r}, realtime time={realtime['time']!r}, "
-                        f"expected below {maximum_transition_time!r}"
+                        f"realtime tick={realtime['tick']!r}"
                     )
+                deadline = time.monotonic() + tick_duration * 1.75
+                observed_ticks = []
+                while time.monotonic() < deadline:
+                    after_boundary = json.loads(request(f"update/{root_path}"))
+                    observed_ticks.append(after_boundary["tick"])
+                    if after_boundary["tick"] == stepped["tick"] + 1:
+                        break
+                    if after_boundary["tick"] > stepped["tick"] + 1:
+                        break
+                    time.sleep(0.05)
+                if stepped["tick"] + 1 not in observed_ticks:
+                    raise AssertionError(
+                        "Realtime snapshot did not publish exactly one tick at the next boundary: "
+                        f"step tick={stepped['tick']!r}, observed ticks={observed_ticks!r}"
+                    )
+                request(f"pause/{root_path}")
             elif action.startswith("assert_webui_parameters:"):
                 (
                     _, path, request_interval, snapshot_interval,

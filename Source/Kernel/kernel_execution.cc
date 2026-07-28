@@ -414,8 +414,23 @@ namespace ikaros
     void
     Kernel::WaitForRealtimeTick()
     {
-        const double target_time = double(tick + 1) * tick_duration;
-        lag = timer.WaitUntil(target_time);
+        double target_time = double(tick + 1) * tick_duration;
+        while(true)
+        {
+            if(run_mode.load() != run_mode_realtime)
+            {
+                lag = 0;
+                return;
+            }
+
+            const double remaining = target_time - timer.GetTime();
+            if(remaining <= 0)
+            {
+                lag = -remaining;
+                break;
+            }
+            Sleep(std::min(remaining, 0.01));
+        }
 
         const bool catch_up =
             !info_.contains("real_time_catch_up") || info_.is_set("real_time_catch_up");
@@ -518,7 +533,12 @@ namespace ikaros
                     {
                         std::lock_guard<std::recursive_mutex> lock(kernelLock);
                         if(Tick() && socket != nullptr)
-                            BuildUISnapshot(true);
+                        {
+                            const bool force_snapshot =
+                                run_mode.load() == run_mode_realtime &&
+                                force_next_realtime_snapshot.exchange(false);
+                            BuildUISnapshot(!force_snapshot);
+                        }
                     }
                     catch(const exception & e)
                     {
@@ -754,6 +774,7 @@ namespace ikaros
         if(tick > 0)
             timer.SetPauseTime(static_cast<double>(tick) * tick_duration);
         timer.Continue();
+        force_next_realtime_snapshot = true;
         run_mode = run_mode_realtime;
     }
 

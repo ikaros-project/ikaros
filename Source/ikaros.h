@@ -97,6 +97,7 @@ private:
     std::recursive_mutex                    kernelLock;  
     std::atomic<bool>                       shutdown;
     std::atomic<int>                        run_mode;
+    std::atomic<bool>                       force_next_realtime_snapshot = false;
     std::atomic<bool>                       notify_stop_requested = false;
     std::atomic<int>                        process_exit_code = 0;
 

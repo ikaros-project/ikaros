@@ -1,6 +1,6 @@
 <group internal="true"
     name="TestStepRealtimeAlignment"
-    description="Step-to-realtime transitions keep displayed time aligned with the completed tick"
+    description="Step-to-realtime transitions preserve the current tick until the next realtime boundary"
     tick_duration="1"
     webui_port="8367"
     http_start_delay="0.03"
