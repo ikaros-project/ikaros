@@ -259,7 +259,10 @@ class WebUIWidgetTable extends WebUIWidget {
         if (!this.sliceControls)
             return;
         for (const select of this.sliceControls.querySelectorAll("select"))
+        {
             select.disabled = main.edit_mode;
+            select.style.pointerEvents = main.edit_mode ? "none" : "";
+        }
     }
     updateAll() {
         this.updateFrame();

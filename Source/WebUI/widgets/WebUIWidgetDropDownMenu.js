@@ -49,7 +49,10 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
         const interactive = enabled && !main.edit_mode;
         this.classList.toggle("widget-control-disabled", !interactive);
         if(selector)
+        {
             selector.disabled = !interactive;
+            selector.style.pointerEvents = main.edit_mode ? "none" : "";
+        }
     }
 
     option_selected(index, value, text)

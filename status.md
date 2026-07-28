@@ -11,7 +11,7 @@ World 2D View remains intentionally interactive in Edit mode. All other runtime 
 | 3 | Disable Drop-down Menu and Table slice controls in Edit mode and allow their events to reach component dragging. | Completed | JavaScript syntax; focused Edit/runtime disabled-state checks; reviewed event propagation and change guards; `git diff --check`. | `Menu controls now yield to Edit-mode dragging` |
 | 4 | Disable Switch, Color Picker, Horizontal Slider, and Vertical Slider interaction in Edit mode without blocking component dragging. | Completed | JavaScript syntax for all four widgets; focused Edit/runtime disabled and pointer-transparency checks; event-propagation review; `git diff --check`. | `Control inputs now yield to Edit-mode dragging` |
 | 5 | Stop Canvas 3D input forwarding and wheel interception from interfering with component editing. | Completed | JavaScript syntax; reviewed all forwarding/wheel Edit-mode guards and per-frame canvas pointer transparency; `git diff --check`. | `Canvas 3D now yields input while editing` |
-| 6 | Make disabled Drop-down Menu and Table slice selectors pointer-transparent in Edit mode for consistent cross-browser dragging. | Pending | — | — |
+| 6 | Make disabled Drop-down Menu and Table slice selectors pointer-transparent in Edit mode for consistent cross-browser dragging. | Completed | JavaScript syntax; focused Edit/runtime disabled and pointer-transparency checks for both selectors; `git diff --check`. | `Select controls now yield consistently while editing` |
 
 ### Edit-mode constraints
 
@@ -19,6 +19,10 @@ World 2D View remains intentionally interactive in Edit mode. All other runtime 
 - Preserve Text's intentional inline editing behavior.
 - Keep runtime behavior unchanged outside Edit mode.
 - Complete, verify, and commit each task independently in the listed order.
+
+### Edit-mode outstanding issues and questions
+
+- Interactive dragging across all supported browsers was not automated; focused event-state checks verify the widget logic, while the repository still lacks a browser-level widget regression suite.
 
 ## WebUI widget bug review
 
