@@ -13,7 +13,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 5 | Image | Completed | JavaScript syntax; focused empty-source and zero-opacity behavior check; static image load-path review; `git diff --check`. | `Image widget opacity and loading are now reliable` |
 | 6 | Target Boxes | Completed | JavaScript syntax; focused score precision, font fallback, and canvas-bound label check; `git diff --check`. | `Target Boxes scores now render safely` |
 | 7 | Bar Graph | Completed | JavaScript syntax; focused negative auto-range, missing-source clearing, and line-cap option check; `git diff --check`. | `Bar Graph now handles negative and missing data correctly` |
-| 8 | Histogram | Pending | — | — |
+| 8 | Histogram | Completed | JavaScript syntax; focused negative auto-range, missing-source clearing, single-tick centering, and line-cap review; `git diff --check`. | `Histogram ranges and axes now handle edge cases` |
 | 9 | Box Plot | Pending | — | — |
 | 10 | Scatter Plot | Pending | — | — |
 | 11 | Plot | Pending | — | — |
