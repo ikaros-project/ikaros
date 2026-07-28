@@ -62,14 +62,13 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
         if(y === "")
             this.send_control_change(this.parameters.parameter, selectedValue, x);
         else
-            this.send_control_change(this.parameters.parameter, selectedValue, x, Math.trunc(Number(y)));
+            this.send_control_change(this.parameters.parameter, selectedValue, x, Number.isFinite(Number(y)) ? Math.max(0, Math.trunc(Number(y))) : 0);
     }
 
     getSelectX()
     {
-        if(this.parameters.select_x !== undefined && this.parameters.select_x !== "")
-            return Number(this.parameters.select_x);
-        return 0;
+        const value = Number(this.parameters.select_x);
+        return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
     }
 
     getSelectY()
@@ -83,10 +82,13 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
     changeOptions(options)
     {
         let selector = this.querySelector("select")
+        const optionString = Array.isArray(options) ? options.flat(Infinity).join(",") : String(options ?? "");
+        if(this._optionsKey === optionString)
+            return;
+        this._optionsKey = optionString;
         while(selector.childElementCount > 0)
             selector.removeChild(selector.children[0]);
 
-        const optionString = Array.isArray(options) ? options.join(",") : String(options ?? "");
         let l = optionString === "" ? [] : optionString.split(',');
         let ix = 0;
         for(let e of l)
@@ -116,57 +118,60 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
         };
 
         this.changeOptions(this.parameters.options);
-        this.querySelector("label").innerText = this.parameters.label;
+        const label = this.querySelector("label");
+        label.innerText = this.parameters.label;
+        const configuredLabelWidth = Number(this.parameters.label_width);
+        const labelWidth = this.parameters.label && Number.isFinite(configuredLabelWidth) ? Math.max(0, configuredLabelWidth) : 0;
+        label.style.display = labelWidth ? "inline-block" : "none";
+        label.style.width = `${labelWidth}px`;
+        selector.style.width = labelWidth ? `calc(100% - ${labelWidth}px)` : "100%";
         this.syncEnabledState();
     }
     update()
     {
-         try
-         {
-            this.syncEnabledState();
-            let d = this.getSource('parameter');
-            if(!d)
-                return;
-            let selectElement = this.querySelector("select");
-            if(this.parameters.options_source)
-            {
-                let l = this.getSource('options_source');
-                this.changeOptions(l)
-            }
-                // FIXME: Check parameter type here
-                // FIXME: Populate menu from parameter here or at init
+        this.syncEnabledState();
+        if(this.parameters.options_source)
+            this.changeOptions(this.getSource('options_source'));
 
-                if(this.parameters.value_type=='number')
+        const d = this.getSource('parameter');
+        const selectElement = this.querySelector("select");
+        if(d === undefined || d === null)
+        {
+            selectElement.selectedIndex = -1;
+            return;
+        }
+
+        const selectX = this.getSelectX();
+        const selectY = this.getSelectY();
+        let value = d;
+        if(Array.isArray(d))
+        {
+            if(selectY !== "" && Array.isArray(d[0]))
             {
-                const selectX = this.getSelectX();
-                const selectY = this.getSelectY();
-                let value = d;
-                if(Array.isArray(d))
-                {
-                    if(selectY !== "" && Array.isArray(d[0]))
-                        value = d[Math.trunc(Number(selectY))]?.[selectX];
-                    else
-                        value = Array.isArray(d[0]) ? d[0][selectX] : d[selectX];
-                }
+                const configuredY = Number(selectY);
+                const y = Number.isFinite(configuredY) ? Math.max(0, Math.trunc(configuredY)) : 0;
+                value = d[y]?.[selectX];
+            }
+            else
+                value = Array.isArray(d[0]) ? d[0][selectX] : d[selectX];
+        }
+
+        if(this.parameters.value_type=='number')
+        {
                 selectElement.value = value ?? selectElement.value;
                 return;
-            }
-
-            const stringValue = String(Array.isArray(d) ? (Array.isArray(d[0]) ? d[0][0] : d[0]) : d);
-            for (let i = 0; i < selectElement.options.length; i++)
-            {
-                if (selectElement.options[i].text === stringValue)
-                {    
-                    selectElement.selectedIndex = i;
-                    return;
-                }
-            }
-
         }
-        catch(err)
+
+        const stringValue = String(value ?? "");
+        for (let i = 0; i < selectElement.options.length; i++)
         {
-        
+            if (selectElement.options[i].text === stringValue)
+            {
+                selectElement.selectedIndex = i;
+                return;
+            }
         }
+        selectElement.selectedIndex = -1;
     }
 };
 

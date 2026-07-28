@@ -31,7 +31,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 23 | Horizontal Slider | Completed | JavaScript syntax; focused invalid-index, empty-target, and yes/no value-label checks; keyboard/edit interaction and numeric configuration review; `git diff --check`. | `Horizontal Slider interaction state now recovers safely` |
 | 24 | Vertical Slider | Completed | JavaScript syntax; focused invalid-index and yes/no value-label checks; keyboard/edit interaction and numeric configuration review; `git diff --check`. | `Vertical Slider interaction state now recovers safely` |
 | 25 | Color Picker | Completed | JavaScript syntax; focused row-index and yes/no value-label checks; keyboard/edit interaction and step validation review; `git diff --check`. | `Color Picker interaction and labels now update safely` |
-| 26 | Drop-down Menu | Pending | — | — |
+| 26 | Drop-down Menu | Completed | JavaScript syntax; focused numeric zero, missing-source clearing, and indexed string selection checks; option caching and label-width review; `git diff --check`. | `Drop-down Menu options and values now stay synchronized` |
 | 27 | Canvas 3D | Pending | — | — |
 | 28 | Key Points | Pending | — | — |
 | 29 | Sequence Grid | Pending | — | — |
