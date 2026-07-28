@@ -35,7 +35,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 27 | Canvas 3D | Completed | JavaScript syntax; focused camera-distance update and line-parameter checks; point-buffer resizing/first-frame, missing-data clearing, invalid-matrix, model-count, and resource-lifecycle review; `git diff --check`. | `Canvas 3D data and resources now update reliably` |
 | 28 | Key Points | Completed | JavaScript syntax; focused zero-range and invalid-sequence cache checks; parameter-only redraw, mark-line stroke, scalar position/target, and drag-listener lifecycle review; `git diff --check`. | `Key Points drawing now handles incomplete data safely` |
 | 29 | Sequence Grid | Completed | JavaScript syntax; focused array-name normalization and valid/invalid RGB checks; edit-mode event propagation and gap validation review; `git diff --check`. | `Sequence Grid cells now handle edit mode and malformed data safely` |
-| 30 | Epi Head | Pending | — | — |
+| 30 | Epi Head | Completed | JavaScript syntax; focused nested-vector, color-channel clamp, gaze/pupil/head normalization checks; malformed RGB matrix and non-legacy source review; `git diff --check`. | `Epi Head inputs now render with safe values` |
 
 ### Review constraints
 
@@ -48,7 +48,10 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 
 ### Outstanding issues and questions
 
-- To be completed after all widget reviews.
+- World 3D View still rebuilds every dynamic mesh on each data update. Retaining and updating meshes would improve performance, but requires a broader scene-lifecycle design.
+- Canvas 3D model loading remains an asynchronous serial loader without cancellation or generation tokens. Rapid model-list changes or widget removal can allow obsolete callbacks to finish; fixing this requires explicit loader lifecycle policy.
+- Key Points still contains unresolved product-level choices about vertical-axis direction and how input/output/active traces should be presented. These were left unchanged because the intended visualization semantics are ambiguous.
+- Verification was primarily syntax checks and focused headless JavaScript checks. World 2D View also received an Ikaros model smoke test; a full interactive browser regression suite for all widgets does not currently exist.
 
 ## WebUI image encoding follow-ups
 

@@ -31,6 +31,21 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
     // }; // last matrix
   }
 
+  flatNumbers(value, fallback, count) {
+    const flattened = Array.isArray(value) && value.flat ? value.flat(Infinity) : (Array.isArray(value) ? value : [value]);
+    const numbers = flattened.map(Number).filter(Number.isFinite);
+    const defaults = Array.isArray(fallback) ? fallback : [fallback];
+    const result = [];
+    for (let i = 0; i < count; i++)
+      result.push(numbers[i] ?? numbers[0] ?? defaults[i] ?? defaults[0] ?? 0);
+    return result;
+  }
+
+  colorByte(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? Math.round(Math.max(0, Math.min(1, number)) * 255) : 0;
+  }
+
   draw() {
     let w = this.width;
     let h = this.height;
@@ -51,7 +66,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
 
     // Figure out color of Epi.
     const epiName = String(this.parameters.epi_name ?? "EpiRed");
-    let epiColor = epiName.length >= 3 ? epiName.substring(3) : epiName;
+    let epiColor = epiName.startsWith("Epi") ? epiName.substring(3) : epiName;
     if (!epiColor)
       epiColor = "red";
 
@@ -231,7 +246,7 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
   update() {
 
     const rgbToHex = (r, g, b) => {
-      return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+      return `#${[r, g, b].map((value) => this.colorByte(value).toString(16).padStart(2, "0")).join("")}`;
     };
 
     // Get values from source input or fill it with default values
@@ -245,14 +260,14 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
     else
         this.eye_colors = [Array(12).fill(defaulteye_color[0]), Array(12).fill(defaulteye_color[0])];
     
-    let l_eye = this.getSource("left_eye_color_source", this.getSource("Lefteye_color", defaulteye_color));
-    let r_eye = this.getSource("right_eye_color_source", this.getSource("Righteye_color", defaulteye_color));
+    let l_eye = this.getSource("left_eye_color_source", defaulteye_color);
+    let r_eye = this.getSource("right_eye_color_source", defaulteye_color);
     
     // Convert the input to a hex representation of color 
-    if (l_eye && l_eye.length === 3 && l_eye[0].length === 12 && l_eye[1].length === 12 && l_eye[2].length === 12 )
-      this.eye_colors[0] = l_eye[0].map((_, i) => rgbToHex(Math.round(l_eye[0][i] * 255), Math.round(l_eye[1][i] * 255), Math.round(l_eye[2][i] * 255)));
-    if (r_eye && r_eye.length === 3 && r_eye[0].length === 12 && r_eye[1].length === 12 && r_eye[2].length === 12 )
-      this.eye_colors[1] = r_eye[0].map((_, i) => rgbToHex(Math.round(r_eye[0][i] * 255), Math.round(r_eye[1][i] * 255), Math.round(r_eye[2][i] * 255)));
+    if (Array.isArray(l_eye) && l_eye.length === 3 && l_eye.every((channel) => Array.isArray(channel) && channel.length === 12))
+      this.eye_colors[0] = l_eye[0].map((_, i) => rgbToHex(l_eye[0][i], l_eye[1][i], l_eye[2][i]));
+    if (Array.isArray(r_eye) && r_eye.length === 3 && r_eye.every((channel) => Array.isArray(channel) && channel.length === 12))
+      this.eye_colors[1] = r_eye[0].map((_, i) => rgbToHex(r_eye[0][i], r_eye[1][i], r_eye[2][i]));
     
     // Mouth
     let defaultmouth_color = String(this.parameters.mouth_color ?? "").split(',').map((c) => c.trim()).filter((c) => c !== "");
@@ -266,10 +281,10 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
     let t_mouth = this.getSource("top_mouth_color_source", defaultmouth_color);
     let l_mouth = this.getSource("lower_mouth_color_source", defaultmouth_color);
     // Convert the input to a hex representation of color
-    if (t_mouth && t_mouth.length === 3 && t_mouth[0].length === 8 && t_mouth[1].length === 8 && t_mouth[2].length === 8 )
-      this.mouth_colors[0] = t_mouth[0].map((_, i) => rgbToHex(Math.round(t_mouth[0][i] * 255), Math.round(t_mouth[1][i] * 255), Math.round(t_mouth[2][i] * 255)));
-    if (l_mouth && l_mouth.length === 3 && l_mouth[0].length === 8 && l_mouth[1].length === 8 && l_mouth[2].length === 8 )
-      this.mouth_colors[1] = l_mouth[0].map((_, i) => rgbToHex(Math.round(l_mouth[0][i] * 255), Math.round(l_mouth[1][i] * 255), Math.round(l_mouth[2][i] * 255)));
+    if (Array.isArray(t_mouth) && t_mouth.length === 3 && t_mouth.every((channel) => Array.isArray(channel) && channel.length === 8))
+      this.mouth_colors[0] = t_mouth[0].map((_, i) => rgbToHex(t_mouth[0][i], t_mouth[1][i], t_mouth[2][i]));
+    if (Array.isArray(l_mouth) && l_mouth.length === 3 && l_mouth.every((channel) => Array.isArray(channel) && channel.length === 8))
+      this.mouth_colors[1] = l_mouth[0].map((_, i) => rgbToHex(l_mouth[0][i], l_mouth[1][i], l_mouth[2][i]));
 
     // gaze. Only x wise and setting gaze in webUI will controll both eyes.
     const gazeValue = parseFloat(this.parameters.gaze);
@@ -278,33 +293,18 @@ class WebUIWidgetEpiHead extends WebUIWidgetGraph {
       (Number.isFinite(gazeValue) ? gazeValue : 0) - (Number.isFinite(vergenceValue) ? vergenceValue : 0),
       (Number.isFinite(gazeValue) ? gazeValue : 0) + (Number.isFinite(vergenceValue) ? vergenceValue : 0),
     ];
-    this.gaze = this.getSource("eye_direction_source", defaultGaze);
-    if (!Array.isArray(this.gaze))
-      this.gaze = [this.gaze];
-    if (this.gaze.length === 0)
-      this.gaze = defaultGaze;
-    if (this.gaze.length < 2) this.gaze = [this.gaze[0], this.gaze[0]];
+    this.gaze = this.flatNumbers(this.getSource("eye_direction_source", defaultGaze), defaultGaze, 2)
+      .map((value) => Math.max(-90, Math.min(90, value)));
     
     // gaze. Only x wise and setting gaze in webUI will controll both eyes. // What happens if source input is only one element?
     const pupilValue = parseFloat(this.parameters.pupil_size_mm);
     let defaultPupil = [Number.isFinite(pupilValue) ? pupilValue : 11, Number.isFinite(pupilValue) ? pupilValue : 11];
-    this.pupil = this.getSource("pupil_size_source", defaultPupil);
-    if (!Array.isArray(this.pupil))
-      this.pupil = [this.pupil];
-    if (this.pupil.length === 0)
-      this.pupil = defaultPupil;
-    if (this.pupil.length < 2) 
-      this.pupil = [this.pupil[0], this.pupil[0]];
+    this.pupil = this.flatNumbers(this.getSource("pupil_size_source", defaultPupil), defaultPupil, 2)
+      .map((value) => Math.max(0, Math.min(30, value)));
 
     // Head position. Fake tilt and pan of the robot. One value is treated as only tilt and two values tilt and pan.
-    this.head_position_source = this.getSource("head_position_source", this.getSource("HeadPosition", [0, 0]));
-    if (!Array.isArray(this.head_position_source))
-      this.head_position_source = [this.head_position_source];
-    if (this.head_position_source.length === 0)
-      this.head_position_source = [0, 0];
-
-    if (this.head_position_source.length < 2)
-      this.head_position_source = [this.head_position_source[0], 0];
+    this.head_position_source = this.flatNumbers(this.getSource("head_position_source", [0, 0]), [0, 0], 2)
+      .map((value) => Math.max(-90, Math.min(90, value)));
     this.draw();
   }
 }
