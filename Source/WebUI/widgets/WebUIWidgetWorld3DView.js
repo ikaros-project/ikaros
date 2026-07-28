@@ -51,6 +51,13 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         this.sceneHeight = 0;
         this.animationFrame = null;
         this.lastCameraDistance = null;
+        this.objectsSceneKey = null;
+        this.wallsSceneKey = null;
+        this.creatureSceneKey = null;
+        this.objectsGroup = null;
+        this.wallsGroup = null;
+        this.creatureGroup = null;
+        this.creatureObject = null;
 
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(this.parameters.scene_background || "#f7f5ef");
@@ -236,6 +243,13 @@ class WebUIWidgetWorld3DView extends WebUIWidget
 
         this.sceneKey = key;
         this.clearGroup(this.root);
+        this.objectsSceneKey = null;
+        this.wallsSceneKey = null;
+        this.creatureSceneKey = null;
+        this.objectsGroup = null;
+        this.wallsGroup = null;
+        this.creatureGroup = null;
+        this.creatureObject = null;
         this.scene.background = new THREE.Color(background);
         this.updateLighting(width, height);
 
@@ -337,7 +351,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         mesh.position.set(x, solid ? objectHeight : objectHeight * 0.5, z);
         mesh.castShadow = solid;
         mesh.receiveShadow = true;
-        this.root.add(mesh);
+        (this.objectsGroup || this.root).add(mesh);
     }
 
     addWall(row)
@@ -382,7 +396,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
                 dot.position.set(x1 + dx * t, wallHeight, z1 + dz * t);
                 dot.castShadow = true;
                 dot.receiveShadow = true;
-                this.root.add(dot);
+                (this.wallsGroup || this.root).add(dot);
             }
             material.dispose();
             return;
@@ -400,7 +414,7 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         mesh.rotation.y = -Math.atan2(dz, dx);
         mesh.castShadow = true;
         mesh.receiveShadow = true;
-        this.root.add(mesh);
+        (this.wallsGroup || this.root).add(mesh);
     }
 
     addCreature(row)
@@ -433,7 +447,8 @@ class WebUIWidgetWorld3DView extends WebUIWidget
 
         if(this.toBool(this.parameters.show_whiskers))
             this.addWhiskers(group, radius, height);
-        this.root.add(group);
+        (this.creatureGroup || this.root).add(group);
+        this.creatureObject = group;
     }
 
     addWhiskers(group, radius, height)
@@ -468,34 +483,106 @@ class WebUIWidgetWorld3DView extends WebUIWidget
         group.add(mesh);
     }
 
+    ensureDynamicGroups()
+    {
+        if(!this.objectsGroup)
+        {
+            this.objectsGroup = new THREE.Group();
+            this.root.add(this.objectsGroup);
+        }
+        if(!this.wallsGroup)
+        {
+            this.wallsGroup = new THREE.Group();
+            this.root.add(this.wallsGroup);
+        }
+        if(!this.creatureGroup)
+        {
+            this.creatureGroup = new THREE.Group();
+            this.root.add(this.creatureGroup);
+        }
+    }
+
+    updateCreatureTransform()
+    {
+        if(!this.creatureObject || !Array.isArray(this.creature) || this.creature.length < 4)
+            return;
+        const coordinates = [this.creature[0], this.creature[1]].map(Number);
+        if(!coordinates.every(Number.isFinite))
+            return;
+        const heading = Number(this.creature[3]);
+        this.creatureObject.position.set(this.worldX(coordinates[0]), 0, this.worldZ(coordinates[1]));
+        this.creatureObject.rotation.y = Number.isFinite(heading) ? -heading : 0;
+    }
+
+    updateObjectTransforms()
+    {
+        let meshIndex = 0;
+        for(const row of this.objects)
+        {
+            if(!Array.isArray(row) || row.length < 9)
+                continue;
+            const coordinates = [row[2], row[3]].map(Number);
+            if(!coordinates.every(Number.isFinite))
+                continue;
+            const mesh = this.objectsGroup.children[meshIndex++];
+            if(mesh)
+                mesh.position.set(this.worldX(coordinates[0]), mesh.position.y, this.worldZ(coordinates[1]));
+        }
+    }
+
     updateSceneObjects()
     {
         this.refreshWorldBase();
         this.updateCameraDistance();
-        const baseChildren = [this.ground, this.shadowPlane, this.grid, this.worldOutline].filter(Boolean);
-        const keep = new Set(baseChildren);
-        const dynamic = this.root.children.filter((child) => !keep.has(child));
-        for(const child of dynamic)
+        this.ensureDynamicGroups();
+
+        const objectsSceneKey = JSON.stringify({
+            appearance: this.objects.map((row) => Array.isArray(row) ? [...row.slice(0, 2), ...row.slice(4)] : row),
+            objectHeight: this.parameters.object_height,
+            objectOpacity: this.parameters.object_opacity
+        });
+        if(this.objectsSceneKey !== objectsSceneKey)
         {
-            this.root.remove(child);
-            child.traverse((node) => {
-                if(node.geometry)
-                    node.geometry.dispose();
-                if(node.material)
-                {
-                    if(Array.isArray(node.material))
-                        node.material.forEach((material) => material.dispose());
-                    else
-                        node.material.dispose();
-                }
-            });
+            this.objectsSceneKey = objectsSceneKey;
+            this.clearGroup(this.objectsGroup);
+            for(const row of this.objects)
+                this.addObject(row);
+        }
+        else
+            this.updateObjectTransforms();
+
+        const wallsSceneKey = JSON.stringify({
+            walls: this.walls,
+            wallHeight: this.parameters.wall_height,
+            wallDepth: this.parameters.wall_depth,
+            wallOpacity: this.parameters.wall_opacity
+        });
+        if(this.wallsSceneKey !== wallsSceneKey)
+        {
+            this.wallsSceneKey = wallsSceneKey;
+            this.clearGroup(this.wallsGroup);
+            for(const row of this.walls)
+                this.addWall(row);
         }
 
-        for(const row of this.objects)
-            this.addObject(row);
-        for(const row of this.walls)
-            this.addWall(row);
-        this.addCreature(this.creature);
+        const creatureAppearance = Array.isArray(this.creature) ? [this.creature[2], ...this.creature.slice(4)] : [];
+        const creatureSceneKey = JSON.stringify({
+            appearance: creatureAppearance,
+            whiskers: this.whiskers,
+            creatureHeight: this.parameters.creature_height,
+            showWhiskers: this.toBool(this.parameters.show_whiskers),
+            whiskerLength: this.sourceNumber('whisker_length_parameter', this.parameters.whisker_length),
+            whiskerAngle: this.sourceNumber('whisker_angle_parameter', this.parameters.whisker_angle)
+        });
+        if(this.creatureSceneKey !== creatureSceneKey)
+        {
+            this.creatureSceneKey = creatureSceneKey;
+            this.clearGroup(this.creatureGroup);
+            this.creatureObject = null;
+            this.addCreature(this.creature);
+        }
+        else
+            this.updateCreatureTransform();
     }
 
     resizeRenderer()

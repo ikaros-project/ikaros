@@ -48,7 +48,6 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 
 ### Outstanding issues and questions
 
-- World 3D View still rebuilds every dynamic mesh on each data update. Retaining and updating meshes would improve performance, but requires a broader scene-lifecycle design.
 - Canvas 3D model loading remains an asynchronous serial loader without cancellation or generation tokens. Rapid model-list changes or widget removal can allow obsolete callbacks to finish; fixing this requires explicit loader lifecycle policy.
 - Key Points still contains unresolved product-level choices about vertical-axis direction and how input/output/active traces should be presented. These were left unchanged because the intended visualization semantics are ambiguous.
 - Verification was primarily syntax checks and focused headless JavaScript checks. World 2D View also received an Ikaros model smoke test; a full interactive browser regression suite for all widgets does not currently exist.
