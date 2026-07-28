@@ -38,21 +38,32 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
         this.canvasElement.tabIndex = 0;
         this.canvasElement.style.touchAction = "none";
         this.updateCursor();
-        this.canvasElement.addEventListener('pointerdown', (event) => this.handlePointerDown(event));
-        this.canvasElement.addEventListener('pointermove', (event) => this.handlePointerMove(event));
-        this.canvasElement.addEventListener('pointerup', (event) => this.handlePointerUp(event));
-        this.canvasElement.addEventListener('pointercancel', (event) => this.handlePointerUp(event));
-        this.canvasElement.addEventListener('pointerleave', () => this.clearSnapPreview());
-        this.canvasElement.addEventListener('click', (event) => this.handleCanvasClick(event));
-        this.canvasElement.addEventListener('keydown', (event) => this.handleKeyDown(event));
+        this.eventHandlers = {
+            pointerdown: (event) => this.handlePointerDown(event),
+            pointermove: (event) => this.handlePointerMove(event),
+            pointerup: (event) => this.handlePointerUp(event),
+            pointercancel: (event) => this.handlePointerUp(event),
+            pointerleave: () => this.clearSnapPreview(),
+            click: (event) => this.handleCanvasClick(event),
+            keydown: (event) => this.handleKeyDown(event)
+        };
+        for(const [type, handler] of Object.entries(this.eventHandlers))
+            this.canvasElement.addEventListener(type, handler);
+    }
+
+    disconnectedCallback()
+    {
+        if(this.canvasElement && this.eventHandlers)
+            for(const [type, handler] of Object.entries(this.eventHandlers))
+                this.canvasElement.removeEventListener(type, handler);
     }
 
     worldToCanvas(x, y)
     {
-        const worldWidth = Math.max(1, Number(this.parameters.world_width));
-        const worldHeight = Math.max(1, Number(this.parameters.world_height));
+        const worldWidth = this.positiveNumber(this.parameters.world_width, 300);
+        const worldHeight = this.positiveNumber(this.parameters.world_height, 300);
         const margin = 14;
-        const scale = Math.min((this.width - 2 * margin) / worldWidth, (this.height - 2 * margin) / worldHeight);
+        const scale = Math.max(0.000001, Math.min((this.width - 2 * margin) / worldWidth, (this.height - 2 * margin) / worldHeight));
         const ox = (this.width - worldWidth * scale) / 2;
         const oy = (this.height - worldHeight * scale) / 2;
         return {
@@ -69,8 +80,8 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
     canvasToWorld(x, y)
     {
         const bounds = this.worldToCanvas(0, 0);
-        const worldWidth = Math.max(1, Number(this.parameters.world_width));
-        const worldHeight = Math.max(1, Number(this.parameters.world_height));
+        const worldWidth = this.positiveNumber(this.parameters.world_width, 300);
+        const worldHeight = this.positiveNumber(this.parameters.world_height, 300);
         return {
             x: Math.max(0, Math.min(worldWidth, (x - bounds.ox) / bounds.r)),
             y: Math.max(0, Math.min(worldHeight, (y - bounds.oy) / bounds.r))
@@ -82,9 +93,9 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
         if(!this.parameters.show_grid)
             return;
 
-        const step = Math.max(1, Number(this.parameters.grid_step));
-        const worldWidth = Math.max(1, Number(this.parameters.world_width));
-        const worldHeight = Math.max(1, Number(this.parameters.world_height));
+        const step = this.positiveNumber(this.parameters.grid_step, 10);
+        const worldWidth = this.positiveNumber(this.parameters.world_width, 300);
+        const worldHeight = this.positiveNumber(this.parameters.world_height, 300);
 
         this.canvas.save();
         this.canvas.setLineDash([]);
@@ -178,12 +189,21 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
     {
         if(row.length > offset + 2)
         {
-            const r = Math.round(Math.max(0, Math.min(1, Number(row[offset]))) * 255);
-            const g = Math.round(Math.max(0, Math.min(1, Number(row[offset + 1]))) * 255);
-            const b = Math.round(Math.max(0, Math.min(1, Number(row[offset + 2]))) * 255);
+            const components = [row[offset], row[offset + 1], row[offset + 2]].map(Number);
+            if(!components.every(Number.isFinite))
+                return fallback;
+            const r = Math.round(Math.max(0, Math.min(1, components[0])) * 255);
+            const g = Math.round(Math.max(0, Math.min(1, components[1])) * 255);
+            const b = Math.round(Math.max(0, Math.min(1, components[2])) * 255);
             return `rgb(${r}, ${g}, ${b})`;
         }
         return fallback;
+    }
+
+    positiveNumber(value, fallback)
+    {
+        const number = Number(value);
+        return Number.isFinite(number) && number > 0 ? number : fallback;
     }
 
     sourceNumber(sourceName, fallback)
@@ -357,6 +377,9 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
     {
         if(!Array.isArray(row) || row.length < 5)
             return null;
+        if(!this.isFiniteNumber(this.objectX(row)) || !this.isFiniteNumber(this.objectY(row)) ||
+            !this.isFiniteNumber(this.objectRadius(row)) || this.objectRadius(row) < 0)
+            return null;
 
         const p = this.worldToCanvas(this.objectX(row), this.objectY(row));
         const radius = Math.max(1, this.objectRadius(row) * p.r);
@@ -373,6 +396,9 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
     hitTestCreature(row, x, y)
     {
         if(!Array.isArray(row) || row.length < 3)
+            return null;
+        if(!this.isFiniteNumber(this.creatureX(row)) || !this.isFiniteNumber(this.creatureY(row)) ||
+            !this.isFiniteNumber(this.creatureRadius(row)) || this.creatureRadius(row) < 0)
             return null;
 
         const p = this.worldToCanvas(this.creatureX(row), this.creatureY(row));
@@ -457,8 +483,9 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
     commandModulePath()
     {
         const source = this.parameters.objects_source || this.parameters.walls_source || this.parameters.creature_source || "";
-        const dot = source.lastIndexOf(".");
-        return dot > 0 ? source.substring(0, dot) : "";
+        const resolvedSource = this.resolveControlPath(source);
+        const dot = typeof resolvedSource === "string" ? resolvedSource.lastIndexOf(".") : -1;
+        return dot > 0 ? resolvedSource.substring(0, dot) : "";
     }
 
     sendWorldCommand(dictionary)
@@ -1102,9 +1129,6 @@ class WebUIWidgetWorld2DView extends WebUIWidgetCanvas
 
     update(d)
     {
-        if(!d)
-            return;
-
         const creature = this.getSource('creature_source', []);
         this.creature = this.getMatrixRank(creature) == 1 ? creature : [];
         this.objects = this.matrixRows(this.getSource('objects_source', []));
