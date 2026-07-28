@@ -32,7 +32,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             {'name':'fill_color', 'default':'', 'type':'string', 'control': 'textedit'},
             {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
  //           {'name':'line_dash', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'line_cap', 'default':"", 'type':'string', 'control': 'menu', 'options': "butt,round,quare"},
+            {'name':'line_cap', 'default':"", 'type':'string', 'control': 'menu', 'options': "butt,round,square"},
             {'name':'line_join', 'default':"", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
@@ -109,7 +109,7 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
             const barWidth = Math.abs(valueX - axisX);
             this.canvas.save();
             this.canvas.translate(left, 0);
-            this.drawBarVertical(barWidth, bar_height, i);
+            this.drawBarHorizontal(barWidth, bar_height, i);
             this.canvas.restore();
             this.canvas.translate(0, bar_spacing);
         }
@@ -160,51 +160,59 @@ class WebUIWidgetBarGraph extends WebUIWidgetGraph
 
     update()
     {
-        if(this.data = this.getSource('source'))
+        this.data = this.getSource('source');
+        if(!Array.isArray(this.data))
         {
-            if(!Array.isArray(this.data))
-                return;
-            if(typeof this.data[0] != "object") // FIXME: Fix for arbitrary matrix sizes
-                this.data = [this.data];
-            if(!this.data.length || !Array.isArray(this.data[0]) || !this.data[0].length)
-                return;
-
-            if(this.parameters.auto_range)
-            {
-                const values = this.getFiniteValues(this.data);
-                if(values.length > 0)
-                {
-                    let nextMax = Math.max(...values);
-                    let nextMin = Math.min(...values);
-                    if(this.parameters.include_zero)
-                    {
-                        nextMax = Math.max(0, nextMax);
-                        nextMin = Math.min(0, nextMin);
-                    }
-                    if(!Number.isFinite(this.computedMax))
-                        this.computedMax = this.roundUpToSignificantFigure(nextMax || 1);
-                    else if(nextMax > this.computedMax)
-                        this.computedMax = this.roundUpToSignificantFigure(nextMax || 1);
-
-                    if(!Number.isFinite(this.computedMin))
-                        this.computedMin = this.roundDownToSignificantFigure(nextMin || 0);
-                    else if(nextMin < this.computedMin)
-                        this.computedMin = this.roundDownToSignificantFigure(nextMin || 0);
-                }
-            }
-            else
-            {
-                this.computedMin = null;
-                this.computedMax = null;
-            }
-
-            if(this.parameters.transpose)
-                this.data = this.transpose(this.data); // TODO: should be changed in drawing instead
-            if(!this.data.length || !Array.isArray(this.data[0]) || !this.data[0].length)
-                return;
-
-            this.draw(this.data[0].length, this.data.length);
+            this.data = [];
+            this.draw(0, 0);
+            return;
         }
+        if(typeof this.data[0] != "object") // FIXME: Fix for arbitrary matrix sizes
+            this.data = [this.data];
+        if(!this.data.length || !Array.isArray(this.data[0]) || !this.data[0].length)
+        {
+            this.draw(0, 0);
+            return;
+        }
+
+        if(this.parameters.auto_range)
+        {
+            const values = this.getFiniteValues(this.data);
+            if(values.length > 0)
+            {
+                let nextMax = Math.max(...values);
+                let nextMin = Math.min(...values);
+                if(this.parameters.include_zero)
+                {
+                    nextMax = Math.max(0, nextMax);
+                    nextMin = Math.min(0, nextMin);
+                }
+                if(!Number.isFinite(this.computedMax))
+                    this.computedMax = this.roundUpToSignificantFigure(nextMax);
+                else if(nextMax > this.computedMax)
+                    this.computedMax = this.roundUpToSignificantFigure(nextMax);
+
+                if(!Number.isFinite(this.computedMin))
+                    this.computedMin = this.roundDownToSignificantFigure(nextMin);
+                else if(nextMin < this.computedMin)
+                    this.computedMin = this.roundDownToSignificantFigure(nextMin);
+            }
+        }
+        else
+        {
+            this.computedMin = null;
+            this.computedMax = null;
+        }
+
+        if(this.parameters.transpose)
+            this.data = this.transpose(this.data); // TODO: should be changed in drawing instead
+        if(!this.data.length || !Array.isArray(this.data[0]) || !this.data[0].length)
+        {
+            this.draw(0, 0);
+            return;
+        }
+
+        this.draw(this.data[0].length, this.data.length);
     }
 };
 

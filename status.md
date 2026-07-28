@@ -12,7 +12,7 @@ Each widget implementation will be reviewed sequentially for concrete defects. S
 | 4 | `WebUIWidgetGraph` framework base | Completed | JavaScript syntax; focused single-tick, non-zero flipped range, decimal clamping, and finite-coordinate check; `git diff --check`. | `Graph axes now handle edge-case tick counts` |
 | 5 | Image | Completed | JavaScript syntax; focused empty-source and zero-opacity behavior check; static image load-path review; `git diff --check`. | `Image widget opacity and loading are now reliable` |
 | 6 | Target Boxes | Completed | JavaScript syntax; focused score precision, font fallback, and canvas-bound label check; `git diff --check`. | `Target Boxes scores now render safely` |
-| 7 | Bar Graph | Pending | — | — |
+| 7 | Bar Graph | Completed | JavaScript syntax; focused negative auto-range, missing-source clearing, and line-cap option check; `git diff --check`. | `Bar Graph now handles negative and missing data correctly` |
 | 8 | Histogram | Pending | — | — |
 | 9 | Box Plot | Pending | — | — |
 | 10 | Scatter Plot | Pending | — | — |
