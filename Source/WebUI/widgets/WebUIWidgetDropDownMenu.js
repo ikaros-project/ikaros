@@ -46,9 +46,10 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
     {
         const selector = this.querySelector("select");
         const enabled = this.isEnabled();
-        this.classList.toggle("widget-control-disabled", !enabled);
+        const interactive = enabled && !main.edit_mode;
+        this.classList.toggle("widget-control-disabled", !interactive);
         if(selector)
-            selector.disabled = !enabled;
+            selector.disabled = !interactive;
     }
 
     option_selected(index, value, text)
@@ -107,6 +108,8 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
     
         let selector = this.querySelector("select");
         selector.onchange = (e) => {
+            if(main.edit_mode)
+                return;
             e.preventDefault();
             e.stopPropagation();
             const selectedText = e.target.selectedOptions?.[0]?.innerText ?? "";
@@ -114,7 +117,8 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
         };
 
         selector.onmousedown = (e) => {
-            e.stopPropagation();
+            if(!main.edit_mode)
+                e.stopPropagation();
         };
 
         this.changeOptions(this.parameters.options);

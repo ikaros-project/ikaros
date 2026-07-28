@@ -234,21 +234,32 @@ class WebUIWidgetTable extends WebUIWidget {
             }
             select.value = String(this.sliceSelections[dimensionIndex] ?? 0);
             select.onchange = () => {
+                if (main.edit_mode)
+                    return;
                 this.sliceSelections[dimensionIndex] = Number(select.value);
                 this.loaded = false;
                 this.updateAll();
                 this.update();
             };
             select.onmousedown = (evt) => {
-                evt.stopPropagation();
+                if (!main.edit_mode)
+                    evt.stopPropagation();
             };
             select.onclick = (evt) => {
-                evt.stopPropagation();
+                if (!main.edit_mode)
+                    evt.stopPropagation();
             };
 
             control.append(caption, select);
             this.sliceControls.appendChild(control);
         });
+        this.syncSliceControlState();
+    }
+    syncSliceControlState() {
+        if (!this.sliceControls)
+            return;
+        for (const select of this.sliceControls.querySelectorAll("select"))
+            select.disabled = main.edit_mode;
     }
     updateAll() {
         this.updateFrame();
@@ -286,6 +297,7 @@ class WebUIWidgetTable extends WebUIWidget {
         return numeric.toFixed(decimals);
     }
     update() {
+        this.syncSliceControlState();
         if (!this.loaded)
             this.updateAll()
 
