@@ -84,6 +84,10 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.canvasElement.style.position = "relative";
 		this.canvasElement.style.zIndex = "6";
 		this.models_loaded = false;
+		this.models_loading = false;
+		this.modelLoadGeneration = 0;
+		this.modelLoadController = null;
+		this.modelLoadFailedKey = null;
 		this._cachedPointColorKey = null;
 		this._cachedPointColors = [[0, 0, 0]];
 		this._cachedPointSizeKey = null;
@@ -262,6 +266,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 	disconnectedCallback()
 	{
+		this.cancelModelLoading();
 		if (this._animationFrame !== undefined)
 			cancelAnimationFrame(this._animationFrame);
 		if (this.controls && typeof this.controls.dispose === "function")
@@ -291,50 +296,108 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		return ret
 	}
 
-	LoadModel(a, name, m) {
+	cancelModelLoading()
+	{
+		this.modelLoadGeneration++;
+		if (this.modelLoadController)
+			this.modelLoadController.abort();
+		this.modelLoadController = null;
+		this.models_loading = false;
+	}
+
+	disposeModelObject(object)
+	{
+		if (!object)
+			return;
+		this.scene.remove(object);
+		object.traverse((child) => {
+			if (child.geometry)
+				child.geometry.dispose();
+			if (Array.isArray(child.material))
+				child.material.forEach((material) => material.dispose());
+			else if (child.material)
+				child.material.dispose();
+		});
+	}
+
+	clearModelObjects()
+	{
+		if (this.model_objects)
+			this.model_objects.forEach((object) => this.disposeModelObject(object));
+		this.model_objects = [];
+	}
+
+	LoadModel(a, name, modelListKey) {
 		if (!Array.isArray(name) || name.length === 0 || !name[0])
 			return;
 
-		//console.log('Loading models')
-		var manager = new THREE.LoadingManager();
+		this.cancelModelLoading();
+		const generation = this.modelLoadGeneration;
+		const controller = new AbortController();
+		this.modelLoadController = controller;
+		this.models_loading = true;
+		this.models_loaded = false;
+		const loader = new THREE.GLTFLoader(new THREE.LoadingManager());
 
-		manager.onProgress = function (item, loaded, total) {
-			console.log(" Progress", item, loaded, total);
-		};
-		manager.onLoad = function (item, loaded, total) {
-			console.log("Everything is loaded");
-		};
+		const parseModel = (data) => new Promise((resolve, reject) => {
+			loader.parse(data, "/Models/glb/", resolve, reject);
+		});
 
-		manager.onError = function (item, loaded, total) {
-			console.log(" Error", item, loaded, total);
-		};
-		var LoadModels = 0;
+		const loadModels = async () => {
+			try
+			{
+				for (let index = 0; index < a.length; index++)
+				{
+					const response = await fetch(`/Models/glb/${name[index]}.glb`, {signal: controller.signal});
+					if (!response.ok)
+						throw new Error(`Model request failed with status ${response.status}`);
+					const gltf = await parseModel(await response.arrayBuffer());
+					if (generation !== this.modelLoadGeneration)
+					{
+						this.disposeModelObject(gltf.scene);
+						return;
+					}
 
-		const callback = function (gltf) {
-			//console.log("Callback: Loading " + LoadModels + " Name: " + name[LoadModels]);
-
-			a[LoadModels] = gltf.scene
-			gltf.scene.traverse(function (child) {
-				if (child.isMesh) {
-					child.castShadow = true;
-					child.receiveShadow = true;
+					a[index] = gltf.scene;
+					gltf.scene.traverse((child) => {
+						if (child.isMesh)
+						{
+							child.castShadow = true;
+							child.receiveShadow = true;
+						}
+					});
+					if (this.mat[index])
+					{
+						gltf.scene.matrixAutoUpdate = false;
+						gltf.scene.matrix.copy(this.mat[index]);
+					}
+					this.scene.add(gltf.scene);
 				}
-			});
 
-			this.scene.add(gltf.scene);
-			LoadModels++;
-
-			if (LoadModels < a.length) // put the next load in the callback
-				loader.load('/Models/glb/' + name[LoadModels] + '.glb', callback.bind(this));
+				if (generation === this.modelLoadGeneration)
+				{
+					this.modelLoadController = null;
+					this.models_loading = false;
+					this.models_loaded = true;
+					this.modelLoadFailedKey = null;
+					this.widget_loading(false);
+				}
+			}
+			catch (error)
+			{
+				if (generation !== this.modelLoadGeneration || error.name === "AbortError")
+					return;
+				this.modelLoadController = null;
+				this.models_loading = false;
+				this.models_loaded = false;
+				this.modelLoadFailedKey = modelListKey;
+				this.clearModelObjects();
+				this.widget_loading(false);
+				console.warn(`Canvas 3D could not load models: ${error.message}`);
+			}
 		};
 
-		// Instantiate a loader
-		var loader = new THREE.GLTFLoader(manager);
-
-		// Load a glTF resource
-		loader.load('/Models/glb/' + name[0] + '.glb', callback.bind(this))
-		//console.log("Loaded fine")
-
+		loadModels();
 	}
 
 	updateCameraAndView()
@@ -509,22 +572,21 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			const modelListKey = `${this.modelNames.join(",")}:${this.nrOfModels}`;
 			if (this.lastmodels != modelListKey) // Remove object if list changed
 			{
-				if (this.model_objects)
-					for (var i = 0; i < this.model_objects.length; i++)
-						this.scene.remove(this.model_objects[i]);
+				this.cancelModelLoading();
+				this.clearModelObjects();
 				this.models_loaded = false
+				this.modelLoadFailedKey = null;
 			}
 			this.lastmodels = modelListKey
 
 			// Load models at first update or change of models array
-			if (!this.models_loaded && this.nrOfModels > 0) {
+			if (!this.models_loaded && !this.models_loading && this.modelLoadFailedKey !== modelListKey && this.nrOfModels > 0) {
 				this.widget_loading(true)
 				//console.log('Loading models')
 				this.model_objects = new Array(this.nrOfModels) 
 				for (let i = 0; i < this.nrOfModels; i++)
 					this.modelNames[i] = this.modelNames[i % this.modelNames.length];
-				this.LoadModel(this.model_objects, this.modelNames, this.data);
-				this.models_loaded = true;
+				this.LoadModel(this.model_objects, this.modelNames, modelListKey);
 			}
 
 			// Update position from an array 16xid
@@ -547,14 +609,24 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		}
 		else  // Hide 
+		{
+			this.modelLoadFailedKey = null;
+			if (this.models_loading)
+			{
+				this.cancelModelLoading();
+				this.clearModelObjects();
+				this.models_loaded = false;
+				this.widget_loading(false);
+			}
 			if (this.models_loaded)
 				if (this.model_objects)
 					for (var i = 0; i < this.model_objects.length; i++)
 						if (this.model_objects[i])
 							this.model_objects[i].visible = false;
+		}
 
 		// Remove loading screen
-		if (this.models_loaded)
+		if (this.models_loaded && !this.models_loading)
 			this.widget_loading(false)
 
 		//console.log("updated")
