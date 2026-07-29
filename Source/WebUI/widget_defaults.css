@@ -52,6 +52,18 @@ webui-widget-polar-plot {
     --margin-bottom: 10;
 }
 
+webui-widget-surface-plot {
+    --margin-left: 0;
+    --margin-right: 0;
+    --margin-top: 0;
+    --margin-bottom: 0;
+    --space-left: 0;
+    --space-right: 0;
+    --space-top: 0;
+    --space-bottom: 0;
+    --axis-color: #263238;
+}
+
 webui-widget-navigation-hud {
     --margin-left: 0;
     --margin-right: 0;

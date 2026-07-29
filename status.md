@@ -1,5 +1,24 @@
 # Kernel Review Status
 
+## BrainStudio surface-plot visualization
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a selectable Three.js Surface Plot widget for rank-2 height data with efficient geometry updates, surface/wireframe/points modes, height or source coloring, perspective/orthographic cameras, orbit controls, axes, grid, bounding box, and a reusable vertical color legend. | Completed | JavaScript syntax for all widgets; XML validation and two-tick Ikaros smoke; focused browser verification of masked source-colored surface with legend, wireframe orthographic mode, fixed-color points, separate overlay/WebGL sizing, registration, and clean browser console; `git diff --check`. | `Matrix data now has an interactive Surface Plot` |
+| 2 | Add an animated `.ikg` demo showing waves, peaks, saddle-like surfaces, multiple display modes, camera projections, color modes, and legend options. | Pending |  |  |
+
+### Constraints
+
+- Treat rank-2 input as a regular height field; accept optional X, Y, color, and mask sources with compatible shapes.
+- Rebuild geometry only when topology changes and update typed vertex/color buffers in place during normal ticks.
+- Keep height and color ranges independent, with fixed and automatic modes.
+- Preserve BrainStudio Edit-mode interaction and widget lifecycle conventions.
+- Reuse existing Three.js, OrbitControls, color-map, and vertical-legend infrastructure.
+- Complete, verify, and commit the widget before adding the demo.
+
+
 ## BrainStudio widget state-selector consistency
 
 The tasks below will be completed sequentially, with one focused commit per task.

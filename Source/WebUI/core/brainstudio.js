@@ -14,6 +14,7 @@ const widget_classes =
     "marker",
     "path",
     "vector-field",
+    "surface-plot",
     "grid",
     "image",
     "target-boxes",
