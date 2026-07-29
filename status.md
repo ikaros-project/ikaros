@@ -8,7 +8,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 |---:|---|---|---|---|
 | 1 | Add framework-only angular HUD drawing infrastructure for wrapping and bounded tapes, mirrored ticks and labels, targets, readouts, and transparent overlay styling. | Completed | JavaScript syntax; focused angle normalization, wrap-safe target difference, cardinal labels, radians conversion, signed formatting, and framework-only registration audit; `git diff --check`. | `Angular HUD widgets now share a rendering base` |
 | 2 | Add a selectable Navigation HUD with the upper half of the mirrored bottom heading band and optional planar movement readouts. | Completed | JavaScript syntax; focused source binding, wrapping upper-tape mode, shared bottom-band geometry, safe margins, target input, and registration checks; `git diff --check`. | `Navigation HUD now overlays planar movement data` |
-| 3 | Add a selectable Pan-Tilt HUD with the lower mirrored pan band, a right-side vertical tilt scale, current and target indicators, and optional central reticle. | Not started |  |  |
+| 3 | Add a selectable Pan-Tilt HUD with the lower mirrored pan band, a right-side vertical tilt scale, current and target indicators, and optional central reticle. | Completed | JavaScript syntax; focused lower mirrored-tape geometry, bounded pan, right-side tilt extent, target values, reticle errors, safe margins, and registration checks; `git diff --check`. | `Pan-Tilt HUD now mirrors navigation overlays` |
 | 4 | Add an intentionally overlaid `.ikg` demo using slow sinusoidal heading, pan, tilt, and target inputs so both HUD layers can be evaluated over the same background. | Not started |  |  |
 
 ### Constraints
