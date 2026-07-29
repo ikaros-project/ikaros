@@ -8,6 +8,7 @@ const widget_classes =
     "histogram",
     "boxplot",
     "scatter-plot",
+    "polar-plot",
     "plot",
     "table",
     "marker",

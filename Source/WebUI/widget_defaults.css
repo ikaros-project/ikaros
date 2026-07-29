@@ -45,6 +45,13 @@ webui-widget-plot.direction-vertical {
     --left-scale: 5;
 }
 
+webui-widget-polar-plot {
+    --margin-left: 10;
+    --margin-right: 10;
+    --margin-top: 10;
+    --margin-bottom: 10;
+}
+
 webui-widget-plot.direction-horizontal {
     --margin-left: 0;
     --margin-right: 0;

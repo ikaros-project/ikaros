@@ -1,5 +1,22 @@
 # Kernel Review Status
 
+## BrainStudio polar-plot visualization
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a dedicated Polar Plot widget supporting labeled vector axes, multiple matrix-row series, radial scaling, configurable grid geometry, angular layout, and series styling. | Completed | JavaScript syntax for all widgets; focused registration, rank-1/rank-2 series, invalid-series rejection, fixed/automatic range, label fallback, and angular direction checks; `git diff --check`. | `Polar data now has a dedicated BrainStudio widget` |
+| 2 | Add an example `.ikg` demonstrating explicit and source labels, multiple series, grid shapes, direction and offset controls, and fixed and automatic ranges. | Not started |  |  |
+
+### Constraints
+
+- Treat rank-1 input as one series and rank-2 input as one series per row.
+- Resolve axis labels from `label_source`, source metadata, explicit `labels`, then numeric indices.
+- Keep the initial widget read-only and focused on radar/spider plots rather than explicit angle-radius curves.
+- Complete, verify, and commit the widget before adding the example model.
+
+
 ## BrainStudio vector-field visualization
 
 The tasks below will be completed sequentially, with one focused commit per task.
