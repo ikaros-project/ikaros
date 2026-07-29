@@ -13,6 +13,7 @@ const widget_classes =
     "table",
     "marker",
     "path",
+    "trace",
     "vector-field",
     "surface-plot",
     "grid",

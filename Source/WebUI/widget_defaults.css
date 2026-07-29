@@ -159,6 +159,7 @@ webui-widget-vector-field {
 
 webui-widget-vector-field.scale_visibility-no,
 webui-widget-path.scale_visibility-no,
+webui-widget-trace.scale_visibility-no,
 webui-widget-marker.scale_visibility-no,
 webui-widget-grid.scale_visibility-no {
     --margin-left: 0;
@@ -177,6 +178,7 @@ webui-widget-grid.scale_visibility-no {
 
 webui-widget-vector-field.scale_visibility-yes,
 webui-widget-path.scale_visibility-yes,
+webui-widget-trace.scale_visibility-yes,
 webui-widget-marker.scale_visibility-yes,
 webui-widget-grid.scale_visibility-yes {
     --left-scale: 3;
@@ -188,6 +190,7 @@ webui-widget-grid.scale_visibility-yes {
 
 webui-widget-vector-field.scale_visibility-invisible,
 webui-widget-path.scale_visibility-invisible,
+webui-widget-trace.scale_visibility-invisible,
 webui-widget-marker.scale_visibility-invisible,
 webui-widget-grid.scale_visibility-invisible {
     --left-scale: 3;
