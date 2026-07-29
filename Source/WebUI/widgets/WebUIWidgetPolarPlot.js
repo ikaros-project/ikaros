@@ -144,18 +144,29 @@ class WebUIWidgetPolarPlot extends WebUIWidgetCanvas
         return truncated + "…";
     }
 
-    getGeometry(width, height, labels)
+    getGeometry(width, height, labels, angles)
     {
         const labelOffset = Math.max(0, Number(this.parameters.label_offset) || 0);
         const maxLabelWidth = Math.max(0, Number(this.parameters.label_max_width) || 0);
         this.canvas.font = this.parameters.label_font || this.format.label_font || "12px sans-serif";
-        let measuredWidth = 0;
+        const halfWidth = width / 2;
+        const halfHeight = height / 2;
+        let radius = Math.min(halfWidth, halfHeight) - 4;
         if(this.parameters.show_labels)
-            for(const label of labels)
-                measuredWidth = Math.max(measuredWidth, Math.min(maxLabelWidth, this.canvas.measureText(label).width));
-        const labelSpace = this.parameters.show_labels ? measuredWidth + labelOffset + 6 : 0;
-        const scaleSpace = this.parameters.show_scale ? 28 : 0;
-        const radius = Math.max(1, Math.min(width, height) / 2 - Math.max(labelSpace, scaleSpace) - 4);
+            labels.forEach((label, index) => {
+                const truncated = this.truncateLabel(label, maxLabelWidth);
+                const metrics = this.canvas.measureText(truncated);
+                const labelWidth = Math.min(maxLabelWidth, metrics.width);
+                const labelHeight = Math.max(12, (metrics.actualBoundingBoxAscent || 0) + (metrics.actualBoundingBoxDescent || 0));
+                const cosine = Math.cos(angles[index]);
+                const sine = Math.sin(angles[index]);
+                const horizontalExtent = Math.abs(cosine) > 0.2 ? labelWidth : labelWidth / 2;
+                if(Math.abs(cosine) > 0.001)
+                    radius = Math.min(radius, (halfWidth - horizontalExtent - 4) / Math.abs(cosine) - labelOffset);
+                if(Math.abs(sine) > 0.001)
+                    radius = Math.min(radius, (halfHeight - labelHeight / 2 - 4) / Math.abs(sine) - labelOffset);
+            });
+        radius = Math.max(1, radius);
         return {centerX:width / 2, centerY:height / 2, radius, labelOffset, maxLabelWidth};
     }
 
@@ -301,7 +312,7 @@ class WebUIWidgetPolarPlot extends WebUIWidgetCanvas
         const axisCount = this.series[0].length;
         const labels = this.getLabels(axisCount);
         const angles = this.getAngles(axisCount);
-        const geometry = this.getGeometry(width, height, labels);
+        const geometry = this.getGeometry(width, height, labels, angles);
         const range = this.getValueRange(this.series);
         this.minimum = range.min;
         this.maximum = range.max;
