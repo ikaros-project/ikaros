@@ -7,7 +7,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Add a selectable Trace widget that records live 2D positions into fixed-size per-series ring buffers with packed and separate-coordinate inputs, fading/tapering styles, current/start markers, direction arrows, discontinuities, and graph-coordinate controls. | Completed | JavaScript syntax for all widgets; focused discontinuity, invalid-value, and fixed-capacity ring checks; XML validation and live Ikaros smoke; browser verification of packed and separate multi-trace inputs, tick-synchronized histories, trail styles, markers, labels, direction arrows, visible and disabled scales, and no browser warnings or errors; `git diff --check`. | `Live positions now retain spatial Trace histories` |
-| 2 | Add an animated `.ikg` demo showing single and multiple traces, packed and separate-coordinate sources, trail styles, markers, labels, sampling intervals, and jump breaks. | Pending |  |  |
+| 2 | Add an animated `.ikg` demo showing single and multiple traces, packed and separate-coordinate sources, trail styles, markers, labels, sampling intervals, and jump breaks. | Completed | XML validation; four-tick Ikaros smoke; JavaScript syntax; non-overlapping layout audit; four variants cover packed and separate inputs, single and multiple traces, solid/fade/taper/fade-taper styles, sampling intervals, automatic ranges, visible/invisible/disabled scales, labels, markers, direction arrows, and jump breaks; `git diff --check`. | `Added an animated Trace widget gallery` |
 
 ### Constraints
 
@@ -17,6 +17,10 @@ The tasks below will be completed sequentially, with one focused commit per task
 - Treat non-finite positions and configured large jumps as segment breaks.
 - Preserve normal BrainStudio Edit-mode interaction.
 - Complete, verify, and commit the widget before adding the demo.
+
+### Outstanding issues and questions
+
+None.
 
 
 ## BrainStudio surface-plot visualization

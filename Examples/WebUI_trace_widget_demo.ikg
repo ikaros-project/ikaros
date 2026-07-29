@@ -1,0 +1,39 @@
+<group name="TraceWidgetDemo" start="true">
+    <module class="Oscillator" name="PackedPositions" frequency="0.031,0.047;0.043,0.027;0.021,0.057" type="sin" _x="24" _y="24" />
+    <module class="Oscillator" name="SeparateX" frequency="0.029,0.041,0.053" type="sin" _x="24" _y="104" />
+    <module class="Oscillator" name="SeparateY" frequency="0.037,0.023,0.049" type="sin" _x="184" _y="104" />
+    <module class="Oscillator" name="SinglePosition" frequency="0.019,0.033" type="sin" _x="24" _y="184" />
+    <module class="Oscillator" name="JumpPositions" frequency="0.017,0.023;0.029,0.013" type="square" _x="24" _y="264" />
+
+    <widget name="PackedFadeTaper" class="trace" source="PackedPositions.OUTPUT" order="row" select_x="0" select_y="1"
+            history_length="140" trail_style="fade-taper" line_width="5" minimum_width_fraction="0.1"
+            show_current="yes" current_marker="circle" show_start="yes" show_direction="yes"
+            show_labels="yes" labels="Alpha,Beta,Gamma" stroke_color="#2a82c7,#e15d44,#55a46f"
+            x_min="-1.1" x_max="1.1" y_min="-1.1" y_max="1.1" scale_visibility="yes" flip_y_canvas="yes"
+            width="500" height="360" _x="400" _y="24" show_title="yes" show_frame="yes"
+            title="Packed multi-trace · fade + taper" />
+
+    <widget name="SeparateSolid" class="trace" x_source="SeparateX.OUTPUT" y_source="SeparateY.OUTPUT"
+            history_length="110" sample_interval="2" trail_style="solid" line_width="2.5"
+            show_current="yes" current_marker="cross" current_marker_size="8" show_start="no" show_direction="no"
+            show_labels="yes" labels="X1/Y1,X2/Y2,X3/Y3" stroke_color="#8255bd,#e19b36,#2aa198"
+            x_min="-1.1" x_max="1.1" y_min="-1.1" y_max="1.1" scale_visibility="no" flip_y_canvas="yes"
+            width="500" height="360" _x="920" _y="24" show_title="yes" show_frame="yes"
+            title="Separate X/Y · solid · every second tick" />
+
+    <widget name="SingleTaper" class="trace" source="SinglePosition.OUTPUT"
+            history_length="180" trail_style="taper" line_width="7" minimum_width_fraction="0.05" history_opacity="0.8"
+            show_current="yes" current_marker="dot" current_marker_size="6" show_start="yes" show_direction="yes"
+            show_labels="yes" labels="Solo" stroke_color="#d1495b" fill_color="#d1495b"
+            auto_range="yes" include_zero="yes" scale_visibility="invisible" flip_y_canvas="yes"
+            width="500" height="360" _x="400" _y="404" show_title="yes" show_frame="yes"
+            title="Single trace · taper · automatic range" />
+
+    <widget name="JumpBreaks" class="trace" source="JumpPositions.OUTPUT" order="row" select_x="0" select_y="1"
+            history_length="150" trail_style="fade" line_width="4" break_distance="0.5"
+            show_current="yes" current_marker="square" current_marker_size="7" show_start="yes" show_direction="no"
+            show_labels="yes" labels="Jump A,Jump B" stroke_color="#f28e2b,#4e79a7"
+            x_min="-0.1" x_max="1.1" y_min="-0.1" y_max="1.1" scale_visibility="yes" flip_y_canvas="yes"
+            width="500" height="360" _x="920" _y="404" show_title="yes" show_frame="yes"
+            title="Square-wave positions · jump breaks" />
+</group>
