@@ -19,6 +19,7 @@ const widget_classes =
     "target-boxes",
     "world2dview",
     "world3dview",
+    "navigation-hud",
     "text",
     "rectangle",
     "button",
