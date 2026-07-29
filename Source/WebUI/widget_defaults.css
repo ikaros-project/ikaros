@@ -14,21 +14,21 @@ webui-widget-bar-graph {
     --space-bottom: 10;
 }
 
-webui-widget-bar-graph.direction-vertical {
+webui-widget-bar-graph.orientation-vertical {
     --vertical-gridlines: 0;
     --horizontal-gridlines: 5;
     --draw-labels-x: yes;
     --left-scale: 5;
 }
 
-webui-widget-bar-graph.direction-horizontal {
+webui-widget-bar-graph.orientation-horizontal {
     --vertical-gridlines: 5;
     --horizontal-gridlines: 0;
     --draw-labels-y: yes;
     --bottom-scale: 5;
 }
 
-webui-widget-plot.direction-vertical {
+webui-widget-plot.orientation-vertical {
     --margin-left: 0;
     --margin-right: 0;
     --margin-top: 0;
@@ -66,7 +66,7 @@ webui-widget-pan-tilt-hud {
     --margin-bottom: 0;
 }
 
-webui-widget-plot.direction-horizontal {
+webui-widget-plot.orientation-horizontal {
     --margin-left: 0;
     --margin-right: 0;
     --margin-top: 0;
