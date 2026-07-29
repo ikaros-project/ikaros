@@ -53,12 +53,12 @@ class WebUIWidgetPanTiltHUD extends WebUIWidgetAngularHUD
     {
         if(!this.parameters.show_readout)
             return;
-        const right = width - Math.max(4, Number(this.parameters.safe_right) || 0);
+        const center = width / 2;
         const panText = this.formatHUDValue(pan, this.parameters.angle_decimals, true);
         const tiltText = this.formatHUDValue(tilt, this.parameters.angle_decimals, true);
-        this.drawOutlinedText(`PAN ${panText}°   TILT ${tiltText}°`, right, top - 9, {
+        this.drawOutlinedText(`PAN ${panText}°   TILT ${tiltText}°`, center, top - 9, {
             color,
-            align:"right",
+            align:"center",
             baseline:"bottom"
         });
     }

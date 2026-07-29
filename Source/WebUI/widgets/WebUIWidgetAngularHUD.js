@@ -25,6 +25,8 @@ class WebUIWidgetAngularHUD extends WebUIWidgetCanvas
 
     sourceValue(name, index=0)
     {
+        if(!this.parameters[name])
+            return null;
         const source = this.getSource(name);
         const value = Number(this.sourceScalar(source, index));
         return Number.isFinite(value) ? value : null;
@@ -194,7 +196,7 @@ class WebUIWidgetAngularHUD extends WebUIWidgetCanvas
             else
             {
                 const edgeX = targetX < left ? left + 5 : right - 5;
-                this.drawOutlinedText(targetX < left ? "◀" : "▶", edgeX, baselineY, {color:targetColor});
+                this.drawOutlinedText(targetX < left ? "<" : ">", edgeX, baselineY, {color:targetColor});
             }
         }
         this.canvas.restore();

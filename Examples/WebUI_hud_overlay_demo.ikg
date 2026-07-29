@@ -1,0 +1,111 @@
+<group name="WebUIHUDOverlayDemo" description="Navigation and Pan-Tilt HUD overlays with slow sinusoidal inputs" start="true">
+    <module class="Oscillator" name="Heading" frequency="0.008" type="sin" _x="24" _y="24" />
+    <module class="Oscillator" name="TargetHeading" frequency="0.005" type="sin" _x="184" _y="24" />
+    <module class="Oscillator" name="Pan" frequency="0.012" type="sin" _x="24" _y="104" />
+    <module class="Oscillator" name="TargetPan" frequency="0.009" type="sin" _x="184" _y="104" />
+    <module class="Oscillator" name="TiltRaw" frequency="0.015" type="sin" _x="24" _y="184" />
+    <module class="Scale" name="Tilt" factor="0.45" _x="184" _y="184" />
+    <module class="Oscillator" name="TargetTiltRaw" frequency="0.011" type="sin" _x="24" _y="264" />
+    <module class="Scale" name="TargetTilt" factor="0.30" _x="184" _y="264" />
+    <module class="Oscillator" name="Position" frequency="0.003,0.004" type="sin" _x="24" _y="344" />
+    <module class="InputImage" name="CameraImage" filename="../Examples/Media/colorrobot.jpg" iterations="1000" _x="184" _y="344" />
+
+    <connection source="TiltRaw.OUTPUT" target="Tilt.INPUT" />
+    <connection source="TargetTiltRaw.OUTPUT" target="TargetTilt.INPUT" />
+
+    <widget
+        name="CameraBackground"
+        class="image"
+        source="CameraImage.OUTPUT"
+        format="rgb"
+        _index_="0"
+        _x="400"
+        _y="24"
+        width="800"
+        height="600"
+        title="HUD Overlay Background"
+        show_title="no"
+        show_frame="no"
+        scale="both"
+        opacity="0.82"
+    />
+
+    <widget
+        name="NavigationOverlay"
+        class="navigation-hud"
+        heading_source="Heading.OUTPUT"
+        target_heading_source="TargetHeading.OUTPUT"
+        position_source="Position.OUTPUT"
+        _index_="2"
+        _x="400"
+        _y="24"
+        width="800"
+        height="600"
+        show_title="no"
+        show_frame="no"
+        background="transparent"
+        style="pointer-events:none;"
+        angle_unit="radians"
+        field_of_view="120"
+        minor_tick_step="5"
+        major_tick_step="30"
+        show_cardinals="yes"
+        heading_decimals="1"
+        safe_left="32"
+        safe_right="32"
+        safe_bottom="18"
+        bottom_band_height="110"
+        show_telemetry="yes"
+        show_units="no"
+        position_decimals="2"
+        band_background="gradient"
+        band_opacity="0.62"
+        navigation_color="#67c1ff"
+        target_color="#e66cff"
+        outline_width="1.5"
+        line_width="2"
+    />
+
+    <widget
+        name="HeadOverlay"
+        class="pan-tilt-hud"
+        pan_source="Pan.OUTPUT"
+        tilt_source="Tilt.OUTPUT"
+        target_pan_source="TargetPan.OUTPUT"
+        target_tilt_source="TargetTilt.OUTPUT"
+        _index_="4"
+        _x="400"
+        _y="24"
+        width="800"
+        height="600"
+        show_title="no"
+        show_frame="no"
+        background="transparent"
+        style="pointer-events:none;"
+        angle_unit="radians"
+        pan_min="-75"
+        pan_max="75"
+        pan_field_of_view="120"
+        pan_minor_tick_step="5"
+        pan_major_tick_step="30"
+        wrap_pan="no"
+        tilt_min="-30"
+        tilt_max="30"
+        tilt_field_of_view="60"
+        tilt_minor_tick_step="5"
+        tilt_major_tick_step="15"
+        safe_left="32"
+        safe_right="32"
+        safe_top="32"
+        safe_bottom="18"
+        bottom_band_height="110"
+        show_tilt_scale="yes"
+        show_reticle="yes"
+        show_readout="yes"
+        angle_decimals="1"
+        head_color="#ffc857"
+        target_color="#e66cff"
+        outline_width="1.5"
+        line_width="2"
+    />
+</group>
