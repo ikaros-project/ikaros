@@ -8,7 +8,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 |---:|---|---|---|---|
 | 1 | Correct scale-visibility selectors and spacing behavior for Path, Marker, Grid, and Vector Field so disabled scales render edge to edge while visible and invisible modes retain their intended geometry. | Completed | CSS selector audit; XML validation; JavaScript syntax; browser verification of zero-space Grid and Vector Field no-scale states and reserved Vector Field visible-scale geometry with no warnings or errors; invisible-state tick/grid geometry and transparent decoration audit; `git diff --check`. | `Scale-disabled widgets now render edge to edge` |
 | 2 | Correct Bar Graph and Plot orientation selectors so their generated `orientation-*` classes activate the intended layout rules. | Completed | CSS selector audit; JavaScript syntax; browser verification that runtime `orientation-vertical` classes activate Bar Graph and Plot vertical direction/layout rules with no warnings or errors; horizontal selector correspondence audit; `git diff --check`. | `Graph orientation classes now activate layout styles` |
-| 3 | Update the repository multiple-task workflow so implementation proceeds without a permission checkpoint unless outstanding issues require user direction. | Pending |  |  |
+| 3 | Update the repository multiple-task workflow so implementation proceeds without a permission checkpoint unless outstanding issues require user direction. | Completed | Instruction review confirms task recording remains mandatory and permission is requested only when detected outstanding issues or questions require user direction; `git diff --check`. | `Multi-task work now proceeds when unblocked` |
 
 ### Constraints
 
@@ -17,6 +17,10 @@ The tasks below will be completed sequentially, with one focused commit per task
 - Preserve existing serialized parameter names and values.
 - Complete, verify, and commit each task separately.
 - Ask for permission before implementation only when detected outstanding issues require user direction.
+
+### Outstanding issues and questions
+
+None.
 
 
 ## BrainStudio navigation and pan-tilt HUD overlays

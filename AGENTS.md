@@ -27,7 +27,7 @@
 When the user asks for multiple issues or tasks to be addressed, use this workflow:
 
 1. Before implementation, add every requested task to `status.md` with a stable number, concise description, initial status, and space for verification and commit information.
-2. Show the user the recorded task list, ask whether there is any additional information or constraints for any task, and wait for the answer before starting implementation.
+2. Show the user the recorded task list. If the initial review detects outstanding issues or questions that require user direction, ask for that direction and wait before implementation; otherwise proceed without asking for permission.
 3. Work through the tasks sequentially unless the user explicitly requests another order. Keep only one task marked **In progress** at a time, and update `status.md` to **In progress** before changing code for that task.
 4. Complete and verify the current task in isolation. Do not silently fold unrelated fixes into it; record newly discovered work for the final outstanding-items list unless it is required to complete the current task.
 5. When the task is ready, update its `status.md` entry with its completed status and verification results. Commit the implementation, tests, documentation, and status update together using a suitable commit message. Do not combine separate listed tasks in one commit.
