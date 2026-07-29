@@ -78,7 +78,7 @@ class WebUIWidgetNavigationHUD extends WebUIWidgetAngularHUD
         const left = Math.max(4, Number(this.parameters.safe_left) || 0);
         const right = width - Math.max(4, Number(this.parameters.safe_right) || 0);
         const units = this.parameters.show_units;
-        const headingText = `${this.formatHUDValue(heading, this.parameters.heading_decimals)}°`;
+        const headingText = `${this.formatHUDValue(heading, this.parameters.heading_decimals)}\u00B0`;
         this.drawOutlinedText(`NAV ${headingText}`, left, top - 9, {color, align:"left", baseline:"bottom"});
         if(position)
         {
@@ -90,7 +90,7 @@ class WebUIWidgetNavigationHUD extends WebUIWidgetAngularHUD
         if(Number.isFinite(speed))
             rightParts.push(`SPD ${this.formatHUDValue(speed, this.parameters.speed_decimals)}${units ? " m/s" : ""}`);
         if(Number.isFinite(angularVelocity))
-            rightParts.push(`TURN ${this.formatHUDValue(angularVelocity, this.parameters.speed_decimals, true)}${units ? "°/s" : ""}`);
+            rightParts.push(`TURN ${this.formatHUDValue(angularVelocity, this.parameters.speed_decimals, true)}${units ? "\u00B0/s" : ""}`);
         if(rightParts.length > 0)
             this.drawOutlinedText(rightParts.join("   "), right, top - 9, {color, align:"right", baseline:"bottom"});
     }
