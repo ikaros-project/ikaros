@@ -7,7 +7,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Add a dedicated Vector Field widget supporting channel-first and separate-component inputs, configurable vector scaling and anchoring, arrow rendering, and graph coordinates. | Completed | JavaScript syntax; focused registration, shape validation, and relative/coordinate/normalized scaling checks; `git diff --check`. | `Vector fields now have a dedicated BrainStudio widget` |
-| 2 | Add an optional reusable vertical color legend and integrate it with Vector Field while keeping the component suitable for other color-mapped widgets. | Not started |  |  |
+| 2 | Add an optional reusable vertical color legend and integrate it with Vector Field while keeping the component suitable for other color-mapped widgets. | Completed | JavaScript syntax for all widgets; focused legend spacing, color clamping, automatic magnitude range, and color-source shape checks; `git diff --check`. | `Color-mapped widgets now share a vertical legend` |
 | 3 | Add an example `.ikg` demonstrating the Vector Field input forms, scaling, anchoring, coloring, and legend options. | Not started |  |  |
 
 ### Constraints

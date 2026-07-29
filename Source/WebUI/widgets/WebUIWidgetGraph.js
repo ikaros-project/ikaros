@@ -102,6 +102,11 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.restore();
         return Math.max(base, Math.ceil(maxWidth + this.format.scale_offset + 10));
     }
+
+    getEffectiveSpaceRight()
+    {
+        return (this.format.space_right || 0) + this.getVerticalColorLegendSpace();
+    }
     
     drawLeftTickMarks(top, bottom)
     {
@@ -448,7 +453,8 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let pane_x = Math.round(this.format.width);
         const effectiveSpaceLeft = this.getEffectiveSpaceLeft(pane_y);
         let plot_height = pane_y-this.format.space_top-this.format.space_bottom;
-        let plot_width = pane_x-effectiveSpaceLeft-this.format.space_right;
+        const effectiveSpaceRight = this.getEffectiveSpaceRight();
+        let plot_width = pane_x-effectiveSpaceLeft-effectiveSpaceRight;
 
         this.drawLabelsHorizontal(plot_width, this.format.height, size_y);
 
@@ -518,6 +524,7 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         this.canvas.restore();
         this.canvas.translate(effectiveSpaceLeft, 0);
         this.drawVerticalGridlinesOver(plot_width, this.format.height);
+        this.drawConfiguredVerticalColorLegend(plot_width + 8, this.format.space_top, plot_height);
     }
 
     drawHorizontal(size_x, size_y)
@@ -526,7 +533,8 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
         let pane_x = Math.round((this.format.width)/size_y);
         let plot_height = pane_y-this.format.space_top-this.format.space_bottom;
         const effectiveSpaceLeft = this.getEffectiveSpaceLeft(pane_y);
-        let plot_width = pane_x-effectiveSpaceLeft-this.format.space_right;
+        const effectiveSpaceRight = this.getEffectiveSpaceRight();
+        let plot_width = pane_x-effectiveSpaceLeft-effectiveSpaceRight;
 
         this.drawLabelsHorizontal(this.format.width, plot_height, size_x);
         this.canvas.save();
@@ -596,7 +604,17 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
             this.canvas.translate(effectiveSpaceLeft, 0);
             this.drawHorizontalGridlinesOver(plot_width, plot_height);
         this.canvas.restore();
+        this.drawConfiguredVerticalColorLegend(effectiveSpaceLeft + plot_width + 8, 0, plot_height);
      }
+
+    drawConfiguredVerticalColorLegend(x, y, height)
+    {
+        if(!this.hasVerticalColorLegend())
+            return;
+        const range = typeof this.getColorLegendRange === "function" ? this.getColorLegendRange() : {min:0, max:1};
+        const colorMap = typeof this.getConfiguredColorMap === "function" ? this.getConfiguredColorMap() : this.getColorMap("gray");
+        this.drawVerticalColorLegend(x, y, height, range.min, range.max, colorMap);
+    }
 
     draw(size_x, size_y)    // draw handles the layout of the graphs in horizontal or vertical sections
     {

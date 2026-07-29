@@ -8,6 +8,7 @@ class WebUIWidgetVectorField extends WebUIWidgetGraph
             {'name':'source', 'default':"", 'type':'source', 'control':'textedit'},
             {'name':'x_source', 'default':"", 'type':'source', 'control':'textedit'},
             {'name':'y_source', 'default':"", 'type':'source', 'control':'textedit'},
+            {'name':'color_source', 'default':"", 'type':'source', 'control':'textedit'},
 
             {'name': "VECTORS", 'control':'header'},
             {'name':'length_mode', 'default':"relative", 'type':'string', 'control':'menu', 'options':"relative,coordinate,normalized"},
@@ -22,6 +23,16 @@ class WebUIWidgetVectorField extends WebUIWidgetGraph
             {'name':'line_cap', 'default':"round", 'type':'string', 'control':'menu', 'options':"butt,round,square"},
             {'name':'origin_marker', 'default':"none", 'type':'string', 'control':'menu', 'options':"none,dot,circle"},
             {'name':'origin_marker_size', 'default':2, 'type':'float', 'control':'textedit'},
+            {'name':'color_mode', 'default':"fixed", 'type':'string', 'control':'menu', 'options':"fixed,magnitude,source"},
+            {'name':'color_map', 'default':"spectrum", 'type':'string', 'control':'menu', 'options':"gray,fire,spectrum,custom"},
+            {'name':'color_map_colors', 'default':'', 'type':'string', 'control':'textedit'},
+            {'name':'value_min', 'default':0, 'type':'float', 'control':'textedit'},
+            {'name':'value_max', 'default':1, 'type':'float', 'control':'textedit'},
+            {'name':'auto_range', 'default':"no", 'type':'bool', 'control':'checkbox'},
+            {'name':'show_color_legend', 'default':"no", 'type':'bool', 'control':'checkbox'},
+            {'name':'color_legend_width', 'default':14, 'type':'int', 'control':'textedit'},
+            {'name':'color_legend_ticks', 'default':5, 'type':'int', 'control':'textedit'},
+            {'name':'color_legend_decimals', 'default':2, 'type':'int', 'control':'textedit'},
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
             {'name':'scale_visibility', 'default':"no", 'type':'string', 'control':'menu', 'options':"yes,no,invisible", 'class':'true'},
@@ -41,6 +52,9 @@ class WebUIWidgetVectorField extends WebUIWidgetGraph
         super.init();
         this.xData = [];
         this.yData = [];
+        this.colorData = [];
+        this.colorMinimum = 0;
+        this.colorMaximum = 1;
     }
 
     isMatrix(data)
@@ -75,6 +89,16 @@ class WebUIWidgetVectorField extends WebUIWidgetGraph
                xData[row].length !== columns || yData[row].length !== columns)
                 return null;
         return {rows, columns};
+    }
+
+    hasShape(data, shape)
+    {
+        if(!shape || !this.isMatrix(data) || data.length !== shape.rows)
+            return false;
+        for(let row = 0; row < shape.rows; row++)
+            if(!Array.isArray(data[row]) || data[row].length !== shape.columns)
+                return false;
+        return true;
     }
 
     getVectorDisplacement(vx, vy, magnitude, cellWidth, cellHeight, plotWidth, plotHeight)
@@ -117,6 +141,58 @@ class WebUIWidgetVectorField extends WebUIWidgetGraph
             this.canvas.stroke();
     }
 
+    getConfiguredColorMap()
+    {
+        return this.getColorMap(this.parameters.color_map, this.parameters.color_map_colors);
+    }
+
+    getColorLegendRange()
+    {
+        return {min:this.colorMinimum, max:this.colorMaximum};
+    }
+
+    updateColorRange(shape)
+    {
+        let minimum = Number(this.parameters.value_min);
+        let maximum = Number(this.parameters.value_max);
+        if(this.parameters.auto_range && this.parameters.color_mode !== "fixed")
+        {
+            minimum = Infinity;
+            maximum = -Infinity;
+            for(let row = 0; row < shape.rows; row++)
+                for(let column = 0; column < shape.columns; column++)
+                {
+                    const vx = Number(this.xData[row][column]);
+                    const vy = Number(this.yData[row][column]);
+                    const value = this.parameters.color_mode === "source" ? Number(this.colorData?.[row]?.[column]) : Math.hypot(vx, vy);
+                    if(Number.isFinite(value))
+                    {
+                        minimum = Math.min(minimum, value);
+                        maximum = Math.max(maximum, value);
+                    }
+                }
+        }
+        if(!Number.isFinite(minimum))
+            minimum = 0;
+        if(!Number.isFinite(maximum))
+            maximum = 1;
+        if(maximum === minimum)
+            maximum = minimum + 1;
+        this.colorMinimum = minimum;
+        this.colorMaximum = maximum;
+    }
+
+    setVectorColor(row, column, magnitude, colorMap)
+    {
+        if(this.parameters.color_mode === "fixed")
+        {
+            this.canvas.strokeStyle = String(this.parameters.stroke_color || "black").split(',')[0].trim();
+            return;
+        }
+        const value = this.parameters.color_mode === "source" ? Number(this.colorData?.[row]?.[column]) : magnitude;
+        this.canvas.strokeStyle = this.getColorMapColor(value, this.colorMinimum, this.colorMaximum, colorMap);
+    }
+
     drawPlotHorizontal(width, height, index, transform)
     {
         const shape = this.getFieldShape(this.xData, this.yData);
@@ -128,7 +204,7 @@ class WebUIWidgetVectorField extends WebUIWidgetGraph
         const cellHeight = height / rows;
         const stride = Math.max(1, Math.trunc(Number(this.parameters.stride) || 1));
         const centerAnchor = this.parameters.anchor !== "start";
-        this.canvas.strokeStyle = String(this.parameters.stroke_color || "black").split(',')[0].trim();
+        const colorMap = this.getConfiguredColorMap();
         this.canvas.lineWidth = Math.max(0, Number(this.parameters.line_width) || 0);
         this.canvas.lineCap = this.parameters.line_cap;
 
@@ -142,6 +218,7 @@ class WebUIWidgetVectorField extends WebUIWidgetGraph
                     continue;
 
                 const magnitude = Math.hypot(vx, vy);
+                this.setVectorColor(row, column, magnitude, colorMap);
                 const originX = (column + 0.5) * cellWidth;
                 const originY = (row + 0.5) * cellHeight;
                 const displacement = this.getVectorDisplacement(vx, vy, magnitude, cellWidth, cellHeight, width, height);
@@ -180,6 +257,11 @@ class WebUIWidgetVectorField extends WebUIWidgetGraph
 
         this.xData = field.x;
         this.yData = field.y;
+        this.colorData = this.getSource('color_source');
+        const shape = this.getFieldShape(this.xData, this.yData);
+        if(this.parameters.color_mode === "source" && !this.hasShape(this.colorData, shape))
+            this.colorData = [];
+        this.updateColorRange(shape);
         this.beginCanvasDraw();
         this.drawHorizontal(1, 1);
     }
