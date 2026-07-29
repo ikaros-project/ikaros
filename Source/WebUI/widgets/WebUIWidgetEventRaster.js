@@ -77,6 +77,7 @@ class WebUIWidgetEventRaster extends WebUIWidgetCanvas
         this.sampleCounter = 0;
         this.clearWasActive = false;
         this.syntheticTime = 0;
+        this.lastTime = 0;
     }
 
     ensureCapacity()
@@ -202,12 +203,18 @@ class WebUIWidgetEventRaster extends WebUIWidgetCanvas
 
     sampleInputs()
     {
-        const controllerTick = typeof controller !== "undefined" ? Number(controller.tick) : Number.NaN;
-        const tick = Number.isFinite(controllerTick) ? controllerTick : this.syntheticTime++;
-        if(Number.isFinite(controllerTick) && controllerTick === this.lastSeenTick)
-            return this.currentTime(tick);
-        this.lastSeenTick = controllerTick;
+        const hasController = typeof controller !== "undefined";
+        if(hasController && (controller.run_mode === "stop" || controller.run_mode === "quit"))
+            return this.lastTime;
+        const controllerTick = hasController ? Number(controller.tick) : Number.NaN;
+        if(hasController && (!Number.isFinite(controllerTick) || controllerTick < 0))
+            return this.lastTime;
+        const tick = hasController ? controllerTick : this.syntheticTime++;
+        if(hasController && controllerTick === this.lastSeenTick)
+            return this.lastTime;
+        this.lastSeenTick = hasController ? controllerTick : null;
         const now = this.currentTime(tick);
+        this.lastTime = now;
         const interval = Math.max(1, Math.trunc(Number(this.parameters.sample_interval) || 1));
         const shouldSample = this.sampleCounter % interval === 0;
         this.sampleCounter++;
