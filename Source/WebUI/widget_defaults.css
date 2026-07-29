@@ -104,22 +104,22 @@ webui-widget-graph {
 }
 
 
-webui-widget-image.scales-no {
+webui-widget-image.scale_visibility-no {
     --margin-left: 0;
     --margin-right: 0;
     --margin-top: 0;
     --margin-bottom: 0;
 
-    --space-left: 10;
-    --space-right: 10;
-    --space-top: 10;
-    --space-bottom: 10;
+    --space-left: 0;
+    --space-right: 0;
+    --space-top: 0;
+    --space-bottom: 0;
     
     --x-axis: no;
     --y-axis: no;
 }
 
-webui-widget-image.scales-yes {
+webui-widget-image.scale_visibility-yes {
     --vertical-gridlines: 5;
     --horizontal-gridlines: 5;
     --vertical-gridlines-over: 5;
