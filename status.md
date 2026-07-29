@@ -8,7 +8,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 |---:|---|---|---|---|
 | 1 | Add a dedicated Vector Field widget supporting channel-first and separate-component inputs, configurable vector scaling and anchoring, arrow rendering, and graph coordinates. | Completed | JavaScript syntax; focused registration, shape validation, and relative/coordinate/normalized scaling checks; `git diff --check`. | `Vector fields now have a dedicated BrainStudio widget` |
 | 2 | Add an optional reusable vertical color legend and integrate it with Vector Field while keeping the component suitable for other color-mapped widgets. | Completed | JavaScript syntax for all widgets; focused legend spacing, color clamping, automatic magnitude range, and color-source shape checks; `git diff --check`. | `Color-mapped widgets now share a vertical legend` |
-| 3 | Add an example `.ikg` demonstrating the Vector Field input forms, scaling, anchoring, coloring, and legend options. | Not started |  |  |
+| 3 | Add an example `.ikg` demonstrating the Vector Field input forms, scaling, anchoring, coloring, and legend options. | Completed | XML validation; two-tick Ikaros smoke test; browser visual verification of four non-overlapping variants and separate legends; no browser warnings or errors; `git diff --check`. | `Added a Vector Field widget example` |
 
 ### Constraints
 
@@ -17,6 +17,10 @@ The tasks below will be completed sequentially, with one focused commit per task
 - Build the color legend as shared WebUI infrastructure rather than Vector Field-specific drawing code.
 - Complete, verify, and commit task 1 before starting task 2.
 - Complete and commit the reusable legend before adding the example model.
+
+### Outstanding issues and questions
+
+None.
 
 
 ## WebUI superclass consolidation
