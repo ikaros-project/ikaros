@@ -1,5 +1,24 @@
 # Kernel Review Status
 
+## BrainStudio event-raster visualization
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a selectable Event Raster widget with dense-vector and sparse event-list inputs, fixed-capacity sparse history, level or rising-edge detection, scrolling or fixed time, channel labels, tick/dot/square and magnitude styles, grids, and optional color legend. | Completed | JavaScript syntax for all widgets; focused rising-edge, level, sparse-row, and fixed-capacity ring checks; XML validation and five-tick Ikaros smoke; browser verification of live scrolling rows, channel labels, time grid and scale, alternating backgrounds, tick events, now line, magnitude coloring, correctly sized shared legend, and high-DPI canvas sizing; `git diff --check`. | `Event Raster now displays sparse channel activity` |
+| 2 | Add an animated `.ikg` demo showing varied firing rates, bursts, edge and level detection, marker styles, labels, magnitude coloring, scrolling, and a color legend. | Pending |  |  |
+
+### Constraints
+
+- Store only detected events in fixed-capacity typed circular buffers.
+- Synchronize dense sampling with simulation ticks and avoid per-tick history allocation.
+- Treat channel rows as discrete coordinates and time as the horizontal coordinate.
+- Reuse the shared color-map and vertical color-legend infrastructure.
+- Preserve normal BrainStudio Edit-mode interaction.
+- Complete, verify, and commit the widget before adding the demo.
+
+
 ## BrainStudio trace visualization
 
 The tasks below will be completed sequentially, with one focused commit per task.

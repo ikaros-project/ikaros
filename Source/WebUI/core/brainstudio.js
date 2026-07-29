@@ -14,6 +14,7 @@ const widget_classes =
     "marker",
     "path",
     "trace",
+    "event-raster",
     "vector-field",
     "surface-plot",
     "grid",
