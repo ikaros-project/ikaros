@@ -145,22 +145,28 @@ webui-widget-vector-field {
     --space-bottom: 10;
 }
 
-webui-widget-path.scales-no {
+webui-widget-vector-field.scale_visibility-no,
+webui-widget-path.scale_visibility-no,
+webui-widget-marker.scale_visibility-no,
+webui-widget-grid.scale_visibility-no {
     --margin-left: 0;
     --margin-right: 0;
     --margin-top: 0;
     --margin-bottom: 0;
 
-    --space-left: 10;
-    --space-right: 10;
-    --space-top: 10;
-    --space-bottom: 10;
+    --space-left: 0;
+    --space-right: 0;
+    --space-top: 0;
+    --space-bottom: 0;
     
     --x-axis: no;
     --y-axis: no;
 }
 
-webui-widget-path.scales-yes {
+webui-widget-vector-field.scale_visibility-yes,
+webui-widget-path.scale_visibility-yes,
+webui-widget-marker.scale_visibility-yes,
+webui-widget-grid.scale_visibility-yes {
     --left-scale: 3;
     --bottom-scale: 3;
     --vertical-gridlines: 5;
@@ -168,13 +174,19 @@ webui-widget-path.scales-yes {
 }
 
 
-webui-widget-path.scales-invisible {
-    --left-scale: 0;
-    --bottom-scale: 0;
-    --vertical-gridlines: 0;
-    --horizontal-gridlines: 0;
+webui-widget-vector-field.scale_visibility-invisible,
+webui-widget-path.scale_visibility-invisible,
+webui-widget-marker.scale_visibility-invisible,
+webui-widget-grid.scale_visibility-invisible {
+    --left-scale: 3;
+    --bottom-scale: 3;
+    --vertical-gridlines: 5;
+    --horizontal-gridlines: 5;
     --x-axis: no;
     --y-axis: no;
+    --axis-color: transparent;
+    --grid-color: transparent;
+    --grid-fill: transparent;
 }
 
 
@@ -182,72 +194,7 @@ webui-widget-marker {
     --flip-y-canvas: no;
 }
 
-webui-widget-marker.scales-no {
-    --margin-left: 0;
-    --margin-right: 0;
-    --margin-top: 0;
-    --margin-bottom: 0;
-
-    --space-left: 10;
-    --space-right: 10;
-    --space-top: 10;
-    --space-bottom: 10;
-    
-    --x-axis: no;
-    --y-axis: no;
-}
-
-webui-widget-marker.scales-yes {
-    --left-scale: 3;
-    --bottom-scale: 3;
-    --vertical-gridlines: 5;
-    --horizontal-gridlines: 5;
-}
-
-
-webui-widget-marker.scales-invisible {
-    --left-scale: 0;
-    --bottom-scale: 0;
-    --vertical-gridlines: 0;
-    --horizontal-gridlines: 0;
-    --x-axis: no;
-    --y-axis: no;
-}
-
-
 webui-widget-grid {
-}
-
-webui-widget-grid.scales-no {
-    --margin-left: 0;
-    --margin-right: 0;
-    --margin-top: 0;
-    --margin-bottom: 0;
-
-    --space-left: 10;
-    --space-right: 10;
-    --space-top: 10;
-    --space-bottom: 10;
-    
-    --x-axis: no;
-    --y-axis: no;
-}
-
-webui-widget-grid.scales-yes {
-    --left-scale: 3;
-    --bottom-scale: 3;
-    --vertical-gridlines: 5;
-    --horizontal-gridlines: 5;
-}
-
-
-webui-widget-grid.scales-invisible {
-    --left-scale: 0;
-    --bottom-scale: 0;
-    --vertical-gridlines: 0;
-    --horizontal-gridlines: 0;
-    --x-axis: no;
-    --y-axis: no;
 }
 
 
