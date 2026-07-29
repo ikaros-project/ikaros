@@ -12,6 +12,7 @@ const widget_classes =
     "table",
     "marker",
     "path",
+    "vector-field",
     "grid",
     "image",
     "target-boxes",

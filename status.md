@@ -1,5 +1,24 @@
 # Kernel Review Status
 
+## BrainStudio vector-field visualization
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a dedicated Vector Field widget supporting channel-first and separate-component inputs, configurable vector scaling and anchoring, arrow rendering, and graph coordinates. | Completed | JavaScript syntax; focused registration, shape validation, and relative/coordinate/normalized scaling checks; `git diff --check`. | `Vector fields now have a dedicated BrainStudio widget` |
+| 2 | Add an optional reusable vertical color legend and integrate it with Vector Field while keeping the component suitable for other color-mapped widgets. | Not started |  |  |
+| 3 | Add an example `.ikg` demonstrating the Vector Field input forms, scaling, anchoring, coloring, and legend options. | Not started |  |  |
+
+### Constraints
+
+- Keep Vector Field as a separate selectable widget rather than a Path mode.
+- Use the Ikaros channel-first convention for packed vector-field input.
+- Build the color legend as shared WebUI infrastructure rather than Vector Field-specific drawing code.
+- Complete, verify, and commit task 1 before starting task 2.
+- Complete and commit the reusable legend before adding the example model.
+
+
 ## WebUI superclass consolidation
 
 The refactor will reduce repeated widget code while preserving public widget registrations, parameters, serialized models, runtime behavior, and framework-only base-class visibility.

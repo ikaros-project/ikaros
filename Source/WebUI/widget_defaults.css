@@ -112,6 +112,18 @@ webui-widget-image.scales-yes {
 webui-widget-path {
 }
 
+webui-widget-vector-field {
+    --margin-left: 0;
+    --margin-right: 0;
+    --margin-top: 0;
+    --margin-bottom: 0;
+
+    --space-left: 10;
+    --space-right: 10;
+    --space-top: 10;
+    --space-bottom: 10;
+}
+
 webui-widget-path.scales-no {
     --margin-left: 0;
     --margin-right: 0;
