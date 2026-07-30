@@ -48,6 +48,18 @@ class WebUIWidgetHeatMap extends WebUIWidgetGrid
         };
     }
 
+    getGridMetrics()
+    {
+        const metrics = super.getGridMetrics();
+        if(!metrics || !this.hasVerticalColorLegend())
+            return metrics;
+        metrics.usableWidth -= this.getVerticalColorLegendSpace();
+        if(metrics.usableWidth <= 0)
+            return null;
+        metrics.cellWidth = metrics.usableWidth / metrics.cols;
+        return metrics;
+    }
+
     updateAutomaticRange()
     {
         if(!this.toBool(this.parameters.auto_range) || this.parameters.color_map === "rgb")
