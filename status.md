@@ -23,7 +23,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 None.
 
 
-## BrainStudio event-raster visualization
+## BrainStudio event-raster visualization 
 
 The tasks below will be completed sequentially, with one focused commit per task.
 
