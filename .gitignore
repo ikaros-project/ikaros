@@ -57,6 +57,7 @@ Thumbs.db
 
 # Other
 .vscode
+/status.md
 /Debug/
 /Release/
 /Build/
