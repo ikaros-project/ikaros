@@ -18,6 +18,7 @@ const widget_classes =
     "vector-field",
     "surface-plot",
     "grid",
+    "heat-map",
     "image",
     "target-boxes",
     "world2dview",

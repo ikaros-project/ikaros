@@ -1,5 +1,23 @@
 # Kernel Review Status
 
+## BrainStudio heat-map visualization
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a selectable Heat Map widget derived from Grid with scalar color maps, fixed or automatic value ranges, optional zero inclusion, and a reusable vertical color legend. | Completed | JavaScript syntax for all widgets; focused automatic-range, zero-inclusion, default-legend, and shared legend-format checks; XML validation and four-tick Ikaros smoke; browser verification of an animated 8x8 scalar matrix, automatic diverging range, reserved legend geometry, unclipped endpoint labels, normalized zero label, edge-to-edge no-scale layout, high-DPI canvas sizing, and no warnings or errors; `git diff --check`. | `Heat Map now renders scalar matrices with legends` |
+| 2 | Add an animated `.ikg` example showing fixed and automatic ranges, multiple color maps, labels, scale visibility, and optional legends. | Pending |  |  |
+
+### Constraints
+
+- Preserve Grid matrix orientation, labels, cell shapes, and interaction behavior.
+- Reserve legend space through the shared graph and vertical-legend infrastructure.
+- Exclude RGB grids from scalar legends and automatic scalar ranges.
+- Keep widgets and source modules non-overlapping in the example view.
+- Complete, verify, and commit the widget before adding the example.
+
+
 ## BrainStudio event-raster visualization
 
 The tasks below will be completed sequentially, with one focused commit per task.

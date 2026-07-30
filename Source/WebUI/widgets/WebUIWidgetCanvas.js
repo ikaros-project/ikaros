@@ -120,7 +120,12 @@ class WebUIWidgetCanvas extends WebUIWidget
     {
         const configuredDecimals = Number(this.parameters.color_legend_decimals);
         const decimals = Number.isFinite(configuredDecimals) ? Math.max(0, Math.min(20, Math.trunc(configuredDecimals))) : 2;
-        return Number.isFinite(value) ? value.toFixed(decimals).replace(/\.?0+$/, "") : "";
+        if(!Number.isFinite(value))
+            return "";
+        const formatted = value.toFixed(decimals);
+        if(Number(formatted) === 0)
+            return "0";
+        return formatted.replace(/\.?0+$/, "");
     }
 
     drawVerticalColorLegend(x, y, height, minimum, maximum, colorMap)
@@ -159,6 +164,7 @@ class WebUIWidgetCanvas extends WebUIWidget
             this.canvas.moveTo(x + width, tickY);
             this.canvas.lineTo(x + width + 4, tickY);
             this.canvas.stroke();
+            this.canvas.textBaseline = index === 0 ? "bottom" : index === ticks - 1 ? "top" : "middle";
             this.canvas.fillText(this.formatColorLegendValue(value), x + width + 7, tickY);
         }
         this.canvas.restore();

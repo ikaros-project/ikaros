@@ -161,7 +161,8 @@ webui-widget-vector-field.scale_visibility-no,
 webui-widget-path.scale_visibility-no,
 webui-widget-trace.scale_visibility-no,
 webui-widget-marker.scale_visibility-no,
-webui-widget-grid.scale_visibility-no {
+webui-widget-grid.scale_visibility-no,
+webui-widget-heat-map.scale_visibility-no {
     --margin-left: 0;
     --margin-right: 0;
     --margin-top: 0;
@@ -180,7 +181,8 @@ webui-widget-vector-field.scale_visibility-yes,
 webui-widget-path.scale_visibility-yes,
 webui-widget-trace.scale_visibility-yes,
 webui-widget-marker.scale_visibility-yes,
-webui-widget-grid.scale_visibility-yes {
+webui-widget-grid.scale_visibility-yes,
+webui-widget-heat-map.scale_visibility-yes {
     --left-scale: 3;
     --bottom-scale: 3;
     --vertical-gridlines: 5;
@@ -192,7 +194,8 @@ webui-widget-vector-field.scale_visibility-invisible,
 webui-widget-path.scale_visibility-invisible,
 webui-widget-trace.scale_visibility-invisible,
 webui-widget-marker.scale_visibility-invisible,
-webui-widget-grid.scale_visibility-invisible {
+webui-widget-grid.scale_visibility-invisible,
+webui-widget-heat-map.scale_visibility-invisible {
     --left-scale: 3;
     --bottom-scale: 3;
     --vertical-gridlines: 5;
@@ -210,6 +213,9 @@ webui-widget-marker {
 }
 
 webui-widget-grid {
+}
+
+webui-widget-heat-map {
 }
 
 
