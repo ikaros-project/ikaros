@@ -27,6 +27,13 @@
 - Avoid adding external libraries unless they are absolutely necessary for the particular implementation.
 - Always ask the user for approval before using or installing any external library.
 
+## Module Implementation Language
+
+- Implement new modules in C++ whenever reasonably possible.
+- Use Python for a new module only when it provides substantial, concrete advantages over a C++ implementation.
+- Always obtain the user's explicit permission before implementing a module in Python rather than C++.
+- This policy is necessary because C++ modules participate directly in the normal Ikaros build, deployment, type and shape integration, performance model, and real-time execution environment. Python modules introduce a separate interpreter and package environment, additional external dependencies, cross-process communication overhead, weaker compile-time checking, and runtime failure modes that may appear only when a model is loaded from another environment such as the WebUI.
+
 ## Multiple-Task Workflow
 
 When the user asks for multiple issues or tasks to be addressed, use this workflow:
