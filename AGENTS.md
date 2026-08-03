@@ -22,6 +22,11 @@
 - Route warnings intended for users or the WebUI through `Warning()` or Ikaros notification functions, not `std::cerr`.
 - Use exceptions for startup and module `Init()` failures; during execution, report runtime conditions through `Notify()`, `Warning()`, or related Ikaros notification functions.
 
+## External Libraries
+
+- Avoid adding external libraries unless they are absolutely necessary for the particular implementation.
+- Always ask the user for approval before using or installing any external library.
+
 ## Multiple-Task Workflow
 
 When the user asks for multiple issues or tasks to be addressed, use this workflow:
