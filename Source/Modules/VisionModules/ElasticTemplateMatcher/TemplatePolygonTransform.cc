@@ -12,6 +12,7 @@ class TemplatePolygonTransform : public Module
     matrix templateCorners_;
     matrix keypoints_;
     matrix inliers_;
+    matrix trackedPoints_;
     matrix path_;
     matrix location_;
     matrix matchedFeatures_;
@@ -29,6 +30,7 @@ public:
         Bind(templateCorners_, "TEMPLATE_CORNERS");
         Bind(keypoints_, "KEYPOINTS");
         Bind(inliers_, "INLIERS");
+        Bind(trackedPoints_, "TRACKED_POINTS");
         Bind(path_, "PATH");
         Bind(location_, "LOCATION");
         Bind(matchedFeatures_, "MATCHED_FEATURES");
@@ -102,18 +104,23 @@ public:
         location_.resize(1, 2);
         location_(0, 0) = 0.25f * centerX;
         location_(0, 1) = 0.25f * centerY;
-        const int featureLimit = std::min(inliers_.rows(), static_cast<int>(maxFeatures_));
+        const bool useTracked = trackedPoints_.rank() == 2 && trackedPoints_.cols() == 2 &&
+                                trackedPoints_.rows() > 0;
+        const int featureLimit = std::min(useTracked ? trackedPoints_.rows() : inliers_.rows(),
+                                          static_cast<int>(maxFeatures_));
         matchedFeatures_.resize(featureLimit, 4);
         const float boxWidth = 6.0f / static_cast<float>(imageWidth_);
         const float boxHeight = 6.0f / static_cast<float>(imageHeight_);
         for(int i = 0; i < featureLimit; ++i)
         {
-            const int current = static_cast<int>(inliers_(i, 2));
-            if(current < 0 || current >= keypoints_.rows())
+            const int current = useTracked ? -1 : static_cast<int>(inliers_(i, 2));
+            if(!useTracked && (current < 0 || current >= keypoints_.rows()))
                 continue;
-            matchedFeatures_(i, 0) = 2.0f * keypoints_(current, 0) /
+            const float pointX = useTracked ? trackedPoints_(i, 0) : keypoints_(current, 0);
+            const float pointY = useTracked ? trackedPoints_(i, 1) : keypoints_(current, 1);
+            matchedFeatures_(i, 0) = 2.0f * pointX /
                                      static_cast<float>(imageWidth_ - 1) - 1.0f - boxWidth / 2;
-            matchedFeatures_(i, 1) = 2.0f * keypoints_(current, 1) /
+            matchedFeatures_(i, 1) = 2.0f * pointY /
                                      static_cast<float>(imageHeight_ - 1) - 1.0f - boxHeight / 2;
             matchedFeatures_(i, 2) = boxWidth;
             matchedFeatures_(i, 3) = boxHeight;

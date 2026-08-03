@@ -4,6 +4,7 @@
     <input name="TEMPLATE_CORNERS" description="Template corner rows" />
     <input name="KEYPOINTS" description="Current pixel-coordinate keypoints" />
     <input name="INLIERS" description="Verified correspondence rows" />
+    <input name="TRACKED_POINTS" optional="yes" description="Current LK-tracked points used for feature overlays" />
     <output name="PATH" dynamic="yes" capacity="5,2" description="Closed transformed polygon in centered image coordinates" />
     <output name="LOCATION" dynamic="yes" capacity="1,2" description="Transformed polygon center in centered image coordinates" />
     <output name="MATCHED_FEATURES" dynamic="yes" capacity="@max_features,4" description="Centered target boxes around verified current features" />

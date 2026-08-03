@@ -39,6 +39,7 @@ if(ELASTIC_TEMPLATE_MATCHER_APPLE_SILICON)
             ${CMAKE_CURRENT_SOURCE_DIR}/RobustTransformEstimator.cc
             ${CMAKE_CURRENT_SOURCE_DIR}/TemplateFeatureBank.cc
             ${CMAKE_CURRENT_SOURCE_DIR}/TemplatePolygonTransform.cc
+            ${CMAKE_CURRENT_SOURCE_DIR}/TemplateTrackingController.cc
             PARENT_SCOPE
         )
         set(MODULES_LIBS
