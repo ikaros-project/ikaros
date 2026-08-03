@@ -22,6 +22,7 @@
     <parameter name="ransac_threshold" type="number" default="3" min="0.1" description="MAGSAC reprojection threshold in pixels" />
     <parameter name="track_max_error" type="number" default="20" min="0" description="Maximum Lucas-Kanade forward error" />
     <parameter name="track_fb_error" type="number" default="1.5" min="0" description="Maximum forward-backward tracking error in pixels" />
+    <parameter name="corner_smoothing" type="number" default="0.35" min="0" max="1" description="Fraction of each new corner position applied per tick" />
     <parameter name="min_area_fraction" type="number" default="0.002" min="0" max="1" description="Minimum transformed quadrilateral area relative to the image" />
     <parameter name="max_area_fraction" type="number" default="0.95" min="0" max="1" description="Maximum transformed quadrilateral area relative to the image" />
     <parameter name="device" type="string" control="menu" options="cpu,mps,auto" default="auto" description="PyTorch inference device" />

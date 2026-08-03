@@ -6,7 +6,7 @@
     <module class="ElasticTemplateMatcher" name="Matcher"
         learning_region="0.5"
         max_num_keypoints="256"
-        detection_interval="1"
+        detection_interval="10"
         min_matches="6"
         device="cpu"
         python_executable="../../../../.venv-aliked-lightglue/bin/python"
@@ -15,6 +15,7 @@
     <module class="Print" name="PrintTemplateCount" />
     <module class="Print" name="PrintInliers" />
     <module class="Print" name="PrintCorrespondences" />
+    <module class="Print" name="PrintTracking" />
 
     <connection source="Image.INTENSITY" target="Downsample.INPUT" />
     <connection source="Downsample.OUTPUT" target="Matcher.INPUT" />
@@ -24,4 +25,5 @@
     <connection source="Matcher.TEMPLATE_COUNT" target="PrintTemplateCount.INPUT" label="TEMPLATE_COUNT" />
     <connection source="Matcher.INLIER_COUNT" target="PrintInliers.INPUT" label="INLIER_COUNT" />
     <connection source="Matcher.CORRESPONDENCE_COUNT" target="PrintCorrespondences.INPUT" label="CORRESPONDENCE_COUNT" />
+    <connection source="Matcher.TRACKING" target="PrintTracking.INPUT" label="TRACKING" />
 </group>

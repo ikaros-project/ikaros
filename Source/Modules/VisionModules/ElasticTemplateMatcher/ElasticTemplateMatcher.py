@@ -21,6 +21,8 @@ tracked_current = None
 tracked_template_id = -1
 tracked_score = 0.0
 tracked_correspondence_count = 0
+displayed_corners = None
+displayed_template_id = -1
 last_learn = False
 last_clear = False
 
@@ -163,6 +165,25 @@ def estimate_homography(reference_points, current_points, ctx):
     return homography.astype(np.float64), mask.reshape(-1).astype(bool)
 
 
+def estimate_similarity(reference_points, current_points, ctx):
+    if len(reference_points) < 2:
+        return None, None
+    affine, mask = cv2.estimateAffinePartial2D(
+        np.asarray(reference_points, dtype=np.float32),
+        np.asarray(current_points, dtype=np.float32),
+        method=cv2.RANSAC,
+        ransacReprojThreshold=float(parameter(ctx, "ransac_threshold", 3.0)),
+        maxIters=2000,
+        confidence=0.995,
+        refineIters=10,
+    )
+    if affine is None or mask is None:
+        return None, None
+    transform = np.eye(3, dtype=np.float64)
+    transform[:2, :] = affine
+    return transform, mask.reshape(-1).astype(bool)
+
+
 def transform_corners(template, homography):
     return cv2.perspectiveTransform(template["corners"][None], homography)[0]
 
@@ -265,18 +286,18 @@ def track_previous(ctx, gray_u8):
     )
     reference = tracked_reference[good]
     current = forward_points[good]
-    homography, inliers = estimate_homography(reference, current, ctx)
-    if homography is None:
+    transform, inliers = estimate_similarity(reference, current, ctx)
+    if transform is None:
         return None
     reference = reference[inliers]
     current = current[inliers]
     template = templates[tracked_template_id]
-    corners = transform_corners(template, homography)
+    corners = transform_corners(template, transform)
     if len(current) < int(parameter(ctx, "min_matches", 8)) or not valid_geometry(corners, gray_u8.shape, ctx):
         return None
     return {
         "template_id": tracked_template_id,
-        "homography": homography,
+        "homography": transform,
         "corners": corners,
         "reference": reference.astype(np.float32),
         "current": current.astype(np.float32),
@@ -294,7 +315,16 @@ def centered_coordinates(points, height, width):
 
 
 def publish_result(ctx, result, height, width, tracking):
-    corners = centered_coordinates(result["corners"], height, width)
+    global displayed_corners, displayed_template_id
+    raw_corners = np.asarray(result["corners"], dtype=np.float32)
+    if displayed_corners is None or displayed_template_id != result["template_id"]:
+        displayed_corners = raw_corners.copy()
+    else:
+        alpha = float(parameter(ctx, "corner_smoothing", 0.35))
+        alpha = min(1.0, max(0.0, alpha))
+        displayed_corners += alpha * (raw_corners - displayed_corners)
+    displayed_template_id = result["template_id"]
+    corners = centered_coordinates(displayed_corners, height, width)
     output_array(ctx, "LOCATION")[:] = corners.mean(axis=0)
     output_array(ctx, "MATCH")[0] = result["score"]
     output_array(ctx, "TEMPLATE_ID")[0] = result["template_id"]
@@ -319,7 +349,8 @@ def publish_result(ctx, result, height, width, tracking):
 
 def tick(ctx):
     global previous_gray, tracked_reference, tracked_current, tracked_template_id
-    global tracked_score, tracked_correspondence_count, last_learn, last_clear
+    global tracked_score, tracked_correspondence_count, displayed_corners, displayed_template_id
+    global last_learn, last_clear
 
     gray = input_array(ctx, "INPUT")
     if gray.ndim != 2:
@@ -338,6 +369,8 @@ def tick(ctx):
         tracked_reference = None
         tracked_current = None
         tracked_template_id = -1
+        displayed_corners = None
+        displayed_template_id = -1
         ctx.log.print("Cleared all learned templates.")
     if learn and not last_learn:
         last_learn = learn_template(ctx, gray)
@@ -374,6 +407,8 @@ def tick(ctx):
         tracked_reference = None
         tracked_current = None
         tracked_template_id = -1
+        displayed_corners = None
+        displayed_template_id = -1
         output_array(ctx, "CORRESPONDENCE_COUNT")[0] = diagnostic["correspondences"]
         output_array(ctx, "INLIER_COUNT")[0] = diagnostic["inliers"]
 

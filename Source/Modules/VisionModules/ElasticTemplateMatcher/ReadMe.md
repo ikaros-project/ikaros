@@ -35,10 +35,11 @@ inliers and produces a finite, convex quadrilateral with a plausible image area.
 ## Tracking and reacquisition
 
 Verified homography inliers seed pyramidal Lucas-Kanade tracking. Forward-backward consistency,
-flow error, homography inlier count, convexity, and transformed area are checked every tick. Full
-ALIKED and LightGlue detection runs at `detection_interval`, immediately after tracking failure,
-and whenever no template is currently tracked. This combines inexpensive inter-frame tracking
-with global reacquisition.
+flow error, similarity-transform inlier count, convexity, and transformed area are checked every
+tick. The lower-degree similarity transform prevents point noise from becoming perspective and
+shear jitter, while temporal corner smoothing softens transitions at reacquisition. Full ALIKED and
+LightGlue homography detection runs at `detection_interval`, immediately after tracking failure, and
+whenever no template is currently tracked.
 
 `MATCH_CORNERS` reports the homography-transformed quadrilateral as four centered-coordinate
 points. `TRACKING` distinguishes Lucas-Kanade updates from full learned-feature detection.
