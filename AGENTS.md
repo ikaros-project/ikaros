@@ -34,6 +34,13 @@
 - Always obtain the user's explicit permission before implementing a module in Python rather than C++.
 - This policy is necessary because C++ modules participate directly in the normal Ikaros build, deployment, type and shape integration, performance model, and real-time execution environment. Python modules introduce a separate interpreter and package environment, additional external dependencies, cross-process communication overhead, weaker compile-time checking, and runtime failure modes that may appear only when a model is loaded from another environment such as the WebUI.
 
+## Kernel and Module Scope
+
+- Determine at the outset whether the task extends or modifies the Ikaros kernel or implements a new module class.
+- When implementing a new module, always obtain the user's explicit permission before changing any kernel code.
+- Suggest novel kernel functionality when it would substantially simplify a module implementation, but keep the suggestion separate from the module work and do not implement it without the user's approval.
+- Widget additions are allowed without separate kernel-change approval when they preserve existing widget behavior and do not disturb current functionality.
+
 ## Multiple-Task Workflow
 
 When the user asks for multiple issues or tasks to be addressed, use this workflow:
