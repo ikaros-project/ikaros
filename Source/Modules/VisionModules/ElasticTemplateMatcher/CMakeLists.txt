@@ -31,6 +31,7 @@ if(ELASTIC_TEMPLATE_MATCHER_APPLE_SILICON)
         set_property(TARGET onnxruntime::onnxruntime PROPERTY IMPORTED_GLOBAL TRUE)
         set(SOURCE
             ${SOURCE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/ALIKEDFeatureExtractor.cc
             ${CMAKE_CURRENT_SOURCE_DIR}/NativeOnnxInference.cc
             PARENT_SCOPE
         )
