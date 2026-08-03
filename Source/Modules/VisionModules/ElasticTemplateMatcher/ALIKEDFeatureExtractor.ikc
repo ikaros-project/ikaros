@@ -1,5 +1,6 @@
 <class name="ALIKEDFeatureExtractor" description="Extracts ALIKED keypoints and descriptors with native ONNX Runtime">
     <input name="INPUT" description="RGB float image in channel-first 3,240,320 order with values from 0 to 1" />
+    <input name="ENABLE" optional="yes" size="1" description="Run extraction while positive; an unconnected input enables extraction" />
     <output name="KEYPOINTS" dynamic="yes" capacity="@max_features,2" description="Pixel-coordinate keypoint rows: x,y" />
     <output name="DESCRIPTORS" dynamic="yes" capacity="@max_features,128" description="One normalized 128D ALIKED descriptor per keypoint" />
     <output name="SCORES" dynamic="yes" capacity="@max_features,1" description="One ALIKED detection score per keypoint" />

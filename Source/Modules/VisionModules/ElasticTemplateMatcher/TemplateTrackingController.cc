@@ -27,9 +27,10 @@ public:
     void Tick() override
     {
         result_.clear(); status_.clear();
-        const bool tracking = trackingResult_.rows() == 1 && trackingResult_.cols() >= 4 &&
-                              trackingResult_(0, 3) > 0.0f;
-        const bool detection = detectionResult_.rows() == 1 && detectionResult_.cols() >= 4;
+        const bool tracking = trackingResult_.rows() >= 1 && trackingResult_.cols() >= 4 &&
+                              trackingResult_(0, 1) > 0.0f && trackingResult_(0, 3) > 0.0f;
+        const bool detection = detectionResult_.rows() >= 1 && detectionResult_.cols() >= 4 &&
+                               detectionResult_(0, 1) > 0.0f && detectionResult_(0, 3) > 0.0f;
         if(detection)
             ticksSinceDetection_ = 0;
         else

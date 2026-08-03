@@ -1,0 +1,23 @@
+<group name="GeometryIdentity" start="true" stop="4" agent="Codex: GPT-5.6 Sol">
+    <module class="Constant" name="Current" data="20,30;120,30;120,130;20,130" />
+    <module class="Constant" name="Template" data="20,30;120,30;120,130;20,130" />
+    <module class="Constant" name="Ranges" data="0,4;0,0" />
+    <module class="Constant" name="Matches" data="0,0,0,1;0,1,1,1;0,2,2,1;0,3,3,1" />
+    <module class="Constant" name="Corners" data="20,30,120,30,120,130,20,130;0,0,0,0,0,0,0,0" />
+    <module class="RobustTransformEstimator" name="Geometry"
+        min_inliers="4" max_matches="4" max_templates="1" ransac_iterations="128" />
+    <module class="TemplatePolygonTransform" name="Polygon" min_area_fraction="0.001" />
+    <module class="Print" name="Result" />
+    <module class="Print" name="Path" />
+    <connection source="Current.OUTPUT" target="Geometry.KEYPOINTS" />
+    <connection source="Template.OUTPUT" target="Geometry.TEMPLATE_KEYPOINTS" />
+    <connection source="Ranges.OUTPUT" target="Geometry.TEMPLATE_RANGES" />
+    <connection source="Matches.OUTPUT" target="Geometry.CORRESPONDENCES" />
+    <connection source="Geometry.HOMOGRAPHY" target="Polygon.HOMOGRAPHY" />
+    <connection source="Geometry.RESULT" target="Polygon.RESULT" />
+    <connection source="Geometry.INLIERS" target="Polygon.INLIERS" />
+    <connection source="Corners.OUTPUT" target="Polygon.TEMPLATE_CORNERS" />
+    <connection source="Current.OUTPUT" target="Polygon.KEYPOINTS" />
+    <connection source="Geometry.RESULT" target="Result.INPUT" label="RESULT" />
+    <connection source="Polygon.PATH" target="Path.INPUT" label="PATH" />
+</group>

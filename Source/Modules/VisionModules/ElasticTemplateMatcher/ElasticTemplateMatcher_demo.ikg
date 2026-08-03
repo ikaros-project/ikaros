@@ -12,6 +12,7 @@
     <module class="TemplateTrackingController" name="Controller" detection_interval="10"
         _x="2440" _y="40" />
     <module class="TemplatePolygonTransform" name="Polygon" _x="2640" _y="40" />
+    <module class="Or" name="DetectionRequest" _x="1840" _y="360" />
     <module class="Constant" name="LearnTrigger" data="0" _x="1640" _y="180" />
     <module class="Constant" name="ClearTrigger" data="0" _x="1640" _y="260" />
     <module class="Constant" name="LearningBox"
@@ -20,6 +21,9 @@
     <connection source="Camera.OUTPUT" target="RGB320.INPUT" />
     <connection source="Camera.INTENSITY" target="Gray320.INPUT" />
     <connection source="RGB320.OUTPUT" target="Features.INPUT" />
+    <connection source="Controller.MATCH_ENABLE" target="DetectionRequest.INPUT1" />
+    <connection source="LearnTrigger.OUTPUT" target="DetectionRequest.INPUT2" />
+    <connection source="DetectionRequest.OUTPUT" target="Features.ENABLE" />
     <connection source="Features.KEYPOINTS" target="Templates.KEYPOINTS" />
     <connection source="Features.DESCRIPTORS" target="Templates.DESCRIPTORS" />
     <connection source="Features.SCORES" target="Templates.SCORES" />
@@ -30,7 +34,7 @@
     <connection source="Templates.TEMPLATE_KEYPOINTS" target="Matcher.TEMPLATE_KEYPOINTS" />
     <connection source="Templates.TEMPLATE_DESCRIPTORS" target="Matcher.TEMPLATE_DESCRIPTORS" />
     <connection source="Templates.TEMPLATE_RANGES" target="Matcher.TEMPLATE_RANGES" />
-    <connection source="Controller.MATCH_ENABLE" target="Matcher.ENABLE" />
+    <connection source="DetectionRequest.OUTPUT" target="Matcher.ENABLE" />
     <connection source="Features.KEYPOINTS" target="Geometry.KEYPOINTS" />
     <connection source="Templates.TEMPLATE_KEYPOINTS" target="Geometry.TEMPLATE_KEYPOINTS" />
     <connection source="Templates.TEMPLATE_RANGES" target="Geometry.TEMPLATE_RANGES" />

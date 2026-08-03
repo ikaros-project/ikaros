@@ -23,6 +23,7 @@ namespace
 class ALIKEDFeatureExtractor : public Module
 {
     matrix input_;
+    matrix enable_;
     matrix keypoints_;
     matrix descriptors_;
     matrix scores_;
@@ -36,6 +37,7 @@ public:
     void Init() override
     {
         Bind(input_, "INPUT");
+        Bind(enable_, "ENABLE");
         Bind(keypoints_, "KEYPOINTS");
         Bind(descriptors_, "DESCRIPTORS");
         Bind(scores_, "SCORES");
@@ -78,6 +80,8 @@ public:
         keypoints_.clear();
         descriptors_.clear();
         scores_.clear();
+        if(enable_.size() > 0 && enable_(0) <= 0.0f)
+            return;
 
         try
         {

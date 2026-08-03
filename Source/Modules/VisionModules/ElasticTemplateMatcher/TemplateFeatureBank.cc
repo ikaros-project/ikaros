@@ -26,6 +26,7 @@ class TemplateFeatureBank : public Module
     parameter maxStoredFeatures_;
     bool previousLearn_ = false;
     bool previousClear_ = false;
+    bool pendingLearn_ = false;
 
 public:
     void Init() override
@@ -73,6 +74,7 @@ public:
 
         if(clearTriggered)
         {
+            pendingLearn_ = false;
             templateKeypoints_.clear();
             templateDescriptors_.clear();
             templateScores_.clear();
@@ -80,9 +82,13 @@ public:
             templateCorners_.clear();
             return;
         }
-        if(!learnTriggered)
+        if(learnTriggered)
+            pendingLearn_ = true;
+        if(!pendingLearn_)
             return;
 
+        if(keypoints_.rows() == 0)
+            return;
         if(keypoints_.rank() != 2 || keypoints_.cols() != 2 ||
            descriptors_.rank() != 2 || descriptors_.cols() != 128 ||
            scores_.rank() != 2 || scores_.cols() != 1 ||
@@ -90,11 +96,13 @@ public:
            scores_.rows() != keypoints_.rows())
         {
             Warning("TemplateFeatureBank received incompatible feature matrices");
+            pendingLearn_ = false;
             return;
         }
         if(templateRanges_.rows() >= static_cast<int>(maxTemplates_))
         {
             Warning("TemplateFeatureBank has reached max_templates");
+            pendingLearn_ = false;
             return;
         }
 
@@ -114,11 +122,13 @@ public:
         if(selected < static_cast<int>(minFeatures_))
         {
             Warning("TemplateFeatureBank found too few features in the learning region");
+            pendingLearn_ = false;
             return;
         }
         if(templateKeypoints_.rows() + selected > static_cast<int>(maxStoredFeatures_))
         {
             Warning("TemplateFeatureBank has insufficient feature capacity for this template");
+            pendingLearn_ = false;
             return;
         }
 
@@ -153,6 +163,7 @@ public:
         templateCorners_(templateIndex, 5) = bottom;
         templateCorners_(templateIndex, 6) = left;
         templateCorners_(templateIndex, 7) = bottom;
+        pendingLearn_ = false;
     }
 };
 
