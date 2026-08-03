@@ -1,51 +1,66 @@
-# ElasticTemplateMatcher
+# Native learned template matching
 
-> The current implementation is the Python prototype. A native C++ replacement is in progress;
-> its checksum-pinned ONNX contract is documented in `ModelArtifacts.md`.
+This demo is implemented entirely in C++ at runtime. It uses ALIKED and LightGlue through ONNX
+Runtime, native robust projective geometry, and native pyramidal Lucas-Kanade tracking. It does not
+use Python or OpenCV, and the historical handcrafted elastic matcher is not retained as a fallback.
 
-`ElasticTemplateMatcher` is a Python-backed visual template learner and tracker using ALIKED,
-LightGlue, robust homography estimation, and pyramidal Lucas-Kanade optical flow. The historical
-handcrafted elastic matcher is not retained as a fallback.
-
-## Runtime setup
-
-From the repository root:
+The current implementation targets macOS on Apple Silicon. ONNX Runtime is an external dependency
+and must be installed separately; Ikaros never installs or downloads it. A Homebrew installation is
+discovered by CMake without embedding a machine-specific path:
 
 ```sh
-Source/Modules/VisionModules/ElasticTemplateMatcher/setup_runtime.sh
+cmake -S . -B Build
+cmake --build Build --parallel
 ```
 
-This creates `.venv-aliked-lightglue`, installs the pinned Python packages, and downloads the
-official pretrained weights into `.model-cache`. Both directories are ignored by Git.
+If ONNX Runtime is absent, the rest of Ikaros can still build, but these learned-feature modules are
+not included. The configure output reports whether the dependency was found.
 
-Run the demo with the generated interpreter:
+## Model artifacts
+
+Copy these two files to `UserData/models/ElasticTemplateMatcher`:
+
+- `aliked-n16-320x240-512.onnx`
+- `aliked-lightglue-512.onnx`
+
+They are external weight artifacts and are intentionally not versioned. Before running the demo,
+verify them from the repository root:
 
 ```sh
-./Bin/ikaros -p "$PWD/.venv-aliked-lightglue/bin/python" \
-  Source/Modules/VisionModules/ElasticTemplateMatcher/ElasticTemplateMatcher_demo.ikg
+cd UserData/models/ElasticTemplateMatcher
+shasum -a 256 -c ../../../Source/Modules/VisionModules/ElasticTemplateMatcher/models.sha256
 ```
 
-## Learning and detection
+The native inference boundary repeats the checksum validation at startup and rejects symlinks,
+non-regular files, incorrect tensor contracts, and unsupported model shapes. See
+`ModelArtifacts.md` for the conversion and network contracts. Python may be used for that one-time
+offline conversion, but it is not part of the Ikaros runtime.
 
-A rising edge on `LEARN` extracts ALIKED features from the current frame and retains features in
-the central learning square. Every learned template stores its reference features and four corner
-points. `CLEAR` discards all templates on a rising edge.
+## Pipeline
 
-During detection, ALIKED extracts current-frame features and LightGlue jointly matches each
-learned feature set against them. OpenCV estimates a homography using USAC MAGSAC when available,
-with RANSAC as a compatibility fallback. A result is accepted only when it has enough geometric
-inliers and produces a finite, convex quadrilateral with a plausible image area.
+`ALIKEDFeatureExtractor` emits runtime-sized keypoint, descriptor, and score matrices.
+`TemplateFeatureBank` retains the features inside the central learning square whenever `LEARN`
+receives a rising edge. Each press appends one template; `CLEAR` discards all templates.
 
-## Tracking and reacquisition
+During detection, `LightGlueFeatureMatcher` produces dynamic correspondence rows and
+`RobustTransformEstimator` verifies them with a RANSAC homography. `TemplatePolygonTransform`
+validates the transformed quadrilateral and emits a closed, centered-coordinate path.
 
-Verified homography inliers seed pyramidal Lucas-Kanade tracking. Forward-backward consistency,
-flow error, similarity-transform inlier count, convexity, and transformed area are checked every
-tick. The lower-degree similarity transform prevents point noise from becoming perspective and
-shear jitter, while temporal corner smoothing softens transitions at reacquisition. Full ALIKED and
-LightGlue homography detection runs at `detection_interval`, immediately after tracking failure, and
-whenever no template is currently tracked.
+A verified detection seeds `PyramidalLucasKanadeTracker`. Forward-backward consistency and a robust
+similarity transform stabilize the polygon between detections. `TemplateTrackingController`
+requests learned inference after tracking failure and at the configured reacquisition interval.
+ALIKED and LightGlue are gated off on ordinary tracking ticks.
 
-`MATCH_CORNERS` reports the homography-transformed quadrilateral as four centered-coordinate
-points. `TRACKING` distinguishes Lucas-Kanade updates from full learned-feature detection.
+The pipeline uses bounded setup-owned matrix capacities. Public feature, correspondence, template,
+inlier, tracked-point, and path matrices resize only within those declared capacities; separate
+count outputs are not used.
 
-The learned templates remain in memory for the current run and are not persisted.
+## Run
+
+```sh
+./Bin/ikaros Source/Modules/VisionModules/ElasticTemplateMatcher/ElasticTemplateMatcher_demo.ikg
+```
+
+The demo learns the initial square shown over the camera image. Its Path overlay follows projective
+shape changes, and the labeled tables report controller status, selected template, and transform
+quality. Templates are held in memory for the current run and are not persisted.

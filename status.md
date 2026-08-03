@@ -1010,7 +1010,7 @@ functionality must be evaluated before adding any new data structure or numerica
 | 8 | Implement native pyramidal Lucas–Kanade tracking, keeping image pyramids internal to avoid artificial module boundaries. | Completed | Full build and end-to-end repeated-image smoke passed; all 61 seeded points remained tracked with zero forward-backward error and a valid similarity transform. | `Verified features now continue through native LK tracking` |
 | 9 | Implement the C++ tracking controller and assemble the dynamic-matrix `.ikg` pipeline. | Completed | Full build, XML validation, deterministic 20-tick pipeline smoke, and one-tick native camera demo smoke passed; status transitioned detection-to-tracking with 61 supports and confidence 1. | `Native modules now form a tracked template pipeline` |
 | 10 | Add security, deterministic, dynamic-shape, failure/reacquisition, WebUI, and Release performance verification. | Completed | Release build and 20-tick gated learned-feature/tracking smoke passed in 2.86 seconds; deterministic geometry and controller tests passed; corrupt model checksum was rejected; live WebUI camera, controls, labeled tables, and non-overlapping layout were verified without browser warnings; kernel regression suite passed. | `Native matcher verification now covers security and reacquisition` |
-| 11 | Remove the Python prototype/runtime setup after native parity is established and complete documentation and migration. | In progress |  |  |
+| 11 | Remove the Python prototype/runtime setup after native parity is established and complete documentation and migration. | Completed | Removed the Python class, descriptor, installer, downloader, requirements, bytecode cache, and obsolete manual model; native-only documentation and checksum instructions added; Release configure found ONNX Runtime and full build passed; XML, source-reference audit, deterministic geometry/controller tests, and `git diff --check` passed. | `Removed the Python template-matching runtime` |
 
 ### Approved decisions
 
@@ -1021,4 +1021,4 @@ functionality must be evaluated before adding any new data structure or numerica
 
 ### Outstanding issues and questions
 
-- Python prototype removal and native migration documentation remain before completion.
+None.

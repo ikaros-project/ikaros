@@ -1,4 +1,0 @@
-torch==2.13.0
-torchvision==0.28.0
-opencv-python==5.0.0.93
-lightglue @ git+https://github.com/cvg/LightGlue.git@eb42fee2d71449efb0aa5c10549752b5d75384d8
