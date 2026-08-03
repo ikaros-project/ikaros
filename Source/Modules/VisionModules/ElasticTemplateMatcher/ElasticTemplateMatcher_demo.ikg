@@ -1,0 +1,84 @@
+<group name="Elastic_Template_Matching_Demo" start="true">
+    <module class="InputVideo" name="Camera"
+        id="0"
+        list_devices="no"
+        size_x="640"
+        size_y="480"
+        frame_rate="15" />
+    <module class="Downsample" name="Downsample1" />
+    <module class="ElasticTemplateMatcher" name="Matcher"
+        learning_region="0.25"
+        max_num_keypoints="512"
+        detection_interval="10"
+        min_matches="8"
+        ransac_threshold="3"
+        track_max_error="20"
+        track_fb_error="1.5"
+        device="auto"
+        timeout_ms="10000" />
+    <module class="Constant" name="LearnTrigger" data="0" />
+    <module class="Constant" name="ClearTrigger" data="0" />
+
+    <connection source="Camera.INTENSITY" target="Downsample1.INPUT" />
+    <connection source="Downsample1.OUTPUT" target="Matcher.INPUT" />
+    <connection source="LearnTrigger.OUTPUT" target="Matcher.LEARN" />
+    <connection source="ClearTrigger.OUTPUT" target="Matcher.CLEAR" />
+
+    <widget class="image" name="CameraImage"
+        _x="40" _y="40" width="800" height="600"
+        source="Camera.OUTPUT" format="rgb" scale="both"
+        show_title="no" show_frame="no" />
+    <widget class="target-boxes" name="LearningRegion"
+        _x="40" _y="40" width="800" height="600"
+        source="Matcher.LEARNING_BOX" box_color="#ffd84d" line_width="2"
+        show_score="no" show_title="no" show_frame="no" />
+    <widget class="target-boxes" name="MatchedRegion"
+        _x="40" _y="40" width="800" height="600"
+        source="Matcher.MATCH_BOX" box_color="#00ff66" line_width="4"
+        show_score="yes" score_decimals="2" show_title="no" show_frame="no" />
+    <widget class="target-boxes" name="MatchedFeatures"
+        _x="40" _y="40" width="800" height="600"
+        source="Matcher.MATCHED_FEATURES" box_color="#00c8ff" line_width="2"
+        show_score="no" show_title="no" show_frame="no" />
+
+    <widget class="button" name="LearnButton"
+        _x="880" _y="40" width="160" height="56"
+        type="push" parameter="LearnTrigger.data" value="1" release_value="0" label="Learn"
+        show_title="no" show_frame="yes" />
+    <widget class="button" name="ClearButton"
+        _x="880" _y="112" width="160" height="56"
+        type="push" parameter="ClearTrigger.data" value="1" release_value="0" label="Clear templates"
+        show_title="no" show_frame="yes" />
+    <widget class="table" name="Location"
+        _x="880" _y="200" width="280" height="100"
+        source="Matcher.LOCATION" title="Location (x, y)"
+        decimals="3" colorize="no" scrollable="no" transpose="no" />
+    <widget class="table" name="Match"
+        _x="880" _y="320" width="280" height="80"
+        source="Matcher.MATCH" title="Match"
+        decimals="3" colorize="no" scrollable="no" transpose="no" />
+    <widget class="table" name="TemplateId"
+        _x="880" _y="420" width="130" height="80"
+        source="Matcher.TEMPLATE_ID" title="Template ID"
+        decimals="0" colorize="no" scrollable="no" transpose="no" />
+    <widget class="table" name="TemplateCount"
+        _x="1030" _y="420" width="130" height="80"
+        source="Matcher.TEMPLATE_COUNT" title="Templates"
+        decimals="0" colorize="no" scrollable="no" transpose="no" />
+    <widget class="table" name="Valid"
+        _x="880" _y="520" width="280" height="80"
+        source="Matcher.VALID" title="Valid"
+        decimals="0" colorize="no" scrollable="no" transpose="no" />
+    <widget class="table" name="Correspondences"
+        _x="880" _y="620" width="130" height="80"
+        source="Matcher.CORRESPONDENCE_COUNT" title="Descriptor matches"
+        decimals="0" colorize="no" scrollable="no" transpose="no" />
+    <widget class="table" name="Inliers"
+        _x="1030" _y="620" width="130" height="80"
+        source="Matcher.INLIER_COUNT" title="RANSAC inliers"
+        decimals="0" colorize="no" scrollable="no" transpose="no" />
+    <widget class="table" name="Tracking"
+        _x="880" _y="720" width="280" height="80"
+        source="Matcher.TRACKING" title="Lucas-Kanade tracking"
+        decimals="0" colorize="no" scrollable="no" transpose="no" />
+</group>
