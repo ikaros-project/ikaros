@@ -9,7 +9,6 @@
         detection_interval="10"
         min_matches="6"
         device="cpu"
-        python_executable="../../../../.venv-aliked-lightglue/bin/python"
         timeout_ms="10000" />
     <module class="Print" name="PrintValid" />
     <module class="Print" name="PrintTemplateCount" />
