@@ -1,5 +1,8 @@
 # ElasticTemplateMatcher
 
+> The current implementation is the Python prototype. A native C++ replacement is in progress;
+> its checksum-pinned ONNX contract is documented in `ModelArtifacts.md`.
+
 `ElasticTemplateMatcher` is a Python-backed visual template learner and tracker using ALIKED,
 LightGlue, robust homography estimation, and pyramidal Lucas-Kanade optical flow. The historical
 handcrafted elastic matcher is not retained as a fallback.
