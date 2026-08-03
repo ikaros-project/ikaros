@@ -41,6 +41,12 @@
 - Suggest novel kernel functionality when it would substantially simplify a module implementation, but keep the suggestion separate from the module work and do not implement it without the user's approval.
 - Widget additions are allowed without separate kernel-change approval when they preserve existing widget behavior and do not disturb current functionality.
 
+## Module Composition
+
+- Prefer several distinct, composable modules over one monolithic module when the separate functions can reasonably be expected to be useful in other contexts.
+- Apply this preference especially to implementations with a clear processing pipeline or multiple distinct algorithms, where each stage can have a well-defined input, output, and responsibility.
+- Keep functionality in one module when splitting it would create artificial boundaries, excessive data transfer, or components without meaningful independent reuse.
+
 ## Multiple-Task Workflow
 
 When the user asks for multiple issues or tasks to be addressed, use this workflow:
