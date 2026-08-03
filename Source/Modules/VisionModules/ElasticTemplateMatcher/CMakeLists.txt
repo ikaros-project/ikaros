@@ -35,6 +35,7 @@ if(ELASTIC_TEMPLATE_MATCHER_APPLE_SILICON)
             ${CMAKE_CURRENT_SOURCE_DIR}/LightGlueFeatureMatcher.cc
             ${CMAKE_CURRENT_SOURCE_DIR}/NativeOnnxInference.cc
             ${CMAKE_CURRENT_SOURCE_DIR}/ProjectiveGeometry.cc
+            ${CMAKE_CURRENT_SOURCE_DIR}/PyramidalLucasKanadeTracker.cc
             ${CMAKE_CURRENT_SOURCE_DIR}/RobustTransformEstimator.cc
             ${CMAKE_CURRENT_SOURCE_DIR}/TemplateFeatureBank.cc
             ${CMAKE_CURRENT_SOURCE_DIR}/TemplatePolygonTransform.cc

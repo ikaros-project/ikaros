@@ -1,0 +1,22 @@
+<class name="PyramidalLucasKanadeTracker" description="Tracks verified template points with pyramidal Lucas-Kanade flow">
+    <input name="IMAGE" description="Current 240x320 grayscale image with values from 0 to 1" />
+    <input name="KEYPOINTS" description="Current detected keypoints used for seeding" />
+    <input name="TEMPLATE_KEYPOINTS" description="Concatenated learned template keypoints" />
+    <input name="TEMPLATE_RANGES" description="Template start and length rows" />
+    <input name="SEED_HOMOGRAPHY" size="3,3" description="Verified detection transform" />
+    <input name="SEED_RESULT" description="Verified detection result row" />
+    <input name="SEED_INLIERS" description="Verified detection inlier rows" />
+    <output name="TRANSFORM" size="3,3" description="Current similarity transform from learned template to image" />
+    <output name="REFERENCE_POINTS" dynamic="yes" capacity="@max_points,2" description="Original learned points retained by tracking" />
+    <output name="CURRENT_POINTS" dynamic="yes" capacity="@max_points,2" description="Current tracked point positions" />
+    <output name="RESULT" dynamic="yes" capacity="1,4" description="Tracking row: template index, retained points, mean forward-backward error, state where 1 means tracking" />
+    <parameter name="image_width" type="number" default="320" min="1" />
+    <parameter name="image_height" type="number" default="240" min="1" />
+    <parameter name="levels" type="number" default="3" min="1" max="4" />
+    <parameter name="window_radius" type="number" default="3" min="1" max="8" />
+    <parameter name="iterations" type="number" default="10" min="1" max="30" />
+    <parameter name="max_residual" type="number" default="0.08" min="0" />
+    <parameter name="forward_backward_threshold" type="number" default="1.5" min="0" />
+    <parameter name="min_points" type="number" default="6" min="2" />
+    <parameter name="max_points" type="number" default="512" min="2" max="512" />
+</class>
