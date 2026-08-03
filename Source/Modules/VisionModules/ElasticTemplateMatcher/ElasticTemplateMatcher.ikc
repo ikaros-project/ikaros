@@ -12,7 +12,6 @@
     <output name="INLIER_COUNT" size="1" description="Homography or optical-flow inliers for the best candidate" />
     <output name="TRACKING" size="1" description="One when the current result comes from Lucas-Kanade tracking" />
     <output name="LEARNING_BOX" size="1,5" description="Central learning region as x, y, width, height, score" />
-    <output name="MATCH_BOX" size="1,5" description="Axis-aligned bounds of the transformed template" />
     <output name="MATCH_CORNERS" size="1,8" description="Four transformed corners as x0,y0,... in centered coordinates" />
     <output name="MATCHED_FEATURES" size="@max_num_keypoints,5" description="Verified feature locations as centered-coordinate boxes" />
 

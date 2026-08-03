@@ -77,7 +77,6 @@ def reset_outputs(ctx):
         "CORRESPONDENCE_COUNT",
         "INLIER_COUNT",
         "TRACKING",
-        "MATCH_BOX",
         "MATCH_CORNERS",
         "MATCHED_FEATURES",
     ):
@@ -304,13 +303,6 @@ def publish_result(ctx, result, height, width, tracking):
     output_array(ctx, "INLIER_COUNT")[0] = result["inliers"]
     output_array(ctx, "TRACKING")[0] = 1 if tracking else 0
     output_array(ctx, "MATCH_CORNERS")[0, :] = corners.reshape(-1)
-
-    match_box = output_array(ctx, "MATCH_BOX")
-    minimum = corners.min(axis=0)
-    maximum = corners.max(axis=0)
-    match_box[0, 0:2] = minimum
-    match_box[0, 2:4] = maximum - minimum
-    match_box[0, 4] = result["score"]
 
     feature_boxes = output_array(ctx, "MATCHED_FEATURES")
     feature_boxes.fill(0)
