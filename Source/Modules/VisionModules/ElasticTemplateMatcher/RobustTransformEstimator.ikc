@@ -1,0 +1,14 @@
+<class name="RobustTransformEstimator" description="Robustly verifies feature correspondences with a homography">
+    <input name="KEYPOINTS" description="Current pixel-coordinate feature rows" />
+    <input name="TEMPLATE_KEYPOINTS" description="Concatenated template pixel-coordinate feature rows" />
+    <input name="TEMPLATE_RANGES" description="Template feature start and length rows" />
+    <input name="CORRESPONDENCES" description="LightGlue rows: template, template feature, current feature, score" />
+    <output name="HOMOGRAPHY" size="3,3" description="Best verified template-to-current projective transform" />
+    <output name="INLIERS" dynamic="yes" capacity="@max_matches,4" description="Best inlier rows copied from CORRESPONDENCES" />
+    <output name="RESULT" dynamic="yes" capacity="1,4" description="Verified row: template index, inlier count, mean error, correspondence count" />
+    <parameter name="reprojection_threshold" type="number" default="3" min="0.1" description="Maximum inlier reprojection error in pixels" />
+    <parameter name="min_inliers" type="number" default="6" min="4" description="Minimum inliers required for verification" />
+    <parameter name="ransac_iterations" type="number" default="256" min="1" description="Deterministic RANSAC hypotheses per template" />
+    <parameter name="max_matches" type="number" default="512" min="4" description="Maximum correspondences processed per template" />
+    <parameter name="max_templates" type="number" default="16" min="1" description="Maximum templates processed" />
+</class>
