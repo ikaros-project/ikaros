@@ -41,6 +41,13 @@
 - Suggest novel kernel functionality when it would substantially simplify a module implementation, but keep the suggestion separate from the module work and do not implement it without the user's approval.
 - Widget additions are allowed without separate kernel-change approval when they preserve existing widget behavior and do not disturb current functionality.
 
+## Security Changes
+
+- Assess whether a proposed change could reduce the security of the system before implementing it.
+- Always obtain the user's explicit approval before making any change that could decrease system security.
+- Apply this requirement especially strictly to kernel changes and the Python subsystem, including executable selection, process creation, script loading, interpreter configuration, permissions, and trust boundaries.
+- Explain the security impact, affected trust boundary, and safer alternatives when requesting approval. Do not silently include a security-reducing change as part of another task.
+
 ## Module Composition
 
 - Prefer several distinct, composable modules over one monolithic module when the separate functions can reasonably be expected to be useful in other contexts.
