@@ -18,8 +18,7 @@ official pretrained weights into `.model-cache`. Both directories are ignored by
 Run the demo with the generated interpreter:
 
 ```sh
-./Bin/ikaros -p "$PWD/.venv-aliked-lightglue/bin/python" \
-    Source/Modules/VisionModules/ElasticTemplateMatcher/ElasticTemplateMatcher_demo.ikg
+./Bin/ikaros Source/Modules/VisionModules/ElasticTemplateMatcher/ElasticTemplateMatcher_demo.ikg
 ```
 
 ## Learning and detection

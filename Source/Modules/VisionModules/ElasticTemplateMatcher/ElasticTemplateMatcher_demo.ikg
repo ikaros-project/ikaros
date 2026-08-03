@@ -15,6 +15,7 @@
         track_max_error="20"
         track_fb_error="1.5"
         device="auto"
+        python_executable="../../../../.venv-aliked-lightglue/bin/python"
         timeout_ms="10000" />
     <module class="Constant" name="LearnTrigger" data="0" />
     <module class="Constant" name="ClearTrigger" data="0" />

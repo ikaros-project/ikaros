@@ -279,6 +279,15 @@ class PythonModule: public Module
                 return python_executable;
         }
 
+        std::string python_executable = GetParameter("python_executable").as_string();
+        if(!python_executable.empty())
+        {
+            std::filesystem::path executable_path(python_executable);
+            if(executable_path.is_relative())
+                executable_path = std::filesystem::path(python_script_).parent_path() / executable_path;
+            return executable_path.lexically_normal().string();
+        }
+
         return "python3";
     }
 
