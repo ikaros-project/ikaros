@@ -57,33 +57,41 @@
     <widget class="table" name="Location"
         _x="880" _y="200" width="280" height="100"
         source="Matcher.LOCATION" title="Location (x, y)"
+        label_x="X,Y"
         decimals="3" colorize="no" scrollable="no" transpose="no" />
     <widget class="table" name="Match"
         _x="880" _y="320" width="280" height="80"
         source="Matcher.MATCH" title="Match"
+        label_x="Confidence"
         decimals="3" colorize="no" scrollable="no" transpose="no" />
     <widget class="table" name="TemplateId"
         _x="880" _y="420" width="130" height="80"
         source="Matcher.TEMPLATE_ID" title="Template ID"
+        label_x="ID"
         decimals="0" colorize="no" scrollable="no" transpose="no" />
     <widget class="table" name="TemplateCount"
         _x="1030" _y="420" width="130" height="80"
         source="Matcher.TEMPLATE_COUNT" title="Templates"
+        label_x="Count"
         decimals="0" colorize="no" scrollable="no" transpose="no" />
     <widget class="table" name="Valid"
         _x="880" _y="520" width="280" height="80"
         source="Matcher.VALID" title="Valid"
+        label_x="Valid"
         decimals="0" colorize="no" scrollable="no" transpose="no" />
     <widget class="table" name="Correspondences"
         _x="880" _y="620" width="130" height="80"
         source="Matcher.CORRESPONDENCE_COUNT" title="Descriptor matches"
+        label_x="Matches"
         decimals="0" colorize="no" scrollable="no" transpose="no" />
     <widget class="table" name="Inliers"
         _x="1030" _y="620" width="130" height="80"
         source="Matcher.INLIER_COUNT" title="RANSAC inliers"
+        label_x="Inliers"
         decimals="0" colorize="no" scrollable="no" transpose="no" />
     <widget class="table" name="Tracking"
         _x="880" _y="720" width="280" height="80"
         source="Matcher.TRACKING" title="Lucas-Kanade tracking"
+        label_x="Tracking"
         decimals="0" colorize="no" scrollable="no" transpose="no" />
 </group>
