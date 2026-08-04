@@ -28,6 +28,7 @@ class ALIKEDFeatureExtractor : public Module
     matrix descriptors_;
     matrix scores_;
     parameter modelPath_;
+    parameter useCoreML_;
     parameter scoreThreshold_;
     parameter maxFeatures_;
     std::unique_ptr<NativeOnnxInference> inference_;
@@ -42,6 +43,7 @@ public:
         Bind(descriptors_, "DESCRIPTORS");
         Bind(scores_, "SCORES");
         Bind(modelPath_, "model_path");
+        Bind(useCoreML_, "use_coreml");
         Bind(scoreThreshold_, "score_threshold");
         Bind(maxFeatures_, "max_features");
 
@@ -63,6 +65,18 @@ public:
                 "ALIKEDFeatureExtractor could not resolve model_path inside the project "
                 "directory or UserData");
 
+        std::filesystem::path modelCacheDirectory;
+        if(static_cast<bool>(useCoreML_))
+        {
+            if(!kernel().SanitizeWritePath(
+                   "models/ElasticTemplateMatcher/CoreMLCache/ALIKED",
+                   modelCacheDirectory))
+                throw std::runtime_error(
+                    "ALIKEDFeatureExtractor could not resolve its Core ML cache inside "
+                    "UserData");
+            std::filesystem::create_directories(modelCacheDirectory);
+        }
+
         inference_ = std::make_unique<NativeOnnxInference>(
             resolvedModelPath,
             alikedSha256,
@@ -71,6 +85,12 @@ public:
                 {"keypoints", ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, 3},
                 {"descriptors", ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, 3},
                 {"scores", ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, 2},
+            },
+            OnnxInferenceOptions{
+                .useCoreML = static_cast<bool>(useCoreML_),
+                .requireStaticInputShapes = true,
+                .enableMemoryPattern = true,
+                .modelCacheDirectory = modelCacheDirectory,
             });
     }
 

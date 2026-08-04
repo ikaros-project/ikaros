@@ -24,6 +24,7 @@ class LightGlueFeatureMatcher : public Module
     matrix enable_;
     matrix correspondences_;
     parameter modelPath_;
+    parameter useCoreML_;
     parameter imageWidth_;
     parameter imageHeight_;
     parameter scoreThreshold_;
@@ -47,6 +48,7 @@ public:
         Bind(enable_, "ENABLE");
         Bind(correspondences_, "CORRESPONDENCES");
         Bind(modelPath_, "model_path");
+        Bind(useCoreML_, "use_coreml");
         Bind(imageWidth_, "image_width");
         Bind(imageHeight_, "image_height");
         Bind(scoreThreshold_, "score_threshold");
@@ -72,6 +74,18 @@ public:
             throw std::runtime_error(
                 "LightGlueFeatureMatcher could not resolve model_path inside the project "
                 "directory or UserData");
+
+        std::filesystem::path modelCacheDirectory;
+        if(static_cast<bool>(useCoreML_))
+        {
+            if(!kernel().SanitizeWritePath(
+                   "models/ElasticTemplateMatcher/CoreMLCache/LightGlue",
+                   modelCacheDirectory))
+                throw std::runtime_error(
+                    "LightGlueFeatureMatcher could not resolve its Core ML cache inside "
+                    "UserData");
+            std::filesystem::create_directories(modelCacheDirectory);
+        }
         inference_ = std::make_unique<NativeOnnxInference>(
             resolvedModelPath,
             lightGlueSha256,
@@ -86,6 +100,12 @@ public:
             std::vector<OnnxTensorContract>{
                 {"matches0", ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64, 2},
                 {"scores0", ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, 2},
+            },
+            OnnxInferenceOptions{
+                .useCoreML = static_cast<bool>(useCoreML_),
+                .requireStaticInputShapes = false,
+                .enableMemoryPattern = false,
+                .modelCacheDirectory = modelCacheDirectory,
             });
     }
 

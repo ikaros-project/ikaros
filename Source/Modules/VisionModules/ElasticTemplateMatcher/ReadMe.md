@@ -36,6 +36,14 @@ non-regular files, incorrect tensor contracts, and unsupported model shapes. See
 `ModelArtifacts.md` for the conversion and network contracts. Python may be used for that one-time
 offline conversion, but it is not part of the Ikaros runtime.
 
+ALIKED uses ONNX Runtime's Core ML execution provider by default with MLProgram, all available
+Apple compute units, static input shapes, and a persistent compiled-model cache below
+`UserData/models/ElasticTemplateMatcher/CoreMLCache`. Unsupported graph nodes automatically use
+the CPU provider. Set `use_coreml="false"` on the module to force CPU inference. LightGlue uses
+the multithreaded CPU provider by default because its runtime-varying feature dimensions are not
+compatible with efficient Core ML compilation; its `use_coreml` parameter remains available for
+testing future model conversions.
+
 ## Pipeline
 
 `ALIKEDFeatureExtractor` emits runtime-sized keypoint, descriptor, and score matrices.
