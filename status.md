@@ -27,7 +27,7 @@ None.
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Visualize the features actually retained in learned templates, separately from current matched and tracked features. | Completed | Full Debug build; XML validation; deterministic point-to-box test verified three pixel points map to the expected centered target boxes; demo now overlays retained template points in yellow separately from cyan matched/tracked points. | `Learned template features now have a distinct overlay` |
-| 2 | Restrict current match candidates to the central learning square during Learn while retaining full-image matching for later reacquisition. | In progress |  |  |
+| 2 | Restrict current match candidates to the central learning square during Learn while retaining full-image matching for later reacquisition. | Completed | Full Debug build and XML validation passed; focused tests retained only 3/4 central points when restricted and all 4/4 when unrestricted; the deterministic ALIKED-LightGlue-homography-LK pipeline retained 61/61 central matches and transitioned from detection to stable tracking; geometry/controller regressions and `git diff --check` passed. | `Initial template verification now stays inside the learning region` |
 
 ### Constraints
 

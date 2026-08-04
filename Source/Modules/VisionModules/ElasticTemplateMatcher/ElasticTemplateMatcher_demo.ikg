@@ -4,6 +4,8 @@
     <module class="Downsample" name="RGB320" _x="1440" _y="40" />
     <module class="Downsample" name="Gray320" _x="1440" _y="120" />
     <module class="ALIKEDFeatureExtractor" name="Features" _x="1640" _y="40" />
+    <module class="FeatureRegionFilter" name="MatchCandidates" region="0.5"
+        _x="1840" _y="140" />
     <module class="TemplateFeatureBank" name="Templates" learning_region="0.5"
         _x="1840" _y="40" />
     <module class="FeaturePointBoxes" name="LearnedFeatureBoxes" box_size="5"
@@ -32,18 +34,21 @@
     <connection source="LearnTrigger.OUTPUT" target="Templates.LEARN" />
     <connection source="ClearTrigger.OUTPUT" target="Templates.CLEAR" />
     <connection source="Templates.TEMPLATE_KEYPOINTS" target="LearnedFeatureBoxes.POINTS" />
-    <connection source="Features.KEYPOINTS" target="Matcher.KEYPOINTS" />
-    <connection source="Features.DESCRIPTORS" target="Matcher.DESCRIPTORS" />
+    <connection source="Features.KEYPOINTS" target="MatchCandidates.KEYPOINTS" />
+    <connection source="Features.DESCRIPTORS" target="MatchCandidates.DESCRIPTORS" />
+    <connection source="LearnTrigger.OUTPUT" target="MatchCandidates.RESTRICT" />
+    <connection source="MatchCandidates.FILTERED_KEYPOINTS" target="Matcher.KEYPOINTS" />
+    <connection source="MatchCandidates.FILTERED_DESCRIPTORS" target="Matcher.DESCRIPTORS" />
     <connection source="Templates.TEMPLATE_KEYPOINTS" target="Matcher.TEMPLATE_KEYPOINTS" />
     <connection source="Templates.TEMPLATE_DESCRIPTORS" target="Matcher.TEMPLATE_DESCRIPTORS" />
     <connection source="Templates.TEMPLATE_RANGES" target="Matcher.TEMPLATE_RANGES" />
     <connection source="DetectionRequest.OUTPUT" target="Matcher.ENABLE" />
-    <connection source="Features.KEYPOINTS" target="Geometry.KEYPOINTS" />
+    <connection source="MatchCandidates.FILTERED_KEYPOINTS" target="Geometry.KEYPOINTS" />
     <connection source="Templates.TEMPLATE_KEYPOINTS" target="Geometry.TEMPLATE_KEYPOINTS" />
     <connection source="Templates.TEMPLATE_RANGES" target="Geometry.TEMPLATE_RANGES" />
     <connection source="Matcher.CORRESPONDENCES" target="Geometry.CORRESPONDENCES" />
     <connection source="Gray320.OUTPUT" target="Tracker.IMAGE" />
-    <connection source="Features.KEYPOINTS" target="Tracker.KEYPOINTS" />
+    <connection source="MatchCandidates.FILTERED_KEYPOINTS" target="Tracker.KEYPOINTS" />
     <connection source="Templates.TEMPLATE_KEYPOINTS" target="Tracker.TEMPLATE_KEYPOINTS" />
     <connection source="Templates.TEMPLATE_RANGES" target="Tracker.TEMPLATE_RANGES" />
     <connection source="Geometry.HOMOGRAPHY" target="Tracker.SEED_HOMOGRAPHY" />
@@ -56,7 +61,7 @@
     <connection source="Controller.TRANSFORM" target="Polygon.HOMOGRAPHY" />
     <connection source="Controller.RESULT" target="Polygon.RESULT" />
     <connection source="Templates.TEMPLATE_CORNERS" target="Polygon.TEMPLATE_CORNERS" />
-    <connection source="Features.KEYPOINTS" target="Polygon.KEYPOINTS" />
+    <connection source="MatchCandidates.FILTERED_KEYPOINTS" target="Polygon.KEYPOINTS" />
     <connection source="Geometry.INLIERS" target="Polygon.INLIERS" />
     <connection source="Tracker.CURRENT_POINTS" target="Polygon.TRACKED_POINTS" />
 

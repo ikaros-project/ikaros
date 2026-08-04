@@ -41,6 +41,8 @@ offline conversion, but it is not part of the Ikaros runtime.
 `ALIKEDFeatureExtractor` emits runtime-sized keypoint, descriptor, and score matrices.
 `TemplateFeatureBank` retains the features inside the central learning square whenever `LEARN`
 receives a rising edge. Each press appends one template; `CLEAR` discards all templates.
+The demo draws these retained reference features in yellow. Cyan boxes are reserved for current
+geometrically matched or Lucas-Kanade-tracked features.
 
 During detection, `LightGlueFeatureMatcher` produces dynamic correspondence rows and
 `RobustTransformEstimator` verifies them with a RANSAC homography. `TemplatePolygonTransform`
@@ -50,6 +52,11 @@ A verified detection seeds `PyramidalLucasKanadeTracker`. Forward-backward consi
 similarity transform stabilize the polygon between detections. `TemplateTrackingController`
 requests learned inference after tracking failure and at the configured reacquisition interval.
 ALIKED and LightGlue are gated off on ordinary tracking ticks.
+
+On the Learn tick, `FeatureRegionFilter` restricts current LightGlue candidates to the same central
+square used by the template bank. This prevents repeated structure elsewhere in the image from
+seeding the first homography. The filter passes every feature during subsequent detection passes,
+so reacquisition still searches the complete image.
 
 The pipeline uses bounded setup-owned matrix capacities. Public feature, correspondence, template,
 inlier, tracked-point, and path matrices resize only within those declared capacities; separate
