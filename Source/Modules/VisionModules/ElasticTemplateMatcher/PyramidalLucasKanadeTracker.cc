@@ -156,6 +156,15 @@ class PyramidalLucasKanadeTracker : public Module
             return false;
         transform_.copy(seedHomography_);
         active_ = true;
+        referenceOutput_.resize(count, 2);
+        currentOutput_.resize(count, 2);
+        referenceOutput_.copy(referencePoints_);
+        currentOutput_.copy(previousPoints_);
+        result_.resize(1, 4);
+        result_(0, 0) = static_cast<float>(templateIndex_);
+        result_(0, 1) = static_cast<float>(count);
+        result_(0, 2) = 0.0f;
+        result_(0, 3) = 1.0f;
         return true;
     }
 

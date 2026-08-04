@@ -79,7 +79,7 @@ None.
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Make the tracked-region polygon background semitransparent over the camera image. | Completed | Demo XML validation and `git diff --check` passed; tracked-region Path now uses an 18% opaque black background while retaining its translucent green fill. | `Tracked-region overlays now preserve camera visibility` |
-| 2 | Prevent scheduled reacquisition from periodically dropping a valid stationary tracking state. | In progress |  |  |
+| 2 | Prevent scheduled reacquisition from periodically dropping a valid stationary tracking state. | Completed | Release build passed; deterministic 20-tick pipeline now remains valid continuously across scheduled detection and reseeding with 61/61 points, eliminating the prior empty status tick; controller and geometry regressions and `git diff --check` passed. | `Tracker reseeding now preserves a valid output state` |
 
 ### Constraints
 
