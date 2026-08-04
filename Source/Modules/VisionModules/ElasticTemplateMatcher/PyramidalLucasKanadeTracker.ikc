@@ -19,4 +19,5 @@
     <parameter name="forward_backward_threshold" type="number" default="1.5" min="0" />
     <parameter name="min_points" type="number" default="6" min="2" />
     <parameter name="max_points" type="number" default="512" min="2" max="512" />
+    <parameter name="max_reseed_displacement" type="number" default="20" min="0" description="Maximum mean pixel disagreement for replacing an active track; zero disables the check" />
 </class>

@@ -68,6 +68,10 @@ tick; the reseeded similarity transform then takes over without exposing the noi
 homography. This allows periodic global detection to recover from a wrong image patch without a
 visible polygon jump.
 
+An active track also rejects scheduled reseeds whose projected inliers disagree too far from the
+current tracking transform. This suppresses isolated false detections without limiting global
+reacquisition after Lucas-Kanade has actually failed.
+
 The pipeline uses bounded setup-owned matrix capacities. Public feature, correspondence, template,
 inlier, tracked-point, and path matrices resize only within those declared capacities; separate
 count outputs are not used.

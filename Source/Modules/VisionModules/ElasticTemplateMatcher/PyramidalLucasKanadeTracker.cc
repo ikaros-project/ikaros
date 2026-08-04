@@ -104,6 +104,7 @@ class PyramidalLucasKanadeTracker : public Module
     matrix transform_, referenceOutput_, currentOutput_, result_;
     parameter imageWidth_, imageHeight_, levels_, windowRadius_, iterations_;
     parameter maxResidual_, forwardBackwardThreshold_, minPoints_, maxPoints_;
+    parameter maxReseedDisplacement_;
     std::array<matrix, 4> previousPyramid_;
     std::array<matrix, 4> currentPyramid_;
     matrix referencePoints_, previousPoints_, velocities_, nextPoints_;
@@ -124,12 +125,39 @@ class PyramidalLucasKanadeTracker : public Module
     {
         if(seedResult_.rows() != 1 || seedInliers_.rows() < static_cast<int>(minPoints_))
             return false;
-        templateIndex_ = static_cast<int>(seedResult_(0, 0));
-        if(templateIndex_ < 0 || templateIndex_ >= templateRanges_.rows())
+        const int seedTemplateIndex = static_cast<int>(seedResult_(0, 0));
+        if(seedTemplateIndex < 0 || seedTemplateIndex >= templateRanges_.rows())
             return false;
-        const int start = static_cast<int>(templateRanges_(templateIndex_, 0));
-        const int length = static_cast<int>(templateRanges_(templateIndex_, 1));
+        const int start = static_cast<int>(templateRanges_(seedTemplateIndex, 0));
+        const int length = static_cast<int>(templateRanges_(seedTemplateIndex, 1));
         const int limit = std::min(seedInliers_.rows(), static_cast<int>(maxPoints_));
+
+        if(active_ && seedTemplateIndex == templateIndex_ &&
+           static_cast<float>(maxReseedDisplacement_) > 0.0f)
+        {
+            float disagreement = 0.0f;
+            int compared = 0;
+            for(int i = 0; i < limit; ++i)
+            {
+                const int local = static_cast<int>(seedInliers_(i, 1));
+                if(local < 0 || local >= length)
+                    continue;
+                const float referenceX = templateKeypoints_(start + local, 0);
+                const float referenceY = templateKeypoints_(start + local, 1);
+                float detectedX, detectedY, trackedX, trackedY;
+                if(!ProjectiveGeometry::Project(seedHomography_, referenceX, referenceY,
+                                                detectedX, detectedY) ||
+                   !ProjectiveGeometry::Project(transform_, referenceX, referenceY,
+                                                trackedX, trackedY))
+                    continue;
+                disagreement += std::hypot(detectedX - trackedX, detectedY - trackedY);
+                ++compared;
+            }
+            if(compared < static_cast<int>(minPoints_) ||
+               disagreement / compared > static_cast<float>(maxReseedDisplacement_))
+                return false;
+        }
+
         referencePoints_.resize(limit, 2);
         previousPoints_.resize(limit, 2);
         velocities_.resize(limit, 2);
@@ -154,6 +182,7 @@ class PyramidalLucasKanadeTracker : public Module
         velocities_.resize(count, 2);
         if(count < static_cast<int>(minPoints_))
             return false;
+        templateIndex_ = seedTemplateIndex;
         if(!geometry_.Similarity(referencePoints_, previousPoints_, transform_))
             transform_.copy(seedHomography_);
         active_ = true;
@@ -183,6 +212,7 @@ public:
         Bind(levels_, "levels"); Bind(windowRadius_, "window_radius"); Bind(iterations_, "iterations");
         Bind(maxResidual_, "max_residual"); Bind(forwardBackwardThreshold_, "forward_backward_threshold");
         Bind(minPoints_, "min_points"); Bind(maxPoints_, "max_points");
+        Bind(maxReseedDisplacement_, "max_reseed_displacement");
         if(image_.shape() != std::vector<int>({static_cast<int>(imageHeight_), static_cast<int>(imageWidth_)}))
             throw std::runtime_error("PyramidalLucasKanadeTracker IMAGE has unexpected shape");
         for(int level = 0; level < static_cast<int>(levels_); ++level)

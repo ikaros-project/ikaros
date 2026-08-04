@@ -15,6 +15,7 @@
         _x="2240" _y="40" />
     <module class="PyramidalLucasKanadeTracker" name="Tracker" window_radius="5"
         iterations="15" max_residual="0.15" forward_backward_threshold="2.5" min_points="4"
+        max_reseed_displacement="12"
         _x="2240" _y="140" />
     <module class="TemplateTrackingController" name="Controller" detection_interval="10"
         tracking_fb_threshold="2.5"
