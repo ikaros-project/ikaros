@@ -71,6 +71,9 @@
     <widget class="target-boxes" name="LearningRegion" _x="40" _y="40" width="800" height="600"
         source="LearningBox.OUTPUT" box_color="#ffd84d" line_width="2"
         show_score="no" show_title="no" show_frame="no" />
+    <widget class="target-boxes" name="LearnedFeatures" _x="40" _y="40" width="800" height="600"
+        source="LearnedFeatureBoxes.BOXES" box_color="#ffd84d" line_width="1"
+        show_score="no" show_title="no" show_frame="no" />
     <widget class="path" name="MatchedRegion" _x="40" _y="40" width="800" height="600"
         source="Polygon.PATH" order="row" select_x="0" point_count="5" close="no" arrow="no"
         line_width="4" stroke_color="#00ff66" fill_color="rgba(0,255,102,0.08)"
@@ -78,9 +81,6 @@
         show_title="no" show_frame="no" />
     <widget class="target-boxes" name="MatchedFeatures" _x="40" _y="40" width="800" height="600"
         source="Polygon.MATCHED_FEATURES" box_color="#00c8ff" line_width="2"
-        show_score="no" show_title="no" show_frame="no" />
-    <widget class="target-boxes" name="LearnedFeatures" _x="40" _y="40" width="800" height="600"
-        source="LearnedFeatureBoxes.BOXES" box_color="#ffd84d" line_width="1"
         show_score="no" show_title="no" show_frame="no" />
     <widget class="button" name="LearnButton" _x="880" _y="40" width="160" height="56"
         type="push" parameter="LearnTrigger.data" value="1" release_value="0" label="Learn"
