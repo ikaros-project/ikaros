@@ -4,6 +4,7 @@
     <output name="KEYPOINTS" dynamic="yes" capacity="@max_features,2" description="Pixel-coordinate keypoint rows: x,y" />
     <output name="DESCRIPTORS" dynamic="yes" capacity="@max_features,128" description="One normalized 128D ALIKED descriptor per keypoint" />
     <output name="SCORES" dynamic="yes" capacity="@max_features,1" description="One ALIKED detection score per keypoint" />
+    <output name="PERFORMANCE" size="3" description="Last inference milliseconds, exponentially smoothed milliseconds, provider (0 CPU, 1 Core ML)" />
     <parameter name="model_path" type="string" default="models/ElasticTemplateMatcher/aliked-n16-320x240-512.onnx" description="ALIKED ONNX model inside the project directory or UserData" />
     <parameter name="use_coreml" type="bool" default="true" description="Use Core ML MLProgram acceleration with automatic CPU fallback" />
     <parameter name="score_threshold" type="number" default="0.2" min="0" max="1" description="Minimum detection score emitted by the module" />

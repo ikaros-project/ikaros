@@ -65,6 +65,11 @@ similarity transform stabilize the polygon between detections. `TemplateTracking
 requests learned inference after tracking failure and at the configured reacquisition interval.
 ALIKED and LightGlue are gated off on ordinary tracking ticks.
 
+Each learned network exposes a three-value `PERFORMANCE` output containing the most recent ONNX
+inference time in milliseconds, an exponentially smoothed time, and the active provider (`0` for
+CPU, `1` for Core ML). The demo shows these outputs in separately labeled tables. LightGlue's time
+is the sum of its inference calls across all templates processed on that enabled tick.
+
 On the Learn tick, `FeatureRegionFilter` restricts current LightGlue candidates to the same central
 square used by the template bank. This prevents repeated structure elsewhere in the image from
 seeding the first homography. The filter passes every feature during subsequent detection passes,
@@ -92,4 +97,5 @@ count outputs are not used.
 
 The demo learns the initial square shown over the camera image. Its Path overlay follows projective
 shape changes, and the labeled tables report controller status, selected template, and transform
-quality. Templates are held in memory for the current run and are not persisted.
+quality, active inference providers, and network latency. Templates are held in memory for the
+current run and are not persisted.

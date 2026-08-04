@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <filesystem>
 #include <memory>
 #include <stdexcept>
@@ -23,6 +24,7 @@ class LightGlueFeatureMatcher : public Module
     matrix templateRanges_;
     matrix enable_;
     matrix correspondences_;
+    matrix performance_;
     parameter modelPath_;
     parameter useCoreML_;
     parameter imageWidth_;
@@ -36,6 +38,8 @@ class LightGlueFeatureMatcher : public Module
     matrix imageSize_;
     std::unique_ptr<NativeOnnxInference> inference_;
     bool inferenceWarningIssued_ = false;
+    float smoothedInferenceMilliseconds_ = 0.0f;
+    bool hasInferenceTiming_ = false;
 
 public:
     void Init() override
@@ -47,6 +51,7 @@ public:
         Bind(templateRanges_, "TEMPLATE_RANGES");
         Bind(enable_, "ENABLE");
         Bind(correspondences_, "CORRESPONDENCES");
+        Bind(performance_, "PERFORMANCE");
         Bind(modelPath_, "model_path");
         Bind(useCoreML_, "use_coreml");
         Bind(imageWidth_, "image_width");
@@ -107,6 +112,7 @@ public:
                 .enableMemoryPattern = false,
                 .modelCacheDirectory = modelCacheDirectory,
             });
+        performance_(2) = inference_->UsingCoreML() ? 1.0f : 0.0f;
     }
 
 
@@ -133,6 +139,7 @@ public:
 
         try
         {
+            float inferenceMilliseconds = 0.0f;
             const int templateLimit = std::min(templateRanges_.rows(),
                                                static_cast<int>(maxTemplates_));
             for(int templateIndex = 0; templateIndex < templateLimit; ++templateIndex)
@@ -158,7 +165,10 @@ public:
                 inputs.emplace_back(inference_->FloatTensor(keypoints_));
                 inputs.emplace_back(inference_->FloatTensor(descriptors_));
                 inputs.emplace_back(inference_->FloatTensor(imageSize_));
+                const auto inferenceStart = std::chrono::steady_clock::now();
                 std::vector<Ort::Value> outputs = inference_->Run(inputs);
+                inferenceMilliseconds += std::chrono::duration<float, std::milli>(
+                    std::chrono::steady_clock::now() - inferenceStart).count();
                 if(outputs.size() != 2)
                     throw std::runtime_error("LightGlue returned an unexpected output count");
                 const auto matchShape = outputs[0].GetTensorTypeAndShapeInfo().GetShape();
@@ -192,6 +202,12 @@ public:
                     ++target;
                 }
             }
+            smoothedInferenceMilliseconds_ = hasInferenceTiming_
+                ? 0.9f * smoothedInferenceMilliseconds_ + 0.1f * inferenceMilliseconds
+                : inferenceMilliseconds;
+            hasInferenceTiming_ = true;
+            performance_(0) = inferenceMilliseconds;
+            performance_(1) = smoothedInferenceMilliseconds_;
             inferenceWarningIssued_ = false;
         }
         catch(const std::exception & error)

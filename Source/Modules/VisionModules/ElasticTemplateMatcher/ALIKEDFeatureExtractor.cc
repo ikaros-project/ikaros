@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <filesystem>
 #include <memory>
 #include <stdexcept>
@@ -27,12 +28,15 @@ class ALIKEDFeatureExtractor : public Module
     matrix keypoints_;
     matrix descriptors_;
     matrix scores_;
+    matrix performance_;
     parameter modelPath_;
     parameter useCoreML_;
     parameter scoreThreshold_;
     parameter maxFeatures_;
     std::unique_ptr<NativeOnnxInference> inference_;
     bool inferenceWarningIssued_ = false;
+    float smoothedInferenceMilliseconds_ = 0.0f;
+    bool hasInferenceTiming_ = false;
 
 public:
     void Init() override
@@ -42,6 +46,7 @@ public:
         Bind(keypoints_, "KEYPOINTS");
         Bind(descriptors_, "DESCRIPTORS");
         Bind(scores_, "SCORES");
+        Bind(performance_, "PERFORMANCE");
         Bind(modelPath_, "model_path");
         Bind(useCoreML_, "use_coreml");
         Bind(scoreThreshold_, "score_threshold");
@@ -92,6 +97,7 @@ public:
                 .enableMemoryPattern = true,
                 .modelCacheDirectory = modelCacheDirectory,
             });
+        performance_(2) = inference_->UsingCoreML() ? 1.0f : 0.0f;
     }
 
 
@@ -107,7 +113,17 @@ public:
         {
             std::vector<Ort::Value> inputs;
             inputs.emplace_back(inference_->FloatTensor(input_));
+            const auto inferenceStart = std::chrono::steady_clock::now();
             std::vector<Ort::Value> outputs = inference_->Run(inputs);
+            const float inferenceMilliseconds =
+                std::chrono::duration<float, std::milli>(
+                    std::chrono::steady_clock::now() - inferenceStart).count();
+            smoothedInferenceMilliseconds_ = hasInferenceTiming_
+                ? 0.9f * smoothedInferenceMilliseconds_ + 0.1f * inferenceMilliseconds
+                : inferenceMilliseconds;
+            hasInferenceTiming_ = true;
+            performance_(0) = inferenceMilliseconds;
+            performance_(1) = smoothedInferenceMilliseconds_;
             if(outputs.size() != 3 ||
                !hasShape(outputs[0], {1, 512, 2}) ||
                !hasShape(outputs[1], {1, 512, 128}) ||

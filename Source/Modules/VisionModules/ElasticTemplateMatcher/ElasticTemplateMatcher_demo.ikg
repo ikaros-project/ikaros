@@ -104,4 +104,12 @@
         source="Templates.TEMPLATE_RANGES" title="Learned templates"
         label_x="Feature start,Feature length" decimals="0" colorize="no"
         scrollable="yes" transpose="no" />
+    <widget class="table" name="ALIKEDPerformance" _x="1180" _y="520" width="280" height="72"
+        source="Features.PERFORMANCE" title="ALIKED inference"
+        label_x="Last ms,Smoothed ms,Core ML" decimals="2" colorize="no"
+        scrollable="no" transpose="no" />
+    <widget class="table" name="LightGluePerformance" _x="1180" _y="608" width="280" height="72"
+        source="Matcher.PERFORMANCE" title="LightGlue inference"
+        label_x="Last ms,Smoothed ms,Core ML" decimals="2" colorize="no"
+        scrollable="no" transpose="no" />
 </group>
