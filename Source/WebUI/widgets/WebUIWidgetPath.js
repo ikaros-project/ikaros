@@ -44,8 +44,6 @@ class WebUIWidgetPath extends WebUIWidgetGraph
     {
         super.init();
         this.data = [];
-        this.style.background = "transparent";
-        this.canvasElement.style.background = "transparent";
 
         this.onclick = function () {
             if(main.edit_mode)
