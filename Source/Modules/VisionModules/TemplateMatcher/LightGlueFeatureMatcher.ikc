@@ -7,7 +7,7 @@
     <input name="ENABLE" optional="yes" size="1" description="Run matching while positive; an unconnected input enables matching" />
     <output name="CORRESPONDENCES" dynamic="yes" capacity="@max_templates*@max_matches_per_template,4" description="Rows: template index, template feature index, current feature index, LightGlue score" />
     <output name="PERFORMANCE" size="3" description="Last enabled-tick inference milliseconds, exponentially smoothed milliseconds, provider (0 CPU, 1 Core ML)" />
-    <parameter name="model_path" type="string" default="models/ElasticTemplateMatcher/aliked-lightglue-512.onnx" description="LightGlue ONNX model inside the project directory or UserData" />
+    <parameter name="model_path" type="string" default="models/TemplateMatcher/aliked-lightglue-512.onnx" description="LightGlue ONNX model inside the project directory or UserData" />
     <parameter name="use_coreml" type="bool" default="false" description="Use experimental Core ML MLProgram acceleration; the multithreaded CPU provider is faster and more compatible for this dynamic model by default" />
     <parameter name="image_width" type="number" default="320" min="1" description="Feature image width in pixels" />
     <parameter name="image_height" type="number" default="240" min="1" description="Feature image height in pixels" />

@@ -18,7 +18,7 @@ not included. The configure output reports whether the dependency was found.
 
 ## Model artifacts
 
-Copy these two files to `UserData/models/ElasticTemplateMatcher`:
+Copy these two files to `UserData/models/TemplateMatcher`:
 
 - `aliked-n16-320x240-512.onnx`
 - `aliked-lightglue-512.onnx`
@@ -27,8 +27,8 @@ They are external weight artifacts and are intentionally not versioned. Before r
 verify them from the repository root:
 
 ```sh
-cd UserData/models/ElasticTemplateMatcher
-shasum -a 256 -c ../../../Source/Modules/VisionModules/ElasticTemplateMatcher/models.sha256
+cd UserData/models/TemplateMatcher
+shasum -a 256 -c ../../../Source/Modules/VisionModules/TemplateMatcher/models.sha256
 ```
 
 The native inference boundary repeats the checksum validation at startup and rejects symlinks,
@@ -38,7 +38,7 @@ offline conversion, but it is not part of the Ikaros runtime.
 
 ALIKED uses ONNX Runtime's Core ML execution provider by default with MLProgram, all available
 Apple compute units, static input shapes, and a persistent compiled-model cache below
-`UserData/models/ElasticTemplateMatcher/CoreMLCache`. Unsupported graph nodes automatically use
+`UserData/models/TemplateMatcher/CoreMLCache`. Unsupported graph nodes automatically use
 the CPU provider. Set `use_coreml="false"` on the module to force CPU inference. LightGlue uses
 the multithreaded CPU provider by default because its runtime-varying feature dimensions are not
 compatible with efficient Core ML compilation; its `use_coreml` parameter remains available for
@@ -92,7 +92,7 @@ count outputs are not used.
 ## Run
 
 ```sh
-./Bin/ikaros Source/Modules/VisionModules/ElasticTemplateMatcher/ElasticTemplateMatcher_demo.ikg
+./Bin/ikaros Source/Modules/VisionModules/TemplateMatcher/TemplateMatcher_demo.ikg
 ```
 
 The demo learns the initial square shown over the camera image. Its Path overlay follows projective

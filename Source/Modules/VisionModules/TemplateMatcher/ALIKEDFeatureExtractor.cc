@@ -74,7 +74,7 @@ public:
         if(static_cast<bool>(useCoreML_))
         {
             if(!kernel().SanitizeWritePath(
-                   "models/ElasticTemplateMatcher/CoreMLCache/ALIKED",
+                   "models/TemplateMatcher/CoreMLCache/ALIKED",
                    modelCacheDirectory))
                 throw std::runtime_error(
                     "ALIKEDFeatureExtractor could not resolve its Core ML cache inside "

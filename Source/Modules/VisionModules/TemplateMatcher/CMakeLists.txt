@@ -1,27 +1,27 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(ELASTIC_TEMPLATE_MATCHER_APPLE_SILICON OFF)
+set(TEMPLATE_MATCHER_APPLE_SILICON OFF)
 if(APPLE AND (CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64" OR
               CMAKE_OSX_ARCHITECTURES MATCHES "(^|;)arm64(;|$)" OR
               UNAME_CMAKE_OSX_ARCHITECTURES STREQUAL "arm64"))
-    set(ELASTIC_TEMPLATE_MATCHER_APPLE_SILICON ON)
+    set(TEMPLATE_MATCHER_APPLE_SILICON ON)
 endif()
 
-if(ELASTIC_TEMPLATE_MATCHER_APPLE_SILICON)
+if(TEMPLATE_MATCHER_APPLE_SILICON)
     find_package(onnxruntime CONFIG QUIET)
     if(NOT onnxruntime_FOUND)
-        find_program(ELASTIC_TEMPLATE_MATCHER_BREW brew)
-        if(ELASTIC_TEMPLATE_MATCHER_BREW)
+        find_program(TEMPLATE_MATCHER_BREW brew)
+        if(TEMPLATE_MATCHER_BREW)
             execute_process(
-                COMMAND ${ELASTIC_TEMPLATE_MATCHER_BREW} --prefix onnxruntime
-                OUTPUT_VARIABLE ELASTIC_TEMPLATE_MATCHER_ONNXRUNTIME_PREFIX
+                COMMAND ${TEMPLATE_MATCHER_BREW} --prefix onnxruntime
+                OUTPUT_VARIABLE TEMPLATE_MATCHER_ONNXRUNTIME_PREFIX
                 OUTPUT_STRIP_TRAILING_WHITESPACE
                 ERROR_QUIET
-                RESULT_VARIABLE ELASTIC_TEMPLATE_MATCHER_BREW_RESULT
+                RESULT_VARIABLE TEMPLATE_MATCHER_BREW_RESULT
             )
-            if(ELASTIC_TEMPLATE_MATCHER_BREW_RESULT EQUAL 0)
+            if(TEMPLATE_MATCHER_BREW_RESULT EQUAL 0)
                 find_package(onnxruntime CONFIG QUIET
-                    PATHS ${ELASTIC_TEMPLATE_MATCHER_ONNXRUNTIME_PREFIX}
+                    PATHS ${TEMPLATE_MATCHER_ONNXRUNTIME_PREFIX}
                     NO_DEFAULT_PATH)
             endif()
         endif()
@@ -49,12 +49,12 @@ if(ELASTIC_TEMPLATE_MATCHER_APPLE_SILICON)
             onnxruntime::onnxruntime
             PARENT_SCOPE
         )
-        message(STATUS "ElasticTemplateMatcher native inference enabled")
+        message(STATUS "TemplateMatcher native inference enabled")
     else()
         message(STATUS
-            "ElasticTemplateMatcher native inference disabled: ONNX Runtime was not found")
+            "TemplateMatcher native inference disabled: ONNX Runtime was not found")
     endif()
 else()
     message(STATUS
-        "ElasticTemplateMatcher native inference disabled: currently requires Apple Silicon")
+        "TemplateMatcher native inference disabled: currently requires Apple Silicon")
 endif()

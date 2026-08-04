@@ -1,4 +1,4 @@
-<group name="Elastic_Template_Matching_Demo" start="true">
+<group name="Template_Matching_Demo" start="true">
     <module class="InputVideo" name="Camera" id="0" list_devices="no"
         size_x="640" size_y="480" frame_rate="15" _x="1240" _y="40" />
     <module class="Downsample" name="RGB320" _x="1440" _y="40" />

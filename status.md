@@ -1,6 +1,22 @@
 # Kernel Review Status
 
-## ElasticTemplateMatcher Apple Silicon inference acceleration
+## TemplateMatcher naming migration
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Replace the former implementation name everywhere in configuration, launch settings, documentation, status, source-directory names, the demo, and UserData model paths with TemplateMatcher. | Completed | Release configure/build, XML validation, seven module-local smoke tests, and renamed live demo startup with Core ML passed; exhaustive case-insensitive content and filename searches found no former-name instances, including regenerated Release and TSAN build metadata; model weights and caches moved to the renamed UserData path; `git diff --check`. | `TemplateMatcher now has consistent naming` |
+
+### Constraints
+
+- Preserve the historical algorithm description while replacing the implementation's old name.
+- Keep external model weights and compiled caches available at the renamed UserData path.
+- Do not modify the kernel or add dependencies.
+
+### Outstanding issues and questions
+
+None.
+
+## TemplateMatcher Apple Silicon inference acceleration
 
 The tasks below will be completed sequentially, with one focused commit per task.
 
@@ -44,7 +60,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 
 None.
 
-## ElasticTemplateMatcher learning-region correction
+## TemplateMatcher learning-region correction
 
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
@@ -62,7 +78,7 @@ None.
 
 None.
 
-## ElasticTemplateMatcher overlay and reacquisition correction
+## TemplateMatcher overlay and reacquisition correction
 
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
@@ -79,7 +95,7 @@ None.
 
 None.
 
-## ElasticTemplateMatcher tracking recovery tuning
+## TemplateMatcher tracking recovery tuning
 
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
@@ -96,7 +112,7 @@ None.
 
 None.
 
-## ElasticTemplateMatcher overlay transparency and periodic stability
+## TemplateMatcher overlay transparency and periodic stability
 
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
@@ -1083,7 +1099,7 @@ None.
 ### Outstanding issues and questions
 
 - The VS Code launch configuration is intentionally local because `.vscode` is git-ignored.
-## Native ElasticTemplateMatcher pipeline
+## Native TemplateMatcher pipeline
 
 The implementation is C++ only at runtime, targets macOS Apple Silicon, uses the already-installed
 ONNX Runtime, does not use OpenCV, and does not modify the kernel. Existing `ikaros::matrix`

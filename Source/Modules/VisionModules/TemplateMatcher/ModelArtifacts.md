@@ -2,7 +2,7 @@
 
 The native matcher uses two externally supplied ONNX files. They are data artifacts rather than
 source dependencies and are not stored in the repository. Put them in
-`UserData/models/ElasticTemplateMatcher` and verify them against `models.sha256` before use.
+`UserData/models/TemplateMatcher` and verify them against `models.sha256` before use.
 
 | File | Network contract |
 |---|---|

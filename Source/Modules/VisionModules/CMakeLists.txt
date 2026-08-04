@@ -2,7 +2,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(SobelEdgeDetector)
 add_subdirectory(CannyEdgeDetector)
-add_subdirectory(ElasticTemplateMatcher)
+add_subdirectory(TemplateMatcher)
 add_subdirectory(ImageMatching)
 add_subdirectory(DlibFaceDetector)
 add_subdirectory(DlibFaceRecognizer)

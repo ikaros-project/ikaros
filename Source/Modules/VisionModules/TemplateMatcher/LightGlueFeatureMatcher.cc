@@ -84,7 +84,7 @@ public:
         if(static_cast<bool>(useCoreML_))
         {
             if(!kernel().SanitizeWritePath(
-                   "models/ElasticTemplateMatcher/CoreMLCache/LightGlue",
+                   "models/TemplateMatcher/CoreMLCache/LightGlue",
                    modelCacheDirectory))
                 throw std::runtime_error(
                     "LightGlueFeatureMatcher could not resolve its Core ML cache inside "
