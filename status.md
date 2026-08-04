@@ -57,6 +57,23 @@ None.
 
 None.
 
+## ElasticTemplateMatcher tracking recovery tuning
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Increase Lucas-Kanade motion tolerance for live camera tracking without changing its bounded matrix design. | Completed | Demo XML validation and deterministic 20-tick pipeline regression passed with 61/61 points retained; live configuration now uses an 11x11 window, 15 iterations, residual tolerance 0.15, and 2.5-pixel forward-backward tolerance. | `Live template tracking now tolerates larger motion` |
+| 2 | Restore permissive global homography candidate acceptance while retaining quadrilateral validation and stale-tracker replacement. | In progress |  |  |
+
+### Constraints
+
+- Keep ONNX inference gated during ordinary tracking ticks.
+- Preserve full-image reacquisition, bounded matrices, and native C++ implementation.
+- Complete, verify, and commit task 1 before task 2.
+
+### Outstanding issues and questions
+
+None.
+
 ## Modern learned template matching demo
 
 The old handcrafted elastic matcher will be removed rather than retained as a fallback. The tasks

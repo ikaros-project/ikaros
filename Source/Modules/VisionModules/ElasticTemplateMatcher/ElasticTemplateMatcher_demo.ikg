@@ -12,8 +12,11 @@
         _x="2040" _y="220" />
     <module class="LightGlueFeatureMatcher" name="Matcher" _x="2040" _y="40" />
     <module class="RobustTransformEstimator" name="Geometry" _x="2240" _y="40" />
-    <module class="PyramidalLucasKanadeTracker" name="Tracker" _x="2240" _y="140" />
+    <module class="PyramidalLucasKanadeTracker" name="Tracker" window_radius="5"
+        iterations="15" max_residual="0.15" forward_backward_threshold="2.5"
+        _x="2240" _y="140" />
     <module class="TemplateTrackingController" name="Controller" detection_interval="10"
+        tracking_fb_threshold="2.5"
         _x="2440" _y="40" />
     <module class="TemplatePolygonTransform" name="Polygon" _x="2640" _y="40" />
     <module class="Or" name="DetectionRequest" _x="1840" _y="360" />
