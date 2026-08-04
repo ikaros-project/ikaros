@@ -118,10 +118,10 @@ public:
                 continue;
             const float pointX = useTracked ? trackedPoints_(i, 0) : keypoints_(current, 0);
             const float pointY = useTracked ? trackedPoints_(i, 1) : keypoints_(current, 1);
-            matchedFeatures_(i, 0) = 2.0f * pointX /
-                                     static_cast<float>(imageWidth_ - 1) - 1.0f - boxWidth / 2;
-            matchedFeatures_(i, 1) = 2.0f * pointY /
-                                     static_cast<float>(imageHeight_ - 1) - 1.0f - boxHeight / 2;
+            matchedFeatures_(i, 0) = pointX /
+                                     static_cast<float>(imageWidth_ - 1) - 0.5f - boxWidth / 2;
+            matchedFeatures_(i, 1) = pointY /
+                                     static_cast<float>(imageHeight_ - 1) - 0.5f - boxHeight / 2;
             matchedFeatures_(i, 2) = boxWidth;
             matchedFeatures_(i, 3) = boxHeight;
         }

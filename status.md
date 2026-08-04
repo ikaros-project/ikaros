@@ -40,6 +40,23 @@ None.
 
 None.
 
+## ElasticTemplateMatcher overlay and reacquisition correction
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Correct learned and current feature-box conversion to the Target Boxes widget's centered per-axis coordinate convention. | Completed | Full Debug build; deterministic conversion test maps quarter-, center-, and three-quarter-image points to approximately -0.25, 0, and 0.25 per axis; geometry/path regression passed; `git diff --check` passed. | `Feature overlays now use centered widget coordinates` |
+| 2 | Reject weak, spatially unsupported homographies during global reacquisition and continue searching instead of tracking a false target. | In progress |  |  |
+
+### Constraints
+
+- Preserve full-image reacquisition and multi-template matching.
+- Keep verification in the geometry module and avoid kernel changes.
+- Complete, verify, and commit task 1 before task 2.
+
+### Outstanding issues and questions
+
+None.
+
 ## Modern learned template matching demo
 
 The old handcrafted elastic matcher will be removed rather than retained as a fallback. The tasks
