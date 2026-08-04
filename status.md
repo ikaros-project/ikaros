@@ -74,6 +74,23 @@ None.
 
 None.
 
+## ElasticTemplateMatcher overlay transparency and periodic stability
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Make the tracked-region polygon background semitransparent over the camera image. | Completed | Demo XML validation and `git diff --check` passed; tracked-region Path now uses an 18% opaque black background while retaining its translucent green fill. | `Tracked-region overlays now preserve camera visibility` |
+| 2 | Prevent scheduled reacquisition from periodically dropping a valid stationary tracking state. | In progress |  |  |
+
+### Constraints
+
+- Preserve the intentional camera, polygon, and feature overlay geometry.
+- Continue global reacquisition after genuine tracking failure.
+- Complete, verify, and commit task 1 before task 2.
+
+### Outstanding issues and questions
+
+None.
+
 ## Modern learned template matching demo
 
 The old handcrafted elastic matcher will be removed rather than retained as a fallback. The tasks
