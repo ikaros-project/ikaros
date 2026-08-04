@@ -12,6 +12,7 @@
     <connection source="Current.OUTPUT" target="Geometry.KEYPOINTS" />
     <connection source="Template.OUTPUT" target="Geometry.TEMPLATE_KEYPOINTS" />
     <connection source="Ranges.OUTPUT" target="Geometry.TEMPLATE_RANGES" />
+    <connection source="Corners.OUTPUT" target="Geometry.TEMPLATE_CORNERS" />
     <connection source="Matches.OUTPUT" target="Geometry.CORRESPONDENCES" />
     <connection source="Geometry.HOMOGRAPHY" target="Polygon.HOMOGRAPHY" />
     <connection source="Geometry.RESULT" target="Polygon.RESULT" />

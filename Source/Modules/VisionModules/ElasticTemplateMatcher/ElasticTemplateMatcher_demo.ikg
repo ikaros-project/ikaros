@@ -46,6 +46,7 @@
     <connection source="MatchCandidates.FILTERED_KEYPOINTS" target="Geometry.KEYPOINTS" />
     <connection source="Templates.TEMPLATE_KEYPOINTS" target="Geometry.TEMPLATE_KEYPOINTS" />
     <connection source="Templates.TEMPLATE_RANGES" target="Geometry.TEMPLATE_RANGES" />
+    <connection source="Templates.TEMPLATE_CORNERS" target="Geometry.TEMPLATE_CORNERS" />
     <connection source="Matcher.CORRESPONDENCES" target="Geometry.CORRESPONDENCES" />
     <connection source="Gray320.OUTPUT" target="Tracker.IMAGE" />
     <connection source="MatchCandidates.FILTERED_KEYPOINTS" target="Tracker.KEYPOINTS" />

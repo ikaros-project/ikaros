@@ -45,7 +45,7 @@ None.
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Correct learned and current feature-box conversion to the Target Boxes widget's centered per-axis coordinate convention. | Completed | Full Debug build; deterministic conversion test maps quarter-, center-, and three-quarter-image points to approximately -0.25, 0, and 0.25 per axis; geometry/path regression passed; `git diff --check` passed. | `Feature overlays now use centered widget coordinates` |
-| 2 | Reject weak, spatially unsupported homographies during global reacquisition and continue searching instead of tracking a false target. | In progress |  |  |
+| 2 | Reject weak, spatially unsupported homographies during global reacquisition and continue searching instead of tracking a false target. | Completed | Full Debug build and XML validation passed; weak-score homography fixture remained rejected; simultaneous stale tracking and strong detection selected detection with tracking state 0; deterministic learned pipeline retained 61/61 matches across periodic homography reseeding and returned to 61-point LK tracking; geometry/controller regressions and `git diff --check` passed. | `Verified detections now replace stale tracking targets` |
 
 ### Constraints
 

@@ -14,12 +14,15 @@ class RobustTransformEstimator : public Module
     matrix keypoints_;
     matrix templateKeypoints_;
     matrix templateRanges_;
+    matrix templateCorners_;
     matrix correspondences_;
     matrix homography_;
     matrix inliers_;
     matrix result_;
     parameter reprojectionThreshold_;
     parameter minInliers_;
+    parameter minInlierRatio_, minMeanMatchScore_, minSourceCoverage_, maxMeanError_;
+    parameter imageWidth_, imageHeight_, minAreaFraction_, maxAreaFraction_;
     parameter ransacIterations_;
     parameter maxMatches_;
     parameter maxTemplates_;
@@ -41,12 +44,21 @@ public:
         Bind(keypoints_, "KEYPOINTS");
         Bind(templateKeypoints_, "TEMPLATE_KEYPOINTS");
         Bind(templateRanges_, "TEMPLATE_RANGES");
+        Bind(templateCorners_, "TEMPLATE_CORNERS");
         Bind(correspondences_, "CORRESPONDENCES");
         Bind(homography_, "HOMOGRAPHY");
         Bind(inliers_, "INLIERS");
         Bind(result_, "RESULT");
         Bind(reprojectionThreshold_, "reprojection_threshold");
         Bind(minInliers_, "min_inliers");
+        Bind(minInlierRatio_, "min_inlier_ratio");
+        Bind(minMeanMatchScore_, "min_mean_match_score");
+        Bind(minSourceCoverage_, "min_source_coverage");
+        Bind(maxMeanError_, "max_mean_error");
+        Bind(imageWidth_, "image_width");
+        Bind(imageHeight_, "image_height");
+        Bind(minAreaFraction_, "min_area_fraction");
+        Bind(maxAreaFraction_, "max_area_fraction");
         Bind(ransacIterations_, "ransac_iterations");
         Bind(maxMatches_, "max_matches");
         Bind(maxTemplates_, "max_templates");
@@ -181,6 +193,90 @@ public:
                 finalError += std::hypot(x - refinedTarget_(i, 0), y - refinedTarget_(i, 1));
             }
             finalError /= refinedCount;
+            float inlierScore = 0.0f;
+            for(int row = 0; row < correspondences_.rows(); ++row)
+            {
+                if(static_cast<int>(correspondences_(row, 0)) != templateIndex)
+                    continue;
+                const int local = static_cast<int>(correspondences_(row, 1));
+                const int current = static_cast<int>(correspondences_(row, 2));
+                if(local < 0 || local >= bankLength || current < 0 || current >= keypoints_.rows())
+                    continue;
+                float x, y;
+                if(ProjectiveGeometry::Project(candidate_,
+                       templateKeypoints_(bankStart + local, 0),
+                       templateKeypoints_(bankStart + local, 1), x, y) &&
+                   std::hypot(x - keypoints_(current, 0), y - keypoints_(current, 1)) <=
+                       static_cast<float>(reprojectionThreshold_))
+                    inlierScore += correspondences_(row, 3);
+            }
+
+            float templateMinX = std::numeric_limits<float>::infinity();
+            float templateMinY = std::numeric_limits<float>::infinity();
+            float templateMaxX = -std::numeric_limits<float>::infinity();
+            float templateMaxY = -std::numeric_limits<float>::infinity();
+            for(int i = 0; i < bankLength; ++i)
+            {
+                templateMinX = std::min(templateMinX, templateKeypoints_(bankStart + i, 0));
+                templateMinY = std::min(templateMinY, templateKeypoints_(bankStart + i, 1));
+                templateMaxX = std::max(templateMaxX, templateKeypoints_(bankStart + i, 0));
+                templateMaxY = std::max(templateMaxY, templateKeypoints_(bankStart + i, 1));
+            }
+            float inlierMinX = std::numeric_limits<float>::infinity();
+            float inlierMinY = std::numeric_limits<float>::infinity();
+            float inlierMaxX = -std::numeric_limits<float>::infinity();
+            float inlierMaxY = -std::numeric_limits<float>::infinity();
+            for(int i = 0; i < refinedCount; ++i)
+            {
+                inlierMinX = std::min(inlierMinX, refinedSource_(i, 0));
+                inlierMinY = std::min(inlierMinY, refinedSource_(i, 1));
+                inlierMaxX = std::max(inlierMaxX, refinedSource_(i, 0));
+                inlierMaxY = std::max(inlierMaxY, refinedSource_(i, 1));
+            }
+            const float templateArea = (templateMaxX - templateMinX) *
+                                       (templateMaxY - templateMinY);
+            const float inlierArea = (inlierMaxX - inlierMinX) * (inlierMaxY - inlierMinY);
+            const float sourceCoverage = templateArea > 1.0e-6f ? inlierArea / templateArea : 0.0f;
+
+            bool validQuad = templateCorners_.rank() == 2 && templateCorners_.cols() == 8 &&
+                             templateIndex < templateCorners_.rows();
+            float quadX[4];
+            float quadY[4];
+            float twiceArea = 0.0f;
+            float crossSign = 0.0f;
+            for(int i = 0; validQuad && i < 4; ++i)
+            {
+                validQuad = ProjectiveGeometry::Project(candidate_,
+                    templateCorners_(templateIndex, 2 * i),
+                    templateCorners_(templateIndex, 2 * i + 1), quadX[i], quadY[i]);
+                if(validQuad && (quadX[i] < -0.5f * static_cast<float>(imageWidth_) ||
+                                 quadX[i] > 1.5f * static_cast<float>(imageWidth_) ||
+                                 quadY[i] < -0.5f * static_cast<float>(imageHeight_) ||
+                                 quadY[i] > 1.5f * static_cast<float>(imageHeight_)))
+                    validQuad = false;
+            }
+            for(int i = 0; validQuad && i < 4; ++i)
+            {
+                const int next = (i + 1) % 4;
+                const int next2 = (i + 2) % 4;
+                twiceArea += quadX[i] * quadY[next] - quadY[i] * quadX[next];
+                const float cross = (quadX[next] - quadX[i]) * (quadY[next2] - quadY[next]) -
+                                    (quadY[next] - quadY[i]) * (quadX[next2] - quadX[next]);
+                if(std::abs(cross) < 1.0e-5f || (i > 0 && cross * crossSign <= 0.0f))
+                    validQuad = false;
+                if(i == 0)
+                    crossSign = cross;
+            }
+            const float areaFraction = 0.5f * std::abs(twiceArea) /
+                (static_cast<float>(imageWidth_) * static_cast<float>(imageHeight_));
+            validQuad = validQuad && areaFraction >= static_cast<float>(minAreaFraction_) &&
+                        areaFraction <= static_cast<float>(maxAreaFraction_);
+
+            if(static_cast<float>(refinedCount) / count < static_cast<float>(minInlierRatio_) ||
+               inlierScore / refinedCount < static_cast<float>(minMeanMatchScore_) ||
+               sourceCoverage < static_cast<float>(minSourceCoverage_) ||
+               finalError > static_cast<float>(maxMeanError_) || !validQuad)
+                continue;
             if(refinedCount > globalBestCount ||
                (refinedCount == globalBestCount && finalError < globalBestError))
             {

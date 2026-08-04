@@ -118,13 +118,13 @@ class PyramidalLucasKanadeTracker : public Module
             downsample(pyramid[level - 1], pyramid[level]);
     }
 
-    void seed()
+    bool seed()
     {
         if(seedResult_.rows() != 1 || seedInliers_.rows() < static_cast<int>(minPoints_))
-            return;
+            return false;
         templateIndex_ = static_cast<int>(seedResult_(0, 0));
         if(templateIndex_ < 0 || templateIndex_ >= templateRanges_.rows())
-            return;
+            return false;
         const int start = static_cast<int>(templateRanges_(templateIndex_, 0));
         const int length = static_cast<int>(templateRanges_(templateIndex_, 1));
         const int limit = std::min(seedInliers_.rows(), static_cast<int>(maxPoints_));
@@ -134,21 +134,23 @@ class PyramidalLucasKanadeTracker : public Module
         for(int i = 0; i < limit; ++i)
         {
             const int local = static_cast<int>(seedInliers_(i, 1));
-            const int current = static_cast<int>(seedInliers_(i, 2));
-            if(local < 0 || local >= length || current < 0 || current >= keypoints_.rows())
+            if(local < 0 || local >= length)
                 continue;
             referencePoints_(count, 0) = templateKeypoints_(start + local, 0);
             referencePoints_(count, 1) = templateKeypoints_(start + local, 1);
-            previousPoints_(count, 0) = keypoints_(current, 0);
-            previousPoints_(count, 1) = keypoints_(current, 1);
+            if(!ProjectiveGeometry::Project(seedHomography_,
+                   referencePoints_(count, 0), referencePoints_(count, 1),
+                   previousPoints_(count, 0), previousPoints_(count, 1)))
+                continue;
             ++count;
         }
         referencePoints_.resize(count, 2);
         previousPoints_.resize(count, 2);
         if(count < static_cast<int>(minPoints_))
-            return;
+            return false;
         transform_.copy(seedHomography_);
         active_ = true;
+        return true;
     }
 
 public:
@@ -191,9 +193,13 @@ public:
             seed();
             return;
         }
+        if(seed())
+        {
+            previousPyramid_.swap(currentPyramid_);
+            return;
+        }
         if(!active_)
         {
-            seed();
             previousPyramid_.swap(currentPyramid_);
             return;
         }

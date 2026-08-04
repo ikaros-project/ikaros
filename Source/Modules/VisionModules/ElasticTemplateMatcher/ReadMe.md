@@ -47,6 +47,9 @@ geometrically matched or Lucas-Kanade-tracked features.
 During detection, `LightGlueFeatureMatcher` produces dynamic correspondence rows and
 `RobustTransformEstimator` verifies them with a RANSAC homography. `TemplatePolygonTransform`
 validates the transformed quadrilateral and emits a closed, centered-coordinate path.
+Verification requires sufficient inlier ratio, LightGlue confidence, learned-feature coverage,
+low reprojection error, and a finite convex quadrilateral with plausible image area. Weak matches
+remain in detection mode instead of seeding the tracker.
 
 A verified detection seeds `PyramidalLucasKanadeTracker`. Forward-backward consistency and a robust
 similarity transform stabilize the polygon between detections. `TemplateTrackingController`
@@ -57,6 +60,10 @@ On the Learn tick, `FeatureRegionFilter` restricts current LightGlue candidates 
 square used by the template bank. This prevents repeated structure elsewhere in the image from
 seeding the first homography. The filter passes every feature during subsequent detection passes,
 so reacquisition still searches the complete image.
+
+A newly verified detection takes precedence over an existing tracking estimate and reseeds
+Lucas-Kanade from homography-projected inliers. This allows periodic global detection to recover
+from a tracker that is still following the wrong image patch.
 
 The pipeline uses bounded setup-owned matrix capacities. Public feature, correspondence, template,
 inlier, tracked-point, and path matrices resize only within those declared capacities; separate

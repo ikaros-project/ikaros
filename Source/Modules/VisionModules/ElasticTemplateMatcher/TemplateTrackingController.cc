@@ -38,23 +38,6 @@ public:
         matchEnable_(0) = (!tracking || ticksSinceDetection_ >= static_cast<int>(detectionInterval_))
                               ? 1.0f : 0.0f;
 
-        if(tracking)
-        {
-            transform_.copy(trackingTransform_);
-            result_.resize(1, 4);
-            result_.copy(trackingResult_);
-            const float confidence = std::clamp(
-                1.0f - trackingResult_(0, 2) /
-                           static_cast<float>(trackingFbThreshold_), 0.0f, 1.0f);
-            status_.resize(1, 6);
-            status_(0, 0) = trackingResult_(0, 0);
-            status_(0, 1) = 1.0f;
-            status_(0, 2) = 1.0f;
-            status_(0, 3) = trackingResult_(0, 1);
-            status_(0, 4) = trackingResult_(0, 1);
-            status_(0, 5) = confidence;
-            return;
-        }
         if(detection)
         {
             transform_.copy(detectionTransform_);
@@ -71,6 +54,23 @@ public:
             status_(0, 4) = detectionResult_(0, 1);
             status_(0, 5) = detectionResult_(0, 3) > 0.0f
                                  ? detectionResult_(0, 1) / detectionResult_(0, 3) : 0.0f;
+            return;
+        }
+        if(tracking)
+        {
+            transform_.copy(trackingTransform_);
+            result_.resize(1, 4);
+            result_.copy(trackingResult_);
+            const float confidence = std::clamp(
+                1.0f - trackingResult_(0, 2) /
+                           static_cast<float>(trackingFbThreshold_), 0.0f, 1.0f);
+            status_.resize(1, 6);
+            status_(0, 0) = trackingResult_(0, 0);
+            status_(0, 1) = 1.0f;
+            status_(0, 2) = 1.0f;
+            status_(0, 3) = trackingResult_(0, 1);
+            status_(0, 4) = trackingResult_(0, 1);
+            status_(0, 5) = confidence;
             return;
         }
         transform_.reset();
