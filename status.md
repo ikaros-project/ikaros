@@ -1,5 +1,27 @@
 # Kernel Review Status
 
+## ElasticTemplateMatcher Apple Silicon inference acceleration
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add configurable native ONNX Runtime execution-provider setup with Core ML MLProgram acceleration, all Apple compute units, static-shape selection, compiled-model caching, and CPU fallback. | Completed | Release build passed; native session configuration now registers Core ML with MLProgram, all compute units, optional static shapes and cache, retries with the multithreaded CPU provider if Core ML session creation fails, and preserves memory patterns by default; `git diff --check`. | `Native ONNX sessions now support Apple acceleration` |
+| 2 | Apply static-shape Core ML acceleration to ALIKED and select the faster verified Core ML or multithreaded CPU configuration for dynamic-shape LightGlue. | Pending | Pending | Pending |
+| 3 | Expose per-network inference timing and verify Release-mode latency and functional behavior. | Pending | Pending | Pending |
+
+### Constraints
+
+- Use the installed native arm64 Homebrew ONNX Runtime and add no external dependency.
+- Preserve CPU fallback for unsupported Core ML operators.
+- Keep model-cache data outside the repository and avoid machine-specific paths.
+- Keep runtime buffers and output shapes consistent with Ikaros matrix rules.
+- Complete, verify, and commit each task before starting the next.
+
+### Outstanding issues and questions
+
+None identified before implementation.
+
 ## BrainStudio heat-map visualization
 
 The tasks below will be completed sequentially, with one focused commit per task.

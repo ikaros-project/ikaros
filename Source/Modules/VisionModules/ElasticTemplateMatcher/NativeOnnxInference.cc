@@ -3,6 +3,7 @@
 #include <array>
 #include <fstream>
 #include <stdexcept>
+#include <unordered_map>
 
 #include <CommonCrypto/CommonDigest.h>
 
@@ -23,6 +24,55 @@ namespace ikaros
             }
             return result;
         }
+
+
+        void
+        configureCommonOptions(Ort::SessionOptions & options,
+                               const OnnxInferenceOptions & configuration)
+        {
+            options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+            if(!configuration.enableMemoryPattern)
+                options.DisableMemPattern();
+        }
+
+
+        Ort::Session
+        createSession(Ort::Env & environment, Ort::SessionOptions & options,
+                      const std::filesystem::path & modelPath,
+                      const OnnxInferenceOptions & configuration, bool & usingCoreML)
+        {
+            configureCommonOptions(options, configuration);
+            if(configuration.useCoreML)
+            {
+                std::unordered_map<std::string, std::string> providerOptions{
+                    {"ModelFormat", "MLProgram"},
+                    {"MLComputeUnits", "ALL"},
+                    {"RequireStaticInputShapes",
+                     configuration.requireStaticInputShapes ? "1" : "0"},
+                    {"EnableOnSubgraphs", "0"},
+                    {"SpecializationStrategy", "FastPrediction"},
+                };
+                if(!configuration.modelCacheDirectory.empty())
+                    providerOptions["ModelCacheDirectory"] =
+                        configuration.modelCacheDirectory.string();
+
+                try
+                {
+                    options.AppendExecutionProvider("CoreML", providerOptions);
+                    Ort::Session session(environment, modelPath.c_str(), options);
+                    usingCoreML = true;
+                    return session;
+                }
+                catch(const Ort::Exception &)
+                {
+                    options = Ort::SessionOptions{};
+                    configureCommonOptions(options, configuration);
+                }
+            }
+
+            usingCoreML = false;
+            return Ort::Session(environment, modelPath.c_str(), options);
+        }
     }
 
 
@@ -30,7 +80,8 @@ namespace ikaros
         const std::filesystem::path & modelPath,
         const std::string & expectedSha256,
         const std::vector<OnnxTensorContract> & inputs,
-        const std::vector<OnnxTensorContract> & outputs)
+        const std::vector<OnnxTensorContract> & outputs,
+        const OnnxInferenceOptions & configuration)
         : options_(),
           session_([&]() -> Ort::Session
           {
@@ -44,11 +95,8 @@ namespace ikaros
                   throw std::runtime_error("ONNX model checksum does not match: " +
                                            modelPath.string());
 
-              options_.SetIntraOpNumThreads(1);
-              options_.SetInterOpNumThreads(1);
-              options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
-              options_.DisableMemPattern();
-              return Ort::Session(Environment(), modelPath.c_str(), options_);
+              return createSession(Environment(), options_, modelPath, configuration,
+                                   usingCoreML_);
           }()),
           memory_(Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault))
     {
@@ -63,6 +111,13 @@ namespace ikaros
             inputNamePointers_.push_back(name.c_str());
         for(const std::string & name : outputNames_)
             outputNamePointers_.push_back(name.c_str());
+    }
+
+
+    bool
+    NativeOnnxInference::UsingCoreML() const
+    {
+        return usingCoreML_;
     }
 
 

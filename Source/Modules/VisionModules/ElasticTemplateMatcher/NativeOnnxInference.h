@@ -10,6 +10,14 @@
 
 namespace ikaros
 {
+    struct OnnxInferenceOptions
+    {
+        bool useCoreML = false;
+        bool requireStaticInputShapes = false;
+        bool enableMemoryPattern = true;
+        std::filesystem::path modelCacheDirectory;
+    };
+
     struct OnnxTensorContract
     {
         std::string name;
@@ -23,10 +31,12 @@ namespace ikaros
         NativeOnnxInference(const std::filesystem::path & modelPath,
                             const std::string & expectedSha256,
                             const std::vector<OnnxTensorContract> & inputs,
-                            const std::vector<OnnxTensorContract> & outputs);
+                            const std::vector<OnnxTensorContract> & outputs,
+                            const OnnxInferenceOptions & options = {});
 
         Ort::Value FloatTensor(matrix & value, bool addBatchDimension = true) const;
         std::vector<Ort::Value> Run(std::vector<Ort::Value> & inputs);
+        bool UsingCoreML() const;
 
     private:
         static Ort::Env & Environment();
@@ -36,6 +46,7 @@ namespace ikaros
                               bool input) const;
 
         Ort::SessionOptions options_;
+        bool usingCoreML_ = false;
         Ort::Session session_;
         Ort::MemoryInfo memory_;
         std::vector<std::string> inputNames_;
