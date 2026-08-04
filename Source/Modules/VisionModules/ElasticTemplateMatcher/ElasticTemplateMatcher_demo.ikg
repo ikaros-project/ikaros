@@ -4,9 +4,9 @@
     <module class="Downsample" name="RGB320" _x="1440" _y="40" />
     <module class="Downsample" name="Gray320" _x="1440" _y="120" />
     <module class="ALIKEDFeatureExtractor" name="Features" _x="1640" _y="40" />
-    <module class="FeatureRegionFilter" name="MatchCandidates" region="0.25"
+    <module class="FeatureRegionFilter" name="MatchCandidates" region="0.5"
         _x="1840" _y="140" />
-    <module class="TemplateFeatureBank" name="Templates" learning_region="0.25"
+    <module class="TemplateFeatureBank" name="Templates" learning_region="0.5"
         _x="1840" _y="40" />
     <module class="FeaturePointBoxes" name="LearnedFeatureBoxes" box_size="5"
         _x="2040" _y="220" />
@@ -25,7 +25,7 @@
     <module class="Constant" name="LearnTrigger" data="0" _x="1640" _y="180" />
     <module class="Constant" name="ClearTrigger" data="0" _x="1640" _y="260" />
     <module class="Constant" name="LearningBox"
-        data="-0.1875,-0.25,0.375,0.5" _x="1840" _y="260" />
+        data="-0.375,-0.5,0.75,1" _x="1840" _y="260" />
 
     <connection source="Camera.OUTPUT" target="RGB320.INPUT" />
     <connection source="Camera.INTENSITY" target="Gray320.INPUT" />
