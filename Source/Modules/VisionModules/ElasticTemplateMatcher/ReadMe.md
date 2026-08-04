@@ -47,9 +47,10 @@ geometrically matched or Lucas-Kanade-tracked features.
 During detection, `LightGlueFeatureMatcher` produces dynamic correspondence rows and
 `RobustTransformEstimator` verifies them with a RANSAC homography. `TemplatePolygonTransform`
 validates the transformed quadrilateral and emits a closed, centered-coordinate path.
-Verification requires sufficient inlier ratio, LightGlue confidence, learned-feature coverage,
-low reprojection error, and a finite convex quadrilateral with plausible image area. Weak matches
-remain in detection mode instead of seeding the tracker.
+Verification requires enough RANSAC inliers, low reprojection error, and a finite convex
+quadrilateral with plausible image area. Optional inlier-ratio, LightGlue-confidence, and
+learned-feature-coverage thresholds remain available for applications that prefer stricter
+acceptance. Rejected matches remain in detection mode instead of seeding the tracker.
 
 A verified detection seeds `PyramidalLucasKanadeTracker`. Forward-backward consistency and a robust
 similarity transform stabilize the polygon between detections. `TemplateTrackingController`

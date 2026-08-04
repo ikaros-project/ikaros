@@ -62,7 +62,7 @@ None.
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Increase Lucas-Kanade motion tolerance for live camera tracking without changing its bounded matrix design. | Completed | Demo XML validation and deterministic 20-tick pipeline regression passed with 61/61 points retained; live configuration now uses an 11x11 window, 15 iterations, residual tolerance 0.15, and 2.5-pixel forward-backward tolerance. | `Live template tracking now tolerates larger motion` |
-| 2 | Restore permissive global homography candidate acceptance while retaining quadrilateral validation and stale-tracker replacement. | In progress |  |  |
+| 2 | Restore permissive global homography candidate acceptance while retaining quadrilateral validation and stale-tracker replacement. | Completed | Full Debug build, XML validation, strong-geometry acceptance, configurable weak-score rejection, and deterministic 20-tick learned pipeline passed with 61/61 points; demo ALIKED and LightGlue thresholds lowered to 0.1 and 0.05 while minimum-inlier, reprojection, convexity, area, bounds, and stale-tracker replacement checks remain active. | `Global reacquisition now admits weaker learned matches` |
 
 ### Constraints
 
