@@ -79,7 +79,7 @@
         source="LearnedFeatureBoxes.BOXES" box_color="#ffd84d" line_width="1"
         show_score="no" show_title="no" show_frame="no" />
     <widget class="path" name="MatchedRegion" _x="40" _y="40" width="800" height="600"
-        source="Polygon.PATH" order="row" select_x="0" point_count="5" close="no" arrow="no"
+        source="Polygon.PATH" order="col" select_x="0" point_count="5" close="yes" arrow="no"
         line_width="4" stroke_color="#00ff66" fill_color="rgba(0,255,102,0.08)"
         x_min="-1" x_max="1" y_min="-1" y_max="1" scale_visibility="no"
         show_title="no" show_frame="no" />
