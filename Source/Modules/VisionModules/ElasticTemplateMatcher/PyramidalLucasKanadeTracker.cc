@@ -154,7 +154,8 @@ class PyramidalLucasKanadeTracker : public Module
         velocities_.resize(count, 2);
         if(count < static_cast<int>(minPoints_))
             return false;
-        transform_.copy(seedHomography_);
+        if(!geometry_.Similarity(referencePoints_, previousPoints_, transform_))
+            transform_.copy(seedHomography_);
         active_ = true;
         referenceOutput_.resize(count, 2);
         currentOutput_.resize(count, 2);

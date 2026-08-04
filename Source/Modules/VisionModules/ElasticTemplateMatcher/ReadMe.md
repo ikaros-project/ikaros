@@ -62,9 +62,11 @@ square used by the template bank. This prevents repeated structure elsewhere in 
 seeding the first homography. The filter passes every feature during subsequent detection passes,
 so reacquisition still searches the complete image.
 
-A newly verified detection takes precedence over an existing tracking estimate and reseeds
-Lucas-Kanade from homography-projected inliers. This allows periodic global detection to recover
-from a tracker that is still following the wrong image patch.
+A newly verified detection reseeds Lucas-Kanade from homography-projected inliers. While tracking
+is already valid, the controller continues publishing the smooth tracking transform during that
+tick; the reseeded similarity transform then takes over without exposing the noisier projective
+homography. This allows periodic global detection to recover from a wrong image patch without a
+visible polygon jump.
 
 The pipeline uses bounded setup-owned matrix capacities. Public feature, correspondence, template,
 inlier, tracked-point, and path matrices resize only within those declared capacities; separate
