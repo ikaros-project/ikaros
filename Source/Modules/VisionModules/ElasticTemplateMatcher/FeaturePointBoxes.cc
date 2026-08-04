@@ -42,18 +42,18 @@ public:
         }
 
         const int count = std::min(points_.rows(), static_cast<int>(maxPoints_));
-        const float normalizedWidth = static_cast<float>(boxSize_) /
+        const float normalizedWidth = 2.0f * static_cast<float>(boxSize_) /
                                       static_cast<float>(imageWidth_);
-        const float normalizedHeight = static_cast<float>(boxSize_) /
+        const float normalizedHeight = 2.0f * static_cast<float>(boxSize_) /
                                        static_cast<float>(imageHeight_);
         boxes_.resize(count, 4);
         for(int row = 0; row < count; ++row)
         {
-            boxes_(row, 0) = points_(row, 0) /
-                             static_cast<float>(imageWidth_ - 1) - 0.5f -
+            boxes_(row, 0) = 2.0f * points_(row, 0) /
+                             static_cast<float>(imageWidth_ - 1) - 1.0f -
                              0.5f * normalizedWidth;
-            boxes_(row, 1) = points_(row, 1) /
-                             static_cast<float>(imageHeight_ - 1) - 0.5f -
+            boxes_(row, 1) = 2.0f * points_(row, 1) /
+                             static_cast<float>(imageHeight_ - 1) - 1.0f -
                              0.5f * normalizedHeight;
             boxes_(row, 2) = normalizedWidth;
             boxes_(row, 3) = normalizedHeight;
