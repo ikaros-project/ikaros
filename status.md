@@ -22,6 +22,24 @@ The tasks below will be completed sequentially, with one focused commit per task
 
 None.
 
+## ElasticTemplateMatcher learning-region correction
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Visualize the features actually retained in learned templates, separately from current matched and tracked features. | Completed | Full Debug build; XML validation; deterministic point-to-box test verified three pixel points map to the expected centered target boxes; demo now overlays retained template points in yellow separately from cyan matched/tracked points. | `Learned template features now have a distinct overlay` |
+| 2 | Restrict current match candidates to the central learning square during Learn while retaining full-image matching for later reacquisition. | In progress |  |  |
+
+### Constraints
+
+- Keep the reusable filtering and visualization conversion in separate native C++ modules.
+- Use bounded dynamic `ikaros::matrix` outputs and do not modify the kernel.
+- Preserve full-image learned-feature extraction and later global reacquisition.
+- Complete, verify, and commit task 1 before task 2.
+
+### Outstanding issues and questions
+
+None.
+
 ## Modern learned template matching demo
 
 The old handcrafted elastic matcher will be removed rather than retained as a fallback. The tasks

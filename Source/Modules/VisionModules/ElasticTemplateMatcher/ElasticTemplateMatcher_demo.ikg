@@ -6,6 +6,8 @@
     <module class="ALIKEDFeatureExtractor" name="Features" _x="1640" _y="40" />
     <module class="TemplateFeatureBank" name="Templates" learning_region="0.5"
         _x="1840" _y="40" />
+    <module class="FeaturePointBoxes" name="LearnedFeatureBoxes" box_size="5"
+        _x="2040" _y="220" />
     <module class="LightGlueFeatureMatcher" name="Matcher" _x="2040" _y="40" />
     <module class="RobustTransformEstimator" name="Geometry" _x="2240" _y="40" />
     <module class="PyramidalLucasKanadeTracker" name="Tracker" _x="2240" _y="140" />
@@ -29,6 +31,7 @@
     <connection source="Features.SCORES" target="Templates.SCORES" />
     <connection source="LearnTrigger.OUTPUT" target="Templates.LEARN" />
     <connection source="ClearTrigger.OUTPUT" target="Templates.CLEAR" />
+    <connection source="Templates.TEMPLATE_KEYPOINTS" target="LearnedFeatureBoxes.POINTS" />
     <connection source="Features.KEYPOINTS" target="Matcher.KEYPOINTS" />
     <connection source="Features.DESCRIPTORS" target="Matcher.DESCRIPTORS" />
     <connection source="Templates.TEMPLATE_KEYPOINTS" target="Matcher.TEMPLATE_KEYPOINTS" />
@@ -69,6 +72,9 @@
         show_title="no" show_frame="no" />
     <widget class="target-boxes" name="MatchedFeatures" _x="40" _y="40" width="800" height="600"
         source="Polygon.MATCHED_FEATURES" box_color="#00c8ff" line_width="2"
+        show_score="no" show_title="no" show_frame="no" />
+    <widget class="target-boxes" name="LearnedFeatures" _x="40" _y="40" width="800" height="600"
+        source="LearnedFeatureBoxes.BOXES" box_color="#ffd84d" line_width="1"
         show_score="no" show_title="no" show_frame="no" />
     <widget class="button" name="LearnButton" _x="880" _y="40" width="160" height="56"
         type="push" parameter="LearnTrigger.data" value="1" release_value="0" label="Learn"

@@ -32,6 +32,7 @@ if(ELASTIC_TEMPLATE_MATCHER_APPLE_SILICON)
         set(SOURCE
             ${SOURCE}
             ${CMAKE_CURRENT_SOURCE_DIR}/ALIKEDFeatureExtractor.cc
+            ${CMAKE_CURRENT_SOURCE_DIR}/FeaturePointBoxes.cc
             ${CMAKE_CURRENT_SOURCE_DIR}/LightGlueFeatureMatcher.cc
             ${CMAKE_CURRENT_SOURCE_DIR}/NativeOnnxInference.cc
             ${CMAKE_CURRENT_SOURCE_DIR}/ProjectiveGeometry.cc
