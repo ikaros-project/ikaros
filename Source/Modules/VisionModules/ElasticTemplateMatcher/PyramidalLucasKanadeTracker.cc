@@ -41,11 +41,12 @@ namespace
     trackPoint(const std::array<matrix, 4> & previous,
                const std::array<matrix, 4> & current,
                int levels, int radius, int iterations,
-               float sourceX, float sourceY, float & targetX, float & targetY,
+               float sourceX, float sourceY, float initialX, float initialY,
+               float & targetX, float & targetY,
                float & residual)
     {
-        float estimateX = sourceX;
-        float estimateY = sourceY;
+        float estimateX = initialX;
+        float estimateY = initialY;
         residual = 0.0f;
         for(int level = levels - 1; level >= 0; --level)
         {
@@ -105,7 +106,8 @@ class PyramidalLucasKanadeTracker : public Module
     parameter maxResidual_, forwardBackwardThreshold_, minPoints_, maxPoints_;
     std::array<matrix, 4> previousPyramid_;
     std::array<matrix, 4> currentPyramid_;
-    matrix referencePoints_, previousPoints_, nextPoints_, acceptedReference_, acceptedCurrent_;
+    matrix referencePoints_, previousPoints_, velocities_, nextPoints_;
+    matrix acceptedReference_, acceptedCurrent_, acceptedVelocities_;
     ProjectiveGeometry geometry_;
     bool hasPreviousImage_ = false;
     bool active_ = false;
@@ -130,6 +132,7 @@ class PyramidalLucasKanadeTracker : public Module
         const int limit = std::min(seedInliers_.rows(), static_cast<int>(maxPoints_));
         referencePoints_.resize(limit, 2);
         previousPoints_.resize(limit, 2);
+        velocities_.resize(limit, 2);
         int count = 0;
         for(int i = 0; i < limit; ++i)
         {
@@ -142,10 +145,13 @@ class PyramidalLucasKanadeTracker : public Module
                    referencePoints_(count, 0), referencePoints_(count, 1),
                    previousPoints_(count, 0), previousPoints_(count, 1)))
                 continue;
+            velocities_(count, 0) = 0.0f;
+            velocities_(count, 1) = 0.0f;
             ++count;
         }
         referencePoints_.resize(count, 2);
         previousPoints_.resize(count, 2);
+        velocities_.resize(count, 2);
         if(count < static_cast<int>(minPoints_))
             return false;
         transform_.copy(seedHomography_);
@@ -179,7 +185,8 @@ public:
         const int capacity = static_cast<int>(maxPoints_);
         referencePoints_.realloc(capacity, 2); previousPoints_.realloc(capacity, 2);
         nextPoints_.realloc(capacity, 2); acceptedReference_.realloc(capacity, 2);
-        acceptedCurrent_.realloc(capacity, 2);
+        acceptedCurrent_.realloc(capacity, 2); velocities_.realloc(capacity, 2);
+        acceptedVelocities_.realloc(capacity, 2);
     }
 
     void Tick() override
@@ -205,6 +212,7 @@ public:
         }
         acceptedReference_.resize(static_cast<int>(maxPoints_), 2);
         acceptedCurrent_.resize(static_cast<int>(maxPoints_), 2);
+        acceptedVelocities_.resize(static_cast<int>(maxPoints_), 2);
         int accepted = 0;
         float totalForwardBackward = 0.0f;
         for(int i = 0; i < previousPoints_.rows(); ++i)
@@ -212,13 +220,16 @@ public:
             float x, y, residual;
             if(!trackPoint(previousPyramid_, currentPyramid_, static_cast<int>(levels_),
                            static_cast<int>(windowRadius_), static_cast<int>(iterations_),
-                           previousPoints_(i, 0), previousPoints_(i, 1), x, y, residual) ||
+                           previousPoints_(i, 0), previousPoints_(i, 1),
+                           previousPoints_(i, 0) + velocities_(i, 0),
+                           previousPoints_(i, 1) + velocities_(i, 1), x, y, residual) ||
                residual > static_cast<float>(maxResidual_))
                 continue;
             float backX, backY, backResidual;
             if(!trackPoint(currentPyramid_, previousPyramid_, static_cast<int>(levels_),
                            static_cast<int>(windowRadius_), static_cast<int>(iterations_),
-                           x, y, backX, backY, backResidual))
+                           x, y, previousPoints_(i, 0), previousPoints_(i, 1),
+                           backX, backY, backResidual))
                 continue;
             const float fb = std::hypot(backX - previousPoints_(i, 0),
                                         backY - previousPoints_(i, 1));
@@ -228,10 +239,13 @@ public:
             acceptedReference_(accepted, 1) = referencePoints_(i, 1);
             acceptedCurrent_(accepted, 0) = x;
             acceptedCurrent_(accepted, 1) = y;
+            acceptedVelocities_(accepted, 0) = x - previousPoints_(i, 0);
+            acceptedVelocities_(accepted, 1) = y - previousPoints_(i, 1);
             totalForwardBackward += fb;
             ++accepted;
         }
         acceptedReference_.resize(accepted, 2); acceptedCurrent_.resize(accepted, 2);
+        acceptedVelocities_.resize(accepted, 2);
         if(accepted < static_cast<int>(minPoints_) ||
            !geometry_.Similarity(acceptedReference_, acceptedCurrent_, transform_))
         {
@@ -240,7 +254,9 @@ public:
             return;
         }
         referencePoints_.resize(accepted, 2); previousPoints_.resize(accepted, 2);
+        velocities_.resize(accepted, 2);
         referencePoints_.copy(acceptedReference_); previousPoints_.copy(acceptedCurrent_);
+        velocities_.copy(acceptedVelocities_);
         referenceOutput_.resize(accepted, 2); currentOutput_.resize(accepted, 2);
         referenceOutput_.copy(referencePoints_); currentOutput_.copy(previousPoints_);
         result_.resize(1, 4);
