@@ -3,16 +3,14 @@
         size_x="640" size_y="480" frame_rate="15" _x="1240" _y="40" />
     <module class="Downsample" name="RGB320" _x="1440" _y="40" />
     <module class="Downsample" name="Gray320" _x="1440" _y="120" />
-    <module class="ALIKEDFeatureExtractor" name="Features" score_threshold="0.1"
-        _x="1640" _y="40" />
+    <module class="ALIKEDFeatureExtractor" name="Features" _x="1640" _y="40" />
     <module class="FeatureRegionFilter" name="MatchCandidates" region="0.5"
         _x="1840" _y="140" />
     <module class="TemplateFeatureBank" name="Templates" learning_region="0.5"
         _x="1840" _y="40" />
     <module class="FeaturePointBoxes" name="LearnedFeatureBoxes" box_size="5"
         _x="2040" _y="220" />
-    <module class="LightGlueFeatureMatcher" name="Matcher" score_threshold="0.05"
-        _x="2040" _y="40" />
+    <module class="LightGlueFeatureMatcher" name="Matcher" _x="2040" _y="40" />
     <module class="RobustTransformEstimator" name="Geometry" _x="2240" _y="40" />
     <module class="PyramidalLucasKanadeTracker" name="Tracker" window_radius="5"
         iterations="15" max_residual="0.15" forward_backward_threshold="2.5"
