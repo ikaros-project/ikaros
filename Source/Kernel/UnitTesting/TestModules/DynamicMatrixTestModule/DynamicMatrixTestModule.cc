@@ -153,9 +153,28 @@ class WholeOutputAliasTestModule : public Module
 };
 
 
+class IndexedOutputAliasTestModule : public Module
+{
+    matrix source_;
+    matrix alias_;
+
+    void Init() override
+    {
+        Bind(source_, "SOURCE");
+        Bind(alias_, "ALIAS");
+
+        source_(0, 0, 0) = 7;
+        if(alias_(0, 0) != 7)
+            throw exception("IndexedOutputAliasTestModule: alias did not share source storage");
+        Notify(msg_warning, "INDEXED OUTPUT ALIAS PRESERVED");
+    }
+};
+
+
 INSTALL_CLASS(DynamicMatrixSource)
 INSTALL_CLASS(DynamicMatrixSink)
 INSTALL_CLASS(DynamicDelayedMatrixSink)
 INSTALL_CLASS(DynamicInputCapacityModule)
 INSTALL_CLASS(InvalidDynamicCapacityModule)
 INSTALL_CLASS(WholeOutputAliasTestModule)
+INSTALL_CLASS(IndexedOutputAliasTestModule)
