@@ -1,0 +1,60 @@
+<group name="RingWorld_example" start="true" stop="-1" tick_duration="0.1">
+    <module name="Stimuli" class="Constant" _x="1520" _y="40"
+        data="-54,1,0.3,0.3,1,0,0,0,0,0,0; -36,0.3,1,0.3,0,1,0,0,0,0,0; -18,0.3,0.5,1,0,0,1,0,0,0,0; 0,1,1,0.3,0,0,0,1,0,0,0; 18,0.3,1,1,0,0,0,0,1,0,0; 36,1,0.3,1,0,0,0,0,0,1,0; 54,1,1,1,0,0,0,0,0,0,1" />
+    <module name="Gaze" class="Constant" data="0" _x="1520" _y="340" />
+    <module name="Track" class="Constant" data="1" _x="1520" _y="440" />
+    <module name="AuditoryStimuli" class="Constant" _x="1520" _y="140"
+        data="-48,0.4; -8,1; 42,0.7" />
+    <module name="DistalStimuli" class="Constant" _x="1520" _y="240"
+        data="-42,0.8,0.5,0.2,0,0,0,0,0,1,0; 12,0.5,0.8,1,0,0,1,0,0,0,0; 48,1,0.6,0.2,0,0,0,0,1,0,0" />
+    <module name="World" class="RingWorld" _x="1740" _y="180"
+        field_of_view="120" fixation_margin="8" retina_width="25" />
+
+    <connection source="Stimuli.OUTPUT" target="World.STIMULI" delay="0" />
+    <connection source="AuditoryStimuli.OUTPUT" target="World.AUDITORY_STIMULI" delay="0" />
+    <connection source="DistalStimuli.OUTPUT" target="World.DISTAL_STIMULI" delay="0" />
+    <connection source="Gaze.OUTPUT" target="World.GAZE" delay="0" />
+    <connection source="Track.OUTPUT" target="World.TRACKING" delay="0" />
+
+    <widget name="GazeControl" class="slider-horizontal" parameter="Gaze.data"
+        select_x="0" control_count="1" labels="Gaze" min="-180" max="180" step="1"
+        show_values="yes" show_title="yes" show_frame="yes" title="Gaze direction"
+        width="500" height="80" x="40" y="40" _x="40" _y="40" />
+    <widget name="StimulusTable" class="table" source="Stimuli.OUTPUT"
+        title="Stimuli: angle, RGB, H, V, -45, +45, left, right, dot" decimals="2" transpose="no"
+        show_title="yes" show_frame="yes" width="500" height="180"
+        x="40" y="150" _x="40" _y="150" />
+    <widget name="FoveaTable" class="table" source="World.FOVEA"
+        title="Fovea" decimals="2" transpose="no"
+        show_title="yes" show_frame="yes" width="500" height="90"
+        x="580" y="40" _x="580" _y="40" />
+    <widget name="RetinaGrid" class="grid"
+        source="World.RETINA" color_map="rgb" shape="circle" size="0.72"
+        labels="Color" label_width="100"
+        scale_visibility="no" line_width="1" order="row"
+        title="Color Retina"
+        show_title="yes" show_frame="yes" width="900" height="90"
+        x="580" y="150" _x="580" _y="150" />
+    <widget name="AuditoryMapGrid" class="grid" source="World.AUDITORY_MAP"
+        color_map="gray" shape="circle" size="0.72" value_min="0" value_max="1"
+        labels="Auditory" label_width="100"
+        scale_visibility="no" line_width="1" order="row"
+        title="Auditory Map"
+        show_title="yes" show_frame="yes" width="900" height="90"
+        x="580" y="260" _x="580" _y="260" />
+    <widget name="ComponentRetinaGrid" class="grid" source="World.RETINA"
+        color_map="gray" shape="circle" size="0.68" value_min="0" value_max="1"
+        labels="Red,Green,Blue,Horizontal,Vertical,-45,+45,Left,Right,Dot"
+        label_width="100" scale_visibility="no" line_width="1" order="row"
+        title="Component Retina"
+        show_title="yes" show_frame="yes" width="900" height="430"
+        x="580" y="370" _x="580" _y="370" />
+    <widget name="RingWorldView" class="ringworldview"
+        stimuli_source="Stimuli.OUTPUT" gaze_source="Gaze.OUTPUT"
+        auditory_stimuli_source="AuditoryStimuli.OUTPUT"
+        distal_stimuli_source="DistalStimuli.OUTPUT"
+        track_source="World.TRACKING"
+        field_of_view_parameter="World.field_of_view" upper_half_only="yes" stimulus_radius="12"
+        title="Ring world" show_title="yes" show_frame="yes"
+        width="500" height="500" x="40" y="370" _x="40" _y="370" />
+</group>

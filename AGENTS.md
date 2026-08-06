@@ -13,7 +13,7 @@
 
 - Use `rg` or `rg --files` for code and file search.
 - Read nearby `.cc`, `.h`, `.ikc`, `.ikg`, and CMake files before changing module behavior.
-- When creating or editing `.ikg` files, keep component and widget positions in the view non-overlapping; widgets should not overlap components such as modules or groups.
+- When creating or editing `.ikg` files, follow the WebUI model-layout rules below.
 - Do not revert or clean up unrelated worktree changes.
 - Avoid changing generated, build, cache, or user-data artifacts unless the task explicitly requires it.
 - Keep comments short and useful; avoid restating obvious code.
@@ -21,6 +21,20 @@
 - Prefer `ikaros::dictionary` for Ikaros JSON/config parsing unless an external JSON library is explicitly needed.
 - Route warnings intended for users or the WebUI through `Warning()` or Ikaros notification functions, not `std::cerr`.
 - Use exceptions for startup and module `Init()` failures; during execution, report runtime conditions through `Notify()`, `Warning()`, or related Ikaros notification functions.
+
+## WebUI Model Layout
+
+- Give modules, groups, and widgets explicit view positions in polished example `.ikg` files. Use `_x` and `_y` for components and keep widget `x`, `y`, `_x`, and `_y` values consistent.
+- Reserve separate, non-overlapping regions for the component graph and the widget dashboard. Prefer placing the component graph beside the dashboard rather than over or between widgets.
+- Recheck component bounds whenever ports are added or names become longer; a module can grow enough to overlap an otherwise unchanged widget layout.
+- Arrange source modules in the same vertical order as the destination module's input ports. This keeps connection paths monotonic and minimizes crossings.
+- Keep unrelated or widget-only source modules outside the main connection bundle so their placement does not interrupt connected source ordering.
+- Lay out related widgets on shared column boundaries. Give aligned grids and tables the same `x`, `width`, label-column width, and cell count so corresponding data columns line up.
+- Use consistent gutters between neighboring widgets. Preserve the same gap within a visual group unless content requires a deliberate exception.
+- Size widgets for their content: keep single-row displays compact, give multi-row grids enough height for readable cells and labels, and avoid large unused interiors.
+- Present controls and summaries before detailed views in a clear reading order, and place closely related visualizations next to or directly beneath one another.
+- Do not overlap widgets with components, other widgets, titles, or interactive controls. Also avoid placing labels or markers against frame edges when a small padding would improve legibility.
+- After changing an `.ikg` layout, run it in the WebUI at a representative viewport and inspect both the dashboard and component graph. Check alignment, clipping, unused space, connection crossings, and browser-console errors.
 
 ## External Libraries
 

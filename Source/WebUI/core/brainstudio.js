@@ -23,6 +23,7 @@ const widget_classes =
     "target-boxes",
     "world2dview",
     "world3dview",
+    "ringworldview",
     "navigation-hud",
     "pan-tilt-hud",
     "text",

@@ -1,0 +1,20 @@
+<class name="RingWorld" description="Maps stimuli arranged on a circular one-dimensional world onto a retina">
+    <description>
+        Each STIMULI row contains an absolute angular position in degrees followed by one or more stimulus components. The RingWorld widget interprets components 1-3 as red, green, and blue, followed by flags for horizontal line, vertical line, -45 degree line, +45 degree line, left arrowhead, right arrowhead, and filled center dot. Symbol flags greater than 0.5 are drawn. Optional DISTAL_STIMULI use the same component layout and count as STIMULI. Optional AUDITORY_STIMULI rows contain an angle and intensity from 0 to 1. GAZE is the organism's absolute gaze angle in degrees. FOVEA contains the components of the stimulus nearest to GAZE when it is within fixation_margin; otherwise it is zero. RETINA and DISTAL_RETINA have one row per stimulus component, while AUDITORY_MAP has one row. All retinas and the auditory map span the visual field from left to right and combine stimuli falling in the same column component-wise using the maximum. All angular comparisons wrap around the circle.
+    </description>
+
+    <parameter name="field_of_view" type="number" default="120" min="0" max="360" description="Total angular width of the visual field in degrees." />
+    <parameter name="fixation_margin" type="number" default="5" min="0" max="180" description="Maximum angular distance in degrees between gaze and a fixated stimulus." />
+    <parameter name="retina_width" type="number" default="25" min="1" description="Number of columns in the one-dimensional retina." />
+
+    <input name="STIMULI" description="Stimulus rows: absolute angle in degrees followed by stimulus components." />
+    <input name="AUDITORY_STIMULI" optional="yes" description="Optional auditory rows: absolute angle in degrees and intensity from 0 to 1." />
+    <input name="DISTAL_STIMULI" optional="yes" description="Optional distal rows using the same angle and component columns as STIMULI." />
+    <input name="GAZE" size="1" optional="yes" description="Optional absolute gaze direction in degrees; defaults to 0 degrees when unconnected." />
+    <input name="TRACKING" size="1" optional="yes" description="Optional tracking flag; defaults to 0 when unconnected." />
+
+    <output name="FOVEA" size="STIMULI.cols-1" description="Components of the closest stimulus within fixation_margin, or zero when none is fixated." />
+    <output name="RETINA" size="STIMULI.cols-1,@retina_width" description="Stimulus components mapped from left to right across the visual field." />
+    <output name="AUDITORY_MAP" size="1,@retina_width" description="Auditory intensities mapped from left to right across the visual field." />
+    <output name="DISTAL_RETINA" size="STIMULI.cols-1,@retina_width" description="Distal stimulus components mapped from left to right across the visual field." />
+</class>

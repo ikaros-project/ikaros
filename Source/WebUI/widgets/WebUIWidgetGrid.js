@@ -399,6 +399,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
         let labels = this.getDisplayLabels();
         let ln = labels.length;
+        const labelPaddingLeft = 2;
         const configuredLabelWidth = Number(this.parameters.label_width);
         let ls = ln && Number.isFinite(configuredLabelWidth) ? Math.max(0, configuredLabelWidth) : 0;
         let n = ct.length;
@@ -423,7 +424,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                     if(ln)
                     {
                         this.canvas.fillStyle = "black";    // FIXME: Should really use the default color from the stylesheet
-                        this.canvas.fillText((labels[i % ln] ?? "").trim(), 0, dy*i+dy/2);
+                        this.canvas.fillText((labels[i % ln] ?? "").trim(), labelPaddingLeft, dy*i+dy/2);
                     }
 
                     for(var j=0; j<cols; j++)
@@ -469,7 +470,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                 if(ln)
                 {
                     this.canvas.fillStyle = "black";    // FIXME: Should really use the default color form the stylesheet
-                    this.canvas.fillText((labels[i % ln] ?? "").trim(), 0, dy*i+dy/2);
+                    this.canvas.fillText((labels[i % ln] ?? "").trim(), labelPaddingLeft, dy*i+dy/2);
                 }
 
                 for(var j=0; j<cols; j++)
@@ -532,7 +533,18 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
         if(this.parameters.color_map == "rgb")
         {
-            this.data = [this.getSource('red_source'), this.getSource('green_source'), this.getSource('blue_source')];
+            if(this.parameters.source)
+            {
+                const packedData = this.getSource('source');
+                this.data = Array.isArray(packedData) ?
+                    packedData.slice(0, 3).map((channel) => this.normalizeGridData(channel)) : [];
+                this.metadata = this.getSourceMetadata('source', null);
+            }
+            else
+            {
+                this.data = [this.getSource('red_source'), this.getSource('green_source'), this.getSource('blue_source')];
+                this.metadata = this.getSourceMetadata('red_source', null);
+            }
             if(!this.data[0] || !this.data[1] || !this.data[2])
             {
                 this.displayData = [];
@@ -548,7 +560,6 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                 this.displayData = [];
                 return;
             }
-            this.metadata = this.getSourceMetadata('red_source', null);
             this.displayData = this.getDisplayData(this.data);
             this.canvas.translate(this.format.margin_left, this.format.margin_top); //
             this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
