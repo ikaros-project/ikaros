@@ -7,6 +7,13 @@ using namespace ikaros;
 
 namespace
 {
+    constexpr int stimulusAngleColumn = 0;
+    constexpr int rewardColumn = 1;
+    constexpr int punishmentColumn = 2;
+    constexpr int intensityColumn = 3;
+    constexpr int firstComponentColumn = 4;
+
+
     float angular_difference(float angle, float reference)
     {
         float difference = std::fmod(angle - reference + 180.0f, 360.0f);
@@ -29,19 +36,22 @@ class RingWorld: public Module
     matrix gaze_;
     matrix tracking_;
     matrix fovea_;
+    matrix reward_;
+    matrix punishment_;
     matrix retina_;
     matrix auditoryMap_;
     matrix distalRetina_;
 
     void
-    mapStimuliToRetina(const matrix & stimuli, matrix & retina, float gaze)
+    mapStimuliToRetina(const matrix & stimuli, matrix & retina, float gaze,
+                       int angleColumn, int componentColumn, int scaleColumn = -1)
     {
         const float halfField = 0.5f * fieldOfView_.as_float();
         const int retinaWidth = retinaWidth_.as_int();
 
         for(int row = 0; row < stimuli.rows(); ++row)
         {
-            const float offset = angular_difference(stimuli(row, 0), gaze);
+            const float offset = angular_difference(stimuli(row, angleColumn), gaze);
             if(std::abs(offset) > halfField)
                 continue;
 
@@ -50,9 +60,12 @@ class RingWorld: public Module
                 std::clamp(int(std::round(retinalPosition * float(retinaWidth - 1))),
                            0, retinaWidth - 1);
 
-            for(int component = 0; component < stimuli.cols() - 1; ++component)
+            const float scale = scaleColumn < 0 ? 1.0f : stimuli(row, scaleColumn);
+            for(int component = 0; component < stimuli.cols() - componentColumn; ++component)
+            {
                 retina(component, column) = std::max(retina(component, column),
-                                                     stimuli(row, component + 1));
+                                                     scale * stimuli(row, componentColumn + component));
+            }
         }
     }
 
@@ -68,12 +81,14 @@ class RingWorld: public Module
         Bind(gaze_, "GAZE");
         Bind(tracking_, "TRACKING");
         Bind(fovea_, "FOVEA");
+        Bind(reward_, "REWARD");
+        Bind(punishment_, "PUNISHMENT");
         Bind(retina_, "RETINA");
         Bind(auditoryMap_, "AUDITORY_MAP");
         Bind(distalRetina_, "DISTAL_RETINA");
 
-        if(stimuli_.rank() != 2 || stimuli_.cols() < 2)
-            throw exception("RingWorld: STIMULI must be a matrix with an angle column and at least one component column.", path_);
+        if(stimuli_.rank() != 2 || stimuli_.cols() < 5)
+            throw exception("RingWorld: STIMULI must contain angle, reward, punishment, intensity, and at least one stimulus component.", path_);
         if(gaze_.connected() && gaze_.size() != 1)
             throw exception("RingWorld: GAZE must contain exactly one value.", path_);
         if(tracking_.connected() && tracking_.size() != 1)
@@ -91,9 +106,11 @@ class RingWorld: public Module
         if(retinaWidth_.as_int() < 1)
             throw exception("RingWorld: retina_width must be at least 1.", path_);
 
-        const int componentCount = stimuli_.cols() - 1;
+        const int componentCount = stimuli_.cols() - firstComponentColumn;
         if(fovea_.rank() != 1 || fovea_.size() != componentCount)
             throw exception("RingWorld: FOVEA shape was not resolved from STIMULI.", path_);
+        if(reward_.size() != 1 || punishment_.size() != 1)
+            throw exception("RingWorld: REWARD and PUNISHMENT must each contain one value.", path_);
         if(retina_.rank() != 2 || retina_.rows() != componentCount ||
            retina_.cols() != retinaWidth_.as_int())
             throw exception("RingWorld: RETINA shape was not resolved from STIMULI and retina_width.", path_);
@@ -109,6 +126,8 @@ class RingWorld: public Module
     void Tick() override
     {
         fovea_.reset();
+        reward_.reset();
+        punishment_.reset();
         retina_.reset();
         auditoryMap_.reset();
         distalRetina_.reset();
@@ -120,7 +139,7 @@ class RingWorld: public Module
 
         for(int row = 0; row < stimuli_.rows(); ++row)
         {
-            const float offset = angular_difference(stimuli_(row, 0), gaze);
+            const float offset = angular_difference(stimuli_(row, stimulusAngleColumn), gaze);
             const float distance = std::abs(offset);
 
             if(distance <= fixationMargin &&
@@ -131,15 +150,22 @@ class RingWorld: public Module
             }
         }
 
-        mapStimuliToRetina(stimuli_, retina_, gaze);
+        mapStimuliToRetina(stimuli_, retina_, gaze, stimulusAngleColumn,
+                           firstComponentColumn, intensityColumn);
         if(auditoryStimuli_.connected())
-            mapStimuliToRetina(auditoryStimuli_, auditoryMap_, gaze);
+            mapStimuliToRetina(auditoryStimuli_, auditoryMap_, gaze, 0, 1);
         if(distalStimuli_.connected())
-            mapStimuliToRetina(distalStimuli_, distalRetina_, gaze);
+            mapStimuliToRetina(distalStimuli_, distalRetina_, gaze, stimulusAngleColumn,
+                               firstComponentColumn, intensityColumn);
 
         if(foveaRow >= 0)
-            for(int component = 0; component < stimuli_.cols() - 1; ++component)
-                fovea_(component) = stimuli_(foveaRow, component + 1);
+        {
+            const float intensity = stimuli_(foveaRow, intensityColumn);
+            reward_(0) = stimuli_(foveaRow, rewardColumn);
+            punishment_(0) = stimuli_(foveaRow, punishmentColumn);
+            for(int component = 0; component < stimuli_.cols() - firstComponentColumn; ++component)
+                fovea_(component) = intensity * stimuli_(foveaRow, firstComponentColumn + component);
+        }
     }
 };
 

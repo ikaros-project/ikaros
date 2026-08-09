@@ -1,14 +1,14 @@
 <group name="RingWorld_example" start="true" stop="-1" tick_duration="0.1">
     <module name="Stimuli" class="Constant" _x="1520" _y="40"
-        data="-54,1,0.3,0.3,1,0,0,0,0,0,0; -36,0.3,1,0.3,0,1,0,0,0,0,0; -18,0.3,0.5,1,0,0,1,0,0,0,0; 0,1,1,0.3,0,0,0,1,0,0,0; 18,0.3,1,1,0,0,0,0,1,0,0; 36,1,0.3,1,0,0,0,0,0,1,0; 54,1,1,1,0,0,0,0,0,0,1" />
+        data="-54,1,0,1,1,0.3,0.3,1,0,0,0,0,0,0; -36,0,0,0.8,0.3,1,0.3,0,1,0,0,0,0,0; -18,0,0,0.7,0.3,0.5,1,0,0,1,0,0,0,0; 0,0,0,1,1,1,0.3,0,0,0,1,0,0,0; 18,0,0,0.7,0.3,1,1,0,0,0,0,1,0,0; 36,0,0,0.8,1,0.3,1,0,0,0,0,0,1,0; 54,0,1,1,1,1,1,0,0,0,0,0,0,1" />
     <module name="Gaze" class="Constant" data="0" _x="1520" _y="340" />
     <module name="Track" class="Constant" data="1" _x="1520" _y="440" />
     <module name="AuditoryStimuli" class="Constant" _x="1520" _y="140"
         data="-48,0.4; -8,1; 42,0.7" />
     <module name="DistalStimuli" class="Constant" _x="1520" _y="240"
-        data="-42,0.8,0.5,0.2,0,0,0,0,0,1,0; 12,0.5,0.8,1,0,0,1,0,0,0,0; 48,1,0.6,0.2,0,0,0,0,1,0,0" />
+        data="-42,0,0,0.7,0.8,0.5,0.2,0,0,0,0,0,1,0; 12,0,0,1,0.5,0.8,1,0,0,1,0,0,0,0; 48,0,0,0.8,1,0.6,0.2,0,0,0,0,1,0,0" />
     <module name="World" class="RingWorld" _x="1740" _y="180"
-        field_of_view="120" fixation_margin="8" retina_width="25" />
+        field_of_view="120" fixation_margin="4" retina_width="25" />
 
     <connection source="Stimuli.OUTPUT" target="World.STIMULI" delay="0" />
     <connection source="AuditoryStimuli.OUTPUT" target="World.AUDITORY_STIMULI" delay="0" />
@@ -21,13 +21,23 @@
         show_values="yes" show_title="yes" show_frame="yes" title="Gaze direction"
         width="500" height="80" x="40" y="40" _x="40" _y="40" />
     <widget name="StimulusTable" class="table" source="Stimuli.OUTPUT"
-        title="Stimuli: angle, RGB, H, V, -45, +45, left, right, dot" decimals="2" transpose="no"
+        title="Stimuli: angle, reward, punishment, intensity, RGB, H, V, -45, +45, left, right, dot" decimals="2" transpose="no"
         show_title="yes" show_frame="yes" width="500" height="180"
         x="40" y="150" _x="40" _y="150" />
     <widget name="FoveaTable" class="table" source="World.FOVEA"
         title="Fovea" decimals="2" transpose="no"
         show_title="yes" show_frame="yes" width="500" height="90"
         x="580" y="40" _x="580" _y="40" />
+    <widget name="RewardPlot" class="plot" source="World.REWARD"
+        title="Reward" y_min="0" y_max="1" auto_range="no" include_zero="yes"
+        buffer_size="100" show_x_axis="no" show_y_axis="yes"
+        show_title="yes" show_frame="yes" width="245" height="110"
+        x="40" y="350" _x="40" _y="350" />
+    <widget name="PunishmentPlot" class="plot" source="World.PUNISHMENT"
+        title="Punishment" y_min="0" y_max="1" auto_range="no" include_zero="yes"
+        buffer_size="100" show_x_axis="no" show_y_axis="yes"
+        show_title="yes" show_frame="yes" width="245" height="110"
+        x="295" y="350" _x="295" _y="350" />
     <widget name="RetinaGrid" class="grid"
         source="World.RETINA" color_map="rgb" shape="circle" size="0.72"
         labels="Color" label_width="100"
@@ -56,5 +66,5 @@
         track_source="World.TRACKING"
         field_of_view_parameter="World.field_of_view" upper_half_only="yes" stimulus_radius="12"
         title="Ring world" show_title="yes" show_frame="yes"
-        width="500" height="500" x="40" y="370" _x="40" _y="370" />
+        width="500" height="500" x="40" y="480" _x="40" _y="480" />
 </group>

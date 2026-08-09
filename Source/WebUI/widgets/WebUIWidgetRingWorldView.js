@@ -70,12 +70,35 @@ class WebUIWidgetRingWorldView extends WebUIWidgetCanvas
     rgbColor(row)
     {
         const channel = (index) => Math.round(255 * Math.max(0, Math.min(1, Number(row[index]) || 0)));
-        return `rgb(${channel(1)}, ${channel(2)}, ${channel(3)})`;
+        return `rgb(${channel(4)}, ${channel(5)}, ${channel(6)})`;
     }
 
     symbolEnabled(row, column)
     {
         return Number(row[column]) > 0.5;
+    }
+
+    stimulusIntensity(row)
+    {
+        return Math.max(0, Math.min(1, Number(row?.[3]) || 0));
+    }
+
+    trackedStimulusRadius(geometry)
+    {
+        let closestRow = null;
+        let closestDistance = Infinity;
+        for(const row of this.stimuli)
+        {
+            if(!Array.isArray(row) || !Number.isFinite(Number(row[0])))
+                continue;
+            const distance = Math.abs(this.wrappedAngle(Number(row[0]) - this.gaze));
+            if(distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestRow = row;
+            }
+        }
+        return geometry.stimulusRadius * this.stimulusIntensity(closestRow);
     }
 
     drawStimulusSymbols(x, y, radius, row)
@@ -90,7 +113,7 @@ class WebUIWidgetRingWorldView extends WebUIWidgetCanvas
         this.canvas.translate(x, y);
         this.canvas.strokeStyle = "#111316";
         this.canvas.fillStyle = "#111316";
-        this.canvas.lineWidth = Math.max(1.5, radius * 0.16);
+        this.canvas.lineWidth = Math.max(0.5, radius * 0.16);
         this.canvas.lineCap = "round";
         this.canvas.lineJoin = "round";
 
@@ -102,15 +125,15 @@ class WebUIWidgetRingWorldView extends WebUIWidgetCanvas
             this.canvas.stroke();
         };
 
-        if(this.symbolEnabled(row, 4))
-            line(-axialExtent, 0, axialExtent, 0);
-        if(this.symbolEnabled(row, 5))
-            line(0, -axialExtent, 0, axialExtent);
-        if(this.symbolEnabled(row, 6))
-            line(-extent, -extent, extent, extent);
         if(this.symbolEnabled(row, 7))
-            line(-extent, extent, extent, -extent);
+            line(-axialExtent, 0, axialExtent, 0);
         if(this.symbolEnabled(row, 8))
+            line(0, -axialExtent, 0, axialExtent);
+        if(this.symbolEnabled(row, 9))
+            line(-extent, -extent, extent, extent);
+        if(this.symbolEnabled(row, 10))
+            line(-extent, extent, extent, -extent);
+        if(this.symbolEnabled(row, 11))
         {
             this.canvas.beginPath();
             this.canvas.moveTo(-arrowTip, 0);
@@ -119,7 +142,7 @@ class WebUIWidgetRingWorldView extends WebUIWidgetCanvas
             this.canvas.closePath();
             this.canvas.fill();
         }
-        if(this.symbolEnabled(row, 9))
+        if(this.symbolEnabled(row, 12))
         {
             this.canvas.beginPath();
             this.canvas.moveTo(arrowTip, 0);
@@ -128,10 +151,10 @@ class WebUIWidgetRingWorldView extends WebUIWidgetCanvas
             this.canvas.closePath();
             this.canvas.fill();
         }
-        if(this.symbolEnabled(row, 10))
+        if(this.symbolEnabled(row, 13))
         {
             this.canvas.beginPath();
-            this.canvas.arc(0, 0, Math.max(3, radius * 0.36), 0, 2 * Math.PI);
+            this.canvas.arc(0, 0, radius * 0.36, 0, 2 * Math.PI);
             this.canvas.fill();
         }
 
@@ -219,7 +242,7 @@ class WebUIWidgetRingWorldView extends WebUIWidgetCanvas
 
     drawTrackingArrow(geometry, angle)
     {
-        const tipRadius = Math.max(0, geometry.radius - geometry.stimulusRadius);
+        const tipRadius = Math.max(0, geometry.radius - this.trackedStimulusRadius(geometry));
         const tipX = geometry.centerX + tipRadius * Math.cos(angle);
         const tipY = geometry.centerY + tipRadius * Math.sin(angle);
         const headLength = Math.min(12, Math.max(7, geometry.radius * 0.06));
@@ -250,9 +273,13 @@ class WebUIWidgetRingWorldView extends WebUIWidgetCanvas
 
     drawStimulus(geometry, row, ringRadius=geometry.radius)
     {
-        if(!Array.isArray(row) || row.length < 4 || !Number.isFinite(Number(row[0])))
+        if(!Array.isArray(row) || row.length < 7 || !Number.isFinite(Number(row[0])))
             return;
         if(geometry.upperHalfOnly && Math.abs(this.wrappedAngle(row[0])) > 90)
+            return;
+
+        const stimulusRadius = geometry.stimulusRadius * this.stimulusIntensity(row);
+        if(stimulusRadius <= 0)
             return;
 
         const angle = this.angleInRadians(row[0]);
@@ -260,13 +287,13 @@ class WebUIWidgetRingWorldView extends WebUIWidgetCanvas
         const y = geometry.centerY + ringRadius * Math.sin(angle);
 
         this.canvas.beginPath();
-        this.canvas.arc(x, y, geometry.stimulusRadius, 0, 2 * Math.PI);
+        this.canvas.arc(x, y, stimulusRadius, 0, 2 * Math.PI);
         this.canvas.fillStyle = this.rgbColor(row);
         this.canvas.fill();
         this.canvas.strokeStyle = "#26292e";
         this.canvas.lineWidth = 1.5;
         this.canvas.stroke();
-        this.drawStimulusSymbols(x, y, geometry.stimulusRadius, row);
+        this.drawStimulusSymbols(x, y, stimulusRadius, row);
     }
 
     drawAuditoryStimulus(geometry, row)
