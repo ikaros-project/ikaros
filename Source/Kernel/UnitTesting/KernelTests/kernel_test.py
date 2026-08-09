@@ -20,6 +20,7 @@ import time
 import urllib.request
 import socket as network_socket
 import stat
+import struct
 from pathlib import Path
 
 bold = "\033[1m"
@@ -249,6 +250,31 @@ def run_http_test(cmd, root):
                         f"Split HTTP request failed: {bytes(response[:200])!r}"
                     )
                 http_output.append("SPLIT_HTTP_REQUEST complete")
+            elif action.startswith("assert_connection_reset:"):
+                _, path = action.split(":", 1)
+                client = network_socket.create_connection(("127.0.0.1", int(port)), timeout=2)
+                client.setsockopt(
+                    network_socket.SOL_SOCKET,
+                    network_socket.SO_LINGER,
+                    struct.pack("ii", 1, 0),
+                )
+                client.sendall(
+                    f"GET {path} HTTP/1.1\r\nHost: 127.0.0.1\r\n".encode("ascii")
+                )
+                client.close()
+                time.sleep(0.05)
+
+                package = json.loads(request(path, record=False, client_id=369))
+                reset_messages = [
+                    message
+                    for message in package.get("log", [])
+                    if len(message) > 1 and "recv failed: Connection reset by peer" in str(message[1])
+                ]
+                if len(reset_messages) != 1 or reset_messages[0][0] != "7":
+                    raise AssertionError(
+                        f"Connection reset did not produce one print-level message: {reset_messages!r}"
+                    )
+                http_output.append("HTTP_CONNECTION_RESET ignored")
             elif action.startswith("assert_pipelined_http_requests:"):
                 _, path = action.split(":", 1)
                 request_text = (

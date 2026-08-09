@@ -1913,6 +1913,15 @@ namespace ikaros
                     socket->FinishActiveRequest();
                 }
             }
+            catch(const std::system_error & e)
+            {
+                if(shutdown.load(std::memory_order_acquire))
+                    break;
+                const int level = e.code() == std::errc::connection_reset ? msg_print : msg_warning;
+                Notify(level, "While handling HTTP request: " + std::string(e.what()));
+                if(socket != nullptr)
+                    socket->Close();
+            }
             catch(const std::exception & e)
             {
                 if(shutdown.load(std::memory_order_acquire))
