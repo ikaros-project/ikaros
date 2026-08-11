@@ -19,6 +19,10 @@ The tasks below will be completed sequentially, with one focused commit per task
 - Keep each document useful without requiring the reader to inspect the C++ implementation.
 - Complete, verify, and commit each documentation task before starting the next.
 
+### Outstanding issues and questions
+
+None.
+
 
 ## Population neuron models
 
