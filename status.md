@@ -7,7 +7,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Add a code-free WilsonCowan composite class with standard and historically motivated refractory dynamics, Hz-based activity, fixed-shape ports, and module-local tests. | Completed | XML validation; 500-tick standard/refractory smoke tests at 0.1 ms, 1 ms, 10 ms, and 100 ms; `git diff --check`. | `Added Wilson-Cowan composite population dynamics` |
-| 2 | Add clear standard/refractory demos and complete documentation with equations, units, interface tables, and a Mermaid-derived SVG flowchart. | Pending |  |  |
+| 2 | Add clear standard/refractory demos and complete documentation with equations, units, interface tables, and a Mermaid-derived SVG flowchart. | Completed | XML validation; Mermaid CLI rendering; 2,000-tick demo smoke test; 500-tick standard/refractory tests at 0.1 ms, 1 ms, 10 ms, and 100 ms; live 1280×900 WebUI inspection confirmed finite responsive traces, separated graph/dashboard regions, rendered SVG and KaTeX, and no console warnings or errors; `git diff --check`. | `Documented and demonstrated Wilson-Cowan dynamics` |
 
 ### Constraints
 
@@ -18,6 +18,11 @@ The tasks below will be completed sequentially, with one focused commit per task
 - Keep Mermaid source beside a committed SVG and reference the SVG from Markdown.
 - Support sensible tick durations from 0.1–10 ms and document best-effort behavior at 100 ms.
 - Do not add external dependencies.
+
+### Outstanding issues and questions
+
+- The repository Markdown checker still treats each interface table's first header cell as data and
+  reports the same false positives for this README as for the four existing neuron-model READMEs.
 
 ## Library-view KaTeX overflow correction
 
