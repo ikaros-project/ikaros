@@ -7,7 +7,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Add a repository instruction requiring documentation flowcharts to be authored in Mermaid, rendered to committed SVG assets, and referenced as Markdown images. | Completed | Instruction audit confirms module-local Mermaid source, committed SVG rendering, Markdown image references, regeneration, and visual-inspection requirements; `git diff --check`. | `Documentation flowcharts now use rendered Mermaid SVGs` |
-| 2 | Render the flowcharts in the four new population-neuron READMEs to module-local SVG files and replace their live Mermaid blocks with portable Markdown image references. | Pending |  |  |
+| 2 | Render the flowcharts in the four new population-neuron READMEs to module-local SVG files and replace their live Mermaid blocks with portable Markdown image references. | Completed | Mermaid CLI rendered five module-local SVGs from committed `.mmd` sources; all SVGs passed XML and unsafe/path-content checks; Markdown image references and removal of live Mermaid blocks audited; Quick Look visual inspection; `git diff --check`. The repository Markdown checker still reports pre-existing README table-header parsing failures and an unrelated TemplateMatcher title mismatch. | `Neuron model documentation now uses rendered Mermaid SVGs` |
 
 ### Constraints
 
@@ -15,6 +15,10 @@ The tasks below will be completed sequentially, with one focused commit per task
 - Use committed SVGs in `ReadMe.md` files so the Ikaros library view can display them without Mermaid runtime support.
 - Do not add a runtime WebUI dependency or change the kernel.
 - Complete, verify, and commit the instruction change before updating the READMEs.
+
+### Outstanding issues and questions
+
+- The repository Markdown checker treats the first header cell in several neuron-model interface tables as data, and separately reports an existing TemplateMatcher title mismatch. These formatting/checker issues were not introduced by the SVG conversion and remain for a focused follow-up.
 
 
 ## Population neuron model documentation

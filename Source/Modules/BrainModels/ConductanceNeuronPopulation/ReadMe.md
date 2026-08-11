@@ -16,20 +16,7 @@ driving force shrink as voltage approaches a synapse's reversal potential.
 
 ## Signal flow
 
-```mermaid
-flowchart LR
-    I["CURRENT\nµA/cm²"] --> MEM["Membrane current balance"]
-    GE["EXCITATORY_CONDUCTANCE\nmS/cm²"] --> SYN["gₑ(Eₑ − V) + gᵢ(Eᵢ − V)"]
-    GI["INHIBITORY_CONDUCTANCE\nmS/cm²"] --> SYN
-    SYN --> MEM
-    GATES["Voltage-dependent\nchannel gates"] <--> MEM
-    R["RESET"] --> MEM
-    MEM --> V["VOLTAGE"]
-    GATES --> W["RECOVERY"]
-    MEM --> C["Upward threshold crossings\nSPIKE_COUNT"]
-    C --> S["SPIKES"]
-    C --> F["FIRING_RATE"]
-```
+![Conductance neuron population signal flow](ConductanceNeuronPopulation_flow.svg)
 
 Each neuron is independent inside the module. Network structure, presynaptic weights, synaptic
 decay, and delays are supplied by other modules that produce the per-neuron conductance vectors.

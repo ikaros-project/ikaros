@@ -1,0 +1,5 @@
+flowchart LR
+    E["Excitatory RatePopulation"] -->|"positive weight"| E
+    E -->|"positive drive"| I["Inhibitory RatePopulation"]
+    I -->|"INHIBITION"| E
+    I -->|"self-inhibition"| I

@@ -16,19 +16,7 @@ plasticity, and topology belong in upstream modules. Every connected current inp
 
 ## Signal flow
 
-```mermaid
-flowchart LR
-    I["INPUT\n signed current"] --> SUM["I = INPUT + EXCITATION − INHIBITION"]
-    E["EXCITATION\n non-negative current"] --> SUM
-    H["INHIBITION\n non-negative current"] --> SUM
-    SUM --> DYN["LIF / EIF / AdEx / QIF\nmembrane integration"]
-    R["RESET"] --> DYN
-    DYN --> V["VOLTAGE"]
-    DYN --> A["ADAPTATION"]
-    DYN --> C["SPIKE_COUNT"]
-    C --> S["SPIKES = count > 0"]
-    C --> F["FIRING_RATE = count / tick_duration"]
-```
+![Integrate-and-fire population signal flow](IntegrateAndFirePopulation_flow.svg)
 
 Inputs are sampled once at the beginning of an Ikaros tick and held constant during all internal
 integration steps. Neurons do not interact internally, so recurrent networks are constructed by

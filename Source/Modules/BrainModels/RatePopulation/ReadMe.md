@@ -16,19 +16,7 @@ commands, and population-level approximations of larger spiking networks.
 
 ## Signal flow
 
-```mermaid
-flowchart LR
-    I["INPUT"] --> SUM["Drive sum"]
-    E["EXCITATION"] --> SUM
-    H["INHIBITION"] -->|"subtract"| SUM
-    M["MODULATION"] --> SUM
-    B["bias"] --> SUM
-    SUM --> ACT["linear / ReLU / sigmoid"]
-    ACT --> A["ACTIVATION\ninstantaneous target"]
-    A --> LP["Exact first-order dynamics\ntime_constant"]
-    R["RESET"] --> LP
-    LP --> O["OUTPUT\nfiltered firing rate"]
-```
+![Rate population signal flow](RatePopulation_flow.svg)
 
 All ports are fixed vectors of `population_size` elements. The module contains no internal
 connectivity. Recurrent rate networks are built by feeding `OUTPUT` through explicit weight and
@@ -176,13 +164,7 @@ already have moved from the exact reset value toward the current activation targ
 
 An excitatory/inhibitory rate circuit can be assembled from two module instances:
 
-```mermaid
-flowchart LR
-    E["Excitatory RatePopulation"] -->|"positive weight"| E
-    E -->|"positive drive"| I["Inhibitory RatePopulation"]
-    I -->|"INHIBITION"| E
-    I -->|"self-inhibition"| I
-```
+![Recurrent excitatory-inhibitory rate circuit](RatePopulation_recurrent.svg)
 
 Keeping the two populations explicit preserves ordinary vector shapes and allows weights, delays,
 and nonlinearities to be inspected independently.

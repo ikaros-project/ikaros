@@ -1,0 +1,12 @@
+flowchart LR
+    I["CURRENT<br/>µA/cm²"] --> MEM["Membrane current balance"]
+    GE["EXCITATORY_CONDUCTANCE<br/>mS/cm²"] --> SYN["gₑ(Eₑ − V) + gᵢ(Eᵢ − V)"]
+    GI["INHIBITORY_CONDUCTANCE<br/>mS/cm²"] --> SYN
+    SYN --> MEM
+    GATES["Voltage-dependent<br/>channel gates"] <--> MEM
+    R["RESET"] --> MEM
+    MEM --> V["VOLTAGE"]
+    GATES --> W["RECOVERY"]
+    MEM --> C["Upward threshold crossings<br/>SPIKE_COUNT"]
+    C --> S["SPIKES"]
+    C --> F["FIRING_RATE"]

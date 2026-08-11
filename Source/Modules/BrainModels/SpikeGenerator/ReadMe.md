@@ -15,25 +15,7 @@ representations.
 
 ## Signal flow
 
-```mermaid
-flowchart LR
-    RP["firing_rate parameter"] --> SEL["Per-generator effective rate"]
-    RI["RATE input"] -->|"overrides parameter"| SEL
-    SEL --> P["Poisson count"]
-    SEL --> G["Regular phase advance"]
-    T["TRIGGER"] --> X["Rising-edge / level detection"]
-    MODE["mode"] --> MUX["Mode selection"]
-    P --> MUX
-    G --> MUX
-    X --> MUX
-    EN["ENABLE"] --> MUX
-    R["RESET"] --> MUX
-    MUX --> C["SPIKE_COUNT"]
-    C --> S["SPIKES = count > 0"]
-    C --> F["FIRING_RATE = count / tick_duration"]
-    SEL --> ER["EFFECTIVE_RATE"]
-    G --> PH["PHASE"]
-```
+![Spike generator signal flow](SpikeGenerator_flow.svg)
 
 Each generator is independent. All input and output vectors contain `population_size` elements.
 
