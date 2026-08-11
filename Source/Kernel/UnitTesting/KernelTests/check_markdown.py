@@ -13,6 +13,37 @@ repository = Path(__file__).resolve().parents[4]
 modules = repository / "Source" / "Modules"
 errors = []
 
+
+def section_blocks(text, section):
+    """Return level-two Markdown sections that document an interface category."""
+    headings = list(re.finditer(r"^##\s+(.+?)\s*$", text, re.MULTILINE))
+    blocks = []
+    for index, heading in enumerate(headings):
+        title = heading.group(1).strip().casefold()
+        section_name = section.casefold()
+        matches = title == section_name
+        if section == "Parameters":
+            matches = matches or title.endswith(" parameters")
+        if not matches:
+            continue
+        start = heading.end()
+        end = headings[index + 1].start() if index + 1 < len(headings) else len(text)
+        blocks.append(text[start:end])
+    return blocks
+
+
+def documented_names(text, section):
+    """Collect first-column names while excluding table headers and separators."""
+    header_names = {"Name", section[:-1]}
+    names = set()
+    for block in section_blocks(text, section):
+        for name in re.findall(r"^\|\s*([^|]+?)\s*\|", block, re.MULTILINE):
+            stripped = name.strip()
+            if stripped in header_names or not stripped or set(stripped) <= {"-", ":"}:
+                continue
+            names.add(stripped.strip(" `"))
+    return names
+
 tracked_markdown = subprocess.run(
     ["git", "ls-files", "*.md"],
     cwd=repository,
@@ -55,17 +86,7 @@ for readme in modules.rglob("ReadMe.md"):
                   if element.get("name")}
         if not actual:
             continue
-        match = re.search(
-            rf"^## {section}\s*$([\s\S]*?)(?=^## |\Z)", text, re.MULTILINE
-        )
-        documented = set()
-        if match is not None:
-            documented = {
-                name.strip(" `")
-                for name in re.findall(r"^\|\s*([^|]+?)\s*\|", match.group(1), re.MULTILINE)
-                if name.strip() not in {"Name", "---"}
-                and not set(name.strip()) <= {"-", ":"}
-            }
+        documented = documented_names(text, section)
         if documented != actual:
             errors.append(
                 f"{readme.relative_to(repository)}: {section.lower()} table "

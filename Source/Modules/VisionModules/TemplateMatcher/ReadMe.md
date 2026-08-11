@@ -1,4 +1,7 @@
-# Native learned template matching
+# TemplateMatcher
+
+Native learned template matching using ALIKED, LightGlue, robust projective geometry, and
+pyramidal Lucas-Kanade tracking.
 
 This demo is implemented entirely in C++ at runtime. It uses ALIKED and LightGlue through ONNX
 Runtime, native robust projective geometry, and native pyramidal Lucas-Kanade tracking. It does not

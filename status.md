@@ -21,8 +21,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 
 ### Outstanding issues and questions
 
-- The repository Markdown checker still treats each interface table's first header cell as data and
-  reports the same false positives for this README as for the four existing neuron-model READMEs.
+None.
 
 ## Library-view KaTeX overflow correction
 
@@ -77,7 +76,8 @@ The tasks below will be completed sequentially, with one focused commit per task
 
 ### Outstanding issues and questions
 
-- The repository Markdown checker treats the first header cell in several neuron-model interface tables as data, and separately reports an existing TemplateMatcher title mismatch. These formatting/checker issues were not introduced by the SVG conversion and remain for a focused follow-up.
+None. The Markdown table-header parsing and TemplateMatcher title mismatch were resolved in a
+focused follow-up.
 
 
 ## Population neuron model documentation
