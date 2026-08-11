@@ -1,5 +1,28 @@
 # Kernel Review Status
 
+## Population neuron models
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add an IntegrateAndFirePopulation module with LIF, EIF, AdEx, and QIF models, documented physical units, tick-duration scaling, coarse-tick spike counts, tests, and a clear demo. | Completed | Release build; XML validation; four-model smoke tests at 0.1, 1, 10, and 100 ms; live WebUI inspection at 1440x900 confirmed separated component/dashboard regions, aligned plots, visible spiking behavior, and no browser warnings or errors; `git diff --check`. | `Integrate-and-fire populations now support four models` |
+| 2 | Add a ConductanceNeuronPopulation module with Hodgkin-Huxley and Morris-Lecar models, documented density units, bounded internal integration, tests, and a clear demo. | Pending |  |  |
+| 3 | Add a RatePopulation module with linear, ReLU, and sigmoid activation models, time-constant dynamics, exact tick-duration scaling where possible, tests, and a clear demo. | Pending |  |  |
+| 4 | Add a SpikeGenerator module with Poisson, regular, and triggered modes, reproducible randomness, coarse-tick event counts, tests, and a clear demo. | Pending |  |  |
+
+### Constraints
+
+- Implement all modules in C++ without kernel changes or external dependencies.
+- Use explicit `population_size` parameters and setup-owned fixed-shape outputs.
+- Treat all connected per-neuron inputs as fixed vectors of `population_size` elements.
+- Use seconds for time parameters, hertz for firing rates, and explicit `unit` attributes on dimensional `.ikc` parameters.
+- Use 1 ms as the reference tick duration, support 0.1-10 ms normally, and provide documented best-effort binned output at 100 ms.
+- Keep topology, synaptic filtering, propagation delays, and plasticity outside the neuron modules.
+- Preserve the existing SpikingPopulation module unchanged.
+- Complete, verify, and commit each task before starting the next.
+
+
 ## TemplateMatcher naming migration
 
 | # | Task | Status | Verification | Commit |

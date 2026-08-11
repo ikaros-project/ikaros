@@ -1,0 +1,34 @@
+<class name="IntegrateAndFirePopulation" description="Population of current-driven integrate-and-fire neurons">
+    <description type="text">
+        Simulates LIF, EIF, AdEx, or QIF neurons. Inputs are sampled once per Ikaros tick and held
+        during internal integration. SPIKES marks whether a neuron fired, SPIKE_COUNT preserves
+        multiple spikes in coarse ticks, and FIRING_RATE reports the binned rate.
+    </description>
+
+    <parameter name="population_size" type="number" default="1" min="1" unit="neurons" description="Number of neurons" />
+    <parameter name="model" type="number" default="0" options="lif,eif,adex,qif" description="Neuron model" />
+    <parameter name="membrane_time_constant" type="number" default="0.02" min="0.000001" unit="s" description="Passive membrane time constant" />
+    <parameter name="membrane_resistance" type="number" default="100" min="0.000001" unit="MOhm" description="Membrane resistance" />
+    <parameter name="resting_potential" type="number" default="-65" unit="mV" description="Resting membrane potential" />
+    <parameter name="threshold" type="number" default="-50" unit="mV" description="Spike threshold" />
+    <parameter name="reset_potential" type="number" default="-65" unit="mV" description="Potential after a spike" />
+    <parameter name="initial_potential" type="number" default="-65" unit="mV" description="Potential at startup and external reset" />
+    <parameter name="refractory_period" type="number" default="0.002" min="0" unit="s" description="Absolute refractory period" />
+    <parameter name="slope_factor" type="number" default="2" min="0.000001" unit="mV" description="EIF and AdEx exponential slope factor" />
+    <parameter name="adaptation_time_constant" type="number" default="0.1" min="0.000001" unit="s" description="AdEx adaptation time constant" />
+    <parameter name="subthreshold_adaptation" type="number" default="4" min="0" unit="nS" description="AdEx subthreshold adaptation conductance" />
+    <parameter name="spike_adaptation" type="number" default="0.08" min="0" unit="nA" description="AdEx adaptation increment after a spike" />
+    <parameter name="quadratic_gain" type="number" default="0.004" min="0" unit="nA/mV^2" description="QIF quadratic membrane-current gain" />
+    <parameter name="maximum_internal_step" type="number" default="0.0001" min="0.000001" unit="s" description="Largest numerical integration step" />
+
+    <input name="INPUT" size="@population_size" optional="yes" unit="nA" description="Signed applied current" />
+    <input name="EXCITATION" size="@population_size" optional="yes" unit="nA" description="Non-negative excitatory current" />
+    <input name="INHIBITION" size="@population_size" optional="yes" unit="nA" description="Non-negative inhibitory current" />
+    <input name="RESET" size="@population_size" optional="yes" description="Positive values reset corresponding neurons" />
+
+    <output name="SPIKES" size="@population_size" description="One when at least one spike occurred during the tick" />
+    <output name="SPIKE_COUNT" size="@population_size" unit="spikes" description="Number of spikes during the tick" />
+    <output name="FIRING_RATE" size="@population_size" unit="Hz" description="Spike count divided by tick duration" />
+    <output name="VOLTAGE" size="@population_size" unit="mV" description="Membrane potential at the end of the tick" />
+    <output name="ADAPTATION" size="@population_size" unit="nA" description="AdEx adaptation current; zero for other models" />
+</class>
