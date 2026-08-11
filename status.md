@@ -22,6 +22,10 @@ The tasks below will be completed sequentially, with one focused commit per task
 - Preserve the existing SpikingPopulation module unchanged.
 - Complete, verify, and commit each task before starting the next.
 
+### Outstanding issues and questions
+
+None.
+
 
 ## TemplateMatcher naming migration
 
