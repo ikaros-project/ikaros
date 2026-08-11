@@ -195,6 +195,13 @@ aside button:active {
     overflow-y: auto;
 }
 
+#library_inspector .library-inspector-placeholder .katex-display {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 0;
+}
+
 #library_inspector .library-inspector-actions {
     flex: 0 0 auto;
     margin-top: auto;

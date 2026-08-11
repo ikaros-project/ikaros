@@ -978,11 +978,58 @@ const inspector =
             .replace(/'/g, "&#39;");
     },
 
+    renderLatex(source, displayMode)
+    {
+        const openingDelimiter = displayMode ? "\\[" : "\\(";
+        const closingDelimiter = displayMode ? "\\]" : "\\)";
+        const fallback = inspector.escapeHtml(openingDelimiter + source + closingDelimiter);
+        if(typeof katex === "undefined" || typeof katex.renderToString !== "function")
+            return fallback;
+
+        try
+        {
+            return katex.renderToString(source, {
+                displayMode,
+                output: "htmlAndMathml",
+                throwOnError: true,
+                trust: false,
+            });
+        }
+        catch(error)
+        {
+            console.warn("Could not render library documentation LaTeX:", error);
+            return fallback;
+        }
+    },
+
     renderInlineMarkdown(text, options = {})
     {
-        let html = inspector.escapeHtml(text);
+        const tokens = [];
+        let tokenPrefix = "IKAROSMARKDOWNTOKEN";
+        while(String(text).includes(tokenPrefix))
+            tokenPrefix += "X";
+
+        const token = function(html)
+        {
+            const placeholder = `${tokenPrefix}${tokens.length}ENDTOKEN`;
+            tokens.push(html);
+            return placeholder;
+        };
+
+        const protectedText = String(text).replace(
+            /`([^`\n]+)`|\\\[([\s\S]*?)\\\]|\\\(([\s\S]*?)\\\)/g,
+            (_match, code, displayMath, inlineMath) =>
+            {
+                if(code !== undefined)
+                    return token(`<code>${inspector.escapeHtml(code)}</code>`);
+                if(displayMath !== undefined)
+                    return token(inspector.renderLatex(displayMath, true));
+                return token(inspector.renderLatex(inlineMath, false));
+            },
+        );
+
+        let html = inspector.escapeHtml(protectedText);
         html = html.replace(/&lt;br\s*\/?&gt;/gi, "<br>");
-        html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
         html = html.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_match, alt, url) =>
         {
             const src = inspector.resolveMarkdownAssetUrl(url, options.className);
@@ -999,6 +1046,8 @@ const inspector =
         });
         html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
         html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+        html = html.replace(new RegExp(`${tokenPrefix}(\\d+)ENDTOKEN`, "g"),
+                            (_match, index) => tokens[Number(index)]);
         return html;
     },
 
@@ -1045,6 +1094,8 @@ const inspector =
         let listItems = [];
         let codeLines = [];
         let inCodeBlock = false;
+        let displayMathLines = [];
+        let inDisplayMath = false;
         let tableRows = [];
 
         const isTableLine = function(line)
@@ -1111,7 +1162,7 @@ const inspector =
 
         for(const line of lines)
         {
-            if(line.trim().startsWith("```"))
+            if(!inDisplayMath && line.trim().startsWith("```"))
             {
                 flushParagraph();
                 flushList();
@@ -1135,6 +1186,30 @@ const inspector =
             }
 
             const trimmed = line.trim();
+            if(inDisplayMath)
+            {
+                if(trimmed === "\\]")
+                {
+                    blocks.push(inspector.renderLatex(displayMathLines.join("\n"), true));
+                    displayMathLines = [];
+                    inDisplayMath = false;
+                }
+                else
+                {
+                    displayMathLines.push(line);
+                }
+                continue;
+            }
+
+            if(trimmed === "\\[")
+            {
+                flushParagraph();
+                flushList();
+                flushTable();
+                inDisplayMath = true;
+                continue;
+            }
+
             if(trimmed === "")
             {
                 flushParagraph();
@@ -1196,6 +1271,8 @@ const inspector =
         flushList();
         flushTable();
         flushCodeBlock();
+        if(inDisplayMath)
+            blocks.push(`<p>${inspector.escapeHtml("\\[\n" + displayMathLines.join("\n"))}</p>`);
 
         if(blocks.length === 0)
             return "<p></p>";

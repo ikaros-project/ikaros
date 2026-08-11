@@ -1,5 +1,23 @@
 # Kernel Review Status
 
+## Library-view LaTeX rendering
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Bundle KaTeX locally and render inline and display LaTeX in library-view Markdown while preserving literal code and safe fallback behavior. | Completed | Focused WebUI unit tests cover inline, single-line and multiline display math, code protection, untrusted commands, and invalid-expression fallback; live library-view inspection of all four neuron modules confirmed local KaTeX fonts, SVG coexistence, bounded horizontal scrolling, complete delimiter consumption, and no browser warnings or errors; `git diff --check`. | `Library documentation now renders LaTeX with KaTeX` |
+
+### Constraints
+
+- Keep LaTeX source directly in module `ReadMe.md` files.
+- Load all renderer assets locally without a CDN or runtime network dependency.
+- Do not interpret math delimiters inside inline code or fenced code blocks.
+- Preserve escaped Markdown output and show the original LaTeX when KaTeX rejects an expression.
+- Do not change the kernel.
+
+### Outstanding issues and questions
+
+None.
+
 ## Mermaid-derived documentation SVGs
 
 The tasks below will be completed sequentially, with one focused commit per task.
