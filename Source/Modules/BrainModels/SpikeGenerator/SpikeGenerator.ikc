@@ -1,0 +1,26 @@
+<class name="SpikeGenerator" description="Population of synthetic spike sources">
+    <description type="text">
+        Generates Poisson, regular, or externally triggered spikes. A connected RATE input is in
+        hertz and overrides firing_rate for each generator. SPIKE_COUNT preserves multiple events
+        in coarse ticks, while SPIKES reports whether any event occurred.
+    </description>
+
+    <parameter name="population_size" type="number" default="1" min="1" unit="generators" description="Number of spike generators" />
+    <parameter name="mode" type="number" default="0" options="poisson,regular,triggered" description="Spike-generation mode" />
+    <parameter name="firing_rate" type="rate" default="10" min="0" unit="spikes/s" description="Firing rate used when RATE is unconnected" />
+    <parameter name="initial_phase" type="number" default="0" min="0" max="1" unit="cycles" description="Initial regular-generator phase" />
+    <parameter name="refractory_period" type="number" default="0" min="0" unit="s" description="Approximate minimum Poisson inter-event interval; zero disables it" />
+    <parameter name="trigger_mode" type="number" default="0" options="rising_edge,level" description="Triggered-mode event rule" />
+    <parameter name="seed" type="number" default="-1" min="-1" description="Random seed; negative selects nondeterministic seeding" />
+
+    <input name="RATE" size="@population_size" optional="yes" unit="Hz" description="Per-generator firing rates overriding firing_rate" />
+    <input name="TRIGGER" size="@population_size" optional="yes" description="Triggered-mode event source" />
+    <input name="ENABLE" size="@population_size" optional="yes" description="Positive values enable corresponding generators" />
+    <input name="RESET" size="@population_size" optional="yes" description="Positive values restore phase and trigger state" />
+
+    <output name="SPIKES" size="@population_size" description="One when at least one spike occurred during the tick" />
+    <output name="SPIKE_COUNT" size="@population_size" unit="spikes" description="Number of spikes during the tick" />
+    <output name="FIRING_RATE" size="@population_size" unit="Hz" description="Spike count divided by tick duration" />
+    <output name="EFFECTIVE_RATE" size="@population_size" unit="Hz" description="Configured or input firing rate after validation" />
+    <output name="PHASE" size="@population_size" unit="cycles" description="Regular-generator phase in the range [0,1)" />
+</class>
