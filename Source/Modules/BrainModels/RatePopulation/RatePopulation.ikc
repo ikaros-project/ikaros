@@ -1,0 +1,26 @@
+<class name="RatePopulation" description="Population with first-order firing-rate dynamics">
+    <description type="text">
+        Applies a linear, rectified-linear, or sigmoid activation to the summed drive and approaches
+        that target with an exact first-order update. Inputs are firing-rate drives sampled once per
+        Ikaros tick. ACTIVATION is the instantaneous target and OUTPUT is the filtered population rate.
+    </description>
+
+    <parameter name="population_size" type="number" default="1" min="1" unit="neurons" description="Number of rate units" />
+    <parameter name="activation_function" type="number" default="0" options="linear,relu,sigmoid" description="Static activation function" />
+    <parameter name="time_constant" type="number" default="0.02" min="0.000001" unit="s" description="Population response time constant" />
+    <parameter name="gain" type="number" default="1" unit="1" description="Activation gain" />
+    <parameter name="bias" type="number" default="0" unit="Hz" description="Drive added before activation" />
+    <parameter name="sigmoid_midpoint" type="number" default="0" unit="Hz" description="Sigmoid midpoint" />
+    <parameter name="minimum_output" type="number" default="0" unit="Hz" description="Minimum activation and output" />
+    <parameter name="maximum_output" type="number" default="100" unit="Hz" description="Maximum activation and output" />
+    <parameter name="initial_output" type="number" default="0" unit="Hz" description="Output at startup and external reset" />
+
+    <input name="INPUT" size="@population_size" optional="yes" unit="Hz" description="Signed external firing-rate drive" />
+    <input name="EXCITATION" size="@population_size" optional="yes" unit="Hz" description="Non-negative excitatory firing-rate drive" />
+    <input name="INHIBITION" size="@population_size" optional="yes" unit="Hz" description="Non-negative inhibitory firing-rate drive" />
+    <input name="MODULATION" size="@population_size" optional="yes" unit="Hz" description="Signed additive modulation" />
+    <input name="RESET" size="@population_size" optional="yes" description="Positive values restore corresponding units to initial_output" />
+
+    <output name="OUTPUT" size="@population_size" unit="Hz" description="Filtered population firing rate" />
+    <output name="ACTIVATION" size="@population_size" unit="Hz" description="Instantaneous activation target" />
+</class>
