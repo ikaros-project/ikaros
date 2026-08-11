@@ -7,7 +7,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Add a detailed IntegrateAndFirePopulation ReadMe with signal-flow graph, LIF/EIF/AdEx/QIF equations, numerical semantics, usage guidance, and complete interface tables. | Completed | Equation-to-code audit for all four models; Mermaid and Markdown fence audit; complete `.ikc` parameter/input/output cross-check; `git diff --check`. | `Documented integrate-and-fire population models` |
-| 2 | Add a detailed ConductanceNeuronPopulation ReadMe with signal-flow graph, Hodgkin-Huxley and Morris-Lecar equations, gating kinetics, numerical semantics, usage guidance, and complete interface tables. | Pending |  |  |
+| 2 | Add a detailed ConductanceNeuronPopulation ReadMe with signal-flow graph, Hodgkin-Huxley and Morris-Lecar equations, gating kinetics, numerical semantics, usage guidance, and complete interface tables. | Completed | HH and Morris-Lecar equation-to-code audit; gating initialization and unit audit; Mermaid and Markdown fence audit; complete `.ikc` interface cross-check; `git diff --check`. | `Documented conductance neuron population models` |
 | 3 | Add a detailed RatePopulation ReadMe with signal-flow graph, activation and exact time-constant equations, usage guidance, and complete interface tables. | Pending |  |  |
 | 4 | Add a detailed SpikeGenerator ReadMe with signal-flow graph, Poisson/regular/triggered equations, reproducibility and coarse-tick semantics, usage guidance, and complete interface tables. | Pending |  |  |
 
