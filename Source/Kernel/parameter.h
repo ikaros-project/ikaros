@@ -109,6 +109,7 @@ namespace ikaros
         bool has_options() const noexcept;
         bool is_resolved() const noexcept;
         std::vector<std::string> options() const;
+        std::string unit() const;
         dictionary metadata() const;
 
         std::string json() const;

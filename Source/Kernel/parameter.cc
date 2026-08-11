@@ -570,6 +570,15 @@ namespace ikaros
     }
 
 
+    std::string
+    parameter::unit() const
+    {
+        if(!state_->info.contains_non_null("unit"))
+            return "";
+        return std::string(state_->info["unit"]);
+    }
+
+
     dictionary
     parameter::metadata() const
     {
@@ -635,6 +644,7 @@ namespace ikaros
         std::cout << "type: " << type_name << '\n';
         std::cout << "resolved: " << (state_->resolved ? "true" : "false") << '\n';
         std::cout << "default: " << metadata_value("default", "(none)") << '\n';
+        std::cout << "unit: " << metadata_value("unit", "(none)") << '\n';
         std::cout << "source: " << metadata_value("value", "(none)") << '\n';
         std::cout << "has_options: " << (state_->has_options ? "true" : "false") << '\n';
         std::cout << "options: ";
