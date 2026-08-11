@@ -1,3 +1,4 @@
+#include <cmath>
 #include <random>
 
 #include "ikaros.h"
@@ -91,11 +92,12 @@ class Nucleus: public Module
         }
 
         float & x_value = x(0);
-        float dx_dt = alpha + beta * (1/(1+psi*S)) * E - gamma * I - delta*x_value +
-                      sample_normal_distribution(
-                          gaussianGenerator, gaussianDistribution, 0, sigma);
+        float deterministic_drive = alpha + beta * (1/(1+psi*S)) * E - gamma * I - delta*x_value;
+        float noise_increment = sample_normal_distribution(
+            gaussianGenerator, gaussianDistribution, 0,
+            sigma.as_float() * std::sqrt(GetTickDuration()));
 
-        x_value += epsilon * dx_dt; // Euler integration
+        x_value += epsilon * deterministic_drive + noise_increment; // Euler-Maruyama integration
 
         float o = 0;
 

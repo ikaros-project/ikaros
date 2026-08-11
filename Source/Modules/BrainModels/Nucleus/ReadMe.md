@@ -38,20 +38,27 @@ normalization by input count comes exclusively from `scale_inputs=yes`.
 Before applying the output nonlinearity, the module computes the drive
 
 \[
-D_k=
+F_k=
 \alpha
 +\beta\frac{E_k}{1+\psi S_k}
 -\gamma I_k
--\delta x_k
-+\eta_k,
+-\delta x_k,
 \]
 
-where \(x_k\) is the current internal state and
-\(\eta_k\sim\mathcal N(0,\sigma^2)\) is one Gaussian sample per tick. The state is advanced with
-forward Euler integration:
+where \(x_k\) is the current internal state. The stochastic state equation is
 
 \[
-x_{k+1}=x_k+\varepsilon\,\Delta t\,D_k.
+dx=\varepsilon F(x,E,I,S)\,dt+\sigma\,dW_t,
+\]
+
+where \(W_t\) is a Wiener process and \(\sigma\) is the diffusion strength. The state is advanced
+with Euler–Maruyama integration:
+
+\[
+x_{k+1}
+=x_k+\varepsilon\,\Delta t\,F_k
++\sigma\sqrt{\Delta t}\,Z_k,
+\qquad Z_k\sim\mathcal N(0,1).
 \]
 
 `epsilon` is an Ikaros `rate` parameter. Its configured value \(\varepsilon\) is expressed in
@@ -70,10 +77,10 @@ For the unforced, noise-free linear state equation, forward-Euler stability requ
 0<\varepsilon\delta\Delta t<2.
 \]
 
-Values well below the upper bound give a smoother and more accurate approximation. The noise is
-sampled once per tick and then multiplied by \(\varepsilon\Delta t\); it is discrete-time drive
-noise, not continuous white noise with \(\sqrt{\Delta t}\) scaling. Its effect therefore changes
-when `tick_duration` changes.
+Values well below the upper bound give a smoother and more accurate approximation. The stochastic
+increment scales with \(\sqrt{\Delta t}\), so its variance over a fixed simulated duration is
+approximately independent of `tick_duration`. Individual trajectories still differ when the tick
+duration changes because they contain a different number of random increments.
 
 ## Output activation
 
@@ -119,7 +126,7 @@ has elapsed. Processing then resumes from the reset state.
 | `gamma` | number | 1 | context-dependent | Subtractive inhibitory gain. |
 | `delta` | number | 1 | 1 | State-decay coefficient inside the drive. |
 | `psi` | number | 1 | context-dependent | Strength of divisive shunting inhibition. |
-| `sigma` | number | 0 | state | Standard deviation of the per-tick Gaussian drive sample. |
+| `sigma` | number | 0 | state/√s | Continuous Gaussian diffusion strength. |
 | `seed` | number | -1 | 1 | Gaussian random seed; negative selects nondeterministic seeding. |
 | `theta` | number | 0 | state | Activation threshold or horizontal offset. |
 | `epsilon` | rate | 1 | s⁻¹ | Overall state-update rate; its reciprocal is a nominal time constant. |
@@ -130,8 +137,9 @@ has elapsed. Processing then resumes from the reset state.
 | `burst_time` | number | 0 | s | Duration of a held threshold pulse; zero means one tick. |
 
 Because this is a generic model, most signal units depend on the surrounding circuit. The units in
-the table assume that the bracketed drive has the same units as `X`; multiplication by `epsilon`
-then gives the state derivative in state units per second. A model may use another consistent
+the table assume that the deterministic drive has the same units as `X`; multiplication by
+`epsilon` then gives the drift in state units per second. The diffusion strength has units of state
+per square-root second so that \(\sigma\,dW_t\) has state units. A model may use another consistent
 convention.
 
 ## Inputs

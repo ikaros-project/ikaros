@@ -11,7 +11,7 @@
     <parameter name="gamma" type="number" default="1" description="inhibition gain" />
     <parameter name="delta" type="number" default="1" description="decay rate" />
     <parameter name="psi" type="number" default="1.0" description="shunting weight" />
-    <parameter name="sigma" type="number" default="0" description="gaussian noise standard deviation" />
+    <parameter name="sigma" type="number" default="0" min="0" unit="state/sqrt(s)" description="continuous Gaussian diffusion strength" />
     <parameter name="seed" type="number" default="-1" min="-1" description="Gaussian random seed; negative selects nondeterministic seeding" />
     <parameter name="theta" type="number" default="0" description="threshold" />
     <parameter name="epsilon" type="rate" default="1" description="time constant (1/s)" />
