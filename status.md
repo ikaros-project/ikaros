@@ -1,5 +1,24 @@
 # Kernel Review Status
 
+## Wilson–Cowan composite population model
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a code-free WilsonCowan composite class with standard and historically motivated refractory dynamics, Hz-based activity, fixed-shape ports, and module-local tests. | Completed | XML validation; 500-tick standard/refractory smoke tests at 0.1 ms, 1 ms, 10 ms, and 100 ms; `git diff --check`. | `Added Wilson-Cowan composite population dynamics` |
+| 2 | Add clear standard/refractory demos and complete documentation with equations, units, interface tables, and a Mermaid-derived SVG flowchart. | Pending |  |  |
+
+### Constraints
+
+- Compose existing Ikaros modules in `WilsonCowan.ikc`; do not add C++ or modify the kernel.
+- Use firing rates in Hz, time constants and refractory periods in seconds, sigmoid gains in Hz⁻¹, and dimensionless recurrent weights and response maxima.
+- Implement `standard` dynamics as \(-R+S(d)\) and `refractory` dynamics as \(-R+(k-rR)S(d)\).
+- Model one scalar excitatory/inhibitory population pair per instance with one-tick recurrent feedback delays and fixed one-element ports.
+- Keep Mermaid source beside a committed SVG and reference the SVG from Markdown.
+- Support sensible tick durations from 0.1–10 ms and document best-effort behavior at 100 ms.
+- Do not add external dependencies.
+
 ## Library-view KaTeX overflow correction
 
 | # | Task | Status | Verification | Commit |

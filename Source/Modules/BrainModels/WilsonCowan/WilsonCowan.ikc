@@ -1,0 +1,127 @@
+<class name="WilsonCowan" no_code="yes" description="Composite excitatory-inhibitory Wilson-Cowan firing-rate model"
+       model="1"
+       excitatory_time_constant="0.01" inhibitory_time_constant="0.01"
+       excitatory_self_weight="0.8" inhibitory_to_excitatory_weight="0.6"
+       excitatory_to_inhibitory_weight="0.7" inhibitory_self_weight="0.4"
+       excitatory_sigmoid_gain="0.15" inhibitory_sigmoid_gain="0.15"
+       excitatory_sigmoid_midpoint="10" inhibitory_sigmoid_midpoint="10"
+       excitatory_maximum_response="100" inhibitory_maximum_response="100"
+       excitatory_response_maximum="1" inhibitory_response_maximum="1"
+       excitatory_refractory_period="0.002" inhibitory_refractory_period="0.002"
+       initial_excitatory_rate="0" initial_inhibitory_rate="0">
+    <description type="text">
+        Couples excitatory and inhibitory firing-rate populations through sigmoid response functions.
+        Set model to 0 for the standard equations or 1 for the refractory equations. Intermediate
+        values continuously interpolate between the two target formulations.
+    </description>
+
+    <parameter name="model" type="number" default="1" min="0" max="1" step="1" unit="1" description="Equation form: 0 standard, 1 refractory" />
+    <parameter name="excitatory_time_constant" type="number" default="0.01" min="0.000001" unit="s" description="Excitatory population response time constant" />
+    <parameter name="inhibitory_time_constant" type="number" default="0.01" min="0.000001" unit="s" description="Inhibitory population response time constant" />
+    <parameter name="excitatory_self_weight" type="number" default="0.8" unit="1" description="Excitatory-to-excitatory recurrent weight" />
+    <parameter name="inhibitory_to_excitatory_weight" type="number" default="0.6" unit="1" description="Inhibitory-to-excitatory recurrent weight" />
+    <parameter name="excitatory_to_inhibitory_weight" type="number" default="0.7" unit="1" description="Excitatory-to-inhibitory recurrent weight" />
+    <parameter name="inhibitory_self_weight" type="number" default="0.4" unit="1" description="Inhibitory-to-inhibitory recurrent weight" />
+    <parameter name="excitatory_sigmoid_gain" type="number" default="0.15" min="0.000001" unit="Hz^-1" description="Excitatory sigmoid gain" />
+    <parameter name="inhibitory_sigmoid_gain" type="number" default="0.15" min="0.000001" unit="Hz^-1" description="Inhibitory sigmoid gain" />
+    <parameter name="excitatory_sigmoid_midpoint" type="number" default="10" unit="Hz" description="Excitatory sigmoid midpoint" />
+    <parameter name="inhibitory_sigmoid_midpoint" type="number" default="10" unit="Hz" description="Inhibitory sigmoid midpoint" />
+    <parameter name="excitatory_maximum_response" type="number" default="100" min="0.000001" unit="Hz" description="Maximum excitatory sigmoid response" />
+    <parameter name="inhibitory_maximum_response" type="number" default="100" min="0.000001" unit="Hz" description="Maximum inhibitory sigmoid response" />
+    <parameter name="excitatory_response_maximum" type="number" default="1" min="0" max="1" unit="1" description="Excitatory sensitive-fraction maximum k_E" />
+    <parameter name="inhibitory_response_maximum" type="number" default="1" min="0" max="1" unit="1" description="Inhibitory sensitive-fraction maximum k_I" />
+    <parameter name="excitatory_refractory_period" type="number" default="0.002" min="0" unit="s" description="Excitatory absolute refractory period" />
+    <parameter name="inhibitory_refractory_period" type="number" default="0.002" min="0" unit="s" description="Inhibitory absolute refractory period" />
+    <parameter name="initial_excitatory_rate" type="number" default="0" min="0" unit="Hz" description="Excitatory rate at startup and reset" />
+    <parameter name="initial_inhibitory_rate" type="number" default="0" min="0" unit="Hz" description="Inhibitory rate at startup and reset" />
+
+    <input name="EXTERNAL_EXCITATION" size="1" unit="Hz" description="External excitatory-population drive P" />
+    <input name="EXTERNAL_INHIBITION" size="1" unit="Hz" description="External inhibitory-population drive Q" />
+
+    <output name="EXCITATORY_RATE" unit="Hz" description="Excitatory population firing rate E" />
+    <output name="INHIBITORY_RATE" unit="Hz" description="Inhibitory population firing rate I" />
+    <output name="EXCITATORY_TARGET" unit="Hz" description="Target driving the excitatory rate dynamics" />
+    <output name="INHIBITORY_TARGET" unit="Hz" description="Target driving the inhibitory rate dynamics" />
+
+    <module class="Scale" name="ExcitatorySelf" factor="@excitatory_self_weight" />
+    <module class="Scale" name="InhibitoryToExcitatory" factor="@inhibitory_to_excitatory_weight" />
+    <module class="Scale" name="ExcitatoryToInhibitory" factor="@excitatory_to_inhibitory_weight" />
+    <module class="Scale" name="InhibitorySelf" factor="@inhibitory_self_weight" />
+    <module class="Add" name="ExcitatoryPositiveDrive" />
+    <module class="Subtract" name="ExcitatoryDrive" />
+    <module class="Add" name="InhibitoryPositiveDrive" />
+    <module class="Subtract" name="InhibitoryDrive" />
+    <module class="RatePopulation" name="ExcitatoryResponse" population_size="1" activation_function="sigmoid"
+            time_constant="@excitatory_time_constant" gain="@excitatory_sigmoid_gain"
+            sigmoid_midpoint="@excitatory_sigmoid_midpoint" minimum_output="0"
+            maximum_output="@excitatory_maximum_response" initial_output="0" />
+    <module class="RatePopulation" name="InhibitoryResponse" population_size="1" activation_function="sigmoid"
+            time_constant="@inhibitory_time_constant" gain="@inhibitory_sigmoid_gain"
+            sigmoid_midpoint="@inhibitory_sigmoid_midpoint" minimum_output="0"
+            maximum_output="@inhibitory_maximum_response" initial_output="0" />
+    <module class="Constant" name="ExcitatoryResponseMaximum" data="@excitatory_response_maximum" />
+    <module class="Constant" name="InhibitoryResponseMaximum" data="@inhibitory_response_maximum" />
+    <module class="Scale" name="ExcitatoryRefractoryUse" factor="@excitatory_refractory_period" />
+    <module class="Scale" name="InhibitoryRefractoryUse" factor="@inhibitory_refractory_period" />
+    <module class="Subtract" name="ExcitatoryAvailabilityRaw" />
+    <module class="Subtract" name="InhibitoryAvailabilityRaw" />
+    <module class="Clip" name="ExcitatoryAvailability" a="0" b="@excitatory_response_maximum" />
+    <module class="Clip" name="InhibitoryAvailability" a="0" b="@inhibitory_response_maximum" />
+    <module class="Multiply" name="ExcitatoryRefractoryTarget" />
+    <module class="Multiply" name="InhibitoryRefractoryTarget" />
+    <module class="Subtract" name="ExcitatoryTargetDifference" />
+    <module class="Subtract" name="InhibitoryTargetDifference" />
+    <module class="Scale" name="ExcitatoryTargetAdjustment" factor="@model" />
+    <module class="Scale" name="InhibitoryTargetAdjustment" factor="@model" />
+    <module class="Add" name="ExcitatoryTarget" />
+    <module class="Add" name="InhibitoryTarget" />
+    <module class="RatePopulation" name="ExcitatoryDynamics" population_size="1" activation_function="linear"
+            time_constant="@excitatory_time_constant" gain="1" minimum_output="0"
+            maximum_output="@excitatory_maximum_response" initial_output="@initial_excitatory_rate" />
+    <module class="RatePopulation" name="InhibitoryDynamics" population_size="1" activation_function="linear"
+            time_constant="@inhibitory_time_constant" gain="1" minimum_output="0"
+            maximum_output="@inhibitory_maximum_response" initial_output="@initial_inhibitory_rate" />
+
+    <connection source="ExcitatoryDynamics.OUTPUT" target="ExcitatorySelf.INPUT" delay="1" />
+    <connection source="ExcitatoryDynamics.OUTPUT" target="ExcitatoryToInhibitory.INPUT" delay="1" />
+    <connection source="InhibitoryDynamics.OUTPUT" target="InhibitoryToExcitatory.INPUT" delay="1" />
+    <connection source="InhibitoryDynamics.OUTPUT" target="InhibitorySelf.INPUT" delay="1" />
+    <connection source="ExcitatorySelf.OUTPUT" target="ExcitatoryPositiveDrive.INPUT1" />
+    <connection source="EXTERNAL_EXCITATION" target="ExcitatoryPositiveDrive.INPUT2" />
+    <connection source="ExcitatoryPositiveDrive.OUTPUT" target="ExcitatoryDrive.INPUT1" />
+    <connection source="InhibitoryToExcitatory.OUTPUT" target="ExcitatoryDrive.INPUT2" />
+    <connection source="ExcitatoryToInhibitory.OUTPUT" target="InhibitoryPositiveDrive.INPUT1" />
+    <connection source="EXTERNAL_INHIBITION" target="InhibitoryPositiveDrive.INPUT2" />
+    <connection source="InhibitoryPositiveDrive.OUTPUT" target="InhibitoryDrive.INPUT1" />
+    <connection source="InhibitorySelf.OUTPUT" target="InhibitoryDrive.INPUT2" />
+    <connection source="ExcitatoryDrive.OUTPUT" target="ExcitatoryResponse.INPUT" />
+    <connection source="InhibitoryDrive.OUTPUT" target="InhibitoryResponse.INPUT" />
+    <connection source="ExcitatoryDynamics.OUTPUT" target="ExcitatoryRefractoryUse.INPUT" delay="1" />
+    <connection source="InhibitoryDynamics.OUTPUT" target="InhibitoryRefractoryUse.INPUT" delay="1" />
+    <connection source="ExcitatoryResponseMaximum.OUTPUT" target="ExcitatoryAvailabilityRaw.INPUT1" />
+    <connection source="ExcitatoryRefractoryUse.OUTPUT" target="ExcitatoryAvailabilityRaw.INPUT2" />
+    <connection source="InhibitoryResponseMaximum.OUTPUT" target="InhibitoryAvailabilityRaw.INPUT1" />
+    <connection source="InhibitoryRefractoryUse.OUTPUT" target="InhibitoryAvailabilityRaw.INPUT2" />
+    <connection source="ExcitatoryAvailabilityRaw.OUTPUT" target="ExcitatoryAvailability.INPUT" />
+    <connection source="InhibitoryAvailabilityRaw.OUTPUT" target="InhibitoryAvailability.INPUT" />
+    <connection source="ExcitatoryAvailability.OUTPUT" target="ExcitatoryRefractoryTarget.INPUT1" />
+    <connection source="ExcitatoryResponse.ACTIVATION" target="ExcitatoryRefractoryTarget.INPUT2" />
+    <connection source="InhibitoryAvailability.OUTPUT" target="InhibitoryRefractoryTarget.INPUT1" />
+    <connection source="InhibitoryResponse.ACTIVATION" target="InhibitoryRefractoryTarget.INPUT2" />
+    <connection source="ExcitatoryRefractoryTarget.OUTPUT" target="ExcitatoryTargetDifference.INPUT1" />
+    <connection source="ExcitatoryResponse.ACTIVATION" target="ExcitatoryTargetDifference.INPUT2" />
+    <connection source="InhibitoryRefractoryTarget.OUTPUT" target="InhibitoryTargetDifference.INPUT1" />
+    <connection source="InhibitoryResponse.ACTIVATION" target="InhibitoryTargetDifference.INPUT2" />
+    <connection source="ExcitatoryTargetDifference.OUTPUT" target="ExcitatoryTargetAdjustment.INPUT" />
+    <connection source="InhibitoryTargetDifference.OUTPUT" target="InhibitoryTargetAdjustment.INPUT" />
+    <connection source="ExcitatoryResponse.ACTIVATION" target="ExcitatoryTarget.INPUT1" />
+    <connection source="ExcitatoryTargetAdjustment.OUTPUT" target="ExcitatoryTarget.INPUT2" />
+    <connection source="InhibitoryResponse.ACTIVATION" target="InhibitoryTarget.INPUT1" />
+    <connection source="InhibitoryTargetAdjustment.OUTPUT" target="InhibitoryTarget.INPUT2" />
+    <connection source="ExcitatoryTarget.OUTPUT" target="ExcitatoryDynamics.INPUT" />
+    <connection source="InhibitoryTarget.OUTPUT" target="InhibitoryDynamics.INPUT" />
+    <connection source="ExcitatoryDynamics.OUTPUT" target="EXCITATORY_RATE" />
+    <connection source="InhibitoryDynamics.OUTPUT" target="INHIBITORY_RATE" />
+    <connection source="ExcitatoryTarget.OUTPUT" target="EXCITATORY_TARGET" />
+    <connection source="InhibitoryTarget.OUTPUT" target="INHIBITORY_TARGET" />
+</class>

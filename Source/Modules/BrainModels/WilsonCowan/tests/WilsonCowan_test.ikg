@@ -1,0 +1,24 @@
+<group name="WilsonCowan_test" start="true" stop="500" tick_duration="0.001">
+    <module class="Constant" name="ExcitatoryDrive" data="6" _x="40" _y="80" />
+    <module class="Constant" name="InhibitoryDrive" data="2" _x="40" _y="220" />
+
+    <module class="WilsonCowan" name="Standard" model="0"
+            excitatory_self_weight="0.8" inhibitory_to_excitatory_weight="0.6"
+            excitatory_to_inhibitory_weight="0.7" inhibitory_self_weight="0.4"
+            excitatory_sigmoid_gain="0.15" inhibitory_sigmoid_gain="0.15"
+            excitatory_sigmoid_midpoint="10" inhibitory_sigmoid_midpoint="10"
+            _x="300" _y="60" />
+
+    <module class="WilsonCowan" name="Refractory" model="1"
+            excitatory_self_weight="0.8" inhibitory_to_excitatory_weight="0.6"
+            excitatory_to_inhibitory_weight="0.7" inhibitory_self_weight="0.4"
+            excitatory_sigmoid_gain="0.15" inhibitory_sigmoid_gain="0.15"
+            excitatory_sigmoid_midpoint="10" inhibitory_sigmoid_midpoint="10"
+            excitatory_refractory_period="0.005" inhibitory_refractory_period="0.005"
+            _x="580" _y="60" />
+
+    <connection source="ExcitatoryDrive.OUTPUT" target="Standard.EXTERNAL_EXCITATION" />
+    <connection source="InhibitoryDrive.OUTPUT" target="Standard.EXTERNAL_INHIBITION" />
+    <connection source="ExcitatoryDrive.OUTPUT" target="Refractory.EXTERNAL_EXCITATION" />
+    <connection source="InhibitoryDrive.OUTPUT" target="Refractory.EXTERNAL_INHIBITION" />
+</group>
