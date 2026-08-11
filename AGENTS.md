@@ -22,6 +22,13 @@
 - Route warnings intended for users or the WebUI through `Warning()` or Ikaros notification functions, not `std::cerr`.
 - Use exceptions for startup and module `Init()` failures; during execution, report runtime conditions through `Notify()`, `Warning()`, or related Ikaros notification functions.
 
+## Documentation Diagrams
+
+- Author documentation flowcharts as Mermaid source in a module-local `.mmd` file.
+- Render the Mermaid source to a committed module-local SVG and reference the SVG as a Markdown image so it displays in the Ikaros library view.
+- Keep the `.mmd` source beside the SVG so the diagram remains maintainable; do not rely on an unrendered Mermaid code block as the only representation in maintained Markdown.
+- Regenerate and inspect the SVG whenever its Mermaid source changes.
+
 ## WebUI Model Layout
 
 - Give modules, groups, and widgets explicit view positions in polished example `.ikg` files. Use `_x` and `_y` for components and keep widget `x`, `y`, `_x`, and `_y` values consistent.

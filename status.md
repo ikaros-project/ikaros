@@ -1,5 +1,22 @@
 # Kernel Review Status
 
+## Mermaid-derived documentation SVGs
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a repository instruction requiring documentation flowcharts to be authored in Mermaid, rendered to committed SVG assets, and referenced as Markdown images. | Completed | Instruction audit confirms module-local Mermaid source, committed SVG rendering, Markdown image references, regeneration, and visual-inspection requirements; `git diff --check`. | `Documentation flowcharts now use rendered Mermaid SVGs` |
+| 2 | Render the flowcharts in the four new population-neuron READMEs to module-local SVG files and replace their live Mermaid blocks with portable Markdown image references. | Pending |  |  |
+
+### Constraints
+
+- Keep the Mermaid source beside each rendered SVG so diagrams remain maintainable.
+- Use committed SVGs in `ReadMe.md` files so the Ikaros library view can display them without Mermaid runtime support.
+- Do not add a runtime WebUI dependency or change the kernel.
+- Complete, verify, and commit the instruction change before updating the READMEs.
+
+
 ## Population neuron model documentation
 
 The tasks below will be completed sequentially, with one focused commit per task.
