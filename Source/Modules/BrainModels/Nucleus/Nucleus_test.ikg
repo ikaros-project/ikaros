@@ -13,19 +13,19 @@
 	<module
 		class = "Nucleus"
 		name = "N1"
-        epsilon = "0.05"
+        time_constant = "20"
 	/>
 	
 	<module
 		class = "Nucleus"
 		name = "N2"
-        epsilon = "0.05"
+        time_constant = "20"
 	/>
 	
 	<module
 		class = "Nucleus"
 		name = "N3"
-        epsilon = "0.05"
+        time_constant = "20"
 	/>
 	
 	<connection  source = "L.OUTPUT"  target = "N1.EXCITATION" delay="10"/>
@@ -80,4 +80,3 @@
 	</view>
     <module class = "Logger" name = "Logger" />
 </group>
- 

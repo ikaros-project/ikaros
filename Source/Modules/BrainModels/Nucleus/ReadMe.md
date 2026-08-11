@@ -48,7 +48,7 @@ F_k=
 where \(x_k\) is the current internal state. The stochastic state equation is
 
 \[
-dx=\varepsilon F(x,E,I,S)\,dt+\sigma\,dW_t,
+dx=\frac{F(x,E,I,S)}{\tau}\,dt+\sigma\,dW_t,
 \]
 
 where \(W_t\) is a Wiener process and \(\sigma\) is the diffusion strength. The state is advanced
@@ -56,15 +56,13 @@ with Euler–Maruyama integration:
 
 \[
 x_{k+1}
-=x_k+\varepsilon\,\Delta t\,F_k
+=x_k+\frac{\Delta t}{\tau}F_k
 +\sigma\sqrt{\Delta t}\,Z_k,
 \qquad Z_k\sim\mathcal N(0,1).
 \]
 
-`epsilon` is an Ikaros `rate` parameter. Its configured value \(\varepsilon\) is expressed in
-s\(^{-1}\), and Ikaros supplies \(\varepsilon\Delta t\) to the C++ module. Thus larger values make
-the state respond faster. When interpreted as a conventional time scale, its reciprocal is
-\(\tau=1/\varepsilon\).
+`time_constant` supplies \(\tau\) in seconds. Smaller values make the state respond faster, and the
+Euler–Maruyama drift factor scales automatically as \(\Delta t/\tau\).
 
 Ordinary inhibition subtracts \(\gamma I\) from the drive. Shunting inhibition instead divides
 only the excitatory term by \(1+\psi S\). With the usual non-negative inputs and \(\psi\ge0\), this
@@ -74,7 +72,7 @@ combinations that make the denominator zero or nearly zero should be avoided.
 For the unforced, noise-free linear state equation, forward-Euler stability requires approximately
 
 \[
-0<\varepsilon\delta\Delta t<2.
+0<\frac{\delta\Delta t}{\tau}<2.
 \]
 
 Values well below the upper bound give a smoother and more accurate approximation. The stochastic
@@ -129,7 +127,8 @@ has elapsed. Processing then resumes from the reset state.
 | `sigma` | number | 0 | state/√s | Continuous Gaussian diffusion strength. |
 | `seed` | number | -1 | 1 | Gaussian random seed; negative selects nondeterministic seeding. |
 | `theta` | number | 0 | state | Activation threshold or horizontal offset. |
-| `epsilon` | rate | 1 | s⁻¹ | Overall state-update rate; its reciprocal is a nominal time constant. |
+| `time_constant` | number | 1 | s | State response time constant \(\tau\). |
+| `epsilon` | number | 1 | s⁻¹ | Deprecated compatibility alias; use `time_constant=1/epsilon`. |
 | `scale_inputs` | bool | yes | 1 | Use the average of each input buffer instead of its sum. |
 | `output_offset` | number | 0 | output | Offset applied after the activation function. |
 | `output_scale` | number | 1 | output | Scale applied after the activation function. |
@@ -137,10 +136,14 @@ has elapsed. Processing then resumes from the reset state.
 | `burst_time` | number | 0 | s | Duration of a held threshold pulse; zero means one tick. |
 
 Because this is a generic model, most signal units depend on the surrounding circuit. The units in
-the table assume that the deterministic drive has the same units as `X`; multiplication by
-`epsilon` then gives the drift in state units per second. The diffusion strength has units of state
-per square-root second so that \(\sigma\,dW_t\) has state units. A model may use another consistent
-convention.
+the table assume that the deterministic drive has the same units as `X`; division by
+`time_constant` then gives the drift in state units per second. The diffusion strength has units of
+state per square-root second so that \(\sigma\,dW_t\) has state units. A model may use another
+consistent convention.
+
+For compatibility, an explicitly configured `epsilon` is interpreted as the old update rate and
+converted internally using \(\tau=1/\varepsilon\). If both parameters are explicitly present,
+`time_constant` takes precedence. New models should use only `time_constant`.
 
 ## Inputs
 

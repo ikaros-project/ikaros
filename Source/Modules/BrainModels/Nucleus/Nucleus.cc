@@ -17,7 +17,8 @@ class Nucleus: public Module
     parameter   sigma;          // standard deviation for noise
     parameter   randomSeed;     // random seed for noise
     parameter   theta;          // threshold for output
-    parameter   epsilon;        // time constant
+    parameter   timeConstant;   // state time constant
+    parameter   legacyEpsilon;  // deprecated update rate
     parameter   scale_inputs;   // use average instead of sum of inputs
     parameter   activation_function; // 0 = ReLU, 1 = tanh, 2 = sigmoid, 3 = linear
     parameter   burst_time;     // burst time in s for threshold function: 0 means a single tick
@@ -33,6 +34,7 @@ class Nucleus: public Module
     double      burst_end_time = 0;
     std::mt19937 gaussianGenerator;
     std::normal_distribution<float> gaussianDistribution;
+    bool useLegacyEpsilon = false;
 
     void Init()
     {
@@ -44,7 +46,16 @@ class Nucleus: public Module
         Bind(sigma, "sigma");
         Bind(randomSeed, "seed");
         Bind(theta, "theta");
-        Bind(epsilon, "epsilon");
+        const bool hasTimeConstant = KeyExists("time_constant");
+        const bool hasLegacyEpsilon = KeyExists("epsilon");
+        Bind(timeConstant, "time_constant");
+        Bind(legacyEpsilon, "epsilon");
+
+        useLegacyEpsilon = hasLegacyEpsilon && !hasTimeConstant;
+        if(hasLegacyEpsilon && hasTimeConstant)
+            Warning("Nucleus ignores deprecated epsilon when time_constant is explicitly set.");
+        else if(hasLegacyEpsilon)
+            Warning("Nucleus parameter epsilon is deprecated; use time_constant=1/epsilon instead.");
 
 
         Bind(scale_inputs, "scale_inputs");
@@ -97,7 +108,10 @@ class Nucleus: public Module
             gaussianGenerator, gaussianDistribution, 0,
             sigma.as_float() * std::sqrt(GetTickDuration()));
 
-        x_value += epsilon * deterministic_drive + noise_increment; // Euler-Maruyama integration
+        float integrationFactor = useLegacyEpsilon
+                                      ? legacyEpsilon.as_float() * GetTickDuration()
+                                      : GetTickDuration() / timeConstant.as_float();
+        x_value += integrationFactor * deterministic_drive + noise_increment;
 
         float o = 0;
 
