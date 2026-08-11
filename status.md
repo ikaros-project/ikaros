@@ -1,5 +1,22 @@
 # Kernel Review Status
 
+## Library-view KaTeX overflow correction
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Prevent the WebUI's global overflow rule from clipping KaTeX output and make wide display equations scroll from their leading term. | Completed | Live ConductanceNeuronPopulation README inspection confirmed complete fractions, accents, scripts, and leading terms; a 588 px equation now exposes a left-anchored scroll surface inside its 383 px viewport; the library defaults to 440 px but remains resizable and viewport-clamped; no browser warnings or errors; focused Markdown/escaping unit tests; `git diff --check`. | `Fixed clipped KaTeX equations in the library view` |
+
+### Constraints
+
+- Scope overflow overrides to the library documentation's KaTeX wrappers.
+- Preserve KaTeX's intentional clipping on internal glyph-building elements.
+- Keep wide equations at a readable size and expose horizontal scrolling instead of shrinking them.
+- Do not change the kernel or README equation source.
+
+### Outstanding issues and questions
+
+None.
+
 ## Library-view LaTeX rendering
 
 | # | Task | Status | Verification | Commit |
