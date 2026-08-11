@@ -2489,6 +2489,12 @@ const inspector =
                     };
                     logLevelMenu.addEventListener("input", applyGroupLogLevel);
                     logLevelMenu.addEventListener("change", applyGroupLogLevel);
+                    if(item.class)
+                    {
+                        const groupParameters = getParameterRows(item).filter((parameter) =>
+                            !["name", "color", "log_level"].includes(parameter.name));
+                        inspector.addDataRows(item, groupParameters, inspector);
+                    }
                 } else {
                     inspector.addAttributeValue("name", item.name);
                     inspector.addAttributeValue("color", item.color || "black");
