@@ -1,14 +1,4 @@
-<class name="WilsonCowan" no_code="yes" description="Composite excitatory-inhibitory Wilson-Cowan firing-rate model"
-       model="1"
-       excitatory_time_constant="0.01" inhibitory_time_constant="0.01"
-       excitatory_self_weight="0.8" inhibitory_to_excitatory_weight="0.6"
-       excitatory_to_inhibitory_weight="0.7" inhibitory_self_weight="0.4"
-       excitatory_sigmoid_gain="0.15" inhibitory_sigmoid_gain="0.15"
-       excitatory_sigmoid_midpoint="10" inhibitory_sigmoid_midpoint="10"
-       excitatory_maximum_response="100" inhibitory_maximum_response="100"
-       excitatory_response_maximum="1" inhibitory_response_maximum="1"
-       excitatory_refractory_period="0.002" inhibitory_refractory_period="0.002"
-       initial_excitatory_rate="0" initial_inhibitory_rate="0">
+<class name="WilsonCowan" no_code="yes" description="Composite excitatory-inhibitory Wilson-Cowan firing-rate model">
     <description type="text">
         Couples excitatory and inhibitory firing-rate populations through sigmoid response functions.
         Set model to 0 for the standard equations or 1 for the refractory equations. Intermediate

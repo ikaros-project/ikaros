@@ -41,6 +41,9 @@ class ComputeEngineTestModule: public Module
         Component & root = *Parent();
         Component * child = root.GetComponent("child");
         Component * settings = root.GetComponent("Epi.Settings");
+        Component * explicitBeforeDefault = root.GetComponent("DefaultBetween.Consumer");
+        Component * nearestDefault = root.GetComponent("DefaultOuter.DefaultInner.Consumer");
+        Component * nearestExplicit = root.GetComponent("ExplicitOuter.ExplicitInner.Consumer");
 
         require_true(root.ComputeValue("value") == "value",
                      "plain names should remain literal without explicit evaluation");
@@ -58,6 +61,12 @@ class ComputeEngineTestModule: public Module
                      "adjacent curly expansions should compose path segments");
         require_true(child->ComputeValue("{expr}") == "7",
                      "curly expansion should evaluate arithmetic attributes");
+        require_true(explicitBeforeDefault->ComputeValue("@explicit_before_default") == "41",
+                     "ancestor explicit values should take precedence over nearer defaults");
+        require_true(nearestDefault->ComputeValue("@nearest_default") == "32",
+                     "the nearest ancestor default should be used when no explicit value exists");
+        require_true(nearestExplicit->ComputeValue("@nearest_explicit") == "52",
+                     "the nearest ancestor explicit value should take precedence");
 
         require_true(root.ComputeValue("MatrixSource.OUTPUT.rows") == "2",
                      "rows should report the matrix row count");

@@ -9,6 +9,7 @@
     EpiName="EpiBlue"
     agent="@EpiName"
     literal_agent="X"
+    explicit_before_default="41"
     shape_expr="MatrixSource.OUTPUT.shape[1:]"
     expected_output_contains="COMPUTE ENGINE TEST OK">
 
@@ -17,6 +18,25 @@
 
     <group name="outer" which="inner">
         <group name="inner" value="9" />
+    </group>
+
+    <group name="DefaultBetween">
+        <parameter name="explicit_before_default" type="number" default="22" />
+        <group name="Consumer" />
+    </group>
+
+    <group name="DefaultOuter">
+        <parameter name="nearest_default" type="number" default="31" />
+        <group name="DefaultInner">
+            <parameter name="nearest_default" type="number" default="32" />
+            <group name="Consumer" />
+        </group>
+    </group>
+
+    <group name="ExplicitOuter" nearest_explicit="51">
+        <group name="ExplicitInner" nearest_explicit="52">
+            <group name="Consumer" />
+        </group>
     </group>
 
     <group name="Epi">
