@@ -1,0 +1,31 @@
+<group name="PlanarArm_Kinematics_Test" start="true" stop="1">
+    <module name="JointCommand" class="Constant" data="0,1.570796" />
+    <module name="GripperCommand" class="Constant" data="1" />
+    <module name="Arm" class="PlanarArm"
+        base_position="50,50"
+        link_lengths="20,10"
+        initial_joint_angles="0,0"
+        joint_min="-3.141593,-3.141593"
+        joint_max="3.141593,3.141593"
+        max_joint_step="0.01"
+        palm_length="10"
+        finger_length="8"
+        link_width="2"
+        gripper_width="2"
+        movable_object="100,100,3"
+        circle_obstacle_count="0"
+        circle_obstacles=""
+        line_obstacle_count="0"
+        line_obstacles=""
+        world_width="150"
+        world_height="150" />
+    <module name="PrintJoints" class="Print" />
+    <module name="PrintEndEffector" class="Print" />
+    <module name="PrintBlocked" class="Print" />
+
+    <connection source="JointCommand.OUTPUT" target="Arm.JOINT_COMMAND" delay="0" />
+    <connection source="GripperCommand.OUTPUT" target="Arm.GRIPPER" delay="0" />
+    <connection source="Arm.JOINT_POSITIONS" target="PrintJoints.INPUT" delay="0" />
+    <connection source="Arm.END_EFFECTOR" target="PrintEndEffector.INPUT" delay="0" />
+    <connection source="Arm.BLOCKED" target="PrintBlocked.INPUT" delay="0" />
+</group>

@@ -1,0 +1,44 @@
+<class name="PlanarArm" description="Planar articulated arm with a contact-driven two-finger gripper">
+    <description>
+        PlanarArm simulates a base-fixed serial arm, a three-segment gripper, one movable circle, and fixed circle and line obstacles. The gripper consists of a palm perpendicular to the final arm link and two symmetric fingers. Every arm and gripper segment is a capsule and uses the same collision response; the object is held only by geometric contact and is never attached to the gripper. JOINT_COMMAND contains absolute joint angles in radians and GRIPPER ranges from zero (closed) to one (open). Commands advance in bounded substeps and stop at the last state that does not penetrate fixed geometry. ARM_LINES, OBJECTS, and WALLS use the World2D display schemas.
+    </description>
+
+    <parameter name="base_position" type="matrix" default="60,150" description="Arm base x and y position." />
+    <parameter name="link_lengths" type="matrix" default="65,55,45" description="Length of each serial arm link." />
+    <parameter name="link_width" type="number" default="6" min="0" description="Width of every serial arm link." />
+    <parameter name="initial_joint_angles" type="matrix" default="0,-0.5,0.8" description="Initial absolute command angles for the serial joints in radians." />
+    <parameter name="joint_min" type="matrix" default="-3.141593,-3.141593,-3.141593" description="Minimum angle for each joint in radians." />
+    <parameter name="joint_max" type="matrix" default="3.141593,3.141593,3.141593" description="Maximum angle for each joint in radians." />
+    <parameter name="max_joint_step" type="number" default="0.01" min="0.000001" description="Maximum joint-angle change in one collision substep." />
+    <parameter name="initial_gripper" type="number" default="1" min="0" max="1" description="Initial gripper opening, where zero is closed and one is open." />
+    <parameter name="palm_length" type="number" default="34" min="0.000001" description="Length of the gripper palm." />
+    <parameter name="finger_length" type="number" default="32" min="0.000001" description="Length of each gripper finger." />
+    <parameter name="gripper_width" type="number" default="5" min="0" description="Width of the palm and fingers." />
+    <parameter name="finger_open_angle" type="number" default="0.45" min="0" description="Outward finger angle at full opening in radians." />
+    <parameter name="finger_closed_angle" type="number" default="0.65" min="0" description="Inward finger angle at full closure in radians." />
+    <parameter name="movable_object" type="matrix" default="205,150,12" description="Initial movable circle x, y, and radius." />
+    <parameter name="circle_obstacle_count" type="number" default="2" min="0" description="Number of fixed circle rows in circle_obstacles." />
+    <parameter name="circle_obstacles" type="matrix" default="245,105,18;245,205,18" description="Fixed circle rows: x, y, radius. An empty matrix disables fixed circles." />
+    <parameter name="line_obstacle_count" type="number" default="4" min="0" description="Number of fixed line rows in line_obstacles." />
+    <parameter name="line_obstacles" type="matrix" default="20,20,280,20,5;280,20,280,280,5;280,280,20,280,5;20,280,20,20,5" description="Fixed line rows: x1, y1, x2, y2, width. An empty matrix disables fixed lines." />
+    <parameter name="world_width" type="number" default="300" min="0.000001" description="World width." />
+    <parameter name="world_height" type="number" default="300" min="0.000001" description="World height." />
+    <parameter name="solver_iterations" type="number" default="64" min="1" description="Contact projection passes per motion substep." />
+
+    <input name="JOINT_COMMAND" optional="yes" size="link_lengths.size" description="Absolute serial joint angles in radians. The initial angles are used while unconnected." />
+    <input name="GRIPPER" optional="yes" size="1" description="Gripper opening from zero (closed) to one (open)." />
+    <input name="RESET" optional="yes" size="1" description="A value greater than 0.5 restores the initial arm, gripper, and object state." />
+
+    <output name="JOINT_ANGLES" size="link_lengths.size" description="Accepted serial joint angles in radians." />
+    <output name="JOINT_POSITIONS" size="link_lengths.size+1,2" description="Rows contain base and successive serial joint x,y positions." />
+    <output name="END_EFFECTOR" size="3" description="End-effector x, y, and cumulative orientation in radians." />
+    <output name="MOVABLE_OBJECT" size="4" description="Movable circle x, y, radius, and enclosed sensor value." />
+    <output name="LINK_CONTACTS" size="link_lengths.size" description="Contact flag for each serial link." />
+    <output name="GRIPPER_CONTACTS" size="3" description="Contact flags for palm, left finger, and right finger." />
+    <output name="OBJECT_CONTACTS" size="4" description="Object contact flags for arm, fixed circles, fixed lines, and world boundary." />
+    <output name="BLOCKED" size="1" description="One when some requested arm or gripper motion was rejected by fixed geometry." />
+    <output name="ENCLOSED" size="1" description="Informational sensor that is one when the object contacts at least two of the palm and finger segments." />
+    <output name="ARM_LINES" size="link_lengths.size+3,11" description="Arm-only World2D wall rows: id, opaque, x1, y1, x2, y2, red, green, blue, solid, line_width." />
+    <output name="OBJECTS" size="@circle_obstacle_count+1,18" description="World2D object rows containing the movable circle followed by fixed circles." />
+    <output name="WALLS" size="link_lengths.size+3+@line_obstacle_count,11" description="World2D wall rows containing arm segments followed by fixed line obstacles." />
+</class>

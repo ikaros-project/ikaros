@@ -1,0 +1,38 @@
+<group name="PlanarArm_Move_Palm_Finger_Grip_Test" start="true" stop="1">
+    <module name="JointCommand" class="Constant" data="0.2" />
+    <module name="GripperCommand" class="Constant" data="0" />
+    <module name="Arm" class="PlanarArm"
+        base_position="30,60"
+        link_lengths="30"
+        initial_joint_angles="0"
+        joint_min="-1"
+        joint_max="1"
+        max_joint_step="0.002"
+        palm_length="20"
+        finger_length="20"
+        link_width="2"
+        gripper_width="2"
+        initial_gripper="0"
+        finger_open_angle="0.45"
+        finger_closed_angle="0.65"
+        movable_object="64.5,68,4"
+        circle_obstacle_count="0"
+        circle_obstacles=""
+        line_obstacle_count="0"
+        line_obstacles=""
+        world_width="120"
+        world_height="120" />
+    <module name="PrintAngles" class="Print" />
+    <module name="PrintObject" class="Print" />
+    <module name="PrintBlocked" class="Print" />
+    <module name="PrintEnclosed" class="Print" />
+    <module name="PrintContacts" class="Print" />
+
+    <connection source="JointCommand.OUTPUT" target="Arm.JOINT_COMMAND" delay="0" />
+    <connection source="GripperCommand.OUTPUT" target="Arm.GRIPPER" delay="0" />
+    <connection source="Arm.JOINT_ANGLES" target="PrintAngles.INPUT" delay="0" />
+    <connection source="Arm.MOVABLE_OBJECT" target="PrintObject.INPUT" delay="0" />
+    <connection source="Arm.BLOCKED" target="PrintBlocked.INPUT" delay="0" />
+    <connection source="Arm.ENCLOSED" target="PrintEnclosed.INPUT" delay="0" />
+    <connection source="Arm.GRIPPER_CONTACTS" target="PrintContacts.INPUT" delay="0" />
+</group>

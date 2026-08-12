@@ -1,0 +1,27 @@
+<group name="PlanarArm_Blocked_Test" start="true" stop="1">
+    <module name="JointCommand" class="Constant" data="0.8" />
+    <module name="Arm" class="PlanarArm"
+        base_position="30,50"
+        link_lengths="30"
+        initial_joint_angles="0"
+        joint_min="-1"
+        joint_max="1"
+        max_joint_step="0.005"
+        palm_length="10"
+        finger_length="8"
+        link_width="2"
+        gripper_width="2"
+        movable_object="90,90,3"
+        circle_obstacle_count="0"
+        circle_obstacles=""
+        line_obstacle_count="1"
+        line_obstacles="45,52,75,52,2"
+        world_width="120"
+        world_height="120" />
+    <module name="PrintAngles" class="Print" />
+    <module name="PrintBlocked" class="Print" />
+
+    <connection source="JointCommand.OUTPUT" target="Arm.JOINT_COMMAND" delay="0" />
+    <connection source="Arm.JOINT_ANGLES" target="PrintAngles.INPUT" delay="0" />
+    <connection source="Arm.BLOCKED" target="PrintBlocked.INPUT" delay="0" />
+</group>
