@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestGroupOutputShapeError"
+    description="Reject explicit shapes on group outputs"
+    expected_exit="1"
+    expected_output_contains="Output &quot;OUTPUT&quot; in group &quot;TestGroupOutputShapeError.Inner&quot; can not have a shape attribute">
+    <group name="Inner">
+        <output name="OUTPUT" shape="1" />
+    </group>
+</group>

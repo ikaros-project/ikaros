@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#30343b"/>
+    </marker>
+    <style>
+      .label { font-family: Arial, Helvetica, sans-serif; fill: #141414; }
+      .title { font-size: 38px; font-weight: 700; }
+      .medium { font-size: 24px; }
+      .small { font-size: 18px; }
+      .note { font-size: 16px; fill: #4d5967; }
+      .wire { stroke: #30343b; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .thin { stroke: #667085; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .box { fill: #eef4ff; stroke: #315aa8; stroke-width: 4; }
+      .stage { fill: #ffffff; stroke: #8aa6d8; stroke-width: 2; }
+      .sum { fill: #fff8e8; stroke: #c69026; stroke-width: 3; }
+      .limit { fill: #f7f7f7; stroke: #606975; stroke-width: 2.5; }
+    </style>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#ffffff"/>
+
+  <rect x="300" y="65" width="570" height="600" rx="16" ry="16" class="box"/>
+  <text x="585" y="118" text-anchor="middle" class="label title">PIDController</text>
+
+  <line x1="70" y1="180" x2="225" y2="180" class="wire"/>
+  <text x="88" y="155" class="label medium">SETPOINT</text>
+
+  <line x1="70" y1="300" x2="225" y2="300" class="wire"/>
+  <text x="88" y="275" class="label medium">INPUT</text>
+
+  <circle cx="250" cy="240" r="34" class="sum"/>
+  <text x="250" y="232" text-anchor="middle" class="label medium">+</text>
+  <text x="250" y="264" text-anchor="middle" class="label medium">-</text>
+  <line x1="225" y1="180" x2="250" y2="206" class="thin"/>
+  <line x1="225" y1="300" x2="250" y2="274" class="thin"/>
+  <text x="178" y="352" class="label note">error = SETPOINT - INPUT</text>
+
+  <line x1="284" y1="240" x2="335" y2="240" class="wire"/>
+
+  <rect x="335" y="170" width="150" height="54" rx="7" ry="7" class="stage"/>
+  <text x="410" y="205" text-anchor="middle" class="label medium">Kp * P</text>
+
+  <rect x="335" y="252" width="150" height="54" rx="7" ry="7" class="stage"/>
+  <text x="410" y="286" text-anchor="middle" class="label medium">Ki * I</text>
+  <text x="410" y="326" text-anchor="middle" class="label note">integral uses dt</text>
+
+  <rect x="335" y="375" width="150" height="64" rx="7" ry="7" class="stage"/>
+  <text x="410" y="404" text-anchor="middle" class="label medium">Kd * D</text>
+  <text x="410" y="429" text-anchor="middle" class="label note">error or measurement</text>
+
+  <path d="M 315 240 L 315 197 L 335 197" class="thin"/>
+  <path d="M 315 240 L 315 279 L 335 279" class="thin"/>
+  <path d="M 315 240 L 315 407 L 335 407" class="thin"/>
+
+  <circle cx="565" cy="280" r="35" class="sum"/>
+  <text x="565" y="288" text-anchor="middle" class="label medium">Σ</text>
+  <line x1="485" y1="197" x2="540" y2="258" class="thin"/>
+  <line x1="485" y1="279" x2="530" y2="279" class="thin"/>
+  <line x1="485" y1="407" x2="540" y2="302" class="thin"/>
+
+  <rect x="620" y="250" width="110" height="60" rx="7" ry="7" class="stage"/>
+  <text x="675" y="274" text-anchor="middle" class="label medium">+ Kb</text>
+  <text x="675" y="296" text-anchor="middle" class="label note">bias</text>
+  <line x1="600" y1="280" x2="620" y2="280" class="wire"/>
+
+  <rect x="760" y="250" width="80" height="60" rx="7" ry="7" class="limit"/>
+  <text x="800" y="274" text-anchor="middle" class="label medium">limit</text>
+  <text x="800" y="296" text-anchor="middle" class="label note">Cmin/Cmax</text>
+  <line x1="730" y1="280" x2="760" y2="280" class="wire"/>
+
+  <rect x="875" y="250" width="110" height="60" rx="7" ry="7" class="limit"/>
+  <text x="930" y="274" text-anchor="middle" class="label medium">slew</text>
+  <text x="930" y="296" text-anchor="middle" class="label note">rate limit</text>
+  <line x1="840" y1="280" x2="875" y2="280" class="wire"/>
+
+  <line x1="985" y1="280" x2="1090" y2="280" class="wire"/>
+  <text x="930" y="252" class="label medium">OUTPUT</text>
+
+  <path d="M 800 310 L 800 535 L 520 535 L 520 315" class="thin"/>
+  <text x="625" y="560" class="label note">anti-windup: undo integral update at saturation</text>
+
+  <line x1="70" y1="525" x2="335" y2="525" class="wire"/>
+  <text x="88" y="500" class="label medium">RESET</text>
+  <rect x="335" y="490" width="250" height="70" rx="7" ry="7" class="stage"/>
+  <text x="460" y="518" text-anchor="middle" class="label medium">clear controller state</text>
+  <text x="460" y="544" text-anchor="middle" class="label note">output becomes Kb for reset tick</text>
+
+  <rect x="905" y="390" width="230" height="145" rx="10" ry="10" class="stage"/>
+  <text x="1020" y="420" text-anchor="middle" class="label medium">Filter rates</text>
+  <text x="1020" y="450" text-anchor="middle" class="label note">Fs, Fm, Fp, Fi, Fd, Fc</text>
+  <text x="1020" y="480" text-anchor="middle" class="label note">blend = 1 - exp(-rate*dt)</text>
+  <text x="1020" y="510" text-anchor="middle" class="label note">0 disables filtering</text>
+
+  <rect x="335" y="600" width="470" height="38" rx="6" ry="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="570" y="625" text-anchor="middle" class="label small">Diagnostics: DELTA, FILTERED_*, INTEGRAL</text>
+</svg>

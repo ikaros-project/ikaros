@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestUtilities"
+    description="Test shared kernel utility functions"
+    start="true"
+    stop="1"
+    check_sum="12"
+    expected_output_contains="UTILITIES TEST OK">
+    <module class="UtilitiesTestModule" name="Utilities" />
+</group>

@@ -71,20 +71,10 @@ which means “one sample per tick”.
 
 ## Inputs
 
-### `INPUT`
-
-Optional frequency control input in Hz.
-
-This input is treated as the base frequency for the oscillator. In the current implementation the
-module is single-channel, so the normal use case is a scalar control signal, for example from
-`TimeSeries`.
-
-### `MODULATION`
-
-Optional additive frequency modulation in Hz.
-
-If connected, it is multiplied by `modulation_gain` and added to the already scaled base
-frequency. This is useful for vibrato, slow sweeps, or other modulation sources.
+| Name | Description | Optional |
+| --- | --- | --- |
+| INPUT | Base frequency in Hz | true |
+| MODULATION | Frequency modulation added to base frequency | true |
 
 ## Output
 
@@ -134,3 +124,9 @@ For the supported waveforms:
   control from modules like `TimeSeries`.
 
 ![AudioOscillator](AudioOscillator.svg)
+
+## Outputs
+
+| Name | Description |
+| --- | --- |
+| OUTPUT | The output |

@@ -108,6 +108,8 @@ aside button:active {
 
 #library_inspector {
     display: none;
+    flex: 0 0 440px;
+    width: 440px;
     flex-direction: column;
     height: 100%;
     min-height: 0;
@@ -193,6 +195,41 @@ aside button:active {
     border: 1px solid #d4d4d4;
     background: #ffffff;
     overflow-y: auto;
+}
+
+#library_inspector .library-inspector-placeholder .katex-display {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 0;
+    text-align: left;
+}
+
+#library_inspector .library-inspector-placeholder .katex,
+#library_inspector .library-inspector-placeholder .katex * {
+    overflow: visible;
+}
+
+#library_inspector .library-inspector-placeholder .katex .katex-mathml,
+#library_inspector .library-inspector-placeholder .katex .vlist > span > .pstrut,
+#library_inspector .library-inspector-placeholder .katex .stretchy,
+#library_inspector .library-inspector-placeholder .katex .hide-tail,
+#library_inspector .library-inspector-placeholder .katex .halfarrow-left,
+#library_inspector .library-inspector-placeholder .katex .halfarrow-right,
+#library_inspector .library-inspector-placeholder .katex .brace-left,
+#library_inspector .library-inspector-placeholder .katex .brace-center,
+#library_inspector .library-inspector-placeholder .katex .brace-right {
+    overflow: hidden;
+}
+
+#library_inspector .library-inspector-placeholder .katex-display > .katex {
+    min-width: 100%;
+    width: max-content;
+    text-align: left;
+}
+
+#library_inspector .library-inspector-placeholder .katex-display > .katex > .katex-html {
+    overflow: visible;
 }
 
 #library_inspector .library-inspector-actions {

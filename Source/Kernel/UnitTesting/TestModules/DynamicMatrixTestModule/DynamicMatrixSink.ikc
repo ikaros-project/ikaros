@@ -1,0 +1,3 @@
+<class internal="true" name="DynamicMatrixSink" description="Checks a dynamic matrix input for kernel tests">
+    <input name="ROWS" />
+</class>

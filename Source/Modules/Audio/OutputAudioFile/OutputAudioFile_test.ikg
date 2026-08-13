@@ -4,5 +4,5 @@
 
    <connection source="Oscillator.OUTPUT" target="FileOut.INPUT" delay="0" />
 
-   <widget name="SignalPlot" class="plot" source="Oscillator.OUTPUT" width="250" height="180" _x="120" _y="220" title="Signal" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
+   <widget name="SignalPlot" class="plot" source="Oscillator.OUTPUT" width="250" height="180" _x="120" _y="220" title="Signal" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="50" orientation="vertical" />
 </group>

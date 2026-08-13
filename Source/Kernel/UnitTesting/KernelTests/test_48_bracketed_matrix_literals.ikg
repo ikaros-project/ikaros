@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_48"
     description="Test bracket-prefixed higher-dimensional matrix strings"
     start="true"

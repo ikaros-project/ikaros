@@ -3,32 +3,127 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include <filesystem>
+#include <memory>
+#include <span>
+#include <string_view>
+#include <utility>
 
 namespace ikaros
-{    
-    //char *      create_jpeg(long int & size, matrix & data, float minimum=0, float maximum=1, int quality=100);
+{
+    class matrix;
 
-    unsigned char * create_color_jpeg(long int & size, matrix & image, int quality=100);
-    unsigned char * create_gray_jpeg(long int & size, matrix & image, float minimum=0, float maximum=1, int quality=100);
-    unsigned char * create_pseudocolor_jpeg(long int & size, matrix & image, float minimum=0, float maximum=1, const std::string & table="fire",  int quality=100);
-    void destroy_jpeg(unsigned char * jpeg);
+    struct image_info
+    {
+        int width;
+        int height;
+        int channels;
+    };
 
-    //void        decode_jpeg(float ** matrix, int sizex, int sizey, char * data, long int size);
-    //void        decode_jpeg(float ** red_matrix, float ** green_matrix, float ** blue_matrix, int sizex, int sizey, char * data, long int size);
+    class jpeg_data
+    {
+    public:
+        jpeg_data() noexcept = default;
+        jpeg_data(const jpeg_data &) = delete;
+        jpeg_data & operator=(const jpeg_data &) = delete;
+        jpeg_data(jpeg_data && other) noexcept :
+            data_(std::move(other.data_)),
+            size_(std::exchange(other.size_, 0))
+        {
+        }
 
-    //bool        jpeg_get_info(int & sizex, int & sizey, int & planes, char * data, long int size);
-    //void        jpeg_decode(float ** red_matrix, float ** green_matrix, float ** blue_matrix, float ** intensity_matrix, int sizex, int sizey, char * data, long int size);
+        jpeg_data & operator=(jpeg_data && other) noexcept
+        {
+            if(this != &other)
+            {
+                data_ = std::move(other.data_);
+                size_ = std::exchange(other.size_, 0);
+            }
+            return *this;
+        }
+
+        [[nodiscard]] bool empty() const noexcept { return size_ == 0; }
+        [[nodiscard]] std::size_t size() const noexcept { return size_; }
+        [[nodiscard]] const std::uint8_t * data() const noexcept { return data_.get(); }
+        [[nodiscard]] std::span<const std::uint8_t> bytes() const noexcept
+        {
+            return {data_.get(), size_};
+        }
+
+    private:
+        struct FreeDeleter
+        {
+            void operator()(std::uint8_t * data) const noexcept;
+        };
+
+        jpeg_data(std::uint8_t * data, std::size_t size) noexcept : data_(data), size_(size) {}
+
+        std::unique_ptr<std::uint8_t, FreeDeleter> data_;
+        std::size_t size_ = 0;
+
+        friend class JpegCompressor;
+    };
+
+    [[nodiscard]] jpeg_data create_color_jpeg(const matrix & image, int quality = 100);
+    [[nodiscard]] jpeg_data create_gray_jpeg(const matrix & image, float minimum = 0,
+                                             float maximum = 1, int quality = 100);
+    [[nodiscard]] jpeg_data create_pseudocolor_jpeg(const matrix & image, float minimum = 0,
+                                                    float maximum = 1,
+                                                    std::string_view table = "fire",
+                                                    int quality = 100);
+    // Grayscale images use [height, width]; RGB images use [channel, height, width].
+    // Values are clipped to [0, 1] before encoding.
+    void jpeg_write_image(const matrix & image, const std::filesystem::path & filename,
+                          int quality = 100);
+
+    [[nodiscard]] image_info jpeg_get_info(const std::filesystem::path & filename);
+    // Decoded RGB images use [channel, height, width]. Existing destinations are reused.
+    void jpeg_get_image(matrix & image, const std::filesystem::path & filename);
+    // Optionally produces mean RGB intensity with shape [height, width] in the same pass.
+    void jpeg_get_image(matrix & image, matrix & intensity,
+                        const std::filesystem::path & filename);
+    [[nodiscard]] matrix jpeg_get_image(const std::filesystem::path & filename);
 
 
-    void jpeg_get_size(int & sizex, int & sizey, std::filesystem::path filename);
-    int jpeg_get_channels(std::filesystem::path filename);
-    void jpeg_get_image(matrix & red, matrix & green, matrix & blue, std::filesystem::path filename);
+    [[nodiscard]] image_info png_get_info(const std::filesystem::path & filename);
+    // Decoded RGB images use [channel, height, width]. Existing destinations are reused.
+    void png_get_image(matrix & image, const std::filesystem::path & filename);
+    void png_get_image(matrix & image, matrix & intensity,
+                       const std::filesystem::path & filename);
+    [[nodiscard]] matrix png_get_image(const std::filesystem::path & filename);
+    void png_write_image(const matrix & image, const std::filesystem::path & filename);
 
 
-    void png_get_size(int & sizex, int & sizey, std::filesystem::path filename);
-    int  png_get_channels(std::filesystem::path filename);
-    void png_get_image(matrix & red, matrix & green, matrix & blue, std::filesystem::path filename);
+    [[nodiscard]] image_info tiff_get_info(const std::filesystem::path & filename);
+    void tiff_get_image(matrix & image, const std::filesystem::path & filename);
+    void tiff_get_image(matrix & image, matrix & intensity,
+                        const std::filesystem::path & filename);
+    [[nodiscard]] matrix tiff_get_image(const std::filesystem::path & filename);
+    void tiff_write_image(const matrix & image, const std::filesystem::path & filename);
+
+
+    [[nodiscard]] image_info webp_get_info(const std::filesystem::path & filename);
+    void webp_get_image(matrix & image, const std::filesystem::path & filename);
+    void webp_get_image(matrix & image, matrix & intensity,
+                        const std::filesystem::path & filename);
+    [[nodiscard]] matrix webp_get_image(const std::filesystem::path & filename);
+    void webp_write_image(const matrix & image, const std::filesystem::path & filename,
+                          int quality = 90);
+
+
+    // Selects a decoder from the filename extension. Supported extensions are
+    // matched case-insensitively. JPEG is always available; other codecs depend
+    // on the libraries selected when Ikaros was built.
+    [[nodiscard]] bool image_file_format_available(const std::filesystem::path & filename);
+    void validate_image_file_format(const std::filesystem::path & filename);
+    [[nodiscard]] image_info image_get_info(const std::filesystem::path & filename);
+    void image_get_image(matrix & image, const std::filesystem::path & filename);
+    void image_get_image(matrix & image, matrix & intensity,
+                         const std::filesystem::path & filename);
+    [[nodiscard]] matrix image_get_image(const std::filesystem::path & filename);
+    // Selects an encoder from the filename extension.
+    void image_write_image(const matrix & image, const std::filesystem::path & filename,
+                           int jpeg_quality = 100);
 };
-
-

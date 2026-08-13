@@ -1,9 +1,10 @@
+#include "network.h"
+
 #include <random>
 #include <cmath>
 #include <fstream>
 #include <stdexcept>
 #include <limits>
-#include "network.h"
 
 
 NeuralNetwork::NeuralNetwork(const std::string &json_spec) {
@@ -109,7 +110,7 @@ FullyConnectedLayer::FullyConnectedLayer(int input_size, int output_size) {
     output = matrix(1, output_size);
     d_input = matrix(1, input_size);
     for (int i = 0; i < weights.size(); ++i) {
-        weights.data()[i] = static_cast<float>(rand()) / RAND_MAX * 0.01f;
+        weights.data()[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 0.01f;
     }
     
     // set names on the matrices
@@ -209,7 +210,7 @@ ConvolutionalLayer::ConvolutionalLayer(int num_filters, int kernel_size){
         filter = matrix(kernel_size, kernel_size);
         
         for (int i = 0; i < filter.size(); ++i) {
-            filter.data()[i] = static_cast<float>(rand()) / RAND_MAX * 0.01f;
+            filter.data()[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 0.01f;
         }
     }
 
@@ -248,7 +249,7 @@ void ConvolutionalLayer::forward( matrix &input) {
                         sum += input(i + ki, j + kj) * filters[f](ki, kj);
                     }
                 }
-                output(i, j, f) = sum + biases[f];
+                output(i, j, f) = sum + biases(f);
             }
         }
     }
@@ -275,7 +276,7 @@ void ConvolutionalLayer::backward( matrix &d_output) {
     for (int f = 0; f < num_filters; ++f) {
         for (int i = 0; i < output_size; ++i) {
             for (int j = 0; j < output_size; ++j) {
-                d_biases[f] += d_output(i, j, f);
+                d_biases(f) += d_output(i, j, f);
             }
         }
     }
@@ -312,7 +313,7 @@ void ConvolutionalLayer::update(float learning_rate) {
         for (int i = 0; i < filters[f].size(); ++i) {
             filters[f].data()[i] -= learning_rate * d_filters[f].data()[i];
         }
-        biases[f] -= learning_rate * d_biases[f];
+        biases(f) -= learning_rate * d_biases(f);
     }
 }
 
@@ -566,8 +567,8 @@ void ConvolutionalLayer::save(std::ofstream &ofs)  {
             ofs.write(reinterpret_cast<const char*>(&filter.data()[i]), sizeof(float));
         }
     }
-    for (float bias : biases) {
-        ofs.write(reinterpret_cast<const char*>(&bias), sizeof(float));
+    for (int i = 0; i < biases.size(); ++i) {
+        ofs.write(reinterpret_cast<const char*>(&biases.data()[i]), sizeof(float));
     }
 }
 
@@ -577,8 +578,8 @@ void ConvolutionalLayer::load(std::ifstream &ifs) {
             ifs.read(reinterpret_cast<char*>(&filter.data()[i]), sizeof(float));
         }
     }
-    for (float& bias : biases) {
-        ifs.read(reinterpret_cast<char*>(&bias), sizeof(float));
+    for (int i = 0; i < biases.size(); ++i) {
+        ifs.read(reinterpret_cast<char*>(&biases.data()[i]), sizeof(float));
     }
 }
 

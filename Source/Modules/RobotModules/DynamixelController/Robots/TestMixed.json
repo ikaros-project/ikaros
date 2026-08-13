@@ -1,0 +1,9 @@
+{
+    "format": "DynamixelRobotInstance/v1",
+    "robot": "TestMixed",
+    "type": "TestMixed",
+    "serial_ports": {
+        "Main": "/dev/null",
+        "Direct": "/dev/null"
+    }
+}

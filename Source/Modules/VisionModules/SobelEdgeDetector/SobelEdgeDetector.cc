@@ -40,13 +40,12 @@ public:
 
     void Tick() 
     {
-        smoothed.conv(input, gaussian);  // Gaussian smoothing
-        grad_x.conv(smoothed, sobel_x);  // Compute gradients using Sobel filters
-        grad_y.conv(smoothed, sobel_y);
+        smoothed.conv2(input, gaussian);  // Gaussian smoothing
+        grad_x.conv2(smoothed, sobel_x);  // Compute gradients using Sobel filters
+        grad_y.conv2(smoothed, sobel_y);
         output.hypot(grad_x, grad_y);// Compute gradient magnitude and direction
     }
 };
 
 // Register the module with Ikaros
 INSTALL_CLASS(SobelEdgeDetector)
-

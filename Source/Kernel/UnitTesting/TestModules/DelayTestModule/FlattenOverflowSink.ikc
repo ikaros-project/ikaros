@@ -1,0 +1,3 @@
+<class internal="true" name="FlattenOverflowSink" description="Provides a flattened input for cumulative overflow tests">
+    <input name="INPUT" flatten="yes" />
+</class>

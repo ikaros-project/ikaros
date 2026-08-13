@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestScalarStateConnectionError"
     description="Test scalar private state cannot be connected"
     stop="1"

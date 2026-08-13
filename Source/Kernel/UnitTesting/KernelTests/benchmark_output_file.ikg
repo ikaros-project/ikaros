@@ -1,0 +1,22 @@
+<group internal="true"
+       name="BenchmarkOutputFile"
+       description="Measure fixed-format OutputFile throughput"
+       start="true">
+    <module name="Source"
+            class="Randomizer"
+            size="8192"
+            min="-1000"
+            max="1000" />
+    <module name="Output"
+            class="OutputFile"
+            filename="benchmark_output_file.csv"
+            timestamp="none"
+            header="false"
+            decimals="4"
+            flush_interval="0"
+            existing_file="overwrite" />
+
+    <connection source="Source.OUTPUT"
+                target="Output.INPUT"
+                label="value" />
+</group>

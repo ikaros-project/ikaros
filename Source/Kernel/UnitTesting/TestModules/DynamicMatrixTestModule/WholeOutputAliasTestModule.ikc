@@ -1,0 +1,4 @@
+<class internal="true" name="WholeOutputAliasTestModule" description="Checks whole-output alias metadata and storage sharing">
+    <output name="SOURCE" size="2" />
+    <output name="ALIAS" alias="SOURCE" />
+</class>

@@ -5,13 +5,14 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
             { name: "title", default: "Joystick", type: "string", control: "textedit" },
 
             { name: "CONTROL", control: "header" },
-            { name: "parameter_x", default: "", type: "source", control: "textedit" },
-            { name: "parameter_y", default: "", type: "source", control: "textedit" },
+            { name: "x_parameter", default: "", type: "source", control: "textedit" },
+            { name: "y_parameter", default: "", type: "source", control: "textedit" },
+            { name: "enabled_source", default: "", type: "source", control: "textedit" },
             { name: "select_x", default: 0, type: "int", control: "textedit" },
             { name: "select_y", default: "", type: "string", control: "textedit" },
 
             { name: "BEHAVIOR", control: "header" },
-            { name: "return_to_center", default: true, type: "bool", control: "checkbox" },
+            { name: "return_to_center", default: "yes", type: "bool", control: "checkbox" },
             { name: "range", default: "bipolar", type: "string", control: "menu", options: "bipolar,unipolar" }
         ];
     }
@@ -29,10 +30,9 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
     }
 
     disconnectedCallback() {
-        if (typeof super.disconnectedCallback === "function") {
-            super.disconnectedCallback();
-        }
         this._unbindDocumentDragHandlers();
+        super.disconnectedCallback();
+        this._joystickHandlersBound = false;
     }
 
     _getPad() {
@@ -52,7 +52,8 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
     }
 
     _clamp01(value) {
-        return Math.max(0, Math.min(1, Number(value)));
+        const number = Number(value);
+        return Number.isFinite(number) ? Math.max(0, Math.min(1, number)) : 0.5;
     }
 
     _normalizedToValue(value) {
@@ -75,33 +76,17 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
     }
 
     _formatValue(value) {
-        return Number(value).toFixed(4).replace(/\.?0+$/, "");
-    }
-
-    _getSelectY() {
-        if (this.parameters.select_y === undefined || this.parameters.select_y === null) {
-            return "";
-        }
-        return this.parameters.select_y;
+        const number = Number(value);
+        return (Number.isFinite(number) ? number : 0).toFixed(4).replace(/\.?0+$/, "");
     }
 
     _sendAxisValue(parameter, value) {
-        if (!parameter) {
-            return;
-        }
-
-        const x = Math.trunc(Number(this.parameters.select_x || 0));
-        const y = this._getSelectY();
-        if (y === "") {
-            this.send_control_change(parameter, this._formatValue(value), x);
-            return;
-        }
-        this.send_control_change(parameter, this._formatValue(value), x, Math.trunc(Number(y)));
+        this.sendIndexedControlChange(parameter, this._formatValue(value));
     }
 
     _sendPosition(position) {
-        this._sendAxisValue(this.parameters.parameter_x, this._normalizedToValue(position.x));
-        this._sendAxisValue(this.parameters.parameter_y, this._normalizedToValue(position.y));
+        this._sendAxisValue(this.parameters.x_parameter, this._normalizedToValue(position.x));
+        this._sendAxisValue(this.parameters.y_parameter, this._normalizedToValue(position.y));
     }
 
     _setThumbPosition(position) {
@@ -146,17 +131,11 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
     }
 
     _unbindDocumentDragHandlers() {
-        if (this._dragMoveHandler) {
-            document.removeEventListener("mousemove", this._dragMoveHandler, true);
-            document.removeEventListener("touchmove", this._dragMoveHandler, true);
-            this._dragMoveHandler = null;
-        }
-        if (this._dragEndHandler) {
-            document.removeEventListener("mouseup", this._dragEndHandler, true);
-            document.removeEventListener("touchend", this._dragEndHandler, true);
-            document.removeEventListener("touchcancel", this._dragEndHandler, true);
-            this._dragEndHandler = null;
-        }
+        for (const remove of this._dragListenerRemovers || [])
+            remove();
+        this._dragListenerRemovers = [];
+        this._dragMoveHandler = null;
+        this._dragEndHandler = null;
     }
 
     _eventPoint(event) {
@@ -170,12 +149,13 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
     }
 
     _startDrag(event) {
-        if (main.edit_mode) {
+        if (main.edit_mode || !this.isControlEnabled()) {
             return;
         }
 
         event.preventDefault();
         event.stopPropagation();
+        this._unbindDocumentDragHandlers();
         this.is_active = true;
 
         this._dragTo(this._eventPoint(event));
@@ -199,39 +179,21 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
             this.is_active = false;
         };
 
-        document.addEventListener("mousemove", this._dragMoveHandler, true);
-        document.addEventListener("mouseup", this._dragEndHandler, true);
-        document.addEventListener("touchmove", this._dragMoveHandler, { capture: true, passive: false });
-        document.addEventListener("touchend", this._dragEndHandler, true);
-        document.addEventListener("touchcancel", this._dragEndHandler, true);
+        this._dragListenerRemovers = [
+            this.addManagedListener(document, "mousemove", this._dragMoveHandler, true),
+            this.addManagedListener(document, "mouseup", this._dragEndHandler, true),
+            this.addManagedListener(document, "touchmove", this._dragMoveHandler, { capture: true, passive: false }),
+            this.addManagedListener(document, "touchend", this._dragEndHandler, true),
+            this.addManagedListener(document, "touchcancel", this._dragEndHandler, true)
+        ];
     }
 
-    _readSourceValue(parameterName) {
-        if (!this.parameters[parameterName]) {
-            return undefined;
+    requestData(data_set) {
+        this.addSource(data_set, this.parameters.x_parameter);
+        this.addSource(data_set, this.parameters.y_parameter);
+        if (this.parameters.enabled_source) {
+            this.addSource(data_set, this.parameters.enabled_source);
         }
-
-        let data = this.getSource(parameterName);
-        if (data === undefined || data === null) {
-            return undefined;
-        }
-
-        const y = this._getSelectY();
-        const x = Math.trunc(Number(this.parameters.select_x || 0));
-
-        if (Array.isArray(data) && y !== "") {
-            return data[Math.trunc(Number(y))]?.[x];
-        }
-
-        if (Array.isArray(data) && Array.isArray(data[0])) {
-            return data[0]?.[x];
-        }
-
-        if (Array.isArray(data)) {
-            return data[x];
-        }
-
-        return data;
     }
 
     updateAll() {
@@ -239,8 +201,8 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
 
         const pad = this._getPad();
         if (pad && !this._joystickHandlersBound) {
-            pad.addEventListener("mousedown", (event) => this._startDrag(event), false);
-            pad.addEventListener("touchstart", (event) => this._startDrag(event), { passive: false });
+            this.addManagedListener(pad, "mousedown", (event) => this._startDrag(event), false);
+            this.addManagedListener(pad, "touchstart", (event) => this._startDrag(event), { passive: false });
             this._joystickHandlersBound = true;
         }
 
@@ -254,19 +216,16 @@ class WebUIWidgetJoystick extends WebUIWidgetControl {
             return;
         }
 
-        try {
-            const hasXParameter = !!this.parameters.parameter_x;
-            const hasYParameter = !!this.parameters.parameter_y;
-            const x = this._readSourceValue("parameter_x");
-            const y = this._readSourceValue("parameter_y");
+        this.syncControlEnabledState();
+        const hasXParameter = !!this.parameters.x_parameter;
+        const hasYParameter = !!this.parameters.y_parameter;
+        const x = this.getSelectedSourceValue("x_parameter");
+        const y = this.getSelectedSourceValue("y_parameter");
 
-            this._setThumbPosition({
-                x: hasXParameter && x !== undefined ? this._valueToNormalized(x) : 0.5,
-                y: hasYParameter && y !== undefined ? this._valueToNormalized(y) : 0.5
-            });
-        }
-        catch (err) {
-        }
+        this._setThumbPosition({
+            x: hasXParameter && x !== undefined ? this._valueToNormalized(x) : 0.5,
+            y: hasYParameter && y !== undefined ? this._valueToNormalized(y) : 0.5
+        });
     }
 }
 

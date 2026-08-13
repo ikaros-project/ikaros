@@ -1,0 +1,37 @@
+<group name="EventRasterDemo" start="true">
+    <module class="Oscillator" name="SpikeRates" frequency="0.031,0.043,0.057,0.071,0.083,0.097,0.113,0.137" type="square" _x="24" _y="24" />
+    <module class="Oscillator" name="BurstRates" frequency="0.019,0.027,0.037,0.049,0.061,0.079" type="square" _x="24" _y="104" />
+    <module class="Oscillator" name="GradedActivity" frequency="0.023,0.031,0.041,0.053,0.067,0.089" type="sin" _x="24" _y="184" />
+    <module class="Oscillator" name="FastPopulation" frequency="0.047,0.061,0.073,0.089,0.107,0.127,0.149,0.173,0.197,0.223" type="square" _x="24" _y="264" />
+
+    <widget name="EdgeTicks" class="event-raster" source="SpikeRates.OUTPUT" threshold="0.5" edge_triggered="yes"
+            history="120" maximum_events="4000" event_style="tick" event_size="2" event_color="#1f2937"
+            show_channel_labels="yes" labels="Neuron A,Neuron B,Neuron C,Neuron D,Neuron E,Neuron F,Neuron G,Neuron H"
+            show_grid="yes" show_time_scale="yes" time_grid_lines="6" show_now_line="yes"
+            width="500" height="360" _x="380" _y="24" show_title="yes" show_frame="yes"
+            title="Rising edges · spike ticks" />
+
+    <widget name="LevelBursts" class="event-raster" source="BurstRates.OUTPUT" threshold="0.5" edge_triggered="no"
+            history="90" sample_interval="1" maximum_events="8000" event_style="square" event_size="2"
+            channel_colors="#4e79a7,#f28e2b,#59a14f,#e15759,#b07aa1,#76b7b2"
+            show_channel_labels="yes" labels="Burst 1,Burst 2,Burst 3,Burst 4,Burst 5,Burst 6"
+            show_grid="yes" show_time_scale="yes" time_grid_lines="6" show_now_line="yes"
+            width="500" height="360" _x="900" _y="24" show_title="yes" show_frame="yes"
+            title="Level detection · sustained bursts" />
+
+    <widget name="MagnitudeDots" class="event-raster" source="GradedActivity.OUTPUT" threshold="0" edge_triggered="no"
+            history="110" sample_interval="2" maximum_events="6000" event_style="dot" event_size="2.5"
+            magnitude_mode="color" value_min="0" value_max="1" color_map="spectrum" show_color_legend="yes"
+            color_legend_ticks="5" color_legend_decimals="2" show_channel_labels="yes"
+            labels="Slow,Theta,Alpha,Beta,Gamma,Fast" show_grid="yes" show_time_scale="yes" time_grid_lines="5"
+            width="500" height="360" _x="380" _y="404" show_title="yes" show_frame="yes"
+            title="Graded activity · magnitude-colored dots" />
+
+    <widget name="DensePopulation" class="event-raster" source="FastPopulation.OUTPUT" threshold="0.5" edge_triggered="yes"
+            history="75" maximum_events="6000" event_style="tick" event_size="3" event_color="#d1495b"
+            channel_min="0" channel_max="9" flip_channels="yes" show_channel_labels="no"
+            show_grid="no" show_time_scale="yes" time_grid_lines="5" show_now_line="no"
+            background_color="#111827" alternate_row_color="#1f2937" axis_color="#d1d5db"
+            width="500" height="360" _x="900" _y="404" show_title="yes" show_frame="yes"
+            title="Dense population · flipped channels" />
+</group>

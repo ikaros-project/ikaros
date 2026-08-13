@@ -1,0 +1,24 @@
+<group internal="true"
+       name="TestOutputFileAppendHeader"
+       description="OutputFile rejects append when the existing header differs"
+       start="true"
+       stop="1"
+       expected_exit="1"
+       expected_output_contains="header does not match"
+       expected_file_exists="UserData/test_308_output_file_append_header.csv"
+       cleanup_expected_files="true">
+    <module name="Data" class="Constant" data="1" />
+    <module name="ASeed"
+            class="OutputFile"
+            filename="test_308_output_file_append_header.csv"
+            timestamp="tick"
+            existing_file="overwrite" />
+    <module name="BAppend"
+            class="OutputFile"
+            filename="test_308_output_file_append_header.csv"
+            timestamp="line"
+            existing_file="append" />
+
+    <connection source="Data.OUTPUT" target="ASeed.INPUT" label="value" />
+    <connection source="Data.OUTPUT" target="BAppend.INPUT" label="value" />
+</group>

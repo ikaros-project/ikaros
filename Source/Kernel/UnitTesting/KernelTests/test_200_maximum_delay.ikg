@@ -1,0 +1,7 @@
+<group internal="true"
+    name="TestMaximumDelay"
+    description="Accept a connection delay at the supported limit">
+    <module class="Constant" name="Source" data="1" />
+    <module class="Print" name="Sink" />
+    <connection source="Source.OUTPUT" target="Sink.INPUT" delay="100" />
+</group>

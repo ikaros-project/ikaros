@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestFirstTick"
     description="Test component module_start scheduling for absolute and startup-derived values"
     start="true"

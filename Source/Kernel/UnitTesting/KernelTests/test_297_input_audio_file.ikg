@@ -1,0 +1,31 @@
+<group internal="true"
+       name="TestInputAudioFile"
+       description="Read validated WAV and AIFF fixtures and advance, wrap, or pad audio blocks"
+       start="true"
+       stop="3"
+       check_sum="257069"
+       expected_output_contains="AUDIO PARSER TEST OK||INPUT AUDIO FILE TEST OK">
+    <module class="AudioFileFixtureWriter"
+            name="AFixtures"
+            prefix="test_297_audio" />
+    <module class="InputAudioFile"
+            name="BOnce"
+            filename="test_297_audio_pcm.wav"
+            channels="2"
+            buffer_size="4"
+            repeat="false" />
+    <module class="InputAudioFile"
+            name="BRepeat"
+            filename="test_297_audio_pcm.wav"
+            channels="2"
+            buffer_size="4"
+            repeat="true" />
+    <module class="AudioFileTestModule"
+            name="CParser"
+            prefix="test_297_audio" />
+    <module class="AudioFileOutputVerifier"
+            name="DVerifier" />
+
+    <connection source="BOnce.OUTPUT" target="DVerifier.ONCE" delay="0" />
+    <connection source="BRepeat.OUTPUT" target="DVerifier.REPEAT" delay="0" />
+</group>

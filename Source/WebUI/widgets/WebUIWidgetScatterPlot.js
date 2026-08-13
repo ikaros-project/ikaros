@@ -5,46 +5,46 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         return [
             {'name': "SCATTER PLOT", 'control':'header'},
             {'name':'title', 'default':"Scatter Plot", 'type':'string', 'control': 'textedit'},
-            {'name':'sourceX', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'sourceY', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'regressionSource', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'x_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'y_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'regression_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'xAxisLabel', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'yAxisLabel', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'x_axis_label', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'y_axis_label', 'default':"", 'type':'string', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
-            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'fill', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'pointRadius', 'default':3, 'type':'float', 'control': 'textedit'},
-            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'drawLines', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'drawLegend', 'default':true, 'type':'bool', 'control': 'checkbox'},
+            {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'fill_color', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'point_radius', 'default':3, 'type':'float', 'control': 'textedit'},
+            {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'show_lines', 'default':"yes", 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_legend', 'default':"yes", 'type':'bool', 'control': 'checkbox'},
 
             {'name': "LAYOUT", 'control':'header'},
-            {'name':'marginLeft', 'default':4, 'type':'int', 'control': 'textedit'},
-            {'name':'marginRight', 'default':4, 'type':'int', 'control': 'textedit'},
-            {'name':'marginTop', 'default':4, 'type':'int', 'control': 'textedit'},
-            {'name':'marginBottom', 'default':4, 'type':'int', 'control': 'textedit'},
-            {'name':'spaceLeft', 'default':42, 'type':'int', 'control': 'textedit'},
-            {'name':'spaceRight', 'default':8, 'type':'int', 'control': 'textedit'},
-            {'name':'spaceTop', 'default':8, 'type':'int', 'control': 'textedit'},
-            {'name':'spaceBottom', 'default':34, 'type':'int', 'control': 'textedit'},
+            {'name':'margin_left', 'default':4, 'type':'int', 'control': 'textedit'},
+            {'name':'margin_right', 'default':4, 'type':'int', 'control': 'textedit'},
+            {'name':'margin_top', 'default':4, 'type':'int', 'control': 'textedit'},
+            {'name':'margin_bottom', 'default':4, 'type':'int', 'control': 'textedit'},
+            {'name':'space_left', 'default':42, 'type':'int', 'control': 'textedit'},
+            {'name':'space_right', 'default':8, 'type':'int', 'control': 'textedit'},
+            {'name':'space_top', 'default':8, 'type':'int', 'control': 'textedit'},
+            {'name':'space_bottom', 'default':34, 'type':'int', 'control': 'textedit'},
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
-            {'name':'minX', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'maxX', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'minY', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'maxY', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'auto', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'include_zero', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'xAxis', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'yAxis', 'default':true, 'type':'bool', 'control': 'checkbox'},
-            {'name':'bottomScale', 'default':5, 'type':'int', 'control': 'textedit'},
-            {'name':'bottomTickMarks', 'default':5, 'type':'int', 'control': 'textedit'},
-            {'name':'leftScale', 'default':5, 'type':'int', 'control': 'textedit'},
-            {'name':'leftTickMarks', 'default':5, 'type':'int', 'control': 'textedit'},
-            {'name':'horizontalGridlines', 'default':5, 'type':'int', 'control': 'textedit'},
-            {'name':'verticalGridlines', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'x_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'x_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'auto_range', 'default':"yes", 'type':'bool', 'control': 'checkbox'},
+            {'name':'include_zero', 'default':"no", 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_x_axis', 'default':"yes", 'type':'bool', 'control': 'checkbox'},
+            {'name':'show_y_axis', 'default':"yes", 'type':'bool', 'control': 'checkbox'},
+            {'name':'bottom_scale_ticks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'bottom_tick_marks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'left_scale_ticks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'left_tick_marks', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'horizontal_grid_lines', 'default':5, 'type':'int', 'control': 'textedit'},
+            {'name':'vertical_grid_lines', 'default':5, 'type':'int', 'control': 'textedit'},
             {'name':'decimals', 'default':2, 'type':'int', 'control': 'textedit'},
         ];
     }
@@ -64,7 +64,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
     requestData(data_set)
     {
         super.requestData(data_set);
-        this.addSourceMetadata(data_set, this.parameters.sourceY);
+        this.addSourceMetadata(data_set, this.parameters.y_source);
     }
 
     roundUpToSignificantFigure(value)
@@ -209,10 +209,10 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
 
     computeRanges()
     {
-        if(!this.parameters.auto)
+        if(!this.parameters.auto_range)
         {
-            this.xRange = this.validRange(parseFloat(this.parameters.minX), parseFloat(this.parameters.maxX), 0, 1);
-            this.yRange = this.validRange(parseFloat(this.parameters.minY), parseFloat(this.parameters.maxY), 0, 1);
+            this.xRange = this.validRange(parseFloat(this.parameters.x_min), parseFloat(this.parameters.x_max), 0, 1);
+            this.yRange = this.validRange(parseFloat(this.parameters.y_min), parseFloat(this.parameters.y_max), 0, 1);
             return;
         }
 
@@ -228,7 +228,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
             }
         }
 
-        if(this.isTrue(this.parameters.drawLines))
+        if(this.isTrue(this.parameters.show_lines))
         {
             const xMin = xValues.length ? Math.min(...xValues) : 0;
             const xMax = xValues.length ? Math.max(...xValues) : 1;
@@ -254,8 +254,8 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         const rawYMin = yValues.length ? Math.min(...yValues) : 0;
         const rawYMax = yValues.length ? Math.max(...yValues) : 1;
 
-        this.xRange = this.validRange(this.roundDownToSignificantFigure(rawXMin), this.roundUpToSignificantFigure(rawXMax || 1), 0, 1);
-        this.yRange = this.validRange(this.roundDownToSignificantFigure(rawYMin), this.roundUpToSignificantFigure(rawYMax || 1), 0, 1);
+        this.xRange = this.validRange(this.roundDownToSignificantFigure(rawXMin), this.roundUpToSignificantFigure(rawXMax), 0, 1);
+        this.yRange = this.validRange(this.roundDownToSignificantFigure(rawYMin), this.roundUpToSignificantFigure(rawYMax), 0, 1);
     }
 
     validRange(min, max, fallbackMin, fallbackMax)
@@ -286,7 +286,8 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
 
     formatValue(value)
     {
-        const decimals = parseInt(this.parameters.decimals) || 0;
+        const configuredDecimals = Number(this.parameters.decimals);
+        const decimals = Number.isFinite(configuredDecimals) ? Math.max(0, Math.min(20, Math.trunc(configuredDecimals))) : 0;
         if(!Number.isFinite(value))
             return "";
         return value.toFixed(decimals).replace(/\.?0+$/, "");
@@ -294,12 +295,12 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
 
     getPlotRect()
     {
-        const left = parseFloat(this.parameters.marginLeft || 0) + parseFloat(this.parameters.spaceLeft || 0);
-        const top = parseFloat(this.parameters.marginTop || 0) + parseFloat(this.parameters.spaceTop || 0);
-        const right = parseFloat(this.parameters.marginRight || 0) + parseFloat(this.parameters.spaceRight || 0);
-        const bottom = parseFloat(this.parameters.marginBottom || 0) + parseFloat(this.parameters.spaceBottom || 0);
-        const width = Math.max(1, this.format.width - left - right);
-        const height = Math.max(1, this.format.height - top - bottom);
+        const left = parseFloat(this.parameters.margin_left || 0) + parseFloat(this.parameters.space_left || 0);
+        const top = parseFloat(this.parameters.margin_top || 0) + parseFloat(this.parameters.space_top || 0);
+        const right = parseFloat(this.parameters.margin_right || 0) + parseFloat(this.parameters.space_right || 0);
+        const bottom = parseFloat(this.parameters.margin_bottom || 0) + parseFloat(this.parameters.space_bottom || 0);
+        const width = Math.max(1, this.width - left - right);
+        const height = Math.max(1, this.height - top - bottom);
         return {left, top, width, height};
     }
 
@@ -312,23 +313,23 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
     {
         this.canvas.save();
         this.canvas.translate(rect.left, rect.top);
-        this.canvas.strokeStyle = this.format.gridColor;
+        this.canvas.strokeStyle = this.format.grid_color;
         this.canvas.lineWidth = 1;
 
-        const horizontal = parseInt(this.parameters.horizontalGridlines) || 0;
+        const horizontal = parseInt(this.parameters.horizontal_grid_lines) || 0;
         for(let i=0; i<horizontal; i++)
         {
-            const y = horizontal <= 1 ? 0 : i * rect.height / (horizontal - 1);
+            const y = this.tickFraction(i, horizontal) * rect.height;
             this.canvas.beginPath();
             this.canvas.moveTo(0, y);
             this.canvas.lineTo(rect.width, y);
             this.canvas.stroke();
         }
 
-        const vertical = parseInt(this.parameters.verticalGridlines) || 0;
+        const vertical = parseInt(this.parameters.vertical_grid_lines) || 0;
         for(let i=0; i<vertical; i++)
         {
-            const x = vertical <= 1 ? 0 : i * rect.width / (vertical - 1);
+            const x = this.tickFraction(i, vertical) * rect.width;
             this.canvas.beginPath();
             this.canvas.moveTo(x, 0);
             this.canvas.lineTo(x, rect.height);
@@ -342,12 +343,12 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
     {
         this.canvas.save();
         this.canvas.translate(rect.left, rect.top);
-        this.canvas.strokeStyle = this.format.axisColor;
-        this.canvas.fillStyle = this.format.axisColor;
+        this.canvas.strokeStyle = this.format.axis_color;
+        this.canvas.fillStyle = this.format.axis_color;
         this.canvas.lineWidth = 1;
-        this.canvas.font = this.format.scaleFont;
+        this.canvas.font = this.format.scale_font;
 
-        if(this.isTrue(this.parameters.yAxis))
+        if(this.isTrue(this.parameters.show_y_axis))
         {
             this.canvas.beginPath();
             this.canvas.moveTo(0, 0);
@@ -355,7 +356,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
             this.canvas.stroke();
         }
 
-        if(this.isTrue(this.parameters.xAxis))
+        if(this.isTrue(this.parameters.show_x_axis))
         {
             this.canvas.beginPath();
             this.canvas.moveTo(0, rect.height);
@@ -363,38 +364,40 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
             this.canvas.stroke();
         }
 
-        const leftScale = parseInt(this.parameters.leftScale) || 0;
-        if(this.isTrue(this.parameters.yAxis) && leftScale > 0)
+        const left_scale_ticks = parseInt(this.parameters.left_scale_ticks) || 0;
+        if(this.isTrue(this.parameters.show_y_axis) && left_scale_ticks > 0)
         {
             this.canvas.textAlign = "right";
             this.canvas.textBaseline = "middle";
-            for(let i=0; i<leftScale; i++)
+            for(let i=0; i<left_scale_ticks; i++)
             {
-                const value = this.yRange.min + (leftScale - 1 - i) * (this.yRange.max - this.yRange.min) / Math.max(1, leftScale - 1);
-                const y = i * rect.height / Math.max(1, leftScale - 1);
+                const fraction = this.tickFraction(i, left_scale_ticks);
+                const value = this.yRange.max - fraction * (this.yRange.max - this.yRange.min);
+                const y = fraction * rect.height;
                 this.canvas.fillText(this.formatValue(value), -8, y);
             }
         }
 
-        const bottomScale = parseInt(this.parameters.bottomScale) || 0;
-        if(this.isTrue(this.parameters.xAxis) && bottomScale > 0)
+        const bottom_scale_ticks = parseInt(this.parameters.bottom_scale_ticks) || 0;
+        if(this.isTrue(this.parameters.show_x_axis) && bottom_scale_ticks > 0)
         {
             this.canvas.textAlign = "center";
             this.canvas.textBaseline = "top";
-            for(let i=0; i<bottomScale; i++)
+            for(let i=0; i<bottom_scale_ticks; i++)
             {
-                const value = this.xRange.min + i * (this.xRange.max - this.xRange.min) / Math.max(1, bottomScale - 1);
-                const x = i * rect.width / Math.max(1, bottomScale - 1);
+                const fraction = this.tickFraction(i, bottom_scale_ticks);
+                const value = this.xRange.min + fraction * (this.xRange.max - this.xRange.min);
+                const x = fraction * rect.width;
                 this.canvas.fillText(this.formatValue(value), x, rect.height + 8);
             }
         }
 
-        const leftTicks = parseInt(this.parameters.leftTickMarks) || 0;
-        if(this.isTrue(this.parameters.yAxis) && leftTicks > 0)
+        const leftTicks = parseInt(this.parameters.left_tick_marks) || 0;
+        if(this.isTrue(this.parameters.show_y_axis) && leftTicks > 0)
         {
             for(let i=0; i<leftTicks; i++)
             {
-                const y = i * rect.height / Math.max(1, leftTicks - 1);
+                const y = this.tickFraction(i, leftTicks) * rect.height;
                 this.canvas.beginPath();
                 this.canvas.moveTo(0, y);
                 this.canvas.lineTo(-5, y);
@@ -402,12 +405,12 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
             }
         }
 
-        const bottomTicks = parseInt(this.parameters.bottomTickMarks) || 0;
-        if(this.isTrue(this.parameters.xAxis) && bottomTicks > 0)
+        const bottomTicks = parseInt(this.parameters.bottom_tick_marks) || 0;
+        if(this.isTrue(this.parameters.show_x_axis) && bottomTicks > 0)
         {
             for(let i=0; i<bottomTicks; i++)
             {
-                const x = i * rect.width / Math.max(1, bottomTicks - 1);
+                const x = this.tickFraction(i, bottomTicks) * rect.width;
                 this.canvas.beginPath();
                 this.canvas.moveTo(x, rect.height);
                 this.canvas.lineTo(x, rect.height + 5);
@@ -420,27 +423,27 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
 
     drawAxisLabels(rect)
     {
-        const xAxisLabel = String(this.parameters.xAxisLabel || "").trim();
-        const yAxisLabel = String(this.parameters.yAxisLabel || "").trim();
+        const x_axis_label = String(this.parameters.x_axis_label || "").trim();
+        const y_axis_label = String(this.parameters.y_axis_label || "").trim();
 
         this.canvas.save();
-        this.canvas.font = this.format.labelFont;
+        this.canvas.font = this.format.label_font;
         this.canvas.fillStyle = this.format.labelColor;
 
-        if(xAxisLabel !== "")
+        if(x_axis_label !== "")
         {
             this.canvas.textAlign = "center";
             this.canvas.textBaseline = "bottom";
-            this.canvas.fillText(xAxisLabel, rect.left + rect.width / 2, this.format.height - 2);
+            this.canvas.fillText(x_axis_label, rect.left + rect.width / 2, this.format.height - 2);
         }
 
-        if(yAxisLabel !== "")
+        if(y_axis_label !== "")
         {
             this.canvas.translate(12, rect.top + rect.height / 2);
             this.canvas.rotate(-Math.PI / 2);
             this.canvas.textAlign = "center";
             this.canvas.textBaseline = "middle";
-            this.canvas.fillText(yAxisLabel, 0, 0);
+            this.canvas.fillText(y_axis_label, 0, 0);
         }
 
         this.canvas.restore();
@@ -448,11 +451,12 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
 
     drawPoints(rect)
     {
-        const radius = Math.max(1, parseFloat(this.parameters.pointRadius) || 3);
+        const radius = Math.max(1, parseFloat(this.parameters.point_radius) || 3);
         const channelCount = this.getChannelCount();
 
         this.canvas.save();
         this.canvas.translate(rect.left, rect.top);
+        this.canvas.lineWidth = Math.max(1, parseFloat(this.parameters.line_width) || 1);
         for(let channel=0; channel<channelCount; channel++)
         {
             this.setSeriesColor(channel);
@@ -473,13 +477,13 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
 
     drawRegressionLines(rect)
     {
-        if(!this.isTrue(this.parameters.drawLines))
+        if(!this.isTrue(this.parameters.show_lines))
             return;
 
         const channelCount = this.getChannelCount();
         this.canvas.save();
         this.canvas.translate(rect.left, rect.top);
-        this.canvas.lineWidth = Math.max(1, parseFloat(this.parameters.lineWidth) || 1);
+        this.canvas.lineWidth = Math.max(1, parseFloat(this.parameters.line_width) || 1);
         for(let channel=0; channel<channelCount; channel++)
         {
             const slope = this.getRegressionValue(0, channel);
@@ -498,9 +502,9 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         this.canvas.restore();
     }
 
-    drawLegend(rect)
+    show_legend(rect)
     {
-        if(!this.isTrue(this.parameters.drawLegend))
+        if(!this.isTrue(this.parameters.show_legend))
             return;
 
         const labels = this.getLabels();
@@ -509,7 +513,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
             return;
 
         this.canvas.save();
-        this.canvas.font = this.format.labelFont;
+        this.canvas.font = this.format.label_font;
         this.canvas.textAlign = "left";
         this.canvas.textBaseline = "middle";
 
@@ -546,19 +550,18 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
 
     update()
     {
-        this.xData = this.normalizeMatrix(this.getSource('sourceX'));
-        this.yData = this.normalizeMatrix(this.getSource('sourceY'));
-        this.regression = this.normalizeMatrix(this.getSource('regressionSource'));
-        this.metadata = this.getSourceMetadata('sourceY', null);
+        this.xData = this.normalizeMatrix(this.getSource('x_source'));
+        this.yData = this.normalizeMatrix(this.getSource('y_source'));
+        this.regression = this.normalizeMatrix(this.getSource('regression_source'));
+        this.metadata = this.getSourceMetadata('y_source', null);
         this.inferOrientation();
 
+        this.clearCanvas();
         if(this.getChannelCount() === 0)
             return;
 
         this.computeRanges();
 
-        this.resetCanvasTransform(-0.5, -0.5);
-        this.canvas.clearRect(0, 0, this.width, this.height);
         const rect = this.getPlotRect();
 
         this.drawGrid(rect);
@@ -567,7 +570,7 @@ class WebUIWidgetScatterPlot extends WebUIWidgetGraph
         this.drawAxes(rect);
         this.drawFrame(rect);
         this.drawAxisLabels(rect);
-        this.drawLegend(rect);
+        this.show_legend(rect);
     }
 }
 

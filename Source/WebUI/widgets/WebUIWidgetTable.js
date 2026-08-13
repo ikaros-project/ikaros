@@ -8,10 +8,10 @@ class WebUIWidgetTable extends WebUIWidget {
             { 'name': "STYLE", 'control': 'header' },
             { 'name': 'label_x', 'default': "", 'type': 'string', 'control': 'textedit' },
             { 'name': 'label_y', 'default': "", 'type': 'string', 'control': 'textedit' },
-            { 'name': 'direction', 'default': "normal", 'type': 'string', 'control': 'menu', 'options': "normal,flip x/y" },
+            { 'name': 'transpose', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
             { 'name': 'decimals', 'default': 4, 'type': 'int', 'control': 'textedit' },
-            { 'name': 'colorize', 'default': true, 'type': 'bool', 'control': 'checkbox' },
-            { 'name': 'scrollable', 'default': false, 'type': 'bool', 'control': 'checkbox' }
+            { 'name': 'colorize', 'default': "yes", 'type': 'bool', 'control': 'checkbox' },
+            { 'name': 'scrollable', 'default': "no", 'type': 'bool', 'control': 'checkbox' }
         ]
     };
 
@@ -79,19 +79,19 @@ class WebUIWidgetTable extends WebUIWidget {
             var ix
 
             this.table.style.border = "none"
-            if (label_x && label_y)
+            if (this.hasLabels(label_x) && this.hasLabels(label_y))
                 this.table.rows[0].cells[0].style.border = "none"
 
             if (type == "normal") {
                 ix = 0
                 for (var i = 0; i < xCells.length; i++) {
                     ix = (ix >= xLabel.length) ? 0 : ix;
-                    xCells[i].innerHTML = xLabel[ix++]
+                    xCells[i].textContent = xLabel[ix++]
                 }
                 ix = 0
                 for (var i = 0; i < yCells.length; i++) {
                     ix = (ix >= yLabel.length) ? 0 : ix;
-                    yCells[i].innerHTML = yLabel[ix++]
+                    yCells[i].textContent = yLabel[ix++]
                     yCells[i].style.borderBottom = "none";
                 }
             }
@@ -99,13 +99,13 @@ class WebUIWidgetTable extends WebUIWidget {
                 ix = 0
                 for (var i = 0; i < xCells.length; i++) {
                     ix = (ix >= yLabel.length) ? 0 : ix;
-                    xCells[i].innerHTML = yLabel[ix++]
+                    xCells[i].textContent = yLabel[ix++]
 
                 }
                 ix = 0
                 for (var i = 0; i < yCells.length; i++) {
                     ix = (ix >= xLabel.length) ? 0 : ix;
-                    yCells[i].innerHTML = xLabel[ix++]
+                    yCells[i].textContent = xLabel[ix++]
                     yCells[i].style.borderBottom = "none";
                 }
             }
@@ -204,7 +204,7 @@ class WebUIWidgetTable extends WebUIWidget {
             return "";
 
         const labels = this.getDisplayLabels(displayState);
-        return `${this.parameters.direction}:${displayState.shape.join("x")}:${displayState.size_y}x${displayState.size_x}:${JSON.stringify(labels)}`;
+        return `${this.parameters.transpose}:${displayState.shape.join("x")}:${displayState.size_y}x${displayState.size_x}:${JSON.stringify(labels)}`;
     }
     renderSliceControls(displayState) {
         if (!this.sliceControls)
@@ -234,21 +234,35 @@ class WebUIWidgetTable extends WebUIWidget {
             }
             select.value = String(this.sliceSelections[dimensionIndex] ?? 0);
             select.onchange = () => {
+                if (main.edit_mode)
+                    return;
                 this.sliceSelections[dimensionIndex] = Number(select.value);
                 this.loaded = false;
                 this.updateAll();
                 this.update();
             };
             select.onmousedown = (evt) => {
-                evt.stopPropagation();
+                if (!main.edit_mode)
+                    evt.stopPropagation();
             };
             select.onclick = (evt) => {
-                evt.stopPropagation();
+                if (!main.edit_mode)
+                    evt.stopPropagation();
             };
 
             control.append(caption, select);
             this.sliceControls.appendChild(control);
         });
+        this.syncSliceControlState();
+    }
+    syncSliceControlState() {
+        if (!this.sliceControls)
+            return;
+        for (const select of this.sliceControls.querySelectorAll("select"))
+        {
+            select.disabled = main.edit_mode;
+            select.style.pointerEvents = main.edit_mode ? "none" : "";
+        }
     }
     updateAll() {
         this.updateFrame();
@@ -259,6 +273,8 @@ class WebUIWidgetTable extends WebUIWidget {
         if (!displayState) {
             this.loaded = false;
             this._tableShapeKey = "";
+            while (this.table.rows.length)
+                this.table.deleteRow(-1);
             this.scrollable();
             return;
         }
@@ -268,69 +284,65 @@ class WebUIWidgetTable extends WebUIWidget {
         this._tableShapeKey = this.getShapeKey(displayState);
         const labels = this.getDisplayLabels(displayState);
 
-        if (this.parameters.direction == "normal")
+        if (!this.toBool(this.parameters.transpose))
             this.reshapeTable(displayState.size_y, displayState.size_x, this.hasLabels(labels.x), this.hasLabels(labels.y));
         else
             this.reshapeTable(displayState.size_x, displayState.size_y, this.hasLabels(labels.y), this.hasLabels(labels.x));
-        this.fillLabels(this.parameters.direction, labels.x, this.xHeader, labels.y, this.yHeader)
+        this.fillLabels(this.toBool(this.parameters.transpose) ? "flip x/y" : "normal", labels.x, this.xHeader, labels.y, this.yHeader)
         this.scrollable()
     }
+    formatValue(value) {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric))
+            return "-";
+        const configuredDecimals = Number(this.parameters.decimals);
+        const decimals = Number.isInteger(configuredDecimals) ? Math.max(0, Math.min(100, configuredDecimals)) : 4;
+        return numeric.toFixed(decimals);
+    }
     update() {
-
+        this.syncSliceControlState();
         if (!this.loaded)
             this.updateAll()
 
-        else {
-            const source = this.getSource('source');
-            this.metadata = this.getSourceMetadata('source', null);
-            const displayState = this.getDisplayState(source);
-            if (!displayState) {
-                this.loaded = false;
-                this.renderSliceControls(null);
-                return;
-            }
-            const nextShapeKey = this.getShapeKey(displayState);
-            if(nextShapeKey !== this._tableShapeKey)
-            {
-                this.loaded = false;
-                this.updateAll();
-                return;
-            }
+        if (!this.loaded)
+            return;
 
-            this.data = displayState.matrix;
-            let size_y = displayState.size_y;
-            let size_x = displayState.size_x;
-            if (!size_x)
-                return;
-
-
-            for (let j = 0; j < size_y; j++)
-                for (let i = 0; i < size_x; i++)
-                    if (this.parameters.direction == "normal") {
-                        try {
-                            this.tData[j][i].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);
-                        }
-                        catch (err) {
-                            this.tData[j][i].innerHTML = "-";
-                        }
-                        if (this.parameters.colorize)
-                            this.tData[j][i].style.color = this.getColor(i, this.data[j][i]);
-                        else
-                            this.tData[j][i].style.color = this.getColor(i);
-                    }
-                    else {
-                        try {
-                            this.tData[i][j].innerHTML = this.data[j][i].toFixed(this.parameters.decimals);
-                        }
-                        catch (err) {
-                            this.tData[i][j].innerHTML = "-";
-                        }
-                        if (this.parameters.colorize)
-                            this.tData[i][j].style.color = this.getColor(i, this.data[j][i]);
-                        else
-                            this.tData[i][j].style.color = this.getColor(i);
-                    }
+        const source = this.getSource('source');
+        this.metadata = this.getSourceMetadata('source', null);
+        const displayState = this.getDisplayState(source);
+        if (!displayState) {
+            this.loaded = false;
+            this._tableShapeKey = "";
+            this.renderSliceControls(null);
+            while (this.table.rows.length)
+                this.table.deleteRow(-1);
+            return;
         }
+
+        const nextShapeKey = this.getShapeKey(displayState);
+        if(nextShapeKey !== this._tableShapeKey)
+        {
+            this.loaded = false;
+            this.updateAll();
+            if (!this.loaded)
+                return;
+        }
+        else
+            this.data = displayState.matrix;
+
+        const size_y = this.data.length;
+        const size_x = this.data[0]?.length || 0;
+        const transpose = this.toBool(this.parameters.transpose);
+        const colorize = this.toBool(this.parameters.colorize);
+        for (let j = 0; j < size_y; j++)
+            for (let i = 0; i < size_x; i++) {
+                const cell = transpose ? this.tData[i]?.[j] : this.tData[j]?.[i];
+                if (!cell)
+                    continue;
+                const value = this.data[j]?.[i];
+                cell.textContent = this.formatValue(value);
+                cell.style.color = colorize ? this.getColor(i, value) : this.getColor(i);
+            }
     }
 };
 

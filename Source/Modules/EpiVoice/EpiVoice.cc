@@ -189,10 +189,14 @@ EmotionSound::Play(const char * command)
 {
     timer->Restart();
     frame = 0;
-    char * argv[5] = { (char *)command, (char *)sound_path.c_str(), NULL };
+    char * argv[] = {
+        const_cast<char *>(command),
+        const_cast<char *>(sound_path.c_str()),
+        nullptr,
+    };
     pid_t pid;
 
-    int status = posix_spawn(&pid, (char *) command, NULL, NULL, argv, NULL);
+    int status = posix_spawn(&pid, command, nullptr, nullptr, argv, nullptr);
 }
 
 bool

@@ -11,8 +11,8 @@
    <connection source="Oscillator.OUTPUT" target="VCA.INPUT1" delay="0" />
    <connection source="Envelope.OUTPUT" target="VCA.INPUT2" delay="0" />
 
-   <widget name="EnvelopePlot" class="plot" source="Envelope.OUTPUT" width="250" height="180" _x="120" _y="340" title="Envelope" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
-   <widget name="SignalPlot" class="plot" source="VCA.OUTPUT" width="250" height="180" _x="400" _y="340" title="Signal" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
-   <widget name="NotePlot" class="plot" source="Notes.OUTPUT" width="250" height="180" _x="680" _y="340" title="Note" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
-   <widget name="TrigPlot" class="plot" source="Gate.TRIG" width="250" height="180" _x="960" _y="340" title="Trig" show_title="true" show_frame="true" auto="true" include_zero="true" buffer_size="50" direction="vertical" />
+   <widget name="EnvelopePlot" class="plot" source="Envelope.OUTPUT" width="250" height="180" _x="120" _y="340" title="Envelope" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="50" orientation="vertical" />
+   <widget name="SignalPlot" class="plot" source="VCA.OUTPUT" width="250" height="180" _x="400" _y="340" title="Signal" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="50" orientation="vertical" />
+   <widget name="NotePlot" class="plot" source="Notes.OUTPUT" width="250" height="180" _x="680" _y="340" title="Note" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="50" orientation="vertical" />
+   <widget name="TrigPlot" class="plot" source="Gate.TRIG" width="250" height="180" _x="960" _y="340" title="Trig" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="50" orientation="vertical" />
 </group>

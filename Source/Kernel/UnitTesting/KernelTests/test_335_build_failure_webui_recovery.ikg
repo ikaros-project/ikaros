@@ -1,0 +1,13 @@
+<group internal="true"
+    name="TestBuildFailureWebUIRecovery"
+    description="Retain the parsed model for WebUI editing after model construction fails"
+    webui_port="8335"
+    http_real_time="false"
+    http_requests="network||quit"
+    expected_output_contains="Class &quot;MissingStartupTestModule&quot; does not exist||TestBuildFailureWebUIRecovery||KnownModule||BrokenModule"
+>
+
+    <module class="Constant" name="KnownModule" data="1" />
+    <module class="MissingStartupTestModule" name="BrokenModule" />
+
+</group>

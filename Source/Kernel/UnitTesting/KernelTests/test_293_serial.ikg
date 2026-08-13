@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestSerial"
+    description="Test serial I/O deadlines, framing, writes, and resource handling"
+    start="true"
+    stop="1"
+    check_sum="12"
+    expected_output_contains="SERIAL TEST OK">
+    <module class="SerialTestModule" name="Serial" />
+</group>

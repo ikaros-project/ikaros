@@ -1,0 +1,29 @@
+<group internal="true"
+       name="TestOutputFileAppend"
+       description="OutputFile validates an existing header and appends without duplicating it"
+       start="true"
+       stop="2"
+       check_sum="480998"
+       expected_file_exists="UserData/test_305_output_file_append.csv"
+       expected_file_contains="line/1,value&#10;0,1.00&#10;1,1.00"
+       expected_file_not_contains="line/1,value&#10;line/1,value"
+       cleanup_expected_files="true">
+    <module name="Data" class="Constant" data="1" />
+    <module name="WriteOff" class="Constant" data="0" />
+    <module name="ASeed"
+            class="OutputFile"
+            filename="test_305_output_file_append.csv"
+            decimals="2"
+            timestamp="line"
+            existing_file="overwrite" />
+    <module name="BAppend"
+            class="OutputFile"
+            filename="test_305_output_file_append.csv"
+            decimals="2"
+            timestamp="line"
+            existing_file="append" />
+
+    <connection delay="0" source="Data.OUTPUT" target="ASeed.INPUT" label="value" />
+    <connection delay="0" source="WriteOff.OUTPUT" target="ASeed.WRITE" />
+    <connection delay="0" source="Data.OUTPUT" target="BAppend.INPUT" label="value" />
+</group>

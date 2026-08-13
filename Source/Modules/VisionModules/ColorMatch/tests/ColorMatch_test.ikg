@@ -1,0 +1,8 @@
+<group name="ColorMatch_test" start="true" stop="1">
+    <module class="Constant" name="Image" data="[[[1, 0], [1, 0]], [[0, 1], [0, 1]], [[0, 0], [0, 0]]]" />
+    <module class="ColorMatch" name="ColorMatch" target0="1" target1="0" target2="0" sigma="1" gain="1" threshold="0" />
+    <module class="Print" name="PrintOutput" />
+
+    <connection source="Image.OUTPUT" target="ColorMatch.INPUT" delay="0" />
+    <connection source="ColorMatch.OUTPUT" target="PrintOutput.INPUT" delay="0" />
+</group>

@@ -1,0 +1,7 @@
+<group internal="true"
+    name="TestStrictIntegerAttribute"
+    description="Reject trailing characters in integer component attributes"
+    expected_exit="1"
+    expected_output_contains="Attribute &quot;integer_attribute&quot; has invalid integer value &quot;12junk&quot;">
+    <module class="ComponentHardeningTestModule" name="Invalid" integer_attribute="12junk" />
+</group>

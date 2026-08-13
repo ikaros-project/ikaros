@@ -1,0 +1,47 @@
+<class name="ConductanceNeuronPopulation" description="Population of conductance-based neurons">
+    <description type="text">
+        Simulates classic Hodgkin-Huxley or Morris-Lecar membrane dynamics. Applied current and
+        synaptic conductances are sampled once per Ikaros tick and held during bounded RK4
+        integration. Conductance and current parameters use conventional membrane-area density units.
+    </description>
+
+    <parameter name="population_size" type="number" default="1" min="1" unit="neurons" description="Number of neurons" />
+    <parameter name="model" type="number" default="0" options="hodgkin_huxley,morris_lecar" description="Conductance model" />
+    <parameter name="initial_voltage" type="number" default="-65" unit="mV" description="Voltage at startup and external reset" />
+    <parameter name="spike_threshold" type="number" default="0" unit="mV" description="Upward crossing used to report a spike" />
+    <parameter name="excitatory_reversal_potential" type="number" default="0" unit="mV" description="Excitatory synaptic reversal potential" />
+    <parameter name="inhibitory_reversal_potential" type="number" default="-80" unit="mV" description="Inhibitory synaptic reversal potential" />
+    <parameter name="maximum_internal_step" type="number" default="0.000025" min="0.000001" unit="s" description="Largest RK4 integration step" />
+
+    <parameter name="hh_capacitance_density" type="number" default="1" min="0.000001" unit="uF/cm^2" description="Hodgkin-Huxley membrane capacitance density" />
+    <parameter name="hh_sodium_conductance" type="number" default="120" min="0" unit="mS/cm^2" description="Maximum sodium conductance density" />
+    <parameter name="hh_potassium_conductance" type="number" default="36" min="0" unit="mS/cm^2" description="Maximum potassium conductance density" />
+    <parameter name="hh_leak_conductance" type="number" default="0.3" min="0" unit="mS/cm^2" description="Leak conductance density" />
+    <parameter name="hh_sodium_reversal_potential" type="number" default="50" unit="mV" description="Sodium reversal potential" />
+    <parameter name="hh_potassium_reversal_potential" type="number" default="-77" unit="mV" description="Potassium reversal potential" />
+    <parameter name="hh_leak_reversal_potential" type="number" default="-54.387" unit="mV" description="Leak reversal potential" />
+
+    <parameter name="ml_capacitance_density" type="number" default="20" min="0.000001" unit="uF/cm^2" description="Morris-Lecar membrane capacitance density" />
+    <parameter name="ml_calcium_conductance" type="number" default="4.4" min="0" unit="mS/cm^2" description="Maximum calcium conductance density" />
+    <parameter name="ml_potassium_conductance" type="number" default="8" min="0" unit="mS/cm^2" description="Maximum potassium conductance density" />
+    <parameter name="ml_leak_conductance" type="number" default="2" min="0" unit="mS/cm^2" description="Leak conductance density" />
+    <parameter name="ml_calcium_reversal_potential" type="number" default="120" unit="mV" description="Calcium reversal potential" />
+    <parameter name="ml_potassium_reversal_potential" type="number" default="-84" unit="mV" description="Potassium reversal potential" />
+    <parameter name="ml_leak_reversal_potential" type="number" default="-60" unit="mV" description="Leak reversal potential" />
+    <parameter name="ml_activation_midpoint" type="number" default="-1.2" unit="mV" description="Calcium activation midpoint" />
+    <parameter name="ml_activation_slope" type="number" default="18" min="0.000001" unit="mV" description="Calcium activation slope" />
+    <parameter name="ml_recovery_midpoint" type="number" default="2" unit="mV" description="Potassium recovery midpoint" />
+    <parameter name="ml_recovery_slope" type="number" default="30" min="0.000001" unit="mV" description="Potassium recovery slope" />
+    <parameter name="ml_recovery_time_constant" type="number" default="0.025" min="0.000001" unit="s" description="Base potassium recovery time constant" />
+
+    <input name="CURRENT" size="@population_size" optional="yes" unit="uA/cm^2" description="Applied current density" />
+    <input name="EXCITATORY_CONDUCTANCE" size="@population_size" optional="yes" unit="mS/cm^2" description="Total excitatory synaptic conductance density" />
+    <input name="INHIBITORY_CONDUCTANCE" size="@population_size" optional="yes" unit="mS/cm^2" description="Total inhibitory synaptic conductance density" />
+    <input name="RESET" size="@population_size" optional="yes" description="Positive values restore corresponding neurons to their initial state" />
+
+    <output name="SPIKES" size="@population_size" description="One when at least one spike occurred during the tick" />
+    <output name="SPIKE_COUNT" size="@population_size" unit="spikes" description="Number of upward threshold crossings during the tick" />
+    <output name="FIRING_RATE" size="@population_size" unit="Hz" description="Spike count divided by tick duration" />
+    <output name="VOLTAGE" size="@population_size" unit="mV" description="Membrane potential at the end of the tick" />
+    <output name="RECOVERY" size="@population_size" unit="1" description="Potassium activation or recovery state" />
+</class>

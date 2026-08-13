@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestNegativeDelay"
+    description="Reject negative connection delays"
+    expected_exit="1"
+    expected_output_contains="delay range must be non-negative">
+    <module class="Constant" name="Source" data="1" />
+    <module class="Print" name="Sink" />
+    <connection source="Source.OUTPUT" target="Sink.INPUT" delay="-1" />
+</group>

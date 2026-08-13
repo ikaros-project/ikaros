@@ -31,13 +31,12 @@ class SCN: public Module
         if(input.empty())
             return;
 
-        float i = input;
-        float o = output;
+        float i = input.sum();
+        float o = output(0);
         diff = o-i;
 
-        time_shift += +0.0001 * diff;
+        time_shift += +0.0001 * diff(0);
     }
 };
 
 INSTALL_CLASS(SCN)
-

@@ -1,0 +1,21 @@
+<class name="LaunchpadLED" description="displays sequence colors on a Novation Launchpad X">
+    <description>
+        Maps rows of an RGB color matrix to the Launchpad X pad grid. Sequence zero
+        is placed at the top left. Active sequences are selected by the PLAYING input.
+    </description>
+
+    <parameter name="destination_name" type="string" default="LPX MIDI In" description="Name or unique name fragment of the CoreMIDI destination." />
+    <parameter name="layout_width" type="number" default="8" min="1" max="8" description="Number of sequence pads per physical row." />
+    <parameter name="idle_brightness" type="number" default="0.2" min="0" max="1" description="Brightness multiplier for sequences that are not playing." />
+    <parameter name="playing_brightness" type="number" default="1" min="0" max="1" description="Brightness multiplier for sequences that are playing." />
+    <parameter name="programmer_mode" type="bool" default="true" description="Switch the Launchpad X to Programmer mode while the module is active." />
+    <parameter name="clear_on_stop" type="bool" default="true" description="Turn off the pad grid when the module stops." />
+    <parameter name="restore_live_mode" type="bool" default="true" description="Return the Launchpad X to Live mode when the module stops." />
+
+    <input name="COLOR" description="One RGB row per sequence. Components normally use the range 0 to 1; legacy 0 to 255 values are also accepted." />
+    <input name="PLAYING" optional="yes" description="One value per sequence; values above zero select playing brightness." />
+
+    <output name="CONNECTED" size="1" description="1 while the configured Launchpad X MIDI destination is available." />
+    <output name="DESTINATION_COUNT" size="1" description="Number of CoreMIDI destinations currently available." />
+    <output name="LAST_UPDATE_COUNT" size="1" description="Number of pad colors transmitted on the latest tick." />
+</class>

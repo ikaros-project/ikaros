@@ -1,0 +1,3 @@
+<class internal="true" name="DelayStackedWindowSink" description="Checks stacked mixed-zero delay windows">
+    <input name="INPUT" stack="yes" description="Two stacked three-lane delay windows." />
+</class>

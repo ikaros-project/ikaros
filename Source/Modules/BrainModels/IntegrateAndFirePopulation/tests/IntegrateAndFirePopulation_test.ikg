@@ -1,0 +1,11 @@
+<group name="IntegrateAndFirePopulation_test" start="true" stop="250" tick_duration="0.001">
+    <module class="Constant" name="Current" data="0.3,0.5,0.7,0.9" _x="40" _y="80" />
+    <module class="IntegrateAndFirePopulation" name="LIF" population_size="4" model="0" _x="240" _y="80" />
+    <module class="IntegrateAndFirePopulation" name="EIF" population_size="4" model="1" _x="240" _y="240" />
+    <module class="IntegrateAndFirePopulation" name="AdEx" population_size="4" model="2" _x="240" _y="400" />
+    <module class="IntegrateAndFirePopulation" name="QIF" population_size="4" model="3" _x="240" _y="560" />
+    <connection source="Current.OUTPUT" target="LIF.INPUT" />
+    <connection source="Current.OUTPUT" target="EIF.INPUT" />
+    <connection source="Current.OUTPUT" target="AdEx.INPUT" />
+    <connection source="Current.OUTPUT" target="QIF.INPUT" />
+</group>

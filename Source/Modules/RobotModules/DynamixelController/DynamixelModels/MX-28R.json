@@ -1,0 +1,12 @@
+{
+    "model": "MX-28R",
+    "manual_url": "https://docs.robotis.com/docs/dxl/model_reference/mx_series/mx-28-2",
+    "protocol_version": 2.0,
+    "control_table": "MX28Protocol2ControlTable",
+    "indirect_layout": "MXProtocol2DefaultIndirectLayout",
+    "position": {
+        "unit_degrees": 0.087890625,
+        "min": 0,
+        "max": 4095
+    }
+}

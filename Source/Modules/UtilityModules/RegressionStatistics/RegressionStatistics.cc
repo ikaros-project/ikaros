@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <exception>
 #include <limits>
 #include <string>
 #include <vector>
@@ -22,6 +23,9 @@ class RegressionStatistics: public Module
     matrix sample_count;
     matrix linear_regression;
     matrix model_comparison;
+
+    int sample_capacity_ = 0;
+    bool warned_about_sample_capacity_ = false;
 
     struct SamplePair
     {
@@ -46,27 +50,32 @@ class RegressionStatistics: public Module
         Bind(linear_regression, "LINEAR_REGRESSION");
         Bind(model_comparison, "MODEL_COMPARISON");
 
+        sample_capacity_ = max_samples_.as_int();
+        if (sample_capacity_ < 1)
+            throw exception(
+                "RegressionStatistics: max_samples must be at least 1.",
+                path_);
+
+        ValidateTopology();
         samples_.resize(y.size());
         SetMatrixLabels();
     }
 
     void Tick()
     {
-        ValidateInputs();
-
-        if (samples_.size() != static_cast<std::size_t>(y.size()))
-        {
-            samples_.resize(y.size());
-            SetMatrixLabels();
-        }
+        WarnAboutRuntimeCapacityChange();
 
         for (int channel = 0; channel < y.size(); ++channel)
         {
-            if (sample.connected() && sample[channel] < 1.0f)
-                continue;
+            if (sample.connected())
+            {
+                const float sample_value = sample(channel);
+                if (!std::isfinite(sample_value) || sample_value < 1.0f)
+                    continue;
+            }
 
             const int x_index = x.size() == 1 ? 0 : channel;
-            AddSample(channel, x[x_index], y[channel]);
+            AddSample(channel, x(x_index), y(channel));
         }
 
         WriteScatterOutputs();
@@ -74,7 +83,7 @@ class RegressionStatistics: public Module
         WriteModelComparison();
     }
 
-    void ValidateInputs() const
+    void ValidateTopology() const
     {
         if (x.size() != 1 && x.size() != y.size())
             throw exception("RegressionStatistics: X must have size 1 or the same size as Y.", path_);
@@ -82,14 +91,65 @@ class RegressionStatistics: public Module
         if (sample.connected() && sample.size() != y.size())
             throw exception("RegressionStatistics: SAMPLE must have the same size as Y.", path_);
 
-        if (max_samples_.as_int() < 1)
-            throw exception("RegressionStatistics: max_samples must be at least 1.", path_);
+        if (scatter_x.rank() != 2 ||
+            scatter_x.rows() != sample_capacity_ ||
+            scatter_x.cols() != y.size() ||
+            scatter_y.shape() != scatter_x.shape())
+            throw exception(
+                "RegressionStatistics: scatter output shapes must be "
+                "max_samples by Y size.",
+                path_);
+
+        if (sample_count.size() != y.size())
+            throw exception(
+                "RegressionStatistics: SAMPLE_COUNT size must match Y.",
+                path_);
+
+        if (linear_regression.rank() != 2 ||
+            linear_regression.rows() != 6 ||
+            linear_regression.cols() != y.size())
+            throw exception(
+                "RegressionStatistics: LINEAR_REGRESSION shape must be "
+                "6 by Y size.",
+                path_);
+
+        if (model_comparison.rank() != 2 ||
+            model_comparison.rows() != 7 ||
+            model_comparison.cols() != 2)
+            throw exception(
+                "RegressionStatistics: MODEL_COMPARISON shape must be 7 by "
+                "2.",
+                path_);
+    }
+
+    void WarnAboutRuntimeCapacityChange()
+    {
+        bool changed = true;
+        try
+        {
+            changed = max_samples_.as_int() != sample_capacity_;
+        }
+        catch (const std::exception &)
+        {
+        }
+
+        if (changed && !warned_about_sample_capacity_)
+        {
+            Warning(
+                "RegressionStatistics max_samples is fixed after startup; "
+                "using the startup capacity.",
+                path_);
+            warned_about_sample_capacity_ = true;
+        }
+        else if (!changed)
+            warned_about_sample_capacity_ = false;
     }
 
     void AddSample(int channel, double x_value, double y_value)
     {
         std::vector<SamplePair> & channel_samples = samples_[channel];
-        const std::size_t capacity = static_cast<std::size_t>(std::max(1, max_samples_.as_int()));
+        const std::size_t capacity =
+            static_cast<std::size_t>(sample_capacity_);
 
         if (channel_samples.size() >= capacity)
             channel_samples.erase(channel_samples.begin());
@@ -155,6 +215,28 @@ class RegressionStatistics: public Module
         int samples = 0;
         int parameters = 0;
         bool valid = false;
+    };
+
+    struct CenteredSums
+    {
+        int samples = 0;
+        double mean_x = 0.0;
+        double mean_y = 0.0;
+        double sxx = 0.0;
+        double syy = 0.0;
+        double sxy = 0.0;
+
+        void Add(double x_value, double y_value)
+        {
+            ++samples;
+            const double dx = x_value - mean_x;
+            mean_x += dx / static_cast<double>(samples);
+            const double dy = y_value - mean_y;
+            mean_y += dy / static_cast<double>(samples);
+            sxx += dx * (x_value - mean_x);
+            syy += dy * (y_value - mean_y);
+            sxy += dx * (y_value - mean_y);
+        }
     };
 
     void WriteModelComparison()
@@ -232,35 +314,44 @@ class RegressionStatistics: public Module
         if (fit.samples <= fit.parameters)
             return fit;
 
-        std::vector<std::vector<double>> xtx(fit.parameters, std::vector<double>(fit.parameters, 0.0));
-        std::vector<double> xty(fit.parameters, 0.0);
-
+        CenteredSums total;
+        std::vector<CenteredSums> groups(group_count);
         for (const GroupSample & sample : data)
         {
-            const std::vector<double> row = DesignRow(sample, group_count, separate_intercepts, separate_slopes);
-            for (int i = 0; i < fit.parameters; ++i)
+            if (sample.group < 0 || sample.group >= group_count)
+                return fit;
+            total.Add(sample.x, sample.y);
+            groups[sample.group].Add(sample.x, sample.y);
+        }
+
+        if (separate_slopes)
+        {
+            fit.sse = 0.0;
+            for (const CenteredSums & group : groups)
             {
-                xty[i] += row[i] * sample.y;
-                for (int j = 0; j < fit.parameters; ++j)
-                    xtx[i][j] += row[i] * row[j];
+                const double group_sse = RegressionSSE(group);
+                if (!std::isfinite(group_sse))
+                {
+                    fit.sse = std::numeric_limits<double>::quiet_NaN();
+                    return fit;
+                }
+                fit.sse += group_sse;
             }
         }
-
-        std::vector<double> beta;
-        if (!SolveLinearSystem(xtx, xty, beta))
-            return fit;
-
-        fit.sse = 0.0;
-        for (const GroupSample & sample : data)
+        else if (separate_intercepts)
         {
-            const std::vector<double> row = DesignRow(sample, group_count, separate_intercepts, separate_slopes);
-            double predicted = 0.0;
-            for (int i = 0; i < fit.parameters; ++i)
-                predicted += row[i] * beta[i];
-
-            const double residual = sample.y - predicted;
-            fit.sse += residual * residual;
+            CenteredSums within_groups;
+            for (const CenteredSums & group : groups)
+            {
+                within_groups.samples += group.samples;
+                within_groups.sxx += group.sxx;
+                within_groups.syy += group.syy;
+                within_groups.sxy += group.sxy;
+            }
+            fit.sse = RegressionSSE(within_groups);
         }
+        else
+            fit.sse = RegressionSSE(total);
 
         fit.valid = std::isfinite(fit.sse);
         return fit;
@@ -275,73 +366,15 @@ class RegressionStatistics: public Module
         return 2;
     }
 
-    std::vector<double> DesignRow(const GroupSample & sample, int group_count, bool separate_intercepts, bool separate_slopes) const
+    double RegressionSSE(const CenteredSums & sums) const
     {
-        std::vector<double> row(ModelParameterCount(group_count, separate_intercepts, separate_slopes), 0.0);
+        if (sums.samples < 2 || !(sums.sxx > 0.0) ||
+            !std::isfinite(sums.sxx) || !std::isfinite(sums.syy) ||
+            !std::isfinite(sums.sxy))
+            return std::numeric_limits<double>::quiet_NaN();
 
-        if (separate_slopes)
-        {
-            row[sample.group] = 1.0;
-            row[group_count + sample.group] = sample.x;
-            return row;
-        }
-
-        if (separate_intercepts)
-        {
-            row[sample.group] = 1.0;
-            row[group_count] = sample.x;
-            return row;
-        }
-
-        row[0] = 1.0;
-        row[1] = sample.x;
-        return row;
-    }
-
-    bool SolveLinearSystem(std::vector<std::vector<double>> a, std::vector<double> b, std::vector<double> & x) const
-    {
-        const int n = static_cast<int>(b.size());
-        if (n == 0 || static_cast<int>(a.size()) != n)
-            return false;
-
-        for (int col = 0; col < n; ++col)
-        {
-            int pivot = col;
-            for (int row = col + 1; row < n; ++row)
-                if (std::fabs(a[row][col]) > std::fabs(a[pivot][col]))
-                    pivot = row;
-
-            if (std::fabs(a[pivot][col]) < 1.0e-12)
-                return false;
-
-            if (pivot != col)
-            {
-                std::swap(a[pivot], a[col]);
-                std::swap(b[pivot], b[col]);
-            }
-
-            const double divisor = a[col][col];
-            for (int j = col; j < n; ++j)
-                a[col][j] /= divisor;
-            b[col] /= divisor;
-
-            for (int row = 0; row < n; ++row)
-            {
-                if (row == col)
-                    continue;
-
-                const double factor = a[row][col];
-                if (factor == 0.0)
-                    continue;
-
-                for (int j = col; j < n; ++j)
-                    a[row][j] -= factor * a[col][j];
-                b[row] -= factor * b[col];
-            }
-        }
-
-        x = std::move(b);
-        return true;
+        const double explained = sums.sxy * sums.sxy / sums.sxx;
+        return std::max(0.0, sums.syy - explained);
     }
 
     void WriteModelComparisonColumn(int column, const ModelFit & reduced, const ModelFit & full, int group_count, int total_samples)

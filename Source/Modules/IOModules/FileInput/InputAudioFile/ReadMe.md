@@ -1,13 +1,18 @@
 # InputAudioFile
 
-## Description
+`InputAudioFile` loads an uncompressed WAV or AIFF file during initialization
+and emits successive audio blocks. `OUTPUT` has channel-first shape
+`[channels, buffer_size]`.
 
-Copies input. Use the Ikaros namespace to access the math library this is preferred to using math.h
+The reader accepts WAV PCM with 8-, 16-, 24-, or 32-bit samples, WAV
+floating-point data with 32- or 64-bit samples, and uncompressed AIFF PCM with
+8-, 16-, 24-, or 32-bit samples. Container chunks are parsed by identifier, so
+metadata chunks and nonstandard chunk ordering do not change the audio data.
+AIFF-C containers and compressed WAV encodings are rejected.
 
-It produces OUTPUT while parameters such as filename, buffer_size, channels, and repeat shape its
-behavior. A meaningful use case is to place the module inside a larger sensorimotor or cognitive
-architecture where it helps transform, summarize, or route signals between neural subsystems and
-robot effectors.
+When `repeat` is enabled, a block that crosses the end of the file continues
+at its beginning without a gap. Otherwise, the remainder of that block and
+subsequent blocks are filled with zero.
 
 ![InputAudioFile](InputAudioFile.svg)
 
@@ -15,15 +20,16 @@ robot effectors.
 
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
-| filename | Filename of audio file; supports wav and aiff | string | inputaudio.wav |
-| buffer_size | Length of output buffer | int | 4096 |
-| channels | Number of audio channels in file, e.g. 2 for stereo files | int | 1 |
-| repeat | Whether to repeat playing the file | bool | true |
+| `filename` | WAV or AIFF file inside the project directory or UserData | string | `inputaudio.wav` |
+| `buffer_size` | Number of audio frames emitted per tick | number | `4096` |
+| `channels` | Expected number of channels in the file | number | `1` |
+| `repeat` | Wrap to the beginning at end of file | bool | `true` |
+
+The configured channel count must match the file. This keeps the public output
+shape fixed after startup and reports configuration mistakes immediately.
 
 ## Outputs
 
 | Name | Description |
 | --- | --- |
-| OUTPUT | The output |
-
-*This description was automatically created and may not be an accurate description of the module.*
+| OUTPUT | Channel-first audio block |

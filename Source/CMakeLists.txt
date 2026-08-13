@@ -3,6 +3,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(Kernel)
+add_subdirectory(Kernel/UnitTesting/TestModules)
 add_subdirectory(Modules)
 add_subdirectory(UserModules)
 

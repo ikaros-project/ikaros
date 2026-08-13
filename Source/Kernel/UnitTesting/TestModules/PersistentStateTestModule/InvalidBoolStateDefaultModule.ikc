@@ -1,0 +1,3 @@
+<class internal="true" name="InvalidBoolStateDefaultModule" description="Provides an invalid Boolean state default for kernel tests">
+    <state name="value" type="bool" default="maybe" />
+</class>

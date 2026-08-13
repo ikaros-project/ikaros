@@ -1,0 +1,19 @@
+<group internal="true"
+    name="TestGaussianSeed"
+    description="Test reproducible module-owned Gaussian sequences"
+    start="true"
+    stop="4"
+    check_sum="1709079"
+    expected_output_contains="RANDOM SEQUENCE TEST OK">
+
+    <module class="Constant" name="Input" data="0,0,0,0" />
+    <module class="Noise" name="FirstNoise" type="gaussian" mean="1" stddev="2" seed="12345" />
+    <module class="Noise" name="SecondNoise" type="gaussian" mean="1" stddev="2" seed="12345" />
+    <module class="RandomSequenceTestModule" name="Verifier" />
+
+    <connection source="Input.OUTPUT" target="FirstNoise.INPUT" />
+    <connection source="Input.OUTPUT" target="SecondNoise.INPUT" />
+    <connection source="FirstNoise.OUTPUT" target="Verifier.FIRST" />
+    <connection source="SecondNoise.OUTPUT" target="Verifier.SECOND" />
+
+</group>

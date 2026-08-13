@@ -1,0 +1,4 @@
+<class internal="true" name="SoftmaxNonfiniteVerifierModule"
+       description="Checks non-finite Softmax behavior">
+    <input name="INPUT" />
+</class>

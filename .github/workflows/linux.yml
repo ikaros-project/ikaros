@@ -1,0 +1,114 @@
+name: Linux
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linux-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Ubuntu 24.04 / ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: GCC
+            cc: gcc
+            cxx: g++
+          - name: Clang
+            cc: clang
+            cxx: clang++
+
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            build-essential \
+            clang \
+            cmake \
+            libcurl4-openssl-dev \
+            libjpeg-turbo8-dev \
+            liblapack-dev \
+            libopenblas-dev \
+            libpng-dev \
+            libssl-dev \
+            libtiff-dev \
+            libwebp-dev
+
+      - name: Configure
+        run: cmake -S . -B Build -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build
+        run: cmake --build Build --parallel 2
+
+      - name: Run kernel test suite
+        run: |
+          python3 Source/Kernel/UnitTesting/KernelTests/kernel_test.py \
+            --ikaros Bin/ikaros \
+            --jobs 2
+
+      - name: Smoke-test WebUI
+        run: python3 Scripts/ci_webui_smoke.py --ikaros Bin/ikaros
+
+  optional-modules:
+    name: Ubuntu 24.04 / Optional modules
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    env:
+      CC: gcc
+      CXX: g++
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            build-essential \
+            cmake \
+            libavcodec-dev \
+            libavdevice-dev \
+            libavformat-dev \
+            libavutil-dev \
+            libcurl4-openssl-dev \
+            libdlib-dev \
+            libjpeg-turbo8-dev \
+            liblapack-dev \
+            libopenblas-dev \
+            libpng-dev \
+            libssl-dev \
+            libswresample-dev \
+            libswscale-dev \
+            libtiff-dev \
+            libusb-1.0-0-dev \
+            libwebp-dev
+
+      - name: Configure optional modules
+        run: cmake -S . -B Build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build optional modules
+        run: cmake --build Build --parallel 2

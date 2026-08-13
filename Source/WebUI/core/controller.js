@@ -6,8 +6,7 @@ const controller =
     session_id: 0,
     client_id: Date.now(),
     files: {},
-    load_count: 0,
-    load_count_timeout: null,
+    image_update_generation: 0,
     g_data: null,
     send_stamp: 0,
     tick_duration: 0,
@@ -21,6 +20,7 @@ const controller =
     update_in_flight: false,
     pending_network_session_id: null,
     open_mode: false,
+    opening_overlay_timer: null,
     preserve_clean_open: false,
     preserve_clean_new: false,
     clean_new_session_id: null,
@@ -30,6 +30,10 @@ const controller =
     slow_ui_delay_ms: 0,
     slow_ui_jitter_ms: 0,
     drop_update_rate: 0,
+    webui_test_mode: "",
+    webui_test_delay_ms: 0,
+    webui_test_fail_files_remaining: 0,
+    webui_test_fail_save_remaining: 0,
     data_package: {},
 
     cloneNetworkForStorage(source)
@@ -102,6 +106,28 @@ const controller =
             main.showReconnectOverlay();
     },
 
+    beginOpeningFeedback(filename)
+    {
+        controller.endOpeningFeedback();
+        controller.opening_overlay_timer = setTimeout(function()
+        {
+            controller.opening_overlay_timer = null;
+            if(controller.open_mode && main && typeof main.showOpeningOverlay === "function")
+                main.showOpeningOverlay(filename);
+        }, 3000);
+    },
+
+    endOpeningFeedback()
+    {
+        if(controller.opening_overlay_timer !== null)
+        {
+            clearTimeout(controller.opening_overlay_timer);
+            controller.opening_overlay_timer = null;
+        }
+        if(main && typeof main.hideReconnectOverlay === "function")
+            main.hideReconnectOverlay();
+    },
+
     setTainted(nextValue, reason = "")
     {
         network.tainted = !!nextValue;
@@ -126,6 +152,16 @@ const controller =
         controller.slow_ui_delay_ms = Math.max(0, controller.getURLNumberParam("slow_ui", 0));
         controller.slow_ui_jitter_ms = Math.max(0, controller.getURLNumberParam("slow_ui_jitter", 0));
         controller.drop_update_rate = Math.min(1, Math.max(0, controller.getURLNumberParam("drop_updates", 0)));
+        const parameters = new URLSearchParams(window.location.search);
+        controller.webui_test_mode = parameters.get("webui_test") || "";
+        if(controller.webui_test_mode === "save_recovery")
+        {
+            controller.webui_test_delay_ms = Math.max(0, controller.getURLNumberParam("webui_test_delay", 25));
+            controller.webui_test_fail_files_remaining =
+                Math.max(0, Math.floor(controller.getURLNumberParam("webui_test_fail_files", 1)));
+            controller.webui_test_fail_save_remaining =
+                Math.max(0, Math.floor(controller.getURLNumberParam("webui_test_fail_save", 1)));
+        }
 
         if(controller.slow_ui_delay_ms > 0 || controller.slow_ui_jitter_ms > 0 || controller.drop_update_rate > 0)
         {
@@ -138,6 +174,18 @@ const controller =
                 parts.push(`drop_updates=${controller.drop_update_rate}`);
             log.print(`Slow-link test mode active (${parts.join(", ")}).`);
         }
+    },
+
+    consumeWebUITestFailure(type)
+    {
+        if(controller.webui_test_mode !== "save_recovery")
+            return false;
+
+        const property = `webui_test_fail_${type}_remaining`;
+        if(!Object.prototype.hasOwnProperty.call(controller, property) || controller[property] <= 0)
+            return false;
+        controller[property]--;
+        return true;
     },
 
     getSlowLinkDelay()
@@ -214,6 +262,15 @@ const controller =
         const saveRetryDelays = [150, 350, 800, 1600];
         const sendSaveRequest = function(attempt)
         {
+            if(attempt === 0 && controller.consumeWebUITestFailure("save"))
+            {
+                setTimeout(function()
+                {
+                    saveFailed(new Error("Save failed with HTTP 503 Service Unavailable: injected WebUI test failure"));
+                }, controller.webui_test_delay_ms);
+                return;
+            }
+
             const xhr = new XMLHttpRequest();
             xhr.open("PUT", "/save?request=" + Date.now() + "-" + attempt, true);
             xhr.setRequestHeader("Content-Type", "application/json");
@@ -294,6 +351,15 @@ const controller =
         const request_update_generation = controller.update_generation;
         const request_session_id = controller.session_id;
         const is_update_request = url.startsWith("update");
+        const is_open_request = url.startsWith("open?");
+        const updateRequestIsObsolete = function()
+        {
+            return is_update_request &&
+                (
+                    request_update_generation !== controller.update_generation ||
+                    request_session_id !== controller.session_id
+                );
+        };
         let xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.setRequestHeader("Session-Id", controller.session_id);
@@ -323,6 +389,8 @@ const controller =
                   if(is_update_request)
                       controller.update_in_flight = false;
                   controller.open_mode = false;
+                  if(is_open_request)
+                      controller.endOpeningFeedback();
                   auth.handleUnauthorized();
                   return;
               }
@@ -346,6 +414,10 @@ const controller =
         {
             if(is_update_request)
                 controller.update_in_flight = false;
+            if(updateRequestIsObsolete())
+                return;
+            if(is_open_request)
+                controller.endOpeningFeedback();
             controller.open_mode = false;
             controller.schedule_reconnect();
         }
@@ -354,12 +426,16 @@ const controller =
         {
             if(is_update_request)
                 controller.update_in_flight = false;
+            if(updateRequestIsObsolete())
+                return;
+            if(is_open_request)
+                controller.endOpeningFeedback();
             controller.open_mode = false;
             controller.schedule_reconnect();
         };
 
         xhr.responseType = 'json';
-        xhr.timeout = 2000;
+        xhr.timeout = is_open_request ? 30000 : 2000;
         try {
             xhr.send();
         }
@@ -367,6 +443,12 @@ const controller =
         {
             if(is_update_request)
                 controller.update_in_flight = false;
+            if(is_open_request)
+            {
+                controller.endOpeningFeedback();
+                controller.open_mode = false;
+                controller.schedule_reconnect();
+            }
             console.log("console.get: "+error);
         }
     },
@@ -463,6 +545,7 @@ const controller =
 
     openCallback(filename, where)
     {
+        controller.beginOpeningFeedback(filename);
         controller.get("open?where="+where+"&file="+filename, controller.update);
     },
 
@@ -699,6 +782,17 @@ const controller =
         main.setViewMode()
         controller.sendRunModeCommand("play");
     },
+
+    fastForward()
+    {
+        if(controller.isRunModeBlockedByTaintedNetwork("fastforward"))
+            return;
+
+        controller.run_mode = 'fastforward';
+        controller.syncTransportButtons();
+        main.setViewMode();
+        controller.sendRunModeCommand("fastforward");
+    },
     
     realtime()
     {
@@ -711,26 +805,10 @@ const controller =
         controller.sendRunModeCommand("realtime");
     },
 
-    clear_wait()
-    {
-        controller.load_count = 0;
-    },
-
-    wait_for_load(data)
-    {
-        if(controller.load_count > 0)
-            setTimeout(controller.wait_for_load, 1);
-        else
-        {
-            clearTimeout(controller.load_count_timeout);
-            controller.updateWidgets(controller.g_data);
-        }
-    },
-    
     updateImages(data)
     {
-        controller.load_count = 0;
         controller.g_data = data;
+        const generation = ++controller.image_update_generation;
 
         try
         {
@@ -739,11 +817,9 @@ const controller =
             {
                 const widgetElement = main.getFrameWidget(w[i]);
                 if(widgetElement && widgetElement.loadData)
-                    controller.load_count += widgetElement.loadData(data);
+                    widgetElement.loadData(data, generation);
             }
-     
-            controller.load_count_timeout = setTimeout(controller.clear_wait, 200);
-            setTimeout(controller.wait_for_load, 1);
+            controller.updateWidgets(data);
         }
         catch(err)
         {
@@ -790,7 +866,7 @@ const controller =
                 (network && network.network && network.network.filename != null && network.network.filename !== "" && network.network.filename !== "null") ? network.network.filename :
                 (response.filename != null && response.filename !== "" && response.filename !== "null") ? response.filename :
                 "-";
-            const responseRunMode = ['quit', 'stop','pause','play','realtime','restart'][response.state];
+            const responseRunMode = ['quit', 'stop', 'pause', 'play', 'realtime', 'fastforward', 'restart'][response.state];
             if(responseRunMode)
                 controller.run_mode = responseRunMode;
             document.querySelector("#file").innerText = displayedFile;
@@ -884,7 +960,7 @@ const controller =
 
     isRunModeBlockedByTaintedNetwork(command)
     {
-        return !!(network && network.tainted && ["pause", "step", "play", "realtime"].includes(command));
+        return !!(network && network.tainted && ["pause", "step", "play", "fastforward", "realtime"].includes(command));
     },
 
     update(response, session_id, package_type)
@@ -898,7 +974,9 @@ const controller =
         const isNetworkPackage = package_type == "network" || response._tag == "group";
         const sessionChanged = (!isNetworkPackage && controller.session_id != session_id);
 
-        if(main && typeof main.hideReconnectOverlay === "function")
+        if(isNetworkPackage && controller.open_mode)
+            controller.endOpeningFeedback();
+        else if(!controller.open_mode && main && typeof main.hideReconnectOverlay === "function")
             main.hideReconnectOverlay();
         controller.ping = Date.now() - controller.send_stamp;
         controller.defer_reconnect();
@@ -957,6 +1035,13 @@ const controller =
             document.querySelector("#load").style.display="none";
    
             controller.tick = response.tick;
+            if(response.tick_duration !== undefined)
+            {
+                controller.tick_duration = response.tick_duration || 0;
+                const tickDurationElement = document.querySelector("#tick_duration");
+                if(tickDurationElement)
+                    tickDurationElement.innerHTML = formatTime(response.tick_duration);
+            }
             network.init(controller.cloneNetworkForStorage(response));
             if(main && typeof main.applyStartupTopChromeVisibility === "function")
                 main.applyStartupTopChromeVisibility();
@@ -1011,6 +1096,8 @@ const controller =
             if((wasOpenRequest || isCleanNewSession || controller.preserve_clean_open) && !network.tainted)
                 main.setViewMode();
             controller.syncTransportButtons();
+            if(wasOpenRequest || wasNewRequest)
+                controller.forceNextUpdate();
        }
 
         else if(sessionChanged)

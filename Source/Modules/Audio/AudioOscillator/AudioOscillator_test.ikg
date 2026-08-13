@@ -141,7 +141,7 @@
    <connection label="control" source="TimeSeries.OUTPUT" target="Oscillator.INPUT" />
    <connection label="signal" source="Oscillator.OUTPUT" target="AudioOutput.INPUT" />
 
-   <widget name="Widget_1" title="Note" _y="336" _index_="0" width="193" show_title="true" _x="408" max="1" auto="true" style="" color="" include_zero="true" frame_width="1" class="plot" source="TimeSeries.OUTPUT" select="" background="" direction="vertical" frame_color="" min="0" height="193" show_frame="true" buffer_size="50" frame-style=""/>
-   <widget name="Widget_11" title="Trig" _y="336" _index_="2" width="193" show_title="true" _x="168" max="1" auto="true" style="" color="" include_zero="true" frame_width="1" class="plot" source="TimeSeries.TRIG" select="" background="" direction="vertical" frame_color="" min="0" height="193" show_frame="true" buffer_size="50" frame-style=""/>
+   <widget name="Widget_1" title="Note" _y="336" _index_="0" width="193" show_title="yes" _x="408" y_max="1" auto_range="yes" style="" stroke_color="" include_zero="yes" frame_width="1" class="plot" source="TimeSeries.OUTPUT" select="" background="" orientation="vertical" frame_color="" y_min="0" height="193" show_frame="yes" buffer_size="50" frame-style=""/>
+   <widget name="Widget_11" title="Trig" _y="336" _index_="2" width="193" show_title="yes" _x="168" y_max="1" auto_range="yes" style="" stroke_color="" include_zero="yes" frame_width="1" class="plot" source="TimeSeries.TRIG" select="" background="" orientation="vertical" frame_color="" y_min="0" height="193" show_frame="yes" buffer_size="50" frame-style=""/>
 
 </group>

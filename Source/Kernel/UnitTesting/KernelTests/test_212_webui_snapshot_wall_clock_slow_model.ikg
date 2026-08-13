@@ -1,0 +1,14 @@
+<group internal="true"
+    name="TestWebUISnapshotWallClockSlowModel"
+    description="Test paused WebUI images refresh after elapsed wall-clock time"
+    tick_duration="0.001"
+    snapshot_interval="0.5"
+    webui_port="8212"
+    http_real_time="false"
+    http_start_delay="0.1"
+    http_requests="assert_wall_clock_image_refresh:TestWebUISnapshotWallClockSlowModel:Image:0.65"
+    http_terminate_after_requests="true">
+    <module class="Constant"
+        name="Image"
+        data="0,0,0,0; 0,0,0,0; 0,0,0,0; 0,0,0,0" />
+</group>

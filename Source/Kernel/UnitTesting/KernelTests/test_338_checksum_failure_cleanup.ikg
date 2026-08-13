@@ -1,0 +1,14 @@
+<group internal="true"
+    name="TestChecksumFailureCleanup"
+    description="Stop initialized modules after a batch checksum mismatch"
+    check_sum="-1"
+    log_level="7"
+    expected_exit="1"
+    expected_output_contains="ChecksumFailure INIT||Incorrect Check Sum:||ChecksumFailure STOP_AFTER_TICK"
+    expected_output_not_contains="ChecksumFailure TICK_START||ChecksumFailure STOP_DURING_TICK"
+    expected_output_once="Incorrect Check Sum:"
+>
+
+    <module class="TaskLifecycleTestModule" name="Lifecycle" label="ChecksumFailure" />
+
+</group>

@@ -54,7 +54,7 @@ void AudioInput::Init()
 {
     Bind(samplingrate, "samplingrate");
     Bind(output, "OUTPUT");
-    std::cout << "outputsize: " << (int)output.size() << "\n";
+    std::cout << "outputsize: " << static_cast<int>(output.size()) << "\n";
     outputSize = output.size();
     recordedSamples.reserve(outputSize);
     StartRecording();
@@ -113,9 +113,9 @@ void AudioInput::Tick()
     if(!StartRecording())
         return;
 
-    int samplesToCopy = std::min(outputSize, (int)recordedSamples.size());
-    std::cout << "recorded samples: " << (int)recordedSamples.size() << "\n";
-    std::cout << "outputsize: " << (int)output.size() << "\n";
+    int samplesToCopy = std::min(outputSize, static_cast<int>(recordedSamples.size()));
+    std::cout << "recorded samples: " << static_cast<int>(recordedSamples.size()) << "\n";
+    std::cout << "outputsize: " << static_cast<int>(output.size()) << "\n";
     for (int i = 0; i < samplesToCopy; i++) {
         output[i] = recordedSamples[recordedSamples.size() - samplesToCopy + i];
     }

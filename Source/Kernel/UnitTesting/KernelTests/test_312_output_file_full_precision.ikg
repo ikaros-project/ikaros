@@ -1,0 +1,21 @@
+<group internal="true"
+       name="TestOutputFileFullPrecision"
+       description="OutputFile full number formatting preserves float resolution and selects scientific notation"
+       start="true"
+       stop="1"
+       check_sum="125331"
+       expected_file_exists="UserData/test_312_output_file_full_precision.csv"
+       expected_file_contains="value:0,value:1,value:2&#10;1.23456,1e-20,1e+20"
+       cleanup_expected_files="true">
+    <module name="Data" class="Constant" data="1.23456,1e-20,1e20" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_312_output_file_full_precision.csv"
+            timestamp="none"
+            number_format="full" />
+
+    <connection delay="0"
+                source="Data.OUTPUT"
+                target="Output.INPUT"
+                label="value" />
+</group>

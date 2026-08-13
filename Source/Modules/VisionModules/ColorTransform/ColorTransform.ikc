@@ -1,0 +1,11 @@
+<class name="ColorTransform" description="transforms between color spaces">
+    <description type="text">
+        ColorTransform transforms a channel-first color image with shape [3, rows, cols]. RGB to CIE L*a*b* is based on ITU-R BT.709 using the D65 white point reference. RGB to rgI outputs red chromaticity, green chromaticity, and intensity.
+    </description>
+
+    <parameter name="transform" type="number" default="0" options="RGB->Lab,RGB->XYZ,Lab->RGB,XYZ->RGB,RGB->rgI" description="Color transform" />
+    <parameter name="scale" type="number" default="1" description="Input scale divisor applied before conversion" />
+
+    <input name="INPUT" description="Color image [3, rows, cols]" />
+    <output name="OUTPUT" description="Transformed color image [3, rows, cols]" shape="INPUT.shape" />
+</class>

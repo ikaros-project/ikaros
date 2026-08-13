@@ -1,0 +1,6 @@
+<class internal="true" name="RegressionModelComparisonTestModule"
+       description="Checks scale-robust regression model comparisons">
+    <output name="X" size="1" />
+    <output name="Y" size="2" />
+    <input name="MODEL_COMPARISON" />
+</class>

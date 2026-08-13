@@ -1,15 +1,93 @@
 // Ikaros 3.0
 
-#include "ikaros.h"
 #include <atomic>
+#include <charconv>
 #include <cstdlib>
+
+#include "ikaros.h"
 
 using namespace ikaros;
 
 extern std::atomic<bool> global_terminate;
 
+namespace ikaros
+{
+    class KernelMainAccess
+    {
+    public:
+        static void SetDirectories(Kernel & kernel, std::string webui_dir, std::string user_dir)
+        {
+            kernel.webui_dir = std::move(webui_dir);
+            kernel.user_dir = std::move(user_dir);
+        }
+
+        static const std::string & UserDirectory(const Kernel & kernel)
+        {
+            return kernel.user_dir;
+        }
+
+        static void ResetProcessControl(Kernel & kernel)
+        {
+            kernel.notify_stop_requested = false;
+            kernel.process_exit_code = 0;
+        }
+
+        static bool ShouldKeepRunning(const Kernel & kernel)
+        {
+            return kernel.run_mode.load() != run_mode_quit && !global_terminate.load();
+        }
+
+        static int ProcessExitCode(const Kernel & kernel)
+        {
+            return kernel.process_exit_code.load();
+        }
+
+        static void SetRunMode(Kernel & kernel, int mode)
+        {
+            kernel.run_mode = mode;
+        }
+
+        static bool NeedsReload(const Kernel & kernel)
+        {
+            return kernel.needs_reload;
+        }
+
+        static void SetNeedsReload(Kernel & kernel, bool needs_reload)
+        {
+            kernel.needs_reload = needs_reload;
+        }
+
+        static dictionary & ModelInfo(Kernel & kernel)
+        {
+            return kernel.info_;
+        }
+    };
+}
+
 namespace
 {
+    long
+    ParseWebUIPort(const std::string & value)
+    {
+        const std::string text = trim(value);
+        long result = 0;
+        const char * begin = text.data();
+        const char * end = begin + text.size();
+        bool valid_sign = true;
+        if(begin != end && *begin == '+')
+        {
+            ++begin;
+            valid_sign = begin != end && *begin != '+' && *begin != '-';
+        }
+        const auto conversion = std::from_chars(begin, end, result);
+        if(text.empty() || !valid_sign || conversion.ec != std::errc() || conversion.ptr != end ||
+           result < 0 || result > 65535)
+            throw std::invalid_argument("Invalid WebUI port \"" + value +
+                                        "\". Expected an integer between 0 and 65535.");
+        return result;
+    }
+
+
     std::string ResolveUserDirectory(const options & o)
     {
         std::filesystem::path user_path = o.ikaros_root + "/UserData/";
@@ -34,7 +112,8 @@ namespace
         o.add_option("u", "user_data", "alternative directory for user data files", true);
         o.add_option("w", "webui_port", "port for ikaros WebUI", true, "8000");
         o.add_option("B", "bind_address", "bind WebUI/API server to a specific IPv4 address, for example 127.0.0.1", true);
-        o.add_option("a", "auth_password", "enable optional WebUI/API authentication using the provided password", true);
+        o.add_option("a", "auth_password", "enable optional WebUI/API authentication using the provided password",
+                     true, "", false, true);
         o.add_option("A", "agent", "set the agent identifier included in remote session logging", true);
         o.add_option("H", "hide_toolbar", "hide the WebUI top toolbar and breadcrumbs on startup");
         o.add_option("L", "load_state", "load persistent state after model setup; bare -L uses the model name with .state extension", false, "", true);
@@ -44,12 +123,13 @@ namespace
 
     void InitializeKernelPaths(Kernel & k, const options & o)
     {
-        k.webui_dir = o.ikaros_root+"/Source/WebUI/";
-        k.user_dir = ResolveUserDirectory(o);
+        KernelMainAccess::SetDirectories(k, o.ikaros_root+"/Source/WebUI/",
+                                         ResolveUserDirectory(o));
         k.ScanClasses(o.ikaros_root+"/Source/Modules");
+        k.ScanClasses(o.ikaros_root+"/Source/Kernel/UnitTesting/TestModules");
         k.ScanClasses(o.ikaros_root+"/Source/UserModules");
 
-        std::filesystem::current_path(k.user_dir);
+        std::filesystem::current_path(KernelMainAccess::UserDirectory(k));
     }
 
     void PrintStartupBanner()
@@ -61,6 +141,47 @@ namespace
 #endif
     }
 
+
+    void ReportStartupError(const exception & e) noexcept
+    {
+        try
+        {
+            std::cerr << "Ikaros error: " << e.what();
+            const std::string path = e.path();
+            if(!path.empty())
+                std::cerr << " (" << path << ")";
+            std::cerr << '\n';
+        }
+        catch(...)
+        {
+        }
+    }
+
+
+    void ReportStartupError(const std::exception & e) noexcept
+    {
+        try
+        {
+            std::cerr << e.what() << '\n';
+        }
+        catch(...)
+        {
+        }
+    }
+
+
+    void ReportUnknownStartupError() noexcept
+    {
+        try
+        {
+            std::cerr << "Ikaros: Internal Error\n";
+        }
+        catch(...)
+        {
+        }
+    }
+
+
     class MainLoopController
     {
     public:
@@ -68,24 +189,62 @@ namespace
             : k(kernel), o(opts)
         {
             k.SetOptions(o);
-            k.notify_stop_requested = false;
-            k.process_exit_code = 0;
+            KernelMainAccess::ResetProcessControl(k);
             k.LogProcessStart();
         }
 
         bool ShouldKeepRunning() const
         {
-            return k.run_mode.load() != run_mode_quit && !global_terminate.load();
+            return KernelMainAccess::ShouldKeepRunning(k);
         }
 
         int Finish()
         {
-            return Shutdown(k.process_exit_code.load(), true);
+            return Shutdown(KernelMainAccess::ProcessExitCode(k), true);
         }
 
         int FailFast(int code)
         {
             return Shutdown(code, false);
+        }
+
+        int FailFast(const exception & e)
+        {
+            try
+            {
+                LogLoopError("Ikaros error: " + e.message(), e.path());
+            }
+            catch(...)
+            {
+                ReportStartupError(e);
+            }
+            return FailFast(1);
+        }
+
+        int FailFast(const std::exception & e)
+        {
+            try
+            {
+                LogLoopError("Standard exception: " + std::string(e.what()));
+            }
+            catch(...)
+            {
+                ReportStartupError(e);
+            }
+            return FailFast(1);
+        }
+
+        int FailFastUnknown()
+        {
+            try
+            {
+                LogLoopError("Unknown exception.");
+            }
+            catch(...)
+            {
+                ReportUnknownStartupError();
+            }
+            return FailFast(1);
         }
 
         int HandleLoopException(const socket_startup_error & e)
@@ -139,30 +298,44 @@ namespace
         {
             LoadModelIfNeeded();
             EnsureSocketStarted();
+            SetUpModelIfNeeded();
+            model_stop_pending = true;
             ApplyAutoStartFlags();
 
             if(ShouldQuitEmptyBatchModel())
             {
-                k.run_mode = run_mode_quit;
+                KernelMainAccess::SetRunMode(k, run_mode_quit);
                 return;
             }
 
             StartRequestedRunMode();
-            k.Run();
+            if(k.Run())
+                model_stop_pending = false;
 
             if(k.GetOptionFilename().empty() && o.is_set("batch_mode"))
-                k.run_mode = run_mode_quit;
+                KernelMainAccess::SetRunMode(k, run_mode_quit);
         }
 
     private:
         Kernel & k;
         options & o;
         bool socket_initialized = false;
+        bool model_setup_pending = false;
+        bool model_stop_pending = false;
+        bool shutdown_started = false;
 
         int Shutdown(int code, bool print_banner)
         {
-            k.LogProcessExit();
+            if(shutdown_started)
+                return code;
+
+            shutdown_started = true;
             ShutdownHttp();
+            if(!StopModelIfNeeded() && code == 0)
+                code = 1;
+            if(code == 0)
+                code = KernelMainAccess::ProcessExitCode(k);
+            LogProcessExit();
             if(print_banner)
                 std::cout << "\nIkaros 3.0 Ended\n";
             return code;
@@ -170,10 +343,64 @@ namespace
 
         void ShutdownHttp()
         {
-            if(socket_initialized)
+            socket_initialized = false;
+            try
             {
                 k.StopHTTPServer();
-                socket_initialized = false;
+            }
+            catch(const exception & e)
+            {
+                LogLoopError("Failed to stop the WebUI server: " + e.message(), e.path());
+            }
+            catch(const std::exception & e)
+            {
+                LogLoopError("Failed to stop the WebUI server: " + std::string(e.what()));
+            }
+            catch(...)
+            {
+                LogLoopError("Failed to stop the WebUI server: Unknown error.");
+            }
+        }
+
+        bool StopModelIfNeeded()
+        {
+            if(!model_stop_pending)
+                return true;
+
+            model_stop_pending = false;
+            try
+            {
+                k.Stop();
+                return true;
+            }
+            catch(const exception & e)
+            {
+                LogLoopError("Failed to stop the model: " + e.message(), e.path());
+            }
+            catch(const std::exception & e)
+            {
+                LogLoopError("Failed to stop the model: " + std::string(e.what()));
+            }
+            catch(...)
+            {
+                LogLoopError("Failed to stop the model: Unknown error.");
+            }
+            return false;
+        }
+
+        void LogProcessExit()
+        {
+            try
+            {
+                k.LogProcessExit();
+            }
+            catch(const std::exception & e)
+            {
+                std::cerr << "Failed to log process exit: " << e.what() << '\n';
+            }
+            catch(...)
+            {
+                std::cerr << "Failed to log process exit: Unknown error.\n";
             }
         }
 
@@ -199,27 +426,10 @@ namespace
             if(o.is_set("batch_mode"))
                 return FailFast(1);
 
-            try
+            if(!StopModelIfNeeded())
             {
-                k.Stop();
-            }
-            catch(const exception & e)
-            {
-                LogLoopError("Failed to stop after error: " + e.message(), e.path());
-                k.run_mode = run_mode_stop;
-                k.needs_reload = true;
-            }
-            catch(const std::exception & e)
-            {
-                LogLoopError("Failed to stop after error: " + std::string(e.what()));
-                k.run_mode = run_mode_stop;
-                k.needs_reload = true;
-            }
-            catch(...)
-            {
-                LogLoopError("Failed to stop after error: Unknown error.");
-                k.run_mode = run_mode_stop;
-                k.needs_reload = true;
+                KernelMainAccess::SetRunMode(k, run_mode_stop);
+                KernelMainAccess::SetNeedsReload(k, true);
             }
 
             return -1;
@@ -229,8 +439,39 @@ namespace
         {
             if(k.GetOptionFilename().empty())
                 k.New();
-            else if(k.needs_reload)
-                k.LoadFile();
+            else if(KernelMainAccess::NeedsReload(k) && !k.AutomaticReloadSuppressed())
+            {
+                try
+                {
+                    k.LoadFileConfiguration();
+                    model_setup_pending = true;
+                }
+                catch(...)
+                {
+                    if(!o.is_set("batch_mode"))
+                        k.SuppressAutomaticReloadUntilSave();
+                    throw;
+                }
+            }
+        }
+
+        void SetUpModelIfNeeded()
+        {
+            if(!model_setup_pending)
+                return;
+
+            try
+            {
+                k.SetUpLoadedFile();
+                model_setup_pending = false;
+            }
+            catch(...)
+            {
+                model_setup_pending = false;
+                if(!o.is_set("batch_mode"))
+                    k.SuppressAutomaticReloadUntilSave();
+                throw;
+            }
         }
 
         void EnsureSocketStarted()
@@ -238,14 +479,28 @@ namespace
             bool should_start_socket =
                 !o.is_set("batch_mode")
                 || o.is_explicitly_set("webui_port")
-                || k.info_.contains("webui_port");
+                || KernelMainAccess::ModelInfo(k).contains("webui_port");
 
             if(!should_start_socket || socket_initialized)
                 return;
 
-            long port = k.GetOptionLong("webui_port");
-            if(k.info_.contains("webui_port"))
-                port = long(k.info_["webui_port"]);
+            const std::string fallback_port_value = o.get("webui_port");
+            long port = ParseWebUIPort(fallback_port_value);
+            if(KernelMainAccess::ModelInfo(k).contains("webui_port"))
+            {
+                const std::string model_port_value = std::string(KernelMainAccess::ModelInfo(k)["webui_port"]);
+                try
+                {
+                    port = ParseWebUIPort(model_port_value);
+                }
+                catch(const std::invalid_argument & e)
+                {
+                    if(o.is_set("batch_mode"))
+                        throw;
+                    k.Notify(msg_warning, std::string(e.what()) +
+                             " Using WebUI port " + std::to_string(port) + " instead.");
+                }
+            }
             k.InitSocket(port);
             socket_initialized = true;
         }
@@ -253,10 +508,10 @@ namespace
         void ApplyAutoStartFlags()
         {
             if(o.is_set("batch_mode"))
-                k.info_["start"] = true;
+                KernelMainAccess::ModelInfo(k)["start"] = true;
 
-            if(k.info_.is_set("real_time"))
-                k.info_["start"] = true;
+            if(KernelMainAccess::ModelInfo(k).is_set("real_time"))
+                KernelMainAccess::ModelInfo(k)["start"] = true;
         }
 
         bool ShouldQuitEmptyBatchModel() const
@@ -264,16 +519,19 @@ namespace
             return
                 k.GetOptionFilename().empty()
                 && o.is_set("batch_mode")
-                && k.info_.contains("stop")
-                && long(k.info_["stop"]) == 0;
+                && KernelMainAccess::ModelInfo(k).contains("stop")
+                && long(KernelMainAccess::ModelInfo(k)["stop"]) == 0;
         }
 
         void StartRequestedRunMode()
         {
-            if(!k.info_.is_set("start"))
+            if(k.AutomaticReloadSuppressed() && KernelMainAccess::NeedsReload(k))
                 return;
 
-            if(k.info_.is_set("real_time"))
+            if(!KernelMainAccess::ModelInfo(k).is_set("start"))
+                return;
+
+            if(KernelMainAccess::ModelInfo(k).is_set("real_time"))
                 k.Realtime();
             else
                 k.Play();
@@ -310,25 +568,43 @@ main(int argc, char *argv[])
         PrintStartupBanner();
         MainLoopController session(kernel(), o);
 
-        while(session.ShouldKeepRunning())
+        try
         {
-            int exit_code = session.RunProtected([&]() { session.RunIteration(); });
-            if(exit_code >= 0)
-                return exit_code;
-        }
+            while(session.ShouldKeepRunning())
+            {
+                int exit_code = session.RunProtected([&]() { session.RunIteration(); });
+                if(exit_code >= 0)
+                    return exit_code;
+            }
 
-        return session.Finish();
+            return session.Finish();
+        }
+        catch(const exception & e)
+        {
+            return session.FailFast(e);
+        }
+        catch(const std::exception & e)
+        {
+            return session.FailFast(e);
+        }
+        catch(...)
+        {
+            return session.FailFastUnknown();
+        }
     }
-    catch(std::exception & e)
+    catch(const exception & e)
     {
-        kernel().LogProcessExit();
-        std::cerr << std::string(e.what()) << '\n';
+        ReportStartupError(e);
+        return 1;
+    }
+    catch(const std::exception & e)
+    {
+        ReportStartupError(e);
         return 1;
     }
     catch(...)
     {
-        kernel().LogProcessExit();
-        std::cout << "Ikaros: Internal Error\n";
+        ReportUnknownStartupError();
         return 1;
     }
 }

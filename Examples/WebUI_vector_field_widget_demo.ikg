@@ -1,0 +1,161 @@
+<group name="WebUIVectorFieldWidgetDemo" description="Vector Field widget input, scaling, anchoring, coloring, and legend examples" start="true">
+    <module
+        class="Constant"
+        name="PackedField"
+        _x="24"
+        _y="24"
+        data="[
+            [
+                [ 1.00,  1.00,  1.00,  1.00,  1.00,  1.00,  1.00,  1.00,  1.00],
+                [ 0.75,  0.75,  0.75,  0.75,  0.75,  0.75,  0.75,  0.75,  0.75],
+                [ 0.50,  0.50,  0.50,  0.50,  0.50,  0.50,  0.50,  0.50,  0.50],
+                [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25],
+                [ 0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00],
+                [-0.25, -0.25, -0.25, -0.25, -0.25, -0.25, -0.25, -0.25, -0.25],
+                [-0.50, -0.50, -0.50, -0.50, -0.50, -0.50, -0.50, -0.50, -0.50],
+                [-0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75],
+                [-1.00, -1.00, -1.00, -1.00, -1.00, -1.00, -1.00, -1.00, -1.00]
+            ],
+            [
+                [-1.00, -0.75, -0.50, -0.25, 0.00, 0.25, 0.50, 0.75, 1.00],
+                [-1.00, -0.75, -0.50, -0.25, 0.00, 0.25, 0.50, 0.75, 1.00],
+                [-1.00, -0.75, -0.50, -0.25, 0.00, 0.25, 0.50, 0.75, 1.00],
+                [-1.00, -0.75, -0.50, -0.25, 0.00, 0.25, 0.50, 0.75, 1.00],
+                [-1.00, -0.75, -0.50, -0.25, 0.00, 0.25, 0.50, 0.75, 1.00],
+                [-1.00, -0.75, -0.50, -0.25, 0.00, 0.25, 0.50, 0.75, 1.00],
+                [-1.00, -0.75, -0.50, -0.25, 0.00, 0.25, 0.50, 0.75, 1.00],
+                [-1.00, -0.75, -0.50, -0.25, 0.00, 0.25, 0.50, 0.75, 1.00],
+                [-1.00, -0.75, -0.50, -0.25, 0.00, 0.25, 0.50, 0.75, 1.00]
+            ]
+        ]"
+    />
+
+    <module
+        class="Constant"
+        name="HorizontalField"
+        _x="24"
+        _y="144"
+        data="1.00, 0.75, 0.50, 0.25, 0.00, -0.25, -0.50, -0.75, -1.00; 1.00, 0.75, 0.50, 0.25, 0.00, -0.25, -0.50, -0.75, -1.00; 1.00, 0.75, 0.50, 0.25, 0.00, -0.25, -0.50, -0.75, -1.00; 1.00, 0.75, 0.50, 0.25, 0.00, -0.25, -0.50, -0.75, -1.00; 1.00, 0.75, 0.50, 0.25, 0.00, -0.25, -0.50, -0.75, -1.00; 1.00, 0.75, 0.50, 0.25, 0.00, -0.25, -0.50, -0.75, -1.00; 1.00, 0.75, 0.50, 0.25, 0.00, -0.25, -0.50, -0.75, -1.00; 1.00, 0.75, 0.50, 0.25, 0.00, -0.25, -0.50, -0.75, -1.00; 1.00, 0.75, 0.50, 0.25, 0.00, -0.25, -0.50, -0.75, -1.00"
+    />
+
+    <module
+        class="Constant"
+        name="VerticalField"
+        _x="24"
+        _y="264"
+        data="-1.00, -1.00, -1.00, -1.00, -1.00, -1.00, -1.00, -1.00, -1.00; -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75, -0.75; -0.50, -0.50, -0.50, -0.50, -0.50, -0.50, -0.50, -0.50, -0.50; -0.25, -0.25, -0.25, -0.25, -0.25, -0.25, -0.25, -0.25, -0.25; 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00; 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25; 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50, 0.50; 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75; 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00"
+    />
+
+    <module
+        class="Constant"
+        name="ColorValues"
+        _x="24"
+        _y="384"
+        data="1.000, 0.781, 0.625, 0.531, 0.500, 0.531, 0.625, 0.781, 1.000; 0.781, 0.563, 0.406, 0.313, 0.281, 0.313, 0.406, 0.563, 0.781; 0.625, 0.406, 0.250, 0.156, 0.125, 0.156, 0.250, 0.406, 0.625; 0.531, 0.313, 0.156, 0.063, 0.031, 0.063, 0.156, 0.313, 0.531; 0.500, 0.281, 0.125, 0.031, 0.000, 0.031, 0.125, 0.281, 0.500; 0.531, 0.313, 0.156, 0.063, 0.031, 0.063, 0.156, 0.313, 0.531; 0.625, 0.406, 0.250, 0.156, 0.125, 0.156, 0.250, 0.406, 0.625; 0.781, 0.563, 0.406, 0.313, 0.281, 0.313, 0.406, 0.563, 0.781; 1.000, 0.781, 0.625, 0.531, 0.500, 0.531, 0.625, 0.781, 1.000"
+    />
+
+    <widget
+        name="PackedRelative"
+        class="vector-field"
+        source="PackedField.OUTPUT"
+        _x="360"
+        _y="24"
+        width="360"
+        height="300"
+        title="Packed [2,H,W] · relative · centered"
+        show_title="yes"
+        show_frame="yes"
+        length_mode="relative"
+        vector_scale="0.7"
+        anchor="center"
+        stroke_color="#244f86"
+        line_width="2"
+        origin_marker="circle"
+        origin_marker_size="2"
+        color_mode="fixed"
+        scale_visibility="no"
+    />
+
+    <widget
+        name="SeparateNormalized"
+        class="vector-field"
+        x_source="HorizontalField.OUTPUT"
+        y_source="VerticalField.OUTPUT"
+        _x="760"
+        _y="24"
+        width="360"
+        height="300"
+        title="Separate X/Y · normalized · start anchored"
+        show_title="yes"
+        show_frame="yes"
+        length_mode="normalized"
+        vector_scale="0.55"
+        anchor="start"
+        stroke_color="#8c2f39"
+        line_width="2"
+        origin_marker="dot"
+        origin_marker_size="2"
+        color_mode="fixed"
+        scale_visibility="no"
+    />
+
+    <widget
+        name="MagnitudeLegend"
+        class="vector-field"
+        source="PackedField.OUTPUT"
+        _x="360"
+        _y="360"
+        width="360"
+        height="300"
+        title="Magnitude color · automatic range · legend"
+        show_title="yes"
+        show_frame="yes"
+        length_mode="relative"
+        vector_scale="0.65"
+        anchor="center"
+        line_width="2"
+        color_mode="magnitude"
+        color_map="spectrum"
+        auto_range="yes"
+        show_color_legend="yes"
+        color_legend_width="16"
+        color_legend_ticks="5"
+        color_legend_decimals="2"
+        scale_visibility="no"
+    />
+
+    <widget
+        name="SourceColorLegend"
+        class="vector-field"
+        x_source="HorizontalField.OUTPUT"
+        y_source="VerticalField.OUTPUT"
+        color_source="ColorValues.OUTPUT"
+        _x="760"
+        _y="360"
+        width="360"
+        height="300"
+        title="Scalar color source · custom map · stride 2"
+        show_title="yes"
+        show_frame="yes"
+        length_mode="coordinate"
+        vector_scale="0.16"
+        anchor="center"
+        stride="2"
+        line_width="3"
+        color_mode="source"
+        color_map="custom"
+        color_map_colors="#313695,#74add1,#ffffbf,#f46d43,#a50026"
+        value_min="0"
+        value_max="1"
+        auto_range="no"
+        show_color_legend="yes"
+        color_legend_width="16"
+        color_legend_ticks="6"
+        color_legend_decimals="1"
+        x_min="0"
+        x_max="1"
+        y_min="0"
+        y_max="1"
+        scale_visibility="yes"
+    />
+</group>

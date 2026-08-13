@@ -104,7 +104,7 @@ class WebUIWidget extends HTMLElement
             return parseFloat(x);
         
         if(t == 'bool')
-            return ['on','yes','true'].includes(x.toString().toLowerCase());
+            return x !== undefined && x !== null && ['on','yes','true','1'].includes(x.toString().toLowerCase());
         
         return x;
     }
@@ -123,7 +123,41 @@ class WebUIWidget extends HTMLElement
                 this.param_types[pt[i].name] = pt[i]['type'];
             }
         this.parameter_template = pt;        
-     }
+    }
+
+    addManagedListener(target, type, handler, options=undefined)
+    {
+        if(!target || typeof target.addEventListener !== "function")
+            return () => {};
+
+        target.addEventListener(type, handler, options);
+        if(!this.managedListeners)
+            this.managedListeners = new Set();
+
+        let active = true;
+        const remove = () => {
+            if(!active)
+                return;
+            active = false;
+            target.removeEventListener(type, handler, options);
+            this.managedListeners?.delete(remove);
+        };
+        this.managedListeners.add(remove);
+        return remove;
+    }
+
+    removeManagedListeners()
+    {
+        if(!this.managedListeners)
+            return;
+        for(const remove of [...this.managedListeners])
+            remove();
+    }
+
+    disconnectedCallback()
+    {
+        this.removeManagedListeners();
+    }
 
     get(url, callback) // FIXME: This function should instead call the get function in webui.js to maintain update
     {
@@ -195,7 +229,7 @@ class WebUIWidget extends HTMLElement
             //if(v != undefined && typeof v[0] != "object") // FIXME: Temporary fix for arrays
              //   v = [v];
 
-            if(v)
+            if(v !== undefined && v !== null)
                 return v;
             else
                 return default_data;
@@ -214,7 +248,7 @@ class WebUIWidget extends HTMLElement
                 return default_data;
 
             let v = this.receivedData[`${resolvedSource}:metadata`];
-            return v ? v : default_data;
+            return v !== undefined && v !== null ? v : default_data;
         }
         catch(err)
         {
@@ -230,6 +264,45 @@ class WebUIWidget extends HTMLElement
     getSourceAsFloat(source, default_value=0)
     {
         return parseFloat(this.getSource(source, [[default_value]])[0][0]);
+    }
+
+    flattenSource(value)
+    {
+        if(value === undefined || value === null)
+            return [];
+        if(!Array.isArray(value))
+            return [value];
+        return value.flat ? value.flat(Infinity) : value.reduce((items, item) => items.concat(this.flattenSource(item)), []);
+    }
+
+    sourceScalar(value, fallback=undefined)
+    {
+        const values = this.flattenSource(value);
+        return values.length > 0 ? values[0] : fallback;
+    }
+
+    finiteNumber(value, fallback=0)
+    {
+        const number = Number(this.sourceScalar(value, fallback));
+        return Number.isFinite(number) ? number : Number(fallback);
+    }
+
+    positiveNumber(value, fallback=0)
+    {
+        const number = Number(this.sourceScalar(value, fallback));
+        return Number.isFinite(number) && number > 0 ? number : fallback;
+    }
+
+    sourceNumber(sourceName, fallback=0)
+    {
+        return this.finiteNumber(this.getSource(sourceName, undefined), fallback);
+    }
+
+    matrixRows(value)
+    {
+        if(this.getMatrixRank(value) == 1)
+            return [value];
+        return Array.isArray(value) ? value : [];
     }
 
     addSource(data_set, source) // this will be default function for all widgets later
@@ -260,7 +333,7 @@ class WebUIWidget extends HTMLElement
         try
         {
             let v = getComputedStyle(this).getPropertyValue(attribute);
-            if(index)
+            if(index !== undefined)
                 return v.split(",")[index].trim();
             else
                 return v.trim();
@@ -287,7 +360,7 @@ class WebUIWidget extends HTMLElement
     {
         try
         {
-            if(index)
+            if(index !== undefined)
                 return parseInt(this.getProp(attribute).split(",")[index]);
             else
                 return parseInt(this.getProp(attribute));
@@ -302,7 +375,7 @@ class WebUIWidget extends HTMLElement
     {
         try
         {
-            if(index)
+            if(index !== undefined)
                 return parseFloat(this.getProp(attribute).split(",")[index]);
             else
                 return parseFloat(this.getProp(attribute));
@@ -315,14 +388,14 @@ class WebUIWidget extends HTMLElement
 
     toBool(x)
     {
-        return ['on','yes','true','1'].includes(x.toString().toLowerCase());
+        return x !== undefined && x !== null && ['on','yes','true','1'].includes(x.toString().toLowerCase());
     }
 
     getBool(attribute, index)
     {
         try
         {
-            if(index)
+            if(index !== undefined)
                 return ['yes','true','on','1'].includes(this.getProp(attribute).split(",")[index].toLowerCase());
             else
                 return ['yes','true','on','1'].includes(this.getProp(attribute).toLowerCase());
@@ -350,8 +423,8 @@ class WebUIWidget extends HTMLElement
         let v = null;
         if(variable in this.parameters && this.parameters[variable] != "")  // use style if parameter has no value (or no default)
         {
-            if(index)
-                v = this.parameters[variable].split(",")[index].toLowerCase()
+            if(index !== undefined)
+                v = String(this.parameters[variable]).split(",")[index].toLowerCase()
             else
                 v = this.parameters[variable];
             v = this.setType(v, type);
@@ -379,60 +452,60 @@ class WebUIWidget extends HTMLElement
     //    this.setFormat('ViewX', '--title-offset','int', 0);
     //    this.setFormat('ViewY', '--title-offset','int', 1);
 
-        this.setFormat('marginLeft', '--margin-left', 'int');
-        this.setFormat('marginRight', '--margin-right', 'int');
-        this.setFormat('marginTop', '--margin-top', 'int');
-        this.setFormat('marginBottom', '--margin-bottom', 'int');
+        this.setFormat('margin_left', '--margin-left', 'int');
+        this.setFormat('margin_right', '--margin-right', 'int');
+        this.setFormat('margin_top', '--margin-top', 'int');
+        this.setFormat('margin_bottom', '--margin-bottom', 'int');
 
-        this.setFormat('spaceLeft', '--space-left', 'int');
-        this.setFormat('spaceRight', '--space-right', 'int');
-        this.setFormat('spaceTop', '--space-top', 'int');
-        this.setFormat('spaceBottom', '--space-bottom', 'int');
+        this.setFormat('space_left', '--space-left', 'int');
+        this.setFormat('space_right', '--space-right', 'int');
+        this.setFormat('space_top', '--space-top', 'int');
+        this.setFormat('space_bottom', '--space-bottom', 'int');
 
         this.setFormat('spacing', '--spacing', 'int');
 
-        this.setFormat('color', '--color', 'string')
+        this.setFormat('stroke_color', '--color', 'string')
         this.setFormat('positiveColor', '--positive-color', 'string');
         this.setFormat('negativeColor', '--negative-color', 'string');
-        this.setFormat('lineWidth', '--line-width', 'string');
-        this.setFormat('lineDash', '--line-dash', 'string');
-        this.setFormat('lineCap', '--line-cap', 'string');
-        this.setFormat('lineJoin', '--line-join', 'string');
+        this.setFormat('line_width', '--line-width', 'string');
+        this.setFormat('line_dash', '--line-dash', 'string');
+        this.setFormat('line_cap', '--line-cap', 'string');
+        this.setFormat('line_join', '--line-join', 'string');
         this.setFormat('close', '--close', 'bool');
         this.setFormat('arrow', '--arrow', 'bool');
-        this.setFormat('fill', '--fill', 'string');
+        this.setFormat('fill_color', '--fill', 'string');
 
-        this.setFormat('gridColor', '--grid-color', 'string');
-        this.setFormat('gridLineWidth', '--grid-line-width', 'string');
-        this.setFormat('gridFill', '--grid-fill', 'string');
+        this.setFormat('grid_color', '--grid-color', 'string');
+        this.setFormat('grid_line_width', '--grid-line-width', 'string');
+        this.setFormat('grid_fill', '--grid-fill', 'string');
 
-        this.setFormat('flipXAxis', '--flip-x-axis', 'bool');
-        this.setFormat('flipYAxis', '--flip-y-axis', 'bool');
-        this.setFormat('flipXCanvas', '--flip-x-canvas', 'bool');
-        this.setFormat('flipYCanvas', '--flip-y-canvas', 'bool');
+        this.setFormat('flip_x_axis', '--flip-x-axis', 'bool');
+        this.setFormat('flip_y_axis', '--flip-y-axis', 'bool');
+        this.setFormat('flip_x_canvas', '--flip-x-canvas', 'bool');
+        this.setFormat('flip_y_canvas', '--flip-y-canvas', 'bool');
 
         this.setFormat('frame', '--frame', 'string');
-        this.setFormat('xAxis', '--x-axis', 'bool');
-        this.setFormat('yAxis', '--y-axis', 'bool');
-        this.setFormat('axisColor', '--axis-color', 'string');
-        this.setFormat('verticalGridlines', '--vertical-gridlines', 'int');
-        this.setFormat('horizontalGridlines', '--horizontal-gridlines', 'int');
-        this.setFormat('verticalGridlinesOver', '--vertical-gridlines-over', 'int');
-        this.setFormat('horizontalGridlinesOver', '--horizontal-gridlines-over', 'int');
-        this.setFormat('leftTickMarks', '--left-tick-marks', 'int');
-        this.setFormat('rightTickMarks', '--right-tick-marks', 'int');
-        this.setFormat('bottomTickMarks', '--bottom-tick-marks', 'int');
-        this.setFormat('leftScale', '--left-scale', 'int');
-        this.setFormat('rightScale', '--right-scale', 'int');
-        this.setFormat('bottomScale', '--bottom-scale', 'int');
-        this.setFormat('scaleOffset', '--scale-offset', 'int');
-        this.setFormat('scaleFont', '--scale-font', 'string');
+        this.setFormat('show_x_axis', '--x-axis', 'bool');
+        this.setFormat('show_y_axis', '--y-axis', 'bool');
+        this.setFormat('axis_color', '--axis-color', 'string');
+        this.setFormat('vertical_grid_lines', '--vertical-gridlines', 'int');
+        this.setFormat('horizontal_grid_lines', '--horizontal-gridlines', 'int');
+        this.setFormat('vertical_grid_lines_over', '--vertical-gridlines-over', 'int');
+        this.setFormat('horizontal_grid_lines_over', '--horizontal-gridlines-over', 'int');
+        this.setFormat('left_tick_marks', '--left-tick-marks', 'int');
+        this.setFormat('right_tick_marks', '--right-tick-marks', 'int');
+        this.setFormat('bottom_tick_marks', '--bottom-tick-marks', 'int');
+        this.setFormat('left_scale_ticks', '--left-scale', 'int');
+        this.setFormat('right_scale_ticks', '--right-scale', 'int');
+        this.setFormat('bottom_scale_ticks', '--bottom-scale', 'int');
+        this.setFormat('scale_offset', '--scale-offset', 'int');
+        this.setFormat('scale_font', '--scale-font', 'string');
 
         this.setFormat('labels', '--labels', 'bool');
         this.setFormat('labelColor', '--label-color', 'string');
-        this.setFormat('labelFont', '--label-font', 'string');
-        this.setFormat('drawLabelsX', '--draw-labels-x', 'bool');
-        this.setFormat('drawLabelsY', '--draw-labels-y', 'bool');
+        this.setFormat('label_font', '--label-font', 'string');
+        this.setFormat('show_x_labels', '--draw-labels-x', 'bool');
+        this.setFormat('show_y_labels', '--draw-labels-y', 'bool');
         
         this.setFormat('decimals', '--decimals', 'int');
 
@@ -444,7 +517,7 @@ class WebUIWidget extends HTMLElement
     {
         try
         {
-            if(v && v>=0 && this.format.positiveColor)
+            if(v !== undefined && v !== null && v >= 0 && this.format.positiveColor)
             {
                 let l = this.format.positiveColor.split(",");
                 let n = l.length;
@@ -458,7 +531,7 @@ class WebUIWidget extends HTMLElement
             }
             else
             {
-                let l = this.format.color.split(",");
+                let l = this.format.stroke_color.split(",");
                 let n = l.length;
                 return l[i % n].trim();
             }
@@ -498,11 +571,10 @@ class WebUIWidget extends HTMLElement
             return;
            if(this.parameters.command)
            {
-                let lw = this.parameters.labels ? parseInt(this.parameters.labelWidth) : 0;
+                let lw = this.parameters.labels ? parseInt(this.parameters.label_width) : 0;
                 let r = this.canvasElement.getBoundingClientRect();
-                let x = (evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw);
-                let y = (evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom);
-                //this.get("/command/"+this.parameters.module+"/"+this.parameters.command+"/"+x+"/"+y+"/1");
+                let x = (evt.clientX - r.left - this.format.space_left - lw)/(r.width - this.format.space_left - this.format.space_right- lw);
+                let y = (evt.clientY - r.top - this.format.space_top)/(r.height - this.format.space_top - this.format.space_bottom);
                 send_command(this.parameters.command, 1, x, y);
             }
             else
@@ -561,8 +633,7 @@ class WebUIWidget extends HTMLElement
         let fw = this.parameters.frame_width;
         this.parentElement.style.borderWidth = fw ? fw + "px" : "";
         this.parentElement.style.background = this.parameters.background;
-        this.parentElement.className = this.parentElement.className.replace(/visible/,'');
-        this.parentElement.className += this.toBool(this.parameters.show_frame) ? ' visible' : '';
+        this.parentElement.classList.toggle('visible', this.toBool(this.parameters.show_frame));
         const titleContainer = this.parentElement.firstChild;
         titleContainer.style.display = this.toBool(this.parameters.show_title) ? 'block' : 'none';
 
@@ -664,6 +735,8 @@ class WebUIWidget extends HTMLElement
 
     send_command(command, value=0, index_x=0, index_y=0)
     {
+        if(main.edit_mode)
+            return;
         const resolvedCommand = this.resolveControlPath(command);
         let path =  resolvedCommand.substring(0, resolvedCommand.lastIndexOf('.'));
         let name = resolvedCommand.substring(resolvedCommand.lastIndexOf('.') + 1);

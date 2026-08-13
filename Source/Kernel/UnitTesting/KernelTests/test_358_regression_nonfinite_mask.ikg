@@ -1,0 +1,22 @@
+<group internal="true"
+    name="TestRegressionNonfiniteMask"
+    description="Reject non-finite RegressionStatistics sampling masks"
+    start="true"
+    stop="16"
+    check_sum="2108"
+    expected_output_contains="REGRESSION MASK TEST OK">
+
+    <module class="RegressionMaskTestModule" name="SourceAndVerifier" />
+    <module class="RegressionStatistics" name="Regression"
+            max_samples="16" />
+
+    <connection source="SourceAndVerifier.X"
+                target="Regression.X" delay="0" />
+    <connection source="SourceAndVerifier.Y"
+                target="Regression.Y" delay="0" />
+    <connection source="SourceAndVerifier.SAMPLE"
+                target="Regression.SAMPLE" delay="0" />
+    <connection source="Regression.SAMPLE_COUNT"
+                target="SourceAndVerifier.SAMPLE_COUNT" delay="1" />
+
+</group>

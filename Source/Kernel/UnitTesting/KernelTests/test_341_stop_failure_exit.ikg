@@ -1,0 +1,20 @@
+<group internal="true"
+    name="TestStopFailureExit"
+    description="Return a failure exit status when model cleanup fails"
+    start="true"
+    stop="1"
+    check_sum="35233"
+    log_level="7"
+    expected_exit="1"
+    expected_output_contains="StopFailure STOP_AFTER_TICK||Could not stop component &quot;TestStopFailureExit.Lifecycle&quot;: TaskLifecycleTestModule Stop failure StopFailure"
+    expected_output_not_contains="StopFailure STOP_DURING_TICK"
+    expected_output_once="Could not stop component &quot;TestStopFailureExit.Lifecycle&quot;: TaskLifecycleTestModule Stop failure StopFailure"
+>
+
+    <module class="TaskLifecycleTestModule"
+        name="Lifecycle"
+        label="StopFailure"
+        fail_stop="true"
+    />
+
+</group>

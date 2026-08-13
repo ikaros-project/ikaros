@@ -1,0 +1,253 @@
+#include <atomic>
+#include <cmath>
+#include <initializer_list>
+#include <limits>
+#include <stdexcept>
+#include <string>
+#include <thread>
+#include <utility>
+
+#include "ikaros.h"
+#include "StatisticsStandaloneTests.h"
+
+using namespace ikaros;
+
+namespace
+{
+    constexpr double tolerance = 1.0e-12;
+
+    static_assert(noexcept(std::declval<const statistics &>().mean()));
+    static_assert(!noexcept(std::declval<const statistics &>().median()));
+    static_assert(!noexcept(std::declval<const statistics &>().quantile(0.5)));
+    static_assert(!noexcept(std::declval<const statistics &>().mode()));
+
+    void
+    require_close(double actual, double expected, const std::string & message)
+    {
+        if (!std::isfinite(actual) || std::fabs(actual - expected) > tolerance)
+            throw exception("StatisticsTestModule: " + message +
+                            " (expected " + std::to_string(expected) +
+                            ", got " + std::to_string(actual) + ")");
+    }
+
+
+    template<typename StatisticsType>
+    StatisticsType
+    make_statistics(std::initializer_list<double> values)
+    {
+        StatisticsType result;
+        for (double value : values)
+            result.push(value);
+        return result;
+    }
+
+
+    template<typename Function>
+    void
+    require_invalid_argument(Function function, const std::string & message)
+    {
+        try
+        {
+            function();
+        }
+        catch (const std::invalid_argument &)
+        {
+            return;
+        }
+        throw exception("StatisticsTestModule: " + message);
+    }
+
+
+    template<typename Function>
+    void
+    require_logic_error(Function function, const std::string & message)
+    {
+        try
+        {
+            function();
+        }
+        catch (const std::logic_error &)
+        {
+            return;
+        }
+        throw exception("StatisticsTestModule: " + message);
+    }
+
+
+    template<typename StatisticsType>
+    void
+    test_non_finite_samples(const std::string & name)
+    {
+        StatisticsType values;
+        values.push(1.0);
+
+        require_invalid_argument(
+            [&values] { values.push(std::numeric_limits<double>::quiet_NaN()); },
+            name + " accepted NaN");
+        require_invalid_argument(
+            [&values] { values.push(std::numeric_limits<double>::infinity()); },
+            name + " accepted positive infinity");
+        require_invalid_argument(
+            [&values] { values.push(-std::numeric_limits<double>::infinity()); },
+            name + " accepted negative infinity");
+
+        if (values.count() != 1)
+            throw exception("StatisticsTestModule: " + name +
+                            " changed after rejecting a non-finite sample");
+    }
+}
+
+
+class StatisticsTestModule: public Module
+{
+    void Init() override
+    {
+        try
+        {
+            statistics_test::run_standalone_tests();
+        }
+        catch (const std::exception & error)
+        {
+            throw exception("StatisticsTestModule: " + std::string(error.what()));
+        }
+
+        const statistics skewed = make_statistics<statistics>({1.0, 1.0, 2.0});
+        const online_statistics online_skewed = make_statistics<online_statistics>({1.0, 1.0, 2.0});
+        require_close(skewed.skewness(), std::sqrt(3.0), "batch corrected skewness");
+        require_close(online_skewed.skewness(), std::sqrt(3.0), "online corrected skewness");
+
+        const statistics uniform = make_statistics<statistics>({1.0, 2.0, 3.0, 4.0});
+        const online_statistics online_uniform = make_statistics<online_statistics>({1.0, 2.0, 3.0, 4.0});
+        require_close(uniform.skewness(), 0.0, "batch symmetric skewness");
+        require_close(online_uniform.skewness(), 0.0, "online symmetric skewness");
+        require_close(uniform.kurtosis(), -1.2, "batch corrected excess kurtosis");
+        require_close(online_uniform.kurtosis(), -1.2, "online corrected excess kurtosis");
+
+        const statistics varied =
+            make_statistics<statistics>({2.0, 8.0, 0.0, 4.0, 1.0, 9.0, 9.0, 0.0});
+        const online_statistics online_varied =
+            make_statistics<online_statistics>({2.0, 8.0, 0.0, 4.0, 1.0, 9.0, 9.0, 0.0});
+        require_close(online_varied.mean(), varied.mean(), "online mean matches batch");
+        require_close(online_varied.variance(), varied.variance(), "online variance matches batch");
+        require_close(online_varied.skewness(), varied.skewness(), "online skewness matches batch");
+        require_close(online_varied.kurtosis(), varied.kurtosis(), "online kurtosis matches batch");
+
+        const statistics::order_summary order = varied.summarize_order();
+        require_close(order.lower_fence, -10.5, "summary lower fence");
+        require_close(order.lower_whisker, 0.0, "summary lower whisker");
+        require_close(order.q1, 0.75, "summary first quartile");
+        require_close(order.median, 3.0, "summary median");
+        require_close(order.q3, 8.25, "summary third quartile");
+        require_close(order.upper_whisker, 9.0, "summary upper whisker");
+        require_close(order.upper_fence, 19.5, "summary upper fence");
+        require_close(order.interquartile_range, 7.5, "summary interquartile range");
+
+        online_statistics reset;
+        reset.push(100.0);
+        reset.push(-100.0);
+        reset.reset();
+        for (double value : {1.0, 2.0, 3.0, 4.0})
+            reset.push(value);
+        require_close(reset.skewness(), 0.0, "online reset skewness");
+        require_close(reset.kurtosis(), -1.2, "online reset kurtosis");
+
+        const statistics constant = make_statistics<statistics>({3.0, 3.0, 3.0, 3.0});
+        const online_statistics online_constant =
+            make_statistics<online_statistics>({3.0, 3.0, 3.0, 3.0});
+        require_close(constant.skewness(), 0.0, "batch constant skewness");
+        require_close(constant.kurtosis(), 0.0, "batch constant kurtosis");
+        require_close(online_constant.skewness(), 0.0, "online constant skewness");
+        require_close(online_constant.kurtosis(), 0.0, "online constant kurtosis");
+
+        test_non_finite_samples<statistics>("batch statistics");
+        test_non_finite_samples<online_statistics>("online statistics");
+
+        statistics quantiles;
+        quantiles.push(-std::numeric_limits<double>::max());
+        quantiles.push(std::numeric_limits<double>::max());
+        require_invalid_argument(
+            [&quantiles] { quantiles.quantile(std::numeric_limits<double>::quiet_NaN()); },
+            "quantile accepted NaN");
+        require_invalid_argument(
+            [&quantiles] { quantiles.quantile(std::numeric_limits<double>::infinity()); },
+            "quantile accepted positive infinity");
+        require_invalid_argument(
+            [&quantiles] { quantiles.quantile(-std::numeric_limits<double>::infinity()); },
+            "quantile accepted negative infinity");
+        require_close(quantiles.mean(), 0.0, "batch extreme mean");
+        require_close(quantiles.median(), 0.0, "batch extreme median");
+        require_close(quantiles.quantile(0.5), 0.0, "batch extreme quantile midpoint");
+
+        const double maximum = std::numeric_limits<double>::max();
+        const statistics high = make_statistics<statistics>({maximum, maximum});
+        const online_statistics online_high =
+            make_statistics<online_statistics>({maximum, maximum});
+        require_close(high.mean(), maximum, "batch maximum mean");
+        require_close(high.median(), maximum, "batch maximum median");
+        require_close(online_high.mean(), maximum, "online maximum mean");
+        require_close(online_high.median(), maximum, "online maximum median");
+
+        const online_statistics online_extremes =
+            make_statistics<online_statistics>({-maximum, maximum});
+        require_close(online_extremes.mean(), 0.0, "online extreme mean");
+        require_close(online_extremes.median(), 0.0, "online extreme median");
+
+        statistics bounded(3);
+        for (double value : {1.0, 2.0, 3.0, 4.0, 5.0})
+            bounded.push(value);
+        if (bounded.sample_limit() != 3 || bounded.count() != 3)
+            throw exception("StatisticsTestModule: bounded history size is incorrect");
+        require_close(bounded.mean(), 4.0, "bounded history retained newest mean");
+        require_close(bounded.median(), 4.0, "bounded history retained newest median");
+        require_close(bounded.min(), 3.0, "bounded history discarded oldest minimum");
+        require_close(bounded.max(), 5.0, "bounded history retained newest maximum");
+
+        bounded.reset();
+        bounded.push(10.0);
+        if (bounded.sample_limit() != 3 || bounded.count() != 1)
+            throw exception("StatisticsTestModule: reset changed bounded history capacity");
+        require_close(bounded.mean(), 10.0, "bounded history after reset");
+
+        Profiler profiler(3);
+        for (int i = 0; i < 5; ++i)
+        {
+            profiler.begin();
+            profiler.end();
+        }
+        if (profiler.history_limit() != 3 ||
+            profiler.json().find("\"count\": 3") == std::string::npos)
+            throw exception("StatisticsTestModule: profiler history is not bounded");
+
+        Profiler lifecycle;
+        require_logic_error([&lifecycle] { lifecycle.end(); },
+                            "profiler accepted an unmatched end");
+        lifecycle.begin();
+        require_logic_error([&lifecycle] { lifecycle.begin(); },
+                            "profiler accepted a nested begin");
+
+        std::atomic<bool> cross_thread_end_rejected{false};
+        std::thread other_thread([&lifecycle, &cross_thread_end_rejected]
+        {
+            try
+            {
+                lifecycle.end();
+            }
+            catch(const std::logic_error &)
+            {
+                cross_thread_end_rejected = true;
+            }
+        });
+        other_thread.join();
+        if(!cross_thread_end_rejected || !lifecycle.running())
+            throw exception("StatisticsTestModule: profiler accepted a cross-thread end");
+
+        lifecycle.end();
+        if(lifecycle.running() ||
+           lifecycle.json().find("\"count\": 1") == std::string::npos)
+            throw exception("StatisticsTestModule: valid profiler sample was not recorded");
+
+        std::cout << "STATISTICS TEST OK" << std::endl;
+    }
+};
+
+INSTALL_CLASS(StatisticsTestModule)

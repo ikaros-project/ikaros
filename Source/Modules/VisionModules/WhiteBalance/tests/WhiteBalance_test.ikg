@@ -1,0 +1,8 @@
+<group name="WhiteBalance_test" start="true" stop="1">
+    <module class="Constant" name="Image" data="[[[2, 4], [2, 4]], [[4, 4], [4, 4]], [[8, 8], [8, 8]]]" />
+    <module class="WhiteBalance" name="WhiteBalance" red_target="1" green_target="1" blue_target="1" x0="0" x1="1" y0="0" y1="1" />
+    <module class="Print" name="PrintOutput" />
+
+    <connection source="Image.OUTPUT" target="WhiteBalance.INPUT" delay="0" />
+    <connection source="WhiteBalance.OUTPUT" target="PrintOutput.INPUT" delay="0" />
+</group>

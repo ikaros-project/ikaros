@@ -1,0 +1,17 @@
+<group internal="true"
+       name="TestInputAudioChannelMismatch"
+       description="Reject an InputAudioFile channel count that disagrees with its file"
+       start="true"
+       stop="1"
+       expected_exit="1"
+       expected_output_contains="configured channels=1||contains 2 channel(s)">
+    <module class="AudioFileFixtureWriter"
+            name="AFixtures"
+            prefix="test_298_audio" />
+    <module class="InputAudioFile"
+            name="BMismatch"
+            filename="test_298_audio_pcm.wav"
+            channels="1"
+            buffer_size="4"
+            repeat="false" />
+</group>

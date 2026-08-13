@@ -1,0 +1,12 @@
+<group internal="true"
+    name="TestMixedZeroStackedDelay"
+    description="Propagate distinguishable mixed-zero delay windows into stacked slices"
+    start="true"
+    stop="3"
+    expected_output_contains="TestMixedZeroStackedDelay.Sink STACKED DELAY WINDOW TEST OK">
+    <module class="DelaySequenceSource" name="SourceA" offset="0" />
+    <module class="DelaySequenceSource" name="SourceB" offset="100" />
+    <module class="DelayStackedWindowSink" name="Sink" />
+    <connection source="SourceA.OUTPUT" target="Sink.INPUT" delay="[0:3]" />
+    <connection source="SourceB.OUTPUT" target="Sink.INPUT" delay="[0:3]" />
+</group>

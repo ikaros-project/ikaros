@@ -1,0 +1,16 @@
+<group internal="true"
+    name="TestResetGroupState"
+    description="Reset state for every component inside a selected group"
+    webui_port="8247"
+    http_start_delay="0.2"
+    http_requests="stop||resetstate?module=TestResetGroupState.MemoryGroup||savestate?filename=test_247_reset_group_state||quit"
+    expected_output_contains="Reset state for TestResetGroupState.MemoryGroup"
+    expected_file_exists="UserData/test_247_reset_group_state.state"
+    expected_file_contains="&quot;TestResetGroupState.MemoryGroup.Memory.bias&quot;||&quot;value&quot;: 0||&quot;value&quot;: &quot;untrained&quot;||&quot;TestResetGroupState.Outside.bias&quot;||&quot;value&quot;: 0.25||&quot;value&quot;: &quot;trained&quot;"
+    cleanup_expected_files="true">
+    <group name="MemoryGroup">
+        <module name="Memory" class="PersistentStateTestModule" use_scalar="true" />
+    </group>
+
+    <module name="Outside" class="PersistentStateTestModule" use_scalar="true" />
+</group>

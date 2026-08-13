@@ -1,0 +1,14 @@
+<group internal="true"
+       name="BenchmarkImageConversion"
+       description="Measure row and block image pixel conversions in Release mode"
+       benchmark_width="1920"
+       benchmark_height="1080"
+       benchmark_iterations="20"
+       benchmark_block_rows="32">
+    <module name="ImageConversion"
+            class="ImageConversionBenchmarkModule"
+            width="@benchmark_width"
+            height="@benchmark_height"
+            iterations="@benchmark_iterations"
+            block_rows="@benchmark_block_rows" />
+</group>

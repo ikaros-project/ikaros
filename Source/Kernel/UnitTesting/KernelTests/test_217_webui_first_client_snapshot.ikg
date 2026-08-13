@@ -1,0 +1,13 @@
+<group internal="true"
+    name="TestWebUIFirstClientSnapshot"
+    description="Test the first WebUI client receives live data after snapshots were skipped"
+    start="true"
+    stop="20"
+    tick_duration="0.001"
+    webui_port="8217"
+    http_ready_path="auth"
+    http_start_delay="0.1"
+    http_requests="update/TestWebUIFirstClientSnapshot?data=Source.OUTPUT||assert_data_scalar:update/TestWebUIFirstClientSnapshot?data=Source.OUTPUT:Source.OUTPUT:20"
+    http_terminate_after_requests="true">
+    <module class="DelaySequenceSource" name="Source" />
+</group>

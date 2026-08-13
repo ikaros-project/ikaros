@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestMultidimensionalDelay"
+    description="Reject multidimensional connection delay ranges"
+    expected_exit="1"
+    expected_output_contains="delay range must be one-dimensional">
+    <module class="Constant" name="Source" data="1" />
+    <module class="Print" name="Sink" />
+    <connection source="Source.OUTPUT" target="Sink.INPUT" delay="[0][1]" />
+</group>

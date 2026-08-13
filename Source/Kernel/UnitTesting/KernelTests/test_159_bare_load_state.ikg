@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestScalarStateSave"
     description="Test bare load state option uses model basename"
     stop="1"

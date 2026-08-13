@@ -1,11 +1,7 @@
-<class name="InputFile" description="reads from a file">
-	<parameter name="filename" type="string" description="File to read the data from" />
-	<parameter name="send_end_of_file" type="bool" default="yes" description="Set to 'no' to have the module send arrays of zeros forever." />
-
-<!--
-	<parameter name="iterations" type="number" default="1" description="Number of times to iterate the files" />
-    <parameter name="repetitions" type="number" default="1" description="Number of repetitions of each row" />
-	<parameter name="extend" type="number" default="0" description="Number of additional time steps to run before the module sends the end-of-file signal to the IKAROS kernel. This attribute is used to allow the data in the input file to propagate through the network of modules before the execution is terminated." />
--->
+<class name="InputFile" description="reads delimited text, JSON arrays, and JSON Lines as fixed-shape outputs">
+    <parameter name="filename" type="string" description="File to read from the project directory or UserData." />
+    <parameter name="format" type="string" control="menu" options="auto,text,csv,tsv,json,jsonl" default="auto" description="Input format. Auto selects JSON, JSONL, CSV, or TSV from the filename extension and otherwise uses legacy whitespace-separated text." />
+    <parameter name="delimiter" type="string" default="" description="Optional single-character delimiter overriding text, CSV, or TSV parsing. A literal space is allowed. Not used by JSON formats." />
+    <parameter name="header" type="bool" default="true" description="Use the first delimited record to name and size outputs. When false, all columns are emitted through one OUTPUT vector. Ignored by JSON formats." />
+    <parameter name="send_end_of_file" type="bool" default="true" description="Send an end-of-file notification after the final record. When false, outputs become zero and execution continues." />
 </class>
-

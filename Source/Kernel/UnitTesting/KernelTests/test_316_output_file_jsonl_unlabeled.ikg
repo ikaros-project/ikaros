@@ -1,0 +1,17 @@
+<group internal="true"
+       name="TestOutputFileJSONLUnlabeled"
+       description="OutputFile JSONL rejects an unlabeled connection"
+       start="true"
+       stop="0"
+       expected_exit="1"
+       expected_output_contains="OutputFile JSONL connections require explicit labels">
+    <module name="Data" class="Constant" data="1" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_316_output_file_jsonl_unlabeled.jsonl"
+            format="jsonl" />
+
+    <connection delay="0"
+                source="Data.OUTPUT"
+                target="Output.INPUT" />
+</group>

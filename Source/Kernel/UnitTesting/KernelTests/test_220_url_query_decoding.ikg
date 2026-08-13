@@ -1,0 +1,16 @@
+<group internal="true"
+    name="TestURLQueryDecoding"
+    description="Decode escaped query delimiters after separating parameters"
+    start="true"
+    stop="100"
+    cli_args="-u/tmp/ikaros_dictionary_url_query"
+    webui_port="8220"
+    http_start_delay="0.05"
+    http_requests="assert_json_field:savestate?filename=test_220_a%26b%3Dstate:filename:&quot;/tmp/ikaros_dictionary_url_query/test_220_a\u0026b=state.state&quot;"
+    http_terminate_after_requests="true"
+    expected_file_exists="/tmp/ikaros_dictionary_url_query/test_220_a&amp;b=state.state"
+    cleanup_expected_files="true">
+
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" />
+
+</group>

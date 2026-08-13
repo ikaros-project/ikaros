@@ -1,7 +1,12 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-add_subdirectory(AudioInput)
-add_subdirectory(AudioOutput)
+if(APPLE)
+    add_subdirectory(AudioInput)
+    add_subdirectory(AudioOutput)
+else()
+    message(STATUS "AudioInput and AudioOutput disabled: AudioToolbox is only available on Apple platforms")
+endif()
+
 add_subdirectory(AudioSynth)
 add_subdirectory(AudioOscillator)
 add_subdirectory(ADSREnvelope)

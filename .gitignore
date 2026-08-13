@@ -57,10 +57,17 @@ Thumbs.db
 
 # Other
 .vscode
+/status.md
 /Debug/
 /Release/
 /Build/
+/Build-tsan/
+/Bin-tsan/
+/Build-tsan-homebrew/
+/Bin-tsan-homebrew/
 
 # Python
 __pycache__/
 *.pyc
+/.venv-aliked-lightglue/
+/.model-cache/

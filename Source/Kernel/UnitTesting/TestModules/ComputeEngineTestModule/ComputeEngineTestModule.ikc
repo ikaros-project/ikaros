@@ -1,0 +1,3 @@
+<class internal="true" name="ComputeEngineTestModule" description="Exercises compute paths, matrix functions, and shape-list evaluation">
+    <parameter name="padding" type="number" default="valid" options="valid,same" />
+</class>

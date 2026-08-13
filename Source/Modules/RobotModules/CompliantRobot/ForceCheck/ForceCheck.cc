@@ -38,17 +38,17 @@ class ForceCheck: public Module
     matrix SetCurrent(matrix currents, matrix limits, matrix positions, matrix goal_position_in, int gain, int error_threshold, double smooth_factor)
     {
         for (int i = 0; i < currents.size(); i++) {
-            int position = positions[i];
+            int position = positions(i);
             if (position > 0) 
             {
-                int current_value = abs(currents[i]);
-                int limit_value = limits[i];
-                int position = positions[i];
-                int goal = goal_position_in[i];
+                int current_value = abs(currents(i));
+                int limit_value = limits(i);
+                int position = positions(i);
+                int goal = goal_position_in(i);
                 double error = abs(goal - position);
                 double error_tapered = Tapering(error, error_threshold);
                 int suggested_current = smooth_factor * current_value + (gain* error * error_tapered);
-                current_output[i] = std::min(suggested_current , limit_value); // Cap at limit_value 
+                current_output(i) = std::min(suggested_current , limit_value); // Cap at limit_value
                 
             }
                            
@@ -63,9 +63,9 @@ class ForceCheck: public Module
     {   
         for (int i = 0; i < positions.size(); i++) {
             float current_position = abs(positions(i));
-            float goal = goal_position_in[i];
-            float current_value = abs(current_output[i]);
-            float limit_value = current_limit[i];
+            float goal = goal_position_in(i);
+            float current_value = abs(current_output(i));
+            float limit_value = current_limit(i);
             if (current_position >0){
 
                 if (!obstacle && abs(goal - current_position) > position_margin && current_value > limit_value*0.8)
@@ -73,7 +73,7 @@ class ForceCheck: public Module
                     
                     obstacle = true;
                     obstacle_time = std::time(nullptr);
-                    goal_position_out[i] = current_position;
+                    goal_position_out(i) = current_position;
                     std::cout << "Goal position changed to " << current_position << std::endl;
                     
                 }
@@ -133,4 +133,3 @@ class ForceCheck: public Module
 
 
 INSTALL_CLASS(ForceCheck)
-

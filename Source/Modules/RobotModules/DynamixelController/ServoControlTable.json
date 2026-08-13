@@ -1,0 +1,421 @@
+{
+    "format": "DynamixelControlTables/v1",
+    "indirect_layouts": {
+        "MXProtocol2DefaultIndirectLayout": {
+            "Write Data Start": 224,
+            "Write Data Length": 9,
+            "Read Data Start": 634,
+            "Read Data Length": 7,
+            "Write Offsets": {
+                "Torque Enable": 0,
+                "Goal Position": 1,
+                "Goal Current": 5,
+                "Goal PWM": 7
+            },
+            "Read Offsets": {
+                "Present Position": 0,
+                "Present Current": 4,
+                "Present Temperature": 6
+            },
+            "Torque Enable": 168,
+            "Goal Position": 170,
+            "Goal Current": 178,
+            "Goal PWM": 182,
+            "Present Position": 578,
+            "Present Current": 586,
+            "Present Temperature": 590
+        }
+    },
+    "tables": {
+        "MXProtocol2ControlTable": {
+            "Operating Mode": {
+                "Address": 11,
+                "Bytes": 1
+            },
+            "Max Position Limit": {
+                "Address": 48,
+                "Bytes": 4
+            },
+            "Min Position Limit": {
+                "Address": 52,
+                "Bytes": 4
+            },
+            "Torque Enable": {
+                "Address": 64,
+                "Bytes": 1
+            },
+            "LED": {
+                "Address": 65,
+                "Bytes": 1
+            },
+            "Status Return Level": {
+                "Address": 68,
+                "Bytes": 1
+            },
+            "Registered Instruction": {
+                "Address": 69,
+                "Bytes": 1
+            },
+            "Hardware Error Status": {
+                "Address": 70,
+                "Bytes": 1
+            },
+            "Velocity I Gain": {
+                "Address": 76,
+                "Bytes": 2
+            },
+            "Velocity P Gain": {
+                "Address": 78,
+                "Bytes": 2
+            },
+            "Position D Gain": {
+                "Address": 80,
+                "Bytes": 2
+            },
+            "Position I Gain": {
+                "Address": 82,
+                "Bytes": 2
+            },
+            "Position P Gain": {
+                "Address": 84,
+                "Bytes": 2
+            },
+            "Feedforward 2nd Gain": {
+                "Address": 88,
+                "Bytes": 2
+            },
+            "Feedforward 1st Gain": {
+                "Address": 90,
+                "Bytes": 2
+            },
+            "BUS Watchdog": {
+                "Address": 98,
+                "Bytes": 1
+            },
+            "Goal PWM": {
+                "Address": 100,
+                "Bytes": 2
+            },
+            "Goal Current": {
+                "Address": 102,
+                "Bytes": 2
+            },
+            "Goal Velocity": {
+                "Address": 104,
+                "Bytes": 4
+            },
+            "Profile Acceleration": {
+                "Address": 108,
+                "Bytes": 4
+            },
+            "Profile Velocity": {
+                "Address": 112,
+                "Bytes": 4
+            },
+            "Goal Position": {
+                "Address": 116,
+                "Bytes": 4
+            },
+            "Realtime Tick": {
+                "Address": 120,
+                "Bytes": 2
+            },
+            "Moving": {
+                "Address": 122,
+                "Bytes": 1
+            },
+            "Moving Status": {
+                "Address": 123,
+                "Bytes": 1
+            },
+            "Present PWM": {
+                "Address": 124,
+                "Bytes": 2
+            },
+            "Present Current": {
+                "Address": 126,
+                "Bytes": 2
+            },
+            "Present Velocity": {
+                "Address": 128,
+                "Bytes": 4
+            },
+            "Present Position": {
+                "Address": 132,
+                "Bytes": 4
+            },
+            "Velocity Trajectory": {
+                "Address": 136,
+                "Bytes": 4
+            },
+            "Position Trajectory": {
+                "Address": 140,
+                "Bytes": 4
+            },
+            "Present Input Voltage": {
+                "Address": 144,
+                "Bytes": 2
+            },
+            "Present Temperature": {
+                "Address": 146,
+                "Bytes": 1
+            }
+        },
+        "MX28Protocol2ControlTable": {
+            "Operating Mode": {
+                "Address": 11,
+                "Bytes": 1
+            },
+            "Max Position Limit": {
+                "Address": 48,
+                "Bytes": 4
+            },
+            "Min Position Limit": {
+                "Address": 52,
+                "Bytes": 4
+            },
+            "Torque Enable": {
+                "Address": 64,
+                "Bytes": 1
+            },
+            "LED": {
+                "Address": 65,
+                "Bytes": 1
+            },
+            "Status Return Level": {
+                "Address": 68,
+                "Bytes": 1
+            },
+            "Registered Instruction": {
+                "Address": 69,
+                "Bytes": 1
+            },
+            "Hardware Error Status": {
+                "Address": 70,
+                "Bytes": 1
+            },
+            "Velocity I Gain": {
+                "Address": 76,
+                "Bytes": 2
+            },
+            "Velocity P Gain": {
+                "Address": 78,
+                "Bytes": 2
+            },
+            "Position D Gain": {
+                "Address": 80,
+                "Bytes": 2
+            },
+            "Position I Gain": {
+                "Address": 82,
+                "Bytes": 2
+            },
+            "Position P Gain": {
+                "Address": 84,
+                "Bytes": 2
+            },
+            "Feedforward 2nd Gain": {
+                "Address": 88,
+                "Bytes": 2
+            },
+            "Feedforward 1st Gain": {
+                "Address": 90,
+                "Bytes": 2
+            },
+            "BUS Watchdog": {
+                "Address": 98,
+                "Bytes": 1
+            },
+            "Goal PWM": {
+                "Address": 100,
+                "Bytes": 2
+            },
+            "Goal Velocity": {
+                "Address": 104,
+                "Bytes": 4
+            },
+            "Profile Acceleration": {
+                "Address": 108,
+                "Bytes": 4
+            },
+            "Profile Velocity": {
+                "Address": 112,
+                "Bytes": 4
+            },
+            "Goal Position": {
+                "Address": 116,
+                "Bytes": 4
+            },
+            "Realtime Tick": {
+                "Address": 120,
+                "Bytes": 2
+            },
+            "Moving": {
+                "Address": 122,
+                "Bytes": 1
+            },
+            "Moving Status": {
+                "Address": 123,
+                "Bytes": 1
+            },
+            "Present PWM": {
+                "Address": 124,
+                "Bytes": 2
+            },
+            "Present Load": {
+                "Address": 126,
+                "Bytes": 2
+            },
+            "Present Velocity": {
+                "Address": 128,
+                "Bytes": 4
+            },
+            "Present Position": {
+                "Address": 132,
+                "Bytes": 4
+            },
+            "Velocity Trajectory": {
+                "Address": 136,
+                "Bytes": 4
+            },
+            "Position Trajectory": {
+                "Address": 140,
+                "Bytes": 4
+            },
+            "Present Input Voltage": {
+                "Address": 144,
+                "Bytes": 2
+            },
+            "Present Temperature": {
+                "Address": 146,
+                "Bytes": 1
+            }
+        },
+        "XL320ControlTable": {
+            "Model Number": {
+                "Address": 0,
+                "Bytes": 2
+            },
+            "Firmware Version": {
+                "Address": 2,
+                "Bytes": 1
+            },
+            "ID": {
+                "Address": 3,
+                "Bytes": 1
+            },
+            "Baud Rate": {
+                "Address": 4,
+                "Bytes": 1
+            },
+            "Return Delay Time": {
+                "Address": 5,
+                "Bytes": 1
+            },
+            "CW Angle Limit": {
+                "Address": 6,
+                "Bytes": 2
+            },
+            "CCW Angle Limit": {
+                "Address": 8,
+                "Bytes": 2
+            },
+            "Control Mode": {
+                "Address": 11,
+                "Bytes": 1
+            },
+            "Temperature Limit": {
+                "Address": 12,
+                "Bytes": 1
+            },
+            "Min Voltage Limit": {
+                "Address": 13,
+                "Bytes": 1
+            },
+            "Max Voltage Limit": {
+                "Address": 14,
+                "Bytes": 1
+            },
+            "Max Torque": {
+                "Address": 15,
+                "Bytes": 2
+            },
+            "Status Return Level": {
+                "Address": 17,
+                "Bytes": 1
+            },
+            "Shutdown": {
+                "Address": 18,
+                "Bytes": 1
+            },
+            "Torque Enable": {
+                "Address": 24,
+                "Bytes": 1
+            },
+            "LED": {
+                "Address": 25,
+                "Bytes": 1
+            },
+            "D Gain": {
+                "Address": 27,
+                "Bytes": 1
+            },
+            "I Gain": {
+                "Address": 28,
+                "Bytes": 1
+            },
+            "P Gain": {
+                "Address": 29,
+                "Bytes": 1
+            },
+            "Goal Position": {
+                "Address": 30,
+                "Bytes": 2
+            },
+            "Moving Speed": {
+                "Address": 32,
+                "Bytes": 2
+            },
+            "Torque Limit": {
+                "Address": 35,
+                "Bytes": 2
+            },
+            "Present Position": {
+                "Address": 37,
+                "Bytes": 2
+            },
+            "Present Speed": {
+                "Address": 39,
+                "Bytes": 2
+            },
+            "Present Load": {
+                "Address": 41,
+                "Bytes": 2
+            },
+            "Present Voltage": {
+                "Address": 45,
+                "Bytes": 1
+            },
+            "Present Temperature": {
+                "Address": 46,
+                "Bytes": 1
+            },
+            "Registered Instruction": {
+                "Address": 47,
+                "Bytes": 1
+            },
+            "Moving": {
+                "Address": 49,
+                "Bytes": 1
+            },
+            "Hardware Error Status": {
+                "Address": 50,
+                "Bytes": 1
+            },
+            "Punch": {
+                "Address": 51,
+                "Bytes": 2
+            }
+        }
+    }
+}

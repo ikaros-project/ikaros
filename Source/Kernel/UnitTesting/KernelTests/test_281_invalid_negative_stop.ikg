@@ -1,0 +1,6 @@
+<group internal="true"
+    name="TestInvalidNegativeStop"
+    description="Reject a negative stop tick other than the sentinel"
+    stop="-2"
+    expected_exit="1"
+    expected_output_contains="Invalid stop tick &quot;-2&quot;. Expected -1 or a non-negative integer." />

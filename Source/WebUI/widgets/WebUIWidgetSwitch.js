@@ -7,11 +7,11 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
 
             { name: "CONTROL", control: "header" },
             { name: "parameter", default: "", type: "source", control: "textedit" },
-            { name: "enableSource", default: "", type: "source", control: "textedit" },
+            { name: "enabled_source", default: "", type: "source", control: "textedit" },
             { name: "value", default: 1, type: "int", control: "textedit" },
             { name: "select_x", default: 0, type: "int", control: "textedit" },
             { name: "select_y", default: "", type: "string", control: "textedit" },
-            { name: "count", default: 1, type: "int", control: "textedit" }
+            { name: "control_count", default: 1, type: "int", control: "textedit" }
         ];
     }
 
@@ -21,8 +21,8 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
 
     requestData(data_set) {
         this.addSource(data_set, this.parameters.parameter);
-        if (this.parameters.enableSource) {
-            this.addSource(data_set, this.parameters.enableSource);
+        if (this.parameters.enabled_source) {
+            this.addSource(data_set, this.parameters.enabled_source);
         }
     }
 
@@ -30,36 +30,8 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
         return this.querySelectorAll(".switch-row");
     }
 
-    _isEnabled() {
-        if (!this.parameters.enableSource) {
-            return true;
-        }
-
-        const enableSource = this.getSource("enableSource", 1);
-        const enableValue = Array.isArray(enableSource)
-            ? (Array.isArray(enableSource[0]) ? enableSource[0][0] : enableSource[0])
-            : enableSource;
-        return Number(enableValue) !== 0;
-    }
-
     _syncEnabledState() {
-        const enabled = this._isEnabled();
-        this.classList.toggle("widget-control-disabled", !enabled);
-        for (const input of this.querySelectorAll("input")) {
-            input.disabled = !enabled;
-            input.closest(".switch-row")?.classList.toggle("widget-control-disabled", !enabled);
-        }
-    }
-
-    _getBaseSelectX() {
-        return Number(this.parameters.select_x ?? 0);
-    }
-
-    _getSelectY() {
-        if (this.parameters.select_y === undefined || this.parameters.select_y === null) {
-            return "";
-        }
-        return this.parameters.select_y;
+        this.syncControlEnabledState(this.querySelectorAll("input"), ".switch-row");
     }
 
     _sendControlValue(checked, index) {
@@ -67,37 +39,14 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
             return;
         }
 
-        const x = this._getBaseSelectX() + index;
-        const y = this._getSelectY();
         const onValue = this.parameters.value;
         const offValue = 0;
         const value = checked ? onValue : offValue;
-
-        if (y === "") {
-            this.send_control_change(this.parameters.parameter, value, x);
-            return;
-        }
-
-        this.send_control_change(
-            this.parameters.parameter,
-            value,
-            x,
-            Math.trunc(Number(y))
-        );
+        this.sendIndexedControlChange(this.parameters.parameter, value, index);
     }
 
     _handleRowInput(rowIndex, event) {
         if (main.edit_mode) {
-            const component = this.parentElement;
-            const componentName = component?.dataset?.name || component?.id;
-            if (componentName) {
-                selector.selectItems([componentName], null, event.shiftKey);
-            }
-            if (event.detail === 2 || event.type === "dblclick") {
-                inspector.toggleComponent();
-            }
-            event.preventDefault();
-            event.stopPropagation();
             return;
         }
 
@@ -109,7 +58,8 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
         super.updateAll();
 
         const container = this.firstChild;
-        const count = Math.max(1, Number(this.parameters.count) || 1);
+        const configuredCount = Number(this.parameters.control_count);
+        const count = Number.isFinite(configuredCount) ? Math.max(1, Math.trunc(configuredCount)) : 1;
 
         while (container.childElementCount > count) {
             container.removeChild(container.lastElementChild);
@@ -145,27 +95,13 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
             };
 
             input.onmousedown = (event) => {
-                if (main.edit_mode) {
-                    const component = this.parentElement;
-                    const componentName = component?.dataset?.name || component?.id;
-                    if (componentName) {
-                        selector.selectItems([componentName], null, event.shiftKey);
-                    }
-                    event.stopPropagation();
-                }
+                if (main.edit_mode)
+                    return;
             };
 
             input.ondblclick = (event) => {
-                if (main.edit_mode) {
-                    const component = this.parentElement;
-                    const componentName = component?.dataset?.name || component?.id;
-                    if (componentName) {
-                        selector.selectItems([componentName], null, event.shiftKey);
-                    }
-                    inspector.toggleComponent();
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
+                if (main.edit_mode)
+                    return;
             };
         });
 
@@ -173,43 +109,11 @@ class WebUIWidgetSwitch extends WebUIWidgetControl {
     }
 
     update() {
-        try {
-            this._syncEnabledState();
-            let data = this.getSource("parameter");
-            if (!data) {
-                return;
-            }
-
-            if (Array.isArray(data) && !Array.isArray(data[0])) {
-                data = [data];
-            }
-
-            const rows = this._getRows();
-            const selectedY = this._getSelectY();
-            let x = this._getBaseSelectX();
-
-            if (selectedY !== "") {
-                const y = Math.trunc(Number(selectedY));
-                if (!Array.isArray(data[y])) {
-                    return;
-                }
-
-                rows.forEach((row) => {
-                    const input = row.querySelector("input");
-                    input.checked = ((data[y][x] ?? 0) > 0);
-                    x += 1;
-                });
-                return;
-            }
-
-            rows.forEach((row) => {
-                const input = row.querySelector("input");
-                input.checked = ((data[x] ?? 0) > 0);
-                x += 1;
-            });
-        }
-        catch (err) {
-        }
+        this._syncEnabledState();
+        const rows = this._getRows();
+        rows.forEach((row, index) => {
+            row.querySelector("input").checked = Number(this.getSelectedSourceValue("parameter", 0, index)) > 0;
+        });
     }
 }
 

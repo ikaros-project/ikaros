@@ -1,0 +1,8 @@
+<group internal="true" name="TestUseLabelSimpleInput" description="Apply a connection label to a whole-buffer input" start="true" stop="2" expected_output_contains="signal = {7}">
+
+    <module class="Constant" name="Source" data="7" />
+    <module class="Print" name="Sink" />
+
+    <connection source="Source.OUTPUT" target="Sink.INPUT" label="signal" />
+
+</group>

@@ -1,0 +1,28 @@
+<group internal="true"
+       name="TestOutputFileSingleTrigger"
+       description="OutputFile single_trigger writes once for each WRITE rising edge"
+       start="true"
+       stop="5"
+       check_sum="241991"
+       expected_file_exists="UserData/test_328_output_file_single_trigger.csv"
+       expected_file_contains="line/1,value&#10;0,1.23&#10;1,1.23"
+       cleanup_expected_files="true">
+    <module name="Data" class="Constant" data="1.23456" />
+    <module name="Write"
+            class="FunctionGenerator"
+            type="ticksquare"
+            basetime="3"
+            tickduty="2" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_328_output_file_single_trigger.csv"
+            decimals="2"
+            timestamp="line"
+            single_trigger="yes" />
+
+    <connection source="Data.OUTPUT"
+                target="Output.INPUT"
+                label="value" />
+    <connection source="Write.OUTPUT"
+                target="Output.WRITE" />
+</group>

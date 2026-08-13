@@ -10,3 +10,22 @@ dimension. For example, two `4 x 4` salience maps connected to `INPUT` are read 
 `INPUT[0]` and `INPUT[1]`, and the output remains `4 x 4`.
 
 Missing factor values default to `1`.
+
+## Parameters
+
+| Name | Description | Type | Default |
+| --- | --- | --- | --- |
+| factors | Scale factor for each input map; missing factors default to 1 | matrix | 1 |
+| decay | Factor applied to the previous OUTPUT before adding the current inputs | number | 0.9 |
+
+## Inputs
+
+| Name | Description | Optional |
+| --- | --- | --- |
+| INPUT | One or more salience maps; stack adds the first dimension as the map index |  |
+
+## Outputs
+
+| Name | Description |
+| --- | --- |
+| OUTPUT | Integrated salience map |

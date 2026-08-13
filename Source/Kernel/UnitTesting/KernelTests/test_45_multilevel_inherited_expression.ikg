@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_45"
     description="Test multi-level inherited expression uses defining group context"
     check_sum="222632"

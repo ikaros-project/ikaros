@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_78"
     description="Reject indexed connections from dynamic matrix outputs"
     expected_exit="1"

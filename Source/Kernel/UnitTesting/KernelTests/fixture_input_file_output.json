@@ -1,0 +1,4 @@
+[
+{"line":0,"weights":[[1,2],[3,4]],"quoted\"key":[5,6],"a b":[7],"a-b":[8],"missing":[null,2]},
+{"line":1,"weights":[[9,10],[11,12]],"quoted\"key":[13,14],"a b":[15],"a-b":[16],"missing":[17,18]}
+]

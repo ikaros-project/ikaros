@@ -9,12 +9,11 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             {'name':'opacity_source', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name':'file', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'index', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'index_source', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
                 
-            {'name':'module', 'default':"", 'type':'module', 'control': 'textedit'},
-            {'name':'command', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
 
@@ -24,15 +23,15 @@ class WebUIWidgetImage extends WebUIWidgetGraph
             
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
-            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no", 'class':'true'},
-            {'name':'min_x', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_x', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'min_y', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_y', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'scale_visibility', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no", 'class':'true'},
+            {'name':'x_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'x_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'flip_x_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_x_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
         ]};
 
     init()
@@ -43,82 +42,106 @@ class WebUIWidgetImage extends WebUIWidgetGraph
         {
             if(main.edit_mode)
                 return;
-            let lw = this.parameters.labels ? parseInt(this.parameters.labelWidth) : 0;
+            let lw = this.parameters.labels ? parseInt(this.parameters.label_width) : 0;
             let r = this.canvasElement.getBoundingClientRect();
-            let x = (evt.clientX - r.left - this.format.spaceLeft - lw)/(r.width - this.format.spaceLeft - this.format.spaceRight- lw);
-            let y = (evt.clientY - r.top - this.format.spaceTop)/(r.height - this.format.spaceTop - this.format.spaceBottom);
+            let x = (evt.clientX - r.left - this.format.space_left - lw)/(r.width - this.format.space_left - this.format.space_right- lw);
+            let y = (evt.clientY - r.top - this.format.space_top)/(r.height - this.format.space_top - this.format.space_bottom);
             
-            if(this.parameters.command && this.parameters.module)
-                this.send_command(`${this.parameters.module}.${this.parameters.command}`, 1, x, y);
+            if(this.parameters.command)
+                this.send_command(this.parameters.command, 1, x, y);
         }
     }
 
     requestData(data_set)
     {
-        if(!this.parameters.file)
+        if(!this.parameters.file && this.parameters.source)
             data_set.add(this.resolveControlPath(this.parameters.source)+":"+this.parameters.format);
-        if(this.parameters.index)
-            this.addSource(data_set, this.parameters.index);
+        if(this.parameters.index_source)
+            this.addSource(data_set, this.parameters.index_source);
         if(this.parameters.opacity_source)
             this.addSource(data_set, this.parameters.opacity_source);
     }
 
     updateFrame()
     {
-        if(this.parameters.opacity != 1)
-            this.canvas.canvas.style.opacity = this.parameters.opacity;
+        const configuredOpacity = Number(this.parameters.opacity);
+        this.canvas.canvas.style.opacity = Number.isFinite(configuredOpacity) ? Math.max(0, Math.min(1, configuredOpacity)) : 1;
         
         this.oversampling = 1; //(this.parameters.file ? 4 : 1);
-        this.imageObj = new Image();
+        if(!this.imageObj)
+            this.imageObj = new Image();
         this.imageCount = 0;
         if(this.parameters.file) //  && this.parameters.file.indexOf(",")!=-1
         {
-            this.imageObjects = [];
             let img_names = String(this.parameters.file ?? "").split(',').map((name) => name.trim()).filter((name) => name !== "");
             this.imageCount = img_names.length;
-            let i = 0;
-            for(let img_name of img_names)
+            const imageKey = img_names.join(',');
+            if(this.static_image_key !== imageKey)
             {
-                this.imageObjects[i] = new Image();
-                this.imageObjects[i].src = "/"+img_name;
-                i++;
+                this.static_image_key = imageKey;
+                this.imageObjects = [];
+                let i = 0;
+                for(let img_name of img_names)
+                {
+                    this.imageObjects[i] = new Image();
+                    this.imageObjects[i].onload = () => this.update();
+                    this.imageObjects[i].src = "/"+img_name;
+                    i++;
+                }
             }
         }
         else
         {
+            this.static_image_key = null;
             this.canvas.fillStyle="black";
             this.canvas.fillRect(0, 0, this.width, this.height);
         }
         super.updateFrame();
+        if((this.imageCount && this.imageObjects?.some((image) => image.complete && image.naturalWidth > 0)) ||
+           (!this.imageCount && this.imageObj.complete && this.imageObj.naturalWidth > 0))
+            this.update();
     }
 
-    loadData(data)
+    loadData(data, generation)
     {
-        if(this.parameters.source)
-        {
-            let d = data[this.resolveControlPath(this.parameters.source)+":"+this.parameters.format];
-            if(!d)
-                return 0;
-            const image = this.imageObj;
-            const loadToken = (this.image_load_token || 0) + 1;
-            this.image_load_token = loadToken;
-            let completed = false;
-            const finishLoad = () =>
-            {
-                if(completed || this.image_load_token !== loadToken)
-                    return;
-                completed = true;
-                controller.load_count--;
-            };
-            image.onload = finishLoad;
-            image.onerror = finishLoad;
-            if(image.src === d && image.complete)
-                return 0;
-            image.src = d;
-            return 1;
-        }
+        if(!this.parameters.source)
+            return;
 
-        return 0;
+        const source = data[this.resolveControlPath(this.parameters.source)+":"+this.parameters.format];
+        if(!source)
+            return;
+        if(this.imageObj.src === source && this.imageObj.complete && this.imageObj.naturalWidth > 0)
+            return;
+
+        if(this.cancel_pending_image)
+            this.cancel_pending_image();
+
+        const image = new Image();
+        const loadToken = (this.image_load_token || 0) + 1;
+        this.image_load_token = loadToken;
+        this.pending_image_generation = generation;
+
+        let completed = false;
+        const finishLoad = (loaded) =>
+        {
+            if(completed)
+                return;
+            completed = true;
+            if(this.cancel_pending_image === cancelLoad)
+                this.cancel_pending_image = null;
+            image.onload = null;
+            image.onerror = null;
+            if(!loaded || this.image_load_token !== loadToken || this.pending_image_generation !== generation)
+                return;
+            this.imageObj = image;
+            this.receivedData = data;
+            this.update(data);
+        };
+        const cancelLoad = () => finishLoad(false);
+        this.cancel_pending_image = cancelLoad;
+        image.onload = () => finishLoad(true);
+        image.onerror = () => finishLoad(false);
+        image.src = source;
     }
 
     drawPlotHorizontal(width, height)   // Draw actual image in a coordinate system
@@ -140,11 +163,11 @@ class WebUIWidgetImage extends WebUIWidgetGraph
                 h = this.imageObjects[0].height;
             }
             let ix = 0;
-            let index = this.getSource("index");
+            let index = this.getSource("index_source");
             if(index)
             {
                 if (Array.isArray(index))
-                    ix = Math.floor(Array.isArray(index[0]) ? index[0][0] : index[0]);
+                    ix = Math.floor(this.sourceScalar(index, 0));
                 else
                     ix = Math.floor(index);
                 if(ix < 0)
@@ -174,15 +197,15 @@ class WebUIWidgetImage extends WebUIWidgetGraph
     {
         try
         {
-            let o = this.getSource('opacity_source');
-            if(o)
+            const opacitySource = this.getSource('opacity_source');
+            if(opacitySource !== undefined && opacitySource !== null)
             {
-                const opacityValue = Array.isArray(o) ? (Array.isArray(o[0]) ? o[0][0] : o[0]) : o;
-                this.canvas.canvas.style.opacity = opacityValue;
+                const opacityValue = this.sourceScalar(opacitySource);
+                const numericOpacity = Number(opacityValue);
+                if(Number.isFinite(numericOpacity))
+                    this.canvas.canvas.style.opacity = Math.max(0, Math.min(1, numericOpacity));
             }
-            this.resetCanvasTransform(-0.5, -0.5);
-            this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
+            this.beginCanvasDraw();
 
             this.drawHorizontal(1, 1);  // Draw grid over image
         }

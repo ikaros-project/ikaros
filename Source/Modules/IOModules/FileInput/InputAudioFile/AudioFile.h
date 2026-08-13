@@ -1,35 +1,28 @@
-#ifndef AUDIOFILE_H
-#define AUDIOFILE_H
+#pragma once
 
+#include <cstddef>
+#include <filesystem>
+#include <span>
 #include <vector>
-#include <iostream>
-#include <fstream>
-#include <string>
 
-class AudioFile {
+
+class AudioFile
+{
 public:
-    AudioFile(const std::string &filename);
+    explicit AudioFile(const std::filesystem::path & path);
 
-    float getLeftSample(int index) const;
-    float getRightSample(int index) const;
-    float getSample(int channel, int index) const;
-    int getSize() const;
-
-    int getSampleRate() const { return sampleRate; }
-    int getBitDepth() const { return bitDepth; }
-    int getNumChannels() const { return numChannels; }
-    bool isStereo() const { return numChannels == 2; }
+    double sampleRate() const noexcept { return sampleRate_; }
+    int bitDepth() const noexcept { return bitDepth_; }
+    std::size_t channelCount() const noexcept { return channels_.size(); }
+    std::size_t frameCount() const noexcept;
+    std::span<const float> channel(std::size_t index) const;
 
 private:
-    std::vector<float> leftChannelData;
-    std::vector<float> rightChannelData;
-    int sampleRate;
-    int bitDepth;
-    int numSamples;
-    int numChannels;
+    void loadWAV(std::span<const unsigned char> data);
+    void loadAIFF(std::span<const unsigned char> data);
 
-    void loadWAV(const std::string &filename);
-    void loadAIFF(const std::string &filename);
+    std::filesystem::path path_;
+    double sampleRate_ = 0;
+    int bitDepth_ = 0;
+    std::vector<std::vector<float>> channels_;
 };
-
-#endif // AUDIOFILE_H

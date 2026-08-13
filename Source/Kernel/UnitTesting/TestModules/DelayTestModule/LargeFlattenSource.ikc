@@ -1,0 +1,3 @@
+<class internal="true" name="LargeFlattenSource" description="Provides a large output for flattened-size overflow tests">
+    <output name="OUTPUT" size="10631108" />
+</class>

@@ -1,0 +1,17 @@
+<group internal="true"
+    name="TestWorld2DDynamicParameters"
+    description="Test explicit dynamic World2D parameters grow and shrink through commands"
+    start="true"
+    stop="-1"
+    tick_duration="0.01"
+    webui_port="8222"
+    http_ready_path="auth"
+    http_start_delay="0.05"
+    http_requests="command/.TestWorld2DDynamicParameters.World?command=add_object&amp;x=100&amp;y=100||json/.TestWorld2DDynamicParameters.World.food||command/.TestWorld2DDynamicParameters.World?command=delete_object&amp;type=2&amp;id=14||json/.TestWorld2DDynamicParameters.World.food"
+    http_terminate_after_requests="true"
+    expected_output_contains="&quot;shape&quot;: [3, 17]||&quot;shape&quot;: [2, 17]"
+    expected_output_not_contains="Matrix parameter shape cannot change||could not be set">
+
+    <module class="World2D" name="World" />
+
+</group>

@@ -3,11 +3,12 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<link rel="preload" href="images/logo.png" as="image"> 
+<link rel="preload" href="Images/logo.png" as="image">
 <link rel="stylesheet" type="text/css" href="style.css">
 <link rel="stylesheet" type="text/css" href="defaults.css">
 <link rel="stylesheet" type="text/css" href="widget_style.css">
 <link rel="stylesheet" type="text/css" href="widget_defaults.css">
+<link rel="stylesheet" type="text/css" href="js/katex/katex.min.css">
 
 <link href='https://fonts.googleapis.com/css?family=Didact Gothic' rel='stylesheet'>
 
@@ -17,10 +18,10 @@
 <body>
     <div id="load">
         <div>
-            <img src="images/logo.png" style="height:120px; width: 120px"><br />
+            <img src="Images/logo.png" style="height:120px; width: 120px"><br />
             <span id="loadbar" class="loader"></span><br />
             <span id="brainstudio_logo">BrainStudio</span>
-            <div id="connection_status"><blink>Loading</div>
+            <div id="connection_status">Loading</div>
             <div id="auth_panel" style="display:none; margin-top:16px;">
                 <form id="auth_form" onsubmit="return auth.submitLogin(event);" style="display:flex; flex-direction:column; gap:10px; align-items:center;">
                     <input id="auth_username" type="text" autocomplete="username" value="ikaros" placeholder="Username" style="padding:10px 12px; min-width:220px; border-radius:10px; border:1px solid rgba(255,255,255,0.35); background:rgba(255,255,255,0.12); color:white;">
@@ -39,11 +40,14 @@
     <script src="ui/menu.js" defer></script>
     <script src="ui/log.js" defer></script>
     <script src="core/selector.js" defer></script>
+    <script src="js/katex/katex.min.js" defer></script>
     <script src="ui/inspector.js" defer></script>
     <script src="core/color_tables.js" defer ></script>
 
     <!-- three.js -->
     <script src="js/three.min.js"></script>
+    <script src="js/lines/LineSegmentsGeometry.js" defer></script>
+    <script src="js/lines/LineMaterial.js" defer></script>
     <script src="js/controls/OrbitControls.js" defer></script>
     <script src="js/loaders/GLTFLoader.js" defer></script>
     <script src="js/libs/stats.min.js" defer></script>
@@ -51,6 +55,9 @@
     <script src="widgets/WebUIWidget.js" defer ></script>
     <script src="widgets/WebUIWidgetControl.js" defer ></script>
     <script src="widgets/WebUIWidgetCanvas.js" defer ></script>
+    <script src="widgets/WebUIWidgetAngularHUD.js" defer ></script>
+    <script src="widgets/WebUIWidgetNavigationHUD.js" defer ></script>
+    <script src="widgets/WebUIWidgetPanTiltHUD.js" defer ></script>
     <script src="widgets/WebUIWidgetGraph.js" defer ></script>
     <script src="widgets/WebUIWidgetImage.js" defer ></script>
     <script src="widgets/WebUIWidgetTargetBoxes.js" defer ></script>
@@ -58,18 +65,26 @@
     <script src="widgets/WebUIWidgetHistogram.js" defer ></script>
     <script src="widgets/WebUIWidgetBoxPlot.js" defer ></script>
     <script src="widgets/WebUIWidgetScatterPlot.js" defer ></script>
+    <script src="widgets/WebUIWidgetPolarPlot.js" defer ></script>
     <script src="widgets/WebUIWidgetPlot.js" defer ></script>
     <script src="widgets/WebUIWidgetPath.js" defer ></script>
+    <script src="widgets/WebUIWidgetTrace.js" defer ></script>
+    <script src="widgets/WebUIWidgetEventRaster.js" defer ></script>
+    <script src="widgets/WebUIWidgetVectorField.js" defer ></script>
+    <script src="widgets/WebUIWidgetSurfacePlot.js" defer ></script>
     <script src="widgets/WebUIWidgetMarker.js" defer ></script>
-    <script src="widgets/WebUIWidgetWorld2D.js" defer ></script>
-    <script src="widgets/WebUIWidgetWorld2D3D.js" defer ></script>
+    <script src="widgets/WebUIWidgetWorld2DView.js" defer ></script>
+    <script src="widgets/WebUIWidgetWorld3DView.js" defer ></script>
+    <script src="widgets/WebUIWidgetRingWorldView.js" defer ></script>
     <script src="widgets/WebUIWidgetGrid.js" defer ></script>
+    <script src="widgets/WebUIWidgetHeatMap.js" defer ></script>
     <script src="widgets/WebUIWidgetText.js" defer ></script>
     <script src="widgets/WebUIWidgetRectangle.js" defer ></script>
     <script src="widgets/WebUIWidgetTable.js" defer ></script>
     <script src="widgets/WebUIWidgetButton.js" defer ></script>
     <script src="widgets/WebUIWidgetJoystick.js" defer ></script>
     <script src="widgets/WebUIWidgetSwitch.js" defer ></script>
+    <script src="widgets/WebUIWidgetSlider.js" defer ></script>
     <script src="widgets/WebUIWidgetSliderHorizontal.js" defer ></script>
     <script src="widgets/WebUIWidgetSliderVertical.js" defer ></script>
     <script src="widgets/WebUIWidgetColorPicker.js" defer ></script>
@@ -231,6 +246,9 @@
                 <button class="transport_button" data-transport-mode="play" type="button" onmousedown="controller.play()" aria-label="Play" title="Play">
                     <svg class="transport_icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5 L18 12 L8 18.5 Z"/></svg>
                 </button>
+                <button class="transport_button" data-transport-mode="fastforward" type="button" onmousedown="controller.fastForward()" aria-label="Fast forward" title="Fast forward">
+                    <svg class="transport_icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 6 L12.5 12 L4.5 18 Z"/><path d="M11.5 6 L19.5 12 L11.5 18 Z"/></svg>
+                </button>
                 <button class="transport_button" data-transport-mode="realtime" type="button" onmousedown="controller.realtime()" aria-label="Realtime" title="Realtime">
                     <svg class="transport_icon" viewBox="0 0 24 24" aria-hidden="true">
                         <circle cx="12" cy="12.5" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -248,7 +266,7 @@
                 <span class="book-glyph" aria-hidden="true">&#128214;</span>
             </div>
             <div class="button" id="log_toggle_button" onclick="log.toggleLog()">&#x26A0;</div>
-            <div class="button" onclick="inspector.toggleComponent()">&#9432;</divb></div>
+            <div class="button" onclick="inspector.toggleComponent()">&#9432;</div>
             <div class="button large" onclick="inspector.toggleSystem()">&#x2699;</div>
         </div>
 
@@ -660,22 +678,32 @@
                                 <option value="histogram">Histogram</option>
                                 <option value="boxplot">BoxPlot</option>
                                 <option value="scatter-plot">ScatterPlot</option>
+                                <option value="polar-plot">Polar Plot</option>
                                 <option value="plot">Plot</option>
                                 <option value="table">Table</option>
                                 <option value="marker">Marker</option>
                                 <option value="path">Path</option>
+                                <option value="trace">Trace</option>
+                                <option value="event-raster">Event Raster</option>
+                                <option value="vector-field">Vector Field</option>
+                                <option value="surface-plot">Surface Plot</option>
                                 <option value="grid">Grid</option>
+                                <option value="heat-map">Heat Map</option>
                                 <option value="image">Image</option>
                                 <option value="target-boxes">Target Boxes</option>
+                                <option value="world2dview">World 2D View</option>
+                                <option value="world3dview">World 3D View</option>
+                                <option value="navigation-hud">Navigation HUD</option>
+                                <option value="pan-tilt-hud">Pan-Tilt HUD</option>
                                 <option value="text">Text</option>
                                 <option value="rectangle">Rectangle</option>
                                 <option value="button">Button</option>
                                 <option value="joystick">Joystick</option>
-                                <option value="slider-horizontal">Slider</option>
+                                <option value="slider-horizontal">Horizontal Slider</option>
+                                <option value="slider-vertical">Vertical Slider</option>
                                 <option value="color-picker">Color Picker</option>
                                 <option value="switch">Check Box</option>
                                 <option value="drop-down-menu">Drop Down Menu</option>
-                                <option value="control-grid">Control Grid</option>
                                 <option value="canvas3d">Canvas3D</option>
                                 <option value="epi-head">EpiHead</option>
                                 <option value="key-points">KeyPoints</option>
@@ -722,7 +750,7 @@
                  <tbody>
                     <tr>
                         <td colspan="2" style="text-align: center;padding-top:25px;">
-                            <img src="images/logo.png" style="height:50px; width: 50px"><br />
+                            <img src="Images/logo.png" style="height:50px; width: 50px"><br />
                             <span id="brainstudio_logo">BrainStudio</span>
                         </td>
                     </tr>

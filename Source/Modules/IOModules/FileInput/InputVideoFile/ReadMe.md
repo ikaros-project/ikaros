@@ -18,15 +18,14 @@ Reads a video file using ffmpeg
 
 ## Outputs
 
-|Name|Description|
-|:----|:-----------|
-|RED|The red channel.|
-|GREEN|The green channel.|
-|BLUE|The blue channel.|
-|INTENSITY|The intensity channel.|
-|RESTART|This output is 1 on the first frame of the movie.|
-
-<br><br>
+| Name | Description |
+| --- | --- |
+| RED | The red channel. |
+| GREEN | The green channel. |
+| BLUE | The blue channel. |
+| INTENSITY | The intensity channel. |
+| OUTPUT | RGB image. |
+| RESTART | This output is 1 on the first frame of the movie and when playback restarts. |
 
 ## Parameters
 

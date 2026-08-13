@@ -1,0 +1,31 @@
+<group name="WilsonCowan_demo" start="true" stop="-1" tick_duration="0.001" webui_port="8000">
+    <module class="FunctionGenerator" name="ExcitatoryDrive" type="3" offset="8" amplitude="4" frequency="1" duty="0.5" _x="40" _y="90" />
+    <module class="Constant" name="InhibitoryDrive" data="2" _x="40" _y="230" />
+
+    <module class="WilsonCowan" name="Standard" model="0"
+            excitatory_self_weight="0.15" inhibitory_to_excitatory_weight="0.12"
+            excitatory_to_inhibitory_weight="0.12" inhibitory_self_weight="0.1"
+            excitatory_sigmoid_gain="0.2" inhibitory_sigmoid_gain="0.2"
+            excitatory_maximum_response="60" inhibitory_maximum_response="60"
+            excitatory_refractory_period="0.005" inhibitory_refractory_period="0.005"
+            _x="300" _y="55" />
+    <module class="WilsonCowan" name="Refractory" model="1"
+            excitatory_self_weight="0.15" inhibitory_to_excitatory_weight="0.12"
+            excitatory_to_inhibitory_weight="0.12" inhibitory_self_weight="0.1"
+            excitatory_sigmoid_gain="0.2" inhibitory_sigmoid_gain="0.2"
+            excitatory_maximum_response="60" inhibitory_maximum_response="60"
+            excitatory_refractory_period="0.005" inhibitory_refractory_period="0.005"
+            _x="300" _y="300" />
+
+    <connection source="ExcitatoryDrive.OUTPUT" target="Standard.EXTERNAL_EXCITATION" />
+    <connection source="InhibitoryDrive.OUTPUT" target="Standard.EXTERNAL_INHIBITION" />
+    <connection source="ExcitatoryDrive.OUTPUT" target="Refractory.EXTERNAL_EXCITATION" />
+    <connection source="InhibitoryDrive.OUTPUT" target="Refractory.EXTERNAL_INHIBITION" />
+
+    <widget class="plot" name="StandardExcitatoryPlot" title="Standard excitatory rate E (Hz)" source="Standard.EXCITATORY_RATE" x="640" y="20" _x="640" _y="20" width="270" height="170" y_min="0" y_max="60" auto_range="no" buffer_size="2000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="StandardInhibitoryPlot" title="Standard inhibitory rate I (Hz)" source="Standard.INHIBITORY_RATE" x="930" y="20" _x="930" _y="20" width="270" height="170" y_min="0" y_max="60" auto_range="no" buffer_size="2000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="RefractoryExcitatoryPlot" title="Refractory excitatory rate E (Hz)" source="Refractory.EXCITATORY_RATE" x="640" y="210" _x="640" _y="210" width="270" height="170" y_min="0" y_max="60" auto_range="no" buffer_size="2000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="RefractoryInhibitoryPlot" title="Refractory inhibitory rate I (Hz)" source="Refractory.INHIBITORY_RATE" x="930" y="210" _x="930" _y="210" width="270" height="170" y_min="0" y_max="60" auto_range="no" buffer_size="2000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="StandardTargetPlot" title="Standard excitatory target (Hz)" source="Standard.EXCITATORY_TARGET" x="640" y="400" _x="640" _y="400" width="270" height="170" y_min="0" y_max="60" auto_range="no" buffer_size="2000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="RefractoryTargetPlot" title="Refractory excitatory target (Hz)" source="Refractory.EXCITATORY_TARGET" x="930" y="400" _x="930" _y="400" width="270" height="170" y_min="0" y_max="60" auto_range="no" buffer_size="2000" show_title="yes" show_frame="yes" />
+</group>

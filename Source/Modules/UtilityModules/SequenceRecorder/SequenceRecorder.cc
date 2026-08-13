@@ -70,9 +70,9 @@ find_index_for_time(KeypointList &keypoints, float t)
     {
 
         i = (low + high) / 2;
-        if ((float)(keypoints[i]["time"]) > t)
+        if(static_cast<float>(keypoints[i]["time"]) > t)
             high = i - 1;
-        else if ((float)(keypoints[i]["time"]) < t)
+        else if(static_cast<float>(keypoints[i]["time"]) < t)
             low = i + 1;
         else
         {
@@ -89,7 +89,7 @@ set_one_hot(matrix & target, int index, int size)
 {
     target.set(0);
     if (0 <= index && index < size)
-        target[index] = 1;
+        target(index) = 1;
 }
 
 class SequenceRecorder : public Module
@@ -260,7 +260,7 @@ public:
     double
     ChannelRange(int c)
     {
-        double r = std::abs(double(range_max[c]) - double(range_min[c]));
+        double r = std::abs(double(range_max(c)) - double(range_min(c)));
         return r > 0 ? r : 0;
     }
 
@@ -270,8 +270,8 @@ public:
         if (!std::isfinite(value))
             value = 0;
 
-        float lo = range_min[c];
-        float hi = range_max[c];
+        float lo = range_min(c);
+        float hi = range_max(c);
         if (value < lo)
             return lo;
         if (value > hi)
@@ -285,8 +285,8 @@ public:
         int channel_count = channels.as_int();
         for (int c = 0; c < channel_count; c++)
         {
-            float lo = range_min[c];
-            float hi = range_max[c];
+            float lo = range_min(c);
+            float hi = range_max(c);
             if (!std::isfinite(lo) || !std::isfinite(hi) || lo > hi)
             {
                 Notify(msg_fatal_error, "Invalid range for channel " + std::to_string(c) + ".");
@@ -318,7 +318,7 @@ public:
         for (int c = 0; c < channel_count; c++)
         {
             float v = values(c);
-            if (v < range_min[c] || v > range_max[c])
+            if (v < range_min(c) || v > range_max(c))
             {
                 Notify(msg_fatal_error, name + " is outside the configured range for channel " + std::to_string(c) + ".");
                 return false;
@@ -347,13 +347,13 @@ public:
     DesiredOutputForChannel(int c)
     {
         if (channel_mode_lock[c]) // locked
-            return output[c];
+            return output(c);
         if (channel_mode_play[c]) // play
-            return target[c];
+            return target(c);
         if (channel_mode_record[c] || channel_mode_copy[c]) // record or copy
-            return input[c];
+            return input(c);
 
-        return output[c];
+        return output(c);
     }
 
     double
@@ -365,7 +365,7 @@ public:
         for (int c = 0; c < channel_count; c++)
         {
             double range = ChannelRange(c);
-            double delta = std::abs(double(DesiredOutputForChannel(c)) - double(output[c]));
+            double delta = std::abs(double(DesiredOutputForChannel(c)) - double(output(c)));
             double normalized_delta = range > 0 ? delta / range : (delta > 0 ? 1 : 0);
             max_delta = std::max(max_delta, normalized_delta);
         }
@@ -421,7 +421,7 @@ public:
         if (!smoothing_active)
             return desired;
 
-        float start = smoothing_start[c];
+        float start = smoothing_start(c);
         float end = desired;
         return start + smoothing_alpha * (end - start);
     }
@@ -490,7 +490,7 @@ public:
             if (count != 1)
             {
                 Notify(msg_warning, "Invalid channel mode for channel " + std::to_string(c) + ". Using lock mode.");
-                if (state[1] > 0)
+                if (state(1) > 0)
                     FlagPlaybackError();
                 for (int m = 0; m < modes; m++)
                     channel_mode(c, m) = m == 0 ? 1 : 0;
@@ -507,7 +507,7 @@ public:
     void
     Stop()
     {
-        bool was_recoding = state[2] > 0;
+        bool was_recoding = state(2) > 0;
         set_one_hot(state, 0, states);
         timer.Stop();
         if (was_recoding)
@@ -531,7 +531,7 @@ public:
     void
     Pause()
     {
-        bool was_recoding = state[2] > 0;
+        bool was_recoding = state(2) > 0;
         set_one_hot(state, 3, states);
         timer.Pause();
         if (was_recoding)
@@ -603,7 +603,7 @@ public:
             return;
 
         auto &sequence = CurrentSequence();
-        bool was_playing = state[1] > 0;
+        bool was_playing = state(1) > 0;
         float fraction = std::max(0.0f, std::min(1.0f, normalized_position));
         SetPausedTime(double(fraction) * double(sequence["end_time"]));
 
@@ -612,7 +612,7 @@ public:
             set_one_hot(state, 1, states);
             timer.Continue();
         }
-        else if (state[0] == 0 && state[2] == 0)
+        else if (state(0) == 0 && state(2) == 0)
             set_one_hot(state, 3, states);
     }
 
@@ -680,10 +680,10 @@ public:
             return;
         if (c >= channels)
             return;
-        if (internal_control[c])
-            output[c] = ClampToChannelRange(c, positions[c]);
+        if (internal_control(c))
+            output(c) = ClampToChannelRange(c, positions(c));
         else
-            output[c] = ClampToChannelRange(c, input[c]); // Make sure output is at the present servo position
+            output(c) = ClampToChannelRange(c, input(c)); // Make sure output is at the present servo position
     }
 
     void
@@ -711,7 +711,7 @@ public:
                 if (!point[c].is_null()) // channel has data from this keypoint
                 {
                     left_link[c] = i;
-                    right_output[c] = point[c].as_float(); // candidate rightmost output
+                    right_output(c) = point[c].as_float(); // candidate rightmost output
                 }
             for (int c = 0; c < channel_count; c++)
                 link_left[c] = left_link[c];
@@ -729,7 +729,7 @@ public:
                 if (!point[c].is_null()) // channel has data from this keypoint
                 {
                     right_link[c] = i;
-                    left_output[c] = point[c].as_float(); // candidate leftmost output
+                    left_output(c) = point[c].as_float(); // candidate leftmost output
                 }
             for (int c = 0; c < channel_count; c++)
                 link_right[c] = right_link[c];
@@ -1436,7 +1436,7 @@ public:
         if (n == 0)
         {
             for (int c = 0; c < channel_count; c++)
-                target[c] = ClampToChannelRange(c, default_output[c]);
+                target(c) = ClampToChannelRange(c, default_output(c));
             return;
         }
 
@@ -1447,9 +1447,9 @@ public:
             auto &point = keypoints[0]["point"];
             for (int c = 0; c < channel_count; c++)
                 if (point[c].is_null())
-                    target[c] = ClampToChannelRange(c, left_output[c]);
+                    target(c) = ClampToChannelRange(c, left_output(c));
                 else
-                    target[c] = ClampToChannelRange(c, point[c].as_float());
+                    target(c) = ClampToChannelRange(c, point[c].as_float());
 
             return;
         }
@@ -1461,9 +1461,9 @@ public:
             auto &point = keypoints[n - 1]["point"];
             for (int c = 0; c < channel_count; c++)
                 if (point[c].is_null())
-                    target[c] = ClampToChannelRange(c, right_output[c]);
+                    target(c) = ClampToChannelRange(c, right_output(c));
                 else
-                    target[c] = ClampToChannelRange(c, point[c].as_float());
+                    target(c) = ClampToChannelRange(c, point[c].as_float());
 
             return;
         }
@@ -1485,7 +1485,7 @@ public:
             // Process left point
 
             double time_left = kp_left_time;
-            double point_left = left_output[c];
+            double point_left = left_output(c);
 
             if (!left_point[c].is_null()) // keypoint has data
             {
@@ -1507,7 +1507,7 @@ public:
             }
 
             double time_right = kp_right_time;
-            double point_right = right_output[c];
+            double point_right = right_output(c);
 
             if (!right_point[c].is_null()) // keypoint has data
             {
@@ -1529,9 +1529,9 @@ public:
             }
 
             if (interpolation[c] == 0)
-                target[c] = ClampToChannelRange(c, point_left);
+                target(c) = ClampToChannelRange(c, point_left);
             else // 1 = linear interpolation
-                target[c] = ClampToChannelRange(c, interpolate(t, time_left, time_right, point_left, point_right));
+                target(c) = ClampToChannelRange(c, interpolate(t, time_left, time_right, point_left, point_right));
         }
     }
 
@@ -1548,14 +1548,14 @@ public:
 
         else if (channel_mode_play[c]) // play
         {
-            output(c) = limited_output[c];
+            output(c) = limited_output(c);
             positions(c) = output(c);
             active(c) = 1;
         }
 
         else if (channel_mode_record[c]) // record
         {
-            output(c) = limited_output[c];
+            output(c) = limited_output(c);
             active(c) = 0;
             if (internal_control(c) == 1)
                 active(c) = 1;
@@ -1563,7 +1563,7 @@ public:
 
         else if (channel_mode_copy[c]) // copy
         {
-            output(c) = limited_output[c];
+            output(c) = limited_output(c);
             active(c) = 0;
             if (internal_control(c) == 1)
                 active(c) = 1;
@@ -1833,7 +1833,7 @@ public:
         if (!sequence_data["sequences"].is_list() || sequence_data["sequences"].size() == 0)
         {
             Notify(msg_warning, "Sequence data has no sequences.");
-            if (state[1] > 0)
+            if (state(1) > 0)
                 FlagPlaybackError();
             return false;
         }
@@ -1843,7 +1843,7 @@ public:
             return true;
 
         Notify(msg_warning, "Current sequence is out of range. Resetting to sequence 0.");
-        if (state[1] > 0)
+        if (state(1) > 0)
             FlagPlaybackError();
         current_sequence = 0;
         Stop();
@@ -2004,7 +2004,7 @@ public:
 
             // Validate
 
-            if (data["type"].is_null() || data["type"].as_string() != u8"Ikaros Sequence Data")
+            if (data["type"].is_null() || data["type"].as_string() != "Ikaros Sequence Data")
             {
                 Notify(msg_warning, "File has wrong format. Cannot be opened.");
                 return false;
@@ -2131,8 +2131,11 @@ public:
         Bind(directory, "directory");
         Bind(filename, "filename");
         Bind(trig, "TRIG");
-        trig_last = matrix(trig.size());
-        trig_last.reset();
+        if (trig.connected())
+        {
+            trig_last = matrix(trig.size());
+            trig_last.reset();
+        }
         Bind(playing, "PLAYING");
         Bind(completed, "COMPLETED");
         Bind(color_output, "COLOR");
@@ -2252,8 +2255,8 @@ public:
 
         for (int c = 0; c < channel_count; c++)
         {
-            left_index[c] = 0;
-            right_index[c] = INT_MAX;
+            left_index(c) = 0;
+            right_index(c) = std::numeric_limits<float>::max();
         }
 
         if (!std::string(filename).empty() && fs::exists(resolved_directory / std::string(filename)))
@@ -2314,11 +2317,14 @@ public:
 
         // Check trig input
 
-        for (int s = 0; s < trig.size(); s++)
-            if (trig[s] > 0 && trig_last[s] == 0) // Trig on rising edge
-                Trig(s);
+        if (trig.connected())
+        {
+            for (int s = 0; s < trig.size(); s++)
+                if (trig(s) > 0 && trig_last(s) == 0) // Trig on rising edge
+                    Trig(s);
 
-        trig_last.copy(trig);
+            trig_last.copy(trig);
+        }
         last_current_sequence = current_sequence.as_int();
         auto &sequence = CurrentSequence();
         float t = timer.GetTime();
@@ -2334,14 +2340,14 @@ public:
         SyncPositionFromTime(t, end_time);
 
         for (int c = 0; c < channel_count; c++)
-            if (internal_control[c])
+            if (internal_control(c))
             {
-                if (!std::isfinite(float(positions[c])))
+                if (!std::isfinite(float(positions(c))))
                     FlagPlaybackError();
-                input[c] = ClampToChannelRange(c, positions[c]);
+                input(c) = ClampToChannelRange(c, positions(c));
             }
 
-        if (state[1]) // handle play mode
+        if (state(1)) // handle play mode
         {
             set_one_hot(playing, current_sequence, max_sequences);
             if (loop && t >= float(sequence["end_mark_time"])) // loop
@@ -2377,7 +2383,7 @@ public:
             }
         }
 
-        else if (state[2]) // handle record mode
+        else if (state(2)) // handle record mode
         {
             if (TimeHasReachedEnd(t, end_time, tl)) // extend recoding if at end
                 sequence["end_time"] = quantize(t, tl);
@@ -2395,7 +2401,7 @@ public:
 
         // AddPoints if in recording mode
 
-        if (state[2] == 1) // record mode
+        if (state(2) == 1) // record mode
         {
             DeleteKeypointsInRange(quantize(last_record_position, tl), quantize(t, tl));
             last_record_position = t;
@@ -2417,8 +2423,8 @@ public:
         }
 
         for (int c = 0; c < channel_count; c++)
-            if (internal_control[c] == 0)
-                positions[c] = output[c];
+            if (internal_control(c) == 0)
+                positions(c) = output(c);
     }
 
     // Current state

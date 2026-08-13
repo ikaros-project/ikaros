@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestInitFatalNotification"
+    description="Treat fatal Init notifications as setup exceptions with module context"
+    start="true"
+    expected_exit="1"
+    expected_output_contains="While initializing module &quot;TestInitFatalNotification.Fault&quot;: INIT_FATAL Fault||TestInitFatalNotification.Fault"
+    expected_output_not_contains="Fault TICK_START">
+    <module class="TaskLifecycleTestModule" name="Fault" label="Fault" fatal_init="true" />
+</group>

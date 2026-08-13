@@ -8,9 +8,14 @@ class WebUIWidgetTargetBoxes extends WebUIWidgetCanvas
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
-            {'name':'color', 'default':"#00ff66", 'type':'string', 'control': 'textedit'},
+            {'name':'box_color', 'default':"#00ff66", 'type':'string', 'control': 'textedit'},
+            {'name':'fill_color', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'fill_opacity', 'default':0, 'type':'float', 'control': 'textedit'},
             {'name':'line_width', 'default':3, 'type':'float', 'control': 'textedit'},
             {'name':'show_score', 'default':"no", 'type':'bool', 'control': 'checkbox'},
+            {'name':'score_decimals', 'default':2, 'type':'int', 'control': 'textedit'},
+            {'name':'score_color', 'default':"#00ff66", 'type':'string', 'control': 'textedit'},
+            {'name':'score_background', 'default':"rgba(0, 0, 0, 0.62)", 'type':'string', 'control': 'textedit'},
             {'name':'font_size', 'default':13, 'type':'int', 'control': 'textedit'},
         ];
     }
@@ -54,40 +59,46 @@ class WebUIWidgetTargetBoxes extends WebUIWidgetCanvas
 
     drawScore(box, x, y)
     {
-        if(!this.parameters.show_score || box.length < 5)
+        if(!this.toBool(this.parameters.show_score) || box.length < 5)
             return;
 
         const score = Number.parseFloat(box[4]);
         if(!Number.isFinite(score))
             return;
 
-        const label = score.toFixed(2);
+        const configuredDecimals = Number(this.parameters.score_decimals);
+        const decimals = Number.isFinite(configuredDecimals) ? Math.max(0, Math.min(20, Math.trunc(configuredDecimals))) : 0;
+        const configuredFontSize = Number(this.parameters.font_size);
+        const fontSize = Number.isFinite(configuredFontSize) ? Math.max(1, configuredFontSize) : 13;
+        const label = score.toFixed(decimals);
         const paddingX = 4;
         const paddingY = 2;
-        this.canvas.font = `${this.parameters.font_size}px sans-serif`;
+        this.canvas.font = `${fontSize}px sans-serif`;
         const metrics = this.canvas.measureText(label);
         const textWidth = Math.ceil(metrics.width);
-        const textHeight = this.parameters.font_size + paddingY * 2;
+        const textHeight = fontSize + paddingY * 2;
+        const labelWidth = textWidth + paddingX * 2;
+        const labelX = Math.max(0, Math.min(this.width - labelWidth, x));
         const labelY = Math.max(0, y - textHeight);
 
-        this.canvas.fillStyle = "rgba(0, 0, 0, 0.62)";
-        this.canvas.fillRect(x, labelY, textWidth + paddingX * 2, textHeight);
-        this.canvas.fillStyle = this.parameters.color;
+        this.canvas.fillStyle = this.parameters.score_background;
+        this.canvas.fillRect(labelX, labelY, labelWidth, textHeight);
+        this.canvas.fillStyle = this.parameters.score_color;
         this.canvas.textBaseline = "middle";
-        this.canvas.fillText(label, x + paddingX, labelY + textHeight / 2);
+        this.canvas.textAlign = "left";
+        this.canvas.fillText(label, labelX + paddingX, labelY + textHeight / 2);
     }
 
     update()
     {
-        this.resetCanvasTransform();
-        this.canvas.clearRect(0, 0, this.width, this.height);
+        this.clearCanvas(0, 0);
 
         const boxes = this.normalizeBoxes(this.getSource('source'));
         if(boxes.length === 0)
             return;
 
         this.canvas.save();
-        this.canvas.strokeStyle = this.parameters.color;
+        this.canvas.strokeStyle = this.parameters.box_color;
         this.canvas.lineWidth = Math.max(1, Number.parseFloat(this.parameters.line_width) || 1);
         this.canvas.lineJoin = "round";
 
@@ -106,6 +117,14 @@ class WebUIWidgetTargetBoxes extends WebUIWidgetCanvas
             const y = (by + 1) * 0.5 * this.height;
             const w = bw * 0.5 * this.width;
             const h = bh * 0.5 * this.height;
+            if(this.parameters.fill_color && Number(this.parameters.fill_opacity) > 0)
+            {
+                this.canvas.save();
+                this.canvas.globalAlpha = Math.max(0, Math.min(1, Number(this.parameters.fill_opacity)));
+                this.canvas.fillStyle = this.parameters.fill_color;
+                this.canvas.fillRect(x, y, w, h);
+                this.canvas.restore();
+            }
             this.canvas.strokeRect(x, y, w, h);
             this.drawScore(box, x, y);
         }

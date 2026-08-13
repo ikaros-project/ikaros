@@ -1,0 +1,22 @@
+<group internal="true"
+       name="TestOutputFileJSONArray"
+       description="OutputFile writes shape-preserving records in a JSON array"
+       start="true"
+       stop="2"
+       check_sum="84376"
+       expected_file_exists="UserData/test_321_output_file_json_array.json"
+       expected_file_contains="[&#10;{&quot;line&quot;:0,&quot;weights&quot;:[[1,2],[3,4]]},&#10;{&quot;line&quot;:1,&quot;weights&quot;:[[1,2],[3,4]]}&#10;]"
+       cleanup_expected_files="true">
+    <module name="Weights" class="Constant" data="1,2;3,4" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_321_output_file_json_array.json"
+            format="json"
+            timestamp="line"
+            number_format="full" />
+
+    <connection delay="0"
+                source="Weights.OUTPUT"
+                target="Output.INPUT"
+                label="weights" />
+</group>

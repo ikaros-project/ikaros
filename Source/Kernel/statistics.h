@@ -1,11 +1,12 @@
 #pragma once
-#include <queue>
-#include <vector>
-#include <unordered_map>
-#include <limits>
-#include <cmath>
-#include <functional>
 #include <algorithm>
+#include <cmath>
+#include <cstddef>
+#include <limits>
+#include <queue>
+#include <stdexcept>
+#include <unordered_map>
+#include <vector>
 
 
 
@@ -13,19 +14,43 @@ class statistics
 {
 public:
 
-    statistics()
+    struct order_summary
     {
-        //std::cout << "statistics ctor" << std::endl;
+        double lower_fence = std::numeric_limits<double>::quiet_NaN();
+        double lower_whisker = std::numeric_limits<double>::quiet_NaN();
+        double q1 = std::numeric_limits<double>::quiet_NaN();
+        double median = std::numeric_limits<double>::quiet_NaN();
+        double q3 = std::numeric_limits<double>::quiet_NaN();
+        double upper_whisker = std::numeric_limits<double>::quiet_NaN();
+        double upper_fence = std::numeric_limits<double>::quiet_NaN();
+        double interquartile_range = std::numeric_limits<double>::quiet_NaN();
+    };
+
+    explicit statistics(std::size_t sample_limit = 0)
+        : sample_limit_(sample_limit)
+    {
     }
 
     void reset() noexcept 
-    { 
-        data_.clear(); 
+    {
+        data_.clear();
+        next_replacement_ = 0;
     }
 
     void push(double x) 
-    { 
-        data_.push_back(x); 
+    {
+        if (!std::isfinite(x))
+            throw std::invalid_argument("statistics requires finite samples");
+
+        if (sample_limit_ == 0 || data_.size() < sample_limit_)
+        {
+            data_.push_back(x);
+            return;
+        }
+
+        data_[next_replacement_] = x;
+        if (++next_replacement_ == sample_limit_)
+            next_replacement_ = 0;
     }
 
     std::size_t count() const noexcept 
@@ -38,33 +63,27 @@ public:
         return data_.empty(); 
     }
 
+    std::size_t sample_limit() const noexcept
+    {
+        return sample_limit_;
+    }
+
 
     double mean() const noexcept 
     {
-        if (data_.empty()) 
-            return nan_();
-            
-        long double s = 0.0L;
-        for (double x : data_) 
-            s += x;
-        return static_cast<double>(s / data_.size());
+        return static_cast<double>(mean_ld_());
     }
 
-    double median() const noexcept 
+    double median() const
     {
-        const std::size_t n = data_.size();
-        if (n == 0) 
-            return nan_();
-            
-        std::vector<double> v = data_;
-        std::sort(v.begin(), v.end());
-        if (n & 1) 
-            return v[n/2];
-        return (v[n/2 - 1] + v[n/2]) * 0.5;
+        return summarize_order().median;
     }
 
-    double quantile(double q) const noexcept
+    double quantile(double q) const
     {
+        if (!std::isfinite(q))
+            throw std::invalid_argument("statistics quantile requires a finite probability");
+
         const std::size_t n = data_.size();
         if (n == 0)
             return nan_();
@@ -76,79 +95,75 @@ public:
 
         std::vector<double> v = data_;
         std::sort(v.begin(), v.end());
-
-        const double pos = q * static_cast<double>(n - 1);
-        const std::size_t lower = static_cast<std::size_t>(std::floor(pos));
-        const std::size_t upper = static_cast<std::size_t>(std::ceil(pos));
-        const double fraction = pos - static_cast<double>(lower);
-
-        if (lower == upper)
-            return v[lower];
-
-        return v[lower] + (v[upper] - v[lower]) * fraction;
+        return quantile_sorted_(v, q);
     }
 
-    double q1() const noexcept
+    double q1() const
     {
-        return quantile(0.25);
+        return summarize_order().q1;
     }
 
-    double q3() const noexcept
+    double q3() const
     {
-        return quantile(0.75);
+        return summarize_order().q3;
     }
 
-    double interquartile_range() const noexcept
+    double interquartile_range() const
     {
-        if (data_.empty())
-            return nan_();
-        return q3() - q1();
+        return summarize_order().interquartile_range;
     }
 
-    double lower_fence() const noexcept
+    double lower_fence() const
     {
-        if (data_.empty())
-            return nan_();
-        return q1() - 1.5 * interquartile_range();
+        return summarize_order().lower_fence;
     }
 
-    double upper_fence() const noexcept
+    double upper_fence() const
     {
-        if (data_.empty())
-            return nan_();
-        return q3() + 1.5 * interquartile_range();
+        return summarize_order().upper_fence;
     }
 
-    double lower_whisker() const noexcept
+    double lower_whisker() const
+    {
+        return summarize_order().lower_whisker;
+    }
+
+    double upper_whisker() const
+    {
+        return summarize_order().upper_whisker;
+    }
+
+    order_summary summarize_order() const
     {
         if (data_.empty())
-            return nan_();
+            return {};
 
         std::vector<double> v = data_;
         std::sort(v.begin(), v.end());
-        const double fence = lower_fence();
-        auto it = std::lower_bound(v.begin(), v.end(), fence);
-        return it == v.end() ? v.front() : *it;
-    }
 
-    double upper_whisker() const noexcept
-    {
-        if (data_.empty())
-            return nan_();
+        order_summary result;
+        result.q1 = quantile_sorted_(v, 0.25);
+        result.median = quantile_sorted_(v, 0.5);
+        result.q3 = quantile_sorted_(v, 0.75);
+        result.interquartile_range = result.q3 - result.q1;
+        result.lower_fence = result.q1 - 1.5 * result.interquartile_range;
+        result.upper_fence = result.q3 + 1.5 * result.interquartile_range;
 
-        std::vector<double> v = data_;
-        std::sort(v.begin(), v.end());
-        const double fence = upper_fence();
-        auto it = std::upper_bound(v.begin(), v.end(), fence);
-        return it == v.begin() ? v.front() : *(it - 1);
+        const auto lower = std::lower_bound(v.begin(), v.end(), result.lower_fence);
+        result.lower_whisker = lower == v.end() ? v.front() : *lower;
+
+        const auto upper = std::upper_bound(v.begin(), v.end(), result.upper_fence);
+        result.upper_whisker = upper == v.begin() ? v.front() : *(upper - 1);
+        return result;
     }
 
     const std::vector<double> & data() const noexcept
     {
+        // Bounded histories retain the newest samples but are not stored chronologically after wrapping.
         return data_;
     }
 
-    double mode() const noexcept 
+    double mode() const
     {
         if (data_.empty()) 
             return nan_();
@@ -216,9 +231,10 @@ public:
 
         const long double s2 = M2 / static_cast<long double>(n - 1);
         if (s2 == 0.0L) return 0.0; // all equal
-        const long double s  = std::sqrt(s2);
-        const long double g1 = (std::sqrt(static_cast<long double>(n * (n - 1))) /
-                                static_cast<long double>(n - 2)) * (M3 / std::pow(s, 3));
+        const long double s = std::sqrt(s2);
+        const long double nld = static_cast<long double>(n);
+        const long double g1 = nld * M3 /
+                               ((nld - 1.0L) * (nld - 2.0L) * s * s * s);
         return static_cast<double>(g1);
     }
 
@@ -243,22 +259,69 @@ public:
         const long double m4_over_s4 = M4 / (s2 * s2);
 
         const long double nld = static_cast<long double>(n);
-        const long double num = (nld - 1) * ((nld + 1) * m4_over_s4 - 3.0L * (nld - 1));
-        const long double den = (nld - 2) * (nld - 3);
+        const long double num = nld * (nld + 1.0L) / (nld - 1.0L) * m4_over_s4 -
+                                3.0L * (nld - 1.0L) * (nld - 1.0L);
+        const long double den = (nld - 2.0L) * (nld - 3.0L);
         return static_cast<double>(num / den);
     }
 
 private:
     static double nan_() noexcept { return std::numeric_limits<double>::quiet_NaN(); }
 
+    static long double next_mean_(long double mean, long double value,
+                                  long double count) noexcept
+    {
+        if (std::signbit(mean) != std::signbit(value))
+            return mean * ((count - 1.0L) / count) + value / count;
+        return mean + (value - mean) / count;
+    }
+
+    static double midpoint_(double a, double b) noexcept
+    {
+        if (std::signbit(a) != std::signbit(b))
+            return a * 0.5 + b * 0.5;
+        return a + (b - a) * 0.5;
+    }
+
+    static double interpolate_(double a, double b, double fraction) noexcept
+    {
+        if (std::signbit(a) != std::signbit(b))
+            return a * (1.0 - fraction) + b * fraction;
+        return a + (b - a) * fraction;
+    }
+
+    static double quantile_sorted_(const std::vector<double> & values, double q) noexcept
+    {
+        if (q <= 0.0)
+            return values.front();
+        if (q >= 1.0)
+            return values.back();
+
+        const double position = q * static_cast<double>(values.size() - 1);
+        const std::size_t lower = static_cast<std::size_t>(std::floor(position));
+        const std::size_t upper = static_cast<std::size_t>(std::ceil(position));
+        if (lower == upper)
+            return values[lower];
+
+        return interpolate_(values[lower], values[upper],
+                            position - static_cast<double>(lower));
+    }
+
     long double mean_ld_() const noexcept {
         if (data_.empty()) return std::numeric_limits<long double>::quiet_NaN();
-        long double s = 0.0L;
-        for (double x : data_) s += x;
-        return s / static_cast<long double>(data_.size());
+        long double mean = 0.0L;
+        long double count = 0.0L;
+        for (double x : data_)
+        {
+            count += 1.0L;
+            mean = next_mean_(mean, static_cast<long double>(x), count);
+        }
+        return mean;
     }
 
     std::vector<double> data_;
+    std::size_t sample_limit_ = 0;
+    std::size_t next_replacement_ = 0;
 };
 
 
@@ -298,22 +361,32 @@ public:
     // Add a new observation
     void push(double x) 
     {
-        // Count before update
-        const long double n = static_cast<long double>(count_);
+        if (!std::isfinite(x))
+            throw std::invalid_argument("online_statistics requires finite samples");
+
+        const long double previous_count = static_cast<long double>(count_);
 
         // --- Update online moments (Pébay/Welford) ---
-        const long double delta   = static_cast<long double>(x) - mean_;
-        const long double n1      = n + 1.0L;
-        const long double delta_n = delta / n1;
-        const long double delta_n2= delta_n * delta_n;
-        const long double term1   = delta * (delta_n * n);
+        const long double new_count = previous_count + 1.0L;
+        if (count_ == 0)
+        {
+            mean_ = static_cast<long double>(x);
+        }
+        else
+        {
+            const long double value = static_cast<long double>(x);
+            const long double delta = value - mean_;
+            const long double delta_n = delta / new_count;
+            const long double delta_n2 = delta_n * delta_n;
+            const long double term1 = delta * delta_n * previous_count;
 
-        M4_ += term1 * delta_n2 * (n*n - 3.0L*n + 3.0L)
-             + 6.0L * delta_n2 * M2_
-             - 4.0L * delta_n * M3_;
-        M3_ += term1 * delta_n * (n - 2.0L) - 3.0L * delta_n * M2_;
-        M2_ += term1;
-        mean_ += delta_n;
+            M4_ += term1 * delta_n2 * (new_count * new_count - 3.0L * new_count + 3.0L)
+                 + 6.0L * delta_n2 * M2_
+                 - 4.0L * delta_n * M3_;
+            M3_ += term1 * delta_n * (new_count - 2.0L) - 3.0L * delta_n * M2_;
+            M2_ += term1;
+            mean_ = next_mean_(mean_, value, new_count);
+        }
         ++count_;
 
         // --- Track min/max ---
@@ -359,7 +432,7 @@ public:
             return nan_();
             
         if (lower_.size() == upper_.size())
-            return (lower_.top() + upper_.top()) / 2.0;
+            return midpoint_(lower_.top(), upper_.top());
         
         return lower_.size() > upper_.size() ? lower_.top() : upper_.top();
     }
@@ -402,9 +475,10 @@ public:
         if (n < 3) return nan_();
         const long double s2 = M2_ / static_cast<long double>(n - 1);
         if (s2 == 0.0L) return 0.0; // all equal
-        const long double s  = std::sqrt(s2);
-        const long double g1 = (std::sqrt(static_cast<long double>(n * (n - 1))) /
-                               static_cast<long double>(n - 2)) * (M3_ / std::pow(s, 3));
+        const long double s = std::sqrt(s2);
+        const long double n_ld = static_cast<long double>(n);
+        const long double g1 = n_ld * M3_ /
+                               ((n_ld - 1.0L) * (n_ld - 2.0L) * s * s * s);
         return static_cast<double>(g1);
     }
 
@@ -419,8 +493,9 @@ public:
         const long double m4_over_s4 = M4_ / (s2 * s2);
 
         // Joanes & Gill (1998) unbiased estimator of excess kurtosis
-        const long double num = (n_ld - 1) * ((n_ld + 1) * m4_over_s4 - 3.0L * (n_ld - 1));
-        const long double den = (n_ld - 2) * (n_ld - 3);
+        const long double num = n_ld * (n_ld + 1.0L) / (n_ld - 1.0L) * m4_over_s4 -
+                                3.0L * (n_ld - 1.0L) * (n_ld - 1.0L);
+        const long double den = (n_ld - 2.0L) * (n_ld - 3.0L);
         return static_cast<double>((num / den));
     }
 
@@ -448,6 +523,21 @@ private:
         return std::numeric_limits<double>::quiet_NaN();
     }
 
+    static long double next_mean_(long double mean, long double value,
+                                  long double count) noexcept
+    {
+        if (std::signbit(mean) != std::signbit(value))
+            return mean * ((count - 1.0L) / count) + value / count;
+        return mean + (value - mean) / count;
+    }
+
+    static double midpoint_(double a, double b) noexcept
+    {
+        if (std::signbit(a) != std::signbit(b))
+            return a * 0.5 + b * 0.5;
+        return a + (b - a) * 0.5;
+    }
+
     // Running counters / moments
     std::size_t count_ = 0;
     long double mean_  = 0.0L;
@@ -463,25 +553,3 @@ private:
     std::size_t mode_count_ = 0;
     double mode_value_ = std::numeric_limits<double>::quiet_NaN();
 };
-
-
-// Example usage:
-
-/*
-
-    statistics S;
-    for (double x : {1.0, 2.0, 2.0, 3.0, 4.0}) S.push(x);
-
-    std::cout << "n = " << S.count() << "\n";
-    std::cout << "mean = " << S.mean() << "\n";
-    std::cout << "median = " << S.median() << "\n";
-    std::cout << "mode = " << S.mode() << "\n";
-    std::cout << "min = " << S.min() << "\n";
-    std::cout << "max = " << S.max() << "\n";
-    std::cout << "variance = " << S.variance() << "\n";
-    std::cout << "stddev = " << S.standard_deviation() << "\n";
-    std::cout << "skewness = " << S.skewness() << "\n";
-    std::cout << "kurtosis(excess) = " << S.kurtosis() << "\n" ;
-
-    */
-

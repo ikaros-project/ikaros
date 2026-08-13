@@ -12,31 +12,31 @@ class WebUIWidgetPath extends WebUIWidgetGraph
 //            {'name':'length_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'order', 'default':"col", 'type':'string', 'control': 'menu', 'options': "col,row"},
             {'name':'select_x', 'default':0, 'type':'int', 'control': 'textedit'},
-            {'name':'count', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'point_count', 'default':0, 'type':'int', 'control': 'textedit'},
 
              {'name': "STYLE", 'control':'header'},
 
-            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
-            {'name':'fill', 'default':'gray', 'type':'string', 'control': 'textedit'},
-            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
- //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'options': "butt,round,quare"},
-            {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
+            {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},   // TODO: no default = get from CSS would be a good functionality
+            {'name':'fill_color', 'default':'gray', 'type':'string', 'control': 'textedit'},
+            {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
+ //           {'name':'line_dash', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'line_cap', 'default':"butt", 'type':'string', 'control': 'menu', 'options': "butt,round,square"},
+            {'name':'line_join', 'default':"miter", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
             
-            {'name':'close', 'default':false, 'type':'bool', 'control': 'checkbox'},
-            {'name':'arrow', 'default':false, 'type':'bool', 'control': 'checkbox'},
+            {'name':'close', 'default':"no", 'type':'bool', 'control': 'checkbox'},
+            {'name':'arrow', 'default':"no", 'type':'bool', 'control': 'checkbox'},
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
-            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no,invisible", 'class':'true'},
-            {'name':'min_x', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_x', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'min_y', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_y', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'scale_visibility', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no,invisible", 'class':'true'},
+            {'name':'x_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'x_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'flip_x_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_x_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
         ]
     }
 
@@ -62,8 +62,8 @@ class WebUIWidgetPath extends WebUIWidgetGraph
     getSelectX()
     {
         if(this.parameters.select_x !== undefined && this.parameters.select_x !== "")
-            return Number(this.parameters.select_x);
-        return Number(this.parameters.select ?? 0);
+            return Math.max(0, Math.trunc(Number(this.parameters.select_x) || 0));
+        return Math.max(0, Math.trunc(Number(this.parameters.select) || 0));
     }
 
     drawRows(width, height, index, transform)
@@ -73,24 +73,25 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         if(!Array.isArray(d) || d.length === 0 || !Array.isArray(d[0]))
             return;
         let rows = this.data.length;
-        this.canvas.lineWidth = this.format.lineWidth;
-        this.canvas.lineCap = this.format.lineCap;
-        this.canvas.lineJoin = this.format.lineJoin;
+        this.canvas.lineWidth = this.format.line_width;
+        this.canvas.lineCap = this.format.line_cap;
+        this.canvas.lineJoin = this.format.line_join;
 
-        let xx = (this.parameters.count ? selectX+2*this.parameters.count : d[0].length);
-        xx = Math.min(xx, d[0].length);
-        
         for(var i=0; i<rows; i++)
         {
             if(!Array.isArray(d[i]) || d[i].length < selectX + 2)
                 continue;
+            const pointCount = Math.max(0, Math.trunc(Number(this.parameters.point_count) || 0));
+            let xx = pointCount ? selectX + 2 * pointCount : d[i].length;
+            xx = Math.min(xx, d[i].length);
             this.setColor(i);
             this.canvas.beginPath();
             
             let lx = 0;
             let ly = 0;
-            let x = (d[i][selectX+0]-this.parameters.min_x)*this.parameters.scale_x * width;
-            let y = (d[i][selectX+1]-this.parameters.min_y)*this.parameters.scale_y * height;
+            let hasSegment = false;
+            let x = (d[i][selectX+0]-this.parameters.x_min)*this.parameters.scale_x * width;
+            let y = (d[i][selectX+1]-this.parameters.y_min)*this.parameters.scale_y * height;
             this.canvas.moveTo(...transform(x, y));
             
             for(var j=selectX+2; j<xx;)
@@ -99,18 +100,20 @@ class WebUIWidgetPath extends WebUIWidgetGraph
                     break;
                 lx = x;
                 ly = y;
-                x = (d[i][j++]-this.parameters.min_x)*this.parameters.scale_x * width;
-                y = (d[i][j++]-this.parameters.min_y)*this.parameters.scale_y * height;
-                
+                x = (d[i][j++]-this.parameters.x_min)*this.parameters.scale_x * width;
+                y = (d[i][j++]-this.parameters.y_min)*this.parameters.scale_y * height;
+                hasSegment = true;
                 this.canvas.lineTo(...transform(x, y));
             }
             
-            this.canvas.fill();
             if(this.parameters.close)
+            {
                 this.canvas.closePath();
+                this.canvas.fill();
+            }
             this.canvas.stroke();
             
-            if(this.parameters.arrow && (lx!=x||ly!=y))
+            if(this.parameters.arrow && hasSegment && (lx!=x||ly!=y))
                 this.drawArrowHead(...transform(lx, ly), ...transform(x, y));
         }
     }
@@ -122,11 +125,11 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         if(!Array.isArray(d) || d.length === 0 || !Array.isArray(d[0]) || d[0].length < selectX + 2)
             return;
         let rows = this.data.length;
-        this.canvas.lineWidth = this.format.lineWidth;
-        this.canvas.lineCap = this.format.lineCap;
-        this.canvas.lineJoin = this.format.lineJoin;
+        this.canvas.lineWidth = this.format.line_width;
+        this.canvas.lineCap = this.format.line_cap;
+        this.canvas.lineJoin = this.format.line_join;
 
-        let xx = (this.parameters.count ? selectX+2*this.parameters.count : d[0].length);
+        let xx = (this.parameters.point_count ? selectX+2*this.parameters.point_count : d[0].length);
         xx = Math.min(xx, d[0].length);
         let c = 0;
         for(var i=selectX; i<xx; i+=2)
@@ -138,8 +141,9 @@ class WebUIWidgetPath extends WebUIWidgetGraph
             
             let lx = 0;
             let ly = 0;
-            let x = (d[0][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
-            let y = (d[0][i+1]-this.parameters.min_y)*this.parameters.scale_y * height;
+            let hasSegment = false;
+            let x = (d[0][i+0]-this.parameters.x_min)*this.parameters.scale_x * width;
+            let y = (d[0][i+1]-this.parameters.y_min)*this.parameters.scale_y * height;
             this.canvas.moveTo(...transform(x, y));
             
             for(var j=1; j<rows;j++)
@@ -148,18 +152,20 @@ class WebUIWidgetPath extends WebUIWidgetGraph
                     break;
                 lx = x;
                 ly = y;
-                x = (d[j][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
-                y = (d[j][i+1]-this.parameters.min_y)*this.parameters.scale_y * height;
-                
+                x = (d[j][i+0]-this.parameters.x_min)*this.parameters.scale_x * width;
+                y = (d[j][i+1]-this.parameters.y_min)*this.parameters.scale_y * height;
+                hasSegment = true;
                 this.canvas.lineTo(...transform(x, y));
             }
 
-            this.canvas.fill();
             if(this.parameters.close)
+            {
                 this.canvas.closePath();
+                this.canvas.fill();
+            }
             this.canvas.stroke();
             
-            if(this.parameters.arrow)
+            if(this.parameters.arrow && hasSegment)
                 this.drawArrowHead(...transform(lx, ly), ...transform(x, y));
 
             c++;
@@ -181,31 +187,22 @@ class WebUIWidgetPath extends WebUIWidgetGraph
         
         this.parameters.select_x = this.getSelectX();
 
-        this.parameters.min_x = (typeof this.parameters.min_x !== 'undefined' ? this.parameters.min_x : this.parameters.min);
-        this.parameters.max_x = (typeof this.parameters.max_x !== 'undefined' ? this.parameters.max_x : this.parameters.max);
-        this.parameters.scale_x = 1/(this.parameters.max_x == this.parameters.min_x ? 1 : this.parameters.max_x-this.parameters.min_x);
-        
-        this.parameters.min_y = (typeof this.parameters.min_y !== 'undefined' ? this.parameters.min_y : this.parameters.min);
-        this.parameters.max_y = (typeof this.parameters.max_y !== 'undefined' ? this.parameters.max_y : this.parameters.max);
-        this.parameters.scale_y = 1/(this.parameters.max_y == this.parameters.min_y ? 1 : this.parameters.max_y-this.parameters.min_y);
+        this.parameters.scale_x = 1/(this.parameters.x_max == this.parameters.x_min ? 1 : this.parameters.x_max-this.parameters.x_min);
 
-        // draw if data available
-        if(!d)
-            return;
-        
-        if(this.data = this.getSource('source'))
+        this.parameters.scale_y = 1/(this.parameters.y_max == this.parameters.y_min ? 1 : this.parameters.y_max-this.parameters.y_min);
+
+        this.data = this.getSource('source');
+        if(this.getMatrixRank(this.data) == 1)
+            this.data = [this.data];
+        if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
         {
-            if (this.getMatrixRank(this.data) == 1)
-                this.data = [this.data];
-            if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
-                return;
-
-            this.resetCanvasTransform(-0.5, -0.5);
-            this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
-
-            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
+            this.clearCanvas();
+            return;
         }
+
+        this.beginCanvasDraw();
+
+        this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
      }
 };
 

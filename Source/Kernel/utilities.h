@@ -2,18 +2,40 @@
 
 #pragma once
 
+#include <cstddef>
 #include <iosfwd>
-#include <string_view>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <sstream>
 
 namespace ikaros
 {
-    [[nodiscard]] const std::vector<std::string> split(const std::string & s, const std::string & sep, int maxsplit=-1);
-    [[nodiscard]] const std::vector<std::string> rsplit(const std::string & str, const std::string & sep, int maxsplit=-1);
-    [[nodiscard]] std::string join(const std::string & separator, const std::vector<std::string> & v, bool reverse);
+    [[nodiscard]] constexpr bool ascii_is_space(unsigned char c)
+    {
+        return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v';
+    }
+
+    [[nodiscard]] constexpr bool ascii_is_digit(unsigned char c)
+    {
+        return c >= '0' && c <= '9';
+    }
+
+    [[nodiscard]] constexpr bool ascii_is_alpha(unsigned char c)
+    {
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+    }
+
+    [[nodiscard]] constexpr bool ascii_is_alnum(unsigned char c)
+    {
+        return ascii_is_alpha(c) || ascii_is_digit(c);
+    }
+
+    [[nodiscard]] constexpr char ascii_to_lower(unsigned char c)
+    {
+        return c >= 'A' && c <= 'Z' ? static_cast<char>(c + ('a' - 'A')) : static_cast<char>(c);
+    }
+
+    [[nodiscard]] std::vector<std::string> split(const std::string & s, const std::string & separator, int maxsplit=-1);
+    [[nodiscard]] std::string join(const std::string & separator, const std::vector<std::string> & values);
 
     [[nodiscard]] bool starts_with(const std::string & s, const std::string & start); // waiting for C++20
     [[nodiscard]] bool ends_with(const std::string & s, const std::string & end); // waiting for C++20
@@ -32,20 +54,22 @@ namespace ikaros
     [[nodiscard]] std::string peek_rtail(const std::string & s, const std::string & delimiter); // return string after last delimiter
 
     [[nodiscard]] std::string trim(const std::string &s);
+    [[nodiscard]] std::string validate_identifier(std::string s);
 
     [[nodiscard]] std::string cut_head(std::string & s, const std::string & delimiter); // return string before delimiter and remove it from s
 
 
     [[nodiscard]] std::string add_extension(const std::string &  filename, const std::string & extension);
 
-    [[nodiscard]] bool is_integer(const std::string & s); // is s an interger?
     [[nodiscard]] bool is_number(const std::string &s); // is s an int, float or double?
     [[nodiscard]] bool parse_double(const std::string & s, double & value);
     [[nodiscard]] bool parse_float(const std::string & s, float & value);
     [[nodiscard]] double parse_double(const std::string & s);
     [[nodiscard]] float parse_float(const std::string & s);
-    // is_bool(s):; // Can s be converted to a boolean value?
-    [[nodiscard]] bool is_true(const std::string & s); // True if equal to 1 or start with T, t, Y, or y.
+    [[nodiscard]] int checked_truncating_int(double value, const std::string & conversion_name);
+    [[nodiscard]] long checked_truncating_long(double value, const std::string & conversion_name);
+    [[nodiscard]] bool is_true(const std::string & s);
+    [[nodiscard]] bool parse_bool(const std::string & s, bool & value);
 
     std::ostream& operator<<(std::ostream& os, const std::vector<int> & v);
 
@@ -59,10 +83,10 @@ namespace ikaros
     void print_attribute_value(const std::string & name, const std::vector<float> & values, int indent=0, int max_items=0);
     void print_attribute_value(const std::string & name, const std::vector<std::vector<std::string>> &  values, int indent=0, int max_items=0);
 
-    char * base64_encode(const unsigned char * data, size_t size_in, size_t *size_out);
+    [[nodiscard]] std::string base64_encode(const unsigned char * data, std::size_t size);
 
-    [[nodiscard]] std::string formatNumber(double value, int decimals=10); // remove trailing zeros
-    [[nodiscard]] std::string format_json_number(double value, int decimals=10); // valid JSON number or null for non-finite
+    [[nodiscard]] std::string formatNumber(double value, int decimals=-1); // shortest round-trip value by default
+    [[nodiscard]] std::string format_json_number(double value); // exact JSON number or null for non-finite
 
     class prime
     {
@@ -77,6 +101,9 @@ namespace ikaros
 
     [[nodiscard]] std::string to_hex(char c);
     [[nodiscard]] std::string escape_json_string(const std::string& str);
+    [[nodiscard]] bool is_valid_utf8(const std::string & str);
+    [[nodiscard]] std::string valid_utf8_prefix(const std::string & str, std::size_t max_bytes);
+    [[nodiscard]] std::string decode_url_component(const std::string & str, bool plus_as_space=false);
     [[nodiscard]] std::string replace_characters(const std::string& str); // replace ',' and ';' and non-breaking space with space
     [[nodiscard]] std::string remove_comment(const std::string& input);
 };  

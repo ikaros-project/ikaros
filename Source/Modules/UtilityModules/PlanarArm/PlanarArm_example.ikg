@@ -1,0 +1,16 @@
+<group name="PlanarArm_Example" start="true" stop="-1" tick_duration="0.02">
+    <module name="JointCommand" class="Constant" data="0,-0.5,0.8" _x="1300" _y="100" />
+    <module name="GripperCommand" class="Constant" data="1" _x="1300" _y="260" />
+    <module name="Arm" class="PlanarArm" palm_length="50" finger_length="45" movable_object="228,140,6" circle_obstacles="255,70,18;255,230,18" _x="1540" _y="140" />
+
+    <connection source="JointCommand.OUTPUT" target="Arm.JOINT_COMMAND" />
+    <connection source="GripperCommand.OUTPUT" target="Arm.GRIPPER" />
+
+    <widget name="World" class="world2dview" objects_source="Arm.OBJECTS" walls_source="Arm.WALLS" show_whiskers="no" world_width="300" world_height="300" grid_step="25" title="Planar arm" show_title="yes" show_frame="yes" width="620" height="620" x="600" y="40" _x="600" _y="40" />
+    <widget name="Joints" class="slider-horizontal" parameter="JointCommand.data" select_x="0" control_count="3" labels="Shoulder,Elbow,Wrist" min="-3.14" max="3.14" step="0.01" show_values="yes" title="Joint angles" show_title="yes" show_frame="yes" width="500" height="150" x="40" y="40" _x="40" _y="40" />
+    <widget name="Gripper" class="slider-horizontal" parameter="GripperCommand.data" select_x="0" control_count="1" labels="Opening" min="0" max="1" step="0.01" show_values="yes" title="Gripper" show_title="yes" show_frame="yes" width="500" height="90" x="40" y="220" _x="40" _y="220" />
+    <widget name="Object" class="table" source="Arm.MOVABLE_OBJECT" title="Movable object" show_title="yes" show_frame="yes" decimals="3" width="500" height="90" x="40" y="340" _x="40" _y="340" />
+    <widget name="Contacts" class="table" source="Arm.OBJECT_CONTACTS" title="Object contacts" show_title="yes" show_frame="yes" decimals="0" width="500" height="90" x="40" y="460" _x="40" _y="460" />
+    <widget name="Blocked" class="table" source="Arm.BLOCKED" title="Blocked" show_title="yes" show_frame="yes" decimals="0" width="230" height="80" x="40" y="580" _x="40" _y="580" />
+    <widget name="Enclosed" class="table" source="Arm.ENCLOSED" title="Enclosed" show_title="yes" show_frame="yes" decimals="0" width="230" height="80" x="310" y="580" _x="310" _y="580" />
+</group>

@@ -13,44 +13,44 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             {'name':'order', 'default':"col", 'type':'string', 'control': 'menu', 'options': "col,row"},
             {'name':'select_x', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'select_value_column', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'count', 'default':0, 'type':'int', 'control': 'textedit'},
+            {'name':'point_count', 'default':0, 'type':'int', 'control': 'textedit'},
 
             {'name': "MARKER STYLE", 'control':'header'},
 
-            {'name':'markerType', 'default':"circle", 'type':'string', 'control': 'menu', 'options': "none,circle,cross"}, // dot, square, rectangle?
+            {'name':'marker_type', 'default':"circle", 'type':'string', 'control': 'menu', 'options': "none,circle,cross"}, // dot, square, rectangle?
             {'name':'size', 'default':0.02, 'type':'float', 'control': 'textedit'},
-            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},   // no default = get from CSS would be a good functionality
-            {'name':'fill', 'default':'gray', 'type':'string', 'control': 'textedit'},
-            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
- //           {'name':'lineDash', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'lineCap', 'default':"butt", 'type':'string', 'control': 'menu', 'options': "butt,round,square"},
-            {'name':'lineJoin', 'default':"miter", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
+            {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},   // no default = get from CSS would be a good functionality
+            {'name':'fill_color', 'default':'gray', 'type':'string', 'control': 'textedit'},
+            {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
+ //           {'name':'line_dash', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'line_cap', 'default':"butt", 'type':'string', 'control': 'menu', 'options': "butt,round,square"},
+            {'name':'line_join', 'default':"miter", 'type':'string', 'control': 'menu', 'options': "miter,round,bevel"},
 
             {'name': "LABEL STYLE", 'control':'header'},
 
-            {'name':'labelType', 'default':"none", 'type':'string', 'control': 'menu', 'options': "none,labels, alphabetical, numbered, x_value, y_value, z_value, xy_value, value"},
+            {'name':'label_type', 'default':"none", 'type':'string', 'control': 'menu', 'options': "none,labels, alphabetical, numbered, x_value, y_value, z_value, xy_value, value"},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'labelFont', 'default':"18px sans-serif", 'type':'string', 'control': 'textedit'},
-            {'name':'labelDecimals', 'default':2, 'type':'int', 'control': 'textedit'},
-            {'name':'labelPrefix', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'labelPostfix', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'labelAlign', 'default':"center", 'type':'string', 'control': 'menu', 'options': "left, center, right"},
-            {'name':'labelBaseline', 'default':"middle", 'type':'string', 'control': 'menu', 'options': "top, bottom, middle, alphabetic, hanging"},
-            {'name':'labelOffsetX', 'default':"0", 'type':'float', 'control': 'textedit'},
-            {'name':'labelOffsetY', 'default':"0", 'type':'float', 'control': 'textedit'},
+            {'name':'label_font', 'default':"18px sans-serif", 'type':'string', 'control': 'textedit'},
+            {'name':'label_decimals', 'default':2, 'type':'int', 'control': 'textedit'},
+            {'name':'label_prefix', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'label_suffix', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'label_align', 'default':"center", 'type':'string', 'control': 'menu', 'options': "left, center, right"},
+            {'name':'label_baseline', 'default':"middle", 'type':'string', 'control': 'menu', 'options': "top, bottom, middle, alphabetic, hanging"},
+            {'name':'label_offset_x', 'default':"0", 'type':'float', 'control': 'textedit'},
+            {'name':'label_offset_y', 'default':"0", 'type':'float', 'control': 'textedit'},
 
             
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
-            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no,invisible", 'class':'true'},
-            {'name':'min_x', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_x', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'min_y', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_y', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'scale_visibility', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no,invisible", 'class':'true'},
+            {'name':'x_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'x_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'flip_x_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_x_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
         ]
     }
 
@@ -76,13 +76,23 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
     getSelectX()
     {
         if(this.parameters.select_x !== undefined && this.parameters.select_x !== "")
-            return Number(this.parameters.select_x);
-        return Number(this.parameters.select ?? 0);
+            return Math.max(0, Math.trunc(Number(this.parameters.select_x) || 0));
+        return Math.max(0, Math.trunc(Number(this.parameters.select) || 0));
+    }
+
+    formatLabelValue(value)
+    {
+        const numeric = Number(value);
+        if(!Number.isFinite(numeric))
+            return "";
+        const configuredDecimals = Number(this.parameters.label_decimals);
+        const decimals = Number.isFinite(configuredDecimals) ? Math.max(0, Math.min(20, Math.trunc(configuredDecimals))) : 0;
+        return numeric.toFixed(decimals);
     }
 
     drawRows(width, height, index, transform)
     {
-        let s = this.parameters.size*(width+height)/2
+        let s = Math.max(0, Number(this.parameters.size) || 0) * (width+height) / 2;
         let d = this.data;
         const selectX = this.getSelectX();
 
@@ -92,11 +102,11 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             return;
 
         let rows = d.length;
-        this.canvas.lineWidth = this.format.lineWidth;
-        this.canvas.lineCap = this.format.lineCap;
-        this.canvas.lineJoin = this.format.lineJoin;
+        this.canvas.lineWidth = Math.max(1, Number(this.format.line_width) || 1);
+        this.canvas.lineCap = this.format.line_cap;
+        this.canvas.lineJoin = this.format.line_join;
 
-        //let xx = (this.parameters.count ? this.parameters.select+2*this.parameters.count : d[0].length);
+        //let xx = (this.parameters.point_count ? this.parameters.select+2*this.parameters.point_count : d[0].length);
         
         for(var i=0; i<rows; i++)
         {
@@ -107,21 +117,23 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             
             let lx = 0;
             let ly = 0;
-            let x = (d[i][selectX+0]-this.parameters.min_x)*this.parameters.scale_x * width;
-            let y = (d[i][selectX+1]-this.parameters.min_y)*this.parameters.scale_y * height;
+            let x = (d[i][selectX+0]-this.parameters.x_min)*this.parameters.scale_x * width;
+            let y = (d[i][selectX+1]-this.parameters.y_min)*this.parameters.scale_y * height;
+            if(!Number.isFinite(x) || !Number.isFinite(y))
+                continue;
             
             for(var j=selectX; j<selectX+2;)
             {
                 lx = x;
                 ly = y;
-                x = (d[i][j++]-this.parameters.min_x)*this.parameters.scale_x * width;
-                y = (d[i][j++]-this.parameters.min_y)*this.parameters.scale_y * height;
+                x = (d[i][j++]-this.parameters.x_min)*this.parameters.scale_x * width;
+                y = (d[i][j++]-this.parameters.y_min)*this.parameters.scale_y * height;
                 
-                if(this.parameters.markerType == "circle")
+                if(this.parameters.marker_type == "circle")
                 {
                     this.canvas.arc(...transform(x, y), s, 0, 2*Math.PI);
                 }
-                else if(this.parameters.markerType == "cross")
+                else if(this.parameters.marker_type == "cross")
                 {
                     this.canvas.moveTo(...transform(x-s, y));
                     this.canvas.lineTo(...transform(x+s, y));
@@ -140,7 +152,7 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
         let l = String(this.parameters.labels ?? "").trim() === "" ? [] : String(this.parameters.labels).split(',');
         let n = l.length;
     
-        let s = this.parameters.size*(width+height)/2
+        let s = Math.max(0, Number(this.parameters.size) || 0) * (width+height) / 2;
         let d = this.data;
         const selectX = this.getSelectX();
         if (Array.isArray(d) && (d.length === 0 || !Array.isArray(d[0])))
@@ -149,18 +161,21 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
             return;
         let rows = d.length;
         
-        this.parameters.labelOffsetX = parseFloat(this.parameters.labelOffsetX);    // FIXME: should be converted somewhere else
-        this.parameters.labelOffsetY = parseFloat(this.parameters.labelOffsetY);
+        const configuredLabelOffsetX = Number(this.parameters.label_offset_x);
+        const configuredLabelOffsetY = Number(this.parameters.label_offset_y);
+        const labelOffsetX = Number.isFinite(configuredLabelOffsetX) ? configuredLabelOffsetX : 0;
+        const labelOffsetY = Number.isFinite(configuredLabelOffsetY) ? configuredLabelOffsetY : 0;
 
-        this.canvas.lineWidth = this.format.lineWidth;
-        this.canvas.lineCap = this.format.lineCap;
-        this.canvas.lineJoin = this.format.lineJoin;
+        this.canvas.lineWidth = Math.max(1, Number(this.format.line_width) || 1);
+        this.canvas.lineCap = this.format.line_cap;
+        this.canvas.lineJoin = this.format.line_join;
 
-        this.canvas.font = this.parameters.labelFont;
-        this.canvas.textAlign = this.parameters.labelAlign;
-        this.canvas.textBaseline = this.parameters.labelBaseline;
+        this.canvas.font = this.parameters.label_font;
+        this.canvas.textAlign = this.parameters.label_align;
+        this.canvas.textBaseline = this.parameters.label_baseline;
 
-        let xx = (this.parameters.count ? selectX+2*this.parameters.count : d[0].length);
+        const pointCount = Math.max(0, Math.trunc(Number(this.parameters.point_count) || 0));
+        let xx = pointCount ? selectX + 2 * pointCount : d[0].length;
         xx = Math.min(xx, d[0].length);
         let c = 0;
         for(var i=selectX; i<xx; i+=2)
@@ -169,24 +184,26 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
                 break;
             let lx = 0;
             let ly = 0;
-            let x = (d[0][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
-            let y = (d[0][i+1]-this.parameters.min_y)*this.parameters.scale_y * height;
+            let x = (d[0][i+0]-this.parameters.x_min)*this.parameters.scale_x * width;
+            let y = (d[0][i+1]-this.parameters.y_min)*this.parameters.scale_y * height;
             
             for(var j=0; j<rows;j++)
             {
                 if(!Array.isArray(d[j]) || i+1 >= d[j].length)
                     continue;
-                x = (d[j][i+0]-this.parameters.min_x)*this.parameters.scale_x * width;
-                y = (d[j][i+1]-this.parameters.min_y)*this.parameters.scale_y * height;
+                x = (d[j][i+0]-this.parameters.x_min)*this.parameters.scale_x * width;
+                y = (d[j][i+1]-this.parameters.y_min)*this.parameters.scale_y * height;
+                if(!Number.isFinite(x) || !Number.isFinite(y))
+                    continue;
 
                 this.setColor(c);
                 this.canvas.beginPath();
                 
-                if(this.parameters.markerType == "circle")
+                if(this.parameters.marker_type == "circle")
                 {
                     this.canvas.arc(...transform(x, y), s, 0, 2*Math.PI);
                 }
-                else if(this.parameters.markerType == "cross")
+                else if(this.parameters.marker_type == "cross")
                 {
                     this.canvas.moveTo(...transform(x-s/2, y));
                     this.canvas.lineTo(...transform(x+s/2, y));
@@ -197,25 +214,28 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
                 this.canvas.fill();
                 this.canvas.stroke();
                 
-                if(this.parameters.labelType != "none")
+                if(this.parameters.label_type != "none")
                 {
                     let lbl = n > 0 ? l[j % n] : "";
-                    if(this.parameters.labelType == "alphabetical")
+                    if(this.parameters.label_type == "alphabetical")
                         lbl = String.fromCharCode(65+j);
-                    if(this.parameters.labelType == "numbered")
+                    if(this.parameters.label_type == "numbered")
                         lbl = j;
-                    if(this.parameters.labelType == "x_value")
-                        lbl = d[j][i+0].toFixed(this.parameters.labelDecimals);
-                    else if(this.parameters.labelType == "y_value")
-                        lbl = d[j][i+1].toFixed(this.parameters.labelDecimals);
-                    else if(this.parameters.labelType == "xy_value")
-                        lbl = d[j][i+0].toFixed(this.parameters.labelDecimals)+", "+d[j][i+1].toFixed(this.parameters.labelDecimals);
-                    else if(this.parameters.labelType == "z_value")
-                         lbl = d[j][i+2].toFixed(this.parameters.labelDecimals);
-                    else if(this.parameters.labelType == "value")
-                        lbl = d[j][this.parameters.select_value_column].toFixed(this.parameters.labelDecimals);
+                    if(this.parameters.label_type == "x_value")
+                        lbl = this.formatLabelValue(d[j][i+0]);
+                    else if(this.parameters.label_type == "y_value")
+                        lbl = this.formatLabelValue(d[j][i+1]);
+                    else if(this.parameters.label_type == "xy_value")
+                        lbl = this.formatLabelValue(d[j][i+0])+", "+this.formatLabelValue(d[j][i+1]);
+                    else if(this.parameters.label_type == "z_value")
+                         lbl = this.formatLabelValue(d[j][i+2]);
+                    else if(this.parameters.label_type == "value")
+                    {
+                        const valueColumn = Math.max(0, Math.trunc(Number(this.parameters.select_value_column) || 0));
+                        lbl = this.formatLabelValue(d[j][valueColumn]);
+                    }
 
-                    this.canvas.fillText(this.parameters.labelPrefix+lbl+this.parameters.labelPostfix, ...transform(x+this.parameters.labelOffsetX, y+this.parameters.labelOffsetY));
+                    this.canvas.fillText(this.parameters.label_prefix+lbl+this.parameters.label_suffix, ...transform(x+labelOffsetX, y+labelOffsetY));
                 }
             }
             c++;
@@ -234,37 +254,22 @@ class WebUIWidgetMarker extends WebUIWidgetGraph
     {
         this.parameters.select_x = this.getSelectX();
 
-        this.parameters.min_x = (typeof this.parameters.min_x !== 'undefined' ? this.parameters.min_x : this.parameters.min);
-        this.parameters.max_x = (typeof this.parameters.max_x !== 'undefined' ? this.parameters.max_x : this.parameters.max);
-        this.parameters.scale_x = 1/(this.parameters.max_x == this.parameters.min_x ? 1 : this.parameters.max_x-this.parameters.min_x);
-        
-        this.parameters.min_y = (typeof this.parameters.min_y !== 'undefined' ? this.parameters.min_y : this.parameters.min);
-        this.parameters.max_y = (typeof this.parameters.max_y !== 'undefined' ? this.parameters.max_y : this.parameters.max);
-        this.parameters.scale_y = 1/(this.parameters.max_y == this.parameters.min_y ? 1 : this.parameters.max_y-this.parameters.min_y);
+        this.parameters.scale_x = 1/(this.parameters.x_max == this.parameters.x_min ? 1 : this.parameters.x_max-this.parameters.x_min);
 
-        // draw if data available
-        if(!d)
-            return;
-        
-        try {
-            this.data = this.getSource('source');
+        this.parameters.scale_y = 1/(this.parameters.y_max == this.parameters.y_min ? 1 : this.parameters.y_max-this.parameters.y_min);
 
-            if(!this.data)
-                return;
-            if(this.getMatrixRank(this.data) == 1)
-                this.data = [this.data];
-            if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
-                return;
-
-            this.resetCanvasTransform(-0.5, -0.5);
-            this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
-
-            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
-        }
-        catch(err)
+        this.data = this.getSource('source');
+        if(this.getMatrixRank(this.data) == 1)
+            this.data = [this.data];
+        if(!Array.isArray(this.data) || this.data.length === 0 || !Array.isArray(this.data[0]))
         {
+            this.clearCanvas();
+            return;
         }
+
+        this.beginCanvasDraw();
+
+        this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
     }
 };
 

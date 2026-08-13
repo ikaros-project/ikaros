@@ -1,0 +1,10 @@
+<group internal="true"
+    check_sum="1"
+    name="TestHTTPConnectionReset"
+    description="Treat an HTTP client reset as a normal disconnect"
+    stop="1"
+    webui_port="8369"
+    http_real_time="false"
+    http_requests="assert_connection_reset:update"
+    http_terminate_after_requests="true"
+    expected_output_contains="HTTP_CONNECTION_RESET ignored||While handling HTTP request: recv failed: Connection reset by peer" />

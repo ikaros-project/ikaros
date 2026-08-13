@@ -1,0 +1,5 @@
+<group name="DynamixelControllerGraphCountMismatch" tick_duration="0.01" stop="0" nrServosTotal="19" expected_exit="1" expected_output_contains="robot EpiWhite configuration has 6 servos, but the graph expects 19 servos from nrServosTotal">
+   <connection source="Goal.OUTPUT" target="DXL.GOAL_POSITION" />
+   <module name="Goal" class="Constant" data="0, 0, 0, 0, 10, 10" />
+   <module name="DXL" class="DynamixelController" robot="EpiWhite" Simulate="true" />
+</group>

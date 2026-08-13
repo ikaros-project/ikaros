@@ -1,0 +1,6 @@
+<group internal="true"
+    name="TestEmptyRequiredOption"
+    description="Reject an explicitly empty required command-line option"
+    cli_args="user_data="
+    expected_exit="1"
+    expected_output_contains="Command-line option &quot;user_data&quot; requires a non-empty value" />

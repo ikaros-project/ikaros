@@ -1,0 +1,5 @@
+<group internal="true" name="TestStopAfterZeroJSON" description="Serialize zero-tick WebUI progress as valid JSON" stop="0" webui_port="8216" http_start_delay="0.05" http_requests="assert_json_field:update/TestStopAfterZeroJSON:progress:0" http_terminate_after_requests="true">
+
+    <module class="Constant" name="Source" data="1" />
+
+</group>

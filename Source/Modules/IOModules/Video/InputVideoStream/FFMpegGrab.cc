@@ -84,6 +84,7 @@ struct FFMpegGrab::Impl
 
     bool uv4l = false;
     std::string url;
+    std::string lastError;
     bool printInfo = false;
     bool synchronized = false;
     bool freshData = false;
@@ -101,6 +102,13 @@ FFMpegGrab::FFMpegGrab():
 {
     avformat_network_init();
     av_log_set_level(AV_LOG_INFO);
+}
+
+
+const std::string &
+FFMpegGrab::LastError() const
+{
+    return impl_->lastError;
 }
 
 FFMpegGrab::~FFMpegGrab()
@@ -216,6 +224,7 @@ FFMpegGrab::ReadFrame(uint8_t * destination, std::size_t bytes, bool wait_for_ne
 bool
 FFMpegGrab::Init()
 {
+    impl_->lastError.clear();
     if(impl_->printInfo)
         std::cout << "FFMpegGrab Init()" << std::endl;
 
@@ -243,7 +252,7 @@ FFMpegGrab::Init()
 
     if(avformat_open_input(&impl_->input_format_context, impl_->url.c_str(), file_iformat, &options) != 0)
     {
-        std::cout << "FFMpegGrab: Could not open file " << impl_->url << std::endl;
+        impl_->lastError = "Could not open \"" + impl_->url + "\".";
         av_dict_free(&options);
         return false;
     }
@@ -251,7 +260,7 @@ FFMpegGrab::Init()
 
     if(av_find_best_stream(impl_->input_format_context, AVMEDIA_TYPE_VIDEO, 0, 0, nullptr, 0) < 0)
     {
-        std::cout << "FFMpegGrab: Couldn't find stream information" << std::endl;
+        impl_->lastError = "Could not find stream information.";
         resetDecoderState();
         return false;
     }
@@ -272,7 +281,7 @@ FFMpegGrab::Init()
     }
     if(impl_->videoStreamId == -1)
     {
-        std::cout << "FFMpegGrab: Didn't find a video stream" << std::endl;
+        impl_->lastError = "Could not find a video stream.";
         resetDecoderState();
         return false;
     }
@@ -293,7 +302,7 @@ FFMpegGrab::Init()
 
     if(impl_->input_codec == nullptr)
     {
-        std::cout << "FFMpegGrab: Unsupported codec!" << std::endl;
+        impl_->lastError = "The video codec is unsupported.";
         resetDecoderState();
         return false;
     }
@@ -301,7 +310,7 @@ FFMpegGrab::Init()
     impl_->avctx = avcodec_alloc_context3(impl_->input_codec);
     if(!impl_->avctx)
     {
-        std::cout << "FFMpegGrab: Could not allocate a decoding context" << std::endl;
+        impl_->lastError = "Could not allocate a decoding context.";
         return false;
     }
 
@@ -310,14 +319,14 @@ FFMpegGrab::Init()
         impl_->input_format_context->streams[impl_->videoStreamId]->codecpar);
     if(error < 0)
     {
-        std::cout << "FFMpegGrab: Could not set parameters to context" << std::endl;
+        impl_->lastError = "Could not copy codec parameters into the decoding context.";
         resetDecoderState();
         return false;
     }
 
     if(avcodec_open2(impl_->avctx, impl_->input_codec, nullptr) < 0)
     {
-        std::cout << "FFMpegGrab: Could not open codec" << std::endl;
+        impl_->lastError = "Could not open the video codec.";
         resetDecoderState();
         return false;
     }
@@ -325,7 +334,7 @@ FFMpegGrab::Init()
     impl_->inputFrame = av_frame_alloc();
     if(impl_->inputFrame == nullptr)
     {
-        std::cout << "FFMpegGrab: Could not allocate AVFrame" << std::endl;
+        impl_->lastError = "Could not allocate the input video frame.";
         resetDecoderState();
         return false;
     }
@@ -333,7 +342,7 @@ FFMpegGrab::Init()
     impl_->outputFrame = av_frame_alloc();
     if(impl_->outputFrame == nullptr)
     {
-        std::cout << "FFMpegGrab: Could not allocate AVFrame" << std::endl;
+        impl_->lastError = "Could not allocate the output video frame.";
         resetDecoderState();
         return false;
     }
@@ -346,7 +355,7 @@ FFMpegGrab::Init()
                       impl_->outputFrame->width, impl_->outputFrame->height,
                       AV_PIX_FMT_RGB24, 32) < 0)
     {
-        std::cout << "FFMpegGrab: Could not allocate image buffer" << std::endl;
+        impl_->lastError = "Could not allocate the output image buffer.";
         resetDecoderState();
         return false;
     }

@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestXMLParser"
+    description="Test XML parser ownership and correctness"
+    start="true"
+    stop="1"
+    check_sum="12"
+    expected_output_contains="XML TEST OK">
+    <module class="XMLTestModule" name="XML" />
+</group>

@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestBoolStateLoad"
+    description="Reject a non-Boolean JSON value for Boolean state"
+    stop="1"
+    cli_args="-L"
+    expected_exit="1"
+    expected_output_contains="Expected Boolean value">
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" write="false" />
+</group>

@@ -15,6 +15,10 @@ add_subdirectory(ReduceFunctions)
 add_subdirectory(Functions)
 
 add_subdirectory(Scale)
+add_subdirectory(Integrator)
+add_subdirectory(Threshold)
+add_subdirectory(Normalize)
+add_subdirectory(ArgMax)
 add_subdirectory(Oscillator)
 add_subdirectory(FunctionGenerator)
 add_subdirectory(Protocol)
@@ -27,8 +31,11 @@ add_subdirectory(FaceClassifier)
 add_subdirectory(PointsToSalience)
 add_subdirectory(SalienceIntegrator)
 add_subdirectory(World2D)
+add_subdirectory(PlanarArm)
+add_subdirectory(RingWorld)
 
 
+add_subdirectory(Arbiter)
 add_subdirectory(AmbientLight)
 
 add_subdirectory(SequenceRecorder)
@@ -37,8 +44,6 @@ add_subdirectory(SequenceRecorder)
 add_subdirectory(LinearSplines)
 add_subdirectory(PythonModule)
 add_subdirectory(Softmax)
-
-add_subdirectory(KernelTestModules)
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)
 set(MODULES_INCLUDS ${MODULES_INCLUDS} PARENT_SCOPE)

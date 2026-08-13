@@ -8,7 +8,8 @@ channels while preserving one independent sample history per element.
 
 If `SAMPLE` is not connected, every input element is sampled on every tick. If `SAMPLE` is connected,
 it must have the same number of elements as `INPUT`; an element is sampled only when the matching
-`SAMPLE` value is 1 or greater.
+`SAMPLE` value is 1 or greater. Non-finite input values are ignored and do not change the collected
+statistics.
 
 The histogram output uses the same range for all channels. `HISTOGRAM_MIN` and `HISTOGRAM_MAX`
 report that shared range, and `HISTOGRAM` contains one row per input element and one column per bin.

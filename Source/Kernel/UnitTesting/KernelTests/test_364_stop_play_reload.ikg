@@ -1,0 +1,14 @@
+<group internal="true"
+    name="TestStopPlayReload"
+    description="Play reloads modules after Stop has released their runtime resources"
+    start="true"
+    log_level="7"
+    tick_duration="0.001"
+    webui_port="8364"
+    cli_args="-u${TEST_DIR}"
+    http_start_delay="0.03"
+    http_requests="stop||play||sleep:0.03||quit"
+    http_terminate_after_requests="true"
+    expected_output_twice="TestStopPlayReload.Restartable tick=1">
+    <module class="FirstTickReporter" name="Restartable" />
+</group>

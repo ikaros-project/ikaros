@@ -67,10 +67,11 @@ class System: public Module
         real_time[0] = static_cast<float>(GetRealTime());
         uptime[0] = static_cast<float>(GetUptime());
 
-        run_state[0] = mode == run_mode_stop ? 1.0f : 0.0f;
-        run_state[1] = mode == run_mode_pause ? 1.0f : 0.0f;
-        run_state[2] = mode == run_mode_play ? 1.0f : 0.0f;
-        run_state[3] = mode == run_mode_realtime ? 1.0f : 0.0f;
+        run_state(0) = mode == run_mode_stop ? 1.0f : 0.0f;
+        run_state(1) = mode == run_mode_pause ? 1.0f : 0.0f;
+        run_state(2) = mode == run_mode_play ? 1.0f : 0.0f;
+        run_state(3) = mode == run_mode_realtime ? 1.0f : 0.0f;
+        run_state(4) = mode == run_mode_fast_forward ? 1.0f : 0.0f;
         state[0] = static_cast<float>(mode);
 
         tick_duration[0] = static_cast<float>(duration);

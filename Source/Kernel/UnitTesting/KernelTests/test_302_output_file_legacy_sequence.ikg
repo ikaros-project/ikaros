@@ -1,0 +1,14 @@
+<group internal="true"
+       name="TestOutputFileLegacySequence"
+       description="OutputFile rejects printf-style filename sequences"
+       start="true"
+       stop="1"
+       expected_exit="1"
+       expected_output_contains="Image sequences do not support printf-style formats here; use # or ####">
+    <module name="Data" class="Constant" data="1" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_302_output_file_%02d.csv" />
+
+    <connection source="Data.OUTPUT" target="Output.INPUT" />
+</group>

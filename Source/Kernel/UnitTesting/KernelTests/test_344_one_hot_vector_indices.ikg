@@ -1,0 +1,22 @@
+<group internal="true"
+    name="TestOneHotVectorIndices"
+    description="Test safe OneHotVector index clamping and non-finite input handling"
+    start="true"
+    stop="3"
+    threads="1"
+    check_sum="2477"
+    expected_output_contains="high = {0, 0, 0, 7}||nan = {0, 0, 0, 0}||OneHotVector input index must be finite">
+
+    <module class="Constant" name="HighIndex" data="99" />
+    <module class="OneHotVector" name="HighOneHot" output_size="4" value="7" />
+    <module class="Print" name="HighPrint" />
+    <connection source="HighIndex.OUTPUT" target="HighOneHot.INPUT" />
+    <connection source="HighOneHot.OUTPUT" target="HighPrint.INPUT" label="high" />
+
+    <module class="Constant" name="NaNIndex" data="nan" />
+    <module class="OneHotVector" name="NaNOneHot" output_size="4" value="7" />
+    <module class="Print" name="NaNPrint" />
+    <connection source="NaNIndex.OUTPUT" target="NaNOneHot.INPUT" />
+    <connection source="NaNOneHot.OUTPUT" target="NaNPrint.INPUT" label="nan" />
+
+</group>

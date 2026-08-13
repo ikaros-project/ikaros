@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestStateBadFormat"
     description="Test state file rejects unsupported format"
     stop="1"

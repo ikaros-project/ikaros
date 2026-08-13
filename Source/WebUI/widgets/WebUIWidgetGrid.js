@@ -7,44 +7,44 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             
             {'name':'title', 'default':"", 'type':'string', 'control': 'textedit'},
             {'name':'source', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'red', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'green', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'blue', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'red_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'green_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'blue_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'order', 'default':"row", 'type':'string', 'control': 'menu', 'options': "row,col"},
-            {'name':'min', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'max', 'default':2, 'type':'float', 'control': 'textedit'},
+            {'name':'value_min', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'value_max', 'default':2, 'type':'float', 'control': 'textedit'},
             {'name':'labels', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'label_parameter', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'labelWidth', 'default':100, 'type':'int', 'control': 'textedit'},
+            {'name':'label_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'label_width', 'default':100, 'type':'int', 'control': 'textedit'},
 
             {'name': "CONTROL", 'control':'header'},
             
-            {'name':'command', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'parameter', 'default':"", 'type':'string', 'control': 'textedit'},
+            {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'interaction', 'default':"toggle", 'type':'string', 'control': 'menu', 'options': "toggle,slider"},
-            {'name':'valueHigh', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'valueLow', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'on_value', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'off_value', 'default':0, 'type':'float', 'control': 'textedit'},
             
             {'name': "STYLE", 'control':'header'},
 
-            {'name':'color', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'fill', 'default':"gray", 'type':'string', 'control': 'menu', 'options': "gray,fire,spectrum,custom,rgb"},
-            {'name':'colorTable', 'default':'', 'type':'string', 'control': 'textedit'},
-            {'name':'lineWidth', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'stroke_color', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'color_map', 'default':"gray", 'type':'string', 'control': 'menu', 'options': "gray,fire,spectrum,custom,rgb"},
+            {'name':'color_map_colors', 'default':'', 'type':'string', 'control': 'textedit'},
+            {'name':'line_width', 'default':1, 'type':'float', 'control': 'textedit'},
             {'name':'shape', 'default':"rectangle", 'type':'string', 'control': 'menu', 'options': "rectangle,square,circle"},
             {'name':'size', 'default':1, 'type':'float', 'control': 'textedit'},
 
             {'name': "COORDINATE SYSTEM", 'control':'header'},
 
-            {'name':'scales', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no,invisible", 'class':'true'},
-            {'name':'min_x', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_x', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'min_y', 'default':0, 'type':'float', 'control': 'textedit'},
-            {'name':'max_y', 'default':1, 'type':'float', 'control': 'textedit'},
-            {'name':'flipXAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYAxis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipXCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
-            {'name':'flipYCanvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'scale_visibility', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no,invisible", 'class':'true'},
+            {'name':'x_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'x_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'y_min', 'default':0, 'type':'float', 'control': 'textedit'},
+            {'name':'y_max', 'default':1, 'type':'float', 'control': 'textedit'},
+            {'name':'flip_x_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_axis', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_x_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
+            {'name':'flip_y_canvas', 'default':"no", 'type':'string', 'control': 'menu', 'options': "yes,no"},
         ]
     }
 
@@ -88,9 +88,17 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
     disconnectedCallback()
     {
-        if (typeof super.disconnectedCallback === "function")
-            super.disconnectedCallback();
         this.endSliderInteraction();
+        super.disconnectedCallback();
+    }
+
+    requestData(data_set)
+    {
+        super.requestData(data_set);
+        this.addSourceMetadata(data_set, this.parameters.source);
+        this.addSourceMetadata(data_set, this.parameters.red_source);
+        this.addSourceMetadata(data_set, this.parameters.green_source);
+        this.addSourceMetadata(data_set, this.parameters.blue_source);
     }
 
     hasDrawableGrid()
@@ -103,13 +111,15 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         if(!this.hasDrawableGrid())
             return null;
 
-        const hasLabels = String(this.parameters.labels ?? "").trim() !== "";
-        const labelWidth = hasLabels ? parseInt(this.parameters.labelWidth) : 0;
+        const hasLabels = this.getDisplayLabels().length > 0;
+        const configuredLabelWidth = Number(this.parameters.label_width);
+        const label_width = hasLabels && Number.isFinite(configuredLabelWidth) ? Math.max(0, configuredLabelWidth) : 0;
         const rect = this.canvasElement.getBoundingClientRect();
-        const rows = this.displayData.length;
-        const cols = this.displayData[0].length;
-        const usableWidth = rect.width - this.format.spaceLeft - this.format.spaceRight - labelWidth;
-        const usableHeight = rect.height - this.format.spaceTop - this.format.spaceBottom;
+        const rgb = this.parameters.color_map === "rgb";
+        const rows = rgb ? this.displayData[0].length : this.displayData.length;
+        const cols = rgb ? this.displayData[0][0]?.length : this.displayData[0].length;
+        const usableWidth = rect.width - this.format.space_left - this.format.space_right - label_width;
+        const usableHeight = rect.height - this.format.space_top - this.format.space_bottom;
         if(usableWidth <= 0 || usableHeight <= 0 || rows <= 0 || cols <= 0)
             return null;
 
@@ -117,7 +127,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             rect,
             rows,
             cols,
-            labelWidth,
+            label_width,
             usableWidth,
             usableHeight,
             cellWidth: usableWidth / cols,
@@ -131,8 +141,8 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         if(!metrics)
             return null;
 
-        const x = Math.floor(metrics.cols * (evt.clientX - metrics.rect.left - this.format.spaceLeft - metrics.labelWidth) / metrics.usableWidth);
-        const y = Math.floor(metrics.rows * (evt.clientY - metrics.rect.top - this.format.spaceTop) / metrics.usableHeight);
+        const x = Math.floor(metrics.cols * (evt.clientX - metrics.rect.left - this.format.space_left - metrics.label_width) / metrics.usableWidth);
+        const y = Math.floor(metrics.rows * (evt.clientY - metrics.rect.top - this.format.space_top) / metrics.usableHeight);
         if(x < 0 || x >= metrics.cols || y < 0 || y >= metrics.rows)
             return null;
 
@@ -170,15 +180,15 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             const {x, y} = cell;
 
             if(this.parameters.command)
-                this.send_command(this.parameters.command, this.parameters.valueHigh, x, y)
-                //this.get("/command/"+this.parameters.command+"/"+x+"/"+y+"/"+this.parameters.valueHigh);
+                this.send_command(this.parameters.command, this.parameters.on_value, x, y)
+                //this.get("/command/"+this.parameters.command+"/"+x+"/"+y+"/"+this.parameters.on_value);
             
             else if(this.parameters.parameter)
             {
-                if(this.displayData[y][x] < this.parameters.valueHigh)
-                    this.send_control_change(this.parameters.parameter, this.parameters.valueHigh, x, y);
+                if(this.displayData[y][x] < this.parameters.on_value)
+                    this.send_control_change(this.parameters.parameter, this.parameters.on_value, x, y);
                 else
-                    this.send_control_change(this.parameters.parameter, this.parameters.valueLow, x, y);
+                    this.send_control_change(this.parameters.parameter, this.parameters.off_value, x, y);
             }
         }
 
@@ -187,7 +197,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         const currentValue = Number(this.displayData?.[y]?.[x]);
         if(Number.isFinite(currentValue))
             return currentValue;
-        const low = Number(this.parameters.valueLow);
+        const low = Number(this.parameters.off_value);
         return Number.isFinite(low) ? low : 0;
     }
 
@@ -223,10 +233,12 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             }
         }
 
-        window.addEventListener("pointermove", this._boundSliderMove, true);
-        window.addEventListener("pointerup", this._boundSliderEnd, true);
-        window.addEventListener("pointercancel", this._boundSliderEnd, true);
-        window.addEventListener("click", this._boundSliderClickSuppressor, true);
+        this._sliderListenerRemovers = [
+            this.addManagedListener(window, "pointermove", this._boundSliderMove, true),
+            this.addManagedListener(window, "pointerup", this._boundSliderEnd, true),
+            this.addManagedListener(window, "pointercancel", this._boundSliderEnd, true),
+            this.addManagedListener(window, "click", this._boundSliderClickSuppressor, true)
+        ];
         this.updateSliderInteraction(evt);
     }
 
@@ -238,8 +250,8 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         evt.preventDefault();
         evt.stopPropagation();
 
-        const low = Number(this.parameters.valueLow);
-        const high = Number(this.parameters.valueHigh);
+        const low = Number(this.parameters.off_value);
+        const high = Number(this.parameters.on_value);
         const rangeMin = Math.min(Number.isFinite(low) ? low : 0, Number.isFinite(high) ? high : 1);
         const rangeMax = Math.max(Number.isFinite(low) ? low : 0, Number.isFinite(high) ? high : 1);
         const span = rangeMax - rangeMin;
@@ -259,13 +271,11 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             return;
 
         const pointerId = this.sliderInteraction.pointerId;
-        window.removeEventListener("pointermove", this._boundSliderMove, true);
-        window.removeEventListener("pointerup", this._boundSliderEnd, true);
-        window.removeEventListener("pointercancel", this._boundSliderEnd, true);
-        setTimeout(() =>
-        {
-            window.removeEventListener("click", this._boundSliderClickSuppressor, true);
-        }, 0);
+        const removers = this._sliderListenerRemovers || [];
+        removers.slice(0, 3).forEach((remove) => remove());
+        if(removers[3])
+            setTimeout(removers[3], 0);
+        this._sliderListenerRemovers = [];
         if(this.releasePointerCapture && pointerId !== undefined)
         {
             try {
@@ -278,9 +288,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
     redrawGrid()
     {
-        this.resetCanvasTransform(-0.5, -0.5);
-        this.canvas.clearRect(0, 0, this.width, this.height);
-        this.canvas.translate(this.format.marginLeft, this.format.marginTop);
+        this.beginCanvasDraw();
         this.drawHorizontal(1, 1);
     }
 
@@ -298,12 +306,25 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         return transposed;
     }
 
+    normalizeGridData(data)
+    {
+        if(!Array.isArray(data))
+            return data;
+        if(data.length === 0)
+            return data;
+        if(!Array.isArray(data[0]))
+            return [data];
+        return data;
+    }
+
     getDisplayData(data)
     {
+        data = this.normalizeGridData(data);
+
         if(this.parameters.order !== "col")
             return data;
 
-        if(this.parameters.fill == "rgb")
+        if(this.parameters.color_map == "rgb")
         {
             if(!Array.isArray(data))
                 return data;
@@ -311,6 +332,22 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         }
 
         return this.transposeMatrix(data);
+    }
+
+    getMetadataLabels()
+    {
+        const labels = this.metadata?.labels;
+        if(!Array.isArray(labels) || !Array.isArray(labels[0]))
+            return [];
+        return labels[0].map((label) => String(label ?? "").trim()).filter((label) => label !== "");
+    }
+
+    getDisplayLabels()
+    {
+        const explicitLabels = String(this.parameters.labels ?? "").trim();
+        if(explicitLabels !== "")
+            return explicitLabels.split(',').map((label) => label.trim()).filter((label) => label !== "");
+        return this.getMetadataLabels();
     }
 
     channelToHex(value)
@@ -328,7 +365,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
         if (!Array.isArray(d) || d.length === 0)
             return;
         
-        if(this.parameters.fill == "rgb")
+        if(this.parameters.color_map == "rgb")
         {
             if(!Array.isArray(d[0]) || !Array.isArray(d[0][0]))
                 return;
@@ -343,31 +380,35 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             cols = d[0].length;
         }
         
-        this.canvas.lineWidth = this.format.lineWidth;
+        this.canvas.lineWidth = this.format.line_width;
         this.canvas.textAlign = 'left';
         this.canvas.textBaseline = 'middle';
 
         let ct = LUT_gray;
-        if(this.parameters.fill == 'fire')
+        if(this.parameters.color_map == 'fire')
             ct = LUT_fire;
-        else if(this.parameters.fill == 'spectrum')
+        else if(this.parameters.color_map == 'spectrum')
             ct = LUT_spectrum;
 
-        if(String(this.parameters.colorTable ?? "").trim() != "")
+        if(String(this.parameters.color_map_colors ?? "").trim() != "")
         {
-            ct = String(this.parameters.colorTable).split(',').map((entry) => entry.trim()).filter((entry) => entry !== "");
+            ct = String(this.parameters.color_map_colors).split(',').map((entry) => entry.trim()).filter((entry) => entry !== "");
             if (ct.length === 0)
                 ct = LUT_gray;
         }
 
-        let labels = String(this.parameters.labels ?? "").trim() === "" ? [] : String(this.parameters.labels).split(',');
+        let labels = this.getDisplayLabels();
         let ln = labels.length;
-        let ls = (ln ? parseInt(this.parameters.labelWidth) : 0);
+        const labelPaddingLeft = 2;
+        const configuredLabelWidth = Number(this.parameters.label_width);
+        let ls = ln && Number.isFinite(configuredLabelWidth) ? Math.max(0, configuredLabelWidth) : 0;
         let n = ct.length;
         let dx = (width-ls)/cols;
         let dy = height/rows;
-        let sx = dx*this.parameters.size;
-        let sy = dy*this.parameters.size;
+        const configuredSize = Number(this.parameters.size);
+        const size = Number.isFinite(configuredSize) ? Math.max(0, configuredSize) : 1;
+        let sx = dx*size;
+        let sy = dy*size;
 
         if(this.parameters.shape == 'square' || this.parameters.shape == 'circle')
         {
@@ -376,14 +417,14 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
             sy = minimum;
         }
 
-        if(this.parameters.fill == "rgb")
+        if(this.parameters.color_map == "rgb")
         {
             for(var i=0; i<rows; i++)
                 {
                     if(ln)
                     {
                         this.canvas.fillStyle = "black";    // FIXME: Should really use the default color from the stylesheet
-                        this.canvas.fillText((labels[i % ln] ?? "").trim(), 0, dy*i+dy/2);
+                        this.canvas.fillText((labels[i % ln] ?? "").trim(), labelPaddingLeft, dy*i+dy/2);
                     }
 
                     for(var j=0; j<cols; j++)
@@ -429,7 +470,7 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                 if(ln)
                 {
                     this.canvas.fillStyle = "black";    // FIXME: Should really use the default color form the stylesheet
-                    this.canvas.fillText((labels[i % ln] ?? "").trim(), 0, dy*i+dy/2);
+                    this.canvas.fillText((labels[i % ln] ?? "").trim(), labelPaddingLeft, dy*i+dy/2);
                 }
 
                 for(var j=0; j<cols; j++)
@@ -437,8 +478,12 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
                     this.setColor(i+j);
                     this.canvas.beginPath();
                     try {
-                        let f = (d[i][j]-this.parameters.min)/(this.parameters.max-this.parameters.min);
-                        let ix = Math.min(Math.floor(n*f), n-1);
+                        const value = Number(d[i][j]);
+                        const minimum = Number(this.parameters.value_min);
+                        const maximum = Number(this.parameters.value_max);
+                        const span = maximum - minimum;
+                        const f = Number.isFinite(value) && Number.isFinite(span) && span !== 0 ? (value - minimum) / span : 0;
+                        let ix = Math.max(0, Math.min(Math.floor(n*f), n-1));
                         this.canvas.fillStyle = String(ct[ix] ?? "black").trim();
                     } catch (error) {
                         this.canvas.fillStyle = "black";
@@ -471,40 +516,66 @@ class WebUIWidgetGrid extends WebUIWidgetGraph
 
     update()
     {
-        if(this.parameters.fill == "rgb")
+        if(this.parameters.label_source)
         {
-            this.data = [this.getSource('red'), this.getSource('green'), this.getSource('blue')];
-            if(!this.data[0] || !this.data[1] || !this.data[2])
-                return;
-            if(!Array.isArray(this.data[0]) || !Array.isArray(this.data[1]) || !Array.isArray(this.data[2]))
-                return;
-            if(this.data[0].length != this.data[1].length || this.data[1].length != this.data[2].length)
-                return;
-            this.displayData = this.getDisplayData(this.data);
-            this.resetCanvasTransform(-0.5, -0.5);
-            this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
-            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
+            const labels = this.getSource('label_source');
+            if(Array.isArray(labels))
+                this.element_labels = labels.flat ? labels.flat(Infinity).map((entry) => String(entry)) : labels.map((entry) => String(entry));
+            else if(labels !== undefined && labels !== null)
+                this.element_labels = String(labels).split(',');
+            else
+                this.element_labels = [];
         }
-        else if(this.data = this.getSource('source'))
-        {
-            this.displayData = this.getDisplayData(this.data);
-            this.resetCanvasTransform(-0.5, -0.5);
-            this.canvas.clearRect(0, 0, this.width, this.height);
-            this.canvas.translate(this.format.marginLeft, this.format.marginTop); //
-            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
-        }
+        else
+            this.element_labels = [];
 
-        if(this.parameters.label_parameter)
+        this.clearCanvas();
+
+        if(this.parameters.color_map == "rgb")
         {
-            let l = this.getSource('label_parameter');
-            if(l)
+            if(this.parameters.source)
             {
-                if (Array.isArray(l))
-                    this.element_labels = l.flat ? l.flat(Infinity).map((entry) => String(entry)) : l.map((entry) => String(entry));
-                else
-                    this.element_labels = String(l).split(',');
+                const packedData = this.getSource('source');
+                this.data = Array.isArray(packedData) ?
+                    packedData.slice(0, 3).map((channel) => this.normalizeGridData(channel)) : [];
+                this.metadata = this.getSourceMetadata('source', null);
             }
+            else
+            {
+                this.data = [this.getSource('red_source'), this.getSource('green_source'), this.getSource('blue_source')];
+                this.metadata = this.getSourceMetadata('red_source', null);
+            }
+            if(!this.data[0] || !this.data[1] || !this.data[2])
+            {
+                this.displayData = [];
+                return;
+            }
+            if(!Array.isArray(this.data[0]) || !Array.isArray(this.data[1]) || !Array.isArray(this.data[2]))
+            {
+                this.displayData = [];
+                return;
+            }
+            if(this.data[0].length != this.data[1].length || this.data[1].length != this.data[2].length)
+            {
+                this.displayData = [];
+                return;
+            }
+            this.displayData = this.getDisplayData(this.data);
+            this.canvas.translate(this.format.margin_left, this.format.margin_top); //
+            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
+        }
+        else
+        {
+            this.data = this.getSource('source');
+            if(!Array.isArray(this.data) || this.data.length === 0)
+            {
+                this.displayData = [];
+                return;
+            }
+            this.metadata = this.getSourceMetadata('source', null);
+            this.displayData = this.getDisplayData(this.data);
+            this.canvas.translate(this.format.margin_left, this.format.margin_top); //
+            this.drawHorizontal(1, 1);  // Draw grid over image - should be Graph:draw() with no arguments
         }
     }
 };

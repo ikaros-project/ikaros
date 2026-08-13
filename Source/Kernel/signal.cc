@@ -1,18 +1,18 @@
 // signal.cc		Signal utilities for ikaros (c) Christian Balkenius 2006-2024
 
-#include <cstdio>
-#include <signal.h>
 #include <atomic>
+#include <csignal>
+
 #include <unistd.h>
 
-extern std::atomic<bool> global_terminate; // Used to flag that CTRL-C has been received; defined in IKAROS.cc
+extern std::atomic<bool> global_terminate;
 
 namespace
 {
     class Signal
     {
     private:
-        static void Handler([[maybe_unused]] int signal_number)  // Catch CTRL-C and set the terminate flag.
+        static void Handler([[maybe_unused]] int signal_number)
         {
             static constexpr char message[] = "\nikaros will terminate after this iteration.\n";
             write(STDERR_FILENO, message, sizeof(message) - 1);
@@ -25,13 +25,14 @@ namespace
         Signal(Signal&&) = delete;
         Signal& operator=(Signal&&) = delete;
 
-        Signal() // Install the CTRL-C handler
+        Signal()
         {
             struct sigaction sa {};
             sa.sa_handler = Signal::Handler;
             sigemptyset(&sa.sa_mask);
-            sa.sa_flags = SA_RESETHAND; // Let a second CTRL-C terminate immediately.
+            sa.sa_flags = SA_RESETHAND;
             sigaction(SIGINT, &sa, nullptr);
+            sigaction(SIGTERM, &sa, nullptr);
         }
     };
 

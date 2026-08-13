@@ -1,0 +1,12 @@
+<group name="PIDController_reset_test" start="true" stop="1">
+    <module class="Constant" name="Input" data="[0]" />
+    <module class="Constant" name="SetPoint" data="[1]" />
+    <module class="Constant" name="Reset" data="[1]" />
+    <module class="PIDController" name="PIDController" Kb="0.5" Kp="2" Ki="1" Kd="1" />
+    <module class="Print" name="PrintOutput" />
+
+    <connection source="Input.OUTPUT" target="PIDController.INPUT" delay="0" />
+    <connection source="SetPoint.OUTPUT" target="PIDController.SETPOINT" delay="0" />
+    <connection source="Reset.OUTPUT" target="PIDController.RESET" delay="0" />
+    <connection source="PIDController.OUTPUT" target="PrintOutput.INPUT" delay="0" />
+</group>

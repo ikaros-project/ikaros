@@ -1,0 +1,25 @@
+<group internal="true"
+       name="TestOutputFileJSONArrayAppend"
+       description="OutputFile streams validation of an existing JSON array before appending"
+       start="true"
+       stop="1"
+       check_sum="87861"
+       initial_file="UserData/test_329_output_file_json_append.json"
+       initial_file_contents="[&#10;{&quot;line&quot;:0,&quot;weights&quot;:[[1,2],[3,4]]}&#10;]&#10;"
+       expected_file_exists="UserData/test_329_output_file_json_append.json"
+       expected_file_contains="[&#10;{&quot;line&quot;:0,&quot;weights&quot;:[[1,2],[3,4]]},&#10;{&quot;line&quot;:1,&quot;weights&quot;:[[1,2],[3,4]]}&#10;]"
+       cleanup_expected_files="true">
+    <module name="Weights" class="Constant" data="1,2;3,4" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_329_output_file_json_append.json"
+            format="json"
+            timestamp="line"
+            number_format="full"
+            existing_file="append" />
+
+    <connection delay="0"
+                source="Weights.OUTPUT"
+                target="Output.INPUT"
+                label="weights" />
+</group>

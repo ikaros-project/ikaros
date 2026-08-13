@@ -1,0 +1,14 @@
+<group internal="true"
+    name="TestWebUISnapshotRateLimit"
+    description="Rate-limit WebUI snapshots to the configured request interval"
+    start="true"
+    stop="2000"
+    tick_duration="0.001"
+    webui_req_int="0.2"
+    webui_port="8218"
+    http_start_delay="0.1"
+    http_requests="assert_snapshot_rate_limit:update/TestWebUISnapshotRateLimit?data=Source.OUTPUT:Source.OUTPUT:0.65:0.01:5"
+    http_terminate_after_requests="true"
+    expected_output_contains="SNAPSHOT_RATE distinct=">
+    <module class="DelaySequenceSource" name="Source" />
+</group>

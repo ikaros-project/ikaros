@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestExplicitSeparatedSaveState"
     description="Test separated save state filename"
     stop="1"

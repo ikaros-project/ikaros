@@ -1,0 +1,22 @@
+<group internal="true"
+       name="TestOutputImageWriteGate"
+       description="OutputImage honors a disabled WRITE gate and writes continuously when the gate is disconnected"
+       start="true"
+       stop="2"
+       check_sum="326066"
+       expected_file_exists="UserData/test_330_output_image_00.jpg||UserData/test_330_output_image_01.jpg"
+       expected_file_not_exists="UserData/test_330_output_image_disabled.jpg"
+       cleanup_expected_files="true">
+    <module name="Image" class="Constant" data="0,1;1,0" />
+    <module name="Disabled" class="Constant" data="0" />
+    <module name="ContinuousOutput"
+            class="OutputImage"
+            filename="test_330_output_image_##.jpg" />
+    <module name="DisabledOutput"
+            class="OutputImage"
+            filename="test_330_output_image_disabled.jpg" />
+
+    <connection source="Image.OUTPUT" target="ContinuousOutput.INPUT" />
+    <connection source="Image.OUTPUT" target="DisabledOutput.INPUT" />
+    <connection source="Disabled.OUTPUT" target="DisabledOutput.WRITE" />
+</group>

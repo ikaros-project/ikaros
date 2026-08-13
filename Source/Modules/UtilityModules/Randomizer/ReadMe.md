@@ -19,8 +19,9 @@ streams.
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
 | size | output from module | string | 2,3 |
-| min | Minimum value of the output (inclusive) | float | 0 |
-| max | Maximum value of the output (inclusive) | float | 1 |
+| min | Lower bound of the output | number | 0 |
+| max | Upper bound of the output | number | 1 |
+| seed | Random seed; negative selects nondeterministic seeding | number | -1 |
 
 ## Outputs
 

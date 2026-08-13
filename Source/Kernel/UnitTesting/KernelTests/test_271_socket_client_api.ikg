@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestSocketClientAPI"
+    description="Preserve socket descriptor ownership and reject partial request writes"
+    start="true"
+    stop="1"
+    check_sum="12"
+    log_level="7"
+    expected_output_contains="SOCKET_CLIENT_API_OK">
+    <module class="SocketClientAPITestModule" name="SocketTest" />
+</group>

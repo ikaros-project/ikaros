@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "ikaros.h"
 
 using namespace ikaros;
@@ -188,8 +190,11 @@ class Statistics: public Module
             throw exception("Statistics: SAMPLE must have the same size as INPUT.", path_);
 
         for (int i = 0; i < input.size(); ++i)
-            if (!sample.connected() || sample.data()[i] >= 1.0f)
-                statistics_[i].push(input.data()[i]);
+        {
+            const float value = input.data()[i];
+            if ((!sample.connected() || sample.data()[i] >= 1.0f) && std::isfinite(value))
+                statistics_[i].push(value);
+        }
 
         WriteStatistics();
         WriteHistogram();
@@ -205,10 +210,11 @@ class Statistics: public Module
         for (int i = 0; i < input.size(); ++i)
         {
             statistics & s = statistics_[i];
+            const statistics::order_summary order = s.summarize_order();
 
             const float count_value = static_cast<float>(s.count());
             const float mean_value = static_cast<float>(s.mean());
-            const float median_value = static_cast<float>(s.median());
+            const float median_value = static_cast<float>(order.median);
             const float mode_value = static_cast<float>(s.mode());
             const float min_value = static_cast<float>(s.min());
             const float max_value = static_cast<float>(s.max());
@@ -239,13 +245,13 @@ class Statistics: public Module
             output(8, i) = skewness_value;
             output(9, i) = kurtosis_value;
 
-            q1.data()[i] = static_cast<float>(s.q1());
-            q3.data()[i] = static_cast<float>(s.q3());
-            interquartile_range.data()[i] = static_cast<float>(s.interquartile_range());
-            const float lower_fence = static_cast<float>(s.lower_fence());
-            const float upper_fence = static_cast<float>(s.upper_fence());
-            const float lower_whisker = static_cast<float>(s.lower_whisker());
-            const float upper_whisker = static_cast<float>(s.upper_whisker());
+            q1.data()[i] = static_cast<float>(order.q1);
+            q3.data()[i] = static_cast<float>(order.q3);
+            interquartile_range.data()[i] = static_cast<float>(order.interquartile_range);
+            const float lower_fence = static_cast<float>(order.lower_fence);
+            const float upper_fence = static_cast<float>(order.upper_fence);
+            const float lower_whisker = static_cast<float>(order.lower_whisker);
+            const float upper_whisker = static_cast<float>(order.upper_whisker);
 
             box_plot(0, i) = lower_fence;
             box_plot(1, i) = lower_whisker;

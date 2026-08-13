@@ -8,13 +8,24 @@ const widget_classes =
     "histogram",
     "boxplot",
     "scatter-plot",
+    "polar-plot",
     "plot",
     "table",
     "marker",
     "path",
+    "trace",
+    "event-raster",
+    "vector-field",
+    "surface-plot",
     "grid",
+    "heat-map",
     "image",
     "target-boxes",
+    "world2dview",
+    "world3dview",
+    "ringworldview",
+    "navigation-hud",
+    "pan-tilt-hud",
     "text",
     "rectangle",
     "button",
@@ -24,7 +35,6 @@ const widget_classes =
     "color-picker",
     "switch",
     "drop-down-menu",
-    "control-grid",
     "canvas3d",
     "epi-head",
     "key-points",
@@ -1068,5 +1078,11 @@ const brainstudio =
 
         window.addEventListener("keydown", brainstudio.keydownHandler, true);
 
+        if(new URLSearchParams(window.location.search).get("webui_test") === "save_recovery")
+        {
+            const script = document.createElement("script");
+            script.src = "UnitTesting/live_save_test.js";
+            document.body.appendChild(script);
+        }
     }
 }

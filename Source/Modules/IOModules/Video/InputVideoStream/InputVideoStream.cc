@@ -64,7 +64,8 @@ class InputVideoStream : public Module
 	{
 		framegrabber = std::make_unique<FFMpegGrab>();
 		framegrabber->SetUv4l(uv4l);
-		framegrabber->SetUrl(url.c_str());
+		const std::string stream_url = url.as_string();
+		framegrabber->SetUrl(stream_url.c_str());
 		framegrabber->SetPrintInfo(printInfo);
 		framegrabber->SetOutputSize(size_x.as_int(), size_y.as_int());
 		framegrabber->SetSynchronized(synchronized_framegrabber);
@@ -147,13 +148,15 @@ class InputVideoStream : public Module
 		{
 			if (!InitializeFrameGrabber())
 			{
-				Notify(msg_fatal_error, "Can not start frame grabber");
+				Notify(msg_fatal_error, "InputVideoStream could not start its frame grabber: " +
+				       framegrabber->LastError());
 				return;
 			}
 		}
-		catch (const std::exception &)
+		catch (const std::exception & e)
 		{
-			Notify(msg_fatal_error, "Can not create frame grabber");
+			Notify(msg_fatal_error, "InputVideoStream could not create its frame grabber: " +
+			       std::string(e.what()));
 			return;
 		}
 

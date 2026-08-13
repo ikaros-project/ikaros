@@ -1,4 +1,4 @@
-<group name="Test"  
+<group internal="true" name="Test"
     check_sum = "485211" 
     description="Test parameter expressions"
 

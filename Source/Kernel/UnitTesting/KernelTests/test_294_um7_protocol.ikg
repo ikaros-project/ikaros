@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestUM7Protocol"
+    description="Test UM7 packet parsing, recovery, responses, and numeric decoding"
+    start="true"
+    stop="1"
+    check_sum="12"
+    expected_output_contains="UM7 PROTOCOL TEST OK">
+    <module class="UM7ProtocolTestModule" name="Protocol" />
+</group>

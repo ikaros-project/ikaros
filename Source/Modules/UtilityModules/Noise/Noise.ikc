@@ -4,6 +4,7 @@
 	<parameter name="max" type="number" default="0.1" description="Maximum value for uniform noise" />
 	<parameter name="mean" type="number" default="0" description="Mean for gaussian noise" />
 	<parameter name="stddev" type="number" default="0.1" description="Standard deviation for gaussian noise" />
+	<parameter name="seed" type="number" default="-1" min="-1" description="Random seed; negative selects nondeterministic seeding" />
 
 	<input name="INPUT" description="Input values" />
 	<output name="OUTPUT" description="Input with random noise added element-wise" size="INPUT.size" />

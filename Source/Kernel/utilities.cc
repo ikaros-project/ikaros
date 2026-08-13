@@ -1,148 +1,148 @@
 // utilities.cc
 
 #include "utilities.h"
+#include "exceptions.h"
+
+#include <algorithm>
 #include <charconv>
 #include <cmath>
+#include <iostream>
+#include <limits>
+#include <sstream>
+#include <stdexcept>
 #include <system_error>
+#include <type_traits>
 
 namespace ikaros
 {
+namespace
+{
+template<typename T>
+T
+checked_truncating_integral_conversion(double value, const std::string & conversion_name)
+{
+    static_assert(std::is_integral_v<T> && std::is_signed_v<T>);
+
+    const long double converted_value = value;
+    const long double lower_exclusive = static_cast<long double>(std::numeric_limits<T>::lowest()) - 1.0L;
+    const long double upper_exclusive = static_cast<long double>(std::numeric_limits<T>::max()) + 1.0L;
+    if(!std::isfinite(value) || converted_value <= lower_exclusive || converted_value >= upper_exclusive)
+        throw std::out_of_range("Value cannot be represented as " + conversion_name + ".");
+
+    return static_cast<T>(value);
+}
+
+
+void
+validate_delimiter(const std::string & delimiter)
+{
+    if(delimiter.empty())
+        throw std::invalid_argument("String delimiter must not be empty.");
+}
+}
+
+std::string
+validate_identifier(std::string s)
+{
+    static const std::string legal = "_0123456789aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ";
+    if(s.empty())
+        throw exception("Identifier cannot be empty string");
+    if('0' <= s[0] && s[0] <= '9')
+        throw exception("Identifier cannot start with a number: " + s);
+    for(char c : s)
+        if(legal.find(c) == std::string::npos)
+            throw exception("Illegal character in identifier: " + s);
+    return s;
+}
+
 
 std::string trim(const std::string &s)
 {
-   auto wsfront=std::find_if_not(s.begin(),s.end(),[](unsigned char c){return std::isspace(c);});
-   auto wsback=std::find_if_not(s.rbegin(),s.rend(),[](unsigned char c){return std::isspace(c);}).base();
+   auto wsfront=std::find_if_not(s.begin(),s.end(),ascii_is_space);
+   auto wsback=std::find_if_not(s.rbegin(),s.rend(),ascii_is_space).base();
    return (wsback<=wsfront ? std::string() : std::string(wsfront,wsback));
 }
 
-const std::vector<std::string>
-split(const std::string & s, const std::string & sep, int maxsplit)
+std::vector<std::string>
+split(const std::string & s, const std::string & separator, int maxsplit)
 {
     std::vector<std::string> r;
-    std::string::size_type i=0, j=0;
-    std::string::size_type len = s.size();
-    std::string::size_type n = sep.size();
+    std::string::size_type i = 0;
+    std::string::size_type j = 0;
+    const std::string::size_type len = s.size();
 
-    if (n == 0)
+    if(separator.empty())
     {
-        while(i<len)
+        while(i < len)
         {
-            while (i < len && ::isspace(static_cast<unsigned char>(s[i])))
-                i++;
+            while(i < len && ascii_is_space(static_cast<unsigned char>(s[i])))
+                ++i;
             j = i;
-            while (i < len && !::isspace(static_cast<unsigned char>(s[i])))
-                i++;
+            while(i < len && !ascii_is_space(static_cast<unsigned char>(s[i])))
+                ++i;
 
             if(j < i)
             {
-                if(maxsplit != -1 && maxsplit-- <= 0)
+                if(maxsplit == 0)
                     break;
-                r.push_back(trim(s.substr(j, i-j)));
-                while(i < len && ::isspace(static_cast<unsigned char>(s[i])))
-                    i++;
+                r.push_back(s.substr(j, i - j));
+                if(maxsplit > 0)
+                    --maxsplit;
+                while(i < len && ascii_is_space(static_cast<unsigned char>(s[i])))
+                    ++i;
                 j = i;
             }
         }
-        if (j < len)
+        if(j < len)
             r.push_back(trim(s.substr(j, len - j)));
 
         return r;
     }
 
-    i = j = 0;
-    while (i+n <= len)
+    while(maxsplit != 0)
     {
-        if (s[i] == sep[0] && s.substr(i, n) == sep)
-        {
-            if(maxsplit != -1 && maxsplit-- <= 0)
-                break;
+        const std::string::size_type position = s.find(separator, j);
+        if(position == std::string::npos)
+            break;
 
-            r.push_back(trim(s.substr(j, i - j)));
-            i = j = i + n;
-        }
-        else
-            i++;
+        r.push_back(trim(s.substr(j, position - j)));
+        j = position + separator.size();
+        if(maxsplit > 0)
+            --maxsplit;
     }
 
-    r.push_back(trim(s.substr(j, len-j)));
-    return r;
-}
-
-
-const std::vector<std::string>
-rsplit(const std::string & str, const std::string & sep, int maxsplit)
-{
-    if (maxsplit < 0)
-        return split(str, sep, maxsplit);
-
-    std::vector<std::string> r;
-    std::string::size_type i=str.size();
-    std::string::size_type j=str.size();
-    std::string::size_type n=sep.size();
-
-    if(n == 0)
-    {
-        while(i > 0)
-        {
-            while(i > 0 && ::isspace(static_cast<unsigned char>(str[i-1])))
-                i--;
-            j = i;
-            while(i > 0 && !::isspace(static_cast<unsigned char>(str[i-1])))
-                i--;
-
-            if (j > i)
-            {
-                if(maxsplit != -1 && maxsplit-- <= 0)
-                    break;
-                r.push_back(str.substr(i, j-i));
-                while(i > 0 && ::isspace(static_cast<unsigned char>(str[i-1])))
-                    i--;
-                j = i;
-            }
-        }
-        if (j > 0)
-            r.push_back( str.substr(0, j));
-    }
-    else
-    {
-        while(i >= n)
-        {
-            if(str[i-1] == sep[n-1] && str.substr(i-n, n) == sep)
-            {
-                if(maxsplit != -1 && maxsplit-- <= 0)
-                    break;
-                r.push_back(str.substr(i, j-i));
-                i = j = i-n;
-            }
-            else
-                i--;
-        }
-        r.push_back(str.substr(0, j));
-    }
-    
-    std::reverse(r.begin(), r.end());
+    r.push_back(trim(s.substr(j)));
     return r;
 }
 
 
 std::string
-join(const std::string & separator, const std::vector<std::string> & v, bool reverse)
+join(const std::string & separator, const std::vector<std::string> & values)
 {
-    std::string s;
-    std::string sep;
-    if(reverse)
-        for (auto & e : v)
-        {
-            s = e + sep + s;
-            sep = separator;
-        }    
-    else
-        for (auto & e : v)
-        {
-            s += sep + e;
-            sep = separator;
-        }
-    return s;
+    if(values.empty())
+        return {};
+
+    const size_t separator_count = values.size() - 1;
+    if(separator_count > 0 &&
+       separator.size() > std::numeric_limits<size_t>::max() / separator_count)
+        throw std::length_error("Joined string is too large.");
+    size_t result_size = separator.size() * separator_count;
+    for(const auto & value : values)
+    {
+        if(value.size() > std::numeric_limits<size_t>::max() - result_size)
+            throw std::length_error("Joined string is too large.");
+        result_size += value.size();
+    }
+
+    std::string result;
+    result.reserve(result_size);
+    result += values.front();
+    for(size_t i = 1; i < values.size(); ++i)
+    {
+        result += separator;
+        result += values[i];
+    }
+    return result;
 }
 
 
@@ -153,7 +153,8 @@ join(const std::string & separator, const std::vector<std::string> & v, bool rev
 std::string
 head(std::string & s, const std::string & delimiter)
 {
-    int end = s.find(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.find(delimiter);
     if(end == std::string::npos)
     {
         std::string h = s;
@@ -168,9 +169,17 @@ head(std::string & s, const std::string & delimiter)
 
 
 std::string
+cut_head(std::string & s, const std::string & delimiter)
+{
+    return head(s, delimiter);
+}
+
+
+std::string
 rhead(std::string & s, const std::string & delimiter)
 {
-    int end = s.rfind(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.rfind(delimiter);
     if(end == std::string::npos)
     {
         std::string h = s;
@@ -190,7 +199,8 @@ rhead(std::string & s, const std::string & delimiter)
 std::string
 tail(std::string & s, const std::string & delimiter)
 {
-    int end = s.find(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.find(delimiter);
     if(end == std::string::npos)
         return "";
 
@@ -204,7 +214,8 @@ tail(std::string & s, const std::string & delimiter)
 std::string
 rtail(std::string & s, const std::string & delimiter)
 {
-    int end = s.rfind(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.rfind(delimiter);
     if(end == std::string::npos)
         return "";
 
@@ -222,7 +233,8 @@ rtail(std::string & s, const std::string & delimiter)
 std::string
 peek_head(const std::string & s, const std::string & delimiter)
 {
-    int end = s.find(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.find(delimiter);
     if(end == std::string::npos)
     {
         std::string h = s;
@@ -237,7 +249,8 @@ peek_head(const std::string & s, const std::string & delimiter)
 std::string
 peek_rhead(const std::string & s, const std::string & delimiter)
 {
-    int end = s.rfind(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.rfind(delimiter);
     if(end == std::string::npos)
     {
         std::string h = s;
@@ -255,7 +268,8 @@ peek_rhead(const std::string & s, const std::string & delimiter)
 std::string
 peek_tail(const std::string & s, const std::string & delimiter, bool keep_delimiter)
 {
-    int end = s.find(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.find(delimiter);
     if(end == std::string::npos)
         return "";
 
@@ -272,7 +286,8 @@ peek_tail(const std::string & s, const std::string & delimiter, bool keep_delimi
 std::string
 peek_rtail(const std::string & s, const std::string & delimiter)
 {
-    int end = s.rfind(delimiter);
+    validate_delimiter(delimiter);
+    const std::string::size_type end = s.rfind(delimiter);
     if(end == std::string::npos)
         return "";
 
@@ -305,71 +320,6 @@ std::string add_extension(const std::string &  filename, const std::string & ext
         return std::string(filename) + extension;
 }
 
-
-
-/*
-const std::string head(std::string s, char token) // without token
-{
-    int p = s.find(token);
-    if(p==std::string::npos)
-        return s;
-    else
-        return s.substr(0, p);
-}
-
-
-std::string
-cut_head(std::string & s, const std::string & delimiter)
-{
-    int end = s.find(delimiter);
-    if(end == -1)
-    {
-        std::string h = s;
-        s = "";
-        return h;
-    }
-    else
-    {
-        std::string h = s.substr(0, end);
-        s.erase(0, end+delimiter.length());
-        return h;
-    }
-}
-
-
-
-const std::string tail(std::string s, char token, bool include_token) // including token
-{
-    int p = s.find(token);
-    if(p==std::string::npos)
-        return "";
-    else if(include_token)
-        return s.substr(p, s.size()-p);
-    else
-        return s.substr(p+1, s.size()-p-1);
-}
-
-
-const std::string rhead(std::string s, char token) // without token
-{
-    int p = s.rfind(token);
-    if(p==std::string::npos)
-        return s;
-    else
-        return s.substr(0, p);
-}
-
-const std::string rtail(std::string s, char token) // without token
-{
-    int p = s.rfind(token);
-    if(p==std::string::npos)
-        return s; // was ""
-    else
-        return s.substr(p+1, s.size()-p);
-}
-*/
-
-
 bool contains(const std::string & s, const std::string & n)
 {
     return s.find(n) != std::string::npos;
@@ -377,23 +327,31 @@ bool contains(const std::string & s, const std::string & n)
 
 
 
-bool is_integer(const std::string & s)
-    {
-        for( char c: s)
-            if(c<'0' || c>'9')
-            return false;
-        return true;
-    }
-
-
 bool is_true(const std::string & s)
 {
-    static std::vector<std::string> true_list = {"true", "True", "yes", "YES", "on", "ON","1"};
+    static const std::vector<std::string> true_list = {"true", "True", "yes", "YES", "on", "ON", "1"};
     return std::find(true_list.begin(), true_list.end(), s) != true_list.end();
 }
 
 
+bool
+parse_bool(const std::string & s, bool & value)
+{
+    const std::string trimmed = trim(s);
+    static const std::vector<std::string> false_list = {"false", "False", "no", "NO", "off", "OFF", "0"};
 
+    if(is_true(trimmed))
+    {
+        value = true;
+        return true;
+    }
+    if(std::find(false_list.begin(), false_list.end(), trimmed) != false_list.end())
+    {
+        value = false;
+        return true;
+    }
+    return false;
+}
 
 
 bool
@@ -408,7 +366,7 @@ parse_double(const std::string & s, double & value)
     {
         negative = trimmed.front() == '-';
         trimmed = trimmed.substr(1);
-        if(trimmed.empty())
+        if(trimmed.empty() || trimmed.front() == '+' || trimmed.front() == '-')
             return false;
     }
 
@@ -436,7 +394,7 @@ parse_float(const std::string & s, float & value)
     {
         negative = trimmed.front() == '-';
         trimmed = trimmed.substr(1);
-        if(trimmed.empty())
+        if(trimmed.empty() || trimmed.front() == '+' || trimmed.front() == '-')
             return false;
     }
 
@@ -472,6 +430,20 @@ parse_float(const std::string & s)
 }
 
 
+int
+checked_truncating_int(double value, const std::string & conversion_name)
+{
+    return checked_truncating_integral_conversion<int>(value, conversion_name);
+}
+
+
+long
+checked_truncating_long(double value, const std::string & conversion_name)
+{
+    return checked_truncating_integral_conversion<long>(value, conversion_name);
+}
+
+
 bool
 is_number(const std::string& s) 
 {
@@ -486,13 +458,13 @@ is_number(const std::string& s)
 std::ostream& operator<<(std::ostream& os, const std::vector<int> & v)
 {
     std::string sep;
-    std::cout << "(";
+    os << "(";
     for(auto i : v)
     {
-        std::cout << sep << i;
+        os << sep << i;
         sep = ", ";
     }
-    std::cout << ")";
+    os << ")";
     return os;
 }
 
@@ -505,91 +477,92 @@ std::ostream& operator<<(std::ostream& os, const std::vector<int> & v)
     void 
     print_attribute_value(const std::string & name, int value, int indent)
     {
-        std::cout << name << " = " << value << '\n';
+        std::cout << tab(indent) << name << " = " << value << '\n';
     }
 
     void 
     print_attribute_value(const std::string & name, const std::string & value, int indent)
     {
-        std::cout << name << " = " << value << '\n';
+        std::cout << tab(indent) << name << " = " << value << '\n';
     }
 
     void 
     print_attribute_value(const std::string & name, const std::vector<int> & values, int indent, int max_items)
     {
-                std::cout << name << " = ";
-        int s = values.size();
-        if(max_items>0 && s>max_items)
-            s = max_items;
+        std::cout << tab(indent) << name << " = ";
+        const size_t count = max_items > 0 ?
+            std::min(values.size(), static_cast<size_t>(max_items)) : values.size();
 
-        for(int i=0; i<s; i++)
-            std::cout << values.at(i) << " ";
-        if(values.size() >= max_items && max_items>0)
-            std::cout << "...\n";
+        for(size_t i = 0; i < count; ++i)
+            std::cout << values[i] << " ";
+        if(count < values.size())
+            std::cout << "...";
         std::cout << '\n';
     }
    
     void 
     print_attribute_value(const std::string & name, const std::vector<float> & values, int indent, int max_items)
     {
-                std::cout << name << " = ";
-        int s = values.size();
-        if(max_items>0 && s>max_items && max_items>0)
-            s = max_items;
+        std::cout << tab(indent) << name << " = ";
+        const size_t count = max_items > 0 ?
+            std::min(values.size(), static_cast<size_t>(max_items)) : values.size();
 
-        for(int i=0; i<s; i++)
-            std::cout << values.at(i) << " ";
-        if(values.size() >= max_items)
-            std::cout << "...\n";
+        for(size_t i = 0; i < count; ++i)
+            std::cout << values[i] << " ";
+        if(count < values.size())
+            std::cout << "...";
         std::cout << '\n';
     }
 
     void
     print_attribute_value(const std::string & name, const std::vector<std::vector<std::string>> &  values, int indent, int max_items)
     {
-        std::cout << name << " = \n";
-        for(auto d : values)
+        std::cout << tab(indent) << name << " = \n";
+        const size_t count = max_items > 0 ?
+            std::min(values.size(), static_cast<size_t>(max_items)) : values.size();
+        for(size_t i = 0; i < count; ++i)
         {
-            std::cout << tab(1);
-            if(d.empty())
+            const auto & row = values[i];
+            std::cout << tab(indent + 1);
+            if(row.empty())
                 std::cout << "none\n";
             else
-                for(auto s : d)
-                    std::cout << s << " ";
-           std::cout << '\n'; 
+            {
+                for(const auto & item : row)
+                    std::cout << item << " ";
+                std::cout << '\n';
+            }
         }
+        if(count < values.size())
+            std::cout << tab(indent + 1) << "...\n";
         std::cout << '\n';
     }
 
 
-char *
-base64_encode(const unsigned char * data,
-              size_t size_in,
-              size_t *size_out)
+std::string
+base64_encode(const unsigned char * data, size_t size)
 {
-    static char encoding_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    static int mod_table[] = {0, 2, 1};
-    if(size_in == 0)
-    {
-        *size_out = 0;
-        char *encoded_data = (char *)malloc(1);
-        if(encoded_data != nullptr)
-            encoded_data[0] = '\0';
-        return encoded_data;
-    }
+    static constexpr char encoding_table[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    static constexpr size_t padding[] = {0, 2, 1};
 
-    *size_out = ((size_in - 1) / 3) * 4 + 4;
+    if(size == 0)
+        return {};
+    if(data == nullptr)
+        throw std::invalid_argument("Cannot Base64-encode null data.");
+    if(size > (std::numeric_limits<size_t>::max() / 4) * 3)
+        throw std::length_error("Base64 input is too large.");
+
+    const size_t encoded_size = ((size + 2) / 3) * 4;
+    std::string encoded_data(encoded_size, '\0');
     
-    char *encoded_data = (char *)malloc(*size_out);
-    if (encoded_data == nullptr) return nullptr;
-    
-    for (int i = 0, j = 0; i < size_in;)
+    for(size_t i = 0, j = 0; i < size;)
     {
-        unsigned int octet_a = i < size_in ? data[i++] : 0;
-        unsigned int octet_b = i < size_in ? data[i++] : 0;
-        unsigned int octet_c = i < size_in ? data[i++] : 0;
+        const unsigned int octet_a = i < size ? data[i++] : 0;
+        const unsigned int octet_b = i < size ? data[i++] : 0;
+        const unsigned int octet_c = i < size ? data[i++] : 0;
         
-        unsigned int triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
+        const unsigned int triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
         
         encoded_data[j++] = encoding_table[(triple >> 3 * 6) & 0x3F];
         encoded_data[j++] = encoding_table[(triple >> 2 * 6) & 0x3F];
@@ -597,8 +570,8 @@ base64_encode(const unsigned char * data,
         encoded_data[j++] = encoding_table[(triple >> 0 * 6) & 0x3F];
     }
     
-    for (int i = 0; i < mod_table[size_in % 3]; i++)
-        encoded_data[*size_out - 1 - i] = '=';
+    for(size_t i = 0; i < padding[size % 3]; ++i)
+        encoded_data[encoded_size - 1 - i] = '=';
     
     return encoded_data;
 }
@@ -606,27 +579,44 @@ base64_encode(const unsigned char * data,
 
     std::string formatNumber(double value, int decimals)
     {
-        std::ostringstream oss;
-        oss.precision(decimals); // Set precision to handle floating-point accuracy
-        oss << std::fixed << value;
-        std::string str = oss.str();
+        if(decimals < 0)
+        {
+            char buffer[64];
+            auto result = std::to_chars(buffer, buffer + sizeof(buffer), value);
+            if(result.ec != std::errc())
+                throw std::runtime_error("Could not format number.");
+            return std::string(buffer, result.ptr);
+        }
 
-        // Remove trailing zeros
-        str.erase(str.find_last_not_of('0') + 1, std::string::npos);
+        char buffer[128];
+        auto result = std::to_chars(buffer, buffer + sizeof(buffer), value,
+                                    std::chars_format::fixed, decimals);
+        if(result.ec != std::errc())
+            throw std::runtime_error("Could not format number.");
+        std::string str(buffer, result.ptr);
 
-        // Remove the decimal point if it's the last character
-        if (str.back() == '.') {
-            str.pop_back();
+        const std::string::size_type decimal_point = str.find('.');
+        if(decimal_point != std::string::npos)
+        {
+            while(str.size() > decimal_point + 1 && str.back() == '0')
+                str.pop_back();
+            if(str.back() == '.')
+                str.pop_back();
         }
 
         return str;
     }
 
-    std::string format_json_number(double value, int decimals)
+    std::string format_json_number(double value)
     {
         if(!std::isfinite(value))
             return "null";
-        return formatNumber(value, decimals);
+
+        char buffer[64];
+        auto result = std::to_chars(buffer, buffer + sizeof(buffer), value);
+        if(result.ec != std::errc())
+            throw std::runtime_error("Could not format JSON number.");
+        return std::string(buffer, result.ptr);
     }
 
 
@@ -635,14 +625,15 @@ base64_encode(const unsigned char * data,
     bool 
     prime::test(long n)
     {
-        if (n <= 1) return false;
-        if (n <= 3) 
-            return true;
-        if (n % 2 == 0 || n % 3 == 0) 
+        if(n <= 1)
             return false;
-        for (int i = 5; i * i <= n; i += 6)
+        if(n <= 3)
+            return true;
+        if(n % 2 == 0 || n % 3 == 0)
+            return false;
+        for(long divisor = 5; divisor <= n / divisor; divisor += 6)
         {
-            if (n % i == 0 || n % (i + 2) == 0) 
+            if(n % divisor == 0 || n % (divisor + 2) == 0)
                 return false;
         }
         return true;
@@ -652,11 +643,16 @@ base64_encode(const unsigned char * data,
     long 
     prime::next()
     {
-
+        if(last_prime == std::numeric_limits<long>::max())
+            throw std::overflow_error("No larger prime can be represented as long.");
         long candidate = last_prime + 1;
 
         while(!test(candidate))
+        {
+            if(candidate == std::numeric_limits<long>::max())
+                throw std::overflow_error("No larger prime can be represented as long.");
             candidate++;
+        }
 
         last_prime = candidate;
         return last_prime;
@@ -666,8 +662,12 @@ base64_encode(const unsigned char * data,
     character_sum(const std::string & s)
     {
         long sum = 0;
-        for(char c : s)
-            sum += c;
+        for(unsigned char byte : s)
+        {
+            if(sum > std::numeric_limits<long>::max() - byte)
+                throw std::overflow_error("Character sum cannot be represented as long.");
+            sum += byte;
+        }
         return sum;
     }
 
@@ -680,9 +680,152 @@ base64_encode(const unsigned char * data,
         return hex_str;
     }
 
+    namespace
+    {
+        std::size_t
+        ValidUtf8SequenceLength(const std::string & str, std::size_t index)
+        {
+            const unsigned char first = static_cast<unsigned char>(str[index]);
+            if(first <= 0x7F)
+                return 1;
+
+            std::size_t length = 0;
+            unsigned char second_min = 0x80;
+            unsigned char second_max = 0xBF;
+            if(first >= 0xC2 && first <= 0xDF)
+                length = 2;
+            else if(first == 0xE0)
+            {
+                length = 3;
+                second_min = 0xA0;
+            }
+            else if(first >= 0xE1 && first <= 0xEC)
+                length = 3;
+            else if(first == 0xED)
+            {
+                length = 3;
+                second_max = 0x9F;
+            }
+            else if(first >= 0xEE && first <= 0xEF)
+                length = 3;
+            else if(first == 0xF0)
+            {
+                length = 4;
+                second_min = 0x90;
+            }
+            else if(first >= 0xF1 && first <= 0xF3)
+                length = 4;
+            else if(first == 0xF4)
+            {
+                length = 4;
+                second_max = 0x8F;
+            }
+            else
+                return 0;
+
+            if(length > str.size() - index)
+                return 0;
+
+            const unsigned char second = static_cast<unsigned char>(str[index + 1]);
+            if(second < second_min || second > second_max)
+                return 0;
+            for(std::size_t j = 2; j < length; ++j)
+            {
+                const unsigned char continuation = static_cast<unsigned char>(str[index + j]);
+                if(continuation < 0x80 || continuation > 0xBF)
+                    return 0;
+            }
+            return length;
+        }
+    }
+
+
+    bool
+    is_valid_utf8(const std::string & str)
+    {
+        for(std::size_t i = 0; i < str.size();)
+        {
+            const std::size_t length = ValidUtf8SequenceLength(str, i);
+            if(length == 0)
+                return false;
+            i += length;
+        }
+        return true;
+    }
+
+
+    std::string
+    valid_utf8_prefix(const std::string & str, std::size_t max_bytes)
+    {
+        const std::size_t limit = std::min(max_bytes, str.size());
+        std::size_t prefix_size = 0;
+        while(prefix_size < limit)
+        {
+            const std::size_t length = ValidUtf8SequenceLength(str, prefix_size);
+            if(length == 0 || length > limit - prefix_size)
+                break;
+            prefix_size += length;
+        }
+
+        if(prefix_size == str.size())
+            return str;
+        return str.substr(0, prefix_size);
+    }
+
+
+    std::string
+    decode_url_component(const std::string & str, bool plus_as_space)
+    {
+        std::string decoded;
+        decoded.reserve(str.size());
+        for(size_t i = 0; i < str.size(); ++i)
+        {
+            if(str[i] == '+' && plus_as_space)
+            {
+                decoded += ' ';
+                continue;
+            }
+            if(str[i] != '%')
+            {
+                decoded += str[i];
+                continue;
+            }
+            if(i + 2 >= str.size())
+                throw std::invalid_argument("Incomplete URL escape sequence.");
+
+            auto hex_value = [](char c)
+            {
+                if(c >= '0' && c <= '9')
+                    return c - '0';
+                if(c >= 'a' && c <= 'f')
+                    return 10 + c - 'a';
+                if(c >= 'A' && c <= 'F')
+                    return 10 + c - 'A';
+                return -1;
+            };
+
+            int high = hex_value(str[i + 1]);
+            int low = hex_value(str[i + 2]);
+            if(high < 0 || low < 0)
+                throw std::invalid_argument("Invalid URL escape sequence.");
+            decoded += static_cast<char>((high << 4) | low);
+            i += 2;
+        }
+        if(!is_valid_utf8(decoded))
+            throw std::invalid_argument("URL components must contain valid UTF-8.");
+        if(decoded.find('\0') != std::string::npos)
+            throw std::invalid_argument("URL components must not contain null bytes.");
+        return decoded;
+    }
+
+
     std::string escape_json_string(const std::string& str)
     {
+        if(!is_valid_utf8(str))
+            throw std::invalid_argument("JSON strings must contain valid UTF-8.");
+
         std::string escaped;
+        escaped.reserve(str.size());
         for (unsigned char c : str)
         {
             switch (c)
@@ -708,6 +851,7 @@ base64_encode(const unsigned char * data,
     replace_characters(const std::string& str) // Removes , ; and non-breaking space
     {
         std::string result;
+        result.reserve(str.size());
         for (size_t i = 0; i < str.size(); ++i) 
         {
             unsigned char c = static_cast<unsigned char>(str[i]);

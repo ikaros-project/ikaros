@@ -18,14 +18,13 @@ Grabs video using FFmpeg.
 
 ## Outputs
 
-|Name|Description|
-|:----|:-----------|
-|RED|The red channel.|
-|GREEN|The green channel.|
-|BLUE|The blue channel.|
-|INTENSITY|The intensity channel.|
-
-<br><br>
+| Name | Description |
+| --- | --- |
+| RED | The red channel. |
+| GREEN | The green channel. |
+| BLUE | The blue channel. |
+| INTENSITY | The intensity channel. |
+| OUTPUT | RGB image. |
 
 ## Parameters
 

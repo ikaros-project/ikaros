@@ -1,0 +1,15 @@
+<group internal="true"
+    name="TestStartupFailureWebUIRecovery"
+    description="Start the WebUI with the parsed model after initial setup fails"
+    webui_port="8334"
+    http_real_time="false"
+    http_requests="network||quit"
+    expected_output_contains="Set-up file failed||TestStartupFailureWebUIRecovery||KernelSizedInputTestModule"
+>
+
+    <module class="Constant" name="Const" data="1,2,3,4,5" />
+    <module class="KernelSizedInputTestModule" name="Sized" />
+
+    <connection source="Const.OUTPUT" target="Sized.INPUT" />
+
+</group>

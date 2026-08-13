@@ -1,13 +1,18 @@
-<class name="OutputFile" description="writes its input to a file each tick">
+<class name="OutputFile" description="writes its labeled inputs as delimited rows, a JSON array, or JSON Lines records">
+    <parameter name="filename" type="string" default="output.csv" description="File to write inside UserData. Use # for an unpadded sequence number or multiple hashes such as #### for a fixed-width zero-padded number. Escape a literal hash as \#." />
+    <parameter name="format" type="string" control="menu" options="csv,tsv,json,jsonl" default="csv" description="Output format: comma-separated values, tab-separated values, a JSON array, or one JSON object per line." />
+    <parameter name="delimiter" type="string" default="" description="Optional single-character field delimiter overriding the csv or tsv preset. A literal space is allowed. Not used by JSON formats." />
+    <parameter name="number_format" type="string" control="menu" options="fixed,full" default="fixed" description="Numeric data format: fixed uses the configured decimal places; full writes the shortest exact float representation and uses scientific notation when appropriate." />
+    <parameter name="decimals" type="number" default="4" min="0" max="20" description="Number of digits after the decimal point in fixed-format numeric values." />
+    <parameter name="timestamp" type="string" default="time" description="Timestamp mode: none, line for a per-file record number, tick, time for nominal simulation seconds, or real_time for elapsed wall-clock seconds." />
+    <parameter name="existing_file" type="string" control="menu" options="error,overwrite,append" default="error" description="Behavior when the selected file exists: error, overwrite, or append. Append validates existing delimited headers and JSON records before writing." />
+    <parameter name="start_index" type="number" default="0" min="0" max="2147483647" description="First number substituted into the filename # placeholder." />
+    <parameter name="flush_interval" type="number" default="1" min="0" max="2147483647" description="Flush after this many written rows. One preserves every completed row; zero flushes only on rollover or stop." />
+    <parameter name="header" type="bool" default="true" description="Write the column header in csv and tsv files. JSON formats are always headerless." />
+    <parameter name="single_trigger" type="bool" default="no" description="When WRITE is connected, write only on its rising edge." />
+    <parameter name="directory" type="string" default="" description="Directory inside UserData. A name without # is reused exactly. Use # for an unpadded unique number or multiple hashes such as ### for a fixed-width zero-padded unique number. Escape a literal hash as \#." />
 
-	<parameter name="filename" type="string" default="output.csv" description="File to write the data to. The name may include a %d to automatcially enumerate sequences of files." />
-	<parameter name="format" type="string" default="csv" description="File format: csv or tsv." />
-	<parameter name="decimals" type="number" default="4" description="Number of decimals for all columns" />
-	<parameter name="timestamp" type="bool" default="yes" description="Include time stamp column (T) in file" />
-    <parameter name="directory" type="string" default="" description="Create a new directory for the files each time Ikaros is started using this directory name with a number is added." />
-
-	<input name="INPUT" description="The input to be written to file"  flatten="true" use_label="yes" />
-	<input name="WRITE" optional="yes" description="The input to be written to file" />
-    <input name="NEWFILE" optional="yes" description="If connected, a 1 on the input will close the current file, increase the file number (if %d is in the name) and open a new file." />
-
+    <input name="INPUT" description="Values written as one flattened delimited row or as labeled, shape-preserving JSON fields." flatten="true" use_label="yes" />
+    <input name="WRITE" optional="yes" size="1" description="Write while greater than zero. When disconnected, write every tick." />
+    <input name="NEWFILE" optional="yes" size="1" description="On a rising edge, open the next file selected by the filename # placeholder." />
 </class>

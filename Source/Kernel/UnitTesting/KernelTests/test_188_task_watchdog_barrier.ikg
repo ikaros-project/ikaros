@@ -1,0 +1,15 @@
+<group internal="true"
+    name="TestTaskWatchdogBarrier"
+    description="Test task watchdog waits for active work before stopping"
+    start="true"
+    stop="3"
+    threads="3"
+    log_level="7"
+    task_timeout="0.02"
+    expected_exit="1"
+    expected_output_contains="Task execution exceeded 0.02 seconds. Waiting for active tasks to finish before stopping safely.||Slow TICK_END||Task execution timed out after 0.02 seconds.||Slow STOP_AFTER_TICK"
+    expected_output_not_contains="Slow STOP_DURING_TICK||INPUT = {1}">
+    <module class="TaskLifecycleTestModule" name="Slow" duration="0.08" label="Slow" output_value="1" />
+    <module class="Print" name="Sink" />
+    <connection source="Slow.OUTPUT" target="Sink.INPUT" />
+</group>

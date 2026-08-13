@@ -2,13 +2,16 @@
 
 #pragma once
 
-#include <string>
+#include <filesystem>
+#include <iostream>
 #include <map>
 #include <set>
-#include <vector>
-#include <iostream>
-#include <filesystem>
 #include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include <unistd.h>
 
 #include "utilities.h"
 
@@ -17,7 +20,7 @@ namespace ikaros {
     class options
     {
     public:
-        std::string ikaros_root;            // Path to binary as indicated in argv
+        std::string ikaros_root;            // Repository or installation root resolved from argv[0]
         std::filesystem::path path_;       // If only one, or empty path if none
         std::vector<std::string> filenames;
         std::map<std::string, std::string> d;
@@ -29,55 +32,108 @@ namespace ikaros {
 
         options() = default;
 
-        void add_option(const std::string & short_name, const std::string & full_name, const std::string & desc, bool takes_value = false, const std::string & default_value = "", bool optional = false)
+        void add_option(const std::string & short_name, const std::string & full_name,
+                        const std::string & desc, bool takes_value = false,
+                        const std::string & default_value = "", bool optional = false,
+                        bool sensitive = false)
         {
+            if(short_name.size() != 1)
+                throw std::invalid_argument("Command-line option short name must be exactly one character");
+            if(full_name.empty())
+                throw std::invalid_argument("Command-line option full name must not be empty");
+            if(full.count(short_name))
+                throw std::invalid_argument("Command-line option short name \"-" + short_name +
+                                            "\" is already registered");
+            if(description.count(full_name))
+                throw std::invalid_argument("Command-line option full name \"" + full_name +
+                                            "\" is already registered");
+            if(takes_value && optional)
+                throw std::invalid_argument("Command-line option \"" + full_name +
+                                            "\" cannot both require and optionally accept a value");
+
+            const bool is_boolean = !takes_value && !optional;
+            std::string normalized_default = default_value;
+            if(is_boolean && !default_value.empty())
+            {
+                bool parsed_default = false;
+                if(!parse_bool(default_value, parsed_default))
+                    throw std::invalid_argument("Invalid Boolean default \"" + default_value +
+                                                "\" for option \"" + full_name + "\"");
+                normalized_default = parsed_default ? "true" : "false";
+            }
+
             full[short_name] = full_name;
             description[full_name] = desc;
             requires_value[full_name] = takes_value;
             optional_value[full_name] = optional;
+            if(is_boolean)
+                boolean_options_.insert(full_name);
             if(!default_value.empty())
-                d[full_name] = default_value;
+            {
+                d[full_name] = normalized_default;
+                default_values_[full_name] = normalized_default;
+            }
+            if(sensitive)
+                sensitive_options_.insert(full_name);
         }
 
 
         void parse_args(int argc, char *argv[])
         {
-            if (argc > 64)
-                throw std::runtime_error("Too many input parameters");
+            options previous_state = *this;
+            struct ParseRollback
+            {
+                options * target;
+                options * previous;
+                bool committed = false;
+
+                ~ParseRollback() noexcept
+                {
+                    if(!committed)
+                        *target = std::move(*previous);
+                }
+            } rollback{this, &previous_state};
+
+            reset_parse_state();
             if (argc < 1)
                 throw std::runtime_error("Too few input parameters");
 
-            std::filesystem::path p(argv[0]);
-            ikaros_root = std::filesystem::canonical(p.parent_path().string()+"/..");
+            const std::filesystem::path executable_path = resolve_executable_path(argv[0]);
+            ikaros_root = executable_path.parent_path().parent_path().string();
 
             const std::vector<std::string> args(argv+1, argv+argc);
+            bool options_ended = false;
             for(std::size_t i = 0; i < args.size(); ++i)
             {
                 const auto & s = args[i];
+                if(!options_ended && s == "--")
+                {
+                    options_ended = true;
+                    continue;
+                }
+
                 const auto pos = s.find('=');
-                if(pos != std::string::npos && s.front() !='-')
+                if(!options_ended && pos != std::string::npos &&
+                   (s.empty() || s.front() != '-'))
                 {
                     if(pos < 1)
                         throw std::runtime_error("Assignment without variable");
-                    if(s.size() >3 && s.at(pos+1)== '"' && s.back()== '"')
-                        d[s.substr(0, pos)] = s.substr(pos+2, s.size()-pos-3);
-                    else
-                        d[s.substr(0, pos)] = s.substr(pos+1, s.size()-pos);
-                    explicitly_set.insert(s.substr(0, pos));
+                    const std::string name = s.substr(0, pos);
+                    const std::string value = parse_assignment_value(name, s.substr(pos + 1));
+                    set_explicit_value(name, value);
                 }
-                else if(s.size()>2 && s.front() =='-')
+                else if(!options_ended && s.size()>2 && s.front() =='-')
                 {
                     std::string attr = s.substr(1, 1);
                     if(!full.count(attr))
                         throw std::runtime_error("\"-"+attr + "\" is not a valid command line option");
                     std::string option_name = full[attr];
                     if(requires_value[option_name] || optional_value[option_name])
-                        d[option_name] = s.substr(2);  // option with attached parameter
+                        set_explicit_value(option_name, s.substr(2));
                     else
                         throw std::runtime_error("\"-"+attr + "\" does not accept an attached value");
-                    explicitly_set.insert(option_name);
                 }
-                else if(s.size()>1 && s.front() =='-')
+                else if(!options_ended && s.size()>1 && s.front() =='-')
                 {
                     std::string attr = s.substr(1, 1);
                     if(!full.count(attr))
@@ -85,43 +141,56 @@ namespace ikaros {
                     std::string option_name = full[attr];
                     if(optional_value[option_name])
                     {
-                        if(i + 2 < args.size() && !args[i + 1].empty() && args[i + 1].front() != '-' && args[i + 1].find('=') == std::string::npos)
-                            d[option_name] = args[++i];
+                        const bool model_already_selected = !filenames.empty();
+                        const bool later_model_candidate = has_later_positional_argument(args, i + 2);
+                        if(i + 1 < args.size() &&
+                           (model_already_selected || later_model_candidate) &&
+                           !args[i + 1].empty() && args[i + 1].front() != '-' &&
+                           args[i + 1].find('=') == std::string::npos)
+                            set_explicit_value(option_name, args[++i]);
                         else
-                            d[option_name] = "";
+                            set_explicit_value(option_name, "");
                     }
                     else if(requires_value[option_name])
                     {
-                        if(i + 1 >= args.size())
+                        if(i + 1 >= args.size() || args[i + 1] == "--" ||
+                           is_registered_option_argument(args[i + 1]))
                             throw std::runtime_error("\"-"+attr + "\" requires a value");
-                        d[option_name] = args[++i];
+                        set_explicit_value(option_name, args[++i]);
                     }
                     else
-                        d[option_name] = "true";  // option without parameter
-                    explicitly_set.insert(option_name);
+                        set_explicit_value(option_name, "true");
                 }
                 else
                 {
-                    if (!std::filesystem::exists(s))
-                            throw std::runtime_error("File not found: "+std::string(s));
+                    std::error_code error;
+                    const std::filesystem::file_status status = std::filesystem::status(s, error);
+                    if(error || !std::filesystem::exists(status))
+                        throw std::runtime_error("File not found: " + std::string(s));
+                    if(!std::filesystem::is_regular_file(status))
+                        throw std::runtime_error("Model path is not a regular file: " + std::string(s));
+                    if(!filenames.empty())
+                        throw std::runtime_error("Only one model file may be specified: \"" +
+                                                 filenames.front() + "\" and \"" + s + "\"");
                     std::filesystem::path filename = std::filesystem::absolute(s).lexically_normal();
                     filenames.push_back(filename.string());
-                    path_ = filename; // TEST ME
+                    path_ = filename;
                 }
             }
+            rollback.committed = true;
         }
 
 
-        void print_help() const
+        void print_help(std::ostream & output = std::cout) const
         {
-            std::cout << "usage: ikaros [options] [variable=value] [filename]\n";
-            std::cout << "\tCommand line options:\n";
-            for(auto & p : full)
+            output << "usage: ikaros [options] [variable=value] [filename]\n";
+            output << "\tCommand line options:\n";
+            for(const auto & [short_name, option_name] : full)
             {
-                std::cout << "\t-"<< p.first << " (" << p.second << "): " << description.at(p.second);
-                if(d.count(p.second))
-                    std::cout << " [" << d.at(p.second) << "]"; 
-                std::cout << '\n';
+                output << "\t-"<< short_name << " (" << option_name << "): " << description.at(option_name);
+                if(default_values_.count(option_name) && !sensitive_options_.count(option_name))
+                    output << " [" << default_values_.at(option_name) << "]";
+                output << '\n';
             }
         }
 
@@ -152,7 +221,14 @@ namespace ikaros {
 
         bool is_set(const std::string & o) const
         {
-            return d.count(o)>0;
+            auto value = d.find(o);
+            if(value == d.end())
+                return false;
+            if(!boolean_options_.count(o))
+                return true;
+
+            bool result = false;
+            return parse_bool(value->second, result) && result;
         }
 
         bool is_explicitly_set(const std::string & o) const
@@ -174,11 +250,35 @@ namespace ikaros {
         }
 
         long get_long(const std::string & o) const
-        { 
-            if(d.count(o)>0)
-                return std::stol(d.at(o));
-            else
+        {
+            auto value = d.find(o);
+            if(value == d.end())
                 return 0;
+
+            const std::string text = trim(value->second);
+            long result = 0;
+            const char * begin = text.data();
+            const char * end = begin + text.size();
+            bool valid_sign = true;
+            if(begin != end && *begin == '+')
+            {
+                ++begin;
+                valid_sign = begin != end && *begin != '+' && *begin != '-';
+            }
+            const auto conversion = std::from_chars(begin, end, result);
+            if(text.empty() || !valid_sign || conversion.ec != std::errc() || conversion.ptr != end)
+                throw std::invalid_argument("Invalid integer value \"" + value->second +
+                                            "\" for option \"" + o + "\"");
+            return result;
+        }
+
+        long get_long(const std::string & o, long minimum, long maximum) const
+        {
+            const long result = get_long(o);
+            if(result < minimum || result > maximum)
+                throw std::out_of_range("Value for option \"" + o + "\" must be between " +
+                                        std::to_string(minimum) + " and " + std::to_string(maximum));
+            return result;
         }
 
         double get_double(const std::string & o) const
@@ -187,6 +287,167 @@ namespace ikaros {
                 return parse_double(d.at(o));
             else
                 return 0;
+        }
+
+    private:
+        std::map<std::string, std::string> default_values_;
+        std::set<std::string> sensitive_options_;
+        std::set<std::string> boolean_options_;
+
+        void reset_parse_state()
+        {
+            ikaros_root.clear();
+            path_.clear();
+            filenames.clear();
+            d = default_values_;
+            explicitly_set.clear();
+        }
+
+        std::string parse_assignment_value(const std::string & name,
+                                           const std::string & value) const
+        {
+            if(value.empty())
+                return {};
+
+            const bool quoted_at_start = value.front() == '"' || value.front() == '\'';
+            const bool quoted_at_end = value.back() == '"' || value.back() == '\'';
+            if(quoted_at_start || quoted_at_end)
+            {
+                if(value.size() < 2 || !quoted_at_start || !quoted_at_end ||
+                   value.front() != value.back())
+                    throw std::runtime_error("Mismatched quotes in assignment to \"" + name + "\"");
+                return value.substr(1, value.size() - 2);
+            }
+
+            return value;
+        }
+
+        void set_explicit_value(const std::string & name, const std::string & value)
+        {
+            auto required = requires_value.find(name);
+            if(required != requires_value.end() && required->second && value.empty())
+                throw std::runtime_error("Command-line option \"" + name +
+                                         "\" requires a non-empty value");
+
+            if(boolean_options_.count(name))
+            {
+                bool parsed_value = false;
+                if(!parse_bool(value, parsed_value))
+                    throw std::runtime_error("Invalid Boolean value \"" + value +
+                                             "\" for option \"" + name + "\"");
+                d[name] = parsed_value ? "true" : "false";
+            }
+            else
+                d[name] = value;
+            explicitly_set.insert(name);
+        }
+
+        bool is_registered_option_argument(const std::string & argument) const
+        {
+            if(argument.size() <= 1 || argument.front() != '-')
+                return false;
+
+            auto registered = full.find(argument.substr(1, 1));
+            if(registered == full.end())
+                return false;
+            if(argument.size() == 2)
+                return true;
+
+            const std::string & option_name = registered->second;
+            return requires_value.at(option_name) || optional_value.at(option_name);
+        }
+
+        bool has_later_positional_argument(const std::vector<std::string> & arguments,
+                                           std::size_t start) const
+        {
+            bool options_ended = false;
+            for(std::size_t i = start; i < arguments.size(); ++i)
+            {
+                const std::string & argument = arguments[i];
+                if(!options_ended && argument == "--")
+                {
+                    options_ended = true;
+                    continue;
+                }
+                if(options_ended)
+                    return true;
+
+                if(argument.find('=') != std::string::npos &&
+                   !argument.empty() && argument.front() != '-')
+                    continue;
+
+                if(argument.size() > 1 && argument.front() == '-')
+                {
+                    if(argument.size() == 2)
+                    {
+                        const std::string short_name = argument.substr(1, 1);
+                        auto option = full.find(short_name);
+                        if(option != full.end() && requires_value.at(option->second) &&
+                           !optional_value.at(option->second) && i + 1 < arguments.size())
+                            ++i;
+                    }
+                    continue;
+                }
+
+                return true;
+            }
+            return false;
+        }
+
+        static std::filesystem::path canonical_executable(const std::filesystem::path & candidate)
+        {
+            std::error_code error;
+            std::filesystem::path resolved = std::filesystem::canonical(candidate, error);
+            if(error || !std::filesystem::is_regular_file(resolved, error) || error)
+                return {};
+            if(::access(resolved.c_str(), X_OK) != 0)
+                return {};
+            return resolved;
+        }
+
+        static std::filesystem::path resolve_executable_path(const char * argv0)
+        {
+            if(argv0 == nullptr || argv0[0] == 0)
+                throw std::runtime_error("Could not determine the Ikaros executable path");
+
+            const std::filesystem::path argument(argv0);
+            if(argument.has_parent_path())
+            {
+                const std::filesystem::path resolved = canonical_executable(argument);
+                if(!resolved.empty())
+                    return resolved;
+            }
+            else
+            {
+                const char * path_value = std::getenv("PATH");
+                if(path_value != nullptr)
+                {
+                    const std::string search_path(path_value);
+                    std::size_t start = 0;
+                    while(start <= search_path.size())
+                    {
+                        const std::size_t separator = search_path.find(':', start);
+                        const std::string directory = search_path.substr(
+                            start, separator == std::string::npos ? std::string::npos : separator - start);
+                        const std::filesystem::path candidate =
+                            (directory.empty() ? std::filesystem::current_path() : std::filesystem::path(directory)) /
+                            argument;
+                        const std::filesystem::path resolved = canonical_executable(candidate);
+                        if(!resolved.empty())
+                            return resolved;
+                        if(separator == std::string::npos)
+                            break;
+                        start = separator + 1;
+                    }
+                }
+
+                const std::filesystem::path resolved = canonical_executable(argument);
+                if(!resolved.empty())
+                    return resolved;
+            }
+
+            throw std::runtime_error("Could not resolve the Ikaros executable path \"" +
+                                     std::string(argv0) + "\"");
         }
 
     };

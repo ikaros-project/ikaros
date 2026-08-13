@@ -1,0 +1,21 @@
+<group internal="true"
+       name="TestOutputFileExistingError"
+       description="OutputFile refuses to replace an existing file by default"
+       start="true"
+       stop="1"
+       expected_exit="1"
+       expected_output_contains="OutputFile already exists"
+       expected_file_exists="UserData/test_306_output_file_existing_error.csv"
+       cleanup_expected_files="true">
+    <module name="Data" class="Constant" data="1" />
+    <module name="ASeed"
+            class="OutputFile"
+            filename="test_306_output_file_existing_error.csv"
+            existing_file="overwrite" />
+    <module name="BError"
+            class="OutputFile"
+            filename="test_306_output_file_existing_error.csv" />
+
+    <connection source="Data.OUTPUT" target="ASeed.INPUT" label="value" />
+    <connection source="Data.OUTPUT" target="BError.INPUT" label="value" />
+</group>

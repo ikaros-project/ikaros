@@ -1,0 +1,8 @@
+<class internal="true"
+       name="OutputImageRecoveryFixture"
+       description="temporarily obstructs an OutputImage destination and provides retry triggers">
+    <parameter name="filename"
+               type="string"
+               description="OutputImage destination to obstruct during the first tick." />
+    <output name="WRITE" size="1" />
+</class>

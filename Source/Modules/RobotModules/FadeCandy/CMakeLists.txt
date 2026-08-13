@@ -8,8 +8,8 @@ if(USB_LIB_FOUND)
 set(SOURCE
 	${SOURCE}
 	${CMAKE_CURRENT_SOURCE_DIR}/FadeCandy.cc
-	${CMAKE_CURRENT_SOURCE_DIR}/FadeCandy_driver.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Util.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/fadecandy_driver.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/util.cpp
 	PARENT_SCOPE
 )
 

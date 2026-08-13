@@ -1,0 +1,43 @@
+<group internal="true"
+       name="TestOutputFileSequence"
+       description="OutputFile applies # numbering, fixed decimals, escaped labels, continuous tick stamps, reset line numbers, and rising-edge file changes"
+       start="true"
+       stop="3"
+       check_sum="522511"
+       expected_file_exists="UserData/test_299_output_07.csv||UserData/test_299_output_08.csv||UserData/test_299_line_07.csv||UserData/test_299_line_08.csv"
+       expected_file_contains="tick/1,&quot;value,quoted:0&quot;,&quot;value,quoted:1&quot;||line/1,&quot;value,quoted:0&quot;,&quot;value,quoted:1&quot;||0,1.23,-2.50||1,1.23,-2.50||2,1.23,-2.50||3,1.23,-2.50"
+       cleanup_expected_files="true">
+    <module name="Data" class="Constant" data="1.23456,-2.5" />
+    <module name="NewFile" class="Constant" data="1" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_299_output_##.csv"
+            format="csv"
+            decimals="2"
+            timestamp="tick"
+            start_index="7"
+            flush_interval="0" />
+    <module name="LineOutput"
+            class="OutputFile"
+            filename="test_299_line_##.csv"
+            format="csv"
+            decimals="2"
+            timestamp="line"
+            start_index="7"
+            flush_interval="2" />
+
+    <connection delay="0"
+                source="Data.OUTPUT"
+                target="Output.INPUT"
+                label="value,quoted" />
+    <connection delay="1"
+                source="NewFile.OUTPUT"
+                target="Output.NEWFILE" />
+    <connection delay="0"
+                source="Data.OUTPUT"
+                target="LineOutput.INPUT"
+                label="value,quoted" />
+    <connection delay="1"
+                source="NewFile.OUTPUT"
+                target="LineOutput.NEWFILE" />
+</group>

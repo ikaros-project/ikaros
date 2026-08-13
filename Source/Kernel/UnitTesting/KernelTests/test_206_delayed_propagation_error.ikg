@@ -1,0 +1,12 @@
+<group internal="true"
+    name="TestDelayedPropagationError"
+    description="Test delayed propagation errors stop execution through the normal shutdown path"
+    start="true"
+    stop="3"
+    log_level="7"
+    expected_exit="1"
+    expected_output_contains="TestDelayedPropagationError.Sink PROPAGATION FAILURE ARMED||Error propagating connection &quot;TestDelayedPropagationError.Source.OUTPUT{2}[0] =&gt; TestDelayedPropagationError.Sink.INPUT[0]&quot;:||Number of indices must match matrix rank||TestDelayedPropagationError.Sink STOP_AFTER_PROPAGATION_FAILURE">
+    <module class="DelaySequenceSource" name="Source" />
+    <module class="DelayedPropagationFailureSink" name="Sink" />
+    <connection source="Source.OUTPUT[0]" target="Sink.INPUT[0]" delay="2" />
+</group>

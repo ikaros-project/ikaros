@@ -385,7 +385,7 @@ class EpiServos : public Module
             dxl_addparam_result = groupSyncWrite->addParam(i, param_sync_write);
             if (!dxl_addparam_result)
             {
-                std::cout << "addParam failed" << std::endl;
+                Warning("Could not add servo " + std::to_string(i) + " to the synchronous write.");
 
                 groupSyncWrite->clearParam();
                 groupSyncRead->clearParam();
@@ -401,7 +401,8 @@ class EpiServos : public Module
         {
             groupSyncWrite->clearParam();
             groupSyncRead->clearParam();
-            std::cout << "Sync failed" << std::endl;
+            Warning("Synchronous servo write failed: " +
+                    std::string(groupSyncWrite->getPacketHandler()->getTxRxResult(dxl_comm_result)));
             return false;
         }
 
@@ -1176,7 +1177,7 @@ class EpiServos : public Module
         {
             if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error))
             {
-                std::cout << "Failed to set torque enable for head servo ID: " << i << std::endl;
+                Warning("Failed to set torque enable for head servo " + std::to_string(i) + ".");
                 return false;
             }
         }
@@ -1186,7 +1187,7 @@ class EpiServos : public Module
             {
                 if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error))
                 {
-                    std::cout << "Failed to set torque enable for left arm servo ID: " << i << std::endl;
+                    Warning("Failed to set torque enable for left-arm servo " + std::to_string(i) + ".");
                     return false;
                 }
             }
@@ -1194,7 +1195,7 @@ class EpiServos : public Module
             {
                 if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error))
                 {
-                    std::cout << "Failed to set torque enable for right arm servo ID: " << i << std::endl;
+                    Warning("Failed to set torque enable for right-arm servo " + std::to_string(i) + ".");
                     return false;
                 }
             }
@@ -1202,7 +1203,7 @@ class EpiServos : public Module
             {
                 if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerBody, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error))
                 {
-                    std::cout << "Failed to set torque enable for body servo ID: " << i << std::endl;
+                    Warning("Failed to set torque enable for body servo " + std::to_string(i) + ".");
                     return false;
                 }
             }
@@ -1215,7 +1216,8 @@ class EpiServos : public Module
             {
                 if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error))
                 {
-                    std::cout << "Failed to set goal position for head servo ID: " << i << ", byte: " << j << std::endl;
+                    Warning("Failed to set goal-position byte " + std::to_string(j) +
+                            " for head servo " + std::to_string(i) + ".");
                     return false;
                 }
             }
@@ -1764,26 +1766,26 @@ class EpiServos : public Module
                 // Torque Enable
                 for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++) {
                     if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
-                        std::cout << "Failed to set torque enable for head servo ID: " << i << std::endl;
+                        Warning("Failed to set torque enable for head servo " + std::to_string(i) + ".");
                         return false;
                     }
                 }
                 if (EpiFullMode) {
                     for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++) {
                         if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
-                            std::cout << "Failed to set torque enable for left arm servo ID: " << i << std::endl;
+                            Warning("Failed to set torque enable for left-arm servo " + std::to_string(i) + ".");
                             return false;
                         }
                     }
                     for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++) {
                         if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
-                            std::cout << "Failed to set torque enable for right arm servo ID: " << i << std::endl;
+                            Warning("Failed to set torque enable for right-arm servo " + std::to_string(i) + ".");
                             return false;
                         }
                     }
                     for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++) {
                         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerBody, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
-                            std::cout << "Failed to set torque enable for body servo ID: " << i << std::endl;
+                            Warning("Failed to set torque enable for body servo " + std::to_string(i) + ".");
                             return false;
                         }
                     }
@@ -1793,7 +1795,8 @@ class EpiServos : public Module
                 for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++) {
                     for (int j = 0; j < 4; j++) {
                         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error)) {
-                            std::cout << "Failed to set goal position for head servo ID: " << i << ", byte: " << j << std::endl;
+                            Warning("Failed to set goal-position byte " + std::to_string(j) +
+                                    " for head servo " + std::to_string(i) + ".");
                             return false;
                         }
                     }
@@ -1928,7 +1931,7 @@ class EpiServos : public Module
 
             //Write settings from json file to the servos            
             for (int id = idMin; id <= idMax; id++) {
-                printf("Setting control table for servo ID: %d\n", id);
+                Debug("Setting control table for servo " + std::to_string(id) + ".");
                 for (int param = 0; param < parameter_lst.size(); param++) {
                     parameterName = std::string(parameter_lst[param]);
                     byteLength = servoControlTable[parameterName]["Bytes"];
@@ -1942,22 +1945,20 @@ class EpiServos : public Module
                                 if(parameterName.as_string() == "Goal PWM") 
                                     param_default_2Byte =  data(id-2, param)/0.11299;
                                 if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, directAddress, param_default_2Byte, &dxl_error)) {
-                                    std::cout << "Failed to set " << parameterName
-                                            << " for servo ID: " << id
-                                            << " of port:" << portHandlers[p]->getPortName()
-                                            << " Error: " << packetHandlers[p]->getTxRxResult(dxl_comm_result)
-                                            << " DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
+                                    Warning("Failed to set " + parameterName + " for servo " + std::to_string(id) +
+                                            " on port " + portHandlers[p]->getPortName() + ": " +
+                                            packetHandlers[p]->getTxRxResult(dxl_comm_result) + "; Dynamixel error: " +
+                                            packetHandlers[p]->getRxPacketError(dxl_error));
                                     return false;
                                 }
                             }
                             if (byteLength==4){
                                 param_default_4Byte = data(id-2, param);
                                 if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, directAddress, param_default_4Byte, &dxl_error)) {
-                                    std::cout << "Failed to set " << parameterName
-                                            << " for servo ID: " << id
-                                            << " of port:" << portHandlers[p]->getPortName()
-                                            << " Error: " << packetHandlers[p]->getTxRxResult(dxl_comm_result)
-                                            << " DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
+                                    Warning("Failed to set " + parameterName + " for servo " + std::to_string(id) +
+                                            " on port " + portHandlers[p]->getPortName() + ": " +
+                                            packetHandlers[p]->getTxRxResult(dxl_comm_result) + "; Dynamixel error: " +
+                                            packetHandlers[p]->getRxPacketError(dxl_error));
                                     return false;
                                 }
                             }
@@ -1971,11 +1972,10 @@ class EpiServos : public Module
                             // Reading Indirect Addresses
                             
                             if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, addressRead, directAddress, &dxl_error)) {
-                                std::cout << "Failed to set indirect reading address for " << parameterName
-                                        << " for servo ID: " << id
-                                        << " of port:" << portHandlers[p]->getPortName()
-                                        << " Error: " << packetHandlers[p]->getTxRxResult(dxl_comm_result)
-                                        << " DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
+                                Warning("Failed to set the indirect read address for " + parameterName + " on servo " +
+                                        std::to_string(id) + " at port " + portHandlers[p]->getPortName() + ": " +
+                                        packetHandlers[p]->getTxRxResult(dxl_comm_result) + "; Dynamixel error: " +
+                                        packetHandlers[p]->getRxPacketError(dxl_error));
                                 return false;
                             }
 
@@ -2141,20 +2141,18 @@ class EpiServos : public Module
                 param_default_4Byte = minLimitPosition[maxMinPositionLimitIndex[i]] /360 * 4096;
   
                 if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, ADDR_MIN_POSITION_LIMIT, param_default_4Byte, &dxl_error)){
-                    std::cout << "Failed to set indirect address for min position limit for servo ID: " 
-                    << id << " of port:" 
-                    << portHandlers[p]->getPortName() 
-                    << ", DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
+                    Warning("Failed to set the minimum-position limit for servo " + std::to_string(id) +
+                            " at port " + portHandlers[p]->getPortName() + "; Dynamixel error: " +
+                            packetHandlers[p]->getRxPacketError(dxl_error));
                     
                     return false;
                 }
                 param_default_4Byte = maxLimitPosition[maxMinPositionLimitIndex[i]]/ 360.0 * 4096.0;
                 
                 if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, ADDR_MAX_POSITION_LIMIT, param_default_4Byte, &dxl_error)){ 
-                    std::cout << "Failed to set indirect address for max position limit for servo ID: " 
-                    << id << " of port:" 
-                    << portHandlers[p]->getPortName() 
-                    << ", DXL Error: " << packetHandlers[p]->getRxPacketError(dxl_error) << std::endl;
+                    Warning("Failed to set the maximum-position limit for servo " + std::to_string(id) +
+                            " at port " + portHandlers[p]->getPortName() + "; Dynamixel error: " +
+                            packetHandlers[p]->getRxPacketError(dxl_error));
                 
                     return false;
                 }
@@ -2200,26 +2198,26 @@ class EpiServos : public Module
         // Torque Enable
         for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++) {
             if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
-                std::cout << "Failed to set torque enable for head servo ID: " << i << std::endl;
+                Warning("Failed to set torque enable for head servo " + std::to_string(i) + ".");
                 return false;
             }
         }
         if (EpiFullMode) {
             for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++) {
                 if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
-                    std::cout << "Failed to set torque enable for left arm servo ID: " << i << std::endl;
+                    Warning("Failed to set torque enable for left-arm servo " + std::to_string(i) + ".");
                     return false;
                 }
             }
             for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++) {
                 if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
-                    std::cout << "Failed to set torque enable for right arm servo ID: " << i << std::endl;
+                    Warning("Failed to set torque enable for right-arm servo " + std::to_string(i) + ".");
                     return false;
                 }
             }
             for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++) {
                 if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerBody, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
-                    std::cout << "Failed to set torque enable for body servo ID: " << i << std::endl;
+                    Warning("Failed to set torque enable for body servo " + std::to_string(i) + ".");
                     return false;
                 }
             }
@@ -2229,7 +2227,8 @@ class EpiServos : public Module
         for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++) {
             for (int j = 0; j < 4; j++) {
                 if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_GOAL_POSITION + (2 * j), ADDR_GOAL_POSITION + j, &dxl_error)) {
-                    std::cout << "Failed to set goal position for head servo ID: " << i << ", byte: " << j << std::endl;
+                    Warning("Failed to set goal-position byte " + std::to_string(j) +
+                            " for head servo " + std::to_string(i) + ".");
                     return false;
                 }
             }

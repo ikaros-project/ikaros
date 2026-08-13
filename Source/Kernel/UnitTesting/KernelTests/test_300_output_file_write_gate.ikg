@@ -1,0 +1,27 @@
+<group internal="true"
+       name="TestOutputFileWriteGate"
+       description="OutputFile suppresses rows while WRITE is zero"
+       start="true"
+       stop="2"
+       check_sum="133637"
+       expected_file_exists="UserData/test_300_output_file_write_gate.tsv"
+       expected_file_contains="value"
+       expected_file_not_contains="line/1||tick/1||time/1||real_time/1||1.23"
+       cleanup_expected_files="true">
+    <module name="Data" class="Constant" data="1.23456" />
+    <module name="Write" class="Constant" data="0" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_300_output_file_write_gate.tsv"
+            format="tsv"
+            decimals="2"
+            timestamp="none" />
+
+    <connection delay="0"
+                source="Data.OUTPUT"
+                target="Output.INPUT"
+                label="value" />
+    <connection delay="0"
+                source="Write.OUTPUT"
+                target="Output.WRITE" />
+</group>

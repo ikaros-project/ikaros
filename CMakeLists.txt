@@ -5,13 +5,17 @@
 #
 
 # Set cmake version
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 # To use elseif
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
 # Project name
 project(ikaros)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Configure logging with for example:
 #   cmake -S . -B Build -DLOGGING=OFF
@@ -20,6 +24,37 @@ project(ikaros)
 set(LOGGING "FULL" CACHE STRING "Logging mode: OFF, MINIMAL, or FULL")
 set_property(CACHE LOGGING PROPERTY STRINGS OFF MINIMAL FULL)
 string(TOUPPER "${LOGGING}" LOGGING)
+
+option(IKAROS_MATRIX_CHECKS "Check matrix ranks, indices, and operation preconditions" ON)
+if(IKAROS_MATRIX_CHECKS)
+    add_compile_definitions(IKAROS_MATRIX_CHECKS=1)
+else()
+    add_compile_definitions(IKAROS_MATRIX_CHECKS=0)
+endif()
+
+option(IKAROS_MATRIX_ACCELERATE "Use Apple Accelerate matrix implementations" ${APPLE})
+if(IKAROS_MATRIX_ACCELERATE AND NOT APPLE)
+    message(FATAL_ERROR "IKAROS_MATRIX_ACCELERATE is only available on Apple platforms")
+elseif(IKAROS_MATRIX_ACCELERATE)
+    add_compile_definitions(IKAROS_MATRIX_ACCELERATE=1)
+else()
+    add_compile_definitions(IKAROS_MATRIX_ACCELERATE=0)
+endif()
+
+option(IKAROS_THREAD_SANITIZER "Build Ikaros with ThreadSanitizer" OFF)
+option(IKAROS_RELEASE_IPO "Enable interprocedural optimization in Release builds" ON)
+
+foreach(CODEC PNG TIFF WEBP)
+    set(IKAROS_${CODEC} "AUTO" CACHE STRING
+        "${CODEC} codec support: AUTO, ON (required), or OFF")
+    set_property(CACHE IKAROS_${CODEC} PROPERTY STRINGS AUTO ON OFF)
+    string(TOUPPER "${IKAROS_${CODEC}}" IKAROS_${CODEC}_MODE)
+    if(NOT IKAROS_${CODEC}_MODE STREQUAL "AUTO" AND
+       NOT IKAROS_${CODEC}_MODE STREQUAL "ON" AND
+       NOT IKAROS_${CODEC}_MODE STREQUAL "OFF")
+        message(FATAL_ERROR "IKAROS_${CODEC} must be AUTO, ON, or OFF")
+    endif()
+endforeach()
 
 if(NOT LOGGING STREQUAL "OFF" AND NOT LOGGING STREQUAL "MINIMAL" AND NOT LOGGING STREQUAL "FULL")
     message(FATAL_ERROR "LOGGING must be one of: OFF, MINIMAL, FULL")
@@ -30,7 +65,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    # Mac OS X specific code
    	message( STATUS "Detected APPLE system")
     enable_language(OBJCXX)
-    set(CMAKE_OBJCXX_STANDARD 17)
+    set(CMAKE_OBJCXX_STANDARD 20)
     set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
     set(CMAKE_OBJCXX_EXTENSIONS OFF)
 	add_definitions(-DMAC_OS_X)
@@ -59,10 +94,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
 
- 	# Set compiler
-	set(CMAKE_C_COMPILER "clang")
-	set(CMAKE_CXX_COMPILER "clang++")
-
   find_library(ACCELERATE_LIBRARY Accelerate) # Hardware Acceleration
   find_library(COCOA_LIBRARY Cocoa)           # Wrapper for including the Cocoa frameworks AppKit.framework, Foundation.framework, and CoreData.framework.
   find_library(QUARTZ_LIBRARY QuartzCore)     # Contains the interfaces for Core Image, Core Animation, and Core Video. See Quartz Core Framework Reference. Used by CIFaceDetector
@@ -83,48 +114,24 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # Linux specific code
  	message( STATUS "Detected a Linux system")
 	add_definitions(-DLINUX)
-	set(CMAKE_C_COMPILER "gcc")
-	set(CMAKE_CXX_COMPILER "g++")
-	add_definitions(-DLINUX)
   # Remove a few warnings
   add_definitions(-Wno-unused-value)
   add_definitions(-Wno-unused-result)
 
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    # Windows specific code
-	message( STATUS "Windows is not supported. More info at www.ikaros-project.org")
-	add_definitions(-DWIN32)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-# Compiler-specific C++17 activation.
-# Ikaors WebUI is using atomic. Supported in Gnu GCC > 4.4
+# Compiler-specific standard-library selection.
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-    execute_process(
-        COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-
-
-    #if (NOT (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7))
-    #    message(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.7 or greater.")
-
-
-    if (NOT (GCC_VERSION VERSION_GREATER 4.6 OR GCC_VERSION VERSION_EQUAL 4.6))
-        message(FATAL_ERROR "${PROJECT_NAME} requires g++ 4.6 or greater.")
-    endif ()
-
-    if (GCC_VERSION VERSION_EQUAL 4.6)
-    	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-	endif ()
-	if (GCC_VERSION VERSION_GREATER 4.7 OR GCC_VERSION VERSION_EQUAL 4.7)
-   	 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-	endif ()
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
+        message(FATAL_ERROR "${PROJECT_NAME} requires GCC 10 or later for C++20 support.")
+    endif()
 
 elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -stdlib=libc++")
-    set(CMAKE_OBJCXX_FLAGS "${CMAKE_OBJCXX_FLAGS} -std=c++17 -stdlib=libc++")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
+        message(FATAL_ERROR "${PROJECT_NAME} requires Clang 10 or later for C++20 support.")
+    endif()
 else ()
-    message(FATAL_ERROR "Your C++ compiler does not support C++17.")
+    message(FATAL_ERROR "Your C++ compiler does not support C++20.")
 endif ()
 
 # Set Ikaros root path
@@ -147,6 +154,33 @@ add_subdirectory(Source)
 # Crete a binary with source files
 add_executable(ikaros ${SOURCE})
 
+if(IKAROS_RELEASE_IPO)
+    include(CheckIPOSupported)
+    check_ipo_supported(
+        RESULT IKAROS_IPO_SUPPORTED
+        OUTPUT IKAROS_IPO_ERROR
+        LANGUAGES CXX
+    )
+    if(IKAROS_IPO_SUPPORTED)
+        set_property(TARGET ikaros PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+        message(STATUS "Release IPO/LTO: enabled for Release configurations")
+    else()
+        message(WARNING "Release IPO/LTO is unavailable: ${IKAROS_IPO_ERROR}")
+    endif()
+else()
+    message(STATUS "Release IPO/LTO: disabled")
+endif()
+
+if(IKAROS_THREAD_SANITIZER)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        message(FATAL_ERROR "IKAROS_THREAD_SANITIZER requires Clang or GCC")
+    endif()
+
+    target_compile_options(ikaros PRIVATE -fsanitize=thread -fno-omit-frame-pointer)
+    set_property(TARGET ikaros APPEND_STRING PROPERTY LINK_FLAGS " -fsanitize=thread")
+    message(STATUS "ThreadSanitizer enabled with ${CMAKE_CXX_COMPILER}")
+endif()
+
 # Check and adding Kernel libraries
 # BLAS
 find_package (BLAS)
@@ -157,32 +191,100 @@ else()
     message(FATAL_ERROR "\nIkaros requires the BLAS library.\nVisit www.ikaros-project.org for information about dependencies")
 endif (BLAS_FOUND)
 
-# Threads Not part of the core
-#find_package(Threads)
-#if (Threads_FOUND)
-#  include_directories(${Threads_INCLUDE_DIRS})
-#  target_link_libraries (ikaros ${CMAKE_THREAD_LIBS_INIT})
-#  else()
-#    message(FATAL_ERROR "\nIkaros require the THREADS library.\nVisit www.ikaros-project.org for information about dependencies")
-#endif (Threads_FOUND)
+# LAPACK backs matrix decompositions on every supported platform. On macOS
+# this resolves to Accelerate; Linux installations commonly provide it through
+# the same BLAS/OpenBLAS package family.
+find_package(LAPACK REQUIRED)
+target_link_libraries(ikaros ${LAPACK_LIBRARIES})
 
-# Turbo JPEG
-find_package (Jpeg-Turbo)
-  if (TURBO_JPEG_FOUND)
-  	include_directories(${TURBO_JPEG_INCLUDE_DIRS})
-  	target_link_libraries (ikaros ${TURBO_JPEG_LIBRARIES})
-  	else()
-   		 message(FATAL_ERROR "\nIkaros require the Turbo-JPEG library. \nVisit www.ikaros-project.org for information about dependencies")
-	endif (TURBO_JPEG_FOUND)
+# Remote session logging requires a certificate-validating HTTPS client.
+find_package(CURL REQUIRED)
+target_link_libraries(ikaros CURL::libcurl)
 
- # PNG 
- find_package (PNG)
-if (PNG_FOUND)
-  include_directories(${PNG_INCLUDE_DIRS})
-  target_link_libraries (ikaros ${PNG_LIBRARIES})
-    else()
-    message(FATAL_ERROR "\nIkaros require the PNG library. \nVisit www.ikaros-project.org for information about dependencies")
-endif (PNG_FOUND)
+# Authenticated WebUI sessions use HMAC-SHA256. Apple platforms provide
+# CommonCrypto; Linux uses OpenSSL.
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    find_package(OpenSSL REQUIRED COMPONENTS Crypto)
+    target_link_libraries(ikaros OpenSSL::Crypto)
+    target_compile_definitions(ikaros PRIVATE IKAROS_HAVE_OPENSSL=1)
+endif()
+
+# The kernel and several modules use std::thread. The imported target supplies
+# any platform-specific compile and link flags, including -pthread on Linux.
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+target_link_libraries(ikaros Threads::Threads)
+
+# JPEG is the required core image codec.
+find_package(Jpeg-Turbo)
+if(TURBO_JPEG_FOUND)
+    target_include_directories(ikaros PRIVATE ${TURBO_JPEG_INCLUDE_DIRS})
+    target_link_libraries(ikaros ${TURBO_JPEG_LIBRARIES})
+else()
+    message(FATAL_ERROR
+        "Ikaros requires the libjpeg-turbo library. Visit www.ikaros-project.org for dependency information.")
+endif()
+
+# Other image codecs are enabled when available. Setting a codec option to ON
+# makes it a required dependency; OFF disables it even when installed.
+set(IKAROS_HAS_PNG 0)
+if(NOT IKAROS_PNG_MODE STREQUAL "OFF")
+    find_package(PNG QUIET)
+    if(PNG_FOUND)
+        set(IKAROS_HAS_PNG 1)
+        target_include_directories(ikaros PRIVATE ${PNG_PNG_INCLUDE_DIR})
+        target_link_libraries(ikaros ${PNG_LIBRARIES})
+    elseif(IKAROS_PNG_MODE STREQUAL "ON")
+        message(FATAL_ERROR "IKAROS_PNG=ON but libpng was not found")
+    endif()
+endif()
+
+set(IKAROS_HAS_TIFF 0)
+if(NOT IKAROS_TIFF_MODE STREQUAL "OFF")
+    find_package(TIFF QUIET)
+    if(TIFF_FOUND)
+        set(IKAROS_HAS_TIFF 1)
+        target_include_directories(ikaros PRIVATE ${TIFF_INCLUDE_DIRS} ${TIFF_INCLUDE_DIR})
+        target_link_libraries(ikaros ${TIFF_LIBRARIES})
+    elseif(IKAROS_TIFF_MODE STREQUAL "ON")
+        message(FATAL_ERROR "IKAROS_TIFF=ON but libtiff was not found")
+    endif()
+endif()
+
+set(IKAROS_HAS_WEBP 0)
+if(NOT IKAROS_WEBP_MODE STREQUAL "OFF")
+    find_package(WebP QUIET)
+    if(WebP_FOUND)
+        set(IKAROS_HAS_WEBP 1)
+        target_link_libraries(ikaros WebP::webp)
+    elseif(IKAROS_WEBP_MODE STREQUAL "ON")
+        message(FATAL_ERROR "IKAROS_WEBP=ON but libwebp was not found")
+    endif()
+endif()
+
+target_compile_definitions(ikaros PRIVATE
+    IKAROS_HAS_PNG=${IKAROS_HAS_PNG}
+    IKAROS_HAS_TIFF=${IKAROS_HAS_TIFF}
+    IKAROS_HAS_WEBP=${IKAROS_HAS_WEBP}
+)
+
+if(IKAROS_HAS_PNG)
+    set(IKAROS_PNG_STATUS ON)
+else()
+    set(IKAROS_PNG_STATUS OFF)
+endif()
+if(IKAROS_HAS_TIFF)
+    set(IKAROS_TIFF_STATUS ON)
+else()
+    set(IKAROS_TIFF_STATUS OFF)
+endif()
+if(IKAROS_HAS_WEBP)
+    set(IKAROS_WEBP_STATUS ON)
+else()
+    set(IKAROS_WEBP_STATUS OFF)
+endif()
+message(STATUS
+    "Image codecs: JPEG=ON PNG=${IKAROS_PNG_STATUS} TIFF=${IKAROS_TIFF_STATUS} WebP=${IKAROS_WEBP_STATUS}")
 
 
 
@@ -205,8 +307,6 @@ target_link_libraries (ikaros ${MODULES_LIBS})
 
 # Set binary name to ikaros_d in debug mode
 #set_target_properties(ikaros PROPERTIES DEBUG_POSTFIX "_d")
-
-add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
 
 if(LOGGING STREQUAL "OFF")
 add_compile_definitions(LOGGING_OFF)

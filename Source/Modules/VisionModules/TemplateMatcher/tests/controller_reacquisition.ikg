@@ -1,0 +1,13 @@
+<group name="ControllerReacquisition" start="true" stop="3" agent="Codex: GPT-5.6 Sol">
+    <module class="Constant" name="DetectionTransform" data="1,0,20;0,1,10;0,0,1" />
+    <module class="Constant" name="DetectionResult" data="0,14,0.4,18;0,0,0,0" />
+    <module class="Constant" name="TrackingTransform" data="1,0,-80;0,1,-60;0,0,1" />
+    <module class="Constant" name="TrackingResult" data="0,8,0.2,1;0,0,0,0" />
+    <module class="TemplateTrackingController" name="Controller" />
+    <module class="Print" name="Status" />
+    <connection source="DetectionTransform.OUTPUT" target="Controller.DETECTION_TRANSFORM" />
+    <connection source="DetectionResult.OUTPUT" target="Controller.DETECTION_RESULT" />
+    <connection source="TrackingTransform.OUTPUT" target="Controller.TRACKING_TRANSFORM" />
+    <connection source="TrackingResult.OUTPUT" target="Controller.TRACKING_RESULT" />
+    <connection source="Controller.STATUS" target="Status.INPUT" />
+</group>

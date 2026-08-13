@@ -1,28 +1,35 @@
 const dialog =
 {
-    window: null,
-    callback: null,
+    requestGeneration: 0,
+    openCallback: null,
+    saveCallback: null,
+    listSelectCallback: null,
     infoDialogBound: false,
 
     fetchFileList()
     {
+        if(typeof controller.consumeWebUITestFailure === "function" &&
+           controller.consumeWebUITestFailure("files"))
+            return new Promise((resolve, reject) => {
+                setTimeout(function()
+                {
+                    reject(new Error("injected WebUI /files test failure"));
+                }, controller.webui_test_delay_ms);
+            });
+
         return fetch('/files', {method: 'GET', headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id}})
         .then(response => {
-            if(!response.ok) {
-                alert("Could not get file list from server.");
+            if(!response.ok)
                 throw new Error("HTTP error " + response.status);
-            }
             return response.json();
-        })
-        .then(json => {
-            controller.filelist = json;
-            return json;
-        })
-        .catch(function(error) {
-            alert("Could not get file list from server.");
-            console.log("Could not get file list from server.");
-            throw error;
         });
+    },
+
+    reportFileListError(error)
+    {
+        const message = error && error.message ? error.message : String(error);
+        console.error("Could not get file list from server:", error);
+        alert("Could not get file list from server: " + message);
     },
 
     setActiveFileSource(prefix, activeType)
@@ -66,34 +73,68 @@ const dialog =
 
     confirmOpen()
     {
-        try {
-            const dialogType = this.getDialogType();
+        let text = "";
+        let dialogType = "";
+        try
+        {
+            dialogType = this.getDialogType();
             const sel = document.getElementById(`open_dialog_${dialogType}_items`);
-            const text = sel.options[sel.selectedIndex].text;
-            this.window.close(text);
-            if(this.callback)
-                this.callback(text, dialogType);
+            if(!sel || sel.selectedIndex < 0)
+                throw new Error("No file is selected.");
+            text = sel.options[sel.selectedIndex].text;
+            const openDialog = document.getElementById('open_dialog');
+            if(!openDialog)
+                throw new Error("Open dialog is unavailable.");
+            this.requestGeneration++;
+            openDialog.close(text);
         }
         catch(err)
         {
-            alert("Error opening file");
+            const message = err && err.message ? err.message : String(err);
+            console.error("Could not confirm Open dialog:", err);
+            alert("Could not confirm Open dialog: " + message);
+            return;
+        }
+
+        try
+        {
+            const callback = this.openCallback;
+            this.openCallback = null;
+            if(callback)
+                callback(text, dialogType);
+        }
+        catch(err)
+        {
+            const message = err && err.message ? err.message : String(err);
+            console.error("Could not start opening file:", err);
+            alert("Could not start opening file: " + message);
         }
     },
 
     cancelOpen()
     {
+        this.requestGeneration++;
+        this.openCallback = null;
         controller.open_mode = false;
-        this.window.close(null);
+        const openDialog = document.getElementById('open_dialog');
+        if(openDialog)
+            openDialog.close(null);
     },
 
     showOpenDialog(callback, message)
     {
         const options = arguments.length > 2 && arguments[2] ? arguments[2] : {};
+        const requestGeneration = ++this.requestGeneration;
+        this.saveCallback = null;
+        this.listSelectCallback = null;
+        this.openCallback = callback;
         this.configureOpenDialogSources(options);
         this.setOpenDialogButtonText(options.confirmLabel || "Open");
         dialog.fetchFileList()
         .then(json => {
-            this.setupDialog(callback);
+            if(requestGeneration !== this.requestGeneration)
+                return;
+            controller.filelist = json;
             this.populateFileList(json, options);
             if(options.userOnly)
                 this.showUserFileList();
@@ -103,15 +144,27 @@ const dialog =
                 this.showSystemFileList();
             this.selectDialogOption("open_dialog_user_items", options.defaultFilename || "");
             this.displayMessage(message);
-            this.window.showModal();
+            const openDialog = document.getElementById('open_dialog');
+            if(openDialog && !openDialog.open)
+                openDialog.showModal();
+        })
+        .catch(error => {
+            if(requestGeneration !== this.requestGeneration)
+                return;
+            controller.open_mode = false;
+            this.reportFileListError(error);
         });
     },
 
     showSaveDialog(callback, message)
     {
         const options = arguments.length > 2 && arguments[2] ? arguments[2] : {};
-        this.callback = callback;
-        this.window = document.getElementById('save_dialog');
+        const requestGeneration = ++this.requestGeneration;
+        controller.open_mode = false;
+        this.openCallback = null;
+        this.listSelectCallback = null;
+        this.saveCallback = callback;
+        const saveDialog = document.getElementById('save_dialog');
         this.populateSaveFileList(controller.filelist || {}, options);
         this.setSaveDialogButtonText(options.confirmLabel || "Save");
         const filenameLabel = document.querySelector("label[for='save_dialog_filename']");
@@ -137,8 +190,8 @@ const dialog =
             };
         }
         this.showUserSaveFileList();
-        if(this.window && !this.window.open)
-            this.window.showModal();
+        if(saveDialog && !saveDialog.open)
+            saveDialog.showModal();
         if(filenameInput)
         {
             setTimeout(function()
@@ -150,9 +203,17 @@ const dialog =
 
         dialog.fetchFileList()
         .then(json => {
+            if(requestGeneration !== this.requestGeneration)
+                return;
+            controller.filelist = json;
             this.populateSaveFileList(json, options);
             this.showUserSaveFileList();
             this.selectDialogOption("save_dialog_user_items", options.defaultFilename || "");
+        })
+        .catch(error => {
+            if(requestGeneration !== this.requestGeneration)
+                return;
+            this.reportFileListError(error);
         });
     },
 
@@ -208,12 +269,6 @@ const dialog =
         if(examples && examples.style.display === 'block')
             return 'examples';
         return 'user';
-    },
-
-    setupDialog(callback)
-    {
-        this.callback = callback;
-        this.window = document.getElementById('open_dialog');
     },
 
     populateFileList(file_list, options)
@@ -302,11 +357,14 @@ const dialog =
 
     confirmSave()
     {
-        try {
-            const dialogType = this.getSaveDialogType();
+        let text = "";
+        let dialogType = "";
+        try
+        {
+            dialogType = this.getSaveDialogType();
             const sel = document.getElementById(`save_dialog_${dialogType}_items`);
             const filenameInput = document.getElementById("save_dialog_filename");
-            let text = filenameInput ? filenameInput.value.trim() : "";
+            text = filenameInput ? filenameInput.value.trim() : "";
             if(!text && sel)
             {
                 if(sel.selectedIndex < 0 && sel.options.length > 0)
@@ -315,20 +373,42 @@ const dialog =
             }
             if(!text)
                 return;
-            this.window.close(text);
-            if(this.callback)
-                this.callback(text, dialogType);
+            const saveDialog = document.getElementById('save_dialog');
+            if(!saveDialog)
+                throw new Error("Save As dialog is unavailable.");
+            this.requestGeneration++;
+            saveDialog.close(text);
         }
         catch(err)
         {
-            alert("Error saving file");
+            const message = err && err.message ? err.message : String(err);
+            console.error("Could not confirm Save As dialog:", err);
+            alert("Could not confirm Save As dialog: " + message);
+            return;
+        }
+
+        try
+        {
+            const callback = this.saveCallback;
+            this.saveCallback = null;
+            if(callback)
+                callback(text, dialogType);
+        }
+        catch(err)
+        {
+            const message = err && err.message ? err.message : String(err);
+            console.error("Could not start saving file:", err);
+            alert("Could not start saving file: " + message);
         }
     },
 
     cancelSave()
     {
-        if(this.window)
-            this.window.close(null);
+        this.requestGeneration++;
+        this.saveCallback = null;
+        const saveDialog = document.getElementById('save_dialog');
+        if(saveDialog)
+            saveDialog.close(null);
     },
 
     displayMessage(message)
@@ -359,20 +439,33 @@ const dialog =
             return;
 
         let text = sel.options[sel.selectedIndex].text;
-        dialog.window.close(text);
-        if(dialog.callback)
-            dialog.callback(text);
+        const listSelectDialog = document.getElementById('list_select_dialog');
+        dialog.requestGeneration++;
+        if(listSelectDialog)
+            listSelectDialog.close(text);
+        const callback = dialog.listSelectCallback;
+        dialog.listSelectCallback = null;
+        if(callback)
+            callback(text);
     },
 
     cancelListSelect()
     {
-        dialog.window.close(null);
+        dialog.requestGeneration++;
+        dialog.listSelectCallback = null;
+        const listSelectDialog = document.getElementById('list_select_dialog');
+        if(listSelectDialog)
+            listSelectDialog.close(null);
     },
 
     showListSelectDialog(list, callback, message)
     {
-        dialog.callback = callback;
-        dialog.window = document.getElementById('list_select_dialog');
+        dialog.requestGeneration++;
+        controller.open_mode = false;
+        dialog.openCallback = null;
+        dialog.saveCallback = null;
+        dialog.listSelectCallback = callback;
+        const listSelectDialog = document.getElementById('list_select_dialog');
         let sel = document.getElementById('listSelectDialogItems');
         sel.innerHTML = '';
         if(list)
@@ -383,7 +476,7 @@ const dialog =
 
                 const opt = document.createElement('option');
                 opt.value = i;
-                opt.innerHTML = i;
+                opt.textContent = i;
                 document.getElementById('listSelectDialogItems').appendChild(opt);
             }
         if(message)
@@ -395,7 +488,8 @@ const dialog =
             if(event.key === "Enter")
                 dialog.confirmListSelect();
         };
-        dialog.window.showModal();
+        if(listSelectDialog && !listSelectDialog.open)
+            listSelectDialog.showModal();
         setTimeout(function() { sel.focus(); }, 0);
     },
 

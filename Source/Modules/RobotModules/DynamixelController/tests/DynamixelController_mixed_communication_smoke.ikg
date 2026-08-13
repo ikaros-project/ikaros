@@ -1,0 +1,5 @@
+<group name="DynamixelControllerMixedCommunicationSmoke" tick_duration="0.01" stop="2">
+   <connection source="Goal.OUTPUT" target="DXL.GOAL_POSITION" />
+   <module name="Goal" class="Constant" data="180, 180, 10" />
+   <module name="DXL" class="DynamixelController" robot="TestMixed" Simulate="true" />
+</group>

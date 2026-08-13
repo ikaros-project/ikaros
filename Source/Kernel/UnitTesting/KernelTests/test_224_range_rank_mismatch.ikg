@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestRangeRankMismatch"
+    description="Reject source selectors with more dimensions than their output"
+    expected_exit="1"
+    expected_output_contains="Cannot fill a rank-2 range from a rank-1 range">
+    <module class="Constant" name="Source" data="1,2,3" />
+    <module class="Print" name="Sink" />
+
+    <connection source="Source.OUTPUT[][]" target="Sink.INPUT" />
+</group>

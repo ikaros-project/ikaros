@@ -1,0 +1,4 @@
+<class internal="true" name="DynamicInputCapacityModule" description="Checks an input-dependent dynamic output capacity">
+    <input name="X" />
+    <output name="ROWS" dynamic="yes" capacity="X.shape" />
+</class>

@@ -78,7 +78,7 @@ namespace
         if(static_cast<int>(flattened.size()) != target.size())
             throw std::runtime_error("Python output size does not match declared output size.");
 
-        float * data = target.data();
+        float * data = target.contiguous_data();
         for(int i = 0; i < target.size(); ++i)
             data[i] = flattened[i];
     }
@@ -111,13 +111,11 @@ class PythonModule: public Module
     std::string python_function_;
     std::string python_executable_;
     std::string process_mode_;
-    std::string execution_mode_;
     std::string worker_script_;
     std::string on_error_;
 
     int timeout_ms_ = 1000;
     bool restart_on_crash_ = false;
-    bool async_in_flight_ = false;
     bool use_shared_memory_transport_ = true;
     bool use_global_names_ = false;
     std::string stdout_buffer_;
@@ -267,9 +265,8 @@ class PythonModule: public Module
             if(name.empty())
                 continue;
 
-            parameter bound;
-            Bind(bound, name);
-            parameters_[name] = bound;
+            auto parameter_it = parameters_.try_emplace(name).first;
+            Bind(parameter_it->second, name);
         }
     }
 
@@ -380,7 +377,6 @@ class PythonModule: public Module
         worker_stdout_fd_ = -1;
         worker_pid_ = -1;
         stdout_buffer_.clear();
-        async_in_flight_ = false;
     }
 
     bool WorkerExited(int * exit_status = nullptr)
@@ -745,62 +741,6 @@ class PythonModule: public Module
         return false;
     }
 
-    bool LaunchAsyncTick()
-    {
-        if(async_in_flight_)
-            return false;
-        if(!EnsureWorkerAvailable())
-            return false;
-
-        dictionary payload = BuildTickPayload();
-        try
-        {
-            if(use_shared_memory_transport_)
-                CopyToSharedRegion(inputs_, input_region_);
-            WriteLine(payload.json());
-            async_in_flight_ = true;
-            return true;
-        }
-        catch(const std::exception & e)
-        {
-            if(restart_on_crash_ && RestartWorker("Python worker communication failed: " + std::string(e.what())))
-                HandleWorkerFailure("Python worker failed during async launch; outputs were not updated.");
-            else
-                HandleWorkerFailure("Python worker communication failed: " + std::string(e.what()));
-            return false;
-        }
-    }
-
-    void PollAsyncTick()
-    {
-        if(!async_in_flight_)
-            return;
-
-        if(!EnsureWorkerAvailable())
-        {
-            async_in_flight_ = false;
-            return;
-        }
-
-        try
-        {
-            auto reply = PollMessage();
-            if(!reply.has_value())
-                return;
-
-            async_in_flight_ = false;
-            HandleWorkerReply(*reply);
-        }
-        catch(const std::exception & e)
-        {
-            async_in_flight_ = false;
-            if(restart_on_crash_ && RestartWorker("Python worker did not return a valid async response: " + std::string(e.what())))
-                HandleWorkerFailure("Python worker failed during async execution; outputs were not updated.");
-            else
-                HandleWorkerFailure("Python worker did not return a valid async response: " + std::string(e.what()));
-        }
-    }
-
 public:
     ~PythonModule() override
     {
@@ -826,7 +766,6 @@ public:
             throw exception("Python script \"" + python_script_ + "\" could not be found.", path_);
 
         process_mode_ = GetParameter("process_mode").as_string();
-        execution_mode_ = GetParameter("execution_mode").as_string();
         timeout_ms_ = GetParameter("timeout_ms").as_int();
         on_error_ = GetParameter("on_error").as_string();
         restart_on_crash_ = GetParameter("restart_on_crash").as_bool();
@@ -834,8 +773,6 @@ public:
 
         if(process_mode_.empty())
             process_mode_ = "worker";
-        if(execution_mode_.empty())
-            execution_mode_ = "sync";
         if(on_error_.empty())
             on_error_ = "pause";
 
@@ -843,8 +780,6 @@ public:
 
         if(process_mode_ != "worker")
             throw exception("Only process_mode=\"worker\" is implemented in this phase.", path_);
-        if(execution_mode_ != "sync" && execution_mode_ != "async")
-            throw exception("execution_mode must be \"sync\" or \"async\".", path_);
 
         worker_script_ = (kernel().GetClassDirectory("PythonModule") / "python_worker.py").string();
         if(!std::filesystem::exists(worker_script_))
@@ -860,14 +795,6 @@ public:
 
     void Tick() override
     {
-        if(execution_mode_ == "async")
-        {
-            PollAsyncTick();
-            if(!async_in_flight_)
-                LaunchAsyncTick();
-            return;
-        }
-
         if(!EnsureWorkerAvailable())
             return;
 

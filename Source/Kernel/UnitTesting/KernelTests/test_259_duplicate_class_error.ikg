@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestDuplicateClassError"
+    description="Reject duplicate class filenames"
+    expected_exit="1"
+    expected_output_contains="Duplicate class &quot;DuplicateClass&quot; was found in more than one .ikc file">
+    <module class="ComponentHardeningTestModule"
+        name="Scanner"
+        class_scan_path="../Testing/Fixtures/DuplicateClass"
+        repeat_class_scan="yes" />
+</group>

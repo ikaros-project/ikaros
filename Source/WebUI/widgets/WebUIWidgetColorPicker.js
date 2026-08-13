@@ -6,11 +6,11 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
 
             { name: "CONTROL", control: "header" },
             { name: "parameter", default: "", type: "source", control: "textedit" },
-            { name: "enableSource", default: "", type: "source", control: "textedit" },
-            { name: "row_parameter", default: "", type: "source", control: "textedit" },
+            { name: "enabled_source", default: "", type: "source", control: "textedit" },
+            { name: "row_source", default: "", type: "source", control: "textedit" },
 
             { name: "STYLE", control: "header" },
-            { name: "show_values", default: true, type: "bool", control: "checkbox" },
+            { name: "show_values", default: "yes", type: "bool", control: "checkbox" },
             { name: "step", default: 0.01, type: "float", control: "textedit" }
         ];
     }
@@ -30,11 +30,11 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
 
     requestData(data_set) {
         this.addSource(data_set, this.parameters.parameter);
-        if (this.parameters.enableSource) {
-            this.addSource(data_set, this.parameters.enableSource);
+        if (this.parameters.enabled_source) {
+            this.addSource(data_set, this.parameters.enabled_source);
         }
-        if (this.parameters.row_parameter) {
-            this.addSource(data_set, this.parameters.row_parameter);
+        if (this.parameters.row_source) {
+            this.addSource(data_set, this.parameters.row_source);
         }
     }
 
@@ -75,24 +75,8 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
         return this.querySelectorAll(".color-picker-row");
     }
 
-    _isEnabled() {
-        if (!this.parameters.enableSource) {
-            return true;
-        }
-
-        const enableSource = this.getSource("enableSource", 1);
-        const enableValue = Array.isArray(enableSource)
-            ? (Array.isArray(enableSource[0]) ? enableSource[0][0] : enableSource[0])
-            : enableSource;
-        return Number(enableValue) !== 0;
-    }
-
     _syncEnabledState() {
-        const enabled = this._isEnabled();
-        this.classList.toggle("widget-control-disabled", !enabled);
-        for (const input of this.querySelectorAll("input")) {
-            input.disabled = !enabled;
-        }
+        this.syncControlEnabledState(this.querySelectorAll("input"));
     }
 
     _setError(message) {
@@ -106,17 +90,15 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
     }
 
     _getRowParameterValue() {
-        if (!this.parameters.row_parameter) {
+        if (!this.parameters.row_source) {
             return "";
         }
 
-        const rowSource = this.getSource("row_parameter", [[0]]);
-        const rowValue = Array.isArray(rowSource)
-            ? (Array.isArray(rowSource[0]) ? rowSource[0][0] : rowSource[0])
-            : rowSource;
+        const rowSource = this.getSource("row_source", [[0]]);
+        const rowValue = this.sourceScalar(rowSource);
         const row = Math.trunc(Number(rowValue));
 
-        return Number.isFinite(row) ? row : 0;
+        return Number.isFinite(row) ? Math.max(0, row) : 0;
     }
 
     _readRgbFromData(data) {
@@ -126,7 +108,7 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
 
         let values = Array.isArray(data) ? data : [data];
 
-        if (this.parameters.row_parameter) {
+        if (this.parameters.row_source) {
             if (!Array.isArray(data) || !Array.isArray(data[0])) {
                 return null;
             }
@@ -194,7 +176,7 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
             }
             if (value) {
                 value.innerText = normalized[channel].toFixed(2);
-                value.style.display = this.parameters.show_values ? "block" : "none";
+                value.style.display = this.toBool(this.parameters.show_values) ? "block" : "none";
             }
         });
     }
@@ -206,24 +188,8 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
 
     _stopWidgetPropagation(event) {
         if (main.edit_mode) {
-            const component = this.parentElement;
-            const componentName = component?.dataset?.name || component?.id;
-
-            if (event.type === "mousedown" && componentName) {
-                selector.selectItems([componentName], null, event.shiftKey);
-            }
-
-            if (event.detail === 2 && (event.type === "mousedown" || event.type === "click")) {
-                if (componentName) {
-                    selector.selectItems([componentName], null, event.shiftKey);
-                }
-                inspector.toggleComponent();
-            }
-
             this.is_active = false;
             this.active_until = 0;
-            event.preventDefault();
-            event.stopPropagation();
             return;
         }
 
@@ -266,13 +232,24 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
             const slider = row.querySelector("input[type=range]");
 
             label.innerText = labels[channel];
-            slider.step = Number(this.parameters.step) || 0.01;
+            const configuredStep = Number(this.parameters.step);
+            slider.step = Number.isFinite(configuredStep) && configuredStep > 0 ? configuredStep : 0.01;
             slider.oninput = () => {
+                if (main.edit_mode) {
+                    return;
+                }
                 this._markActive();
                 const current = this._readRgbFromData(this.getSource("parameter")) ?? [0, 0, 0];
                 current[channel] = this._clamp01(slider.value);
                 this._setDisplayedRgb(current);
                 this._sendChannelValue(channel, current[channel]);
+            };
+            slider.onchange = () => {
+                this.is_active = false;
+                this.active_until = Date.now() + 500;
+            };
+            slider.onblur = () => {
+                this.is_active = false;
             };
 
             slider.onmousedown = (event) => this._stopWidgetPropagation(event);
@@ -282,6 +259,9 @@ class WebUIWidgetColorPicker extends WebUIWidgetControl {
 
         const nativePicker = this.querySelector(".color-picker-native");
         nativePicker.oninput = () => {
+            if (main.edit_mode) {
+                return;
+            }
             this._markActive();
             const rgb = this._hexToRgb(nativePicker.value);
             this._setDisplayedRgb(rgb);

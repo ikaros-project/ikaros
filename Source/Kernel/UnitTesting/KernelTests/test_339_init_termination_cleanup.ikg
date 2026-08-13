@@ -1,0 +1,16 @@
+<group internal="true"
+    name="TestInitTerminationCleanup"
+    description="Stop initialized modules when termination is requested during setup"
+    check_sum="58033"
+    log_level="7"
+    expected_output_contains="InitTermination INIT||InitTermination TERMINATE_INIT||InitTermination STOP_AFTER_TICK"
+    expected_output_not_contains="InitTermination TICK_START||InitTermination STOP_DURING_TICK"
+>
+
+    <module class="TaskLifecycleTestModule"
+        name="Lifecycle"
+        label="InitTermination"
+        terminate_init="true"
+    />
+
+</group>

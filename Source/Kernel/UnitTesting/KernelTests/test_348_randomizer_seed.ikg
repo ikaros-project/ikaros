@@ -1,0 +1,16 @@
+<group internal="true"
+    name="TestRandomizerSeed"
+    description="Test reproducible module-owned Randomizer sequences"
+    start="true"
+    stop="4"
+    check_sum="941754"
+    expected_output_contains="RANDOM SEQUENCE TEST OK">
+
+    <module class="Randomizer" name="FirstRandomizer" size="4" min="-2" max="3" seed="12345" />
+    <module class="Randomizer" name="SecondRandomizer" size="4" min="3" max="-2" seed="12345" />
+    <module class="RandomSequenceTestModule" name="Verifier" />
+
+    <connection source="FirstRandomizer.OUTPUT" target="Verifier.FIRST" />
+    <connection source="SecondRandomizer.OUTPUT" target="Verifier.SECOND" />
+
+</group>

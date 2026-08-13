@@ -86,15 +86,16 @@ Inspector for selected item:
 
 ## Top Group WebUI Parameters
 
-The top group can define a few parameters that affect WebUI update behavior:
+The following parameters are built into the top group and can be set directly as attributes on the top-level `<group>` element; no explicit `<parameter>` declaration is needed:
 
 - `webui_req_int`
-  Browser polling interval for `/update`, in seconds.
+  Browser polling interval for `/update` and minimum wall-clock interval between complete server-side WebUI snapshots, in seconds. New subscriptions refresh immediately.
   Default: `0.1`
 
 - `snapshot_interval`
-  Minimum interval in seconds between image refreshes in update snapshots.
-  Scalar values may still update every tick.
+  Minimum wall-clock interval in seconds between image refreshes in update snapshots.
+  This is independent of the complete snapshot cadence controlled by `webui_req_int`.
+  Image matrices are captured synchronously, then JPEG-encoded by bounded background workers; the latest completed image is returned while a refresh is in progress.
   Default: `0.1`
 
 - `rgb_quality`
@@ -106,5 +107,5 @@ The top group can define a few parameters that affect WebUI update behavior:
   Default: `70`
 
 - `webui_log_buffer_limit`
-  Maximum number of pending log messages kept for the next `/update` response before older entries are dropped.
+  Maximum number of recent log messages retained for independent, once-only delivery to each active WebUI client. A client that falls behind the retained history receives a truncation warning.
   Default: `500`

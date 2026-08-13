@@ -1,0 +1,3 @@
+<class internal="true" name="InvalidIntStateDefaultModule" description="Provides an invalid integer state default for kernel tests">
+    <state name="value" type="int" default="12garbage" />
+</class>

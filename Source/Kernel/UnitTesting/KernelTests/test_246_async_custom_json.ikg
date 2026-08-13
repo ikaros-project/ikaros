@@ -1,0 +1,14 @@
+<group internal="true"
+    name="TestAsyncCustomJSON"
+    description="Reject custom component JSON while an asynchronous Tick is active"
+    stop="100"
+    webui_port="8246"
+    http_real_time="false"
+    http_requests="step||update/TestAsyncCustomJSON?data=Worker.RUNTIME_STATE||json/TestAsyncCustomJSON.Worker.RUNTIME_STATE||quit"
+    expected_output_contains="currently being updated asynchronously"
+    expected_output_not_contains="&quot;phase&quot;">
+    <module class="Constant" name="Input" data="2" />
+    <module class="AsyncLifecycleTestModule" name="Worker" async="yes" duration="1" />
+
+    <connection source="Input.OUTPUT" target="Worker.X" delay="0" />
+</group>

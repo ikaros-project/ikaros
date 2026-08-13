@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestResetStateScalarDefaults"
     description="Test reset state restores scalar defaults"
     webui_port="8168"

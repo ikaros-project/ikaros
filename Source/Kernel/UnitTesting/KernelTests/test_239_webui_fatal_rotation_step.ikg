@@ -1,0 +1,14 @@
+<group internal="true"
+    check_sum="85"
+    name="TestWebUIFatalRotationStep"
+    description="Stop and reload after a fatal delay-history rotation failure during a WebUI step"
+    stop="4"
+    webui_port="8239"
+    http_real_time="false"
+    http_requests="command/TestWebUIFatalRotationStep.Source?command=fail_next_rotation||assert_fatal_step_recovery:step/TestWebUIFatalRotationStep?data=Source.ROWS"
+    http_terminate_after_requests="true"
+    expected_output_contains="TestWebUIFatalRotationStep.Source DYNAMIC ROTATION FAILURE ARMED||FATAL_STEP_RECOVERY stopped_then_reloaded">
+    <module name="Source" class="DynamicMatrixSource" />
+    <module name="Sink" class="DynamicDelayedMatrixSink" />
+    <connection source="Source.ROWS" target="Sink.ROWS" delay="2" />
+</group>

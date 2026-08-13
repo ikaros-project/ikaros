@@ -1,0 +1,11 @@
+flowchart LR
+    I["INPUT<br/>signed current"] --> SUM["I = INPUT + EXCITATION − INHIBITION"]
+    E["EXCITATION<br/>non-negative current"] --> SUM
+    H["INHIBITION<br/>non-negative current"] --> SUM
+    SUM --> DYN["LIF / EIF / AdEx / QIF<br/>membrane integration"]
+    R["RESET"] --> DYN
+    DYN --> V["VOLTAGE"]
+    DYN --> A["ADAPTATION"]
+    DYN --> C["SPIKE_COUNT"]
+    C --> S["SPIKES = count &gt; 0"]
+    C --> F["FIRING_RATE = count / tick_duration"]

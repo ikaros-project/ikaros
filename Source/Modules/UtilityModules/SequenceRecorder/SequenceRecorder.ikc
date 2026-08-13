@@ -25,7 +25,7 @@
 	   	<parameter name="max_speed" type="matrix" shape="@channels" description="Maximum output speed for each channel in units per second. A value of 0 disables speed limiting for that channel." />
 	   	<parameter name="simplify_epsilon" type="number" default="1" description="Maximum interpolation error allowed when simplifying keypoints." />
 		<parameter name="state" type="matrix" default="1, 0, 0, 0, 0" description="State array used to remember control button state. Only for output to control buttons." />
-	<parameter name="channel_mode" type="matrix" default="0, 0, 0, 0" description="Mode for each channel: lock, play, record, etc." />
+	<parameter name="channel_mode" type="matrix" shape="@channels,4" default="0, 0, 0, 0" description="Mode for each channel: lock, play, record, etc." />
 	<parameter name="interpolation" type="matrix" default="1, 1, 1, 1" description="Type of interpolation for each channel: 0 = none; 1 = linear" />
 
 	<parameter name="range_min" type="matrix" default="0, 0, 0, 0" description="Min value" />

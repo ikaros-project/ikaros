@@ -1,0 +1,6 @@
+<group internal="true" name="TestAsyncRuntimeSnapshot" description="Keep async module runtime values stable for the duration of one Tick" start="true" stop="20" expected_output_contains="ASYNC_RUNTIME_SNAPSHOT_STABLE">
+    <module class="Constant" name="Input" data="2" />
+    <module class="AsyncLifecycleTestModule" name="Worker" async="yes" duration="0.04" report_runtime_snapshot="yes" />
+
+    <connection source="Input.OUTPUT" target="Worker.X" delay="0" />
+</group>

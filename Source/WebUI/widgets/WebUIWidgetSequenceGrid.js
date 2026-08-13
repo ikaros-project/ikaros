@@ -7,10 +7,10 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
             {'name':'title', 'default':"Sequence Grid", 'type':'string', 'control': 'textedit'},
 
             {'name': "SOURCES", 'control':'header'},
-            {'name':'sequence_names', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'playing', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'layout_width', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'color', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'sequence_names_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'playing_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'layout_width_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'color_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'command', 'default':"", 'type':'source', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
@@ -93,26 +93,17 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
 
     requestData(data_set)
     {
-        this.addSource(data_set, this.parameters.sequence_names);
-        this.addSource(data_set, this.parameters.playing);
-        this.addSource(data_set, this.parameters.layout_width);
-        this.addSource(data_set, this.parameters.color);
-    }
-
-    asFlatArray(value)
-    {
-        if(value == undefined)
-            return [];
-        if(Array.isArray(value))
-            return value.flat ? value.flat(Infinity) : value.reduce((a, b) => a.concat(Array.isArray(b) ? this.asFlatArray(b) : b), []);
-        return [value];
+        this.addSource(data_set, this.parameters.sequence_names_source);
+        this.addSource(data_set, this.parameters.playing_source);
+        this.addSource(data_set, this.parameters.layout_width_source);
+        this.addSource(data_set, this.parameters.color_source);
     }
 
     getSequenceNames()
     {
-        const names = this.getSource("sequence_names", "");
+        const names = this.getSource("sequence_names_source", "");
         if(Array.isArray(names))
-            return this.asFlatArray(names).map((name) => String(name));
+            return this.flattenSource(names).map((name) => String(name ?? "").trim()).filter((name) => name !== "");
         return String(names)
             .split(",")
             .map((name) => name.trim())
@@ -121,7 +112,7 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
 
     getPlaying()
     {
-        return this.asFlatArray(this.getSource("playing", []))
+        return this.flattenSource(this.getSource("playing_source", []))
             .map((value) => Number(value) > 0);
     }
 
@@ -138,6 +129,8 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
     rgbToCss(row)
     {
         if(!Array.isArray(row) || row.length < 3)
+            return "";
+        if(!row.slice(0, 3).map(Number).every(Number.isFinite))
             return "";
         const r = this.colorComponentToByte(row[0]);
         const g = this.colorComponentToByte(row[1]);
@@ -158,7 +151,7 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
 
     getSequenceColors()
     {
-        const value = this.getSource("color", []);
+        const value = this.getSource("color_source", []);
         if(!Array.isArray(value))
             return [];
         if(value.length == 0)
@@ -172,7 +165,7 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
     {
         let width = Number(this.parameters.columns);
         if(!Number.isFinite(width) || width <= 0)
-            width = Number(this.asFlatArray(this.getSource("layout_width", []))[0]);
+            width = Number(this.sourceScalar(this.getSource("layout_width_source", [])));
         if(!Number.isFinite(width) || width <= 0)
             width = 8;
         return Math.max(1, Math.min(Math.trunc(width), Math.max(1, sequence_count)));
@@ -205,6 +198,8 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
         cell.addEventListener("pointerdown", (event) =>
         {
             if(event.button !== undefined && event.button != 0)
+                return;
+            if(main.edit_mode)
                 return;
             event.preventDefault();
             event.stopPropagation();
@@ -259,7 +254,9 @@ class WebUIWidgetSequenceGrid extends WebUIWidget
 
         this.gridElement.style.gridTemplateColumns = `repeat(${columns}, minmax(0, 1fr))`;
         this.gridElement.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
-        this.gridElement.style.gap = `${Math.max(0, Number(this.parameters.cell_gap) || 0)}px`;
+        const configuredGap = Number(this.parameters.cell_gap);
+        const cellGap = Number.isFinite(configuredGap) ? Math.max(0, configuredGap) : 0;
+        this.gridElement.style.gap = `${cellGap}px`;
         this.gridElement.style.setProperty("--sequence-grid-playing", this.parameters.playing_color || "#67c1ff");
 
         const signature = JSON.stringify({names, sequence_count, columns, rows});

@@ -1,0 +1,27 @@
+<group internal="true"
+       name="TestOutputFileJSONLStructure"
+       description="OutputFile JSONL preserves connection boundaries, matrix shapes, and escaped labels"
+       start="true"
+       stop="1"
+       check_sum="93715"
+       expected_file_exists="UserData/test_314_output_file_jsonl_structure.jsonl"
+       expected_file_contains="{&quot;tick&quot;:1,&quot;weights&quot;:[[1,2],[3,4]],&quot;quoted\&quot;key&quot;:[5,6]}"
+       cleanup_expected_files="true">
+    <module name="Weights" class="Constant" data="1,2;3,4" />
+    <module name="Vector" class="Constant" data="5,6" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_314_output_file_jsonl_structure.jsonl"
+            format="jsonl"
+            timestamp="tick"
+            number_format="full" />
+
+    <connection delay="0"
+                source="Weights.OUTPUT"
+                target="Output.INPUT"
+                label="weights" />
+    <connection delay="0"
+                source="Vector.OUTPUT"
+                target="Output.INPUT"
+                label="quoted&quot;key" />
+</group>

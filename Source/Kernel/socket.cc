@@ -6,17 +6,26 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netdb.h>
-#include <signal.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
 #include <algorithm> // For std::min
+#include <array>
+#include <charconv>
+#include <cstdarg>
+#include <future>
+#include <locale>
+#include <memory>
+#include <optional>
 #include <string_view>
 #include <sstream>
+#include <thread>
+#include <utility>
 #include <vector>
 
 
-#define BACKLOG		10 		// how many pending connections queue will hold
+constexpr int backlog = 10;
 
 using namespace ikaros;
 
@@ -26,11 +35,150 @@ namespace
     constexpr size_t MAX_HTTP_BODY_SIZE = 10 * 1024 * 1024;
     constexpr auto KEEP_ALIVE_IDLE_TIMEOUT = std::chrono::seconds(10);
 
+    class FileDescriptorGuard
+    {
+    public:
+        explicit FileDescriptorGuard(int fd = -1): fd_(fd) {}
+        FileDescriptorGuard(const FileDescriptorGuard &) = delete;
+        FileDescriptorGuard & operator=(const FileDescriptorGuard &) = delete;
+
+        ~FileDescriptorGuard()
+        {
+            if(fd_ != -1)
+                close(fd_);
+        }
+
+        int get() const { return fd_; }
+        int release()
+        {
+            int fd = fd_;
+            fd_ = -1;
+            return fd;
+        }
+
+    private:
+        int fd_;
+    };
+
+    struct AddressInfoDeleter
+    {
+        void operator()(addrinfo * addresses) const
+        {
+            if(addresses != nullptr)
+                freeaddrinfo(addresses);
+        }
+    };
+
+    struct FileCloser
+    {
+        void operator()(FILE * file) const
+        {
+            if(file != nullptr)
+                fclose(file);
+        }
+    };
+
+    using AddressInfoPtr = std::unique_ptr<addrinfo, AddressInfoDeleter>;
+
+    struct ResolutionResult
+    {
+        int status;
+        AddressInfoPtr addresses;
+    };
+
+    std::optional<ResolutionResult>
+    resolve_with_timeout(const std::string & hostname, int port,
+                         std::chrono::milliseconds timeout)
+    {
+        std::packaged_task<ResolutionResult()> resolver([hostname, port]()
+        {
+            addrinfo hints{};
+            hints.ai_family = AF_INET;
+            hints.ai_socktype = SOCK_STREAM;
+
+            addrinfo * addresses = nullptr;
+            int status = getaddrinfo(hostname.c_str(), std::to_string(port).c_str(),
+                                     &hints, &addresses);
+            return ResolutionResult{status, AddressInfoPtr(addresses)};
+        });
+        std::future<ResolutionResult> result = resolver.get_future();
+
+        try
+        {
+            std::thread(std::move(resolver)).detach();
+        }
+        catch(const std::system_error &)
+        {
+            return std::nullopt;
+        }
+
+        if(result.wait_for(timeout) != std::future_status::ready)
+            return std::nullopt;
+
+        try
+        {
+            return result.get();
+        }
+        catch(...)
+        {
+            return std::nullopt;
+        }
+    }
+
+    bool
+    wait_for_socket(int fd, bool read_ready,
+                    std::chrono::steady_clock::time_point deadline)
+    {
+        if(fd < 0 || fd >= FD_SETSIZE)
+            return false;
+
+        while(true)
+        {
+            auto remaining = std::chrono::duration_cast<std::chrono::microseconds>(
+                deadline - std::chrono::steady_clock::now());
+            if(remaining <= std::chrono::microseconds::zero())
+                return false;
+
+            timeval timeout{};
+            timeout.tv_sec = static_cast<time_t>(remaining.count() / 1000000);
+            timeout.tv_usec = static_cast<suseconds_t>(remaining.count() % 1000000);
+
+            fd_set read_fds;
+            fd_set write_fds;
+            FD_ZERO(&read_fds);
+            FD_ZERO(&write_fds);
+            if(read_ready)
+                FD_SET(fd, &read_fds);
+            else
+                FD_SET(fd, &write_fds);
+
+            int result = select(fd + 1,
+                                read_ready ? &read_fds : nullptr,
+                                read_ready ? nullptr : &write_fds,
+                                nullptr, &timeout);
+            if(result > 0)
+                return true;
+            if(result == 0)
+                return false;
+            if(errno != EINTR)
+                return false;
+        }
+    }
+
+    bool
+    set_socket_timeout(int fd, int option, std::chrono::milliseconds timeout)
+    {
+        timeval value{};
+        value.tv_sec = static_cast<time_t>(timeout.count() / 1000);
+        value.tv_usec = static_cast<suseconds_t>((timeout.count() % 1000) * 1000);
+        return setsockopt(fd, SOL_SOCKET, option, &value, sizeof(value)) == 0;
+    }
+
     std::string
     to_lower_copy(std::string value)
     {
         std::transform(value.begin(), value.end(), value.begin(),
-            [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+            ascii_to_lower);
         return value;
     }
 }
@@ -39,11 +187,17 @@ namespace
 //	Socket - functions that gets data from a HTTP server
 //
 
+Socket::Socket(std::chrono::milliseconds timeout): timeout_(timeout)
+{
+    if(timeout_ <= std::chrono::milliseconds::zero())
+        throw std::invalid_argument("Socket timeout must be positive");
+}
+
+
+
 Socket::~Socket()
 {
-    if(sd != -1) 
-        close(sd);
-        sd = -1;
+    Close();
 }
 
 
@@ -51,53 +205,90 @@ Socket::~Socket()
 bool
 Socket::SendRequest(const char * hostname, int port, const char * request, const long size)
 {
-    struct addrinfo hints, *servinfo, *p;
-    int rv;
+    Close();
+    if(hostname == nullptr || *hostname == '\0' || request == nullptr ||
+       port < 1 || port > 65535 || size < -1)
+        return false;
 
-    sd = -1;
+    size_t request_size = size == -1 ? strlen(request) : static_cast<size_t>(size);
 
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET; // use AF_INET6 to force IPv6
-    hints.ai_socktype = SOCK_STREAM;
-
-    if((rv = getaddrinfo(hostname, std::to_string(port).c_str(), &hints, &servinfo)) != 0)
-        return false; //  gai_strerror(rv));
+    auto resolution = resolve_with_timeout(hostname, port, timeout_);
+    if(!resolution || resolution->status != 0 || !resolution->addresses)
+        return false;
 
     // loop through all the results and connect to the first we can
-    for(p = servinfo; p != nullptr; p = p->ai_next) {
-        if((sd = socket(p->ai_family, p->ai_socktype,
-                p->ai_protocol)) == -1) {
+    addrinfo * connected_address = nullptr;
+    for(addrinfo * address = resolution->addresses.get(); address != nullptr;
+        address = address->ai_next)
+    {
+        sd = socket(address->ai_family, address->ai_socktype, address->ai_protocol);
+        if(sd == -1)
             continue;
-        }
 
-        if(connect(sd, p->ai_addr, p->ai_addrlen) == -1) 
+        int flags = fcntl(sd, F_GETFL, 0);
+        if(flags == -1 || fcntl(sd, F_SETFL, flags | O_NONBLOCK) == -1)
         {
             close(sd);
+            sd = -1;
             continue;
         }
 
-        break; // if we get here, we must have connected successfully
+        int result = connect(sd, address->ai_addr, address->ai_addrlen);
+        if(result == -1 && errno == EINPROGRESS)
+        {
+            auto deadline = std::chrono::steady_clock::now() + timeout_;
+            if(wait_for_socket(sd, false, deadline))
+            {
+                int connect_error = 0;
+                socklen_t connect_error_size = sizeof(connect_error);
+                if(getsockopt(sd, SOL_SOCKET, SO_ERROR, &connect_error,
+                              &connect_error_size) == 0 && connect_error == 0)
+                    result = 0;
+            }
+        }
+
+        if(result == 0 && fcntl(sd, F_SETFL, flags) == 0 &&
+           set_socket_timeout(sd, SO_RCVTIMEO, timeout_) &&
+           set_socket_timeout(sd, SO_SNDTIMEO, timeout_))
+        {
+            connected_address = address;
+            break;
+        }
+
+        close(sd);
+        sd = -1;
     }
 
-    if(p == nullptr) 
+    if(connected_address == nullptr)
+        return false;
+
+    auto write_deadline = std::chrono::steady_clock::now() + timeout_;
+    size_t total_sent = 0;
+    while(total_sent < request_size)
     {
-        freeaddrinfo(servinfo);
+        if(!wait_for_socket(sd, false, write_deadline))
+        {
+            Close();
+            return false;
+        }
+
+        ssize_t sent = send(sd, request + total_sent, request_size - total_sent,
+                            MSG_NOSIGNAL);
+        if(sent > 0)
+        {
+            total_sent += static_cast<size_t>(sent);
+            continue;
+        }
+        if(sent == -1 && errno == EINTR)
+            continue;
+        if(sent == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
+            continue;
+
+        Close();
         return false;
     }
-    freeaddrinfo(servinfo); // all done with this structure
 
-    if(size == -1) // default to use size of string
-    {
-        if(write(sd, request, strlen(request)) <0)
-            return false; // cannot send data
-    }
-    else
-    {
-        if(write(sd, request, size) <0)
-            return false; // cannot send data
-    }
-
-    return sd != -1;
+    return true;
 }
 
 
@@ -105,6 +296,9 @@ Socket::SendRequest(const char * hostname, int port, const char * request, const
 bool
 Socket::Poll()
 {
+    if(sd == -1)
+        return false;
+
     struct timeval tv;
     fd_set readfds;
     tv.tv_sec = 0;
@@ -128,7 +322,9 @@ Socket::Poll()
 int
 Socket::ReadData(char * result, ssize_t maxlen, bool fill)
 {
-    if(sd == -1)
+    if(sd == -1 || maxlen < 0 || (result == nullptr && maxlen > 0))
+        return -1;
+    if(maxlen == 0)
         return 0;
 	
     const int BUFFER_SIZE = 1024;
@@ -136,14 +332,22 @@ Socket::ReadData(char * result, ssize_t maxlen, bool fill)
 	
     ssize_t dst=0;
     ssize_t rc = 0;
+    auto deadline = std::chrono::steady_clock::now() + timeout_;
     do
     {
+        if(!wait_for_socket(sd, true, deadline))
+            return -1;
+
         ssize_t read_size = (maxlen-dst < BUFFER_SIZE ? maxlen-dst : BUFFER_SIZE);
         rc = read(sd, buffer, read_size);
 
         // rc = read(sd, buffer, read_size); // Do not read twice; this discards the first chunk.
         if(rc == -1)
+        {
+            if(errno == EINTR)
+                continue;
             return -1;
+        }
     
         if(rc == 0 && fill)
             break; // End of file
@@ -215,43 +419,64 @@ Socket::HTTPGet(const std::string & url) // Very temporary implementation that o
 //
 ServerSocket::ServerSocket(int port, const std::string & bind_address) 
 {
-    portno = port;
-    int yes = 1;
+    if(port < 0 || port > 65535)
+        throw std::invalid_argument("Server port must be between 0 and 65535");
 
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if(sockfd == -1)
-        throw std::system_error(errno, std::system_category(), "Failed to create socket");
-
-    // Set address properties
+    sockaddr_in my_addr{};
     my_addr.sin_family = AF_INET;                     // host byte order
     my_addr.sin_port = htons(port);                   // short, network byte order
     my_addr.sin_addr.s_addr = htonl(INADDR_ANY);      // automatically fill with my IP
-    memset(&(my_addr.sin_zero), '\0', 8);             // zero the rest of the struct
 
-    if(!bind_address.empty())
-    {
-        if(inet_pton(AF_INET, bind_address.c_str(), &(my_addr.sin_addr)) != 1)
-            throw std::invalid_argument("Invalid IPv4 bind address: " + bind_address);
-    }
+    if(!bind_address.empty() &&
+       inet_pton(AF_INET, bind_address.c_str(), &(my_addr.sin_addr)) != 1)
+        throw std::invalid_argument("Invalid IPv4 bind address: " + bind_address);
+
+    int yes = 1;
+
+    FileDescriptorGuard listener(socket(AF_INET, SOCK_STREAM, 0));
+    sockfd = listener.get();
+    if(sockfd == -1)
+        throw std::system_error(errno, std::system_category(), "Failed to create socket");
+    if(sockfd >= FD_SETSIZE)
+        throw std::runtime_error("Server listener descriptor exceeds select() capacity");
+
+    int listener_flags = fcntl(sockfd, F_GETFL, 0);
+    if(listener_flags == -1 ||
+       fcntl(sockfd, F_SETFL, listener_flags | O_NONBLOCK) == -1)
+        throw std::system_error(errno, std::system_category(),
+                                "Failed to make server listener nonblocking");
 
     // Set SO_REUSEADDR to prevent "socket already in use" errors
     if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
         throw std::system_error(errno, std::system_category(), "Failed to set SO_REUSEADDR");
 
-    // Handle SIGPIPE errors on macOS
+#if defined(SO_NOSIGPIPE)
     if(setsockopt(sockfd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(int)) == -1)
         throw std::system_error(errno, std::system_category(), "Failed to set SO_NOSIGPIPE");
+#endif
 
     // Bind the socket
     if(bind(sockfd, (struct sockaddr *)&(my_addr), sizeof(struct sockaddr)) == -1) 
         throw std::system_error(errno, std::system_category(), "Failed to bind socket");
 
     // Listen for incoming connections
-    if(listen(sockfd, BACKLOG) == -1)
+    if(listen(sockfd, backlog) == -1)
         throw std::system_error(errno, std::system_category(), "Failed to listen on socket");
 
-    // Ignore SIGPIPE so the program does not exit unexpectedly
-    signal(SIGPIPE, SIG_IGN);
+    int wakeup_pipe[2];
+    if(pipe(wakeup_pipe) == -1)
+        throw std::system_error(errno, std::system_category(), "Failed to create server wake-up pipe");
+
+    FileDescriptorGuard wakeup_reader(wakeup_pipe[0]);
+    FileDescriptorGuard wakeup_writer(wakeup_pipe[1]);
+    wakeup_read_fd = wakeup_reader.get();
+    wakeup_write_fd = wakeup_writer.get();
+    if(wakeup_read_fd >= FD_SETSIZE || wakeup_write_fd >= FD_SETSIZE)
+        throw std::runtime_error("Server wake-up descriptor exceeds select() capacity");
+
+    listener.release();
+    wakeup_reader.release();
+    wakeup_writer.release();
 }
 
 
@@ -259,102 +484,76 @@ ServerSocket::ServerSocket(int port, const std::string & bind_address)
 ServerSocket::~ServerSocket()
 {
     StopListening();
-    Close();
+    CloseSockets();
 }
 
 
 
 bool
-ServerSocket::Poll(bool block)
+ServerSocket::Poll()
 {
-    int sin_size = sizeof(struct sockaddr_in);
-    if(!block)
-        fcntl(sockfd, F_SETFL, O_NONBLOCK);				// temporariliy make the socket non-blocking
-    int accepted_fd = accept(sockfd, (struct sockaddr *)&(their_addr), (socklen_t*) &sin_size);
-    if(!block)
-        fcntl(sockfd, F_SETFL, 0);						// make the socket blocking again
-/*
-    // --- Add this block to set a 5 second receive timeout ---
-    if (accepted_fd != -1) {
-        struct timeval timeout;
-        timeout.tv_sec = 5;   // 5 seconds timeout
-        timeout.tv_usec = 0;
-        setsockopt(accepted_fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
-    }
-*/
-    if(accepted_fd == -1)
+    if(stop_requested.load(std::memory_order_acquire))
         return false;
 
-    connections.emplace(next_connection_id++, ConnectionState{accepted_fd, {}, {}, std::chrono::steady_clock::now()});
+    sockaddr_in peer_address{};
+    socklen_t peer_address_size = sizeof(peer_address);
+    int accepted_fd = accept(sockfd, reinterpret_cast<sockaddr *>(&peer_address),
+                             &peer_address_size);
+    if(accepted_fd == -1)
+    {
+        if(errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)
+            return false;
+        throw std::system_error(errno, std::system_category(), "accept failed");
+    }
+    if(accepted_fd >= FD_SETSIZE)
+    {
+        close(accepted_fd);
+        return false;
+    }
+
+    int accepted_flags = fcntl(accepted_fd, F_GETFL, 0);
+    if(accepted_flags == -1 || fcntl(accepted_fd, F_SETFL, accepted_flags | O_NONBLOCK) == -1)
+    {
+        int error = errno;
+        close(accepted_fd);
+        throw std::system_error(error, std::system_category(), "Failed to make accepted socket nonblocking");
+    }
+
+    connections.emplace(next_connection_id++,
+                        ConnectionState{accepted_fd, {}, {}, std::chrono::steady_clock::now(), false});
     return true;
 }
 
 
 
 
-size_t 
-ServerSocket::Read(char *buffer, int maxSize, bool fill) 
+ssize_t
+ServerSocket::Read(char * buffer, size_t max_size)
 {
     ConnectionState * connection = ConnectionFor(current_read_connection_id);
-    if(connection == nullptr) {
-        return 0; // Invalid socket
-    }
+    if(connection == nullptr)
+        return 0;
 
-    size_t total_read = 0;  // Total bytes read
-    ssize_t n = 0;          // Bytes read in a single recv() call
-
-    if(fill) {
-        // Fill the buffer completely if requested
-        while (total_read < maxSize) {
-            n = recv(connection->fd, buffer + total_read, maxSize - total_read, 0);
-
-            if(n > 0) 
-            {
-                total_read += n;
-                connection->last_activity = std::chrono::steady_clock::now();
-            } 
-            else if(n == 0) 
-            {
-                
-                break; // Connection closed by the client
-            } 
-            else if(n == -1) 
-            {
-                if(errno == EINTR) 
-                {
-                    
-                    continue; // Interrupted system call, retry
-                } 
-                else if(errno == EAGAIN || errno == EWOULDBLOCK) 
-                {
-                    break;  // No data available, break out of the loop
-                } 
-                else
-                     throw std::system_error(errno, std::system_category(), "recv failed");
-            }
-        }
-    } 
-    else 
+    while(true)
     {
-        n = recv(connection->fd, buffer, maxSize, 0);   // Single call to recv, do not enforce filling the buffer
+        ssize_t bytes_read = recv(connection->fd, buffer, max_size, 0);
 
-        if(n > 0) 
+        if(bytes_read > 0)
         {
-            total_read = n;
             connection->last_activity = std::chrono::steady_clock::now();
-        } 
-        else if(n == -1) 
-        {
-            if(errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK) 
-            {
-                // Fatal error
-                throw std::system_error(errno, std::system_category(), "recv failed");
-                // return -1;
-            }
+            return bytes_read;
         }
-    }
 
-    return total_read;
+        if(bytes_read == 0)
+            return 0;
+
+        if(errno == EINTR)
+            continue;
+        if(errno == EAGAIN || errno == EWOULDBLOCK)
+            return -1;
+
+        throw std::system_error(errno, std::system_category(), "recv failed");
+    }
 }
 
 
@@ -383,120 +582,6 @@ strip(char * s)
 
 
 
-// https://www.codeguru.com/cpp/cpp/algorithms/strings/article.php/c12759/URI-Encoding-and-Decoding.htm
-
-const signed char HEX2DEC[256] =
-{
-    /*       0  1  2  3   4  5  6  7   8  9  A  B   C  D  E  F */
-    /* 0 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 1 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 2 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 3 */  0, 1, 2, 3,  4, 5, 6, 7,  8, 9,-1,-1, -1,-1,-1,-1,
-    
-    /* 4 */ -1,10,11,12, 13,14,15,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 5 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 6 */ -1,10,11,12, 13,14,15,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 7 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    
-    /* 8 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* 9 */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* A */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* B */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    
-    /* C */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* D */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* E */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    /* F */ -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1
-};
-
-static std::string UriDecode(const std::string &sSrc)
-{
-    const unsigned char *pSrc = (const unsigned char *)sSrc.c_str();
-    const size_t SRC_LEN = sSrc.length();
-    std::string result;
-    result.reserve(SRC_LEN);
-
-    for (size_t i = 0; i < SRC_LEN; ++i)
-    {
-        if (pSrc[i] == '%' && i + 2 < SRC_LEN)
-        {
-            char dec1 = HEX2DEC[pSrc[i + 1]];
-            char dec2 = HEX2DEC[pSrc[i + 2]];
-            if (dec1 != -1 && dec2 != -1)
-            {
-                result += (dec1 << 4) + dec2;
-                i += 2;
-                continue;
-            }
-        }
-        result += pSrc[i];
-    }
-    return result;
-}
-
-
-/* OLD VERSION
-
-static std::string UriDecode(const std::string & sSrc)
-{
-   // Note from RFC1630: "Sequences which start with a percent
-   // sign but are not followed by two hexadecimal characters
-   // (0-9, A-F) are reserved for future extension"
- 
-   const unsigned char * pSrc = (const unsigned char *)sSrc.c_str();
-   const long SRC_LEN = sSrc.length();
-   const unsigned char * const SRC_END = pSrc + SRC_LEN;
-   // last decodable '%'
-   const unsigned char * const SRC_LAST_DEC = SRC_END - 2;
- 
-   char * const pStart = new char[SRC_LEN];
-   char * pEnd = pStart;
- 
-   while (pSrc < SRC_LAST_DEC)
-   {
-      if(*pSrc == '%')
-      {
-         char dec1, dec2;
-         if(-1 != (dec1 = HEX2DEC[*(pSrc + 1)])
-            && -1 != (dec2 = HEX2DEC[*(pSrc + 2)]))
-         {
-            *pEnd++ = (dec1 << 4) + dec2;
-            pSrc += 3;
-            continue;
-         }
-      }
- 
-      *pEnd++ = *pSrc++;
-   }
- 
-   // the last 2- chars
-   while (pSrc < SRC_END)
-      *pEnd++ = *pSrc++;
- 
-   std::string sResult(pStart, pEnd);
-   delete [] pStart;
-   return sResult;
-}
-*/
-
-
-
-bool
-ServerSocket::GetRequest(bool block)
-{
-    QueuedRequest queued_request;
-    if(!QueueRequest(block))
-        return false;
-
-    if(!PopRequest(queued_request, false))
-        return false;
-
-    ActivateRequest(queued_request);
-    return true;
-}
-
-
-
 bool
 ServerSocket::QueueRequest(bool block)
 {
@@ -508,33 +593,35 @@ ServerSocket::QueueRequest(bool block)
             return false;
 
         current_read_connection_id = connection_id;
-        bool read_ok = false;
-        auto parse_start = std::chrono::steady_clock::now();
+        RequestReadResult read_result = RequestReadResult::incomplete;
         try
         {
-            read_ok = ReadCurrentRequest(queued_request);
+            read_result = ReadCurrentRequest(queued_request);
         }
         catch(...)
         {
             current_read_connection_id = 0;
             throw;
         }
-        queued_request.parse_duration_us = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::steady_clock::now() - parse_start).count();
         current_read_connection_id = 0;
 
-        if(!read_ok)
+        if(read_result != RequestReadResult::complete)
         {
+            if(read_result == RequestReadResult::closed)
+                CloseConnection(connection_id);
+            else if(read_result != RequestReadResult::incomplete)
+            {
+                SendRequestError(connection_id, read_result);
+                CloseConnection(connection_id);
+            }
+            else if(ConnectionState * connection = ConnectionFor(connection_id))
+                connection->awaiting_more_input = true;
             if(!block)
                 return false;
             continue;
         }
 
-        {
-            std::lock_guard<std::mutex> lock(pending_requests_mutex);
-            pending_requests.push(std::move(queued_request));
-        }
-        pending_requests_cv.notify_one();
+        pending_requests.push(std::move(queued_request));
 
         return true;
     }
@@ -543,13 +630,9 @@ ServerSocket::QueueRequest(bool block)
 
 
 bool
-ServerSocket::PopRequest(QueuedRequest & queued_request, bool block)
+ServerSocket::PopRequest(QueuedRequest & queued_request)
 {
-    std::unique_lock<std::mutex> lock(pending_requests_mutex);
-
-    if(block)
-        pending_requests_cv.wait(lock, [this] { return !pending_requests.empty(); });
-    else if(pending_requests.empty())
+    if(pending_requests.empty())
         return false;
 
     queued_request = std::move(pending_requests.front());
@@ -560,10 +643,10 @@ ServerSocket::PopRequest(QueuedRequest & queued_request, bool block)
 
 
 void
-ServerSocket::ActivateRequest(const QueuedRequest & queued_request)
+ServerSocket::ActivateRequest(QueuedRequest queued_request)
 {
-    header = queued_request.header;
-    body = queued_request.body;
+    active_header = std::move(queued_request.header);
+    active_body = std::move(queued_request.body);
     active_connection_id = queued_request.connection_id;
     active_close_after_response = queued_request.close_after_response;
 }
@@ -574,9 +657,12 @@ bool
 ServerSocket::FinishActiveRequest()
 {
     int connection_id = active_connection_id;
+    bool close_after_response = active_close_after_response;
     active_connection_id = 0;
+    active_header = dictionary();
+    active_body.clear();
 
-    if(active_close_after_response)
+    if(close_after_response)
         return CloseConnection(connection_id);
 
     return true;
@@ -584,57 +670,67 @@ ServerSocket::FinishActiveRequest()
 
 
 
-bool
+ServerSocket::RequestReadResult
 ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
 {
-    body.clear();
     ConnectionState * connection = ConnectionFor(current_read_connection_id);
     if(connection == nullptr)
-        return false;
+        return RequestReadResult::closed;
 
     constexpr size_t read_chunk_size = 4096;
     while(connection->input_buffer.find("\r\n\r\n") == std::string::npos)
     {
         char buffer[read_chunk_size];
-        long rr = Read(buffer, sizeof(buffer));
+        ssize_t rr = Read(buffer, sizeof(buffer));
         if(rr == 0)
-        {
-            CloseConnection(current_read_connection_id);
-            return false;
-        }
+            return RequestReadResult::closed;
+        if(rr < 0)
+            return RequestReadResult::incomplete;
 
         connection->input_buffer.append(buffer, rr);
         if(connection->input_buffer.size() > MAX_HTTP_HEADER_SIZE)
-        {
-            CloseConnection(current_read_connection_id);
-            return false;
-        }
+            return RequestReadResult::request_header_too_large;
     }
 
     size_t header_end = connection->input_buffer.find("\r\n\r\n");
     if(header_end == std::string::npos)
-        return false;
+        return RequestReadResult::incomplete;
 
     std::string header_text = connection->input_buffer.substr(0, header_end);
     std::istringstream request_stream(header_text);
+    request_stream.imbue(std::locale::classic());
     std::string request_line;
     if(!std::getline(request_stream, request_line))
-        return false;
+        return RequestReadResult::bad_request;
     if(!request_line.empty() && request_line.back() == '\r')
         request_line.pop_back();
 
-    auto request_line_parts = split(request_line, " ");
-    if(request_line_parts.size() < 3)
-        return false;
+    std::istringstream request_line_stream(request_line);
+    request_line_stream.imbue(std::locale::classic());
+    std::string method;
+    std::string uri;
+    std::string http_version;
+    std::string extra_request_line_part;
+    if(!(request_line_stream >> method >> uri >> http_version) ||
+       request_line_stream >> extra_request_line_part)
+        return RequestReadResult::bad_request;
+
+    if(method != "GET" && method != "PUT")
+        return RequestReadResult::method_not_allowed;
+    if(http_version != "HTTP/1.1" && http_version != "HTTP/1.0")
+        return RequestReadResult::http_version_unsupported;
 
     queued_request.header = dictionary();
     queued_request.body.clear();
     queued_request.close_after_response = true;
     queued_request.connection_id = current_read_connection_id;
 
-    queued_request.header["method"] = request_line_parts[0];
-	queued_request.header["uri"] = UriDecode(request_line_parts[1]);
-	queued_request.header["http-version"] = request_line_parts[2];
+    queued_request.header["method"] = method;
+		queued_request.header["uri"] = uri;
+		queued_request.header["http-version"] = http_version;
+
+    std::optional<size_t> content_length;
+    bool has_transfer_encoding = false;
 
     for(std::string line; std::getline(request_stream, line);)
     {
@@ -645,15 +741,42 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
 
         auto separator = line.find(':');
         if(separator == std::string::npos)
-            return false;
+            return RequestReadResult::bad_request;
 
         std::string key = trim(line.substr(0, separator));
         std::string value = trim(line.substr(separator + 1));
         if(key.empty())
-            return false;
+            return RequestReadResult::bad_request;
 
-        queued_request.header[to_lower_copy(key)] = value;
+        std::string normalized_key = to_lower_copy(key);
+        if(normalized_key == "content-length")
+        {
+            if(content_length)
+                return RequestReadResult::bad_request;
+
+            size_t parsed_length = 0;
+            auto [end, error] = std::from_chars(value.data(), value.data() + value.size(),
+                                                parsed_length);
+            if(error != std::errc() || end != value.data() + value.size())
+                return RequestReadResult::bad_request;
+            if(parsed_length > MAX_HTTP_BODY_SIZE)
+                return RequestReadResult::payload_too_large;
+            content_length = parsed_length;
+        }
+        else if(normalized_key == "transfer-encoding" && !value.empty())
+        {
+            has_transfer_encoding = true;
+        }
+
+        queued_request.header[normalized_key] = value;
     }
+
+    if(has_transfer_encoding)
+        return RequestReadResult::transfer_encoding_unsupported;
+
+    if(http_version == "HTTP/1.1" &&
+       !queued_request.header.contains_non_null("host"))
+        return RequestReadResult::bad_request;
 
     std::string http_version_string = std::string(queued_request.header["http-version"]);
     bool close_after_response = (http_version_string != "HTTP/1.1");
@@ -666,52 +789,36 @@ ServerSocket::ReadCurrentRequest(QueuedRequest & queued_request)
             close_after_response = false;
     }
     queued_request.close_after_response = close_after_response;
-		
-    if(queued_request.header.contains_non_null("method") && std::string(queued_request.header["method"]) == "PUT")
+    if(method == "PUT" && !content_length)
+        return RequestReadResult::length_required;
+
+    size_t body_start = header_end + 4;
+    size_t expected_body_size = content_length.value_or(0);
+    while(connection->input_buffer.size() < body_start + expected_body_size)
     {
-        size_t body_start = header_end + 4;
-        if(queued_request.header.contains_non_null("content-length")) {
-            size_t content_length = 0;
-            try {
-                content_length = std::stoull(std::string(queued_request.header["content-length"]));
-            } catch(const std::exception &) {
-                return false;
-            }
-
-            if(content_length > MAX_HTTP_BODY_SIZE)
-                return false;
-
-            while(connection->input_buffer.size() < body_start + content_length)
-            {
-                char buffer[read_chunk_size];
-                long rr = Read(buffer, sizeof(buffer));
-                if(rr == 0)
-                {
-                    CloseConnection(current_read_connection_id);
-                    return false;
-                }
-                connection->input_buffer.append(buffer, rr);
-                if(connection->input_buffer.size() - body_start > MAX_HTTP_BODY_SIZE)
-                {
-                    CloseConnection(current_read_connection_id);
-                    return false;
-                }
-            }
-
-            if(content_length > 0)
-                queued_request.body = connection->input_buffer.substr(body_start, content_length);
-        }
+        char buffer[read_chunk_size];
+        ssize_t rr = Read(buffer, sizeof(buffer));
+        if(rr == 0)
+            return RequestReadResult::closed;
+        if(rr < 0)
+            return RequestReadResult::incomplete;
+        connection->input_buffer.append(buffer, rr);
+        if(connection->input_buffer.size() - body_start > MAX_HTTP_BODY_SIZE)
+            return RequestReadResult::payload_too_large;
     }
 
-    size_t total_consumed = header_end + 4 + queued_request.body.size();
+    if(expected_body_size > 0)
+        queued_request.body = connection->input_buffer.substr(body_start, expected_body_size);
+
+    size_t total_consumed = body_start + expected_body_size;
     connection->input_buffer.erase(0, total_consumed);
-    return true;
+    return RequestReadResult::complete;
 }
 
 
 
 bool
-ServerSocket::SendHTTPHeader(dictionary & d, const char * response) // Content length from where?
+ServerSocket::SendHTTPHeader(dictionary d, const char * response) // Content length from where?
 {
     bool can_keep_alive = active_close_after_response == false &&
         (d.contains_non_null("Content-Length") || d.contains_non_null("Transfer-Encoding"));
@@ -852,36 +959,6 @@ ServerSocket::Flush()
 
 
 bool
-ServerSocket::Send(const std::string & data)
-{
-    return Append(data);
-}
-
-
-
-bool
-ServerSocket::Send(const char * format, ...)
-{
-    if(ConnectionFor(active_connection_id) == nullptr)
-        return false;	// Connection closed - ignore send
-
-    char buffer[1024];
-    va_list 	args;
-    va_start(args, format);
-
-    if(vsnprintf(buffer, 1024, format, args) == -1)
-    {
-        va_end(args);
-        return false;
-    }
-    va_end(args);
-
-    return Append(buffer);
-}
-
-
-
-bool
 ServerSocket::SendFile(const std::filesystem::path & filename)
 {
     dictionary header;
@@ -891,37 +968,25 @@ ServerSocket::SendFile(const std::filesystem::path & filename)
 
 
 bool
-ServerSocket::SendFile(const std::filesystem::path & filename, dictionary & hdr)
+ServerSocket::SendFile(const std::filesystem::path & filename, dictionary hdr)
 {
     if(filename.empty()) return false;
 
     std::filesystem::path resolved_filename = filename;
-    FILE * f = fopen(resolved_filename.c_str(), "r+b");
-	
-    if(f == nullptr) return false;
-	
-    if(fseek(f, 0, SEEK_END) != 0)
-    {
-        fclose(f);
+    std::unique_ptr<FILE, FileCloser> file(fopen(resolved_filename.c_str(), "rb"));
+    if(!file)
         return false;
-    }
-    long file_length = ftell(f);
-    if(file_length < 0)
-    {
-        fclose(f);
+
+    struct stat file_info{};
+    if(fstat(fileno(file.get()), &file_info) == -1 || file_info.st_size < 0 ||
+       !S_ISREG(file_info.st_mode))
         return false;
-    }
-    size_t len  = static_cast<size_t>(file_length);
-    if(fseek(f, 0, SEEK_SET) != 0)
-    {
-        fclose(f);
-        return false;
-    }
-	
+
+    uintmax_t file_length = static_cast<uintmax_t>(file_info.st_size);
+
     hdr["Connection"] = active_close_after_response ? "Close" : "keep-alive";
 
-    std::string length = std::to_string((size_t)len);
-    hdr["Content-Length"] = length;
+    hdr["Content-Length"] = std::to_string(file_length);
     hdr["Server"] = "Ikaros/3.0";
     hdr["Cache-Control"] = "no-cache, no-store";
     hdr["Pragma"] = "no-cache";
@@ -947,20 +1012,33 @@ ServerSocket::SendFile(const std::filesystem::path & filename, dictionary & hdr)
 		hdr["Content-Type"] = "text/xml";
     else if(extension == ".ico")
 		hdr["Content-Type"] = "image/vnd.microsoft.icon";
-	
-    SendHTTPHeader(hdr);
-    if(!Flush())
-    {
-        fclose(f);
+
+    if(!SendHTTPHeader(hdr))
         return false;
+    if(!Flush())
+        return false;
+
+    std::array<char, 64 * 1024> buffer;
+    uintmax_t bytes_remaining = file_length;
+    while(bytes_remaining > 0)
+    {
+        size_t requested = static_cast<size_t>(
+            std::min<uintmax_t>(buffer.size(), bytes_remaining));
+        size_t bytes_read = fread(buffer.data(), 1, requested, file.get());
+        if(bytes_read == 0 || !SendData(buffer.data(), static_cast<long>(bytes_read)))
+        {
+            CloseConnection(active_connection_id);
+            return false;
+        }
+
+        bytes_remaining -= bytes_read;
+        if(bytes_read != requested)
+        {
+            CloseConnection(active_connection_id);
+            return false;
+        }
     }
-	
-    char * s = new char[len];
-    fread(s, len, 1, f);
-    SendData(s, len);
-    fclose(f);
-    delete [] s;
-	
+
     return true;
 }
 
@@ -985,19 +1063,15 @@ ServerSocket::Close()
 void
 ServerSocket::StopListening()
 {
-    for(auto & [connection_id, connection] : connections)
-    {
-        if(connection.fd != -1)
-            close(connection.fd);
-    }
-    connections.clear();
-
-    if(sockfd == -1)
+    if(stop_requested.exchange(true, std::memory_order_acq_rel))
         return;
 
-    shutdown(sockfd, SHUT_RDWR);
-    close(sockfd);
-    sockfd = -1;
+    if(wakeup_write_fd == -1)
+        return;
+
+    const char wakeup = 1;
+    while(write(wakeup_write_fd, &wakeup, sizeof(wakeup)) == -1 && errno == EINTR)
+        ;
 }
 
 
@@ -1009,12 +1083,31 @@ ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
 
     while(true)
     {
+        if(stop_requested.load(std::memory_order_acquire))
+            return false;
+
         CloseIdleConnections();
+
+        for(const auto & [id, connection] : connections)
+        {
+            if(!connection.awaiting_more_input &&
+               connection.input_buffer.find("\r\n\r\n") != std::string::npos)
+            {
+                connection_id = id;
+                return true;
+            }
+        }
 
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(sockfd, &readfds);
         int max_fd = sockfd;
+
+        if(wakeup_read_fd != -1)
+        {
+            FD_SET(wakeup_read_fd, &readfds);
+            max_fd = std::max(max_fd, wakeup_read_fd);
+        }
 
         for(const auto & [id, connection] : connections)
         {
@@ -1033,6 +1126,30 @@ ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
             timeout.tv_usec = 0;
             timeout_ptr = &timeout;
         }
+        else if(!connections.empty())
+        {
+            auto now = std::chrono::steady_clock::now();
+            auto next_timeout = std::chrono::duration_cast<std::chrono::microseconds>(
+                KEEP_ALIVE_IDLE_TIMEOUT);
+            for(const auto & [id, connection] : connections)
+            {
+                if(connection.fd == -1 || active_connection_id == id ||
+                   current_read_connection_id == id)
+                    continue;
+
+                auto remaining = std::chrono::duration_cast<std::chrono::microseconds>(
+                    connection.last_activity + KEEP_ALIVE_IDLE_TIMEOUT - now);
+                if(remaining < next_timeout)
+                    next_timeout = remaining;
+            }
+
+            auto timeout_us = std::max<std::chrono::microseconds>(
+                std::chrono::microseconds(1),
+                std::chrono::duration_cast<std::chrono::microseconds>(next_timeout));
+            timeout.tv_sec = static_cast<time_t>(timeout_us.count() / 1000000);
+            timeout.tv_usec = static_cast<suseconds_t>(timeout_us.count() % 1000000);
+            timeout_ptr = &timeout;
+        }
 
         int ready = select(max_fd + 1, &readfds, nullptr, nullptr, timeout_ptr);
         if(ready == -1)
@@ -1044,9 +1161,20 @@ ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
         if(ready == 0)
             return false;
 
+        if(wakeup_read_fd != -1 && FD_ISSET(wakeup_read_fd, &readfds))
+        {
+            char wakeup;
+            while(read(wakeup_read_fd, &wakeup, sizeof(wakeup)) == -1 && errno == EINTR)
+                ;
+            return false;
+        }
+
+        if(stop_requested.load(std::memory_order_acquire))
+            return false;
+
         if(FD_ISSET(sockfd, &readfds))
         {
-            Poll(false);
+            Poll();
             if(--ready <= 0)
             {
                 if(!block)
@@ -1055,15 +1183,90 @@ ServerSocket::WaitForReadyConnection(bool block, int & connection_id)
             }
         }
 
-        for(const auto & [id, connection] : connections)
+        for(auto & [id, connection] : connections)
         {
             if(connection.fd != -1 && FD_ISSET(connection.fd, &readfds))
             {
+                connection.awaiting_more_input = false;
                 connection_id = id;
                 return true;
             }
         }
     }
+}
+
+
+
+void
+ServerSocket::CloseSockets()
+{
+    for(auto & [connection_id, connection] : connections)
+    {
+        if(connection.fd != -1)
+            close(connection.fd);
+    }
+    connections.clear();
+
+    if(sockfd != -1)
+    {
+        close(sockfd);
+        sockfd = -1;
+    }
+
+    if(wakeup_read_fd != -1)
+    {
+        close(wakeup_read_fd);
+        wakeup_read_fd = -1;
+    }
+
+    if(wakeup_write_fd != -1)
+    {
+        close(wakeup_write_fd);
+        wakeup_write_fd = -1;
+    }
+}
+
+
+
+void
+ServerSocket::SendRequestError(int connection_id, RequestReadResult error)
+{
+    const char * status = "400 Bad Request";
+    switch(error)
+    {
+        case RequestReadResult::method_not_allowed:
+            status = "405 Method Not Allowed";
+            break;
+        case RequestReadResult::length_required:
+            status = "411 Length Required";
+            break;
+        case RequestReadResult::payload_too_large:
+            status = "413 Payload Too Large";
+            break;
+        case RequestReadResult::request_header_too_large:
+            status = "431 Request Header Fields Too Large";
+            break;
+        case RequestReadResult::transfer_encoding_unsupported:
+            status = "501 Not Implemented";
+            break;
+        case RequestReadResult::http_version_unsupported:
+            status = "505 HTTP Version Not Supported";
+            break;
+        default:
+            break;
+    }
+
+    active_connection_id = connection_id;
+    active_close_after_response = true;
+    std::string response_body = std::string(status) + "\n";
+    dictionary response_header({
+        {"Content-Type", "text/plain"},
+        {"Content-Length", std::to_string(response_body.size())},
+    });
+    SendHTTPHeader(response_header, status);
+    Append(response_body);
+    Flush();
+    active_connection_id = 0;
 }
 
 
@@ -1096,18 +1299,18 @@ ServerSocket::CloseConnection(int connection_id)
     if(it == connections.end())
         return true;
 
-    if(close(it->second.fd) == -1)
-    {
-        errcode = errno;
-        return false;
-    }
+    bool closed = close(it->second.fd) == 0;
 
     connections.erase(it);
     if(active_connection_id == connection_id)
+    {
         active_connection_id = 0;
+        active_header = dictionary();
+        active_body.clear();
+    }
     if(current_read_connection_id == connection_id)
         current_read_connection_id = 0;
-    return true;
+    return closed;
 }
 
 
@@ -1123,20 +1326,16 @@ ServerSocket::ConnectionFor(int connection_id)
 
 
 
-int
-ServerSocket::Port()
+const dictionary &
+ServerSocket::RequestHeader() const
 {
-    return portno;
+    return active_header;
 }
 
 
 
-const char *
-ServerSocket::Host()
+const std::string &
+ServerSocket::RequestBody() const
 {
-    static char hostname[256];
-    if(gethostname(hostname, 256) == 0)	// everything ok
-        return hostname;
-    else
-        return "unknown-host";
+    return active_body;
 }

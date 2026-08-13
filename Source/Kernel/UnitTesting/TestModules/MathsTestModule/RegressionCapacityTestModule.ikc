@@ -1,0 +1,6 @@
+<class internal="true" name="RegressionCapacityTestModule"
+       description="Checks fixed RegressionStatistics sample capacity">
+    <input name="SCATTER_X" />
+    <input name="SAMPLE_COUNT" />
+    <parameter name="stage" type="number" default="0" />
+</class>

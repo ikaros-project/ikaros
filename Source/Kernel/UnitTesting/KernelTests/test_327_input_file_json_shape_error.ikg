@@ -1,0 +1,13 @@
+<group internal="true"
+       name="TestInputFileJSONShapeError"
+       description="InputFile rejects JSON records whose field shape changes"
+       start="true"
+       stop="1"
+       cli_args="-uSource/Kernel/UnitTesting/KernelTests"
+       expected_exit="1"
+       expected_output_contains="does not match its initial shape">
+    <module name="Reader"
+            class="InputFile"
+            filename="fixture_input_file_json_shape_error.json"
+            send_end_of_file="false" />
+</group>

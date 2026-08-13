@@ -1,0 +1,4 @@
+<class internal="true" name="DelaySequenceSource" description="Produces a tick-numbered sequence for delay tests">
+    <parameter name="offset" type="number" default="0" description="Value added to the current tick." />
+    <output name="OUTPUT" shape="1" description="The current tick plus the configured offset." />
+</class>

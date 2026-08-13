@@ -1,0 +1,7 @@
+<group internal="true"
+    name="BenchmarkDelayedPropagationControl"
+    description="Measure task-loop overhead without delayed propagation"
+    start="true">
+    <module class="DelaySequenceSource" name="Source" />
+    <module class="DelayPropagationBenchmarkSink" name="Sink" />
+</group>

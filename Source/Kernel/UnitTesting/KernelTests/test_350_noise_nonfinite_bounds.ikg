@@ -1,0 +1,13 @@
+<group internal="true"
+    name="TestNoiseNonfiniteBounds"
+    description="Reject non-finite uniform Noise bounds during startup"
+    start="true"
+    stop="1"
+    expected_exit="1"
+    expected_output_contains="Noise: uniform bounds must form a finite representable range.">
+
+    <module class="Constant" name="Input" data="0,0,0,0" />
+    <module class="Noise" name="Noise" type="uniform" min="nan" max="1" />
+    <connection source="Input.OUTPUT" target="Noise.INPUT" />
+
+</group>

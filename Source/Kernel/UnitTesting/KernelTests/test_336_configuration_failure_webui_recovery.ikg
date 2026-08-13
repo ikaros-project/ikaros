@@ -1,0 +1,13 @@
+<group internal="true"
+    name="TestConfigurationFailureWebUIRecovery"
+    description="Retain the parsed model for WebUI editing after top-level configuration fails"
+    tick_duration="0"
+    webui_port="8336"
+    http_real_time="false"
+    http_requests="network||quit"
+    expected_output_contains="Invalid tick duration &quot;0&quot;. Expected a finite positive number of seconds||TestConfigurationFailureWebUIRecovery||RetainedModule"
+>
+
+    <module class="Constant" name="RetainedModule" data="1" />
+
+</group>

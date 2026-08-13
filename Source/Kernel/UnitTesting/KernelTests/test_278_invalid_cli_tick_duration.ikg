@@ -1,0 +1,6 @@
+<group internal="true"
+    name="TestInvalidCliTickDuration"
+    description="Reject a non-finite command-line tick duration"
+    cli_args="-d nan"
+    expected_exit="1"
+    expected_output_contains="Invalid tick duration &quot;nan&quot;. Expected a finite positive number of seconds." />

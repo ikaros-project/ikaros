@@ -1,0 +1,10 @@
+<group name="PIDController_derivative_test" start="true" stop="1" tick_duration="1">
+    <module class="Constant" name="Input" data="[1]" />
+    <module class="Constant" name="SetPoint" data="[0]" />
+    <module class="PIDController" name="PIDController" Kp="0" Ki="0" Kd="1" derivative_mode="error" />
+    <module class="Print" name="PrintOutput" />
+
+    <connection source="Input.OUTPUT" target="PIDController.INPUT" delay="0" />
+    <connection source="SetPoint.OUTPUT" target="PIDController.SETPOINT" delay="0" />
+    <connection source="PIDController.OUTPUT" target="PrintOutput.INPUT" delay="0" />
+</group>

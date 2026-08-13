@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestLeadingPlusIntegerOptions"
+    description="Accept leading plus signs in integer runtime options"
+    stop="+0"
+    threads="+1"
+    webui_port="+0"
+    pass_webui_port_as_cli="false"
+    check_sum="5"
+    expected_output_contains="Correct Check Sum: 5" />

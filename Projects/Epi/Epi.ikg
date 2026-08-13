@@ -158,7 +158,7 @@
          <connection target="FadeCandy.MOUTH_HIGH[0][4]" source="MouthIntensity.OUTPUT[0][0][4]" line_type="auto_route" size="1"/>
          <connection target="FadeCandy.MOUTH_HIGH[0][5]" source="MouthIntensity.OUTPUT[0][0][5]" line_type="auto_route" size="1"/>
          <connection target="FadeCandy.MOUTH_HIGH[0][6]" source="MouthIntensity.OUTPUT[0][0][6]" line_type="auto_route" size="1"/>
-         <connection target="FadeCandy.MOUTH_HIGH[0][7]" source="LedOff.OUTPUT[0][0][7]" line_type="auto_route" size="1"/>
+         <connection target="FadeCandy.MOUTH_HIGH[0][7]" source="LedOff.OUTPUT" line_type="auto_route" size="1"/>
          <connection target="FadeCandy.MOUTH_HIGH[1][0]" source="LedOff.OUTPUT" line_type="auto_route" size="1"/>
          <connection target="FadeCandy.MOUTH_HIGH[1][1]" source="MouthIntensity.OUTPUT[0][1][1]" line_type="auto_route" size="1"/>
          <connection target="FadeCandy.MOUTH_HIGH[1][2]" source="MouthIntensity.OUTPUT[0][1][2]" line_type="auto_route" size="1"/>
@@ -596,7 +596,7 @@
       </group>
       <group name="Servos" _x="336" grid_spacing="24" _y="48" auto_routing="false">
          <module post_inverted="  0,    0,    0,    0,    0,    0,       0,    0,    0,    0,    0,    0,       0,    0,    0,    0,    0,    0,        0" offset="180,  180,  180,  180,    0,    0,     180,  180,  180,  180,  225,  180,     180,  180,  180,  180,  135,  180,      180" name="SCPosition" pre_inverted="  0,    0,    0,    0,    0,    0,       0,    0,    0,    0,    0,    1,       0,    1,    0,    0,    0,    0,        1" output_size="@nrServosTotal" connector="  1,    2,    3,    4,    5,    6,       7,    8,    9,   10,   11,   12,      13,   14,   15,   16,   17,   18,       19" class="ServoConnector" _y="96" _x="192"/>
-         <module simulate=".Epi.Settings.@epi_run_mode.@simulate_servo" robot="@epi_name" class="EpiServos" _y="120" _x="336" log_level="6" _simulate="true" name="EpiServos"/>
+         <module Simulate=".Epi.Settings.@epi_run_mode.@simulate_servo" robot="@epi_name" class="EpiServos" _y="120" _x="336" log_level="6" _simulate="true" name="EpiServos"/>
          <module post_inverted="   0,    0,    0,    0,    0,    0,      0,    0,    0,    0,    0,    1,       0,    1,    0,    0,    0,    0,       1" offset="-180, -180, -180, -180,    0,    0,   -180, -180, -180, -180, -225, -180,    -180, -180, -180, -180, -135, -180,    -180" name="SCFeedbackPosition" pre_inverted="   0,    0,    0,    0,    0,    0,      0,    0,    0,    0,    0,    0,       0,    0,    0,    0,    0,    0,       0" output_size="@nrServosTotal" connector="   1,    2,    3,    4,    5,    6,      7,    8,    9,   10,   11,   12,      13,   14,   15,   16,   17,   18,      19" class="ServoConnector" _y="96" _x="576"/>
          <module post_inverted="   0,    0,    0,    0,    0,    0,      0,    0,    0,    0,    0,    1,       0,    1,    0,    0,    0,    0,    1" offset="   0,    0,    0,    0,    0,    0,      0,    0,    0,    0,    0,    0,       0,    0,    0,    0,    0,    0,    0" name="SCFeedbackCurrent" pre_inverted="   0,    0,    0,    0,    0,    0,      0,    0,    0,    0,    0,    0,       0,    0,    0,    0,    0,    0,    0" output_size="@nrServosTotal" connector="   1,    2,    3,    4,    5,    6,      7,    8,    9,   10,   11,   12,      13,   14,   15,   16,   17,   18,   19" class="ServoConnector" _y="192" _x="576"/>
          <output name="PRESENT_POSITION" _y="192" _x="816"/>
@@ -623,12 +623,12 @@
          <widget show_title="true" select="" source="SCPosition.OUTPUT" name="Widget_2" min="0" label_x="Neck tilt, Neck pan, Left eye, Right eye, Pupil left, Pupil right, Left arm 1, Left arm 2, Left arm 3, Left arm 4, Left arm 5, Left hand, Right arm 1, Right arm 2, Right arm 3, Right arm 4, Right arm 5, Right hand, Body" width="289" show_frame="false" height="481" scrollable="false" class="table" direction="flip x/y" _y="288" style="" colorize="true" max="1" _x="24" title="SC Position" frame-style="" decimals="1" label_y="" _index_="2"/>
          <widget show_title="true" select="" source="SCFeedbackPosition.OUTPUT" name="Widget_3" min="0" label_x="" width="169" show_frame="false" height="481" scrollable="false" class="table" direction="flip x/y" _y="288" style="" colorize="true" max="1" _x="576" title="SC Feedback" frame-style="" decimals="1" label_y="" _index_="4"/>
       </group>
-      <group auto_routing="false" VisionInput="@VisionInputLeft" filename="NoCamera.jpg" VisionStream="http://lefteye.local:8080/stream/video.h264" _x="696" _VisionInput="InputJPEG" _y="288" grid_spacing="24" name="LeftEye">
+      <group auto_routing="false" VisionInput="@VisionInputLeft" filename="../Projects/Epi/NoCamera.jpg" VisionStream="http://lefteye.local:8080/stream/video.h264" _x="696" _VisionInput="InputJPEG" _y="288" grid_spacing="24" name="LeftEye">
          <widget select="" opacity_source="" min="" index="" opacity="1" frame-style="" scales="no" name="Widget_2" max_x="1" format="gray" show_frame="false" height="193" flipYCanvas="no" module="" _x="432" min_y="0" flipXCanvas="no" flipYAxis="no" width="217" source="EYE.INTENSITY" class="image" scale="both" flipXAxis="no" max_y="1" title="EYE" style="" min_x="0" _index_="0" _y="96" show_title="false" command="" file="" max="1"/>
          <widget select="" opacity_source="" min="0" index="" opacity="1" frame-style="" scales="no" name="Widget_1" max_x="1" format="rgb" show_frame="false" height="217" flipYCanvas="no" module="" _x="432" min_y="0" flipXCanvas="no" flipYAxis="no" width="217" source="EYE.OUTPUT" class="image" scale="both" flipXAxis="no" max_y="1" title="Widget_1" style="" min_x="0" _index_="2" _y="360" show_title="false" command="" file="" max="1"/>
          <connection target="FULL_RES_INTENSITY" source="EYE.INTENSITY" line_type="auto_route"/>
          <connection source="EYE.OUTPUT" line_type="auto_route" target="FULL_RES_OUTPUT" delay="1"/>
-         <module _y="96" active="yes" syncronized_tick="false" size_y="720" list_devices="true" filename="NoCamera.jpg" class="InputJPEG" _class="@VisionInput" _x="72" size_x="1280" info="false" uv4l="true" _size_y="640" name="EYE" _size_x="640" url="@VisionStream">
+         <module _y="96" active="yes" syncronized_tick="false" size_y="720" list_devices="true" filename="../Projects/Epi/NoCamera.jpg" class="InputJPEG" _class="@VisionInput" _x="72" size_x="1280" info="false" uv4l="true" _size_y="640" name="EYE" _size_x="640" url="@VisionStream">
             <limitation/>
          </module>
          <output source="EYE.BLUE" name="FULL_RES_OUTPUT" _y="312" _x="432"/>
@@ -637,11 +637,11 @@
          <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
          <parameter value="0" name="start_tick" default="0" type="number"/>
       </group>
-      <group auto_routing="false" VisionInput="@VisionInputRight" filename="NoCamera.jpg" VisionStream="http://Righteye.local:8080/stream/video.h264" _x="696" _VisionInput="InputJPEG" _y="120" grid_spacing="24" name="RightEye">
+      <group auto_routing="false" VisionInput="@VisionInputRight" filename="../Projects/Epi/NoCamera.jpg" VisionStream="http://Righteye.local:8080/stream/video.h264" _x="696" _VisionInput="InputJPEG" _y="120" grid_spacing="24" name="RightEye">
          <widget select="" opacity_source="" min="" index="" opacity="1" frame-style="" scales="no" name="Widget_2" max_x="1" format="rgb" show_frame="false" height="385" flipYCanvas="no" module="" _x="552" min_y="0" flipXCanvas="no" flipYAxis="no" width="553" source="EYE.OUTPUT" class="image" scale="both" flipXAxis="no" max_y="1" title="EYE" style="" min_x="0" _index_="0" _y="72" show_title="false" command="" file="" max="1"/>
          <connection target="FULL_RES_INTENSITY" source="EYE.INTENSITY" line_type="auto_route"/>
          <connection source="EYE.OUTPUT" line_type="auto_route" target="FULL_RES_OUTPUT" delay="1"/>
-         <module _y="120" active="yes" syncronized_tick="false" size_y="720" list_devices="true" filename="NoCamera.jpg" class="InputJPEG" _class="@VisionInput" _x="96" size_x="1280" info="false" uv4l="true" _size_y="640" name="EYE" _size_x="640" url="@VisionStream">
+         <module _y="120" active="yes" syncronized_tick="false" size_y="720" list_devices="true" filename="../Projects/Epi/NoCamera.jpg" class="InputJPEG" _class="@VisionInput" _x="96" size_x="1280" info="false" uv4l="true" _size_y="640" name="EYE" _size_x="640" url="@VisionStream">
             <limitation/>
          </module>
          <output name="FULL_RES_OUTPUT" _y="192" _x="288"/>
@@ -650,63 +650,63 @@
          <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
          <parameter value="0" name="start_tick" default="0" type="number"/>
       </group>
-      <group auto_routing="false" _y="648" grid_spacing="24" robotType="Full" name="EpiBlue" _x="120">
+      <group auto_routing="false" _y="648" grid_spacing="24" robotType="Body" name="EpiBlue" _x="120">
          <parameter value="6" type="number" name="log_level" default="0" control="menu"/>
          <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
          <parameter value="0" name="start_tick" default="0" type="number"/>
       </group>
-      <group auto_routing="false" _y="672" grid_spacing="24" robotType="Torso" name="EpiRed" _x="120">
+      <group auto_routing="false" _y="672" grid_spacing="24" robotType="Head" name="EpiRed" _x="120">
          <parameter value="6" type="number" name="log_level" default="0" control="menu"/>
          <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
          <parameter value="0" name="start_tick" default="0" type="number"/>
       </group>
-      <group auto_routing="false" _y="672" grid_spacing="24" robotType="Torso" name="EpiWhite" _x="24">
+      <group auto_routing="false" _y="672" grid_spacing="24" robotType="Head" name="EpiWhite" _x="24">
          <parameter value="6" type="number" name="log_level" default="0" control="menu"/>
          <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
          <parameter value="0" name="start_tick" default="0" type="number"/>
       </group>
-      <group auto_routing="false" _y="696" grid_spacing="24" robotType="Torso" name="EpiYellow" _x="528">
+      <group auto_routing="false" _y="696" grid_spacing="24" robotType="Head" name="EpiYellow" _x="528">
          <parameter value="6" type="number" name="log_level" default="0" control="menu"/>
          <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
          <parameter value="0" name="start_tick" default="0" type="number"/>
       </group>
-      <group auto_routing="false" _y="696" grid_spacing="24" robotType="Torso" name="EpiGray" _x="624">
+      <group auto_routing="false" _y="696" grid_spacing="24" robotType="Head" name="EpiGray" _x="624">
          <parameter value="6" type="number" name="log_level" default="0" control="menu"/>
          <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
          <parameter value="0" name="start_tick" default="0" type="number"/>
       </group>
-      <group auto_routing="false" _y="696" grid_spacing="24" robotType="Torso" name="EpiBlack" _x="768">
+      <group auto_routing="false" _y="696" grid_spacing="24" robotType="Head" name="EpiBlack" _x="768">
          <parameter value="6" type="number" name="log_level" default="0" control="menu"/>
          <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
          <parameter value="0" name="start_tick" default="0" type="number"/>
       </group>
-      <group auto_routing="false" _y="576" grid_spacing="24" robotType="Torso" name="EpiGreen" _x="120">
+      <group auto_routing="false" _y="576" grid_spacing="24" robotType="Head" name="EpiGreen" _x="120">
          <parameter value="6" type="number" name="log_level" default="0" control="menu"/>
          <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
          <parameter value="0" name="start_tick" default="0" type="number"/>
       </group>
-      <group auto_routing="false" _y="600" grid_spacing="24" robotType="Torso" name="EpiRedDemo" _x="96">
+      <group auto_routing="false" _y="600" grid_spacing="24" robotType="Head" name="EpiRedDemo" _x="96">
          <parameter value="6" type="number" name="log_level" default="0" control="menu"/>
          <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
          <parameter value="0" name="start_tick" default="0" type="number"/>
       </group>
-      <group auto_routing="false" _y="648" grid_spacing="24" robotType="Torso" name="EpiOrange" _x="312">
+      <group auto_routing="false" _y="648" grid_spacing="24" robotType="Head" name="EpiOrange" _x="312">
          <parameter value="6" type="number" name="log_level" default="0" control="menu"/>
          <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
          <parameter value="0" name="start_tick" default="0" type="number"/>
       </group>
-      <group auto_routing="false" _y="648" grid_spacing="24" robotType="Torso" name="EpiPink" _x="768">
+      <group auto_routing="false" _y="648" grid_spacing="24" robotType="Head" name="EpiPink" _x="768">
          <parameter value="6" type="number" name="log_level" default="0" control="menu"/>
          <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
          <parameter value="0" name="start_tick" default="0" type="number"/>
       </group>
       <group _y="648" grid_spacing="24" type=".Epi.@epi_name.@robotType" _x="768" simulate_servo="false" name="Settings" VisionInputRight="InputJPEG" auto_routing="false" VisionInputLeft="InputJPEG">
-         <group name="Full" auto_routing="false" models_robot_view="Axis,Base,Torso,Axis,Head1,Head2,Eye,Eye,Pupil,Pupil,Axis,Axis,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftHand,LeftFingers,Axis,Axis,Axis,RightArm1,RightArm2,RightArm3,RightArm4,RightHand,RightFingers,Axis,Axis,Axis,Axis" Body_L2_T1_data="   1, 0, 0, 0.244;   0, 1, 0, 0;   0, 0, 1, 0.023;   0, 0, 0, 1" Body_L1_T1_data="   1, 0, 0, 0.697;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1   " grid_spacing="24">
+         <group name="Body" auto_routing="false" models_robot_view="Axis,Base,Torso,Axis,Head1,Head2,Eye,Eye,Pupil,Pupil,Axis,Axis,LeftArm1,LeftArm2,LeftArm3,LeftArm4,LeftHand,LeftFingers,Axis,Axis,Axis,RightArm1,RightArm2,RightArm3,RightArm4,RightHand,RightFingers,Axis,Axis,Axis,Axis" Body_L2_T1_data="   1, 0, 0, 0.244;   0, 1, 0, 0;   0, 0, 1, 0.023;   0, 0, 0, 1" Body_L1_T1_data="   1, 0, 0, 0.697;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1   " grid_spacing="24">
             <parameter value="6" type="number" name="log_level" default="0" control="menu"/>
             <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
             <parameter value="0" name="start_tick" default="0" type="number"/>
          </group>
-         <group name="Torso" auto_routing="false" models_robot_view="Axis,TorsoHead,None,None,Head1,Head2,Eye,Eye,Axis,LaserBeam,LaserBeam,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis" Body_L2_T1_data="   1, 0, 0, 0.044;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1" Body_L1_T1_data="   1, 0, 0, 0;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1   " grid_spacing="24">
+         <group name="Head" auto_routing="false" models_robot_view="Axis,TorsoHead,None,None,Head1,Head2,Eye,Eye,Axis,LaserBeam,LaserBeam,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis,Axis" Body_L2_T1_data="   1, 0, 0, 0.044;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1" Body_L1_T1_data="   1, 0, 0, 0;   0, 1, 0, 0;   0, 0, 1, 0;   0, 0, 0, 1   " grid_spacing="24">
             <parameter value="6" type="number" name="log_level" default="0" control="menu"/>
             <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
             <parameter value="0" name="start_tick" default="0" type="number"/>
@@ -763,7 +763,7 @@
       <module name="RightEyeINT" data="1,1,1,1,1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1,1,1,1,1" class="Constant" _y="576" _x="696"/>
       <module name="MouthHighINT" data="1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1" class="Constant" _y="336" _x="72"/>
       <module name="MouthLowINT" data="1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1; 1,1,1,1,1,1,1,1" class="Constant" _y="408" _x="72"/>
-      <module sounds="Sounds/OK.mp3, Sounds/ok2.mp3, Sounds/agree_1.wav, Sounds/agree_2.wav, Sounds/agree_3.wav, Sounds/agree_4.wav, Sounds/agree_5.wav, Sounds/confused_1.wav, Sounds/confused_2.wav, Sounds/confused_3.wav, Sounds/confused_4.wav, Sounds/confused_5.wav, Sounds/disagree_1.wav, Sounds/disagree_2.wav, Sounds/disagree_3.wav, Sounds/disagree_4.wav, Sounds/disagree_5.wav, Sounds/disgusted_1.wav, Sounds/disgusted_2.wav, Sounds/disgusted_3.wav, Sounds/disgusted_4.wav, Sounds/disgusted_5.wav, Sounds/pleased_1.wav, Sounds/pleased_2.wav, Sounds/pleased_3.wav, Sounds/pleased_4_med_2.wav, Sounds/pleased_5.wav,Sounds/Jokes/WhyDidTheRobotSneeze.wav,Sounds/Jokes/WhyDidTheRobotSneezeB.wav,Sounds/Jokes/HowDidTheRobotGetAcrossTheRiver.wav,Sounds/Jokes/HowDidTheRobotGetAcrossTheRiverB.wav,Sounds/Jokes/WhyDidTheRobotGoOnVacation.wav,Sounds/Jokes/WhyDidTheRobotGoOnVacationB.wav,HiIAmARobot.HowOldAmI_low.wav,HiIAmARobot.HowOldAmI_high.wav" class="SoundOutput" _y="768" command="/usr/bin/afplay" _x="384" name="SoundOutput"/>
+      <module sounds="../Projects/Epi/Sounds/OK.mp3, ../Projects/Epi/Sounds/ok2.mp3, ../Projects/Epi/Sounds/agree_1.wav, ../Projects/Epi/Sounds/agree_2.wav, ../Projects/Epi/Sounds/agree_3.wav, ../Projects/Epi/Sounds/agree_4.wav, ../Projects/Epi/Sounds/agree_5.wav, ../Projects/Epi/Sounds/confused_1.wav, ../Projects/Epi/Sounds/confused_2.wav, ../Projects/Epi/Sounds/confused_3.wav, ../Projects/Epi/Sounds/confused_4.wav, ../Projects/Epi/Sounds/confused_5.wav, ../Projects/Epi/Sounds/disagree_1.wav, ../Projects/Epi/Sounds/disagree_2.wav, ../Projects/Epi/Sounds/disagree_3.wav, ../Projects/Epi/Sounds/disagree_4.wav, ../Projects/Epi/Sounds/disagree_5.wav, ../Projects/Epi/Sounds/disgusted_1.wav, ../Projects/Epi/Sounds/disgusted_2.wav, ../Projects/Epi/Sounds/disgusted_3.wav, ../Projects/Epi/Sounds/disgusted_4.wav, ../Projects/Epi/Sounds/disgusted_5.wav, ../Projects/Epi/Sounds/pleased_1.wav, ../Projects/Epi/Sounds/pleased_2.wav, ../Projects/Epi/Sounds/pleased_3.wav, ../Projects/Epi/Sounds/pleased_4_med_2.wav, ../Projects/Epi/Sounds/pleased_5.wav, ../Projects/Epi/Sounds/Jokes/WhyDidTheRobotSneeze.wav, ../Projects/Epi/Sounds/Jokes/WhyDidTheRobotSneezeB.wav, ../Projects/Epi/Sounds/Jokes/HowDidTheRobotGetAcrossTheRiver.wav, ../Projects/Epi/Sounds/Jokes/HowDidTheRobotGetAcrossTheRiverB.wav, ../Projects/Epi/Sounds/Jokes/WhyDidTheRobotGoOnVacation.wav, ../Projects/Epi/Sounds/Jokes/WhyDidTheRobotGoOnVacationB.wav, ../Projects/Epi/Sounds/Jokes/HiIAmARobot.HowOldAmI_low.wav, ../Projects/Epi/Sounds/Jokes/HiIAmARobot.HowOldAmI_high.wav" class="SoundOutput" _y="768" command="/usr/bin/afplay" _x="384" name="SoundOutput"/>
       <module name="ExoID" data="100" class="Constant" _y="408" _x="216"/>
       <module name="ExoFrameID" data="100" class="Constant" _y="648" _x="432"/>
       <module name="EgoID" data="200" class="Constant" _y="624" _x="552"/>
@@ -782,7 +782,7 @@
    <group auto_routing="false" _y="100" grid_spacing="24" _x="100" name="RecordView">
       <widget name="bg_top" title="Default Title" frame_width="1" _index_="0" _x="0" height="51" show_frame="true" background="" style="background-color:#ddd;" _y="0" show_title="false" frame-style="" width="1911" frame_color="" class="rectangle" label=""/>
       <widget name="bg_main" title="Default Title" frame_width="1" _index_="2" _x="0" height="1131" show_frame="true" background="" style="background-color:#666;" _y="50" show_title="false" frame-style="" width="2321" frame_color="" class="rectangle" label=""/>
-      <widget input="Servos.PRESENT_POSITION" playhead=".ExperimentalSetup.SR.playhead" target=".ExperimentalSetup.SR.TARGET" _y="90" _index_="4" show_title="false" ranges=".ExperimentalSetup.SR.RANGES" name="key_points" position=".ExperimentalSetup.SR.position" output=".ExperimentalSetup.SR.OUTPUT" _x="480" sequence=".ExperimentalSetup.SR.SEQUENCE" max="1" frame_width="1" fraction=".ExperimentalSetup.SR.position" style="" show_frame="true" height="636" width="571" mark_start=".ExperimentalSetup.SR.mark_start" mark_end=".ExperimentalSetup.SR.mark_end" class="key-points" title="Default Title" color="" frame-style="" min="0" active=""/>
+      <widget input="Servos.PRESENT_POSITION" playhead=".ExperimentalSetup.SR.playhead" target=".ExperimentalSetup.SR.TARGET" _y="90" _index_="4" show_title="false" ranges=".ExperimentalSetup.SR.RANGES" name="key_points" position=".ExperimentalSetup.SR.position" output=".ExperimentalSetup.SR.OUTPUT" _x="480" sequence=".ExperimentalSetup.SR.SEQUENCE" sequence_state=".ExperimentalSetup.SR.SEQUENCE_STATE" channel_mode=".ExperimentalSetup.SR.channel_mode" max="1" frame_width="1" fraction=".ExperimentalSetup.SR.position" style="" show_frame="true" height="636" width="571" mark_start=".ExperimentalSetup.SR.mark_start" mark_end=".ExperimentalSetup.SR.mark_end" class="key-points" title="Default Title" color="" frame-style="" min="0" active=""/>
       <widget name="bg_arm_right" title="Default Title" frame_width="1" _index_="6" _x="710" height="231" show_frame="true" background="" style="background-color:#bbb;" _y="725" show_title="false" frame-style="" width="731" frame_color="" class="rectangle" label=""/>
       <widget name="header_bar" _index_="8" _x="0" width="1916" _y="45" style="background-color:#eee;" show_frame="true" height="46" frame_width="1" title="Default Title" background="" show_title="false" frame-style="box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;" class="rectangle" frame_color="" label=""/>
       <widget name="Body" title="Body" frame_width="1" _index_="10" _x="0" height="76" show_frame="true" background="" style="background-color:#bbb;" _y="650" show_title="false" frame-style="" width="501" frame_color="" class="rectangle" label=""/>
@@ -984,7 +984,7 @@
    </group>
    <group auto_routing="false" _y="100" grid_spacing="24" _x="100" name="PlaybackView">
       <widget _index_="153" _y="820" width="141" parameter="SR.current_sequence" _x="580" labelWidth="50" name="menu_sequence_playback" list_parameter="SR.sequence_names" height="41" show_frame="false" show_title="false" list="Sequence A" index="0" title="Menu" class="drop-down-menu"/>
-      <widget name="grid_playback" valueHigh="1" size="1" valueLow="0" min="0" max="1" _x="20" min_y="0" flipXCanvas="no" labelWidth="100" scales="no" command="SR.trig" show_title="false" max_x="1" lineWidth="1" width="981" flipYAxis="no" label_parameter="SR.sequence_names" show_frame="false" max_y="1" flipYCanvas="no" height="1021" class="grid" shape="rectangle" source="SR.PLAYING" _index_="154" _y="40" min_x="0" colorTable="lightblue,red" fill="gray" flipXAxis="no"/>
+      <widget name="grid_playback" sequence_names="SR.sequence_names" playing="SR.PLAYING" layout_width="SR.layout_width" command="SR.trig" color="SR.COLOR" playing_color="#67c1ff" columns="0" cell_gap="4" show_title="true" title="Sequence Grid" show_frame="true" width="981" height="1021" _x="20" _y="40" _index_="154" class="sequence-grid"/>
       <widget _index_="155" show_title="false" name="slider_playback_position" show_values="false" step="0.01" min="0" select="0" show_frame="false" height="21" max="1" _x="40" count="1" parameter="SR.position" title="Sliders" width="921" _y="20" class="slider-horizontal"/>
       <parameter value="6" default="0" name="log_level" control="menu" type="number"/>
       <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
@@ -1003,7 +1003,7 @@
    <parameter value="0" type="number" control="menu" name="module_start" options="at_tick,first_data,all_data" default="0"/>
    <parameter value="0" name="start_tick" default="0" type="number"/>
    <module name="Fake_Sound_Trigger" data="0" class="Constant" _y="48" _x="96"/>
-   <module _y="72" _x="24" internal_control="0, 0, 0, 0, 1, 1,    0, 0, 0, 0, 0, 1,   0, 0, 0, 0, 0, 1,  0,  1, 1, 1, 1,     1, 1, 1,   1,      1" default_output="0, 0, 0, 0, 12, 12,  0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  1, 1, 0, 0.5,   1, 1, 0,   0.6,   -1" smoothing_time="0" state="0, 2, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1,  1,  1, 1, 1, 1,     1, 1, 1,   1,      1" filename="demo.json" channel_mode="0, 0, 0, 0, 0, 0,    0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  0, 0, 0, 0,     0, 0, 0,  0,      0" positions="0, 0, 0, 0, 12, 12,  0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  1, 1, 0, 0.5,   1, 1, 0,   0.6,   -1" range_min="-180, -180, -180, -180, 5, 5,     -180, -180, -180, -180, -180, -180,   -180, -180, -180, -180, -180, -180,   -180,  0, 0, 0, 0,  0, 0, 0, 0,  -1" range_max=" 180,  180,  180,  180, 20, 20,    180,  180,  180,  180,  180,  180,    180,  180,  180,  180,  180,  180,    180,  1, 1, 1, 1,  1, 1, 1, 1,  35" class="SequenceRecorder" interpolation="1, 1, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1,  1,  1, 1, 1, 1,     1, 1, 1,   1,      0" name="SR" channels="28"/>
+   <module _y="72" _x="24" internal_control="0, 0, 0, 0, 1, 1,    0, 0, 0, 0, 0, 1,   0, 0, 0, 0, 0, 1,  0,  1, 1, 1, 1,     1, 1, 1,   1,      1" default_output="0, 0, 0, 0, 12, 12,  0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  1, 1, 0, 0.5,   1, 1, 0,   0.6,   -1" smoothing_time="0" state="0, 2, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1,  1,  1, 1, 1, 1,     1, 1, 1,   1,      1" filename="demo.json" channel_mode="1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0; 1,0,0,0" positions="0, 0, 0, 0, 12, 12,  0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,  0,  1, 1, 0, 0.5,   1, 1, 0,   0.6,   -1" range_min="-180, -180, -180, -180, 5, 5,     -180, -180, -180, -180, -180, -180,   -180, -180, -180, -180, -180, -180,   -180,  0, 0, 0, 0,  0, 0, 0, 0,  -1" range_max=" 180,  180,  180,  180, 20, 20,    180,  180,  180,  180,  180,  180,    180,  180,  180,  180,  180,  180,    180,  1, 1, 1, 1,  1, 1, 1, 1,  35" class="SequenceRecorder" interpolation="1, 1, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1,  1,  1, 1, 1, 1,     1, 1, 1,   1,      0" name="SR" channels="28" max_sequences="64" layout_width="8" color="0.23,0.48,0.95; 0.94,0.37,0.24; 0.28,0.68,0.36; 0.86,0.66,0.16; 0.52,0.42,0.92; 0.20,0.64,0.72; 0.78,0.42,0.70; 0.62,0.62,0.62; 0.23,0.48,0.95; 0.94,0.37,0.24; 0.28,0.68,0.36; 0.86,0.66,0.16; 0.52,0.42,0.92; 0.20,0.64,0.72; 0.78,0.42,0.70; 0.62,0.62,0.62; 0.23,0.48,0.95; 0.94,0.37,0.24; 0.28,0.68,0.36; 0.86,0.66,0.16; 0.52,0.42,0.92; 0.20,0.64,0.72; 0.78,0.42,0.70; 0.62,0.62,0.62; 0.23,0.48,0.95; 0.94,0.37,0.24; 0.28,0.68,0.36; 0.86,0.66,0.16; 0.52,0.42,0.92; 0.20,0.64,0.72; 0.78,0.42,0.70; 0.62,0.62,0.62; 0.23,0.48,0.95; 0.94,0.37,0.24; 0.28,0.68,0.36; 0.86,0.66,0.16; 0.52,0.42,0.92; 0.20,0.64,0.72; 0.78,0.42,0.70; 0.62,0.62,0.62; 0.23,0.48,0.95; 0.94,0.37,0.24; 0.28,0.68,0.36; 0.86,0.66,0.16; 0.52,0.42,0.92; 0.20,0.64,0.72; 0.78,0.42,0.70; 0.62,0.62,0.62; 0.23,0.48,0.95; 0.94,0.37,0.24; 0.28,0.68,0.36; 0.86,0.66,0.16; 0.52,0.42,0.92; 0.20,0.64,0.72; 0.78,0.42,0.70; 0.62,0.62,0.62; 0.23,0.48,0.95; 0.94,0.37,0.24; 0.28,0.68,0.36; 0.86,0.66,0.16; 0.52,0.42,0.92; 0.20,0.64,0.72; 0.78,0.42,0.70; 0.62,0.62,0.62"/>
    <module name="OneHotVector" class="OneHotVector" _y="48" _x="288" output_size="34"/>
    <module name="ManualGoalPosition" data="0,0,0,0,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0" class="Constant" _y="72" _x="456"/>
    <_connection target="Epi.LED.EYE_COLOR[0:2]" source="SR.OUTPUT[19:21]"/>

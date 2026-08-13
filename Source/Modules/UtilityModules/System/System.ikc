@@ -4,7 +4,7 @@
     <output name="NOMINAL_TIME" size="1" description="Nominal tick-based time in seconds." />
     <output name="REAL_TIME" size="1" description="Wall-clock run time in seconds." />
     <output name="UPTIME" size="1" description="Kernel uptime in seconds." />
-    <output name="RUN_STATE" size="4" description="One-hot run mode: stop, pause, play, realtime." />
+    <output name="RUN_STATE" size="5" description="One-hot run mode: stop, pause, play, realtime, fast forward." />
     <output name="STATE" size="1" description="Numeric run mode." />
     <output name="TICK_DURATION" size="1" description="Target tick duration in seconds." />
     <output name="ACTUAL_DURATION" size="1" description="Measured duration between ticks in seconds." />

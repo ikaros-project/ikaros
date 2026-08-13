@@ -1,0 +1,15 @@
+<group internal="true"
+       name="TestOutputFileInvalidNumberFormat"
+       description="OutputFile rejects unknown numeric data formats"
+       start="true"
+       stop="1"
+       expected_exit="1"
+       expected_output_contains="Invalid parameter value">
+    <module name="Data" class="Constant" data="1" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_313_output_file_invalid_number_format.csv"
+            number_format="unknown" />
+
+    <connection source="Data.OUTPUT" target="Output.INPUT" label="value" />
+</group>

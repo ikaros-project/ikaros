@@ -1,903 +1,1746 @@
 // image_file_format.cc
 // Copyright (C) 2023-2025  Christian Balkenius
 
-#include "matrix.h"
 #include "image_file_formats.h"
-#include "color_tables.h"
-#include <new>
 
-#if defined(__APPLE__) && defined(USE_VIMAGE)
-#include <vImage/vImage_Types.h>
-#include <vImage/Conversion.h>
+#include <algorithm>
+#include <cctype>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <limits>
+#include <memory>
+#include <new>
+#include <span>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+#include "color_tables.h"
+#include "matrix.h"
+
+#if defined(__APPLE__) && defined(IKAROS_MATRIX_ACCELERATE) && IKAROS_MATRIX_ACCELERATE
+// Avoid Accelerate.h, which pulls deprecated compatibility headers into C++ builds.
+#include <Accelerate/../Frameworks/vImage.framework/Headers/Conversion.h>
+#define IKAROS_IMAGE_ACCELERATE 1
+#else
+#define IKAROS_IMAGE_ACCELERATE 0
+#endif
+
+#ifndef IKAROS_HAS_PNG
+#define IKAROS_HAS_PNG 0
+#endif
+
+#ifndef IKAROS_HAS_TIFF
+#define IKAROS_HAS_TIFF 0
+#endif
+
+#ifndef IKAROS_HAS_WEBP
+#define IKAROS_HAS_WEBP 0
 #endif
 
 extern "C"
 {
 #include "jpeglib.h"
 #include <setjmp.h>
+#if IKAROS_HAS_PNG
 #include <png.h>
+#endif
 }
+
+#if IKAROS_HAS_TIFF
+#include <tiffio.h>
+#endif
+
+#if IKAROS_HAS_WEBP
+#include <webp/decode.h>
+#include <webp/encode.h>
+#endif
 namespace ikaros
 {
 
 
-    static void
-	float_to_byte(unsigned char * r, float * a, float min, float max, long size)
-	{
-#ifdef USE_VIMAGE
-		struct vImage_Buffer src =
-        {
-            a, 1, static_cast<vImagePixelCount>(size), size*sizeof(float)
-        };
-		struct vImage_Buffer dest =
-        {
-            r, 1, static_cast<vImagePixelCount>(size), size*sizeof(float)
-        };
-		vImage_Error err = vImageConvert_PlanarFtoPlanar8 (&src, &dest, max, min, 0);
-		if (err < 0) 
-            throw exception("image_file_formats:float_to_byte: vImage_Error");
-#else
-		for (long i=0; i<size; i++)
-			if (a[i] < min)
-				r[i] = 0;
-			else if (a[i] > max)
-				r[i] = 255;
-			else
-				r[i] = int(255.0*(a[i]-min)/(max-min));
-#endif
-	}
-	
-
-    // create jpeg functions
-    
-    struct jpeg_destination { 
-        struct jpeg_destination_mgr dest_mgr; 
-        JOCTET * buffer; 
-        size_t   size; 
-        size_t   used;
-    }; 
-    
-
-    static void 
-    dst_init(j_compress_ptr cinfo) 
-    { 
-        struct jpeg_destination *dst = (jpeg_destination *)cinfo->dest; 
-        dst->used = 0; 
-        dst->size = 2048+cinfo->image_width * cinfo->image_height * cinfo->input_components * 2; // arbitrary initial size ; 2048 for header in case of very small images
-        dst->buffer = (JOCTET *)malloc(dst->size * sizeof *dst->buffer);
-        if(dst->buffer == nullptr)
-            throw std::bad_alloc();
-        dst->dest_mgr.next_output_byte = dst->buffer; 
-        dst->dest_mgr.free_in_buffer = dst->size; 
-        return; 
-    }
-
-    // FIXME:   Something goes wrong when dst_empty is called more than once
-    //          Fortunately it never happens since the size set by dst_init is large enough
-    
-    static boolean
-    dst_empty(j_compress_ptr cinfo) 
-    { 
-        struct jpeg_destination *dst = (jpeg_destination *)cinfo->dest; 
-        dst->used = dst->size - dst->dest_mgr.free_in_buffer;
-        dst->size *= 2; 
-        JOCTET * resized = (JOCTET *)realloc(dst->buffer, dst->size * sizeof *dst->buffer);
-        if(resized == nullptr)
-            throw std::bad_alloc();
-        dst->buffer = resized;
-        dst->dest_mgr.next_output_byte = &dst->buffer[dst->used];
-        dst->dest_mgr.free_in_buffer = dst->size - dst->used; 
-        return true; 
-    }
-    
-    
-    static void
-    dst_term(j_compress_ptr cinfo) 
-    { 
-        struct jpeg_destination *dst = (jpeg_destination *)cinfo->dest; 
-        dst->used = dst->size - dst->dest_mgr.free_in_buffer;
-        return; 
-    } 
-    
-    
-    static void
-    jpeg_set_destination(j_compress_ptr cinfo, struct jpeg_destination *dst) 
-    { 
-        dst->dest_mgr.init_destination = dst_init; 
-        dst->dest_mgr.empty_output_buffer = dst_empty; 
-        dst->dest_mgr.term_destination = dst_term; 
-        cinfo->dest = (jpeg_destination_mgr *)dst; 
-        return; 
-    } 
-    
-    
-     /*
-    char *
-    create_jpeg(long int & size, float * matrix, int sizex, int sizey, float minimum, float maximum, int quality)
-    {
-        if (matrix == NULL)
-        {
-            size = 0;
-            return NULL;
-        }
-        
-        JSAMPLE *   image_buffer = new JSAMPLE [sizex];
-        JSAMPROW    row_pointer[1];
-        
-        struct jpeg_compress_struct cinfo;
-        struct jpeg_error_mgr       jerr;
-        struct jpeg_destination     dst;
-        
-        cinfo.err = jpeg_std_error(&jerr);
-        
-        jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
-        
-        cinfo.image_width = sizex; 	/// image width and height, in pixels
-        cinfo.image_height = sizey;
-        cinfo.input_components = 1;	// # of color components per pixel
-        cinfo.in_color_space = JCS_GRAYSCALE;
-        
-        jpeg_set_defaults(&cinfo);
-        jpeg_set_quality(&cinfo, quality, true);
-        jpeg_set_destination(&cinfo, &dst);
-        
-        // Do the compression
-        
-        jpeg_start_compress(&cinfo, true);
-        
-        while (cinfo.next_scanline < cinfo.image_height)
-        {
-            // Convert row to image buffer (assume max == 1 for now)
-            
-            JSAMPLE * ib = image_buffer;
-            if (maximum != minimum)
-                float_to_byte(image_buffer, matrix, minimum, maximum, sizex);
-            else
-                for (int i=0; i<sizex; i++)
-                    *ib++ = 0;
-            
-            // Write to compressor
-            row_pointer[0] = image_buffer;
-            (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-            matrix += sizex;
-        }
-        
-        jpeg_finish_compress(&cinfo);
-        jpeg_destroy_compress(&cinfo);
-        
-        delete [] image_buffer;
-        
-        size = dst.used;
-        return (char *)dst.buffer;
-    }
-    */
-    
-    
-    unsigned char *
-    create_gray_jpeg(long int & size, matrix & image, float minimum, float maximum, int quality)
-    {
-        long sizex = image.size(1);
-        long sizey = image.size(0);
-
-        JSAMPLE *   image_buffer = new JSAMPLE [sizex];
-        JSAMPROW    row_pointer[1];
-        
-        struct jpeg_compress_struct cinfo;
-        struct jpeg_error_mgr       jerr;
-        struct jpeg_destination     dst;
-        
-        //int    row_stride;				// physical row width in image buffer
-        
-        cinfo.err = jpeg_std_error(&jerr);
-        
-        jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
-        
-        cinfo.image_width = sizex; 	/// image width and height, in pixels
-        cinfo.image_height = sizey;
-        cinfo.input_components = 1;	// # of color components per pixel
-        cinfo.in_color_space = JCS_GRAYSCALE;
-        
-        jpeg_set_defaults(&cinfo);
-        jpeg_set_quality(&cinfo, quality, true);
-        jpeg_set_destination(&cinfo, &dst);
-        
-        // Do the compression
-        
-        jpeg_start_compress(&cinfo, true);
-        
-        //row_stride = sizex * 1;	// JSAMPLEs per row in image_buffer
-        int j=0;
-        
-        while (cinfo.next_scanline < cinfo.image_height)
-        {
-            // Convert row to image buffer (assume max == 1 for now)
-            
-            JSAMPLE * ib = image_buffer;
-            if (maximum != minimum) // FIXME: test in conversion instead
-                float_to_byte(image_buffer, image[j], minimum, maximum, sizex);
-            else
-                for (int i=0; i<sizex; i++)
-                    *ib++ = 0;
-            
-            // Write to compressor
-            row_pointer[0] = image_buffer;
-            (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-            j++;
-        }
-        
-        jpeg_finish_compress(&cinfo);
-        jpeg_destroy_compress(&cinfo);
-        
-        delete [] image_buffer;
-        
-        size = dst.used;
-        return dst.buffer;
-    }
-    
-    
-    unsigned char * create_pseudocolor_jpeg(long int & size, matrix & image, float minimum, float maximum, const std::string & table,  int quality)
-    {
-        if(!color_table.count(table))
-            return nullptr;
-
-        long sizex = image.size(1);
-        long sizey = image.size(0);
-
-        JSAMPLE *   image_buffer = new JSAMPLE [3*sizex];
-        JSAMPROW    row_pointer[1];
-        
-        struct jpeg_compress_struct cinfo;
-        struct jpeg_error_mgr       jerr;
-        struct jpeg_destination     dst;
-        
-        cinfo.err = jpeg_std_error(&jerr);
-        
-        jpeg_create_compress(&cinfo); // TODO: Replace with ikaros error handler later
-        
-        cinfo.image_width = sizex; 	//
-        cinfo.image_height = sizey;
-        cinfo.input_components = 3;	// # of color components per pixel
-        cinfo.in_color_space = JCS_RGB;
-        
-        jpeg_set_defaults(&cinfo);
-        jpeg_set_quality(&cinfo, quality, true);
-        jpeg_set_destination(&cinfo, &dst);
-        
-        // Do the compression
-        
-        jpeg_start_compress(&cinfo, true);
-        int j=0;
-        
-        unsigned char * z = new unsigned char [sizex];
-        while (cinfo.next_scanline < cinfo.image_height)
-        {
-            float_to_byte(z, image[j], minimum, maximum, sizex);
-            int x = 0;
-            unsigned char * zz = z;
-            
-            for (int i=0; i<sizex; i++)
-            {
-                image_buffer[x++] = color_table[table][*zz][0];
-                image_buffer[x++] = color_table[table][*zz][1];
-                image_buffer[x++] = color_table[table][*zz][2];
-                zz++;
-            }
-            
-            // Write to compressor
-            row_pointer[0] = image_buffer;
-            (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-            j++;
-        }
-        
-        jpeg_finish_compress(&cinfo);
-        jpeg_destroy_compress(&cinfo);
-        
-        delete [] z;
-        delete [] image_buffer;
-        
-        size = dst.used;
-        return dst.buffer;
-    }
-    
-    /*
-    char *
-    create_jpeg(long int & size, float ** matrix, int sizex, int sizey, int color_table[256][3], int quality)
-    {
-        return create_jpeg(size, *matrix, sizex, sizey, color_table, quality);
-    }
-    */
-    
-    /*
-    char *
-    create_jpeg(long int & size, float * r, float * g, float * b, int sizex, int sizey, int quality)
-    {
-        size = 0;
-        if (r==NULL) return NULL;
-        if (g==NULL) return NULL;
-        if (b==NULL) return NULL;
-        
-        JSAMPLE *   image_buffer = new JSAMPLE [3*sizex];
-        JSAMPROW    row_pointer[1];
-        
-        struct jpeg_compress_struct cinfo;
-        struct jpeg_error_mgr       jerr;
-        struct jpeg_destination     dst;
-        
-        //int    row_stride;				// physical row width in image buffer
-        
-        cinfo.err = jpeg_std_error(&jerr);
-        
-        jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
-        
-        cinfo.image_width = sizex; 	/// image width and height, in pixels
-        cinfo.image_height = sizey;
-        cinfo.input_components = 3;	// # of color components per pixel
-        cinfo.in_color_space = JCS_RGB;
-        
-        jpeg_set_defaults(&cinfo);
-        jpeg_set_quality(&cinfo, quality, true);
-        jpeg_set_destination(&cinfo, &dst);
-        
-        // Do the compression
-        
-        jpeg_start_compress(&cinfo, true);
-        
-        //row_stride = sizex * 3;		// JSAMPLEs per row in image_buffer
-        int j=0;
-        
-        float * rp = r;
-        float * gp = g;
-        float * bp = b;
-        
-        while (cinfo.next_scanline < cinfo.image_height)
-        {
-            int x = 0;
-            for (int i=0; i<sizex; i++)
-            {
-                // IGNORE OVERFLOW
-                // float rr = (*rp < 0.0 ? 0.0 : (*rp > 1.0 ? 1.0 : *rp));
-                // float gg = (*gp < 0.0 ? 0.0 : (*gp > 1.0 ? 1.0 : *gp));
-                // float bb = (*bp < 0.0 ? 0.0 : (*bp > 1.0 ? 1.0 : *bp));
-
-                 // clipping |= (rr != r[j][i]) || (gg != g[j][i]) || (bb != b[j][i]);
-                
-                image_buffer[x++] = int(255.0*(*rp));
-                image_buffer[x++] = int(255.0*(*gp));
-                image_buffer[x++] = int(255.0*(*bp));
-                
-                rp++;
-                gp++;
-                bp++;
-            }
-            
-            // Write to compressor
-            row_pointer[0] = image_buffer;
-            (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-            j++;
-        }
-        jpeg_finish_compress(&cinfo);
-        jpeg_destroy_compress(&cinfo);
-        
-        delete [] image_buffer;
-        
-        size = dst.used;
-        return (char *)dst.buffer;
-    }
-    */
-    
-    /*
-    char *
-    create_jpeg(long int & size, float ** r, float ** g, float ** b, int sizex, int sizey, int quality)
-    {
-        return create_jpeg(size, *r, *g, *b, sizex, sizey, quality);
-    }
-    */
-    
-    
     void
-    destroy_jpeg(unsigned char * jpeg)
+    jpeg_data::FreeDeleter::operator()(std::uint8_t * data) const noexcept
     {
-        free(jpeg);
+        std::free(data);
     }
-    
-    
-    // decode jpeg functions
-    
-    typedef struct {
-        struct jpeg_source_mgr pub;	// public fields
-        JOCTET eoi_buffer[2];         // a place to put a dummy EOI
-    } my_source_mgr;
-    
-    typedef my_source_mgr * my_src_ptr;
-    
-    
-    static void
-    init_source (j_decompress_ptr cinfo)
+
+
+    struct jpeg_error_context
     {
-    }
-    
-    
-    static boolean
-    fill_input_buffer (j_decompress_ptr cinfo)
-    {
-        my_src_ptr src = (my_src_ptr) cinfo->src;
-        
-        //      WARNMS(cinfo, JWRN_JPEG_EOF);
-        
-        // Create a fake EOI marker 
-        src->eoi_buffer[0] = (JOCTET) 0xFF;
-        src->eoi_buffer[1] = (JOCTET) JPEG_EOI;
-        src->pub.next_input_byte = src->eoi_buffer;
-        src->pub.bytes_in_buffer = 2;
-        
-        return TRUE;
-    }
-    
-    
-    static void
-    skip_input_data (j_decompress_ptr cinfo, long num_bytes)
-    {
-        my_src_ptr src = (my_src_ptr) cinfo->src;
-        
-        if (num_bytes > 0) {
-            while (num_bytes > (long) src->pub.bytes_in_buffer) {
-                num_bytes -= (long) src->pub.bytes_in_buffer;
-                (void) fill_input_buffer(cinfo);
-                // note we assume that fill_input_buffer will never return FALSE, so suspension need not be handled.
-            }
-            src->pub.next_input_byte += (size_t) num_bytes;
-            src->pub.bytes_in_buffer -= (size_t) num_bytes;
-        }
-    }
-    
-    
-    static void
-    term_source (j_decompress_ptr cinfo)
-    {
-    }
-    
-    
-    static void
-    jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize)
-    {
-        my_src_ptr src;
-        
-        if (cinfo->src == nullptr) // first time for this JPEG object?
-        {	
-            cinfo->src = (struct jpeg_source_mgr *)
-            (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof(my_source_mgr));
-        }
-        
-        src = (my_src_ptr) cinfo->src;
-        src->pub.init_source = init_source;
-        src->pub.fill_input_buffer = fill_input_buffer;
-        src->pub.skip_input_data = skip_input_data;
-        src->pub.resync_to_restart = jpeg_resync_to_restart; // use default method 
-        src->pub.term_source = term_source;
-        
-        src->pub.next_input_byte = buffer;
-        src->pub.bytes_in_buffer = bufsize;
-    }
-    
-    
-    struct my_error_mgr
-    {
-        struct jpeg_error_mgr pub;	// "public" fields 
-        jmp_buf setjmp_buffer;		// for return to caller
+        jpeg_error_mgr pub;
+        jmp_buf setjmp_buffer;
+        char message[JMSG_LENGTH_MAX];
+        bool reject_warnings = false;
     };
-    
-    
-    typedef struct my_error_mgr * my_error_ptr;
-    
-    
+
+
     static void
-    my_error_exit (j_common_ptr cinfo)
+    jpeg_error_exit(j_common_ptr cinfo)
     {
-        my_error_ptr myerr = (my_error_ptr) cinfo->err;
-        (*cinfo->err->output_message) (cinfo);
-        longjmp(myerr->setjmp_buffer, 1);
+        auto * error = reinterpret_cast<jpeg_error_context *>(cinfo->err);
+        (*cinfo->err->format_message)(cinfo, error->message);
+        longjmp(error->setjmp_buffer, 1);
     }
-    
-    
-    bool
-    jpeg_get_info(int & sizex, int & sizey, int & planes, char * data, long int size)
+
+
+    static void
+    jpeg_emit_message(j_common_ptr cinfo, int message_level)
     {
-        struct jpeg_decompress_struct cinfo;
-        struct my_error_mgr jerr;
-        
-        cinfo.err = jpeg_std_error(&jerr.pub);
-        jerr.pub.error_exit = my_error_exit;
-        
-        if (setjmp(jerr.setjmp_buffer))
+        if(message_level >= 0)
+            return;
+
+        auto * error = reinterpret_cast<jpeg_error_context *>(cinfo->err);
+        ++error->pub.num_warnings;
+        if(error->reject_warnings)
+            jpeg_error_exit(cinfo);
+    }
+
+
+    static void
+    validate_float_to_byte_range(float minimum, float maximum)
+    {
+        if(!std::isfinite(minimum) || !std::isfinite(maximum))
+            throw std::invalid_argument("JPEG conversion range must be finite.");
+        if(maximum < minimum)
+            throw std::invalid_argument("JPEG conversion maximum must not be less than its minimum.");
+        if(maximum > minimum && !std::isfinite(maximum - minimum))
+            throw std::invalid_argument("JPEG conversion range is too wide.");
+    }
+
+
+    static inline unsigned char
+    normalized_float_to_byte(float value, float minimum, float maximum, float scale) noexcept
+    {
+        if(!(value > minimum))
+            return 0;
+        if(value >= maximum)
+            return 255;
+        return static_cast<unsigned char>((value - minimum) * scale + 0.5f);
+    }
+
+
+    static void
+    float_to_byte(std::span<unsigned char> result, std::span<const float> source,
+                  float minimum, float maximum)
+    {
+        const std::size_t size = source.size();
+        if(maximum == minimum)
         {
-            jpeg_destroy_decompress(&cinfo);
-            sizex = 0;
-            sizey = 0;
-            planes = 0;
-            return false;
+            std::fill(result.begin(), result.end(), static_cast<unsigned char>(0));
+            return;
         }
 
-        jpeg_create_decompress(&cinfo);
-        jpeg_memory_src(&cinfo, (JOCTET *)data, size);
-        (void) jpeg_read_header(&cinfo, TRUE);
-        (void) jpeg_start_decompress(&cinfo);
-        
-        sizex  = cinfo.output_width;
-        sizey  = cinfo.output_height;
-        planes = cinfo.output_components;
-        return true;
+#if IKAROS_IMAGE_ACCELERATE
+        vImage_Buffer source_buffer =
+        {
+            const_cast<float *>(source.data()),
+            1,
+            static_cast<vImagePixelCount>(size),
+            size * sizeof(float),
+        };
+        vImage_Buffer result_buffer =
+        {
+            result.data(),
+            1,
+            static_cast<vImagePixelCount>(size),
+            size * sizeof(unsigned char),
+        };
+        if(vImageConvert_PlanarFtoPlanar8(&source_buffer, &result_buffer,
+                                          maximum, minimum, kvImageDoNotTile) == kvImageNoError)
+            return;
+#endif
+
+        const float scale = 255.0f / (maximum - minimum);
+        for(std::size_t i = 0; i < size; ++i)
+            result[i] = normalized_float_to_byte(source[i], minimum, maximum, scale);
     }
 
 
-    unsigned char *
-    create_color_jpeg(long int & size, matrix & image, int quality)
+    static void
+    float_rgb_to_byte(std::span<unsigned char> result,
+                      std::span<unsigned char> planar_buffer,
+                      std::span<const float> red, std::span<const float> green,
+                      std::span<const float> blue)
     {
-        size = 0;
+        const std::size_t size = red.size();
+#if IKAROS_IMAGE_ACCELERATE
+        const auto width = static_cast<vImagePixelCount>(size);
+        const auto float_row_bytes = size * sizeof(float);
+        const auto byte_row_bytes = size * sizeof(unsigned char);
+        vImage_Buffer source_red{const_cast<float *>(red.data()), 1, width, float_row_bytes};
+        vImage_Buffer source_green{const_cast<float *>(green.data()), 1, width, float_row_bytes};
+        vImage_Buffer source_blue{const_cast<float *>(blue.data()), 1, width, float_row_bytes};
+        vImage_Buffer planar_red{planar_buffer.data(), 1, width, byte_row_bytes};
+        vImage_Buffer planar_green{planar_buffer.data() + size, 1, width, byte_row_bytes};
+        vImage_Buffer planar_blue{planar_buffer.data() + 2 * size, 1, width, byte_row_bytes};
+        vImage_Buffer destination_buffer{result.data(), 1, width, 3 * byte_row_bytes};
 
-        if(image.rank() != 3 || image.size(0) != 3)
-            return nullptr;
+        if(vImageConvert_PlanarFtoPlanar8(&source_red, &planar_red, 1, 0,
+                                          kvImageDoNotTile) == kvImageNoError &&
+           vImageConvert_PlanarFtoPlanar8(&source_green, &planar_green, 1, 0,
+                                          kvImageDoNotTile) == kvImageNoError &&
+           vImageConvert_PlanarFtoPlanar8(&source_blue, &planar_blue, 1, 0,
+                                          kvImageDoNotTile) == kvImageNoError &&
+           vImageConvert_Planar8toRGB888(&planar_red, &planar_green, &planar_blue,
+                                         &destination_buffer, kvImageDoNotTile) == kvImageNoError)
+            return;
+#else
+        static_cast<void>(planar_buffer);
+#endif
 
-        float * r = image[0][0];
-        float * g = image[1][0];
-        float * b = image[2][0];
-        long sizex = image.size(2);
-        long sizey = image.shape()[1];
-
-        if (r == nullptr) return nullptr;
-        if (g == nullptr) return nullptr;
-        if (b == nullptr) return nullptr;
-        
-        JSAMPLE *   image_buffer = new JSAMPLE [3*sizex];
-        JSAMPROW    row_pointer[1];
-        
-        struct jpeg_compress_struct cinfo;
-        struct jpeg_error_mgr       jerr;
-        struct jpeg_destination     dst;
-        
-        //int    row_stride;				// physical row width in image buffer
-        
-        cinfo.err = jpeg_std_error(&jerr);
-        
-        jpeg_create_compress(&cinfo);	// Replace with ikaros error handler later
-        
-        cinfo.image_width = sizex; 	//* image width and height, in pixels
-        cinfo.image_height = sizey;
-        cinfo.input_components = 3;	// # of color components per pixel
-        cinfo.in_color_space = JCS_RGB;
-        
-        jpeg_set_defaults(&cinfo);
-        jpeg_set_quality(&cinfo, quality, true);
-        jpeg_set_destination(&cinfo, &dst);
-        
-        // Do the compression
-        
-        jpeg_start_compress(&cinfo, true);
-        
-        //row_stride = sizex * 3;		/* JSAMPLEs per row in image_buffer */
-        int j=0;
-        
-        float * rp = r;
-        float * gp = g;
-        float * bp = b;
-        
-        while (cinfo.next_scanline < cinfo.image_height)
+        unsigned char * destination = result.data();
+        for(std::size_t i = 0; i < size; ++i)
         {
-            int x = 0;
-            for (int i=0; i<sizex; i++)
+            *destination++ = normalized_float_to_byte(red[i], 0, 1, 255);
+            *destination++ = normalized_float_to_byte(green[i], 0, 1, 255);
+            *destination++ = normalized_float_to_byte(blue[i], 0, 1, 255);
+        }
+    }
+
+
+    template<bool MakeIntensity>
+    static void
+    rgb8_to_planar_float(const unsigned char * source, float * red, float * green,
+                         float * blue, float * intensity, std::size_t size) noexcept
+    {
+        constexpr float scale = 1.0f / 255.0f;
+        constexpr float one_third = 1.0f / 3.0f;
+        for(std::size_t i = 0; i < size; ++i)
+        {
+            const float red_value = source[3 * i] * scale;
+            const float green_value = source[3 * i + 1] * scale;
+            const float blue_value = source[3 * i + 2] * scale;
+            red[i] = red_value;
+            green[i] = green_value;
+            blue[i] = blue_value;
+            if constexpr(MakeIntensity)
+                intensity[i] = one_third * (red_value + green_value + blue_value);
+        }
+    }
+
+
+    class JpegCompressor
+    {
+    public:
+        JpegCompressor() = default;
+        JpegCompressor(const JpegCompressor &) = delete;
+        JpegCompressor & operator=(const JpegCompressor &) = delete;
+
+        ~JpegCompressor()
+        {
+            reset();
+        }
+
+        template<typename RowConverter>
+        jpeg_data encode(long width, long height, int components, J_COLOR_SPACE color_space,
+                         int quality, std::span<JSAMPLE> row, RowConverter && convert_row)
+        {
+            if(width <= 0 || height <= 0 ||
+               width > static_cast<long>(std::numeric_limits<JDIMENSION>::max()) ||
+               height > static_cast<long>(std::numeric_limits<JDIMENSION>::max()))
+                throw std::runtime_error("JPEG encoding failed: Invalid image dimensions");
+            if(quality < 1 || quality > 100)
+                throw std::invalid_argument("JPEG quality must be between 1 and 100");
+
+            cinfo_.err = jpeg_std_error(&error_.pub);
+            error_.pub.error_exit = jpeg_error_exit;
+            error_.pub.emit_message = jpeg_emit_message;
+            error_.reject_warnings = false;
+
+            if(setjmp(error_.setjmp_buffer))
             {
-                // IGNORE OVERFLOW
-                // float rr = (*rp < 0.0 ? 0.0 : (*rp > 1.0 ? 1.0 : *rp));
-                // float gg = (*gp < 0.0 ? 0.0 : (*gp > 1.0 ? 1.0 : *gp));
-                // float bb = (*bp < 0.0 ? 0.0 : (*bp > 1.0 ? 1.0 : *bp));
-
-                 // clipping |= (rr != r[j][i]) || (gg != g[j][i]) || (bb != b[j][i]);
-                
-                image_buffer[x++] = int(255.0*(*rp));
-                image_buffer[x++] = int(255.0*(*gp));
-                image_buffer[x++] = int(255.0*(*bp));
-                
-                rp++;
-                gp++;
-                bp++;
+                const std::string message(error_.message);
+                reset();
+                throw std::runtime_error("JPEG encoding failed: " + message);
             }
-            
-            // Write to compressor
-            row_pointer[0] = image_buffer;
-            (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-            j++;
+
+            created_ = true;
+            jpeg_create_compress(&cinfo_);
+
+            cinfo_.image_width = static_cast<JDIMENSION>(width);
+            cinfo_.image_height = static_cast<JDIMENSION>(height);
+            cinfo_.input_components = components;
+            cinfo_.in_color_space = color_space;
+
+            const std::size_t pixel_count = checked_pixel_count(width, height);
+            // Very high-quality JPEGs can approach two compressed bytes per pixel.
+            const unsigned long bytes_per_pixel = quality > 90 ? 2 : 1;
+            if(pixel_count > std::numeric_limits<unsigned long>::max() / bytes_per_pixel)
+                throw std::length_error("JPEG output capacity overflow");
+            output_size_ = std::max<unsigned long>(4096,
+                                                   static_cast<unsigned long>(pixel_count) *
+                                                       bytes_per_pixel);
+            output_buffer_ = static_cast<unsigned char *>(std::malloc(output_size_));
+            if(output_buffer_ == nullptr)
+                throw std::bad_alloc();
+            jpeg_mem_dest(&cinfo_, &output_buffer_, &output_size_);
+
+            jpeg_set_defaults(&cinfo_);
+            jpeg_set_quality(&cinfo_, quality, TRUE);
+            jpeg_start_compress(&cinfo_, TRUE);
+
+            while(cinfo_.next_scanline < cinfo_.image_height)
+            {
+                convert_row(cinfo_.next_scanline, row);
+                JSAMPROW row_pointer = row.data();
+                jpeg_write_scanlines(&cinfo_, &row_pointer, 1);
+            }
+
+            jpeg_finish_compress(&cinfo_);
+            jpeg_data result(output_buffer_, static_cast<std::size_t>(output_size_));
+            output_buffer_ = nullptr;
+            reset();
+            return result;
         }
-        jpeg_finish_compress(&cinfo);
-        jpeg_destroy_compress(&cinfo);
-        
-        delete [] image_buffer;
-        
-        size = dst.used;
-        return dst.buffer;
-    }
+
+    private:
+        static std::size_t checked_pixel_count(long width, long height)
+        {
+            const auto unsigned_width = static_cast<std::size_t>(width);
+            const auto unsigned_height = static_cast<std::size_t>(height);
+            if(unsigned_height > std::numeric_limits<std::size_t>::max() / unsigned_width)
+                throw std::length_error("JPEG image size overflow");
+            return unsigned_width * unsigned_height;
+        }
+
+        void reset() noexcept
+        {
+            if(created_)
+                jpeg_destroy_compress(&cinfo_);
+            created_ = false;
+            std::free(output_buffer_);
+            output_buffer_ = nullptr;
+            output_size_ = 0;
+        }
+
+        jpeg_compress_struct cinfo_{};
+        jpeg_error_context error_{};
+        unsigned char * output_buffer_ = nullptr;
+        unsigned long output_size_ = 0;
+        bool created_ = false;
+    };
 
 
-  void 
-    jpeg_get_size(int & sizex, int & sizey, std::filesystem::path filename)
+    jpeg_data
+    create_gray_jpeg(const matrix & image, float minimum, float maximum, int quality)
     {
-        FILE * infile;
-        if ((infile = fopen(filename.c_str(), "rb")) == nullptr) {
-            throw std::runtime_error("Can't open " + filename.string());
-        }
+        if(image.rank() != 2)
+            return {};
+        validate_float_to_byte_range(minimum, maximum);
 
-        struct jpeg_decompress_struct cinfo;
-        struct jpeg_error_mgr jerr;
-
-        cinfo.err = jpeg_std_error(&jerr);
-        jpeg_create_decompress(&cinfo);
-        jpeg_stdio_src(&cinfo, infile);
-        jpeg_read_header(&cinfo, TRUE);
-
-        sizex = cinfo.image_width;
-        sizey = cinfo.image_height;
-
-        jpeg_destroy_decompress(&cinfo);
-        fclose(infile);
+        const long width = image.size(1);
+        const long height = image.size(0);
+        std::vector<JSAMPLE> image_row(static_cast<std::size_t>(width));
+        JpegCompressor compressor;
+        return compressor.encode(width, height, 1, JCS_GRAYSCALE, quality, image_row,
+                                 [&](JDIMENSION row, std::span<JSAMPLE> destination)
+                                 {
+                                     const auto source = std::span(
+                                         image.logical_block_data(static_cast<int>(row)),
+                                         static_cast<std::size_t>(width));
+                                     float_to_byte(destination, source, minimum, maximum);
+                                 });
     }
-
-    int 
-    jpeg_get_channels(std::filesystem::path filename)
+    
+    
+    jpeg_data
+    create_pseudocolor_jpeg(const matrix & image, float minimum, float maximum,
+                            std::string_view table, int quality)
     {
-        FILE * infile;
-        if ((infile = fopen(filename.c_str(), "rb")) == nullptr) {
-            throw std::runtime_error("Can't open " + filename.string());
-        }
+        if(image.rank() != 2)
+            return {};
+        const image_color_tables::ColorTable * colors =
+            image_color_tables::find_color_table(table);
+        if(colors == nullptr)
+            return {};
+        validate_float_to_byte_range(minimum, maximum);
 
-        struct jpeg_decompress_struct cinfo;
-        struct jpeg_error_mgr jerr;
-
-        cinfo.err = jpeg_std_error(&jerr);
-        jpeg_create_decompress(&cinfo);
-        jpeg_stdio_src(&cinfo, infile);
-        jpeg_read_header(&cinfo, TRUE);
-
-        int channels = cinfo.num_components;
-
-        jpeg_destroy_decompress(&cinfo);
-        fclose(infile);
-
-        return channels;
+        const long width = image.size(1);
+        const long height = image.size(0);
+        const std::size_t row_width = static_cast<std::size_t>(width);
+        std::vector<JSAMPLE> image_row(3 * row_width);
+        std::vector<unsigned char> normalized_row(row_width);
+        JpegCompressor compressor;
+        return compressor.encode(width, height, 3, JCS_RGB, quality, image_row,
+                                 [&](JDIMENSION row, std::span<JSAMPLE> destination)
+                                 {
+                                     const auto source = std::span(
+                                         image.logical_block_data(static_cast<int>(row)),
+                                         row_width);
+                                     float_to_byte(normalized_row, source, minimum, maximum);
+                                     for(std::size_t x = 0; x < row_width; ++x)
+                                     {
+                                         const auto & color = (*colors)[normalized_row[x]];
+                                         destination[3 * x] = static_cast<JSAMPLE>(color[0]);
+                                         destination[3 * x + 1] = static_cast<JSAMPLE>(color[1]);
+                                         destination[3 * x + 2] = static_cast<JSAMPLE>(color[2]);
+                                     }
+                                 });
     }
+    jpeg_data
+    create_color_jpeg(const matrix & image, int quality)
+    {
+        if(image.rank() != 3 || image.size(0) != 3)
+            return {};
+
+        const long width = image.size(2);
+        const long height = image.size(1);
+        const std::size_t row_width = static_cast<std::size_t>(width);
+        std::vector<JSAMPLE> image_storage((IKAROS_IMAGE_ACCELERATE ? 6 : 3) * row_width);
+        std::span<JSAMPLE> image_row(image_storage.data(), 3 * row_width);
+        std::span<JSAMPLE> planar_buffer;
+#if IKAROS_IMAGE_ACCELERATE
+        planar_buffer = std::span(image_storage).subspan(3 * row_width);
+#endif
+
+        JpegCompressor compressor;
+        return compressor.encode(width, height, 3, JCS_RGB, quality, image_row,
+                                 [&](JDIMENSION row, std::span<JSAMPLE> destination)
+                                 {
+                                     const auto row_index = static_cast<int>(row);
+                                     const auto red = std::span(
+                                         image.logical_block_data(row_index), row_width);
+                                     const auto green = std::span(
+                                         image.logical_block_data(static_cast<int>(height) +
+                                                                  row_index),
+                                         row_width);
+                                     const auto blue = std::span(
+                                         image.logical_block_data(2 * static_cast<int>(height) +
+                                                                  row_index),
+                                         row_width);
+                                     float_rgb_to_byte(destination, planar_buffer,
+                                                       red, green, blue);
+                                 });
+    }
+
+
+    static jpeg_data
+    encode_jpeg_image(const matrix & image, int quality)
+    {
+        if(image.rank() == 2)
+            return create_gray_jpeg(image, 0, 1, quality);
+        if(image.rank() == 3 && image.size(0) == 3)
+            return create_color_jpeg(image, quality);
+        throw std::invalid_argument(
+            "JPEG image must have shape [height, width] or [3, height, width]");
+    }
+
 
     void
-    jpeg_get_image(matrix & red, matrix & green, matrix & blue, std::filesystem::path filename)
+    jpeg_write_image(const matrix & image, const std::filesystem::path & filename,
+                     int quality)
     {
-        FILE * infile;
-        if ((infile = fopen(filename.c_str(), "rb")) == nullptr) {
-            throw std::runtime_error("Can't open " + filename.string());
+        const jpeg_data encoded = encode_jpeg_image(image, quality);
+        if(encoded.size() > static_cast<std::size_t>(
+                                std::numeric_limits<std::streamsize>::max()))
+            throw std::length_error("JPEG file is too large to write");
+
+        std::ofstream file(filename, std::ios::binary | std::ios::trunc);
+        if(!file)
+            throw std::runtime_error("Could not open JPEG file for writing: \"" +
+                                     filename.string() + "\"");
+
+        file.write(reinterpret_cast<const char *>(encoded.data()),
+                   static_cast<std::streamsize>(encoded.size()));
+        file.close();
+        if(!file)
+            throw std::runtime_error("Could not write JPEG file: \"" +
+                                     filename.string() + "\"");
+    }
+
+
+    struct FileCloser
+    {
+        void operator()(FILE * file) const noexcept
+        {
+            if(file != nullptr)
+                std::fclose(file);
+        }
+    };
+
+
+    class JpegDecompressor
+    {
+    public:
+        JpegDecompressor() = default;
+        JpegDecompressor(const JpegDecompressor &) = delete;
+        JpegDecompressor & operator=(const JpegDecompressor &) = delete;
+
+        ~JpegDecompressor()
+        {
+            reset();
         }
 
-        struct jpeg_decompress_struct cinfo;
-        struct jpeg_error_mgr jerr;
+        template<typename Operation>
+        std::invoke_result_t<Operation &, jpeg_decompress_struct &>
+        read(const std::filesystem::path & filename, bool reject_warnings,
+             Operation && operation)
+        {
+            file_.reset(std::fopen(filename.string().c_str(), "rb"));
+            if(file_ == nullptr)
+                throw std::runtime_error("Can't open " + filename.string());
 
-        cinfo.err = jpeg_std_error(&jerr);
-        jpeg_create_decompress(&cinfo);
-        jpeg_stdio_src(&cinfo, infile);
-        jpeg_read_header(&cinfo, TRUE);
-        jpeg_start_decompress(&cinfo);
+            cinfo_.err = jpeg_std_error(&error_.pub);
+            error_.pub.error_exit = jpeg_error_exit;
+            error_.pub.emit_message = jpeg_emit_message;
+            error_.reject_warnings = reject_warnings;
 
-        int width = cinfo.output_width;
-        int height = cinfo.output_height;
-        int row_stride = width * cinfo.output_components;
-
-        // Resize matrices
-        red.resize(height, width);
-        green.resize(height, width);
-        blue.resize(height, width);
-
-        JSAMPARRAY buffer = (*cinfo.mem->alloc_sarray)
-            ((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
-
-        int row = 0;
-        while (cinfo.output_scanline < cinfo.output_height) {
-            jpeg_read_scanlines(&cinfo, buffer, 1);
-            
-            for (int x = 0; x < width; x++) {
-                red[row][x] = buffer[0][x*3] / 255.0f;
-                green[row][x] = buffer[0][x*3+1] / 255.0f;
-                blue[row][x] = buffer[0][x*3+2] / 255.0f;
+            if(setjmp(error_.setjmp_buffer))
+            {
+                const std::string message(error_.message);
+                reset();
+                throw std::runtime_error("JPEG read failed for \"" + filename.string() +
+                                         "\": " + message);
             }
-            row++;
+
+            created_ = true;
+            jpeg_create_decompress(&cinfo_);
+            jpeg_stdio_src(&cinfo_, file_.get());
+            jpeg_read_header(&cinfo_, TRUE);
+
+            using Result = std::invoke_result_t<Operation &, jpeg_decompress_struct &>;
+            if constexpr(std::is_void_v<Result>)
+            {
+                operation(cinfo_);
+                reset();
+            }
+            else
+            {
+                Result result = operation(cinfo_);
+                reset();
+                return result;
+            }
         }
 
-        jpeg_finish_decompress(&cinfo);
-        jpeg_destroy_decompress(&cinfo);
-        fclose(infile);
+    private:
+        void reset() noexcept
+        {
+            if(created_)
+                jpeg_destroy_decompress(&cinfo_);
+            created_ = false;
+            file_.reset();
+        }
+
+        jpeg_decompress_struct cinfo_{};
+        jpeg_error_context error_{};
+        std::unique_ptr<FILE, FileCloser> file_;
+        bool created_ = false;
+    };
+
+
+    static int
+    checked_jpeg_dimension(JDIMENSION value, const std::filesystem::path & filename)
+    {
+        if(value > static_cast<JDIMENSION>(std::numeric_limits<int>::max()))
+            throw std::runtime_error("JPEG dimensions exceed matrix limits for \"" +
+                                     filename.string() + "\"");
+        return static_cast<int>(value);
+    }
+
+
+    image_info
+    jpeg_get_info(const std::filesystem::path & filename)
+    {
+        JpegDecompressor decompressor;
+        return decompressor.read(filename, false,
+                                 [&filename](const jpeg_decompress_struct & cinfo)
+        {
+            return image_info
+            {
+                checked_jpeg_dimension(cinfo.image_width, filename),
+                checked_jpeg_dimension(cinfo.image_height, filename),
+                cinfo.num_components,
+            };
+        });
+    }
+
+
+    static void
+    prepare_image_destinations(matrix & image, matrix * intensity, int height, int width,
+                               const std::filesystem::path & filename)
+    {
+        if(intensity == &image)
+            throw std::invalid_argument(
+                "RGB and intensity destinations must be different matrices");
+        if(!image.is_uninitialized() &&
+           (image.rank() != 3 || image.size(0) != 3 ||
+            image.size(1) != height || image.size(2) != width))
+            throw std::invalid_argument("RGB image destination has the wrong shape for \"" +
+                                        filename.string() + "\"");
+        if(intensity != nullptr && !intensity->is_uninitialized() &&
+           (intensity->rank() != 2 || intensity->size(0) != height ||
+            intensity->size(1) != width))
+            throw std::invalid_argument(
+                "Intensity image destination has the wrong shape for \"" +
+                filename.string() + "\"");
+
+        if(image.is_uninitialized())
+            image.realloc(3, height, width);
+        if(intensity != nullptr && intensity->is_uninitialized())
+            intensity->realloc(height, width);
+    }
+
+
+    template<bool MakeIntensity>
+    static void
+    jpeg_get_image_impl(matrix & image, matrix * intensity,
+                        const std::filesystem::path & filename)
+    {
+        JpegDecompressor decompressor;
+        decompressor.read(filename, true, [&](jpeg_decompress_struct & cinfo)
+        {
+            cinfo.out_color_space = JCS_RGB;
+            jpeg_start_decompress(&cinfo);
+
+            if(cinfo.output_components != 3)
+                throw std::runtime_error("JPEG decoder did not produce RGB output for \"" +
+                                         filename.string() + "\"");
+            if(cinfo.output_width > static_cast<JDIMENSION>(std::numeric_limits<int>::max()) ||
+               cinfo.output_height > static_cast<JDIMENSION>(std::numeric_limits<int>::max()))
+                throw std::runtime_error("JPEG dimensions exceed matrix limits for \"" +
+                                         filename.string() + "\"");
+
+            const int width = static_cast<int>(cinfo.output_width);
+            const int height = static_cast<int>(cinfo.output_height);
+            const JDIMENSION row_stride = cinfo.output_width * cinfo.output_components;
+
+            prepare_image_destinations(image, intensity, height, width, filename);
+
+            JSAMPARRAY buffer = (*cinfo.mem->alloc_sarray)(
+                reinterpret_cast<j_common_ptr>(&cinfo), JPOOL_IMAGE, row_stride, 1);
+
+            int row = 0;
+            while(cinfo.output_scanline < cinfo.output_height)
+            {
+                jpeg_read_scanlines(&cinfo, buffer, 1);
+                float * red_row = image.logical_block_data(row);
+                float * green_row = image.logical_block_data(height + row);
+                float * blue_row = image.logical_block_data(2 * height + row);
+                float * intensity_row = nullptr;
+                if constexpr(MakeIntensity)
+                    intensity_row = intensity->logical_block_data(row);
+                rgb8_to_planar_float<MakeIntensity>(
+                    buffer[0], red_row, green_row, blue_row, intensity_row,
+                    static_cast<std::size_t>(width));
+                ++row;
+            }
+
+            jpeg_finish_decompress(&cinfo);
+        });
+    }
+
+
+    void
+    jpeg_get_image(matrix & image, const std::filesystem::path & filename)
+    {
+        jpeg_get_image_impl<false>(image, nullptr, filename);
+    }
+
+
+    void
+    jpeg_get_image(matrix & image, matrix & intensity,
+                   const std::filesystem::path & filename)
+    {
+        jpeg_get_image_impl<true>(image, &intensity, filename);
+    }
+
+
+    matrix
+    jpeg_get_image(const std::filesystem::path & filename)
+    {
+        matrix image;
+        jpeg_get_image(image, filename);
+        return image;
     }
 
     //
     // PNG Images
     //
 
-        void    
-        png_get_size(int & sizex, int & sizey, std::filesystem::path filename)
-        {
-            FILE *fp = fopen(filename.c_str(), "rb");
-            if (!fp) {
-                throw std::runtime_error("Cannot open file: " + filename.string());
-            }
-
-            unsigned char header[8];
-            fread(header, 1, 8, fp);
-            if (png_sig_cmp(header, 0, 8)) {
-                fclose(fp);
-                throw std::runtime_error("Not a PNG file: " + filename.string());
-            }
-
-            png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-            if (!png) {
-                fclose(fp);
-                throw std::runtime_error("Failed to create PNG read struct");
-            }
-
-            png_infop info = png_create_info_struct(png);
-            if (!info) {
-                png_destroy_read_struct(&png, nullptr, nullptr);
-                fclose(fp);
-                throw std::runtime_error("Failed to create PNG info struct");
-            }
-
-            if (setjmp(png_jmpbuf(png))) {
-                png_destroy_read_struct(&png, &info, nullptr);
-                fclose(fp);
-                throw std::runtime_error("Error during PNG read");
-            }
-
-            png_init_io(png, fp);
-            png_set_sig_bytes(png, 8);
-            png_read_info(png, info);
-
-            sizex = png_get_image_width(png, info);
-            sizey = png_get_image_height(png, info);
-
-            png_destroy_read_struct(&png, &info, nullptr);
-            fclose(fp);
-        }
-
-
-        int     
-        png_get_channels(std::filesystem::path filename)
-        {
-            FILE *fp = fopen(filename.c_str(), "rb");
-            if (!fp) {
-                throw std::runtime_error("Cannot open file: " + filename.string());
-            }
-
-            unsigned char header[8];
-            fread(header, 1, 8, fp);
-            if (png_sig_cmp(header, 0, 8)) {
-                fclose(fp);
-                throw std::runtime_error("Not a PNG file: " + filename.string());
-            }
-
-            png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-            png_infop info = png_create_info_struct(png);
-
-            if (setjmp(png_jmpbuf(png))) {
-                png_destroy_read_struct(&png, &info, nullptr);
-                fclose(fp);
-                throw std::runtime_error("Error during PNG read");
-            }
-
-            png_init_io(png, fp);
-            png_set_sig_bytes(png, 8);
-            png_read_info(png, info);
-
-            int channels = png_get_channels(png, info);
-
-            png_destroy_read_struct(&png, &info, nullptr);
-            fclose(fp);
-
-            return channels;
-        }
-
-
-
-         void   
-         png_get_image(matrix & red, matrix & green, matrix & blue, std::filesystem::path filename)
-         {
- FILE *fp = fopen(filename.c_str(), "rb");
-    if (!fp) {
-        throw std::runtime_error("Cannot open file: " + filename.string());
-    }
-
-    unsigned char header[8];
-    fread(header, 1, 8, fp);
-    if (png_sig_cmp(header, 0, 8)) {
-        fclose(fp);
-        throw std::runtime_error("Not a PNG file: " + filename.string());
-    }
-
-    png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-    png_infop info = png_create_info_struct(png);
-
-    if (setjmp(png_jmpbuf(png))) {
-        png_destroy_read_struct(&png, &info, nullptr);
-        fclose(fp);
-        throw std::runtime_error("Error during PNG read");
-    }
-
-    png_init_io(png, fp);
-    png_set_sig_bytes(png, 8);
-    png_read_info(png, info);
-
-    int width = png_get_image_width(png, info);
-    int height = png_get_image_height(png, info);
-    int color_type = png_get_color_type(png, info);
-    int bit_depth = png_get_bit_depth(png, info);
-
-    if (color_type == PNG_COLOR_TYPE_PALETTE)
-        png_set_palette_to_rgb(png);
-    if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
-        png_set_expand_gray_1_2_4_to_8(png);
-    if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-        png_set_gray_to_rgb(png);
-    if (png_get_valid(png, info, PNG_INFO_tRNS))
-        png_set_tRNS_to_alpha(png);
-    if (bit_depth == 16)
-        png_set_strip_16(png);
-    if (color_type & PNG_COLOR_MASK_ALPHA || png_get_valid(png, info, PNG_INFO_tRNS))
-        png_set_strip_alpha(png);
-
-    png_read_update_info(png, info);
-    if(png_get_channels(png, info) != 3)
+#if IKAROS_HAS_PNG
+    struct png_error_context
     {
-        png_destroy_read_struct(&png, &info, nullptr);
-        fclose(fp);
-        throw std::runtime_error("Unsupported PNG color format: " + filename.string());
-    }
+        char message[256]{};
+    };
 
-    // Allocate memory for the row pointers
-    png_bytep *row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
-    if(row_pointers == nullptr)
+
+    static void
+    png_error_exit(png_structp png, png_const_charp message)
     {
-        png_destroy_read_struct(&png, &info, nullptr);
-        fclose(fp);
-        throw std::runtime_error("Could not allocate PNG row pointers");
+        auto * error = static_cast<png_error_context *>(png_get_error_ptr(png));
+        if(error != nullptr)
+            std::snprintf(error->message, sizeof(error->message), "%s",
+                          message == nullptr ? "unknown libpng error" : message);
+        png_longjmp(png, 1);
     }
-    for(int y = 0; y < height; y++) {
-        row_pointers[y] = (png_byte*)malloc(png_get_rowbytes(png, info));
-        if(row_pointers[y] == nullptr)
+
+
+    class PngReader
+    {
+    public:
+        PngReader() = default;
+        PngReader(const PngReader &) = delete;
+        PngReader & operator=(const PngReader &) = delete;
+
+        ~PngReader()
         {
-            for(int i = 0; i < y; i++)
-                free(row_pointers[i]);
-            free(row_pointers);
-            png_destroy_read_struct(&png, &info, nullptr);
-            fclose(fp);
-            throw std::runtime_error("Could not allocate PNG row");
+            reset();
+        }
+
+        template<typename Operation>
+        std::invoke_result_t<Operation &, png_structp, png_infop, PngReader &>
+        read(const std::filesystem::path & filename, Operation && operation)
+        {
+            file_.reset(std::fopen(filename.string().c_str(), "rb"));
+            if(file_ == nullptr)
+                throw std::runtime_error("Can't open PNG file \"" + filename.string() + "\"");
+
+            png_byte signature[8]{};
+            if(std::fread(signature, 1, sizeof(signature), file_.get()) != sizeof(signature))
+                throw std::runtime_error("PNG read failed for \"" + filename.string() +
+                                         "\": incomplete file signature");
+            if(png_sig_cmp(signature, 0, sizeof(signature)) != 0)
+                throw std::runtime_error("PNG read failed for \"" + filename.string() +
+                                         "\": invalid file signature");
+
+            error_.message[0] = '\0';
+            png_ = png_create_read_struct(PNG_LIBPNG_VER_STRING, &error_,
+                                          png_error_exit, nullptr);
+            if(png_ == nullptr)
+                throw std::runtime_error("PNG read failed for \"" + filename.string() +
+                                         "\": could not create the read structure");
+
+            if(setjmp(png_jmpbuf(png_)))
+            {
+                const std::string message = error_.message[0] == '\0' ?
+                                            "unknown libpng error" : error_.message;
+                reset();
+                throw std::runtime_error("PNG read failed for \"" + filename.string() +
+                                         "\": " + message);
+            }
+
+            info_ = png_create_info_struct(png_);
+            if(info_ == nullptr)
+                throw std::runtime_error("PNG read failed for \"" + filename.string() +
+                                         "\": could not create the info structure");
+
+            png_init_io(png_, file_.get());
+            png_set_sig_bytes(png_, sizeof(signature));
+            png_read_info(png_, info_);
+
+            using Result = std::invoke_result_t<Operation &, png_structp, png_infop,
+                                                PngReader &>;
+            if constexpr(std::is_void_v<Result>)
+            {
+                operation(png_, info_, *this);
+                reset();
+            }
+            else
+            {
+                Result result = operation(png_, info_, *this);
+                reset();
+                return result;
+            }
+        }
+
+        png_bytepp
+        allocate_rows(png_uint_32 height, png_size_t row_bytes)
+        {
+            if(height != 0 && row_bytes > std::numeric_limits<std::size_t>::max() / height)
+                throw std::runtime_error("PNG image dimensions exceed addressable memory");
+
+            pixels_.resize(static_cast<std::size_t>(height) * row_bytes);
+            rows_.resize(height);
+            for(png_uint_32 row = 0; row < height; ++row)
+                rows_[row] = pixels_.data() + static_cast<std::size_t>(row) * row_bytes;
+            return rows_.data();
+        }
+
+    private:
+        void
+        reset() noexcept
+        {
+            if(png_ != nullptr)
+                png_destroy_read_struct(&png_, info_ == nullptr ? nullptr : &info_, nullptr);
+            info_ = nullptr;
+            rows_.clear();
+            pixels_.clear();
+            file_.reset();
+        }
+
+        png_error_context error_;
+        std::unique_ptr<FILE, FileCloser> file_;
+        png_structp png_ = nullptr;
+        png_infop info_ = nullptr;
+        std::vector<png_byte> pixels_;
+        std::vector<png_bytep> rows_;
+    };
+
+
+    static int
+    checked_png_dimension(png_uint_32 value, const std::filesystem::path & filename)
+    {
+        if(value > static_cast<png_uint_32>(std::numeric_limits<int>::max()))
+            throw std::runtime_error("PNG dimensions exceed matrix limits for \"" +
+                                     filename.string() + "\"");
+        return static_cast<int>(value);
+    }
+
+
+    image_info
+    png_get_info(const std::filesystem::path & filename)
+    {
+        PngReader reader;
+        return reader.read(filename, [&filename](png_structp png, png_infop info, PngReader &)
+        {
+            return image_info
+            {
+                checked_png_dimension(png_get_image_width(png, info), filename),
+                checked_png_dimension(png_get_image_height(png, info), filename),
+                png_get_channels(png, info),
+            };
+        });
+    }
+
+
+    template<bool MakeIntensity>
+    static void
+    png_get_image_impl(matrix & image, matrix * intensity,
+                       const std::filesystem::path & filename)
+    {
+        PngReader reader;
+        reader.read(filename, [&](png_structp png, png_infop info, PngReader & png_reader)
+        {
+            const int width = checked_png_dimension(png_get_image_width(png, info), filename);
+            const int height = checked_png_dimension(png_get_image_height(png, info), filename);
+            const int color_type = png_get_color_type(png, info);
+            const int bit_depth = png_get_bit_depth(png, info);
+
+            if(color_type == PNG_COLOR_TYPE_PALETTE)
+                png_set_palette_to_rgb(png);
+            if(color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
+                png_set_expand_gray_1_2_4_to_8(png);
+            if(color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+                png_set_gray_to_rgb(png);
+            if(png_get_valid(png, info, PNG_INFO_tRNS))
+                png_set_tRNS_to_alpha(png);
+            if(bit_depth == 16)
+                png_set_strip_16(png);
+            if((color_type & PNG_COLOR_MASK_ALPHA) ||
+               png_get_valid(png, info, PNG_INFO_tRNS))
+                png_set_strip_alpha(png);
+            if(png_get_interlace_type(png, info) == PNG_INTERLACE_ADAM7)
+                png_set_interlace_handling(png);
+
+            png_read_update_info(png, info);
+            if(png_get_channels(png, info) != 3 || png_get_bit_depth(png, info) != 8)
+                throw std::runtime_error("Unsupported PNG color format for \"" +
+                                         filename.string() + "\"");
+
+            const png_size_t row_bytes = png_get_rowbytes(png, info);
+            const png_size_t expected_row_bytes = static_cast<png_size_t>(width) * 3;
+            if(row_bytes != expected_row_bytes)
+                throw std::runtime_error("Unexpected PNG row layout for \"" +
+                                         filename.string() + "\"");
+
+            png_bytepp rows = png_reader.allocate_rows(static_cast<png_uint_32>(height),
+                                                        row_bytes);
+            png_read_image(png, rows);
+            png_read_end(png, info);
+
+            prepare_image_destinations(image, intensity, height, width, filename);
+
+            for(int y = 0; y < height; ++y)
+            {
+                const png_bytep row = rows[y];
+                float * red_row = image.logical_block_data(y);
+                float * green_row = image.logical_block_data(height + y);
+                float * blue_row = image.logical_block_data(2 * height + y);
+                float * intensity_row = nullptr;
+                if constexpr(MakeIntensity)
+                    intensity_row = intensity->logical_block_data(y);
+                rgb8_to_planar_float<MakeIntensity>(
+                    row, red_row, green_row, blue_row, intensity_row,
+                    static_cast<std::size_t>(width));
+            }
+        });
+    }
+
+
+    void
+    png_get_image(matrix & image, const std::filesystem::path & filename)
+    {
+        png_get_image_impl<false>(image, nullptr, filename);
+    }
+
+
+    void
+    png_get_image(matrix & image, matrix & intensity,
+                  const std::filesystem::path & filename)
+    {
+        png_get_image_impl<true>(image, &intensity, filename);
+    }
+
+
+    matrix
+    png_get_image(const std::filesystem::path & filename)
+    {
+        matrix image;
+        png_get_image(image, filename);
+        return image;
+    }
+
+
+    class PngWriter
+    {
+    public:
+        PngWriter() = default;
+        PngWriter(const PngWriter &) = delete;
+        PngWriter & operator=(const PngWriter &) = delete;
+
+        ~PngWriter()
+        {
+            reset();
+        }
+
+        void
+        write(const matrix & image, const std::filesystem::path & filename)
+        {
+            const bool grayscale = image.rank() == 2;
+            if(!grayscale && (image.rank() != 3 || image.size(0) != 3))
+                throw std::invalid_argument(
+                    "PNG image must have shape [height, width] or [3, height, width]");
+
+            const int height = image.size(grayscale ? 0 : 1);
+            const int width = image.size(grayscale ? 1 : 2);
+            if(width <= 0 || height <= 0)
+                throw std::invalid_argument("PNG image dimensions must be positive");
+
+            file_.reset(std::fopen(filename.string().c_str(), "wb"));
+            if(file_ == nullptr)
+                throw std::runtime_error("Could not open PNG file for writing: \"" +
+                                         filename.string() + "\"");
+
+            error_.message[0] = '\0';
+            png_ = png_create_write_struct(PNG_LIBPNG_VER_STRING, &error_,
+                                           png_error_exit, nullptr);
+            if(png_ == nullptr)
+                throw std::runtime_error("PNG write failed for \"" + filename.string() +
+                                         "\": could not create the write structure");
+
+            if(setjmp(png_jmpbuf(png_)))
+            {
+                const std::string message = error_.message[0] == '\0' ?
+                                            "unknown libpng error" : error_.message;
+                reset();
+                throw std::runtime_error("PNG write failed for \"" + filename.string() +
+                                         "\": " + message);
+            }
+
+            info_ = png_create_info_struct(png_);
+            if(info_ == nullptr)
+                throw std::runtime_error("PNG write failed for \"" + filename.string() +
+                                         "\": could not create the info structure");
+
+            png_init_io(png_, file_.get());
+            png_set_IHDR(png_, info_, static_cast<png_uint_32>(width),
+                         static_cast<png_uint_32>(height), 8,
+                         grayscale ? PNG_COLOR_TYPE_GRAY : PNG_COLOR_TYPE_RGB,
+                         PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
+                         PNG_FILTER_TYPE_DEFAULT);
+            png_write_info(png_, info_);
+
+            const std::size_t row_width = static_cast<std::size_t>(width);
+            row_storage_.resize((grayscale ? 1 : (IKAROS_IMAGE_ACCELERATE ? 6 : 3)) *
+                                row_width);
+            std::span<unsigned char> row(row_storage_.data(),
+                                         (grayscale ? 1 : 3) * row_width);
+            std::span<unsigned char> planar_buffer;
+#if IKAROS_IMAGE_ACCELERATE
+            if(!grayscale)
+                planar_buffer = std::span(row_storage_).subspan(3 * row_width);
+#endif
+
+            for(int y = 0; y < height; ++y)
+            {
+                if(grayscale)
+                {
+                    const auto source = std::span(image.logical_block_data(y), row_width);
+                    float_to_byte(row, source, 0, 1);
+                }
+                else
+                {
+                    const auto red = std::span(image.logical_block_data(y), row_width);
+                    const auto green = std::span(image.logical_block_data(height + y),
+                                                 row_width);
+                    const auto blue = std::span(image.logical_block_data(2 * height + y),
+                                                row_width);
+                    float_rgb_to_byte(row, planar_buffer, red, green, blue);
+                }
+                png_write_row(png_, row.data());
+            }
+            png_write_end(png_, info_);
+            finish(filename);
+        }
+
+    private:
+        void
+        finish(const std::filesystem::path & filename)
+        {
+            if(png_ != nullptr)
+                png_destroy_write_struct(&png_, info_ == nullptr ? nullptr : &info_);
+            info_ = nullptr;
+            row_storage_.clear();
+
+            FILE * file = file_.release();
+            if(file != nullptr && std::fclose(file) != 0)
+                throw std::runtime_error("Could not finish writing PNG file: \"" +
+                                         filename.string() + "\"");
+        }
+
+
+        void
+        reset() noexcept
+        {
+            if(png_ != nullptr)
+                png_destroy_write_struct(&png_, info_ == nullptr ? nullptr : &info_);
+            info_ = nullptr;
+            row_storage_.clear();
+            file_.reset();
+        }
+
+        png_error_context error_;
+        std::unique_ptr<FILE, FileCloser> file_;
+        png_structp png_ = nullptr;
+        png_infop info_ = nullptr;
+        std::vector<png_byte> row_storage_;
+    };
+
+
+    void
+    png_write_image(const matrix & image, const std::filesystem::path & filename)
+    {
+        PngWriter writer;
+        writer.write(image, filename);
+    }
+#else
+    [[noreturn]] static void
+    throw_png_unavailable()
+    {
+        throw std::runtime_error("PNG support is unavailable in this Ikaros build");
+    }
+
+
+    image_info
+    png_get_info(const std::filesystem::path &)
+    {
+        throw_png_unavailable();
+    }
+
+
+    void
+    png_get_image(matrix &, const std::filesystem::path &)
+    {
+        throw_png_unavailable();
+    }
+
+
+    void
+    png_get_image(matrix &, matrix &, const std::filesystem::path &)
+    {
+        throw_png_unavailable();
+    }
+
+
+    matrix
+    png_get_image(const std::filesystem::path &)
+    {
+        throw_png_unavailable();
+    }
+
+
+    void
+    png_write_image(const matrix &, const std::filesystem::path &)
+    {
+        throw_png_unavailable();
+    }
+#endif
+
+
+    static std::size_t
+    checked_image_storage_size(int width, int height, std::size_t components,
+                               std::string_view format)
+    {
+        if(width <= 0 || height <= 0)
+            throw std::invalid_argument(std::string(format) +
+                                        " image dimensions must be positive");
+
+        const std::size_t unsigned_width = static_cast<std::size_t>(width);
+        const std::size_t unsigned_height = static_cast<std::size_t>(height);
+        if(unsigned_height > std::numeric_limits<std::size_t>::max() / unsigned_width ||
+           unsigned_width * unsigned_height >
+               std::numeric_limits<std::size_t>::max() / components)
+            throw std::length_error(std::string(format) + " image size overflow");
+        return unsigned_width * unsigned_height * components;
+    }
+
+
+    static std::vector<unsigned char>
+    read_image_file(const std::filesystem::path & filename, std::string_view format)
+    {
+        std::ifstream file(filename, std::ios::binary | std::ios::ate);
+        if(!file)
+            throw std::runtime_error("Could not open " + std::string(format) +
+                                     " file: \"" + filename.string() + "\"");
+
+        const std::streampos end = file.tellg();
+        if(end <= 0 || end > std::numeric_limits<std::streamsize>::max())
+            throw std::runtime_error(std::string(format) + " file has an invalid size: \"" +
+                                     filename.string() + "\"");
+        const auto size = static_cast<std::size_t>(end);
+        std::vector<unsigned char> data(size);
+        file.seekg(0);
+        file.read(reinterpret_cast<char *>(data.data()),
+                  static_cast<std::streamsize>(size));
+        if(!file)
+            throw std::runtime_error("Could not read " + std::string(format) +
+                                     " file: \"" + filename.string() + "\"");
+        return data;
+    }
+
+
+    static void
+    write_image_file(std::span<const unsigned char> data,
+                     const std::filesystem::path & filename, std::string_view format)
+    {
+        if(data.size() > static_cast<std::size_t>(
+                             std::numeric_limits<std::streamsize>::max()))
+            throw std::length_error(std::string(format) + " file is too large to write");
+
+        std::ofstream file(filename, std::ios::binary | std::ios::trunc);
+        if(!file)
+            throw std::runtime_error("Could not open " + std::string(format) +
+                                     " file for writing: \"" + filename.string() + "\"");
+        file.write(reinterpret_cast<const char *>(data.data()),
+                   static_cast<std::streamsize>(data.size()));
+        file.close();
+        if(!file)
+            throw std::runtime_error("Could not write " + std::string(format) +
+                                     " file: \"" + filename.string() + "\"");
+    }
+
+
+    //
+    // TIFF Images
+    //
+
+#if IKAROS_HAS_TIFF
+    struct TiffCloser
+    {
+        void
+        operator()(TIFF * file) const noexcept
+        {
+            if(file != nullptr)
+                TIFFClose(file);
+        }
+    };
+
+
+    using TiffFile = std::unique_ptr<TIFF, TiffCloser>;
+
+
+    static TiffFile
+    open_tiff(const std::filesystem::path & filename, const char * mode)
+    {
+        TiffFile file(TIFFOpen(filename.string().c_str(), mode));
+        if(file == nullptr)
+            throw std::runtime_error("Could not open TIFF file \"" + filename.string() +
+                                     "\"");
+        return file;
+    }
+
+
+    static image_info
+    read_tiff_info(TIFF * file, const std::filesystem::path & filename)
+    {
+        std::uint32_t width = 0;
+        std::uint32_t height = 0;
+        std::uint16_t channels = 1;
+        if(TIFFGetField(file, TIFFTAG_IMAGEWIDTH, &width) != 1 ||
+           TIFFGetField(file, TIFFTAG_IMAGELENGTH, &height) != 1)
+            throw std::runtime_error("TIFF dimensions are missing from \"" +
+                                     filename.string() + "\"");
+        TIFFGetFieldDefaulted(file, TIFFTAG_SAMPLESPERPIXEL, &channels);
+        if(width == 0 || height == 0 ||
+           width > static_cast<std::uint32_t>(std::numeric_limits<int>::max()) ||
+           height > static_cast<std::uint32_t>(std::numeric_limits<int>::max()))
+            throw std::runtime_error("TIFF dimensions are unsupported for \"" +
+                                     filename.string() + "\"");
+        return image_info{static_cast<int>(width), static_cast<int>(height),
+                          static_cast<int>(channels)};
+    }
+
+
+    image_info
+    tiff_get_info(const std::filesystem::path & filename)
+    {
+        const TiffFile file = open_tiff(filename, "r");
+        return read_tiff_info(file.get(), filename);
+    }
+
+
+    template<bool MakeIntensity>
+    static void
+    tiff_get_image_impl(matrix & image, matrix * intensity,
+                        const std::filesystem::path & filename)
+    {
+        const TiffFile file = open_tiff(filename, "r");
+        const image_info info = read_tiff_info(file.get(), filename);
+        prepare_image_destinations(image, intensity, info.height, info.width, filename);
+        const std::size_t pixel_count =
+            checked_image_storage_size(info.width, info.height, 1, "TIFF");
+        std::vector<std::uint32_t> pixels(pixel_count);
+        if(TIFFReadRGBAImageOriented(file.get(), static_cast<std::uint32_t>(info.width),
+                                     static_cast<std::uint32_t>(info.height), pixels.data(),
+                                     ORIENTATION_TOPLEFT, 0) != 1)
+            throw std::runtime_error("Could not decode TIFF file \"" +
+                                     filename.string() + "\"");
+
+        constexpr float scale = 1.0f / 255.0f;
+        constexpr float one_third = 1.0f / 3.0f;
+        for(int y = 0; y < info.height; ++y)
+        {
+            float * red = image.logical_block_data(y);
+            float * green = image.logical_block_data(info.height + y);
+            float * blue = image.logical_block_data(2 * info.height + y);
+            float * intensity_row = nullptr;
+            if constexpr(MakeIntensity)
+                intensity_row = intensity->logical_block_data(y);
+            const std::uint32_t * source =
+                pixels.data() + static_cast<std::size_t>(y) * info.width;
+            for(int x = 0; x < info.width; ++x)
+            {
+                const float red_value = TIFFGetR(source[x]) * scale;
+                const float green_value = TIFFGetG(source[x]) * scale;
+                const float blue_value = TIFFGetB(source[x]) * scale;
+                red[x] = red_value;
+                green[x] = green_value;
+                blue[x] = blue_value;
+                if constexpr(MakeIntensity)
+                    intensity_row[x] = one_third * (red_value + green_value + blue_value);
+            }
         }
     }
 
-    png_read_image(png, row_pointers);
 
-    // Resize matrices if needed
-    red.resize(height, width);
-    green.resize(height, width);
-    blue.resize(height, width);
+    void
+    tiff_get_image(matrix & image, const std::filesystem::path & filename)
+    {
+        tiff_get_image_impl<false>(image, nullptr, filename);
+    }
 
-    // Copy data to matrices
-    for(int y = 0; y < height; y++) {
-        png_bytep row = row_pointers[y];
-        for(int x = 0; x < width; x++) {
-            png_bytep px = &(row[x * 3]);
-            red[y][x] = px[0] / 255.0f;
-            green[y][x] = px[1] / 255.0f;
-            blue[y][x] = px[2] / 255.0f;
+
+    void
+    tiff_get_image(matrix & image, matrix & intensity,
+                   const std::filesystem::path & filename)
+    {
+        tiff_get_image_impl<true>(image, &intensity, filename);
+    }
+
+
+    matrix
+    tiff_get_image(const std::filesystem::path & filename)
+    {
+        matrix image;
+        tiff_get_image(image, filename);
+        return image;
+    }
+
+
+    void
+    tiff_write_image(const matrix & image, const std::filesystem::path & filename)
+    {
+        const bool grayscale = image.rank() == 2;
+        if(!grayscale && (image.rank() != 3 || image.size(0) != 3))
+            throw std::invalid_argument(
+                "TIFF image must have shape [height, width] or [3, height, width]");
+
+        const int height = image.size(grayscale ? 0 : 1);
+        const int width = image.size(grayscale ? 1 : 2);
+        checked_image_storage_size(width, height, grayscale ? 1 : 3, "TIFF");
+        const std::size_t row_width = static_cast<std::size_t>(width);
+        std::vector<unsigned char> storage(
+            (grayscale ? 1 : (IKAROS_IMAGE_ACCELERATE ? 6 : 3)) * row_width);
+        std::span<unsigned char> row(storage.data(), (grayscale ? 1 : 3) * row_width);
+        std::span<unsigned char> planar_buffer;
+#if IKAROS_IMAGE_ACCELERATE
+        if(!grayscale)
+            planar_buffer = std::span(storage).subspan(3 * row_width);
+#endif
+
+        const TiffFile file = open_tiff(filename, "w");
+        const std::uint16_t samples = grayscale ? 1 : 3;
+        if(TIFFSetField(file.get(), TIFFTAG_IMAGEWIDTH,
+                        static_cast<std::uint32_t>(width)) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_IMAGELENGTH,
+                        static_cast<std::uint32_t>(height)) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_SAMPLESPERPIXEL, samples) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_BITSPERSAMPLE,
+                        static_cast<std::uint16_t>(8)) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_PHOTOMETRIC,
+                        grayscale ? PHOTOMETRIC_MINISBLACK : PHOTOMETRIC_RGB) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_COMPRESSION, COMPRESSION_LZW) != 1 ||
+           TIFFSetField(file.get(), TIFFTAG_ROWSPERSTRIP,
+                        TIFFDefaultStripSize(file.get(), 0)) != 1)
+            throw std::runtime_error("Could not configure TIFF file \"" +
+                                     filename.string() + "\"");
+
+        for(int y = 0; y < height; ++y)
+        {
+            if(grayscale)
+            {
+                const auto source = std::span(image.logical_block_data(y), row_width);
+                float_to_byte(row, source, 0, 1);
+            }
+            else
+            {
+                const auto red = std::span(image.logical_block_data(y), row_width);
+                const auto green = std::span(image.logical_block_data(height + y),
+                                             row_width);
+                const auto blue = std::span(image.logical_block_data(2 * height + y),
+                                            row_width);
+                float_rgb_to_byte(row, planar_buffer, red, green, blue);
+            }
+            if(TIFFWriteScanline(file.get(), row.data(), static_cast<std::uint32_t>(y), 0) < 0)
+                throw std::runtime_error("Could not write TIFF row to \"" +
+                                         filename.string() + "\"");
+        }
+    }
+#else
+    [[noreturn]] static void
+    throw_tiff_unavailable()
+    {
+        throw std::runtime_error("TIFF support is unavailable in this Ikaros build");
+    }
+
+
+    image_info
+    tiff_get_info(const std::filesystem::path &)
+    {
+        throw_tiff_unavailable();
+    }
+
+
+    void
+    tiff_get_image(matrix &, const std::filesystem::path &)
+    {
+        throw_tiff_unavailable();
+    }
+
+
+    void
+    tiff_get_image(matrix &, matrix &, const std::filesystem::path &)
+    {
+        throw_tiff_unavailable();
+    }
+
+
+    matrix
+    tiff_get_image(const std::filesystem::path &)
+    {
+        throw_tiff_unavailable();
+    }
+
+
+    void
+    tiff_write_image(const matrix &, const std::filesystem::path &)
+    {
+        throw_tiff_unavailable();
+    }
+#endif
+
+
+    //
+    // WebP Images
+    //
+
+#if IKAROS_HAS_WEBP
+    static image_info
+    webp_info(std::span<const unsigned char> data, const std::filesystem::path & filename)
+    {
+        WebPBitstreamFeatures features{};
+        if(WebPGetFeatures(data.data(), data.size(), &features) != VP8_STATUS_OK)
+            throw std::runtime_error("Could not read WebP header from \"" +
+                                     filename.string() + "\"");
+        if(features.width <= 0 || features.height <= 0)
+            throw std::runtime_error("WebP dimensions are invalid in \"" +
+                                     filename.string() + "\"");
+        return image_info{features.width, features.height, features.has_alpha ? 4 : 3};
+    }
+
+
+    image_info
+    webp_get_info(const std::filesystem::path & filename)
+    {
+        const std::vector<unsigned char> data = read_image_file(filename, "WebP");
+        return webp_info(data, filename);
+    }
+
+
+    template<bool MakeIntensity>
+    static void
+    webp_get_image_impl(matrix & image, matrix * intensity,
+                        const std::filesystem::path & filename)
+    {
+        const std::vector<unsigned char> data = read_image_file(filename, "WebP");
+        const image_info info = webp_info(data, filename);
+        if(info.width > std::numeric_limits<int>::max() / 3)
+            throw std::length_error("WebP row size overflow");
+        prepare_image_destinations(image, intensity, info.height, info.width, filename);
+        const std::size_t output_size =
+            checked_image_storage_size(info.width, info.height, 3, "WebP");
+        std::vector<unsigned char> pixels(output_size);
+        if(WebPDecodeRGBInto(data.data(), data.size(), pixels.data(), pixels.size(),
+                             info.width * 3) == nullptr)
+            throw std::runtime_error("Could not decode WebP file \"" +
+                                     filename.string() + "\"");
+
+        for(int y = 0; y < info.height; ++y)
+        {
+            const unsigned char * row =
+                pixels.data() + static_cast<std::size_t>(y) * info.width * 3;
+            float * intensity_row = nullptr;
+            if constexpr(MakeIntensity)
+                intensity_row = intensity->logical_block_data(y);
+            rgb8_to_planar_float<MakeIntensity>(
+                row, image.logical_block_data(y),
+                image.logical_block_data(info.height + y),
+                image.logical_block_data(2 * info.height + y), intensity_row,
+                static_cast<std::size_t>(info.width));
         }
     }
 
-    // Cleanup
-    for(int y = 0; y < height; y++) {
-        free(row_pointers[y]);
-    }
-    free(row_pointers);
 
-    png_destroy_read_struct(&png, &info, nullptr);
-    fclose(fp);
-         }
+    void
+    webp_get_image(matrix & image, const std::filesystem::path & filename)
+    {
+        webp_get_image_impl<false>(image, nullptr, filename);
+    }
+
+
+    void
+    webp_get_image(matrix & image, matrix & intensity,
+                   const std::filesystem::path & filename)
+    {
+        webp_get_image_impl<true>(image, &intensity, filename);
+    }
+
+
+    matrix
+    webp_get_image(const std::filesystem::path & filename)
+    {
+        matrix image;
+        webp_get_image(image, filename);
+        return image;
+    }
+
+
+    void
+    webp_write_image(const matrix & image, const std::filesystem::path & filename,
+                     int quality)
+    {
+        const bool grayscale = image.rank() == 2;
+        if(!grayscale && (image.rank() != 3 || image.size(0) != 3))
+            throw std::invalid_argument(
+                "WebP image must have shape [height, width] or [3, height, width]");
+        if(quality < 1 || quality > 100)
+            throw std::invalid_argument("WebP quality must be between 1 and 100");
+
+        const int height = image.size(grayscale ? 0 : 1);
+        const int width = image.size(grayscale ? 1 : 2);
+        if(width > std::numeric_limits<int>::max() / 3)
+            throw std::length_error("WebP row size overflow");
+        const std::size_t storage_size =
+            checked_image_storage_size(width, height, 3, "WebP");
+        std::vector<unsigned char> pixels(storage_size);
+        const std::size_t row_width = static_cast<std::size_t>(width);
+        std::vector<unsigned char> conversion_storage(
+            grayscale ? row_width : (IKAROS_IMAGE_ACCELERATE ? 3 * row_width : 0));
+
+        for(int y = 0; y < height; ++y)
+        {
+            std::span<unsigned char> destination(
+                pixels.data() + static_cast<std::size_t>(y) * width * 3,
+                3 * row_width);
+            if(grayscale)
+            {
+                std::span<unsigned char> gray(conversion_storage.data(), row_width);
+                float_to_byte(gray,
+                              std::span(image.logical_block_data(y), row_width), 0, 1);
+                for(std::size_t x = 0; x < row_width; ++x)
+                    destination[3 * x] = destination[3 * x + 1] =
+                        destination[3 * x + 2] = gray[x];
+            }
+            else
+            {
+                std::span<unsigned char> planar_buffer;
+#if IKAROS_IMAGE_ACCELERATE
+                planar_buffer = conversion_storage;
+#endif
+                float_rgb_to_byte(
+                    destination, planar_buffer,
+                    std::span(image.logical_block_data(y), row_width),
+                    std::span(image.logical_block_data(height + y), row_width),
+                    std::span(image.logical_block_data(2 * height + y), row_width));
+            }
+        }
+
+        unsigned char * encoded = nullptr;
+        const std::size_t encoded_size =
+            WebPEncodeRGB(pixels.data(), width, height, width * 3,
+                          static_cast<float>(quality), &encoded);
+        std::unique_ptr<unsigned char, decltype(&WebPFree)> encoded_data(encoded, WebPFree);
+        if(encoded_size == 0 || encoded == nullptr)
+            throw std::runtime_error("Could not encode WebP file \"" +
+                                     filename.string() + "\"");
+        write_image_file(std::span(encoded, encoded_size), filename, "WebP");
+    }
+#else
+    [[noreturn]] static void
+    throw_webp_unavailable()
+    {
+        throw std::runtime_error("WebP support is unavailable in this Ikaros build");
+    }
+
+
+    image_info
+    webp_get_info(const std::filesystem::path &)
+    {
+        throw_webp_unavailable();
+    }
+
+
+    void
+    webp_get_image(matrix &, const std::filesystem::path &)
+    {
+        throw_webp_unavailable();
+    }
+
+
+    void
+    webp_get_image(matrix &, matrix &, const std::filesystem::path &)
+    {
+        throw_webp_unavailable();
+    }
+
+
+    matrix
+    webp_get_image(const std::filesystem::path &)
+    {
+        throw_webp_unavailable();
+    }
+
+
+    void
+    webp_write_image(const matrix &, const std::filesystem::path &, int)
+    {
+        throw_webp_unavailable();
+    }
+#endif
+
+
+    enum class image_format
+    {
+        jpeg,
+        png,
+        tiff,
+        webp,
+    };
+
+
+    static image_format
+    image_format_from_extension(const std::filesystem::path & filename)
+    {
+        std::string extension = filename.extension().string();
+        std::transform(extension.begin(), extension.end(), extension.begin(),
+                       [](unsigned char character)
+                       {
+                           return ascii_to_lower(character);
+                       });
+
+        if(extension == ".jpg" || extension == ".jpeg")
+            return image_format::jpeg;
+        if(extension == ".png")
+            return image_format::png;
+        if(extension == ".tif" || extension == ".tiff")
+            return image_format::tiff;
+        if(extension == ".webp")
+            return image_format::webp;
+        throw std::invalid_argument("Unsupported image file format for \"" +
+                                    filename.string() + "\"");
+    }
+
+
+    static bool
+    image_format_available(image_format format)
+    {
+        switch(format)
+        {
+            case image_format::jpeg:
+                return true;
+            case image_format::png:
+                return IKAROS_HAS_PNG;
+            case image_format::tiff:
+                return IKAROS_HAS_TIFF;
+            case image_format::webp:
+                return IKAROS_HAS_WEBP;
+        }
+        return false;
+    }
+
+
+    bool
+    image_file_format_available(const std::filesystem::path & filename)
+    {
+        try
+        {
+            return image_format_available(image_format_from_extension(filename));
+        }
+        catch(const std::invalid_argument &)
+        {
+            return false;
+        }
+    }
+
+
+    static image_format
+    validated_image_format(const std::filesystem::path & filename)
+    {
+        const image_format format = image_format_from_extension(filename);
+        if(image_format_available(format))
+            return format;
+
+        switch(format)
+        {
+            case image_format::png:
+                throw std::runtime_error("PNG support is unavailable in this Ikaros build");
+            case image_format::tiff:
+                throw std::runtime_error("TIFF support is unavailable in this Ikaros build");
+            case image_format::webp:
+                throw std::runtime_error("WebP support is unavailable in this Ikaros build");
+            case image_format::jpeg:
+                break;
+        }
+        throw std::logic_error("Unhandled image file format");
+    }
+
+
+    void
+    validate_image_file_format(const std::filesystem::path & filename)
+    {
+        static_cast<void>(validated_image_format(filename));
+    }
+
+
+    image_info
+    image_get_info(const std::filesystem::path & filename)
+    {
+        switch(validated_image_format(filename))
+        {
+            case image_format::jpeg:
+                return jpeg_get_info(filename);
+            case image_format::png:
+                return png_get_info(filename);
+            case image_format::tiff:
+                return tiff_get_info(filename);
+            case image_format::webp:
+                return webp_get_info(filename);
+        }
+        throw std::logic_error("Unhandled image file format");
+    }
+
+
+    void
+    image_get_image(matrix & image, const std::filesystem::path & filename)
+    {
+        switch(validated_image_format(filename))
+        {
+            case image_format::jpeg:
+                jpeg_get_image(image, filename);
+                return;
+            case image_format::png:
+                png_get_image(image, filename);
+                return;
+            case image_format::tiff:
+                tiff_get_image(image, filename);
+                return;
+            case image_format::webp:
+                webp_get_image(image, filename);
+                return;
+        }
+        throw std::logic_error("Unhandled image file format");
+    }
+
+
+    void
+    image_get_image(matrix & image, matrix & intensity,
+                    const std::filesystem::path & filename)
+    {
+        switch(validated_image_format(filename))
+        {
+            case image_format::jpeg:
+                jpeg_get_image(image, intensity, filename);
+                return;
+            case image_format::png:
+                png_get_image(image, intensity, filename);
+                return;
+            case image_format::tiff:
+                tiff_get_image(image, intensity, filename);
+                return;
+            case image_format::webp:
+                webp_get_image(image, intensity, filename);
+                return;
+        }
+        throw std::logic_error("Unhandled image file format");
+    }
+
+
+    matrix
+    image_get_image(const std::filesystem::path & filename)
+    {
+        matrix image;
+        image_get_image(image, filename);
+        return image;
+    }
+
+
+    void
+    image_write_image(const matrix & image, const std::filesystem::path & filename,
+                      int jpeg_quality)
+    {
+        switch(validated_image_format(filename))
+        {
+            case image_format::jpeg:
+                jpeg_write_image(image, filename, jpeg_quality);
+                return;
+            case image_format::png:
+                png_write_image(image, filename);
+                return;
+            case image_format::tiff:
+                tiff_write_image(image, filename);
+                return;
+            case image_format::webp:
+                webp_write_image(image, filename, jpeg_quality);
+                return;
+        }
+        throw std::logic_error("Unhandled image file format");
+    }
 
 };

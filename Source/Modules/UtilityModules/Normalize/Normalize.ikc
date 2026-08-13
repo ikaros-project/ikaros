@@ -1,0 +1,10 @@
+<class name="Normalize" description="normalizes its input">
+    <description type="text">
+        Normalize transforms INPUT in one of four ways. range maps the minimum element to 0 and the maximum element to 1. euclidean divides by the Euclidean norm. cityblock divides by the sum of absolute values. max divides by the maximum element. Zero denominators produce zero output.
+    </description>
+
+    <parameter name="type" type="number" default="0" options="range,euclidean,cityblock,max" description="Normalization type" />
+
+    <input name="INPUT" description="Input values" />
+    <output name="OUTPUT" description="Normalized output" shape="INPUT.shape" />
+</class>

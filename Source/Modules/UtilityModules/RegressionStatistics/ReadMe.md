@@ -8,10 +8,25 @@ The module keeps up to `max_samples` samples per channel. When a channel is full
 
 ## Outputs
 
-- `SCATTER_X`: stored x-values by sample row and channel column.
-- `SCATTER_Y`: stored y-values by sample row and channel column.
-- `SAMPLE_COUNT`: number of stored samples per channel.
-- `LINEAR_REGRESSION`: linear regression rows: slope, intercept, r, r-squared, p-value, slope standard error.
-- `MODEL_COMPARISON`: nested linear model comparison rows: p-value, F, df1, df2, effect size, groups, samples. Columns: intercept difference, slope difference.
+| Name | Description |
+| --- | --- |
+| SCATTER_X | Stored X samples by sample row and Y channel column; unused values are null in JSON |
+| SCATTER_Y | Stored Y samples by sample row and Y channel column; unused values are null in JSON |
+| SAMPLE_COUNT | Number of stored samples for each Y channel |
+| LINEAR_REGRESSION | Linear regression by row: slope, intercept, r, r-squared, p-value, slope standard error |
+| MODEL_COMPARISON | Nested linear model comparison by row: p-value, F, df1, df2, effect size, groups, samples. Columns: intercept difference, slope difference. |
 
-Unused scatter entries are NaN internally and become `null` in JSON.
+## Parameters
+
+| Name | Description | Type | Default |
+| --- | --- | --- | --- |
+| max_samples | Maximum number of stored samples per Y channel | number | 1024 |
+| labels | Comma-separated labels for Y channels. Empty entries use default channel labels. | string |  |
+
+## Inputs
+
+| Name | Description | Optional |
+| --- | --- | --- |
+| X | X values to sample. Size must be 1 or match Y. |  |
+| Y | Y values to sample. Each element is stored as a separate channel. |  |
+| SAMPLE | Optional sampling mask. When connected, only Y elements with corresponding values of 1 or above are sampled. | yes |

@@ -1,0 +1,20 @@
+<group internal="true"
+    name="TestRegressionSampleShapeError"
+    description="Reject incompatible RegressionStatistics SAMPLE input at startup"
+    start="true"
+    stop="1"
+    expected_exit="1"
+    expected_output_contains="RegressionStatistics: SAMPLE must have the same size as Y.">
+
+    <module class="Constant" name="X" data="1" />
+    <module class="Constant" name="Y" data="1,2" />
+    <module class="Constant" name="Sample" data="1" />
+    <module class="RegressionStatistics" name="Regression"
+            max_samples="4" />
+
+    <connection source="X.OUTPUT" target="Regression.X" delay="0" />
+    <connection source="Y.OUTPUT" target="Regression.Y" delay="0" />
+    <connection source="Sample.OUTPUT"
+                target="Regression.SAMPLE" delay="0" />
+
+</group>

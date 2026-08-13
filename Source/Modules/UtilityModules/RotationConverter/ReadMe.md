@@ -27,12 +27,13 @@ Converts between rotation notations
 
 ## Parameters
 
-|Name|Description|Type|Default value|
-|:----|:-----------|:----|:-------------|
-|input_format|Format of the input|list|xyz|
-|output_format|Format of the output|list|xyz|
-|angle_unit|What units should be used for angles (only in euler angle mode)? 0-360 (degrees), 0-2π (radians), or 0-1, where 1  corresponds to 360° (tau).|list|degrees|
+| Name | Description | Type | Default |
+| --- | --- | --- | --- |
+| input_format | Format of the input | number | xyz |
+| output_format | Format of the output | number | xyz |
+| angle_unit | Angle unit; tau is a legacy alias for turns | number | degrees |
+| size_x | Size of the output | number | 4 |
+| size_y | Size of the output | number | 4 |
 
-<br><br>
 ## Long description
 Module that converts between different 3d point/angle notations.

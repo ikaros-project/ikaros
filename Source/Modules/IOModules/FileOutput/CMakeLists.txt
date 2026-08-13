@@ -1,8 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(OutputFile)
-add_subdirectory(OutputJSON)
-
+add_subdirectory(OutputImage)
 
 
 set(SOURCE ${SOURCE} PARENT_SCOPE)

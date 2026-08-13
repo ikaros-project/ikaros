@@ -1,4 +1,4 @@
-<group name="TestRedirectedMatrixDecimalValue" description="Test redirected matrix values with decimal fractions" start="true" stop="2" expected_output_contains="{0.1, 0, 0, 0}">
+<group internal="true" name="TestRedirectedMatrixDecimalValue" description="Test redirected matrix values with decimal fractions" start="true" stop="2" expected_output_contains="{0.1, 0, 0, 0}">
     <group name="Epi">
         <group name="ForwardModel">
             <group name="Body">

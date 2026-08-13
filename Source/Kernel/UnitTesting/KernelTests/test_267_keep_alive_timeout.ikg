@@ -1,0 +1,13 @@
+<group internal="true"
+    name="TestKeepAliveTimeout"
+    description="Close an idle keep-alive connection without requiring later network activity"
+    start="true"
+    stop="1"
+    check_sum="1034"
+    webui_port="8267"
+    http_ready_path="auth"
+    http_requests="assert_keep_alive_timeout:/startupsteps:10.5"
+    http_terminate_after_requests="true"
+    http_exit_timeout="15">
+    <module class="System" name="System" />
+</group>

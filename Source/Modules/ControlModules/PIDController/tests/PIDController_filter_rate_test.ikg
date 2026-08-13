@@ -1,0 +1,10 @@
+<group name="PIDController_filter_rate_test" start="true" stop="2" tick_duration="0.5">
+    <module class="Constant" name="Input" data="[0]" />
+    <module class="Constant" name="SetPoint" data="[1]" />
+    <module class="PIDController" name="PIDController" Kp="1" Ki="0" Kd="0" Fp="1" />
+    <module class="Print" name="PrintOutput" />
+
+    <connection source="Input.OUTPUT" target="PIDController.INPUT" delay="0" />
+    <connection source="SetPoint.OUTPUT" target="PIDController.SETPOINT" delay="0" />
+    <connection source="PIDController.OUTPUT" target="PrintOutput.INPUT" delay="0" />
+</group>

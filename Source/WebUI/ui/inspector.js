@@ -148,6 +148,8 @@ const inspector =
         {
             if(!inspector[windowProperty] || inspector[windowProperty].closed)
             {
+                if(typeof features.onClose === "function")
+                    features.onClose();
                 clearInterval(inspector[timerProperty]);
                 inspector[timerProperty] = null;
                 inspector[windowProperty] = null;
@@ -184,8 +186,19 @@ const inspector =
             "ikaros_profiling",
             () => inspector.initializeProfilingWindow(),
             () => inspector.refreshProfilingWindow(),
-            {width: 1200}
+            {width: 1200, onClose: () => inspector.stopProfiling()}
         );
+    },
+
+    stopProfiling()
+    {
+        fetch('/profiling?active=false', {
+            method: 'GET',
+            headers: {"Session-Id": controller.session_id, "Client-Id": controller.client_id},
+            cache: 'no-store',
+            keepalive: true
+        })
+        .catch((error) => console.log("profiling stop failed", error));
     },
 
     initializeProfilingWindow()
@@ -256,12 +269,20 @@ const inspector =
             const bValue = inspector.getProfilingSortValue(b, sortKey);
 
             if(typeof aValue === "string" || typeof bValue === "string")
-                return String(aValue).localeCompare(String(bValue)) * direction;
+            {
+                const aText = String(aValue);
+                const bText = String(bValue);
+                return (aText < bText ? -1 : aText > bText ? 1 : 0) * direction;
+            }
 
             const aScore = Number.isFinite(aValue) ? aValue : -Infinity;
             const bScore = Number.isFinite(bValue) ? bValue : -Infinity;
             if(aScore === bScore)
-                return String(a && a.path ? a.path : "").localeCompare(String(b && b.path ? b.path : ""));
+            {
+                const aPath = String(a && a.path ? a.path : "");
+                const bPath = String(b && b.path ? b.path : "");
+                return aPath < bPath ? -1 : aPath > bPath ? 1 : 0;
+            }
             return (aScore - bScore) * direction;
         });
     },
@@ -316,7 +337,11 @@ const inspector =
         inspector.sortProfilingComponents(components);
         inspector.updateProfilingSortIndicators();
 
-        meta.textContent = `tick ${Number.isFinite(data && data.tick) ? data.tick : "-"} | updated ${new Date().toLocaleTimeString()}`;
+        const updated = new Date();
+        const updatedTime = [updated.getHours(), updated.getMinutes(), updated.getSeconds()]
+            .map((value) => String(value).padStart(2, "0"))
+            .join(":");
+        meta.textContent = `tick ${Number.isFinite(data && data.tick) ? data.tick : "-"} | updated ${updatedTime}`;
 
         if(components.length === 0)
         {
@@ -493,12 +518,20 @@ const inspector =
             const bValue = inspector.getStartupStepsSortValue(b, sortKey);
 
             if(typeof aValue === "string" || typeof bValue === "string")
-                return String(aValue).localeCompare(String(bValue)) * direction;
+            {
+                const aText = String(aValue);
+                const bText = String(bValue);
+                return (aText < bText ? -1 : aText > bText ? 1 : 0) * direction;
+            }
 
             const aScore = Number.isFinite(aValue) ? aValue : Infinity;
             const bScore = Number.isFinite(bValue) ? bValue : Infinity;
             if(aScore === bScore)
-                return String(a && a.path ? a.path : "").localeCompare(String(b && b.path ? b.path : ""));
+            {
+                const aPath = String(a && a.path ? a.path : "");
+                const bPath = String(b && b.path ? b.path : "");
+                return aPath < bPath ? -1 : aPath > bPath ? 1 : 0;
+            }
             return (aScore - bScore) * direction;
         });
     },
@@ -945,28 +978,85 @@ const inspector =
             .replace(/'/g, "&#39;");
     },
 
+    renderLatex(source, displayMode)
+    {
+        const openingDelimiter = displayMode ? "\\[" : "\\(";
+        const closingDelimiter = displayMode ? "\\]" : "\\)";
+        const fallback = inspector.escapeHtml(openingDelimiter + source + closingDelimiter);
+        if(typeof katex === "undefined" || typeof katex.renderToString !== "function")
+            return fallback;
+
+        try
+        {
+            return katex.renderToString(source, {
+                displayMode,
+                output: "htmlAndMathml",
+                throwOnError: true,
+                trust: false,
+            });
+        }
+        catch(error)
+        {
+            console.warn("Could not render library documentation LaTeX:", error);
+            return fallback;
+        }
+    },
+
     renderInlineMarkdown(text, options = {})
     {
-        let html = inspector.escapeHtml(text);
+        const tokens = [];
+        let tokenPrefix = "IKAROSMARKDOWNTOKEN";
+        while(String(text).includes(tokenPrefix))
+            tokenPrefix += "X";
+
+        const token = function(html)
+        {
+            const placeholder = `${tokenPrefix}${tokens.length}ENDTOKEN`;
+            tokens.push(html);
+            return placeholder;
+        };
+
+        const protectedText = String(text).replace(
+            /`([^`\n]+)`|\\\[([\s\S]*?)\\\]|\\\(([\s\S]*?)\\\)/g,
+            (_match, code, displayMath, inlineMath) =>
+            {
+                if(code !== undefined)
+                    return token(`<code>${inspector.escapeHtml(code)}</code>`);
+                if(displayMath !== undefined)
+                    return token(inspector.renderLatex(displayMath, true));
+                return token(inspector.renderLatex(inlineMath, false));
+            },
+        );
+
+        let html = inspector.escapeHtml(protectedText);
         html = html.replace(/&lt;br\s*\/?&gt;/gi, "<br>");
-        html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
         html = html.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_match, alt, url) =>
         {
             const src = inspector.resolveMarkdownAssetUrl(url, options.className);
-            return `<img src="${src}" alt="${inspector.escapeHtml(alt)}" loading="lazy">`;
+            if(!src)
+                return inspector.escapeHtml(alt);
+            return `<img src="${inspector.escapeHtml(src)}" alt="${inspector.escapeHtml(alt)}" loading="lazy">`;
         });
-        html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+        html = html.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_match, label, url) =>
+        {
+            const href = inspector.safeMarkdownUrl(url, false);
+            if(!href)
+                return label;
+            return `<a href="${inspector.escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+        });
         html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
         html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+        html = html.replace(new RegExp(`${tokenPrefix}(\\d+)ENDTOKEN`, "g"),
+                            (_match, index) => tokens[Number(index)]);
         return html;
     },
 
     resolveMarkdownAssetUrl(url, className = "")
     {
-        const value = String(url || "").trim();
+        const value = inspector.safeMarkdownUrl(url, true);
         if(!value)
             return "";
-        if(/^(?:[a-z]+:)?\/\//i.test(value) || value.startsWith("data:") || value.startsWith("/"))
+        if(/^(?:https?:)?\/\//i.test(value) || value.startsWith("data:image/") || value.startsWith("/"))
             return value;
         if(className && network.classinfo && network.classinfo[className] && network.classinfo[className].path)
         {
@@ -982,6 +1072,20 @@ const inspector =
         return value;
     },
 
+    safeMarkdownUrl(url, image)
+    {
+        const value = String(url || "").trim();
+        if(!value || /[\u0000-\u001f\u007f]/.test(value))
+            return "";
+        const scheme = value.match(/^([a-z][a-z0-9+.-]*):/i);
+        if(!scheme)
+            return value;
+        const allowed = image
+            ? /^(?:https?)$/i.test(scheme[1]) || /^data:image\//i.test(value)
+            : /^(?:https?|mailto)$/i.test(scheme[1]);
+        return allowed ? value : "";
+    },
+
     renderMarkdown(text, options = {})
     {
         const lines = String(text || "").replace(/\r\n/g, "\n").split("\n");
@@ -990,6 +1094,8 @@ const inspector =
         let listItems = [];
         let codeLines = [];
         let inCodeBlock = false;
+        let displayMathLines = [];
+        let inDisplayMath = false;
         let tableRows = [];
 
         const isTableLine = function(line)
@@ -1056,7 +1162,7 @@ const inspector =
 
         for(const line of lines)
         {
-            if(line.trim().startsWith("```"))
+            if(!inDisplayMath && line.trim().startsWith("```"))
             {
                 flushParagraph();
                 flushList();
@@ -1080,6 +1186,30 @@ const inspector =
             }
 
             const trimmed = line.trim();
+            if(inDisplayMath)
+            {
+                if(trimmed === "\\]")
+                {
+                    blocks.push(inspector.renderLatex(displayMathLines.join("\n"), true));
+                    displayMathLines = [];
+                    inDisplayMath = false;
+                }
+                else
+                {
+                    displayMathLines.push(line);
+                }
+                continue;
+            }
+
+            if(trimmed === "\\[")
+            {
+                flushParagraph();
+                flushList();
+                flushTable();
+                inDisplayMath = true;
+                continue;
+            }
+
             if(trimmed === "")
             {
                 flushParagraph();
@@ -1141,6 +1271,8 @@ const inspector =
         flushList();
         flushTable();
         flushCodeBlock();
+        if(inDisplayMath)
+            blocks.push(`<p>${inspector.escapeHtml("\\[\n" + displayMathLines.join("\n"))}</p>`);
 
         if(blocks.length === 0)
             return "<p></p>";
@@ -1606,23 +1738,23 @@ const inspector =
 
         let opts = p.options.split(',').map(o=>o.trim());
                         
-        let s = '<select name="'+p.name+'">';
+        const select = document.createElement("select");
+        select.name = p.name;
         for(let j in opts)
         {
             let optionValue = p.type == 'int' ? j : opts[j];
             let optionLabel = opts[j];
-            let optionStyle = "";
             if(p.option_labels && Object.prototype.hasOwnProperty.call(p.option_labels, optionValue))
                 optionLabel = p.option_labels[optionValue];
+            const option = document.createElement("option");
+            option.value = optionValue;
+            option.textContent = optionLabel;
+            option.selected = opts[j] == item[p.name];
             if(p.option_styles && Object.prototype.hasOwnProperty.call(p.option_styles, optionValue))
-                optionStyle = ` style="${p.option_styles[optionValue]}"`;
-            if(opts[j] == item[p.name])
-                s += '<option value="'+optionValue+'" selected'+optionStyle+'>'+optionLabel+'</option>';
-            else
-                s += '<option value="'+optionValue+'"'+optionStyle+'>'+optionLabel+'</option>';
+                option.style.cssText = p.option_styles[optionValue];
+            select.appendChild(option);
         }
-        s += '</select>';
-        cell2.innerHTML= s;
+        cell2.replaceChildren(select);
         cell2.addEventListener("input", function(evt) { 
                 inspector.syncNotifiedParameter(item, p, evt.target.value.trim());
             });
@@ -2357,6 +2489,12 @@ const inspector =
                     };
                     logLevelMenu.addEventListener("input", applyGroupLogLevel);
                     logLevelMenu.addEventListener("change", applyGroupLogLevel);
+                    if(item.class)
+                    {
+                        const groupParameters = getParameterRows(item).filter((parameter) =>
+                            !["name", "color", "log_level"].includes(parameter.name));
+                        inspector.addDataRows(item, groupParameters, inspector);
+                    }
                 } else {
                     inspector.addAttributeValue("name", item.name);
                     inspector.addAttributeValue("color", item.color || "black");

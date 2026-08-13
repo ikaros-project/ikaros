@@ -1,0 +1,21 @@
+{
+    "name": "TestStartupFailureSaveReloadRecovered",
+    "filename": "test_342_startup_failure_save_reload_recovered",
+    "stop": "-1",
+    "tick_duration": "0.01",
+    "check_sum": "34359",
+    "log_level": "7",
+    "modules": [
+        {
+            "class": "TaskLifecycleTestModule",
+            "name": "Lifecycle",
+            "label": "Recovered"
+        }
+    ],
+    "groups": [],
+    "connections": [],
+    "inputs": [],
+    "outputs": [],
+    "parameters": [],
+    "widgets": []
+}

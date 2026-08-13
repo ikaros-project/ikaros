@@ -1,4 +1,4 @@
-<group name="TestSizedMatrixParameterBounds"
+<group internal="true" name="TestSizedMatrixParameterBounds"
     description="Test sized matrix parameter rejects overfull values"
     start="true"
     stop="0"

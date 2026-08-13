@@ -6,10 +6,6 @@ if(APPLE)
 	find_library(FOUNDATION_FRAMEWORK Foundation)
 
 	if(VISION_FRAMEWORK AND COREGRAPHICS_FRAMEWORK AND FOUNDATION_FRAMEWORK)
-		set_source_files_properties(
-			${CMAKE_CURRENT_SOURCE_DIR}/AppleVisionFaceDetector.mm
-			PROPERTIES COMPILE_FLAGS "-std=c++17 -stdlib=libc++"
-		)
 		set(SOURCE
 			${SOURCE}
 			${CMAKE_CURRENT_SOURCE_DIR}/AppleVisionFaceDetector.mm

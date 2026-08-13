@@ -1,0 +1,12 @@
+<group internal="true"
+    name="TestPipelinedHTTPRequests"
+    description="Process complete pipelined HTTP requests already buffered on one connection"
+    start="true"
+    stop="1"
+    check_sum="1034"
+    webui_port="8266"
+    http_ready_path="auth"
+    http_requests="assert_pipelined_http_requests:/startupsteps"
+    http_terminate_after_requests="true">
+    <module class="System" name="System" />
+</group>

@@ -1,0 +1,17 @@
+<group name="ArgMax_test" start="true" stop="1">
+    <module class="Constant" name="VectorInput" data="1, 4, 4, 2" />
+    <module class="Constant" name="MatrixInput" data="1, 2, 3; 4, 9, 6" />
+    <module class="ArgMax" name="VectorArgMax" />
+    <module class="ArgMax" name="MatrixArgMax" />
+    <module class="Print" name="PrintVectorOutput" />
+    <module class="Print" name="PrintVectorValue" />
+    <module class="Print" name="PrintMatrixOutput" />
+    <module class="Print" name="PrintMatrixValue" />
+
+    <connection source="VectorInput.OUTPUT" target="VectorArgMax.INPUT" delay="0" />
+    <connection source="MatrixInput.OUTPUT" target="MatrixArgMax.INPUT" delay="0" />
+    <connection source="VectorArgMax.OUTPUT" target="PrintVectorOutput.INPUT" delay="0" />
+    <connection source="VectorArgMax.VALUE" target="PrintVectorValue.INPUT" delay="0" />
+    <connection source="MatrixArgMax.OUTPUT" target="PrintMatrixOutput.INPUT" delay="0" />
+    <connection source="MatrixArgMax.VALUE" target="PrintMatrixValue.INPUT" delay="0" />
+</group>

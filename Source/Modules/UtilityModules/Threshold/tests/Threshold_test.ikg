@@ -1,0 +1,16 @@
+<group name="Threshold_test" start="true" stop="1">
+    <module class="Constant" name="Input" data="-1, 0.5, 1, 2" />
+    <module class="Threshold" name="Binary" type="binary" threshold="0.5" />
+    <module class="Threshold" name="Linear" type="linear" threshold="0.5" />
+    <module class="Threshold" name="Bypass" bypass="true" threshold="0.5" />
+    <module class="Print" name="PrintBinary" />
+    <module class="Print" name="PrintLinear" />
+    <module class="Print" name="PrintBypass" />
+
+    <connection source="Input.OUTPUT" target="Binary.INPUT" delay="0" />
+    <connection source="Input.OUTPUT" target="Linear.INPUT" delay="0" />
+    <connection source="Input.OUTPUT" target="Bypass.INPUT" delay="0" />
+    <connection source="Binary.OUTPUT" target="PrintBinary.INPUT" delay="0" />
+    <connection source="Linear.OUTPUT" target="PrintLinear.INPUT" delay="0" />
+    <connection source="Bypass.OUTPUT" target="PrintBypass.INPUT" delay="0" />
+</group>

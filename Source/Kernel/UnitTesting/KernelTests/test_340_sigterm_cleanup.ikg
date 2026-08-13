@@ -1,0 +1,25 @@
+<group internal="true"
+    name="TestSIGTERMCleanup"
+    description="Handle SIGTERM through normal module cleanup"
+    start="true"
+    stop="100000"
+    tick_duration="0.01"
+    webui_port="8340"
+    check_sum="16765"
+    log_level="7"
+    http_real_time="false"
+    http_ready_path="json/TestSIGTERMCleanup.Lifecycle.label"
+    http_requests="json/TestSIGTERMCleanup.Lifecycle.label"
+    http_terminate_after_requests="true"
+    expected_output_contains="SIGTERM INIT||ikaros will terminate after this iteration.||SIGTERM STOP_AFTER_TICK"
+    expected_output_not_contains="SIGTERM STOP_DURING_TICK"
+    expected_output_once="ikaros will terminate after this iteration.||SIGTERM STOP_AFTER_TICK"
+>
+
+    <module class="TaskLifecycleTestModule"
+        name="Lifecycle"
+        label="SIGTERM"
+        duration="0.01"
+    />
+
+</group>

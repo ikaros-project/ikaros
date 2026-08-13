@@ -1,0 +1,2 @@
+<class internal="true" name="MathsBenchmarkModule"
+       description="Benchmarks scalar maths helpers in Release mode" />

@@ -1,0 +1,12 @@
+{
+  "format": "ikaros-state-v1",
+  "tick": 1,
+  "saved_at_utc": "2026-07-20T00:00:00Z",
+  "items": {
+    "TestBoolStateLoad.Memory.active": {
+      "kind": "state",
+      "type": "bool",
+      "value": "false"
+    }
+  }
+}

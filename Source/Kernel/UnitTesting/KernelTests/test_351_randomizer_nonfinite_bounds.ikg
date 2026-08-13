@@ -1,0 +1,12 @@
+<group internal="true"
+    name="TestRandomizerNonfiniteBounds"
+    description="Reject non-finite Randomizer bounds during startup"
+    start="true"
+    stop="1"
+    expected_exit="1"
+    expected_output_contains="Randomizer: bounds must form a finite representable range.">
+
+    <module class="Randomizer" name="Randomizer"
+            size="4" min="-1" max="inf" />
+
+</group>

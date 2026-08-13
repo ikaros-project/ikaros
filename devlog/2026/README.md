@@ -25,3 +25,11 @@
 | 2026-W22 | 2026-05-25 to 2026-05-31 | [WebUI and World2D Updates](2026-05-25-week-19.md) |
 | 2026-W23 | 2026-06-01 to 2026-06-08 | [CVAE, Locale Parsing, and State Handling](2026-06-01-week-20.md) |
 | 2026-W24 | 2026-06-08 to 2026-06-14 | [Sequence Recorder, CVAE, and WebUI Updates](2026-06-08-week-21.md) |
+| 2026-W25 | 2026-06-15 to 2026-06-21 | [Sequence Recorder, Matrix, and WebUI Updates](2026-06-15-week-22.md) |
+| 2026-W26 | 2026-06-22 to 2026-06-28 | [Dynamixel Controller and Session Logging Updates](2026-06-22-week-23.md) |
+| 2026-W27 | 2026-06-29 to 2026-07-05 | [Dynamixel Controller, Async Modules, and Documentation Updates](2026-06-29-week-24.md) |
+| 2026-W28 | 2026-07-06 to 2026-07-12 | [Arbiter v3, Stack Expressions, and Kernel Cleanup](2026-07-06-week-25.md) |
+| 2026-W29 | 2026-07-13 to 2026-07-19 | [Module Ports, Matrix Safety, and WebUI Runtime Updates](2026-07-13-week-26.md) |
+| 2026-W30 | 2026-07-20 to 2026-07-26 | [Runtime Hardening, Linux CI, and Kernel Refactoring](2026-07-20-week-27.md) |
+| 2026-W31 | 2026-07-27 to 2026-08-02 | [Kernel Boundaries, WebUI Widgets, and Visualization Updates](2026-07-27-week-28.md) |
+| 2026-W32 | 2026-08-03 to 2026-08-09 | [Native Template Matching, RingWorld, and Module Policy Updates](2026-08-03-week-29.md) |

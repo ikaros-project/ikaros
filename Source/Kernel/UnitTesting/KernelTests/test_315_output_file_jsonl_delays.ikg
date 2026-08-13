@@ -1,0 +1,22 @@
+<group internal="true"
+       name="TestOutputFileJSONLDelays"
+       description="OutputFile JSONL represents multiple delays as an outer array dimension"
+       start="true"
+       stop="2"
+       check_sum="89134"
+       expected_file_exists="UserData/test_315_output_file_jsonl_delays.jsonl"
+       expected_file_contains="{&quot;history&quot;:[[2,102],[1,101],[0,0]]}"
+       cleanup_expected_files="true">
+    <module name="Source" class="DelayVectorSource" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_315_output_file_jsonl_delays.jsonl"
+            format="jsonl"
+            timestamp="none"
+            number_format="full" />
+
+    <connection delay="[0:3]"
+                source="Source.OUTPUT"
+                target="Output.INPUT"
+                label="history" />
+</group>

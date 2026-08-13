@@ -1,0 +1,17 @@
+<group internal="true"
+    name="TestSoftmaxNonfinite"
+    description="Handle infinite and NaN Softmax inputs safely"
+    start="true"
+    stop="12"
+    check_sum="224"
+    expected_output_contains="SOFTMAX NONFINITE TEST OK"
+    expected_output_once="Softmax input contains NaN; output is NaN. (TestSoftmaxNonfinite.Softmax)">
+
+    <module class="SoftmaxNonfiniteSourceModule" name="Source" />
+    <module class="Softmax" name="Softmax" />
+    <module class="SoftmaxNonfiniteVerifierModule" name="Verifier" />
+
+    <connection source="Source.OUTPUT" target="Softmax.INPUT" delay="0" />
+    <connection source="Softmax.OUTPUT" target="Verifier.INPUT" delay="0" />
+
+</group>

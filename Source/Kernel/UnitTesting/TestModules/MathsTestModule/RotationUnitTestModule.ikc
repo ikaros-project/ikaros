@@ -1,0 +1,11 @@
+<class internal="true" name="RotationUnitTestModule"
+       description="Checks RotationConverter angle-unit handling">
+    <input name="DEGREE_MATRIX" />
+    <input name="RADIAN_MATRIX" />
+    <input name="TURN_MATRIX" />
+    <input name="TAU_MATRIX" />
+    <input name="DEGREE_ANGLES" />
+    <input name="RADIAN_ANGLES" />
+    <input name="TURN_ANGLES" />
+    <input name="TAU_ANGLES" />
+</class>

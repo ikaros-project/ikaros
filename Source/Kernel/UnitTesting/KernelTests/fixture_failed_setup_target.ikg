@@ -1,0 +1,4 @@
+<group internal="true" name="FailedSetupTarget" description="Model that fails after one module initializes" log_level="7">
+    <module class="TaskLifecycleTestModule" name="AInitialized" label="Initialized" />
+    <module class="TaskLifecycleTestModule" name="BFailing" label="Failing" fail_init="true" />
+</group>

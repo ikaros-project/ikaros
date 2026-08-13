@@ -62,7 +62,7 @@
         type="sin"
     />
     <module
-        class="InputJPEG"
+        class="InputImage"
         name="GalleryImage"
         filename="Media/colorrobot.jpg"
         iterations="1000"
@@ -75,8 +75,8 @@
         y="20"
         width="2020"
         height="70"
-        show_title="false"
-        show_frame="true"
+        show_title="no"
+        show_frame="yes"
         label="WebUI Widget Gallery"
         style="font-size:28px;font-weight:700;background:linear-gradient(90deg,#e8f4ff,#f9efe1);"
     />
@@ -88,8 +88,8 @@
         y="105"
         width="420"
         height="80"
-        show_title="false"
-        show_frame="true"
+        show_title="no"
+        show_frame="yes"
         text="One view with interactive controls, graphs, geometry, tables, and image widgets."
         style="font-size:18px;line-height:1.3;padding:10px;"
     />
@@ -103,13 +103,13 @@
         height="150"
         source="Controls.data"
         title="Shared Control State"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
         decimals="2"
-        colorize="true"
+        colorize="yes"
         min="0"
         max="3"
-    />
+     transpose="no"/>
 
     <widget
         name="MenuWidget"
@@ -122,10 +122,10 @@
         label="Preset"
         parameter="Controls.data"
         select_x="4"
-        parameter_type="number"
-        list="Off,Low,Medium,High"
-        show_title="true"
-        show_frame="true"
+        value_type="number"
+        options="Off,Low,Medium,High"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -141,9 +141,9 @@
         parameter="Controls.data"
         select_x="2"
         value="1"
-        valueUp="0"
-        show_title="true"
-        show_frame="true"
+        release_value="0"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -157,10 +157,10 @@
         labels="Gate A,Gate B"
         parameter="Controls.data"
         select_x="2"
-        count="2"
+        control_count="2"
         value="1"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -174,13 +174,13 @@
         labels="Bias,Gain,Mix"
         parameter="Controls.data"
         select_x="0"
-        count="3"
+        control_count="3"
         min="0"
         max="1"
         step="0.01"
-        show_values="true"
-        show_title="true"
-        show_frame="true"
+        show_values="yes"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -194,13 +194,13 @@
         labels="Lift,Drive,Blend"
         parameter="Controls.data"
         select_x="5"
-        count="3"
+        control_count="3"
         min="0"
         max="1"
         step="0.01"
-        show_values="true"
-        show_title="true"
-        show_frame="true"
+        show_values="yes"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -214,12 +214,12 @@
         source="GridState.data"
         parameter="GridState.data"
         interaction="toggle"
-        fill="custom"
-        colorTable="#1f2937,#ff6b35,#ffd166,#4ecdc4"
-        min="0"
-        max="1"
-        show_title="true"
-        show_frame="true"
+        color_map="custom"
+        color_map_colors="#1f2937,#ff6b35,#ffd166,#4ecdc4"
+        value_min="0"
+        value_max="1"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -231,12 +231,12 @@
         height="260"
         title="Bar Graph"
         source="Oscillator.OUTPUT"
-        direction="vertical"
-        auto="false"
-        min="-1"
-        max="1"
-        show_title="true"
-        show_frame="true"
+        orientation="vertical"
+        auto_range="no"
+        y_min="-1"
+        y_max="1"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -249,12 +249,12 @@
         title="Plot"
         source="Oscillator.OUTPUT"
         buffer_size="120"
-        auto="false"
-        include_zero="true"
-        min="-1"
-        max="1"
-        show_title="true"
-        show_frame="true"
+        auto_range="no"
+        include_zero="yes"
+        y_min="-1"
+        y_max="1"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -268,8 +268,8 @@
         source="GalleryImage.OUTPUT"
         format="rgb"
         scale="both"
-        show_title="true"
-        show_frame="true"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -284,18 +284,18 @@
         order="row"
         select_x="0"
         select_value_column="2"
-        markerType="circle"
-        fill="#ff7043,#4db6ac,#9575cd,#64b5f6,#ffd54f"
-        color="#111827"
-        labelType="value"
-        labelOffsetY="-12"
-        min_x="0"
-        max_x="1"
-        min_y="0"
-        max_y="1"
-        scales="yes"
-        show_title="true"
-        show_frame="true"
+        marker_type="circle"
+        fill_color="#ff7043,#4db6ac,#9575cd,#64b5f6,#ffd54f"
+        stroke_color="#111827"
+        label_type="value"
+        label_offset_y="-12"
+        x_min="0"
+        x_max="1"
+        y_min="0"
+        y_max="1"
+        scale_visibility="yes"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -309,18 +309,18 @@
         source="PathRows.OUTPUT"
         order="row"
         select_x="0"
-        count="5"
-        arrow="true"
-        lineWidth="2"
-        color="#0f172a"
-        fill="rgba(0,0,0,0)"
-        min_x="0"
-        max_x="1"
-        min_y="0"
-        max_y="1"
-        scales="yes"
-        show_title="true"
-        show_frame="true"
+        point_count="5"
+        arrow="yes"
+        line_width="2"
+        stroke_color="#0f172a"
+        fill_color="rgba(0,0,0,0)"
+        x_min="0"
+        x_max="1"
+        y_min="0"
+        y_max="1"
+        scale_visibility="yes"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -333,13 +333,13 @@
         title="Tensor Table"
         source="Tensor4D.OUTPUT"
         decimals="2"
-        colorize="true"
+        colorize="yes"
         min="0"
         max="1"
-        scrollable="true"
-        show_title="true"
-        show_frame="true"
-    />
+        scrollable="yes"
+        show_title="yes"
+        show_frame="yes"
+     transpose="no"/>
 
     <widget
         name="Canvas3DWidget"
@@ -349,16 +349,16 @@
         width="500"
         height="260"
         title="Canvas 3D"
-        matrix="PoseMatrices.OUTPUT"
-        show_points="true"
+        source="PoseMatrices.OUTPUT"
+        show_points="yes"
         point_color="#ef4444,#22c55e,#3b82f6"
         point_size="0.18,0.18,0.18"
-        show_lines="false"
-        show_axis="true"
-        show_ground_grid="true"
-        views="Home"
-        show_title="true"
-        show_frame="true"
+        show_lines="no"
+        show_axis="yes"
+        show_ground_grid="yes"
+        view="Home"
+        show_title="yes"
+        show_frame="yes"
     />
 
     <widget
@@ -369,29 +369,13 @@
         width="340"
         height="340"
         title="Epi Head"
-        eyeDirection="EyeDirection.OUTPUT"
-        pupilSize="PupilSize.OUTPUT"
-        headPosition="HeadPosition.OUTPUT"
-        EyeColor="#f59e0b"
-        MouthColor="#ef4444"
-        show_title="true"
-        show_frame="true"
+        eye_direction_source="EyeDirection.OUTPUT"
+        pupil_size_source="PupilSize.OUTPUT"
+        head_position_source="HeadPosition.OUTPUT"
+        eye_color="#f59e0b"
+        mouth_color="#ef4444"
+        show_title="yes"
+        show_frame="yes"
     />
 
-    <widget
-        name="TestObjectWidget"
-        class="test-object"
-        x="860"
-        y="675"
-        width="660"
-        height="340"
-        title="Test Object"
-        blend="mix"
-        direction="all"
-        red="255"
-        green="150"
-        blue="40"
-        show_title="true"
-        show_frame="true"
-    />
 </group>

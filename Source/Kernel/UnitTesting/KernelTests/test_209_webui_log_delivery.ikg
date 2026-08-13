@@ -1,0 +1,17 @@
+<group internal="true"
+    name="TestWebUILogDelivery"
+    description="Test WebUI logs survive snapshots and reach each client once"
+    start="true"
+    stop="2"
+    tick_duration="0.01"
+    webui_port="8209"
+    http_start_delay="0.3"
+    http_requests="assert_log_fanout:update:Fanout marker:2||control/NoSuchParameter?value=1||assert_log_fanout:update:Parameter 'NoSuchParameter' could not be found.:1"
+    http_terminate_after_requests="true">
+    <module class="NotifyTester"
+        name="LogSource"
+        notify_level="warning"
+        notify_message="Fanout marker"
+        notify_tick="1"
+        repeat="true" />
+</group>

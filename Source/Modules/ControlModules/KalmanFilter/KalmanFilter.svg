@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#30343b"/>
+    </marker>
+    <style>
+      .label { font-family: Arial, Helvetica, sans-serif; fill: #141414; }
+      .title { font-size: 38px; font-weight: 700; }
+      .medium { font-size: 23px; }
+      .small { font-size: 18px; }
+      .note { font-size: 16px; fill: #4d5967; }
+      .wire { stroke: #30343b; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .thin { stroke: #667085; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .box { fill: #eef4ff; stroke: #315aa8; stroke-width: 4; }
+      .stage { fill: #ffffff; stroke: #8aa6d8; stroke-width: 2.5; }
+      .decision { fill: #fff8e8; stroke: #c69026; stroke-width: 3; }
+      .state { fill: #f0fdf4; stroke: #2f855a; stroke-width: 3; }
+      .diag { fill: #f7f7f7; stroke: #606975; stroke-width: 2.5; }
+    </style>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#ffffff"/>
+
+  <rect x="260" y="55" width="720" height="665" rx="16" ry="16" class="box"/>
+  <text x="620" y="108" text-anchor="middle" class="label title">KalmanFilter</text>
+
+  <rect x="360" y="150" width="240" height="110" rx="8" ry="8" class="stage"/>
+  <text x="480" y="185" text-anchor="middle" class="label medium">Predict</text>
+  <text x="480" y="214" text-anchor="middle" class="label note">x' = A*x + B*u</text>
+  <text x="480" y="239" text-anchor="middle" class="label note">P' = A*P*A^T + Q</text>
+
+  <rect x="655" y="150" width="245" height="110" rx="8" ry="8" class="stage"/>
+  <text x="777" y="185" text-anchor="middle" class="label medium">Innovation</text>
+  <text x="777" y="214" text-anchor="middle" class="label note">y = z - H*x'</text>
+  <text x="777" y="239" text-anchor="middle" class="label note">S = H*P'*H^T + R</text>
+
+  <rect x="655" y="325" width="245" height="110" rx="8" ry="8" class="stage"/>
+  <text x="777" y="360" text-anchor="middle" class="label medium">Correct</text>
+  <text x="777" y="389" text-anchor="middle" class="label note">K = P'*H^T*S^-1</text>
+  <text x="777" y="414" text-anchor="middle" class="label note">x = x' + K*y</text>
+
+  <rect x="360" y="325" width="240" height="110" rx="8" ry="8" class="stage"/>
+  <text x="480" y="360" text-anchor="middle" class="label medium">Joseph Update</text>
+  <text x="480" y="389" text-anchor="middle" class="label note">P = (I-KH)P'(I-KH)^T</text>
+  <text x="480" y="414" text-anchor="middle" class="label note">+ K*R*K^T</text>
+
+  <rect x="455" y="520" width="330" height="88" rx="8" ry="8" class="state"/>
+  <text x="620" y="555" text-anchor="middle" class="label medium">Persistent estimate</text>
+  <text x="620" y="584" text-anchor="middle" class="label note">STATE = x</text>
+  <text x="620" y="607" text-anchor="middle" class="label note">P = covariance</text>
+
+  <path d="M 600 205 L 655 205" class="wire"/>
+  <path d="M 777 260 L 777 325" class="wire"/>
+  <path d="M 655 380 L 600 380" class="wire"/>
+  <path d="M 480 435 L 480 520 L 455 555" class="thin"/>
+  <path d="M 777 435 L 777 520 L 785 555" class="thin"/>
+  <path d="M 455 565 L 315 565 L 315 205 L 360 205" class="thin"/>
+
+  <line x1="75" y1="178" x2="360" y2="178" class="wire"/>
+  <text x="90" y="152" class="label medium">INPUT</text>
+  <text x="90" y="205" class="label note">optional control u</text>
+
+  <line x1="75" y1="238" x2="360" y2="238" class="thin"/>
+  <text x="90" y="257" class="label small">INPUT_VALID</text>
+
+  <line x1="1025" y1="178" x2="900" y2="205" class="wire"/>
+  <text x="1040" y="152" class="label medium">OBSERVATION</text>
+  <text x="1040" y="205" class="label note">noisy measurement z</text>
+
+  <line x1="1025" y1="238" x2="900" y2="238" class="thin"/>
+  <text x="1040" y="257" class="label small">OBSERVATION_VALID</text>
+
+  <rect x="965" y="315" width="230" height="88" rx="8" ry="8" class="decision"/>
+  <text x="1080" y="348" text-anchor="middle" class="label medium">Innovation gate</text>
+  <text x="1080" y="376" text-anchor="middle" class="label note">y^T*S^-1*y &gt; gate?</text>
+  <line x1="900" y1="380" x2="965" y2="360" class="thin"/>
+  <path d="M 1080 403 L 1080 485 L 787 560" class="thin"/>
+  <text x="1090" y="457" class="label note">reject: keep prediction</text>
+
+  <rect x="965" y="470" width="230" height="90" rx="8" ry="8" class="diag"/>
+  <text x="1080" y="505" text-anchor="middle" class="label medium">Diagnostics</text>
+  <text x="1080" y="533" text-anchor="middle" class="label note">GATED</text>
+  <text x="1080" y="555" text-anchor="middle" class="label note">NORMALIZED_INNOVATION</text>
+
+  <line x1="785" y1="565" x2="1120" y2="630" class="wire"/>
+  <text x="1135" y="637" class="label medium">STATE</text>
+
+  <line x1="905" y1="630" x2="1120" y2="680" class="wire"/>
+  <text x="1135" y="687" class="label medium">KALMAN_GAIN</text>
+
+  <line x1="905" y1="670" x2="1120" y2="730" class="wire"/>
+  <text x="1135" y="737" class="label medium">INNOVATION</text>
+
+  <line x1="75" y1="650" x2="455" y2="585" class="wire"/>
+  <text x="90" y="625" class="label medium">RESET</text>
+  <text x="90" y="677" class="label note">STATE = INITIAL_STATE, P = INITIAL_P</text>
+
+  <rect x="310" y="675" width="620" height="58" rx="8" ry="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="620" y="700" text-anchor="middle" class="label small">Configuration matrices: A, B, H, Q, R</text>
+  <text x="620" y="724" text-anchor="middle" class="label small">Noise defaults: process_noise, observation_noise, inversion_jitter</text>
+</svg>

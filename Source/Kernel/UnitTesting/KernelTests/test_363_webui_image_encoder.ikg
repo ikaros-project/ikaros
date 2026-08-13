@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestWebUIImageEncoder"
+    description="Test bounded asynchronous WebUI image encoding"
+    start="true"
+    stop="1"
+    check_sum="12"
+    expected_output_contains="WEBUI IMAGE ENCODER TEST OK">
+    <module class="WebUIImageEncoderTestModule" name="ImageEncoder" />
+</group>

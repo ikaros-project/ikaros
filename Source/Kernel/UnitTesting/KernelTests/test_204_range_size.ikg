@@ -1,0 +1,6 @@
+<group internal="true"
+    name="TestRangeSize"
+    description="Report correct cardinality for aligned, misaligned, reverse, and multidimensional ranges"
+    expected_output_contains="TestRangeSize.RangeTest RANGE SIZE TEST OK">
+    <module class="RangeSizeTestModule" name="RangeTest" />
+</group>

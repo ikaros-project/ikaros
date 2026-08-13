@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestMaths"
+    description="Test scalar maths helpers"
+    start="true"
+    stop="1"
+    check_sum="12"
+    expected_output_contains="MATHS TEST OK">
+    <module class="MathsTestModule" name="Maths" />
+</group>

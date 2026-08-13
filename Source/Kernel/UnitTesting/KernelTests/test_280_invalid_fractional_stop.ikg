@@ -1,0 +1,6 @@
+<group internal="true"
+    name="TestInvalidFractionalStop"
+    description="Reject a fractional stop tick"
+    stop="1.5"
+    expected_exit="1"
+    expected_output_contains="Invalid stop tick &quot;1.5&quot;. Expected -1 or a non-negative integer." />

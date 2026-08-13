@@ -1,0 +1,18 @@
+<group internal="true"
+    name="TestStartupFailureSaveReload"
+    description="Reload a corrected model saved after startup setup fails"
+    webui_port="8342"
+    http_real_time="false"
+    http_requests="put_json_file:save:fixture_startup_failure_recovery_save.json||wait_contains:update/TestStartupFailureSaveReloadRecovered:Recovered INIT||quit"
+    expected_output_contains="Set-up file failed||Saved file &quot;${USER_DATA}/test_342_startup_failure_save_reload_recovered.ikg&quot;||Recovered INIT||Correct Check Sum:"
+    expected_output_once="Correct Check Sum:"
+    expected_file_exists="UserData/test_342_startup_failure_save_reload_recovered.ikg"
+    cleanup_expected_files="true"
+>
+
+    <module class="Constant" name="Const" data="1,2,3,4,5" />
+    <module class="KernelSizedInputTestModule" name="Sized" />
+
+    <connection source="Const.OUTPUT" target="Sized.INPUT" />
+
+</group>

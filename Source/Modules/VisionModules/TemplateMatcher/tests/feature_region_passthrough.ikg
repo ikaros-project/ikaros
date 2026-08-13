@@ -1,0 +1,11 @@
+<group name="FeatureRegionPassthroughTest" start="true" stop="4" agent="Codex: GPT-5.6 Sol">
+    <module class="Constant" name="Points" data="20,20; 100,80; 160,120; 220,180" />
+    <module class="Constant" name="Descriptors" data="1,2; 3,4; 5,6; 7,8" />
+    <module class="Constant" name="Pass" data="0" />
+    <module class="FeatureRegionFilter" name="All" descriptor_size="2" max_features="4" />
+    <module class="Print" name="Output" />
+    <connection source="Points.OUTPUT" target="All.KEYPOINTS" />
+    <connection source="Descriptors.OUTPUT" target="All.DESCRIPTORS" />
+    <connection source="Pass.OUTPUT" target="All.RESTRICT" />
+    <connection source="All.FILTERED_KEYPOINTS" target="Output.INPUT" />
+</group>

@@ -1,0 +1,4 @@
+<class internal="true" name="AsyncDelaySequenceSource" description="Publishes a sequence from deliberately slow asynchronous ticks">
+    <parameter name="duration" type="number" default="0.03" min="0" description="Seconds spent producing each publication" />
+    <output name="OUTPUT" size="1" description="Completed asynchronous publication number" />
+</class>

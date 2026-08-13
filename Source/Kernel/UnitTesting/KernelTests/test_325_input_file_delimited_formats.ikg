@@ -1,0 +1,53 @@
+<group internal="true"
+       name="TestInputFileDelimitedFormats"
+       description="InputFile reads OutputFile-compatible CSV, TSV, custom-delimited, and headerless records"
+       start="true"
+       stop="3"
+       threads="1"
+       check_sum="2867972"
+       cli_args="-uSource/Kernel/UnitTesting/KernelTests"
+       expected_output_contains="{3.5, 4.75}||{100}||{13, 14}||{30, 40}||{43, 44}||{6, 5, 4}">
+    <module name="CSV"
+            class="InputFile"
+            filename="fixture_input_file_output.csv"
+            send_end_of_file="false" />
+    <module name="TSV"
+            class="InputFile"
+            filename="fixture_input_file_output.tsv"
+            send_end_of_file="false" />
+    <module name="Custom"
+            class="InputFile"
+            filename="fixture_input_file_output_custom.txt"
+            delimiter=";"
+            send_end_of_file="false" />
+    <module name="Headerless"
+            class="InputFile"
+            filename="fixture_input_file_output_headerless.csv"
+            header="false"
+            send_end_of_file="false" />
+    <module name="Space"
+            class="InputFile"
+            filename="fixture_input_file_output_space.txt"
+            delimiter=" "
+            send_end_of_file="false" />
+
+    <module name="CSVValues" class="Print" />
+    <module name="CSVQuotedName" class="Print" />
+    <module name="TSVValues" class="Print" />
+    <module name="CustomValues" class="Print" />
+    <module name="HeaderlessValues" class="Print" />
+    <module name="SpaceValues" class="Print" />
+
+    <connection source="CSV.value_quoted"
+                target="CSVValues.INPUT" />
+    <connection source="CSV.quote_name"
+                target="CSVQuotedName.INPUT" />
+    <connection source="TSV.sample"
+                target="TSVValues.INPUT" />
+    <connection source="Custom.spaced_value"
+                target="CustomValues.INPUT" />
+    <connection source="Headerless.OUTPUT"
+                target="HeaderlessValues.INPUT" />
+    <connection source="Space.space_label"
+                target="SpaceValues.INPUT" />
+</group>

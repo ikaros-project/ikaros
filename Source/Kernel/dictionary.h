@@ -7,16 +7,12 @@
 #include <string>
 #include <vector>
 #include <set>
-#include <map>
 #include <unordered_map>
 #include <variant>
 #include <memory>
 #include <initializer_list>
-#include <iterator>
 #include <iostream>
 #include <filesystem>
-#include <cctype>
-#include <stdexcept>
 #include <utility>
 
 #include "utilities.h"
@@ -92,6 +88,7 @@ namespace ikaros
         size_t count(const std::string & s) const;
         [[nodiscard]]
         bool empty() const { return dict_->empty(); }
+        void ensure_list(const std::string & key);
         void merge(const dictionary & source, bool overwrite=false); // shallow merge: copy from source to this
 
         void erase(const std::string & key);
@@ -104,6 +101,7 @@ namespace ikaros
 
         [[nodiscard]] std::string json() const;
         std::string xml(std::string name="dictionary", exclude_set exclude={}, int depth=0) const;
+        std::string model_xml(std::string name="group", exclude_set exclude={}, int depth=0) const;
         friend std::ostream& operator<<(std::ostream& os, const dictionary & v);
         //void print();
 
@@ -201,8 +199,8 @@ namespace ikaros
         [[nodiscard]] bool is_string() const { return std::holds_alternative<std::string>(value_); }
         [[nodiscard]] bool is_true() const;
 
-        [[nodiscard]] bool as_bool() const { return double(*this) != 0; };
-        [[nodiscard]] int as_int() const { return double(*this); };
+        [[nodiscard]] bool as_bool() const;
+        [[nodiscard]] int as_int() const;
         [[nodiscard]] float as_float() const { return double(*this); };
         [[nodiscard]] double as_double() const { return double(*this); };
         [[nodiscard]] std::string as_string() const { return std::string(*this); };

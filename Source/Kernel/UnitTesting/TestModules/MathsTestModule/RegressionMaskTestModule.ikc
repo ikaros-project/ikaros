@@ -1,0 +1,7 @@
+<class internal="true" name="RegressionMaskTestModule"
+       description="Checks non-finite RegressionStatistics sampling masks">
+    <output name="X" size="1" />
+    <output name="Y" size="1" />
+    <output name="SAMPLE" size="1" />
+    <input name="SAMPLE_COUNT" />
+</class>

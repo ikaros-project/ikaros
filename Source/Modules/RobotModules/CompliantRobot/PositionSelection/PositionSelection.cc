@@ -1,6 +1,8 @@
 #include "ikaros.h"
 //#include "dynamixel_sdk.h"
 
+#include <cmath>
+
 using namespace ikaros;
 
 class PositionSelection: public Module
@@ -38,7 +40,7 @@ class PositionSelection: public Module
     void Tick()
     {     
         if(inputRank.connected() && position_input.rank()>1){
-            position_output.copy(position_input[inputRank[0]]);
+            position_output.copy(position_input[inputRank(0)]);
         }
         else if (position_input.connected() && position_input.rank()>1)
             {
@@ -52,8 +54,8 @@ class PositionSelection: public Module
             
             // Avoid setting goal positions to zero
             for(int i=0; i<position_output.size(); i++)
-                if(position_output[i] == 0)
-                    position_output[i] = position_input(0,i);
+                if(position_output(i) == 0)
+                    position_output(i) = position_input(0,i);
             
             previous_input.copy(position_input);
 
@@ -68,7 +70,7 @@ class PositionSelection: public Module
             return {false, -1};
         for(int i=0; i<m1.rank(); i++)
         { 
-        if (abs(m1[i].sum() - m2[i].sum()) > margin && m1[i].sum() >0 && m2[i].sum() >0)
+        if (std::abs(m1[i].sum() - m2[i].sum()) > margin && m1[i].sum() >0 && m2[i].sum() >0)
             return {true, i};
         
         }
@@ -82,4 +84,3 @@ class PositionSelection: public Module
 
 
 INSTALL_CLASS(PositionSelection)
-

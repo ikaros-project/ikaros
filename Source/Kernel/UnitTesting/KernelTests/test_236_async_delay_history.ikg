@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestAsyncDelayHistory"
+    description="Freeze delayed history while an asynchronous source is running"
+    start="true"
+    stop="30"
+    expected_output_contains="TestAsyncDelayHistory.Sink ASYNC DELAY HISTORY TEST OK">
+    <module class="AsyncDelaySequenceSource" name="Source" async="yes" duration="0.03" />
+    <module class="AsyncDelayHistorySink" name="Sink" />
+    <connection source="Source.OUTPUT" target="Sink.INPUT" delay="[1:4]" />
+</group>

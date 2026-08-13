@@ -35,21 +35,12 @@ This gives a steep low-pass response that works well with ADSR-driven sweeps.
 
 ## Inputs
 
-### `INPUT`
-
-Audio buffer to filter.
-
-### `CUTOFF`
-
-Optional base cutoff in Hz. If disconnected, the `cutoff` parameter is used.
-
-### `CUTOFF_MOD`
-
-Optional audio-rate modulation signal, typically from `ADSREnvelope.OUTPUT`.
-
-### `RESONANCE_MOD`
-
-Optional modulation added to the `resonance` parameter.
+| Name | Description | Optional |
+| --- | --- | --- |
+| INPUT | Audio input buffer |  |
+| CUTOFF | Optional base cutoff in Hz | true |
+| CUTOFF_MOD | Audio-rate cutoff modulation, typically from ADSREnvelope | true |
+| RESONANCE_MOD | Optional resonance modulation added to the resonance parameter | true |
 
 ## Output
 
@@ -73,3 +64,9 @@ Filtered audio buffer for the current tick.
 - `CUTOFF_MOD` uses exponential mapping so ADSR control feels musical rather than linear.
 - The implementation is a practical four-stage filter, not a transistor-ladder emulation.
 - If the internal filter state ever becomes non-finite or explodes numerically, the state is reset so the signal path recovers immediately when the control returns to a safe range.
+
+## Outputs
+
+| Name | Description |
+| --- | --- |
+| OUTPUT | Filtered audio buffer |

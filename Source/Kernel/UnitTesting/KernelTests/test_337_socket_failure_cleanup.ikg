@@ -1,0 +1,15 @@
+<group internal="true"
+    name="TestSocketFailureCleanup"
+    description="Reject an occupied WebUI port before modules initialize"
+    webui_port="8337"
+    log_level="7"
+    cli_args="-B127.0.0.1"
+    occupy_webui_port="true"
+    expected_exit="1"
+    expected_output_contains="unable to start the webserver"
+    expected_output_not_contains="SocketFailure INIT||SocketFailure STOP_AFTER_TICK||SocketFailure STOP_DURING_TICK"
+>
+
+    <module class="TaskLifecycleTestModule" name="Lifecycle" label="SocketFailure" />
+
+</group>

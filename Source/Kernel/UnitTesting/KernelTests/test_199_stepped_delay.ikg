@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestSteppedDelay"
+    description="Resolve and propagate non-unit connection delay ranges"
+    start="true"
+    stop="5"
+    expected_output_contains="TestSteppedDelay.Sink DELAY WINDOW TEST OK">
+    <module class="DelaySequenceSource" name="Source" />
+    <module class="DelayWindowSink" name="Sink" second_delay="2" third_delay="4" />
+    <connection source="Source.OUTPUT" target="Sink.INPUT" delay="[0:5:2]" />
+</group>

@@ -6,13 +6,11 @@
 		Module that selects between its inputs based on the values in the value inputs or the amplitude of its inputs.
 		The output is a weighted average of the inputs depending on the corresponding value inputs.
 
-		The inputs can be one or two dimensional. All inputs must have the same size.
+		INPUT contains candidates along dimension 0. The remaining dimensions are the selected value shape.
 
 		When the values are equal, INPUT_1 is selected. If the value inputs are not connected,
 		the norms of the inputs are used instead. This is useful for population coded values.
         
-        The number of inputs are selected using the parameter number_of_inputs.
-
         There are four arbitration methods:
         WTA: winner take all. Input with maximum value is selected;
         hysteresis: like WTA, but to switch, the new value must be higher than the last value plus the hysteresis threshold;
@@ -20,9 +18,6 @@
         hierarchy: input with highest index and value > 0 is always selected, this can implement a subsumption architecture;
         Note that changing to hysteresis arbitration during operation may initially select the wrong state.
 
-        There are two types of arbitration: 'all', where the complete input is modulated in the same way, and 'by-row', where
-        an individual arbitration is applied to each of the rows of the input.
-        
         After arbitration, the state can be smoothed to avoid abrupt changes of the outputs. The switching time is set by the switching_time
         parameter or directly by the integration constant alpha.
 
@@ -30,18 +25,18 @@
 	</description>
 
 
-    <parameter name="no_of_inputs" type="number" default="2" description="The number of inputs"/>
-    <parameter name="metric" type="list" values="1/2" default="1" description="The metric use: city block or euclidean"/>
+    <parameter name="metric" type="number" options="1,2" default="1" description="The metric used when VALUE is not connected: city block or euclidean"/>
     <parameter name="arbitration" type="number" options="WTA,hysteresis,softmax,hierarchy" default="WTA" description="The arbitration function"/>
-    <parameter name="by_row" type="bool" default="no" description="If set, the effects is equivalent to having one arbiter per row of the input"/>
     <parameter name="softmax_exponent" type="number" default="2" description="The softmax exponent"/>
     <parameter name="hysteresis_threshold" type="number" default="5" description="The value difference that needs to be passed for a switch"/>
     <parameter name="switch_time" type="number" default="0" description="Number of ticks to switch over"/>
     <parameter name="alpha" type="number" default="1" description="Smoothing constant (set to 1/switch_time if not set)"/>
+    <parameter name="stack_inputs" type="bool" default="yes" description="Stack multiple INPUT connections along dimension 0"/>
+    <parameter name="stack_values" type="bool" default="no" description="Stack multiple VALUE connections along dimension 0"/>
 	<parameter name="debug" type="bool" default="false" description="Print out debug info"/>
 
-	<input name="INPUT" description="A number of stacked inputs" />
-	<input name="VALUE" description="A number of stacked value inputs"  optional="yes" />
+	<input name="INPUT" stack="@stack_inputs" description="Candidate inputs; candidate index is dimension 0 when stacked" />
+	<input name="VALUE" stack="@stack_values" description="Optional arbitration values; one value per candidate"  optional="yes" />
 
 	<output name="AMPLITUDES" shape="INPUT.shape[0]" description="The amplitides of the inputs / or values" />
 	<output name="ARBITRATION" shape="INPUT.shape[0]" description="The state after arbitration" />
@@ -49,12 +44,10 @@
 	<output name="NORMALIZED" shape="INPUT.shape[0]" description="The arbitration state after normalization; the weights used to weigh together the inputs" />
 
 	<output name="OUTPUT" description="The selected output" shape="INPUT.shape[1:]"/>
-	<output name="VALUE" size="1" description="The value of the current output; norm of the smoothed arbitration state (not implemented yet)"/>
 
 
 
    <files>
-   		<file>Arbiter.h</file>
    		<file>Arbiter.cc</file>
    		<file>Arbiter.ikc</file>
    </files>

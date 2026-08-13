@@ -1,0 +1,50 @@
+<group internal="true"
+       name="TestOutputFileTimestampModes"
+       description="OutputFile supports none, line, tick, nominal-time, and real-time timestamp modes"
+       start="true"
+       stop="2"
+       tick_duration="0.25"
+       check_sum="5687017"
+       expected_file_exists="UserData/test_303_output_file_none.csv||UserData/test_303_output_file_line.csv||UserData/test_303_output_file_tick.csv||UserData/test_303_output_file_time.csv||UserData/test_303_output_file_real_time.csv||UserData/test_303_output_file_real_time_b.csv"
+       expected_files_identical="UserData/test_303_output_file_real_time.csv||UserData/test_303_output_file_real_time_b.csv"
+       expected_file_contains="value&#10;1.00||line/1,value&#10;0,1.00&#10;1,1.00||tick/1,value&#10;1,1.00&#10;2,1.00||time/1,value&#10;0.25,1.00&#10;0.5,1.00||real_time/1,value&#10;0,1.00"
+       cleanup_expected_files="true">
+    <module name="Data" class="Constant" data="1" />
+    <module name="None"
+            class="OutputFile"
+            filename="test_303_output_file_none.csv"
+            decimals="2"
+            timestamp="none" />
+    <module name="Tick"
+            class="OutputFile"
+            filename="test_303_output_file_tick.csv"
+            decimals="2"
+            timestamp="tick" />
+    <module name="Line"
+            class="OutputFile"
+            filename="test_303_output_file_line.csv"
+            decimals="2"
+            timestamp="line" />
+    <module name="Time"
+            class="OutputFile"
+            filename="test_303_output_file_time.csv"
+            decimals="2"
+            timestamp="time" />
+    <module name="RealTime"
+            class="OutputFile"
+            filename="test_303_output_file_real_time.csv"
+            decimals="2"
+            timestamp="real_time" />
+    <module name="RealTimeB"
+            class="OutputFile"
+            filename="test_303_output_file_real_time_b.csv"
+            decimals="2"
+            timestamp="real_time" />
+
+    <connection delay="0" source="Data.OUTPUT" target="None.INPUT" label="value" />
+    <connection delay="0" source="Data.OUTPUT" target="Tick.INPUT" label="value" />
+    <connection delay="0" source="Data.OUTPUT" target="Line.INPUT" label="value" />
+    <connection delay="0" source="Data.OUTPUT" target="Time.INPUT" label="value" />
+    <connection delay="0" source="Data.OUTPUT" target="RealTime.INPUT" label="value" />
+    <connection delay="0" source="Data.OUTPUT" target="RealTimeB.INPUT" label="value" />
+</group>

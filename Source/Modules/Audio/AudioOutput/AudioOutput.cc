@@ -28,7 +28,7 @@ public:
         if(queue != nullptr)
             return true;
 
-        AudioQueueNewOutput(&asbd, audioQueueOutputCallback, this, NULL, NULL, 0, &queue);
+        AudioQueueNewOutput(&asbd, audioQueueOutputCallback, this, nullptr, nullptr, 0, &queue);
         if(queue == nullptr)
         {
             Warning("AudioOutput could not create an audio queue.");
@@ -107,7 +107,7 @@ public:
             audioQueueOutputCallback(this, queue, buffer);
         }
 
-        AudioQueueStart(queue, NULL);
+        AudioQueueStart(queue, nullptr);
 
         // Wait for playback to complete
         while (isPlaying)
@@ -138,7 +138,7 @@ public:
             std::cout << "PLAY STOPPED" << std::endl;
         }
 
-        AudioQueueEnqueueBuffer(inAQ, inBuffer, 0, NULL);
+        AudioQueueEnqueueBuffer(inAQ, inBuffer, 0, nullptr);
     }
 
     ~AudioOutput()

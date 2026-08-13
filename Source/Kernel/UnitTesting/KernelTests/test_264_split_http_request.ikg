@@ -1,0 +1,12 @@
+<group internal="true"
+    name="TestSplitHTTPRequest"
+    description="Process an HTTP request whose header arrives in separate TCP reads"
+    start="true"
+    stop="1"
+    check_sum="1034"
+    webui_port="8264"
+    http_ready_path="auth"
+    http_requests="assert_split_http_request:/startupsteps"
+    http_terminate_after_requests="true">
+    <module class="System" name="System" />
+</group>

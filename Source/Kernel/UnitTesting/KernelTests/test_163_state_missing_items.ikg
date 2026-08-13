@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestStateMissingItems"
     description="Test state file requires items object"
     stop="1"

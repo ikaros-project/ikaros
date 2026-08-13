@@ -1,0 +1,16 @@
+<group name="RatePopulation_demo" start="true" stop="-1" tick_duration="0.001" webui_port="8000">
+    <module class="Oscillator" name="OscillatingDrive" type="0" frequency="0.5,0.7,0.9,1.1,1.3" _x="40" _y="120" />
+    <module class="Scale" name="DriveScale" factor="50" _x="220" _y="120" />
+    <module class="RatePopulation" name="Linear" population_size="5" activation_function="0" bias="50" _x="400" _y="40" />
+    <module class="RatePopulation" name="ReLU" population_size="5" activation_function="1" _x="400" _y="260" />
+    <module class="RatePopulation" name="Sigmoid" population_size="5" activation_function="2" gain="0.1" _x="400" _y="480" />
+    <connection source="OscillatingDrive.OUTPUT" target="DriveScale.INPUT" />
+    <connection source="DriveScale.OUTPUT" target="Linear.INPUT" />
+    <connection source="DriveScale.OUTPUT" target="ReLU.INPUT" />
+    <connection source="DriveScale.OUTPUT" target="Sigmoid.INPUT" />
+
+    <widget class="plot" name="DrivePlot" title="Oscillating drive (Hz)" source="DriveScale.OUTPUT" x="720" y="20" _x="720" _y="20" width="440" height="150" y_min="-50" y_max="50" auto_range="no" buffer_size="1000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="LinearPlot" title="Linear rate with 50 Hz bias" source="Linear.OUTPUT" x="720" y="190" _x="720" _y="190" width="440" height="150" y_min="0" y_max="100" auto_range="no" buffer_size="1000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="ReLUPlot" title="Rectified-linear rate" source="ReLU.OUTPUT" x="720" y="360" _x="720" _y="360" width="440" height="150" y_min="0" y_max="60" auto_range="no" buffer_size="1000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="SigmoidPlot" title="Sigmoid rate" source="Sigmoid.OUTPUT" x="720" y="530" _x="720" _y="530" width="440" height="150" y_min="0" y_max="100" auto_range="no" buffer_size="1000" show_title="yes" show_frame="yes" />
+</group>

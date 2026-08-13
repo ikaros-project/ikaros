@@ -1,0 +1,8 @@
+<group internal="true" name="TestAsyncWebUIQueuedControl" description="Test WebUI control changes are queued while async work is running" start="true" stop="100" webui_port="8178" http_start_delay="0.05" http_requests="sleep:1||control/TestAsyncWebUIQueuedControl.Worker.gain?value=7||json/TestAsyncWebUIQueuedControl.Worker.gain" http_terminate_after_requests="true" expected_output_contains="&quot;pending&quot;: true||&quot;value&quot;: [[1]]">
+    <module class="Constant" name="Input" data="2"/>
+    <module class="AsyncLifecycle" name="Worker" async="yes" duration="10" timeout_ms="15000"/>
+    <module class="Print" name="Print"/>
+
+    <connection source="Input.OUTPUT" target="Worker.X" delay="0"/>
+    <connection source="Worker.Y" target="Print.INPUT" delay="0"/>
+</group>

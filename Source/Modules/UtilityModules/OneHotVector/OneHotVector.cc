@@ -20,6 +20,8 @@
 //    See http://www.ikaros-project.org/ for more information.
 //
 
+#include <cmath>
+
 #include "ikaros.h"
 
 using namespace ikaros;
@@ -36,6 +38,9 @@ class OneHotVector : public Module
         
         Bind(input_array, "INPUT");
         Bind(output_array, "OUTPUT");
+
+        if(output_array.size_x() < 1)
+            throw exception("OneHotVector: output_size must be positive.", path_);
     }
 
     void Tick()
@@ -51,8 +56,18 @@ class OneHotVector : public Module
             return;
         }
         output_array.reset();
-        if (input_array(0) != -1)
-            output_array(int(clip(input_array(0), 0, output_array.size_x()))) = value;
+        const float input_index = input_array(0);
+        if(input_index == -1)
+            return;
+        if(!std::isfinite(input_index))
+        {
+            Warning("OneHotVector input index must be finite.", path_);
+            return;
+        }
+
+        const int index = static_cast<int>(
+            clip(input_index, 0, output_array.size_x() - 1));
+        output_array(index) = value;
     }
 };
 

@@ -1,0 +1,23 @@
+<group name="Normalize_test" start="true" stop="1">
+    <module class="Constant" name="RangeInput" data="2, 4, 6" />
+    <module class="Constant" name="NormInput" data="3, 4" />
+    <module class="Constant" name="CityInput" data="-1, 1, 2" />
+    <module class="Constant" name="MaxInput" data="1, 2, 4" />
+    <module class="Normalize" name="Range" type="range" />
+    <module class="Normalize" name="Euclidean" type="euclidean" />
+    <module class="Normalize" name="CityBlock" type="cityblock" />
+    <module class="Normalize" name="Max" type="max" />
+    <module class="Print" name="PrintRange" />
+    <module class="Print" name="PrintEuclidean" />
+    <module class="Print" name="PrintCityBlock" />
+    <module class="Print" name="PrintMax" />
+
+    <connection source="RangeInput.OUTPUT" target="Range.INPUT" delay="0" />
+    <connection source="NormInput.OUTPUT" target="Euclidean.INPUT" delay="0" />
+    <connection source="CityInput.OUTPUT" target="CityBlock.INPUT" delay="0" />
+    <connection source="MaxInput.OUTPUT" target="Max.INPUT" delay="0" />
+    <connection source="Range.OUTPUT" target="PrintRange.INPUT" delay="0" />
+    <connection source="Euclidean.OUTPUT" target="PrintEuclidean.INPUT" delay="0" />
+    <connection source="CityBlock.OUTPUT" target="PrintCityBlock.INPUT" delay="0" />
+    <connection source="Max.OUTPUT" target="PrintMax.INPUT" delay="0" />
+</group>

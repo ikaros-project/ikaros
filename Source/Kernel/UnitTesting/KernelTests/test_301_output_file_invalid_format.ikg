@@ -1,0 +1,15 @@
+<group internal="true"
+       name="TestOutputFileInvalidFormat"
+       description="OutputFile rejects unknown output formats"
+       start="true"
+       stop="1"
+       expected_exit="1"
+       expected_output_contains="Invalid parameter value">
+    <module name="Data" class="Constant" data="1" />
+    <module name="Output"
+            class="OutputFile"
+            filename="test_301_output_file_invalid.txt"
+            format="text" />
+
+    <connection source="Data.OUTPUT" target="Output.INPUT" />
+</group>

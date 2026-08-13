@@ -1,13 +1,291 @@
 #include "session_logging.h"
-#include "ikaros.h"
 
-#include <unistd.h>
+#include <atomic>
+#include <condition_variable>
+#include <cstddef>
+#include <deque>
+#include <filesystem>
+#include <limits>
+#include <mutex>
+#include <stdexcept>
+#include <utility>
+
+#include <curl/curl.h>
+
+#include "ikaros.h"
 
 namespace ikaros
 {
+    SessionLogMetadata
+    Kernel::CaptureSessionLogMetadata(bool resolve_model_agent)
+    {
+        dictionary module_info = GetModuleInstantiationInfo();
+        std::string agent = GetOption("agent");
+        if(resolve_model_agent && info_.contains_non_null("name"))
+        {
+            auto root = components.find(std::string(info_["name"]));
+            if(root != components.end())
+                try
+                {
+                    agent = root->second->ComputeValueOf("agent");
+                }
+                catch(...)
+                {
+                    // Keep the command-line agent when the model expression cannot be evaluated.
+                }
+        }
+
+        return {
+            session_id,
+            info_.contains("name") ? std::string(info_["name"]) : "",
+            info_.contains("filename") ? std::string(info_["filename"]) : GetOptionFilename(),
+            std::filesystem::path(GetOptionFullPath()).filename().string(),
+            session_timer.GetTime(),
+            uptime_timer.GetTime(),
+            std::move(agent),
+            cpu_cores,
+            module_info.contains("classes") ? std::string(module_info["classes"]) : "",
+        };
+    }
+
+    struct SessionLogDispatcher::State
+    {
+        State(std::size_t capacity, Transport transport):
+            capacity(capacity),
+            transport(std::move(transport))
+        {}
+
+        const std::size_t capacity;
+        Transport transport;
+        mutable std::mutex mutex;
+        std::condition_variable work_available;
+        std::condition_variable idle;
+        std::condition_variable worker_finished;
+        std::deque<SessionLogEvent> queue;
+        bool active = false;
+        bool stopping = false;
+        bool finished = false;
+        std::size_t dropped = 0;
+        bool delivery_outage = false;
+        std::size_t consecutive_delivery_failures = 0;
+        bool queue_overflow_reported = false;
+        std::deque<std::string> status_messages;
+        std::atomic<bool> status_pending = false;
+
+        void QueueStatusMessage(std::string message)
+        {
+            status_messages.push_back(std::move(message));
+            status_pending.store(true, std::memory_order_release);
+        }
+    };
+
+
+    SessionLogDispatcher::SessionLogDispatcher(
+        std::size_t capacity,
+        Transport transport,
+        std::chrono::milliseconds shutdown_wait):
+        shutdown_wait_(shutdown_wait)
+    {
+        if(capacity == 0)
+            throw std::invalid_argument("Session log queue capacity must be positive");
+        if(!transport)
+            throw std::invalid_argument("Session log transport must be set");
+        if(shutdown_wait < std::chrono::milliseconds::zero())
+            throw std::invalid_argument("Session log shutdown wait must be non-negative");
+
+        state_ = std::make_shared<State>(capacity, std::move(transport));
+        worker_ = std::thread([state = state_]()
+        {
+            while(true)
+            {
+                SessionLogEvent event;
+                {
+                    std::unique_lock<std::mutex> lock(state->mutex);
+                    state->work_available.wait(lock, [&]()
+                    {
+                        return state->stopping || !state->queue.empty();
+                    });
+
+                    if(state->stopping)
+                    {
+                        state->queue.clear();
+                        break;
+                    }
+
+                    if(state->queue.empty())
+                        continue;
+
+                    event = std::move(state->queue.front());
+                    state->queue.pop_front();
+                    state->active = true;
+                }
+
+                bool delivered = true;
+                std::string failure;
+                try
+                {
+                    state->transport(std::move(event));
+                }
+                catch(const std::exception & e)
+                {
+                    delivered = false;
+                    failure = e.what();
+                }
+                catch(...)
+                {
+                    delivered = false;
+                    failure = "unknown transport error";
+                }
+
+                {
+                    std::lock_guard<std::mutex> lock(state->mutex);
+                    try
+                    {
+                        if(delivered)
+                        {
+                            if(state->delivery_outage)
+                            {
+                                const std::size_t failures = state->consecutive_delivery_failures;
+                                state->QueueStatusMessage(
+                                    "Session logging recovered after " + std::to_string(failures) +
+                                    (failures == 1 ? " failed delivery." : " failed deliveries."));
+                                state->delivery_outage = false;
+                                state->consecutive_delivery_failures = 0;
+                            }
+                        }
+                        else
+                        {
+                            ++state->consecutive_delivery_failures;
+                            if(!state->delivery_outage)
+                            {
+                                state->delivery_outage = true;
+                                state->QueueStatusMessage(
+                                    "Session logging failed: " + failure +
+                                    ". Further failures will be suppressed until delivery recovers.");
+                            }
+                        }
+                    }
+                    catch(...)
+                    {
+                        // Diagnostic reporting must not stop the delivery worker.
+                    }
+
+                    state->active = false;
+                    if(state->queue.empty())
+                        state->idle.notify_all();
+                }
+            }
+
+            {
+                std::lock_guard<std::mutex> lock(state->mutex);
+                state->active = false;
+                state->finished = true;
+                state->idle.notify_all();
+                state->worker_finished.notify_all();
+            }
+        });
+    }
+
+
+    SessionLogDispatcher::~SessionLogDispatcher()
+    {
+        if(!state_ || !worker_.joinable())
+            return;
+
+        bool finished = false;
+        {
+            std::unique_lock<std::mutex> lock(state_->mutex);
+            state_->stopping = true;
+            state_->work_available.notify_all();
+            finished = state_->worker_finished.wait_for(lock, shutdown_wait_, [&]()
+            {
+                return state_->finished;
+            });
+        }
+
+        if(finished)
+            worker_.join();
+        else
+            worker_.detach();
+    }
+
+
+    bool
+    SessionLogDispatcher::Enqueue(SessionLogEvent event)
+    {
+        {
+            std::lock_guard<std::mutex> lock(state_->mutex);
+            if(state_->stopping || state_->queue.size() >= state_->capacity)
+            {
+                ++state_->dropped;
+                if(!state_->queue_overflow_reported)
+                {
+                    state_->queue_overflow_reported = true;
+                    try
+                    {
+                        state_->QueueStatusMessage(
+                            "Session logging queue is full; additional log events are being dropped.");
+                    }
+                    catch(...)
+                    {
+                        // Dropping the diagnostic is preferable to interrupting the kernel.
+                    }
+                }
+                return false;
+            }
+            state_->queue.push_back(std::move(event));
+        }
+        state_->work_available.notify_one();
+        return true;
+    }
+
+
+    bool
+    SessionLogDispatcher::WaitUntilIdle(std::chrono::milliseconds timeout)
+    {
+        if(timeout < std::chrono::milliseconds::zero())
+            throw std::invalid_argument("Session log idle wait must be non-negative");
+
+        std::unique_lock<std::mutex> lock(state_->mutex);
+        return state_->idle.wait_for(lock, timeout, [&]()
+        {
+            return state_->queue.empty() && !state_->active;
+        });
+    }
+
+
+    std::size_t
+    SessionLogDispatcher::DroppedCount() const
+    {
+        std::lock_guard<std::mutex> lock(state_->mutex);
+        return state_->dropped;
+    }
+
+
+    std::vector<std::string>
+    SessionLogDispatcher::TakeStatusMessages()
+    {
+        if(!state_->status_pending.load(std::memory_order_acquire))
+            return {};
+
+        std::lock_guard<std::mutex> lock(state_->mutex);
+        std::vector<std::string> messages;
+        messages.reserve(state_->status_messages.size());
+        while(!state_->status_messages.empty())
+        {
+            messages.push_back(std::move(state_->status_messages.front()));
+            state_->status_messages.pop_front();
+        }
+        state_->status_pending.store(false, std::memory_order_release);
+        return messages;
+    }
+
+
     namespace
     {
-        constexpr size_t kMaxLogValueLength = 1024;
+        constexpr std::size_t kMaxLogValueLength = 1024;
+        constexpr std::size_t kSessionLogQueueCapacity = 32;
+        constexpr auto kSessionLogShutdownWait = std::chrono::milliseconds(5500);
 
         [[nodiscard]] std::string UrlEncode(const std::string & value)
         {
@@ -35,9 +313,7 @@ namespace ikaros
 
         [[nodiscard]] std::string LimitLogValue(const std::string & value, size_t max_length = kMaxLogValueLength)
         {
-            if(value.size() <= max_length)
-                return value;
-            return value.substr(0, max_length);
+            return valid_utf8_prefix(value, max_length);
         }
 
         void AppendQueryParameter(std::string & query, const std::string & key, const std::string & value)
@@ -55,26 +331,20 @@ namespace ikaros
             query += UrlEncode(LimitLogValue(value));
         }
 
-        void AddCommonParameters(std::string & path, Kernel & kernel, const std::string & event_name, const dictionary & module_info)
+
+        void AddCommonParameters(std::string & path, const std::string & event_name,
+                                 const SessionLogMetadata & metadata)
         {
-            char hostname[256] = {0};
-            if(gethostname(hostname, sizeof(hostname)-1) != 0)
-                hostname[0] = '\0';
-
-            const std::string agent =
-                kernel.info_.contains("agent") ? std::string(kernel.info_["agent"]) : kernel.GetOption("agent");
-
             AppendQueryParameter(path, "event", event_name);
-            AppendQueryParameter(path, "sid", std::to_string(kernel.session_id));
+            AppendQueryParameter(path, "sid", std::to_string(metadata.session_id));
             AppendQueryParameter(path, "timestamp", std::to_string(GetTimeStamp()));
-            AppendQueryParameter(path, "session_name", kernel.info_.contains("name") ? std::string(kernel.info_["name"]) : "");
-            AppendQueryParameter(path, "file", kernel.info_.contains("filename") ? std::string(kernel.info_["filename"]) : kernel.GetOptionFilename());
-            AppendQueryParameter(path, "file_path", kernel.GetOptionFullPath());
-            AppendQueryParameter(path, "clock_time", formatNumber(kernel.session_timer.GetTime(), 4));
-            AppendQueryParameter(path, "host", hostname);
-            AppendQueryParameter(path, "agent", agent);
-            AppendQueryParameter(path, "cpu_cores", std::to_string(kernel.cpu_cores));
-            AppendQueryParameter(path, "classes", module_info.contains("classes") ? std::string(module_info["classes"]) : "");
+            AppendQueryParameter(path, "session_name", metadata.session_name);
+            AppendQueryParameter(path, "file", metadata.filename);
+            AppendQueryParameter(path, "file_path", metadata.file_path);
+            AppendQueryParameter(path, "clock_time", formatNumber(metadata.session_time, 4));
+            AppendQueryParameter(path, "agent", metadata.agent);
+            AppendQueryParameter(path, "cpu_cores", std::to_string(metadata.cpu_cores));
+            AppendQueryParameter(path, "classes", metadata.classes);
 #if DEBUG
             AppendQueryParameter(path, "debug", "1");
 #else
@@ -82,26 +352,125 @@ namespace ikaros
 #endif
         }
 
-        void SendLogRequest(const std::string & path)
+        std::string BuildLogPath(const std::string & endpoint, const std::string & event_name,
+                                 const SessionLogMetadata & metadata, bool include_uptime)
         {
-            std::string request = "GET " + path + " HTTP/1.1\r\nHost: www.ikaros-project.org\r\nConnection: close\r\n\r\n";
+            std::string path = endpoint;
+            AddCommonParameters(path, event_name, metadata);
+            if(include_uptime)
+                AppendQueryParameter(path, "uptime", formatNumber(metadata.uptime, 4));
+            return path;
+        }
 
-            Socket socket;
-            char response[2048] = {0};
-            socket.Get("www.ikaros-project.org", 80, request.c_str(), response, sizeof(response)-1);
-            socket.Close();
+        CURLcode
+        InitializeCurl()
+        {
+            static std::once_flag initialization;
+            static CURLcode result = CURLE_FAILED_INIT;
+            std::call_once(initialization, []()
+            {
+                result = curl_global_init(CURL_GLOBAL_DEFAULT);
+            });
+            return result;
+        }
+
+        std::size_t
+        DiscardResponse(char *, std::size_t size, std::size_t count, void *)
+        {
+            if(size != 0 && count > std::numeric_limits<std::size_t>::max() / size)
+                return 0;
+            return size * count;
+        }
+
+        void
+        SendLogRequest(const std::string & path)
+        {
+            const CURLcode initialization_result = InitializeCurl();
+            if(initialization_result != CURLE_OK)
+                throw std::runtime_error(
+                    "libcurl initialization failed: " +
+                    std::string(curl_easy_strerror(initialization_result)));
+
+            CURL * request = curl_easy_init();
+            if(request == nullptr)
+                throw std::runtime_error("libcurl could not create a request");
+
+            const std::string url = "https://www.ikaros-project.org" + path;
+            CURLcode result = CURLE_OK;
+            auto set_option = [request, &result](CURLoption option, auto value)
+            {
+                if(result == CURLE_OK)
+                    result = curl_easy_setopt(request, option, value);
+            };
+            set_option(CURLOPT_URL, url.c_str());
+            set_option(CURLOPT_CUSTOMREQUEST, "PUT");
+            set_option(CURLOPT_NOSIGNAL, 1L);
+            set_option(CURLOPT_CONNECTTIMEOUT_MS, 3000L);
+            set_option(CURLOPT_TIMEOUT_MS, 5000L);
+            set_option(CURLOPT_SSL_VERIFYPEER, 1L);
+            set_option(CURLOPT_SSL_VERIFYHOST, 2L);
+            set_option(CURLOPT_FOLLOWLOCATION, 0L);
+            set_option(CURLOPT_WRITEFUNCTION, DiscardResponse);
+#if LIBCURL_VERSION_NUM >= 0x075500
+            set_option(CURLOPT_PROTOCOLS_STR, "https");
+#else
+            set_option(CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
+#endif
+
+            std::string failure;
+            if(result != CURLE_OK)
+                failure = "request setup failed: " + std::string(curl_easy_strerror(result));
+            else
+            {
+                result = curl_easy_perform(request);
+                if(result != CURLE_OK)
+                    failure = curl_easy_strerror(result);
+                else
+                {
+                    long response_code = 0;
+                    result = curl_easy_getinfo(request, CURLINFO_RESPONSE_CODE, &response_code);
+                    if(result != CURLE_OK)
+                        failure = "could not read the HTTP response: " +
+                                  std::string(curl_easy_strerror(result));
+                    else if(response_code < 200 || response_code >= 300)
+                        failure = "server returned HTTP " + std::to_string(response_code);
+                }
+            }
+
+            curl_easy_cleanup(request);
+            if(!failure.empty())
+                throw std::runtime_error(failure);
+        }
+
+        SessionLogDispatcher & LogDispatcher()
+        {
+            // Register curl's process cleanup before the dispatcher destructor.
+            // The dispatcher must stop its worker before curl and OpenSSL shut down.
+            static_cast<void>(InitializeCurl());
+            static SessionLogDispatcher dispatcher(
+                kSessionLogQueueCapacity,
+                [](SessionLogEvent event)
+                {
+                    SendLogRequest(event.path);
+                },
+                kSessionLogShutdownWait);
+            return dispatcher;
+        }
+
+        void
+        EnqueueLogRequest(std::string path)
+        {
+            static_cast<void>(LogDispatcher().Enqueue({std::move(path)}));
         }
     }
 
     void
-    SendSessionLogEvent(Kernel & kernel, const std::string & endpoint, const std::string & event_name)
+    QueueSessionLogEvent(Kernel & kernel, const std::string & endpoint, const std::string & event_name)
     {
         try
         {
-            dictionary module_info = kernel.GetModuleInstantiationInfo();
-            std::string path = endpoint;
-            AddCommonParameters(path, kernel, event_name, module_info);
-            SendLogRequest(path);
+            SessionLogMetadata metadata = kernel.CaptureSessionLogMetadata(true);
+            EnqueueLogRequest(BuildLogPath(endpoint, event_name, metadata, false));
         }
         catch(...)
         {
@@ -110,15 +479,12 @@ namespace ikaros
     }
 
     void
-    SendProcessStartLogEvent(Kernel & kernel)
+    QueueProcessStartLogEvent(Kernel & kernel)
     {
         try
         {
-            dictionary module_info = kernel.GetModuleInstantiationInfo();
-            std::string path = "/process_start3/";
-            AddCommonParameters(path, kernel, "process_start", module_info);
-            AppendQueryParameter(path, "uptime", formatNumber(kernel.uptime_timer.GetTime(), 4));
-            SendLogRequest(path);
+            SessionLogMetadata metadata = kernel.CaptureSessionLogMetadata(false);
+            EnqueueLogRequest(BuildLogPath("/process_start3/", "process_start", metadata, true));
         }
         catch(...)
         {
@@ -127,19 +493,83 @@ namespace ikaros
     }
 
     void
-    SendProcessExitLogEvent(Kernel & kernel)
+    QueueProcessExitLogEvent(Kernel & kernel)
     {
         try
         {
-            dictionary module_info = kernel.GetModuleInstantiationInfo();
-            std::string path = "/exit3/";
-            AddCommonParameters(path, kernel, "exit", module_info);
-            AppendQueryParameter(path, "uptime", formatNumber(kernel.uptime_timer.GetTime(), 4));
-            SendLogRequest(path);
+            SessionLogMetadata metadata = kernel.CaptureSessionLogMetadata(true);
+            EnqueueLogRequest(BuildLogPath("/exit3/", "exit", metadata, true));
         }
         catch(...)
         {
             // Process exit logging is best-effort and must never interrupt shutdown.
         }
+    }
+
+
+    void
+    ReportSessionLogStatus(Kernel & kernel)
+    {
+        for(auto & message : LogDispatcher().TakeStatusMessages())
+            kernel.Warning(std::move(message));
+    }
+
+
+    void
+    Kernel::LogStart()
+    {
+#if defined(LOGGING_OFF)
+        return;
+#else
+        LogSessionEvent("/start3/", "start");
+#endif
+    }
+
+
+    void
+    Kernel::LogStop()
+    {
+#if defined(LOGGING_FULL)
+        LogSessionEvent("/stop3/", "stop");
+#else
+        return;
+#endif
+    }
+
+
+    void
+    Kernel::LogProcessStart()
+    {
+#if !defined(LOGGING_FULL)
+        return;
+#else
+        if(process_start_logged)
+            return;
+
+        process_start_logged = true;
+        QueueProcessStartLogEvent(*this);
+#endif
+    }
+
+
+    void
+    Kernel::LogProcessExit()
+    {
+#if !defined(LOGGING_FULL)
+        return;
+#else
+        if(process_exit_logged)
+            return;
+
+        process_exit_logged = true;
+        QueueProcessExitLogEvent(*this);
+#endif
+    }
+
+
+    void
+    Kernel::LogSessionEvent(const std::string & endpoint, const std::string & event_name)
+    {
+        QueueSessionLogEvent(*this, endpoint, event_name);
     }
 }

@@ -39,10 +39,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   )
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-
 if (PHIDGETS_LIBRARIES)
   message(STATUS "Found Phidgets: Includes: ${PHIDGETS_INCLUDE_DIRS} Libraries: ${PHIDGETS_LIBRARIES}")
   set(PHIDGETS_FOUND "YES" )

@@ -1,0 +1,11 @@
+<group internal="true"
+    name="TestDynamicMatrixDelayWindowError"
+    description="Reject multiple delayed samples from a dynamic matrix output"
+    start="true"
+    stop="1"
+    expected_exit="1"
+    expected_output_contains="Dynamic outputs support only a single whole-matrix delay">
+    <module name="Source" class="DynamicMatrixSource" />
+    <module name="Sink" class="DynamicMatrixSink" />
+    <connection source="Source.ROWS" target="Sink.ROWS" delay="[2:4]" />
+</group>

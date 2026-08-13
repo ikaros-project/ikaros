@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestReversedSourceSelectorBounds"
+    description="Reject source selector stops below their starts during setup"
+    expected_exit="1"
+    expected_output_contains="Connection source selector must have non-negative, ordered bounds">
+    <module class="Constant" name="Source" data="1,2,3" />
+    <module class="Print" name="Sink" />
+
+    <connection source="Source.OUTPUT[2:1]" target="Sink.INPUT" />
+</group>

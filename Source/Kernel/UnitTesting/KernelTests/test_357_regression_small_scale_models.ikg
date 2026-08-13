@@ -1,0 +1,21 @@
+<group internal="true"
+    name="TestRegressionSmallScaleModels"
+    description="Compare regression models at small finite X scales"
+    start="true"
+    stop="24"
+    check_sum="3135"
+    expected_output_contains="REGRESSION MODEL TEST OK">
+
+    <module class="RegressionModelComparisonTestModule"
+            name="SourceAndVerifier" />
+    <module class="RegressionStatistics" name="Regression"
+            max_samples="24" />
+
+    <connection source="SourceAndVerifier.X"
+                target="Regression.X" delay="0" />
+    <connection source="SourceAndVerifier.Y"
+                target="Regression.Y" delay="0" />
+    <connection source="Regression.MODEL_COMPARISON"
+                target="SourceAndVerifier.MODEL_COMPARISON" delay="1" />
+
+</group>

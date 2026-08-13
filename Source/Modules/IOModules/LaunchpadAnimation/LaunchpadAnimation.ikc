@@ -1,0 +1,19 @@
+<class name="LaunchpadAnimation" description="generates a reactive RGB animation for an 8 by 8 Launchpad grid">
+    <description>
+        Produces a continuous rainbow vortex with radial waves and sparkles. MIDI
+        note events optionally add expanding color bursts at the pressed pad.
+    </description>
+
+    <parameter name="speed" type="number" default="1" min="0" max="5" description="Animation speed multiplier." />
+    <parameter name="brightness" type="number" default="1" min="0" max="1" description="Overall output brightness." />
+    <parameter name="saturation" type="number" default="0.9" min="0" max="1" description="Color saturation." />
+    <parameter name="sparkle" type="number" default="0.65" min="0" max="1" description="Strength of the deterministic sparkle layer." />
+    <parameter name="reactivity" type="number" default="1" min="0" max="2" description="Strength of pad-triggered color bursts." />
+    <parameter name="frame_rate" type="number" default="30" min="1" max="60" description="Maximum number of generated animation frames per second." />
+
+    <input name="KEY" size="1" optional="yes" description="Latest Launchpad MIDI note number, normally from MidiInput.KEY." />
+    <input name="TRIG" size="1" optional="yes" description="Fallback trigger for a new burst when EVENT_COUNT is not connected." />
+    <input name="EVENT_COUNT" size="1" optional="yes" description="MIDI event counter; each change creates a burst at KEY." />
+
+    <output name="COLOR" shape="64,3" description="One normalized RGB row for each Launchpad pad, ordered from top left to bottom right." />
+</class>

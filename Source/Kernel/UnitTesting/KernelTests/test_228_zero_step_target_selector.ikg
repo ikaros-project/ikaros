@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestZeroStepTargetSelector"
+    description="Reject explicit zero-step target selectors instead of expanding them as wildcards"
+    expected_exit="1"
+    expected_output_contains="Connection target selector must not have a zero increment">
+    <module class="Constant" name="Source" data="1,2,3" />
+    <module class="Print" name="Sink" />
+
+    <connection source="Source.OUTPUT" target="Sink.INPUT[0:3:0]" />
+</group>

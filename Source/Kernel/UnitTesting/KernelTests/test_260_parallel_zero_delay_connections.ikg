@@ -1,0 +1,16 @@
+<group internal="true"
+    name="TestParallelZeroDelayConnections"
+    description="Execute every zero-delay connection between the same component pair"
+    check_sum="151"
+    start="true"
+    stop="2"
+    threads="2"
+    expected_output_contains="INPUT = {30}">
+    <module class="Constant" name="Source" data="10,20" />
+    <module class="Add" name="Target" />
+    <module class="Print" name="Sink" />
+
+    <connection source="Source.OUTPUT[0:1]" target="Target.INPUT1[0:1]" delay="0" />
+    <connection source="Source.OUTPUT[1:2]" target="Target.INPUT2[0:1]" delay="0" />
+    <connection source="Target.OUTPUT" target="Sink.INPUT" delay="0" />
+</group>

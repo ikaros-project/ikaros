@@ -58,12 +58,8 @@ find_path(DYNAMIXEL_INCLUDE_DIRS
   )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
 if (DYNAMIXEL_INCLUDE_DIRS AND DYNAMIXEL_LIBRARIES)
   message(STATUS "Found Dynamixel SDK: Includes: ${DYNAMIXEL_INCLUDE_DIRS} Libraries: ${DYNAMIXEL_LIBRARIES}")
   set(DYNAMIXEL_LIB_FOUND "YES" )
 endif ()
 #############################################
-

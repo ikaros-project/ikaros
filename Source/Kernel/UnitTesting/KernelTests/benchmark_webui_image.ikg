@@ -1,0 +1,19 @@
+<group internal="true"
+       name="BenchmarkWebUIImage"
+       description="Measure WebUI image capture, encoding, response latency, and tick throughput"
+       agent="Release WebUI image benchmark"
+       tick_duration="0.001"
+       webui_req_int="@benchmark_snapshot_interval"
+       snapshot_interval="@benchmark_snapshot_interval"
+       benchmark_width="1024"
+       benchmark_height="1024"
+       benchmark_iterations="10"
+       benchmark_quality="75"
+       benchmark_snapshot_interval="0.1">
+    <module name="Image"
+            class="WebUIImageBenchmarkModule"
+            width="@benchmark_width"
+            height="@benchmark_height"
+            iterations="@benchmark_iterations"
+            quality="@benchmark_quality" />
+</group>

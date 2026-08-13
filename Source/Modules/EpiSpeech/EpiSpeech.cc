@@ -201,10 +201,14 @@ SpeechSound::Play(const std::string & command)
 {
     timer->Restart();
     frame = 0;
-    char * argv[5] = { (char *)command.c_str(), (char *)sound_path.c_str(), NULL };
+    char * argv[] = {
+        const_cast<char *>(command.c_str()),
+        const_cast<char *>(sound_path.c_str()),
+        nullptr,
+    };
     pid_t pid;
 
-    int status = posix_spawn(&pid, command.c_str(), NULL, NULL, argv, NULL);
+    int status = posix_spawn(&pid, command.c_str(), nullptr, nullptr, argv, nullptr);
 }
 
 bool
@@ -391,7 +395,7 @@ EpiSpeech::Tick()
 
     // Start play if sound in queue and no inhibition
 
-        if(current_sound == -1 && queued_sound != -1 && (!inhibition .connected()|| inhibition == 0))   // FIXME: PROBABLY NOT WORKING
+        if(current_sound == -1 && queued_sound != -1 && (!inhibition.connected() || inhibition == 0))
         {
             current_sound = queued_sound;
             queued_sound = -1;
@@ -407,8 +411,8 @@ EpiSpeech::Tick()
         if(!sound[current_sound].UpdateVolume(rms, lag))
             current_sound = -1;
 
-    volume[0] = scale_volume * pow(10, 0.1*rms[0]); // convert to linear volume scale
-    volume[1] = scale_volume * pow(10, 0.1*rms[1]);
+    volume(0) = scale_volume * pow(10, 0.1*rms(0)); // convert to linear volume scale
+    volume(1) = scale_volume * pow(10, 0.1*rms(1));
 
     // Set playing status outputs
 

@@ -1,0 +1,13 @@
+<group name="ConductanceNeuronPopulation_demo" start="true" stop="-1" tick_duration="0.001" webui_port="8000">
+    <module class="Constant" name="HHCurrent" data="0,6,10,14" _x="40" _y="100" />
+    <module class="Constant" name="MLCurrent" data="40,70,90,120" _x="40" _y="360" />
+    <module class="ConductanceNeuronPopulation" name="HH" population_size="4" model="0" _x="260" _y="60" />
+    <module class="ConductanceNeuronPopulation" name="ML" population_size="4" model="1" initial_voltage="-60" _x="260" _y="340" />
+    <connection source="HHCurrent.OUTPUT" target="HH.CURRENT" />
+    <connection source="MLCurrent.OUTPUT" target="ML.CURRENT" />
+
+    <widget class="plot" name="HHVoltage" title="Hodgkin-Huxley voltage (mV)" source="HH.VOLTAGE" x="560" y="40" _x="560" _y="40" width="360" height="260" y_min="-90" y_max="60" auto_range="no" buffer_size="500" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="HHRecovery" title="Hodgkin-Huxley potassium gate" source="HH.RECOVERY" x="940" y="40" _x="940" _y="40" width="300" height="260" y_min="0" y_max="1" auto_range="no" buffer_size="500" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="MLVoltage" title="Morris-Lecar voltage (mV)" source="ML.VOLTAGE" x="560" y="340" _x="560" _y="340" width="360" height="260" y_min="-90" y_max="60" auto_range="no" buffer_size="500" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="MLRecovery" title="Morris-Lecar recovery state" source="ML.RECOVERY" x="940" y="340" _x="940" _y="340" width="300" height="260" y_min="0" y_max="1" auto_range="no" buffer_size="500" show_title="yes" show_frame="yes" />
+</group>

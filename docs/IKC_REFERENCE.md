@@ -30,7 +30,7 @@ The current kernel directly understands these child elements inside `<class>`:
 - `<output>`
 - `<state>`
 
-It also reads some class-level attributes such as `python`, `name`, and `description`.
+It also reads some class-level attributes such as `python`, `name`, `description`, and `internal`.
 
 Other child elements can still be parsed as generic XML metadata, but they are not part of the active kernel contract unless some other tool or UI consumes them.
 
@@ -47,6 +47,9 @@ Use a single root `<class>` element.
   - Class lookup is still driven by the filename stem, not this attribute.
 - `description`
   - Short metadata string.
+- `internal`
+  - Marks a class as internal to the kernel or test suite.
+  - Internal classes are discovered by the kernel but hidden from WebUI class listings.
 - `python`
   - Marks the class as Python-backed.
   - Must be a relative path inside the class directory.
@@ -107,8 +110,22 @@ Declares a module parameter.
   - `log_level`
   - `module_start`
   - `start_tick`
+  - `async`
   - `color`
 - Some classes also receive additional WebUI parameters at runtime.
+
+### Auto-Injected `async` Parameter
+
+Every module class receives an `async` bool parameter unless the class defines one explicitly.
+Its default is `no`.
+
+When an instance is created with `async="yes"` in an `.ikg` file, the module's `Tick()` method runs
+in the background instead of blocking the main tick loop. This works for normal C++ modules and
+Python-backed modules. Class authors do not need to add a special parameter for this in ordinary
+classes.
+
+Asynchronous mode is best for slow modules whose output can be consumed as the latest completed
+value. It should not be used for modules that must update their outputs synchronously on every tick.
 
 #### Legacy or metadata-only attributes seen in old files
 
@@ -281,6 +298,20 @@ Available values can come from:
   - `real_time`
   - `start`
 
+## Execution Ticks and Nominal Time
+
+Tick 0 represents the initialized model state before any processing cycle has
+run. The first call to a module's `Tick()` occurs at tick 1. During tick `n`,
+the nominal time is:
+
+```text
+n * tick_duration
+```
+
+The nominal time therefore represents the endpoint of the interval processed
+by that tick. For example, with `tick_duration="0.01"`, the first `Tick()` call
+sees tick 1 and a nominal time of 0.01 seconds.
+
 ## Auto-Injected Parameters
 
 Even if you do not declare them, the kernel adds these to every class:
@@ -291,6 +322,8 @@ Even if you do not declare them, the kernel adds these to every class:
 - Control: `menu`
 - Options: `inherit,quiet,exception,end_of_file,terminate,fatal_error,warning,print,debug,trace`
 
+Exception and notification use: use exceptions for failures detected during startup and module `Init()`, where the model can fail before execution begins. During execution, modules should report runtime conditions through `Notify()`, `Warning()`, or related Ikaros notification functions so messages go through the configured log level, WebUI, and notification handling path.
+
 ### `module_start`
 
 - Type: `number`
@@ -300,6 +333,11 @@ Even if you do not declare them, the kernel adds these to every class:
 ### `start_tick`
 
 - Type: `number`
+
+The component runs when the current tick is greater than or equal to
+`start_tick`. Because the first processing cycle is tick 1, values 0 and 1 both
+allow the component to run on the first cycle. A value of 2 starts it on the
+second cycle.
 
 ### `color`
 
@@ -403,6 +441,6 @@ This is the safest subset to use for new `.ikc` files:
 
 This reference is based on the current implementation in:
 
-- `/Users/cba/ikaros/Source/Kernel/ikaros.cc`
-- `/Users/cba/ikaros/Source/ikaros.h`
-- `/Users/cba/ikaros/Source/Kernel/dictionary.cc`
+- `Source/Kernel/ikaros.cc`
+- `Source/ikaros.h`
+- `Source/Kernel/dictionary.cc`

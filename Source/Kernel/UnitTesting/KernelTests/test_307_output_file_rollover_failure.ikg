@@ -1,0 +1,30 @@
+<group internal="true"
+       name="TestOutputFileRolloverFailure"
+       description="OutputFile keeps the current recording active when the next file cannot open"
+       start="true"
+       stop="3"
+       check_sum="522899"
+       expected_output_contains="continuing with"
+       expected_file_exists="UserData/test_307_output_file_00.csv||UserData/test_307_output_file_01.csv"
+       expected_file_contains="tick/1,value||1,1.00||2,1.00||3,1.00"
+       cleanup_expected_files="true">
+    <module name="Data" class="Constant" data="1" />
+    <module name="NewFile" class="Constant" data="1" />
+    <module name="WriteOff" class="Constant" data="0" />
+    <module name="ABlocker"
+            class="OutputFile"
+            filename="test_307_output_file_01.csv"
+            decimals="2"
+            timestamp="tick"
+            existing_file="overwrite" />
+    <module name="Main"
+            class="OutputFile"
+            filename="test_307_output_file_##.csv"
+            decimals="2"
+            timestamp="tick" />
+
+    <connection delay="0" source="Data.OUTPUT" target="ABlocker.INPUT" label="value" />
+    <connection delay="0" source="WriteOff.OUTPUT" target="ABlocker.WRITE" />
+    <connection delay="0" source="Data.OUTPUT" target="Main.INPUT" label="value" />
+    <connection delay="1" source="NewFile.OUTPUT" target="Main.NEWFILE" />
+</group>

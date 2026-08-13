@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestSourceSelectorUpperBound"
+    description="Reject source selectors that extend beyond their output during setup"
+    expected_exit="1"
+    expected_output_contains="Connection source selector is outside its output bounds">
+    <module class="Constant" name="Source" data="1,2,3" />
+    <module class="Print" name="Sink" />
+
+    <connection source="Source.OUTPUT[2:4]" target="Sink.INPUT" />
+</group>

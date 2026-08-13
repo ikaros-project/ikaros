@@ -1,9 +1,0 @@
-<group name="SumInputExample" description="Example network for the Python SumInput class" start="true">
-    <module class="Constant" name="InputValues" data="1,2,3,4"/>
-
-    <module class="SumInput" name="Sum"/>
-    <module class="Print" name="Print"/>
-
-    <connection source="InputValues.OUTPUT" target="Sum.X" delay="0"/>
-    <connection source="Sum.Y" target="Print.INPUT" delay="0"/>
-</group>

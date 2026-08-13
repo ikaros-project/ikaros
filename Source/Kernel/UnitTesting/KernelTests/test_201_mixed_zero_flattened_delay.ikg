@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestMixedZeroFlattenedDelay"
+    description="Propagate a flattened mixed-zero delay window in delay-major order"
+    start="true"
+    stop="3"
+    expected_output_contains="TestMixedZeroFlattenedDelay.Sink FLAT DELAY WINDOW TEST OK">
+    <module class="DelayVectorSource" name="Source" />
+    <module class="DelayFlatWindowSink" name="Sink" />
+    <connection source="Source.OUTPUT" target="Sink.INPUT" delay="[0:3]" />
+</group>

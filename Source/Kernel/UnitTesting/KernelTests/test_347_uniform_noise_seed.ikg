@@ -1,0 +1,19 @@
+<group internal="true"
+    name="TestUniformNoiseSeed"
+    description="Test reproducible module-owned uniform Noise sequences"
+    start="true"
+    stop="4"
+    check_sum="1700627"
+    expected_output_contains="RANDOM SEQUENCE TEST OK">
+
+    <module class="Constant" name="Input" data="0,0,0,0" />
+    <module class="Noise" name="FirstNoise" type="uniform" min="-2" max="3" seed="12345" />
+    <module class="Noise" name="SecondNoise" type="uniform" min="3" max="-2" seed="12345" />
+    <module class="RandomSequenceTestModule" name="Verifier" />
+
+    <connection source="Input.OUTPUT" target="FirstNoise.INPUT" />
+    <connection source="Input.OUTPUT" target="SecondNoise.INPUT" />
+    <connection source="FirstNoise.OUTPUT" target="Verifier.FIRST" />
+    <connection source="SecondNoise.OUTPUT" target="Verifier.SECOND" />
+
+</group>

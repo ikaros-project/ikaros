@@ -6,16 +6,16 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
             {'name': "DROP DOWN MENU", 'control':'header'},
             {'name':'title', 'default':"Menu", 'type':'string', 'control': 'textedit'},
             {'name':'parameter', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'enableSource', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'enabled_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name':'select_x', 'default':0, 'type':'int', 'control': 'textedit'},
             {'name':'select_y', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'list_parameter', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'parameter_type', 'default':"number", 'type':'string', 'control': 'menu', 'options': "number,string"},
-            {'name':'list', 'default':"X,Y,Z", 'type':'string', 'control': 'textedit'},
+            {'name':'options_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'value_type', 'default':"number", 'type':'string', 'control': 'menu', 'options': "number,string"},
+            {'name':'options', 'default':"X,Y,Z", 'type':'string', 'control': 'textedit'},
 
             {'name': "STYLE", 'control':'header'},
             {'name':'label', 'default':"", 'type':'string', 'control': 'textedit'},
-            {'name':'labelWidth', 'default':50, 'type':'int', 'control': 'textedit'},
+            {'name':'label_width', 'default':50, 'type':'int', 'control': 'textedit'},
         ]};
 
     static html()
@@ -26,29 +26,16 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
     requestData(data_set)
     {
         this.addSource(data_set, this.parameters.parameter);
-        if(this.parameters.enableSource)
-            this.addSource(data_set, this.parameters.enableSource);
-        if(this.parameters.list_parameter)
-            this.addSource(data_set, this.parameters.list_parameter);
-    }
-
-    isEnabled()
-    {
-        if(!this.parameters.enableSource)
-            return true;
-
-        const enableSource = this.getSource('enableSource', 1);
-        const enableValue = Array.isArray(enableSource) ? (Array.isArray(enableSource[0]) ? enableSource[0][0] : enableSource[0]) : enableSource;
-        return Number(enableValue) !== 0;
+        if(this.parameters.enabled_source)
+            this.addSource(data_set, this.parameters.enabled_source);
+        if(this.parameters.options_source)
+            this.addSource(data_set, this.parameters.options_source);
     }
 
     syncEnabledState()
     {
         const selector = this.querySelector("select");
-        const enabled = this.isEnabled();
-        this.classList.toggle("widget-control-disabled", !enabled);
-        if(selector)
-            selector.disabled = !enabled;
+        this.syncControlEnabledState(selector ? [selector] : []);
     }
 
     option_selected(index, value, text)
@@ -56,37 +43,21 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
         if(!this.parameters.parameter)
             return;
 
-        const x = this.getSelectX();
-        const y = this.getSelectY();
-        const selectedValue = this.parameters.parameter_type=='string' ? text : value;
-        if(y === "")
-            this.send_control_change(this.parameters.parameter, selectedValue, x);
-        else
-            this.send_control_change(this.parameters.parameter, selectedValue, x, Math.trunc(Number(y)));
-    }
-
-    getSelectX()
-    {
-        if(this.parameters.select_x !== undefined && this.parameters.select_x !== "")
-            return Number(this.parameters.select_x);
-        return Number(this.parameters.index ?? 0);
-    }
-
-    getSelectY()
-    {
-        if(this.parameters.select_y === undefined || this.parameters.select_y === null)
-            return "";
-        return this.parameters.select_y;
+        const selectedValue = this.parameters.value_type=='string' ? text : value;
+        this.sendIndexedControlChange(this.parameters.parameter, selectedValue);
     }
 
 
     changeOptions(options)
     {
         let selector = this.querySelector("select")
+        const optionString = Array.isArray(options) ? options.flat(Infinity).join(",") : String(options ?? "");
+        if(this._optionsKey === optionString)
+            return;
+        this._optionsKey = optionString;
         while(selector.childElementCount > 0)
             selector.removeChild(selector.children[0]);
 
-        const optionString = Array.isArray(options) ? options.join(",") : String(options ?? "");
         let l = optionString === "" ? [] : optionString.split(',');
         let ix = 0;
         for(let e of l)
@@ -105,6 +76,8 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
     
         let selector = this.querySelector("select");
         selector.onchange = (e) => {
+            if(main.edit_mode)
+                return;
             e.preventDefault();
             e.stopPropagation();
             const selectedText = e.target.selectedOptions?.[0]?.innerText ?? "";
@@ -112,61 +85,50 @@ class WebUIWidgetDropDownMenu extends WebUIWidgetControl
         };
 
         selector.onmousedown = (e) => {
-            e.stopPropagation();
+            if(!main.edit_mode)
+                e.stopPropagation();
         };
 
-        this.changeOptions(this.parameters.list);
-        this.querySelector("label").innerText = this.parameters.label;
+        this.changeOptions(this.parameters.options);
+        const label = this.querySelector("label");
+        label.innerText = this.parameters.label;
+        const configuredLabelWidth = Number(this.parameters.label_width);
+        const labelWidth = this.parameters.label && Number.isFinite(configuredLabelWidth) ? Math.max(0, configuredLabelWidth) : 0;
+        label.style.display = labelWidth ? "inline-block" : "none";
+        label.style.width = `${labelWidth}px`;
+        selector.style.width = labelWidth ? `calc(100% - ${labelWidth}px)` : "100%";
         this.syncEnabledState();
     }
     update()
     {
-         try
-         {
-            this.syncEnabledState();
-            let d = this.getSource('parameter');
-            if(!d)
-                return;
-            let selectElement = this.querySelector("select");
-            if(this.parameters.list_parameter)
-            {
-                let l = this.getSource('list_parameter');
-                this.changeOptions(l)
-            }
-                // FIXME: Check parameter type here
-                // FIXME: Populate menu from parameter here or at init
+        this.syncEnabledState();
+        if(this.parameters.options_source)
+            this.changeOptions(this.getSource('options_source'));
 
-                if(this.parameters.parameter_type=='number')
-            {
-                const selectX = this.getSelectX();
-                const selectY = this.getSelectY();
-                let value = d;
-                if(Array.isArray(d))
-                {
-                    if(selectY !== "" && Array.isArray(d[0]))
-                        value = d[Math.trunc(Number(selectY))]?.[selectX];
-                    else
-                        value = Array.isArray(d[0]) ? d[0][selectX] : d[selectX];
-                }
+        const value = this.getSelectedSourceValue('parameter');
+        const selectElement = this.querySelector("select");
+        if(value === undefined || value === null)
+        {
+            selectElement.selectedIndex = -1;
+            return;
+        }
+
+        if(this.parameters.value_type=='number')
+        {
                 selectElement.value = value ?? selectElement.value;
                 return;
-            }
-
-            const stringValue = String(Array.isArray(d) ? (Array.isArray(d[0]) ? d[0][0] : d[0]) : d);
-            for (let i = 0; i < selectElement.options.length; i++)
-            {
-                if (selectElement.options[i].text === stringValue)
-                {    
-                    selectElement.selectedIndex = i;
-                    return;
-                }
-            }
-
         }
-        catch(err)
+
+        const stringValue = String(value ?? "");
+        for (let i = 0; i < selectElement.options.length; i++)
         {
-        
+            if (selectElement.options[i].text === stringValue)
+            {
+                selectElement.selectedIndex = i;
+                return;
+            }
         }
+        selectElement.selectedIndex = -1;
     }
 };
 

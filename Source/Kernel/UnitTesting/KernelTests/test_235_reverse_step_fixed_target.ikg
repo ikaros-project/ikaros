@@ -1,0 +1,9 @@
+<group internal="true"
+    name="TestReverseStepFixedTarget"
+    description="Allow negative increments into an in-bounds fixed-size target"
+    check_sum="125">
+    <module class="Constant" name="Source" data="10,20" />
+    <module class="KernelSizedInputTestModule" name="Sized" />
+
+    <connection source="Source.OUTPUT" target="Sized.INPUT[0:2:-1]" />
+</group>

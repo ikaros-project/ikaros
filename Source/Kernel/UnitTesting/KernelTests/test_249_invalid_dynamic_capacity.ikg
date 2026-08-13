@@ -1,0 +1,7 @@
+<group internal="true"
+    name="TestInvalidDynamicCapacity"
+    description="Reject a dynamic output capacity that never resolves to a valid shape"
+    expected_exit="1"
+    expected_output_contains="Could not resolve all input and output sizes||TestInvalidDynamicCapacity.Invalid.ROWS">
+    <module class="InvalidDynamicCapacityModule" name="Invalid" />
+</group>

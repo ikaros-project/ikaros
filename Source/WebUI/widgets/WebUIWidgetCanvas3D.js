@@ -2,29 +2,34 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	static template() {
 		return [
 			{ 'name': "CANVAS 3D", 'control': 'header' },
-			{ 'name': 'matrix', 'default': "", 'type': 'source', 'control': 'textedit' },
+			{ 'name': 'title', 'default': "Canvas 3D", 'type': 'string', 'control': 'textedit' },
+			{ 'name': 'source', 'default': "", 'type': 'source', 'control': 'textedit' },
 
 			{ 'name': "CONTROL", 'control': 'header' },
-			{ 'name': 'show_models', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-			{ 'name': 'models', 'default': "", 'type': 'source', 'control': 'textedit' },
-			{ 'name': 'show_lines', 'default': false, 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'show_models', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'model_source', 'default': "", 'type': 'source', 'control': 'textedit' },
+			{ 'name': 'show_lines', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'line', 'default': "", 'type': 'string', 'control': 'textedit' },
 			{ 'name': 'line_color', 'default': "blue", 'type': 'string', 'control': 'textedit' },
+			{ 'name': 'line_width', 'default': 1, 'type': 'float', 'control': 'textedit' },
 
-			{ 'name': 'show_points', 'default': true, 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'show_points', 'default': "yes", 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'point_color', 'default': "black", 'type': 'string', 'control': 'textedit' },
 			{ 'name': 'point_size', 'default': "0.15", 'type': 'string', 'control': 'textedit' },
 
-			{ 'name': 'show_axis', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-			{ 'name': 'show_ground_grid', 'default': false, 'type': 'bool', 'control': 'checkbox' },
-			{ 'name': 'show_stats', 'default': false, 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'show_axis', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'show_ground_grid', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
+			{ 'name': 'show_stats', 'default': "no", 'type': 'bool', 'control': 'checkbox' },
 			{ 'name': 'offset_x', 'default': "0", 'type': 'float', 'control': 'textedit' },
 			{ 'name': 'offset_y', 'default': "0", 'type': 'float', 'control': 'textedit' },
 			{ 'name': 'offset_z', 'default': "0", 'type': 'float', 'control': 'textedit' },
 
-			{ 'name': 'views', 'default': "Home", 'type': 'string', 'control': 'menu', 'options': "Home, Top, Bottom, Front, Back, Left, Right" },
-			{ 'name': 'look_at_X', 'default': "0", 'type': 'float', 'control': 'textedit' },
-			{ 'name': 'look_at_Y', 'default': "0.8", 'type': 'float', 'control': 'textedit' },
-			{ 'name': 'look_at_Z', 'default': "0", 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'view', 'default': "Home", 'type': 'string', 'control': 'menu', 'options': "Home, Top, Bottom, Front, Back, Left, Right" },
+			{ 'name': 'look_at_x', 'default': "0", 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'look_at_y', 'default': "0.8", 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'look_at_z', 'default': "0", 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'camera_distance', 'default': 2.2, 'type': 'float', 'control': 'textedit' },
+			{ 'name': 'scene_background', 'default': "#263238", 'type': 'string', 'control': 'textedit' },
 		]
 	};
 	static html() {
@@ -42,11 +47,11 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			</script>
 			<script type="x-shader/x-fragment" id="fragmentshader">
 			uniform vec3 color;
-			uniform sampler2D texture;
+			uniform sampler2D pointTexture;
 			varying vec3 vColor;
 			void main() {
 				gl_FragColor = vec4( color * vColor, 1.0 );
-				gl_FragColor = gl_FragColor * texture2D( texture, gl_PointCoord );
+				gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
 			}
 			</script>
 
@@ -58,7 +63,13 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 	updateAll() 
 	{
 		this._lastViewName = null;
+		this._lastCameraDistance = null;
 		super.updateAll();
+	}
+
+	requestData(data_set) {
+		this.addSource(data_set, this.parameters.source);
+		this.addSource(data_set, this.parameters.model_source);
 	}
 
 	init() {
@@ -72,8 +83,11 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.canvasElement.style.pointerEvents = "auto";
 		this.canvasElement.style.position = "relative";
 		this.canvasElement.style.zIndex = "6";
-		this.canvas = this.canvasElement.getContext("webgl");
 		this.models_loaded = false;
+		this.models_loading = false;
+		this.modelLoadGeneration = 0;
+		this.modelLoadController = null;
+		this.modelLoadFailedKey = null;
 		this._cachedPointColorKey = null;
 		this._cachedPointColors = [[0, 0, 0]];
 		this._cachedPointSizeKey = null;
@@ -82,6 +96,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this._cachedLineColors = [[0, 0, 1]];
 		this._cachedLineKey = null;
 		this._cachedLineIndices = [];
+		this._lastLineTopologyKey = null;
 		this._lastRendererWidth = null;
 		this._lastRendererHeight = null;
 		this._lastCameraAspect = null;
@@ -111,7 +126,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		// Camera
 		this.camera = new THREE.PerspectiveCamera();
-		this.cameraTarget = new THREE.Vector3(this.parameters.look_at_X, this.parameters.look_at_Y, this.parameters.look_at_Z);
+		this.cameraTarget = new THREE.Vector3(this.parameters.look_at_x, this.parameters.look_at_y, this.parameters.look_at_z);
 		this.camera.aspect = this.parameters.width / this.parameters.height;
 		this.camera.position.set(0,0,0);
 		
@@ -158,8 +173,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		}
 
 		// Renderer
-		this.renderer = new THREE.WebGLRenderer({ antialias: true, clearColor: 0x335588, canvas: this.canvas.canvas });
-		this.renderer.setClearColor( 0x263238 );
+		this.renderer = new THREE.WebGLRenderer({ antialias: true, clearColor: 0x335588, canvas: this.canvasElement });
+		this.canvas = this.renderer.getContext();
+		this.renderer.setClearColor(this.parameters.scene_background || "#263238");
 		this.renderer.setPixelRatio(window.devicePixelRatio);
 		this.renderer.setSize(this.parameters.width, this.parameters.height);
 		this.renderer.shadowMap.enabled = true;
@@ -176,7 +192,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		this.controls.update();
 
 		// Prevent browser/page scrolling while zooming the 3D canvas.
-		this.canvasElement.addEventListener("wheel", function (evt) {
+		this.addManagedListener(this.canvasElement, "wheel", function (evt) {
+			if (main.edit_mode)
+				return;
 			if (evt.cancelable)
 				evt.preventDefault();
 			evt.stopPropagation();
@@ -185,6 +203,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		// Safari can occasionally target an overlay sibling instead of the canvas.
 		// Forward core mouse/pointer/wheel events to the canvas so OrbitControls always receives input.
 		const forwardToCanvas = (evt) => {
+			if (main.edit_mode)
+				return;
 			if (!this.canvasElement || evt.target === this.canvasElement || this.canvasElement.contains(evt.target))
 				return;
 			if (evt.type === "wheel") {
@@ -207,16 +227,18 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			catch (error) {
 			}
 		};
-		this.addEventListener("pointerdown", forwardToCanvas, true);
-		this.addEventListener("pointermove", forwardToCanvas, true);
-		this.addEventListener("pointerup", forwardToCanvas, true);
-		this.addEventListener("mousedown", forwardToCanvas, true);
-		this.addEventListener("mousemove", forwardToCanvas, true);
-		this.addEventListener("mouseup", forwardToCanvas, true);
-		this.addEventListener("wheel", forwardToCanvas, { capture: true, passive: false });
+		this.addManagedListener(this, "pointerdown", forwardToCanvas, true);
+		this.addManagedListener(this, "pointermove", forwardToCanvas, true);
+		this.addManagedListener(this, "pointerup", forwardToCanvas, true);
+		this.addManagedListener(this, "mousedown", forwardToCanvas, true);
+		this.addManagedListener(this, "mousemove", forwardToCanvas, true);
+		this.addManagedListener(this, "mouseup", forwardToCanvas, true);
+		this.addManagedListener(this, "wheel", forwardToCanvas, { capture: true, passive: false });
 
 		// Hard-stop wheel scrolling at widget root as an extra guard.
-		this.addEventListener("wheel", function (evt) {
+		this.addManagedListener(this, "wheel", function (evt) {
+			if (main.edit_mode)
+				return;
 			const targetIsCanvas = evt.target === this.canvasElement || this.canvasElement.contains(evt.target);
 			if (evt.cancelable)
 				evt.preventDefault();
@@ -237,15 +259,38 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		};
 
 		function animate(o, time) {
-			requestAnimationFrame(animate.bind(null, o));
+			o._animationFrame = requestAnimationFrame(animate.bind(null, o));
+			const editing = main.edit_mode;
+			o.canvasElement.style.pointerEvents = editing ? "none" : "auto";
 			if (o.controls)
-				o.controls.enabled = !main.edit_mode;
+				o.controls.enabled = !editing;
 			o.controls.update();
 			o.stats.update();
 			render(o);
 		};
 
 		animate(this, 0);
+	}
+
+	disconnectedCallback()
+	{
+		super.disconnectedCallback();
+		this.cancelModelLoading();
+		if (this._animationFrame !== undefined)
+			cancelAnimationFrame(this._animationFrame);
+		if (this.controls && typeof this.controls.dispose === "function")
+			this.controls.dispose();
+		if (this.scene)
+			this.scene.traverse((object) => {
+				if (object.geometry)
+					object.geometry.dispose();
+				if (Array.isArray(object.material))
+					object.material.forEach((material) => material.dispose());
+				else if (object.material)
+					object.material.dispose();
+			});
+		if (this.renderer)
+			this.renderer.dispose();
 	}
 
 	IkaorsToThreeBase(m) {
@@ -260,50 +305,108 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		return ret
 	}
 
-	LoadModel(a, name, m) {
+	cancelModelLoading()
+	{
+		this.modelLoadGeneration++;
+		if (this.modelLoadController)
+			this.modelLoadController.abort();
+		this.modelLoadController = null;
+		this.models_loading = false;
+	}
+
+	disposeModelObject(object)
+	{
+		if (!object)
+			return;
+		this.scene.remove(object);
+		object.traverse((child) => {
+			if (child.geometry)
+				child.geometry.dispose();
+			if (Array.isArray(child.material))
+				child.material.forEach((material) => material.dispose());
+			else if (child.material)
+				child.material.dispose();
+		});
+	}
+
+	clearModelObjects()
+	{
+		if (this.model_objects)
+			this.model_objects.forEach((object) => this.disposeModelObject(object));
+		this.model_objects = [];
+	}
+
+	LoadModel(a, name, modelListKey) {
 		if (!Array.isArray(name) || name.length === 0 || !name[0])
 			return;
 
-		//console.log('Loading models')
-		var manager = new THREE.LoadingManager();
+		this.cancelModelLoading();
+		const generation = this.modelLoadGeneration;
+		const controller = new AbortController();
+		this.modelLoadController = controller;
+		this.models_loading = true;
+		this.models_loaded = false;
+		const loader = new THREE.GLTFLoader(new THREE.LoadingManager());
 
-		manager.onProgress = function (item, loaded, total) {
-			console.log(" Progress", item, loaded, total);
-		};
-		manager.onLoad = function (item, loaded, total) {
-			console.log("Everything is loaded");
-		};
+		const parseModel = (data) => new Promise((resolve, reject) => {
+			loader.parse(data, "/Models/glb/", resolve, reject);
+		});
 
-		manager.onError = function (item, loaded, total) {
-			console.log(" Error", item, loaded, total);
-		};
-		var LoadModels = 0;
+		const loadModels = async () => {
+			try
+			{
+				for (let index = 0; index < a.length; index++)
+				{
+					const response = await fetch(`/Models/glb/${name[index]}.glb`, {signal: controller.signal});
+					if (!response.ok)
+						throw new Error(`Model request failed with status ${response.status}`);
+					const gltf = await parseModel(await response.arrayBuffer());
+					if (generation !== this.modelLoadGeneration)
+					{
+						this.disposeModelObject(gltf.scene);
+						return;
+					}
 
-		const callback = function (gltf) {
-			//console.log("Callback: Loading " + LoadModels + " Name: " + name[LoadModels]);
-
-			a[LoadModels] = gltf.scene
-			gltf.scene.traverse(function (child) {
-				if (child.isMesh) {
-					child.castShadow = true;
-					child.receiveShadow = true;
+					a[index] = gltf.scene;
+					gltf.scene.traverse((child) => {
+						if (child.isMesh)
+						{
+							child.castShadow = true;
+							child.receiveShadow = true;
+						}
+					});
+					if (this.mat[index])
+					{
+						gltf.scene.matrixAutoUpdate = false;
+						gltf.scene.matrix.copy(this.mat[index]);
+					}
+					this.scene.add(gltf.scene);
 				}
-			});
 
-			this.scene.add(gltf.scene);
-			LoadModels++;
-
-			if (LoadModels < a.length) // put the next load in the callback
-				loader.load('/Models/glb/' + name[LoadModels] + '.glb', callback.bind(this));
+				if (generation === this.modelLoadGeneration)
+				{
+					this.modelLoadController = null;
+					this.models_loading = false;
+					this.models_loaded = true;
+					this.modelLoadFailedKey = null;
+					this.widget_loading(false);
+				}
+			}
+			catch (error)
+			{
+				if (generation !== this.modelLoadGeneration || error.name === "AbortError")
+					return;
+				this.modelLoadController = null;
+				this.models_loading = false;
+				this.models_loaded = false;
+				this.modelLoadFailedKey = modelListKey;
+				this.clearModelObjects();
+				this.widget_loading(false);
+				console.warn(`Canvas 3D could not load models: ${error.message}`);
+			}
 		};
 
-		// Instantiate a loader
-		var loader = new THREE.GLTFLoader(manager);
-
-		// Load a glTF resource
-		loader.load('/Models/glb/' + name[0] + '.glb', callback.bind(this))
-		//console.log("Loaded fine")
-
+		loadModels();
 	}
 
 	updateCameraAndView()
@@ -319,6 +422,8 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			this.renderer.setSize(rendererWidth, rendererHeight, false);
 			this._lastRendererWidth = rendererWidth;
 			this._lastRendererHeight = rendererHeight;
+			if (this.linesObject)
+				this.linesObject.material.resolution.set(rendererWidth, rendererHeight);
 		}
 		if (this._lastCameraAspect !== cameraAspect) {
 			this.camera.aspect = cameraAspect;
@@ -326,9 +431,9 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			this.camera.updateProjectionMatrix();
 		}
 
-		const lookAtX = Number(this.parameters.look_at_X);
-		const lookAtY = Number(this.parameters.look_at_Y);
-		const lookAtZ = Number(this.parameters.look_at_Z);
+		const lookAtX = Number(this.parameters.look_at_x);
+		const lookAtY = Number(this.parameters.look_at_y);
+		const lookAtZ = Number(this.parameters.look_at_z);
 		const resolvedLookAtX = Number.isFinite(lookAtX) ? lookAtX : 0;
 		const resolvedLookAtY = Number.isFinite(lookAtY) ? lookAtY : 0;
 		const resolvedLookAtZ = Number.isFinite(lookAtZ) ? lookAtZ : 0;
@@ -341,8 +446,10 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			this._lastLookAtZ = resolvedLookAtZ;
 		}
 
-		const viewName = String(this.parameters.views ?? "").trim();
-		const shouldApplyPresetView = this._lastViewName !== viewName;
+		const viewName = String(this.parameters.view ?? "").trim();
+		const configuredCameraDistance = Number(this.parameters.camera_distance);
+		const cameraDistance = Number.isFinite(configuredCameraDistance) && configuredCameraDistance > 0 ? configuredCameraDistance : 2.2;
+		const shouldApplyPresetView = this._lastViewName !== viewName || this._lastCameraDistance !== cameraDistance;
 		if (shouldApplyPresetView) {
 			switch (viewName) {
 				case "Top":
@@ -368,26 +475,29 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 					break;
 				default:
 			}
+			this.camera.position.sub(this.cameraTarget).setLength(cameraDistance).add(this.cameraTarget);
 			if (this.controls)
 				this.controls.update();
 		}
 		this._lastViewName = viewName;
+		this._lastCameraDistance = cameraDistance;
 		this.FixedView = false;
 	}
 
 	update()
 	{
+		this.renderer.setClearColor(this.parameters.scene_background || "#263238");
 		this.updateFrame();
-		const incomingData = this.getSource('matrix');
-		if (incomingData)
-			this.data = incomingData;
+		const incomingData = this.getSource('source');
+		this.data = Array.isArray(incomingData) ? incomingData : null;
 		if (!this.data)
 		{
-			this.updateCameraAndView();
-			return;
-		}
-		if (!Array.isArray(this.data))
-		{
+			if (this.particles)
+				this.particles.visible = false;
+			if (this.linesObject)
+				this.linesObject.visible = false;
+			if (this.model_objects)
+				this.model_objects.forEach((model) => { if (model) model.visible = false; });
 			this.updateCameraAndView();
 			return;
 		}
@@ -401,7 +511,7 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		const parseList = (value) => {
 			if (Array.isArray(value)) {
-				const flattened = value.flat ? value.flat(Infinity) : value;
+				const flattened = this.flattenSource(value);
 				return flattened.map((entry) => String(entry).trim()).filter((entry) => entry !== "");
 			}
 			const text = String(value ?? "").trim();
@@ -424,14 +534,14 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			return colors;
 		};
 
-		const modelsParameter = String(this.parameters.models ?? "");
+		const modelsParameter = String(this.parameters.model_source ?? "");
 		if(modelsParameter.includes("@"))	// Minimal fix to load models list from Ikaros
 		{
-			const modelSource = this.getSource("models");
+			const modelSource = this.getSource("model_source");
 			if (Array.isArray(modelSource))
-				this.parameters.models = (modelSource.flat ? modelSource.flat(Infinity) : modelSource).join(",");
+				this.parameters.model_source = (modelSource.flat ? modelSource.flat(Infinity) : modelSource).join(",");
 			else
-				this.parameters.models = String(modelSource ?? "");
+				this.parameters.model_source = String(modelSource ?? "");
 		}
 
 		//console.log("Formating data")
@@ -443,14 +553,18 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		for (var i = 0; i < this.data.length; i++) {
 			if (!Array.isArray(this.data[i]) || this.data[i].length < 16)
 				continue;
+			const matrixValues = this.data[i].slice(0, 16).map(Number);
+			if (!matrixValues.every(Number.isFinite))
+				continue;
 			this.mat.push(new THREE.Matrix4());
 			//this.mat[i].fromArray(this.data[i]) // Not the right order
-			this.mat[i].set(this.data[i][0], this.data[i][1], this.data[i][2], this.data[i][3], this.data[i][4], this.data[i][5], this.data[i][6], this.data[i][7], this.data[i][8], this.data[i][9], this.data[i][10], this.data[i][11], this.data[i][12], this.data[i][13], this.data[i][14], this.data[i][15]);
-			this.mat[i] = this.IkaorsToThreeBase(this.mat[i]);
-			this.mat[i].elements[12] += offsetX;
-			this.mat[i].elements[13] += offsetY;
-			this.mat[i].elements[14] += offsetZ;
-			this.vertices.push(this.mat[i].elements[12], this.mat[i].elements[13], this.mat[i].elements[14])
+			const matrixIndex = this.mat.length - 1;
+			this.mat[matrixIndex].set(...matrixValues);
+			this.mat[matrixIndex] = this.IkaorsToThreeBase(this.mat[matrixIndex]);
+			this.mat[matrixIndex].elements[12] += offsetX;
+			this.mat[matrixIndex].elements[13] += offsetY;
+			this.mat[matrixIndex].elements[14] += offsetZ;
+			this.vertices.push(this.mat[matrixIndex].elements[12], this.mat[matrixIndex].elements[13], this.mat[matrixIndex].elements[14])
 		}
 		this.nrOfModels = this.mat.length
 		//console.log("Formating data done")
@@ -460,29 +574,28 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 		// Models
 		if (this.toBool(this.parameters.show_models)) {
 			//console.log('Models')
-			this.modelNames = parseList(this.parameters.models);
+			this.modelNames = parseList(this.parameters.model_source);
 			if (this.modelNames.length === 0)
 				this.modelNames = ["head"];
 
-			const modelListKey = this.modelNames.join(",");
+			const modelListKey = `${this.modelNames.join(",")}:${this.nrOfModels}`;
 			if (this.lastmodels != modelListKey) // Remove object if list changed
 			{
-				if (this.model_objects)
-					for (var i = 0; i < this.model_objects.length; i++)
-						this.scene.remove(this.model_objects[i]);
+				this.cancelModelLoading();
+				this.clearModelObjects();
 				this.models_loaded = false
+				this.modelLoadFailedKey = null;
 			}
 			this.lastmodels = modelListKey
 
 			// Load models at first update or change of models array
-			if (!this.models_loaded) {
+			if (!this.models_loaded && !this.models_loading && this.modelLoadFailedKey !== modelListKey && this.nrOfModels > 0) {
 				this.widget_loading(true)
 				//console.log('Loading models')
 				this.model_objects = new Array(this.nrOfModels) 
 				for (let i = 0; i < this.nrOfModels; i++)
 					this.modelNames[i] = this.modelNames[i % this.modelNames.length];
-				this.LoadModel(this.model_objects, this.modelNames, this.data);
-				this.models_loaded = true;
+				this.LoadModel(this.model_objects, this.modelNames, modelListKey);
 			}
 
 			// Update position from an array 16xid
@@ -505,44 +618,37 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 		}
 		else  // Hide 
+		{
+			this.modelLoadFailedKey = null;
+			if (this.models_loading)
+			{
+				this.cancelModelLoading();
+				this.clearModelObjects();
+				this.models_loaded = false;
+				this.widget_loading(false);
+			}
 			if (this.models_loaded)
 				if (this.model_objects)
 					for (var i = 0; i < this.model_objects.length; i++)
 						if (this.model_objects[i])
 							this.model_objects[i].visible = false;
+		}
 
 		// Remove loading screen
-		if (this.models_loaded)
+		if (this.models_loaded && !this.models_loading)
 			this.widget_loading(false)
 
 		//console.log("updated")
 
 		// Point
 		if (this.toBool(this.parameters.show_points)) {
-			//console.log('Points')
-
 			if (!this.points_loaded) {
 				this.points_loaded = true;
-
-				var colors = [];
-				var color = new THREE.Color();
-
-				sizes = [];
-
 				var geometry = new THREE.BufferGeometry();
-				//console.log("Adding points")
-				for (var i = 0; i < this.vertices.length; i++) {
-					colors.push(0, 0, 0);
-					sizes.push(0)
-				}
-				geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.vertices, 3));
-				geometry.setAttribute('customColor', new THREE.Float32BufferAttribute(colors, 3));
-				geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-
 				var material = new THREE.ShaderMaterial({
 					uniforms: {
 						color: { value: new THREE.Color(0xffffff) },
-						texture: { value: new THREE.TextureLoader().load("/Models/Texture/circle.png") }
+						pointTexture: { value: new THREE.TextureLoader().load("/Models/Texture/circle.png") }
 					},
 					vertexShader: document.getElementById('vertexshader').textContent,
 					fragmentShader: document.getElementById('fragmentshader').textContent,
@@ -553,37 +659,39 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 
 				this.particles = new THREE.Points(geometry, material);
 				this.scene.add(this.particles);
-
 			}
 
-			else {
-				//console.log('Updated Points')
+			const pointColorKey = String(this.parameters.point_color ?? "").toLowerCase();
+			if (this._cachedPointColorKey !== pointColorKey) {
+				this._cachedPointColorKey = pointColorKey;
+				this._cachedPointColors = parseColorTriplets(this.parameters.point_color, [0, 0, 0]);
+			}
+			const pointSizeKey = String(this.parameters.point_size ?? "");
+			if (this._cachedPointSizeKey !== pointSizeKey) {
+				this._cachedPointSizeKey = pointSizeKey;
+				this._cachedPointSizes = parseList(this.parameters.point_size).map((entry) => parseFloat(entry)).filter((value) => Number.isFinite(value) && value >= 0);
+				if (this._cachedPointSizes.length === 0)
+					this._cachedPointSizes = [0.15];
+			}
 
-				// Calculate point color
-				const pointColorKey = String(this.parameters.point_color ?? "").toLowerCase();
-				if (this._cachedPointColorKey !== pointColorKey) {
-					this._cachedPointColorKey = pointColorKey;
-					this._cachedPointColors = parseColorTriplets(this.parameters.point_color, [0, 0, 0]);
-				}
-				const pointSizeKey = String(this.parameters.point_size ?? "");
-				if (this._cachedPointSizeKey !== pointSizeKey) {
-					this._cachedPointSizeKey = pointSizeKey;
-					this._cachedPointSizes = parseList(this.parameters.point_size).map((entry) => parseFloat(entry)).filter((value) => Number.isFinite(value));
-					if (this._cachedPointSizes.length === 0)
-						this._cachedPointSizes = [0.15];
-				}
+			if (this._pointCount !== this.nrOfModels) {
+				this._pointCount = this.nrOfModels;
+				this.particles.geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(this.nrOfModels * 3), 3));
+				this.particles.geometry.setAttribute('customColor', new THREE.Float32BufferAttribute(new Float32Array(this.nrOfModels * 3), 3));
+				this.particles.geometry.setAttribute('size', new THREE.Float32BufferAttribute(new Float32Array(this.nrOfModels), 1));
+			}
 
-				var positions = this.particles.geometry.attributes.position.array;
-				var colors = this.particles.geometry.attributes.customColor.array;
-				var sizes = this.particles.geometry.attributes.size.array;
+			var positions = this.particles.geometry.attributes.position.array;
+			var colors = this.particles.geometry.attributes.customColor.array;
+			var sizes = this.particles.geometry.attributes.size.array;
 
 				// Update position from an array 16xi
 				var cIndex = 0;
 				var pIndex = 0
-				for (var i = 0; i < this.vertices.length; i++)
-					positions[i] = this.vertices[i]
+			for (var i = 0; i < this.vertices.length; i++)
+				positions[i] = this.vertices[i]
 
-				for (var i = 0; i < this.nrOfModels; i++) {
+			for (var i = 0; i < this.nrOfModels; i++) {
 					// positions[i * 3 + 0] = this.mat[i].elements[12]
 					// positions[i * 3 + 1] = this.mat[i].elements[13]
 					// positions[i * 3 + 2] = this.mat[i].elements[14]
@@ -600,11 +708,10 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 						pIndex = 0;
 					sizes[i] = this._cachedPointSizes[pIndex]
 					pIndex++;
-				}
-				this.particles.geometry.attributes.position.needsUpdate = true;
-				this.particles.geometry.attributes.customColor.needsUpdate = true;
-				this.particles.geometry.attributes.size.needsUpdate = true;
 			}
+			this.particles.geometry.attributes.position.needsUpdate = true;
+			this.particles.geometry.attributes.customColor.needsUpdate = true;
+			this.particles.geometry.attributes.size.needsUpdate = true;
 			if (this.particles)
 				this.particles.visible = true;
 		}
@@ -626,68 +733,56 @@ class WebUIWidgetCanvas3D extends WebUIWidget {
 			this.l = this._cachedLineIndices;
 			//console.log('Lines')
 
+			const lineColorKey = String(this.parameters.line_color ?? "").toLowerCase();
+			if (this._cachedLineColorKey !== lineColorKey) {
+				this._cachedLineColorKey = lineColorKey;
+				this._cachedLineColors = parseColorTriplets(this.parameters.line_color, [0, 0, 1]);
+			}
+
+			const vertexCount = Math.floor(this.vertices.length / 3);
+			const segmentIndices = this.l.length > 0 ? this.l : null;
+			const segmentCount = segmentIndices ? Math.floor(segmentIndices.length / 2) : Math.floor(vertexCount / 2);
+			const topologyKey = `${this._cachedLineKey}:${vertexCount}:${segmentCount}`;
+
 			if (!this.lines_loaded) {
 				this.lines_loaded = true;
-
-				var geometry = new THREE.BufferGeometry();
-				var material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
-
-				var colors = [];
-
-				for (var i = 0; i < this.vertices.length; i++) {
-					colors.push(0, 0, 0);
-				}
-				geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-				geometry.setAttribute('position', new THREE.Float32BufferAttribute(this.vertices, 3));
-				if (this.l.length > 0)
-					geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(this.l), 1));
-
-
-				this.linesObject = new THREE.LineSegments(geometry, material);
+				const geometry = new THREE.LineSegmentsGeometry();
+				const material = new THREE.LineMaterial({ vertexColors: true, worldUnits: false });
+				material.resolution.set(this._lastRendererWidth || 1, this._lastRendererHeight || 1);
+				this.linesObject = new THREE.Mesh(geometry, material);
+				this.linesObject.frustumCulled = false;
 				this.scene.add(this.linesObject);
 			}
-			else {
-				// Calculate point color
-				const lineColorKey = String(this.parameters.line_color ?? "").toLowerCase();
-				if (this._cachedLineColorKey !== lineColorKey) {
-					this._cachedLineColorKey = lineColorKey;
-					this._cachedLineColors = parseColorTriplets(this.parameters.line_color, [0, 0, 1]);
-				}
-				var colors = this.linesObject.geometry.attributes.color.array;
 
-				// Update position from an array 16xi
-				var cIndex = 0;
-
-				for (var i = 0; i < this.nrOfModels; i++) {
-					if (cIndex >= this._cachedLineColors.length)
-						cIndex = 0;
-					const color = this._cachedLineColors[cIndex];
-					cIndex++;
-					colors[i * 3 + 0] = color[0]
-					colors[i * 3 + 1] = color[1]
-					colors[i * 3 + 2] = color[2]
-				}
-				this.linesObject.geometry.attributes.color.needsUpdate = true;
-
-				var positions = this.linesObject.geometry.attributes.position.array;
-
-				var geometry = this.linesObject.geometry;
-				if (this._lastLineIndexAppliedKey !== this._cachedLineKey) {
-					this._lastLineIndexAppliedKey = this._cachedLineKey;
-					if (this.l.length > 0)
-						geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(this.l), 1));
-					else
-						geometry.setIndex(null);
-				}
-
-				for (var i = 0; i < this.vertices.length; i++)
-					positions[i] = this.vertices[i]
-
-				this.linesObject.geometry.attributes.position.needsUpdate = true;
-				this.linesObject.visible = true;
-				//console.log('Updated Line')
-
+			const geometry = this.linesObject.geometry;
+			if (this._lastLineTopologyKey !== topologyKey) {
+				this._lastLineTopologyKey = topologyKey;
+				const bufferSegmentCount = Math.max(segmentCount, 1);
+				geometry.setPositions(new Float32Array(bufferSegmentCount * 6));
+				geometry.setColors(new Float32Array(bufferSegmentCount * 6));
 			}
+
+			const positions = geometry.attributes.instanceStart.data.array;
+			const colors = geometry.attributes.instanceColorStart.data.array;
+			for (let segment = 0; segment < segmentCount; segment++) {
+				for (let endpoint = 0; endpoint < 2; endpoint++) {
+					const vertexIndex = segmentIndices ? segmentIndices[segment * 2 + endpoint] : segment * 2 + endpoint;
+					const targetOffset = segment * 6 + endpoint * 3;
+					const sourceOffset = vertexIndex * 3;
+					const color = this._cachedLineColors[vertexIndex % this._cachedLineColors.length];
+					positions[targetOffset + 0] = this.vertices[sourceOffset + 0] ?? 0;
+					positions[targetOffset + 1] = this.vertices[sourceOffset + 1] ?? 0;
+					positions[targetOffset + 2] = this.vertices[sourceOffset + 2] ?? 0;
+					colors[targetOffset + 0] = color[0];
+					colors[targetOffset + 1] = color[1];
+					colors[targetOffset + 2] = color[2];
+				}
+			}
+			geometry.attributes.instanceStart.data.needsUpdate = true;
+			geometry.attributes.instanceColorStart.data.needsUpdate = true;
+			const lineWidth = Number(this.parameters.line_width);
+			this.linesObject.material.linewidth = Number.isFinite(lineWidth) && lineWidth > 0 ? lineWidth : 1;
+			this.linesObject.visible = segmentCount > 0;
 		}
 		else  // Hide 
 		{

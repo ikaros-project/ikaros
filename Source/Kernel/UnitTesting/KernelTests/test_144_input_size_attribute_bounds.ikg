@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="Test_144"
     description="Test startup failure when a connection exceeds a fixed input size"
     expected_exit="1"

@@ -1,0 +1,11 @@
+<group internal="true"
+    name="TestFlattenedSizeOverflow"
+    description="Reject cumulative flattened input sizes that exceed the supported range"
+    expected_exit="1"
+    expected_output_contains="requires an input larger than the supported size">
+    <module class="LargeFlattenSource" name="Source" />
+    <module class="FlattenOverflowSink" name="Sink" />
+
+    <connection source="Source.OUTPUT" target="Sink.INPUT" delay="[0:101]" />
+    <connection source="Source.OUTPUT" target="Sink.INPUT" delay="[0:101]" />
+</group>

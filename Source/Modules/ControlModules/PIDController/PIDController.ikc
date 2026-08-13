@@ -1,0 +1,35 @@
+<class name="PIDController" description="standard PID controller">
+    <description type="text">
+        PIDController applies independent PID control to each input element using error = SETPOINT - INPUT. Set-point, measurement, proportional error, integral error, derivative error, and control output can be filtered with tick-duration independent exponential moving averages. The integral and derivative terms use the group tick duration.
+    </description>
+
+    <parameter name="Kb" type="number" default="0" description="Controller bias" />
+    <parameter name="Kp" type="number" default="0.1" description="Proportional gain" />
+    <parameter name="Ki" type="number" default="0" description="Integral gain applied to the time integral of error" />
+    <parameter name="Kd" type="number" default="0" description="Derivative gain applied to the selected derivative term in units per second" />
+    <parameter name="derivative_mode" type="number" default="1" options="error,measurement" description="Derivative source: error uses d(SETPOINT-INPUT)/dt; measurement uses -d(INPUT)/dt to avoid set-point derivative kick" />
+
+    <parameter name="Fs" type="rate" default="0" min="0" description="Set-point filter rate; 0 disables filtering" />
+    <parameter name="Fm" type="rate" default="0" min="0" description="Measurement filter rate; 0 disables filtering" />
+    <parameter name="Fp" type="rate" default="0" min="0" description="Proportional error filter rate; 0 disables filtering" />
+    <parameter name="Fi" type="rate" default="0" min="0" description="Integral error filter rate; 0 disables filtering" />
+    <parameter name="Fd" type="rate" default="0" min="0" description="Derivative error filter rate; 0 disables filtering" />
+    <parameter name="Fc" type="rate" default="0" min="0" description="Control output filter rate; 0 disables filtering" />
+
+    <parameter name="Cmax" type="number" default="1000" description="Maximum control output" />
+    <parameter name="Cmin" type="number" default="-1000" description="Minimum control output" />
+    <parameter name="output_rate_limit" type="rate" default="0" min="0" description="Maximum output change per second; 0 disables slew-rate limiting" />
+
+    <input name="INPUT" description="Current signal" />
+    <input name="SETPOINT" description="Desired value" />
+    <input name="RESET" description="Optional reset signal" optional="yes" />
+
+    <output name="OUTPUT" description="Control output" shape="INPUT.shape" />
+    <output name="DELTA" description="Filtered set point minus filtered input" shape="INPUT.shape" />
+    <output name="FILTERED_SETPOINT" description="Filtered set point" shape="INPUT.shape" />
+    <output name="FILTERED_INPUT" description="Filtered input" shape="INPUT.shape" />
+    <output name="FILTERED_ERROR_P" description="Filtered proportional error" shape="INPUT.shape" />
+    <output name="FILTERED_ERROR_I" description="Filtered integral error" shape="INPUT.shape" />
+    <output name="FILTERED_ERROR_D" description="Filtered derivative of error" shape="INPUT.shape" />
+    <output name="INTEGRAL" description="Integrated error" shape="INPUT.shape" />
+</class>

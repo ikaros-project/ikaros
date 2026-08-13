@@ -1,6 +1,6 @@
 function map(x, low, high)
 {
-    return (x-low)/(high-low);
+    return high != low ? (x-low)/(high-low) : 0.5;
 }
 
 
@@ -13,17 +13,17 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             { 'name': 'title', 'default': "Key Points", 'type': 'string', 'control': 'textedit' },
 
             {'name': "PARAMETERS", 'control':'header'},
-            {'name':'position', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'target', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'output', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'active', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'input', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'sequence', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'sequence_state', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'ranges', 'default':"", 'type':'source', 'control': 'textedit'},
-            {'name':'channel_mode', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'position_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'target_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'output_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'active_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'input_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'sequence_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'sequence_state_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'ranges_source', 'default':"", 'type':'source', 'control': 'textedit'},
+            {'name':'channel_mode_source', 'default':"", 'type':'source', 'control': 'textedit'},
             {'name': "STYLE", 'control':'header'},
-            {'name':'color', 'default':"", 'type':'string', 'control': 'textedit'}
+            {'name':'stroke_color', 'default':"", 'type':'string', 'control': 'textedit'}
         ]
     };
 
@@ -44,17 +44,17 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             if(main.edit_mode)
                 return;
         }; // last matrix
-        this.addEventListener("mousedown", (event) => this.startTimeSelection(event));
+        this.addManagedListener(this, "mousedown", (event) => this.startTimeSelection(event));
     }
 
 
     getSequenceStateSource()
     {
-        if(this.parameters.sequence_state)
-            return this.parameters.sequence_state;
+        if(this.parameters.sequence_state_source)
+            return this.parameters.sequence_state_source;
 
-        if(this.parameters.sequence && this.parameters.sequence.endsWith(".SEQUENCE"))
-            return this.parameters.sequence.substring(0, this.parameters.sequence.length-".SEQUENCE".length) + ".SEQUENCE_STATE";
+        if(this.parameters.sequence_source && this.parameters.sequence_source.endsWith(".SEQUENCE"))
+            return this.parameters.sequence_source.substring(0, this.parameters.sequence_source.length-".SEQUENCE".length) + ".SEQUENCE_STATE";
 
         return "";
     }
@@ -62,10 +62,10 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
     getSequenceCommand(command_name)
     {
-        if(!this.parameters.sequence || this.parameters.sequence.lastIndexOf('.') == -1)
+        if(!this.parameters.sequence_source || this.parameters.sequence_source.lastIndexOf('.') == -1)
             return "";
 
-        return this.parameters.sequence.substring(0, this.parameters.sequence.lastIndexOf('.')) + "." + command_name;
+        return this.parameters.sequence_source.substring(0, this.parameters.sequence_source.lastIndexOf('.')) + "." + command_name;
     }
 
 
@@ -77,7 +77,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
                 return default_data;
 
             let v = this.receivedData[this.resolveControlPath(source)];
-            return v ? v : default_data;
+            return v ?? default_data;
         }
         catch(err)
         {
@@ -113,23 +113,23 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
     addStaticSequenceSources(data_set)
     {
-        this.addSource(data_set, this.parameters.sequence);
-        this.addSource(data_set, this.parameters.ranges);
+        this.addSource(data_set, this.parameters.sequence_source);
+        this.addSource(data_set, this.parameters.ranges_source);
     }
 
 
     requestData(data_set)
     {
-        this.addSource(data_set, this.parameters.position);
-        this.addSource(data_set, this.parameters.target);
-        this.addSource(data_set, this.parameters.output);
-        this.addSource(data_set, this.parameters.active);
-        this.addSource(data_set, this.parameters.input);
+        this.addSource(data_set, this.parameters.position_source);
+        this.addSource(data_set, this.parameters.target_source);
+        this.addSource(data_set, this.parameters.output_source);
+        this.addSource(data_set, this.parameters.active_source);
+        this.addSource(data_set, this.parameters.input_source);
 
         const state_source = this.getSequenceStateSource();
         this.addSource(data_set, state_source);
         if(state_source == "")
-            this.addSource(data_set, this.parameters.channel_mode);
+            this.addSource(data_set, this.parameters.channel_mode_source);
 
         if(this.shouldRequestSequence())
             this.addStaticSequenceSources(data_set);
@@ -156,6 +156,8 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
     updateSequenceCache(sequence)
     {
         sequence = this.unpackSequencePayload(sequence);
+        if(sequence == undefined || typeof sequence !== "object" || !Array.isArray(sequence.keypoints))
+            return;
         let sequence_changed =
             this.cached_sequence_revision != sequence.revision ||
             this.cached_sequence_index != sequence.current_sequence;
@@ -341,10 +343,21 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
         this.updateTimeSelection(event, true);
         this.drag_selection = undefined;
 
-        document.removeEventListener("mousemove", this.drag_move_handler, true);
-        document.removeEventListener("mouseup", this.drag_end_handler, true);
+        for(const remove of this.drag_listener_removers || [])
+            remove();
+        this.drag_listener_removers = [];
         this.drag_move_handler = undefined;
         this.drag_end_handler = undefined;
+    }
+
+
+    disconnectedCallback()
+    {
+        super.disconnectedCallback();
+        this.drag_listener_removers = [];
+        this.drag_move_handler = undefined;
+        this.drag_end_handler = undefined;
+        this.drag_selection = undefined;
     }
 
 
@@ -374,10 +387,14 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             this.send_command(seek_command, 0, fraction, 0);
         controller.flushCommandQueue();
 
+        for(const remove of this.drag_listener_removers || [])
+            remove();
         this.drag_move_handler = (move_event) => this.updateTimeSelection(move_event);
         this.drag_end_handler = (up_event) => this.finishTimeSelection(up_event);
-        document.addEventListener("mousemove", this.drag_move_handler, true);
-        document.addEventListener("mouseup", this.drag_end_handler, true);
+        this.drag_listener_removers = [
+            this.addManagedListener(document, "mousemove", this.drag_move_handler, true),
+            this.addManagedListener(document, "mouseup", this.drag_end_handler, true)
+        ];
 
         this.updateTimeSelection(event);
     }
@@ -488,7 +505,7 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
     draw(sequence, f, start_time, end_time, mark_start, mark_end, target, output, input, active, ranges, channel_mode)
     {
-        if(ranges==undefined)
+        if(ranges==undefined || sequence == undefined || !Array.isArray(sequence.keypoints))
             return;
 
         this.last_draw = { sequence, start_time, end_time, target, output, input, active, ranges, channel_mode };
@@ -583,13 +600,24 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
        // draw selection
 
-       if(mark_start != 0)
+       if(end_time > 0 && Number.isFinite(Number(mark_start)) && mark_start >= 0)
        {
            this.setColor(1);
            this.canvas.setLineDash([3]);
            this.canvas.beginPath();
            this.canvas.moveTo(mark_start/end_time*this.width, 0);
            this.canvas.lineTo(mark_start/end_time*this.width, this.height);
+           this.canvas.stroke();
+       }
+
+       if(end_time > 0 && Number.isFinite(Number(mark_end)) && mark_end >= 0)
+       {
+           this.setColor(2);
+           this.canvas.setLineDash([3]);
+           this.canvas.beginPath();
+           this.canvas.moveTo(mark_end/end_time*this.width, 0);
+           this.canvas.lineTo(mark_end/end_time*this.width, this.height);
+           this.canvas.stroke();
        }
    
  
@@ -607,15 +635,18 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
 
         // Draw target
 
-        if(target != undefined)
+        const targetValues = Array.isArray(target?.[0]) ? target[0] : target;
+        if(Array.isArray(targetValues))
         {
             for(let c=0; c<channels;c++)
             {
+                if(!Array.isArray(ranges[c]) || !Number.isFinite(Number(targetValues[c])))
+                    continue;
                 let pos = f*this.width;
                 this.canvas.setLineDash([]);
                 this.canvas.lineWidth = 5.0;
                 this.canvas.beginPath();
-                let y = this.height * map(target[0][c],ranges[c][0],ranges[c][1])
+                let y = this.height * map(Number(targetValues[c]),ranges[c][0],ranges[c][1])
                 this.canvas.arc(pos, y, 4, 0, 2 * Math.PI, false);
                 this.canvas.moveTo(pos-8, y);
                 this.canvas.lineTo(pos+8, y);
@@ -836,21 +867,19 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
     }
 */
 
-    update(d)
+    update()
     {
-        if(!d)
-            return;
         try {
 
-            let f = this.getSource("position");
-            let target = this.getSource("target");
-            let output = this.getSource("output");
-            let input = this.getSource("input");
-            let active = this.getSource("active");
-            let incoming_sequence = this.getSource("sequence");
+            let f = this.getSource("position_source");
+            let target = this.getSource("target_source");
+            let output = this.getSource("output_source");
+            let input = this.getSource("input_source");
+            let active = this.getSource("active_source");
+            let incoming_sequence = this.getSource("sequence_source");
             let sequence_state = this.getSequenceState(incoming_sequence);
-            let incoming_ranges = this.getSource("ranges");
-            let channel_mode = this.getSource("channel_mode", sequence_state ? sequence_state.channel_mode : undefined);
+            let incoming_ranges = this.getSource("ranges_source");
+            let channel_mode = this.getSource("channel_mode_source", sequence_state ? sequence_state.channel_mode : undefined);
 
             if(incoming_sequence != undefined)
                 this.updateSequenceCache(incoming_sequence);
@@ -880,7 +909,9 @@ class WebUIWidgetKeyPoints extends WebUIWidgetGraph
             let end_time = sequence_state["end_time"];
             let start_mark_time = sequence_state["start_mark_time"];
             let end_mark_time = sequence_state["end_mark_time"];
-            let position = f[0];
+            const positionValue = this.sourceScalar(f);
+            let position = Number(positionValue);
+            position = Number.isFinite(position) ? this.clamp(position, 0, 1) : 0;
 
             if(this.drag_selection != undefined)
             {

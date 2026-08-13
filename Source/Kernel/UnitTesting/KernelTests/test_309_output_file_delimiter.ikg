@@ -1,0 +1,32 @@
+<group internal="true"
+       name="TestOutputFileDelimiter"
+       description="OutputFile supports custom single-character and whitespace delimiters"
+       start="true"
+       stop="1"
+       check_sum="502366"
+       expected_file_exists="UserData/test_309_output_file_semicolon.txt||UserData/test_309_output_file_space.txt"
+       expected_file_contains="line/1;&quot;value;quoted:0&quot;;&quot;value;quoted:1&quot;&#10;0;1.00;2.00||line/1 &quot;spaced value:0&quot; &quot;spaced value:1&quot;&#10;0 1.00 2.00"
+       cleanup_expected_files="true">
+    <module name="Data" class="Constant" data="1,2" />
+    <module name="Semicolon"
+            class="OutputFile"
+            filename="test_309_output_file_semicolon.txt"
+            delimiter=";"
+            decimals="2"
+            timestamp="line" />
+    <module name="Space"
+            class="OutputFile"
+            filename="test_309_output_file_space.txt"
+            delimiter=" "
+            decimals="2"
+            timestamp="line" />
+
+    <connection delay="0"
+                source="Data.OUTPUT"
+                target="Semicolon.INPUT"
+                label="value;quoted" />
+    <connection delay="0"
+                source="Data.OUTPUT"
+                target="Space.INPUT"
+                label="spaced value" />
+</group>

@@ -1373,12 +1373,29 @@ const main =
 
     showReconnectOverlay()
     {
+        main.showStatusOverlay("waiting to reconnect");
+    },
+
+    showOpeningOverlay(filename)
+    {
+        const displayName = filename == null || String(filename).trim() === "" ?
+            "system" : String(filename).trim();
+        main.showStatusOverlay(`opening ${displayName}…`);
+    },
+
+    showStatusOverlay(label)
+    {
         if(!main.main)
             return;
         if(!main.reconnect_overlay)
             main.createReconnectOverlay();
         if(main.reconnect_overlay)
+        {
+            const labelElement = main.reconnect_overlay.querySelector(".reconnect-overlay-label");
+            if(labelElement)
+                labelElement.textContent = label;
             main.reconnect_overlay.classList.add("visible");
+        }
     },
 
     hideReconnectOverlay()
@@ -4407,8 +4424,12 @@ const main =
         const newTitle = document.createElement("div");
         newTitle.setAttribute("class", "title");
         newTitle.setAttribute("data-component", fullName);
-        newTitle.innerHTML = `<span class="component-title-text" data-component="${fullName}" data-field="title">${w.title || w.name}</span>`;
-        const titleText = newTitle.querySelector(".component-title-text");
+        const titleText = document.createElement("span");
+        titleText.className = "component-title-text";
+        titleText.dataset.component = fullName;
+        titleText.dataset.field = "title";
+        titleText.textContent = w.title || w.name;
+        newTitle.appendChild(titleText);
         const startWidgetTitleEdit = function(evt)
         {
             evt.preventDefault();
@@ -4416,8 +4437,7 @@ const main =
             setTimeout(function() { main.startInlineNameEditForComponent(fullName); }, 0);
         };
         newTitle.addEventListener("dblclick", startWidgetTitleEdit, false);
-        if(titleText)
-            titleText.addEventListener("dblclick", startWidgetTitleEdit, false);
+        titleText.addEventListener("dblclick", startWidgetTitleEdit, false);
         newObject.appendChild(newTitle);
 
         const menuButton = document.createElement("button");

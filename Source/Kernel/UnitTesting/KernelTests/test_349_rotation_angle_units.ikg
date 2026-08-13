@@ -1,0 +1,63 @@
+<group internal="true"
+    name="TestRotationAngleUnits"
+    description="Test RotationConverter angle-unit input and output handling"
+    start="true"
+    stop="4"
+    check_sum="92503"
+    expected_output_contains="ROTATION UNIT TEST OK">
+
+    <module class="Constant" name="DegreeInput" data="90,0,0" />
+    <module class="Constant" name="RadianInput" data="1.5707963267948966,0,0" />
+    <module class="Constant" name="TurnInput" data="0.25,0,0" />
+    <module class="Constant" name="TauInput" data="0.25,0,0" />
+    <module class="Constant" name="RotationMatrix"
+            data="1,0,0,0;0,0,-1,0;0,1,0,0;0,0,0,1" />
+
+    <module class="RotationConverter" name="DegreeToMatrix"
+            input_format="axayaz" output_format="matrix"
+            angle_unit="degrees" />
+    <module class="RotationConverter" name="RadianToMatrix"
+            input_format="axayaz" output_format="matrix"
+            angle_unit="radians" />
+    <module class="RotationConverter" name="TurnToMatrix"
+            input_format="axayaz" output_format="matrix"
+            angle_unit="turns" />
+    <module class="RotationConverter" name="TauToMatrix"
+            input_format="axayaz" output_format="matrix"
+            angle_unit="tau" />
+
+    <module class="RotationConverter" name="MatrixToDegrees"
+            input_format="matrix" output_format="axayaz"
+            angle_unit="degrees" />
+    <module class="RotationConverter" name="MatrixToRadians"
+            input_format="matrix" output_format="axayaz"
+            angle_unit="radians" />
+    <module class="RotationConverter" name="MatrixToTurns"
+            input_format="matrix" output_format="axayaz"
+            angle_unit="turns" />
+    <module class="RotationConverter" name="MatrixToTau"
+            input_format="matrix" output_format="axayaz"
+            angle_unit="tau" />
+
+    <module class="RotationUnitTestModule" name="Verifier" />
+
+    <connection source="DegreeInput.OUTPUT" target="DegreeToMatrix.INPUT" />
+    <connection source="RadianInput.OUTPUT" target="RadianToMatrix.INPUT" />
+    <connection source="TurnInput.OUTPUT" target="TurnToMatrix.INPUT" />
+    <connection source="TauInput.OUTPUT" target="TauToMatrix.INPUT" />
+
+    <connection source="RotationMatrix.OUTPUT" target="MatrixToDegrees.INPUT" />
+    <connection source="RotationMatrix.OUTPUT" target="MatrixToRadians.INPUT" />
+    <connection source="RotationMatrix.OUTPUT" target="MatrixToTurns.INPUT" />
+    <connection source="RotationMatrix.OUTPUT" target="MatrixToTau.INPUT" />
+
+    <connection source="DegreeToMatrix.OUTPUT" target="Verifier.DEGREE_MATRIX" />
+    <connection source="RadianToMatrix.OUTPUT" target="Verifier.RADIAN_MATRIX" />
+    <connection source="TurnToMatrix.OUTPUT" target="Verifier.TURN_MATRIX" />
+    <connection source="TauToMatrix.OUTPUT" target="Verifier.TAU_MATRIX" />
+    <connection source="MatrixToDegrees.OUTPUT" target="Verifier.DEGREE_ANGLES" />
+    <connection source="MatrixToRadians.OUTPUT" target="Verifier.RADIAN_ANGLES" />
+    <connection source="MatrixToTurns.OUTPUT" target="Verifier.TURN_ANGLES" />
+    <connection source="MatrixToTau.OUTPUT" target="Verifier.TAU_ANGLES" />
+
+</group>

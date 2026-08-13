@@ -1,4 +1,4 @@
-# EpiServo
+# EpiServos
 
 ## Description
 
@@ -27,14 +27,19 @@ measurable joint state back to the model.
 | --- | --- | --- | --- |
 | robot |  | string | EpiWhite |
 | simulate | Simulation mode. No connecting is made to servos. The PRESENT POSITION output is calculated using previous position, goal position, maximum velocoty (no acceleration) and the time base of the simulation. | bool | False |
+| MinLimitPosition | The minimum limit of the position in degrees of the servos. Not including pupils | matrix | 122, 130, 161, 156, 53, 73, 87, 53, 70, 0, 53, 79, 88, 158, 70, 0, 9 |
+| MaxLimitPosition | The maximum limit of the position of the servos in degrees. Not including pupils | matrix | 237, 240, 202, 193, 281, 281, 263, 202, 342, 360, 281, 290, 264, 316, 343, 360, 343 |
+| DataToWrite | The data names to write to the servos. The data names are separated by a comma. The data names are the same as the input names. | string | Goal Position,Goal Current,Torque Enable |
+| ServoControlMode | The control mode of the servos. | string | Position |
 
 ## Inputs
 
 | Name | Description | Optional |
 | --- | --- | --- |
 | GOAL_POSITION | Goal position of the joints in degrees. |  |
-| GOAL_CURRENT | Goal current in mA. This is an optinal input and only used if the servo uses current-based position control mode | true |
-| TORQUE_ENABLE | Enable servos. This is an optinal and not recomended input |  |
+| GOAL_CURRENT | Goal current in mA. This is an optional input and only used if the servo uses current-based position control mode | true |
+| TORQUE_ENABLE | Enable servos. This is an optional and not recommended input | true |
+| GOAL_PWM | Pulse width modulation in percentage. This is an optional input that can be used to limit PWM and thereby force in position control mode. | true |
 
 ## Outputs
 

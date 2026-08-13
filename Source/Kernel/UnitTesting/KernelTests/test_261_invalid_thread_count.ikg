@@ -1,0 +1,8 @@
+<group internal="true"
+    name="TestInvalidThreadCount"
+    description="Reject trailing characters in the thread count"
+    threads="2junk"
+    expected_exit="1"
+    expected_output_contains="Invalid thread pool size &quot;2junk&quot;. Expected a positive integer.">
+    <module class="Constant" name="Value" data="1" />
+</group>

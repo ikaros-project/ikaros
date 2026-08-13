@@ -1,10 +1,10 @@
+#include <cmath>
+#include <random>
+
 #include "ikaros.h"
 
 
 using namespace ikaros;
-
-
-    static double max(double x, double y) { return x>y ? x : y; } // std::max does not work since it is a template function that requires identical types of x and y
 
 
 class Nucleus: public Module
@@ -15,8 +15,10 @@ class Nucleus: public Module
     parameter   delta;          // decay rate
     parameter   psi;            // shunting weight
     parameter   sigma;          // standard deviation for noise
+    parameter   randomSeed;     // random seed for noise
     parameter   theta;          // threshold for output
-    parameter   epsilon;        // time constant
+    parameter   timeConstant;   // state time constant
+    parameter   legacyEpsilon;  // deprecated update rate
     parameter   scale_inputs;   // use average instead of sum of inputs
     parameter   activation_function; // 0 = ReLU, 1 = tanh, 2 = sigmoid, 3 = linear
     parameter   burst_time;     // burst time in s for threshold function: 0 means a single tick
@@ -30,6 +32,9 @@ class Nucleus: public Module
     matrix      output;
 
     double      burst_end_time = 0;
+    std::mt19937 gaussianGenerator;
+    std::normal_distribution<float> gaussianDistribution;
+    bool useLegacyEpsilon = false;
 
     void Init()
     {
@@ -39,8 +44,18 @@ class Nucleus: public Module
         Bind(delta, "delta");
         Bind(psi, "psi");
         Bind(sigma, "sigma");
+        Bind(randomSeed, "seed");
         Bind(theta, "theta");
-        Bind(epsilon, "epsilon");
+        const bool hasTimeConstant = KeyExists("time_constant");
+        const bool hasLegacyEpsilon = KeyExists("epsilon");
+        Bind(timeConstant, "time_constant");
+        Bind(legacyEpsilon, "epsilon");
+
+        useLegacyEpsilon = hasLegacyEpsilon && !hasTimeConstant;
+        if(hasLegacyEpsilon && hasTimeConstant)
+            Warning("Nucleus ignores deprecated epsilon when time_constant is explicitly set.");
+        else if(hasLegacyEpsilon)
+            Warning("Nucleus parameter epsilon is deprecated; use time_constant=1/epsilon instead.");
 
 
         Bind(scale_inputs, "scale_inputs");
@@ -56,6 +71,12 @@ class Nucleus: public Module
         Bind(shunting_inhibition, "SHUNTING_INHIBITION");
         Bind(x, "X");
         Bind(output, "OUTPUT");
+
+        const int seed = randomSeed.as_int();
+        if(seed < 0)
+            gaussianGenerator.seed(std::random_device{}());
+        else
+            gaussianGenerator.seed(static_cast<std::mt19937::result_type>(seed));
     }
 
     
@@ -81,38 +102,45 @@ class Nucleus: public Module
             S = shunting_inhibition.sum();
         }
 
-        float dx_dt = alpha + beta * (1/(1+psi*S)) * E - gamma * I - delta*x + sample_normal_distribution(0, sigma);
+        float & x_value = x(0);
+        float deterministic_drive = alpha + beta * (1/(1+psi*S)) * E - gamma * I - delta*x_value;
+        float noise_increment = sample_normal_distribution(
+            gaussianGenerator, gaussianDistribution, 0,
+            sigma.as_float() * std::sqrt(GetTickDuration()));
 
-        x += epsilon * dx_dt; // Euler integration
+        float integrationFactor = useLegacyEpsilon
+                                      ? legacyEpsilon.as_float() * GetTickDuration()
+                                      : GetTickDuration() / timeConstant.as_float();
+        x_value += integrationFactor * deterministic_drive + noise_increment;
 
         float o = 0;
 
         switch(activation_function.as_int())
         {
             case 0: // atan
-                    o = atan(x-theta)/atan(1); 
+                    o = atan(x_value-theta)/atan(1);
                     break;
             case 1: // threshold
-                    if(x > theta)
+                    if(x_value > theta)
                     {
                         o = 1;
-                        x = 0; // reset
+                        x_value = 0; // reset
                         burst_end_time = GetTime() + burst_time;
                     }
 
                     break;
             case 2: // ReLU
-                    o =  (x > theta ? x-theta : 0); 
+                    o =  (x_value > theta ? x_value-theta : 0);
                     break;
             case 3: // tanh
-                    o =  (tanh(x-theta)); 
+                    o =  (tanh(x_value-theta));
                     break;
             case 4: // sigmoid
-                    o =  1 / (1 + exp(-(x-theta))); 
+                    o =  1 / (1 + exp(-(x_value-theta)));
                     break;
             case 5: // linear
             default:
-                    o =  (x-theta); 
+                    o =  (x_value-theta);
                     break;
         }
 
@@ -121,4 +149,3 @@ class Nucleus: public Module
 };
 
 INSTALL_CLASS(Nucleus)
-

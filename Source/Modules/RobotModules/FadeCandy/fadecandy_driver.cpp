@@ -68,7 +68,7 @@ std::string FadecandyDriver::connect()
 
   dev_handle_ = libusb_open_device_with_vid_pid(context_, USB_VENDOR_ID, USB_PRODUCT_ID);
 
-  if (dev_handle_ == NULL)
+  if (dev_handle_ == nullptr)
   {
     throw std::runtime_error("Could not open device.");
   }
@@ -78,7 +78,7 @@ std::string FadecandyDriver::connect()
   {
     if (libusb_detach_kernel_driver(dev_handle_, INTERFACE_NO) != 0)
     {
-      dev_handle_ = NULL;
+      dev_handle_ = nullptr;
       throw std::runtime_error("Could not detach kernel driver.");
     }
   }
@@ -87,7 +87,7 @@ std::string FadecandyDriver::connect()
   int r = libusb_claim_interface(dev_handle_, INTERFACE_NO);
   if (r < 0)
   {
-    dev_handle_ = NULL;
+    dev_handle_ = nullptr;
     throw std::runtime_error("Could not claim device interface.");
   }
 
@@ -106,7 +106,7 @@ std::string FadecandyDriver::connect()
     r = libusb_bulk_transfer(dev_handle_, USB_ENDPOINT, packet.data(), USB_PACKET_SIZE, &actual_written, timeout);
     if (r != 0 && actual_written != USB_PACKET_SIZE)
     {
-      dev_handle_ = NULL;
+      dev_handle_ = nullptr;
       throw std::runtime_error("Failed to write data on device.");
     }
   }
@@ -116,7 +116,7 @@ std::string FadecandyDriver::connect()
 
 bool FadecandyDriver::isConnected()
 {
-  return dev_handle_ != NULL;
+  return dev_handle_ != nullptr;
 }
 
 void FadecandyDriver::setColors(std::vector<std::vector<Color>> led_colors)
@@ -174,11 +174,11 @@ void FadecandyDriver::releaseInterface()
     int r = libusb_release_interface(dev_handle_, INTERFACE_NO);
     if (r < 0)
     {
-      dev_handle_ = NULL;
+      dev_handle_ = nullptr;
       throw std::runtime_error("Could not release device; the device might be disconnected.");
     }
     libusb_close(dev_handle_);
-    dev_handle_ = NULL;
+    dev_handle_ = nullptr;
   }
 }
 }  // namespace fadecandy_driver

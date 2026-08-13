@@ -1,4 +1,4 @@
-<group name="Test_11"  
+<group internal="true" name="Test_11"
     check_sum = "308606" 
     description="Test parameter indirection"
 

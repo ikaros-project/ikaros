@@ -4,26 +4,34 @@ The WebUI update path now uses a server-side snapshot cache to keep `/update` re
 
 ## What It Does
 
-- The kernel builds a shared UI snapshot between simulation ticks.
+- During steady-state execution with active clients, the kernel builds a shared UI snapshot no more often than the configured WebUI request interval.
 - `/update` responses read from that snapshot instead of serializing everything on demand.
+- Subscribed image matrices are copied while the kernel is stable and encoded by a small persistent worker pool. Simulation ticks do not wait for JPEG compression or Base64 encoding.
 - If a requested value is missing from the current snapshot, it is computed once as a fallback and then included in future snapshots.
+- The first active client and subscription changes trigger an immediate snapshot instead of waiting for the next interval.
 
 ## Multi-Browser Behavior
 
-- Subscriptions are tracked per session.
-- The snapshot includes the union of values requested by all active sessions.
-- Inactive sessions expire automatically after a short timeout.
+- Subscriptions and log delivery cursors are tracked per WebUI client.
+- The snapshot includes the union of values requested by all active clients.
+- Inactive clients expire automatically after a short timeout.
 
 This means one browser can change view without disturbing another browser that is showing different data.
 
-## Image Throttling
+## Snapshot And Image Throttling
 
-Scalar values and status data are refreshed every tick, but image entries in the snapshot are refreshed at a lower rate.
+Scalar values and status data are refreshed at the WebUI request cadence. Image entries can be refreshed less often because encoding them is substantially more expensive.
 
-The top group can define these parameters:
+The browser receives the most recently completed image. A new subscription or image refresh can therefore leave the previous image in place for one poll while encoding finishes. Only one image generation is admitted at a time; if encoding is slower than the requested cadence, intermediate refreshes are coalesced instead of accumulating stale work.
+
+These parameters are built into the top group and can be set directly as attributes on the top-level `<group>` element:
+
+- `webui_req_int`
+  Minimum wall-clock time in seconds between complete WebUI snapshots and the browser polling interval for `/update`.
+  Default: `0.1`
 
 - `snapshot_interval`
-  Minimum time in seconds between image snapshot refreshes.
+  Minimum wall-clock time in seconds between image snapshot refreshes.
   Default: `0.1`
 
 - `rgb_quality`
@@ -39,15 +47,19 @@ These settings affect snapshot-backed `/update` image data. They do not change t
 Related top-group parameter:
 
 - `webui_log_buffer_limit`
-  Maximum number of pending log messages kept for the next `/update` response before older entries are dropped.
+  Maximum number of recent log messages retained for delivery to WebUI clients.
   Default: `500`
+
+Log delivery is independent of snapshot replacement. Each client advances its own cursor through the retained history, so messages emitted between snapshots remain available and another client's request cannot consume them. If a client falls behind far enough for messages to leave the bounded history, its next response includes a truncation warning.
 
 ## Why This Helps
 
 - `/update` latency stays very low.
 - Expensive image encoding is moved off the request path.
-- If the browser polls slower than the simulation ticks, image work is no longer repeated every tick unnecessarily.
+- JPEG work no longer holds the kernel lock or delays the next simulation tick.
+- Snapshot serialization follows the browser polling cadence instead of the simulation tick rate.
+- If the browser polls slower than the simulation ticks, scalar serialization and image work are no longer repeated every tick unnecessarily.
 
 ## Tradeoff
 
-With a nonzero `snapshot_interval`, image data in `/update` may be slightly older than scalar values from the same response. This is intentional and reduces encoding load substantially for image-heavy views.
+Status and scalar data in `/update` can be up to one `webui_req_int` interval old. With a nonzero `snapshot_interval`, image data may be older than scalar values from the same response. Both bounds are intentional and reduce snapshot and encoding load while matching the browser's configured refresh cadence.

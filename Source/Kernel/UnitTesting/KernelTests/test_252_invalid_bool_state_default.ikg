@@ -1,0 +1,7 @@
+<group internal="true"
+    name="TestInvalidBoolStateDefault"
+    description="Reject an unrecognized Boolean state default"
+    expected_exit="1"
+    expected_output_contains="invalid default value &quot;maybe&quot;||Expected true, false, yes, no, on, off, 1, or 0">
+    <module class="InvalidBoolStateDefaultModule" name="Invalid" />
+</group>

@@ -1,0 +1,34 @@
+<group name="InputAudioFileExample"
+       title="InputAudioFile Example"
+       tick_duration="0.1">
+    <module class="InputAudioFile"
+            name="Audio"
+            filename="inputaudio.wav"
+            channels="1"
+            buffer_size="4096"
+            repeat="true"
+            _x="80"
+            _y="220" />
+
+    <widget class="text"
+            name="Instructions"
+            text="Place inputaudio.wav in UserData, then run this model. The plot shows successive mono sample blocks."
+            width="600"
+            height="70"
+            x="40"
+            y="30"
+            show_title="no"
+            show_frame="no" />
+    <widget class="plot"
+            name="AudioPlot"
+            source="Audio.OUTPUT"
+            title="Audio"
+            width="600"
+            height="260"
+            x="40"
+            y="120"
+            show_title="yes"
+            show_frame="yes"
+            auto_range="yes"
+            include_zero="yes" />
+</group>

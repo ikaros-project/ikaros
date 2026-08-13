@@ -1,4 +1,4 @@
-<group
+<group internal="true"
     name="TestStartupSteps"
     description="Test startup-step analysis for first and fully real module inputs"
     start="true"
