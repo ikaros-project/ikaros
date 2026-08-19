@@ -1,4 +1,5 @@
 #include <cmath>
+#include <numbers>
 #include <random>
 
 #include "ikaros.h"
@@ -20,7 +21,7 @@ class Nucleus: public Module
     parameter   timeConstant;   // state time constant
     parameter   legacyEpsilon;  // deprecated update rate
     parameter   scale_inputs;   // use average instead of sum of inputs
-    parameter   activation_function; // 0 = ReLU, 1 = tanh, 2 = sigmoid, 3 = linear
+    parameter   activation_function; // output activation option
     parameter   burst_time;     // burst time in s for threshold function: 0 means a single tick
     parameter   output_offset;  // offset for output, default is 0
     parameter   output_scale;   // scaling of output, default is 1
@@ -131,8 +132,8 @@ class Nucleus: public Module
 
         switch(activation_function.as_int())
         {
-            case 0: // atan
-                    o = atan(x_value-theta)/atan(1);
+            case 0: // unit-preserving soft saturation
+                    o = (4.0f / std::numbers::pi_v<float>) * std::atan(x_value-theta);
                     break;
             case 1: // threshold
                     if(x_value > theta)

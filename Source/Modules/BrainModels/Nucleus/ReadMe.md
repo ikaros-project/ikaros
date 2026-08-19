@@ -103,7 +103,7 @@ u=x_{k+1}-\theta.
 
 | `activation_function` | Activation \(f(u)\) | Notes |
 | --- | --- | --- |
-| `atan` | \(\operatorname{atan}(u)/\operatorname{atan}(1)\) | Default; equals 1 at \(u=1\) and approaches ±2. |
+| `atan` | \(\operatorname{atan}(u)/\operatorname{atan}(1)\) | Default unit-preserving soft saturation. |
 | `threshold` | \(1\) if \(x_{k+1}>\theta\), otherwise \(0\) | Resets the state after a crossing. |
 | `ReLU` | \(\max(0,u)\) | Rectified linear output. |
 | `tanh` | \(\tanh(u)\) | Bounded between −1 and 1. |
@@ -120,6 +120,21 @@ The final output transformation is
 
 Consequently, `output_offset` and `output_scale` affect `OUTPUT` but not the internal state `X` or
 its feedback dynamics.
+
+### Unit-preserving soft saturation
+
+The default `atan` activation is normalized deliberately:
+
+\[
+f(u)=\frac{\operatorname{atan}(u)}{\operatorname{atan}(1)}
+=\frac{4}{\pi}\operatorname{atan}(u).
+\]
+
+It satisfies \(f(0)=0\) and \(f(1)=1\), so a unit activity remains a unit activity when passed
+through a chain of otherwise unit-gain nuclei. Unlike an activation bounded at 1, it permits stronger
+signals to produce values above 1 when needed. At the same time, it progressively compresses large
+magnitudes and approaches ±2, reducing the risk of unbounded growth in deep or recurrent networks.
+The function is odd, so negative activity is treated symmetrically.
 
 ### Threshold and burst behavior
 
@@ -145,7 +160,7 @@ has elapsed. Processing then resumes from the reset state.
 | `scale_inputs` | bool | yes | 1 | Use the average of each input buffer instead of its sum. |
 | `output_offset` | number | 0 | output | Offset applied after the activation function. |
 | `output_scale` | number | 1 | output | Scale applied after the activation function. |
-| `activation_function` | option | `atan` | 1 | `atan`, `threshold`, `ReLU`, `tanh`, `sigmoid`, or `linear`. |
+| `activation_function` | option | `atan` | 1 | Output activation; `atan` is the unit-preserving soft saturation. |
 | `burst_time` | number | 0 | s | Duration of a held threshold pulse; zero means one tick. |
 
 Because this is a generic model, most signal units depend on the surrounding circuit. The units in
