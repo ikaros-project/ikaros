@@ -122,7 +122,7 @@ has elapsed. Processing then resumes from the reset state.
 | `alpha` | number | 0 | state | Constant drive. |
 | `beta` | number | 1 | context-dependent | Excitatory gain. |
 | `gamma` | number | 1 | context-dependent | Subtractive inhibitory gain. |
-| `delta` | number | 1 | 1 | State-decay coefficient inside the drive. |
+| `delta` | number | 1 | 1 | Relative leak strength inside the drive. |
 | `psi` | number | 1 | context-dependent | Strength of divisive shunting inhibition. |
 | `sigma` | number | 0 | state/√s | Continuous Gaussian diffusion strength. |
 | `seed` | number | -1 | 1 | Gaussian random seed; negative selects nondeterministic seeding. |

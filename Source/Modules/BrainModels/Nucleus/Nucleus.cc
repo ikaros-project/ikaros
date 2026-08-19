@@ -12,7 +12,7 @@ class Nucleus: public Module
     parameter   alpha;          // constant drive
     parameter   beta;           // excitation gain 
     parameter   gamma;           // inhibition gain
-    parameter   delta;          // decay rate
+    parameter   delta;          // relative leak strength
     parameter   psi;            // shunting weight
     parameter   sigma;          // standard deviation for noise
     parameter   randomSeed;     // random seed for noise

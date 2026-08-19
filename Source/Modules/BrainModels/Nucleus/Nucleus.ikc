@@ -9,7 +9,7 @@
     <parameter name="alpha" type="number" default="0" description="constant drive" />
     <parameter name="beta" type="number" default="1" description="excitation gain" />
     <parameter name="gamma" type="number" default="1" description="inhibition gain" />
-    <parameter name="delta" type="number" default="1" description="decay rate" />
+    <parameter name="delta" type="number" default="1" description="relative leak strength" />
     <parameter name="psi" type="number" default="1.0" description="shunting weight" />
     <parameter name="sigma" type="number" default="0" min="0" unit="state/sqrt(s)" description="continuous Gaussian diffusion strength" />
     <parameter name="seed" type="number" default="-1" min="-1" description="Gaussian random seed; negative selects nondeterministic seeding" />
