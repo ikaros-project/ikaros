@@ -9,7 +9,7 @@ using namespace ikaros;
 
 class Nucleus: public Module
 {
-    parameter   alpha;          // resting level
+    parameter   alpha;          // constant drive
     parameter   beta;           // excitation gain 
     parameter   gamma;           // inhibition gain
     parameter   delta;          // decay rate

@@ -119,7 +119,7 @@ has elapsed. Processing then resumes from the reset state.
 
 | Parameter | Type | Default | Unit | Meaning |
 | --- | --- | ---: | --- | --- |
-| `alpha` | number | 0 | state | Constant resting drive. |
+| `alpha` | number | 0 | state | Constant drive. |
 | `beta` | number | 1 | context-dependent | Excitatory gain. |
 | `gamma` | number | 1 | context-dependent | Subtractive inhibitory gain. |
 | `delta` | number | 1 | 1 | State-decay coefficient inside the drive. |

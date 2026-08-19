@@ -6,7 +6,7 @@
         If not set, beta and gamma are set to 1/N, where N are the number of connected inputs.
 	</description>
 
-    <parameter name="alpha" type="number" default="0" description="resting level" />
+    <parameter name="alpha" type="number" default="0" description="constant drive" />
     <parameter name="beta" type="number" default="1" description="excitation gain" />
     <parameter name="gamma" type="number" default="1" description="inhibition gain" />
     <parameter name="delta" type="number" default="1" description="decay rate" />
