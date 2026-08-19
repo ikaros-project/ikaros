@@ -1,0 +1,11 @@
+<group name="NucleusNonfiniteTest" start="true" stop="3" tick_duration="0.001"
+       expected_output_contains="retaining the last finite state and output||INPUT = {0}"
+       expected_output_not_contains="INPUT = {nan}||INPUT = {inf}">
+    <module class="Constant" name="InvalidDrive" data="nan" _x="40" _y="80" />
+    <module class="Nucleus" name="Nucleus" activation_function="linear"
+            time_constant="0.01" _x="280" _y="80" />
+    <module class="Print" name="Output" _x="540" _y="80" />
+
+    <connection source="InvalidDrive.OUTPUT" target="Nucleus.EXCITATION" />
+    <connection source="Nucleus.OUTPUT" target="Output.INPUT" />
+</group>

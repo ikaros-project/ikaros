@@ -94,6 +94,11 @@ meaning when `tick_duration` changes. Rapidly changing inputs can still be sampl
 individual noisy trajectories differ because different tick durations use different random
 increments, but their distributions agree at corresponding simulated times for constant inputs.
 
+If an aggregated input is NaN or infinite, the module reports one warning and retains its last
+finite `X` and `OUTPUT` values for that tick. The same containment applies if finite inputs and
+parameters nevertheless produce a non-finite state or transformed output. Processing resumes
+normally when subsequent inputs are finite.
+
 ## Output activation
 
 Except in threshold mode, the module applies one of the following functions to the updated state:

@@ -51,6 +51,10 @@ class Nucleus: public Module
     bool useLegacyEpsilon = false;
     bool useLegacyBurstTime = false;
     bool warnedNegativeShuntingInput = false;
+    bool warnedNonFiniteInput = false;
+    bool warnedNonFiniteResult = false;
+    float lastFiniteState = 0;
+    float lastFiniteOutput = 0;
 
     float
     TransformOutput(float activation) const
@@ -155,6 +159,8 @@ class Nucleus: public Module
         refractoryEndTime = 0;
         x(0) = resetLevel.as_float();
         output(0) = TransformOutput(0);
+        lastFiniteState = x(0);
+        lastFiniteOutput = output(0);
     }
 
     
@@ -167,6 +173,8 @@ class Nucleus: public Module
             if(currentTime < burstEndTime - timingTolerance)
             {
                 output(0) = TransformOutput(burstLevel.as_float());
+                lastFiniteState = x(0);
+                lastFiniteOutput = output(0);
                 return;
             }
 
@@ -195,6 +203,18 @@ class Nucleus: public Module
             S = shunting_inhibition.sum();
         }
 
+        if(!std::isfinite(E) || !std::isfinite(I) || !std::isfinite(S))
+        {
+            if(!warnedNonFiniteInput)
+            {
+                Warning("Nucleus received a non-finite input; retaining the last finite state and output.");
+                warnedNonFiniteInput = true;
+            }
+            x(0) = lastFiniteState;
+            output(0) = lastFiniteOutput;
+            return;
+        }
+
         if(S < 0)
         {
             if(!warnedNegativeShuntingInput)
@@ -208,6 +228,18 @@ class Nucleus: public Module
         const bool wasAtOrBelowThreshold = x(0) <= theta.as_float();
         IntegrateState(E, I, S);
         float & x_value = x(0);
+
+        if(!std::isfinite(x_value))
+        {
+            if(!warnedNonFiniteResult)
+            {
+                Warning("Nucleus update produced a non-finite state; retaining the last finite state and output.");
+                warnedNonFiniteResult = true;
+            }
+            x_value = lastFiniteState;
+            output(0) = lastFiniteOutput;
+            return;
+        }
 
         float o = 0;
 
@@ -245,7 +277,22 @@ class Nucleus: public Module
                     break;
         }
 
-        output(0) = TransformOutput(o);
+        float transformedOutput = TransformOutput(o);
+        if(!std::isfinite(transformedOutput))
+        {
+            if(!warnedNonFiniteResult)
+            {
+                Warning("Nucleus update produced a non-finite output; retaining the last finite state and output.");
+                warnedNonFiniteResult = true;
+            }
+            x_value = lastFiniteState;
+            output(0) = lastFiniteOutput;
+            return;
+        }
+
+        output(0) = transformedOutput;
+        lastFiniteState = x_value;
+        lastFiniteOutput = output(0);
     }
 };
 
