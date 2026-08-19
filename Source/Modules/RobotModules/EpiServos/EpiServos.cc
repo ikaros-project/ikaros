@@ -180,7 +180,7 @@ class EpiServos : public Module
     std::vector<dynamixel::PortHandler*> portHandlers;
     std::vector<dynamixel::PacketHandler*> packetHandlers;
 
-    std::string robotName;
+    parameter robotName;
     std::map<std::string, Robot_parameters> robot;
 
     matrix headData;
@@ -503,9 +503,9 @@ class EpiServos : public Module
        
 
         if (EpiFullMode){
-            bodyData = ReadJsonToMatrix(BODY_ID_MIN, BODY_ID_MAX, robot[robotName].type, "Body", controlMode);
-            leftArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName].type, "LeftArm", controlMode);
-            rightArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName].type, "RightArm", controlMode);
+            bodyData = ReadJsonToMatrix(BODY_ID_MIN, BODY_ID_MAX, robot[robotName.c_str()].type, "Body", controlMode);
+            leftArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName.c_str()].type, "LeftArm", controlMode);
+            rightArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName.c_str()].type, "RightArm", controlMode);
         }
         
     }
@@ -585,20 +585,26 @@ class EpiServos : public Module
                              .serialPortRightArm = "",
                              .type = "EpiTorso"};
 
-        robotName = GetValue("robot");
+        //robotName = GetValue("RobotName");
+        Bind(robotName, "robot");
+        
+
+        std::cout << "Robot: " << robotName << std::endl;
 
         // Check if robotname exist in configuration
         if (robot.find(robotName) == robot.end())
         {
-            Error(std::string("%s is not supported") + robotName);
+            Error(std::string("%s is not supported") + robotName.c_str()); // Is this working?
+            Notify(msg_warning, std::string("%s is not supported") + robotName.c_str());
+
             return;
         }
 
         // Check type of robot
         EpiTorsoMode = (robot[robotName].type.compare("EpiTorso") == 0);
         EpiFullMode = (robot[robotName].type.compare("Epi") == 0);
-
-        Notify(msg_debug, std::string("Connecting to " + robotName + " (" + robot[robotName].type + ")"));
+ 
+       Notify(msg_debug,"Connecting to " + std::string(robotName) + " (" + robot[std::string(robotName)].type + ")");
 
         std::string sTable = R"({"Torque Enable": {"Address": 64,"Bytes": 1},
                                     "LED": {"Address": 65,"Bytes": 1},
@@ -1034,7 +1040,6 @@ class EpiServos : public Module
 
     void Tick()
     {   
-       
         goalPosition[PUPIL_INDEX_IO] = clip(goalPosition[PUPIL_INDEX_IO], 5, 16); // Pupil size must be between 5 mm to 16 mm.
         goalPosition[PUPIL_INDEX_IO + 1] = clip(goalPosition[PUPIL_INDEX_IO + 1], 5, 16); // Pupil size must be between 5 mm to 16 mm.
 
@@ -1933,11 +1938,11 @@ class EpiServos : public Module
                     for (int byte = 0; byte < byteLength; byte++) {
                         directAddress = static_cast<int>(servoControlTable[parameterName]["Address"]) + byte;    
                         //Writing settings to the servos
-                        if (!parameterName.equals("Present Current") && !parameterName.equals("Present Position")) { // Present current and present position is not used for writing
+                        if (parameterName.as_string() != "Present Current" && parameterName.as_string() != "Present Position") { // Present current and present position is not used for writing
                             // 2 bytes parameters
                             if (byteLength==2){
                                 param_default_2Byte = data(id-2, param);
-                                if(parameterName.equals("Goal PWM"))
+                                if(parameterName.as_string() == "Goal PWM") 
                                     param_default_2Byte =  data(id-2, param)/0.11299;
                                 if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, directAddress, param_default_2Byte, &dxl_error)) {
                                     Warning("Failed to set " + parameterName + " for servo " + std::to_string(id) +
