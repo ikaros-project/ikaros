@@ -1,9 +1,9 @@
 <class name="Nucleus" description="implements a nucleus">
 
 	<description type="text">
-		Module that implements a generic brain nucleus. output = alpha + beta * [1/(1+psi*ShuntingInhibition)] *SUM(Excitation) - gamma*SUM/Inhibition).
-        
-        If not set, beta and gamma are set to 1/N, where N are the number of connected inputs.
+		Generic rate-coded nucleus with excitatory, subtractive inhibitory, and divisive
+        shunting-inhibitory drive. Threshold activation provides a configurable burst-envelope
+        and refractory state machine.
 	</description>
 
     <parameter name="alpha" type="number" default="0" description="constant drive" />
@@ -22,7 +22,11 @@
     <parameter name="output_offset" type="number" default="0" description="offset of output" />
     <parameter name="output_scale" type="number" default="1" description="scaling of output" />
     <parameter name="activation_function" type="number" default="atan" options="atan,threshold,ReLU,tanh,sigmoid,linear" description="output activation; atan is a unit-preserving soft saturation" />
-    <parameter name="burst_time" type="number" default="0" description="burst time in s for threshold function: 0 means a single tick" />
+    <parameter name="burst_duration" type="number" default="0" min="0" unit="s" description="threshold burst-envelope duration; zero means one tick" />
+    <parameter name="refractory_period" type="number" default="0" min="0" unit="s" description="time after a burst before another burst can start" />
+    <parameter name="reset_level" type="number" default="0" unit="state" description="state assigned when a threshold burst starts" />
+    <parameter name="burst_level" type="number" default="1" unit="1" description="raw activation held during a threshold burst" />
+    <parameter name="burst_time" type="number" default="0" min="0" unit="s" description="deprecated alias for burst_duration" />
 
 	<input name="EXCITATION" description="The excitatory input" optional="yes" flatten="yes" />
 	<input name="INHIBITION" description="The inhibitory input" optional="yes" flatten="yes" />

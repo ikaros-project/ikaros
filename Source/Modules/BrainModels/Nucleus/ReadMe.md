@@ -104,7 +104,7 @@ u=x_{k+1}-\theta.
 | `activation_function` | Activation \(f(u)\) | Notes |
 | --- | --- | --- |
 | `atan` | \(\operatorname{atan}(u)/\operatorname{atan}(1)\) | Default unit-preserving soft saturation. |
-| `threshold` | \(1\) if \(x_{k+1}>\theta\), otherwise \(0\) | Resets the state after a crossing. |
+| `threshold` | `burst_level` after an upward threshold crossing, otherwise \(0\) | Drives the burst-envelope state machine. |
 | `ReLU` | \(\max(0,u)\) | Rectified linear output. |
 | `tanh` | \(\tanh(u)\) | Bounded between −1 and 1. |
 | `sigmoid` | \(1/(1+e^{-u})\) | Bounded between 0 and 1. |
@@ -138,10 +138,25 @@ The function is odd, so negative activity is treated symmetrically.
 
 ### Threshold and burst behavior
 
-In `threshold` mode, a tick for which the updated state exceeds \(\theta\) produces an activation
-of 1 and resets `X` to zero. With `burst_time=0`, this produces a single-tick pulse. With a positive
-`burst_time`, the module retains that output and pauses state integration until the specified time
-has elapsed. Processing then resumes from the reset state.
+In `threshold` mode, the module operates as a three-phase burst-envelope state machine:
+
+1. **Integrating:** update `X` normally and trigger only when it crosses \(\theta\) upward.
+2. **Active burst:** reset `X` to `reset_level`, hold the raw activation at `burst_level`, and pause
+   state integration for `burst_duration`.
+3. **Refractory:** resume state integration but suppress new bursts for `refractory_period`.
+
+The trigger tick is part of the active burst. A zero `burst_duration` therefore produces one active
+tick rather than an empty burst. Burst and refractory durations are measured in simulated seconds;
+their parameter values do not depend on `tick_duration`, although transitions can only occur at tick
+boundaries.
+
+An upward crossing is required rather than merely \(x>\theta\). Consequently, activity that rises
+above threshold during the refractory phase does not trigger immediately when refractoriness ends;
+it must first return to or below threshold and cross again. Resetting the model clears the burst
+phase, restores `X` to `reset_level`, and restores the inactive output.
+
+`burst_level` is the raw activation and is still transformed by `output_offset` and `output_scale`.
+For example, the default values produce an external burst level of 1.
 
 ## Parameters
 
@@ -161,7 +176,11 @@ has elapsed. Processing then resumes from the reset state.
 | `output_offset` | number | 0 | output | Offset applied after the activation function. |
 | `output_scale` | number | 1 | output | Scale applied after the activation function. |
 | `activation_function` | option | `atan` | 1 | Output activation; `atan` is the unit-preserving soft saturation. |
-| `burst_time` | number | 0 | s | Duration of a held threshold pulse; zero means one tick. |
+| `burst_duration` | number | 0 | s | Active burst-envelope duration; zero means one tick. |
+| `refractory_period` | number | 0 | s | Time after a burst during which new bursts are suppressed. |
+| `reset_level` | number | 0 | state | State assigned when a threshold burst starts and on model reset. |
+| `burst_level` | number | 1 | 1 | Raw activation held during an active burst. |
+| `burst_time` | number | 0 | s | Deprecated compatibility alias for `burst_duration`. |
 
 Because this is a generic model, most signal units depend on the surrounding circuit. The units in
 the table assume that the deterministic drive and `sigma` have the same units as `X`. Division by
@@ -172,6 +191,10 @@ model may use another consistent convention.
 For compatibility, an explicitly configured `epsilon` is interpreted as the old update rate and
 converted internally using \(\tau=1/\varepsilon\). If both parameters are explicitly present,
 `time_constant` takes precedence. New models should use only `time_constant`.
+
+Similarly, an explicitly configured `burst_time` is treated as `burst_duration`. If both are
+explicitly present, `burst_duration` takes precedence. New models should use only
+`burst_duration`.
 
 ## Inputs
 
@@ -192,6 +215,8 @@ converted internally using \(\tau=1/\varepsilon\). If both parameters are explic
 
 `Nucleus_test.ikg` connects three `Nucleus` modules in series and drives them with a square-wave
 oscillator. It provides a simple view of the state filtering and nonlinear response.
+`tests/Nucleus_burst_test.ikg` exercises the threshold burst duration, refractory phase, reset
+level, burst level, and final output transformation.
 
 Run it from the repository root:
 
