@@ -50,6 +50,7 @@ class Nucleus: public Module
     std::normal_distribution<float> gaussianDistribution;
     bool useLegacyEpsilon = false;
     bool useLegacyBurstTime = false;
+    bool warnedNegativeShuntingInput = false;
 
     float
     TransformOutput(float activation) const
@@ -192,6 +193,16 @@ class Nucleus: public Module
             E = excitation.sum();
             I = inhibition.sum();
             S = shunting_inhibition.sum();
+        }
+
+        if(S < 0)
+        {
+            if(!warnedNegativeShuntingInput)
+            {
+                Warning("Nucleus clamps negative SHUNTING_INHIBITION to zero.");
+                warnedNegativeShuntingInput = true;
+            }
+            S = 0;
         }
 
         const bool wasAtOrBelowThreshold = x(0) <= theta.as_float();

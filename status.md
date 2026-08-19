@@ -23,6 +23,29 @@ The tasks below will be completed sequentially, with one focused commit per task
 
 None.
 
+## Nucleus robustness and demonstration
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Protect divisive shunting inhibition from invalid negative inputs and unsafe denominators. | Completed | Release build; focused negative-shunting and burst regressions; `git diff --check`. | `Nucleus shunting inhibition now remains non-negative` |
+| 2 | Constrain `delta` to non-negative relative leak strengths. | Pending | Pending | Pending |
+| 3 | Detect non-finite inputs and retain the last finite state and output. | Pending | Pending | Pending |
+| 4 | Add an `initial_state` parameter distinct from the burst `reset_level`. | Pending | Pending | Pending |
+| 5 | Replace the old example with a polished demo comparing inhibition, shunting, input scaling, soft saturation, and bursting. | Pending | Pending | Pending |
+
+### Constraints
+
+- Keep the public Nucleus equations and exact tick-duration scaling consistent with the maintained ReadMe.
+- Preserve existing models through the current deprecated `epsilon` and `burst_time` aliases.
+- Keep changes inside the Nucleus module; do not modify the kernel or add dependencies.
+- Complete, verify, and commit each task before starting the next.
+
+### Outstanding issues and questions
+
+Pending completion of all five tasks.
+
 ## Library-view KaTeX overflow correction
 
 | # | Task | Status | Verification | Commit |

@@ -83,9 +83,10 @@ x_{k+1}=x_k+hU_k+\sigma\sqrt{h}\,Z_k.
 dynamics unfold faster; their equilibrium and stationary distribution remain unchanged.
 
 Ordinary inhibition subtracts \(\gamma I\) from the drive. Shunting inhibition instead divides
-only the excitatory term by \(1+\psi S\). With the usual non-negative inputs and \(\psi\ge0\), this
-attenuates excitation without directly changing the resting or ordinary inhibitory terms. Parameter
-combinations that make the denominator zero or nearly zero should be avoided.
+only the excitatory term by \(1+\psi S\). The module constrains \(\psi\ge0\) and clamps negative
+`SHUNTING_INHIBITION` aggregates to zero with a warning. Consequently, the denominator is always at
+least 1: shunting input can attenuate excitation without amplifying it or creating a singularity,
+and it does not directly change the constant or ordinary inhibitory terms.
 
 The exact state step is stable for positive `time_constant` and non-negative `delta`, including when
 the tick duration is large relative to the time constant. Parameters retain the same physical
@@ -166,7 +167,7 @@ For example, the default values produce an external burst level of 1.
 | `beta` | number | 1 | context-dependent | Excitatory gain. |
 | `gamma` | number | 1 | context-dependent | Subtractive inhibitory gain. |
 | `delta` | number | 1 | 1 | Relative leak strength inside the drive. |
-| `psi` | number | 1 | context-dependent | Strength of divisive shunting inhibition. |
+| `psi` | number | 1 | context-dependent | Non-negative strength of divisive shunting inhibition. |
 | `sigma` | number | 0 | state | Continuous noise amplitude; stationary variance is \(\sigma^2/(2\delta)\). |
 | `seed` | number | -1 | 1 | Gaussian random seed; negative selects nondeterministic seeding. |
 | `theta` | number | 0 | state | Activation threshold or horizontal offset. |

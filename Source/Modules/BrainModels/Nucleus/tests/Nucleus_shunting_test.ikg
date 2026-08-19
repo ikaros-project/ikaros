@@ -1,0 +1,13 @@
+<group name="NucleusShuntingTest" start="true" stop="4" tick_duration="0.001"
+       expected_output_contains="clamps negative SHUNTING_INHIBITION to zero"
+       expected_output_not_contains="nan||inf">
+    <module class="Constant" name="Excitation" data="1" _x="40" _y="60" />
+    <module class="Constant" name="NegativeShunting" data="-1" _x="40" _y="180" />
+    <module class="Nucleus" name="Nucleus" activation_function="linear"
+            time_constant="0.001" delta="1" _x="280" _y="80" />
+    <module class="Print" name="Output" _x="540" _y="80" />
+
+    <connection source="Excitation.OUTPUT" target="Nucleus.EXCITATION" />
+    <connection source="NegativeShunting.OUTPUT" target="Nucleus.SHUNTING_INHIBITION" />
+    <connection source="Nucleus.OUTPUT" target="Output.INPUT" />
+</group>
