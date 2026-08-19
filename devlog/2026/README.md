@@ -33,3 +33,4 @@
 | 2026-W30 | 2026-07-20 to 2026-07-26 | [Runtime Hardening, Linux CI, and Kernel Refactoring](2026-07-20-week-27.md) |
 | 2026-W31 | 2026-07-27 to 2026-08-02 | [Kernel Boundaries, WebUI Widgets, and Visualization Updates](2026-07-27-week-28.md) |
 | 2026-W32 | 2026-08-03 to 2026-08-09 | [Native Template Matching, RingWorld, and Module Policy Updates](2026-08-03-week-29.md) |
+| 2026-W33 | 2026-08-10 to 2026-08-16 | [Neuron Population Models, Documentation Rendering, and WebUI Parameter Updates](2026-08-10-week-30.md) |
