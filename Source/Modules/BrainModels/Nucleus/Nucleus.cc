@@ -32,6 +32,7 @@ class Nucleus: public Module
     parameter   burstDuration;  // active burst-envelope duration
     parameter   legacyBurstTime;// deprecated burst duration
     parameter   refractoryPeriod;
+    parameter   initialState;
     parameter   resetLevel;
     parameter   burstLevel;
     parameter   output_offset;  // offset for output, default is 0
@@ -122,6 +123,7 @@ class Nucleus: public Module
         Bind(burstDuration, "burst_duration");
         Bind(legacyBurstTime, "burst_time");
         Bind(refractoryPeriod, "refractory_period");
+        Bind(initialState, "initial_state");
         Bind(resetLevel, "reset_level");
         Bind(burstLevel, "burst_level");
 
@@ -157,7 +159,7 @@ class Nucleus: public Module
         burstPhase = BurstPhase::integrating;
         burstEndTime = 0;
         refractoryEndTime = 0;
-        x(0) = resetLevel.as_float();
+        x(0) = initialState.as_float();
         output(0) = TransformOutput(0);
         lastFiniteState = x(0);
         lastFiniteOutput = output(0);

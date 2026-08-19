@@ -24,6 +24,7 @@
     <parameter name="activation_function" type="number" default="atan" options="atan,threshold,ReLU,tanh,sigmoid,linear" description="output activation; atan is a unit-preserving soft saturation" />
     <parameter name="burst_duration" type="number" default="0" min="0" unit="s" description="threshold burst-envelope duration; zero means one tick" />
     <parameter name="refractory_period" type="number" default="0" min="0" unit="s" description="time after a burst before another burst can start" />
+    <parameter name="initial_state" type="number" default="0" unit="state" description="state at startup and model reset" />
     <parameter name="reset_level" type="number" default="0" unit="state" description="state assigned when a threshold burst starts" />
     <parameter name="burst_level" type="number" default="1" unit="1" description="raw activation held during a threshold burst" />
     <parameter name="burst_time" type="number" default="0" min="0" unit="s" description="deprecated alias for burst_duration" />

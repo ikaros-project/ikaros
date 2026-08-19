@@ -159,7 +159,8 @@ boundaries.
 An upward crossing is required rather than merely \(x>\theta\). Consequently, activity that rises
 above threshold during the refractory phase does not trigger immediately when refractoriness ends;
 it must first return to or below threshold and cross again. Resetting the model clears the burst
-phase, restores `X` to `reset_level`, and restores the inactive output.
+phase, restores `X` to `initial_state`, and restores the inactive output. A burst onset resets `X`
+to `reset_level`; the two values are intentionally independent.
 
 `burst_level` is the raw activation and is still transformed by `output_offset` and `output_scale`.
 For example, the default values produce an external burst level of 1.
@@ -184,7 +185,8 @@ For example, the default values produce an external burst level of 1.
 | `activation_function` | option | `atan` | 1 | Output activation; `atan` is the unit-preserving soft saturation. |
 | `burst_duration` | number | 0 | s | Active burst-envelope duration; zero means one tick. |
 | `refractory_period` | number | 0 | s | Time after a burst during which new bursts are suppressed. |
-| `reset_level` | number | 0 | state | State assigned when a threshold burst starts and on model reset. |
+| `initial_state` | number | 0 | state | State assigned at startup and on model reset. |
+| `reset_level` | number | 0 | state | State assigned when a threshold burst starts. |
 | `burst_level` | number | 1 | 1 | Raw activation held during an active burst. |
 | `burst_time` | number | 0 | s | Deprecated compatibility alias for `burst_duration`. |
 
