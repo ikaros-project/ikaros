@@ -48,37 +48,50 @@ F_k=
 where \(x_k\) is the current internal state. The stochastic state equation is
 
 \[
-dx=\frac{F(x,E,I,S)}{\tau}\,dt+\sigma\,dW_t,
+dx=\frac{F(x,E,I,S)}{\tau}\,dt+\frac{\sigma}{\sqrt{\tau}}\,dW_t,
 \]
 
-where \(W_t\) is a Wiener process and \(\sigma\) is the diffusion strength. The state is advanced
-with Euler–Maruyama integration:
+where \(W_t\) is a Wiener process and \(\sigma\) is the noise amplitude. Both drift and diffusion
+are scaled by \(\tau\), so changing `time_constant` changes how quickly the same stochastic process
+unfolds without changing its equilibrium or stationary variance.
+
+Because the equation is linear in \(x\), the module uses the exact update for inputs held constant
+over one tick. Define
+
+\[
+U_k=\alpha+\beta\frac{E_k}{1+\psi S_k}-\gamma I_k,
+\qquad h=\frac{\Delta t}{\tau}.
+\]
+
+For \(\delta\ne0\), the update is
 
 \[
 x_{k+1}
-=x_k+\frac{\Delta t}{\tau}F_k
-+\sigma\sqrt{\Delta t}\,Z_k,
+=\frac{U_k}{\delta}
++\left(x_k-\frac{U_k}{\delta}\right)e^{-\delta h}
++\sigma\sqrt{\frac{1-e^{-2\delta h}}{2\delta}}\,Z_k,
 \qquad Z_k\sim\mathcal N(0,1).
 \]
 
-`time_constant` supplies \(\tau\) in seconds. Smaller values make the state respond faster, and the
-Euler–Maruyama drift factor scales automatically as \(\Delta t/\tau\).
+For \(\delta=0\), the continuous limit is
+
+\[
+x_{k+1}=x_k+hU_k+\sigma\sqrt{h}\,Z_k.
+\]
+
+`time_constant` supplies \(\tau\) in seconds. Smaller values make the deterministic and stochastic
+dynamics unfold faster; their equilibrium and stationary distribution remain unchanged.
 
 Ordinary inhibition subtracts \(\gamma I\) from the drive. Shunting inhibition instead divides
 only the excitatory term by \(1+\psi S\). With the usual non-negative inputs and \(\psi\ge0\), this
 attenuates excitation without directly changing the resting or ordinary inhibitory terms. Parameter
 combinations that make the denominator zero or nearly zero should be avoided.
 
-For the unforced, noise-free linear state equation, forward-Euler stability requires approximately
-
-\[
-0<\frac{\delta\Delta t}{\tau}<2.
-\]
-
-Values well below the upper bound give a smoother and more accurate approximation. The stochastic
-increment scales with \(\sqrt{\Delta t}\), so its variance over a fixed simulated duration is
-approximately independent of `tick_duration`. Individual trajectories still differ when the tick
-duration changes because they contain a different number of random increments.
+The exact state step is stable for positive `time_constant` and non-negative `delta`, including when
+the tick duration is large relative to the time constant. Parameters retain the same physical
+meaning when `tick_duration` changes. Rapidly changing inputs can still be sampled too coarsely, and
+individual noisy trajectories differ because different tick durations use different random
+increments, but their distributions agree at corresponding simulated times for constant inputs.
 
 ## Output activation
 
@@ -124,7 +137,7 @@ has elapsed. Processing then resumes from the reset state.
 | `gamma` | number | 1 | context-dependent | Subtractive inhibitory gain. |
 | `delta` | number | 1 | 1 | Relative leak strength inside the drive. |
 | `psi` | number | 1 | context-dependent | Strength of divisive shunting inhibition. |
-| `sigma` | number | 0 | state/√s | Continuous Gaussian diffusion strength. |
+| `sigma` | number | 0 | state | Continuous noise amplitude; stationary variance is \(\sigma^2/(2\delta)\). |
 | `seed` | number | -1 | 1 | Gaussian random seed; negative selects nondeterministic seeding. |
 | `theta` | number | 0 | state | Activation threshold or horizontal offset. |
 | `time_constant` | number | 1 | s | State response time constant \(\tau\). |
@@ -136,10 +149,10 @@ has elapsed. Processing then resumes from the reset state.
 | `burst_time` | number | 0 | s | Duration of a held threshold pulse; zero means one tick. |
 
 Because this is a generic model, most signal units depend on the surrounding circuit. The units in
-the table assume that the deterministic drive has the same units as `X`; division by
-`time_constant` then gives the drift in state units per second. The diffusion strength has units of
-state per square-root second so that \(\sigma\,dW_t\) has state units. A model may use another
-consistent convention.
+the table assume that the deterministic drive and `sigma` have the same units as `X`. Division by
+`time_constant` gives the deterministic drift in state units per second, while
+\(\sigma/\sqrt{\tau}\) gives the diffusion coefficient in state units per square-root second. A
+model may use another consistent convention.
 
 For compatibility, an explicitly configured `epsilon` is interpreted as the old update rate and
 converted internally using \(\tau=1/\varepsilon\). If both parameters are explicitly present,

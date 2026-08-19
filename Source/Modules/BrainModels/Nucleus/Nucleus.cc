@@ -14,7 +14,7 @@ class Nucleus: public Module
     parameter   gamma;           // inhibition gain
     parameter   delta;          // relative leak strength
     parameter   psi;            // shunting weight
-    parameter   sigma;          // standard deviation for noise
+    parameter   sigma;          // continuous noise amplitude
     parameter   randomSeed;     // random seed for noise
     parameter   theta;          // threshold for output
     parameter   timeConstant;   // state time constant
@@ -103,15 +103,29 @@ class Nucleus: public Module
         }
 
         float & x_value = x(0);
-        float deterministic_drive = alpha + beta * (1/(1+psi*S)) * E - gamma * I - delta*x_value;
-        float noise_increment = sample_normal_distribution(
-            gaussianGenerator, gaussianDistribution, 0,
-            sigma.as_float() * std::sqrt(GetTickDuration()));
+        float inputDrive = alpha + beta * (1/(1+psi*S)) * E - gamma * I;
+        float normalizedStep = useLegacyEpsilon
+                                   ? legacyEpsilon.as_float() * GetTickDuration()
+                                   : GetTickDuration() / timeConstant.as_float();
+        float leakStrength = delta.as_float();
+        float noiseVarianceFactor;
 
-        float integrationFactor = useLegacyEpsilon
-                                      ? legacyEpsilon.as_float() * GetTickDuration()
-                                      : GetTickDuration() / timeConstant.as_float();
-        x_value += integrationFactor * deterministic_drive + noise_increment;
+        if(std::abs(leakStrength) < 1e-6f)
+        {
+            x_value += normalizedStep * inputDrive;
+            noiseVarianceFactor = normalizedStep;
+        }
+        else
+        {
+            float relaxation = -std::expm1(-leakStrength * normalizedStep);
+            x_value += relaxation * (inputDrive / leakStrength - x_value);
+            noiseVarianceFactor = -std::expm1(-2 * leakStrength * normalizedStep) /
+                                  (2 * leakStrength);
+        }
+
+        x_value += sample_normal_distribution(
+            gaussianGenerator, gaussianDistribution, 0,
+            sigma.as_float() * std::sqrt(noiseVarianceFactor));
 
         float o = 0;
 
