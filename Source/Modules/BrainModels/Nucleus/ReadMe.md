@@ -166,7 +166,7 @@ For example, the default values produce an external burst level of 1.
 | `alpha` | number | 0 | state | Constant drive. |
 | `beta` | number | 1 | context-dependent | Excitatory gain. |
 | `gamma` | number | 1 | context-dependent | Subtractive inhibitory gain. |
-| `delta` | number | 1 | 1 | Relative leak strength inside the drive. |
+| `delta` | number | 1 | 1 | Non-negative relative leak strength inside the drive. |
 | `psi` | number | 1 | context-dependent | Non-negative strength of divisive shunting inhibition. |
 | `sigma` | number | 0 | state | Continuous noise amplitude; stationary variance is \(\sigma^2/(2\delta)\). |
 | `seed` | number | -1 | 1 | Gaussian random seed; negative selects nondeterministic seeding. |
