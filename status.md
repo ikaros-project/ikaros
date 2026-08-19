@@ -33,7 +33,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 | 2 | Constrain `delta` to non-negative relative leak strengths. | Completed | Negative-value setup rejection; focused positive burst regression; `git diff --check`. | `Nucleus leak strength is now non-negative` |
 | 3 | Detect non-finite inputs and retain the last finite state and output. | Completed | Release build; focused NaN containment and burst regressions; `git diff --check`. | `Nucleus now contains non-finite updates` |
 | 4 | Add an `initial_state` parameter distinct from the burst `reset_level`. | Completed | Release build; focused initial-state and burst regressions; `git diff --check`. | `Nucleus now separates initial and burst reset states` |
-| 5 | Replace the old example with a polished demo comparing inhibition, shunting, input scaling, soft saturation, and bursting. | Pending | Pending | Pending |
+| 5 | Replace the old example with a polished demo comparing inhibition, shunting, input scaling, soft saturation, and bursting. | Completed | XML validation; 2,000-tick smoke test; live 1440×900 WebUI inspection confirmed six active plots, separated graph/dashboard regions, complete component bounds, and no console warnings or errors; `git diff --check`. | `Nucleus now has a comparative dynamics demo` |
 
 ### Constraints
 
@@ -44,7 +44,8 @@ The tasks below will be completed sequentially, with one focused commit per task
 
 ### Outstanding issues and questions
 
-Pending completion of all five tasks.
+None for the Nucleus work. The repository-wide Markdown checker remains blocked by unrelated
+interface-table omissions in `Source/Modules/UtilityModules/PlanarArm/ReadMe.md`.
 
 ## Library-view KaTeX overflow correction
 

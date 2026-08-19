@@ -221,13 +221,14 @@ explicitly present, `burst_duration` takes precedence. New models should use onl
 
 ## Example
 
-`Nucleus_test.ikg` connects three `Nucleus` modules in series and drives them with a square-wave
-oscillator. It provides a simple view of the state filtering and nonlinear response.
+`Nucleus_demo.ikg` compares ordinary and shunting inhibition, averaged and summed input buffers,
+the unit-preserving soft saturation under strong drive, and the threshold burst-envelope state
+machine.
 `tests/Nucleus_burst_test.ikg` exercises the threshold burst duration, refractory phase, reset
 level, burst level, and final output transformation.
 
 Run it from the repository root:
 
 ```sh
-./Bin/ikaros Source/Modules/BrainModels/Nucleus/Nucleus_test.ikg
+./Bin/ikaros Source/Modules/BrainModels/Nucleus/Nucleus_demo.ikg
 ```

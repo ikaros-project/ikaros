@@ -1,0 +1,65 @@
+<group name="Nucleus_demo" start="true" stop="-1" tick_duration="0.001" webui_port="8000">
+    <module class="Oscillator" name="SharedDrive" type="square" frequency="1"
+            _x="40" _y="40" />
+    <module class="Constant" name="OrdinaryInhibition" data="0.25"
+            _x="40" _y="130" />
+    <module class="Constant" name="ShuntingInhibition" data="1"
+            _x="40" _y="220" />
+    <module class="Constant" name="FourInputs" data="1,1,1,1"
+            _x="40" _y="350" />
+    <module class="Scale" name="StrongDrive" factor="3"
+            _x="160" _y="560" />
+    <module class="Scale" name="BurstDrive" factor="2"
+            _x="160" _y="690" />
+
+    <module class="Nucleus" name="Ordinary" activation_function="atan"
+            time_constant="0.05" _x="300" _y="20" />
+    <module class="Nucleus" name="Shunted" activation_function="atan"
+            time_constant="0.05" psi="2" _x="520" _y="20" />
+    <module class="Nucleus" name="Averaged" activation_function="atan"
+            time_constant="0.05" scale_inputs="yes" _x="300" _y="290" />
+    <module class="Nucleus" name="Summed" activation_function="atan"
+            time_constant="0.05" scale_inputs="no" _x="520" _y="290" />
+    <module class="Nucleus" name="SoftSaturation" activation_function="atan"
+            time_constant="0.05" _x="300" _y="560" />
+    <module class="Nucleus" name="BurstEnvelope" activation_function="threshold"
+            time_constant="0.03" theta="0.5" burst_duration="0.08"
+            refractory_period="0.12" reset_level="0" burst_level="1"
+            _x="520" _y="560" />
+
+    <connection source="SharedDrive.OUTPUT" target="Ordinary.EXCITATION" />
+    <connection source="OrdinaryInhibition.OUTPUT" target="Ordinary.INHIBITION" />
+    <connection source="SharedDrive.OUTPUT" target="Shunted.EXCITATION" />
+    <connection source="ShuntingInhibition.OUTPUT" target="Shunted.SHUNTING_INHIBITION" />
+    <connection source="FourInputs.OUTPUT" target="Averaged.EXCITATION" />
+    <connection source="FourInputs.OUTPUT" target="Summed.EXCITATION" />
+    <connection source="SharedDrive.OUTPUT" target="StrongDrive.INPUT" />
+    <connection source="StrongDrive.OUTPUT" target="SoftSaturation.EXCITATION" />
+    <connection source="SharedDrive.OUTPUT" target="BurstDrive.INPUT" />
+    <connection source="BurstDrive.OUTPUT" target="BurstEnvelope.EXCITATION" />
+
+    <widget class="plot" name="OrdinaryPlot" title="Ordinary inhibition"
+            source="Ordinary.OUTPUT" x="780" y="20" _x="780" _y="20"
+            width="280" height="200" y_min="-0.5" y_max="1.2" auto_range="no"
+            buffer_size="2000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="ShuntedPlot" title="Divisive shunting inhibition"
+            source="Shunted.OUTPUT" x="1080" y="20" _x="1080" _y="20"
+            width="280" height="200" y_min="0" y_max="1.2" auto_range="no"
+            buffer_size="2000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="AveragedPlot" title="Four inputs averaged"
+            source="Averaged.OUTPUT" x="780" y="240" _x="780" _y="240"
+            width="280" height="200" y_min="0" y_max="2" auto_range="no"
+            buffer_size="2000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="SummedPlot" title="Four inputs summed"
+            source="Summed.OUTPUT" x="1080" y="240" _x="1080" _y="240"
+            width="280" height="200" y_min="0" y_max="1.8" auto_range="no"
+            buffer_size="2000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="SoftSaturationPlot" title="Unit-preserving soft saturation"
+            source="SoftSaturation.OUTPUT" x="780" y="460" _x="780" _y="460"
+            width="280" height="200" y_min="0" y_max="2" auto_range="no"
+            buffer_size="2000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="BurstPlot" title="Burst envelope and refractory period"
+            source="BurstEnvelope.OUTPUT" x="1080" y="460" _x="1080" _y="460"
+            width="280" height="200" y_min="0" y_max="1.2" auto_range="no"
+            buffer_size="2000" show_title="yes" show_frame="yes" />
+</group>
