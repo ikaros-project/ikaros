@@ -1,7 +1,7 @@
 <group name="PlanarArm_Example" start="true" stop="-1" tick_duration="0.02">
     <module name="JointCommand" class="Constant" data="0,-0.5,0.8" _x="1300" _y="100" />
     <module name="GripperCommand" class="Constant" data="1" _x="1300" _y="260" />
-    <module name="Arm" class="PlanarArm" palm_length="50" finger_length="45" movable_object="228,140,6" circle_obstacles="255,70,18;255,230,18" _x="1540" _y="140" />
+    <module name="Arm" class="PlanarArm" link_width="2" gripper_width="2" palm_length="28.4" finger_length="23.6" movable_object="223,139,6" circle_obstacles="255,70,18;255,230,18" _x="1540" _y="140" />
 
     <connection source="JointCommand.OUTPUT" target="Arm.JOINT_COMMAND" />
     <connection source="GripperCommand.OUTPUT" target="Arm.GRIPPER" />
