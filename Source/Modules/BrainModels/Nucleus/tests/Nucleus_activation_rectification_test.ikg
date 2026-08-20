@@ -1,0 +1,8 @@
+<group name="NucleusActivationRectificationTest" start="true" stop="2" tick_duration="0.001"
+       expected_output_contains="INPUT = {0}">
+    <module class="Nucleus" name="Nucleus" activation_function="linear"
+            initial_state="-2" delta="0" _x="160" _y="80" />
+    <module class="Print" name="Output" _x="440" _y="80" />
+
+    <connection source="Nucleus.OUTPUT" target="Output.INPUT" />
+</group>

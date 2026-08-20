@@ -21,13 +21,23 @@
     <parameter name="scale_inputs" type="bool" default="yes" description="enable fan-in normalization by averaging each input buffer; a crude static analogue of synaptic homeostasis" />
     <parameter name="output_offset" type="number" default="0" description="offset of output" />
     <parameter name="output_scale" type="number" default="1" description="scaling of output" />
-    <parameter name="activation_function" type="number" default="atan" options="atan,threshold,ReLU,tanh,sigmoid,linear" description="output activation; atan is a unit-preserving soft saturation" />
+    <parameter name="activation_function" type="number" default="atan" options="atan,threshold,ReLU,tanh,sigmoid,linear" description="output activation applied to rectified threshold-relative state; atan is a unit-preserving soft saturation" />
     <parameter name="burst_duration" type="number" default="0" min="0" unit="s" description="threshold burst-envelope duration; zero means one tick" />
     <parameter name="refractory_period" type="number" default="0" min="0" unit="s" description="time after a burst before another burst can start" />
     <parameter name="initial_state" type="number" default="0" unit="state" description="state at startup and model reset" />
     <parameter name="reset_level" type="number" default="0" unit="state" description="state assigned when a threshold burst starts" />
     <parameter name="burst_level" type="number" default="1" unit="1" description="raw activation held during a threshold burst" />
     <parameter name="burst_time" type="number" default="0" min="0" unit="s" description="deprecated alias for burst_duration" />
+    <parameter name="homeostasis" type="bool" default="no" unit="1" description="enable slow homeostatic adaptation of excitatory gain" />
+    <parameter name="homeostatic_target" type="number" default="1" min="0.000001" unit="activity" description="target long-term raw activation" />
+    <parameter name="activity_time_constant" type="number" default="1" min="0.000001" unit="s" description="time constant of the activity average" />
+    <parameter name="homeostatic_time_constant" type="number" default="100" min="0.000001" unit="s" description="time constant of homeostatic gain adaptation" />
+    <parameter name="initial_homeostatic_gain" type="number" default="1" min="0.000001" unit="1" description="homeostatic gain restored on reset" />
+    <parameter name="minimum_homeostatic_gain" type="number" default="0.01" min="0.000001" unit="1" description="lower bound for homeostatic gain" />
+    <parameter name="maximum_homeostatic_gain" type="number" default="100" min="0.000001" unit="1" description="upper bound for homeostatic gain" />
+
+    <state name="homeostatic_gain" type="double" default="1" unit="1" persistent="true" />
+    <state name="average_activity" type="double" default="1" unit="activity" persistent="true" />
 
 	<input name="EXCITATION" description="The excitatory input" optional="yes" flatten="yes" />
 	<input name="INHIBITION" description="The inhibitory input" optional="yes" flatten="yes" />
@@ -36,4 +46,6 @@
 
 	<output name="X" description="Internal state of the nucleus" size="1" />
 	<output name="OUTPUT" description="The output from the nucleus" size="1" />
+	<output name="HOMEOSTATIC_GAIN" description="Effective adaptive excitatory gain; one when homeostasis is disabled" size="1" unit="1" />
+	<output name="AVERAGE_ACTIVITY" description="Current slow average of raw activation" size="1" unit="activity" />
 </class>

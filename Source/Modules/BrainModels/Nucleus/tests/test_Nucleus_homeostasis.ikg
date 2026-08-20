@@ -1,0 +1,27 @@
+<group name="NucleusHomeostasisTest" start="true" stop="4" tick_duration="0.1"
+       check_sum="349878"
+       expected_output_contains="INPUT = {1.8816}||INPUT = {0.531464}||INPUT = {1.26424}"
+       expected_output_not_contains="nan||inf">
+    <module class="Constant" name="Excitation" data="1" _x="40" _y="300" />
+    <module class="Nucleus" name="LowActivity" activation_function="linear"
+            homeostasis="yes" homeostatic_target="1"
+            activity_time_constant="0.1" homeostatic_time_constant="0.1"
+            maximum_homeostatic_gain="10" delta="0" _x="160" _y="80" />
+    <module class="Nucleus" name="HighActivity" activation_function="linear"
+            homeostasis="yes" homeostatic_target="1" initial_state="2"
+            activity_time_constant="0.1" homeostatic_time_constant="0.1"
+            maximum_homeostatic_gain="10" delta="0" _x="160" _y="190" />
+    <module class="Nucleus" name="AmplifiedExcitation" activation_function="linear"
+            homeostasis="yes" initial_homeostatic_gain="2"
+            activity_time_constant="1000" homeostatic_time_constant="1000"
+            maximum_homeostatic_gain="10" time_constant="0.1" delta="1"
+            _x="160" _y="300" />
+    <module class="Print" name="LowGain" _x="500" _y="80" />
+    <module class="Print" name="HighGain" _x="500" _y="190" />
+    <module class="Print" name="AmplifiedState" _x="500" _y="300" />
+
+    <connection source="Excitation.OUTPUT" target="AmplifiedExcitation.EXCITATION" />
+    <connection source="LowActivity.HOMEOSTATIC_GAIN" target="LowGain.INPUT" />
+    <connection source="HighActivity.HOMEOSTATIC_GAIN" target="HighGain.INPUT" />
+    <connection source="AmplifiedExcitation.X" target="AmplifiedState.INPUT" />
+</group>

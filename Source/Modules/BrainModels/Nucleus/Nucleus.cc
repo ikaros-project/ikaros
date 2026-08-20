@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 #include <numbers>
 #include <random>
@@ -35,6 +36,13 @@ class Nucleus: public Module
     parameter   initialState;
     parameter   resetLevel;
     parameter   burstLevel;
+    parameter   homeostasis;
+    parameter   homeostaticTarget;
+    parameter   activityTimeConstant;
+    parameter   homeostaticTimeConstant;
+    parameter   initialHomeostaticGain;
+    parameter   minimumHomeostaticGain;
+    parameter   maximumHomeostaticGain;
     parameter   output_offset;  // offset for output, default is 0
     parameter   output_scale;   // scaling of output, default is 1
 
@@ -43,6 +51,11 @@ class Nucleus: public Module
     matrix      shunting_inhibition;
     matrix      x;              // internal state
     matrix      output;
+    matrix      homeostaticGainOutput;
+    matrix      averageActivityOutput;
+
+    double      homeostaticGain = 1;
+    double      averageActivity = 1;
 
     BurstPhase burstPhase = BurstPhase::integrating;
     double burstEndTime = 0;
@@ -65,10 +78,44 @@ class Nucleus: public Module
 
 
     void
+    PublishHomeostaticState()
+    {
+        const double effectiveGain = homeostasis.as_bool() ? homeostaticGain : 1.0;
+        homeostaticGainOutput(0) = static_cast<float>(effectiveGain);
+        averageActivityOutput(0) = static_cast<float>(averageActivity);
+    }
+
+
+    void
+    UpdateHomeostasis(double activity)
+    {
+        if(homeostasis.as_bool())
+        {
+            const double activityRelaxation = -std::expm1(
+                -GetTickDuration() / activityTimeConstant.as_double());
+            averageActivity += activityRelaxation * (activity - averageActivity);
+
+            const double relativeError =
+                (homeostaticTarget.as_double() - averageActivity) /
+                homeostaticTarget.as_double();
+            const double logGainStep =
+                GetTickDuration() / homeostaticTimeConstant.as_double() * relativeError;
+            homeostaticGain = std::clamp(
+                homeostaticGain * std::exp(logGainStep),
+                minimumHomeostaticGain.as_double(),
+                maximumHomeostaticGain.as_double());
+        }
+
+        PublishHomeostaticState();
+    }
+
+
+    void
     IntegrateState(float E, float I, float S)
     {
         float & x_value = x(0);
-        float inputDrive = alpha + beta * (1/(1+psi*S)) * E - gamma * I;
+        const double adaptiveGain = homeostasis.as_bool() ? homeostaticGain : 1.0;
+        float inputDrive = alpha + beta * adaptiveGain * (1/(1+psi*S)) * E - gamma * I;
         float normalizedStep = useLegacyEpsilon
                                    ? legacyEpsilon.as_float() * GetTickDuration()
                                    : GetTickDuration() / timeConstant.as_float();
@@ -126,6 +173,27 @@ class Nucleus: public Module
         Bind(initialState, "initial_state");
         Bind(resetLevel, "reset_level");
         Bind(burstLevel, "burst_level");
+        Bind(homeostasis, "homeostasis");
+        Bind(homeostaticTarget, "homeostatic_target");
+        Bind(activityTimeConstant, "activity_time_constant");
+        Bind(homeostaticTimeConstant, "homeostatic_time_constant");
+        Bind(initialHomeostaticGain, "initial_homeostatic_gain");
+        Bind(minimumHomeostaticGain, "minimum_homeostatic_gain");
+        Bind(maximumHomeostaticGain, "maximum_homeostatic_gain");
+
+        if(homeostaticTarget.as_double() <= 0)
+            throw exception("Nucleus homeostatic_target must be greater than zero.");
+        if(activityTimeConstant.as_double() <= 0)
+            throw exception("Nucleus activity_time_constant must be greater than zero.");
+        if(homeostaticTimeConstant.as_double() <= 0)
+            throw exception("Nucleus homeostatic_time_constant must be greater than zero.");
+        if(minimumHomeostaticGain.as_double() <= 0)
+            throw exception("Nucleus minimum_homeostatic_gain must be greater than zero.");
+        if(maximumHomeostaticGain.as_double() < minimumHomeostaticGain.as_double())
+            throw exception("Nucleus maximum_homeostatic_gain must be at least minimum_homeostatic_gain.");
+        if(initialHomeostaticGain.as_double() < minimumHomeostaticGain.as_double() ||
+           initialHomeostaticGain.as_double() > maximumHomeostaticGain.as_double())
+            throw exception("Nucleus initial_homeostatic_gain must lie within the configured gain limits.");
 
         useLegacyBurstTime = hasLegacyBurstTime && !hasBurstDuration;
         if(hasLegacyBurstTime && hasBurstDuration)
@@ -142,6 +210,10 @@ class Nucleus: public Module
         Bind(shunting_inhibition, "SHUNTING_INHIBITION");
         Bind(x, "X");
         Bind(output, "OUTPUT");
+        Bind(homeostaticGainOutput, "HOMEOSTATIC_GAIN");
+        Bind(averageActivityOutput, "AVERAGE_ACTIVITY");
+        Bind(homeostaticGain, "homeostatic_gain");
+        Bind(averageActivity, "average_activity");
 
         const int seed = randomSeed.as_int();
         if(seed < 0)
@@ -161,6 +233,9 @@ class Nucleus: public Module
         refractoryEndTime = 0;
         x(0) = initialState.as_float();
         output(0) = TransformOutput(0);
+        homeostaticGain = initialHomeostaticGain.as_double();
+        averageActivity = homeostaticTarget.as_double();
+        PublishHomeostaticState();
         lastFiniteState = x(0);
         lastFiniteOutput = output(0);
     }
@@ -175,6 +250,7 @@ class Nucleus: public Module
             if(currentTime < burstEndTime - timingTolerance)
             {
                 output(0) = TransformOutput(burstLevel.as_float());
+                UpdateHomeostasis(burstLevel.as_double());
                 lastFiniteState = x(0);
                 lastFiniteOutput = output(0);
                 return;
@@ -227,6 +303,12 @@ class Nucleus: public Module
             S = 0;
         }
 
+        if(homeostasis.as_bool())
+            homeostaticGain = std::clamp(
+                homeostaticGain,
+                minimumHomeostaticGain.as_double(),
+                maximumHomeostaticGain.as_double());
+
         const bool wasAtOrBelowThreshold = x(0) <= theta.as_float();
         IntegrateState(E, I, S);
         float & x_value = x(0);
@@ -244,11 +326,12 @@ class Nucleus: public Module
         }
 
         float o = 0;
+        const float activationInput = std::max(0.0f, x_value - theta.as_float());
 
         switch(activation_function.as_int())
         {
             case 0: // unit-preserving soft saturation
-                    o = (4.0f / std::numbers::pi_v<float>) * std::atan(x_value-theta);
+                    o = (4.0f / std::numbers::pi_v<float>) * std::atan(activationInput);
                     break;
             case 1: // threshold
                     if(burstPhase == BurstPhase::integrating &&
@@ -265,17 +348,17 @@ class Nucleus: public Module
 
                     break;
             case 2: // ReLU
-                    o =  (x_value > theta ? x_value-theta : 0);
+                    o = activationInput;
                     break;
             case 3: // tanh
-                    o =  (tanh(x_value-theta));
+                    o = tanh(activationInput);
                     break;
             case 4: // sigmoid
-                    o =  1 / (1 + exp(-(x_value-theta)));
+                    o = 1 / (1 + exp(-activationInput));
                     break;
             case 5: // linear
             default:
-                    o =  (x_value-theta);
+                    o = activationInput;
                     break;
         }
 
@@ -293,6 +376,7 @@ class Nucleus: public Module
         }
 
         output(0) = transformedOutput;
+        UpdateHomeostasis(o);
         lastFiniteState = x_value;
         lastFiniteOutput = output(0);
     }

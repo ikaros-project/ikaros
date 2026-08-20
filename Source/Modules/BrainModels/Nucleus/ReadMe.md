@@ -44,7 +44,7 @@ Before applying the output nonlinearity, the module computes the drive
 \[
 F_k=
 \alpha
-+\beta\frac{E_k}{1+\psi S_k}
++g_h\beta\frac{E_k}{1+\psi S_k}
 -\gamma I_k
 -\delta x_k,
 \]
@@ -63,9 +63,12 @@ Because the equation is linear in \(x\), the module uses the exact update for in
 over one tick. Define
 
 \[
-U_k=\alpha+\beta\frac{E_k}{1+\psi S_k}-\gamma I_k,
+U_k=\alpha+g_h\beta\frac{E_k}{1+\psi S_k}-\gamma I_k,
 \qquad h=\frac{\Delta t}{\tau}.
 \]
+
+Here \(g_h=1\) when homeostasis is disabled and is the adaptive homeostatic gain when it is
+enabled. Thus the disabled mode retains the original state dynamics exactly.
 
 For \(\delta\ne0\), the update is
 
@@ -105,20 +108,24 @@ normally when subsequent inputs are finite.
 
 ## Output activation
 
-Except in threshold mode, the module applies one of the following functions to the updated state:
+Except in threshold mode, the module first rectifies the threshold-relative state:
 
 \[
-u=x_{k+1}-\theta.
+u=\max(0,x_{k+1}-\theta),
 \]
+
+and then applies one of the following activation functions. Rectification affects only activation;
+the internal state `X` remains signed so inhibitory drive can move it below zero and it can recover
+continuously when the drive changes.
 
 | `activation_function` | Activation \(f(u)\) | Notes |
 | --- | --- | --- |
 | `atan` | \(\operatorname{atan}(u)/\operatorname{atan}(1)\) | Default unit-preserving soft saturation. |
 | `threshold` | `burst_level` after an upward threshold crossing, otherwise \(0\) | Drives the burst-envelope state machine. |
 | `ReLU` | \(\max(0,u)\) | Rectified linear output. |
-| `tanh` | \(\tanh(u)\) | Bounded between −1 and 1. |
-| `sigmoid` | \(1/(1+e^{-u})\) | Bounded between 0 and 1. |
-| `linear` | \(u\) | No nonlinear transformation. |
+| `tanh` | \(\tanh(u)\) | Non-negative and bounded below 1. |
+| `sigmoid` | \(1/(1+e^{-u})\) | Between 0.5 and 1 after input rectification. |
+| `linear` | \(u\) | Rectified linear output. |
 
 The final output transformation is
 
@@ -130,6 +137,51 @@ The final output transformation is
 
 Consequently, `output_offset` and `output_scale` affect `OUTPUT` but not the internal state `X` or
 its feedback dynamics.
+
+## Synaptic homeostasis
+
+With `homeostasis=yes`, the module applies a slowly adapting multiplicative gain \(g_h\) to the
+excitatory drive:
+
+\[
+E_{\mathrm{effective}}
+=g_h\beta\frac{E}{1+\psi S}.
+\]
+
+The regulated activity \(a\) is the raw activation before `output_offset` and `output_scale`. For
+continuous activation modes this is the selected activation of the rectified threshold-relative
+state. In threshold mode it is `burst_level` during an active burst and zero otherwise. The module
+tracks it with an exponential average:
+
+\[
+\tau_a\frac{d\bar a}{dt}=a-\bar a.
+\]
+
+It then adapts gain multiplicatively from the relative target error:
+
+\[
+\tau_h\frac{d\log g_h}{dt}
+=\frac{a_{\mathrm{target}}-\bar a}{a_{\mathrm{target}}}.
+\]
+
+Activity below the target therefore increases excitatory gain, while activity above the target
+decreases it. Multiplicative adaptation keeps the gain positive, and
+`minimum_homeostatic_gain` and `maximum_homeostatic_gain` limit compensation when the target cannot
+be reached. `activity_time_constant` should normally be much longer than the state
+`time_constant`, and `homeostatic_time_constant` should be longer still.
+The target must be attainable for the selected activation function and input conditions; otherwise
+the gain eventually rests at one of its configured limits.
+
+Both updates use simulated seconds and scale with `tick_duration`. The activity average uses its
+exact exponential relaxation for activity held constant during a tick. Gain is updated in log
+space from the current averaged error. The adaptive gain and average activity are maintained as
+double-precision persistent scalar states and exposed as float diagnostic outputs.
+
+Reset restores `homeostatic_gain` to `initial_homeostatic_gain` and initializes
+`average_activity` to `homeostatic_target`, giving zero initial adaptation error. Saving an Ikaros
+state file records the two adaptive states; loading it replaces those reset values with the saved
+values. When homeostasis is disabled, excitation uses a gain of exactly 1 and the adaptive states
+do not change.
 
 ### Unit-preserving soft saturation
 
@@ -143,8 +195,8 @@ f(u)=\frac{\operatorname{atan}(u)}{\operatorname{atan}(1)}
 It satisfies \(f(0)=0\) and \(f(1)=1\), so a unit activity remains a unit activity when passed
 through a chain of otherwise unit-gain nuclei. Unlike an activation bounded at 1, it permits stronger
 signals to produce values above 1 when needed. At the same time, it progressively compresses large
-magnitudes and approaches ±2, reducing the risk of unbounded growth in deep or recurrent networks.
-The function is odd, so negative activity is treated symmetrically.
+magnitudes and approaches 2, reducing the risk of unbounded growth in deep or recurrent networks.
+Threshold-relative states at or below zero produce zero activation.
 
 ### Threshold and burst behavior
 
@@ -186,13 +238,20 @@ For example, the default values produce an external burst level of 1.
 | `scale_inputs` | bool | yes | 1 | Enable fan-in normalization by averaging each input buffer; a crude static analogue of synaptic homeostasis. |
 | `output_offset` | number | 0 | output | Offset applied after the activation function. |
 | `output_scale` | number | 1 | output | Scale applied after the activation function. |
-| `activation_function` | option | `atan` | 1 | Output activation; `atan` is the unit-preserving soft saturation. |
+| `activation_function` | option | `atan` | 1 | Output activation applied to rectified threshold-relative state; `atan` is the unit-preserving soft saturation. |
 | `burst_duration` | number | 0 | s | Active burst-envelope duration; zero means one tick. |
 | `refractory_period` | number | 0 | s | Time after a burst during which new bursts are suppressed. |
 | `initial_state` | number | 0 | state | State assigned at startup and on model reset. |
 | `reset_level` | number | 0 | state | State assigned when a threshold burst starts. |
 | `burst_level` | number | 1 | 1 | Raw activation held during an active burst. |
 | `burst_time` | number | 0 | s | Deprecated compatibility alias for `burst_duration`. |
+| `homeostasis` | bool | no | 1 | Enable slow homeostatic adaptation of excitatory gain. |
+| `homeostatic_target` | number | 1 | activity | Target long-term raw activation. |
+| `activity_time_constant` | number | 1 | s | Time constant \(\tau_a\) of the activity average. |
+| `homeostatic_time_constant` | number | 100 | s | Time constant \(\tau_h\) of gain adaptation. |
+| `initial_homeostatic_gain` | number | 1 | 1 | Gain restored by the normal Ikaros reset operation. |
+| `minimum_homeostatic_gain` | number | 0.01 | 1 | Lower bound for adaptive gain. |
+| `maximum_homeostatic_gain` | number | 100 | 1 | Upper bound for adaptive gain. |
 
 Because this is a generic model, most signal units depend on the surrounding circuit. The units in
 the table assume that the deterministic drive and `sigma` have the same units as `X`. Division by
@@ -216,12 +275,21 @@ explicitly present, `burst_duration` takes precedence. New models should use onl
 | `INHIBITION` | flattened | yes | Subtractive inhibitory input elements contributing to \(I\). |
 | `SHUNTING_INHIBITION` | flattened | yes | Divisive inhibitory input elements contributing to \(S\). |
 
+## Persistent states
+
+| State | Type | Default | Meaning |
+| --- | --- | ---: | --- |
+| `homeostatic_gain` | double | 1 | Current multiplicative excitatory gain. |
+| `average_activity` | double | 1 | Current slow average of raw activation. |
+
 ## Outputs
 
 | Output | Shape | Meaning |
 | --- | --- | --- |
 | `X` | `[1]` | Integrated internal state after the current update. |
 | `OUTPUT` | `[1]` | Offset and scaled activation of the state. |
+| `HOMEOSTATIC_GAIN` | `[1]` | Effective adaptive excitatory gain; exactly 1 when homeostasis is disabled. |
+| `AVERAGE_ACTIVITY` | `[1]` | Current slow average of raw activation. |
 
 ## Example
 
@@ -230,6 +298,9 @@ the unit-preserving soft saturation under strong drive, and the threshold burst-
 machine.
 `tests/Nucleus_burst_test.ikg` exercises the threshold burst duration, refractory phase, reset
 level, burst level, and final output transformation.
+`tests/test_Nucleus_homeostasis.ikg` checks both adaptation directions and verifies that adaptive
+gain scales excitation. `tests/test_Nucleus_homeostasis_state.ikg` checks that the double-precision
+adaptive states are included in an Ikaros state file.
 
 Run it from the repository root:
 
