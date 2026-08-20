@@ -16,7 +16,8 @@ model of the cellular composition or anatomy of any particular biological nucleu
 
 Each input port accepts any number of connected scalar or matrix elements and is flattened by
 Ikaros. Let the resulting excitatory, inhibitory, and shunting values be \(e_i\), \(i_i\), and
-\(s_i\). With `scale_inputs=yes`, the module uses their averages:
+\(s_i\). With `scale_inputs=yes`, the module applies **fan-in normalization** by using their
+averages:
 
 \[
 E=\frac{1}{N_E}\sum_i e_i,
@@ -28,7 +29,10 @@ S=\frac{1}{N_S}\sum_i s_i.
 
 With `scale_inputs=no`, it uses the corresponding sums. A disconnected optional input contributes
 zero. Averaging makes the response less sensitive to the number of connected elements; summing
-makes additional inputs increase the total drive.
+makes additional inputs increase the total drive. This fan-in normalization can be viewed as a
+crude static analogue of synaptic homeostasis because it keeps aggregate input influence from
+growing automatically with the number of afferents. It is not homeostatic gain control: it has no
+activity target, slow adaptation, or dynamically adjusted gain.
 
 The `beta` and `gamma` parameters are not changed automatically. Their defaults are both 1;
 normalization by input count comes exclusively from `scale_inputs=yes`.
@@ -179,7 +183,7 @@ For example, the default values produce an external burst level of 1.
 | `theta` | number | 0 | state | Activation threshold or horizontal offset. |
 | `time_constant` | number | 1 | s | State response time constant \(\tau\). |
 | `epsilon` | number | 1 | s⁻¹ | Deprecated compatibility alias; use `time_constant=1/epsilon`. |
-| `scale_inputs` | bool | yes | 1 | Use the average of each input buffer instead of its sum. |
+| `scale_inputs` | bool | yes | 1 | Enable fan-in normalization by averaging each input buffer; a crude static analogue of synaptic homeostasis. |
 | `output_offset` | number | 0 | output | Offset applied after the activation function. |
 | `output_scale` | number | 1 | output | Scale applied after the activation function. |
 | `activation_function` | option | `atan` | 1 | Output activation; `atan` is the unit-preserving soft saturation. |

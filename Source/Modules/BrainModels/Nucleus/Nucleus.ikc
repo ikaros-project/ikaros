@@ -18,7 +18,7 @@
     <parameter name="epsilon" type="number" default="1" min="0.000001" unit="s^-1" description="deprecated update rate; use time_constant=1/epsilon" />
  
 
-    <parameter name="scale_inputs" type="bool" default="yes" description="scale by number of inputs" />
+    <parameter name="scale_inputs" type="bool" default="yes" description="enable fan-in normalization by averaging each input buffer; a crude static analogue of synaptic homeostasis" />
     <parameter name="output_offset" type="number" default="0" description="offset of output" />
     <parameter name="output_scale" type="number" default="1" description="scaling of output" />
     <parameter name="activation_function" type="number" default="atan" options="atan,threshold,ReLU,tanh,sigmoid,linear" description="output activation; atan is a unit-preserving soft saturation" />
