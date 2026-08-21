@@ -7,7 +7,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Expand the RingWorld protocol-format manual for readers familiar with classical conditioning but not Ikaros. | Completed | Markdown placement/interface checker; terminology and JSON-example consistency review; `git diff --check`. | `Expanded the RingWorld protocol manual` |
-| 2 | Generate and visually verify a polished PDF edition of the expanded manual. | In progress | Pending | Pending |
+| 2 | Generate and visually verify a polished PDF edition of the expanded manual. | Completed | Clean two-pass XeLaTeX build; PDF metadata and 15-page text extraction checks; all 15 rendered pages visually inspected for clipping, overflow, page breaks, tables, code, headers, and numbering; `git diff --check`. | `Added the RingWorld protocol PDF manual` |
 
 ### Constraints
 
@@ -18,7 +18,8 @@ The tasks below will be completed sequentially, with one focused commit per task
 
 ### Outstanding issues and questions
 
-Pending completion.
+None. Response-name binding remains intentionally unspecified in both editions pending the next
+protocol-design decision.
 
 ## Wilson–Cowan composite population model
 
