@@ -1,5 +1,25 @@
 # Kernel Review Status
 
+## RingWorld protocol manual and PDF
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Expand the RingWorld protocol-format manual for readers familiar with classical conditioning but not Ikaros. | Completed | Markdown placement/interface checker; terminology and JSON-example consistency review; `git diff --check`. | `Expanded the RingWorld protocol manual` |
+| 2 | Generate and visually verify a polished PDF edition of the expanded manual. | In progress | Pending | Pending |
+
+### Constraints
+
+- Keep the protocol specification consistent with the decisions recorded in the current task.
+- Clearly distinguish established protocol syntax from the unresolved response-signal binding design.
+- Keep the Markdown source as the maintained version and place the finished PDF under `output/pdf/`.
+- Complete and commit the expanded Markdown manual before generating the PDF.
+
+### Outstanding issues and questions
+
+Pending completion.
+
 ## Wilson–Cowan composite population model
 
 The tasks below will be completed sequentially, with one focused commit per task.
