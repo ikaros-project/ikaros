@@ -36,7 +36,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 | 7 | Add inherited trial and phase factors for analysis. | Completed | Markdown checker; inheritance, override, context distinction, and result-export semantics audit; `git diff --check`. | `RingWorld protocols now label phases and trials` |
 | 8 | Add notes at all useful protocol levels. | Completed | Markdown checker; allowed-scope, preservation, and non-execution semantics audit; `git diff --check`. | `RingWorld protocols now preserve explanatory notes` |
 | 9 | Add explicit units and compatibility validation. | Completed | Markdown checker; complete-example unit audit; measurement-unit and unsupported-unit validation review; `git diff --check`. | `RingWorld protocols now declare measurement units` |
-| 10 | Regenerate and visually verify the synchronized PDF manual. | In progress | Pending | Pending |
+| 10 | Regenerate and visually verify the synchronized PDF manual. | Completed | Clean three-pass XeLaTeX build; PDF metadata and 24-page text extraction checks; all 24 rendered pages visually inspected for clipping, overflow, page breaks, tables, code, headers, and numbering; Markdown checker; `git diff --check`. | `Updated the RingWorld protocol PDF manual` |
 
 ### Constraints
 
@@ -48,7 +48,8 @@ The tasks below will be completed sequentially, with one focused commit per task
 
 ### Outstanding issues and questions
 
-Pending completion.
+None. Response-name binding remains intentionally unspecified pending the next protocol-design
+decision.
 
 ## Wilson–Cowan composite population model
 
