@@ -38,7 +38,7 @@ The tasks below will be completed sequentially, with one focused commit per task
 | 9 | Add explicit units and compatibility validation. | Completed | Markdown checker; complete-example unit audit; measurement-unit and unsupported-unit validation review; `git diff --check`. | `RingWorld protocols now declare measurement units` |
 | 10 | Regenerate and visually verify the synchronized PDF manual. | Completed | Clean three-pass XeLaTeX build; PDF metadata and 24-page text extraction checks; all 24 rendered pages visually inspected for clipping, overflow, page breaks, tables, code, headers, and numbering; Markdown checker; `git diff --check`. | `Updated the RingWorld protocol PDF manual` |
 | 11 | Add bounded response-criterion `until` blocks to the protocol specification. | Completed | Markdown checker; criterion source, comparison, history, persistence, invalid-response, reproducibility, validation, and worst-case capacity semantics audit; `git diff --check`. | `RingWorld protocols now support bounded criterion training` |
-| 12 | Regenerate and visually verify the PDF manual with criterion-controlled training. | Pending | Pending | Pending |
+| 12 | Regenerate and visually verify the PDF manual with criterion-controlled training. | Completed | Clean XeLaTeX build without overfull boxes; PDF metadata and 33-page text extraction checks; all 33 rendered pages visually inspected for clipping, overflow, page breaks, tables, code, headers, and numbering; Markdown checker; `git diff --check`. | `Updated the RingWorld criterion-training manual` |
 
 ### Constraints
 
@@ -51,7 +51,8 @@ The tasks below will be completed sequentially, with one focused commit per task
 
 ### Outstanding issues and questions
 
-Pending completion.
+None. Response-name binding remains intentionally unspecified pending the next protocol-design
+decision; criterion sources require that binding to be supplied before execution.
 
 ## Wilson–Cowan composite population model
 
