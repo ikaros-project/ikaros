@@ -24,6 +24,7 @@ const widget_classes =
     "world2dview",
     "world3dview",
     "ringworldview",
+    "protocolview",
     "navigation-hud",
     "pan-tilt-hud",
     "text",

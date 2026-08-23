@@ -28,4 +28,5 @@
     <output name="CRITERION_PASS" size="1" description="One when the latest comparison passes." />
     <output name="CRITERION_MET" size="1" description="One after the required consecutive criterion passes." />
     <output name="EVALUATION" size="1" description="One for one tick when a criterion evaluation is finalized." />
+    <output name="SUMMARY" size="5" description="Selected latency, integral, maximum, criterion value, and criterion pass for compact labeled views." />
 </class>

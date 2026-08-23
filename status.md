@@ -9,7 +9,7 @@ The first implementation will be delivered as a composable C++ pipeline without 
 | 1 | Implement `RingWorldProtocol` JSON loading, validation, finite schedule resolution, stimulus/context generation, trial state, and a focused example and tests. | Completed | Release build; XML validation; focused 35-tick two-trial smoke test; 80-tick RingWorld integration smoke test; Markdown interface checker; `git diff --check`. | `Added the RingWorld protocol scheduler` |
 | 2 | Implement `RingWorldResponseAnalysis` sampling-window measurements and bounded `until` criterion feedback. | Completed | Release build; XML validation; focused constant-response test verified window measurement, two-repetition minimum, criterion feedback, and early termination before the five-repetition maximum; Markdown interface checker; `git diff --check`. | `Added RingWorld response analysis and criterion training` |
 | 3 | Implement `RingWorldRecorder` as a non-rolling, startup-sized recorder for protocol and response signals. | Completed | Release build; XML validation; focused 13-tick test verified monotonic count to ten, retained fixed capacity, and persistent overflow without rolling or overwriting; Markdown interface checker; `git diff --check`. | `Added complete RingWorld experiment recording` |
-| 4 | Add a protocol-aware WebUI dashboard example with labeled schedule, response, measurement, criterion, and full-recording displays. | Pending | Pending | Pending |
+| 4 | Add a protocol-aware WebUI dashboard example with labeled schedule, response, measurement, criterion, and full-recording displays. | Completed | Release build; JavaScript and XML validation; focused response-analysis and recorder tests; live 1440x1000 WebUI inspection verified populated summary values, labeled full-history traces, trial and sampling-window bands, separated graph/dashboard regions, and no browser-console warnings or errors; `git diff --check`. | `Added a protocol-aware RingWorld dashboard` |
 
 ### Constraints
 
@@ -23,7 +23,14 @@ The first implementation will be delivered as a composable C++ pipeline without 
 
 ### Outstanding issues and questions
 
-Pending completion.
+- The initial scheduler deliberately rejects randomized/counterbalanced ordering, weighted `choose`,
+  trial-template overrides, stimulus-relative sampling windows, nested or multi-trial `until` blocks,
+  and auditory/distal stimulus generation. These documented features remain follow-up implementation
+  work.
+- Response names currently require explicit matrix ordering and configuration; automatic name-based
+  signal binding remains intentionally unspecified.
+- Recorder capacity is explicit in this first implementation rather than inferred automatically from
+  the resolved protocol duration.
 
 ## RingWorld protocol manual and PDF
 

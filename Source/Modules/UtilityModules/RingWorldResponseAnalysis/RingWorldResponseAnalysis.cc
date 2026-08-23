@@ -35,6 +35,7 @@ class RingWorldResponseAnalysis: public Module
     matrix criterionPass_;
     matrix criterionMet_;
     matrix evaluation_;
+    matrix summary_;
 
     std::vector<float> previousResponse_;
     std::vector<float> previousWindow_;
@@ -146,6 +147,7 @@ class RingWorldResponseAnalysis: public Module
         Bind(criterionPass_, "CRITERION_PASS");
         Bind(criterionMet_, "CRITERION_MET");
         Bind(evaluation_, "EVALUATION");
+        Bind(summary_, "SUMMARY");
 
         if(criterionWindow_.as_int() >= maxSamplingWindows_.as_int() ||
            criterionResponse_.as_int() >= responseCount_.as_int())
@@ -158,6 +160,7 @@ class RingWorldResponseAnalysis: public Module
         windowElapsed_.assign(maxSamplingWindows_.as_int(), 0.0);
         latency_.set(-1.0f);
         maximum_.set(-std::numeric_limits<float>::infinity());
+        summary_.set_labels(0, "Latency", "Integral", "Maximum", "Criterion value", "Criterion pass");
     }
 
 
@@ -214,6 +217,13 @@ class RingWorldResponseAnalysis: public Module
         }
         for(int response = 0; response < responseCount_.as_int(); ++response)
             previousResponse_[response] = responses_(response);
+        const int criterionWindow = criterionWindow_.as_int();
+        const int criterionResponse = criterionResponse_.as_int();
+        summary_(0) = latency_(criterionWindow, criterionResponse);
+        summary_(1) = integral_(criterionWindow, criterionResponse);
+        summary_(2) = maximum_(criterionWindow, criterionResponse);
+        summary_(3) = criterionValue_(0);
+        summary_(4) = criterionPass_(0);
     }
 };
 

@@ -47,3 +47,4 @@ to the logical response-name order chosen by the experiment configuration.
 | `CRITERION_PASS` | Latest comparison result. |
 | `CRITERION_MET` | Persistent successful criterion result for protocol feedback. |
 | `EVALUATION` | One-tick pulse when a criterion measurement is finalized. |
+| `SUMMARY` | Labeled selected latency, integral, maximum, criterion value, and pass vector. |

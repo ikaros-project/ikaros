@@ -1,17 +1,65 @@
 <group name="RingWorldProtocol_example" start="true" stop="-1" tick_duration="0.05" grid_spacing="24">
-    <module class="RingWorldProtocol" name="Protocol" filename="RingWorldProtocol_example.json" max_stimuli="8" max_sampling_windows="4" _x="48" _y="48" />
-    <module class="RingWorld" name="World" field_of_view="120" fixation_margin="4" retina_width="25" _x="360" _y="48" />
-    <connection source="Protocol.STIMULI" target="World.STIMULI" />
+    <module class="Constant" name="SimulatedResponse" data="0.8" _x="1260" _y="40" />
+    <module class="RingWorldProtocol" name="Protocol" filename="RingWorldProtocol_example.json"
+        max_stimuli="8" max_sampling_windows="4" _x="1260" _y="180" />
+    <module class="RingWorld" name="World" field_of_view="120" fixation_margin="4"
+        retina_width="25" _x="1600" _y="40" />
+    <module class="RingWorldResponseAnalysis" name="Analysis"
+        response_count="1" max_sampling_windows="4" latency_threshold="0.5"
+        criterion_window="0" criterion_response="0" criterion_measurement="maximum"
+        criterion_operator="greater_equal" criterion_value="0.7"
+        history_length="2" history_aggregate="mean" consecutive="1"
+        _x="1600" _y="380" />
+    <module class="RingWorldRecorder" name="Recorder" signal_count="1" capacity="721"
+        _x="1960" _y="300" />
+
+    <connection source="Protocol.STIMULI" target="World.STIMULI" delay="0" />
+    <connection source="SimulatedResponse.OUTPUT" target="Analysis.RESPONSES" delay="0" />
+    <connection source="Protocol.SAMPLE_WINDOWS" target="Analysis.SAMPLE_WINDOWS" delay="0" />
+    <connection source="Protocol.TRIAL_INDEX" target="Analysis.TRIAL_INDEX" delay="0" />
+    <connection source="Protocol.UNTIL_ACTIVE" target="Analysis.UNTIL_ACTIVE" delay="0" />
+    <connection source="Protocol.UNTIL_REPETITION" target="Analysis.UNTIL_REPETITION" delay="0" />
+    <connection source="Analysis.CRITERION_MET" target="Protocol.CRITERION_MET" delay="1" />
+    <connection source="SimulatedResponse.OUTPUT" target="Recorder.SIGNALS" delay="0" />
+    <connection source="Protocol.PROTOCOL_TIME" target="Recorder.PROTOCOL_TIME" delay="0" />
+    <connection source="Protocol.TRIAL_INDEX" target="Recorder.TRIAL_INDEX" delay="0" />
+    <connection source="Protocol.TRIAL_TIME" target="Recorder.TRIAL_TIME" delay="0" />
+    <connection source="Protocol.TRIAL_ACTIVE" target="Recorder.TRIAL_ACTIVE" delay="0" />
+    <connection source="Protocol.SAMPLE_WINDOWS" target="Recorder.SAMPLE_WINDOWS" delay="0" />
 
     <widget name="RingWorldView" class="ringworldview"
         stimuli_source="Protocol.STIMULI"
         field_of_view_parameter="World.field_of_view" upper_half_only="yes" stimulus_radius="12"
         title="Ring world" show_title="yes" show_frame="yes"
-        x="24" y="24" _x="24" _y="24" width="360" height="360" />
-    <widget name="TrialState" class="plot" title="Trial state"
-        source="Protocol.TRIAL_ACTIVE,Protocol.TRIAL_TIME"
-        x="408" y="24" _x="408" _y="24" width="456" height="168" />
-    <widget name="ProtocolTime" class="plot" title="Protocol time"
-        source="Protocol.PROTOCOL_TIME"
-        x="408" y="216" _x="408" _y="216" width="456" height="168" />
+        x="24" y="24" _x="24" _y="24" width="400" height="400" />
+    <widget name="ColorRetina" class="grid" source="World.RETINA"
+        color_map="rgb" shape="circle" size="0.72" labels="Color" label_width="100"
+        scale_visibility="no" line_width="1" order="row" title="Color Retina"
+        show_title="yes" show_frame="yes"
+        x="448" y="24" _x="448" _y="24" width="700" height="90" />
+    <widget name="ComponentRetina" class="grid" source="World.RETINA"
+        color_map="gray" shape="circle" size="0.68" value_min="0" value_max="1"
+        labels="Red,Green,Blue,Horizontal,Vertical,-45,+45,Left,Right,Dot"
+        label_width="100" scale_visibility="no" line_width="1" order="row"
+        title="Component Retina" show_title="yes" show_frame="yes"
+        x="448" y="138" _x="448" _y="138" width="700" height="286" />
+    <widget name="ResponsePlot" class="plot" title="Conditioned response"
+        source="SimulatedResponse.OUTPUT" y_min="0" y_max="1" auto_range="no"
+        buffer_size="200" show_title="yes" show_frame="yes"
+        x="24" y="448" _x="24" _y="448" width="400" height="150" />
+    <widget name="Measurements" class="table" title="Latency, integral, maximum"
+        source="Analysis.SUMMARY" decimals="3"
+        show_title="yes" show_frame="yes"
+        x="448" y="448" _x="448" _y="448" width="340" height="150" />
+    <widget name="Criterion" class="plot" title="Criterion value and pass"
+        source="Analysis.SUMMARY" select="3,4"
+        y_min="0" y_max="1" auto_range="no" buffer_size="200"
+        show_title="yes" show_frame="yes"
+        x="808" y="448" _x="808" _y="448" width="340" height="150" />
+    <widget name="ProtocolHistory" class="protocolview" title="Complete experiment recording"
+        time_source="Recorder.TIME_HISTORY" signal_source="Recorder.SIGNAL_HISTORY"
+        count_source="Recorder.COUNT" trial_index_source="Recorder.TRIAL_INDEX_HISTORY"
+        window_source="Recorder.WINDOW_HISTORY" labels="Conditioned response"
+        y_min="0" y_max="1" auto_range="no"
+        x="24" y="622" _x="24" _y="622" width="1124" height="260" />
 </group>
