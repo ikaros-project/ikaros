@@ -571,6 +571,113 @@ Repeated blocks may recursively contain trials and other repeated blocks:
 
 `repeat` is a non-negative integer. Zero skips the block.
 
+## Randomized and counterbalanced order
+
+Fixed repeats preserve the written order. A `randomized` block instead creates the requested number
+of each item and shuffles the resulting block:
+
+```json
+{
+  "randomized": {
+    "items": [
+      {
+        "trial": {
+          "template": "cs_plus"
+        },
+        "count": 10
+      },
+      {
+        "trial": {
+          "template": "cs_minus"
+        },
+        "count": 10
+      }
+    ],
+    "constraints": {
+      "maximum_consecutive_same": 2
+    }
+  }
+}
+```
+
+Each entry under `items` contains one protocol item and a non-negative integer `count`. The block is
+expanded to the requested multiset and shuffled using the top-level seed. Nested repeat, randomized,
+counterbalanced, and choice blocks may be used as items.
+
+Supported version 1 constraints are:
+
+| Constraint | Meaning |
+| --- | --- |
+| `maximum_consecutive_same` | Largest permitted run of items having the same trial template or item identity. |
+| `avoid_immediate_repetition` | Shorthand requiring adjacent items to differ. |
+| `first` | Trial template or item identity that must occur first. |
+| `last` | Trial template or item identity that must occur last. |
+
+Constraints are requirements, not preferences. If no valid order exists, protocol loading fails
+with an explanation rather than silently relaxing a constraint. The final resolved order is stored
+with the experiment record.
+
+### Counterbalanced blocks
+
+A `counterbalanced` block selects a systematic order rather than a random order. A Latin square
+rotates which condition appears in each ordinal position:
+
+```json
+{
+  "counterbalanced": {
+    "method": "latin_square",
+    "sequence": 2,
+    "repetitions": 5,
+    "items": [
+      {
+        "trial": {
+          "template": "condition_a"
+        }
+      },
+      {
+        "trial": {
+          "template": "condition_b"
+        }
+      },
+      {
+        "trial": {
+          "template": "condition_c"
+        }
+      }
+    ]
+  }
+}
+```
+
+`sequence` is zero-based and selects one row of the Latin square. It is normally assigned from the
+subject or session outside the reusable protocol. `repetitions` repeats the selected row and
+defaults to one. With three items, the Latin-square rows are conceptually `A B C`, `B C A`, and
+`C A B`.
+
+For published or historically established orders, an explicit counterbalancing table can be used:
+
+```json
+{
+  "counterbalanced": {
+    "method": "explicit",
+    "sequence": 1,
+    "items": [
+      { "trial": { "template": "condition_a" } },
+      { "trial": { "template": "condition_b" } },
+      { "trial": { "template": "condition_c" } }
+    ],
+    "orders": [
+      [0, 1, 2],
+      [2, 1, 0]
+    ]
+  }
+}
+```
+
+Order indices refer to `items`. Every explicit order must contain valid indices and must satisfy the
+study's intended replication rule. Counterbalanced order is deterministic and does not consume the
+random-number stream unless a nested item itself contains random values.
+
 ## Contextual stimuli
 
 `context` may occur at the top level, in a repeated block, or in a trial. Context entries are named
