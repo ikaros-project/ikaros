@@ -28,6 +28,7 @@ is implemented.
 {
   "version": 1,
   "metadata": {},
+  "notes": "",
   "seed": 12345,
   "defaults": {},
   "stimului": {},
@@ -42,6 +43,7 @@ is implemented.
 | --- | --- |
 | `version` | Selects the protocol-format version used to interpret the file. |
 | `metadata` | Describes the experiment, subject, session, and experimental condition. |
+| `notes` | Stores human-readable comments that do not affect execution. |
 | `seed` | Makes random intervals and probability decisions reproducible. |
 | `defaults` | Supplies values omitted from named stimuli. |
 | `stimului` | Defines reusable, named stimulus templates. |
@@ -109,6 +111,37 @@ result export difficult.
 A reusable protocol may omit subject-specific fields. The experiment launcher may supply or
 override `subject`, `session`, `condition`, and `researcher` before the protocol is resolved. The
 final merged metadata must be stored with both the resolved schedule and the recorded results.
+
+## Notes
+
+Standard JSON does not support comments. A `notes` field provides a safe place for explanations that
+must travel with the protocol:
+
+```json
+{
+  "notes": "The 80 percent reinforcement schedule reproduces pilot session 3."
+}
+```
+
+`notes` may be a string or a list of strings:
+
+```json
+{
+  "notes": [
+    "Angles were selected from the generalization pilot.",
+    "Do not compare raw maxima with sessions recorded below 100 Hz."
+  ]
+}
+```
+
+Notes are permitted at the top level and in metadata, stimulus definitions, trial templates,
+protocol blocks, trials, presentations, contexts, response definitions, and sampling windows. They
+are ignored when resolving timing and stimulus values, but retained in the resolved protocol and
+experiment record with their JSON paths.
+
+Notes must never be interpreted as instructions, expressions, or executable code. Use `factors`
+for values needed in statistical grouping and `metadata` for searchable session identity. Use
+`notes` for explanatory prose.
 
 ## A minimal protocol
 
@@ -1255,6 +1288,7 @@ These conventions are recommendations rather than additional syntax rules.
     "name": "Partial-reinforcement acquisition",
     "condition": "80_percent_reinforcement"
   },
+  "notes": "Ten acquisition trials with an 80 percent US schedule.",
   "defaults": {
     "angle": 0,
     "reward": 0,
