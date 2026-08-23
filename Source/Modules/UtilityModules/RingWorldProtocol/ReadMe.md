@@ -5,8 +5,8 @@
 ## Introduction
 
 RingWorld Protocol describes classical-conditioning experiments in JSON. It specifies reusable
-stimuli, trial timing, contextual stimuli, repeated blocks, probability, and the response
-measurements collected during each trial.
+stimuli, trial timing, contextual stimuli, repeated blocks, probability, response measurements,
+and optional bounded training that continues until a response criterion is met.
 
 No knowledge of Ikaros is needed to write a protocol. All times are expressed in seconds. Colors,
 intensities, and probabilities use values from 0 to 1. Trials execute in the order in which they
@@ -52,7 +52,7 @@ is implemented.
 | `trials` | Defines reusable, named trial templates. |
 | `responses` | Declares logical response signals that can be measured. |
 | `context` | Defines stimuli active throughout the complete protocol. |
-| `protocol` | Lists trials and repeated blocks in execution order. |
+| `protocol` | Lists trials, repeated blocks, choices, and bounded criterion loops in execution order. |
 
 The spelling `stimului` is part of the proposed format.
 
@@ -427,7 +427,8 @@ name.
 
 ## Protocol items
 
-The top-level `protocol` is an ordered list. Each item is either a trial or a repeated block:
+The top-level `protocol` is an ordered list. Its items include trials and the protocol blocks
+described later in this manual:
 
 ```json
 {
@@ -612,8 +613,8 @@ Every presentation must fit inside `trial.duration`.
 
 Most continuous numeric fields accept either a literal number or a random-value specification. This
 allows the same notation to randomize timing, position, appearance, and reinforcement magnitude.
-Structural integer fields such as `version`, `seed`, `repeat`, `count`, and counterbalancing
-`sequence` must remain literal integers.
+Structural integer fields such as `version`, `seed`, `repeat`, `count`, counterbalancing `sequence`,
+and criterion repetition or history counts must remain literal integers.
 
 ### Uniform distribution
 
@@ -908,8 +909,8 @@ order are stored in the resolved schedule and experiment record.
 
 ## Contextual stimuli
 
-`context` may occur at the top level, in a repeated block, or in a trial. Context entries are named
-so that inner scopes can override them:
+`context` may occur at the top level, in a repeated or `until` block, or in a trial. Context entries
+are named so that inner scopes can override them:
 
 ```json
 {
@@ -971,7 +972,7 @@ An inherited context can be disabled:
 Context lifetimes are:
 
 - A top-level context covers the complete protocol, including inter-trial intervals.
-- A repeat context covers every nested iteration and its inter-trial intervals.
+- A repeat or `until` context covers every nested iteration and its inter-trial intervals.
 - A trial context covers trial onset through `trial.duration`, but not the following interval.
 
 A context may have a `probability`. Its occurrence is sampled once when entering its scope. A
@@ -1030,8 +1031,8 @@ chamber definition rather than adding a second chamber stimulus.
 ## Trial and phase factors
 
 `factors` attach categorical or numeric analysis labels without changing protocol execution. They
-may be placed at the top level, on a repeat, randomized, counterbalanced, or choice block, in a trial
-template, or in an individual trial:
+may be placed at the top level, on a repeat, randomized, counterbalanced, choice, or `until` block,
+in a trial template, or in an individual trial:
 
 ```json
 {
@@ -1251,6 +1252,113 @@ used because it changes with tick duration; the integral is its time-independent
 `maximum` is the largest value sampled in the window. It is not weighted by tick duration, although
 very brief peaks require adequate temporal resolution to be observed.
 
+## Training until a response criterion
+
+An `until` protocol item repeats a nested protocol until a recorded response measurement satisfies
+a criterion. This is the protocol's only response-dependent control structure:
+
+```json
+{
+  "until": {
+    "minimum_repetitions": 5,
+    "maximum_repetitions": 50,
+    "criterion": {
+      "source": {
+        "trial": "acquisition_cs_plus",
+        "window": "during_cs",
+        "response": "conditioned_response",
+        "measurement": "maximum"
+      },
+      "operator": ">=",
+      "value": 0.7
+    },
+    "protocol": [
+      {
+        "trial": {
+          "template": "acquisition_cs_plus"
+        }
+      }
+    ]
+  }
+}
+```
+
+One repetition means one complete execution of the nested `protocol`. The criterion is evaluated
+after that execution and after all of its sampling windows have been finalized. Training stops when
+the criterion is satisfied and at least `minimum_repetitions` have completed. It otherwise stops
+after `maximum_repetitions` and records that the criterion was not reached.
+
+`maximum_repetitions` is mandatory and must be a positive integer. `minimum_repetitions` defaults
+to one, must be non-negative, and must not exceed the maximum. An `until` block may occur anywhere a
+repeat or trial item can occur, including inside another bounded block.
+
+The criterion `source` identifies one measurement result by resolved trial name, sampling-window
+name, response name, and measurement type. Version 1 requires this source to produce exactly one
+result during every repetition of the nested protocol. This deliberately excludes ambiguous cases
+where the named trial can execute zero times or several times in one repetition. The response must
+be bound to a concrete signal before execution begins.
+
+Supported comparison operators are `<`, `<=`, `>`, and `>=`. Exact equality is not supported for
+floating-point response measurements. `value` has the unit of the selected measurement and may be
+a literal or a generalized random value; when randomized, one value is pre-resolved for each
+possible `until` block occurrence and retained throughout that block execution.
+
+### Criteria over recent repetitions
+
+A noisy response can be evaluated over a recent history:
+
+```json
+{
+  "criterion": {
+    "source": {
+      "trial": "acquisition_cs_plus",
+      "window": "during_cs",
+      "response": "conditioned_response",
+      "measurement": "integral"
+    },
+    "history": {
+      "last": 5,
+      "aggregate": "mean"
+    },
+    "operator": ">=",
+    "value": 1.2
+  }
+}
+```
+
+`last` is a positive integer. Version 1 supports `mean`, `minimum`, and `maximum` as history
+aggregates. The criterion is not eligible to pass until all requested history observations exist.
+The observations are the selected measurement from the most recent repetitions of this `until`
+block, not measurements from earlier blocks.
+
+The result can also be required to persist across evaluations:
+
+```json
+{
+  "criterion": {
+    "source": {
+      "trial": "acquisition_cs_plus",
+      "window": "during_cs",
+      "response": "conditioned_response",
+      "measurement": "maximum"
+    },
+    "operator": ">=",
+    "value": 0.7,
+    "consecutive": 3
+  }
+}
+```
+
+`consecutive` defaults to one and must be a positive integer. A failed evaluation resets the
+consecutive-pass count. `minimum_repetitions`, history availability, and `consecutive` must all be
+satisfied before the block can end early.
+
+Every evaluation is stored with its repetition index, source measurement, aggregated value,
+threshold, operator, pass state, and consecutive-pass count. The block termination record states
+whether the criterion was reached or the maximum was exhausted. A non-finite runtime measurement
+cannot satisfy a criterion, resets persistence, and produces a warning; a missing response binding
+or structurally unresolvable source is a startup error.
+
 ## Tick-duration independence
 
 Protocol times describe continuous time in seconds, not numbers of ticks:
@@ -1279,9 +1387,12 @@ duration or turn an integral into a tick-count-dependent sum.
 }
 ```
 
-The seed controls random intervals, presentation probabilities, and context probabilities. All
-random decisions are resolved when the protocol is loaded. The complete schedule can therefore be
-inspected before execution and repeated with the same seed.
+The seed controls random intervals, presentation probabilities, context probabilities, randomized
+order, choices, and randomized criterion thresholds. All random decisions are resolved when the
+protocol is loaded, expanding every `until` block to its maximum possible repetitions. The complete
+maximum schedule can therefore be inspected before execution and repeated with the same seed. An
+`until` block executes a response-dependent prefix of that pre-resolved schedule; its actual stopping
+point is recorded and is reproducible only when the response stream is also reproduced.
 
 ## Recording capacity
 
@@ -1290,6 +1401,7 @@ After randomization, the complete experiment duration is calculated recursively:
 ```text
 trial span = trial duration + inter-trial interval
 repeat span = repeat count * sum of nested item spans
+until maximum span = maximum repetitions * sum of nested item maximum spans
 protocol span = sum of top-level item spans
 ```
 
@@ -1300,11 +1412,13 @@ sample capacity = ceil(resolved protocol duration / tick duration) + 1
 ```
 
 This lets the recorder allocate a fixed-size buffer at startup and retain every sample without a
-rolling history. The extra sample accommodates the final protocol boundary.
+rolling history. For an `until` block the allocation uses its worst-case duration, although execution
+may stop earlier. The extra sample accommodates the final protocol boundary.
 
 The complete recording should include the experiment time, trial and repeat indices, trial-relative
-time, active stimuli, active sampling windows, and every declared response. The display may show a
-zoomed portion of this recording, but viewing a smaller interval does not discard earlier data.
+time, active stimuli, active sampling windows, every declared response, criterion evaluations, and
+block-termination reasons. The display may show a zoomed portion of this recording, but viewing a
+smaller interval does not discard earlier data.
 
 ## Organizing a larger experiment
 
@@ -1319,6 +1433,8 @@ A practical file is easiest to review when it follows a few conventions:
 - Keep baseline and response windows explicit, even when their boundaries coincide with stimulus
   boundaries.
 - Prefer `integral` over an unweighted sum when experiments may use different tick durations.
+- Give every response-dependent block a scientifically justified maximum rather than treating the
+  maximum merely as a technical safeguard.
 
 These conventions are recommendations rather than additional syntax rules.
 
@@ -1458,6 +1574,10 @@ A protocol is invalid when, for example:
 - A presentation or sampling window extends outside its trial.
 - A stimulus property remains `null` after all overrides are applied.
 - A repeat count is negative or is not an integer.
+- An `until` block lacks a positive integer `maximum_repetitions`, its minimum exceeds its maximum,
+  or its source does not identify exactly one measurement per repetition.
+- A criterion uses an unsupported operator, an invalid history or persistence count, or an unbound
+  response.
 - The protocol cannot be resolved to a finite duration.
 
 Validation should report the JSON path and a plain-language explanation so the file can be corrected

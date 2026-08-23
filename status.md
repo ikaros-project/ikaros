@@ -37,6 +37,8 @@ The tasks below will be completed sequentially, with one focused commit per task
 | 8 | Add notes at all useful protocol levels. | Completed | Markdown checker; allowed-scope, preservation, and non-execution semantics audit; `git diff --check`. | `RingWorld protocols now preserve explanatory notes` |
 | 9 | Add explicit units and compatibility validation. | Completed | Markdown checker; complete-example unit audit; measurement-unit and unsupported-unit validation review; `git diff --check`. | `RingWorld protocols now declare measurement units` |
 | 10 | Regenerate and visually verify the synchronized PDF manual. | Completed | Clean three-pass XeLaTeX build; PDF metadata and 24-page text extraction checks; all 24 rendered pages visually inspected for clipping, overflow, page breaks, tables, code, headers, and numbering; Markdown checker; `git diff --check`. | `Updated the RingWorld protocol PDF manual` |
+| 11 | Add bounded response-criterion `until` blocks to the protocol specification. | Completed | Markdown checker; criterion source, comparison, history, persistence, invalid-response, reproducibility, validation, and worst-case capacity semantics audit; `git diff --check`. | `RingWorld protocols now support bounded criterion training` |
+| 12 | Regenerate and visually verify the PDF manual with criterion-controlled training. | Pending | Pending | Pending |
 
 ### Constraints
 
@@ -45,11 +47,11 @@ The tasks below will be completed sequentially, with one focused commit per task
 - Keep behavior-dependent branching outside this open-loop protocol format.
 - Keep response-name binding intentionally unspecified until separately designed.
 - Complete and commit each format feature before adding the next one.
+- Require every response-dependent loop to have a finite maximum repetition count.
 
 ### Outstanding issues and questions
 
-None. Response-name binding remains intentionally unspecified pending the next protocol-design
-decision.
+Pending completion.
 
 ## Wilson–Cowan composite population model
 
