@@ -21,6 +21,35 @@ The tasks below will be completed sequentially, with one focused commit per task
 None. Response-name binding remains intentionally unspecified in both editions pending the next
 protocol-design decision.
 
+## RingWorld protocol extensions
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add an explicit protocol-format version and compatibility rules. | Completed | Markdown checker; complete-example version audit; `git diff --check`. | `RingWorld protocols now declare their format version` |
+| 2 | Add experiment metadata. | In progress | Pending | Pending |
+| 3 | Add named trial templates and presentation overrides. | Pending | Pending | Pending |
+| 4 | Add randomized and counterbalanced trial ordering. | Pending | Pending | Pending |
+| 5 | Add weighted random choice of protocol items. | Pending | Pending | Pending |
+| 6 | Generalize randomized numeric values across protocol fields. | Pending | Pending | Pending |
+| 7 | Add inherited trial and phase factors for analysis. | Pending | Pending | Pending |
+| 8 | Add notes at all useful protocol levels. | Pending | Pending | Pending |
+| 9 | Add explicit units and compatibility validation. | Pending | Pending | Pending |
+| 10 | Regenerate and visually verify the synchronized PDF manual. | Pending | Pending | Pending |
+
+### Constraints
+
+- Resolve all ordering, choice, and randomized values at startup from the protocol seed.
+- Preserve finite-duration analysis and exact startup recording-capacity inference.
+- Keep behavior-dependent branching outside this open-loop protocol format.
+- Keep response-name binding intentionally unspecified until separately designed.
+- Complete and commit each format feature before adding the next one.
+
+### Outstanding issues and questions
+
+Pending completion.
+
 ## Wilson–Cowan composite population model
 
 The tasks below will be completed sequentially, with one focused commit per task.

@@ -26,6 +26,7 @@ is implemented.
 
 ```json
 {
+  "version": 1,
   "seed": 12345,
   "defaults": {},
   "stimului": {},
@@ -37,6 +38,7 @@ is implemented.
 
 | Field | Purpose |
 | --- | --- |
+| `version` | Selects the protocol-format version used to interpret the file. |
 | `seed` | Makes random intervals and probability decisions reproducible. |
 | `defaults` | Supplies values omitted from named stimuli. |
 | `stimului` | Defines reusable, named stimulus templates. |
@@ -46,6 +48,24 @@ is implemented.
 
 The spelling `stimului` is part of the proposed format.
 
+## Protocol version
+
+Every complete protocol file must declare its format version:
+
+```json
+{
+  "version": 1
+}
+```
+
+The version is a positive integer. Version 1 denotes the format described in this manual. A loader
+must reject a file whose version it does not support instead of guessing how to interpret it.
+
+Additions that do not change the meaning of existing fields may remain within the same version.
+Removing a field, changing a field's meaning, or changing timing semantics requires a new version.
+An implementation may support several versions, but it must validate each file according to the
+rules of the declared version.
+
 ## A minimal protocol
 
 This is the smallest useful conditioning example. It defines a blue vertical conditioned stimulus
@@ -54,6 +74,7 @@ seconds after CS onset.
 
 ```json
 {
+  "version": 1,
   "defaults": {
     "angle": 0,
     "reward": 0,
@@ -774,6 +795,7 @@ These conventions are recommendations rather than additional syntax rules.
 
 ```json
 {
+  "version": 1,
   "seed": 12345,
   "defaults": {
     "angle": 0,
