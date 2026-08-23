@@ -27,6 +27,7 @@ is implemented.
 ```json
 {
   "version": 1,
+  "metadata": {},
   "seed": 12345,
   "defaults": {},
   "stimului": {},
@@ -39,6 +40,7 @@ is implemented.
 | Field | Purpose |
 | --- | --- |
 | `version` | Selects the protocol-format version used to interpret the file. |
+| `metadata` | Describes the experiment, subject, session, and experimental condition. |
 | `seed` | Makes random intervals and probability decisions reproducible. |
 | `defaults` | Supplies values omitted from named stimuli. |
 | `stimului` | Defines reusable, named stimulus templates. |
@@ -65,6 +67,46 @@ Additions that do not change the meaning of existing fields may remain within th
 Removing a field, changing a field's meaning, or changing timing semantics requires a new version.
 An implementation may support several versions, but it must validate each file according to the
 rules of the declared version.
+
+## Experiment metadata
+
+The optional `metadata` object records information needed to identify and organize an experiment:
+
+```json
+{
+  "metadata": {
+    "name": "Context renewal study",
+    "description": "Acquisition in A, extinction in B, and test in A",
+    "subject": "animal_17",
+    "session": 2,
+    "condition": "ABA",
+    "researcher": "Researcher name",
+    "tags": ["conditioning", "renewal", "partial_reinforcement"]
+  }
+}
+```
+
+Metadata does not alter stimulus generation, timing, probability, or measurement. It is copied into
+the experiment record so that data can be identified without relying on a filename. Recommended
+fields are:
+
+| Field | Meaning |
+| --- | --- |
+| `name` | Human-readable experiment or protocol name. |
+| `description` | Brief explanation of the experimental purpose or design. |
+| `subject` | Subject, animal, participant, or simulated-agent identifier. |
+| `session` | Session identifier or sequence number. |
+| `condition` | Between-subject or between-session experimental condition. |
+| `researcher` | Person or group responsible for the session. |
+| `tags` | Searchable labels used to organize protocols and result files. |
+
+Additional metadata fields are allowed if their values are JSON strings, numbers, booleans, null,
+or lists of those scalar types. Arbitrary nested objects are discouraged because they make tabular
+result export difficult.
+
+A reusable protocol may omit subject-specific fields. The experiment launcher may supply or
+override `subject`, `session`, `condition`, and `researcher` before the protocol is resolved. The
+final merged metadata must be stored with both the resolved schedule and the recorded results.
 
 ## A minimal protocol
 
@@ -797,6 +839,10 @@ These conventions are recommendations rather than additional syntax rules.
 {
   "version": 1,
   "seed": 12345,
+  "metadata": {
+    "name": "Partial-reinforcement acquisition",
+    "condition": "80_percent_reinforcement"
+  },
   "defaults": {
     "angle": 0,
     "reward": 0,
