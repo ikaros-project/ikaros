@@ -678,6 +678,63 @@ Order indices refer to `items`. Every explicit order must contain valid indices 
 study's intended replication rule. Counterbalanced order is deterministic and does not consume the
 random-number stream unless a nested item itself contains random values.
 
+## Random choice
+
+A `choose` block selects complete protocol items according to relative weights:
+
+```json
+{
+  "choose": {
+    "count": 20,
+    "with_replacement": true,
+    "items": [
+      {
+        "weight": 0.7,
+        "trial": {
+          "template": "reinforced"
+        }
+      },
+      {
+        "weight": 0.3,
+        "trial": {
+          "template": "nonreinforced"
+        }
+      }
+    ]
+  }
+}
+```
+
+`count` is the number of selections and must be a non-negative integer. `weight` must be
+non-negative, and at least one eligible item must have positive weight. Weights are relative and do
+not need to sum to one. With replacement, the same item may be selected repeatedly and every draw
+uses the original weights.
+
+When `with_replacement` is false, each selected item is removed from the candidate set. In that
+case, `count` cannot exceed the number of positive-weight items:
+
+```json
+{
+  "choose": {
+    "count": 2,
+    "with_replacement": false,
+    "items": [
+      { "weight": 1, "trial": { "template": "probe_a" } },
+      { "weight": 1, "trial": { "template": "probe_b" } },
+      { "weight": 1, "trial": { "template": "probe_c" } }
+    ]
+  }
+}
+```
+
+Choice differs from presentation probability. A failed presentation-probability decision preserves
+the trial and its timing but omits one stimulus. A `choose` block determines which complete
+protocol item is executed. Trials, repeats, randomized blocks, counterbalanced blocks, and nested
+choice blocks are all valid choice items.
+
+All choices are resolved at startup from the protocol seed. The selected item identities and draw
+order are stored in the resolved schedule and experiment record.
+
 ## Contextual stimuli
 
 `context` may occur at the top level, in a repeated block, or in a trial. Context entries are named
