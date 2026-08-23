@@ -950,6 +950,76 @@ extinction in context B:
 Both blocks use the context entry name `chamber`. The second block replaces the first block's
 chamber definition rather than adding a second chamber stimulus.
 
+## Trial and phase factors
+
+`factors` attach categorical or numeric analysis labels without changing protocol execution. They
+may be placed at the top level, on a repeat, randomized, counterbalanced, or choice block, in a trial
+template, or in an individual trial:
+
+```json
+{
+  "factors": {
+    "study": "renewal"
+  },
+  "protocol": [
+    {
+      "repeat": 10,
+      "factors": {
+        "phase": "acquisition",
+        "context_condition": "A"
+      },
+      "protocol": [
+        {
+          "trial": {
+            "template": "cs_plus",
+            "factors": {
+              "contingency": "CS+",
+              "probe": false
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+Factors are inherited from outer to inner scopes. A factor with the same name at an inner scope
+replaces the inherited value:
+
+```text
+top-level factors -> enclosing block factors -> trial-template factors -> trial factors
+```
+
+Factor values may be strings, numbers, booleans, or null. They are copied into every trial record,
+sampling-window result, and exported measurement row. This allows statistics to group results by
+phase, contingency, context condition, probe status, or other experimental variables without
+recovering those categories from trial names.
+
+Factors do not activate stimuli and must not be confused with `context`. A context changes what is
+presented to the subject. A factor labels the design or resulting data. It is common for a repeat
+block to contain both:
+
+```json
+{
+  "repeat": 10,
+  "context": {
+    "chamber": {
+      "stimulus": "context_b"
+    }
+  },
+  "factors": {
+    "phase": "extinction",
+    "physical_context": "B"
+  },
+  "protocol": []
+}
+```
+
+Randomized and chosen items retain their own resolved factors. The recorder also stores the full
+inherited factor set with the resolved trial, so later changes to the original protocol file cannot
+alter the meaning of existing results.
+
 ## Responses and sampling windows
 
 Top-level `responses` declares logical response names:
