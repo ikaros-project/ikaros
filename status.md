@@ -32,8 +32,8 @@ The tasks below will be completed sequentially, with one focused commit per task
 | 3 | Add named trial templates and presentation overrides. | Completed | Markdown checker; template resolution, identifier, and override-semantics audit; `git diff --check`. | `RingWorld protocols now support trial templates` |
 | 4 | Add randomized and counterbalanced trial ordering. | Completed | Markdown checker; finite expansion, constraint-failure, Latin-square, and explicit-order semantics audit; `git diff --check`. | `RingWorld protocols now support controlled trial order` |
 | 5 | Add weighted random choice of protocol items. | Completed | Markdown checker; weighted replacement/non-replacement and startup-resolution semantics audit; `git diff --check`. | `RingWorld protocols now support weighted choice` |
-| 6 | Generalize randomized numeric values across protocol fields. | In progress | Pending | Pending |
-| 7 | Add inherited trial and phase factors for analysis. | Pending | Pending | Pending |
+| 6 | Generalize randomized numeric values across protocol fields. | Completed | Markdown checker; uniform, discrete-choice, bounded-normal, scope, validation, and startup-resolution semantics audit; `git diff --check`. | `RingWorld protocols now generalize random values` |
+| 7 | Add inherited trial and phase factors for analysis. | In progress | Pending | Pending |
 | 8 | Add notes at all useful protocol levels. | Pending | Pending | Pending |
 | 9 | Add explicit units and compatibility validation. | Pending | Pending | Pending |
 | 10 | Regenerate and visually verify the synchronized PDF manual. | Pending | Pending | Pending |

@@ -516,7 +516,7 @@ An interval can be fixed:
 "inter_trial_interval": 10.0
 ```
 
-or sampled uniformly from a range:
+or sampled uniformly using the concise interval-range form:
 
 ```json
 "inter_trial_interval": {
@@ -526,9 +526,103 @@ or sampled uniformly from a range:
 ```
 
 The range form is also valid for `inter_stimulus_interval`. Bounds must be non-negative and `min`
-must not exceed `max`. A new value is selected for every trial execution.
+must not exceed `max`. It is shorthand for the generalized `uniform` form described below. A new
+value is selected for every trial execution.
 
 Every presentation must fit inside `trial.duration`.
+
+## Generalized random values
+
+Most continuous numeric fields accept either a literal number or a random-value specification. This
+allows the same notation to randomize timing, position, appearance, and reinforcement magnitude.
+Structural integer fields such as `version`, `seed`, `repeat`, `count`, and counterbalancing
+`sequence` must remain literal integers.
+
+### Uniform distribution
+
+```json
+{
+  "onset": {
+    "uniform": {
+      "min": 0.4,
+      "max": 0.8
+    }
+  },
+  "angle": {
+    "uniform": {
+      "min": -45,
+      "max": 45
+    }
+  }
+}
+```
+
+`uniform` samples a continuous value between `min` and `max`. Equal bounds produce that fixed
+value. The concise `{ "min": value, "max": value }` syntax is accepted only for interval fields;
+using the explicit form elsewhere avoids confusing a random value with an ordinary object.
+
+### Choice from discrete values
+
+```json
+{
+  "duration": {
+    "choice": [1.0, 1.5, 2.0]
+  },
+  "angle": {
+    "choice": [-30, 0, 30]
+  }
+}
+```
+
+`choice` selects each listed number with equal probability. The list must be non-empty. Weighted
+selection of complete protocol items uses a `choose` block instead.
+
+### Bounded normal distribution
+
+```json
+{
+  "angle": {
+    "normal": {
+      "mean": 0,
+      "standard_deviation": 15,
+      "min": -45,
+      "max": 45
+    }
+  }
+}
+```
+
+`standard_deviation` must be non-negative. `min` and `max` are optional. The sampled normal value is
+clamped to supplied bounds, guaranteeing finite startup resolution even in the distribution tails.
+A zero standard deviation produces the mean, subsequently clamped if necessary.
+
+Generalized random values are valid for:
+
+- Trial, presentation, context, sampling-window, ISI, and ITI times.
+- Stimulus angle, reward, punishment, and intensity.
+- Individual channels in an `rgb` list.
+- Presentation and context probabilities.
+- Choice-item weights.
+
+For example, independently randomized color channels can be written as:
+
+```json
+{
+  "rgb": [
+    { "uniform": { "min": 0.5, "max": 1.0 } },
+    0,
+    { "choice": [0, 0.25, 0.5] }
+  ]
+}
+```
+
+Each specification is sampled once for every resolved occurrence of the object containing it. A
+stimulus-template random value is therefore resampled for each presentation, while a repeat-context
+random value is sampled once on entry and retained throughout that repeat scope. Validation of
+ranges such as intensity from 0 to 1 occurs after sampling and clamping.
+
+All random values are resolved at startup from the shared protocol seed and written into the
+resolved schedule. No random-number generation occurs in the per-tick execution path.
 
 ## Repeated blocks
 
