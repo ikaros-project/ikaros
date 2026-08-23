@@ -29,8 +29,8 @@ The tasks below will be completed sequentially, with one focused commit per task
 |---:|---|---|---|---|
 | 1 | Add an explicit protocol-format version and compatibility rules. | Completed | Markdown checker; complete-example version audit; `git diff --check`. | `RingWorld protocols now declare their format version` |
 | 2 | Add experiment metadata. | Completed | Markdown checker; metadata merge/export semantics audit; `git diff --check`. | `RingWorld protocols now carry experiment metadata` |
-| 3 | Add named trial templates and presentation overrides. | In progress | Pending | Pending |
-| 4 | Add randomized and counterbalanced trial ordering. | Pending | Pending | Pending |
+| 3 | Add named trial templates and presentation overrides. | Completed | Markdown checker; template resolution, identifier, and override-semantics audit; `git diff --check`. | `RingWorld protocols now support trial templates` |
+| 4 | Add randomized and counterbalanced trial ordering. | In progress | Pending | Pending |
 | 5 | Add weighted random choice of protocol items. | Pending | Pending | Pending |
 | 6 | Generalize randomized numeric values across protocol fields. | Pending | Pending | Pending |
 | 7 | Add inherited trial and phase factors for analysis. | Pending | Pending | Pending |

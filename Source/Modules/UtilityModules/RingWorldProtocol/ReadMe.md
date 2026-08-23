@@ -31,6 +31,7 @@ is implemented.
   "seed": 12345,
   "defaults": {},
   "stimului": {},
+  "trials": {},
   "responses": {},
   "context": {},
   "protocol": []
@@ -44,6 +45,7 @@ is implemented.
 | `seed` | Makes random intervals and probability decisions reproducible. |
 | `defaults` | Supplies values omitted from named stimuli. |
 | `stimului` | Defines reusable, named stimulus templates. |
+| `trials` | Defines reusable, named trial templates. |
 | `responses` | Declares logical response signals that can be measured. |
 | `context` | Defines stimuli active throughout the complete protocol. |
 | `protocol` | Lists trials and repeated blocks in execution order. |
@@ -263,6 +265,88 @@ Stimuli are resolved in this order:
 ```text
 defaults -> named stimulus -> context overrides -> presentation overrides
 ```
+
+## Trial templates
+
+The optional top-level `trials` object defines named trial templates. Templates reduce repetition
+and make the trial types in an experiment easy to identify:
+
+```json
+{
+  "trials": {
+    "cs_plus": {
+      "duration": 4.0,
+      "stimuli": [
+        {
+          "id": "cs",
+          "stimulus": "tone_cs",
+          "onset": 0.5,
+          "duration": 2.0
+        },
+        {
+          "id": "us",
+          "stimulus": "food_us",
+          "inter_stimulus_interval": 1.5,
+          "duration": 1.0
+        }
+      ],
+      "inter_trial_interval": {
+        "min": 10.0,
+        "max": 15.0
+      }
+    }
+  }
+}
+```
+
+A protocol item invokes the template by name:
+
+```json
+{
+  "trial": {
+    "template": "cs_plus"
+  }
+}
+```
+
+The template name becomes the trial name unless the invocation supplies another `name`.
+
+### Template overrides
+
+An invocation may override trial fields without changing the reusable definition:
+
+```json
+{
+  "trial": {
+    "template": "cs_plus",
+    "name": "weak_cs_plus",
+    "overrides": {
+      "duration": 4.5,
+      "inter_trial_interval": 12.0,
+      "stimuli": {
+        "cs": {
+          "intensity": 0.5,
+          "angle": 30
+        }
+      }
+    }
+  }
+}
+```
+
+Keys under `overrides.stimuli` refer to presentation `id` values in the template. Their properties
+are merged into those presentations. `duration`, `inter_trial_interval`, `context`, and `sampling`
+may also be overridden. An overridden `context` is merged by context-entry name; an overridden
+`sampling` list replaces the template's complete sampling list.
+
+Every template presentation must have a unique `id` if the template can be overridden or referenced
+by a sampling window. Referring to an unknown template or presentation identifier is an error.
+Templates cannot inherit from other templates in version 1; this avoids recursive definitions and
+keeps startup resolution straightforward.
+
+An inline trial and a trial template have identical execution semantics after resolution. The
+resolved schedule and experiment record should retain both the template name and the final trial
+name.
 
 ## Protocol items
 
