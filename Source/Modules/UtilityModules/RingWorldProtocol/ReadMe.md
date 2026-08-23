@@ -1582,3 +1582,38 @@ A protocol is invalid when, for example:
 
 Validation should report the JSON path and a plain-language explanation so the file can be corrected
 without knowledge of the module implementation.
+
+## Module interface
+
+The initial C++ implementation executes fixed trials and recursively nested `repeat` blocks. It
+supports named stimulus and trial templates, top-level and block/trial contexts, explicit and
+onset-to-onset presentation timing, presentation probabilities, generalized numeric random values,
+trial-relative sampling windows, and finite inter-trial intervals. Other documented protocol blocks
+are rejected until their corresponding implementation stage is complete.
+
+## Parameters
+
+| Parameter | Description |
+| --- | --- |
+| `filename` | Version 1 protocol JSON file, resolved relative to the loaded model and then UserData. |
+| `max_stimuli` | Fixed number of output rows available for simultaneously active visual stimuli. |
+| `max_sampling_windows` | Fixed number of sampling-window activity channels. |
+
+## Inputs
+
+| Input | Description |
+| --- | --- |
+| `CRITERION_MET` | Optional criterion result reserved for bounded `until` execution; unconnected means false. |
+
+## Outputs
+
+| Output | Description |
+| --- | --- |
+| `STIMULI` | Active RingWorld stimulus rows; unused rows have zero intensity. |
+| `ACTIVE_STIMULI` | Number of active rows at the beginning of `STIMULI`. |
+| `SAMPLE_WINDOWS` | Activity flags for sampling windows in the current trial. |
+| `PROTOCOL_TIME` | Elapsed protocol time in seconds. |
+| `TRIAL_TIME` | Elapsed current-trial time in seconds, or zero outside a trial. |
+| `TRIAL_INDEX` | Zero-based resolved trial index, or -1 after completion. |
+| `TRIAL_ACTIVE` | One during the trial period and zero during an ITI or after completion. |
+| `COMPLETED` | One after the finite schedule has completed. |

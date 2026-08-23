@@ -1,0 +1,3 @@
+<group name="RingWorldProtocol_test" start="true" stop="35" tick_duration="0.1">
+    <module class="RingWorldProtocol" name="Protocol" filename="basic_protocol.json" max_stimuli="4" max_sampling_windows="2" />
+</group>

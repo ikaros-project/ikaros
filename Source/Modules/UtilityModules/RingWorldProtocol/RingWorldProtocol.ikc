@@ -1,0 +1,20 @@
+<class name="RingWorldProtocol" description="Executes a JSON experiment protocol for RingWorld">
+    <description>
+        Loads a version 1 RingWorld protocol, resolves its finite trial schedule at startup, and emits the currently active visual stimuli. Stimulus rows use RingWorld's angle, reward, punishment, intensity, RGB, and seven symbol-component columns. Unused rows have zero intensity. Time outputs use seconds and transitions follow the enclosing group's tick duration.
+    </description>
+
+    <parameter name="filename" type="string" default="protocol.json" description="Protocol JSON file, relative to the Ikaros working directory." />
+    <parameter name="max_stimuli" type="number" default="16" min="1" description="Maximum simultaneously active visual and contextual stimuli." />
+    <parameter name="max_sampling_windows" type="number" default="8" min="1" description="Maximum named sampling windows in one trial." />
+
+    <input name="CRITERION_MET" size="1" optional="yes" description="Reserved criterion result input; unconnected is false." />
+
+    <output name="STIMULI" shape="@max_stimuli,14" description="Active RingWorld rows: angle, reward, punishment, intensity, RGB, then seven symbol components." />
+    <output name="ACTIVE_STIMULI" size="1" description="Number of active rows at the start of STIMULI." />
+    <output name="SAMPLE_WINDOWS" size="@max_sampling_windows" description="One for each active sampling-window index in the current trial." />
+    <output name="PROTOCOL_TIME" size="1" description="Elapsed protocol time in seconds." />
+    <output name="TRIAL_TIME" size="1" description="Elapsed time in the current trial, or zero during an inter-trial interval." />
+    <output name="TRIAL_INDEX" size="1" description="Zero-based resolved trial index, or -1 after completion." />
+    <output name="TRIAL_ACTIVE" size="1" description="One during a trial and zero during an inter-trial interval or after completion." />
+    <output name="COMPLETED" size="1" description="One after the complete protocol has finished." />
+</class>

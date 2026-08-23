@@ -1,5 +1,30 @@
 # Kernel Review Status
 
+## RingWorld experimental protocol modules
+
+The first implementation will be delivered as a composable C++ pipeline without kernel changes.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Implement `RingWorldProtocol` JSON loading, validation, finite schedule resolution, stimulus/context generation, trial state, and a focused example and tests. | Completed | Release build; XML validation; focused 35-tick two-trial smoke test; 80-tick RingWorld integration smoke test; Markdown interface checker; `git diff --check`. | `Added the RingWorld protocol scheduler` |
+| 2 | Implement `RingWorldResponseAnalysis` sampling-window measurements and bounded `until` criterion feedback. | Pending | Pending | Pending |
+| 3 | Implement `RingWorldRecorder` as a non-rolling, startup-sized recorder for protocol and response signals. | Pending | Pending | Pending |
+| 4 | Add a protocol-aware WebUI dashboard example with labeled schedule, response, measurement, criterion, and full-recording displays. | Pending | Pending | Pending |
+
+### Constraints
+
+- Use C++ modules, `ikaros::dictionary`, fixed-shape public buffers, and no external libraries.
+- Do not modify the kernel; response signals bind through an explicitly ordered matrix input.
+- Resolve random choices and the maximum bounded schedule at startup from the protocol seed.
+- Keep every response-dependent loop finitely bounded and size recording storage from its worst case.
+- Implement the documented version 1 format incrementally, rejecting syntax not yet supported rather
+  than silently interpreting it differently.
+- Complete, verify, and commit each module before starting the next one.
+
+### Outstanding issues and questions
+
+Pending completion.
+
 ## RingWorld protocol manual and PDF
 
 The tasks below will be completed sequentially, with one focused commit per task.
