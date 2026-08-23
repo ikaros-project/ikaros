@@ -17,4 +17,6 @@
     <output name="TRIAL_INDEX" size="1" description="Zero-based resolved trial index, or -1 after completion." />
     <output name="TRIAL_ACTIVE" size="1" description="One during a trial and zero during an inter-trial interval or after completion." />
     <output name="COMPLETED" size="1" description="One after the complete protocol has finished." />
+    <output name="UNTIL_ACTIVE" size="1" description="One while executing a bounded until block." />
+    <output name="UNTIL_REPETITION" size="1" description="One-based repetition number within the active until block, otherwise zero." />
 </class>

@@ -1,0 +1,31 @@
+<class name="RingWorldResponseAnalysis" description="Measures responses in RingWorld protocol sampling windows">
+    <description>
+        Samples an explicitly ordered response vector while protocol sampling windows are active. It reports latency, trapezoidal integral, and maximum for every window and response channel, and can evaluate one selected measurement as feedback for a bounded until block.
+    </description>
+
+    <parameter name="response_count" type="number" default="1" min="1" description="Number of ordered response channels." />
+    <parameter name="max_sampling_windows" type="number" default="8" min="1" description="Number of sampling-window channels supplied by RingWorldProtocol." />
+    <parameter name="latency_threshold" type="number" default="0.5" description="Threshold used for rising-crossing latency measurements." />
+    <parameter name="criterion_window" type="number" default="0" min="0" description="Zero-based sampling-window index used by the criterion." />
+    <parameter name="criterion_response" type="number" default="0" min="0" description="Zero-based response index used by the criterion." />
+    <parameter name="criterion_measurement" type="string" control="menu" options="latency,integral,maximum" default="maximum" description="Measurement compared with the criterion value." />
+    <parameter name="criterion_operator" type="string" control="menu" options="less,less_equal,greater,greater_equal" default="greater_equal" description="Criterion comparison operator." />
+    <parameter name="criterion_value" type="number" default="0.5" description="Criterion threshold in the selected measurement's unit." />
+    <parameter name="history_length" type="number" default="1" min="1" description="Number of recent criterion measurements to aggregate." />
+    <parameter name="history_aggregate" type="string" control="menu" options="mean,minimum,maximum" default="mean" description="Aggregation applied to recent criterion measurements." />
+    <parameter name="consecutive" type="number" default="1" min="1" description="Required consecutive passing criterion evaluations." />
+
+    <input name="RESPONSES" size="@response_count" description="Explicitly ordered scalar response channels." />
+    <input name="SAMPLE_WINDOWS" size="@max_sampling_windows" description="Sampling-window activity flags from RingWorldProtocol." />
+    <input name="TRIAL_INDEX" size="1" description="Resolved trial index from RingWorldProtocol." />
+    <input name="UNTIL_ACTIVE" size="1" description="Until-block activity flag from RingWorldProtocol." />
+    <input name="UNTIL_REPETITION" size="1" description="One-based until repetition from RingWorldProtocol." />
+
+    <output name="LATENCY" shape="@max_sampling_windows,@response_count" description="Rising threshold-crossing latency in seconds; -1 means no crossing." />
+    <output name="INTEGRAL" shape="@max_sampling_windows,@response_count" description="Trapezoidal area under each response curve." />
+    <output name="MAXIMUM" shape="@max_sampling_windows,@response_count" description="Maximum response value observed in each window." />
+    <output name="CRITERION_VALUE" size="1" description="Latest history-aggregated criterion measurement." />
+    <output name="CRITERION_PASS" size="1" description="One when the latest comparison passes." />
+    <output name="CRITERION_MET" size="1" description="One after the required consecutive criterion passes." />
+    <output name="EVALUATION" size="1" description="One for one tick when a criterion evaluation is finalized." />
+</class>

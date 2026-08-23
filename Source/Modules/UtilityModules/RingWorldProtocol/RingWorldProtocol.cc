@@ -58,6 +58,9 @@ namespace
         std::vector<Presentation> presentations;
         std::vector<Stimulus> context;
         std::vector<SamplingWindow> sampling;
+        int untilId = -1;
+        int untilRepetition = -1;
+        int untilMinimum = 0;
     };
 
 
@@ -116,6 +119,8 @@ class RingWorldProtocol: public Module
     matrix trialIndexOutput_;
     matrix trialActiveOutput_;
     matrix completedOutput_;
+    matrix untilActiveOutput_;
+    matrix untilRepetitionOutput_;
 
     dictionary root_;
     dictionary defaults_;
@@ -129,6 +134,7 @@ class RingWorldProtocol: public Module
     double protocolTime_ = 0.0;
     double trialStartTime_ = 0.0;
     bool completed_ = false;
+    int nextUntilId_ = 0;
 
 
     double
@@ -359,6 +365,29 @@ class RingWorldProtocol: public Module
                 for(int repetition = 0; repetition < count; ++repetition)
                     expandProtocol(nested, context, path + ".protocol");
             }
+            else if(item.contains_non_null("until"))
+            {
+                const dictionary & until = require_dictionary(item["until"], path + ".until");
+                const int maximum = int(require_number(until["maximum_repetitions"], path + ".until.maximum_repetitions"));
+                const int minimum = until.contains_non_null("minimum_repetitions") ?
+                    int(require_number(until["minimum_repetitions"], path + ".until.minimum_repetitions")) : 1;
+                if(maximum <= 0 || minimum < 0 || minimum > maximum)
+                    throw std::runtime_error(path + ".until repetition bounds are invalid.");
+                if(!until.contains_non_null("criterion"))
+                    throw std::runtime_error(path + ".until.criterion is required.");
+                const list & nested = require_list(until["protocol"], path + ".until.protocol");
+                const int untilId = nextUntilId_++;
+                for(int repetition = 0; repetition < maximum; ++repetition)
+                {
+                    const size_t start = trials_.size();
+                    expandProtocol(nested, inheritedContext, path + ".until.protocol");
+                    if(trials_.size() != start + 1)
+                        throw std::runtime_error(path + ".until must resolve to exactly one trial per repetition in the first implementation.");
+                    trials_.back().untilId = untilId;
+                    trials_.back().untilRepetition = repetition;
+                    trials_.back().untilMinimum = minimum;
+                }
+            }
             else
                 throw std::runtime_error(path + " contains a protocol item not supported in the first implementation.");
         }
@@ -433,6 +462,8 @@ class RingWorldProtocol: public Module
         Bind(trialIndexOutput_, "TRIAL_INDEX");
         Bind(trialActiveOutput_, "TRIAL_ACTIVE");
         Bind(completedOutput_, "COMPLETED");
+        Bind(untilActiveOutput_, "UNTIL_ACTIVE");
+        Bind(untilRepetitionOutput_, "UNTIL_REPETITION");
 
         if(stimuli_.rank() != 2 || stimuli_.rows() != maxStimuli_.as_int() || stimuli_.cols() != stimulusColumns)
             throw exception("RingWorldProtocol: STIMULI shape was not resolved.", path_);
@@ -457,11 +488,18 @@ class RingWorldProtocol: public Module
         trialIndexOutput_(0) = completed_ ? -1.0f : float(trialIndex_);
         trialActiveOutput_(0) = 0.0f;
         completedOutput_(0) = completed_ ? 1.0f : 0.0f;
+        untilActiveOutput_(0) = 0.0f;
+        untilRepetitionOutput_(0) = 0.0f;
 
         if(completed_)
             return;
 
         Trial & trial = trials_[trialIndex_];
+        if(trial.untilId >= 0)
+        {
+            untilActiveOutput_(0) = 1.0f;
+            untilRepetitionOutput_(0) = float(trial.untilRepetition + 1);
+        }
         const double localTime = protocolTime_ - trialStartTime_;
         const bool active = localTime < trial.duration;
         int activeRows = 0;
@@ -490,8 +528,16 @@ class RingWorldProtocol: public Module
         const double span = trial.duration + trial.interTrialInterval;
         if(protocolTime_ + 1e-9 >= trialStartTime_ + span)
         {
+            const int completedUntilId = trial.untilId;
+            const bool criterionSatisfied = criterionMet_.connected() && criterionMet_(0) > 0.5f &&
+                trial.untilRepetition + 1 >= trial.untilMinimum;
             ++trialIndex_;
             trialStartTime_ += span;
+            if(criterionSatisfied)
+                while(trialIndex_ < int(trials_.size()) && trials_[trialIndex_].untilId == completedUntilId)
+                {
+                    ++trialIndex_;
+                }
             if(trialIndex_ >= int(trials_.size()))
                 completed_ = true;
         }

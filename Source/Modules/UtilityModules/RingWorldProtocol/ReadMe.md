@@ -1585,7 +1585,8 @@ without knowledge of the module implementation.
 
 ## Module interface
 
-The initial C++ implementation executes fixed trials and recursively nested `repeat` blocks. It
+The initial C++ implementation executes fixed trials, recursively nested `repeat` blocks, and
+bounded `until` blocks containing one resolved trial per repetition. It
 supports named stimulus and trial templates, top-level and block/trial contexts, explicit and
 onset-to-onset presentation timing, presentation probabilities, generalized numeric random values,
 trial-relative sampling windows, and finite inter-trial intervals. Other documented protocol blocks
@@ -1603,7 +1604,7 @@ are rejected until their corresponding implementation stage is complete.
 
 | Input | Description |
 | --- | --- |
-| `CRITERION_MET` | Optional criterion result reserved for bounded `until` execution; unconnected means false. |
+| `CRITERION_MET` | Optional result from `RingWorldResponseAnalysis`; a passing result ends an eligible bounded `until` block. |
 
 ## Outputs
 
@@ -1617,3 +1618,5 @@ are rejected until their corresponding implementation stage is complete.
 | `TRIAL_INDEX` | Zero-based resolved trial index, or -1 after completion. |
 | `TRIAL_ACTIVE` | One during the trial period and zero during an ITI or after completion. |
 | `COMPLETED` | One after the finite schedule has completed. |
+| `UNTIL_ACTIVE` | One while a bounded `until` block is executing. |
+| `UNTIL_REPETITION` | One-based repetition within the current `until` block. |
