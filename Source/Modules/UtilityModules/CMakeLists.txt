@@ -35,6 +35,7 @@ add_subdirectory(PlanarArm)
 add_subdirectory(RingWorld)
 add_subdirectory(RingWorldProtocol)
 add_subdirectory(RingWorldResponseAnalysis)
+add_subdirectory(RingWorldRecorder)
 
 
 add_subdirectory(Arbiter)

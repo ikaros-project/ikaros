@@ -1,0 +1,16 @@
+<group name="RingWorldRecorder_test" start="true" stop="12" tick_duration="0.1">
+    <module class="RingWorldProtocol" name="Protocol" filename="../../RingWorldProtocol/tests/basic_protocol.json" max_stimuli="4" max_sampling_windows="2" />
+    <module class="Constant" name="Response" data="0.75" />
+    <module class="RingWorldRecorder" name="Recorder" signal_count="1" capacity="10" />
+    <module class="Print" name="PrintCount" />
+    <module class="Print" name="PrintOverflow" />
+
+    <connection source="Response.OUTPUT" target="Recorder.SIGNALS" delay="0" />
+    <connection source="Protocol.PROTOCOL_TIME" target="Recorder.PROTOCOL_TIME" delay="0" />
+    <connection source="Protocol.TRIAL_INDEX" target="Recorder.TRIAL_INDEX" delay="0" />
+    <connection source="Protocol.TRIAL_TIME" target="Recorder.TRIAL_TIME" delay="0" />
+    <connection source="Protocol.TRIAL_ACTIVE" target="Recorder.TRIAL_ACTIVE" delay="0" />
+    <connection source="Protocol.SAMPLE_WINDOWS" target="Recorder.SAMPLE_WINDOWS" delay="0" />
+    <connection source="Recorder.COUNT" target="PrintCount.INPUT" delay="0" />
+    <connection source="Recorder.OVERFLOW" target="PrintOverflow.INPUT" delay="0" />
+</group>

@@ -8,7 +8,7 @@ The first implementation will be delivered as a composable C++ pipeline without 
 |---:|---|---|---|---|
 | 1 | Implement `RingWorldProtocol` JSON loading, validation, finite schedule resolution, stimulus/context generation, trial state, and a focused example and tests. | Completed | Release build; XML validation; focused 35-tick two-trial smoke test; 80-tick RingWorld integration smoke test; Markdown interface checker; `git diff --check`. | `Added the RingWorld protocol scheduler` |
 | 2 | Implement `RingWorldResponseAnalysis` sampling-window measurements and bounded `until` criterion feedback. | Completed | Release build; XML validation; focused constant-response test verified window measurement, two-repetition minimum, criterion feedback, and early termination before the five-repetition maximum; Markdown interface checker; `git diff --check`. | `Added RingWorld response analysis and criterion training` |
-| 3 | Implement `RingWorldRecorder` as a non-rolling, startup-sized recorder for protocol and response signals. | Pending | Pending | Pending |
+| 3 | Implement `RingWorldRecorder` as a non-rolling, startup-sized recorder for protocol and response signals. | Completed | Release build; XML validation; focused 13-tick test verified monotonic count to ten, retained fixed capacity, and persistent overflow without rolling or overwriting; Markdown interface checker; `git diff --check`. | `Added complete RingWorld experiment recording` |
 | 4 | Add a protocol-aware WebUI dashboard example with labeled schedule, response, measurement, criterion, and full-recording displays. | Pending | Pending | Pending |
 
 ### Constraints
