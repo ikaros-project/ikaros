@@ -27,6 +27,7 @@ is implemented.
 ```json
 {
   "version": 1,
+  "units": {},
   "metadata": {},
   "notes": "",
   "seed": 12345,
@@ -42,6 +43,7 @@ is implemented.
 | Field | Purpose |
 | --- | --- |
 | `version` | Selects the protocol-format version used to interpret the file. |
+| `units` | Declares the physical units used by numeric protocol values. |
 | `metadata` | Describes the experiment, subject, session, and experimental condition. |
 | `notes` | Stores human-readable comments that do not affect execution. |
 | `seed` | Makes random intervals and probability decisions reproducible. |
@@ -71,6 +73,41 @@ Additions that do not change the meaning of existing fields may remain within th
 Removing a field, changing a field's meaning, or changing timing semantics requires a new version.
 An implementation may support several versions, but it must validate each file according to the
 rules of the declared version.
+
+## Units
+
+Every complete version 1 file explicitly declares its units:
+
+```json
+{
+  "units": {
+    "time": "seconds",
+    "angle": "degrees",
+    "color": "normalized",
+    "intensity": "normalized",
+    "reinforcement": "normalized"
+  }
+}
+```
+
+The declarations apply throughout the file, including defaults, templates, overrides, randomized
+values, sampling windows, and resolved schedules.
+
+| Quantity | Required version 1 unit | Applies to |
+| --- | --- | --- |
+| `time` | `seconds` | Onsets, durations, ISIs, ITIs, sampling intervals, and latency. |
+| `angle` | `degrees` | Gaze-relative and absolute ring positions. |
+| `color` | `normalized` | Red, green, and blue channels from 0 to 1. |
+| `intensity` | `normalized` | Visual and auditory intensity from 0 to 1. |
+| `reinforcement` | `normalized` | Reward and punishment from 0 to 1. |
+
+Version 1 does not perform unit conversion. A loader must reject `milliseconds`, `radians`, byte
+colors, or other unit strings rather than silently reinterpret them. A future format version may add
+conversion while preserving the physical meaning of existing protocols.
+
+Measurement output uses the corresponding physical units. Latency is in seconds, maximum retains
+the response signal's own unit, and an integral has response-unit seconds. Response-signal units
+will be declared when logical response names are mapped to concrete signals.
 
 ## Experiment metadata
 
@@ -152,6 +189,13 @@ seconds after CS onset.
 ```json
 {
   "version": 1,
+  "units": {
+    "time": "seconds",
+    "angle": "degrees",
+    "color": "normalized",
+    "intensity": "normalized",
+    "reinforcement": "normalized"
+  },
   "defaults": {
     "angle": 0,
     "reward": 0,
@@ -1283,6 +1327,13 @@ These conventions are recommendations rather than additional syntax rules.
 ```json
 {
   "version": 1,
+  "units": {
+    "time": "seconds",
+    "angle": "degrees",
+    "color": "normalized",
+    "intensity": "normalized",
+    "reinforcement": "normalized"
+  },
   "seed": 12345,
   "metadata": {
     "name": "Partial-reinforcement acquisition",
@@ -1397,6 +1448,8 @@ These conventions are recommendations rather than additional syntax rules.
 
 A protocol is invalid when, for example:
 
+- The protocol version is missing or unsupported.
+- A required unit declaration is missing or uses an unsupported unit.
 - A referenced stimulus or response name does not exist.
 - A sampling reference uses an unknown presentation `id`.
 - A probability, color channel, or intensity lies outside 0 to 1.
