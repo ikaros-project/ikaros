@@ -20,7 +20,7 @@ def repository_root() -> Path:
     return Path(__file__).resolve().parents[4]
 
 
-def read_codes(path: Path) -> tuple[list[int], list[list[float]]]:
+def read_codes(path: Path, code_prefix: str) -> tuple[list[int], list[list[float]]]:
     labels: list[int] = []
     codes: list[list[float]] = []
     with path.open(newline="") as handle:
@@ -29,10 +29,10 @@ def read_codes(path: Path) -> tuple[list[int], list[list[float]]]:
             raise RuntimeError(f"{path} has no header")
         code_columns = [
             name for name in reader.fieldnames
-            if name.startswith("top_code:")
+            if name.startswith(code_prefix + ":")
         ]
         if not code_columns:
-            raise RuntimeError(f"{path} has no top_code columns")
+            raise RuntimeError(f"{path} has no {code_prefix} columns")
         code_columns.sort(key=lambda name: int(name.rsplit(":", 1)[1]))
 
         for row in reader:
@@ -50,22 +50,41 @@ def read_codes(path: Path) -> tuple[list[int], list[list[float]]]:
     return labels, codes
 
 
-def nearest_label(reference_labels: list[int],
-                  reference_codes: list[list[float]],
-                  query_code: list[float]) -> int:
-    best_label = reference_labels[0]
-    best_distance = float("inf")
-    for label, code in zip(reference_labels, reference_codes):
-        distance = 0.0
-        for query_value, reference_value in zip(query_code, code):
-            difference = query_value - reference_value
-            distance += difference * difference
-            if distance >= best_distance:
-                break
-        if distance < best_distance:
-            best_distance = distance
-            best_label = label
-    return best_label
+def nearest_predictions(reference_labels: list[int],
+                        reference_codes: list[list[float]],
+                        query_codes: list[list[float]],
+                        batch_size: int) -> list[int]:
+    reference_matrix = np.asarray(reference_codes, dtype=np.float64)
+    query_matrix = np.asarray(query_codes, dtype=np.float64)
+    labels = np.asarray(reference_labels, dtype=np.int64)
+    reference_squared = np.sum(reference_matrix * reference_matrix, axis=1)
+    predictions: list[int] = []
+    for begin in range(0, query_matrix.shape[0], batch_size):
+        batch = query_matrix[begin:begin + batch_size]
+        distances = (
+            np.sum(batch * batch, axis=1, keepdims=True)
+            + reference_squared[None, :]
+            - 2.0 * batch @ reference_matrix.T
+        )
+        predictions.extend(int(label) for label in labels[np.argmin(distances, axis=1)])
+    return predictions
+
+
+def solve_ridge(design: np.ndarray,
+                targets: np.ndarray,
+                regularization: float) -> np.ndarray:
+    sample_count, feature_count = design.shape
+    if feature_count <= sample_count:
+        penalty = np.eye(feature_count, dtype=np.float64) * regularization
+        penalty[-1, -1] = 0.0
+        return np.linalg.solve(
+            design.T @ design + penalty,
+            design.T @ targets,
+        )
+
+    penalty = np.eye(sample_count, dtype=np.float64) * regularization
+    alpha = np.linalg.solve(design @ design.T + penalty, targets)
+    return design.T @ alpha
 
 
 def zscore_codes(train_codes: list[list[float]],
@@ -116,12 +135,7 @@ def linear_ridge_predictions(train_labels: list[int],
         if 0 <= label < 10:
             targets[row, label] = 1.0
 
-    penalty = np.eye(train_design.shape[1], dtype=np.float64) * regularization
-    penalty[-1, -1] = 0.0
-    weights = np.linalg.solve(
-        train_design.T @ train_design + penalty,
-        train_design.T @ targets,
-    )
+    weights = solve_ridge(train_design, targets, regularization)
     scores = test_design @ weights
     return [int(label) for label in np.argmax(scores, axis=1)]
 
@@ -171,21 +185,34 @@ def parse_args() -> argparse.Namespace:
         default=1.0e-3,
         help="L2 regularization used by the ridge linear classifier.",
     )
+    parser.add_argument(
+        "--code-prefix",
+        default="top_code",
+        help="Flattened OutputFile column prefix to use as the code.",
+    )
+    parser.add_argument(
+        "--nearest-batch-size",
+        type=int,
+        default=64,
+        help="Query batch size for vectorized nearest-neighbour search.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    train_labels, train_codes = read_codes(args.train_codes)
-    test_labels, test_codes = read_codes(args.test_codes)
+    train_labels, train_codes = read_codes(args.train_codes, args.code_prefix)
+    test_labels, test_codes = read_codes(args.test_codes, args.code_prefix)
     if args.normalize == "zscore":
         train_codes, test_codes = zscore_codes(train_codes, test_codes)
 
     if args.classifier == "nearest":
-        predictions = [
-            nearest_label(train_labels, train_codes, code)
-            for code in test_codes
-        ]
+        predictions = nearest_predictions(
+            train_labels,
+            train_codes,
+            test_codes,
+            args.nearest_batch_size,
+        )
     else:
         predictions = linear_ridge_predictions(
             train_labels,
@@ -217,6 +244,7 @@ def main() -> int:
         writer.writerow(["accuracy", f"{accuracy:.6f}"])
         writer.writerow(["normalization", args.normalize])
         writer.writerow(["classifier", args.classifier])
+        writer.writerow(["code_prefix", args.code_prefix])
         if args.classifier == "ridge":
             writer.writerow(["ridge_regularization", args.ridge_regularization])
 
@@ -228,6 +256,7 @@ def main() -> int:
     print(f"Accuracy: {accuracy:.3%}")
     print(f"Normalization: {args.normalize}")
     print(f"Classifier: {args.classifier}")
+    print(f"Code prefix: {args.code_prefix}")
     print("Train label distribution:", dict(sorted(train_distribution.items())))
     print("Test label distribution:", dict(sorted(test_distribution.items())))
     print(f"Wrote {summary_path}")
