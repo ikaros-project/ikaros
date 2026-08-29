@@ -62,6 +62,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
     matrix latent_sample_;
     matrix loss_;
     matrix reconstruction_loss_;
+    matrix reconstruction_loss_channels_;
     matrix kl_loss_;
 
     int input_height_ = 0;
@@ -220,6 +221,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         Bind(latent_sample_, "LATENT_SAMPLE");
         Bind(loss_, "LOSS");
         Bind(reconstruction_loss_, "RECONSTRUCTION_LOSS");
+        Bind(reconstruction_loss_channels_, "RECONSTRUCTION_LOSS_CHANNELS");
         Bind(kl_loss_, "KL_LOSS");
 
         Bind(encoder_filters_, "ENCODER_FILTERS");
@@ -323,6 +325,13 @@ class ConvolutionalVariationalAutoEncoder: public Module
     }
 
     void
+    require_output_shape(const matrix & output, const std::vector<int> & shape, const std::string & name) const
+    {
+        if(output.is_uninitialized() || output.shape() != shape)
+            throw exception("ConvolutionalVariationalAutoEncoder: output \"" + name + "\" has the wrong startup shape.", path_);
+    }
+
+    void
     require_state_shape(const matrix & state, const std::vector<int> & shape, const std::string & name) const
     {
         if(state.is_uninitialized() || state.shape() != shape)
@@ -384,6 +393,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         require_output_shape(latent_mean_, latent_mean_values_, "LATENT_MEAN");
         require_output_shape(latent_log_variance_, latent_log_variance_values_, "LATENT_LOG_VARIANCE");
         require_output_shape(latent_sample_, latent_values_, "LATENT_SAMPLE");
+        require_output_shape(reconstruction_loss_channels_, std::vector<int>{input_channels_}, "RECONSTRUCTION_LOSS_CHANNELS");
 
         initialized_ = true;
         train_tick_ = 0;
@@ -776,6 +786,10 @@ class ConvolutionalVariationalAutoEncoder: public Module
         reconstruction_error_.subtract(output_, input_);
         reconstruction_error_.multiply(reconstruction_error_);
         const float reconstruction = 0.5f * reconstruction_error_.sum() / std::max(1, input_.size());
+        if(input_channels_ == 1)
+            reconstruction_loss_channels_(0) = reconstruction;
+        else
+            reconstruction_loss_channels_.sum_last_two_dimensions(reconstruction_error_).scale(0.5f / std::max(1, input_height_ * input_width_));
 
         kl_terms_.multiply(latent_mean_values_, latent_mean_values_);
         exp_log_variance_.exp_scaled(latent_log_variance_values_, 1.0f);

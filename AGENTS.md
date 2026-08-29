@@ -17,6 +17,7 @@
 - Do not revert or clean up unrelated worktree changes.
 - Avoid changing generated, build, cache, or user-data artifacts unless the task explicitly requires it.
 - Put generated experiment outputs, plots, reports, and PDFs under `UserData/output` rather than a repository-root `output` directory.
+- When you observe behavior that may be an Ikaros bug, surprising framework behavior, or unclear/misleading documentation, record it in `ERRORS.md` with reproduction context, observed behavior, and a suggested follow-up.
 - Keep comments short and useful; avoid restating obvious code.
 - Keep headers self-contained; include what the file directly uses.
 - Prefer `ikaros::dictionary` for Ikaros JSON/config parsing unless an external JSON library is explicitly needed.
