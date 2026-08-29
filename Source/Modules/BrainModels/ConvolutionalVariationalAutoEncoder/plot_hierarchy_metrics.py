@@ -17,6 +17,10 @@ DEFAULT_COLUMNS = {
         ("level2_topdown_latent_reconstruction_loss", "L2 learned latent"),
         ("level2_control_latent_reconstruction_loss", "L2 untrained latent"),
     ],
+    "live_usefulness_ratios": [
+        ("level1_topdown_usefulness", "L1 control / learned top-down"),
+        ("level2_latent_usefulness", "L2 control / learned latent"),
+    ],
     "kl_losses": [
         ("level1_mean_kl_loss", "L1 own mean KL"),
         ("level1_topdown_kl_loss", "L1 top-down KL"),
