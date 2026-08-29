@@ -231,7 +231,7 @@ def derived_graphs(columns, smooth):
 def main():
     parser = argparse.ArgumentParser(description="Plot CVAE hierarchy evaluation metrics from OutputFile CSV logs.")
     parser.add_argument("csv", nargs="?", default="UserData/cvae_hierarchy_evaluation/metrics.csv", help="Input metrics CSV file.")
-    parser.add_argument("--output-dir", default="output/cvae_hierarchy_evaluation", help="Directory for generated SVG graphs.")
+    parser.add_argument("--output-dir", default="UserData/output/cvae_hierarchy_evaluation", help="Directory for generated graphs.")
     parser.add_argument("--smooth", type=int, default=25, help="Moving-average window in samples. Use 1 to disable smoothing.")
     parser.add_argument("--format", choices=["svg", "png", "both"], default="svg", help="Graph output format.")
     args = parser.parse_args()

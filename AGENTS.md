@@ -16,6 +16,7 @@
 - When creating or editing `.ikg` files, follow the WebUI model-layout rules below.
 - Do not revert or clean up unrelated worktree changes.
 - Avoid changing generated, build, cache, or user-data artifacts unless the task explicitly requires it.
+- Put generated experiment outputs, plots, reports, and PDFs under `UserData/output` rather than a repository-root `output` directory.
 - Keep comments short and useful; avoid restating obvious code.
 - Keep headers self-contained; include what the file directly uses.
 - Prefer `ikaros::dictionary` for Ikaros JSON/config parsing unless an external JSON library is explicitly needed.
