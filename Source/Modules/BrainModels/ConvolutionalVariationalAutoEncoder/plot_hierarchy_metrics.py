@@ -3,6 +3,7 @@
 import argparse
 import csv
 import math
+import os
 from pathlib import Path
 
 
@@ -167,6 +168,27 @@ def write_svg(path, title, x_values, series, y_label):
     path.write_text("\n".join(lines) + "\n")
 
 
+def write_matplotlib(path, title, x_values, series, y_label, output_dir):
+    os.environ.setdefault("MPLCONFIGDIR", str(output_dir / ".matplotlib"))
+    os.environ.setdefault("XDG_CACHE_HOME", str(output_dir / ".cache"))
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(10, 5.6), dpi=140)
+    for index, (label, data) in enumerate(series):
+        ax.plot(x_values, data, label=label, color=COLORS[index % len(COLORS)], linewidth=1.8)
+
+    ax.set_title(title)
+    ax.set_xlabel("tick")
+    ax.set_ylabel(y_label)
+    ax.grid(True, color="#e8e8e8", linewidth=0.8)
+    ax.legend(loc="best", frameon=False)
+    fig.tight_layout()
+    fig.savefig(path)
+    plt.close(fig)
+
+
 def available_series(columns, names, smooth):
     result = []
     for column, label in names:
@@ -211,6 +233,7 @@ def main():
     parser.add_argument("csv", nargs="?", default="UserData/cvae_hierarchy_evaluation/metrics.csv", help="Input metrics CSV file.")
     parser.add_argument("--output-dir", default="output/cvae_hierarchy_evaluation", help="Directory for generated SVG graphs.")
     parser.add_argument("--smooth", type=int, default=25, help="Moving-average window in samples. Use 1 to disable smoothing.")
+    parser.add_argument("--format", choices=["svg", "png", "both"], default="svg", help="Graph output format.")
     args = parser.parse_args()
 
     csv_path = Path(args.csv)
@@ -234,7 +257,10 @@ def main():
         raise ValueError(f"{csv_path} does not contain recognized CVAE metric columns")
 
     for name, (title, series, y_label) in graphs.items():
-        write_svg(output_dir / f"{name}.svg", title, x_values, series, y_label)
+        if args.format in ("svg", "both"):
+            write_svg(output_dir / f"{name}.svg", title, x_values, series, y_label)
+        if args.format in ("png", "both"):
+            write_matplotlib(output_dir / f"{name}.png", title, x_values, series, y_label, output_dir)
 
     print(f"Wrote {len(graphs)} graph(s) to {output_dir}")
 
