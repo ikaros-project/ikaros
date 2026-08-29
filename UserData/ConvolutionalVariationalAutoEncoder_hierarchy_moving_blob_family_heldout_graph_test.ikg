@@ -150,6 +150,11 @@
     <connection source="CVAE_Control_Level1.RECONSTRUCTION_LOSS" target="Metrics.INPUT" label="level1_control_reconstruction_loss" />
     <connection source="CVAE_TopDown_Level2.RECONSTRUCTION_LOSS" target="Metrics.INPUT" label="level2_topdown_latent_reconstruction_loss" />
     <connection source="CVAE_Control_Level2_Untrained.RECONSTRUCTION_LOSS" target="Metrics.INPUT" label="level2_control_latent_reconstruction_loss" />
+    <connection source="CVAE_Mean_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="level1_mean_absolute_reconstruction_error" />
+    <connection source="CVAE_TopDown_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="level1_topdown_absolute_reconstruction_error" />
+    <connection source="CVAE_Control_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="level1_control_absolute_reconstruction_error" />
+    <connection source="CVAE_TopDown_Level2.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="level2_topdown_latent_absolute_reconstruction_error" />
+    <connection source="CVAE_Control_Level2_Untrained.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="level2_control_latent_absolute_reconstruction_error" />
     <connection source="Level1TopDownUsefulness.OUTPUT" target="Metrics.INPUT" label="level1_topdown_usefulness" />
     <connection source="Level2LatentUsefulness.OUTPUT" target="Metrics.INPUT" label="level2_latent_usefulness" />
     <connection source="CVAE_Mean_Level1.KL_LOSS" target="Metrics.INPUT" label="level1_mean_kl_loss" />
@@ -171,4 +176,7 @@
     <widget class="plot" name="Level2ControlLossPlot" title="L2 Control Latent Loss" source="CVAE_Control_Level2_Untrained.RECONSTRUCTION_LOSS" x="1480" y="870" width="320" height="150" y_min="0" y_max="1" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="1480" _y="870" />
     <widget class="plot" name="Level1UsefulnessPlot" title="L1 Top-Down Usefulness" source="Level1TopDownUsefulness.OUTPUT" x="40" y="1060" width="320" height="150" y_min="0" y_max="10" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="40" _y="1060" />
     <widget class="plot" name="Level2UsefulnessPlot" title="L2 Latent Usefulness" source="Level2LatentUsefulness.OUTPUT" x="400" y="1060" width="320" height="150" y_min="0" y_max="10" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="400" _y="1060" />
+    <widget class="plot" name="MeanAbsoluteErrorPlot" title="L1 Own-Mean Absolute Error" source="CVAE_Mean_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" x="760" y="1060" width="320" height="150" y_min="0" y_max="1" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="760" _y="1060" />
+    <widget class="plot" name="TopDownAbsoluteErrorPlot" title="L1 Top-Down Absolute Error" source="CVAE_TopDown_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" x="1120" y="1060" width="320" height="150" y_min="0" y_max="1" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="1120" _y="1060" />
+    <widget class="plot" name="ControlAbsoluteErrorPlot" title="L1 Control Absolute Error" source="CVAE_Control_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" x="1480" y="1060" width="320" height="150" y_min="0" y_max="1" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="1480" _y="1060" />
 </group>

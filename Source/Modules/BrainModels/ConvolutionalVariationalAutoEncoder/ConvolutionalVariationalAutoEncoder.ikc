@@ -29,6 +29,8 @@
 	<output name="LOSS" size="1" description="Total VAE loss" />
 	<output name="RECONSTRUCTION_LOSS" size="1" description="Mean squared reconstruction loss" />
 	<output name="RECONSTRUCTION_LOSS_CHANNELS" size="(INPUT.rank-2)*INPUT.shape[0]+(3-INPUT.rank)" description="Per-channel mean squared reconstruction loss" />
+	<output name="RECONSTRUCTION_ABSOLUTE_ERROR" size="1" description="Mean absolute reconstruction error" />
+	<output name="RECONSTRUCTION_ABSOLUTE_ERROR_CHANNELS" size="(INPUT.rank-2)*INPUT.shape[0]+(3-INPUT.rank)" description="Per-channel mean absolute reconstruction error" />
 	<output name="KL_LOSS" size="1" description="KL divergence from the unit Gaussian prior" />
 
 	<state name="ENCODER_FILTERS" type="matrix" size="@feature_maps,optional((INPUT.rank-2)*INPUT.shape[0]),@kernel_size,@kernel_size" persistent="true" />
@@ -52,6 +54,7 @@
 
 	<state name="RECONSTRUCTION_VALUES" type="matrix" shape="INPUT.shape" />
 	<state name="RECONSTRUCTION_ERROR" type="matrix" shape="INPUT.shape" />
+	<state name="ABSOLUTE_RECONSTRUCTION_ERROR" type="matrix" shape="INPUT.shape" />
 	<state name="D_OUTPUT" type="matrix" shape="INPUT.shape" />
 
 	<state name="LATENT_MEAN_VALUES" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />

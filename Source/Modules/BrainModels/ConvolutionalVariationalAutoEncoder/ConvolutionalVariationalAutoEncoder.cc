@@ -63,6 +63,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
     matrix loss_;
     matrix reconstruction_loss_;
     matrix reconstruction_loss_channels_;
+    matrix reconstruction_absolute_error_;
+    matrix reconstruction_absolute_error_channels_;
     matrix kl_loss_;
 
     int input_height_ = 0;
@@ -120,6 +122,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
     matrix decoder_projection_;
     matrix reconstruction_values_;
     matrix reconstruction_error_;
+    matrix absolute_reconstruction_error_;
     matrix kl_terms_;
     matrix exp_log_variance_;
 
@@ -222,6 +225,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
         Bind(loss_, "LOSS");
         Bind(reconstruction_loss_, "RECONSTRUCTION_LOSS");
         Bind(reconstruction_loss_channels_, "RECONSTRUCTION_LOSS_CHANNELS");
+        Bind(reconstruction_absolute_error_, "RECONSTRUCTION_ABSOLUTE_ERROR");
+        Bind(reconstruction_absolute_error_channels_, "RECONSTRUCTION_ABSOLUTE_ERROR_CHANNELS");
         Bind(kl_loss_, "KL_LOSS");
 
         Bind(encoder_filters_, "ENCODER_FILTERS");
@@ -243,6 +248,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
 
         Bind(reconstruction_values_, "RECONSTRUCTION_VALUES");
         Bind(reconstruction_error_, "RECONSTRUCTION_ERROR");
+        Bind(absolute_reconstruction_error_, "ABSOLUTE_RECONSTRUCTION_ERROR");
         Bind(d_output_, "D_OUTPUT");
         Bind(latent_mean_values_, "LATENT_MEAN_VALUES");
         Bind(latent_log_variance_values_, "LATENT_LOG_VARIANCE_VALUES");
@@ -394,6 +400,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         require_output_shape(latent_log_variance_, latent_log_variance_values_, "LATENT_LOG_VARIANCE");
         require_output_shape(latent_sample_, latent_values_, "LATENT_SAMPLE");
         require_output_shape(reconstruction_loss_channels_, std::vector<int>{input_channels_}, "RECONSTRUCTION_LOSS_CHANNELS");
+        require_output_shape(reconstruction_absolute_error_channels_, std::vector<int>{input_channels_}, "RECONSTRUCTION_ABSOLUTE_ERROR_CHANNELS");
 
         initialized_ = true;
         train_tick_ = 0;
@@ -412,6 +419,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         require_state_shape(output_bias_, {input_channels_}, "OUTPUT_BIAS");
         require_state_shape(reconstruction_values_, input_.shape(), "RECONSTRUCTION_VALUES");
         require_state_shape(reconstruction_error_, input_.shape(), "RECONSTRUCTION_ERROR");
+        require_state_shape(absolute_reconstruction_error_, input_.shape(), "ABSOLUTE_RECONSTRUCTION_ERROR");
         require_state_shape(d_output_, input_.shape(), "D_OUTPUT");
     }
 
@@ -784,6 +792,13 @@ class ConvolutionalVariationalAutoEncoder: public Module
     compute_losses()
     {
         reconstruction_error_.subtract(output_, input_);
+        absolute_reconstruction_error_.apply(reconstruction_error_, [](float, float value) { return std::fabs(value); });
+        const float absolute_reconstruction = absolute_reconstruction_error_.sum() / std::max(1, input_.size());
+        if(input_channels_ == 1)
+            reconstruction_absolute_error_channels_(0) = absolute_reconstruction;
+        else
+            reconstruction_absolute_error_channels_.sum_last_two_dimensions(absolute_reconstruction_error_).scale(1.0f / std::max(1, input_height_ * input_width_));
+
         reconstruction_error_.multiply(reconstruction_error_);
         const float reconstruction = 0.5f * reconstruction_error_.sum() / std::max(1, input_.size());
         if(input_channels_ == 1)
@@ -797,6 +812,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         const float kl = 0.5f * kl_terms_.sum() / std::max(1, latent_values_.size());
 
         reconstruction_loss_(0) = reconstruction;
+        reconstruction_absolute_error_(0) = absolute_reconstruction;
         kl_loss_(0) = kl;
         loss_(0) = reconstruction + beta_.as_float() * kl;
     }

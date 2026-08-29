@@ -13,6 +13,11 @@ DEFAULT_COLUMNS = {
         ("level1_topdown_reconstruction_loss", "L1 learned top-down"),
         ("level1_control_reconstruction_loss", "L1 untrained top-down"),
     ],
+    "absolute_reconstruction_errors": [
+        ("level1_mean_absolute_reconstruction_error", "L1 own mean"),
+        ("level1_topdown_absolute_reconstruction_error", "L1 learned top-down"),
+        ("level1_control_absolute_reconstruction_error", "L1 untrained top-down"),
+    ],
     "level2_latent_losses": [
         ("level2_topdown_latent_reconstruction_loss", "L2 learned latent"),
         ("level2_control_latent_reconstruction_loss", "L2 untrained latent"),
