@@ -12,8 +12,37 @@ def clamp_byte(value):
     return max(0, min(255, int(round(value * 255.0))))
 
 
-def frame_pixels(width, height, tick, radius, sigma, period, vertical_amplitude, phase_offset):
-    phase_tick = tick + phase_offset
+def trajectory_parameters(tick, preset, period, vertical_amplitude, phase_offset):
+    if preset == "single":
+        return tick, period, vertical_amplitude, phase_offset
+
+    if preset == "family":
+        segment_length = 96
+        periods = [80, 96, 112, 128]
+        amplitudes = [0.16, 0.22, 0.26, 0.30]
+        offsets = [0.0, 17.0, 31.0, 53.0]
+        segment = (tick // segment_length) % len(periods)
+        local_tick = tick % segment_length
+        return local_tick, periods[segment], amplitudes[segment], offsets[segment]
+
+    if preset == "gentle-heldout":
+        return tick, 104, 0.24, 23.0
+
+    if preset == "hard-heldout":
+        return tick, 128, 0.32, 19.0
+
+    raise ValueError(f"Unknown preset: {preset}")
+
+
+def frame_pixels(width, height, tick, radius, sigma, preset, period, vertical_amplitude, phase_offset):
+    motion_tick, period, vertical_amplitude, phase_offset = trajectory_parameters(
+        tick,
+        preset,
+        period,
+        vertical_amplitude,
+        phase_offset,
+    )
+    phase_tick = motion_tick + phase_offset
     phase = phase_tick % period
     if phase < period / 2:
         cx = radius + phase / (period / 2 - 1) * (width - 2 * radius - 1)
@@ -42,13 +71,13 @@ def write_ppm(path, width, height, pixels):
         file.write(pixels)
 
 
-def generate_frames(directory, width, height, frames, radius, sigma, period, vertical_amplitude, phase_offset):
+def generate_frames(directory, width, height, frames, radius, sigma, preset, period, vertical_amplitude, phase_offset):
     for tick in range(frames):
         write_ppm(
             directory / f"frame_{tick:04d}.ppm",
             width,
             height,
-            frame_pixels(width, height, tick, radius, sigma, period, vertical_amplitude, phase_offset),
+            frame_pixels(width, height, tick, radius, sigma, preset, period, vertical_amplitude, phase_offset),
         )
 
 
@@ -83,6 +112,7 @@ def main():
     parser.add_argument("--fps", type=int, default=24)
     parser.add_argument("--radius", type=float, default=7.0)
     parser.add_argument("--sigma", type=float, default=3.5)
+    parser.add_argument("--preset", choices=["single", "family", "gentle-heldout", "hard-heldout"], default="single")
     parser.add_argument("--period", type=int, default=96)
     parser.add_argument("--vertical-amplitude", type=float, default=0.22)
     parser.add_argument("--phase-offset", type=float, default=0.0)
@@ -108,6 +138,7 @@ def main():
             args.frames,
             args.radius,
             args.sigma,
+            args.preset,
             args.period,
             args.vertical_amplitude,
             args.phase_offset,
