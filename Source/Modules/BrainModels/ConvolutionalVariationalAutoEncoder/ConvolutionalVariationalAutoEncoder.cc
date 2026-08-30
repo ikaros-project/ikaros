@@ -22,6 +22,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
     static constexpr int reconstruction_source_sample = 0;
     static constexpr int reconstruction_source_mean = 1;
     static constexpr int reconstruction_source_top_down = 2;
+    static constexpr int reconstruction_loss_mse = 0;
+    static constexpr int reconstruction_loss_bernoulli = 1;
     static constexpr int output_activation_linear = 0;
     static constexpr int output_activation_sigmoid = 1;
     static constexpr int padding_valid = 0;
@@ -46,6 +48,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
     parameter adam_beta2_;
     parameter adam_epsilon_;
     parameter beta_;
+    parameter reconstruction_loss_mode_;
     parameter latent_decorrelation_weight_;
     parameter latent_decorrelation_decay_;
     parameter train_;
@@ -216,6 +219,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         Bind(adam_beta2_, "adam_beta2");
         Bind(adam_epsilon_, "adam_epsilon");
         Bind(beta_, "beta");
+        Bind(reconstruction_loss_mode_, "reconstruction_loss");
         Bind(latent_decorrelation_weight_, "latent_decorrelation_weight");
         Bind(latent_decorrelation_decay_, "latent_decorrelation_decay");
         Bind(train_, "train");
@@ -315,6 +319,28 @@ class ConvolutionalVariationalAutoEncoder: public Module
         if(activation >= output_activation_linear && activation <= output_activation_sigmoid)
             return;
         throw exception("ConvolutionalVariationalAutoEncoder: output_activation must be linear or sigmoid.", path_);
+    }
+
+    void
+    validate_reconstruction_loss() const
+    {
+        const int loss = reconstruction_loss_mode_.as_int();
+        if(loss >= reconstruction_loss_mse && loss <= reconstruction_loss_bernoulli)
+            return;
+        throw exception("ConvolutionalVariationalAutoEncoder: reconstruction_loss must be mse or bernoulli.", path_);
+    }
+
+    bool
+    reconstruction_loss_is(int loss) const
+    {
+        return reconstruction_loss_mode_.as_int() == loss;
+    }
+
+    bool
+    output_uses_sigmoid() const
+    {
+        return output_activation_.as_int() == output_activation_sigmoid ||
+            reconstruction_loss_is(reconstruction_loss_bernoulli);
     }
 
     void
@@ -754,7 +780,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
     void
     apply_output_activation()
     {
-        if(output_activation_.as_int() != output_activation_sigmoid)
+        if(!output_uses_sigmoid())
             return;
 
         reconstruction_values_.sigmoid();
@@ -765,7 +791,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
     {
         d_output_.subtract(reconstruction_values_, input_).scale(output_scale);
 
-        if(output_activation_.as_int() == output_activation_sigmoid)
+        if(output_uses_sigmoid() && !reconstruction_loss_is(reconstruction_loss_bernoulli))
         {
             d_output_.multiply_sigmoid_derivative(reconstruction_values_);
         }
@@ -843,12 +869,13 @@ class ConvolutionalVariationalAutoEncoder: public Module
         else
             reconstruction_absolute_error_channels_.sum_last_two_dimensions(absolute_reconstruction_error_).scale(1.0f / std::max(1, input_height_ * input_width_));
 
-        reconstruction_error_.multiply(reconstruction_error_);
-        const float reconstruction = 0.5f * reconstruction_error_.sum() / std::max(1, input_.size());
+        const float reconstruction = reconstruction_loss_is(reconstruction_loss_bernoulli) ?
+            compute_bernoulli_reconstruction_loss() :
+            compute_mse_reconstruction_loss();
         if(input_channels_ == 1)
             reconstruction_loss_channels_(0) = reconstruction;
         else
-            reconstruction_loss_channels_.sum_last_two_dimensions(reconstruction_error_).scale(0.5f / std::max(1, input_height_ * input_width_));
+            reconstruction_loss_channels_.sum_last_two_dimensions(reconstruction_error_).scale(1.0f / std::max(1, input_height_ * input_width_));
 
         kl_terms_.multiply(latent_mean_values_, latent_mean_values_);
         exp_log_variance_.exp_scaled(latent_log_variance_values_, 1.0f);
@@ -860,6 +887,51 @@ class ConvolutionalVariationalAutoEncoder: public Module
         kl_loss_(0) = kl;
         decorrelation_loss_(0) = compute_latent_decorrelation_loss();
         loss_(0) = reconstruction + beta_.as_float() * kl + latent_decorrelation_weight_.as_float() * decorrelation_loss_(0);
+    }
+
+    float
+    compute_mse_reconstruction_loss()
+    {
+        reconstruction_error_.multiply(reconstruction_error_).scale(0.5f);
+        return reconstruction_error_.sum() / std::max(1, input_.size());
+    }
+
+    float
+    compute_bernoulli_reconstruction_loss()
+    {
+        static constexpr float epsilon = 1e-6f;
+
+        if(input_.rank() == 2)
+        {
+            for(int row = 0; row < input_height_; ++row)
+            {
+                for(int col = 0; col < input_width_; ++col)
+                {
+                    const float target = std::clamp(input_(row, col), 0.0f, 1.0f);
+                    const float probability = std::clamp(output_(row, col), epsilon, 1.0f - epsilon);
+                    reconstruction_error_(row, col) =
+                        -(target * std::log(probability) + (1.0f - target) * std::log(1.0f - probability));
+                }
+            }
+        }
+        else
+        {
+            for(int channel = 0; channel < input_channels_; ++channel)
+            {
+                for(int row = 0; row < input_height_; ++row)
+                {
+                    for(int col = 0; col < input_width_; ++col)
+                    {
+                        const float target = std::clamp(input_(channel, row, col), 0.0f, 1.0f);
+                        const float probability = std::clamp(output_(channel, row, col), epsilon, 1.0f - epsilon);
+                        reconstruction_error_(channel, row, col) =
+                            -(target * std::log(probability) + (1.0f - target) * std::log(1.0f - probability));
+                    }
+                }
+            }
+        }
+
+        return reconstruction_error_.sum() / std::max(1, input_.size());
     }
 
     float
@@ -1317,6 +1389,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
     {
         validate_reconstruction_source();
         validate_output_activation();
+        validate_reconstruction_loss();
         validate_padding();
 
         if(effort_.connected() && !effort_.empty() && effort_.sum() <= 0.0f)

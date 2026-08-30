@@ -31,6 +31,7 @@ bottleneck state for other modules.
 | adam_beta2 | Adam second moment decay | number | 0.999 |
 | adam_epsilon | Adam numerical stability term | number | 0.00000001 |
 | beta | Weight of the KL-divergence term | number | 1 |
+| reconstruction_loss | Reconstruction likelihood model (`mse` or `bernoulli`) | number | mse |
 | latent_decorrelation_weight | Weight of the running latent decorrelation penalty | number | 0 |
 | latent_decorrelation_decay | Exponential decay used by the running latent covariance estimate | number | 0.99 |
 | train | Enable online training | bool | yes |
@@ -57,9 +58,15 @@ bottleneck state for other modules.
 | LATENT_LOG_VARIANCE | Latent Gaussian log variance |
 | LATENT_SAMPLE | Latent sample used by the decoder |
 | LOSS | Total VAE loss |
-| RECONSTRUCTION_LOSS | Mean squared reconstruction loss |
+| RECONSTRUCTION_LOSS | Mean reconstruction loss |
 | KL_LOSS | KL divergence from the unit Gaussian prior |
 | DECORRELATION_LOSS | Running off-diagonal latent covariance penalty |
+
+`reconstruction_loss="mse"` uses the original half mean squared error objective. For normalized
+binary or grayscale image inputs, `reconstruction_loss="bernoulli"` treats each reconstructed pixel
+as a Bernoulli probability and uses binary cross-entropy. Bernoulli reconstruction uses a sigmoid
+decoder output even when `output_activation` is left at its default; higher hierarchy levels that
+reconstruct continuous latent means should usually keep the default `mse` objective.
 
 The decorrelation penalty is disabled when `latent_decorrelation_weight` is `0`. When enabled, the
 module maintains an exponential running covariance estimate of the latent mean features. In dense

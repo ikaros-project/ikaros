@@ -12,6 +12,7 @@
 	<parameter name="adam_beta2" type="number" default="0.999" min="0" max="1" description="Adam second moment decay" />
 	<parameter name="adam_epsilon" type="number" default="0.00000001" min="0" description="Adam numerical stability term" />
 	<parameter name="beta" type="number" default="1" min="0" description="Weight of the KL-divergence term" />
+	<parameter name="reconstruction_loss" type="number" default="mse" options="mse,bernoulli" description="Reconstruction likelihood model" />
 	<parameter name="latent_decorrelation_weight" type="number" default="0" min="0" description="Weight of the running latent decorrelation penalty" />
 	<parameter name="latent_decorrelation_decay" type="number" default="0.99" min="0" max="1" description="Exponential decay used by the running latent covariance estimate" />
 	<parameter name="train" type="bool" default="yes" description="Enable online training" />
@@ -29,8 +30,8 @@
 	<output name="LATENT_LOG_VARIANCE" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" description="Latent Gaussian log variance" />
 	<output name="LATENT_SAMPLE" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" description="Latent sample used by the decoder" />
 	<output name="LOSS" size="1" description="Total VAE loss" />
-	<output name="RECONSTRUCTION_LOSS" size="1" description="Mean squared reconstruction loss" />
-	<output name="RECONSTRUCTION_LOSS_CHANNELS" size="(INPUT.rank-2)*INPUT.shape[0]+(3-INPUT.rank)" description="Per-channel mean squared reconstruction loss" />
+	<output name="RECONSTRUCTION_LOSS" size="1" description="Mean reconstruction loss" />
+	<output name="RECONSTRUCTION_LOSS_CHANNELS" size="(INPUT.rank-2)*INPUT.shape[0]+(3-INPUT.rank)" description="Per-channel mean reconstruction loss" />
 	<output name="RECONSTRUCTION_ABSOLUTE_ERROR" size="1" description="Mean absolute reconstruction error" />
 	<output name="RECONSTRUCTION_ABSOLUTE_ERROR_CHANNELS" size="(INPUT.rank-2)*INPUT.shape[0]+(3-INPUT.rank)" description="Per-channel mean absolute reconstruction error" />
 	<output name="KL_LOSS" size="1" description="KL divergence from the unit Gaussian prior" />
