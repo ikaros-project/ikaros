@@ -108,6 +108,7 @@ namespace
         o.add_option("S", "start", " start-up automatically without waiting for commands from WebUI");
         o.add_option("s", "stop", "stop Ikaros after this tick", true, "-1");
         o.add_option("p", "python_executable", "default Python interpreter for python-backed classes", true);
+        o.add_option("P", "print-tick-interval", "print the current tick every N ticks", true);
         o.add_option("t", "threads", "number of worker threads for the kernel thread pool", true);
         o.add_option("u", "user_data", "alternative directory for user data files", true);
         o.add_option("w", "webui_port", "port for ikaros WebUI", true, "8000");
