@@ -29,6 +29,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
     static constexpr int output_activation_sigmoid = 1;
     static constexpr int padding_valid = 0;
     static constexpr int padding_same = 1;
+    static constexpr int latent_cluster_update_gradient = 0;
+    static constexpr int latent_cluster_update_vq = 1;
 
     enum class LatentMode
     {
@@ -56,6 +58,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
     parameter latent_cluster_weight_;
     parameter latent_cluster_balance_weight_;
     parameter latent_cluster_balance_decay_;
+    parameter latent_cluster_update_;
+    parameter latent_cluster_commitment_weight_;
     parameter latent_decorrelation_weight_;
     parameter latent_decorrelation_decay_;
     parameter train_;
@@ -108,6 +112,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
     int latent_decorrelation_samples_ = 0;
     int latent_cluster_count_value_ = 1;
     int latent_cluster_features_value_ = 1;
+    int latent_cluster_winner_ = 0;
 
     struct AdamStepParameters
     {
@@ -250,6 +255,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
         Bind(latent_cluster_weight_, "latent_cluster_weight");
         Bind(latent_cluster_balance_weight_, "latent_cluster_balance_weight");
         Bind(latent_cluster_balance_decay_, "latent_cluster_balance_decay");
+        Bind(latent_cluster_update_, "latent_cluster_update");
+        Bind(latent_cluster_commitment_weight_, "latent_cluster_commitment_weight");
         Bind(latent_decorrelation_weight_, "latent_decorrelation_weight");
         Bind(latent_decorrelation_decay_, "latent_decorrelation_decay");
         Bind(train_, "train");
@@ -396,6 +403,21 @@ class ConvolutionalVariationalAutoEncoder: public Module
         throw exception("ConvolutionalVariationalAutoEncoder: padding must be valid or same.", path_);
     }
 
+    void
+    validate_latent_cluster_update() const
+    {
+        const int update = latent_cluster_update_.as_int();
+        if(update >= latent_cluster_update_gradient && update <= latent_cluster_update_vq)
+            return;
+        throw exception("ConvolutionalVariationalAutoEncoder: latent_cluster_update must be gradient or vq.", path_);
+    }
+
+    bool
+    latent_cluster_update_is(int update) const
+    {
+        return latent_cluster_update_.as_int() == update;
+    }
+
     matrix::convolution_padding
     convolution_padding() const
     {
@@ -444,7 +466,9 @@ class ConvolutionalVariationalAutoEncoder: public Module
     bool
     latent_clustering_enabled() const
     {
-        return latent_cluster_weight_.as_float() > 0.0f && latent_cluster_count_value_ > 1;
+        return (latent_cluster_weight_.as_float() > 0.0f ||
+                latent_cluster_commitment_weight_.as_float() > 0.0f) &&
+            latent_cluster_count_value_ > 1;
     }
 
     void
@@ -521,6 +545,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         latent_cluster_features_.reset();
         latent_cluster_distances_.reset();
         d_latent_cluster_centers_.reset();
+        latent_cluster_winner_ = 0;
         latent_decorrelation_samples_ = 0;
         reset_adam_state();
     }
@@ -1151,6 +1176,10 @@ class ConvolutionalVariationalAutoEncoder: public Module
         const float scale = 0.5f / std::max(1, latent_cluster_features_value_);
         const float temperature = std::max(1e-6f, latent_cluster_temperature_.as_float());
         float max_logit = -std::numeric_limits<float>::infinity();
+        float best_score = std::numeric_limits<float>::infinity();
+        latent_cluster_winner_ = 0;
+        const float uniform = 1.0f / static_cast<float>(latent_cluster_count_value_);
+        const float balance_weight = latent_cluster_balance_weight_.as_float();
         for(int cluster = 0; cluster < latent_cluster_count_value_; ++cluster)
         {
             float distance = 0.0f;
@@ -1162,6 +1191,30 @@ class ConvolutionalVariationalAutoEncoder: public Module
             distance *= scale;
             latent_cluster_distances_(cluster) = distance;
             max_logit = std::max(max_logit, -distance / temperature);
+            const float usage_penalty = latent_cluster_update_is(latent_cluster_update_vq) && balance_weight > 0.0f ?
+                balance_weight * std::max(0.0f, latent_cluster_usage_(cluster) - uniform) :
+                0.0f;
+            const float score = distance + usage_penalty;
+            if(score < best_score)
+            {
+                best_score = score;
+                latent_cluster_winner_ = cluster;
+            }
+        }
+
+        if(latent_cluster_update_is(latent_cluster_update_vq))
+        {
+            cluster_assignment_(latent_cluster_winner_) = 1.0f;
+            cluster_loss_(0) = latent_cluster_distances_(latent_cluster_winner_);
+            update_latent_cluster_usage();
+            float balance_loss = 0.0f;
+            for(int cluster = 0; cluster < latent_cluster_count_value_; ++cluster)
+            {
+                const float error = latent_cluster_usage_(cluster) - uniform;
+                balance_loss += error * error;
+            }
+            cluster_balance_loss_(0) = balance_loss;
+            return;
         }
 
         float normalizer = 0.0f;
@@ -1186,7 +1239,6 @@ class ConvolutionalVariationalAutoEncoder: public Module
         cluster_loss_(0) = cluster_loss;
 
         update_latent_cluster_usage();
-        const float uniform = 1.0f / static_cast<float>(latent_cluster_count_value_);
         float balance_loss = 0.0f;
         for(int cluster = 0; cluster < latent_cluster_count_value_; ++cluster)
         {
@@ -1214,6 +1266,12 @@ class ConvolutionalVariationalAutoEncoder: public Module
         d_latent_cluster_centers_.reset();
         if(!latent_clustering_enabled())
             return;
+        if(latent_cluster_update_is(latent_cluster_update_vq))
+        {
+            add_latent_vq_cluster_gradient();
+            update_vq_cluster_center();
+            return;
+        }
 
         const float feature_scale = 1.0f / std::max(1, latent_cluster_features_value_);
         const float cluster_weight = latent_cluster_weight_.as_float();
@@ -1252,6 +1310,38 @@ class ConvolutionalVariationalAutoEncoder: public Module
             }
             add_latent_cluster_feature_gradient(feature, feature_gradient);
         }
+    }
+
+    void
+    add_latent_vq_cluster_gradient()
+    {
+        const float feature_scale = 1.0f / std::max(1, latent_cluster_features_value_);
+        const float commitment_weight = latent_cluster_commitment_weight_.as_float() > 0.0f ?
+            latent_cluster_commitment_weight_.as_float() :
+            latent_cluster_weight_.as_float();
+        const int winner = std::clamp(latent_cluster_winner_, 0, latent_cluster_count_value_ - 1);
+
+        for(int feature = 0; feature < latent_cluster_features_value_; ++feature)
+        {
+            const float error = latent_cluster_features_(feature) - latent_cluster_centers_(winner, feature);
+            add_latent_cluster_feature_gradient(feature, commitment_weight * feature_scale * error);
+        }
+    }
+
+    void
+    update_vq_cluster_center()
+    {
+        if(!train_.as_bool())
+            return;
+
+        const float update = std::clamp(learning_rate_.as_float() * latent_cluster_weight_.as_float(), 0.0f, 1.0f);
+        if(update <= 0.0f)
+            return;
+
+        const int winner = std::clamp(latent_cluster_winner_, 0, latent_cluster_count_value_ - 1);
+        for(int feature = 0; feature < latent_cluster_features_value_; ++feature)
+            latent_cluster_centers_(winner, feature) +=
+                update * (latent_cluster_features_(feature) - latent_cluster_centers_(winner, feature));
     }
 
     void
@@ -1583,7 +1673,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
         encoder_bias_.adam_update(d_encoder_bias_, encoder_bias_m_, encoder_bias_v_, learning_rate, adam.beta1, adam.beta2, adam.beta1_correction, adam.beta2_correction, adam.epsilon);
         decoder_filters_.adam_update(d_decoder_filters_, decoder_filters_m_, decoder_filters_v_, learning_rate, adam.beta1, adam.beta2, adam.beta1_correction, adam.beta2_correction, adam.epsilon);
         output_bias_.adam_update(d_output_bias_, output_bias_m_, output_bias_v_, learning_rate, adam.beta1, adam.beta2, adam.beta1_correction, adam.beta2_correction, adam.epsilon);
-        latent_cluster_centers_.adam_update(d_latent_cluster_centers_, latent_cluster_centers_m_, latent_cluster_centers_v_, learning_rate, adam.beta1, adam.beta2, adam.beta1_correction, adam.beta2_correction, adam.epsilon);
+        if(!latent_cluster_update_is(latent_cluster_update_vq))
+            latent_cluster_centers_.adam_update(d_latent_cluster_centers_, latent_cluster_centers_m_, latent_cluster_centers_v_, learning_rate, adam.beta1, adam.beta2, adam.beta1_correction, adam.beta2_correction, adam.epsilon);
     }
 
     void
@@ -1593,7 +1684,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
         encoder_bias_.sgd_update(d_encoder_bias_, learning_rate);
         decoder_filters_.sgd_update(d_decoder_filters_, learning_rate);
         output_bias_.sgd_update(d_output_bias_, learning_rate);
-        latent_cluster_centers_.sgd_update(d_latent_cluster_centers_, learning_rate);
+        if(!latent_cluster_update_is(latent_cluster_update_vq))
+            latent_cluster_centers_.sgd_update(d_latent_cluster_centers_, learning_rate);
     }
 
     void
@@ -1734,6 +1826,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         validate_output_activation();
         validate_reconstruction_loss();
         validate_padding();
+        validate_latent_cluster_update();
 
         if(effort_.connected() && !effort_.empty() && effort_.sum() <= 0.0f)
             return;

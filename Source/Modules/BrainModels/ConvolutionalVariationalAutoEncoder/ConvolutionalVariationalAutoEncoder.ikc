@@ -19,6 +19,8 @@
 	<parameter name="latent_cluster_weight" type="number" default="0" min="0" description="Weight of the latent prototype attraction penalty" />
 	<parameter name="latent_cluster_balance_weight" type="number" default="0" min="0" description="Weight of the running cluster-usage balance penalty" />
 	<parameter name="latent_cluster_balance_decay" type="number" default="0.99" min="0" max="1" description="Exponential decay used by the running cluster-usage estimate" />
+	<parameter name="latent_cluster_update" type="number" default="gradient" options="gradient,vq" description="Prototype update rule for latent clustering" />
+	<parameter name="latent_cluster_commitment_weight" type="number" default="0" min="0" description="Weight of the VQ-style encoder commitment penalty; zero uses latent_cluster_weight" />
 	<parameter name="latent_decorrelation_weight" type="number" default="0" min="0" description="Weight of the running latent decorrelation penalty" />
 	<parameter name="latent_decorrelation_decay" type="number" default="0.99" min="0" max="1" description="Exponential decay used by the running latent covariance estimate" />
 	<parameter name="train" type="bool" default="yes" description="Enable online training" />

@@ -38,6 +38,8 @@ bottleneck state for other modules.
 | latent_cluster_weight | Weight of the latent prototype attraction penalty | number | 0 |
 | latent_cluster_balance_weight | Weight of the running cluster-usage balance penalty | number | 0 |
 | latent_cluster_balance_decay | Exponential decay used by the running cluster-usage estimate | number | 0.99 |
+| latent_cluster_update | Prototype update rule (`gradient` or `vq`) | number | gradient |
+| latent_cluster_commitment_weight | Weight of the VQ-style encoder commitment penalty; zero uses `latent_cluster_weight` | number | 0 |
 | latent_decorrelation_weight | Weight of the running latent decorrelation penalty | number | 0 |
 | latent_decorrelation_decay | Exponential decay used by the running latent covariance estimate | number | 0.99 |
 | train | Enable online training | bool | yes |
@@ -119,6 +121,31 @@ An optional running balance term can discourage collapse onto a single prototype
 deviations between the exponential moving average of `CLUSTER_ASSIGNMENT` and uniform prototype
 usage. This remains unsupervised because no class labels are used; labels can be used afterward only
 to inspect whether learned prototypes align with categories.
+
+With `latent_cluster_update="gradient"`, prototype centers are ordinary trainable parameters updated
+by the selected optimizer from the soft-assignment cluster gradient. With
+`latent_cluster_update="vq"`, the module uses a vector-quantization-style update: the nearest
+prototype receives a hard one-hot assignment, the encoder receives a commitment gradient toward that
+winner, and the winning prototype is moved directly toward the current latent feature vector:
+
+```math
+c^\* = \arg\min_k d_k
+```
+
+```math
+L_\mathrm{commit} =
+\frac{\lambda}{2D}\sum_i \left(f_i(x)-m_{c^\*,i}\right)^2
+```
+
+```math
+m_{c^\*} \leftarrow m_{c^\*} +
+\eta \alpha \left(f(x)-m_{c^\*}\right)
+```
+
+where \(\lambda\) is `latent_cluster_commitment_weight` unless it is zero, in which case
+`latent_cluster_weight` is used; \(\eta\) is `learning_rate`; and \(\alpha\) is
+`latent_cluster_weight`. In VQ mode, a positive `latent_cluster_balance_weight` also biases winner
+selection away from prototypes whose running usage is above uniform usage.
 
 The decorrelation penalty is disabled when `latent_decorrelation_weight` is `0`. When enabled, the
 module maintains an exponential running covariance estimate of the latent mean features. In dense
