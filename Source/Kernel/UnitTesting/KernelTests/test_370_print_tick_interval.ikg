@@ -1,0 +1,7 @@
+<group internal="true"
+    name="TestPrintTickInterval"
+    description="Print the current tick at the requested interval"
+    stop="5"
+    cli_args="print-tick-interval=2"
+    expected_output_once="Tick: 2||Tick: 4"
+    expected_output_not_contains="Tick: 1||Tick: 3||Tick: 5" />
