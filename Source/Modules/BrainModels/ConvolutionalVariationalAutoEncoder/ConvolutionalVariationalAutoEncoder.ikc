@@ -13,6 +13,12 @@
 	<parameter name="adam_epsilon" type="number" default="0.00000001" min="0" description="Adam numerical stability term" />
 	<parameter name="beta" type="number" default="1" min="0" description="Weight of the KL-divergence term" />
 	<parameter name="reconstruction_loss" type="number" default="mse" options="mse,bernoulli" description="Reconstruction likelihood model" />
+	<parameter name="latent_consistency_weight" type="number" default="0" min="0" description="Weight of the paired-view latent mean consistency penalty" />
+	<parameter name="latent_cluster_count" type="number" default="1" min="1" description="Number of learned latent prototype clusters" />
+	<parameter name="latent_cluster_temperature" type="number" default="0.1" min="0.000001" description="Soft-assignment temperature for latent prototype clusters" />
+	<parameter name="latent_cluster_weight" type="number" default="0" min="0" description="Weight of the latent prototype attraction penalty" />
+	<parameter name="latent_cluster_balance_weight" type="number" default="0" min="0" description="Weight of the running cluster-usage balance penalty" />
+	<parameter name="latent_cluster_balance_decay" type="number" default="0.99" min="0" max="1" description="Exponential decay used by the running cluster-usage estimate" />
 	<parameter name="latent_decorrelation_weight" type="number" default="0" min="0" description="Weight of the running latent decorrelation penalty" />
 	<parameter name="latent_decorrelation_decay" type="number" default="0.99" min="0" max="1" description="Exponential decay used by the running latent covariance estimate" />
 	<parameter name="train" type="bool" default="yes" description="Enable online training" />
@@ -23,6 +29,7 @@
 	<parameter name="output_activation" type="number" default="linear" options="linear,sigmoid" description="Activation applied to the reconstructed output" />
 
 	<input name="INPUT" description="Input image or matrix" />
+	<input name="CONSISTENCY_INPUT" optional="yes" description="Optional augmented view of INPUT used for latent mean consistency" />
 	<input name="TOP_DOWN" optional="yes" description="Optional top-down latent target used when reconstruction_source is top_down" />
 	<input name="EFFORT" optional="yes" description="Training effort gate; values less than or equal to zero skip processing" />
 	<output name="OUTPUT" shape="INPUT.shape" description="Reconstructed input" />
@@ -35,6 +42,10 @@
 	<output name="RECONSTRUCTION_ABSOLUTE_ERROR" size="1" description="Mean absolute reconstruction error" />
 	<output name="RECONSTRUCTION_ABSOLUTE_ERROR_CHANNELS" size="(INPUT.rank-2)*INPUT.shape[0]+(3-INPUT.rank)" description="Per-channel mean absolute reconstruction error" />
 	<output name="KL_LOSS" size="1" description="KL divergence from the unit Gaussian prior" />
+	<output name="CONSISTENCY_LOSS" size="1" description="Paired-view latent mean consistency loss" />
+	<output name="CLUSTER_LOSS" size="1" description="Latent prototype attraction loss" />
+	<output name="CLUSTER_BALANCE_LOSS" size="1" description="Running latent prototype usage balance loss" />
+	<output name="CLUSTER_ASSIGNMENT" size="@latent_cluster_count" description="Soft assignment to latent prototype clusters" />
 	<output name="DECORRELATION_LOSS" size="1" description="Running off-diagonal latent covariance penalty" />
 
 	<state name="ENCODER_FILTERS" type="matrix" size="@feature_maps,optional((INPUT.rank-2)*INPUT.shape[0]),@kernel_size,@kernel_size" persistent="true" />
@@ -68,6 +79,14 @@
 	<state name="LATENT_VALUES" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
 	<state name="KL_TERMS" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
 	<state name="EXP_LOG_VARIANCE" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
+	<state name="CONSISTENCY_LATENT_MEAN_VALUES" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
+	<state name="LATENT_CLUSTER_CENTERS" type="matrix" size="@latent_cluster_count,(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" persistent="true" />
+	<state name="LATENT_CLUSTER_USAGE" type="matrix" size="@latent_cluster_count" />
+	<state name="LATENT_CLUSTER_FEATURES" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
+	<state name="LATENT_CLUSTER_DISTANCES" type="matrix" size="@latent_cluster_count" />
+	<state name="D_LATENT_CLUSTER_CENTERS" type="matrix" size="@latent_cluster_count,(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
+	<state name="LATENT_CLUSTER_CENTERS_M" type="matrix" size="@latent_cluster_count,(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
+	<state name="LATENT_CLUSTER_CENTERS_V" type="matrix" size="@latent_cluster_count,(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
 	<state name="LATENT_DECORRELATION_MEAN" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
 	<state name="LATENT_DECORRELATION_COVARIANCE" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps,(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
 	<state name="LATENT_DECORRELATION_CURRENT" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />

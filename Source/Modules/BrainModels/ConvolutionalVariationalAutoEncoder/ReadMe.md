@@ -32,6 +32,12 @@ bottleneck state for other modules.
 | adam_epsilon | Adam numerical stability term | number | 0.00000001 |
 | beta | Weight of the KL-divergence term | number | 1 |
 | reconstruction_loss | Reconstruction likelihood model (`mse` or `bernoulli`) | number | mse |
+| latent_consistency_weight | Weight of the paired-view latent mean consistency penalty | number | 0 |
+| latent_cluster_count | Number of learned latent prototype clusters | number | 1 |
+| latent_cluster_temperature | Soft-assignment temperature for latent prototype clusters | number | 0.1 |
+| latent_cluster_weight | Weight of the latent prototype attraction penalty | number | 0 |
+| latent_cluster_balance_weight | Weight of the running cluster-usage balance penalty | number | 0 |
+| latent_cluster_balance_decay | Exponential decay used by the running cluster-usage estimate | number | 0.99 |
 | latent_decorrelation_weight | Weight of the running latent decorrelation penalty | number | 0 |
 | latent_decorrelation_decay | Exponential decay used by the running latent covariance estimate | number | 0.99 |
 | train | Enable online training | bool | yes |
@@ -46,6 +52,7 @@ bottleneck state for other modules.
 | Name | Description | Optional |
 | --- | --- | --- |
 | INPUT | Input image or matrix | no |
+| CONSISTENCY_INPUT | Optional augmented view of `INPUT` used for latent mean consistency | yes |
 | TOP_DOWN | Optional top-down latent target used when `reconstruction_source` is `top_down` | yes |
 | EFFORT | Training effort gate; values less than or equal to zero skip processing | yes |
 
@@ -60,6 +67,10 @@ bottleneck state for other modules.
 | LOSS | Total VAE loss |
 | RECONSTRUCTION_LOSS | Mean reconstruction loss |
 | KL_LOSS | KL divergence from the unit Gaussian prior |
+| CONSISTENCY_LOSS | Paired-view latent mean consistency loss |
+| CLUSTER_LOSS | Latent prototype attraction loss |
+| CLUSTER_BALANCE_LOSS | Running latent prototype usage balance loss |
+| CLUSTER_ASSIGNMENT | Soft assignment to latent prototype clusters |
 | DECORRELATION_LOSS | Running off-diagonal latent covariance penalty |
 
 `reconstruction_loss="mse"` uses the original half mean squared error objective. For normalized
@@ -67,6 +78,47 @@ binary or grayscale image inputs, `reconstruction_loss="bernoulli"` treats each 
 as a Bernoulli probability and uses binary cross-entropy. Bernoulli reconstruction uses a sigmoid
 decoder output even when `output_activation` is left at its default; higher hierarchy levels that
 reconstruct continuous latent means should usually keep the default `mse` objective.
+
+The latent consistency term is disabled when `latent_consistency_weight` is `0` or
+`CONSISTENCY_INPUT` is unconnected. When enabled, the module encodes `CONSISTENCY_INPUT` with the
+same encoder weights and adds a stop-gradient penalty that pulls the current latent mean toward the
+latent mean of the paired view:
+
+```math
+L_\mathrm{consistency} =
+\frac{1}{2N}\sum_i \left(\mu_i(x)-\mu_i(\tilde{x})\right)^2
+```
+
+This can be used with paired augmentations of the same input to encourage invariant codes without
+using class labels.
+
+The latent clustering term is disabled when `latent_cluster_weight` is `0` or
+`latent_cluster_count` is `1`. When enabled, the module learns `latent_cluster_count` prototype
+centers in latent-feature space. Dense mode uses the latent mean directly. Spatial mode summarizes
+each latent map by its spatial mean. A soft assignment is computed from squared distances to the
+prototypes:
+
+```math
+q(c=k|x) =
+\frac{\exp(-d_k/\tau)}{\sum_j \exp(-d_j/\tau)}
+```
+
+where \(\tau\) is `latent_cluster_temperature` and
+
+```math
+d_k = \frac{1}{2D}\sum_i \left(f_i(x)-m_{k,i}\right)^2 .
+```
+
+The prototype attraction loss is the assignment-weighted distance,
+
+```math
+L_\mathrm{cluster} = \sum_k q(c=k|x)d_k .
+```
+
+An optional running balance term can discourage collapse onto a single prototype by penalizing
+deviations between the exponential moving average of `CLUSTER_ASSIGNMENT` and uniform prototype
+usage. This remains unsupervised because no class labels are used; labels can be used afterward only
+to inspect whether learned prototypes align with categories.
 
 The decorrelation penalty is disabled when `latent_decorrelation_weight` is `0`. When enabled, the
 module maintains an exponential running covariance estimate of the latent mean features. In dense
