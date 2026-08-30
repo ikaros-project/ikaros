@@ -54,3 +54,15 @@ did not load into an otherwise identical held-out `.ikg` when the root group nam
 This is internally consistent, but it is surprising when two `.ikg` files intentionally have the same module names and architecture but different file/root group names.
 
 Suggested follow-up: decide whether this behavior should remain strict, be documented more clearly, or support an optional state-loading mode that maps by relative path below the root group.
+
+## 4. Batch runs may warn about failed session logging when offline
+
+Observed during local batch smoke tests:
+
+```text
+Session logging failed: Couldn't resolve host name. Further failures will be suppressed until delivery recovers.
+```
+
+The model itself continued and completed successfully. This may be expected when the machine is offline or the logging endpoint is unreachable, but the warning can look like an Ikaros setup/runtime problem even when it is unrelated to model execution.
+
+Suggested follow-up: clarify whether session logging is optional in batch mode, and consider making the message explicitly say that local simulation will continue unaffected.
