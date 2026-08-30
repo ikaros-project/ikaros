@@ -78,4 +78,26 @@ Observed while running the full kernel test suite after CVAE module changes:
 
 The surrounding kernel tests and the CVAE smoke tests passed. This appears unrelated to the CVAE change, but it may indicate a timing-sensitive WebUI/kernel recovery issue in the fatal-step path.
 
+## 6. `print-tick-interval` exists in `Kernel::SetOptions()` but is not reachable from the CLI
+
+Observed while trying to use the progress-printing option during CVAE batch evaluation:
+
+```bash
+./Bin/ikaros --print-tick-interval 10 -b -s 20 \
+    UserData/ConvolutionalVariationalAutoEncoder_mnist_single_fullfield10_test.ikg
+```
+
+The executable rejected the option before model setup:
+
+```text
+"--" is not a valid command line option
+```
+
+The kernel source checks `options_.is_explicitly_set("print-tick-interval")` and prints ticks from
+`Kernel::Tick()`, but `ConfigureOptions()` does not list `print-tick-interval` in the command-line
+option table and the command-line parser appears not to accept GNU-style long options directly.
+
+Suggested follow-up: decide the intended CLI spelling for this option, add it to `ConfigureOptions()`
+and `-h`, and include a small command-line regression test.
+
 Suggested follow-up: rerun `test_239_webui_fatal_rotation_step.ikg` repeatedly in isolation and inspect whether state `2` is a transient running/stopping state that the test polls too early, or whether the kernel sometimes fails to enter the expected stopped state after the fatal rotation.
