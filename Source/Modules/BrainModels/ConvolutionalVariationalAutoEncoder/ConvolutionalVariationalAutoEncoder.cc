@@ -46,6 +46,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
     parameter adam_beta2_;
     parameter adam_epsilon_;
     parameter beta_;
+    parameter latent_decorrelation_weight_;
+    parameter latent_decorrelation_decay_;
     parameter train_;
     parameter train_interval_;
     parameter dense_train_interval_;
@@ -66,6 +68,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
     matrix reconstruction_absolute_error_;
     matrix reconstruction_absolute_error_channels_;
     matrix kl_loss_;
+    matrix decorrelation_loss_;
 
     int input_height_ = 0;
     int input_width_ = 0;
@@ -87,6 +90,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
     int dense_train_tick_ = 0;
     bool initialized_ = false;
     bool training_reconstruction_ = false;
+    int latent_decorrelation_samples_ = 0;
 
     struct AdamStepParameters
     {
@@ -125,6 +129,10 @@ class ConvolutionalVariationalAutoEncoder: public Module
     matrix absolute_reconstruction_error_;
     matrix kl_terms_;
     matrix exp_log_variance_;
+    matrix latent_decorrelation_mean_;
+    matrix latent_decorrelation_covariance_;
+    matrix latent_decorrelation_current_;
+    matrix latent_decorrelation_gradient_;
 
     matrix spatial_mean_filters_;
     matrix spatial_mean_bias_;
@@ -208,6 +216,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
         Bind(adam_beta2_, "adam_beta2");
         Bind(adam_epsilon_, "adam_epsilon");
         Bind(beta_, "beta");
+        Bind(latent_decorrelation_weight_, "latent_decorrelation_weight");
+        Bind(latent_decorrelation_decay_, "latent_decorrelation_decay");
         Bind(train_, "train");
         Bind(train_interval_, "train_interval");
         Bind(dense_train_interval_, "dense_train_interval");
@@ -228,6 +238,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         Bind(reconstruction_absolute_error_, "RECONSTRUCTION_ABSOLUTE_ERROR");
         Bind(reconstruction_absolute_error_channels_, "RECONSTRUCTION_ABSOLUTE_ERROR_CHANNELS");
         Bind(kl_loss_, "KL_LOSS");
+        Bind(decorrelation_loss_, "DECORRELATION_LOSS");
 
         Bind(encoder_filters_, "ENCODER_FILTERS");
         Bind(encoder_bias_, "ENCODER_BIAS");
@@ -257,6 +268,10 @@ class ConvolutionalVariationalAutoEncoder: public Module
         Bind(latent_values_, "LATENT_VALUES");
         Bind(kl_terms_, "KL_TERMS");
         Bind(exp_log_variance_, "EXP_LOG_VARIANCE");
+        Bind(latent_decorrelation_mean_, "LATENT_DECORRELATION_MEAN");
+        Bind(latent_decorrelation_covariance_, "LATENT_DECORRELATION_COVARIANCE");
+        Bind(latent_decorrelation_current_, "LATENT_DECORRELATION_CURRENT");
+        Bind(latent_decorrelation_gradient_, "LATENT_DECORRELATION_GRADIENT");
 
         latent_mode_value_ = parse_latent_mode(latent_mode_.as_string());
         latent_size_value_ = std::max(1, latent_size_.as_int());
@@ -321,6 +336,24 @@ class ConvolutionalVariationalAutoEncoder: public Module
     convolution_output_size(int input_size, int kernel_size) const
     {
         return padding_.as_int() == padding_same ? input_size : input_size - kernel_size + 1;
+    }
+
+    int
+    latent_decorrelation_feature_count() const
+    {
+        return latent_mode_value_ == LatentMode::Dense ? latent_size_value_ : latent_maps_value_;
+    }
+
+    int
+    latent_decorrelation_spatial_count() const
+    {
+        return latent_mode_value_ == LatentMode::Dense ? 1 : std::max(1, latent_height_ * latent_width_);
+    }
+
+    bool
+    latent_decorrelation_enabled() const
+    {
+        return latent_decorrelation_weight_.as_float() > 0.0f && latent_decorrelation_feature_count() > 1;
     }
 
     void
@@ -389,6 +422,11 @@ class ConvolutionalVariationalAutoEncoder: public Module
         latent_stddev_.set(1.0f);
         latent_epsilon_.reset();
         latent_values_.reset();
+        latent_decorrelation_mean_.reset();
+        latent_decorrelation_covariance_.reset();
+        latent_decorrelation_current_.reset();
+        latent_decorrelation_gradient_.reset();
+        latent_decorrelation_samples_ = 0;
         reset_adam_state();
     }
 
@@ -401,6 +439,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         require_output_shape(latent_sample_, latent_values_, "LATENT_SAMPLE");
         require_output_shape(reconstruction_loss_channels_, std::vector<int>{input_channels_}, "RECONSTRUCTION_LOSS_CHANNELS");
         require_output_shape(reconstruction_absolute_error_channels_, std::vector<int>{input_channels_}, "RECONSTRUCTION_ABSOLUTE_ERROR_CHANNELS");
+        require_output_shape(decorrelation_loss_, std::vector<int>{1}, "DECORRELATION_LOSS");
 
         initialized_ = true;
         train_tick_ = 0;
@@ -421,6 +460,11 @@ class ConvolutionalVariationalAutoEncoder: public Module
         require_state_shape(reconstruction_error_, input_.shape(), "RECONSTRUCTION_ERROR");
         require_state_shape(absolute_reconstruction_error_, input_.shape(), "ABSOLUTE_RECONSTRUCTION_ERROR");
         require_state_shape(d_output_, input_.shape(), "D_OUTPUT");
+        const int decorrelation_features = latent_decorrelation_feature_count();
+        require_state_shape(latent_decorrelation_mean_, {decorrelation_features}, "LATENT_DECORRELATION_MEAN");
+        require_state_shape(latent_decorrelation_covariance_, {decorrelation_features, decorrelation_features}, "LATENT_DECORRELATION_COVARIANCE");
+        require_state_shape(latent_decorrelation_current_, {decorrelation_features}, "LATENT_DECORRELATION_CURRENT");
+        require_state_shape(latent_decorrelation_gradient_, {decorrelation_features}, "LATENT_DECORRELATION_GRADIENT");
     }
 
     void
@@ -814,7 +858,128 @@ class ConvolutionalVariationalAutoEncoder: public Module
         reconstruction_loss_(0) = reconstruction;
         reconstruction_absolute_error_(0) = absolute_reconstruction;
         kl_loss_(0) = kl;
-        loss_(0) = reconstruction + beta_.as_float() * kl;
+        decorrelation_loss_(0) = compute_latent_decorrelation_loss();
+        loss_(0) = reconstruction + beta_.as_float() * kl + latent_decorrelation_weight_.as_float() * decorrelation_loss_(0);
+    }
+
+    float
+    compute_latent_decorrelation_loss() const
+    {
+        if(!latent_decorrelation_enabled())
+            return 0.0f;
+
+        const int features = latent_decorrelation_feature_count();
+        float loss = 0.0f;
+        for(int row = 0; row < features; ++row)
+        {
+            for(int col = 0; col < features; ++col)
+            {
+                if(row == col)
+                    continue;
+                const float covariance = latent_decorrelation_covariance_(row, col);
+                loss += covariance * covariance;
+            }
+        }
+        return loss / static_cast<float>(features * (features - 1));
+    }
+
+    void
+    update_latent_decorrelation_statistics()
+    {
+        if(!latent_decorrelation_enabled())
+            return;
+
+        update_latent_decorrelation_current();
+        const int features = latent_decorrelation_feature_count();
+        const float decay = std::clamp(latent_decorrelation_decay_.as_float(), 0.0f, 0.999999f);
+        const float update = 1.0f - decay;
+
+        if(latent_decorrelation_samples_ == 0)
+        {
+            latent_decorrelation_mean_.copy(latent_decorrelation_current_);
+            latent_decorrelation_covariance_.reset();
+            latent_decorrelation_samples_ = 1;
+            return;
+        }
+
+        for(int feature = 0; feature < features; ++feature)
+        {
+            const float centered = latent_decorrelation_current_(feature) - latent_decorrelation_mean_(feature);
+            latent_decorrelation_gradient_(feature) = centered;
+            latent_decorrelation_mean_(feature) = decay * latent_decorrelation_mean_(feature) + update * latent_decorrelation_current_(feature);
+        }
+
+        for(int row = 0; row < features; ++row)
+        {
+            for(int col = 0; col < features; ++col)
+                latent_decorrelation_covariance_(row, col) = decay * latent_decorrelation_covariance_(row, col) + update * latent_decorrelation_gradient_(row) * latent_decorrelation_gradient_(col);
+        }
+
+        ++latent_decorrelation_samples_;
+    }
+
+    void
+    update_latent_decorrelation_current()
+    {
+        if(latent_mode_value_ == LatentMode::Dense)
+        {
+            latent_decorrelation_current_.copy(latent_mean_values_);
+            return;
+        }
+
+        const float scale = 1.0f / static_cast<float>(std::max(1, latent_height_ * latent_width_));
+        for(int channel = 0; channel < latent_maps_value_; ++channel)
+        {
+            float sum = 0.0f;
+            for(int row = 0; row < latent_height_; ++row)
+            {
+                for(int col = 0; col < latent_width_; ++col)
+                    sum += latent_mean_values_(channel, row, col);
+            }
+            latent_decorrelation_current_(channel) = sum * scale;
+        }
+    }
+
+    void
+    add_latent_decorrelation_gradient()
+    {
+        if(!latent_decorrelation_enabled() || latent_decorrelation_samples_ < 2)
+            return;
+
+        const int features = latent_decorrelation_feature_count();
+        const float decay = std::clamp(latent_decorrelation_decay_.as_float(), 0.0f, 0.999999f);
+        const float denominator = static_cast<float>(features * (features - 1));
+        const float gradient_scale = 4.0f * latent_decorrelation_weight_.as_float() * (1.0f - decay) / denominator;
+
+        for(int feature = 0; feature < features; ++feature)
+        {
+            float gradient = 0.0f;
+            for(int other = 0; other < features; ++other)
+            {
+                if(feature == other)
+                    continue;
+                gradient += latent_decorrelation_covariance_(feature, other) * latent_decorrelation_gradient_(other);
+            }
+            latent_decorrelation_current_(feature) = gradient * gradient_scale;
+        }
+
+        if(latent_mode_value_ == LatentMode::Dense)
+        {
+            for(int feature = 0; feature < features; ++feature)
+                d_mean_(feature) += latent_decorrelation_current_(feature);
+            return;
+        }
+
+        const float spatial_scale = 1.0f / static_cast<float>(latent_decorrelation_spatial_count());
+        for(int channel = 0; channel < latent_maps_value_; ++channel)
+        {
+            const float gradient = latent_decorrelation_current_(channel) * spatial_scale;
+            for(int row = 0; row < latent_height_; ++row)
+            {
+                for(int col = 0; col < latent_width_; ++col)
+                    d_mean_(channel, row, col) += gradient;
+            }
+        }
     }
 
     void
@@ -879,6 +1044,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
         }
         if(!source_sample)
             d_log_variance_.exp_minus_one_scaled(latent_log_variance_values_, 0.5f * kl_scale);
+        update_latent_decorrelation_statistics();
+        add_latent_decorrelation_gradient();
 
         encoder_activation_.reshape(encoded_size_);
         d_mean_weights_.outer_product(encoder_activation_, d_mean_);
@@ -971,6 +1138,9 @@ class ConvolutionalVariationalAutoEncoder: public Module
             d_mean_.latent_mean_gradients(d_log_variance_, d_latent_, latent_mean_values_, latent_log_variance_values_, kl_scale);
         else
             d_mean_.latent_kl_gradients(d_log_variance_, latent_mean_values_, latent_log_variance_values_, kl_scale);
+
+        update_latent_decorrelation_statistics();
+        add_latent_decorrelation_gradient();
     }
 
     void

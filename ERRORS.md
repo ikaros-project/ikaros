@@ -66,3 +66,16 @@ Session logging failed: Couldn't resolve host name. Further failures will be sup
 The model itself continued and completed successfully. This may be expected when the machine is offline or the logging endpoint is unreachable, but the warning can look like an Ikaros setup/runtime problem even when it is unrelated to model execution.
 
 Suggested follow-up: clarify whether session logging is optional in batch mode, and consider making the message explicitly say that local simulation will continue unaffected.
+
+## 5. WebUI fatal delay-history rotation test can fail to stop the kernel
+
+Observed while running the full kernel test suite after CVAE module changes:
+
+```text
+[ FAIL ] Stop and reload after a fatal delay-history rotation failure during a WebUI step - test_239_webui_fatal_rotation_step.ikg
+(Fatal WebUI step did not stop the kernel: state=2, tick=1)
+```
+
+The surrounding kernel tests and the CVAE smoke tests passed. This appears unrelated to the CVAE change, but it may indicate a timing-sensitive WebUI/kernel recovery issue in the fatal-step path.
+
+Suggested follow-up: rerun `test_239_webui_fatal_rotation_step.ikg` repeatedly in isolation and inspect whether state `2` is a transient running/stopping state that the test polls too early, or whether the kernel sometimes fails to enter the expected stopped state after the fatal rotation.

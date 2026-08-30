@@ -9,9 +9,10 @@ features to latent mean and log-variance values, samples latent values, and deco
 input-sized reconstruction.
 
 When `train` is enabled, each tick performs one stochastic-gradient update using reconstruction loss
-plus `beta` times the KL divergence to a unit Gaussian prior. `OUTPUT` contains the reconstruction,
-while `LATENT_MEAN`, `LATENT_LOG_VARIANCE`, and `LATENT_SAMPLE` expose the bottleneck state for other
-modules.
+plus `beta` times the KL divergence to a unit Gaussian prior. An optional running latent
+decorrelation penalty can also be enabled to discourage redundant latent features. `OUTPUT` contains
+the reconstruction, while `LATENT_MEAN`, `LATENT_LOG_VARIANCE`, and `LATENT_SAMPLE` expose the
+bottleneck state for other modules.
 
 ## Parameters
 
@@ -30,6 +31,8 @@ modules.
 | adam_beta2 | Adam second moment decay | number | 0.999 |
 | adam_epsilon | Adam numerical stability term | number | 0.00000001 |
 | beta | Weight of the KL-divergence term | number | 1 |
+| latent_decorrelation_weight | Weight of the running latent decorrelation penalty | number | 0 |
+| latent_decorrelation_decay | Exponential decay used by the running latent covariance estimate | number | 0.99 |
 | train | Enable online training | bool | yes |
 | train_interval | Run a training update every N ticks | number | 1 |
 | dense_train_interval | Update dense VAE weights every N training updates | number | 1 |
@@ -56,3 +59,9 @@ modules.
 | LOSS | Total VAE loss |
 | RECONSTRUCTION_LOSS | Mean squared reconstruction loss |
 | KL_LOSS | KL divergence from the unit Gaussian prior |
+| DECORRELATION_LOSS | Running off-diagonal latent covariance penalty |
+
+The decorrelation penalty is disabled when `latent_decorrelation_weight` is `0`. When enabled, the
+module maintains an exponential running covariance estimate of the latent mean features. In dense
+mode each latent unit is treated as one feature. In spatial mode each latent map is summarized by its
+spatial mean, and the resulting decorrelation gradient is distributed over the map.

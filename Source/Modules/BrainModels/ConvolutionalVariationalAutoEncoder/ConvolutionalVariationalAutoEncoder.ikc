@@ -12,6 +12,8 @@
 	<parameter name="adam_beta2" type="number" default="0.999" min="0" max="1" description="Adam second moment decay" />
 	<parameter name="adam_epsilon" type="number" default="0.00000001" min="0" description="Adam numerical stability term" />
 	<parameter name="beta" type="number" default="1" min="0" description="Weight of the KL-divergence term" />
+	<parameter name="latent_decorrelation_weight" type="number" default="0" min="0" description="Weight of the running latent decorrelation penalty" />
+	<parameter name="latent_decorrelation_decay" type="number" default="0.99" min="0" max="1" description="Exponential decay used by the running latent covariance estimate" />
 	<parameter name="train" type="bool" default="yes" description="Enable online training" />
 	<parameter name="train_interval" type="number" default="1" min="1" description="Run a training update every N ticks" />
 	<parameter name="dense_train_interval" type="number" default="1" min="1" description="Update dense VAE weights every N training updates" />
@@ -32,6 +34,7 @@
 	<output name="RECONSTRUCTION_ABSOLUTE_ERROR" size="1" description="Mean absolute reconstruction error" />
 	<output name="RECONSTRUCTION_ABSOLUTE_ERROR_CHANNELS" size="(INPUT.rank-2)*INPUT.shape[0]+(3-INPUT.rank)" description="Per-channel mean absolute reconstruction error" />
 	<output name="KL_LOSS" size="1" description="KL divergence from the unit Gaussian prior" />
+	<output name="DECORRELATION_LOSS" size="1" description="Running off-diagonal latent covariance penalty" />
 
 	<state name="ENCODER_FILTERS" type="matrix" size="@feature_maps,optional((INPUT.rank-2)*INPUT.shape[0]),@kernel_size,@kernel_size" persistent="true" />
 	<state name="ENCODER_BIAS" type="matrix" size="@feature_maps" persistent="true" />
@@ -64,4 +67,8 @@
 	<state name="LATENT_VALUES" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
 	<state name="KL_TERMS" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
 	<state name="EXP_LOG_VARIANCE" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
+	<state name="LATENT_DECORRELATION_MEAN" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
+	<state name="LATENT_DECORRELATION_COVARIANCE" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps,(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
+	<state name="LATENT_DECORRELATION_CURRENT" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
+	<state name="LATENT_DECORRELATION_GRADIENT" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
 </class>
