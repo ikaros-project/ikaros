@@ -126,8 +126,8 @@ None.
 |---:|---|---|---|---|
 | 1 | Create the approved issue for relative `-W` and `-L` state-path resolution. | Completed | Created GitHub issue #266 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the state-path resolution issue` |
 | 2 | Create the approved issue for nested command-line component parameter overrides. | Completed | Created GitHub issue #267 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the nested override issue` |
-| 3 | Create the approved issue for full-network state portability across root group names. | In progress |  |  |
-| 4 | Create the approved issue clarifying offline session-logging warnings. | Pending |  |  |
+| 3 | Create the approved issue for full-network state portability across root group names. | Completed | Created GitHub issue #268 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the state portability issue` |
+| 4 | Create the approved issue clarifying offline session-logging warnings. | In progress |  |  |
 
 ### Outstanding issues and questions
 
