@@ -109,6 +109,17 @@ The tasks below will be completed sequentially, with one focused commit per task
 
 None.
 
+## GitHub issue bot guidance
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add `IKAROS-BOT.md` with secure, review-gated instructions for creating GitHub issues as `ikaros-bot`. | Completed | Policy audit for credential isolation, untrusted input, duplicate review, exact preview, approval gating, and authorship verification; `git diff --check`. | `Added secure GitHub issue bot guidance` |
+| 2 | Update `AGENTS.md` to direct GitHub issue operations to `IKAROS-BOT.md`. | Pending |  |  |
+
+### Outstanding issues and questions
+
+Pending completion of the listed tasks.
+
 ## Nucleus robustness and demonstration
 
 The tasks below will be completed sequentially, with one focused commit per task.
