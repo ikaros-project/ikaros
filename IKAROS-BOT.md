@@ -68,6 +68,22 @@ chat-only fallback above.
 7. Read the resulting issue back from GitHub and verify that its author is `ikaros-bot`.
 8. Return the issue URL and report any fields GitHub rejected or changed.
 
+## Topic labels
+
+Every proposed issue must include at least one of these existing repository labels according to its
+primary subject:
+
+- `documentation` for missing, incorrect, unclear, or misleading documentation;
+- `kernel` for the core runtime, command-line interface, model loading, scheduling, persistence,
+  networking, or other kernel-owned behavior;
+- `webui` for the browser interface, widgets, visualization, interaction, or WebUI-specific
+  client/server behavior; and
+- `module` for behavior owned by a specific Ikaros module or module implementation.
+
+Apply every label that materially describes a cross-cutting issue, but do not add unrelated labels.
+Include the proposed labels in the exact preview and approval request. When using the chat-only
+fallback, include the same labels in the issue suggestion.
+
 Use a focused duplicate search before requesting approval, for example:
 
 ```zsh
@@ -91,11 +107,13 @@ GH_TOKEN="$(security find-generic-password \
 gh issue create \
     --repo ikaros-project/ikaros \
     --title "<approved title>" \
+    --label "<approved topic label>" \
     --body-file "<temporary body file>"
 ```
 
-Do not add labels or assignees unless they were included in the approved preview. Prefer a body file
-over an inline body so Markdown and shell metacharacters are preserved without unsafe quoting.
+For multiple approved labels, repeat `--label`. Do not add labels or assignees unless they were
+included in the approved preview. Prefer a body file over an inline body so Markdown and shell
+metacharacters are preserved without unsafe quoting.
 
 ## Issue content
 
