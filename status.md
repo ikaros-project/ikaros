@@ -137,6 +137,17 @@ None.
   linked against a removed Homebrew `libavformat.62.dylib`; source, commit-history, and GitHub
   readback verification completed successfully.
 
+## GitHub issue follow-up migration
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Remove the obsolete `ERRORS.md` follow-up file. | Completed | Confirmed the tracked file is deleted; remaining devlog references are historical; `git diff --check`. | `Removed the obsolete local error log` |
+| 2 | Replace the `AGENTS.md` instruction to record errors locally with the `ikaros-bot` GitHub issue workflow. | Pending |  |  |
+
+### Outstanding issues and questions
+
+Pending completion of the listed tasks.
+
 ## Nucleus robustness and demonstration
 
 The tasks below will be completed sequentially, with one focused commit per task.
