@@ -17,7 +17,7 @@
 - Do not revert or clean up unrelated worktree changes.
 - Avoid changing generated, build, cache, or user-data artifacts unless the task explicitly requires it.
 - Put generated experiment outputs, plots, reports, and PDFs under `UserData/output` rather than a repository-root `output` directory.
-- When you observe behavior that may be an Ikaros bug, surprising framework behavior, or unclear/misleading documentation, prepare a GitHub issue for `ikaros-project/ikaros` using `IKAROS-BOT.md`. Include reproduction context, observed behavior, and a suggested follow-up; search for duplicates and obtain explicit approval before the external write.
+- When you observe behavior that may be an Ikaros bug, surprising framework behavior, or unclear/misleading documentation, prepare a GitHub issue for `ikaros-project/ikaros` using `IKAROS-BOT.md`. Include reproduction context, observed behavior, and a suggested follow-up; search for duplicates and obtain explicit approval before the external write. If `ikaros-bot` is unavailable, present the complete proposed issue as a suggestion in the chat instead.
 - Keep comments short and useful; avoid restating obvious code.
 - Keep headers self-contained; include what the file directly uses.
 - Prefer `ikaros::dictionary` for Ikaros JSON/config parsing unless an external JSON library is explicitly needed.
@@ -27,6 +27,7 @@
 ## GitHub Issue Operations
 
 - Before creating or modifying GitHub issues, read and follow `IKAROS-BOT.md`.
+- Never substitute another GitHub account when `ikaros-bot` is unavailable; return the proposed issue in the chat without creating it.
 
 ## Documentation Diagrams
 

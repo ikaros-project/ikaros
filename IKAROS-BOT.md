@@ -38,8 +38,10 @@ gh <command>
 ```
 
 Do not export `GH_TOKEN` into the surrounding shell. Do not enable shell tracing while handling it.
-If Keychain access or authentication fails, stop and report the error without falling back to the
-user's GitHub account.
+If Keychain access or authentication fails, do not fall back to the user's GitHub account. Instead,
+present the complete proposed issue in the chat as a suggestion, including its exact title, body,
+labels, assignees, and other fields. State clearly that no GitHub issue was created. Do not ask the
+user to expose a token in the chat.
 
 Verify the bot identity before the first GitHub operation in a task:
 
@@ -51,7 +53,8 @@ GH_TOKEN="$(security find-generic-password \
 gh api user --jq '.login'
 ```
 
-Continue only when the output is exactly `ikaros-bot`.
+Continue with GitHub operations only when the output is exactly `ikaros-bot`. Otherwise, use the
+chat-only fallback above.
 
 ## Required workflow
 
