@@ -114,11 +114,11 @@ None.
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Add `IKAROS-BOT.md` with secure, review-gated instructions for creating GitHub issues as `ikaros-bot`. | Completed | Policy audit for credential isolation, untrusted input, duplicate review, exact preview, approval gating, and authorship verification; `git diff --check`. | `Added secure GitHub issue bot guidance` |
-| 2 | Update `AGENTS.md` to direct GitHub issue operations to `IKAROS-BOT.md`. | Pending |  |  |
+| 2 | Update `AGENTS.md` to direct GitHub issue operations to `IKAROS-BOT.md`. | Completed | Instruction audit confirms GitHub issue creation and modification are routed to the committed bot policy; `git diff --check`. | `GitHub issue operations now follow the bot policy` |
 
 ### Outstanding issues and questions
 
-Pending completion of the listed tasks.
+None.
 
 ## Nucleus robustness and demonstration
 

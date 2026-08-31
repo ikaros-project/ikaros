@@ -24,6 +24,10 @@
 - Route warnings intended for users or the WebUI through `Warning()` or Ikaros notification functions, not `std::cerr`.
 - Use exceptions for startup and module `Init()` failures; during execution, report runtime conditions through `Notify()`, `Warning()`, or related Ikaros notification functions.
 
+## GitHub Issue Operations
+
+- Before creating or modifying GitHub issues, read and follow `IKAROS-BOT.md`.
+
 ## Documentation Diagrams
 
 - Author documentation flowcharts as Mermaid source in a module-local `.mmd` file.
