@@ -142,11 +142,11 @@ None.
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Remove the obsolete `ERRORS.md` follow-up file. | Completed | Confirmed the tracked file is deleted; remaining devlog references are historical; `git diff --check`. | `Removed the obsolete local error log` |
-| 2 | Replace the `AGENTS.md` instruction to record errors locally with the `ikaros-bot` GitHub issue workflow. | Pending |  |  |
+| 2 | Replace the `AGENTS.md` instruction to record errors locally with the `ikaros-bot` GitHub issue workflow. | Completed | Instruction audit confirms potential bugs and documentation problems now use duplicate-reviewed, approval-gated GitHub issues through `IKAROS-BOT.md`; no active nonhistorical `ERRORS.md` references remain; `git diff --check`. | `Potential Ikaros problems now use bot-created issues` |
 
 ### Outstanding issues and questions
 
-Pending completion of the listed tasks.
+None.
 
 ## Nucleus robustness and demonstration
 
