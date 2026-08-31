@@ -127,11 +127,15 @@ None.
 | 1 | Create the approved issue for relative `-W` and `-L` state-path resolution. | Completed | Created GitHub issue #266 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the state-path resolution issue` |
 | 2 | Create the approved issue for nested command-line component parameter overrides. | Completed | Created GitHub issue #267 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the nested override issue` |
 | 3 | Create the approved issue for full-network state portability across root group names. | Completed | Created GitHub issue #268 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the state portability issue` |
-| 4 | Create the approved issue clarifying offline session-logging warnings. | In progress |  |  |
+| 4 | Create the approved issue clarifying offline session-logging warnings. | Completed | Created GitHub issue #269 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the session logging issue` |
 
 ### Outstanding issues and questions
 
-Pending completion of the listed tasks.
+- `ERRORS.md` entries 5 and 6 are stale: commits `7acbbf50` and `7bd5cf71` respectively addressed
+  them, and the entries should be removed or marked resolved in a separate cleanup.
+- The kernel regression suite could not verify those fixes in this run because `Bin/ikaros` is
+  linked against a removed Homebrew `libavformat.62.dylib`; source, commit-history, and GitHub
+  readback verification completed successfully.
 
 ## Nucleus robustness and demonstration
 
