@@ -1,0 +1,40 @@
+<group name="CVAE_MNIST_ParameterSweep" title="CVAE MNIST Parameter Sweep Training" tick_duration="1">
+    <module class="InputImage" name="MNIST" _x="40" _y="180"
+        filename="cvae_mnist_centered/train/image_#####.png" filecount="1000" iterations="0" read_once="no" />
+    <module class="ConvolutionalVariationalAutoEncoder" name="CVAE_Level1" _x="360" _y="120"
+        latent_mode="spatial" latent_maps="4" latent_kernel_size="2" feature_maps="20"
+        kernel_size="5" padding="same" learning_rate="0.001" beta="0.0001"
+        reconstruction_loss="bernoulli" train="yes" train_interval="1" dense_train_interval="2"
+        reconstruction_source="top_down" output_activation="sigmoid" sample="no"
+        latent_cluster_count="1" latent_cluster_temperature="0.1" latent_cluster_weight="0"
+        latent_cluster_balance_weight="0" latent_cluster_update="gradient"
+        latent_cluster_commitment_weight="0" latent_decorrelation_weight="0" />
+    <module class="ConvolutionalVariationalAutoEncoder" name="CVAE_TopCode" _x="720" _y="120"
+        latent_mode="dense" latent_size="32" feature_maps="12" kernel_size="5" padding="same"
+        learning_rate="0.001" beta="0.0001" reconstruction_loss="mse" train="yes"
+        train_interval="1" dense_train_interval="1" reconstruction_source="mean"
+        output_activation="linear" sample="no" latent_cluster_count="1"
+        latent_cluster_temperature="0.1" latent_cluster_weight="0" latent_cluster_balance_weight="0"
+        latent_cluster_update="gradient" latent_cluster_commitment_weight="0"
+        latent_decorrelation_weight="0" />
+    <module class="OutputFile" name="Metrics" _x="1080" _y="120"
+        directory="output/cvae_mnist_sweep" filename="sweep_metrics.csv" format="csv"
+        timestamp="tick" existing_file="overwrite" number_format="full" flush_interval="100" header="yes" />
+    <connection source="MNIST.INTENSITY" target="CVAE_Level1.INPUT" delay="1" />
+    <connection source="CVAE_Level1.LATENT_MEAN" target="CVAE_TopCode.INPUT" delay="1" />
+    <connection source="CVAE_TopCode.OUTPUT" target="CVAE_Level1.TOP_DOWN" delay="1" />
+    <connection source="CVAE_Level1.LOSS" target="Metrics.INPUT" label="level1_loss" />
+    <connection source="CVAE_Level1.RECONSTRUCTION_LOSS" target="Metrics.INPUT" label="level1_reconstruction_loss" />
+    <connection source="CVAE_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="level1_absolute_reconstruction_error" />
+    <connection source="CVAE_Level1.KL_LOSS" target="Metrics.INPUT" label="level1_kl_loss" />
+    <connection source="CVAE_Level1.CLUSTER_LOSS" target="Metrics.INPUT" label="level1_cluster_loss" />
+    <connection source="CVAE_Level1.CLUSTER_BALANCE_LOSS" target="Metrics.INPUT" label="level1_cluster_balance_loss" />
+    <connection source="CVAE_Level1.DECORRELATION_LOSS" target="Metrics.INPUT" label="level1_decorrelation_loss" />
+    <connection source="CVAE_TopCode.LOSS" target="Metrics.INPUT" label="top_code_loss" />
+    <connection source="CVAE_TopCode.RECONSTRUCTION_LOSS" target="Metrics.INPUT" label="top_code_reconstruction_loss" />
+    <connection source="CVAE_TopCode.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="top_code_absolute_reconstruction_error" />
+    <connection source="CVAE_TopCode.KL_LOSS" target="Metrics.INPUT" label="top_code_kl_loss" />
+    <connection source="CVAE_TopCode.CLUSTER_LOSS" target="Metrics.INPUT" label="top_code_cluster_loss" />
+    <connection source="CVAE_TopCode.CLUSTER_BALANCE_LOSS" target="Metrics.INPUT" label="top_code_cluster_balance_loss" />
+    <connection source="CVAE_TopCode.DECORRELATION_LOSS" target="Metrics.INPUT" label="top_code_decorrelation_loss" />
+</group>

@@ -1,0 +1,34 @@
+<group name="CVAE_MNIST_ParameterSweep" title="CVAE MNIST Parameter Sweep Extraction" tick_duration="1">
+    <module class="InputImage" name="MNIST" _x="40" _y="140"
+        filename="cvae_mnist_centered/test/image_#####.png" filecount="200" iterations="1" read_once="no" />
+    <module class="InputFile" name="Labels" _x="40" _y="320"
+        filename="cvae_mnist_centered/test/labels.csv" format="csv" header="true" send_end_of_file="yes" />
+    <module class="ConvolutionalVariationalAutoEncoder" name="CVAE_Level1" _x="360" _y="140"
+        latent_mode="spatial" latent_maps="4" latent_kernel_size="2" feature_maps="20"
+        kernel_size="5" padding="same" learning_rate="0.001" beta="0.0001"
+        reconstruction_loss="bernoulli" train="no" train_interval="1" dense_train_interval="2"
+        reconstruction_source="mean" output_activation="sigmoid" sample="no"
+        latent_cluster_count="1" latent_cluster_temperature="0.1" latent_cluster_weight="0"
+        latent_cluster_balance_weight="0" latent_cluster_update="gradient"
+        latent_cluster_commitment_weight="0" latent_decorrelation_weight="0" />
+    <module class="ConvolutionalVariationalAutoEncoder" name="CVAE_TopCode" _x="720" _y="140"
+        latent_mode="dense" latent_size="32" feature_maps="12" kernel_size="5" padding="same"
+        learning_rate="0.001" beta="0.0001" reconstruction_loss="mse" train="no"
+        train_interval="1" dense_train_interval="1" reconstruction_source="mean"
+        output_activation="linear" sample="no" latent_cluster_count="1"
+        latent_cluster_temperature="0.1" latent_cluster_weight="0" latent_cluster_balance_weight="0"
+        latent_cluster_update="gradient" latent_cluster_commitment_weight="0"
+        latent_decorrelation_weight="0" />
+    <module class="OutputFile" name="Codes" _x="1080" _y="140"
+        directory="output/cvae_mnist_sweep" filename="sweep_codes.csv" format="csv"
+        timestamp="tick" existing_file="overwrite" number_format="full" flush_interval="100" header="yes" />
+    <connection source="MNIST.INTENSITY" target="CVAE_Level1.INPUT" />
+    <connection source="CVAE_Level1.LATENT_MEAN" target="CVAE_TopCode.INPUT" />
+    <connection source="Labels.label" target="Codes.INPUT" label="label" delay="1" />
+    <connection source="CVAE_Level1.RECONSTRUCTION_LOSS" target="Codes.INPUT" label="level1_reconstruction_loss" />
+    <connection source="CVAE_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" target="Codes.INPUT" label="level1_absolute_reconstruction_error" />
+    <connection source="CVAE_TopCode.RECONSTRUCTION_LOSS" target="Codes.INPUT" label="top_code_reconstruction_loss" />
+    <connection source="CVAE_Level1.LATENT_MEAN" target="Codes.INPUT" label="level1_latent" />
+    <connection source="CVAE_TopCode.LATENT_MEAN" target="Codes.INPUT" label="top_code" />
+    <connection source="CVAE_TopCode.CLUSTER_ASSIGNMENT" target="Codes.INPUT" label="cluster_assignment" />
+</group>
