@@ -768,8 +768,11 @@ def run_http_test(cmd, root):
 
 
 def run_non_http_test(cmd, root):
+    working_directory = root.get("working_directory")
     if root.get("occupy_webui_port") != "true":
-        return subprocess.run(cmd, text=True, capture_output=True)
+        return subprocess.run(
+            cmd, text=True, capture_output=True, cwd=working_directory
+        )
 
     port = root.get("webui_port")
     if port is None:
@@ -778,7 +781,9 @@ def run_non_http_test(cmd, root):
     with network_socket.socket(network_socket.AF_INET, network_socket.SOCK_STREAM) as listener:
         listener.bind(("127.0.0.1", int(port)))
         listener.listen(1)
-        return subprocess.run(cmd, text=True, capture_output=True)
+        return subprocess.run(
+            cmd, text=True, capture_output=True, cwd=working_directory
+        )
 
 script_directory = Path(__file__).resolve().parent
 
