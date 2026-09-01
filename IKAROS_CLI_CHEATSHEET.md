@@ -67,8 +67,15 @@ Use these names with `name=value` when you do not use the one-letter shortcuts.
 Notes:
 
 - Options with values accept both attached and spaced forms: `-w8000` and `-w 8000`.
-- `name=value` sets top-level model attributes from the command line.
+- `name=value` overrides an attribute declared on the model's top-level group.
 - Command-line values override values from the `.ikg` file.
+- The top-level group is the model's public command-line interface. Its values are inherited by
+  nested groups and modules; use `@name` when forwarding a value to a differently named parameter
+  or using it in an expression.
+- Nested assignments such as `Model.Module.parameter=value` are rejected because they bypass group
+  encapsulation. Expose the setting on the top-level group instead.
+- Unknown top-level assignment names are rejected. Declare every command-line-configurable value on
+  the root group, even when a nested class supplies its own default.
 - `user_data` and `auth_password` are CLI-only.
 - `-a` must include a non-empty password.
 - Canonical names use underscores, for example `real_time=true`, not `realtime=true`.
@@ -95,4 +102,21 @@ Bin/ikaros -b -L -W model.ikg
 
 # Load and save persistent state using explicit files
 Bin/ikaros -b -L initial.state -W final.state model.ikg
+```
+
+To expose nested component configuration without breaking group encapsulation, declare a public
+attribute on the root group and inherit it directly or reference it with `@name`:
+
+```xml
+<group name="Experiment" gain="2.5" metrics_file="metrics.csv">
+    <module name="Controller" class="SomeClass" />
+    <module name="Metrics" class="OutputFile" filename="@metrics_file" />
+</group>
+```
+
+`Controller` inherits `gain` when `SomeClass` declares a parameter with that name. Both public
+values can be overridden for one run:
+
+```bash
+Bin/ikaros gain=3.0 metrics_file=run-42.csv Experiment.ikg
 ```
