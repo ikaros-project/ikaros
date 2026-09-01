@@ -93,4 +93,5 @@
 	<state name="LATENT_DECORRELATION_COVARIANCE" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps,(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
 	<state name="LATENT_DECORRELATION_CURRENT" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
 	<state name="LATENT_DECORRELATION_GRADIENT" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
+	<state name="weights_initialized" type="bool" default="false" persistent="true" />
 </class>

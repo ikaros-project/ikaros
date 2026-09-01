@@ -113,6 +113,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
     int latent_cluster_count_value_ = 1;
     int latent_cluster_features_value_ = 1;
     int latent_cluster_winner_ = 0;
+    bool weights_initialized_ = false;
 
     struct AdamStepParameters
     {
@@ -265,6 +266,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         Bind(sample_, "sample");
         Bind(reconstruction_source_, "reconstruction_source");
         Bind(output_activation_, "output_activation");
+        Bind(weights_initialized_, "weights_initialized");
 
         Bind(input_, "INPUT");
         Bind(consistency_input_, "CONSISTENCY_INPUT");
@@ -529,11 +531,33 @@ class ConvolutionalVariationalAutoEncoder: public Module
         decoder_weights_.fill_xavier_uniform(rng_, latent_size_value_);
     }
 
+    bool
+    matrix_has_nonzero_value(const matrix & values) const
+    {
+        if(values.empty())
+            return false;
+        return values.min() != 0.0f || values.max() != 0.0f;
+    }
+
+    bool
+    learned_parameters_initialized() const
+    {
+        if(weights_initialized_)
+            return true;
+        if(matrix_has_nonzero_value(encoder_filters_) || matrix_has_nonzero_value(decoder_filters_))
+            return true;
+        if(latent_mode_value_ == LatentMode::Spatial)
+            return matrix_has_nonzero_value(spatial_mean_filters_) ||
+                matrix_has_nonzero_value(spatial_log_variance_filters_) ||
+                matrix_has_nonzero_value(spatial_decoder_filters_);
+        return matrix_has_nonzero_value(mean_weights_) ||
+            matrix_has_nonzero_value(log_variance_weights_) ||
+            matrix_has_nonzero_value(decoder_weights_);
+    }
+
     void
     reset_common_initial_state()
     {
-        encoder_bias_.reset();
-        output_bias_.reset();
         latent_stddev_.set(1.0f);
         latent_epsilon_.reset();
         latent_values_.reset();
@@ -685,12 +709,19 @@ class ConvolutionalVariationalAutoEncoder: public Module
         allocate_shared_optimizer_buffers();
         allocate_spatial_optimizer_buffers();
 
+        const bool restored_weights = learned_parameters_initialized();
         reset_common_initial_state();
-        spatial_mean_bias_.reset();
-        spatial_log_variance_bias_.reset();
-        spatial_decoder_bias_.reset();
-        initialize_spatial_weights();
-        initialize_cluster_centers();
+        if(!restored_weights)
+        {
+            encoder_bias_.reset();
+            output_bias_.reset();
+            spatial_mean_bias_.reset();
+            spatial_log_variance_bias_.reset();
+            spatial_decoder_bias_.reset();
+            initialize_spatial_weights();
+            initialize_cluster_centers();
+        }
+        weights_initialized_ = true;
         finish_initialization();
     }
 
@@ -748,12 +779,19 @@ class ConvolutionalVariationalAutoEncoder: public Module
         allocate_shared_optimizer_buffers();
         allocate_dense_optimizer_buffers();
 
+        const bool restored_weights = learned_parameters_initialized();
         reset_common_initial_state();
-        mean_bias_.reset();
-        log_variance_bias_.reset();
-        decoder_bias_.reset();
-        initialize_dense_weights();
-        initialize_cluster_centers();
+        if(!restored_weights)
+        {
+            encoder_bias_.reset();
+            output_bias_.reset();
+            mean_bias_.reset();
+            log_variance_bias_.reset();
+            decoder_bias_.reset();
+            initialize_dense_weights();
+            initialize_cluster_centers();
+        }
+        weights_initialized_ = true;
         finish_initialization();
     }
 
