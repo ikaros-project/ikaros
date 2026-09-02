@@ -740,7 +740,9 @@ def write_results(filename: str, results: list[dict[str, Any]]) -> None:
             writer.writerow({key: result.get(key) for key in RESULT_COLUMNS})
 
 
-def summarize_confirmation(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def summarize_confirmation(
+    results: list[dict[str, Any]], basename: str = "confirmation_summary"
+) -> list[dict[str, Any]]:
     summaries = []
     for name in dict.fromkeys(result["name"] for result in results):
         group = [result for result in results if result["name"] == name]
@@ -763,10 +765,10 @@ def summarize_confirmation(results: list[dict[str, Any]]) -> list[dict[str, Any]
             summary[metric + "_stddev"] = float(np.std(values, ddof=1)) if len(values) > 1 else 0.0
         summaries.append(summary)
     summaries.sort(key=lambda item: item["validation_ridge_zscore_mean"], reverse=True)
-    with (OUTPUT_ROOT / "confirmation_summary.json").open("w") as handle:
+    with (OUTPUT_ROOT / f"{basename}.json").open("w") as handle:
         json.dump(summaries, handle, indent=2, sort_keys=True)
         handle.write("\n")
-    with (OUTPUT_ROOT / "confirmation_summary.csv").open("w", newline="") as handle:
+    with (OUTPUT_ROOT / f"{basename}.csv").open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(summaries[0]))
         writer.writeheader()
         writer.writerows(summaries)
@@ -803,14 +805,18 @@ def plot_screen(results: list[dict[str, Any]]) -> None:
     image.save(OUTPUT_ROOT / "screening.png")
 
 
-def plot_confirmation(summaries: list[dict[str, Any]]) -> None:
+def plot_confirmation(
+    summaries: list[dict[str, Any]],
+    filename: str = "confirmation.png",
+    title: str = "Matched-seed confirmation",
+) -> None:
     width = 1250
     height = 170 + 90 * len(summaries)
     image = Image.new("RGB", (width, height), "#f5f5f2")
     draw = ImageDraw.Draw(image)
     title_font = ImageFont.load_default(size=22)
     font = ImageFont.load_default(size=14)
-    draw.text((30, 18), "Matched-seed confirmation", font=title_font, fill="#202020")
+    draw.text((30, 18), title, font=title_font, fill="#202020")
     chart_left, chart_right = 355, 1210
     chart_top, chart_bottom = 80, height - 55
     for tick in range(0, 101, 10):
@@ -832,12 +838,17 @@ def plot_confirmation(summaries: list[dict[str, Any]]) -> None:
             draw.line((mean_x - error_pixels, y + offset + 8, mean_x + error_pixels, y + offset + 8), fill="#202020", width=2)
             draw.line((mean_x - error_pixels, y + offset + 3, mean_x - error_pixels, y + offset + 13), fill="#202020", width=2)
             draw.line((mean_x + error_pixels, y + offset + 3, mean_x + error_pixels, y + offset + 13), fill="#202020", width=2)
-            draw.text((mean_x + 8, y + offset), f"{mean:.1f} +/- {error:.1f}", font=font, fill="#202020")
+            draw.text(
+                (mean_x + error_pixels + 8, y + offset),
+                f"{mean:.1f} +/- {error:.1f}",
+                font=font,
+                fill="#202020",
+            )
     draw.rectangle((420, height - 35, 438, height - 17), fill="#287271")
     draw.text((445, height - 37), "Linear ridge", font=font, fill="#202020")
     draw.rectangle((570, height - 35, 588, height - 17), fill="#e9a03b")
     draw.text((595, height - 37), "Nearest neighbour", font=font, fill="#202020")
-    image.save(OUTPUT_ROOT / "confirmation.png")
+    image.save(OUTPUT_ROOT / filename)
 
 
 def main() -> None:

@@ -98,9 +98,9 @@ instance information. Stochastic gradient descent was not competitive at the two
 training duration; this is not a general comparison against a separately tuned stochastic-gradient
 schedule.
 
-## Recommended Settings
+## Fixed 10-Variable Recommendation
 
-For a downstream linear classifier, use:
+Within the original fixed 10-variable comparison, a downstream linear classifier should use:
 
 ```xml
 feature_stage="direct" latent_mode="dense" latent_size="10"
@@ -120,6 +120,37 @@ reconstruction_loss="mse" output_activation="linear" beta="0.0001"
 The simpler `beta=0.03` condition is the primary recommendation because linear ridge accuracy was
 the predefined selection measure. `beta=0.01` is a nearly equivalent, slightly more conservative
 choice with better reconstruction MAE.
+
+## Follow-up: 20 and 36 Latent Variables
+
+The two selected objectives were repeated with `latent_size=20` and `latent_size=36`. Everything
+else, including the five seeds, training images, validation images, and 50,000-update duration, was
+held fixed. This permits paired comparisons across latent sizes.
+
+| Objective | Latent size | Linear ridge | Nearest neighbour | Validation MAE | Effective latent rank |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Bernoulli, beta 0.03 | 10 | 69.4 +/- 0.7% | 79.5 +/- 2.4% | 0.0688 | 8.75 |
+| Bernoulli, beta 0.03 | 20 | 74.6 +/- 1.6% | **87.1 +/- 0.9%** | 0.0497 | 16.29 |
+| **Bernoulli, beta 0.03** | **36** | **80.3 +/- 1.1%** | 85.4 +/- 2.0% | **0.0343** | **27.17** |
+| Linear MSE, beta 0.0001 | 10 | 68.2 +/- 0.6% | 82.1 +/- 1.1% | 0.0789 | 8.72 |
+| Linear MSE, beta 0.0001 | 20 | 71.8 +/- 0.8% | 85.3 +/- 1.6% | 0.0695 | 14.71 |
+| Linear MSE, beta 0.0001 | 36 | 75.5 +/- 1.1% | 85.5 +/- 0.9% | 0.0615 | 21.54 |
+
+For Bernoulli reconstruction with `beta=0.03`, increasing the latent size produced paired gains of
+5.2 percentage points in linear accuracy and 7.6 points in nearest-neighbour accuracy. The paired
+standard errors were 0.97 and 0.98 points, respectively. Linear mean-squared reconstruction gained
+3.6 linear points and 3.2 nearest-neighbour points.
+
+Increasing the Bernoulli model from 20 to 36 variables adds another 5.7 linear-accuracy points with
+a paired standard error of 1.18 points. It lowers reconstruction MAE by 0.0155 and increases
+effective latent rank from 16.29 to 27.17. Mean absolute correlation falls further, from 0.081 to
+0.069.
+
+Nearest-neighbour accuracy does not improve beyond 20 variables. For Bernoulli reconstruction it
+changes by -1.7 points from 20 to 36 variables, with a paired standard error of 1.23 points. For
+linear mean-squared reconstruction it changes by only +0.2 points. The 36-variable Bernoulli model
+is therefore the best tested setting for a linear classifier and reconstruction, while the
+20-variable Bernoulli result remains the highest observed nearest-neighbour score.
 
 ## Limitations
 
@@ -143,3 +174,12 @@ choice with better reconstruction MAE.
 
 Generated models, states, raw results, summaries, and plots are stored under
 `UserData/output/cvae_mnist_direct_vae_sweep`.
+
+Additional latent sizes can be reproduced after the main sweep with:
+
+```console
+.venv/bin/python \
+  Source/Modules/BrainModels/ConvolutionalVariationalAutoEncoder/tests/run_mnist_direct_vae_latent_size.py \
+  --latent-size 36 --ticks 50000 --replicates 5 --seed-base 69000 \
+  --agent "Codex: <model> <reasoning level>" --resume
+```
