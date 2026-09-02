@@ -2,11 +2,12 @@
 
 ## Description
 
-Learns a compact latent representation with a small convolutional variational auto-encoder. The
-module expects a two-dimensional `INPUT` or a rank-3 tensor using the Ikaros image convention
-`[channels,height,width]`, encodes it through a trainable convolutional feature bank, maps the
-features to latent mean and log-variance values, samples latent values, and decodes them back to an
-input-sized reconstruction.
+Learns a compact latent representation with a variational auto-encoder. The module expects a
+two-dimensional `INPUT` or a rank-3 tensor using the Ikaros image convention
+`[channels,height,width]`. The default `feature_stage="convolutional"` encodes the input through a
+trainable convolutional feature bank before the latent bottleneck. With `feature_stage="direct"`,
+the input is flattened and connected directly to a dense latent bottleneck without convolution;
+this requires `latent_mode="dense"`.
 
 When `train` is enabled, each tick performs one stochastic-gradient update using reconstruction loss
 plus `beta` times the KL divergence to a unit Gaussian prior. An optional running latent
@@ -19,6 +20,7 @@ bottleneck state for other modules.
 | Name | Description | Type | Default |
 | --- | --- | --- | --- |
 | latent_mode | Latent bottleneck architecture | number | dense |
+| feature_stage | Feature transformation around the latent bottleneck (`direct` or `convolutional`) | number | convolutional |
 | latent_size | Number of latent variables in dense mode | number | 8 |
 | latent_maps | Number of latent feature maps in spatial mode | number | 4 |
 | latent_kernel_size | Encoder neighborhood size used to form spatial latent maps | number | 1 |
@@ -49,6 +51,24 @@ bottleneck state for other modules.
 | sample | Sample from the latent distribution instead of using the mean | bool | yes |
 | reconstruction_source | Latent source used by the decoder reconstruction path | number | sample |
 | output_activation | Activation applied to the reconstructed output | number | linear |
+
+The direct feature stage implements a minimal one-layer variational auto-encoder. For flattened
+input \(x\), it computes
+
+```math
+\mu = xW_\mu + b_\mu, \qquad
+\log \sigma^2 = xW_\sigma + b_\sigma,
+```
+
+samples \(z = \mu + \sigma \odot \epsilon\), where
+\(\epsilon \sim \mathcal{N}(0,I)\), and reconstructs the input as
+
+```math
+\hat{x} = g(zW_d + b_d).
+```
+
+Here, \(g\) is the selected output activation and is always sigmoid for Bernoulli reconstruction.
+No convolutional forward, backward, or optimizer operation runs in direct mode.
 
 ## Inputs
 
@@ -158,3 +178,6 @@ spatial mean, and the resulting decorrelation gradient is distributed over the m
 The [centered-MNIST parameter sweep](tests/MNIST_PARAMETER_SWEEP.md) documents the controlled
 unsupervised evaluation protocol, tested settings, replicated results, selected configuration, and
 remaining limitations.
+
+The [dense VAE comparison](tests/MNIST_DENSE_VAE_COMPARISON.md) compares convolution-free 10- and
+2-dimensional bottlenecks on centered MNIST.
