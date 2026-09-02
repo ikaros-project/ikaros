@@ -11,6 +11,7 @@
 	<parameter name="adam_beta1" type="number" default="0.9" min="0" max="1" description="Adam first moment decay" />
 	<parameter name="adam_beta2" type="number" default="0.999" min="0" max="1" description="Adam second moment decay" />
 	<parameter name="adam_epsilon" type="number" default="0.00000001" min="0" description="Adam numerical stability term" />
+	<parameter name="random_seed" type="number" default="-1" description="Random initialization and sampling seed; negative values use a nondeterministic seed" />
 	<parameter name="beta" type="number" default="1" min="0" description="Weight of the KL-divergence term" />
 	<parameter name="reconstruction_loss" type="number" default="mse" options="mse,bernoulli" description="Reconstruction likelihood model" />
 	<parameter name="latent_consistency_weight" type="number" default="0" min="0" description="Weight of the paired-view latent mean consistency penalty" />

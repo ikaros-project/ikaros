@@ -50,6 +50,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
     parameter adam_beta1_;
     parameter adam_beta2_;
     parameter adam_epsilon_;
+    parameter randomSeed_;
     parameter beta_;
     parameter reconstruction_loss_mode_;
     parameter latent_consistency_weight_;
@@ -248,6 +249,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         Bind(adam_beta1_, "adam_beta1");
         Bind(adam_beta2_, "adam_beta2");
         Bind(adam_epsilon_, "adam_epsilon");
+        Bind(randomSeed_, "random_seed");
         Bind(beta_, "beta");
         Bind(reconstruction_loss_mode_, "reconstruction_loss");
         Bind(latent_consistency_weight_, "latent_consistency_weight");
@@ -338,6 +340,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
         kernel_size_value_ = std::max(1, kernel_size_.as_int());
         train_interval_value_ = std::max(1, train_interval_.as_int());
         dense_train_interval_value_ = std::max(1, dense_train_interval_.as_int());
+        if(randomSeed_.as_int() >= 0)
+            rng_.seed(static_cast<std::mt19937::result_type>(randomSeed_.as_int()));
     }
 
     bool

@@ -37,6 +37,7 @@ BASE_PARAMETERS: dict[str, str] = {
     "l1_kernel_size": "5",
     "l1_padding": "same",
     "l1_learning_rate": "0.001",
+    "l1_random_seed": "-1",
     "l1_beta": "0.0001",
     "l1_reconstruction_loss": "bernoulli",
     "l1_train_interval": "1",
@@ -56,6 +57,7 @@ BASE_PARAMETERS: dict[str, str] = {
     "top_kernel_size": "5",
     "top_padding": "same",
     "top_learning_rate": "0.001",
+    "top_random_seed": "-1",
     "top_beta": "0.0001",
     "top_reconstruction_loss": "mse",
     "top_train_interval": "1",
@@ -134,6 +136,205 @@ SCREENING_EXPERIMENTS = [
             "top_cluster_commitment_weight": "1",
         },
     ),
+    Experiment("latent_8", "8-dimensional top code", {"top_latent_size": "8"}),
+    Experiment("latent_24", "24-dimensional top code", {"top_latent_size": "24"}),
+    Experiment(
+        "latent16_beta1e3",
+        "16-dimensional top code with beta 1e-3",
+        {"top_latent_size": "16", "top_beta": "0.001"},
+    ),
+    Experiment(
+        "latent16_decor0p01",
+        "16-dimensional top code with decorrelation weight 0.01",
+        {"top_latent_size": "16", "top_decorrelation_weight": "0.01"},
+    ),
+    Experiment(
+        "latent16_beta1e3_decor0p01",
+        "16-dimensional top code with beta 1e-3 and decorrelation weight 0.01",
+        {
+            "top_latent_size": "16",
+            "top_beta": "0.001",
+            "top_decorrelation_weight": "0.01",
+        },
+    ),
+    Experiment(
+        "vq_weak",
+        "Ten vector-quantized prototypes with weaker update and commitment pressure",
+        {
+            "top_cluster_count": "10",
+            "top_cluster_temperature": "0.03",
+            "top_cluster_weight": "0.1",
+            "top_cluster_balance_weight": "1",
+            "top_cluster_update": "vq",
+            "top_cluster_commitment_weight": "0.1",
+        },
+    ),
+    Experiment(
+        "latent16_vq",
+        "16-dimensional top code with strong vector-quantized prototypes",
+        {
+            "top_latent_size": "16",
+            "top_cluster_count": "10",
+            "top_cluster_temperature": "0.03",
+            "top_cluster_weight": "1",
+            "top_cluster_balance_weight": "10",
+            "top_cluster_update": "vq",
+            "top_cluster_commitment_weight": "1",
+        },
+    ),
+    Experiment(
+        "latent16_vq_weak",
+        "16-dimensional top code with weaker vector-quantized prototype pressure",
+        {
+            "top_latent_size": "16",
+            "top_cluster_count": "10",
+            "top_cluster_temperature": "0.03",
+            "top_cluster_weight": "0.1",
+            "top_cluster_balance_weight": "1",
+            "top_cluster_update": "vq",
+            "top_cluster_commitment_weight": "0.1",
+        },
+    ),
+    Experiment(
+        "vq_20_prototypes",
+        "Twenty vector-quantized prototypes",
+        {
+            "top_cluster_count": "20",
+            "top_cluster_temperature": "0.03",
+            "top_cluster_weight": "1",
+            "top_cluster_balance_weight": "10",
+            "top_cluster_update": "vq",
+            "top_cluster_commitment_weight": "1",
+        },
+    ),
+    Experiment("level1_beta_0", "No Level-1 Kullback-Leibler penalty", {"l1_beta": "0"}),
+    Experiment(
+        "level1_beta_1e3",
+        "Level-1 beta 1e-3",
+        {"l1_beta": "0.001"},
+    ),
+    Experiment(
+        "top_features_6",
+        "Six top-level convolutional feature maps",
+        {"top_feature_maps": "6"},
+    ),
+    Experiment(
+        "top_features_24",
+        "Twenty-four top-level convolutional feature maps",
+        {"top_feature_maps": "24"},
+    ),
+    Experiment(
+        "top_lr_3e4",
+        "Top-level learning rate 3e-4",
+        {"top_learning_rate": "0.0003"},
+    ),
+    Experiment(
+        "top_lr_3e3",
+        "Top-level learning rate 3e-3",
+        {"top_learning_rate": "0.003"},
+    ),
+    Experiment(
+        "latent12_decor0p01",
+        "12-dimensional top code with decorrelation weight 0.01",
+        {"top_latent_size": "12", "top_decorrelation_weight": "0.01"},
+    ),
+    Experiment(
+        "latent20_decor0p01",
+        "20-dimensional top code with decorrelation weight 0.01",
+        {"top_latent_size": "20", "top_decorrelation_weight": "0.01"},
+    ),
+    Experiment(
+        "latent16_decor0p003",
+        "16-dimensional top code with decorrelation weight 0.003",
+        {"top_latent_size": "16", "top_decorrelation_weight": "0.003"},
+    ),
+    Experiment(
+        "latent16_decor0p03",
+        "16-dimensional top code with decorrelation weight 0.03",
+        {"top_latent_size": "16", "top_decorrelation_weight": "0.03"},
+    ),
+    Experiment(
+        "latent16_decor0p1",
+        "16-dimensional top code with decorrelation weight 0.1",
+        {"top_latent_size": "16", "top_decorrelation_weight": "0.1"},
+    ),
+    Experiment(
+        "latent16_l1beta1e3_decor0p01",
+        "16-dimensional top code with Level-1 beta 1e-3 and decorrelation weight 0.01",
+        {
+            "top_latent_size": "16",
+            "l1_beta": "0.001",
+            "top_decorrelation_weight": "0.01",
+        },
+    ),
+    Experiment(
+        "latent16_lr3e3_decor0p01",
+        "16-dimensional top code with learning rate 3e-3 and decorrelation weight 0.01",
+        {
+            "top_latent_size": "16",
+            "top_learning_rate": "0.003",
+            "top_decorrelation_weight": "0.01",
+        },
+    ),
+    Experiment(
+        "latent16_l1features10",
+        "16-dimensional top code with ten Level-1 feature maps",
+        {"top_latent_size": "16", "l1_feature_maps": "10"},
+    ),
+    Experiment(
+        "latent16_l1features40",
+        "16-dimensional top code with forty Level-1 feature maps",
+        {"top_latent_size": "16", "l1_feature_maps": "40"},
+    ),
+    Experiment(
+        "latent16_l1maps2",
+        "16-dimensional top code with two Level-1 latent maps",
+        {"top_latent_size": "16", "l1_latent_maps": "2"},
+    ),
+    Experiment(
+        "latent16_l1maps8",
+        "16-dimensional top code with eight Level-1 latent maps",
+        {"top_latent_size": "16", "l1_latent_maps": "8"},
+    ),
+    Experiment(
+        "latent16_l1kernel3",
+        "16-dimensional top code with a 3x3 Level-1 convolution kernel",
+        {"top_latent_size": "16", "l1_kernel_size": "3"},
+    ),
+    Experiment(
+        "latent16_l1kernel7",
+        "16-dimensional top code with a 7x7 Level-1 convolution kernel",
+        {"top_latent_size": "16", "l1_kernel_size": "7"},
+    ),
+    Experiment(
+        "latent16_l1latentkernel1",
+        "16-dimensional top code with a 1x1 Level-1 latent kernel",
+        {"top_latent_size": "16", "l1_latent_kernel_size": "1"},
+    ),
+    Experiment(
+        "latent16_l1latentkernel3",
+        "16-dimensional top code with a 3x3 Level-1 latent kernel",
+        {"top_latent_size": "16", "l1_latent_kernel_size": "3"},
+    ),
+    Experiment(
+        "latent16_topkernel3",
+        "16-dimensional top code with a 3x3 top convolution kernel",
+        {"top_latent_size": "16", "top_kernel_size": "3"},
+    ),
+    Experiment(
+        "latent16_topkernel7",
+        "16-dimensional top code with a 7x7 top convolution kernel",
+        {"top_latent_size": "16", "top_kernel_size": "7"},
+    ),
+    Experiment(
+        "latent16_l1features10_latentkernel3",
+        "16-dimensional top code with ten Level-1 feature maps and a 3x3 latent kernel",
+        {
+            "top_latent_size": "16",
+            "l1_feature_maps": "10",
+            "l1_latent_kernel_size": "3",
+        },
+    ),
 ]
 
 
@@ -144,6 +345,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--only", nargs="*", default=[])
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--keep-going", action="store_true")
+    parser.add_argument("--replicate", type=int, default=0)
+    parser.add_argument("--seed-base", type=int, default=-1)
     parser.add_argument("--print-tick-interval", type=int, default=10_000)
     return parser.parse_args()
 
@@ -175,6 +378,7 @@ PARAMETER_ATTRIBUTES = {
     "kernel_size": "kernel_size",
     "padding": "padding",
     "learning_rate": "learning_rate",
+    "random_seed": "random_seed",
     "beta": "beta",
     "reconstruction_loss": "reconstruction_loss",
     "train_interval": "train_interval",
@@ -470,11 +674,23 @@ def evaluate_run(run_dir: Path, parameters: dict[str, str]) -> dict[str, Any]:
     return result
 
 
-def run_experiment(experiment: Experiment, ticks: int, agent: str, print_interval: int) -> dict[str, Any]:
-    run_id = f"{experiment.name}_{ticks}"
+def run_experiment(
+    experiment: Experiment,
+    ticks: int,
+    agent: str,
+    print_interval: int,
+    replicate: int,
+    seed_base: int,
+) -> dict[str, Any]:
+    replicate_suffix = f"_r{replicate}" if replicate else ""
+    seed_suffix = f"_s{seed_base}" if seed_base >= 0 else ""
+    run_id = f"{experiment.name}{replicate_suffix}{seed_suffix}_{ticks}"
     run_dir = OUTPUT_ROOT / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     parameters = experiment.parameters()
+    if seed_base >= 0:
+        parameters["l1_random_seed"] = str(seed_base + 2 * replicate)
+        parameters["top_random_seed"] = str(seed_base + 2 * replicate + 1)
     state_path = run_dir / "model.state"
     start = time.monotonic()
     train_model = run_dir / "train.ikg"
@@ -542,6 +758,8 @@ def run_experiment(experiment: Experiment, ticks: int, agent: str, print_interva
             "name": experiment.name,
             "description": experiment.description,
             "ticks": ticks,
+            "replicate": replicate,
+            "seed_base": seed_base,
             "elapsed_seconds": time.monotonic() - start,
         }
     )
@@ -576,6 +794,8 @@ def write_aggregate(results: list[dict[str, Any]]) -> None:
     columns = [
         "name",
         "ticks",
+        "replicate",
+        "seed_base",
         "validation_ridge_zscore",
         "validation_nearest_zscore",
         "validation_ridge_raw",
@@ -597,6 +817,47 @@ def write_aggregate(results: list[dict[str, Any]]) -> None:
         for result in results:
             writer.writerow({name: result.get(name) for name in columns})
 
+    grouped: dict[tuple[str, int, int], list[dict[str, Any]]] = {}
+    for result in results:
+        key = (
+            result["name"],
+            result["ticks"],
+            result.get("seed_base", -1),
+        )
+        grouped.setdefault(key, []).append(result)
+    replicated = []
+    for (name, ticks, seed_base), group in grouped.items():
+        if len(group) < 3:
+            continue
+        summary: dict[str, Any] = {
+            "name": name,
+            "ticks": ticks,
+            "seed_base": seed_base,
+            "runs": len(group),
+            "description": group[0]["description"],
+        }
+        for metric in (
+            "validation_ridge_zscore",
+            "validation_nearest_zscore",
+            "train_leave_one_out_nearest_zscore",
+            "top_code_mean_stddev",
+            "validation_level1_absolute_reconstruction_error",
+        ):
+            values = np.asarray([item[metric] for item in group], dtype=np.float64)
+            summary[metric + "_mean"] = float(np.mean(values))
+            summary[metric + "_stddev"] = float(np.std(values, ddof=1))
+        replicated.append(summary)
+    replicated.sort(
+        key=lambda item: item["validation_ridge_zscore_mean"],
+        reverse=True,
+    )
+    if replicated:
+        replicated_columns = list(replicated[0])
+        with (OUTPUT_ROOT / "replicated_results.csv").open("w", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=replicated_columns)
+            writer.writeheader()
+            writer.writerows(replicated)
+
     try:
         matplotlib_dir = OUTPUT_ROOT / "matplotlib"
         matplotlib_dir.mkdir(exist_ok=True)
@@ -606,20 +867,26 @@ def write_aggregate(results: list[dict[str, Any]]) -> None:
         import matplotlib.pyplot as plt
     except ImportError:
         return
-    names = [f"{result['name']} ({result['ticks'] // 1000}k)" for result in results]
-    positions = np.arange(len(results))
+    plotted_results = [result for result in results if result["ticks"] >= 1000] or results
+    names = [
+        f"{result['name']}"
+        f"{f' r{result.get('replicate', 0)}' if result.get('replicate', 0) else ''}"
+        f" ({result['ticks'] // 1000}k)"
+        for result in plotted_results
+    ]
+    positions = np.arange(len(plotted_results))
     width = 0.38
-    figure_height = max(5.0, 0.36 * len(results) + 1.5)
+    figure_height = max(5.0, 0.36 * len(plotted_results) + 1.5)
     _, axis = plt.subplots(figsize=(10, figure_height))
     axis.barh(
         positions - width / 2,
-        [100.0 * result["validation_ridge_zscore"] for result in results],
+        [100.0 * result["validation_ridge_zscore"] for result in plotted_results],
         width,
         label="Linear ridge probe",
     )
     axis.barh(
         positions + width / 2,
-        [100.0 * result["validation_nearest_zscore"] for result in results],
+        [100.0 * result["validation_nearest_zscore"] for result in plotted_results],
         width,
         label="Nearest neighbour",
     )
@@ -633,6 +900,47 @@ def write_aggregate(results: list[dict[str, Any]]) -> None:
     plt.tight_layout()
     plt.savefig(OUTPUT_ROOT / "validation_accuracy.png", dpi=180)
     plt.close()
+
+    if replicated:
+        positions = np.arange(len(replicated))
+        ridge_means = [100.0 * item["validation_ridge_zscore_mean"] for item in replicated]
+        ridge_errors = [100.0 * item["validation_ridge_zscore_stddev"] for item in replicated]
+        nearest_means = [100.0 * item["validation_nearest_zscore_mean"] for item in replicated]
+        nearest_errors = [100.0 * item["validation_nearest_zscore_stddev"] for item in replicated]
+        labels = [
+            f"{item['name']} ({item['ticks'] // 1000}k, n={item['runs']})"
+            + (f" seeds={item['seed_base']}+" if item["seed_base"] >= 0 else "")
+            for item in replicated
+        ]
+        width = 0.38
+        figure_height = max(5.0, 0.42 * len(replicated) + 1.5)
+        _, axis = plt.subplots(figsize=(11, figure_height))
+        axis.barh(
+            positions - width / 2,
+            ridge_means,
+            width,
+            xerr=ridge_errors,
+            capsize=3,
+            label="Linear ridge probe",
+        )
+        axis.barh(
+            positions + width / 2,
+            nearest_means,
+            width,
+            xerr=nearest_errors,
+            capsize=3,
+            label="Nearest neighbour",
+        )
+        axis.axvline(10.0, color="black", linewidth=1, linestyle="--", label="Chance")
+        axis.set_yticks(positions, labels)
+        axis.invert_yaxis()
+        axis.set_xlabel("Held-out validation accuracy, mean +/- sample SD (%)")
+        axis.set_title("Replicated centered-MNIST CVAE frozen-code probes")
+        axis.legend(loc="lower right")
+        axis.grid(axis="x", alpha=0.25)
+        plt.tight_layout()
+        plt.savefig(OUTPUT_ROOT / "replicated_validation_accuracy.png", dpi=180)
+        plt.close()
 
 
 def main() -> int:
@@ -648,12 +956,25 @@ def main() -> int:
 
     failures: list[str] = []
     for experiment in selected:
-        result_path = OUTPUT_ROOT / f"{experiment.name}_{args.ticks}" / "result.json"
+        replicate_suffix = f"_r{args.replicate}" if args.replicate else ""
+        seed_suffix = f"_s{args.seed_base}" if args.seed_base >= 0 else ""
+        result_path = (
+            OUTPUT_ROOT
+            / f"{experiment.name}{replicate_suffix}{seed_suffix}_{args.ticks}"
+            / "result.json"
+        )
         if args.resume and result_path.exists():
             print(f"[{experiment.name}] already complete; resuming past it", flush=True)
             continue
         try:
-            run_experiment(experiment, args.ticks, args.agent, args.print_tick_interval)
+            run_experiment(
+                experiment,
+                args.ticks,
+                args.agent,
+                args.print_tick_interval,
+                args.replicate,
+                args.seed_base,
+            )
         except Exception as error:
             failures.append(f"{experiment.name}: {error}")
             print(f"[{experiment.name}] FAILED: {error}", file=sys.stderr, flush=True)

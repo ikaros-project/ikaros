@@ -3,7 +3,7 @@
         filename="cvae_mnist_centered/train/image_#####.png" filecount="1000" iterations="0" read_once="no" />
     <module class="ConvolutionalVariationalAutoEncoder" name="CVAE_Level1" _x="360" _y="120"
         latent_mode="spatial" latent_maps="4" latent_kernel_size="2" feature_maps="20"
-        kernel_size="5" padding="same" learning_rate="0.001" beta="0.0001"
+        kernel_size="5" padding="same" learning_rate="0.001" random_seed="-1" beta="0.0001"
         reconstruction_loss="bernoulli" train="yes" train_interval="1" dense_train_interval="2"
         reconstruction_source="top_down" output_activation="sigmoid" sample="no"
         latent_cluster_count="1" latent_cluster_temperature="0.1" latent_cluster_weight="0"
@@ -11,7 +11,7 @@
         latent_cluster_commitment_weight="0" latent_decorrelation_weight="0" />
     <module class="ConvolutionalVariationalAutoEncoder" name="CVAE_TopCode" _x="720" _y="120"
         latent_mode="dense" latent_size="32" feature_maps="12" kernel_size="5" padding="same"
-        learning_rate="0.001" beta="0.0001" reconstruction_loss="mse" train="yes"
+        learning_rate="0.001" random_seed="-1" beta="0.0001" reconstruction_loss="mse" train="yes"
         train_interval="1" dense_train_interval="1" reconstruction_source="mean"
         output_activation="linear" sample="no" latent_cluster_count="1"
         latent_cluster_temperature="0.1" latent_cluster_weight="0" latent_cluster_balance_weight="0"
