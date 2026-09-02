@@ -1,0 +1,82 @@
+<group name="CVAE_MNIST_DownsampledFiveLayer" title="CVAE MNIST Fully Downsampled Five-Layer Training" tick_duration="1">
+    <module class="InputImage" name="MNIST" _x="40" _y="220"
+        filename="cvae_mnist_centered_32/train/image_#####.png" filecount="1000" iterations="0" read_once="no" />
+
+    <module class="ConvolutionalVariationalAutoEncoder" name="CVAE_Level1" _x="320" _y="80"
+        latent_mode="spatial" latent_maps="4" latent_kernel_size="2" feature_maps="20"
+        kernel_size="3" padding="same" learning_rate="0.001" random_seed="101" beta="0.0001"
+        reconstruction_loss="bernoulli" train="yes" train_interval="1" dense_train_interval="2"
+        reconstruction_source="top_down" output_activation="sigmoid" sample="no"
+        latent_cluster_count="1" latent_cluster_weight="0" latent_cluster_balance_weight="0"
+        latent_cluster_commitment_weight="0" latent_decorrelation_weight="0" />
+    <module class="Downsample" name="Downsample_L1_L2" _x="590" _y="80" />
+    <module class="ConvolutionalVariationalAutoEncoder" name="CVAE_Level2" _x="790" _y="130"
+        latent_mode="spatial" latent_maps="4" latent_kernel_size="2" feature_maps="16"
+        kernel_size="3" padding="same" learning_rate="0.001" random_seed="102" beta="0.0001"
+        reconstruction_loss="mse" train="yes" train_interval="1" dense_train_interval="2"
+        reconstruction_source="top_down" output_activation="linear" sample="no"
+        latent_cluster_count="1" latent_cluster_weight="0" latent_cluster_balance_weight="0"
+        latent_cluster_commitment_weight="0" latent_decorrelation_weight="0" />
+    <module class="Downsample" name="Downsample_L2_L3" _x="1060" _y="130" />
+    <module class="ConvolutionalVariationalAutoEncoder" name="CVAE_Level3" _x="1260" _y="180"
+        latent_mode="spatial" latent_maps="3" latent_kernel_size="2" feature_maps="16"
+        kernel_size="3" padding="same" learning_rate="0.001" random_seed="103" beta="0.0001"
+        reconstruction_loss="mse" train="yes" train_interval="1" dense_train_interval="2"
+        reconstruction_source="top_down" output_activation="linear" sample="no"
+        latent_cluster_count="1" latent_cluster_weight="0" latent_cluster_balance_weight="0"
+        latent_cluster_commitment_weight="0" latent_decorrelation_weight="0" />
+    <module class="Downsample" name="Downsample_L3_L4" _x="1530" _y="180" />
+    <module class="ConvolutionalVariationalAutoEncoder" name="CVAE_Level4" _x="1730" _y="230"
+        latent_mode="spatial" latent_maps="3" latent_kernel_size="2" feature_maps="12"
+        kernel_size="3" padding="same" learning_rate="0.001" random_seed="104" beta="0.0001"
+        reconstruction_loss="mse" train="yes" train_interval="1" dense_train_interval="2"
+        reconstruction_source="top_down" output_activation="linear" sample="no"
+        latent_cluster_count="1" latent_cluster_weight="0" latent_cluster_balance_weight="0"
+        latent_cluster_commitment_weight="0" latent_decorrelation_weight="0" />
+    <module class="Downsample" name="Downsample_L4_L5" _x="2000" _y="230" />
+    <module class="ConvolutionalVariationalAutoEncoder" name="CVAE_Level5_TopCode" _x="2200" _y="280"
+        latent_mode="dense" latent_size="16" feature_maps="12" kernel_size="3" padding="same"
+        learning_rate="0.001" random_seed="105" beta="0.0001" reconstruction_loss="mse"
+        train="yes" train_interval="1" dense_train_interval="1" reconstruction_source="mean"
+        output_activation="linear" sample="no" latent_cluster_count="1" latent_cluster_weight="0"
+        latent_cluster_balance_weight="0" latent_cluster_commitment_weight="0"
+        latent_decorrelation_weight="0" />
+
+    <module class="Upsample" name="Upsample_L5_L4" _x="2000" _y="520" />
+    <module class="Upsample" name="Upsample_L4_L3" _x="1530" _y="570" />
+    <module class="Upsample" name="Upsample_L3_L2" _x="1060" _y="620" />
+    <module class="Upsample" name="Upsample_L2_L1" _x="590" _y="670" />
+    <module class="OutputFile" name="Metrics" _x="2200" _y="80"
+        directory="output/cvae_mnist_downsampled_five_layer" filename="metrics.csv" format="csv"
+        timestamp="tick" existing_file="overwrite" number_format="full" flush_interval="100" header="yes" />
+
+    <connection source="MNIST.INTENSITY" target="CVAE_Level1.INPUT" delay="1" />
+    <connection source="CVAE_Level1.LATENT_MEAN" target="Downsample_L1_L2.INPUT" delay="1" />
+    <connection source="Downsample_L1_L2.OUTPUT" target="CVAE_Level2.INPUT" />
+    <connection source="CVAE_Level2.LATENT_MEAN" target="Downsample_L2_L3.INPUT" delay="1" />
+    <connection source="Downsample_L2_L3.OUTPUT" target="CVAE_Level3.INPUT" />
+    <connection source="CVAE_Level3.LATENT_MEAN" target="Downsample_L3_L4.INPUT" delay="1" />
+    <connection source="Downsample_L3_L4.OUTPUT" target="CVAE_Level4.INPUT" />
+    <connection source="CVAE_Level4.LATENT_MEAN" target="Downsample_L4_L5.INPUT" delay="1" />
+    <connection source="Downsample_L4_L5.OUTPUT" target="CVAE_Level5_TopCode.INPUT" />
+
+    <connection source="CVAE_Level5_TopCode.OUTPUT" target="Upsample_L5_L4.INPUT" delay="1" />
+    <connection source="Upsample_L5_L4.OUTPUT" target="CVAE_Level4.TOP_DOWN" />
+    <connection source="CVAE_Level4.OUTPUT" target="Upsample_L4_L3.INPUT" delay="1" />
+    <connection source="Upsample_L4_L3.OUTPUT" target="CVAE_Level3.TOP_DOWN" />
+    <connection source="CVAE_Level3.OUTPUT" target="Upsample_L3_L2.INPUT" delay="1" />
+    <connection source="Upsample_L3_L2.OUTPUT" target="CVAE_Level2.TOP_DOWN" />
+    <connection source="CVAE_Level2.OUTPUT" target="Upsample_L2_L1.INPUT" delay="1" />
+    <connection source="Upsample_L2_L1.OUTPUT" target="CVAE_Level1.TOP_DOWN" />
+
+    <connection source="CVAE_Level1.LOSS" target="Metrics.INPUT" label="level1_loss" />
+    <connection source="CVAE_Level1.RECONSTRUCTION_LOSS" target="Metrics.INPUT" label="level1_reconstruction_loss" />
+    <connection source="CVAE_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="level1_absolute_reconstruction_error" />
+    <connection source="CVAE_Level2.LOSS" target="Metrics.INPUT" label="level2_loss" />
+    <connection source="CVAE_Level3.LOSS" target="Metrics.INPUT" label="level3_loss" />
+    <connection source="CVAE_Level4.LOSS" target="Metrics.INPUT" label="level4_loss" />
+    <connection source="CVAE_Level5_TopCode.LOSS" target="Metrics.INPUT" label="level5_loss" />
+    <connection source="CVAE_Level5_TopCode.RECONSTRUCTION_LOSS" target="Metrics.INPUT" label="level5_reconstruction_loss" />
+    <connection source="CVAE_Level5_TopCode.KL_LOSS" target="Metrics.INPUT" label="level5_kl_loss" />
+    <connection source="CVAE_Level5_TopCode.DECORRELATION_LOSS" target="Metrics.INPUT" label="level5_decorrelation_loss" />
+</group>
