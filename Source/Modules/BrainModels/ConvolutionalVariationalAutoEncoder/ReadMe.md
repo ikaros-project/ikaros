@@ -181,3 +181,7 @@ remaining limitations.
 
 The [dense VAE comparison](tests/MNIST_DENSE_VAE_COMPARISON.md) compares convolution-free 10- and
 2-dimensional bottlenecks on centered MNIST.
+
+The [direct dense VAE mechanism sweep](tests/MNIST_DIRECT_VAE_SWEEP.md) systematically compares
+sampling, reconstruction, Kullback-Leibler weighting, optimization, decorrelation, paired-view
+consistency, and prototype learning for a fixed 1,024-10-1,024 architecture.

@@ -167,7 +167,7 @@ values. Training is unsupervised; labels are used only by post-training probes.
 |---:|---|---|---|---|
 | 1 | Add a reproducible staged experiment harness for direct dense VAE objective, optimization, regularization, and paired-view consistency settings. | Completed | Python compilation; 20-tick baseline and shifted paired-view train/save/reload/extract smoke runs; both retained exactly 1,000 aligned training and 200 aligned validation codes; `git diff --check`. | `Added direct dense VAE mechanism sweep` |
 | 2 | Run the broad single-factor screen and select candidates using frozen-code validation probes. | Completed | Thirty single-factor and four automatically composed conditions completed 50,000 Release updates with one matched seed; every extraction retained exactly 1,000 aligned training and 200 aligned validation codes. Moderate 10-prototype VQ led ridge at 71.0%; mean reconstruction and linear MSE led nearest-neighbour at 82.5%; composed settings did not improve either measure. | `Recorded the direct VAE mechanism screen` |
-| 3 | Run matched-seed confirmation of the finalists, graph the results, and document the recommended settings and limitations. | In progress |  |  |
+| 3 | Run matched-seed confirmation of the finalists, graph the results, and document the recommended settings and limitations. | Completed | Eight finalists completed five new matched 50,000-update Release runs each; all 40 extractions retained exactly 1,000 aligned training and 200 aligned validation codes. Generated screening and confirmation plots were visually checked. Beta 0.03 led linear ridge at 69.4% +/- 0.7%; linear MSE led nearest-neighbour at 82.1% +/- 1.1%. Python compilation, report/result audit, and `git diff --check` passed. | `Documented the direct VAE parameter recommendation` |
 
 ### Constraints
 
@@ -183,6 +183,10 @@ values. Training is unsupervised; labels are used only by post-training probes.
 
 - The 200-image validation subset is reused for exploratory model selection and is not an untouched
   final test set.
+- The controlled experiment uses only 1,000 training images and does not estimate full-MNIST
+  performance.
+- The tested ranges cover the implemented mechanism families and focused interactions, but do not
+  exhaust every continuous parameter combination.
 
 ## GitHub issue bot guidance
 

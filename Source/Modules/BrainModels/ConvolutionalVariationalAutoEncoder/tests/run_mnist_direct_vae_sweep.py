@@ -227,6 +227,111 @@ SCREEN_CONDITIONS = (
 )
 
 
+REFINEMENT_CONDITIONS = (
+    Condition("refine_beta_3e3", "refinement", "Beta 0.003", {"beta": "0.003"}),
+    Condition("refine_beta_3e2", "refinement", "Beta 0.03", {"beta": "0.03"}),
+    Condition("refine_adam_6e4", "refinement", "Adam learning rate 6e-4", {"learning_rate": "0.0006"}),
+    Condition(
+        "pair_beta1e2_mean",
+        "refinement",
+        "Beta 0.01 with latent-mean reconstruction",
+        {"beta": "0.01", "sample": "no", "reconstruction_source": "mean"},
+    ),
+    Condition(
+        "pair_beta1e2_mse_linear",
+        "refinement",
+        "Beta 0.01 with linear mean-squared reconstruction",
+        {"beta": "0.01", "reconstruction_loss": "mse", "output_activation": "linear"},
+    ),
+    Condition(
+        "pair_mean_mse_linear",
+        "refinement",
+        "Latent-mean training with linear mean-squared reconstruction",
+        {
+            "sample": "no",
+            "reconstruction_source": "mean",
+            "reconstruction_loss": "mse",
+            "output_activation": "linear",
+        },
+    ),
+    Condition(
+        "triple_beta_mean_mse_linear",
+        "refinement",
+        "Beta 0.01 and latent-mean training with linear mean-squared reconstruction",
+        {
+            "beta": "0.01",
+            "sample": "no",
+            "reconstruction_source": "mean",
+            "reconstruction_loss": "mse",
+            "output_activation": "linear",
+        },
+    ),
+    Condition(
+        "pair_beta1e2_vq10",
+        "refinement",
+        "Beta 0.01 with moderate ten-prototype vector quantization",
+        {
+            "beta": "0.01",
+            "latent_cluster_count": "10",
+            "latent_cluster_temperature": "0.03",
+            "latent_cluster_weight": "0.1",
+            "latent_cluster_balance_weight": "1",
+            "latent_cluster_update": "vq",
+            "latent_cluster_commitment_weight": "0.1",
+        },
+    ),
+    Condition(
+        "pair_beta1e2_consistency",
+        "refinement",
+        "Beta 0.01 with light one-pixel consistency",
+        {"beta": "0.01", "latent_consistency_weight": "0.01"},
+        True,
+    ),
+    Condition(
+        "pair_beta1e2_decor",
+        "refinement",
+        "Beta 0.01 with decorrelation weight 0.03",
+        {"beta": "0.01", "latent_decorrelation_weight": "0.03"},
+    ),
+    Condition(
+        "pair_mse_linear_vq10",
+        "refinement",
+        "Linear mean-squared reconstruction with moderate ten-prototype vector quantization",
+        {
+            "reconstruction_loss": "mse",
+            "output_activation": "linear",
+            "latent_cluster_count": "10",
+            "latent_cluster_temperature": "0.03",
+            "latent_cluster_weight": "0.1",
+            "latent_cluster_balance_weight": "1",
+            "latent_cluster_update": "vq",
+            "latent_cluster_commitment_weight": "0.1",
+        },
+    ),
+    Condition(
+        "pair_mse_linear_consistency",
+        "refinement",
+        "Linear mean-squared reconstruction with light one-pixel consistency",
+        {
+            "reconstruction_loss": "mse",
+            "output_activation": "linear",
+            "latent_consistency_weight": "0.01",
+        },
+        True,
+    ),
+    Condition(
+        "pair_mse_linear_decor",
+        "refinement",
+        "Linear mean-squared reconstruction with decorrelation weight 0.03",
+        {
+            "reconstruction_loss": "mse",
+            "output_activation": "linear",
+            "latent_decorrelation_weight": "0.03",
+        },
+    ),
+)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ticks", type=int, default=50_000)
@@ -583,7 +688,7 @@ def combination_conditions(screen_results: list[dict[str, Any]]) -> tuple[Condit
         )
 
     print("Core screen winners: " + ", ".join(core_names or ["baseline"]), flush=True)
-    return tuple(conditions)
+    return (*conditions, *REFINEMENT_CONDITIONS)
 
 
 def confirmation_conditions(
@@ -591,11 +696,12 @@ def confirmation_conditions(
 ) -> tuple[Condition, ...]:
     ranked = sorted(all_results, key=lambda result: result["validation_ridge_zscore"], reverse=True)
     selected_names = ["baseline"]
+    ridge_threshold = ranked[min(3, len(ranked) - 1)]["validation_ridge_zscore"]
     for result in ranked:
+        if result["validation_ridge_zscore"] < ridge_threshold:
+            break
         if result["name"] not in selected_names:
             selected_names.append(result["name"])
-        if len(selected_names) >= 5:
-            break
     nearest_winner = max(all_results, key=lambda result: result["validation_nearest_zscore"])
     if nearest_winner["name"] not in selected_names:
         selected_names.append(nearest_winner["name"])
