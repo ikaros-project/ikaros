@@ -13,7 +13,8 @@ When `train` is enabled, each tick performs one stochastic-gradient update using
 plus `beta` times the KL divergence to a unit Gaussian prior. An optional running latent
 decorrelation penalty can also be enabled to discourage redundant latent features. `OUTPUT` contains
 the reconstruction, while `LATENT_MEAN`, `LATENT_LOG_VARIANCE`, and `LATENT_SAMPLE` expose the
-bottleneck state for other modules.
+bottleneck state for other modules. Optional hard-concrete latent gates can learn which dense latent
+variables or spatial latent maps are needed by the decoder.
 
 ## Parameters
 
@@ -34,6 +35,11 @@ bottleneck state for other modules.
 | adam_epsilon | Adam numerical stability term | number | 0.00000001 |
 | random_seed | Random initialization and sampling seed; negative values use a nondeterministic seed | number | -1 |
 | beta | Weight of the KL-divergence term | number | 1 |
+| latent_gating | Learn hard-concrete gates that select latent features used by the decoder | bool | no |
+| latent_gate_penalty | Loss added for each expected open latent gate | number | 0.0001 |
+| latent_gate_temperature | Hard-concrete gate sampling temperature | number | 0.666667 |
+| latent_gate_initial_probability | Initial probability that a latent gate is open | number | 0.99 |
+| latent_gate_threshold | Deterministic gate threshold used to count active latent features | number | 0.5 |
 | reconstruction_loss | Reconstruction likelihood model (`mse` or `bernoulli`) | number | mse |
 | latent_consistency_weight | Weight of the paired-view latent mean consistency penalty | number | 0 |
 | latent_cluster_count | Number of learned latent prototype clusters | number | 1 |
@@ -70,6 +76,42 @@ samples \(z = \mu + \sigma \odot \epsilon\), where
 Here, \(g\) is the selected output activation and is always sigmoid for Bernoulli reconstruction.
 No convolutional forward, backward, or optimizer operation runs in direct mode.
 
+When `latent_gating="yes"`, each dense latent variable has one learned gate. In spatial mode, one
+gate controls each complete latent map. Given a learned gate logit \(a_j\), training samples
+
+```math
+u_j \sim \mathcal{U}(0,1), \qquad
+s_j = \operatorname{sigmoid}\left(
+    \frac{a_j + \log u_j - \log(1-u_j)}{T}
+\right),
+```
+
+then stretches and clips the sample to obtain a hard-concrete gate
+
+```math
+g_j = \operatorname{clip}_{[0,1]}\left(s_j(\zeta-\gamma)+\gamma\right),
+\qquad \gamma=-0.1,\quad\zeta=1.1,
+```
+
+where \(T\) is `latent_gate_temperature`. The decoder receives
+\(\tilde z_j=g_jz_j\). The expected number of open gates is
+
+```math
+L_0 = \sum_j \operatorname{sigmoid}\left(
+    a_j-T\log\frac{-\gamma}{\zeta}
+\right),
+```
+
+and the total objective includes `latent_gate_penalty` times \(L_0\). During ticks without a
+training update, deterministic gates are obtained by stretching and clipping
+\(\operatorname{sigmoid}(a_j)\). This follows the differentiable \(L_0\) regularization method of
+[Louizos, Welling, and Kingma (2018)](https://arxiv.org/abs/1712.01312).
+
+The latent matrix shapes remain fixed at their configured maximum sizes. Inactive features are
+multiplied by zero rather than removed or reallocated. `LATENT_MEAN` remains the ungated encoder
+mean so existing hierarchies retain their previous behavior. Use `GATED_LATENT_MEAN` when the learned
+feature selection should be passed upward or evaluated as the compact representation.
+
 ## Inputs
 
 | Name | Description | Optional |
@@ -86,7 +128,11 @@ No convolutional forward, backward, or optimizer operation runs in direct mode.
 | OUTPUT | Reconstructed input |
 | LATENT_MEAN | Latent Gaussian mean |
 | LATENT_LOG_VARIANCE | Latent Gaussian log variance |
-| LATENT_SAMPLE | Latent sample used by the decoder |
+| LATENT_SAMPLE | Ungated sample from the latent Gaussian |
+| GATED_LATENT_MEAN | Latent mean multiplied by deterministic learned gates |
+| LATENT_GATES | Deterministic gate value for each dense latent variable or spatial latent map |
+| ACTIVE_LATENT_COUNT | Number of deterministic gate values above `latent_gate_threshold` |
+| GATE_LOSS | Expected number of open latent gates |
 | LOSS | Total VAE loss |
 | RECONSTRUCTION_LOSS | Mean reconstruction loss |
 | KL_LOSS | KL divergence from the unit Gaussian prior |

@@ -1,0 +1,31 @@
+<group name="ConvolutionalVariationalAutoEncoder_latent_gating_test">
+    <module class="Constant" name="Image" _x="40" _y="80"
+        data="0, 0.2, 0.4, 0.6; 0.2, 0.4, 0.6, 0.8; 0.4, 0.6, 0.8, 1; 0.6, 0.8, 1, 0.8" />
+    <module class="ConvolutionalVariationalAutoEncoder" name="VAE" _x="320" _y="80"
+        feature_stage="direct" latent_mode="dense" latent_size="4"
+        latent_gating="yes" latent_gate_penalty="0.1" latent_gate_initial_probability="0.99"
+        learning_rate="0.001" optimizer="adam" random_seed="17" beta="0.001"
+        reconstruction_source="mean" output_activation="sigmoid" sample="no" train="yes" />
+    <module class="Print" name="PrintActiveCount" _x="680" _y="80" />
+    <module class="Print" name="PrintGateLoss" _x="680" _y="200" />
+    <module class="ConvolutionalVariationalAutoEncoder" name="SpatialVAE" _x="320" _y="360"
+        feature_stage="convolutional" latent_mode="spatial" latent_maps="2"
+        feature_maps="2" kernel_size="2" latent_kernel_size="1" padding="same"
+        latent_gating="yes" latent_gate_penalty="0.1" latent_gate_initial_probability="0.99"
+        learning_rate="0.001" optimizer="adam" random_seed="23" beta="0.001"
+        reconstruction_source="mean" output_activation="sigmoid" sample="no" train="yes" />
+    <module class="Print" name="PrintSpatialActiveCount" _x="680" _y="360" />
+    <module class="ConvolutionalVariationalAutoEncoder" name="SGDVAE" _x="320" _y="640"
+        feature_stage="direct" latent_mode="dense" latent_size="4"
+        latent_gating="yes" latent_gate_penalty="0.1" latent_gate_initial_probability="0.99"
+        learning_rate="0.001" optimizer="sgd" random_seed="29" beta="0.001"
+        reconstruction_source="mean" output_activation="sigmoid" sample="no" train="yes" />
+    <module class="Print" name="PrintSGDActiveCount" _x="680" _y="640" />
+    <connection source="Image.OUTPUT" target="VAE.INPUT" />
+    <connection source="VAE.ACTIVE_LATENT_COUNT" target="PrintActiveCount.INPUT" />
+    <connection source="VAE.GATE_LOSS" target="PrintGateLoss.INPUT" />
+    <connection source="Image.OUTPUT" target="SpatialVAE.INPUT" />
+    <connection source="SpatialVAE.ACTIVE_LATENT_COUNT" target="PrintSpatialActiveCount.INPUT" />
+    <connection source="Image.OUTPUT" target="SGDVAE.INPUT" />
+    <connection source="SGDVAE.ACTIVE_LATENT_COUNT" target="PrintSGDActiveCount.INPUT" />
+</group>

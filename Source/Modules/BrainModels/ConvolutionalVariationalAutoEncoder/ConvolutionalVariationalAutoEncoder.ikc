@@ -14,6 +14,11 @@
 	<parameter name="adam_epsilon" type="number" default="0.00000001" min="0" description="Adam numerical stability term" />
 	<parameter name="random_seed" type="number" default="-1" description="Random initialization and sampling seed; negative values use a nondeterministic seed" />
 	<parameter name="beta" type="number" default="1" min="0" description="Weight of the KL-divergence term" />
+	<parameter name="latent_gating" type="bool" default="no" description="Learn hard-concrete gates that select latent features used by the decoder" />
+	<parameter name="latent_gate_penalty" type="number" default="0.0001" min="0" description="Loss added for each expected open latent gate" />
+	<parameter name="latent_gate_temperature" type="number" default="0.666667" min="0.000001" description="Hard-concrete gate sampling temperature" />
+	<parameter name="latent_gate_initial_probability" type="number" default="0.99" min="0.000001" max="0.999999" description="Initial probability that a latent gate is open" />
+	<parameter name="latent_gate_threshold" type="number" default="0.5" min="0" max="1" description="Deterministic gate threshold used to count active latent features" />
 	<parameter name="reconstruction_loss" type="number" default="mse" options="mse,bernoulli" description="Reconstruction likelihood model" />
 	<parameter name="latent_consistency_weight" type="number" default="0" min="0" description="Weight of the paired-view latent mean consistency penalty" />
 	<parameter name="latent_cluster_count" type="number" default="1" min="1" description="Number of learned latent prototype clusters" />
@@ -39,7 +44,11 @@
 	<output name="OUTPUT" shape="INPUT.shape" description="Reconstructed input" />
 	<output name="LATENT_MEAN" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" description="Latent Gaussian mean" />
 	<output name="LATENT_LOG_VARIANCE" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" description="Latent Gaussian log variance" />
-	<output name="LATENT_SAMPLE" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" description="Latent sample used by the decoder" />
+	<output name="LATENT_SAMPLE" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" description="Ungated sample from the latent Gaussian" />
+	<output name="GATED_LATENT_MEAN" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" description="Latent Gaussian mean multiplied by deterministic learned gates" />
+	<output name="LATENT_GATES" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" description="Deterministic hard-concrete gate values for latent features" />
+	<output name="ACTIVE_LATENT_COUNT" size="1" description="Number of deterministic latent gates above latent_gate_threshold" />
+	<output name="GATE_LOSS" size="1" description="Expected number of open latent gates" />
 	<output name="LOSS" size="1" description="Total VAE loss" />
 	<output name="RECONSTRUCTION_LOSS" size="1" description="Mean reconstruction loss" />
 	<output name="RECONSTRUCTION_LOSS_CHANNELS" size="(INPUT.rank-2)*INPUT.shape[0]+(3-INPUT.rank)" description="Per-channel mean reconstruction loss" />
@@ -77,6 +86,7 @@
 	<state name="SPATIAL_LOG_VARIANCE_BIAS" type="matrix" size="@latent_mode*@latent_maps+(1-@latent_mode)" persistent="true" />
 	<state name="SPATIAL_DECODER_FILTERS" type="matrix" size="@latent_mode*@latent_maps+(1-@latent_mode),@latent_mode*@feature_maps+(1-@latent_mode),@latent_mode*@latent_kernel_size+(1-@latent_mode),@latent_mode*@latent_kernel_size+(1-@latent_mode)" persistent="true" />
 	<state name="SPATIAL_DECODER_BIAS" type="matrix" size="@latent_mode*@feature_maps+(1-@latent_mode)" persistent="true" />
+	<state name="LATENT_GATE_LOGITS" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" persistent="true" />
 
 	<state name="RECONSTRUCTION_VALUES" type="matrix" shape="INPUT.shape" />
 	<state name="RECONSTRUCTION_ERROR" type="matrix" shape="INPUT.shape" />
@@ -88,6 +98,7 @@
 	<state name="LATENT_STDDEV" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
 	<state name="LATENT_EPSILON" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
 	<state name="LATENT_VALUES" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
+	<state name="GATED_DECODER_LATENT_VALUES" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
 	<state name="KL_TERMS" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
 	<state name="EXP_LOG_VARIANCE" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
 	<state name="CONSISTENCY_LATENT_MEAN_VALUES" type="matrix" size="optional((1-@latent_mode)*@latent_size),optional(@latent_mode*@latent_maps),optional(@latent_mode*(INPUT.rows-(1-@padding)*(@kernel_size+@latent_kernel_size-2))),optional(@latent_mode*(INPUT.cols-(1-@padding)*(@kernel_size+@latent_kernel_size-2)))" />
@@ -103,4 +114,5 @@
 	<state name="LATENT_DECORRELATION_CURRENT" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
 	<state name="LATENT_DECORRELATION_GRADIENT" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
 	<state name="weights_initialized" type="bool" default="false" persistent="true" />
+	<state name="latent_gates_initialized" type="bool" default="false" persistent="true" />
 </class>
