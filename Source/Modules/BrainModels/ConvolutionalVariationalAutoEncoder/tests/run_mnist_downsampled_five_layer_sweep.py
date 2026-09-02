@@ -57,6 +57,13 @@ EXPERIMENTS = (
     ),
 )
 
+DISPLAY_NAMES = {
+    "kernel3_plain": "3 x 3, plain",
+    "kernel4_plain": "4 x 4, plain",
+    "kernel3_decor0p01": "3 x 3, decorrelation 0.01",
+    "kernel4_decor0p01": "4 x 4, decorrelation 0.01",
+}
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -455,15 +462,19 @@ def write_aggregate(results: list[dict[str, Any]]) -> None:
     axis.axvline(10.0, color="black", linewidth=1, linestyle="--", label="Chance")
     axis.set_yticks(
         positions,
-        [f"{result['name']} r{result['replicate']} ({result['ticks'] // 1000}k)" for result in plotted],
+        [
+            f"{DISPLAY_NAMES.get(result['name'], result['name'])} "
+            f"r{result['replicate']} ({result['ticks'] // 1000}k)"
+            for result in plotted
+        ],
     )
     axis.invert_yaxis()
     axis.set_xlabel("Held-out validation accuracy (%)")
     axis.set_title("Fully downsampled five-level CVAE frozen-code probes")
-    axis.legend(loc="lower right")
+    axis.legend(loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=3)
     axis.grid(axis="x", alpha=0.25)
     plt.tight_layout()
-    plt.savefig(OUTPUT_ROOT / "validation_accuracy.png", dpi=180)
+    plt.savefig(OUTPUT_ROOT / "validation_accuracy.png", dpi=180, bbox_inches="tight")
     plt.close()
 
     if summaries:
@@ -486,14 +497,24 @@ def write_aggregate(results: list[dict[str, Any]]) -> None:
             label="Top-code nearest neighbour",
         )
         axis.axvline(10.0, color="black", linewidth=1, linestyle="--", label="Chance")
-        axis.set_yticks(positions, [f"{result['name']} (n={result['runs']})" for result in summaries])
+        axis.set_yticks(
+            positions,
+            [
+                f"{DISPLAY_NAMES.get(result['name'], result['name'])} (n={result['runs']})"
+                for result in summaries
+            ],
+        )
         axis.invert_yaxis()
         axis.set_xlabel("Held-out validation accuracy, mean +/- sample SD (%)")
         axis.set_title("Replicated fully downsampled five-level CVAE probes")
-        axis.legend(loc="lower right")
+        axis.legend(loc="upper center", bbox_to_anchor=(0.5, -0.16), ncol=3)
         axis.grid(axis="x", alpha=0.25)
         plt.tight_layout()
-        plt.savefig(OUTPUT_ROOT / "replicated_validation_accuracy.png", dpi=180)
+        plt.savefig(
+            OUTPUT_ROOT / "replicated_validation_accuracy.png",
+            dpi=180,
+            bbox_inches="tight",
+        )
         plt.close()
 
 
