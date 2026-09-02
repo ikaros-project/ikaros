@@ -289,17 +289,29 @@ Adam for 30 fixed epochs, a learning rate of 0.01, batches of 512, and fixed wid
 `sigma=2`. Labels were used only by this downstream classifier; VAE learning remained
 unsupervised. No k-means centers or training examples are required after classifier training.
 
-| Classifier | Stored vectors | Test accuracy |
-| --- | ---: | ---: |
-| Class-conditional k-means, 20 per digit | 200 | 93.34 +/- 0.10% |
-| **Trainable prototype mixture, 20 per digit** | **200** | **96.83 +/- 0.14%** |
-| 1-nearest neighbour | 60,000 | 96.83 +/- 0.08% |
-| 5-nearest neighbours | 60,000 | 97.12 +/- 0.11% |
+| Classifier | Prototypes per digit | Stored vectors | Used vectors | Test accuracy |
+| --- | ---: | ---: | ---: | ---: |
+| Trainable prototype mixture | 5 | 50 | 50.0 | 94.97 +/- 0.15% |
+| Trainable prototype mixture | 10 | 100 | 99.0 | 95.98 +/- 0.10% |
+| **Trainable prototype mixture** | **20** | **200** | **196.3** | **96.83 +/- 0.14%** |
+| Trainable prototype mixture | 50 | 500 | 476.7 | 97.12 +/- 0.23% |
+| **Trainable prototype mixture** | **100** | **1,000** | **926.7** | **97.34 +/- 0.21%** |
+| Class-conditional k-means | 20 | 200 | - | 93.34 +/- 0.10% |
+| 1-nearest neighbour | - | 60,000 | 60,000 | 96.83 +/- 0.08% |
+| 5-nearest neighbours | - | 60,000 | 60,000 | 97.12 +/- 0.11% |
 
 The trainable mixture gained 3.49 percentage points over fixed k-means prototypes and matched
 1-nearest-neighbour accuracy while using 300 times fewer stored vectors. It remained only 0.29
 points below 5-nearest-neighbour voting. On average 196.3 of its 200 prototypes were nearest to at
 least one same-class training example, indicating little prototype collapse.
+
+Capacity tests show diminishing returns. Five and ten trainable prototypes per digit reached
+94.97% and 95.98%. Fifty per digit matched the mean 5-nearest-neighbour accuracy while using 120
+times fewer reference vectors. One hundred per digit reached 97.34%, exceeding 5-nearest neighbour
+by 0.22 percentage points in the mean and in each of the three paired CVAE runs, while still using
+60 times fewer vectors. Prototype utilization gradually declined from 100% at five per digit to
+92.7% at one hundred per digit, suggesting that still larger mixtures would add increasingly
+redundant capacity.
 
 ## Limitations
 
@@ -365,6 +377,6 @@ The trainable prototype-mixture classifier can be reproduced from the saved full
 ```console
 .venv/bin/python \
   Source/Modules/BrainModels/ConvolutionalVariationalAutoEncoder/tests/run_mnist_prototype_mixture.py \
-  --prototypes-per-class 20 --epochs 30 --batch-size 512 \
+  --prototype-counts 5 10 20 50 100 --epochs 30 --batch-size 512 \
   --learning-rate 0.01 --width 2.0 --replicates 3
 ```

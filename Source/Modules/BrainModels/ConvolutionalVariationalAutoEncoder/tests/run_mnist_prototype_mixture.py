@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import csv
 import json
 from pathlib import Path
@@ -25,6 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--replicates", type=int, default=3)
     parser.add_argument("--seed-base", type=int, default=71_000)
     parser.add_argument("--prototypes-per-class", type=int, default=20)
+    parser.add_argument("--prototype-counts", type=int, nargs="+")
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=512)
     parser.add_argument("--learning-rate", type=float, default=0.01)
@@ -198,11 +200,12 @@ def run_classifier(
     replicate: int,
     seed: int,
     args: argparse.Namespace,
+    result_root: Path,
 ) -> dict[str, Any]:
     run_id = f"full_dataset_constant_gate_005_r{replicate}_s{seed}_{args.ticks}"
     source_dir = full.FULL_OUTPUT_ROOT / run_id
-    result_path = OUTPUT_ROOT / f"mixture_r{replicate}_s{seed}.json"
-    centers_path = OUTPUT_ROOT / f"mixture_r{replicate}_s{seed}.npz"
+    result_path = result_root / f"mixture_r{replicate}_s{seed}.json"
+    centers_path = result_root / f"mixture_r{replicate}_s{seed}.npz"
     if args.resume and result_path.exists() and centers_path.exists():
         with result_path.open() as handle:
             return json.load(handle)
@@ -255,28 +258,36 @@ def run_classifier(
     return result
 
 
-def plot_summary(summary: dict[str, float]) -> Path:
+def plot_summaries(summaries: list[dict[str, float]]) -> Path:
     baseline_path = full.FULL_OUTPUT_ROOT / "full_dataset_constant_gate_summary.json"
     with baseline_path.open() as handle:
         baseline = json.load(handle)
-    values = (
+    colors = ("#5470a8", "#8a6ca8", "#4c9575", "#287271", "#b65c4a")
+    values = [
         (
-            "20 k-means prototypes/digit",
-            100.0 * baseline["validation_twenty_prototypes_per_class_zscore_mean"],
-            "#4c9575",
-        ),
-        (
-            "20 trainable mixture prototypes/digit",
+            f"{int(summary['prototypes_per_class'])} prototypes/digit "
+            f"({int(summary['total_prototypes'])})",
             100.0 * summary["test_accuracy_mean"],
-            "#8a6ca8",
-        ),
+            colors[index % len(colors)],
+        )
+        for index, summary in enumerate(summaries)
+    ]
+    values.extend(
+        [
         (
             "1-nearest neighbour",
             100.0 * baseline["validation_nearest_zscore_mean"],
             "#e9a03b",
         ),
+        (
+            "5-nearest neighbours",
+            100.0 * baseline["validation_five_nearest_zscore_mean"],
+            "#b65c4a",
+        ),
+        ]
     )
-    width, height = 1120, 360
+    width = 1120
+    height = 145 + 70 * len(values)
     image = Image.new("RGB", (width, height), "#f5f5f2")
     draw = ImageDraw.Draw(image)
     title_font = ImageFont.load_default(size=22)
@@ -294,19 +305,19 @@ def plot_summary(summary: dict[str, float]) -> Path:
         draw.rectangle((plot_left, y, x, y + 18), fill=color)
         draw.text((x + 6, y + 1), f"{value:.1f}%", font=font, fill="#202020")
     draw.text((plot_left, height - 28), "test accuracy", font=font, fill="#404040")
-    path = OUTPUT_ROOT / "prototype_mixture_comparison.png"
+    path = OUTPUT_ROOT / "prototype_mixture_capacity.png"
     image.save(path)
     return path
 
 
-def main() -> None:
-    args = parse_args()
-    OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
+def run_capacity(args: argparse.Namespace) -> dict[str, float]:
+    result_root = OUTPUT_ROOT / f"{args.prototypes_per_class}_per_class"
+    result_root.mkdir(parents=True, exist_ok=True)
     results = [
-        run_classifier(replicate, args.seed_base + replicate, args)
+        run_classifier(replicate, args.seed_base + replicate, args, result_root)
         for replicate in range(1, args.replicates + 1)
     ]
-    with (OUTPUT_ROOT / "prototype_mixture_results.csv").open("w", newline="") as handle:
+    with (result_root / "results.csv").open("w", newline="") as handle:
         columns = [name for name in results[0] if name != "history"]
         writer = csv.DictWriter(handle, fieldnames=columns)
         writer.writeheader()
@@ -325,11 +336,27 @@ def main() -> None:
             np.mean([result["used_prototypes"] for result in results])
         ),
     }
-    with (OUTPUT_ROOT / "prototype_mixture_summary.json").open("w") as handle:
+    with (result_root / "summary.json").open("w") as handle:
         json.dump(summary, handle, indent=2, sort_keys=True)
         handle.write("\n")
-    plot_path = plot_summary(summary)
     print(json.dumps(summary, indent=2, sort_keys=True), flush=True)
+    return summary
+
+
+def main() -> None:
+    args = parse_args()
+    OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
+    counts = args.prototype_counts or [args.prototypes_per_class]
+    summaries = []
+    for count in counts:
+        capacity_args = copy.copy(args)
+        capacity_args.prototypes_per_class = count
+        summaries.append(run_capacity(capacity_args))
+    summaries.sort(key=lambda summary: summary["prototypes_per_class"])
+    with (OUTPUT_ROOT / "capacity_summary.json").open("w") as handle:
+        json.dump(summaries, handle, indent=2, sort_keys=True)
+        handle.write("\n")
+    plot_path = plot_summaries(summaries)
     print(f"Plot: {plot_path}", flush=True)
 
 
