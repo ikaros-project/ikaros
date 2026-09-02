@@ -213,6 +213,94 @@ changes the capacity tradeoff rather than uniformly improving the representation
 setting remains the simpler recommendation when compactness or nearest-neighbour geometry matters;
 the staged setting is useful when reconstruction and linear decodability have priority.
 
+## Follow-up: Full MNIST
+
+The constant `0.005` gate penalty was next tested without scheduling on the complete MNIST split:
+60,000 training images and 10,000 test images. The same center-of-mass alignment and zero-padding to
+32 x 32 were applied, preserving the 1,024-64-1,024 architecture. Each of three seeds was trained
+for 600,000 updates, corresponding to ten complete passes through the training split.
+
+| Data | Runs | Active gates | Effective rank | Linear ridge | Nearest neighbour | Validation MAE |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1,000 train / 200 test | 5 | 35.4 +/- 1.9 | 25.67 | 80.4 +/- 1.8% | 85.9 +/- 1.3% | 0.0328 |
+| **60,000 train / 10,000 test** | **3** | **28.7 +/- 1.2** | **25.56** | **82.6 +/- 0.3%** | **96.8 +/- 0.1%** | **0.0321** |
+
+The full-data model improved linear accuracy by 2.2 percentage points while retaining fewer active
+variables. The much larger 10.9-point nearest-neighbour gain must be interpreted partly as a probe
+effect: the full-data classifier has 60,000 reference codes rather than 1,000. Reconstruction MAE
+and effective rank remained nearly unchanged despite the much greater variation in the training
+set. These results support constant latent gating as a useful capacity-control mechanism, but do
+not show that its automatically selected dimensionality is optimal for classification.
+
+To measure how much the nearest-neighbour result depends on retaining every training example, the
+60,000 reference codes were replaced by ten class-mean prototypes, one for each digit. Latent
+dimensions were standardized using training-set statistics before the prototype means and
+Euclidean distances were calculated. Labels were used only by this downstream probe; VAE training
+remained unsupervised.
+
+| Downstream classifier | Stored reference vectors | Test accuracy |
+| --- | ---: | ---: |
+| Linear ridge | 10 output weight vectors | 82.6 +/- 0.3% |
+| **Nearest class-mean prototype** | **10** | **82.7 +/- 0.7%** |
+| **Five k-means prototypes per digit** | **50** | **89.8 +/- 0.3%** |
+| **Ten k-means prototypes per digit** | **100** | **91.9 +/- 0.1%** |
+| **Twenty k-means prototypes per digit** | **200** | **93.3 +/- 0.1%** |
+| 1-nearest neighbour | 60,000 | 96.8 +/- 0.1% |
+| **5-nearest neighbours** | **60,000** | **97.1 +/- 0.1%** |
+
+The ten-prototype classifier lost 14.1 percentage points relative to using all training codes. Its
+performance was essentially identical to the linear probe. This indicates
+that a digit category does not form one compact spherical cluster in this latent space: the full
+nearest-neighbour classifier benefits from retaining multiple prototypes for different handwriting
+styles within each category.
+
+Unweighted five-nearest-neighbour voting improved accuracy by 0.29 percentage points over the
+single-neighbour classifier, reaching 97.12%. The improvement occurred in all three runs. Ties in
+the multiclass vote were resolved in favor of the class whose closest member was nearest. This
+reduces sensitivity to an atypical or mislabeled closest example, but still requires storing all
+60,000 training codes.
+
+Five prototypes per digit were then fitted by class-conditional k-means with k-means++
+initialization and five restarts, producing 50 stored vectors in total. Classification by the
+closest of these prototypes reached 89.83 +/- 0.27%. Modeling multiple handwriting variants thus
+recovered 7.1 percentage points over a single mean per digit. It remained 7.0 points below
+1-nearest neighbour, but reduced reference storage and distance calculations by a factor of 1,200.
+
+Increasing the representation to ten and twenty prototypes per digit raised accuracy to
+91.89 +/- 0.15% and 93.34 +/- 0.10%, respectively. The gains diminish as prototypes are added:
+doubling from 50 to 100 stored vectors added 2.1 percentage points, and doubling from 100 to 200
+added 1.4 points. The 200-vector classifier remains 3.5 points below 1-nearest neighbour while
+using 300 times fewer reference vectors and distance calculations.
+
+### Trainable Prototype Mixture
+
+A self-contained prototype-mixture classifier was then trained on the same frozen latent codes.
+Each digit owned 20 radial-basis prototype units, giving 200 trainable centers. Centers were
+initialized from random examples of their assigned class without k-means. Given code (z), the
+component and class scores were
+
+```math
+s_{c,m}(z)=-\frac{\|z-\mu_{c,m}\|^2}{2\sigma^2}, \qquad
+S_c(z)=\log\sum_m \exp s_{c,m}(z).
+```
+
+The centers were optimized directly with cross-entropy through the class-wise log-sum-exp using
+Adam for 30 fixed epochs, a learning rate of 0.01, batches of 512, and fixed width
+`sigma=2`. Labels were used only by this downstream classifier; VAE learning remained
+unsupervised. No k-means centers or training examples are required after classifier training.
+
+| Classifier | Stored vectors | Test accuracy |
+| --- | ---: | ---: |
+| Class-conditional k-means, 20 per digit | 200 | 93.34 +/- 0.10% |
+| **Trainable prototype mixture, 20 per digit** | **200** | **96.83 +/- 0.14%** |
+| 1-nearest neighbour | 60,000 | 96.83 +/- 0.08% |
+| 5-nearest neighbours | 60,000 | 97.12 +/- 0.11% |
+
+The trainable mixture gained 3.49 percentage points over fixed k-means prototypes and matched
+1-nearest-neighbour accuracy while using 300 times fewer stored vectors. It remained only 0.29
+points below 5-nearest-neighbour voting. On average 196.3 of its 200 prototypes were nearest to at
+least one same-class training example, indicating little prototype collapse.
+
 ## Limitations
 
 - The 200-image validation subset was used repeatedly for model selection and is not an untouched
@@ -261,4 +349,22 @@ The matched-seed gate-schedule comparison can be reproduced with:
   Source/Modules/BrainModels/ConvolutionalVariationalAutoEncoder/tests/run_mnist_direct_vae_gate_schedule.py \
   --ticks 50000 --replicates 5 --seed-base 69000 \
   --agent "Codex: <model> <reasoning level>" --resume
+```
+
+The full centered-MNIST test can be reproduced with:
+
+```console
+.venv/bin/python \
+  Source/Modules/BrainModels/ConvolutionalVariationalAutoEncoder/tests/run_mnist_direct_vae_full.py \
+  --ticks 600000 --replicates 3 --seed-base 71000 \
+  --agent "Codex: <model> <reasoning level>" --resume
+```
+
+The trainable prototype-mixture classifier can be reproduced from the saved full-data codes with:
+
+```console
+.venv/bin/python \
+  Source/Modules/BrainModels/ConvolutionalVariationalAutoEncoder/tests/run_mnist_prototype_mixture.py \
+  --prototypes-per-class 20 --epochs 30 --batch-size 512 \
+  --learning-rate 0.01 --width 2.0 --replicates 3
 ```

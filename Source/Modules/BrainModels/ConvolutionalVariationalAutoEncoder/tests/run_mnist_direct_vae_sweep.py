@@ -23,7 +23,13 @@ import run_mnist_parameter_sweep as evaluation
 REPOSITORY_ROOT = Path(__file__).resolve().parents[5]
 USER_DATA = REPOSITORY_ROOT / "UserData"
 DATA_ROOT = USER_DATA / "cvae_mnist_centered_32"
+DATASET_DIRECTORY = DATA_ROOT.name
+TRAIN_COUNT = 1000
+VALIDATION_COUNT = 200
 OUTPUT_ROOT = USER_DATA / "output" / "cvae_mnist_direct_vae_sweep"
+OUTPUT_DIRECTORY = "output/cvae_mnist_direct_vae_sweep"
+EXPORT_GATE_VALUES = True
+EXPORT_CLUSTER_ASSIGNMENT = True
 CONSISTENCY_ROOT = OUTPUT_ROOT / "consistency_views"
 IKAROS = REPOSITORY_ROOT / "Bin" / "ikaros"
 TRAIN_TEMPLATE = Path(__file__).with_name("mnist_dense_vae_train.ikg")
@@ -435,6 +441,9 @@ def configure_model(
     modules = {module.get("name"): module for module in root.findall("module")}
     parameters = condition.parameters()
     set_parameters(modules["VAE"], condition, seed, training)
+    count = TRAIN_COUNT if split == "train" else VALIDATION_COUNT
+    modules["MNIST"].set("filename", f"{DATASET_DIRECTORY}/{split}/image_#####.pgm")
+    modules["MNIST"].set("filecount", str(count))
     if training:
         for connection in list(root.findall("connection")):
             if connection.get("target", "").startswith("Metrics."):
@@ -443,12 +452,9 @@ def configure_model(
         if condition.paired_view:
             add_training_consistency(root)
     else:
-        count = 1000 if split == "train" else 200
-        modules["MNIST"].set("filename", f"cvae_mnist_centered_32/{split}/image_#####.pgm")
-        modules["MNIST"].set("filecount", str(count))
-        modules["Labels"].set("filename", f"cvae_mnist_centered_32/{split}/labels.csv")
+        modules["Labels"].set("filename", f"{DATASET_DIRECTORY}/{split}/labels.csv")
         output_name = "train_codes.csv" if split == "train" else "validation_codes.csv"
-        modules["Codes"].set("directory", "output/cvae_mnist_direct_vae_sweep")
+        modules["Codes"].set("directory", OUTPUT_DIRECTORY)
         modules["Codes"].set("filename", f"{run_id}/{output_name}")
         for connection in list(root.findall("connection")):
             if connection.get("source") == "VAE.OUTPUT":
@@ -460,7 +466,6 @@ def configure_model(
                 connection.set("source", "VAE.GATED_LATENT_MEAN")
         if parameters.get("latent_gating") == "yes":
             for source, label in (
-                ("VAE.LATENT_GATES", "latent_gate"),
                 ("VAE.ACTIVE_LATENT_COUNT", "active_latent_count"),
                 ("VAE.GATE_LOSS", "gate_loss"),
             ):
@@ -470,16 +475,28 @@ def configure_model(
                         {"source": source, "target": "Codes.INPUT", "label": label},
                     )
                 )
-        root.append(
-            ET.Element(
-                "connection",
-                {
-                    "source": "VAE.CLUSTER_ASSIGNMENT",
-                    "target": "Codes.INPUT",
-                    "label": "cluster_assignment",
-                },
+            if EXPORT_GATE_VALUES:
+                root.append(
+                    ET.Element(
+                        "connection",
+                        {
+                            "source": "VAE.LATENT_GATES",
+                            "target": "Codes.INPUT",
+                            "label": "latent_gate",
+                        },
+                    )
+                )
+        if EXPORT_CLUSTER_ASSIGNMENT:
+            root.append(
+                ET.Element(
+                    "connection",
+                    {
+                        "source": "VAE.CLUSTER_ASSIGNMENT",
+                        "target": "Codes.INPUT",
+                        "label": "cluster_assignment",
+                    },
+                )
             )
-        )
     ET.indent(tree, space="    ")
     tree.write(target, encoding="unicode")
 
@@ -519,7 +536,7 @@ def evaluate_run(run_dir: Path) -> dict[str, Any]:
     train_z, validation_z = evaluation.zscore(train_codes, validation_codes)
     cluster_accuracy = evaluation.cluster_majority_accuracy(
         train_rows, validation_rows, train_labels, validation_labels
-    )
+    ) if EXPORT_CLUSTER_ASSIGNMENT else None
     result: dict[str, Any] = {
         "train_samples": len(train_rows),
         "validation_samples": len(validation_rows),
@@ -552,8 +569,6 @@ def evaluate_run(run_dir: Path) -> dict[str, Any]:
     }
     result.update(code_statistics(train_codes))
     if "active_latent_count" in train_rows[0]:
-        gates = evaluation.column_matrix(train_rows, "latent_gate")
-        mean_gates = np.mean(gates, axis=0)
         result.update(
             {
                 "active_latent_count": evaluation.scalar_mean(
@@ -562,12 +577,19 @@ def evaluate_run(run_dir: Path) -> dict[str, Any]:
                 "expected_active_latent_count": evaluation.scalar_mean(
                     validation_rows, "gate_loss"
                 ),
-                "latent_gate_mean": float(np.mean(mean_gates)),
-                "latent_gate_min": float(np.min(mean_gates)),
-                "latent_gate_max": float(np.max(mean_gates)),
-                "latent_gate_values": mean_gates.tolist(),
             }
         )
+        if any(name.startswith("latent_gate:") for name in train_rows[0]):
+            gates = evaluation.column_matrix(train_rows, "latent_gate")
+            mean_gates = np.mean(gates, axis=0)
+            result.update(
+                {
+                    "latent_gate_mean": float(np.mean(mean_gates)),
+                    "latent_gate_min": float(np.min(mean_gates)),
+                    "latent_gate_max": float(np.max(mean_gates)),
+                    "latent_gate_values": mean_gates.tolist(),
+                }
+            )
     return result
 
 
@@ -614,11 +636,11 @@ def run_condition(
     )
     extract_command = [str(IKAROS), "-b", "-A", args.agent, "-L", str(state_path)]
     evaluation.run_command(
-        [*extract_command, "-s", "1005", str(train_extract_model)],
+        [*extract_command, "-s", str(TRAIN_COUNT + 5), str(train_extract_model)],
         run_dir / "extract_train.log",
     )
     evaluation.run_command(
-        [*extract_command, "-s", "205", str(validation_extract_model)],
+        [*extract_command, "-s", str(VALIDATION_COUNT + 5), str(validation_extract_model)],
         run_dir / "extract_validation.log",
     )
     result = evaluate_run(run_dir)
