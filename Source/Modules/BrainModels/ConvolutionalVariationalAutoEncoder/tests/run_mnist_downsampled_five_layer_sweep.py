@@ -13,7 +13,6 @@ import struct
 import subprocess
 import time
 import xml.etree.ElementTree as ET
-import zlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -119,30 +118,22 @@ def center_and_pad(image: np.ndarray) -> np.ndarray:
     return padded
 
 
-def png_chunk(kind: bytes, data: bytes) -> bytes:
-    return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
-
-
-def write_png(path: Path, image: np.ndarray) -> None:
-    scanlines = b"".join(b"\0" + row.tobytes() for row in image)
-    header = struct.pack(">IIBBBBB", 32, 32, 8, 0, 0, 0, 0)
+def write_pgm(path: Path, image: np.ndarray) -> None:
     with path.open("wb") as handle:
-        handle.write(b"\x89PNG\r\n\x1a\n")
-        handle.write(png_chunk(b"IHDR", header))
-        handle.write(png_chunk(b"IDAT", zlib.compress(scanlines)))
-        handle.write(png_chunk(b"IEND", b""))
+        handle.write(b"P5\n32 32\n255\n")
+        handle.write(image.tobytes())
 
 
 def prepare_split(split: str, count: int, image_archive: str, label_archive: str) -> None:
     target = DATA_ROOT / split
-    completion_marker = target / ".complete_png"
+    completion_marker = target / ".complete_pgm"
     if completion_marker.exists():
         return
     target.mkdir(parents=True, exist_ok=True)
     images = read_idx_images(RAW_ROOT / image_archive, count)
     labels = read_idx_labels(RAW_ROOT / label_archive, count)
     for index, image in enumerate(images):
-        write_png(target / f"image_{index:05d}.png", center_and_pad(image))
+        write_pgm(target / f"image_{index:05d}.pgm", center_and_pad(image))
     with (target / "labels.csv").open("w", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(["label"])
@@ -201,7 +192,7 @@ def configure_model(
         count = 1000 if split == "train" else 200
         output_split = "train" if split == "train" else "validation"
         modules["MNIST"].set(
-            "filename", f"cvae_mnist_centered_32/{split}/image_#####.png"
+            "filename", f"cvae_mnist_centered_32/{split}/image_#####.pgm"
         )
         modules["MNIST"].set("filecount", str(count))
         modules["Labels"].set("filename", f"cvae_mnist_centered_32/{split}/labels.csv")

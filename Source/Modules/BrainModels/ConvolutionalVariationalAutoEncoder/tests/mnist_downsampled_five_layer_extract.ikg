@@ -1,6 +1,6 @@
 <group name="CVAE_MNIST_DownsampledFiveLayer" title="CVAE MNIST Fully Downsampled Five-Layer Extraction" tick_duration="1">
     <module class="InputImage" name="MNIST" _x="40" _y="140"
-        filename="cvae_mnist_centered_32/test/image_#####.png" filecount="200" iterations="1" read_once="no" />
+        filename="cvae_mnist_centered_32/test/image_#####.pgm" filecount="200" iterations="1" read_once="no" />
     <module class="InputFile" name="Labels" _x="40" _y="330"
         filename="cvae_mnist_centered_32/test/labels.csv" format="csv" header="true" send_end_of_file="yes" />
 
