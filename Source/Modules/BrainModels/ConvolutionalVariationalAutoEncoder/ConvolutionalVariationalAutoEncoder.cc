@@ -71,6 +71,9 @@ class ConvolutionalVariationalAutoEncoder: public Module
     parameter latentGateTemperature_;
     parameter latentGateInitialProbability_;
     parameter latentGateThreshold_;
+    parameter latentGateWarmupUpdates_;
+    parameter latentGateRampUpdates_;
+    parameter latentGateFreezeUpdate_;
     parameter reconstruction_loss_mode_;
     parameter latent_consistency_weight_;
     parameter latent_cluster_count_;
@@ -132,8 +135,10 @@ class ConvolutionalVariationalAutoEncoder: public Module
     int dense_train_interval_value_ = 1;
     int train_tick_ = 0;
     int dense_train_tick_ = 0;
+    int latent_gate_training_update_ = 0;
     bool initialized_ = false;
     bool training_reconstruction_ = false;
+    bool train_latent_gates_this_tick_ = false;
     int latent_decorrelation_samples_ = 0;
     int latent_cluster_count_value_ = 1;
     int latent_cluster_features_value_ = 1;
@@ -295,6 +300,9 @@ class ConvolutionalVariationalAutoEncoder: public Module
         Bind(latentGateTemperature_, "latent_gate_temperature");
         Bind(latentGateInitialProbability_, "latent_gate_initial_probability");
         Bind(latentGateThreshold_, "latent_gate_threshold");
+        Bind(latentGateWarmupUpdates_, "latent_gate_warmup_updates");
+        Bind(latentGateRampUpdates_, "latent_gate_ramp_updates");
+        Bind(latentGateFreezeUpdate_, "latent_gate_freeze_update");
         Bind(reconstruction_loss_mode_, "reconstruction_loss");
         Bind(latent_consistency_weight_, "latent_consistency_weight");
         Bind(latent_cluster_count_, "latent_cluster_count");
@@ -314,6 +322,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         Bind(output_activation_, "output_activation");
         Bind(weights_initialized_, "weights_initialized");
         Bind(latent_gates_initialized_, "latent_gates_initialized");
+        Bind(latent_gate_training_update_, "latent_gate_training_update");
 
         Bind(input_, "INPUT");
         Bind(consistency_input_, "CONSISTENCY_INPUT");
@@ -573,6 +582,32 @@ class ConvolutionalVariationalAutoEncoder: public Module
     latent_gating_enabled() const
     {
         return latentGating_.as_bool();
+    }
+
+    float
+    effective_latent_gate_penalty() const
+    {
+        const float penalty = std::max(0.0f, latentGatePenalty_.as_float());
+        const int warmup_updates = std::max(0, latentGateWarmupUpdates_.as_int());
+        const int ramp_updates = std::max(0, latentGateRampUpdates_.as_int());
+        if(latent_gate_training_update_ < warmup_updates)
+            return 0.0f;
+        if(ramp_updates == 0)
+            return penalty;
+
+        const int ramp_update = latent_gate_training_update_ - warmup_updates + 1;
+        const float progress = std::clamp(
+            static_cast<float>(ramp_update) / static_cast<float>(ramp_updates), 0.0f, 1.0f);
+        return progress * penalty;
+    }
+
+    bool
+    latent_gate_training_is_active() const
+    {
+        const int warmup_updates = std::max(0, latentGateWarmupUpdates_.as_int());
+        const int freeze_update = std::max(0, latentGateFreezeUpdate_.as_int());
+        return latent_gate_training_update_ >= warmup_updates &&
+            (freeze_update == 0 || latent_gate_training_update_ < freeze_update);
     }
 
     int
@@ -1412,7 +1447,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         decorrelation_loss_(0) = compute_latent_decorrelation_loss();
         loss_(0) = reconstruction +
             beta_.as_float() * kl +
-            latentGatePenalty_.as_float() * gate_loss_(0) +
+            effective_latent_gate_penalty() * gate_loss_(0) +
             latent_consistency_weight_.as_float() * consistency_loss_(0) +
             latent_cluster_weight_.as_float() * cluster_loss_(0) +
             latent_cluster_balance_weight_.as_float() * cluster_balance_loss_(0) +
@@ -1884,7 +1919,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
         const matrix & source = ungated_decoder_latent_input();
         const int feature_count = latent_gate_feature_count();
         const int feature_size = source.size() / std::max(1, feature_count);
-        const float penalty = std::max(0.0f, latentGatePenalty_.as_float());
+        const float penalty = effective_latent_gate_penalty();
         const float * source_data = source.data();
         float * latent_gradient = d_latent_.data();
 
@@ -1899,9 +1934,10 @@ class ConvolutionalVariationalAutoEncoder: public Module
             }
 
             const float open_probability = latent_gate_open_probability(latent_gate_logits_(feature));
-            d_latent_gate_logits_(feature) =
+            d_latent_gate_logits_(feature) = train_latent_gates_this_tick_ ?
                 gate_gradient * latent_gate_derivatives_(feature) +
-                penalty * open_probability * (1.0f - open_probability);
+                    penalty * open_probability * (1.0f - open_probability) :
+                0.0f;
         }
     }
 
@@ -2154,7 +2190,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
                 active_log_variance_bias().adam_update(d_log_variance_, log_variance_bias_m_, log_variance_bias_v_, learning_rate, dense_adam.beta1, dense_adam.beta2, dense_adam.beta1_correction, dense_adam.beta2_correction, dense_adam.epsilon);
                 active_decoder_weights().adam_update(d_decoder_weights_, decoder_weights_m_, decoder_weights_v_, learning_rate, dense_adam.beta1, dense_adam.beta2, dense_adam.beta1_correction, dense_adam.beta2_correction, dense_adam.epsilon);
                 active_decoder_bias().adam_update(d_decoder_bias, decoder_bias_m_, decoder_bias_v_, learning_rate, dense_adam.beta1, dense_adam.beta2, dense_adam.beta1_correction, dense_adam.beta2_correction, dense_adam.epsilon);
-                if(latent_gating_enabled())
+                if(train_latent_gates_this_tick_)
                     latent_gate_logits_.adam_update(d_latent_gate_logits_, latent_gate_logits_m_, latent_gate_logits_v_, learning_rate, dense_adam.beta1, dense_adam.beta2, dense_adam.beta1_correction, dense_adam.beta2_correction, dense_adam.epsilon);
             }
             return;
@@ -2173,7 +2209,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
             active_log_variance_bias().sgd_update(d_log_variance_, learning_rate);
             active_decoder_weights().sgd_update(d_decoder_weights_, learning_rate);
             active_decoder_bias().sgd_update(d_decoder_bias, learning_rate);
-            if(latent_gating_enabled())
+            if(train_latent_gates_this_tick_)
                 latent_gate_logits_.sgd_update(d_latent_gate_logits_, learning_rate);
         }
     }
@@ -2197,7 +2233,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
                 spatial_log_variance_bias_.adam_update(d_spatial_log_variance_bias_, spatial_log_variance_bias_m_, spatial_log_variance_bias_v_, learning_rate, latent_adam.beta1, latent_adam.beta2, latent_adam.beta1_correction, latent_adam.beta2_correction, latent_adam.epsilon);
                 spatial_decoder_filters_.adam_update(d_spatial_decoder_filters_, spatial_decoder_filters_m_, spatial_decoder_filters_v_, learning_rate, latent_adam.beta1, latent_adam.beta2, latent_adam.beta1_correction, latent_adam.beta2_correction, latent_adam.epsilon);
                 spatial_decoder_bias_.adam_update(d_spatial_decoder_bias_, spatial_decoder_bias_m_, spatial_decoder_bias_v_, learning_rate, latent_adam.beta1, latent_adam.beta2, latent_adam.beta1_correction, latent_adam.beta2_correction, latent_adam.epsilon);
-                if(latent_gating_enabled())
+                if(train_latent_gates_this_tick_)
                     latent_gate_logits_.adam_update(d_latent_gate_logits_, latent_gate_logits_m_, latent_gate_logits_v_, learning_rate, latent_adam.beta1, latent_adam.beta2, latent_adam.beta1_correction, latent_adam.beta2_correction, latent_adam.epsilon);
             }
             return;
@@ -2216,7 +2252,7 @@ class ConvolutionalVariationalAutoEncoder: public Module
             spatial_log_variance_bias_.sgd_update(d_spatial_log_variance_bias_, learning_rate);
             spatial_decoder_filters_.sgd_update(d_spatial_decoder_filters_, learning_rate);
             spatial_decoder_bias_.sgd_update(d_spatial_decoder_bias_, learning_rate);
-            if(latent_gating_enabled())
+            if(train_latent_gates_this_tick_)
                 latent_gate_logits_.sgd_update(d_latent_gate_logits_, learning_rate);
         }
     }
@@ -2300,8 +2336,10 @@ class ConvolutionalVariationalAutoEncoder: public Module
             throw exception("ConvolutionalVariationalAutoEncoder: INPUT shape changed after initialization.", path_);
 
         const bool train_this_tick = train_.as_bool() && should_train_this_tick();
+        train_latent_gates_this_tick_ = train_this_tick && latent_gating_enabled() &&
+            latent_gate_training_is_active();
         encode();
-        update_latent_gates(train_this_tick);
+        update_latent_gates(train_latent_gates_this_tick_);
         encode_consistency_latent_mean();
         decode();
         publish_latent();
@@ -2317,6 +2355,8 @@ class ConvolutionalVariationalAutoEncoder: public Module
             }
 
             train_step();
+            if(latent_gating_enabled())
+                ++latent_gate_training_update_;
             if(use_teacher_forced_reconstruction)
                 training_reconstruction_ = false;
         }

@@ -192,6 +192,27 @@ which point is optimal for a later supervised classifier. For this data and obje
 `latent_gate_penalty="0.005"` is a suitable balanced starting point; the module default of 0.0001 is
 too weak to prune this 64-variable direct VAE within 50,000 updates.
 
+## Follow-up: Gate Scheduling
+
+The `0.005` gate penalty was also tested with an optional staged schedule. Each condition used the
+same five seeds and 50,000 training updates. The ramp conditions held the gate logits fixed for
+10,000 updates and then increased the penalty linearly to `0.005` over 20,000 updates. The freeze
+condition additionally fixed deterministic gates after update 40,000 while the VAE weights
+continued training.
+
+| Gate training | Active gates | Expected open | Effective rank | Linear ridge | Nearest neighbour | Validation MAE |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Constant `0.005` | 35.4 +/- 1.9 | 35.5 | 25.67 | 80.4 +/- 1.8% | **85.9 +/- 1.3%** | 0.0328 |
+| Warm-up plus ramp | 47.4 +/- 2.5 | 48.2 | 32.20 | 80.9 +/- 0.7% | 84.3 +/- 2.1% | 0.0294 |
+| Warm-up, ramp, and freeze | 52.6 +/- 2.2 | 54.8 | 34.86 | **82.0 +/- 0.6%** | 82.5 +/- 1.5% | **0.0267** |
+
+Delaying the sparsity pressure preserved more latent variables and improved reconstruction. The
+freeze condition increased linear accuracy by 1.6 percentage points over the constant penalty and
+reduced MAE by 0.0060, but nearest-neighbour accuracy fell by 3.4 points. The schedule therefore
+changes the capacity tradeoff rather than uniformly improving the representation. The constant
+setting remains the simpler recommendation when compactness or nearest-neighbour geometry matters;
+the staged setting is useful when reconstruction and linear decodability have priority.
+
 ## Limitations
 
 - The 200-image validation subset was used repeatedly for model selection and is not an untouched
@@ -229,6 +250,15 @@ The learned-gate screen and matched-seed confirmation can be reproduced with:
 ```console
 .venv/bin/python \
   Source/Modules/BrainModels/ConvolutionalVariationalAutoEncoder/tests/run_mnist_direct_vae_gating.py \
+  --ticks 50000 --replicates 5 --seed-base 69000 \
+  --agent "Codex: <model> <reasoning level>" --resume
+```
+
+The matched-seed gate-schedule comparison can be reproduced with:
+
+```console
+.venv/bin/python \
+  Source/Modules/BrainModels/ConvolutionalVariationalAutoEncoder/tests/run_mnist_direct_vae_gate_schedule.py \
   --ticks 50000 --replicates 5 --seed-base 69000 \
   --agent "Codex: <model> <reasoning level>" --resume
 ```

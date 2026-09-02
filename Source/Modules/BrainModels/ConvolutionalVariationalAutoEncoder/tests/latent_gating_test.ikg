@@ -4,6 +4,7 @@
     <module class="ConvolutionalVariationalAutoEncoder" name="VAE" _x="320" _y="80"
         feature_stage="direct" latent_mode="dense" latent_size="4"
         latent_gating="yes" latent_gate_penalty="0.1" latent_gate_initial_probability="0.99"
+        latent_gate_warmup_updates="2" latent_gate_ramp_updates="3" latent_gate_freeze_update="8"
         learning_rate="0.001" optimizer="adam" random_seed="17" beta="0.001"
         reconstruction_source="mean" output_activation="sigmoid" sample="no" train="yes" />
     <module class="Print" name="PrintActiveCount" _x="680" _y="80" />

@@ -19,6 +19,9 @@
 	<parameter name="latent_gate_temperature" type="number" default="0.666667" min="0.000001" description="Hard-concrete gate sampling temperature" />
 	<parameter name="latent_gate_initial_probability" type="number" default="0.99" min="0.000001" max="0.999999" description="Initial probability that a latent gate is open" />
 	<parameter name="latent_gate_threshold" type="number" default="0.5" min="0" max="1" description="Deterministic gate threshold used to count active latent features" />
+	<parameter name="latent_gate_warmup_updates" type="number" default="0" min="0" description="Training updates before latent-gate learning and sparsity penalty begin; zero disables warm-up" />
+	<parameter name="latent_gate_ramp_updates" type="number" default="0" min="0" description="Training updates used to linearly ramp the latent-gate penalty to its configured value; zero applies it immediately" />
+	<parameter name="latent_gate_freeze_update" type="number" default="0" min="0" description="Training update at which latent gates become deterministic and stop learning; zero disables freezing" />
 	<parameter name="reconstruction_loss" type="number" default="mse" options="mse,bernoulli" description="Reconstruction likelihood model" />
 	<parameter name="latent_consistency_weight" type="number" default="0" min="0" description="Weight of the paired-view latent mean consistency penalty" />
 	<parameter name="latent_cluster_count" type="number" default="1" min="1" description="Number of learned latent prototype clusters" />
@@ -115,4 +118,5 @@
 	<state name="LATENT_DECORRELATION_GRADIENT" type="matrix" size="(1-@latent_mode)*@latent_size+@latent_mode*@latent_maps" />
 	<state name="weights_initialized" type="bool" default="false" persistent="true" />
 	<state name="latent_gates_initialized" type="bool" default="false" persistent="true" />
+	<state name="latent_gate_training_update" type="int" default="0" persistent="true" />
 </class>

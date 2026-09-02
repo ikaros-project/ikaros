@@ -40,6 +40,9 @@ variables or spatial latent maps are needed by the decoder.
 | latent_gate_temperature | Hard-concrete gate sampling temperature | number | 0.666667 |
 | latent_gate_initial_probability | Initial probability that a latent gate is open | number | 0.99 |
 | latent_gate_threshold | Deterministic gate threshold used to count active latent features | number | 0.5 |
+| latent_gate_warmup_updates | Training updates before gate learning and its sparsity penalty begin; zero disables warm-up | number | 0 |
+| latent_gate_ramp_updates | Training updates used to linearly ramp the gate penalty to `latent_gate_penalty`; zero applies it immediately | number | 0 |
+| latent_gate_freeze_update | Training update at which gates become deterministic and stop learning; zero disables freezing | number | 0 |
 | reconstruction_loss | Reconstruction likelihood model (`mse` or `bernoulli`) | number | mse |
 | latent_consistency_weight | Weight of the paired-view latent mean consistency penalty | number | 0 |
 | latent_cluster_count | Number of learned latent prototype clusters | number | 1 |
@@ -106,6 +109,14 @@ and the total objective includes `latent_gate_penalty` times \(L_0\). During tic
 training update, deterministic gates are obtained by stretching and clipping
 \(\operatorname{sigmoid}(a_j)\). This follows the differentiable \(L_0\) regularization method of
 [Louizos, Welling, and Kingma (2018)](https://arxiv.org/abs/1712.01312).
+
+The gate penalty and gate updates are constant by default. For an optional staged comparison,
+`latent_gate_warmup_updates` first holds the gate logits fixed with no sparsity penalty,
+`latent_gate_ramp_updates` then increases the penalty linearly from zero to
+`latent_gate_penalty`, and `latent_gate_freeze_update` can finally hold deterministic gates fixed
+while the remaining network weights continue to train. These values count actual training updates,
+not ticks skipped by `train_interval`. Schedule progress is persistent module state, so saving and
+resuming training does not restart the warm-up or ramp.
 
 The latent matrix shapes remain fixed at their configured maximum sizes. Inactive features are
 multiplied by zero rather than removed or reallocated. `LATENT_MEAN` remains the ungated encoder
