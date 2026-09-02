@@ -158,6 +158,32 @@ The tasks below will be completed sequentially, with one focused commit per task
 
 None.
 
+## Direct dense VAE mechanism sweep
+
+The architecture remains fixed at 1,024 input values, 10 latent values, and 1,024 reconstructed
+values. Training is unsupervised; labels are used only by post-training probes.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a reproducible staged experiment harness for direct dense VAE objective, optimization, regularization, and paired-view consistency settings. | Completed | Python compilation; 20-tick baseline and shifted paired-view train/save/reload/extract smoke runs; both retained exactly 1,000 aligned training and 200 aligned validation codes; `git diff --check`. | `Added direct dense VAE mechanism sweep` |
+| 2 | Run the broad single-factor screen and select candidates using frozen-code validation probes. | Pending |  |  |
+| 3 | Run matched-seed confirmation of the finalists, graph the results, and document the recommended settings and limitations. | Pending |  |  |
+
+### Constraints
+
+- Keep `feature_stage=direct`, `latent_mode=dense`, and `latent_size=10` in every condition.
+- Use the same 1,000 centered training images, 200 centered validation images, update count, and
+  aligned extraction protocol for fair comparisons.
+- Do not use hierarchy, convolution, labels, or supervised losses during representation learning.
+- Treat linear ridge accuracy as the primary categorization measure and nearest-neighbour accuracy
+  as a complementary information-retention measure.
+- Confirm promising settings over matched random seeds before selecting a recommendation.
+
+### Outstanding issues and questions
+
+- The 200-image validation subset is reused for exploratory model selection and is not an untouched
+  final test set.
+
 ## GitHub issue bot guidance
 
 | # | Task | Status | Verification | Commit |
