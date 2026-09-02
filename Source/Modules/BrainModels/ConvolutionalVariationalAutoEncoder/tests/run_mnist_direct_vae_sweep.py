@@ -237,6 +237,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--print-tick-interval", type=int, default=10_000)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--only", nargs="*", default=[])
+    parser.add_argument("--stop-after-screen", action="store_true")
+    parser.add_argument("--stop-after-combinations", action="store_true")
     return parser.parse_args()
 
 
@@ -748,7 +750,7 @@ def main() -> None:
     ]
     write_results("screening.csv", screen_results)
     plot_screen(screen_results)
-    if args.only:
+    if args.only or args.stop_after_screen:
         return
 
     combinations = combination_conditions(screen_results)
@@ -759,6 +761,8 @@ def main() -> None:
     all_screen_results = screen_results + combination_results
     write_results("screening_and_combinations.csv", all_screen_results)
     plot_screen(all_screen_results)
+    if args.stop_after_combinations:
+        return
 
     condition_map = {condition.name: condition for condition in (*SCREEN_CONDITIONS, *combinations)}
     finalists = confirmation_conditions(all_screen_results, condition_map)

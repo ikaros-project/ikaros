@@ -166,8 +166,8 @@ values. Training is unsupervised; labels are used only by post-training probes.
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Add a reproducible staged experiment harness for direct dense VAE objective, optimization, regularization, and paired-view consistency settings. | Completed | Python compilation; 20-tick baseline and shifted paired-view train/save/reload/extract smoke runs; both retained exactly 1,000 aligned training and 200 aligned validation codes; `git diff --check`. | `Added direct dense VAE mechanism sweep` |
-| 2 | Run the broad single-factor screen and select candidates using frozen-code validation probes. | Pending |  |  |
-| 3 | Run matched-seed confirmation of the finalists, graph the results, and document the recommended settings and limitations. | Pending |  |  |
+| 2 | Run the broad single-factor screen and select candidates using frozen-code validation probes. | Completed | Thirty single-factor and four automatically composed conditions completed 50,000 Release updates with one matched seed; every extraction retained exactly 1,000 aligned training and 200 aligned validation codes. Moderate 10-prototype VQ led ridge at 71.0%; mean reconstruction and linear MSE led nearest-neighbour at 82.5%; composed settings did not improve either measure. | `Recorded the direct VAE mechanism screen` |
+| 3 | Run matched-seed confirmation of the finalists, graph the results, and document the recommended settings and limitations. | In progress |  |  |
 
 ### Constraints
 
