@@ -37,6 +37,11 @@ BASE_PARAMETERS: dict[str, str] = {
     "learning_rate": "0.001",
     "optimizer": "adam",
     "beta": "0.0001",
+    "latent_gating": "no",
+    "latent_gate_penalty": "0.0001",
+    "latent_gate_temperature": "0.666667",
+    "latent_gate_initial_probability": "0.99",
+    "latent_gate_threshold": "0.5",
     "reconstruction_loss": "bernoulli",
     "sample": "yes",
     "reconstruction_source": "sample",
@@ -425,6 +430,7 @@ def configure_model(
     tree = ET.parse(template)
     root = tree.getroot()
     modules = {module.get("name"): module for module in root.findall("module")}
+    parameters = condition.parameters()
     set_parameters(modules["VAE"], condition, seed, training)
     if training:
         for connection in list(root.findall("connection")):
@@ -444,6 +450,23 @@ def configure_model(
         for connection in list(root.findall("connection")):
             if connection.get("source") == "VAE.OUTPUT":
                 root.remove(connection)
+            elif (
+                connection.get("source") == "VAE.LATENT_MEAN"
+                and parameters.get("latent_gating") == "yes"
+            ):
+                connection.set("source", "VAE.GATED_LATENT_MEAN")
+        if parameters.get("latent_gating") == "yes":
+            for source, label in (
+                ("VAE.LATENT_GATES", "latent_gate"),
+                ("VAE.ACTIVE_LATENT_COUNT", "active_latent_count"),
+                ("VAE.GATE_LOSS", "gate_loss"),
+            ):
+                root.append(
+                    ET.Element(
+                        "connection",
+                        {"source": source, "target": "Codes.INPUT", "label": label},
+                    )
+                )
         root.append(
             ET.Element(
                 "connection",
@@ -525,6 +548,23 @@ def evaluate_run(run_dir: Path) -> dict[str, Any]:
         "validation_cluster_majority": cluster_accuracy,
     }
     result.update(code_statistics(train_codes))
+    if "active_latent_count" in train_rows[0]:
+        gates = evaluation.column_matrix(train_rows, "latent_gate")
+        mean_gates = np.mean(gates, axis=0)
+        result.update(
+            {
+                "active_latent_count": evaluation.scalar_mean(
+                    validation_rows, "active_latent_count"
+                ),
+                "expected_active_latent_count": evaluation.scalar_mean(
+                    validation_rows, "gate_loss"
+                ),
+                "latent_gate_mean": float(np.mean(mean_gates)),
+                "latent_gate_min": float(np.min(mean_gates)),
+                "latent_gate_max": float(np.max(mean_gates)),
+                "latent_gate_values": mean_gates.tolist(),
+            }
+        )
     return result
 
 
@@ -728,6 +768,11 @@ RESULT_COLUMNS = (
     "code_stddev_min",
     "code_effective_rank",
     "code_mean_absolute_correlation",
+    "active_latent_count",
+    "expected_active_latent_count",
+    "latent_gate_mean",
+    "latent_gate_min",
+    "latent_gate_max",
     "elapsed_seconds",
 )
 

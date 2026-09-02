@@ -152,6 +152,46 @@ linear mean-squared reconstruction it changes by only +0.2 points. The 36-variab
 is therefore the best tested setting for a linear classifier and reconstruction, while the
 20-variable Bernoulli result remains the highest observed nearest-neighbour score.
 
+## Follow-up: Learned Latent Gates
+
+Hard-concrete latent gates were tested as an unsupervised alternative to selecting `latent_size` by
+repeatedly training fixed-size models. The direct VAE was given a maximum of 64 latent variables and
+used the previously selected Bernoulli objective with `beta=0.03`. Training included one learned
+gate per latent variable and an expected-open-gate penalty. Evaluation used the deterministic
+`GATED_LATENT_MEAN`, so dimensions disabled by the decoder were also excluded from the probes.
+
+A one-seed screen covered gate penalties from 0 to 0.3. Penalties up to 0.001 left all 64 gates
+active. The transition region was smooth: penalties 0.003, 0.004, 0.005, 0.006, 0.008, and 0.01
+selected respectively 50, 43, 37, 31, 23, and 18 active variables. A penalty of 0.03 retained only
+five variables, while 0.1 and 0.3 closed every gate.
+
+Four representative settings were repeated for 50,000 updates with the same five seeds used in the
+fixed-size comparison. Values are means plus or minus sample standard deviations.
+
+| Gate penalty | Active gates | Expected open | Effective rank | Linear ridge | Nearest neighbour | Validation MAE |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0 | 64.0 +/- 0.0 | 63.9 | 38.88 | **82.1 +/- 1.7%** | 82.1 +/- 1.6% | **0.0253** |
+| 0.004 | 42.8 +/- 2.2 | 43.2 | 29.36 | 80.3 +/- 0.8% | **86.0 +/- 1.1%** | 0.0295 |
+| **0.005** | **35.4 +/- 1.9** | **35.5** | **25.67** | **80.4 +/- 1.8%** | **85.9 +/- 1.3%** | **0.0328** |
+| 0.01 | 18.2 +/- 0.8 | 18.2 | 14.88 | 74.9 +/- 2.5% | 85.4 +/- 1.4% | 0.0483 |
+
+The `0.005` condition is the clearest demonstration of automatic dimensionality control. Starting
+from 64 available variables, it selected approximately 35 without a class-dependent learning
+signal. Its 80.4% linear and 85.9% nearest-neighbour accuracies are statistically similar to the
+fixed 36-variable result of 80.3% and 85.4%, while its reconstruction MAE is slightly lower. A
+representative run had 31 gates exactly zero and 33 exactly one after training.
+
+The `0.01` condition selected approximately 18 variables and behaved similarly to the fixed
+20-variable model: linear accuracy differed by +0.3 points, nearest-neighbour accuracy by -1.7
+points, and reconstruction MAE by -0.0015. This indicates that the learned gates recover broadly
+the same capacity tradeoff as manually changing the bottleneck size.
+
+The gate penalty still specifies the desired cost of representation capacity. It removes the need
+to select an integer latent size directly, but an unsupervised reconstruction objective cannot know
+which point is optimal for a later supervised classifier. For this data and objective,
+`latent_gate_penalty="0.005"` is a suitable balanced starting point; the module default of 0.0001 is
+too weak to prune this 64-variable direct VAE within 50,000 updates.
+
 ## Limitations
 
 - The 200-image validation subset was used repeatedly for model selection and is not an untouched
@@ -181,5 +221,14 @@ Additional latent sizes can be reproduced after the main sweep with:
 .venv/bin/python \
   Source/Modules/BrainModels/ConvolutionalVariationalAutoEncoder/tests/run_mnist_direct_vae_latent_size.py \
   --latent-size 36 --ticks 50000 --replicates 5 --seed-base 69000 \
+  --agent "Codex: <model> <reasoning level>" --resume
+```
+
+The learned-gate screen and matched-seed confirmation can be reproduced with:
+
+```console
+.venv/bin/python \
+  Source/Modules/BrainModels/ConvolutionalVariationalAutoEncoder/tests/run_mnist_direct_vae_gating.py \
+  --ticks 50000 --replicates 5 --seed-base 69000 \
   --agent "Codex: <model> <reasoning level>" --resume
 ```
