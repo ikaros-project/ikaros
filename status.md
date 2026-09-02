@@ -26,7 +26,7 @@ evaluation of the learned code, not as model inputs or training targets.
 | 19 | Add a reproducible, resumable runner for controlled centered-MNIST CVAE parameter sweeps. | Completed | XML and Python syntax validation; `git diff --check`; end-to-end baseline, latent-width, and vector-quantized prototype smoke runs verified training, absolute-path state save/load, exact generated-model capture, automatic label alignment, frozen top/Level-1 probes, collapse diagnostics, aggregate CSV output, and a headless comparison graph. | `Added reproducible CVAE MNIST parameter sweeps` |
 | 20 | Screen the main architectural and objective parameters using the corrected state-loading and code-alignment protocol. | Completed | Fourteen unsupervised configurations trained for 20,000 ticks and were reloaded for aligned frozen-code evaluation. Best ridge results were VQ prototypes 11.6%, latent size 16 at 11.1%, and decorrelation weight 0.01 at 10.6%; top beta 0.001 led nearest-neighbour at 10.6%. Zero/very weak KL, sampling, 64 latent dimensions, removing Level-1 top-down reconstruction, and soft prototypes did not improve the baseline. All runs retained generated models, states, logs, codes, JSON diagnostics, aggregate CSV, and a comparison graph under `UserData/output/cvae_mnist_sweep`. | `Recorded the initial CVAE parameter screen` |
 | 21 | Refine promising mechanisms and repeat finalist configurations to estimate initialization sensitivity. | Completed | Added optional `random_seed` with nondeterministic behavior preserved by default; Release build and dense/spatial smoke tests passed; identical seeded reruns produced byte-identical train and validation code CSVs. The campaign accumulated 100 evaluated runs covering KL, sampling, latent width, reconstruction source, decorrelation, soft/VQ prototypes, feature maps, learning rate, kernels, and training duration. Five matched 50,000-tick seed pairs compared latent-16 with and without decorrelation: ridge means were 12.86% vs. 12.26%, a paired difference of only +0.60 percentage points with 0.89-point standard error; nearest-neighbour slightly favored no decorrelation. Three 100,000-tick plain latent-16 runs were stable at 12.56% +/- 0.50%. Aggregate raw and replicated CSV tables and error-bar plots were generated under `UserData/output/cvae_mnist_sweep`. | `Added deterministic CVAE sweep refinement` |
-| 22 | Confirm and document the best validation configuration, diagnostics, and remaining limitations. | In progress |  |  |
+| 22 | Confirm and document the best validation configuration, diagnostics, and remaining limitations. | Completed | Added a self-contained campaign report with protocol, recommended settings, replicated results, mechanism conclusions, reproduction command, and limitations. The selected robust setting is the clean two-level hierarchy with top `latent_size=16`, no sampling/prototype/VQ/decorrelation objective, and 100,000 ticks; three runs gave 12.56% +/- 0.50% ridge accuracy and approximately 0.0010 held-out reconstruction MAE. The higher 50,000-tick decorrelation mean was not selected because five matched-seed pairs showed only +0.60 percentage points ridge improvement with 0.89-point standard error and a small nearest-neighbour decrease. | `Documented the selected CVAE MNIST settings` |
 
 ### Constraints
 
@@ -34,6 +34,12 @@ evaluation of the learned code, not as model inputs or training targets.
 - Keep labels out of the model graph except for post-training evaluation files.
 - Use Bernoulli reconstruction for pixel probabilities and keep higher latent-to-latent
   reconstructions continuous unless explicitly changed.
+
+### CVAE parameter-search outstanding issues and questions
+
+- The 200-image held-out split was used for model selection and is not an untouched final test set.
+- The centered dataset should be regenerated reproducibly at larger scale before claiming a final MNIST estimate.
+- The selected code remains only weakly category-organized despite excellent reconstruction; substantially stronger separation likely requires a different unsupervised objective or architecture rather than further tuning of the tested parameters.
 
 # Kernel Review Status
 

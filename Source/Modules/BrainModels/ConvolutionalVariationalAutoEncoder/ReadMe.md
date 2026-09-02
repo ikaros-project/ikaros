@@ -30,6 +30,7 @@ bottleneck state for other modules.
 | adam_beta1 | Adam first moment decay | number | 0.9 |
 | adam_beta2 | Adam second moment decay | number | 0.999 |
 | adam_epsilon | Adam numerical stability term | number | 0.00000001 |
+| random_seed | Random initialization and sampling seed; negative values use a nondeterministic seed | number | -1 |
 | beta | Weight of the KL-divergence term | number | 1 |
 | reconstruction_loss | Reconstruction likelihood model (`mse` or `bernoulli`) | number | mse |
 | latent_consistency_weight | Weight of the paired-view latent mean consistency penalty | number | 0 |
@@ -151,3 +152,9 @@ The decorrelation penalty is disabled when `latent_decorrelation_weight` is `0`.
 module maintains an exponential running covariance estimate of the latent mean features. In dense
 mode each latent unit is treated as one feature. In spatial mode each latent map is summarized by its
 spatial mean, and the resulting decorrelation gradient is distributed over the map.
+
+## Evaluation
+
+The [centered-MNIST parameter sweep](tests/MNIST_PARAMETER_SWEEP.md) documents the controlled
+unsupervised evaluation protocol, tested settings, replicated results, selected configuration, and
+remaining limitations.
