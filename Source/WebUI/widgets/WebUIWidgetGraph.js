@@ -37,15 +37,15 @@ class WebUIWidgetGraph extends WebUIWidgetCanvas
             min = this.computedMinY;
             max = this.computedMaxY;
         }
-        else if('y_min' in this.parameters && 'y_max' in this.parameters)
-        {
-            min = parseFloat(this.parameters.y_min);
-            max = parseFloat(this.parameters.y_max);
-        }
         else if(Number.isFinite(this.computedMin) && Number.isFinite(this.computedMax))
         {
             min = this.computedMin;
             max = this.computedMax;
+        }
+        else if('y_min' in this.parameters && 'y_max' in this.parameters)
+        {
+            min = parseFloat(this.parameters.y_min);
+            max = parseFloat(this.parameters.y_max);
         }
         if(!Number.isFinite(min))
             min = 0;
