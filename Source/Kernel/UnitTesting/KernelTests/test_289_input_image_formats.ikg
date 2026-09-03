@@ -1,9 +1,12 @@
 <group name="InputImageFormats"
-       description="InputImage reads JPEG files"
+       description="InputImage reads JPEG and PGM files"
        start="true"
        stop="1"
-       check_sum="210521">
+       check_sum="750272">
     <module name="JPEG"
             class="InputImage"
             filename="../Examples/Media/colorrobot.jpg" />
+    <module name="PGM"
+            class="InputImage"
+            filename="../Source/Kernel/UnitTesting/KernelTests/fixture_input_image_ascii.pgm" />
 </group>

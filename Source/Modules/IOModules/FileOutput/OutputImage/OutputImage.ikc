@@ -2,8 +2,8 @@
 
 <class name="OutputImage" description="writes grayscale or RGB matrices as image files">
     <parameter name="directory" type="string" default="" description="Directory inside UserData. A name without # is reused exactly. Use # for an unpadded unique number or multiple hashes such as ### for a fixed-width zero-padded unique number. Escape a literal hash as \#." />
-    <parameter name="filename" type="string" default="output.jpg" description="JPEG, PNG, TIFF, or WebP file to write. Formats other than JPEG require codec support in the current build. Use # for an unpadded sequence number or multiple hashes such as #### for a fixed-width zero-padded number. Escape a literal hash as \#." />
-    <parameter name="quality" type="number" default="90" min="1" max="100" description="JPEG and WebP quality from 1 to 100. Ignored for PNG and TIFF files." />
+    <parameter name="filename" type="string" default="output.jpg" description="JPEG, PNG, PGM, TIFF, or WebP file to write. PNG, TIFF, and WebP require codec support in the current build. PGM accepts grayscale input only. Use # for an unpadded sequence number or multiple hashes such as #### for a fixed-width zero-padded number. Escape a literal hash as \#." />
+    <parameter name="quality" type="number" default="90" min="1" max="100" description="JPEG and WebP quality from 1 to 100. Ignored for PNG, PGM, and TIFF files." />
     <parameter name="start_index" type="number" default="0" min="0" max="2147483647" description="First non-negative integer sequence number used by a # placeholder." />
     <parameter name="single_trigger" type="bool" default="no" description="When WRITE is connected, write only on its rising edge." />
 

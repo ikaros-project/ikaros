@@ -128,6 +128,7 @@ private:
     double                                  tick_time_usage;        // Time used to execute each tick in real time
     tick_count                              tick;
     tick_count                              stop_after;
+    tick_count                              printTickInterval;
     double                                  lag;            // Lag of a tick in real-time mode
     double                                  lag_min;        // Largest negative lag
     double                                  lag_max;        // Largest positive lag

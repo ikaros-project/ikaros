@@ -251,6 +251,7 @@ namespace ikaros
         tick_time_usage(0),
         tick(0),
         stop_after(-1),
+        printTickInterval(0),
         lag(0),
         lag_min(0),
         lag_max(0),
@@ -415,6 +416,21 @@ namespace ikaros
     Kernel::SetOptions(const options & opts)
     {
         options_ = opts;
+        printTickInterval = 0;
+        if(options_.is_explicitly_set("print-tick-interval"))
+        {
+            try
+            {
+                printTickInterval = options_.get_long("print-tick-interval", 1,
+                                                      std::numeric_limits<tick_count>::max());
+            }
+            catch(const std::exception &)
+            {
+                throw exception("Invalid print tick interval \"" +
+                                options_.get("print-tick-interval") +
+                                "\". Expected a positive integer.");
+            }
+        }
         auth_enabled_ = options_.is_explicitly_set("auth_password");
         auth_password_ = auth_enabled_ ? options_.get("auth_password") : "";
         if(auth_enabled_ && auth_password_.empty())

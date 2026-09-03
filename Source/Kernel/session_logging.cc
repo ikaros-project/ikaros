@@ -160,8 +160,9 @@ namespace ikaros
                             {
                                 state->delivery_outage = true;
                                 state->QueueStatusMessage(
-                                    "Session logging failed: " + failure +
-                                    ". Further failures will be suppressed until delivery recovers.");
+                                    "Optional remote session logging is unavailable: " + failure +
+                                    ". Local model execution will continue unaffected. Further "
+                                    "delivery failures will be suppressed until session logging recovers.");
                             }
                         }
                     }

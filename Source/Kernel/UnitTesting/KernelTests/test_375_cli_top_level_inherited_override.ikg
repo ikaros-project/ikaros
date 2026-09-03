@@ -1,0 +1,13 @@
+<group internal="true"
+    name="TestCliTopLevelInheritedOverride"
+    description="Apply a declared top-level command-line value through parameter inheritance"
+    check_sum="241821"
+    stop="0"
+    c="333"
+    cli_args="c=777"
+    expected_output_contains="c = 777"
+>
+    <module name="Test" class="KernelTestModule" />
+    <module name="Const" class="Constant" data="9, 8, 7" />
+    <connection source="Const.OUTPUT" target="Test.INPUT" />
+</group>

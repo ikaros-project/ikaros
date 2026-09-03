@@ -120,7 +120,12 @@ namespace ikaros
     {
         std::string filename = options_.get(option_name);
         if(!filename.empty() && filename != "true")
-            return filename;
+        {
+            std::filesystem::path state_path(filename);
+            if(state_path.is_relative())
+                state_path = options_.invocation_directory / state_path;
+            return state_path.lexically_normal().string();
+        }
 
         std::filesystem::path model_path = options_.full_path();
         if(model_path.empty())

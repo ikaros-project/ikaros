@@ -21,6 +21,7 @@ namespace ikaros {
     {
     public:
         std::string ikaros_root;            // Repository or installation root resolved from argv[0]
+        std::filesystem::path invocation_directory;
         std::filesystem::path path_;       // If only one, or empty path if none
         std::vector<std::string> filenames;
         std::map<std::string, std::string> d;
@@ -98,6 +99,7 @@ namespace ikaros {
             if (argc < 1)
                 throw std::runtime_error("Too few input parameters");
 
+            invocation_directory = std::filesystem::current_path();
             const std::filesystem::path executable_path = resolve_executable_path(argv[0]);
             ikaros_root = executable_path.parent_path().parent_path().string();
 
@@ -297,6 +299,7 @@ namespace ikaros {
         void reset_parse_state()
         {
             ikaros_root.clear();
+            invocation_directory.clear();
             path_.clear();
             filenames.clear();
             d = default_values_;

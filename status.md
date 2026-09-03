@@ -1,3 +1,52 @@
+## CVAE full-MNIST Bernoulli reconstruction
+
+The tasks below keep learning unsupervised. Class labels may be used only after training for
+evaluation of the learned code, not as model inputs or training targets.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add an optional Bernoulli reconstruction-loss mode to `ConvolutionalVariationalAutoEncoder`, preserving mean-squared error as the default. | Completed | Release build; default-MSE and Bernoulli CVAE smoke tests; `git diff --check`. |  |
+| 2 | Prepare and run a full-MNIST unsupervised CVAE experiment using Bernoulli reconstruction at the image reconstruction layer. | Completed | Prepared 60,000 train and 10,000 test MNIST images; trained 100,000 ticks with no label input; extracted 59,997 train and 9,997 test top-code rows; z-scored nearest-neighbour accuracy 9.373%; z-scored ridge accuracy 10.563%; generated loss, accuracy, and confusion-matrix plots. |  |
+| 3 | Add and test an unsupervised paired-augmentation latent consistency signal. | Completed | Release build; generated 60,000 train and 10,000 test paired augmented MNIST examples; trained a single-layer full-field ten-code CVAE for 100,000 ticks with no label input; extracted 59,988 train and 9,998 test code rows from unaugmented MNIST; z-scored nearest-neighbour accuracy 10.532%; z-scored ridge accuracy 10.282%; generated loss, consistency, accuracy, and confusion-matrix plots; `git diff --check`. |  |
+| 4 | Add and test an optional unsupervised latent prototype clustering prior. | Completed | Release build; 20-tick startup smoke test; trained a single-layer full-field ten-code CVAE with ten latent prototypes for 100,000 ticks using only unsupervised objectives; fixed one-layer extraction label timing by using `delay="2"` for direct label-to-recorder connections; aligned probes: baseline nearest 13.364%, baseline ridge 11.603%, consistency nearest 10.352%, consistency ridge 7.301%, cluster nearest 9.532%, cluster ridge 12.583%, cluster-majority 15.342%. |  |
+| 5 | Test the five-layer kernel-5 MNIST hierarchy with corrected top-code label alignment and prototype clustering at the top layer. | Completed | Created local five-layer prototype-cluster train/extract `.ikg` files; verified top-code alignment requires `delay="6"` for labels; trained 100,000 ticks on the existing 1,000-image train split; extracted 994 train and 194 test top-code rows; aligned probes: nearest 11.340%, ridge 13.918%, cluster-majority 14.948%. |  |
+| 6 | Test stronger five-layer prototype-clustering pressure. | Completed | Created local strong-cluster variant with top-layer `latent_cluster_temperature=0.03` and `latent_cluster_balance_weight=10`; trained 100,000 ticks on the existing 1,000-image train split; extracted 994 train and 194 test top-code rows with `delay="6"` label alignment; aligned probes: nearest 13.402%, ridge 13.918%, cluster-majority 12.371%; train prototype usage became less collapsed but still used mainly clusters 6 and 7. |  |
+| 7 | Add and test a vector-quantization-style prototype update. | Completed | Added optional `latent_cluster_update="vq"` and `latent_cluster_commitment_weight`; VQ mode uses hard winner assignments, direct online winner-center updates, and usage-aware winner bias when balance weight is positive; Release build; five-layer VQ smoke test; trained 100,000 ticks on the existing 1,000-image split; extracted 994 train and 194 test rows with `delay="6"` label alignment; aligned probes: nearest 10.825%, ridge 15.464%, cluster-majority 7.216%; train prototype usage spread over more clusters but did not align with digit labels. |  |
+| 8 | Test average-pooling between lower CVAE hierarchy levels to reduce translation sensitivity. | Completed | Created local pooled five-layer VQ variant using `Downsample` between levels 1-2 and 2-3 and mirrored `Upsample` paths from level 3 to 2 and level 2 to 1; verified top-code label alignment requires `delay="8"`; trained 100,000 ticks on the existing 1,000-image split; extracted 992 train and 192 test rows; aligned probes: nearest 8.333%, ridge 7.292%, cluster-majority 11.458%; prototype usage remained collapsed, so this pooling placement did not improve category structure. |  |
+| 9 | Test center-of-mass MNIST preprocessing with the five-layer VQ hierarchy. | Completed | Created a local centered 1,000/200 MNIST split by shifting each image center of mass to the image center; cloned the non-pooled five-layer VQ hierarchy to read the centered split; 20-tick smoke test; trained 100,000 ticks and extracted 994 train and 194 test rows with unchanged `delay="6"` label alignment; aligned probes: nearest 14.433%, ridge 13.918%, cluster-majority 3.093%; nearest-neighbour improved relative to the non-centered VQ run, but prototype usage changed inconsistently between train and test. |  |
+| 10 | Test whether a larger top latent code improves the centered five-layer VQ hierarchy. | Completed | Created a local centered five-layer VQ variant with only the dense top code changed from 16 to 32 dimensions; 20-tick smoke test; trained 100,000 ticks and extracted 994 train and 194 test rows with unchanged `delay="6"` label alignment; aligned probes: nearest 13.918%, ridge 17.526%, cluster-majority 13.402%; larger top code improved the linear probe and made prototype-majority usable again, suggesting top-code capacity matters. |  |
+| 11 | Extend the centered five-layer VQ top-code capacity test to 64 and 128 dimensions. | Completed | Created local 64- and 128-dimensional top-code variants; 20-tick smoke tests; trained each for 100,000 ticks and extracted 994 train and 194 test rows with unchanged `delay="6"` label alignment; aligned probes for 64 dimensions: nearest 13.402%, ridge 9.278%, cluster-majority 11.340%; aligned probes for 128 dimensions: nearest 13.918%, ridge 14.948%, cluster-majority 19.588%; 32 dimensions remains best for the linear probe, while 128 dimensions gives the best prototype-majority readout. |  |
+| 12 | Test doubled convolutional feature maps in the centered five-layer VQ hierarchy across top-code sizes 16, 32, 64, and 128. | Completed | Created local wide variants with feature maps changed from 10/8/8/6/6 to 20/16/16/12/12; 20-tick smoke tests for all four top-code sizes; trained each for 100,000 ticks and extracted 994 train and 194 test rows with unchanged `delay="6"` label alignment; aligned probes for 16 dimensions: nearest 8.763%, ridge 5.155%, cluster-majority 14.433%; 32 dimensions: nearest 18.041%, ridge 19.072%, cluster-majority 4.639%; 64 dimensions: nearest 13.918%, ridge 16.495%, cluster-majority 7.732%; 128 dimensions: nearest 14.433%, ridge 5.670%, cluster-majority 9.794%; doubled maps improve nearest and ridge most clearly at 32 dimensions but do not stabilize prototype-category alignment. |  |
+| 13 | Test half-size convolutional feature maps in the centered five-layer VQ hierarchy across top-code sizes 16, 32, 64, and 128. | Completed | Created local half-map variants with feature maps changed from 10/8/8/6/6 to 5/4/4/3/3; 20-tick smoke tests for all four top-code sizes; trained each for 100,000 ticks and extracted 994 train and 194 test rows with unchanged `delay="6"` label alignment; aligned probes for 16 dimensions: nearest 10.825%, ridge 17.010%, cluster-majority 10.309%; 32 dimensions: nearest 9.278%, ridge 12.371%, cluster-majority 4.124%; 64 dimensions: nearest 13.918%, ridge 13.918%, cluster-majority 9.794%; 128 dimensions: nearest 13.402%, ridge 17.010%, cluster-majority 9.278%; half maps are competitive in some ridge probes but do not beat the doubled-map 32-dimensional nearest/ridge peak. |  |
+| 14 | Test a simpler centered two-layer CVAE baseline without VQ/prototype pressure. | Completed | Created local two-layer centered hierarchy with Level 1 spatial CVAE `feature_maps=20`, `kernel_size=5`, and dense top code `latent_size=32`; Release rebuild fixed a stale FFmpeg dylib link before running; 20-tick smoke test; trained 100,000 ticks and extracted codes with corrected `delay="3"` label alignment; aligned top-code probes: nearest 7.614%, ridge 9.645%; aligned Level 1 latent probes: nearest 9.596%, ridge 11.616%; the simplified two-layer reconstruction objective did not improve category information relative to the five-layer VQ variants. |  |
+| 15 | Test a LeNet-like centered CVAE hierarchy with two downsampling stages and a dense top code. | Completed | Created local three-CVAE hierarchy approximating a convolution/pooling MNIST encoder: Level 1 spatial `feature_maps=20`, `latent_maps=8`, `kernel_size=5`; downsample; Level 2 spatial `feature_maps=40`, `latent_maps=8`, `kernel_size=5`; downsample; dense top code `latent_size=32`; mirrored upsampling in the top-down path; 20-tick smoke test; trained 100,000 ticks and extracted codes with corrected `delay="6"` label alignment; aligned probes: Level 1 nearest 11.616%, ridge 9.596%; Level 2 nearest 7.653%, ridge 12.245%; top code nearest 11.856%, ridge 6.186%; the LeNet-like reconstruction-only architecture did not improve category information. |  |
+| 16 | Sanity-check whether the CVAE training path can overfit a single centered MNIST image. | Completed | Created a local one-image dense CVAE overfit model using `latent_size=32`, `feature_maps=20`, `kernel_size=5`, `beta=0.0001`, `sample=no`, and sigmoid output; 20-tick smoke test; trained 50,000 ticks on repeated `image_00000.png`; final reconstruction loss was `1.8452975e-09`, final mean absolute reconstruction error was `3.598591e-05`, and the last-100-tick mean reconstruction loss was `1.4077346994e-08`; this rules out a gross failure of the basic dense CVAE optimizer/decoder/reconstruction path. |  |
+| 17 | Fix CVAE state loading so learned parameters restored from a state file are not overwritten by first-tick initialization. | Completed | Release build; dense and spatial CVAE 20-tick smoke tests; identical train/test extraction from saved 10-digit dense and five-layer states now gives exact top-code matches with worst max-difference `0.0`; dense 10-digit train-equals-test probes reached 100.000% nearest and 100.000% ridge; five-layer 10-digit train-equals-test probes reached 100.000% nearest and 94.737% ridge; re-extracting the previous full-split centered wide VQ latent-32 state gives near-collapsed top-code variance and chance-level probes: 10.050% nearest and 12.060% ridge. |  |
+| 18 | Rerun a clean two-layer centered MNIST baseline after the state-loading fix. | Completed | Created local clean Bernoulli two-layer files with no prototype, vector-quantization, decorrelation, consistency, denoising, or supervised signal; verified Release profile is `-O3 -DNDEBUG`; 20-tick smoke test passed; trained 100,000 ticks and saved state with an absolute `-W` path; extracted train/test codes through the fixed `-L` path; after removing the initial unsettled output row, top-code variance was healthy with mean per-dimension standard deviation `0.790`; train-vs-train nearest-neighbour reached 99.900%, but held-out probes remained weak: top code nearest 6.030%, top code ridge 8.040%, Level 1 latent nearest 12.563%, and Level 1 latent ridge 8.543%. |  |
+| 19 | Add a reproducible, resumable runner for controlled centered-MNIST CVAE parameter sweeps. | Completed | XML and Python syntax validation; `git diff --check`; end-to-end baseline, latent-width, and vector-quantized prototype smoke runs verified training, absolute-path state save/load, exact generated-model capture, automatic label alignment, frozen top/Level-1 probes, collapse diagnostics, aggregate CSV output, and a headless comparison graph. | `Added reproducible CVAE MNIST parameter sweeps` |
+| 20 | Screen the main architectural and objective parameters using the corrected state-loading and code-alignment protocol. | Completed | Fourteen unsupervised configurations trained for 20,000 ticks and were reloaded for aligned frozen-code evaluation. Best ridge results were VQ prototypes 11.6%, latent size 16 at 11.1%, and decorrelation weight 0.01 at 10.6%; top beta 0.001 led nearest-neighbour at 10.6%. Zero/very weak KL, sampling, 64 latent dimensions, removing Level-1 top-down reconstruction, and soft prototypes did not improve the baseline. All runs retained generated models, states, logs, codes, JSON diagnostics, aggregate CSV, and a comparison graph under `UserData/output/cvae_mnist_sweep`. | `Recorded the initial CVAE parameter screen` |
+| 21 | Refine promising mechanisms and repeat finalist configurations to estimate initialization sensitivity. | Completed | Added optional `random_seed` with nondeterministic behavior preserved by default; Release build and dense/spatial smoke tests passed; identical seeded reruns produced byte-identical train and validation code CSVs. The campaign accumulated 100 evaluated runs covering KL, sampling, latent width, reconstruction source, decorrelation, soft/VQ prototypes, feature maps, learning rate, kernels, and training duration. Five matched 50,000-tick seed pairs compared latent-16 with and without decorrelation: ridge means were 12.86% vs. 12.26%, a paired difference of only +0.60 percentage points with 0.89-point standard error; nearest-neighbour slightly favored no decorrelation. Three 100,000-tick plain latent-16 runs were stable at 12.56% +/- 0.50%. Aggregate raw and replicated CSV tables and error-bar plots were generated under `UserData/output/cvae_mnist_sweep`. | `Added deterministic CVAE sweep refinement` |
+| 22 | Confirm and document the best validation configuration, diagnostics, and remaining limitations. | Completed | Added a self-contained campaign report with protocol, recommended settings, replicated results, mechanism conclusions, reproduction command, and limitations. The selected robust setting is the clean two-level hierarchy with top `latent_size=16`, no sampling/prototype/VQ/decorrelation objective, and 100,000 ticks; three runs gave 12.56% +/- 0.50% ridge accuracy and approximately 0.0010 held-out reconstruction MAE. The higher 50,000-tick decorrelation mean was not selected because five matched-seed pairs showed only +0.60 percentage points ridge improvement with 0.89-point standard error and a small nearest-neighbour decrease. | `Documented the selected CVAE MNIST settings` |
+| 23 | Add reproducible five-level CVAE train/extract models with exact downsampling and mirrored upsampling between every adjacent level, supporting matched 3x3 and 4x4 kernel tests. | Completed | Release `-O3 -DNDEBUG`; XML and Python validation; generated centered 32x32 image data with labels matching the established split; 3x3 and 4x4 20-tick train/save/reload/extract smoke runs; exact 16-dimensional top-code and label alignment checks; `git diff --check`. | `Added fully downsampled five-level CVAE experiments` |
+| 24 | Run matched-seed comparisons with the strongest plain latent-16 and light-decorrelation parameter candidates. | Completed | Twelve 50,000-tick Release runs completed for three matched seeds. Mean top-code ridge accuracy: 3x3 plain 12.40% +/- 0.58%, 3x3 decorrelation 12.73% +/- 1.76%, 4x4 plain 9.88% +/- 0.77%, and 4x4 decorrelation 11.39% +/- 1.62% (sample SD). For 3x3, decorrelation changed ridge by +0.34 percentage points with 0.73-point paired standard error and did not change mean nearest-neighbour accuracy. | `Recorded the fully downsampled CVAE comparison` |
+| 25 | Aggregate, graph, and document the fully downsampled five-level validation results. | Completed | Generated raw and replicated CSV summaries and visually checked non-overlapping accuracy graphs. Added a self-contained architecture, protocol, results, paired comparison, interpretation, reproduction, and limitations report. The report selects 3x3 kernels without decorrelation and records that the 16-value top code is overcomplete relative to its 12-value immediate input. | `Documented the fully downsampled CVAE results` |
+| 26 | Add native PGM image support and use it in the fully downsampled CVAE experiment. | Completed | Release build; P2 and 8/16-bit P5 parsing, normalization, malformed-input, fixed-buffer, generic dispatch, and P5 writer tests; checked `InputImage` PGM fixture; five-level PGM train/save/reload/extract smoke test; all related tests passed. Full kernel suite retained unrelated failures in WebUI fatal-step test 239 and the serial state-path test pair 373/374. | `Added native PGM image support` |
+
+### Constraints
+
+- Use only unsupervised VAE objectives during training.
+- Keep labels out of the model graph except for post-training evaluation files.
+- Use Bernoulli reconstruction for pixel probabilities and keep higher latent-to-latent
+  reconstructions continuous unless explicitly changed.
+
+### CVAE parameter-search outstanding issues and questions
+
+- The 200-image held-out split was used for model selection and is not an untouched final test set.
+- The centered dataset should be regenerated reproducibly at larger scale before claiming a final MNIST estimate.
+- The selected code remains only weakly category-organized despite excellent reconstruction; substantially stronger separation likely requires a different unsupervised objective or architecture rather than further tuning of the tested parameters.
+- The fully downsampled five-level model contracts the top-code standard deviation to approximately 0.02 and does not improve validation accuracy over the simpler two-level hierarchy.
+- After four downsamplings, the current Level-5 input has 12 values and its 16-dimensional latent code is overcomplete. A follow-up should increase Level-4 latent maps to at least 8 or reduce the top code below 12 dimensions.
+
 # Kernel Review Status
 
 ## RingWorld experimental protocol modules
@@ -104,6 +153,75 @@ The tasks below will be completed sequentially, with one focused commit per task
 - Keep Mermaid source beside a committed SVG and reference the SVG from Markdown.
 - Support sensible tick durations from 0.1–10 ms and document best-effort behavior at 100 ms.
 - Do not add external dependencies.
+
+### Outstanding issues and questions
+
+None.
+
+## Direct dense VAE mechanism sweep
+
+The architecture remains fixed at 1,024 input values, 10 latent values, and 1,024 reconstructed
+values. Training is unsupervised; labels are used only by post-training probes.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a reproducible staged experiment harness for direct dense VAE objective, optimization, regularization, and paired-view consistency settings. | Completed | Python compilation; 20-tick baseline and shifted paired-view train/save/reload/extract smoke runs; both retained exactly 1,000 aligned training and 200 aligned validation codes; `git diff --check`. | `Added direct dense VAE mechanism sweep` |
+| 2 | Run the broad single-factor screen and select candidates using frozen-code validation probes. | Completed | Thirty single-factor and four automatically composed conditions completed 50,000 Release updates with one matched seed; every extraction retained exactly 1,000 aligned training and 200 aligned validation codes. Moderate 10-prototype VQ led ridge at 71.0%; mean reconstruction and linear MSE led nearest-neighbour at 82.5%; composed settings did not improve either measure. | `Recorded the direct VAE mechanism screen` |
+| 3 | Run matched-seed confirmation of the finalists, graph the results, and document the recommended settings and limitations. | Completed | Eight finalists completed five new matched 50,000-update Release runs each; all 40 extractions retained exactly 1,000 aligned training and 200 aligned validation codes. Generated screening and confirmation plots were visually checked. Beta 0.03 led linear ridge at 69.4% +/- 0.7%; linear MSE led nearest-neighbour at 82.1% +/- 1.1%. Python compilation, report/result audit, and `git diff --check` passed. | `Documented the direct VAE parameter recommendation` |
+
+### Constraints
+
+- Keep `feature_stage=direct`, `latent_mode=dense`, and `latent_size=10` in every condition.
+- Use the same 1,000 centered training images, 200 centered validation images, update count, and
+  aligned extraction protocol for fair comparisons.
+- Do not use hierarchy, convolution, labels, or supervised losses during representation learning.
+- Treat linear ridge accuracy as the primary categorization measure and nearest-neighbour accuracy
+  as a complementary information-retention measure.
+- Confirm promising settings over matched random seeds before selecting a recommendation.
+
+### Outstanding issues and questions
+
+- The 200-image validation subset is reused for exploratory model selection and is not an untouched
+  final test set.
+- The controlled experiment uses only 1,000 training images and does not estimate full-MNIST
+  performance.
+- The tested ranges cover the implemented mechanism families and focused interactions, but do not
+  exhaust every continuous parameter combination.
+
+## GitHub issue bot guidance
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add `IKAROS-BOT.md` with secure, review-gated instructions for creating GitHub issues as `ikaros-bot`. | Completed | Policy audit for credential isolation, untrusted input, duplicate review, exact preview, approval gating, and authorship verification; `git diff --check`. | `Added secure GitHub issue bot guidance` |
+| 2 | Update `AGENTS.md` to direct GitHub issue operations to `IKAROS-BOT.md`. | Completed | Instruction audit confirms GitHub issue creation and modification are routed to the committed bot policy; `git diff --check`. | `GitHub issue operations now follow the bot policy` |
+
+### Outstanding issues and questions
+
+None.
+
+## ERRORS.md GitHub issue publication
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Create the approved issue for relative `-W` and `-L` state-path resolution. | Completed | Created GitHub issue #266 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the state-path resolution issue` |
+| 2 | Create the approved issue for nested command-line component parameter overrides. | Completed | Created GitHub issue #267 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the nested override issue` |
+| 3 | Create the approved issue for full-network state portability across root group names. | Completed | Created GitHub issue #268 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the state portability issue` |
+| 4 | Create the approved issue clarifying offline session-logging warnings. | Completed | Created GitHub issue #269 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the session logging issue` |
+
+### Outstanding issues and questions
+
+- `ERRORS.md` entries 5 and 6 are stale: commits `7acbbf50` and `7bd5cf71` respectively addressed
+  them, and the entries should be removed or marked resolved in a separate cleanup.
+- The kernel regression suite could not verify those fixes in this run because `Bin/ikaros` is
+  linked against a removed Homebrew `libavformat.62.dylib`; source, commit-history, and GitHub
+  readback verification completed successfully.
+
+## GitHub issue follow-up migration
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Remove the obsolete `ERRORS.md` follow-up file. | Completed | Confirmed the tracked file is deleted; remaining devlog references are historical; `git diff --check`. | `Removed the obsolete local error log` |
+| 2 | Replace the `AGENTS.md` instruction to record errors locally with the `ikaros-bot` GitHub issue workflow. | Completed | Instruction audit confirms potential bugs and documentation problems now use duplicate-reviewed, approval-gated GitHub issues through `IKAROS-BOT.md`; no active nonhistorical `ERRORS.md` references remain; `git diff --check`. | `Potential Ikaros problems now use bot-created issues` |
 
 ### Outstanding issues and questions
 

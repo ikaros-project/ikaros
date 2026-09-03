@@ -1,0 +1,12 @@
+<group internal="true"
+    name="TestRelativeStatePath"
+    description="Test explicit relative save-state paths use the invocation directory"
+    stop="1"
+    working_directory="${TEST_DIR}/.."
+    cli_args="-W KernelTests/test_373_relative_state_path.state"
+    expected_output_contains="Saved state to ${TEST_DIR}/test_373_relative_state_path.state"
+    expected_file_exists="${TEST_DIR}/test_373_relative_state_path.state"
+    expected_file_contains="&quot;model_name&quot;: &quot;TestRelativeStatePath&quot;||&quot;TestRelativeStatePath.Memory.label&quot;||&quot;value&quot;: &quot;trained&quot;"
+>
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" />
+</group>
