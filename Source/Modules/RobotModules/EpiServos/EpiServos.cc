@@ -99,6 +99,7 @@
 #include <future> // Threads
 
 #include "ikaros.h"
+#include "EpiServosProtocol.h"
 
 // This must be after ikaros.h
 #include "dynamixel_sdk.h" // Uses Dynamixel SDK library
@@ -106,6 +107,7 @@
 #include <nlohmann/json.hpp>
 #include <string>
 #include <algorithm>
+#include <set>
 
 
 using json = nlohmann::json;
@@ -134,7 +136,7 @@ class EpiServos : public Module
     // Ikaros IO
     matrix goalPosition;
     matrix goalCurrent;
-    matrix torqueEnable = true;
+    matrix torqueEnable;
     matrix goalPWM;
 
     matrix presentPosition;
@@ -146,35 +148,37 @@ class EpiServos : public Module
     int AngleMinLimitPupil[2];
     int AngleMaxLimitPupil[2];
 
-    int len_write_data;
+    int len_write_data = ikaros::episervos::writePacketSize;
 
     std::string controlMode;
 
 
-    dynamixel::PortHandler *portHandlerHead;
-    dynamixel::PacketHandler *packetHandlerHead;
-    dynamixel::GroupSyncRead *groupSyncReadHead;
-    dynamixel::GroupSyncWrite *groupSyncWriteHead;
+    dynamixel::PortHandler *portHandlerHead = nullptr;
+    dynamixel::PacketHandler *packetHandlerHead = nullptr;
+    dynamixel::GroupSyncRead *groupSyncReadHead = nullptr;
+    dynamixel::GroupSyncWrite *groupSyncWriteHead = nullptr;
 
-    dynamixel::PortHandler *portHandlerPupil;
-    dynamixel::PacketHandler *packetHandlerPupil;
+    dynamixel::PortHandler *portHandlerPupil = nullptr;
+    dynamixel::PacketHandler *packetHandlerPupil = nullptr;
     // dynamixel::GroupSyncRead *groupSyncReadPupil;
     // dynamixel::GroupSyncWrite *groupSyncWritePupil;
 
-    dynamixel::PortHandler *portHandlerLeftArm;
-    dynamixel::PacketHandler *packetHandlerLeftArm;
-    dynamixel::GroupSyncRead *groupSyncReadLeftArm;
-    dynamixel::GroupSyncWrite *groupSyncWriteLeftArm;
+    dynamixel::PortHandler *portHandlerLeftArm = nullptr;
+    dynamixel::PacketHandler *packetHandlerLeftArm = nullptr;
+    dynamixel::GroupSyncRead *groupSyncReadLeftArm = nullptr;
+    dynamixel::GroupSyncWrite *groupSyncWriteLeftArm = nullptr;
 
-    dynamixel::PortHandler *portHandlerRightArm;
-    dynamixel::PacketHandler *packetHandlerRightArm;
-    dynamixel::GroupSyncRead *groupSyncReadRightArm;
-    dynamixel::GroupSyncWrite *groupSyncWriteRightArm;
+    dynamixel::PortHandler *portHandlerRightArm = nullptr;
+    dynamixel::PacketHandler *packetHandlerRightArm = nullptr;
+    dynamixel::GroupSyncRead *groupSyncReadRightArm = nullptr;
+    dynamixel::GroupSyncWrite *groupSyncWriteRightArm = nullptr;
 
-    dynamixel::PortHandler *portHandlerBody;
-    dynamixel::PacketHandler *packetHandlerBody;
-    dynamixel::GroupSyncRead *groupSyncReadBody;
-    dynamixel::GroupSyncWrite *groupSyncWriteBody;
+    dynamixel::PortHandler *portHandlerBody = nullptr;
+    dynamixel::PacketHandler *packetHandlerBody = nullptr;
+    dynamixel::GroupSyncRead *groupSyncReadBody = nullptr;
+    dynamixel::GroupSyncWrite *groupSyncWriteBody = nullptr;
+
+    bool hardwarePowered = false;
 
     // Vectors for iteration
     std::vector<dynamixel::PortHandler*> portHandlers;
@@ -191,64 +195,96 @@ class EpiServos : public Module
     dictionary servoControlTable;
     list parameter_lst;
 
-    int CalculateLenWriteData(std::string dataToWrite){
-        int len = 1; // Torque enable
-        std::stringstream ss(dataToWrite);
-        std::string item;
-        
-        // Split string by comma and iterate
-        while (std::getline(ss, item, ',')) {
-            // Trim whitespace from item
-            item.erase(0, item.find_first_not_of(" \t\r\n"));
-            item.erase(item.find_last_not_of(" \t\r\n") + 1);
-            
-            Debug("Calculating length: Data to write: " + item);
-            if (!item.empty()) {
-                len += servoControlTable[item]["Bytes"];
-                Debug("Calculating length: Bytes: " + std::to_string(servoControlTable[item]["Bytes"]));
+    int CalculateLenWriteData(std::string dataToWrite)
+    {
+        return static_cast<int>(ikaros::episervos::validatedWritePacketSize(dataToWrite));
+    }
+
+    bool ConfigureOperatingModes(int idMin,
+                                 int idMax,
+                                 int ioIndex,
+                                 dynamixel::PortHandler * portHandler,
+                                 dynamixel::PacketHandler * packetHandler)
+    {
+        for (int id = idMin; id <= idMax; ++id)
+        {
+            const auto & route = ikaros::episervos::servoRoutes.at(
+                static_cast<std::size_t>(ioIndex + id - idMin));
+            const uint8_t operatingMode = controlMode == "CurrentPosition" && route.supportsGoalCurrent
+                                            ? 5
+                                            : 3;
+            uint8_t dxl_error = 0;
+            int result = packetHandler->write1ByteTxRx(portHandler, id, ADDR_TORQUE_ENABLE, 0, &dxl_error);
+            if (result == COMM_SUCCESS && dxl_error == 0)
+                result = packetHandler->write1ByteTxRx(portHandler, id, ADDR_OPERATING_MODE,
+                                                       operatingMode, &dxl_error);
+            if (result != COMM_SUCCESS || dxl_error != 0)
+            {
+                Warning("Could not configure operating mode " + std::to_string(operatingMode) +
+                        " for servo " + std::to_string(id) + " on " + portHandler->getPortName() + ".");
+                return false;
             }
         }
-        return len;
+        return true;
     }
-    
+
+    bool ConfigureAllOperatingModes()
+    {
+        if (!ConfigureOperatingModes(HEAD_ID_MIN, HEAD_ID_MAX, HEAD_INDEX_IO,
+                                     portHandlerHead, packetHandlerHead))
+            return false;
+        if (!EpiFullMode)
+            return true;
+        return ConfigureOperatingModes(ARM_ID_MIN, ARM_ID_MAX, LEFT_ARM_INDEX_IO,
+                                       portHandlerLeftArm, packetHandlerLeftArm) &&
+               ConfigureOperatingModes(ARM_ID_MIN, ARM_ID_MAX, RIGHT_ARM_INDEX_IO,
+                                       portHandlerRightArm, packetHandlerRightArm) &&
+               ConfigureOperatingModes(BODY_ID_MIN, BODY_ID_MAX, BODY_INDEX_IO,
+                                       portHandlerBody, packetHandlerBody);
+    }
+
+    void ValidateDetectedServos(const std::vector<uint8_t> & detectedIDs,
+                                int idMin,
+                                int idMax,
+                                const std::string & chainName)
+    {
+        for (int id = idMin; id <= idMax; ++id)
+        {
+            if (std::find(detectedIDs.begin(), detectedIDs.end(), static_cast<uint8_t>(id)) ==
+                detectedIDs.end())
+                throw exception("EpiServos did not detect " + chainName + " servo " +
+                                std::to_string(id) + ".", path_);
+        }
+    }
+
 
     bool CommunicationPupil()
     {
-        // Change this function.
-        // No need to have torque enable.
-        // Only goal position and use sync write.
-
-        int index = 0;
-        int dxl_comm_result = COMM_TX_FAIL; // Communication result
-        bool dxl_addparam_result = false;   // addParam result
-        bool dxl_getdata_result = false;    // GetParam result
-        uint8_t dxl_error = 0;              // Dynamixel error
-        
-
-        // Send to pupil. No feedback
-
-        index = PUPIL_INDEX_IO;
+        int index = PUPIL_INDEX_IO;
 
         for (int i = PUPIL_ID_MIN; i <= PUPIL_ID_MAX; i++)
         {
-            /*if (!torqueEnable.empty())
+            uint8_t dxl_error = 0;
+            const uint8_t enableTorque = !torqueEnable.connected() || torqueEnable(index) != 0 ? 1 : 0;
+            int result = packetHandlerPupil->write1ByteTxRx(portHandlerPupil, i, 24,
+                                                            enableTorque, &dxl_error);
+            if (result != COMM_SUCCESS || dxl_error != 0)
             {
-                uint8_t param_default = torqueEnable[index];
-                if (COMM_SUCCESS != packetHandlerPupil->write1ByteTxRx(portHandlerPupil, i, 24, param_default, &dxl_error))
-                {
-                    // Notify(msg_warning, "[ID:%03d] write1ByteTxRx failed", i);
-                    portHandlerPupil->clearPort();
-                    return false;
-                }
-                */
+                Warning("Could not set pupil torque for servo " + std::to_string(i) + ".");
+                portHandlerPupil->clearPort();
+                return false;
+            }
 
             if (goalPosition.connected())
             {
-                uint16_t param_default = goalPosition[index]; // Not using degrees.
-                // Goal postiion feature/bug. If torque enable = 0 and goal position is sent. Torque enable will be 1.
-                if (COMM_SUCCESS != packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30, param_default, &dxl_error))
+                const uint16_t pupilPosition = static_cast<uint16_t>(
+                    std::clamp(goalPosition(index), 0.0f, 1023.0f));
+                dxl_error = 0;
+                result = packetHandlerPupil->write2ByteTxRx(portHandlerPupil, i, 30,
+                                                            pupilPosition, &dxl_error);
+                if (result != COMM_SUCCESS || dxl_error != 0)
                 {
-                    Notify(msg_warning, std::string("[ID:" + std::to_string(i) + "] write2ByteTxRx failed"));
+                    Warning("Could not set pupil position for servo " + std::to_string(i) + ".");
                     portHandlerPupil->clearPort();
                     return false;
                 }
@@ -258,32 +294,21 @@ class EpiServos : public Module
                 Notify(msg_fatal_error, "Running module without a goal position input is not supported.");
                 return false;
             }
-            // XL 320 has no current position mode. Ignores goal current input
-            // No feedback from pupils. Also no temperature check. Bad idea?
             index++;
         }
-        return (true);
+        return true;
     }
 
     bool Communication(int IDMin, int IDMax, int IOIndex, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler, dynamixel::GroupSyncRead *groupSyncRead, dynamixel::GroupSyncWrite *groupSyncWrite)
     {
-        if (portHandler == NULL) // If no port handler return true. Only return false if communication went wrong.
+        if (portHandler == nullptr)
             return true;
+        if (packetHandler == nullptr || groupSyncRead == nullptr || groupSyncWrite == nullptr)
+            return false;
 
-        int index = 0;
-        int dxl_comm_result = COMM_TX_FAIL; // Communication result
-        bool dxl_addparam_result = false;   // addParam result
-        bool dxl_getdata_result = false;    // GetParam result
+        int dxl_comm_result = COMM_TX_FAIL;
+        bool hasSyncWriteParameters = false;
 
-        uint8_t dxl_error = 0;       // Dynamixel error
-        uint8_t param_sync_write[len_write_data]; // 7 byte sync write is not supported for the DynamixelSDK
-
-        int32_t dxl_present_position = 0;
-        int16_t dxl_present_current = 0;
-        int8_t dxl_present_temperature = 0;
-        uint16_t dxl_goal_current = 0;
-
-        // Add id for syncread
         for (int i = IDMin; i <= IDMax; i++)
         {
             if (!groupSyncRead->addParam(i))
@@ -294,7 +319,6 @@ class EpiServos : public Module
             }
         }
 
-        // Sync read
         dxl_comm_result = groupSyncRead->txRxPacket();
         if (dxl_comm_result != COMM_SUCCESS)
         {
@@ -304,106 +328,108 @@ class EpiServos : public Module
             return false;
         }
 
-        // Check if data is available
         for (int i = IDMin; i <= IDMax; i++)
         {
-            // Corrected isAvailable check: Use INDIRECTDATA_FOR_READ (634) and correct length 7
-            dxl_comm_result = groupSyncRead->isAvailable(i, INDIRECTDATA_FOR_READ, 4 + 2 + 1);
+            dxl_comm_result = groupSyncRead->isAvailable(i, INDIRECTDATA_FOR_READ,
+                                                         ikaros::episervos::readPacketSize);
             if (!dxl_comm_result)
             {
-                Notify(msg_warning, "SyncRead data not available for ID: " + std::to_string(i) + " at indirect data addr " + std::to_string(INDIRECTDATA_FOR_READ));
+                Warning("Synchronous read data is unavailable for servo " + std::to_string(i) + ".");
                 groupSyncWrite->clearParam();
                 groupSyncRead->clearParam();
                 return false;
             }
         }
 
-        // Extract data
-        index = IOIndex;
+        int index = IOIndex;
         for (int i = IDMin; i <= IDMax; i++)
         {
-            // Read 4 bytes starting at INDIRECTDATA_FOR_READ (634)
-            dxl_present_position = groupSyncRead->getData(i, INDIRECTDATA_FOR_READ, 4);    // Present position
-            // Read 2 bytes starting at INDIRECTDATA_FOR_READ + 4 = 638
-            dxl_present_current = groupSyncRead->getData(i, INDIRECTDATA_FOR_READ + 4, 2); // Present current (Offset 4 from start)
-            // TODO: Read temperature at offset 6 (INDIRECTDATA_FOR_READ + 6 = 640)
-            
-            presentPosition[index] = dxl_present_position / 4096.0 * 360.0; // degrees
-            // Use correct conversion factor for Present Current
-            presentCurrent[index] = dxl_present_current * CURRENT_UNIT; // mA
-            index++;
-        }
+            const auto & route = ikaros::episervos::servoRoutes.at(index);
+            const std::uint32_t rawPosition = groupSyncRead->getData(i, INDIRECTDATA_FOR_READ, 4);
+            const std::uint16_t rawCurrent = static_cast<std::uint16_t>(
+                groupSyncRead->getData(i, INDIRECTDATA_FOR_READ + 4, 2));
+            const std::uint8_t temperature = static_cast<std::uint8_t>(
+                groupSyncRead->getData(i, INDIRECTDATA_FOR_READ + 6, 1));
 
-        // Send (sync write)
-        index = IOIndex;
-        for (int i = IDMin; i <= IDMax; i++)
-        {
-            param_sync_write[0] = torqueEnable(i); // Torque on
+            presentPosition(index) = ikaros::episervos::rawPositionToDegrees(rawPosition);
+            presentCurrent(index) = route.supportsGoalCurrent
+                                      ? ikaros::episervos::rawCurrentToMilliamp(rawCurrent)
+                                      : 0;
 
-            if (goalPosition.connected())
+            bool enableTorque = !torqueEnable.connected() || torqueEnable(index) != 0;
+            if (temperature > MAX_TEMPERATURE)
             {
-                int value = goalPosition[index] / 360.0 * 4096.0;
-                param_sync_write[1] = DXL_LOBYTE(DXL_LOWORD(value));
-                param_sync_write[2] = DXL_HIBYTE(DXL_LOWORD(value));
-                param_sync_write[3] = DXL_LOBYTE(DXL_HIWORD(value));
-                param_sync_write[4] = DXL_HIBYTE(DXL_HIWORD(value));
+                enableTorque = false;
+                Warning("Servo " + std::to_string(i) + " on " + portHandler->getPortName() +
+                        " is " + std::to_string(temperature) +
+                        " C; torque is disabled above " + std::to_string(MAX_TEMPERATURE) + " C.");
+            }
+
+            if (!goalPosition.connected())
+            {
+                Warning("EpiServos requires a goal-position input while operating hardware.");
+                groupSyncWrite->clearParam();
+                groupSyncRead->clearParam();
+                return false;
+            }
+
+            const ikaros::episervos::WriteCommand command = {
+                enableTorque,
+                ikaros::episervos::degreesToRawPosition(goalPosition(index)),
+                route.supportsGoalCurrent && goalCurrent.connected() && controlMode == "CurrentPosition"
+                    ? ikaros::episervos::currentMilliampToRaw(goalCurrent(index))
+                    : 0,
+                ikaros::episervos::pwmPercentToRaw(goalPWM.connected() ? goalPWM(index) : 100.0),
+            };
+            auto packet = ikaros::episervos::encodeWritePacket(command);
+
+            if (route.supportsGoalCurrent)
+            {
+                if (!groupSyncWrite->addParam(i, packet.data()))
+                {
+                    Warning("Could not add servo " + std::to_string(i) + " to the synchronous write.");
+                    groupSyncWrite->clearParam();
+                    groupSyncRead->clearParam();
+                    return false;
+                }
+                hasSyncWriteParameters = true;
             }
             else
             {
-                Notify(msg_fatal_error, "Running module without a goal position input is not supported.");
-                groupSyncWrite->clearParam();
-                groupSyncRead->clearParam();
-                return false;
-            }
-            if (goalCurrent.connected() && controlMode == "CurrentPosition")
-            {
-                // Use the correct conversion factor for Goal Current
-                int value_current = goalCurrent[index] / CURRENT_UNIT; 
-                param_sync_write[5] = DXL_LOBYTE(value_current);
-                param_sync_write[6] = DXL_HIBYTE(value_current);
-            }
-            else // THIS IS TRUE FOR THE NON-WORKING CASE
-            {
-                // Send 0 for Goal Current bytes, as it's likely unused/problematic in pure Position Mode
-                param_sync_write[5] = 0; 
-                param_sync_write[6] = 0;
-            }
-            if (goalPWM.connected() && controlMode == "Position")
-            {
-                int value_pwm = goalPWM[index] / 0.11299;
-                param_sync_write[7] = DXL_LOBYTE(value_pwm);
-                param_sync_write[8] = DXL_HIBYTE(value_pwm);
-                Debug("Goal PWM: " + std::to_string(goalPWM[index]));
-            }
-            else
-            {
-                int value_pwm = 100 / 0.11299; // 100% PWM
-                param_sync_write[7] = DXL_LOBYTE(value_pwm);
-                param_sync_write[8] = DXL_HIBYTE(value_pwm);
-            }
-
-            dxl_addparam_result = groupSyncWrite->addParam(i, param_sync_write);
-            if (!dxl_addparam_result)
-            {
-                Warning("Could not add servo " + std::to_string(i) + " to the synchronous write.");
-
-                groupSyncWrite->clearParam();
-                groupSyncRead->clearParam();
-                return false;
+                uint8_t dxl_error = 0;
+                dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, i, ADDR_TORQUE_ENABLE,
+                                                                 enableTorque ? 1 : 0, &dxl_error);
+                if (dxl_comm_result == COMM_SUCCESS && dxl_error == 0)
+                    dxl_comm_result = packetHandler->write4ByteTxRx(portHandler, i, ADDR_GOAL_POSITION,
+                                                                    command.goalPosition, &dxl_error);
+                if (dxl_comm_result == COMM_SUCCESS && dxl_error == 0)
+                    dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, i, ADDR_GOAL_PWM,
+                                                                    static_cast<std::uint16_t>(command.goalPWM),
+                                                                    &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS || dxl_error != 0)
+                {
+                    Warning("Direct position write failed for non-current servo " + std::to_string(i) +
+                            " on " + portHandler->getPortName() + ".");
+                    groupSyncWrite->clearParam();
+                    groupSyncRead->clearParam();
+                    return false;
+                }
             }
 
             index++;
         }
 
-        // Syncwrite
-        dxl_comm_result = groupSyncWrite->txPacket();
-        if (dxl_comm_result != COMM_SUCCESS)
+        if (hasSyncWriteParameters)
         {
-            groupSyncWrite->clearParam();
-            groupSyncRead->clearParam();
-            Warning("Synchronous servo write failed: " +
-                    std::string(groupSyncWrite->getPacketHandler()->getTxRxResult(dxl_comm_result)));
-            return false;
+            dxl_comm_result = groupSyncWrite->txPacket();
+            if (dxl_comm_result != COMM_SUCCESS)
+            {
+                groupSyncWrite->clearParam();
+                groupSyncRead->clearParam();
+                Warning("Synchronous servo write failed: " +
+                        std::string(groupSyncWrite->getPacketHandler()->getTxRxResult(dxl_comm_result)));
+                return false;
+            }
         }
 
         groupSyncWrite->clearParam();
@@ -424,88 +450,94 @@ class EpiServos : public Module
         return std::filesystem::exists(resolved_path);
     }
     
-    matrix ReadJsonToMatrix(int minID, int maxID, std::string robotType, std::string servoChain, std::string controlMode){       
-        int numParameters = 0;
+    matrix ReadJsonToMatrix(int minID, int maxID, std::string robotType, std::string servoChain, std::string controlMode)
+    {
         std::string tunedParameters;
-        // Construct the filename
         std::string filename = "ServoParameters" + robotType + "_" + controlMode + ".json";
         std::string path = __FILE__;
-        // Remove the filename from the path
         path = path.substr(0, path.find_last_of("/\\"));
         std::filesystem::path resolved_path;
         if(!kernel().SanitizeReadPath(path + "/" + filename, resolved_path))
-        {
-            Error("Parameter file " + filename + " is outside the allowed read roots.");
-            return matrix();
-        }
-        
-        // Initialize JSON object
+            throw exception("Parameter file " + filename + " is outside the allowed read roots.", path_);
+
         nlohmann::json jsonData;
-
         std::ifstream infile(resolved_path);
-
-        // Read existing JSON data if the file exists
-        if (infile.is_open() && infile.peek() != std::ifstream::traits_type::eof()) {
+        if (!infile.is_open() || infile.peek() == std::ifstream::traits_type::eof())
+            throw exception("Parameter file " + resolved_path.string() + " is missing or empty.", path_);
+        try
+        {
             infile >> jsonData;
-            infile.close();
         }
-        else{
-            Error("Parameter file " + resolved_path.string() + " does not exist.");
-            return matrix();
+        catch (const nlohmann::json::exception & error)
+        {
+            throw exception("Could not parse " + filename + ": " + error.what(), path_);
         }
-       
-  
-        nlohmann::json& robotData = jsonData[robotType];
-        nlohmann::json& servoChainData = robotData[servoChain];
 
-        
-        // Determine the number of parameters
-        for (auto& chain : servoChainData) {
-            if (chain.contains("servoID")) {
-                numParameters = chain.size() -1; // exclude servoID
-                break;
+        if (!jsonData.contains(robotType) || !jsonData[robotType].is_object() ||
+            !jsonData[robotType].contains(servoChain) ||
+            !jsonData[robotType][servoChain].is_array())
+            throw exception(filename + " does not contain the expected " + robotType + "/" +
+                            servoChain + " servo array.", path_);
+
+        const nlohmann::json & servoChainData = jsonData[robotType][servoChain];
+        const int servoCount = maxID - minID + 1;
+        if (servoChainData.size() != static_cast<std::size_t>(servoCount))
+            throw exception(filename + " has the wrong number of " + servoChain + " servos.", path_);
+
+        std::vector<std::string> parameterNames;
+        for (const auto & item : servoChainData.front().items())
+            if (item.key() != "servoID")
+                parameterNames.push_back(item.key());
+        if (parameterNames.empty())
+            throw exception(filename + " has no servo parameters.", path_);
+
+        if (parameter_lst.empty())
+            for (const std::string & parameterName : parameterNames)
+                parameter_lst.push_back(parameterName);
+        else
+        {
+            if (parameter_lst.size() != parameterNames.size())
+                throw exception(filename + " uses a different parameter schema between servo chains.", path_);
+            for (std::size_t i = 0; i < parameterNames.size(); ++i)
+                if (std::string(parameter_lst[i]) != parameterNames[i])
+                    throw exception(filename + " uses inconsistent parameter ordering.", path_);
+        }
+
+        matrix result(servoCount, parameterNames.size());
+        std::set<int> seenIDs;
+        for (const nlohmann::json & servo : servoChainData)
+        {
+            if (!servo.is_object() || !servo.contains("servoID") || !servo["servoID"].is_number_integer())
+                throw exception(filename + " contains a servo without an integer servoID.", path_);
+            const int id = servo["servoID"].get<int>();
+            if (id < minID || id > maxID || !seenIDs.insert(id).second)
+                throw exception(filename + " contains an invalid or duplicate servoID.", path_);
+
+            for (std::size_t parameterIndex = 0; parameterIndex < parameterNames.size(); ++parameterIndex)
+            {
+                const std::string & parameterName = parameterNames[parameterIndex];
+                if (!servo.contains(parameterName) || !servo[parameterName].is_number() ||
+                    !servoControlTable.contains(parameterName))
+                    throw exception(filename + " contains an invalid parameter " + parameterName + ".", path_);
+                result(id - minID, parameterIndex) = servo[parameterName].get<double>();
             }
         }
 
-        // Initialize the result matrix
-        matrix result(maxID - minID + 1, numParameters); // all servo chains start from ID 2
-
-        // Check if the servo ID 
-        for (auto& chain : servoChainData) {
-            int i = 0;
-            for (int ID = minID; ID <= maxID; ID++){
-                if (chain["servoID"] == ID) {
-                    printf("ID: %d\n", ID);
-                    //loop through all keys of the chain
-                    int paramIndex = 0;
-                    for (auto& it : chain.items()) {
-                        if(it.key() != "servoID"){
-                            //only add to tuned parameter the one time
-                            if (ID == minID) {
-                            parameter_lst.push_back(it.key());
-                            tunedParameters += "\"" + it.key() + "\", ";
-                            } 
-                        result(ID - minID, paramIndex) = it.value();
-                        }
-                        paramIndex++;
-                    }
-                }
-                i++; 
-            }           
-        }
+        for (const std::string & parameterName : parameterNames)
+            tunedParameters += "\"" + parameterName + "\", ";
         result.set_labels(0, tunedParameters);
         return result;
     }
 
     void CreateParameterMatrices(){
-
+        parameter_lst = list();
         headData = ReadJsonToMatrix(HEAD_ID_MIN, HEAD_ID_MAX, robot[robotName].type, "Head", controlMode);
        
 
         if (EpiFullMode){
-            bodyData = ReadJsonToMatrix(BODY_ID_MIN, BODY_ID_MAX, robot[robotName.c_str()].type, "Body", controlMode);
-            leftArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName.c_str()].type, "LeftArm", controlMode);
-            rightArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName.c_str()].type, "RightArm", controlMode);
+            bodyData = ReadJsonToMatrix(BODY_ID_MIN, BODY_ID_MAX, robot[robotName].type, "Body", controlMode);
+            leftArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName].type, "LeftArm", controlMode);
+            rightArmData = ReadJsonToMatrix(ARM_ID_MIN, ARM_ID_MAX, robot[robotName].type, "RightArm", controlMode);
         }
         
     }
@@ -594,8 +626,8 @@ class EpiServos : public Module
         // Check if robotname exist in configuration
         if (robot.find(robotName) == robot.end())
         {
-            Error(std::string("%s is not supported") + robotName.c_str()); // Is this working?
-            Notify(msg_warning, std::string("%s is not supported") + robotName.c_str());
+            Error(robotName.as_string() + " is not supported");
+            Notify(msg_warning, robotName.as_string() + " is not supported");
 
             return;
         }
@@ -743,12 +775,35 @@ class EpiServos : public Module
 
         std::cout << "EpiServos: " << robotName << std::endl;
 
-        len_write_data = CalculateLenWriteData(dataToWrite.as_string());
+        try
+        {
+            len_write_data = CalculateLenWriteData(dataToWrite.as_string());
+        }
+        catch (const std::invalid_argument & error)
+        {
+            throw exception("Invalid DataToWrite: " + std::string(error.what()), path_);
+        }
         Debug("Bytes to write: " + std::to_string(len_write_data));
         Debug("Data to write: " + dataToWrite.as_string());
 
        
         // Check if the input size are correct. We do not need to have an input at all!
+        const std::size_t activeServoCount = EpiTorsoMode ? EPI_TORSO_NR_SERVOS : EPI_NR_SERVOS;
+        const std::size_t activePositionLimitCount = activeServoCount - 2;
+        if (!goalPosition.connected())
+            throw exception("EpiServos requires GOAL_POSITION.", path_);
+        if (goalPosition.size() < activeServoCount)
+            throw exception("GOAL_POSITION is smaller than the selected robot layout.", path_);
+        if (goalCurrent.connected() && goalCurrent.size() < activeServoCount)
+            throw exception("GOAL_CURRENT is smaller than the selected robot layout.", path_);
+        if (goalPWM.connected() && goalPWM.size() < activeServoCount)
+            throw exception("GOAL_PWM is smaller than the selected robot layout.", path_);
+        if (torqueEnable.connected() && torqueEnable.size() < activeServoCount)
+            throw exception("TORQUE_ENABLE is smaller than the selected robot layout.", path_);
+        if (minLimitPosition.size() < activePositionLimitCount ||
+            maxLimitPosition.size() < activePositionLimitCount)
+            throw exception("Position-limit parameters are smaller than the selected robot layout.", path_);
+
         if (EpiTorsoMode)
         {
             if (goalPosition.connected())
@@ -806,8 +861,7 @@ class EpiServos : public Module
                 Notify(msg_debug, "Succeeded to open serial port!");
             else
             {
-                Notify(msg_fatal_error, "Failed to open serial port!");
-                return;
+                throw exception("EpiServos could not open the head serial port.", path_);
             }
 
             // Set port baudrate
@@ -815,14 +869,14 @@ class EpiServos : public Module
                 Notify(msg_debug, "Succeeded to change baudrate!");
             else
             {
-                Notify(msg_fatal_error, "Failed to change baudrate!");
-                return;
+                throw exception("EpiServos could not set the head baud rate.", path_);
             }
 
             // Ping all the servos to make sure they are all there.
             dxl_comm_result = packetHandlerHead->broadcastPing(portHandlerHead, vec);
             if (dxl_comm_result != COMM_SUCCESS)
-                Notify(msg_warning, "Can not send out broadcast ping to servos");
+                throw exception("EpiServos could not ping the head servo chain.", path_);
+            ValidateDetectedServos(vec, HEAD_ID_MIN, HEAD_ID_MAX, "head");
 
             Notify(msg_debug, "Detected Dynamixel (Head): ");
             for (int i = 0; i < (int)vec.size(); i++)
@@ -841,21 +895,21 @@ class EpiServos : public Module
                 Notify(msg_debug, "Succeeded to open serial port!");
             else
             {
-                Notify(msg_fatal_error, "Failed to open serial port!");
-                return;
+                throw exception("EpiServos could not open the pupil serial port.", path_);
             }
             // Set port baudrate
             if (portHandlerPupil->setBaudRate(BAUDRATE1M))
                 Notify(msg_debug, "Succeeded to change baudrate!");
             else
             {
-                Notify(msg_fatal_error, "Failed to change baudrate!");
-                return;
+                throw exception("EpiServos could not set the pupil baud rate.", path_);
             }
             // Ping all the servos to make sure they are all there.
+            vec.clear();
             dxl_comm_result = packetHandlerPupil->broadcastPing(portHandlerPupil, vec);
             if (dxl_comm_result != COMM_SUCCESS)
-                Notify(msg_warning, "Can not send out broadcast ping to servos");
+                throw exception("EpiServos could not ping the pupil servo chain.", path_);
+            ValidateDetectedServos(vec, PUPIL_ID_MIN, PUPIL_ID_MAX, "pupil");
 
             Notify(msg_debug, "Detected Dynamixel (Pupil): ");
             for (int i = 0; i < (int)vec.size(); i++)
@@ -863,7 +917,7 @@ class EpiServos : public Module
         }
         else
         {
-            Notify(msg_fatal_error, "Robot type is not yet implementet");
+            throw exception("EpiServos does not implement the selected robot type.", path_);
         }
         if (EpiFullMode)
         {
@@ -883,21 +937,20 @@ class EpiServos : public Module
                 Notify(msg_debug, "Succeeded to open serial port!");
             else
             {
-                Notify(msg_fatal_error, "Failed to open serial port!");
-                return;
+                throw exception("EpiServos could not open the left-arm serial port.", path_);
             }
             // Set port baudrate
             if (portHandlerLeftArm->setBaudRate(BAUDRATE3M))
                 Notify(msg_debug, "Succeeded to change baudrate!");
             else
             {
-                Notify(msg_fatal_error, "Failed to change baudrate!");
-                return;
+                throw exception("EpiServos could not set the left-arm baud rate.", path_);
             }
             // Ping all the servos to make sure they are all there.
             dxl_comm_result = packetHandlerLeftArm->broadcastPing(portHandlerLeftArm, vec);
             if (dxl_comm_result != COMM_SUCCESS)
-                Notify(msg_warning, "Can not send out broadcast ping to servos");
+                throw exception("EpiServos could not ping the left-arm servo chain.", path_);
+            ValidateDetectedServos(vec, ARM_ID_MIN, ARM_ID_MAX, "left-arm");
 
             Notify(msg_debug, "Detected Dynamixel (Left arm): ");
             for (int i = 0; i < (int)vec.size(); i++)
@@ -916,21 +969,21 @@ class EpiServos : public Module
                 Notify(msg_debug, "Succeeded to open serial port!");
             else
             {
-                Notify(msg_fatal_error, "Failed to open serial port!");
-                return;
+                throw exception("EpiServos could not open the right-arm serial port.", path_);
             }
             // Set port baudrate
             if (portHandlerRightArm->setBaudRate(BAUDRATE3M))
                 Notify(msg_debug, "Succeeded to change baudrate!");
             else
             {
-                Notify(msg_fatal_error, "Failed to change baudrate!");
-                return;
+                throw exception("EpiServos could not set the right-arm baud rate.", path_);
             }
             // Ping all the servos to make sure they are all there.
+            vec.clear();
             dxl_comm_result = packetHandlerRightArm->broadcastPing(portHandlerRightArm, vec);
             if (dxl_comm_result != COMM_SUCCESS)
-                Notify(msg_warning, "Can not send out broadcast ping to servos");
+                throw exception("EpiServos could not ping the right-arm servo chain.", path_);
+            ValidateDetectedServos(vec, ARM_ID_MIN, ARM_ID_MAX, "right-arm");
 
             Notify(msg_debug, "Detected Dynamixel (Right arm): ");
             for (int i = 0; i < (int)vec.size(); i++)
@@ -949,21 +1002,21 @@ class EpiServos : public Module
                 Notify(msg_debug, "Succeeded to open serial port!");
             else
             {
-                Notify(msg_fatal_error, "Failed to open serial port!");
-                return;
+                throw exception("EpiServos could not open the body serial port.", path_);
             }
             // Set port baudrate
             if (portHandlerBody->setBaudRate(BAUDRATE3M))
                 Notify(msg_debug, "Succeeded to change baudrate!");
             else
             {
-                Notify(msg_fatal_error, "Failed to change baudrate!");
-                return;
+                throw exception("EpiServos could not set the body baud rate.", path_);
             }
             // Ping all the servos to make sure they are all there.
+            vec.clear();
             dxl_comm_result = packetHandlerBody->broadcastPing(portHandlerBody, vec);
             if (dxl_comm_result != COMM_SUCCESS)
-                Notify(msg_warning, "Can not send out broadcast ping to servos");
+                throw exception("EpiServos could not ping the body servo chain.", path_);
+            ValidateDetectedServos(vec, BODY_ID_MIN, BODY_ID_MAX, "body");
 
             Notify(msg_debug, "Detected Dynamixel (Body): \n");
   
@@ -974,49 +1027,70 @@ class EpiServos : public Module
         // Create dynamixel objects
         if (EpiTorsoMode || EpiFullMode)
         {
-            groupSyncWriteHead = new dynamixel::GroupSyncWrite(portHandlerHead, packetHandlerHead, INDIRECTDATA_FOR_WRITE, len_write_data);   // Start=224, Len=7 (Torque(1)+Pos(4)+Current(2))
-            // Corrected GroupSyncRead initialization: Start=634, Len=7 (Pos(4)+Current(2)+Temp(1))
-            groupSyncReadHead = new dynamixel::GroupSyncRead(portHandlerHead, packetHandlerHead, INDIRECTDATA_FOR_READ, 4 + 2 + 1); 
+            groupSyncWriteHead = new dynamixel::GroupSyncWrite(portHandlerHead, packetHandlerHead,
+                                                               INDIRECTDATA_FOR_WRITE,
+                                                               ikaros::episervos::writePacketSize);
+            groupSyncReadHead = new dynamixel::GroupSyncRead(portHandlerHead, packetHandlerHead,
+                                                             INDIRECTDATA_FOR_READ,
+                                                             ikaros::episervos::readPacketSize);
         }
         if (EpiFullMode)
         {
             // Apply similar corrections for Arms and Body
-            groupSyncWriteLeftArm = new dynamixel::GroupSyncWrite(portHandlerLeftArm, packetHandlerLeftArm, INDIRECTDATA_FOR_WRITE, len_write_data);
-            groupSyncReadLeftArm = new dynamixel::GroupSyncRead(portHandlerLeftArm, packetHandlerLeftArm, INDIRECTDATA_FOR_READ, 4 + 2 + 1);
-            groupSyncWriteRightArm = new dynamixel::GroupSyncWrite(portHandlerRightArm, packetHandlerRightArm, INDIRECTDATA_FOR_WRITE, len_write_data);
-            groupSyncReadRightArm = new dynamixel::GroupSyncRead(portHandlerRightArm, packetHandlerRightArm, INDIRECTDATA_FOR_READ, 4 + 2 + 1);
-            groupSyncWriteBody = new dynamixel::GroupSyncWrite(portHandlerBody, packetHandlerBody, INDIRECTDATA_FOR_WRITE, len_write_data);
-            groupSyncReadBody = new dynamixel::GroupSyncRead(portHandlerBody, packetHandlerBody, INDIRECTDATA_FOR_READ, 4 + 2 + 1);
+            groupSyncWriteLeftArm = new dynamixel::GroupSyncWrite(portHandlerLeftArm, packetHandlerLeftArm,
+                                                                  INDIRECTDATA_FOR_WRITE,
+                                                                  ikaros::episervos::writePacketSize);
+            groupSyncReadLeftArm = new dynamixel::GroupSyncRead(portHandlerLeftArm, packetHandlerLeftArm,
+                                                                INDIRECTDATA_FOR_READ,
+                                                                ikaros::episervos::readPacketSize);
+            groupSyncWriteRightArm = new dynamixel::GroupSyncWrite(portHandlerRightArm, packetHandlerRightArm,
+                                                                   INDIRECTDATA_FOR_WRITE,
+                                                                   ikaros::episervos::writePacketSize);
+            groupSyncReadRightArm = new dynamixel::GroupSyncRead(portHandlerRightArm, packetHandlerRightArm,
+                                                                 INDIRECTDATA_FOR_READ,
+                                                                 ikaros::episervos::readPacketSize);
+            groupSyncWriteBody = new dynamixel::GroupSyncWrite(portHandlerBody, packetHandlerBody,
+                                                               INDIRECTDATA_FOR_WRITE,
+                                                               ikaros::episervos::writePacketSize);
+            groupSyncReadBody = new dynamixel::GroupSyncRead(portHandlerBody, packetHandlerBody,
+                                                             INDIRECTDATA_FOR_READ,
+                                                             ikaros::episervos::readPacketSize);
             // groupSyncWritePupil = new dynamixel::GroupSyncWrite(portHandlerPupil, packetHandlerPupil, 30, 2); 
         }
+
+        if (!ConfigureAllOperatingModes())
+            throw exception("EpiServos could not configure the requested operating mode.", path_);
 
         if(ParameterJsonFileExists(robot[robotName].type, controlMode)){
             std::cout << "Reading json parameter file" << std::endl;
             
             CreateParameterMatrices();
             Notify(msg_trace, "Setting servo settings"); 
-            SetServoSettings(); // TODO: Check return value? Assumed it prints errors and returns false if needed.
+            if (!SetServoSettings())
+                throw exception("EpiServos could not apply the servo parameter file.", path_);
             Notify(msg_trace, "Setting min max limits");
             // Check return value of SetMinMaxLimits
             if (!SetMinMaxLimits()) {
-                Notify(msg_fatal_error, "Failed to set min/max hardware limits on servos.");
-                return; // Stop initialization if limits failed
+                throw exception("EpiServos could not apply hardware position limits.", path_);
             }
 
         }
         else{
             Notify(msg_warning, "No parameter file found for this robot type. Using default settings.");
             if (!SetDefaultSettingServo())
-                Notify(msg_fatal_error, "Unable to write default settings on servos\n");
+                throw exception("EpiServos could not apply default servo settings.", path_);
         }
-
-        AutoCalibratePupil();
 
         Notify(msg_debug, "torque down servos and prepering servos for write defualt settings\n");
         if (!PowerOffRobot())
-            Notify(msg_fatal_error, "Unable torque down servos\n");
+            throw exception("EpiServos could not safely power down before calibration.", path_);
+        if (!AutoCalibratePupil())
+            throw exception("EpiServos could not calibrate the pupil servos.", path_);
+        if (!SetPupilParameters())
+            throw exception("EpiServos could not apply calibrated pupil settings.", path_);
+        hardwarePowered = true;
         if (!PowerOnRobot())
-            Notify(msg_fatal_error, "Unable torque up servos");
+            throw exception("EpiServos could not power on safely.", path_);
     }
 
     float PupilMMToDynamixel(float mm, int min, int max)
@@ -1039,57 +1113,41 @@ class EpiServos : public Module
     }
 
     void Tick()
-    {   
-        goalPosition[PUPIL_INDEX_IO] = clip(goalPosition[PUPIL_INDEX_IO], 5, 16); // Pupil size must be between 5 mm to 16 mm.
-        goalPosition[PUPIL_INDEX_IO + 1] = clip(goalPosition[PUPIL_INDEX_IO + 1], 5, 16); // Pupil size must be between 5 mm to 16 mm.
+    {
+        const std::size_t activeServoCount = EpiTorsoMode ? EPI_TORSO_NR_SERVOS : EPI_NR_SERVOS;
+        goalPosition(PUPIL_INDEX_IO) = clip(goalPosition(PUPIL_INDEX_IO), 5, 16);
+        goalPosition(PUPIL_INDEX_IO + 1) = clip(goalPosition(PUPIL_INDEX_IO + 1), 5, 16);
 
-        // Special case. As pupil does not have any feedback we just return goal position
-        presentPosition[PUPIL_INDEX_IO]    =     goalPosition[PUPIL_INDEX_IO];
-        presentPosition[PUPIL_INDEX_IO+1]  =     goalPosition[PUPIL_INDEX_IO+1];
+        presentPosition(PUPIL_INDEX_IO) = goalPosition(PUPIL_INDEX_IO);
+        presentPosition(PUPIL_INDEX_IO + 1) = goalPosition(PUPIL_INDEX_IO + 1);
 
-       
-        if (goalPosition.connected() && goalPosition[0] > 0){
-            for (int i = 0; i < EPI_TORSO_NR_SERVOS -2; i++) // -2 for the pupils
-            {
-                goalPosition[i] = clip(goalPosition[i], minLimitPosition[i], maxLimitPosition[i]);
-                Debug("Goal position: " + std::to_string(goalPosition[i]));
-            }
+        for (std::size_t ioIndex = 0; ioIndex < activeServoCount; ++ioIndex)
+        {
+            if (ioIndex == PUPIL_INDEX_IO || ioIndex == PUPIL_INDEX_IO + 1)
+                continue;
+            const std::size_t limitIndex = ioIndex < PUPIL_INDEX_IO ? ioIndex : ioIndex - 2;
+            goalPosition(ioIndex) = clip(goalPosition(ioIndex), minLimitPosition(limitIndex),
+                                         maxLimitPosition(limitIndex));
         }
+
         if (simulate)
         {
-
-            // Simulate need to handle different timebase as in new ikaros.
-
-            //reset_array(presentCurrent, presentCurrentSize); // 0 mA
-
-            float maxVel = 45.0 / 1000 * 10; // No timebase
-
-            // Comment out GetTickLength() Adding constant.
-            // if (GetTickLength() != 0)
-            //    maxVel = 45.0 / 1000 * GetTickLength(); // Maximum change in one second in degrees / timebase
-            maxVel = 0.01; // This should be a ratio parameter
-
-            for (int i = 0; i < EPI_NR_SERVOS; i++)
+            for (std::size_t i = 0; i < activeServoCount; ++i)
             {
-                if (goalPosition.connected())
-                    if (std::isnan(goalPosition[i]))
-                    {
-                        Notify(msg_warning, "EpiServo module position input has NAN\n");
-                        return;
-                    }
-                if (goalCurrent.connected())
-                    if (std::isnan(goalCurrent[i]))
-                    {
-                        Notify(msg_warning, "EpiServo module current input has NAN\n");
-                        return;
-                    }
-
-                if (goalPosition.connected())
-                    presentPosition[i] = presentPosition[i] + 0.9 * (clip(goalPosition(i) - presentPosition(i), -maxVel, maxVel)); // adding some smoothing to prevent oscillation in simulation mode
-
-                if (goalCurrent.connected())
-                    presentCurrent(i) = presentCurrent(i) + 0.06 * (goalCurrent(i) - presentCurrent(i));
+                if (std::isnan(goalPosition(i)) ||
+                    (goalCurrent.connected() && std::isnan(goalCurrent(i))))
+                {
+                    Warning("EpiServos simulation input contains NaN.");
+                    return;
+                }
             }
+
+            ikaros::episervos::simulateStep(presentPosition.data(), presentPosition.size(),
+                                            goalPosition.data(), goalPosition.size(), activeServoCount,
+                                            GetTickDuration());
+            if (goalCurrent.connected())
+                for (std::size_t i = 0; i < activeServoCount; ++i)
+                    presentCurrent(i) += 0.06 * (goalCurrent(i) - presentCurrent(i));
             return;
         }
 
@@ -1097,8 +1155,8 @@ class EpiServos : public Module
         // dictionary d; // is this even used. Did not exist with I started this module. Perhaps I should make use of the dictionary now.
 
         // Special case for pupil uses mm instead of degrees. Also clip the angles if it outside the calibrated range.
-        goalPosition[PUPIL_INDEX_IO] = PupilMMToDynamixel(goalPosition[PUPIL_INDEX_IO], AngleMinLimitPupil[0], AngleMaxLimitPupil[0]);
-        goalPosition[PUPIL_INDEX_IO + 1] = PupilMMToDynamixel(goalPosition[PUPIL_INDEX_IO + 1], AngleMinLimitPupil[1], AngleMaxLimitPupil[1]);
+        goalPosition(PUPIL_INDEX_IO) = PupilMMToDynamixel(goalPosition(PUPIL_INDEX_IO), AngleMinLimitPupil[0], AngleMaxLimitPupil[0]);
+        goalPosition(PUPIL_INDEX_IO + 1) = PupilMMToDynamixel(goalPosition(PUPIL_INDEX_IO + 1), AngleMinLimitPupil[1], AngleMaxLimitPupil[1]);
 
         
             // Fire up some threads to work in parallell
@@ -1201,7 +1259,7 @@ class EpiServos : public Module
             }
             for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++)
             {
-                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerBody, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error))
+                if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error))
                 {
                     Warning("Failed to set torque enable for body servo " + std::to_string(i) + ".");
                     return false;
@@ -1239,8 +1297,8 @@ class EpiServos : public Module
                         return false;
         }
 
-        // Goal Current
-        for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
+        // Goal Current is available only on the MX-106 head servos (IDs 2 and 3).
+        for (int i = HEAD_ID_MIN; i <= HEAD_ID_MIN + 1; i++)
         {
             for (int j = 0; j < 2; j++)
             {
@@ -1251,6 +1309,55 @@ class EpiServos : public Module
                 }
             }
         }
+        if (EpiFullMode)
+        {
+            for (int i = ARM_ID_MIN; i < ARM_ID_MAX; i++)
+                for (int j = 0; j < 2; j++)
+                {
+                    if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(
+                                            portHandlerLeftArm, i, IND_ADDR_GOAL_CURRENT + (2 * j),
+                                            ADDR_GOAL_CURRENT + j, &dxl_error))
+                        return false;
+                    if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(
+                                            portHandlerRightArm, i, IND_ADDR_GOAL_CURRENT + (2 * j),
+                                            ADDR_GOAL_CURRENT + j, &dxl_error))
+                        return false;
+                }
+            for (int j = 0; j < 2; j++)
+                if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(
+                                        portHandlerBody, BODY_ID_MIN, IND_ADDR_GOAL_CURRENT + (2 * j),
+                                        ADDR_GOAL_CURRENT + j, &dxl_error))
+                    return false;
+        }
+
+        // Goal PWM
+        for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
+            for (int j = 0; j < 2; j++)
+                if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(
+                                        portHandlerHead, i, IND_ADDR_GOAL_PWM + (2 * j),
+                                        ADDR_GOAL_PWM + j, &dxl_error))
+                    return false;
+        if (EpiFullMode)
+        {
+            for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                for (int j = 0; j < 2; j++)
+                {
+                    if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(
+                                            portHandlerLeftArm, i, IND_ADDR_GOAL_PWM + (2 * j),
+                                            ADDR_GOAL_PWM + j, &dxl_error))
+                        return false;
+                    if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(
+                                            portHandlerRightArm, i, IND_ADDR_GOAL_PWM + (2 * j),
+                                            ADDR_GOAL_PWM + j, &dxl_error))
+                        return false;
+                }
+            for (int j = 0; j < 2; j++)
+                if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(
+                                        portHandlerBody, BODY_ID_MIN, IND_ADDR_GOAL_PWM + (2 * j),
+                                        ADDR_GOAL_PWM + j, &dxl_error))
+                    return false;
+        }
+
         // Indirect adress (present position). Feedback
         for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++)
         {
@@ -1688,9 +1795,7 @@ class EpiServos : public Module
     bool SetServoSettings() {
         uint32_t param_default_4Byte;
         uint16_t param_default_2Byte;
-        uint8_t param_default_1Byte;
         uint8_t dxl_error = 0;
-        int default_value = 0;
     
         std::vector<int> maxMinPositionLimitIndex;
         matrix data;
@@ -1699,8 +1804,7 @@ class EpiServos : public Module
         int dxl_comm_result = COMM_TX_FAIL;
         int idMin;
         int idMax;
-        int addressRead = INDIRECTADDRESS_FOR_READ;
-        int addressWrite = INDIRECTADDRESS_FOR_WRITE;
+        int ioIndex;
         int directAddress;
 
         int byteLength;
@@ -1727,22 +1831,26 @@ class EpiServos : public Module
                 case 0:
                 idMin = HEAD_ID_MIN;
                 idMax = HEAD_ID_MAX;
+                ioIndex = HEAD_INDEX_IO;
                 data = headData;
                 break;
                 //same for p==1 and p==2 (right and left arm)
                 case 1:
                 idMin = ARM_ID_MIN;
                 idMax = ARM_ID_MAX;
+                ioIndex = LEFT_ARM_INDEX_IO;
                 data = leftArmData;
                 break;
                 case 2:
                 idMin = ARM_ID_MIN;
                 idMax = ARM_ID_MAX;
+                ioIndex = RIGHT_ARM_INDEX_IO;
                 data = rightArmData;
                 break;
                 case 3:
                 idMin = BODY_ID_MIN;
                 idMax = BODY_ID_MAX;
+                ioIndex = BODY_INDEX_IO;
                 data = bodyData;
                 break;
             }
@@ -1784,7 +1892,7 @@ class EpiServos : public Module
                         }
                     }
                     for (int i = BODY_ID_MIN; i <= BODY_ID_MAX; i++) {
-                        if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerBody, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
+                        if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, i, IND_ADDR_TORQUE_ENABLE, ADDR_TORQUE_ENABLE, &dxl_error)) {
                             Warning("Failed to set torque enable for body servo " + std::to_string(i) + ".");
                             return false;
                         }
@@ -1818,8 +1926,8 @@ class EpiServos : public Module
                 }
 
 
-                // Goal Current
-                for (int i = HEAD_ID_MIN; i <= HEAD_ID_MAX; i++) {
+                // Goal Current is available only on the MX-106 head servos (IDs 2 and 3).
+                for (int i = HEAD_ID_MIN; i <= HEAD_ID_MIN + 1; i++) {
                     for (int j = 0; j < 2; j++) {
                         if (COMM_SUCCESS != packetHandlerHead->write2ByteTxRx(portHandlerHead, i, IND_ADDR_GOAL_CURRENT + (2 * j), ADDR_GOAL_CURRENT + j, &dxl_error)) {
                             std::cout << "Goal current not set for head servo ID: " << i << ", byte: " << j << std::endl;
@@ -1829,11 +1937,11 @@ class EpiServos : public Module
                 }
                 if (EpiFullMode)
                 {
-                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                    for (int i = ARM_ID_MIN; i < ARM_ID_MAX; i++)
                         for (int j = 0; j < 2; j++)
                             if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_GOAL_CURRENT + (2 * j), ADDR_GOAL_CURRENT + j, &dxl_error))
                                 return false;
-                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                    for (int i = ARM_ID_MIN; i < ARM_ID_MAX; i++)
                         for (int j = 0; j < 2; j++)
                             if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_GOAL_CURRENT + (2 * j), ADDR_GOAL_CURRENT + j, &dxl_error))
                                 return false;
@@ -1857,6 +1965,13 @@ class EpiServos : public Module
                         for (int j = 0; j < 2; j++)
                             if (COMM_SUCCESS != packetHandlerLeftArm->write2ByteTxRx(portHandlerLeftArm, i, IND_ADDR_GOAL_PWM + (2 * j), ADDR_GOAL_PWM + j, &dxl_error))
                                 return false;
+                    for (int i = ARM_ID_MIN; i <= ARM_ID_MAX; i++)
+                        for (int j = 0; j < 2; j++)
+                            if (COMM_SUCCESS != packetHandlerRightArm->write2ByteTxRx(portHandlerRightArm, i, IND_ADDR_GOAL_PWM + (2 * j), ADDR_GOAL_PWM + j, &dxl_error))
+                                return false;
+                    for (int j = 0; j < 2; j++)
+                        if (COMM_SUCCESS != packetHandlerBody->write2ByteTxRx(portHandlerBody, BODY_ID_MIN, IND_ADDR_GOAL_PWM + (2 * j), ADDR_GOAL_PWM + j, &dxl_error))
+                            return false;
                 }
 
                 // Indirect adress (present position). Feedback
@@ -1935,59 +2050,51 @@ class EpiServos : public Module
                 for (int param = 0; param < parameter_lst.size(); param++) {
                     parameterName = std::string(parameter_lst[param]);
                     byteLength = servoControlTable[parameterName]["Bytes"];
-                    for (int byte = 0; byte < byteLength; byte++) {
-                        directAddress = static_cast<int>(servoControlTable[parameterName]["Address"]) + byte;    
-                        //Writing settings to the servos
-                        if (parameterName.as_string() != "Present Current" && parameterName.as_string() != "Present Position") { // Present current and present position is not used for writing
-                            // 2 bytes parameters
-                            if (byteLength==2){
-                                param_default_2Byte = data(id-2, param);
-                                if(parameterName.as_string() == "Goal PWM") 
-                                    param_default_2Byte =  data(id-2, param)/0.11299;
-                                if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, directAddress, param_default_2Byte, &dxl_error)) {
-                                    Warning("Failed to set " + parameterName + " for servo " + std::to_string(id) +
-                                            " on port " + portHandlers[p]->getPortName() + ": " +
-                                            packetHandlers[p]->getTxRxResult(dxl_comm_result) + "; Dynamixel error: " +
-                                            packetHandlers[p]->getRxPacketError(dxl_error));
-                                    return false;
-                                }
-                            }
-                            if (byteLength==4){
-                                param_default_4Byte = data(id-2, param);
-                                if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, directAddress, param_default_4Byte, &dxl_error)) {
-                                    Warning("Failed to set " + parameterName + " for servo " + std::to_string(id) +
-                                            " on port " + portHandlers[p]->getPortName() + ": " +
-                                            packetHandlers[p]->getTxRxResult(dxl_comm_result) + "; Dynamixel error: " +
-                                            packetHandlers[p]->getRxPacketError(dxl_error));
-                                    return false;
-                                }
-                            }
-                            
-                        }
-                        else {// Only present position and present current is used for reading
-                            // std::cout << "Setting indirect reading address for " 
-                            // << parameterName << " indirect address: "
-                            // << addressRead << " direct address: " 
-                            // << directAddress <<std::endl;
-                            // Reading Indirect Addresses
-                            
-                            if (COMM_SUCCESS != packetHandlers[p]->write2ByteTxRx(portHandlers[p], id, addressRead, directAddress, &dxl_error)) {
-                                Warning("Failed to set the indirect read address for " + parameterName + " on servo " +
-                                        std::to_string(id) + " at port " + portHandlers[p]->getPortName() + ": " +
-                                        packetHandlers[p]->getTxRxResult(dxl_comm_result) + "; Dynamixel error: " +
-                                        packetHandlers[p]->getRxPacketError(dxl_error));
-                                return false;
-                            }
+                    if (parameterName.as_string() == "Present Current" ||
+                        parameterName.as_string() == "Present Position")
+                        continue;
 
-                            // Increment address after each byte
-                            addressRead += 2;
+                    const auto & route = ikaros::episervos::servoRoutes.at(
+                        static_cast<std::size_t>(ioIndex + id - idMin));
+                    if (parameterName.as_string() == "Goal Current" && !route.supportsGoalCurrent)
+                        continue;
 
-                        }
-                       
+                    directAddress = static_cast<int>(servoControlTable[parameterName]["Address"]);
+                    const std::int64_t rawValue = ikaros::episervos::jsonParameterToRaw(
+                        parameterName.as_string(), data(id - idMin, param));
+                    dxl_error = 0;
+                    if (byteLength == 1)
+                    {
+                        dxl_comm_result = packetHandlers[p]->write1ByteTxRx(
+                            portHandlers[p], id, directAddress,
+                            static_cast<uint8_t>(rawValue), &dxl_error);
+                    }
+                    else if (byteLength == 2)
+                    {
+                        param_default_2Byte = static_cast<uint16_t>(rawValue);
+                        dxl_comm_result = packetHandlers[p]->write2ByteTxRx(
+                            portHandlers[p], id, directAddress, param_default_2Byte, &dxl_error);
+                    }
+                    else if (byteLength == 4)
+                    {
+                        param_default_4Byte = static_cast<uint32_t>(rawValue);
+                        dxl_comm_result = packetHandlers[p]->write4ByteTxRx(
+                            portHandlers[p], id, directAddress, param_default_4Byte, &dxl_error);
+                    }
+                    else
+                    {
+                        Warning("Unsupported byte width for servo parameter " + parameterName.as_string() + ".");
+                        return false;
+                    }
 
-                        
-                        
-                    }//for byte
+                    if (dxl_comm_result != COMM_SUCCESS || dxl_error != 0)
+                    {
+                        Warning("Failed to set " + parameterName.as_string() + " for servo " +
+                                std::to_string(id) + " on port " + portHandlers[p]->getPortName() + ": " +
+                                packetHandlers[p]->getTxRxResult(dxl_comm_result) + "; Dynamixel error: " +
+                                packetHandlers[p]->getRxPacketError(dxl_error));
+                        return false;
+                    }
                 }
             }//for id
             
@@ -2138,7 +2245,8 @@ class EpiServos : public Module
             for (int id = idMin; id <= idMax; id++) 
             {
                 //min and max limits
-                param_default_4Byte = minLimitPosition[maxMinPositionLimitIndex[i]] /360 * 4096;
+                param_default_4Byte = ikaros::episervos::degreesToRawPosition(
+                    minLimitPosition(maxMinPositionLimitIndex[i]));
   
                 if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, ADDR_MIN_POSITION_LIMIT, param_default_4Byte, &dxl_error)){
                     Warning("Failed to set the minimum-position limit for servo " + std::to_string(id) +
@@ -2147,7 +2255,8 @@ class EpiServos : public Module
                     
                     return false;
                 }
-                param_default_4Byte = maxLimitPosition[maxMinPositionLimitIndex[i]]/ 360.0 * 4096.0;
+                param_default_4Byte = ikaros::episervos::degreesToRawPosition(
+                    maxLimitPosition(maxMinPositionLimitIndex[i]));
                 
                 if (COMM_SUCCESS != packetHandlers[p]->write4ByteTxRx(portHandlers[p], id, ADDR_MAX_POSITION_LIMIT, param_default_4Byte, &dxl_error)){ 
                     Warning("Failed to set the maximum-position limit for servo " + std::to_string(id) +
@@ -2686,8 +2795,10 @@ class EpiServos : public Module
 
     bool PowerOn(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler)
     {
-        if (portHandler == NULL) // If no port handler return true. Only return false if communication went wrong.
+        if (portHandler == nullptr)
             return true;
+        if (packetHandler == nullptr)
+            return false;
 
         Debug("Power on servos");
 
@@ -2770,6 +2881,8 @@ class EpiServos : public Module
 
     bool PowerOnPupil()
     {
+        if (portHandlerPupil == nullptr || packetHandlerPupil == nullptr)
+            return true;
         uint8_t dxl_error = 0; // Dynamixel error
 
         // Enable torque. No fancy rampiong
@@ -2794,29 +2907,27 @@ class EpiServos : public Module
         Sleep(0.1);
         auto headThread = std::async(std::launch::async, &EpiServos::PowerOn, this, HEAD_ID_MIN, HEAD_ID_MAX, std::ref(portHandlerHead), std::ref(packetHandlerHead));
         auto pupilThread = std::async(std::launch::async, &EpiServos::PowerOnPupil, this); // Different control table.
-        auto leftArmThread = std::async(std::launch::async, &EpiServos::PowerOn, this, ARM_ID_MIN, ARM_ID_MAX, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm));
-        auto rightArmThread = std::async(std::launch::async, &EpiServos::PowerOn, this, ARM_ID_MIN, ARM_ID_MAX, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm));
-        auto bodyThread = std::async(std::launch::async, &EpiServos::PowerOn, this, BODY_ID_MIN, BODY_ID_MAX, std::ref(portHandlerBody), std::ref(packetHandlerBody));
+        bool success = headThread.get();
+        success = pupilThread.get() && success;
 
-        if (!headThread.get())
-            Notify(msg_fatal_error, "Can not power on head");
-        if (!pupilThread.get())
-            Notify(msg_fatal_error, "Can not power on pupil");
-        if (!leftArmThread.get())
-            Notify(msg_fatal_error, "Can not power on left arm");
-        if (!rightArmThread.get())
-            Notify(msg_fatal_error, "Can not power on right arm");
-        if (!bodyThread.get())
-            Notify(msg_fatal_error, "Can not power on body");
-
-        std::cout << "Power off robot" << std::endl;
-        return true;
+        if (EpiFullMode)
+        {
+            auto leftArmThread = std::async(std::launch::async, &EpiServos::PowerOn, this, ARM_ID_MIN, ARM_ID_MAX, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm));
+            auto rightArmThread = std::async(std::launch::async, &EpiServos::PowerOn, this, ARM_ID_MIN, ARM_ID_MAX, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm));
+            auto bodyThread = std::async(std::launch::async, &EpiServos::PowerOn, this, BODY_ID_MIN, BODY_ID_MAX, std::ref(portHandlerBody), std::ref(packetHandlerBody));
+            success = leftArmThread.get() && success;
+            success = rightArmThread.get() && success;
+            success = bodyThread.get() && success;
+        }
+        return success;
     }
 
     bool PowerOff(int IDMin, int IDMax, dynamixel::PortHandler *portHandler, dynamixel::PacketHandler *packetHandler)
     {
-        if (portHandler == NULL) // If no port handler return true. Only return false if communication went wrong.
+        if (portHandler == nullptr)
             return true;
+        if (packetHandler == nullptr)
+            return false;
 
         Timer t;
         const int nrOfServos = IDMax - IDMin + 1;
@@ -2877,6 +2988,8 @@ class EpiServos : public Module
 
     bool PowerOffPupil()
     {
+        if (portHandlerPupil == nullptr || packetHandlerPupil == nullptr)
+            return true;
         uint8_t dxl_error = 0; // Dynamixel error
 
         // Torque off. No fancy rampiong
@@ -2893,20 +3006,18 @@ class EpiServos : public Module
 
         auto headThread = std::async(std::launch::async, &EpiServos::PowerOff, this, HEAD_ID_MIN, HEAD_ID_MAX, std::ref(portHandlerHead), std::ref(packetHandlerHead));
         auto pupilThread = std::async(std::launch::async, &EpiServos::PowerOffPupil, this);
-        auto leftArmThread = std::async(std::launch::async, &EpiServos::PowerOff, this, ARM_ID_MIN, ARM_ID_MAX, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm));
-        auto rightArmThread = std::async(std::launch::async, &EpiServos::PowerOff, this, ARM_ID_MIN, ARM_ID_MAX, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm));
-        auto bodyThread = std::async(std::launch::async, &EpiServos::PowerOff, this, BODY_ID_MIN, BODY_ID_MAX, std::ref(portHandlerBody), std::ref(packetHandlerBody));
+        bool success = headThread.get();
+        success = pupilThread.get() && success;
 
-        if (!headThread.get())
-            Notify(msg_fatal_error, "Can not power off head");
-        if (!pupilThread.get())
-            Notify(msg_fatal_error, "Can not power off pupil");
-        if (!leftArmThread.get())
-            Notify(msg_fatal_error, "Can not power off left arm");
-        if (!rightArmThread.get())
-            Notify(msg_fatal_error, "Can not power off right arm");
-        if (!bodyThread.get())
-            Notify(msg_fatal_error, "Can not power off body");
+        if (EpiFullMode)
+        {
+            auto leftArmThread = std::async(std::launch::async, &EpiServos::PowerOff, this, ARM_ID_MIN, ARM_ID_MAX, std::ref(portHandlerLeftArm), std::ref(packetHandlerLeftArm));
+            auto rightArmThread = std::async(std::launch::async, &EpiServos::PowerOff, this, ARM_ID_MIN, ARM_ID_MAX, std::ref(portHandlerRightArm), std::ref(packetHandlerRightArm));
+            auto bodyThread = std::async(std::launch::async, &EpiServos::PowerOff, this, BODY_ID_MIN, BODY_ID_MAX, std::ref(portHandlerBody), std::ref(packetHandlerBody));
+            success = leftArmThread.get() && success;
+            success = rightArmThread.get() && success;
+            success = bodyThread.get() && success;
+        }
 
         // Power down servos.
         // 1. Store P (PID) value
@@ -2914,7 +3025,7 @@ class EpiServos : public Module
         // 3. Turn of torque enable
         // 4. Set P (PID) valued from 1.
 
-        return (true);
+        return success;
     }
     // XL320 is using 2.0 but with a very limited controltable.
     bool AutoCalibratePupil()
@@ -3002,28 +3113,14 @@ class EpiServos : public Module
     }
     ~EpiServos()
     {
-        if (simulate) // no memory to return
-        {
+        if (simulate)
             return;
-        }
 
-        // Torque down
-        PowerOffRobot();
+        if (hardwarePowered)
+            if (!PowerOffRobot())
+                Warning("EpiServos could not complete its shutdown power ramp.");
+        hardwarePowered = false;
 
-        // Close ports
-        if (EpiTorsoMode || EpiFullMode)
-        {
-            portHandlerHead->closePort();
-            portHandlerPupil->closePort();
-        }
-        if (EpiFullMode)
-        {
-            portHandlerLeftArm->closePort();
-            portHandlerRightArm->closePort();
-            portHandlerBody->closePort();
-        }
-
-        // Free memory
         delete groupSyncWriteHead;
         delete groupSyncReadHead;
         delete groupSyncWriteLeftArm;
@@ -3032,7 +3129,20 @@ class EpiServos : public Module
         delete groupSyncReadRightArm;
         delete groupSyncWriteBody;
         delete groupSyncReadBody;
-        // delete groupSyncWritePupil;
+
+        auto closePort = [](dynamixel::PortHandler *& portHandler)
+        {
+            if (portHandler == nullptr)
+                return;
+            portHandler->closePort();
+            delete portHandler;
+            portHandler = nullptr;
+        };
+        closePort(portHandlerHead);
+        closePort(portHandlerPupil);
+        closePort(portHandlerLeftArm);
+        closePort(portHandlerRightArm);
+        closePort(portHandlerBody);
     }
 };
 

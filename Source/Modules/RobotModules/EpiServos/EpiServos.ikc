@@ -5,9 +5,9 @@
 	It also stores configuration settings for each robots (serial port names etc.) and uses the appropiate settings depening on the robot parameter. 
 	The module also supports simulation of the servos.
 
-	The robot supports
-		EpiWhite (EpiTorso)
-		EpiBlack (Epi)
+	Example robot layouts:
+		EpiWhite and EpiBlack (EpiTorso)
+		EpiBlue (full Epi)
 
 	Robot types:
 		EpiTorso has 6 servoes. 
