@@ -36,3 +36,4 @@
 | 2026-W33 | 2026-08-10 to 2026-08-16 | [Neuron Population Models, Documentation Rendering, and WebUI Parameter Updates](2026-08-10-week-30.md) |
 | 2026-W34 | 2026-08-17 to 2026-08-23 | [Nucleus Dynamics, RingWorld Protocols, and PlanarArm Documentation](2026-08-17-week-31.md) |
 | 2026-W35 | 2026-08-24 to 2026-08-30 | [CVAE Evaluation, MNIST Probes, and Tick Printing](2026-08-24-week-32.md) |
+| 2026-W36 | 2026-08-31 to 2026-09-06 | [CVAE Latent Experiments, Runtime Fixes, and Statistics Views](2026-08-31-week-33.md) |
