@@ -1,0 +1,84 @@
+<class name="NeuralTissue" description="Spatial wiring placeholder with independent transmitter rate populations">
+    <parameter name="glutamate_enabled" type="bool" default="yes" description="Enable this transmitter population at startup" />
+    <parameter name="glutamate_shape" type="string" default="1" description="Startup output shape expression, e.g. 2,3 or EXCITATION.shape" />
+    <parameter name="glutamate_tau" type="number" default="0.1" description="Leak time constant in seconds; positive" />
+    <parameter name="glutamate_baseline" type="number" default="0" description="Baseline target activity in [0,1]" />
+    <parameter name="glutamate_psi" type="number" default="1" description="Nonnegative shunting strength" />
+    <parameter name="glutamate_gains" type="matrix" default="1,1,0,0,0,-1,-1,-1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,-1,1" description="26 signed receptor gains in input declaration order; last gain scales shunting" />
+    <parameter name="glutamate_weights" type="matrix" default="[]" description="Optional internal connectivity: rows are output elements, columns concatenate inputs in declaration order; empty means shape-preserving identity" />
+    <parameter name="gaba_enabled" type="bool" default="no" description="Enable this transmitter population at startup" />
+    <parameter name="gaba_shape" type="string" default="1" description="Startup output shape expression, e.g. 2,3 or EXCITATION.shape" />
+    <parameter name="gaba_tau" type="number" default="0.1" description="Leak time constant in seconds; positive" />
+    <parameter name="gaba_baseline" type="number" default="0" description="Baseline target activity in [0,1]" />
+    <parameter name="gaba_psi" type="number" default="1" description="Nonnegative shunting strength" />
+    <parameter name="gaba_gains" type="matrix" default="1,1,0,0,0,-1,-1,-1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,-1,1" description="26 signed receptor gains in input declaration order; last gain scales shunting" />
+    <parameter name="gaba_weights" type="matrix" default="[]" description="Optional internal connectivity: rows are output elements, columns concatenate inputs in declaration order; empty means shape-preserving identity" />
+    <parameter name="glycine_enabled" type="bool" default="no" description="Enable this transmitter population at startup" />
+    <parameter name="glycine_shape" type="string" default="1" description="Startup output shape expression, e.g. 2,3 or EXCITATION.shape" />
+    <parameter name="glycine_tau" type="number" default="0.1" description="Leak time constant in seconds; positive" />
+    <parameter name="glycine_baseline" type="number" default="0" description="Baseline target activity in [0,1]" />
+    <parameter name="glycine_psi" type="number" default="1" description="Nonnegative shunting strength" />
+    <parameter name="glycine_gains" type="matrix" default="1,1,0,0,0,-1,-1,-1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,-1,1" description="26 signed receptor gains in input declaration order; last gain scales shunting" />
+    <parameter name="glycine_weights" type="matrix" default="[]" description="Optional internal connectivity: rows are output elements, columns concatenate inputs in declaration order; empty means shape-preserving identity" />
+    <parameter name="acetylcholine_enabled" type="bool" default="no" description="Enable this transmitter population at startup" />
+    <parameter name="acetylcholine_shape" type="string" default="1" description="Startup output shape expression, e.g. 2,3 or EXCITATION.shape" />
+    <parameter name="acetylcholine_tau" type="number" default="0.1" description="Leak time constant in seconds; positive" />
+    <parameter name="acetylcholine_baseline" type="number" default="0" description="Baseline target activity in [0,1]" />
+    <parameter name="acetylcholine_psi" type="number" default="1" description="Nonnegative shunting strength" />
+    <parameter name="acetylcholine_gains" type="matrix" default="1,1,0,0,0,-1,-1,-1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,-1,1" description="26 signed receptor gains in input declaration order; last gain scales shunting" />
+    <parameter name="acetylcholine_weights" type="matrix" default="[]" description="Optional internal connectivity: rows are output elements, columns concatenate inputs in declaration order; empty means shape-preserving identity" />
+    <parameter name="dopamine_enabled" type="bool" default="no" description="Enable this transmitter population at startup" />
+    <parameter name="dopamine_shape" type="string" default="1" description="Startup output shape expression, e.g. 2,3 or EXCITATION.shape" />
+    <parameter name="dopamine_tau" type="number" default="0.1" description="Leak time constant in seconds; positive" />
+    <parameter name="dopamine_baseline" type="number" default="0" description="Baseline target activity in [0,1]" />
+    <parameter name="dopamine_psi" type="number" default="1" description="Nonnegative shunting strength" />
+    <parameter name="dopamine_gains" type="matrix" default="1,1,0,0,0,-1,-1,-1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,-1,1" description="26 signed receptor gains in input declaration order; last gain scales shunting" />
+    <parameter name="dopamine_weights" type="matrix" default="[]" description="Optional internal connectivity: rows are output elements, columns concatenate inputs in declaration order; empty means shape-preserving identity" />
+    <parameter name="noradrenaline_enabled" type="bool" default="no" description="Enable this transmitter population at startup" />
+    <parameter name="noradrenaline_shape" type="string" default="1" description="Startup output shape expression, e.g. 2,3 or EXCITATION.shape" />
+    <parameter name="noradrenaline_tau" type="number" default="0.1" description="Leak time constant in seconds; positive" />
+    <parameter name="noradrenaline_baseline" type="number" default="0" description="Baseline target activity in [0,1]" />
+    <parameter name="noradrenaline_psi" type="number" default="1" description="Nonnegative shunting strength" />
+    <parameter name="noradrenaline_gains" type="matrix" default="1,1,0,0,0,-1,-1,-1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,-1,1" description="26 signed receptor gains in input declaration order; last gain scales shunting" />
+    <parameter name="noradrenaline_weights" type="matrix" default="[]" description="Optional internal connectivity: rows are output elements, columns concatenate inputs in declaration order; empty means shape-preserving identity" />
+    <parameter name="serotonin_enabled" type="bool" default="no" description="Enable this transmitter population at startup" />
+    <parameter name="serotonin_shape" type="string" default="1" description="Startup output shape expression, e.g. 2,3 or EXCITATION.shape" />
+    <parameter name="serotonin_tau" type="number" default="0.1" description="Leak time constant in seconds; positive" />
+    <parameter name="serotonin_baseline" type="number" default="0" description="Baseline target activity in [0,1]" />
+    <parameter name="serotonin_psi" type="number" default="1" description="Nonnegative shunting strength" />
+    <parameter name="serotonin_gains" type="matrix" default="1,1,0,0,0,-1,-1,-1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,-1,1" description="26 signed receptor gains in input declaration order; last gain scales shunting" />
+    <parameter name="serotonin_weights" type="matrix" default="[]" description="Optional internal connectivity: rows are output elements, columns concatenate inputs in declaration order; empty means shape-preserving identity" />
+    <input name="AMPA" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="NMDA" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="MGLU_I" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="MGLU_II" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="MGLU_III" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="GABA_A" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="GABA_B" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="GLYR" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="NACHR" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="MACHR_M135" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="MACHR_M24" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="D1_LIKE" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="D2_LIKE" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="ADRENERGIC_ALPHA1" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="ADRENERGIC_ALPHA2" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="ADRENERGIC_BETA" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="HT1" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="HT2" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="HT3" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="HT4" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="HT5" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="HT6" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="HT7" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="EXCITATION" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="INHIBITION" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <input name="SHUNTING_INHIBITION" optional="yes" flatten="no" description="Nonnegative incoming activity pattern before receptor response" />
+    <output name="GLUTAMATE" shape="@glutamate_shape" description="Normalized population activity in [0,1]; zero when disabled" />
+    <output name="GABA" shape="@gaba_shape" description="Normalized population activity in [0,1]; zero when disabled" />
+    <output name="GLYCINE" shape="@glycine_shape" description="Normalized population activity in [0,1]; zero when disabled" />
+    <output name="ACETYLCHOLINE" shape="@acetylcholine_shape" description="Normalized population activity in [0,1]; zero when disabled" />
+    <output name="DOPAMINE" shape="@dopamine_shape" description="Normalized population activity in [0,1]; zero when disabled" />
+    <output name="NORADRENALINE" shape="@noradrenaline_shape" description="Normalized population activity in [0,1]; zero when disabled" />
+    <output name="SEROTONIN" shape="@serotonin_shape" description="Normalized population activity in [0,1]; zero when disabled" />
+</class>

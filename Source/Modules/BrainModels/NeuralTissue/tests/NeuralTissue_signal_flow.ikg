@@ -1,0 +1,12 @@
+<group name="NeuralTissueSignalFlow" agent="Codex: GPT-6 Astra Medium" tick_duration="0.01" stop="100">
+    <module class="Constant" name="Pattern" data="[[0,0.25],[0.5,1]]" _x="40" _y="60" />
+    <module class="NeuralTissue" name="First" glutamate_shape="EXCITATION.shape" _x="240" _y="60" />
+    <module class="NeuralTissue" name="Second" glutamate_shape="AMPA.shape" _x="440" _y="60" />
+    <module class="NeuralTissue" name="Third" glutamate_shape="AMPA.shape" _x="640" _y="60" />
+    <module class="Print" name="Probe" _x="840" _y="60" />
+
+    <connection source="Pattern.OUTPUT" target="First.EXCITATION" delay="0" />
+    <connection source="First.GLUTAMATE" target="Second.AMPA" delay="0" />
+    <connection source="Second.GLUTAMATE" target="Third.AMPA" delay="0" />
+    <connection source="Third.GLUTAMATE" target="Probe.INPUT" delay="0" />
+</group>
