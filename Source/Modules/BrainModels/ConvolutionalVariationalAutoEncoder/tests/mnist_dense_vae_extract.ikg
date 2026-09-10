@@ -1,0 +1,23 @@
+<group name="CVAE_MNIST_DenseVAE" title="Dense VAE MNIST Extraction" tick_duration="1">
+    <module class="InputImage" name="MNIST" _x="40" _y="120"
+        filename="cvae_mnist_centered_32/test/image_#####.pgm" filecount="200" iterations="0" read_once="no" />
+    <module class="InputFile" name="Labels" _x="40" _y="330"
+        filename="cvae_mnist_centered_32/test/labels.csv" format="csv" header="true" send_end_of_file="no" />
+    <module class="ConvolutionalVariationalAutoEncoder" name="VAE" _x="360" _y="120"
+        latent_mode="dense" feature_stage="direct" latent_size="10"
+        learning_rate="0.001" optimizer="adam" random_seed="101" beta="0.0001"
+        reconstruction_loss="bernoulli" train="no" train_interval="1" dense_train_interval="1"
+        reconstruction_source="mean" output_activation="sigmoid" sample="no"
+        latent_cluster_count="1" latent_cluster_weight="0" latent_cluster_balance_weight="0"
+        latent_cluster_commitment_weight="0" latent_decorrelation_weight="0" />
+    <module class="OutputFile" name="Codes" _x="720" _y="120"
+        directory="output/cvae_mnist_dense_vae" filename="codes.csv" format="csv"
+        timestamp="tick" existing_file="overwrite" number_format="full" flush_interval="100" header="yes" />
+    <connection source="MNIST.INTENSITY" target="VAE.INPUT" />
+    <connection source="Labels.label" target="Codes.INPUT" label="label" delay="2" />
+    <connection source="VAE.LATENT_MEAN" target="Codes.INPUT" label="latent_mean" />
+    <connection source="VAE.OUTPUT" target="Codes.INPUT" label="reconstruction" />
+    <connection source="VAE.RECONSTRUCTION_LOSS" target="Codes.INPUT" label="reconstruction_loss" />
+    <connection source="VAE.RECONSTRUCTION_ABSOLUTE_ERROR" target="Codes.INPUT" label="absolute_reconstruction_error" />
+    <connection source="VAE.KL_LOSS" target="Codes.INPUT" label="kl_loss" />
+</group>

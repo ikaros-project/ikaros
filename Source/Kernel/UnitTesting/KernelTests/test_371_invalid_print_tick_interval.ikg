@@ -1,0 +1,7 @@
+<group internal="true"
+    name="TestInvalidPrintTickInterval"
+    description="Reject a non-positive print tick interval"
+    stop="0"
+    cli_args="print-tick-interval=0"
+    expected_exit="1"
+    expected_output_contains="Invalid print tick interval &quot;0&quot;. Expected a positive integer." />

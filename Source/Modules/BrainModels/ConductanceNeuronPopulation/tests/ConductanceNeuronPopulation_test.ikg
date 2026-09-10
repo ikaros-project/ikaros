@@ -1,0 +1,8 @@
+<group name="ConductanceNeuronPopulation_test" start="true" stop="250" tick_duration="0.001">
+    <module class="Constant" name="HHCurrent" data="0,6,10,14" _x="40" _y="100" />
+    <module class="Constant" name="MLCurrent" data="40,70,90,120" _x="40" _y="300" />
+    <module class="ConductanceNeuronPopulation" name="HH" population_size="4" model="0" _x="260" _y="100" />
+    <module class="ConductanceNeuronPopulation" name="ML" population_size="4" model="1" initial_voltage="-60" _x="260" _y="300" />
+    <connection source="HHCurrent.OUTPUT" target="HH.CURRENT" />
+    <connection source="MLCurrent.OUTPUT" target="ML.CURRENT" />
+</group>

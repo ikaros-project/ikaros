@@ -1,0 +1,12 @@
+<group name="SpikeGenerator_test" start="true" stop="250" tick_duration="0.001">
+    <module class="Constant" name="Rates" data="5,10,20,40" _x="40" _y="80" />
+    <module class="Oscillator" name="Triggers" type="1" frequency="2,4,8,16" _x="40" _y="400" />
+    <module class="SpikeGenerator" name="PoissonA" population_size="4" mode="0" seed="42" _x="260" _y="40" />
+    <module class="SpikeGenerator" name="PoissonB" population_size="4" mode="0" seed="42" _x="260" _y="220" />
+    <module class="SpikeGenerator" name="Regular" population_size="4" mode="1" _x="260" _y="400" />
+    <module class="SpikeGenerator" name="Triggered" population_size="4" mode="2" trigger_mode="0" _x="260" _y="580" />
+    <connection source="Rates.OUTPUT" target="PoissonA.RATE" />
+    <connection source="Rates.OUTPUT" target="PoissonB.RATE" />
+    <connection source="Rates.OUTPUT" target="Regular.RATE" />
+    <connection source="Triggers.OUTPUT" target="Triggered.TRIGGER" />
+</group>

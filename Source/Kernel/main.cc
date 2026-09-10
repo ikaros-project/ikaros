@@ -108,6 +108,7 @@ namespace
         o.add_option("S", "start", " start-up automatically without waiting for commands from WebUI");
         o.add_option("s", "stop", "stop Ikaros after this tick", true, "-1");
         o.add_option("p", "python_executable", "default Python interpreter for python-backed classes", true);
+        o.add_option("P", "print-tick-interval", "print the current tick every N ticks", true);
         o.add_option("t", "threads", "number of worker threads for the kernel thread pool", true);
         o.add_option("u", "user_data", "alternative directory for user data files", true);
         o.add_option("w", "webui_port", "port for ikaros WebUI", true, "8000");
@@ -116,8 +117,12 @@ namespace
                      true, "", false, true);
         o.add_option("A", "agent", "set the agent identifier included in remote session logging", true);
         o.add_option("H", "hide_toolbar", "hide the WebUI top toolbar and breadcrumbs on startup");
-        o.add_option("L", "load_state", "load persistent state after model setup; bare -L uses the model name with .state extension", false, "", true);
-        o.add_option("W", "save_state", "save persistent state when the model stops; bare -W uses the model name with .state extension", false, "", true);
+        o.add_option("L", "load_state",
+                     "load persistent state after model setup; relative paths use the invocation directory, while bare -L uses the model name with .state extension",
+                     false, "", true);
+        o.add_option("W", "save_state",
+                     "save persistent state when the model stops; relative paths use the invocation directory, while bare -W uses the model name with .state extension",
+                     false, "", true);
         o.add_option("h", "help", "list command line options");
     }
 

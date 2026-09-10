@@ -88,11 +88,16 @@ namespace ikaros
             {
                 if(shape.empty())
                     return 0;
-                o.reserve(shape);
-                o.set_dynamic().set_fixed_capacity();
+                if(o.is_uninitialized() || o.capacity() != shape)
+                    o.reserve(shape);
+                if(!o.is_dynamic())
+                    o.set_dynamic().set_fixed_capacity();
             }
             else
-                o.realloc(shape);
+            {
+                if(o.is_uninitialized() || o.shape() != shape)
+                    o.realloc(shape);
+            }
             return 0;
         }
         catch(const std::invalid_argument & e)

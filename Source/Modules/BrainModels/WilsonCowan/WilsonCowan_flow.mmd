@@ -1,0 +1,19 @@
+flowchart LR
+    P["EXTERNAL_EXCITATION<br/>P (Hz)"] --> DE["Excitatory drive<br/>w_EE E - w_IE I + P"]
+    Q["EXTERNAL_INHIBITION<br/>Q (Hz)"] --> DI["Inhibitory drive<br/>w_EI E - w_II I + Q"]
+    E["E (Hz)<br/>one-tick delay"] --> DE
+    E --> DI
+    I["I (Hz)<br/>one-tick delay"] --> DE
+    I --> DI
+    DE --> SE["Excitatory sigmoid<br/>S_E(d_E)"]
+    DI --> SI["Inhibitory sigmoid<br/>S_I(d_I)"]
+    E --> AE["Availability<br/>clip(k_E - r_E E)"]
+    I --> AI["Availability<br/>clip(k_I - r_I I)"]
+    SE --> TE["Target selector<br/>standard / refractory"]
+    AE --> TE
+    SI --> TI["Target selector<br/>standard / refractory"]
+    AI --> TI
+    TE --> ED["Exact first-order dynamics<br/>tau_E"]
+    TI --> ID["Exact first-order dynamics<br/>tau_I"]
+    ED --> EO["EXCITATORY_RATE<br/>E (Hz)"]
+    ID --> IO["INHIBITORY_RATE<br/>I (Hz)"]

@@ -1,0 +1,21 @@
+<group name="SpikeGenerator_demo" start="true" stop="-1" tick_duration="0.001" webui_port="8000">
+    <module class="Constant" name="PoissonRates" data="5,10,20,40" _x="40" _y="80" />
+    <module class="Constant" name="RegularRates" data="2,4,8,16" _x="40" _y="300" />
+    <module class="Oscillator" name="Triggers" type="1" frequency="1,2,3,4" _x="40" _y="520" />
+    <module class="SpikeGenerator" name="Poisson" population_size="4" mode="0" seed="42" _x="260" _y="40" />
+    <module class="SpikeGenerator" name="Regular" population_size="4" mode="1" _x="260" _y="260" />
+    <module class="SpikeGenerator" name="Triggered" population_size="4" mode="2" trigger_mode="0" _x="260" _y="480" />
+    <module class="Integrator" name="PoissonTotal" alpha="1" beta="1" min="0" _x="500" _y="80" />
+    <module class="Integrator" name="RegularTotal" alpha="1" beta="1" min="0" _x="500" _y="300" />
+    <module class="Integrator" name="TriggeredTotal" alpha="1" beta="1" min="0" _x="500" _y="520" />
+    <connection source="PoissonRates.OUTPUT" target="Poisson.RATE" />
+    <connection source="RegularRates.OUTPUT" target="Regular.RATE" />
+    <connection source="Triggers.OUTPUT" target="Triggered.TRIGGER" />
+    <connection source="Poisson.SPIKE_COUNT" target="PoissonTotal.INPUT" />
+    <connection source="Regular.SPIKE_COUNT" target="RegularTotal.INPUT" />
+    <connection source="Triggered.SPIKE_COUNT" target="TriggeredTotal.INPUT" />
+
+    <widget class="plot" name="PoissonPlot" title="Seeded Poisson cumulative spikes" source="PoissonTotal.OUTPUT" x="720" y="40" _x="720" _y="40" width="480" height="190" y_min="0" y_max="200" auto_range="yes" include_zero="yes" buffer_size="1000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="RegularPlot" title="Regular cumulative spikes" source="RegularTotal.OUTPUT" x="720" y="260" _x="720" _y="260" width="480" height="190" y_min="0" y_max="100" auto_range="yes" include_zero="yes" buffer_size="1000" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="TriggeredPlot" title="Rising-edge cumulative spikes" source="TriggeredTotal.OUTPUT" x="720" y="480" _x="720" _y="480" width="480" height="190" y_min="0" y_max="50" auto_range="yes" include_zero="yes" buffer_size="1000" show_title="yes" show_frame="yes" />
+</group>

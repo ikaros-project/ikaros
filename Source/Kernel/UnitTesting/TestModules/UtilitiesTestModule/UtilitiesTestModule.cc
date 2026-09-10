@@ -736,6 +736,63 @@ public:
                 }),
                 "JPEG file writers failed to round-trip data or reject invalid input");
 
+        const TemporaryFile ascii_pgm(
+            "valid-ascii.PGM", "P2\n# arbitrary maximum value\n2 2\n15\n0 5\n10 15\n");
+        const auto [pgm_width, pgm_height, pgm_channels] =
+            image_get_info(ascii_pgm.path());
+        matrix decoded_pgm = image_get_image(ascii_pgm.path());
+        float * decoded_pgm_storage = decoded_pgm.data();
+        matrix decoded_pgm_intensity;
+        image_get_image(decoded_pgm, decoded_pgm_intensity, ascii_pgm.path());
+
+        std::string binary_pgm_contents = "P5\r\n2 1\r\n1023\r\n";
+        const std::array<unsigned char, 4> binary_pgm_samples{0x00, 0x00, 0x03, 0xff};
+        binary_pgm_contents.append(
+            reinterpret_cast<const char *>(binary_pgm_samples.data()),
+            binary_pgm_samples.size());
+        const TemporaryFile binary_pgm("valid-binary.pgm", binary_pgm_contents);
+        const matrix decoded_binary_pgm = pgm_get_image(binary_pgm.path());
+
+        const TemporaryFile written_pgm("written-gray.pgm", "");
+        image_write_image(grayscale_source, written_pgm.path());
+        const matrix decoded_written_pgm = image_get_image(written_pgm.path());
+        const TemporaryFile malformed_pgm("malformed.pgm", "P2\n2 1\n255\n0\n");
+        const TemporaryFile invalid_magic_pgm("invalid-magic.pgm", "P6\n1 1\n255\n");
+        matrix wrong_pgm_destination(3, 1, 1);
+        require(image_file_format_available("UPPER.PGM") &&
+                pgm_width == 2 && pgm_height == 2 && pgm_channels == 1 &&
+                decoded_pgm.shape() == std::vector<int>{3, 2, 2} &&
+                decoded_pgm.data() == decoded_pgm_storage &&
+                decoded_pgm_intensity.shape() == std::vector<int>{2, 2} &&
+                decoded_pgm(0, 0, 0) == 0.0f &&
+                std::fabs(decoded_pgm(0, 0, 1) - 1.0f / 3.0f) < 1e-7f &&
+                std::fabs(decoded_pgm(1, 1, 0) - 2.0f / 3.0f) < 1e-7f &&
+                decoded_pgm(2, 1, 1) == 1.0f &&
+                intensity_matches_rgb(decoded_pgm, decoded_pgm_intensity) &&
+                decoded_binary_pgm.shape() == std::vector<int>{3, 1, 2} &&
+                decoded_binary_pgm(0, 0, 0) == 0.0f &&
+                decoded_binary_pgm(2, 0, 1) == 1.0f &&
+                decoded_written_pgm.shape() == std::vector<int>{3, 2, 2} &&
+                decoded_written_pgm(0, 0, 0) == 0.0f &&
+                decoded_written_pgm(0, 1, 1) == 1.0f &&
+                rejects_runtime_error([&]
+                {
+                    static_cast<void>(pgm_get_image(malformed_pgm.path()));
+                }) &&
+                rejects_runtime_error([&]
+                {
+                    static_cast<void>(pgm_get_info(invalid_magic_pgm.path()));
+                }) &&
+                rejects_invalid_argument([&]
+                {
+                    pgm_get_image(wrong_pgm_destination, ascii_pgm.path());
+                }) &&
+                rejects_invalid_argument([&]
+                {
+                    pgm_write_image(color_image, written_pgm.path());
+                }),
+                "PGM readers or writer failed valid, malformed, or fixed-buffer input");
+
 #if IKAROS_HAS_PNG
         const TemporaryFile written_gray_png("written-gray.png", "");
         png_write_image(grayscale_source, written_gray_png.path());

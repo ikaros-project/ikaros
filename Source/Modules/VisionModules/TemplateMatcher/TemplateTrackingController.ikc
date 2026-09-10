@@ -1,0 +1,12 @@
+<class name="TemplateTrackingController" description="Controls learned-feature reacquisition and LK tracking">
+    <input name="DETECTION_TRANSFORM" size="3,3" />
+    <input name="DETECTION_RESULT" description="Verified detection row" />
+    <input name="TRACKING_TRANSFORM" size="3,3" />
+    <input name="TRACKING_RESULT" description="LK tracking result row" />
+    <output name="MATCH_ENABLE" size="1" description="Enables a LightGlue reacquisition pass" />
+    <output name="TRANSFORM" size="3,3" description="Selected detection or tracking transform" />
+    <output name="RESULT" dynamic="yes" capacity="1,4" description="Selected row: template, support, error, tracking state" />
+    <output name="STATUS" dynamic="yes" capacity="1,6" description="Status row: template, valid, tracking, correspondences, inliers, confidence" />
+    <parameter name="detection_interval" type="number" default="10" min="1" description="Ticks between learned-feature verification while tracking" />
+    <parameter name="tracking_fb_threshold" type="number" default="1.5" min="0.001" description="Forward-backward error mapped to zero confidence" />
+</class>

@@ -1,0 +1,12 @@
+<group internal="true"
+    name="TestRelativeStatePath"
+    description="Test explicit relative load-state paths use the invocation directory"
+    stop="1"
+    working_directory="${TEST_DIR}/.."
+    cli_args="-L KernelTests/test_373_relative_state_path.state"
+    expected_output_contains="Loaded state from ${TEST_DIR}/test_373_relative_state_path.state||SCALAR_STATE: 0.25 1.5 42 0 trained"
+    expected_file_exists="${TEST_DIR}/test_373_relative_state_path.state"
+    cleanup_expected_files="true"
+>
+    <module name="Memory" class="PersistentStateTestModule" use_scalar="true" write="false" />
+</group>

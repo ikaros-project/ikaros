@@ -1,0 +1,10 @@
+<group internal="true"
+    name="TestCliNestedOverrideRejected"
+    description="Reject nested command-line overrides that bypass group encapsulation"
+    stop="0"
+    cli_args="TestCliNestedOverrideRejected.Test.c=777"
+    expected_exit="1"
+    expected_output_contains="Nested command-line override &quot;TestCliNestedOverrideRejected.Test.c&quot; is not supported||top-level model attribute||inheritance or @parameter"
+>
+    <module name="Test" class="KernelTestModule" />
+</group>

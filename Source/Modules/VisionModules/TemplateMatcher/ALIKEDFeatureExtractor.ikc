@@ -1,0 +1,12 @@
+<class name="ALIKEDFeatureExtractor" description="Extracts ALIKED keypoints and descriptors with native ONNX Runtime">
+    <input name="INPUT" description="RGB float image in channel-first 3,240,320 order with values from 0 to 1" />
+    <input name="ENABLE" optional="yes" size="1" description="Run extraction while positive; an unconnected input enables extraction" />
+    <output name="KEYPOINTS" dynamic="yes" capacity="@max_features,2" description="Pixel-coordinate keypoint rows: x,y" />
+    <output name="DESCRIPTORS" dynamic="yes" capacity="@max_features,128" description="One normalized 128D ALIKED descriptor per keypoint" />
+    <output name="SCORES" dynamic="yes" capacity="@max_features,1" description="One ALIKED detection score per keypoint" />
+    <output name="PERFORMANCE" size="3" description="Last inference milliseconds, exponentially smoothed milliseconds, provider (0 CPU, 1 Core ML)" />
+    <parameter name="model_path" type="string" default="models/TemplateMatcher/aliked-n16-320x240-512.onnx" description="ALIKED ONNX model inside the project directory or UserData" />
+    <parameter name="use_coreml" type="bool" default="true" description="Use Core ML MLProgram acceleration with automatic CPU fallback" />
+    <parameter name="score_threshold" type="number" default="0.2" min="0" max="1" description="Minimum detection score emitted by the module" />
+    <parameter name="max_features" type="number" default="512" min="1" max="512" description="Maximum number of features emitted" />
+</class>

@@ -1,0 +1,28 @@
+<group name="PlanarArm_Push_Test" start="true" stop="1">
+    <module name="JointCommand" class="Constant" data="0.35" />
+    <module name="Arm" class="PlanarArm"
+        base_position="30,50"
+        link_lengths="40"
+        initial_joint_angles="0"
+        joint_min="-1"
+        joint_max="1"
+        max_joint_step="0.005"
+        palm_length="12"
+        finger_length="12"
+        link_width="2"
+        gripper_width="2"
+        initial_gripper="1"
+        movable_object="55,53,4"
+        circle_obstacle_count="0"
+        circle_obstacles=""
+        line_obstacle_count="0"
+        line_obstacles=""
+        world_width="120"
+        world_height="120" />
+    <module name="PrintObject" class="Print" />
+    <module name="PrintContacts" class="Print" />
+
+    <connection source="JointCommand.OUTPUT" target="Arm.JOINT_COMMAND" delay="0" />
+    <connection source="Arm.MOVABLE_OBJECT" target="PrintObject.INPUT" delay="0" />
+    <connection source="Arm.OBJECT_CONTACTS" target="PrintContacts.INPUT" delay="0" />
+</group>

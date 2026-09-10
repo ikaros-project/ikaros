@@ -1,0 +1,9 @@
+<group name="RatePopulation_test" start="true" stop="250" tick_duration="0.001">
+    <module class="Constant" name="Drive" data="-50,-20,0,20,50" _x="40" _y="120" />
+    <module class="RatePopulation" name="Linear" population_size="5" activation_function="0" bias="50" _x="260" _y="60" />
+    <module class="RatePopulation" name="ReLU" population_size="5" activation_function="1" _x="260" _y="260" />
+    <module class="RatePopulation" name="Sigmoid" population_size="5" activation_function="2" gain="0.1" _x="260" _y="460" />
+    <connection source="Drive.OUTPUT" target="Linear.INPUT" />
+    <connection source="Drive.OUTPUT" target="ReLU.INPUT" />
+    <connection source="Drive.OUTPUT" target="Sigmoid.INPUT" />
+</group>

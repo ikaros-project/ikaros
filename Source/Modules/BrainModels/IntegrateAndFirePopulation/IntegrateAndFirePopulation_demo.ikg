@@ -1,0 +1,21 @@
+<group name="IntegrateAndFirePopulation_demo" start="true" stop="-1" tick_duration="0.001" webui_port="8000">
+    <module class="Constant" name="Current" data="0.3,0.5,0.7,0.9" _x="40" _y="120" />
+    <module class="IntegrateAndFirePopulation" name="LIF" population_size="4" model="0" _x="240" _y="40" />
+    <module class="IntegrateAndFirePopulation" name="EIF" population_size="4" model="1" _x="240" _y="200" />
+    <module class="IntegrateAndFirePopulation" name="AdEx" population_size="4" model="2" _x="240" _y="360" />
+    <module class="IntegrateAndFirePopulation" name="QIF" population_size="4" model="3" _x="240" _y="520" />
+
+    <connection source="Current.OUTPUT" target="LIF.INPUT" />
+    <connection source="Current.OUTPUT" target="EIF.INPUT" />
+    <connection source="Current.OUTPUT" target="AdEx.INPUT" />
+    <connection source="Current.OUTPUT" target="QIF.INPUT" />
+
+    <widget class="plot" name="LIFVoltage" title="LIF voltage (mV)" source="LIF.VOLTAGE" x="520" y="20" _x="520" _y="20" width="280" height="140" y_min="-70" y_max="-45" auto_range="no" buffer_size="500" show_title="yes" show_frame="yes" />
+    <widget class="event-raster" name="LIFSpikes" title="LIF spikes" source="LIF.SPIKES" x="820" y="20" _x="820" _y="20" width="280" height="140" threshold="0.5" edge_triggered="no" history="0.5" show_channel_labels="no" show_time_scale="no" show_grid="yes" show_now_line="no" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="EIFVoltage" title="EIF voltage (mV)" source="EIF.VOLTAGE" x="520" y="180" _x="520" _y="180" width="280" height="140" y_min="-70" y_max="-45" auto_range="no" buffer_size="500" show_title="yes" show_frame="yes" />
+    <widget class="event-raster" name="EIFSpikes" title="EIF spikes" source="EIF.SPIKES" x="820" y="180" _x="820" _y="180" width="280" height="140" threshold="0.5" edge_triggered="no" history="0.5" show_channel_labels="no" show_time_scale="no" show_grid="yes" show_now_line="no" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="AdExVoltage" title="AdEx voltage (mV)" source="AdEx.VOLTAGE" x="520" y="340" _x="520" _y="340" width="280" height="140" y_min="-70" y_max="-45" auto_range="no" buffer_size="500" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="AdExRate" title="AdEx firing rate (Hz)" source="AdEx.FIRING_RATE" x="820" y="340" _x="820" _y="340" width="280" height="140" y_min="0" y_max="1000" auto_range="no" buffer_size="500" show_title="yes" show_frame="yes" />
+    <widget class="plot" name="QIFVoltage" title="QIF voltage (mV)" source="QIF.VOLTAGE" x="520" y="500" _x="520" _y="500" width="280" height="140" y_min="-70" y_max="-45" auto_range="no" buffer_size="500" show_title="yes" show_frame="yes" />
+    <widget class="event-raster" name="QIFSpikes" title="QIF spikes" source="QIF.SPIKES" x="820" y="500" _x="820" _y="500" width="280" height="140" threshold="0.5" edge_triggered="no" history="0.5" show_channel_labels="no" show_time_scale="no" show_grid="yes" show_now_line="no" show_title="yes" show_frame="yes" />
+</group>

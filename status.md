@@ -1,4 +1,401 @@
+## CVAE full-MNIST Bernoulli reconstruction
+
+The tasks below keep learning unsupervised. Class labels may be used only after training for
+evaluation of the learned code, not as model inputs or training targets.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add an optional Bernoulli reconstruction-loss mode to `ConvolutionalVariationalAutoEncoder`, preserving mean-squared error as the default. | Completed | Release build; default-MSE and Bernoulli CVAE smoke tests; `git diff --check`. |  |
+| 2 | Prepare and run a full-MNIST unsupervised CVAE experiment using Bernoulli reconstruction at the image reconstruction layer. | Completed | Prepared 60,000 train and 10,000 test MNIST images; trained 100,000 ticks with no label input; extracted 59,997 train and 9,997 test top-code rows; z-scored nearest-neighbour accuracy 9.373%; z-scored ridge accuracy 10.563%; generated loss, accuracy, and confusion-matrix plots. |  |
+| 3 | Add and test an unsupervised paired-augmentation latent consistency signal. | Completed | Release build; generated 60,000 train and 10,000 test paired augmented MNIST examples; trained a single-layer full-field ten-code CVAE for 100,000 ticks with no label input; extracted 59,988 train and 9,998 test code rows from unaugmented MNIST; z-scored nearest-neighbour accuracy 10.532%; z-scored ridge accuracy 10.282%; generated loss, consistency, accuracy, and confusion-matrix plots; `git diff --check`. |  |
+| 4 | Add and test an optional unsupervised latent prototype clustering prior. | Completed | Release build; 20-tick startup smoke test; trained a single-layer full-field ten-code CVAE with ten latent prototypes for 100,000 ticks using only unsupervised objectives; fixed one-layer extraction label timing by using `delay="2"` for direct label-to-recorder connections; aligned probes: baseline nearest 13.364%, baseline ridge 11.603%, consistency nearest 10.352%, consistency ridge 7.301%, cluster nearest 9.532%, cluster ridge 12.583%, cluster-majority 15.342%. |  |
+| 5 | Test the five-layer kernel-5 MNIST hierarchy with corrected top-code label alignment and prototype clustering at the top layer. | Completed | Created local five-layer prototype-cluster train/extract `.ikg` files; verified top-code alignment requires `delay="6"` for labels; trained 100,000 ticks on the existing 1,000-image train split; extracted 994 train and 194 test top-code rows; aligned probes: nearest 11.340%, ridge 13.918%, cluster-majority 14.948%. |  |
+| 6 | Test stronger five-layer prototype-clustering pressure. | Completed | Created local strong-cluster variant with top-layer `latent_cluster_temperature=0.03` and `latent_cluster_balance_weight=10`; trained 100,000 ticks on the existing 1,000-image train split; extracted 994 train and 194 test top-code rows with `delay="6"` label alignment; aligned probes: nearest 13.402%, ridge 13.918%, cluster-majority 12.371%; train prototype usage became less collapsed but still used mainly clusters 6 and 7. |  |
+| 7 | Add and test a vector-quantization-style prototype update. | Completed | Added optional `latent_cluster_update="vq"` and `latent_cluster_commitment_weight`; VQ mode uses hard winner assignments, direct online winner-center updates, and usage-aware winner bias when balance weight is positive; Release build; five-layer VQ smoke test; trained 100,000 ticks on the existing 1,000-image split; extracted 994 train and 194 test rows with `delay="6"` label alignment; aligned probes: nearest 10.825%, ridge 15.464%, cluster-majority 7.216%; train prototype usage spread over more clusters but did not align with digit labels. |  |
+| 8 | Test average-pooling between lower CVAE hierarchy levels to reduce translation sensitivity. | Completed | Created local pooled five-layer VQ variant using `Downsample` between levels 1-2 and 2-3 and mirrored `Upsample` paths from level 3 to 2 and level 2 to 1; verified top-code label alignment requires `delay="8"`; trained 100,000 ticks on the existing 1,000-image split; extracted 992 train and 192 test rows; aligned probes: nearest 8.333%, ridge 7.292%, cluster-majority 11.458%; prototype usage remained collapsed, so this pooling placement did not improve category structure. |  |
+| 9 | Test center-of-mass MNIST preprocessing with the five-layer VQ hierarchy. | Completed | Created a local centered 1,000/200 MNIST split by shifting each image center of mass to the image center; cloned the non-pooled five-layer VQ hierarchy to read the centered split; 20-tick smoke test; trained 100,000 ticks and extracted 994 train and 194 test rows with unchanged `delay="6"` label alignment; aligned probes: nearest 14.433%, ridge 13.918%, cluster-majority 3.093%; nearest-neighbour improved relative to the non-centered VQ run, but prototype usage changed inconsistently between train and test. |  |
+| 10 | Test whether a larger top latent code improves the centered five-layer VQ hierarchy. | Completed | Created a local centered five-layer VQ variant with only the dense top code changed from 16 to 32 dimensions; 20-tick smoke test; trained 100,000 ticks and extracted 994 train and 194 test rows with unchanged `delay="6"` label alignment; aligned probes: nearest 13.918%, ridge 17.526%, cluster-majority 13.402%; larger top code improved the linear probe and made prototype-majority usable again, suggesting top-code capacity matters. |  |
+| 11 | Extend the centered five-layer VQ top-code capacity test to 64 and 128 dimensions. | Completed | Created local 64- and 128-dimensional top-code variants; 20-tick smoke tests; trained each for 100,000 ticks and extracted 994 train and 194 test rows with unchanged `delay="6"` label alignment; aligned probes for 64 dimensions: nearest 13.402%, ridge 9.278%, cluster-majority 11.340%; aligned probes for 128 dimensions: nearest 13.918%, ridge 14.948%, cluster-majority 19.588%; 32 dimensions remains best for the linear probe, while 128 dimensions gives the best prototype-majority readout. |  |
+| 12 | Test doubled convolutional feature maps in the centered five-layer VQ hierarchy across top-code sizes 16, 32, 64, and 128. | Completed | Created local wide variants with feature maps changed from 10/8/8/6/6 to 20/16/16/12/12; 20-tick smoke tests for all four top-code sizes; trained each for 100,000 ticks and extracted 994 train and 194 test rows with unchanged `delay="6"` label alignment; aligned probes for 16 dimensions: nearest 8.763%, ridge 5.155%, cluster-majority 14.433%; 32 dimensions: nearest 18.041%, ridge 19.072%, cluster-majority 4.639%; 64 dimensions: nearest 13.918%, ridge 16.495%, cluster-majority 7.732%; 128 dimensions: nearest 14.433%, ridge 5.670%, cluster-majority 9.794%; doubled maps improve nearest and ridge most clearly at 32 dimensions but do not stabilize prototype-category alignment. |  |
+| 13 | Test half-size convolutional feature maps in the centered five-layer VQ hierarchy across top-code sizes 16, 32, 64, and 128. | Completed | Created local half-map variants with feature maps changed from 10/8/8/6/6 to 5/4/4/3/3; 20-tick smoke tests for all four top-code sizes; trained each for 100,000 ticks and extracted 994 train and 194 test rows with unchanged `delay="6"` label alignment; aligned probes for 16 dimensions: nearest 10.825%, ridge 17.010%, cluster-majority 10.309%; 32 dimensions: nearest 9.278%, ridge 12.371%, cluster-majority 4.124%; 64 dimensions: nearest 13.918%, ridge 13.918%, cluster-majority 9.794%; 128 dimensions: nearest 13.402%, ridge 17.010%, cluster-majority 9.278%; half maps are competitive in some ridge probes but do not beat the doubled-map 32-dimensional nearest/ridge peak. |  |
+| 14 | Test a simpler centered two-layer CVAE baseline without VQ/prototype pressure. | Completed | Created local two-layer centered hierarchy with Level 1 spatial CVAE `feature_maps=20`, `kernel_size=5`, and dense top code `latent_size=32`; Release rebuild fixed a stale FFmpeg dylib link before running; 20-tick smoke test; trained 100,000 ticks and extracted codes with corrected `delay="3"` label alignment; aligned top-code probes: nearest 7.614%, ridge 9.645%; aligned Level 1 latent probes: nearest 9.596%, ridge 11.616%; the simplified two-layer reconstruction objective did not improve category information relative to the five-layer VQ variants. |  |
+| 15 | Test a LeNet-like centered CVAE hierarchy with two downsampling stages and a dense top code. | Completed | Created local three-CVAE hierarchy approximating a convolution/pooling MNIST encoder: Level 1 spatial `feature_maps=20`, `latent_maps=8`, `kernel_size=5`; downsample; Level 2 spatial `feature_maps=40`, `latent_maps=8`, `kernel_size=5`; downsample; dense top code `latent_size=32`; mirrored upsampling in the top-down path; 20-tick smoke test; trained 100,000 ticks and extracted codes with corrected `delay="6"` label alignment; aligned probes: Level 1 nearest 11.616%, ridge 9.596%; Level 2 nearest 7.653%, ridge 12.245%; top code nearest 11.856%, ridge 6.186%; the LeNet-like reconstruction-only architecture did not improve category information. |  |
+| 16 | Sanity-check whether the CVAE training path can overfit a single centered MNIST image. | Completed | Created a local one-image dense CVAE overfit model using `latent_size=32`, `feature_maps=20`, `kernel_size=5`, `beta=0.0001`, `sample=no`, and sigmoid output; 20-tick smoke test; trained 50,000 ticks on repeated `image_00000.png`; final reconstruction loss was `1.8452975e-09`, final mean absolute reconstruction error was `3.598591e-05`, and the last-100-tick mean reconstruction loss was `1.4077346994e-08`; this rules out a gross failure of the basic dense CVAE optimizer/decoder/reconstruction path. |  |
+| 17 | Fix CVAE state loading so learned parameters restored from a state file are not overwritten by first-tick initialization. | Completed | Release build; dense and spatial CVAE 20-tick smoke tests; identical train/test extraction from saved 10-digit dense and five-layer states now gives exact top-code matches with worst max-difference `0.0`; dense 10-digit train-equals-test probes reached 100.000% nearest and 100.000% ridge; five-layer 10-digit train-equals-test probes reached 100.000% nearest and 94.737% ridge; re-extracting the previous full-split centered wide VQ latent-32 state gives near-collapsed top-code variance and chance-level probes: 10.050% nearest and 12.060% ridge. |  |
+| 18 | Rerun a clean two-layer centered MNIST baseline after the state-loading fix. | Completed | Created local clean Bernoulli two-layer files with no prototype, vector-quantization, decorrelation, consistency, denoising, or supervised signal; verified Release profile is `-O3 -DNDEBUG`; 20-tick smoke test passed; trained 100,000 ticks and saved state with an absolute `-W` path; extracted train/test codes through the fixed `-L` path; after removing the initial unsettled output row, top-code variance was healthy with mean per-dimension standard deviation `0.790`; train-vs-train nearest-neighbour reached 99.900%, but held-out probes remained weak: top code nearest 6.030%, top code ridge 8.040%, Level 1 latent nearest 12.563%, and Level 1 latent ridge 8.543%. |  |
+| 19 | Add a reproducible, resumable runner for controlled centered-MNIST CVAE parameter sweeps. | Completed | XML and Python syntax validation; `git diff --check`; end-to-end baseline, latent-width, and vector-quantized prototype smoke runs verified training, absolute-path state save/load, exact generated-model capture, automatic label alignment, frozen top/Level-1 probes, collapse diagnostics, aggregate CSV output, and a headless comparison graph. | `Added reproducible CVAE MNIST parameter sweeps` |
+| 20 | Screen the main architectural and objective parameters using the corrected state-loading and code-alignment protocol. | Completed | Fourteen unsupervised configurations trained for 20,000 ticks and were reloaded for aligned frozen-code evaluation. Best ridge results were VQ prototypes 11.6%, latent size 16 at 11.1%, and decorrelation weight 0.01 at 10.6%; top beta 0.001 led nearest-neighbour at 10.6%. Zero/very weak KL, sampling, 64 latent dimensions, removing Level-1 top-down reconstruction, and soft prototypes did not improve the baseline. All runs retained generated models, states, logs, codes, JSON diagnostics, aggregate CSV, and a comparison graph under `UserData/output/cvae_mnist_sweep`. | `Recorded the initial CVAE parameter screen` |
+| 21 | Refine promising mechanisms and repeat finalist configurations to estimate initialization sensitivity. | Completed | Added optional `random_seed` with nondeterministic behavior preserved by default; Release build and dense/spatial smoke tests passed; identical seeded reruns produced byte-identical train and validation code CSVs. The campaign accumulated 100 evaluated runs covering KL, sampling, latent width, reconstruction source, decorrelation, soft/VQ prototypes, feature maps, learning rate, kernels, and training duration. Five matched 50,000-tick seed pairs compared latent-16 with and without decorrelation: ridge means were 12.86% vs. 12.26%, a paired difference of only +0.60 percentage points with 0.89-point standard error; nearest-neighbour slightly favored no decorrelation. Three 100,000-tick plain latent-16 runs were stable at 12.56% +/- 0.50%. Aggregate raw and replicated CSV tables and error-bar plots were generated under `UserData/output/cvae_mnist_sweep`. | `Added deterministic CVAE sweep refinement` |
+| 22 | Confirm and document the best validation configuration, diagnostics, and remaining limitations. | Completed | Added a self-contained campaign report with protocol, recommended settings, replicated results, mechanism conclusions, reproduction command, and limitations. The selected robust setting is the clean two-level hierarchy with top `latent_size=16`, no sampling/prototype/VQ/decorrelation objective, and 100,000 ticks; three runs gave 12.56% +/- 0.50% ridge accuracy and approximately 0.0010 held-out reconstruction MAE. The higher 50,000-tick decorrelation mean was not selected because five matched-seed pairs showed only +0.60 percentage points ridge improvement with 0.89-point standard error and a small nearest-neighbour decrease. | `Documented the selected CVAE MNIST settings` |
+| 23 | Add reproducible five-level CVAE train/extract models with exact downsampling and mirrored upsampling between every adjacent level, supporting matched 3x3 and 4x4 kernel tests. | Completed | Release `-O3 -DNDEBUG`; XML and Python validation; generated centered 32x32 image data with labels matching the established split; 3x3 and 4x4 20-tick train/save/reload/extract smoke runs; exact 16-dimensional top-code and label alignment checks; `git diff --check`. | `Added fully downsampled five-level CVAE experiments` |
+| 24 | Run matched-seed comparisons with the strongest plain latent-16 and light-decorrelation parameter candidates. | Completed | Twelve 50,000-tick Release runs completed for three matched seeds. Mean top-code ridge accuracy: 3x3 plain 12.40% +/- 0.58%, 3x3 decorrelation 12.73% +/- 1.76%, 4x4 plain 9.88% +/- 0.77%, and 4x4 decorrelation 11.39% +/- 1.62% (sample SD). For 3x3, decorrelation changed ridge by +0.34 percentage points with 0.73-point paired standard error and did not change mean nearest-neighbour accuracy. | `Recorded the fully downsampled CVAE comparison` |
+| 25 | Aggregate, graph, and document the fully downsampled five-level validation results. | Completed | Generated raw and replicated CSV summaries and visually checked non-overlapping accuracy graphs. Added a self-contained architecture, protocol, results, paired comparison, interpretation, reproduction, and limitations report. The report selects 3x3 kernels without decorrelation and records that the 16-value top code is overcomplete relative to its 12-value immediate input. | `Documented the fully downsampled CVAE results` |
+| 26 | Add native PGM image support and use it in the fully downsampled CVAE experiment. | Completed | Release build; P2 and 8/16-bit P5 parsing, normalization, malformed-input, fixed-buffer, generic dispatch, and P5 writer tests; checked `InputImage` PGM fixture; five-level PGM train/save/reload/extract smoke test; all related tests passed. Full kernel suite retained unrelated failures in WebUI fatal-step test 239 and the serial state-path test pair 373/374. | `Added native PGM image support` |
+
+### Constraints
+
+- Use only unsupervised VAE objectives during training.
+- Keep labels out of the model graph except for post-training evaluation files.
+- Use Bernoulli reconstruction for pixel probabilities and keep higher latent-to-latent
+  reconstructions continuous unless explicitly changed.
+
+### CVAE parameter-search outstanding issues and questions
+
+- The 200-image held-out split was used for model selection and is not an untouched final test set.
+- The centered dataset should be regenerated reproducibly at larger scale before claiming a final MNIST estimate.
+- The selected code remains only weakly category-organized despite excellent reconstruction; substantially stronger separation likely requires a different unsupervised objective or architecture rather than further tuning of the tested parameters.
+- The fully downsampled five-level model contracts the top-code standard deviation to approximately 0.02 and does not improve validation accuracy over the simpler two-level hierarchy.
+- After four downsamplings, the current Level-5 input has 12 values and its 16-dimensional latent code is overcomplete. A follow-up should increase Level-4 latent maps to at least 8 or reduce the top code below 12 dimensions.
+
 # Kernel Review Status
+
+## RingWorld experimental protocol modules
+
+The first implementation will be delivered as a composable C++ pipeline without kernel changes.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Implement `RingWorldProtocol` JSON loading, validation, finite schedule resolution, stimulus/context generation, trial state, and a focused example and tests. | Completed | Release build; XML validation; focused 35-tick two-trial smoke test; 80-tick RingWorld integration smoke test; Markdown interface checker; `git diff --check`. | `Added the RingWorld protocol scheduler` |
+| 2 | Implement `RingWorldResponseAnalysis` sampling-window measurements and bounded `until` criterion feedback. | Completed | Release build; XML validation; focused constant-response test verified window measurement, two-repetition minimum, criterion feedback, and early termination before the five-repetition maximum; Markdown interface checker; `git diff --check`. | `Added RingWorld response analysis and criterion training` |
+| 3 | Implement `RingWorldRecorder` as a non-rolling, startup-sized recorder for protocol and response signals. | Completed | Release build; XML validation; focused 13-tick test verified monotonic count to ten, retained fixed capacity, and persistent overflow without rolling or overwriting; Markdown interface checker; `git diff --check`. | `Added complete RingWorld experiment recording` |
+| 4 | Add a protocol-aware WebUI dashboard example with labeled schedule, response, measurement, criterion, and full-recording displays. | Completed | Release build; JavaScript and XML validation; focused response-analysis and recorder tests; live 1440x1000 WebUI inspection verified populated summary values, labeled full-history traces, trial and sampling-window bands, separated graph/dashboard regions, and no browser-console warnings or errors; `git diff --check`. | `Added a protocol-aware RingWorld dashboard` |
+
+### Constraints
+
+- Use C++ modules, `ikaros::dictionary`, fixed-shape public buffers, and no external libraries.
+- Do not modify the kernel; response signals bind through an explicitly ordered matrix input.
+- Resolve random choices and the maximum bounded schedule at startup from the protocol seed.
+- Keep every response-dependent loop finitely bounded and size recording storage from its worst case.
+- Implement the documented version 1 format incrementally, rejecting syntax not yet supported rather
+  than silently interpreting it differently.
+- Complete, verify, and commit each module before starting the next one.
+
+### Outstanding issues and questions
+
+- The initial scheduler deliberately rejects randomized/counterbalanced ordering, weighted `choose`,
+  trial-template overrides, stimulus-relative sampling windows, nested or multi-trial `until` blocks,
+  and auditory/distal stimulus generation. These documented features remain follow-up implementation
+  work.
+- Response names currently require explicit matrix ordering and configuration; automatic name-based
+  signal binding remains intentionally unspecified.
+- Recorder capacity is explicit in this first implementation rather than inferred automatically from
+  the resolved protocol duration.
+
+## RingWorld protocol manual and PDF
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Expand the RingWorld protocol-format manual for readers familiar with classical conditioning but not Ikaros. | Completed | Markdown placement/interface checker; terminology and JSON-example consistency review; `git diff --check`. | `Expanded the RingWorld protocol manual` |
+| 2 | Generate and visually verify a polished PDF edition of the expanded manual. | Completed | Clean two-pass XeLaTeX build; PDF metadata and 15-page text extraction checks; all 15 rendered pages visually inspected for clipping, overflow, page breaks, tables, code, headers, and numbering; `git diff --check`. | `Added the RingWorld protocol PDF manual` |
+
+### Constraints
+
+- Keep the protocol specification consistent with the decisions recorded in the current task.
+- Clearly distinguish established protocol syntax from the unresolved response-signal binding design.
+- Keep the Markdown source as the maintained version and place the finished PDF under `output/pdf/`.
+- Complete and commit the expanded Markdown manual before generating the PDF.
+
+### Outstanding issues and questions
+
+None. Response-name binding remains intentionally unspecified in both editions pending the next
+protocol-design decision.
+
+## RingWorld protocol extensions
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add an explicit protocol-format version and compatibility rules. | Completed | Markdown checker; complete-example version audit; `git diff --check`. | `RingWorld protocols now declare their format version` |
+| 2 | Add experiment metadata. | Completed | Markdown checker; metadata merge/export semantics audit; `git diff --check`. | `RingWorld protocols now carry experiment metadata` |
+| 3 | Add named trial templates and presentation overrides. | Completed | Markdown checker; template resolution, identifier, and override-semantics audit; `git diff --check`. | `RingWorld protocols now support trial templates` |
+| 4 | Add randomized and counterbalanced trial ordering. | Completed | Markdown checker; finite expansion, constraint-failure, Latin-square, and explicit-order semantics audit; `git diff --check`. | `RingWorld protocols now support controlled trial order` |
+| 5 | Add weighted random choice of protocol items. | Completed | Markdown checker; weighted replacement/non-replacement and startup-resolution semantics audit; `git diff --check`. | `RingWorld protocols now support weighted choice` |
+| 6 | Generalize randomized numeric values across protocol fields. | Completed | Markdown checker; uniform, discrete-choice, bounded-normal, scope, validation, and startup-resolution semantics audit; `git diff --check`. | `RingWorld protocols now generalize random values` |
+| 7 | Add inherited trial and phase factors for analysis. | Completed | Markdown checker; inheritance, override, context distinction, and result-export semantics audit; `git diff --check`. | `RingWorld protocols now label phases and trials` |
+| 8 | Add notes at all useful protocol levels. | Completed | Markdown checker; allowed-scope, preservation, and non-execution semantics audit; `git diff --check`. | `RingWorld protocols now preserve explanatory notes` |
+| 9 | Add explicit units and compatibility validation. | Completed | Markdown checker; complete-example unit audit; measurement-unit and unsupported-unit validation review; `git diff --check`. | `RingWorld protocols now declare measurement units` |
+| 10 | Regenerate and visually verify the synchronized PDF manual. | Completed | Clean three-pass XeLaTeX build; PDF metadata and 24-page text extraction checks; all 24 rendered pages visually inspected for clipping, overflow, page breaks, tables, code, headers, and numbering; Markdown checker; `git diff --check`. | `Updated the RingWorld protocol PDF manual` |
+| 11 | Add bounded response-criterion `until` blocks to the protocol specification. | Completed | Markdown checker; criterion source, comparison, history, persistence, invalid-response, reproducibility, validation, and worst-case capacity semantics audit; `git diff --check`. | `RingWorld protocols now support bounded criterion training` |
+| 12 | Regenerate and visually verify the PDF manual with criterion-controlled training. | Completed | Clean XeLaTeX build without overfull boxes; PDF metadata and 33-page text extraction checks; all 33 rendered pages visually inspected for clipping, overflow, page breaks, tables, code, headers, and numbering; Markdown checker; `git diff --check`. | `Updated the RingWorld criterion-training manual` |
+
+### Constraints
+
+- Resolve all ordering, choice, and randomized values at startup from the protocol seed.
+- Preserve finite-duration analysis and exact startup recording-capacity inference.
+- Keep behavior-dependent branching outside this open-loop protocol format.
+- Keep response-name binding intentionally unspecified until separately designed.
+- Complete and commit each format feature before adding the next one.
+- Require every response-dependent loop to have a finite maximum repetition count.
+
+### Outstanding issues and questions
+
+None. Response-name binding remains intentionally unspecified pending the next protocol-design
+decision; criterion sources require that binding to be supplied before execution.
+
+## Wilson–Cowan composite population model
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a code-free WilsonCowan composite class with standard and historically motivated refractory dynamics, Hz-based activity, fixed-shape ports, and module-local tests. | Completed | XML validation; 500-tick standard/refractory smoke tests at 0.1 ms, 1 ms, 10 ms, and 100 ms; `git diff --check`. | `Added Wilson-Cowan composite population dynamics` |
+| 2 | Add clear standard/refractory demos and complete documentation with equations, units, interface tables, and a Mermaid-derived SVG flowchart. | Completed | XML validation; Mermaid CLI rendering; 2,000-tick demo smoke test; 500-tick standard/refractory tests at 0.1 ms, 1 ms, 10 ms, and 100 ms; live 1280×900 WebUI inspection confirmed finite responsive traces, separated graph/dashboard regions, rendered SVG and KaTeX, and no console warnings or errors; `git diff --check`. | `Documented and demonstrated Wilson-Cowan dynamics` |
+
+### Constraints
+
+- Compose existing Ikaros modules in `WilsonCowan.ikc`; do not add C++ or modify the kernel.
+- Use firing rates in Hz, time constants and refractory periods in seconds, sigmoid gains in Hz⁻¹, and dimensionless recurrent weights and response maxima.
+- Implement `standard` dynamics as \(-R+S(d)\) and `refractory` dynamics as \(-R+(k-rR)S(d)\).
+- Model one scalar excitatory/inhibitory population pair per instance with one-tick recurrent feedback delays and fixed one-element ports.
+- Keep Mermaid source beside a committed SVG and reference the SVG from Markdown.
+- Support sensible tick durations from 0.1–10 ms and document best-effort behavior at 100 ms.
+- Do not add external dependencies.
+
+### Outstanding issues and questions
+
+None.
+
+## Direct dense VAE mechanism sweep
+
+The architecture remains fixed at 1,024 input values, 10 latent values, and 1,024 reconstructed
+values. Training is unsupervised; labels are used only by post-training probes.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a reproducible staged experiment harness for direct dense VAE objective, optimization, regularization, and paired-view consistency settings. | Completed | Python compilation; 20-tick baseline and shifted paired-view train/save/reload/extract smoke runs; both retained exactly 1,000 aligned training and 200 aligned validation codes; `git diff --check`. | `Added direct dense VAE mechanism sweep` |
+| 2 | Run the broad single-factor screen and select candidates using frozen-code validation probes. | Completed | Thirty single-factor and four automatically composed conditions completed 50,000 Release updates with one matched seed; every extraction retained exactly 1,000 aligned training and 200 aligned validation codes. Moderate 10-prototype VQ led ridge at 71.0%; mean reconstruction and linear MSE led nearest-neighbour at 82.5%; composed settings did not improve either measure. | `Recorded the direct VAE mechanism screen` |
+| 3 | Run matched-seed confirmation of the finalists, graph the results, and document the recommended settings and limitations. | Completed | Eight finalists completed five new matched 50,000-update Release runs each; all 40 extractions retained exactly 1,000 aligned training and 200 aligned validation codes. Generated screening and confirmation plots were visually checked. Beta 0.03 led linear ridge at 69.4% +/- 0.7%; linear MSE led nearest-neighbour at 82.1% +/- 1.1%. Python compilation, report/result audit, and `git diff --check` passed. | `Documented the direct VAE parameter recommendation` |
+
+### Constraints
+
+- Keep `feature_stage=direct`, `latent_mode=dense`, and `latent_size=10` in every condition.
+- Use the same 1,000 centered training images, 200 centered validation images, update count, and
+  aligned extraction protocol for fair comparisons.
+- Do not use hierarchy, convolution, labels, or supervised losses during representation learning.
+- Treat linear ridge accuracy as the primary categorization measure and nearest-neighbour accuracy
+  as a complementary information-retention measure.
+- Confirm promising settings over matched random seeds before selecting a recommendation.
+
+### Outstanding issues and questions
+
+- The 200-image validation subset is reused for exploratory model selection and is not an untouched
+  final test set.
+- The controlled experiment uses only 1,000 training images and does not estimate full-MNIST
+  performance.
+- The tested ranges cover the implemented mechanism families and focused interactions, but do not
+  exhaust every continuous parameter combination.
+
+## GitHub issue bot guidance
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add `IKAROS-BOT.md` with secure, review-gated instructions for creating GitHub issues as `ikaros-bot`. | Completed | Policy audit for credential isolation, untrusted input, duplicate review, exact preview, approval gating, and authorship verification; `git diff --check`. | `Added secure GitHub issue bot guidance` |
+| 2 | Update `AGENTS.md` to direct GitHub issue operations to `IKAROS-BOT.md`. | Completed | Instruction audit confirms GitHub issue creation and modification are routed to the committed bot policy; `git diff --check`. | `GitHub issue operations now follow the bot policy` |
+
+### Outstanding issues and questions
+
+None.
+
+## ERRORS.md GitHub issue publication
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Create the approved issue for relative `-W` and `-L` state-path resolution. | Completed | Created GitHub issue #266 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the state-path resolution issue` |
+| 2 | Create the approved issue for nested command-line component parameter overrides. | Completed | Created GitHub issue #267 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the nested override issue` |
+| 3 | Create the approved issue for full-network state portability across root group names. | Completed | Created GitHub issue #268 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the state portability issue` |
+| 4 | Create the approved issue clarifying offline session-logging warnings. | Completed | Created GitHub issue #269 with the approved title and body; readback verified author `ikaros-bot`, no labels, and no assignees. | `Published the session logging issue` |
+
+### Outstanding issues and questions
+
+- `ERRORS.md` entries 5 and 6 are stale: commits `7acbbf50` and `7bd5cf71` respectively addressed
+  them, and the entries should be removed or marked resolved in a separate cleanup.
+- The kernel regression suite could not verify those fixes in this run because `Bin/ikaros` is
+  linked against a removed Homebrew `libavformat.62.dylib`; source, commit-history, and GitHub
+  readback verification completed successfully.
+
+## GitHub issue follow-up migration
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Remove the obsolete `ERRORS.md` follow-up file. | Completed | Confirmed the tracked file is deleted; remaining devlog references are historical; `git diff --check`. | `Removed the obsolete local error log` |
+| 2 | Replace the `AGENTS.md` instruction to record errors locally with the `ikaros-bot` GitHub issue workflow. | Completed | Instruction audit confirms potential bugs and documentation problems now use duplicate-reviewed, approval-gated GitHub issues through `IKAROS-BOT.md`; no active nonhistorical `ERRORS.md` references remain; `git diff --check`. | `Potential Ikaros problems now use bot-created issues` |
+
+### Outstanding issues and questions
+
+None.
+
+## Nucleus robustness and demonstration
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Protect divisive shunting inhibition from invalid negative inputs and unsafe denominators. | Completed | Release build; focused negative-shunting and burst regressions; `git diff --check`. | `Nucleus shunting inhibition now remains non-negative` |
+| 2 | Constrain `delta` to non-negative relative leak strengths. | Completed | Negative-value setup rejection; focused positive burst regression; `git diff --check`. | `Nucleus leak strength is now non-negative` |
+| 3 | Detect non-finite inputs and retain the last finite state and output. | Completed | Release build; focused NaN containment and burst regressions; `git diff --check`. | `Nucleus now contains non-finite updates` |
+| 4 | Add an `initial_state` parameter distinct from the burst `reset_level`. | Completed | Release build; focused initial-state and burst regressions; `git diff --check`. | `Nucleus now separates initial and burst reset states` |
+| 5 | Replace the old example with a polished demo comparing inhibition, shunting, input scaling, soft saturation, and bursting. | Completed | XML validation; 2,000-tick smoke test; live 1440×900 WebUI inspection confirmed six active plots, separated graph/dashboard regions, complete component bounds, and no console warnings or errors; `git diff --check`. | `Nucleus now has a comparative dynamics demo` |
+
+### Constraints
+
+- Keep the public Nucleus equations and exact tick-duration scaling consistent with the maintained ReadMe.
+- Preserve existing models through the current deprecated `epsilon` and `burst_time` aliases.
+- Keep changes inside the Nucleus module; do not modify the kernel or add dependencies.
+- Complete, verify, and commit each task before starting the next.
+
+### Outstanding issues and questions
+
+None for the Nucleus work. The repository-wide Markdown checker remains blocked by unrelated
+interface-table omissions in `Source/Modules/UtilityModules/PlanarArm/ReadMe.md`.
+
+## Library-view KaTeX overflow correction
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Prevent the WebUI's global overflow rule from clipping KaTeX output and make wide display equations scroll from their leading term. | Completed | Live ConductanceNeuronPopulation README inspection confirmed complete fractions, accents, scripts, and leading terms; a 588 px equation now exposes a left-anchored scroll surface inside its 383 px viewport; the library defaults to 440 px but remains resizable and viewport-clamped; no browser warnings or errors; focused Markdown/escaping unit tests; `git diff --check`. | `Fixed clipped KaTeX equations in the library view` |
+
+### Constraints
+
+- Scope overflow overrides to the library documentation's KaTeX wrappers.
+- Preserve KaTeX's intentional clipping on internal glyph-building elements.
+- Keep wide equations at a readable size and expose horizontal scrolling instead of shrinking them.
+- Do not change the kernel or README equation source.
+
+### Outstanding issues and questions
+
+None.
+
+## Library-view LaTeX rendering
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Bundle KaTeX locally and render inline and display LaTeX in library-view Markdown while preserving literal code and safe fallback behavior. | Completed | Focused WebUI unit tests cover inline, single-line and multiline display math, code protection, untrusted commands, and invalid-expression fallback; live library-view inspection of all four neuron modules confirmed local KaTeX fonts, SVG coexistence, bounded horizontal scrolling, complete delimiter consumption, and no browser warnings or errors; `git diff --check`. | `Library documentation now renders LaTeX with KaTeX` |
+
+### Constraints
+
+- Keep LaTeX source directly in module `ReadMe.md` files.
+- Load all renderer assets locally without a CDN or runtime network dependency.
+- Do not interpret math delimiters inside inline code or fenced code blocks.
+- Preserve escaped Markdown output and show the original LaTeX when KaTeX rejects an expression.
+- Do not change the kernel.
+
+### Outstanding issues and questions
+
+None.
+
+## Mermaid-derived documentation SVGs
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a repository instruction requiring documentation flowcharts to be authored in Mermaid, rendered to committed SVG assets, and referenced as Markdown images. | Completed | Instruction audit confirms module-local Mermaid source, committed SVG rendering, Markdown image references, regeneration, and visual-inspection requirements; `git diff --check`. | `Documentation flowcharts now use rendered Mermaid SVGs` |
+| 2 | Render the flowcharts in the four new population-neuron READMEs to module-local SVG files and replace their live Mermaid blocks with portable Markdown image references. | Completed | Mermaid CLI rendered five module-local SVGs from committed `.mmd` sources; all SVGs passed XML and unsafe/path-content checks; Markdown image references and removal of live Mermaid blocks audited; Quick Look visual inspection; `git diff --check`. The repository Markdown checker still reports pre-existing README table-header parsing failures and an unrelated TemplateMatcher title mismatch. | `Neuron model documentation now uses rendered Mermaid SVGs` |
+
+### Constraints
+
+- Keep the Mermaid source beside each rendered SVG so diagrams remain maintainable.
+- Use committed SVGs in `ReadMe.md` files so the Ikaros library view can display them without Mermaid runtime support.
+- Do not add a runtime WebUI dependency or change the kernel.
+- Complete, verify, and commit the instruction change before updating the READMEs.
+
+### Outstanding issues and questions
+
+None. The Markdown table-header parsing and TemplateMatcher title mismatch were resolved in a
+focused follow-up.
+
+
+## Population neuron model documentation
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add a detailed IntegrateAndFirePopulation ReadMe with signal-flow graph, LIF/EIF/AdEx/QIF equations, numerical semantics, usage guidance, and complete interface tables. | Completed | Equation-to-code audit for all four models; Mermaid and Markdown fence audit; complete `.ikc` parameter/input/output cross-check; `git diff --check`. | `Documented integrate-and-fire population models` |
+| 2 | Add a detailed ConductanceNeuronPopulation ReadMe with signal-flow graph, Hodgkin-Huxley and Morris-Lecar equations, gating kinetics, numerical semantics, usage guidance, and complete interface tables. | Completed | HH and Morris-Lecar equation-to-code audit; gating initialization and unit audit; Mermaid and Markdown fence audit; complete `.ikc` interface cross-check; `git diff --check`. | `Documented conductance neuron population models` |
+| 3 | Add a detailed RatePopulation ReadMe with signal-flow graph, activation and exact time-constant equations, usage guidance, and complete interface tables. | Completed | Activation and exact-update equation-to-code audit; reset and tick-duration semantics audit; Mermaid/ASCII graph and Markdown fence audit; complete `.ikc` interface cross-check; `git diff --check`. | `Documented rate population dynamics` |
+| 4 | Add a detailed SpikeGenerator ReadMe with signal-flow graph, Poisson/regular/triggered equations, reproducibility and coarse-tick semantics, usage guidance, and complete interface tables. | Completed | Poisson, refractory-cap, regular-phase, and trigger-rule equation-to-code audit; seed/reset/enable semantics audit; Mermaid/ASCII graph and Markdown fence audit; complete `.ikc` interface cross-check; `git diff --check`. | `Documented spike generator modes` |
+
+### Constraints
+
+- Follow the existing `ReadMe.md` naming convention.
+- Document the equations actually implemented, including units and tick-duration behavior.
+- Include readable Mermaid signal-flow graphs and standard parameter, input, and output tables.
+- Keep each document useful without requiring the reader to inspect the C++ implementation.
+- Complete, verify, and commit each documentation task before starting the next.
+
+### Outstanding issues and questions
+
+None.
+
+
+## Population neuron models
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add an IntegrateAndFirePopulation module with LIF, EIF, AdEx, and QIF models, documented physical units, tick-duration scaling, coarse-tick spike counts, tests, and a clear demo. | Completed | Release build; XML validation; four-model smoke tests at 0.1, 1, 10, and 100 ms; live WebUI inspection at 1440x900 confirmed separated component/dashboard regions, aligned plots, visible spiking behavior, and no browser warnings or errors; `git diff --check`. | `Integrate-and-fire populations now support four models` |
+| 2 | Add a ConductanceNeuronPopulation module with Hodgkin-Huxley and Morris-Lecar models, documented density units, bounded internal integration, tests, and a clear demo. | Completed | Release build; XML validation; HH and Morris-Lecar smoke tests at 0.1, 1, 10, and 100 ms; live WebUI inspection at 1440x900 confirmed non-overlapping voltage/recovery dashboards and component graphs with no browser warnings or errors; `git diff --check`. | `Conductance populations now support HH and Morris-Lecar` |
+| 3 | Add a RatePopulation module with linear, ReLU, and sigmoid activation models, time-constant dynamics, exact tick-duration scaling where possible, tests, and a clear demo. | Completed | Release build; XML validation; linear, ReLU, and sigmoid smoke tests at 0.1, 1, 10, and 100 ms; live WebUI inspection at 1440x900 showed distinct driven responses, aligned non-overlapping plots, and no browser warnings or errors; `git diff --check`. | `Rate populations now provide exact time-constant dynamics` |
+| 4 | Add a SpikeGenerator module with Poisson, regular, and triggered modes, reproducible randomness, coarse-tick event counts, tests, and a clear demo. | Completed | Release build; XML validation; Poisson, regular, and triggered smoke tests at 0.1, 1, 10, and 100 ms, including paired deterministic seeds; live WebUI inspection at 1440x900 showed cumulative stochastic, periodic, and triggered event behavior with a non-overlapping layout and no browser warnings or errors; `git diff --check`. | `Spike generators now support stochastic and timed events` |
+
+### Constraints
+
+- Implement all modules in C++ without kernel changes or external dependencies.
+- Use explicit `population_size` parameters and setup-owned fixed-shape outputs.
+- Treat all connected per-neuron inputs as fixed vectors of `population_size` elements.
+- Use seconds for time parameters, hertz for firing rates, and explicit `unit` attributes on dimensional `.ikc` parameters.
+- Use 1 ms as the reference tick duration, support 0.1-10 ms normally, and provide documented best-effort binned output at 100 ms.
+- Keep topology, synaptic filtering, propagation delays, and plasticity outside the neuron modules.
+- Preserve the existing SpikingPopulation module unchanged.
+- Complete, verify, and commit each task before starting the next.
+
+### Outstanding issues and questions
+
+None.
+
+
+## TemplateMatcher naming migration
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Replace the former implementation name everywhere in configuration, launch settings, documentation, status, source-directory names, the demo, and UserData model paths with TemplateMatcher. | Completed | Release configure/build, XML validation, seven module-local smoke tests, and renamed live demo startup with Core ML passed; exhaustive case-insensitive content and filename searches found no former-name instances, including regenerated Release and TSAN build metadata; model weights and caches moved to the renamed UserData path; `git diff --check`. | `TemplateMatcher now has consistent naming` |
+
+### Constraints
+
+- Preserve the historical algorithm description while replacing the implementation's old name.
+- Keep external model weights and compiled caches available at the renamed UserData path.
+- Do not modify the kernel or add dependencies.
+
+### Outstanding issues and questions
+
+None.
+
+## TemplateMatcher Apple Silicon inference acceleration
+
+The tasks below will be completed sequentially, with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add configurable native ONNX Runtime execution-provider setup with Core ML MLProgram acceleration, all Apple compute units, static-shape selection, compiled-model caching, and CPU fallback. | Completed | Release build passed; native session configuration now registers Core ML with MLProgram, all compute units, optional static shapes and cache, retries with the multithreaded CPU provider if Core ML session creation fails, and preserves memory patterns by default; `git diff --check`. | `Native ONNX sessions now support Apple acceleration` |
+| 2 | Apply static-shape Core ML acceleration to ALIKED and select the faster verified Core ML or multithreaded CPU configuration for dynamic-shape LightGlue. | Completed | Release build and XML validation passed; a 200-tick native benchmark measured ALIKED Core ML at 11.03 s versus CPU at 12.41 s, while Core ML rejected LightGlue's unbounded dynamic dimensions and the multithreaded CPU configuration completed cleanly; `git diff --check`. | `Learned matching now uses measured Apple providers` |
+| 3 | Expose per-network inference timing and verify Release-mode latency and functional behavior. | Completed | Release build, XML validation, and 12-tick native model smoke passed; ALIKED reported Core ML with warmed inference around 39–53 ms and LightGlue reported CPU around 41–50 ms for the one-template fixture; separate labeled WebUI tables show last, smoothed, and provider values; `git diff --check`. | `Learned inference now reports provider latency` |
+
+### Constraints
+
+- Use the installed native arm64 Homebrew ONNX Runtime and add no external dependency.
+- Preserve CPU fallback for unsupported Core ML operators.
+- Keep model-cache data outside the repository and avoid machine-specific paths.
+- Keep runtime buffers and output shapes consistent with Ikaros matrix rules.
+- Complete, verify, and commit each task before starting the next.
+
+### Outstanding issues and questions
+
+None.
 
 ## BrainStudio heat-map visualization
 
@@ -22,8 +419,101 @@ The tasks below will be completed sequentially, with one focused commit per task
 
 None.
 
+## TemplateMatcher learning-region correction
 
-## BrainStudio event-raster visualization
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Visualize the features actually retained in learned templates, separately from current matched and tracked features. | Completed | Full Debug build; XML validation; deterministic point-to-box test verified three pixel points map to the expected centered target boxes; demo now overlays retained template points in yellow separately from cyan matched/tracked points. | `Learned template features now have a distinct overlay` |
+| 2 | Restrict current match candidates to the central learning square during Learn while retaining full-image matching for later reacquisition. | Completed | Full Debug build and XML validation passed; focused tests retained only 3/4 central points when restricted and all 4/4 when unrestricted; the deterministic ALIKED-LightGlue-homography-LK pipeline retained 61/61 central matches and transitioned from detection to stable tracking; geometry/controller regressions and `git diff --check` passed. | `Initial template verification now stays inside the learning region` |
+
+### Constraints
+
+- Keep the reusable filtering and visualization conversion in separate native C++ modules.
+- Use bounded dynamic `ikaros::matrix` outputs and do not modify the kernel.
+- Preserve full-image learned-feature extraction and later global reacquisition.
+- Complete, verify, and commit task 1 before task 2.
+
+### Outstanding issues and questions
+
+None.
+
+## TemplateMatcher overlay and reacquisition correction
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Correct learned and current feature-box conversion to the Target Boxes widget's centered per-axis coordinate convention. | Completed | Full Debug build; deterministic conversion test maps quarter-, center-, and three-quarter-image points to approximately -0.25, 0, and 0.25 per axis; geometry/path regression passed; `git diff --check` passed. | `Feature overlays now use centered widget coordinates` |
+| 2 | Reject weak, spatially unsupported homographies during global reacquisition and continue searching instead of tracking a false target. | Completed | Full Debug build and XML validation passed; weak-score homography fixture remained rejected; verified detections reseed the tracker while a current valid tracking transform preserves display continuity; deterministic learned pipeline retained 61/61 matches across periodic reseeding; geometry/controller regressions and `git diff --check` passed. | `Verified detections now replace stale tracking targets` |
+
+### Constraints
+
+- Preserve full-image reacquisition and multi-template matching.
+- Keep verification in the geometry module and avoid kernel changes.
+- Complete, verify, and commit task 1 before task 2.
+
+### Outstanding issues and questions
+
+None.
+
+## TemplateMatcher tracking recovery tuning
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Increase Lucas-Kanade motion tolerance for live camera tracking without changing its bounded matrix design. | Completed | Demo XML validation and deterministic 20-tick pipeline regression passed with 61/61 points retained; live configuration now uses an 11x11 window, 15 iterations, residual tolerance 0.15, and 2.5-pixel forward-backward tolerance. | `Live template tracking now tolerates larger motion` |
+| 2 | Restore permissive global homography candidate acceptance while retaining quadrilateral validation and stale-tracker replacement. | Completed | Full Debug build, XML validation, strong-geometry acceptance, configurable weak-score rejection, and deterministic 20-tick learned pipeline passed with 61/61 points; demo ALIKED and LightGlue thresholds lowered to 0.1 and 0.05 while minimum-inlier, reprojection, convexity, area, bounds, and stale-tracker replacement checks remain active. | `Global reacquisition now admits weaker learned matches` |
+
+### Constraints
+
+- Keep ONNX inference gated during ordinary tracking ticks.
+- Preserve full-image reacquisition, bounded matrices, and native C++ implementation.
+- Complete, verify, and commit task 1 before task 2.
+
+### Outstanding issues and questions
+
+None.
+
+## TemplateMatcher overlay transparency and periodic stability
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Make the tracked-region polygon background semitransparent over the camera image. | Completed | Demo XML validation and `git diff --check` passed; tracked-region Path now uses an 18% opaque black background while retaining its translucent green fill. | `Tracked-region overlays now preserve camera visibility` |
+| 2 | Prevent scheduled reacquisition from periodically dropping a valid stationary tracking state. | Completed | Release build passed; deterministic 20-tick pipeline now remains valid continuously across scheduled detection and reseeding with 61/61 points, eliminating the prior empty status tick; controller and geometry regressions and `git diff --check` passed. | `Tracker reseeding now preserves a valid output state` |
+
+### Constraints
+
+- Preserve the intentional camera, polygon, and feature overlay geometry.
+- Continue global reacquisition after genuine tracking failure.
+- Complete, verify, and commit task 1 before task 2.
+
+### Outstanding issues and questions
+
+None.
+
+## Modern learned template matching demo
+
+The old handcrafted elastic matcher will be removed rather than retained as a fallback. The tasks
+below will be completed sequentially with one focused commit per task.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Replace the handcrafted matcher with ALIKED feature extraction, LightGlue correspondence matching, robust homography verification, and Lucas-Kanade tracking/reacquisition while preserving multi-template learning and centered output coordinates. | Completed | Full CMake build; Python compilation; XML and shell validation; five-tick CPU smoke learned 101 ALIKED points, accepted 101 LightGlue correspondences and 101 homography inliers, and reported VALID=1. | `Template matching now uses learned features and tracking` |
+| 2 | Replace the axis-aligned match-box overlay with a closed Path driven by the four homography-transformed template corners. | Completed | XML validation; Python compilation; five-tick CPU smoke retained VALID=1 with 101 correspondences/inliers after removing MATCH_BOX; `git diff --check`. | `Matched templates now use projective path overlays` |
+
+### Constraints
+
+- Use a Python-backed Ikaros class and shared-memory transport for learned-model inference.
+- Keep Learn and Clear as single-button interactions through explicit trigger inputs.
+- Detect/reacquire globally, track verified points between detection passes, and fall back immediately when tracking quality fails.
+- Keep model/runtime dependencies outside version control and provide a reproducible setup command.
+- Keep widgets non-overlapping except for the intentional image/path/feature overlays.
+- Complete, verify, and commit task 1 before starting task 2.
+
+### Outstanding issues and questions
+
+- The pretrained runtime remains an explicit local setup step and is intentionally excluded from version control.
+- Live camera behavior and the WebUI overlay still require an interactive hardware smoke test; the deterministic image smoke covers learning, matching, homography output, and output-shape setup.
+
+
+## BrainStudio event-raster visualization 
 
 The tasks below will be completed sequentially, with one focused commit per task.
 
@@ -954,6 +1444,46 @@ These tasks follow the preferred helper restructuring identified after the physi
 - Prefer an existing owning class over a new abstraction; keep shared utilities private when no public API is justified.
 - Do not expose implementation-only helpers through the public API solely to share code between translation units.
 - Do not begin a later task until the preceding task is verified and committed.
+
+### Outstanding issues and questions
+
+None.
+## Secure Python interpreter selection
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Remove model-controlled `python_executable` selection and restore command-line-only interpreter selection in `PythonModule`. | Completed | Full build; XML validation; explicit `-p` matcher startup; all 272 kernel tests; source inspection confirms only the command-line option remains. | `Python interpreter selection is trusted again` |
+| 2 | Configure the local VS Code launch command to pass the trusted matcher Python interpreter with `-p`. | Completed | JSON validation; interpreter executable check; VS Code-equivalent argument sequence initialized ALIKED and LightGlue on MPS. | Local `.vscode/launch.json` is git-ignored. |
+
+### Outstanding issues and questions
+
+- The VS Code launch configuration is intentionally local because `.vscode` is git-ignored.
+## Native TemplateMatcher pipeline
+
+The implementation is C++ only at runtime, targets macOS Apple Silicon, uses the already-installed
+ONNX Runtime, does not use OpenCV, and does not modify the kernel. Existing `ikaros::matrix`
+functionality must be evaluated before adding any new data structure or numerical helper.
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Validate Homebrew ONNX Runtime C++ linkage and externally convert checksum-pinned ALIKED and static LightGlue models; prove C++ inference parity on frozen fixtures. | Completed | Homebrew CMake target compiled and ran with ONNX Runtime 1.28.0; ONNX checker passed; native/PyTorch parity passed for ALIKED and dynamic LightGlue with identical match indices and maximum float error `1.53e-5`. | `Native matcher models now have a verified artifact contract` |
+| 2 | Add optional Apple-Silicon ONNX Runtime CMake discovery and a module-local, security-hardened inference helper. | Completed | CMake discovered Homebrew ONNX Runtime 1.28.0 without a fixed installation path; full Ikaros build passed; helper enforces regular `.onnx` files, SHA-256, exact tensor names/types/ranks, and fixed inference thread limits. | `Native matcher inference now uses a verified ONNX boundary` |
+| 3 | Implement the C++ ALIKED module with dynamic feature matrices and no count outputs. | Completed | Full Ikaros build passed; native three-tick image smoke emitted 273 thresholded features with leading scores matching PyTorch; outputs retained setup-owned capacities of 512x2, 512x128, and 512x1. | `ALIKED features now flow through native dynamic matrices` |
+| 4 | Implement the C++ TemplateFeatureBank module with flattened dynamic template matrices. | Completed | Full Ikaros build passed; live ALIKED pipeline smoke learned 61 central features at range 0,61 and appended a second template at 61,61 while retaining predeclared capacities; no count output used. | `Learned templates now persist in bounded matrix banks` |
+| 5 | Implement the C++ LightGlue module with dynamic correspondence rows. | Completed | Full Ikaros build passed; live same-image pipeline smoke recovered all 61 learned features as correspondence rows with valid template/current indices and high scores; optional execution gate verified by code path. | `LightGlue correspondences now run in native C++` |
+| 6 | Implement reusable native similarity and homography estimation using `ikaros::matrix`/LAPACK facilities before adding local numerical helpers. | Completed | Full build passed; end-to-end deterministic RANSAC retained 61/61 inliers and refined a same-image homography to `1.59e-5` pixel mean error; normalized DLT uses matrix transpose, matmul, SVD, and inverse. | `Native geometry now robustly verifies feature matches` |
+| 7 | Implement reusable native polygon geometry and projective transformation. | Completed | Full build and end-to-end smoke passed; verified identity homography produced a finite convex closed five-point centered path and matched-feature boxes, with bounds and area validation. | `Verified transforms now produce validated polygon paths` |
+| 8 | Implement native pyramidal Lucas–Kanade tracking, keeping image pyramids internal to avoid artificial module boundaries. | Completed | Full build and end-to-end repeated-image smoke passed; all 61 seeded points remained tracked with zero forward-backward error and a valid similarity transform. | `Verified features now continue through native LK tracking` |
+| 9 | Implement the C++ tracking controller and assemble the dynamic-matrix `.ikg` pipeline. | Completed | Full build, XML validation, deterministic 20-tick pipeline smoke, and one-tick native camera demo smoke passed; status transitioned detection-to-tracking with 61 supports and confidence 1. | `Native modules now form a tracked template pipeline` |
+| 10 | Add security, deterministic, dynamic-shape, failure/reacquisition, WebUI, and Release performance verification. | Completed | Release build and 20-tick gated learned-feature/tracking smoke passed in 2.86 seconds; deterministic geometry and controller tests passed; corrupt model checksum was rejected; live WebUI camera, controls, labeled tables, and non-overlapping layout were verified without browser warnings; kernel regression suite passed. | `Native matcher verification now covers security and reacquisition` |
+| 11 | Remove the Python prototype/runtime setup after native parity is established and complete documentation and migration. | Completed | Removed the Python class, descriptor, installer, downloader, requirements, bytecode cache, and obsolete manual model; native-only documentation and checksum instructions added; Release configure found ONNX Runtime and full build passed; XML, source-reference audit, deterministic geometry/controller tests, and `git diff --check` passed. | `Removed the Python template-matching runtime` |
+
+### Approved decisions
+
+- ONNX Runtime is approved and already installed.
+- One-time Python model conversion outside the Ikaros runtime is approved.
+- Initial capacities: 320x240 input, 512 current keypoints, 16 templates, 8192 stored features, and 512 matches per template.
+- No OpenCV, no Python runtime, no kernel changes, and no automatic downloads or installations.
 
 ### Outstanding issues and questions
 

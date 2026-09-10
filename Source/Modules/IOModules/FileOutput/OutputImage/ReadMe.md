@@ -3,7 +3,8 @@
 ## Description
 
 `OutputImage` writes a grayscale `[height, width]` matrix or a channel-first RGB
-`[3, height, width]` matrix as a JPEG, PNG, TIFF, or WebP file. The filename
+`[3, height, width]` matrix as a JPEG, PNG, TIFF, or WebP file. Grayscale matrices
+can also be written as binary P5 Portable Graymap (PGM) files. The filename
 extension selects the format. Values below zero or above one are clipped to the
 supported image range.
 
@@ -27,8 +28,8 @@ are retried at most once per second; a new `WRITE` edge retries immediately.
 | Name | Description | Type | Default |
 |:-----|:------------|:-----|:--------|
 | directory | Exact reusable directory, or a unique directory pattern containing `#`; empty writes directly inside UserData. | string |  |
-| filename | Output filename ending in `.jpg`, `.jpeg`, `.png`, `.tif`, `.tiff`, or `.webp`. | string | `output.jpg` |
-| quality | JPEG and WebP quality from 1 to 100; ignored for PNG and TIFF. | number | 90 |
+| filename | Output filename ending in `.jpg`, `.jpeg`, `.png`, `.pgm`, `.tif`, `.tiff`, or `.webp`. PGM accepts grayscale input only. | string | `output.jpg` |
+| quality | JPEG and WebP quality from 1 to 100; ignored for PNG, PGM, and TIFF. | number | 90 |
 | start_index | First non-negative integer sequence number. | number | 0 |
 | single_trigger | With WRITE connected, write only on its rising edge. | bool | no |
 
@@ -69,8 +70,8 @@ The `quality` parameter remains available, but its default is 90 rather than 100
 
 ## Codec availability
 
-JPEG support is required in every Ikaros build. PNG, TIFF, and WebP are included
-when their libraries are available. The CMake options `IKAROS_PNG`, `IKAROS_TIFF`,
-and `IKAROS_WEBP` accept `AUTO`, `ON`, or `OFF`. `AUTO` enables an installed codec,
-`ON` makes it a required dependency, and `OFF` disables it. Selecting an unavailable
-format produces a clear startup error.
+JPEG and PGM support are included in every Ikaros build. PNG, TIFF, and WebP are
+included when their libraries are available. The CMake options `IKAROS_PNG`,
+`IKAROS_TIFF`, and `IKAROS_WEBP` accept `AUTO`, `ON`, or `OFF`. `AUTO` enables an
+installed codec, `ON` makes it a required dependency, and `OFF` disables it.
+Selecting an unavailable format produces a clear startup error.

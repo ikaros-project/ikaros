@@ -1,0 +1,18 @@
+<class name="TemplateFeatureBank" description="Stores learned feature templates in bounded dynamic matrices">
+    <input name="KEYPOINTS" description="Current pixel-coordinate feature rows: x,y" />
+    <input name="DESCRIPTORS" description="Current 128D descriptor rows" />
+    <input name="SCORES" description="Current score rows" />
+    <input name="LEARN" size="1" description="Learn the central square on a rising edge" />
+    <input name="CLEAR" size="1" description="Discard all templates on a rising edge" />
+    <output name="TEMPLATE_KEYPOINTS" dynamic="yes" capacity="@max_stored_features,2" description="Concatenated learned pixel-coordinate keypoints" />
+    <output name="TEMPLATE_DESCRIPTORS" dynamic="yes" capacity="@max_stored_features,128" description="Concatenated learned descriptors aligned with TEMPLATE_KEYPOINTS" />
+    <output name="TEMPLATE_SCORES" dynamic="yes" capacity="@max_stored_features,1" description="Concatenated learned scores aligned with TEMPLATE_KEYPOINTS" />
+    <output name="TEMPLATE_RANGES" dynamic="yes" capacity="@max_templates,2" description="Template rows: feature start, feature length" />
+    <output name="TEMPLATE_CORNERS" dynamic="yes" capacity="@max_templates,8" description="Template pixel corners by row: x0,y0,x1,y1,x2,y2,x3,y3" />
+    <parameter name="image_width" type="number" default="320" min="1" description="Feature image width in pixels" />
+    <parameter name="image_height" type="number" default="240" min="1" description="Feature image height in pixels" />
+    <parameter name="learning_region" type="number" default="0.5" min="0.05" max="1" description="Central square side as a fraction of the shorter image side" />
+    <parameter name="min_features" type="number" default="6" min="1" description="Minimum central features required to add a template" />
+    <parameter name="max_templates" type="number" default="16" min="1" description="Maximum learned templates" />
+    <parameter name="max_stored_features" type="number" default="8192" min="1" description="Maximum concatenated learned features" />
+</class>

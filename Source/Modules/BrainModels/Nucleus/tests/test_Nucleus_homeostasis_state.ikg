@@ -1,0 +1,12 @@
+<group name="NucleusHomeostasisStateTest" start="true" stop="2" tick_duration="0.1"
+       check_sum="2553"
+       cli_args="-W${TEST_DIR}/ikaros_nucleus_homeostasis_state.json"
+       expected_output_contains="Saved state to ${TEST_DIR}/ikaros_nucleus_homeostasis_state.json"
+       expected_file_exists="${TEST_DIR}/ikaros_nucleus_homeostasis_state.json"
+       expected_file_contains="&quot;NucleusHomeostasisStateTest.Nucleus.homeostatic_gain&quot;||&quot;NucleusHomeostasisStateTest.Nucleus.average_activity&quot;||&quot;type&quot;: &quot;double&quot;"
+       cleanup_expected_files="true">
+    <module class="Nucleus" name="Nucleus" activation_function="linear"
+            homeostasis="yes" homeostatic_target="1"
+            activity_time_constant="0.1" homeostatic_time_constant="0.1"
+            maximum_homeostatic_gain="10" delta="0" _x="160" _y="80" />
+</group>

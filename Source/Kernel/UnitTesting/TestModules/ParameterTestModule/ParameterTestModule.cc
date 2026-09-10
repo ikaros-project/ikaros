@@ -238,6 +238,9 @@ class ParameterTestModule : public Module
     {
         parameter boundedBinding;
         Bind(boundedBinding, "bounded_value");
+        require_true(boundedBinding.unit() == "m/s" &&
+                     std::string(boundedBinding.metadata()["unit"]) == "m/s",
+                     "unit metadata should be retained as a string");
         SetParameter("bounded_value", std::string("0.75"));
         require_true(boundedBinding.as_double() == 0.75,
                      "kernel parameter updates should accept values within constraints");
@@ -315,6 +318,8 @@ class ParameterTestModule : public Module
                      "info() should print the resolution state");
         require_true(details.find("default: 1\n") != std::string::npos,
                      "info() should print the declared default");
+        require_true(details.find("unit: (none)\n") != std::string::npos,
+                     "info() should identify a missing unit");
         require_true(details.find("minimum: 0\n") != std::string::npos &&
                      details.find("maximum: 2\n") != std::string::npos,
                      "info() should print numeric constraints");

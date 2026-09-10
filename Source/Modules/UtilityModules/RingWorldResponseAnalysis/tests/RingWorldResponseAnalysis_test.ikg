@@ -1,0 +1,20 @@
+<group name="RingWorldResponseAnalysis_test" start="true" stop="35" tick_duration="0.1">
+    <module class="RingWorldProtocol" name="Protocol" filename="until_protocol.json" max_stimuli="2" max_sampling_windows="2" />
+    <module class="Constant" name="Response" data="0.8" />
+    <module class="RingWorldResponseAnalysis" name="Analysis"
+        response_count="1" max_sampling_windows="2"
+        latency_threshold="0.5" criterion_window="0" criterion_response="0"
+        criterion_measurement="maximum" criterion_operator="greater_equal"
+        criterion_value="0.7" history_length="1" consecutive="1" />
+    <module class="Print" name="PrintCompleted" />
+    <module class="Print" name="PrintRepetition" />
+
+    <connection source="Response.OUTPUT" target="Analysis.RESPONSES" delay="0" />
+    <connection source="Protocol.SAMPLE_WINDOWS" target="Analysis.SAMPLE_WINDOWS" delay="0" />
+    <connection source="Protocol.TRIAL_INDEX" target="Analysis.TRIAL_INDEX" delay="0" />
+    <connection source="Protocol.UNTIL_ACTIVE" target="Analysis.UNTIL_ACTIVE" delay="0" />
+    <connection source="Protocol.UNTIL_REPETITION" target="Analysis.UNTIL_REPETITION" delay="0" />
+    <connection source="Analysis.CRITERION_MET" target="Protocol.CRITERION_MET" delay="1" />
+    <connection source="Protocol.COMPLETED" target="PrintCompleted.INPUT" delay="0" />
+    <connection source="Protocol.UNTIL_REPETITION" target="PrintRepetition.INPUT" delay="0" />
+</group>

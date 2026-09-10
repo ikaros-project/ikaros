@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "units": {
+    "time": "seconds",
+    "angle": "degrees",
+    "color": "normalized",
+    "intensity": "normalized",
+    "reinforcement": "normalized"
+  },
+  "defaults": {
+    "angle": 0,
+    "reward": 0,
+    "punishment": 0,
+    "intensity": 1,
+    "rgb": [1, 1, 1]
+  },
+  "responses": {
+    "conditioned_response": {}
+  },
+  "trials": {
+    "training": {
+      "duration": 1,
+      "stimuli": [],
+      "sampling": [
+        {
+          "name": "response_window",
+          "onset": 0.2,
+          "duration": 0.5,
+          "responses": [
+            {
+              "response": "conditioned_response",
+              "measurements": ["latency", "integral", "maximum"]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "protocol": [
+    {
+      "until": {
+        "minimum_repetitions": 2,
+        "maximum_repetitions": 5,
+        "criterion": {
+          "source": {
+            "trial": "training",
+            "window": "response_window",
+            "response": "conditioned_response",
+            "measurement": "maximum"
+          },
+          "operator": ">=",
+          "value": 0.7
+        },
+        "protocol": [
+          {
+            "trial": {
+              "template": "training"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

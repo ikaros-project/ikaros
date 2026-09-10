@@ -125,6 +125,15 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
         this.ix = 0;
         this.bufferCapacity = capacity;
     }
+
+    shouldAdvanceBuffer()
+    {
+        if(typeof controller === "undefined")
+            return true;
+        return controller.run_mode !== "pause" &&
+               controller.run_mode !== "stop" &&
+               controller.run_mode !== "quit";
+    }
 /*
     drawBarHorizontal(width, height, i) // not used
     {
@@ -225,12 +234,15 @@ class WebUIWidgetPlot extends WebUIWidgetGraph
 
         const bufferSize = this.getBufferSize();
         this.resizeBuffer(bufferSize);
-        if(this.buffer.length < bufferSize)
-            this.buffer.push(this.data);
-        else
+        if(this.shouldAdvanceBuffer())
         {
-            this.buffer[this.ix] = this.data;
-            this.ix = (this.ix + 1) % bufferSize;
+            if(this.buffer.length < bufferSize)
+                this.buffer.push(this.data);
+            else
+            {
+                this.buffer[this.ix] = this.data;
+                this.ix = (this.ix + 1) % bufferSize;
+            }
         }
 
         if(this.parameters.auto_range)

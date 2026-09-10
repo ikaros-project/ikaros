@@ -109,6 +109,11 @@ public:
                 "queue overflow status was not reported");
         require(initial_status[1].find("expected transport failure") != std::string::npos,
                 "transport failure status did not preserve the diagnostic");
+        require(initial_status[1].find("Optional remote session logging") != std::string::npos,
+                "transport failure status did not identify logging as optional and remote");
+        require(initial_status[1].find("Local model execution will continue unaffected") !=
+                    std::string::npos,
+                "transport failure status did not distinguish logging from model execution");
         require(initial_status[2].find("recovered after 1 failed delivery") != std::string::npos,
                 "transport recovery status did not report the failure count");
 

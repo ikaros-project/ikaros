@@ -1,0 +1,13 @@
+<group name="FeatureRegionFilterTest" start="true" stop="4" agent="Codex: GPT-5.6 Sol">
+    <module class="Constant" name="Points" data="20,20; 100,80; 160,120; 220,180" />
+    <module class="Constant" name="Descriptors" data="1,2; 3,4; 5,6; 7,8" />
+    <module class="Constant" name="Restrict" data="1" />
+    <module class="FeatureRegionFilter" name="Central" descriptor_size="2" max_features="4" />
+    <module class="Print" name="CentralOutput" />
+    <module class="Print" name="RestrictOutput" />
+    <connection source="Points.OUTPUT" target="Central.KEYPOINTS" />
+    <connection source="Descriptors.OUTPUT" target="Central.DESCRIPTORS" />
+    <connection source="Restrict.OUTPUT" target="Central.RESTRICT" />
+    <connection source="Central.FILTERED_KEYPOINTS" target="CentralOutput.INPUT" />
+    <connection source="Restrict.OUTPUT" target="RestrictOutput.INPUT" />
+</group>

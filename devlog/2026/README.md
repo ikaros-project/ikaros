@@ -31,3 +31,9 @@
 | 2026-W28 | 2026-07-06 to 2026-07-12 | [Arbiter v3, Stack Expressions, and Kernel Cleanup](2026-07-06-week-25.md) |
 | 2026-W29 | 2026-07-13 to 2026-07-19 | [Module Ports, Matrix Safety, and WebUI Runtime Updates](2026-07-13-week-26.md) |
 | 2026-W30 | 2026-07-20 to 2026-07-26 | [Runtime Hardening, Linux CI, and Kernel Refactoring](2026-07-20-week-27.md) |
+| 2026-W31 | 2026-07-27 to 2026-08-02 | [Kernel Boundaries, WebUI Widgets, and Visualization Updates](2026-07-27-week-28.md) |
+| 2026-W32 | 2026-08-03 to 2026-08-09 | [Native Template Matching, RingWorld, and Module Policy Updates](2026-08-03-week-29.md) |
+| 2026-W33 | 2026-08-10 to 2026-08-16 | [Neuron Population Models, Documentation Rendering, and WebUI Parameter Updates](2026-08-10-week-30.md) |
+| 2026-W34 | 2026-08-17 to 2026-08-23 | [Nucleus Dynamics, RingWorld Protocols, and PlanarArm Documentation](2026-08-17-week-31.md) |
+| 2026-W35 | 2026-08-24 to 2026-08-30 | [CVAE Evaluation, MNIST Probes, and Tick Printing](2026-08-24-week-32.md) |
+| 2026-W36 | 2026-08-31 to 2026-09-06 | [CVAE Latent Experiments, Runtime Fixes, and Statistics Views](2026-08-31-week-33.md) |

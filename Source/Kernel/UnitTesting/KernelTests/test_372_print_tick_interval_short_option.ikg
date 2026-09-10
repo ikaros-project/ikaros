@@ -1,0 +1,7 @@
+<group internal="true"
+    name="TestPrintTickIntervalShortOption"
+    description="Use -P as the short form of print-tick-interval"
+    stop="5"
+    cli_args="-P2"
+    expected_output_once="Tick: 2||Tick: 4"
+    expected_output_not_contains="Tick: 1||Tick: 3||Tick: 5" />

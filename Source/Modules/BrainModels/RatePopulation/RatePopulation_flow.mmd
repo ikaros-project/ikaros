@@ -1,0 +1,11 @@
+flowchart LR
+    I["INPUT"] --> SUM["Drive sum"]
+    E["EXCITATION"] --> SUM
+    H["INHIBITION"] -->|"subtract"| SUM
+    M["MODULATION"] --> SUM
+    B["bias"] --> SUM
+    SUM --> ACT["linear / ReLU / sigmoid"]
+    ACT --> A["ACTIVATION<br/>instantaneous target"]
+    A --> LP["Exact first-order dynamics<br/>time_constant"]
+    R["RESET"] --> LP
+    LP --> O["OUTPUT<br/>filtered firing rate"]

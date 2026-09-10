@@ -1,0 +1,7 @@
+<group name="FeaturePointBoxesTest" start="true" stop="3" agent="Codex: GPT-5.6 Sol">
+    <module class="Constant" name="Points" data="80,60; 160,120; 240,180" />
+    <module class="FeaturePointBoxes" name="Boxes" box_size="6" max_points="3" />
+    <module class="Print" name="Output" />
+    <connection source="Points.OUTPUT" target="Boxes.POINTS" />
+    <connection source="Boxes.BOXES" target="Output.INPUT" />
+</group>

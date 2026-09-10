@@ -1,0 +1,33 @@
+<group name="RingWorld_test" start="true" stop="1">
+    <module name="Stimuli" class="Constant"
+        data="175,1,0,0.8,1,0; -170,0,1,0.6,0,1; 0,0,0,1,1,1" />
+    <module name="Gaze" class="Constant" data="178" />
+    <module name="AuditoryStimuli" class="Constant"
+        data="175,0.7; -170,0.9; 0,0.2" />
+    <module name="DistalStimuli" class="Constant"
+        data="175,0,0,0.8,0.5,0.25; -170,0,0,0.6,0.2,0.8; 0,0,0,1,1,1" />
+    <module name="World" class="RingWorld"
+        field_of_view="30" fixation_margin="5" retina_width="7" />
+    <module name="WorldDefaultGaze" class="RingWorld"
+        field_of_view="30" fixation_margin="5" retina_width="7" />
+    <module name="PrintFovea" class="Print" />
+    <module name="PrintReward" class="Print" />
+    <module name="PrintPunishment" class="Print" />
+    <module name="PrintRetina" class="Print" />
+    <module name="PrintDefaultGazeFovea" class="Print" />
+    <module name="PrintAuditoryMap" class="Print" />
+    <module name="PrintDistalRetina" class="Print" />
+
+    <connection source="Stimuli.OUTPUT" target="World.STIMULI" delay="0" />
+    <connection source="Gaze.OUTPUT" target="World.GAZE" delay="0" />
+    <connection source="AuditoryStimuli.OUTPUT" target="World.AUDITORY_STIMULI" delay="0" />
+    <connection source="DistalStimuli.OUTPUT" target="World.DISTAL_STIMULI" delay="0" />
+    <connection source="Stimuli.OUTPUT" target="WorldDefaultGaze.STIMULI" delay="0" />
+    <connection source="World.FOVEA" target="PrintFovea.INPUT" delay="0" />
+    <connection source="World.REWARD" target="PrintReward.INPUT" delay="0" />
+    <connection source="World.PUNISHMENT" target="PrintPunishment.INPUT" delay="0" />
+    <connection source="World.RETINA" target="PrintRetina.INPUT" delay="0" />
+    <connection source="WorldDefaultGaze.FOVEA" target="PrintDefaultGazeFovea.INPUT" delay="0" />
+    <connection source="World.AUDITORY_MAP" target="PrintAuditoryMap.INPUT" delay="0" />
+    <connection source="World.DISTAL_RETINA" target="PrintDistalRetina.INPUT" delay="0" />
+</group>

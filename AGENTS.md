@@ -13,14 +13,74 @@
 
 - Use `rg` or `rg --files` for code and file search.
 - Read nearby `.cc`, `.h`, `.ikc`, `.ikg`, and CMake files before changing module behavior.
-- When creating or editing `.ikg` files, keep component and widget positions in the view non-overlapping; widgets should not overlap components such as modules or groups.
+- When creating or editing `.ikg` files, follow the WebUI model-layout rules below.
 - Do not revert or clean up unrelated worktree changes.
 - Avoid changing generated, build, cache, or user-data artifacts unless the task explicitly requires it.
+- Put generated experiment outputs, plots, reports, and PDFs under `UserData/output` rather than a repository-root `output` directory.
+- When you observe behavior that may be an Ikaros bug, surprising framework behavior, or unclear/misleading documentation, prepare a GitHub issue for `ikaros-project/ikaros` using `IKAROS-BOT.md`. Include reproduction context, observed behavior, and a suggested follow-up; search for duplicates and obtain explicit approval before the external write. If `ikaros-bot` is unavailable, present the complete proposed issue as a suggestion in the chat instead.
 - Keep comments short and useful; avoid restating obvious code.
 - Keep headers self-contained; include what the file directly uses.
 - Prefer `ikaros::dictionary` for Ikaros JSON/config parsing unless an external JSON library is explicitly needed.
 - Route warnings intended for users or the WebUI through `Warning()` or Ikaros notification functions, not `std::cerr`.
 - Use exceptions for startup and module `Init()` failures; during execution, report runtime conditions through `Notify()`, `Warning()`, or related Ikaros notification functions.
+
+## GitHub Issue Operations
+
+- Before creating or modifying GitHub issues, read and follow `IKAROS-BOT.md`.
+- Never substitute another GitHub account when `ikaros-bot` is unavailable; return the proposed issue in the chat without creating it.
+
+## Documentation Diagrams
+
+- Author documentation flowcharts as Mermaid source in a module-local `.mmd` file.
+- Render the Mermaid source to a committed module-local SVG and reference the SVG as a Markdown image so it displays in the Ikaros library view.
+- Keep the `.mmd` source beside the SVG so the diagram remains maintainable; do not rely on an unrendered Mermaid code block as the only representation in maintained Markdown.
+- Regenerate and inspect the SVG whenever its Mermaid source changes.
+
+## WebUI Model Layout
+
+- Give modules, groups, and widgets explicit view positions in polished example `.ikg` files. Use `_x` and `_y` for components and keep widget `x`, `y`, `_x`, and `_y` values consistent.
+- Reserve separate, non-overlapping regions for the component graph and the widget dashboard. Prefer placing the component graph beside the dashboard rather than over or between widgets.
+- Recheck component bounds whenever ports are added or names become longer; a module can grow enough to overlap an otherwise unchanged widget layout.
+- Arrange source modules in the same vertical order as the destination module's input ports. This keeps connection paths monotonic and minimizes crossings.
+- Keep unrelated or widget-only source modules outside the main connection bundle so their placement does not interrupt connected source ordering.
+- Lay out related widgets on shared column boundaries. Give aligned grids and tables the same `x`, `width`, label-column width, and cell count so corresponding data columns line up.
+- Use consistent gutters between neighboring widgets. Preserve the same gap within a visual group unless content requires a deliberate exception.
+- Size widgets for their content: keep single-row displays compact, give multi-row grids enough height for readable cells and labels, and avoid large unused interiors.
+- Present controls and summaries before detailed views in a clear reading order, and place closely related visualizations next to or directly beneath one another.
+- Do not overlap widgets with components, other widgets, titles, or interactive controls. Also avoid placing labels or markers against frame edges when a small padding would improve legibility.
+- After changing an `.ikg` layout, run it in the WebUI at a representative viewport and inspect both the dashboard and component graph. Check alignment, clipping, unused space, connection crossings, and browser-console errors.
+
+## External Libraries
+
+- Avoid adding external libraries unless they are absolutely necessary for the particular implementation.
+- Always ask the user for approval before using or installing any external library.
+
+## Module Implementation Language
+
+- Implement new modules in C++ whenever reasonably possible.
+- Use Python for a new module only when it provides substantial, concrete advantages over a C++ implementation.
+- Always obtain the user's explicit permission before implementing a module in Python rather than C++.
+- This policy is necessary because C++ modules participate directly in the normal Ikaros build, deployment, type and shape integration, performance model, and real-time execution environment. Python modules introduce a separate interpreter and package environment, additional external dependencies, cross-process communication overhead, weaker compile-time checking, and runtime failure modes that may appear only when a model is loaded from another environment such as the WebUI.
+
+## Kernel and Module Scope
+
+- Determine at the outset whether the task extends or modifies the Ikaros kernel or implements a new module class.
+- When implementing a new module, always obtain the user's explicit permission before changing any kernel code.
+- Suggest novel kernel functionality when it would substantially simplify a module implementation, but keep the suggestion separate from the module work and do not implement it without the user's approval.
+- Widget additions are allowed without separate kernel-change approval when they preserve existing widget behavior and do not disturb current functionality.
+
+## Security Changes
+
+- Assess whether a proposed change could reduce the security of the system before implementing it.
+- Always obtain the user's explicit approval before making any change that could decrease system security.
+- Apply this requirement especially strictly to kernel changes and the Python subsystem, including executable selection, process creation, script loading, interpreter configuration, permissions, and trust boundaries.
+- Explain the security impact, affected trust boundary, and safer alternatives when requesting approval. Do not silently include a security-reducing change as part of another task.
+
+## Module Composition
+
+- Prefer several distinct, composable modules over one monolithic module when the separate functions can reasonably be expected to be useful in other contexts.
+- Apply this preference especially to implementations with a clear processing pipeline or multiple distinct algorithms, where each stage can have a well-defined input, output, and responsibility.
+- Keep functionality in one module when splitting it would create artificial boundaries, excessive data transfer, or components without meaningful independent reuse.
 
 ## Multiple-Task Workflow
 

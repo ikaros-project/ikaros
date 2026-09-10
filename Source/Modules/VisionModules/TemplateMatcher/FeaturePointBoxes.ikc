@@ -1,0 +1,8 @@
+<class name="FeaturePointBoxes" description="Converts pixel-coordinate feature points to centered target boxes">
+    <input name="POINTS" description="Pixel-coordinate point rows: x,y" />
+    <output name="BOXES" dynamic="yes" capacity="@max_points,4" description="Centered target-box rows: x,y,width,height" />
+    <parameter name="image_width" type="number" default="320" min="2" />
+    <parameter name="image_height" type="number" default="240" min="2" />
+    <parameter name="box_size" type="number" default="6" min="1" description="Box side in input-image pixels" />
+    <parameter name="max_points" type="number" default="8192" min="1" />
+</class>

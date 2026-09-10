@@ -1,0 +1,7 @@
+<group internal="true"
+    name="TestIndexedOutputAliasResize"
+    description="Keep indexed output aliases valid across repeated setup shape propagation"
+    check_sum="153"
+    expected_output_contains="INDEXED OUTPUT ALIAS PRESERVED">
+    <module class="IndexedOutputAliasTestModule" name="Alias" />
+</group>

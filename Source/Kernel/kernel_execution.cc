@@ -51,6 +51,8 @@ namespace ikaros
         run_time =
             std::chrono::duration<double>(now - run_clock_origin).count();
         tick++;
+        if(printTickInterval > 0 && tick % printTickInterval == 0)
+            Notify(msg_print, "Tick: " + std::to_string(tick));
 
         PollAsyncComponents();
         if(auto failure = RunTasks(profiling_enabled))

@@ -1136,6 +1136,264 @@ namespace ikaros
 
 
     //
+    // PGM Images
+    //
+
+    struct pgm_header
+    {
+        bool binary;
+        int width;
+        int height;
+        unsigned int maximum;
+    };
+
+
+    class PgmReader
+    {
+    public:
+        explicit PgmReader(const std::filesystem::path & filename) :
+            filename_(filename),
+            data_(read_image_file(filename, "PGM"))
+        {
+        }
+
+        pgm_header
+        read_header()
+        {
+            const std::string_view magic = next_token("magic number");
+            bool binary = false;
+            if(magic == "P5")
+                binary = true;
+            else if(magic != "P2")
+                fail("expected P2 or P5 magic number");
+
+            const unsigned int width = next_number("width", std::numeric_limits<int>::max());
+            const unsigned int height = next_number("height", std::numeric_limits<int>::max());
+            const unsigned int maximum = next_number("maximum value", 65535);
+            if(width == 0 || height == 0)
+                fail("image dimensions must be positive");
+            if(maximum == 0)
+                fail("maximum value must be between 1 and 65535");
+            checked_image_storage_size(static_cast<int>(width), static_cast<int>(height),
+                                       1, "PGM");
+
+            if(binary)
+                consume_binary_separator();
+            return {binary, static_cast<int>(width), static_cast<int>(height), maximum};
+        }
+
+        unsigned int
+        next_sample(unsigned int maximum)
+        {
+            const unsigned int sample = next_number("sample", maximum);
+            return sample;
+        }
+
+        std::span<const unsigned char>
+        binary_samples(std::size_t sample_count, unsigned int maximum)
+        {
+            const std::size_t bytes_per_sample = maximum < 256 ? 1 : 2;
+            if(sample_count > std::numeric_limits<std::size_t>::max() / bytes_per_sample)
+                fail("sample data size overflow");
+            const std::size_t required = sample_count * bytes_per_sample;
+            if(required > data_.size() - position_)
+                fail("truncated binary sample data");
+            return std::span(data_).subspan(position_, required);
+        }
+
+        void
+        require_ascii_end()
+        {
+            skip_spacing_and_comments();
+            if(position_ != data_.size())
+                fail("unexpected data after the final sample");
+        }
+
+    private:
+        static bool
+        is_spacing(unsigned char character) noexcept
+        {
+            return character == ' ' || character == '\t' || character == '\r' ||
+                   character == '\n' || character == '\f' || character == '\v';
+        }
+
+        [[noreturn]] void
+        fail(const std::string & reason) const
+        {
+            throw std::runtime_error("PGM read failed for \"" + filename_.string() +
+                                     "\": " + reason);
+        }
+
+        void
+        skip_spacing_and_comments()
+        {
+            while(position_ < data_.size())
+            {
+                if(is_spacing(data_[position_]))
+                {
+                    ++position_;
+                    continue;
+                }
+                if(data_[position_] != '#')
+                    return;
+                while(position_ < data_.size() && data_[position_] != '\n' &&
+                      data_[position_] != '\r')
+                    ++position_;
+            }
+        }
+
+        std::string_view
+        next_token(const char * description)
+        {
+            skip_spacing_and_comments();
+            if(position_ == data_.size())
+                fail(std::string("missing ") + description);
+            const std::size_t begin = position_;
+            while(position_ < data_.size() && !is_spacing(data_[position_]) &&
+                  data_[position_] != '#')
+                ++position_;
+            if(begin == position_)
+                fail(std::string("missing ") + description);
+            return {reinterpret_cast<const char *>(data_.data() + begin), position_ - begin};
+        }
+
+        unsigned int
+        next_number(const char * description, unsigned int limit)
+        {
+            const std::string_view token = next_token(description);
+            unsigned int value = 0;
+            for(const char character : token)
+            {
+                if(character < '0' || character > '9')
+                    fail(std::string("invalid ") + description);
+                const unsigned int digit = static_cast<unsigned int>(character - '0');
+                if(value > (limit - digit) / 10)
+                    fail(std::string(description) + " is out of range");
+                value = 10 * value + digit;
+            }
+            return value;
+        }
+
+        void
+        consume_binary_separator()
+        {
+            if(position_ == data_.size() || !is_spacing(data_[position_]))
+                fail("missing separator before binary sample data");
+            const unsigned char first = data_[position_++];
+            if(first == '\r' && position_ < data_.size() && data_[position_] == '\n')
+                ++position_;
+        }
+
+        std::filesystem::path filename_;
+        std::vector<unsigned char> data_;
+        std::size_t position_ = 0;
+    };
+
+
+    image_info
+    pgm_get_info(const std::filesystem::path & filename)
+    {
+        PgmReader reader(filename);
+        const pgm_header header = reader.read_header();
+        return {header.width, header.height, 1};
+    }
+
+
+    template<bool MakeIntensity>
+    static void
+    pgm_get_image_impl(matrix & image, matrix * intensity,
+                       const std::filesystem::path & filename)
+    {
+        PgmReader reader(filename);
+        const pgm_header header = reader.read_header();
+        prepare_image_destinations(image, intensity, header.height, header.width, filename);
+        const std::size_t sample_count = checked_image_storage_size(
+            header.width, header.height, 1, "PGM");
+        std::span<const unsigned char> binary;
+        if(header.binary)
+            binary = reader.binary_samples(sample_count, header.maximum);
+        const float scale = 1.0f / static_cast<float>(header.maximum);
+        const bool wide_samples = header.maximum >= 256;
+
+        std::size_t sample_index = 0;
+        for(int y = 0; y < header.height; ++y)
+        {
+            float * red = image.logical_block_data(y);
+            float * green = image.logical_block_data(header.height + y);
+            float * blue = image.logical_block_data(2 * header.height + y);
+            float * intensity_row = nullptr;
+            if constexpr(MakeIntensity)
+                intensity_row = intensity->logical_block_data(y);
+            for(int x = 0; x < header.width; ++x, ++sample_index)
+            {
+                unsigned int sample = 0;
+                if(!header.binary)
+                    sample = reader.next_sample(header.maximum);
+                else if(wide_samples)
+                    sample = (static_cast<unsigned int>(binary[2 * sample_index]) << 8) |
+                             binary[2 * sample_index + 1];
+                else
+                    sample = binary[sample_index];
+                if(sample > header.maximum)
+                    throw std::runtime_error("PGM read failed for \"" + filename.string() +
+                                             "\": sample exceeds maximum value");
+                const float value = static_cast<float>(sample) * scale;
+                red[x] = green[x] = blue[x] = value;
+                if constexpr(MakeIntensity)
+                    intensity_row[x] = value;
+            }
+        }
+        if(!header.binary)
+            reader.require_ascii_end();
+    }
+
+
+    void
+    pgm_get_image(matrix & image, const std::filesystem::path & filename)
+    {
+        pgm_get_image_impl<false>(image, nullptr, filename);
+    }
+
+
+    void
+    pgm_get_image(matrix & image, matrix & intensity,
+                  const std::filesystem::path & filename)
+    {
+        pgm_get_image_impl<true>(image, &intensity, filename);
+    }
+
+
+    matrix
+    pgm_get_image(const std::filesystem::path & filename)
+    {
+        matrix image;
+        pgm_get_image(image, filename);
+        return image;
+    }
+
+
+    void
+    pgm_write_image(const matrix & image, const std::filesystem::path & filename)
+    {
+        if(image.rank() != 2)
+            throw std::invalid_argument("PGM image must have shape [height, width]");
+        const int height = image.size(0);
+        const int width = image.size(1);
+        const std::size_t sample_count = checked_image_storage_size(width, height, 1, "PGM");
+        const std::string header = "P5\n" + std::to_string(width) + " " +
+                                   std::to_string(height) + "\n255\n";
+        std::vector<unsigned char> data(header.begin(), header.end());
+        data.resize(data.size() + sample_count);
+        std::span<unsigned char> samples(data.data() + header.size(), sample_count);
+        for(int y = 0; y < height; ++y)
+            float_to_byte(samples.subspan(static_cast<std::size_t>(y) * width, width),
+                          std::span(image.logical_block_data(y),
+                                    static_cast<std::size_t>(width)), 0, 1);
+        write_image_file(data, filename, "PGM");
+    }
+
+
+    //
     // TIFF Images
     //
 
@@ -1560,6 +1818,7 @@ namespace ikaros
     {
         jpeg,
         png,
+        pgm,
         tiff,
         webp,
     };
@@ -1579,6 +1838,8 @@ namespace ikaros
             return image_format::jpeg;
         if(extension == ".png")
             return image_format::png;
+        if(extension == ".pgm")
+            return image_format::pgm;
         if(extension == ".tif" || extension == ".tiff")
             return image_format::tiff;
         if(extension == ".webp")
@@ -1597,6 +1858,8 @@ namespace ikaros
                 return true;
             case image_format::png:
                 return IKAROS_HAS_PNG;
+            case image_format::pgm:
+                return true;
             case image_format::tiff:
                 return IKAROS_HAS_TIFF;
             case image_format::webp:
@@ -1631,6 +1894,8 @@ namespace ikaros
         {
             case image_format::png:
                 throw std::runtime_error("PNG support is unavailable in this Ikaros build");
+            case image_format::pgm:
+                break;
             case image_format::tiff:
                 throw std::runtime_error("TIFF support is unavailable in this Ikaros build");
             case image_format::webp:
@@ -1658,6 +1923,8 @@ namespace ikaros
                 return jpeg_get_info(filename);
             case image_format::png:
                 return png_get_info(filename);
+            case image_format::pgm:
+                return pgm_get_info(filename);
             case image_format::tiff:
                 return tiff_get_info(filename);
             case image_format::webp:
@@ -1677,6 +1944,9 @@ namespace ikaros
                 return;
             case image_format::png:
                 png_get_image(image, filename);
+                return;
+            case image_format::pgm:
+                pgm_get_image(image, filename);
                 return;
             case image_format::tiff:
                 tiff_get_image(image, filename);
@@ -1700,6 +1970,9 @@ namespace ikaros
                 return;
             case image_format::png:
                 png_get_image(image, intensity, filename);
+                return;
+            case image_format::pgm:
+                pgm_get_image(image, intensity, filename);
                 return;
             case image_format::tiff:
                 tiff_get_image(image, intensity, filename);
@@ -1732,6 +2005,9 @@ namespace ikaros
                 return;
             case image_format::png:
                 png_write_image(image, filename);
+                return;
+            case image_format::pgm:
+                pgm_write_image(image, filename);
                 return;
             case image_format::tiff:
                 tiff_write_image(image, filename);

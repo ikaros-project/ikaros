@@ -1001,21 +1001,26 @@ ComputeEngine::LookupLocal(EvalContext & context, const std::string & name) cons
     if(cached != context.lookup_cache.end())
         return cached->second;
 
-    auto parameter_it = kernel().parameters.find(component_.path_ + '.' + name);
-    if(parameter_it != kernel().parameters.end() && parameter_it->second.is_resolved())
-        return context.lookup_cache.emplace(name, LookupResult{LookupResult::Source::resolved_parameter,
-                                                               parameter_it->second.as_string()}).first->second;
-
-    if(component_.info_.contains(name))
-        return context.lookup_cache.emplace(name, LookupResult{LookupResult::Source::local_attribute, std::string(component_.info_[name])}).first->second;
-
-    if(const Component * owner = component_.GetValueOwner(name))
+    for(Component * owner = &component_; owner; owner = owner->parent_)
     {
+        if(!owner->info_.contains_non_null(name))
+            continue;
+
+        auto parameter_it = kernel().parameters.find(owner->path_ + '.' + name);
+        if(parameter_it != kernel().parameters.end() && parameter_it->second.is_resolved())
+            return context.lookup_cache.emplace(name, LookupResult{
+                LookupResult::Source::resolved_parameter,
+                parameter_it->second.as_string()
+            }).first->second;
+
         if(owner == &component_)
-            return context.lookup_cache.emplace(name, LookupResult{LookupResult::Source::local_attribute, std::string(component_.info_[name])}).first->second;
+            return context.lookup_cache.emplace(name, LookupResult{
+                LookupResult::Source::local_attribute,
+                std::string(owner->info_[name])
+            }).first->second;
 
         std::string inherited_value = std::string(owner->info_[name]);
-        ComputeEngine owner_engine(*const_cast<Component *>(owner));
+        ComputeEngine owner_engine(*owner);
         EvalContext owner_context;
 
         bool has_explicit_syntax = owner_engine.HasExplicitSyntax(owner_context, inherited_value);
@@ -1030,6 +1035,31 @@ ComputeEngine::LookupLocal(EvalContext & context, const std::string & name) cons
             LookupResult::Source::inherited_value,
             inherited_value
         }).first->second;
+    }
+
+    for(Component * owner = &component_; owner; owner = owner->parent_)
+    {
+        auto parameter_it = kernel().parameters.find(owner->path_ + '.' + name);
+        if(parameter_it == kernel().parameters.end())
+            continue;
+
+        parameter & inherited_parameter = parameter_it->second;
+        if(inherited_parameter.is_resolved())
+            return context.lookup_cache.emplace(name, LookupResult{
+                LookupResult::Source::resolved_parameter,
+                inherited_parameter.as_string()
+            }).first->second;
+
+        dictionary metadata = inherited_parameter.metadata();
+        if(!metadata.contains("default"))
+            continue;
+
+        std::string parameter_name = name;
+        if(owner->ResolveParameter(inherited_parameter, parameter_name))
+            return context.lookup_cache.emplace(name, LookupResult{
+                LookupResult::Source::resolved_parameter,
+                inherited_parameter.as_string()
+            }).first->second;
     }
 
     std::string default_value = kernel().GetTopLevelDefaultAttribute(name);

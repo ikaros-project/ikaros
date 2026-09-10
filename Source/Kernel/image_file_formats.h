@@ -96,6 +96,16 @@ namespace ikaros
     void png_write_image(const matrix & image, const std::filesystem::path & filename);
 
 
+    [[nodiscard]] image_info pgm_get_info(const std::filesystem::path & filename);
+    // Decoded grayscale images are replicated into channel-first RGB output.
+    void pgm_get_image(matrix & image, const std::filesystem::path & filename);
+    void pgm_get_image(matrix & image, matrix & intensity,
+                       const std::filesystem::path & filename);
+    [[nodiscard]] matrix pgm_get_image(const std::filesystem::path & filename);
+    // Writes a rank-2 grayscale matrix as binary P5 data.
+    void pgm_write_image(const matrix & image, const std::filesystem::path & filename);
+
+
     [[nodiscard]] image_info tiff_get_info(const std::filesystem::path & filename);
     void tiff_get_image(matrix & image, const std::filesystem::path & filename);
     void tiff_get_image(matrix & image, matrix & intensity,
@@ -114,8 +124,8 @@ namespace ikaros
 
 
     // Selects a decoder from the filename extension. Supported extensions are
-    // matched case-insensitively. JPEG is always available; other codecs depend
-    // on the libraries selected when Ikaros was built.
+    // matched case-insensitively. JPEG and PGM are always available; other codecs
+    // depend on the libraries selected when Ikaros was built.
     [[nodiscard]] bool image_file_format_available(const std::filesystem::path & filename);
     void validate_image_file_format(const std::filesystem::path & filename);
     [[nodiscard]] image_info image_get_info(const std::filesystem::path & filename);

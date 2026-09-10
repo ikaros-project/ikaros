@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "units": {
+    "time": "seconds",
+    "angle": "degrees",
+    "color": "normalized",
+    "intensity": "normalized",
+    "reinforcement": "normalized"
+  },
+  "seed": 1,
+  "defaults": {
+    "angle": 0,
+    "reward": 0,
+    "punishment": 0,
+    "intensity": 1,
+    "rgb": [1, 1, 1]
+  },
+  "stimului": {
+    "cue": {
+      "angle": 30,
+      "rgb": [1, 0, 0],
+      "components": ["horizontal"]
+    }
+  },
+  "protocol": [
+    {
+      "repeat": 2,
+      "protocol": [
+        {
+          "trial": {
+            "name": "test",
+            "duration": 1,
+            "stimuli": [
+              {
+                "stimulus": "cue",
+                "onset": 0.25,
+                "duration": 0.5
+              }
+            ],
+            "sampling": [
+              {
+                "name": "response",
+                "onset": 0.25,
+                "duration": 0.5,
+                "responses": []
+              }
+            ],
+            "inter_trial_interval": 0.5
+          }
+        }
+      ]
+    }
+  ]
+}

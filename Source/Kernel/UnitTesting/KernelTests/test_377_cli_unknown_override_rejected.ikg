@@ -1,0 +1,8 @@
+<group internal="true"
+    name="TestCliUnknownOverrideRejected"
+    description="Reject undeclared top-level command-line overrides"
+    stop="0"
+    cli_args="unknown_setting=777"
+    expected_exit="1"
+    expected_output_contains="Command-line override &quot;unknown_setting&quot; does not match a top-level model attribute||Declare the attribute on the root group"
+/>

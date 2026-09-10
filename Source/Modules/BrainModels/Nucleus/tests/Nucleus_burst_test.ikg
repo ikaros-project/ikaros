@@ -1,0 +1,12 @@
+<group name="NucleusBurstTest" start="true" stop="10" tick_duration="0.001"
+       expected_output_contains="INPUT = {7}||INPUT = {1}">
+    <module class="Constant" name="Drive" data="10" _x="40" _y="80" />
+    <module class="Nucleus" name="Burst" activation_function="threshold"
+            time_constant="0.001" threshold="0.5" burst_duration="0.003"
+            refractory_period="0.002" reset_level="0" burst_level="2"
+            output_offset="1" output_scale="3" _x="260" _y="80" />
+    <module class="Print" name="Output" _x="520" _y="80" />
+
+    <connection source="Drive.OUTPUT" target="Burst.EXCITATION" />
+    <connection source="Burst.OUTPUT" target="Output.INPUT" />
+</group>

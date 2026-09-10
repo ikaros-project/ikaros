@@ -1,0 +1,4 @@
+<class internal="true" name="IndexedOutputAliasTestModule" description="Checks indexed output alias setup across shape propagation passes">
+    <output name="SOURCE" size="3,2,2" />
+    <output name="ALIAS" alias="SOURCE[0]" />
+</class>

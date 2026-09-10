@@ -83,6 +83,15 @@ namespace ikaros
             return result;
         }
 
+        bool
+        has_declared_top_level_parameter(const dictionary & model, const std::string & name)
+        {
+            for(const auto & parameter : model["parameters"])
+                if(parameter.is_dictionary() && std::string(parameter["name"]) == name)
+                    return true;
+            return false;
+        }
+
         dictionary make_color_parameter()
         {
             dictionary parameter;
@@ -1424,9 +1433,27 @@ namespace ikaros
             d.erase("user_data");
 
         for(auto & [name, value] : options_.d)
-            if(options_.is_explicitly_set(name))
-                if(name != "user_data" && name != "auth_password")
-                    d[name] = value;
+        {
+            if(!options_.is_explicitly_set(name) ||
+               name == "user_data" || name == "auth_password")
+                continue;
+
+            const bool registered_option = options_.description.count(name) > 0;
+            if(!registered_option && name.find('.') != std::string::npos)
+                throw setup_failed(
+                    "Nested command-line override \"" + name +
+                    "\" is not supported. Expose the value as a top-level model attribute "
+                    "and pass it to nested components through inheritance or @parameter.");
+
+            if(!registered_option && !d.contains(name) &&
+               !has_declared_top_level_parameter(d, name))
+                throw setup_failed(
+                    "Command-line override \"" + name +
+                    "\" does not match a top-level model attribute. Declare the attribute "
+                    "on the root group before overriding it.");
+
+            d[name] = value;
+        }
 
         if(d.contains("stop"))
             stop_after = parse_stop_after(std::string(d["stop"]));

@@ -1,0 +1,19 @@
+<group name="CVAE_MNIST_DenseVAE" title="Dense VAE MNIST Training" tick_duration="1">
+    <module class="InputImage" name="MNIST" _x="40" _y="160"
+        filename="cvae_mnist_centered_32/train/image_#####.pgm" filecount="1000" iterations="0" read_once="no" />
+    <module class="ConvolutionalVariationalAutoEncoder" name="VAE" _x="360" _y="100"
+        latent_mode="dense" feature_stage="direct" latent_size="10"
+        learning_rate="0.001" optimizer="adam" random_seed="101" beta="0.0001"
+        reconstruction_loss="bernoulli" train="yes" train_interval="1" dense_train_interval="1"
+        reconstruction_source="sample" output_activation="sigmoid" sample="yes"
+        latent_cluster_count="1" latent_cluster_weight="0" latent_cluster_balance_weight="0"
+        latent_cluster_commitment_weight="0" latent_decorrelation_weight="0" />
+    <module class="OutputFile" name="Metrics" _x="720" _y="100"
+        directory="output/cvae_mnist_dense_vae" filename="metrics.csv" format="csv"
+        timestamp="tick" existing_file="overwrite" number_format="full" flush_interval="100" header="yes" />
+    <connection source="MNIST.INTENSITY" target="VAE.INPUT" delay="1" />
+    <connection source="VAE.LOSS" target="Metrics.INPUT" label="loss" />
+    <connection source="VAE.RECONSTRUCTION_LOSS" target="Metrics.INPUT" label="reconstruction_loss" />
+    <connection source="VAE.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="absolute_reconstruction_error" />
+    <connection source="VAE.KL_LOSS" target="Metrics.INPUT" label="kl_loss" />
+</group>

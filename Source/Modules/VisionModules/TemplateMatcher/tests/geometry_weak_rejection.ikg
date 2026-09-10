@@ -1,0 +1,17 @@
+<group name="GeometryWeakRejection" start="true" stop="4" agent="Codex: GPT-5.6 Sol">
+    <module class="Constant" name="Current" data="20,30;120,30;120,130;20,130" />
+    <module class="Constant" name="Template" data="20,30;120,30;120,130;20,130" />
+    <module class="Constant" name="Ranges" data="0,4;0,0" />
+    <module class="Constant" name="Corners" data="20,30,120,30,120,130,20,130;0,0,0,0,0,0,0,0" />
+    <module class="Constant" name="WeakMatches" data="0,0,0,0.05;0,1,1,0.05;0,2,2,0.05;0,3,3,0.05" />
+    <module class="RobustTransformEstimator" name="Geometry"
+        min_inliers="4" min_mean_match_score="0.1"
+        max_matches="4" max_templates="1" ransac_iterations="128" />
+    <module class="Print" name="RejectedResult" />
+    <connection source="Current.OUTPUT" target="Geometry.KEYPOINTS" />
+    <connection source="Template.OUTPUT" target="Geometry.TEMPLATE_KEYPOINTS" />
+    <connection source="Ranges.OUTPUT" target="Geometry.TEMPLATE_RANGES" />
+    <connection source="Corners.OUTPUT" target="Geometry.TEMPLATE_CORNERS" />
+    <connection source="WeakMatches.OUTPUT" target="Geometry.CORRESPONDENCES" />
+    <connection source="Geometry.RESULT" target="RejectedResult.INPUT" />
+</group>

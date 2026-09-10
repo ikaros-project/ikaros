@@ -1,0 +1,12 @@
+<group name="ControllerDetection" start="true" stop="3" agent="Codex: GPT-5.6 Sol">
+    <module class="Constant" name="Transform" data="1,0,0;0,1,0;0,0,1" />
+    <module class="Constant" name="Detection" data="2,8,0.5,10;0,0,0,0" />
+    <module class="Constant" name="NoTracking" data="0,0,0,0;0,0,0,0" />
+    <module class="TemplateTrackingController" name="Controller" />
+    <module class="Print" name="Status" />
+    <connection source="Transform.OUTPUT" target="Controller.DETECTION_TRANSFORM" />
+    <connection source="Detection.OUTPUT" target="Controller.DETECTION_RESULT" />
+    <connection source="Transform.OUTPUT" target="Controller.TRACKING_TRANSFORM" />
+    <connection source="NoTracking.OUTPUT" target="Controller.TRACKING_RESULT" />
+    <connection source="Controller.STATUS" target="Status.INPUT" label="STATUS" />
+</group>

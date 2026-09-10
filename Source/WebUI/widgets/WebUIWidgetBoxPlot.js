@@ -318,14 +318,14 @@ class WebUIWidgetBoxPlot extends WebUIWidgetGraph
             return;
         }
 
-        if(this.parameters.auto_range)
+        if(this.toBool(this.parameters.auto_range))
         {
             const values = this.getFiniteValues(this.data).concat(this.getFiniteValues(this.outliers));
             if(values.length > 0)
             {
                 let nextMax = Math.max(...values);
                 let nextMin = Math.min(...values);
-                if(this.parameters.include_zero)
+                if(this.toBool(this.parameters.include_zero))
                 {
                     nextMax = Math.max(0, nextMax);
                     nextMin = Math.min(0, nextMin);

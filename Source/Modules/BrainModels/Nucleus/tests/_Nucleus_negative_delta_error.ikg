@@ -1,0 +1,3 @@
+<group name="NucleusNegativeDeltaError" start="true" stop="1">
+    <module class="Nucleus" name="Nucleus" delta="-1" _x="100" _y="80" />
+</group>

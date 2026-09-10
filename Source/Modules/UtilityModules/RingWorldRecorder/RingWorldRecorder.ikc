@@ -1,0 +1,24 @@
+<class name="RingWorldRecorder" description="Records complete RingWorld experiment histories without rolling">
+    <description>
+        Copies an explicitly ordered signal vector and protocol state into fixed startup-owned history matrices. COUNT identifies the valid prefix. Once capacity is exhausted, existing data is retained and OVERFLOW is set; no history is discarded or shifted.
+    </description>
+
+    <parameter name="signal_count" type="number" default="1" min="1" description="Number of ordered signals recorded on every tick." />
+    <parameter name="capacity" type="number" default="1000" min="1" description="Maximum samples, normally ceil(maximum protocol duration / tick_duration) + 1." />
+
+    <input name="SIGNALS" size="@signal_count" description="Explicitly ordered signals to record." />
+    <input name="PROTOCOL_TIME" size="1" description="Protocol time in seconds." />
+    <input name="TRIAL_INDEX" size="1" description="Resolved trial index." />
+    <input name="TRIAL_TIME" size="1" description="Trial-relative time in seconds." />
+    <input name="TRIAL_ACTIVE" size="1" description="Trial activity flag." />
+    <input name="SAMPLE_WINDOWS" description="Sampling-window activity vector." />
+
+    <output name="SIGNAL_HISTORY" shape="@capacity,@signal_count" description="Recorded signals, one sample per row." />
+    <output name="TIME_HISTORY" size="@capacity" description="Protocol timestamp for each sample." />
+    <output name="TRIAL_INDEX_HISTORY" size="@capacity" description="Trial index for each sample." />
+    <output name="TRIAL_TIME_HISTORY" size="@capacity" description="Trial-relative time for each sample." />
+    <output name="TRIAL_ACTIVE_HISTORY" size="@capacity" description="Trial activity flag for each sample." />
+    <output name="WINDOW_HISTORY" shape="@capacity,SAMPLE_WINDOWS.size" description="Sampling-window flags for each sample." />
+    <output name="COUNT" size="1" description="Number of valid history rows." />
+    <output name="OVERFLOW" size="1" description="One if another sample arrived after capacity was filled." />
+</class>

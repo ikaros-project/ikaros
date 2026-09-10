@@ -1,0 +1,182 @@
+<group name="ConvolutionalVariationalAutoEncoder_hierarchy_moving_blob_family_graph_test" title="CVAE Hierarchy Moving Blob Family Graph Evaluation" tick_duration="1">
+    <module
+        class="InputVideoFile"
+        name="Movie"
+        _x="40"
+        _y="220"
+        filename="cvae_hierarchy_moving_blob/moving_blob_family.mp4"
+        loop="true"
+        size_x="32"
+        size_y="32"
+    />
+
+    <module
+        class="ConvolutionalVariationalAutoEncoder"
+        name="CVAE_Mean_Level1"
+        _x="360"
+        _y="40"
+        latent_mode="spatial"
+        latent_maps="4"
+        latent_kernel_size="2"
+        feature_maps="10"
+        kernel_size="3"
+        padding="same"
+        learning_rate="0.001"
+        beta="0.001"
+        train="yes"
+        train_interval="1"
+        dense_train_interval="2"
+        reconstruction_source="mean"
+        output_activation="sigmoid"
+        sample="no"
+    />
+
+    <module
+        class="ConvolutionalVariationalAutoEncoder"
+        name="CVAE_TopDown_Level1"
+        _x="360"
+        _y="220"
+        latent_mode="spatial"
+        latent_maps="4"
+        latent_kernel_size="2"
+        feature_maps="10"
+        kernel_size="3"
+        padding="same"
+        learning_rate="0.001"
+        beta="0.001"
+        train="yes"
+        train_interval="1"
+        dense_train_interval="2"
+        reconstruction_source="top_down"
+        output_activation="sigmoid"
+        sample="no"
+    />
+
+    <module
+        class="ConvolutionalVariationalAutoEncoder"
+        name="CVAE_TopDown_Level2"
+        _x="720"
+        _y="220"
+        latent_mode="spatial"
+        latent_maps="3"
+        latent_kernel_size="2"
+        feature_maps="8"
+        kernel_size="3"
+        padding="same"
+        learning_rate="0.001"
+        beta="0.001"
+        train="yes"
+        train_interval="2"
+        dense_train_interval="2"
+        reconstruction_source="mean"
+        output_activation="linear"
+        sample="no"
+    />
+
+    <module
+        class="ConvolutionalVariationalAutoEncoder"
+        name="CVAE_Control_Level1"
+        _x="360"
+        _y="400"
+        latent_mode="spatial"
+        latent_maps="4"
+        latent_kernel_size="2"
+        feature_maps="10"
+        kernel_size="3"
+        padding="same"
+        learning_rate="0.001"
+        beta="0.001"
+        train="yes"
+        train_interval="1"
+        dense_train_interval="2"
+        reconstruction_source="top_down"
+        output_activation="sigmoid"
+        sample="no"
+    />
+
+    <module
+        class="ConvolutionalVariationalAutoEncoder"
+        name="CVAE_Control_Level2_Untrained"
+        _x="720"
+        _y="400"
+        latent_mode="spatial"
+        latent_maps="3"
+        latent_kernel_size="2"
+        feature_maps="8"
+        kernel_size="3"
+        padding="same"
+        learning_rate="0.001"
+        beta="0.001"
+        train="no"
+        train_interval="2"
+        dense_train_interval="2"
+        reconstruction_source="mean"
+        output_activation="linear"
+        sample="no"
+    />
+
+    <module
+        class="OutputFile"
+        name="Metrics"
+        _x="1120"
+        _y="220"
+        directory="cvae_hierarchy_evaluation"
+        filename="moving_blob_family_metrics.csv"
+        format="csv"
+        timestamp="tick"
+        existing_file="overwrite"
+        number_format="full"
+        flush_interval="1"
+        header="yes"
+    />
+
+    <module class="Divide" name="Level1TopDownUsefulness" _x="1120" _y="400" />
+    <module class="Divide" name="Level2LatentUsefulness" _x="1120" _y="500" />
+
+    <connection source="Movie.OUTPUT" target="CVAE_Mean_Level1.INPUT" delay="1" />
+    <connection source="Movie.OUTPUT" target="CVAE_TopDown_Level1.INPUT" delay="1" />
+    <connection source="CVAE_TopDown_Level1.LATENT_MEAN" target="CVAE_TopDown_Level2.INPUT" delay="1" />
+    <connection source="CVAE_TopDown_Level2.OUTPUT" target="CVAE_TopDown_Level1.TOP_DOWN" delay="1" />
+    <connection source="Movie.OUTPUT" target="CVAE_Control_Level1.INPUT" delay="1" />
+    <connection source="CVAE_Control_Level1.LATENT_MEAN" target="CVAE_Control_Level2_Untrained.INPUT" delay="1" />
+    <connection source="CVAE_Control_Level2_Untrained.OUTPUT" target="CVAE_Control_Level1.TOP_DOWN" delay="1" />
+    <connection source="CVAE_Control_Level1.RECONSTRUCTION_LOSS" target="Level1TopDownUsefulness.INPUT1" />
+    <connection source="CVAE_TopDown_Level1.RECONSTRUCTION_LOSS" target="Level1TopDownUsefulness.INPUT2" />
+    <connection source="CVAE_Control_Level2_Untrained.RECONSTRUCTION_LOSS" target="Level2LatentUsefulness.INPUT1" />
+    <connection source="CVAE_TopDown_Level2.RECONSTRUCTION_LOSS" target="Level2LatentUsefulness.INPUT2" />
+
+    <connection source="CVAE_Mean_Level1.RECONSTRUCTION_LOSS" target="Metrics.INPUT" label="level1_mean_reconstruction_loss" />
+    <connection source="CVAE_TopDown_Level1.RECONSTRUCTION_LOSS" target="Metrics.INPUT" label="level1_topdown_reconstruction_loss" />
+    <connection source="CVAE_Control_Level1.RECONSTRUCTION_LOSS" target="Metrics.INPUT" label="level1_control_reconstruction_loss" />
+    <connection source="CVAE_TopDown_Level2.RECONSTRUCTION_LOSS" target="Metrics.INPUT" label="level2_topdown_latent_reconstruction_loss" />
+    <connection source="CVAE_Control_Level2_Untrained.RECONSTRUCTION_LOSS" target="Metrics.INPUT" label="level2_control_latent_reconstruction_loss" />
+    <connection source="CVAE_Mean_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="level1_mean_absolute_reconstruction_error" />
+    <connection source="CVAE_TopDown_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="level1_topdown_absolute_reconstruction_error" />
+    <connection source="CVAE_Control_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="level1_control_absolute_reconstruction_error" />
+    <connection source="CVAE_TopDown_Level2.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="level2_topdown_latent_absolute_reconstruction_error" />
+    <connection source="CVAE_Control_Level2_Untrained.RECONSTRUCTION_ABSOLUTE_ERROR" target="Metrics.INPUT" label="level2_control_latent_absolute_reconstruction_error" />
+    <connection source="Level1TopDownUsefulness.OUTPUT" target="Metrics.INPUT" label="level1_topdown_usefulness" />
+    <connection source="Level2LatentUsefulness.OUTPUT" target="Metrics.INPUT" label="level2_latent_usefulness" />
+    <connection source="CVAE_Mean_Level1.KL_LOSS" target="Metrics.INPUT" label="level1_mean_kl_loss" />
+    <connection source="CVAE_TopDown_Level1.KL_LOSS" target="Metrics.INPUT" label="level1_topdown_kl_loss" />
+    <connection source="CVAE_Control_Level1.KL_LOSS" target="Metrics.INPUT" label="level1_control_kl_loss" />
+    <connection source="CVAE_TopDown_Level2.KL_LOSS" target="Metrics.INPUT" label="level2_topdown_kl_loss" />
+
+    <widget class="image" name="InputImage" title="Moving Blob Family Input" source="Movie.OUTPUT" format="rgb" x="40" y="650" width="240" height="180" min="0" max="1" scale="both" show_title="yes" show_frame="yes" _x="40" _y="650" />
+    <widget class="image" name="MeanReconstruction" title="Level 1 Own Mean" source="CVAE_Mean_Level1.OUTPUT" format="rgb" x="320" y="650" width="240" height="180" min="0" max="1" scale="both" show_title="yes" show_frame="yes" _x="320" _y="650" />
+    <widget class="image" name="TopDownReconstruction" title="Level 1 Top Down" source="CVAE_TopDown_Level1.OUTPUT" format="rgb" x="600" y="650" width="240" height="180" min="0" max="1" scale="both" show_title="yes" show_frame="yes" _x="600" _y="650" />
+    <widget class="image" name="ControlReconstruction" title="Untrained Top Down" source="CVAE_Control_Level1.OUTPUT" format="rgb" x="880" y="650" width="240" height="180" min="0" max="1" scale="both" show_title="yes" show_frame="yes" _x="880" _y="650" />
+    <widget class="bar-graph" name="Level1LatentMean" title="Top Down Level 1 Latent Mean" source="CVAE_TopDown_Level1.LATENT_MEAN" x="1160" y="650" width="240" height="180" y_min="-2" y_max="2" show_title="yes" show_frame="yes" _x="1160" _y="650" />
+    <widget class="bar-graph" name="Level2LatentReconstruction" title="Level 2 Reconstruction" source="CVAE_TopDown_Level2.OUTPUT" x="1440" y="650" width="240" height="180" y_min="-2" y_max="2" show_title="yes" show_frame="yes" _x="1440" _y="650" />
+
+    <widget class="plot" name="MeanLossPlot" title="L1 Own-Mean Reconstruction Loss" source="CVAE_Mean_Level1.RECONSTRUCTION_LOSS" x="40" y="870" width="320" height="150" y_min="0" y_max="1" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="40" _y="870" />
+    <widget class="plot" name="TopDownLossPlot" title="L1 Top-Down Reconstruction Loss" source="CVAE_TopDown_Level1.RECONSTRUCTION_LOSS" x="400" y="870" width="320" height="150" y_min="0" y_max="1" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="400" _y="870" />
+    <widget class="plot" name="ControlLossPlot" title="L1 Control Reconstruction Loss" source="CVAE_Control_Level1.RECONSTRUCTION_LOSS" x="760" y="870" width="320" height="150" y_min="0" y_max="1" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="760" _y="870" />
+    <widget class="plot" name="Level2LossPlot" title="L2 Latent Reconstruction Loss" source="CVAE_TopDown_Level2.RECONSTRUCTION_LOSS" x="1120" y="870" width="320" height="150" y_min="0" y_max="1" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="1120" _y="870" />
+    <widget class="plot" name="Level2ControlLossPlot" title="L2 Control Latent Loss" source="CVAE_Control_Level2_Untrained.RECONSTRUCTION_LOSS" x="1480" y="870" width="320" height="150" y_min="0" y_max="1" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="1480" _y="870" />
+    <widget class="plot" name="Level1UsefulnessPlot" title="L1 Top-Down Usefulness" source="Level1TopDownUsefulness.OUTPUT" x="40" y="1060" width="320" height="150" y_min="0" y_max="10" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="40" _y="1060" />
+    <widget class="plot" name="Level2UsefulnessPlot" title="L2 Latent Usefulness" source="Level2LatentUsefulness.OUTPUT" x="400" y="1060" width="320" height="150" y_min="0" y_max="10" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="400" _y="1060" />
+    <widget class="plot" name="MeanAbsoluteErrorPlot" title="L1 Own-Mean Absolute Error" source="CVAE_Mean_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" x="760" y="1060" width="320" height="150" y_min="0" y_max="1" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="760" _y="1060" />
+    <widget class="plot" name="TopDownAbsoluteErrorPlot" title="L1 Top-Down Absolute Error" source="CVAE_TopDown_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" x="1120" y="1060" width="320" height="150" y_min="0" y_max="1" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="1120" _y="1060" />
+    <widget class="plot" name="ControlAbsoluteErrorPlot" title="L1 Control Absolute Error" source="CVAE_Control_Level1.RECONSTRUCTION_ABSOLUTE_ERROR" x="1480" y="1060" width="320" height="150" y_min="0" y_max="1" show_title="yes" show_frame="yes" auto_range="yes" include_zero="yes" buffer_size="500" _x="1480" _y="1060" />
+</group>

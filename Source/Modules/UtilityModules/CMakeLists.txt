@@ -31,6 +31,11 @@ add_subdirectory(FaceClassifier)
 add_subdirectory(PointsToSalience)
 add_subdirectory(SalienceIntegrator)
 add_subdirectory(World2D)
+add_subdirectory(PlanarArm)
+add_subdirectory(RingWorld)
+add_subdirectory(RingWorldProtocol)
+add_subdirectory(RingWorldResponseAnalysis)
+add_subdirectory(RingWorldRecorder)
 
 
 add_subdirectory(Arbiter)
