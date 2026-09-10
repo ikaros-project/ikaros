@@ -313,6 +313,15 @@ by 0.22 percentage points in the mean and in each of the three paired CVAE runs,
 92.7% at one hundred per digit, suggesting that still larger mixtures would add increasingly
 redundant capacity.
 
+### Self-organizing map follow-up
+
+An unsupervised self-organizing map and SOM-VAE-style joint fine-tuning were tested on
+the same full-data checkpoints. With 256 prototypes, the frozen map reached
+90.61 +/- 0.25% test accuracy and the joint map 90.81 +/- 0.42%. Joint learning did not
+consistently improve classification and worsened reconstruction. See
+[the SOM-VAE experiment](MNIST_SOM_VAE.md) for the matched controls, equations,
+topographic errors, limitations, and reproduction commands.
+
 ## Limitations
 
 - The 200-image validation subset was used repeatedly for model selection and is not an untouched
