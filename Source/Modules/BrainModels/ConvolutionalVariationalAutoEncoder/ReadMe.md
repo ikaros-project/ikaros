@@ -229,16 +229,3 @@ The decorrelation penalty is disabled when `latent_decorrelation_weight` is `0`.
 module maintains an exponential running covariance estimate of the latent mean features. In dense
 mode each latent unit is treated as one feature. In spatial mode each latent map is summarized by its
 spatial mean, and the resulting decorrelation gradient is distributed over the map.
-
-## Evaluation
-
-The [centered-MNIST parameter sweep](tests/MNIST_PARAMETER_SWEEP.md) documents the controlled
-unsupervised evaluation protocol, tested settings, replicated results, selected configuration, and
-remaining limitations.
-
-The [dense VAE comparison](tests/MNIST_DENSE_VAE_COMPARISON.md) compares convolution-free 10- and
-2-dimensional bottlenecks on centered MNIST.
-
-The [direct dense VAE mechanism sweep](tests/MNIST_DIRECT_VAE_SWEEP.md) systematically compares
-sampling, reconstruction, Kullback-Leibler weighting, optimization, decorrelation, paired-view
-consistency, and prototype learning for a fixed 1,024-10-1,024 architecture.
