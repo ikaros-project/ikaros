@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1010" viewBox="0 0 1500 1010" role="img" aria-labelledby="title description">
+<title id="title">ConvolutionalVariationalAutoEncoder inputs and outputs</title>
+<desc id="description">Four inputs enter the module on the left; nineteen outputs leave on the right. CONSISTENCY_INPUT, TOP_DOWN, and EFFORT are optional.</desc>
+<rect width="100%" height="100%" fill="white"/>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#333333"/></marker></defs>
+<rect x="330" y="50" width="420" height="900" rx="20" ry="20" fill="#E8F0FF" stroke="#3C5AB4" stroke-width="4"/>
+<g font-family="Arial, Helvetica, sans-serif" fill="#141414">
+<text x="540" y="480" text-anchor="middle" font-size="32" font-weight="700">Convolutional</text>
+<text x="540" y="525" text-anchor="middle" font-size="32" font-weight="700">VariationalAutoEncoder</text>
+<text x="45" y="132" font-size="22">INPUT</text>
+<line x1="45" y1="150" x2="326" y2="150" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="45" y="242" font-size="22">CONSISTENCY_INPUT</text>
+<line x1="45" y1="260" x2="326" y2="260" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="45" y="288" font-size="18" fill="#555555">optional</text>
+<text x="45" y="352" font-size="22">TOP_DOWN</text>
+<line x1="45" y1="370" x2="326" y2="370" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="45" y="398" font-size="18" fill="#555555">optional</text>
+<text x="45" y="462" font-size="22">EFFORT</text>
+<line x1="45" y1="480" x2="326" y2="480" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="45" y="508" font-size="18" fill="#555555">optional</text>
+<line x1="752" y1="92" x2="830" y2="92" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="99" font-size="22">OUTPUT</text>
+<line x1="752" y1="138" x2="830" y2="138" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="145" font-size="22">LATENT_MEAN</text>
+<line x1="752" y1="184" x2="830" y2="184" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="191" font-size="22">LATENT_LOG_VARIANCE</text>
+<line x1="752" y1="230" x2="830" y2="230" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="237" font-size="22">LATENT_SAMPLE</text>
+<line x1="752" y1="276" x2="830" y2="276" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="283" font-size="22">GATED_LATENT_MEAN</text>
+<line x1="752" y1="322" x2="830" y2="322" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="329" font-size="22">LATENT_GATES</text>
+<line x1="752" y1="368" x2="830" y2="368" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="375" font-size="22">ACTIVE_LATENT_COUNT</text>
+<line x1="752" y1="414" x2="830" y2="414" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="421" font-size="22">GATE_LOSS</text>
+<line x1="752" y1="460" x2="830" y2="460" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="467" font-size="22">LOSS</text>
+<line x1="752" y1="506" x2="830" y2="506" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="513" font-size="22">RECONSTRUCTION_LOSS</text>
+<line x1="752" y1="552" x2="830" y2="552" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="559" font-size="22">RECONSTRUCTION_LOSS_CHANNELS</text>
+<line x1="752" y1="598" x2="830" y2="598" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="605" font-size="22">RECONSTRUCTION_ABSOLUTE_ERROR</text>
+<line x1="752" y1="644" x2="830" y2="644" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="651" font-size="22">RECONSTRUCTION_ABSOLUTE_ERROR_CHANNELS</text>
+<line x1="752" y1="690" x2="830" y2="690" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="697" font-size="22">KL_LOSS</text>
+<line x1="752" y1="736" x2="830" y2="736" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="743" font-size="22">CONSISTENCY_LOSS</text>
+<line x1="752" y1="782" x2="830" y2="782" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="789" font-size="22">CLUSTER_LOSS</text>
+<line x1="752" y1="828" x2="830" y2="828" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="835" font-size="22">CLUSTER_BALANCE_LOSS</text>
+<line x1="752" y1="874" x2="830" y2="874" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="881" font-size="22">CLUSTER_ASSIGNMENT</text>
+<line x1="752" y1="920" x2="830" y2="920" stroke="#333333" stroke-width="4" marker-end="url(#arrow)"/>
+<text x="849" y="927" font-size="22">DECORRELATION_LOSS</text>
+</g>
+</svg>
