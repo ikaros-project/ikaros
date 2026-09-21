@@ -38,3 +38,4 @@
 | 2026-W35 | 2026-08-24 to 2026-08-30 | [CVAE Evaluation, MNIST Probes, and Tick Printing](2026-08-24-week-32.md) |
 | 2026-W36 | 2026-08-31 to 2026-09-06 | [CVAE Latent Experiments, Runtime Fixes, and Statistics Views](2026-08-31-week-33.md) |
 | 2026-W37 | 2026-09-07 to 2026-09-13 | [SOM-VAE Experiments and Frozen-Map Comparisons](2026-09-07-week-34.md) |
+| 2026-W38 | 2026-09-14 to 2026-09-20 | [CVAE Reference Documentation and Experiment Cleanup](2026-09-14-week-35.md) |
