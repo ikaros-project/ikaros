@@ -40,3 +40,4 @@
 | 2026-W37 | 2026-09-07 to 2026-09-13 | [SOM-VAE Experiments and Frozen-Map Comparisons](2026-09-07-week-34.md) |
 | 2026-W38 | 2026-09-14 to 2026-09-20 | [CVAE Reference Documentation and Experiment Cleanup](2026-09-14-week-35.md) |
 | 2026-W39 | 2026-09-21 to 2026-09-27 | [Weekly Devlog Maintenance](2026-09-21-week-36.md) |
+| 2026-W41 | 2026-10-05 to 2026-10-11 | [Weekly Devlog Maintenance](2026-10-05-week-37.md) |
