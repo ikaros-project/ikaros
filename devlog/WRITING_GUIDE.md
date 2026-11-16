@@ -5,7 +5,7 @@ This guide describes how to write weekly and yearly Ikaros devlog entries so fut
 ## Core Principles
 
 - Write from the standpoint of the week or year being described. Do not use knowledge of later development to explain why a change mattered.
-- Use calendar weeks, ISO week numbering, and omit weeks with no repository activity.
+- Use calendar weeks and ISO week numbering. Omit weeks with no repository activity and weeks whose commits only change the devlog.
 - Keep the style narrative-first. The logs should read like a development history, not a raw commit digest.
 - Include contributor credit in prose, using names or account names as recorded in Git, but do not include email addresses.
 - Do not list every commit. Mention the initial commit for a week when relevant, then focus on major changes, integrations, fixes, or shifts in direction.
@@ -20,7 +20,9 @@ Weekly entries live in the year folder:
 devlog/YYYY/YYYY-MM-DD-week-NN.md
 ```
 
-Use the Monday date of the ISO week in the filename. Number entries sequentially within the year, skipping inactive weeks.
+Use the Monday date of the ISO week in the filename. Number entries sequentially within the year, skipping inactive weeks and weeks with only devlog commits.
+
+Before generating an entry, inspect the files changed by the week's commits. A week qualifies only if at least one commit changes a file outside `devlog/`; updates to entries, indexes, or this writing guide alone do not qualify. Apply this rule retroactively: remove existing entries for devlog-only weeks and remove their links from both weekly-entry indexes.
 
 Each weekly entry should use this structure:
 
@@ -188,7 +190,7 @@ The year was a runway for the next year's UI and safety work.
 Before finishing a devlog update:
 
 - Confirm active weeks from Git history.
-- Confirm inactive weeks are omitted.
+- Confirm inactive weeks and weeks with only devlog commits are omitted, including from existing entries and both indexes.
 - Confirm filenames and ISO week numbers match.
 - Confirm no email addresses appear in devlog text.
 - Confirm weekly entries have the intended status.
