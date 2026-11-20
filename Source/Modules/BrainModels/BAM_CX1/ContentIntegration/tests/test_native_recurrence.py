@@ -1,7 +1,7 @@
 """A loaded population survives warmup and then follows a one-tick recurrence."""
 from pathlib import Path
 import csv,json,os,subprocess,tempfile,xml.etree.ElementTree as ET
-ROOT=Path(__file__).resolve().parents[5]
+ROOT=Path(__file__).resolve().parents[6]
 with tempfile.TemporaryDirectory() as folder:
     folder=Path(folder)
     (folder/'hold.csv').write_text('1\n0\n')

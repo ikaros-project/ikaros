@@ -1,7 +1,7 @@
 """Synthetic numerical checks for native patch and projection modules."""
 from pathlib import Path
 import csv,json,math,os,subprocess,tempfile,xml.etree.ElementTree as ET
-ROOT=Path(__file__).resolve().parents[5]
+ROOT=Path(__file__).resolve().parents[6]
 def shape(a):return [len(a)]+shape(a[0]) if isinstance(a,list) else []
 def run_case(cls,parameters,inputs,states=None,ticks=1,output_states=None):
     with tempfile.TemporaryDirectory() as tmp:

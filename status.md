@@ -1507,3 +1507,13 @@ Public fixtures use synthetic data only. Research configurations and learned art
 - Numerical parity covers selected fixed-model trajectories, not every research experiment or training realization.
 - The private graphs load in the WebUI, but the spatial graph still needs a polished navigable layout and a dedicated dashboard. No browser console errors were observed in the inspected views.
 - A proposed framework documentation issue about delayed-buffer initialization was recorded privately. No issue was submitted and no kernel code was changed.
+
+## BAM_CX1 module organization
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Move the new native modules and shared helper under BrainModels/BAM_CX1 and update build/test paths. | Completed | Full build and all four synthetic test suites passed from the new location. | Moved native model modules under BrainModels/BAM_CX1 |
+
+### Outstanding issues and questions for this move
+
+None. The previously documented implementation follow-ups remain unchanged.
