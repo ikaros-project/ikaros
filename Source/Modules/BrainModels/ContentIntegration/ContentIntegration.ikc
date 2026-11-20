@@ -1,0 +1,11 @@
+<class name="ContentIntegration" description="Recurrent mixture of sensory evidence and top-down prediction">
+    <parameter name="rows" type="number" default="1" />
+    <parameter name="features" type="number" default="4" />
+    <parameter name="alpha" type="number" default="0.2" />
+    <parameter name="fraction" type="number" default="0.5" />
+    <input name="INPUT" shape="@rows,@features" />
+    <input name="PREDICTION" shape="@rows,@features" />
+    <input name="GATE" shape="@rows" optional="yes" />
+    <input name="RESET" shape="1" optional="yes" />
+    <output persistent="true" name="OUTPUT" shape="@rows,@features" />
+</class>

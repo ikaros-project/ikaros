@@ -1,0 +1,13 @@
+<class name="CategoryCompetition" description="Recurrent inhibitory competition with optional category drive">
+    <parameter name="rows" type="number" default="1" />
+    <parameter name="categories" type="number" default="2" />
+    <parameter name="alpha" type="number" default="0.2" />
+    <parameter name="inhibition" type="number" default="1" />
+    <parameter name="normalize_input" type="bool" default="true" />
+    <parameter name="maximum" type="number" default="1000000.0" />
+    <input name="INPUT" shape="@rows,@categories" />
+    <input name="CUE" shape="@rows,@categories" optional="yes" />
+    <input name="RESET" shape="1" optional="yes" />
+    <output persistent="true" name="OUTPUT" shape="@rows,@categories" />
+    <output name="WEIGHTS" shape="@rows,@categories" />
+</class>

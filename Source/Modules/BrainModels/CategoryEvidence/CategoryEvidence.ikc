@@ -1,0 +1,22 @@
+<class name="CategoryEvidence" description="Grouped category evidence with local supervised AdamW learning">
+    <parameter name="rows" type="number" default="1" />
+    <parameter name="input_size" type="number" default="4" />
+    <parameter name="categories" type="number" default="2" />
+    <parameter name="units_per_category" type="number" default="2" />
+    <parameter name="train" type="bool" default="false" />
+    <parameter name="learning_rate" type="number" default="0.001" />
+    <parameter name="label_smoothing" type="number" default="0.05" />
+    <parameter name="weight_decay" type="number" default="0.1" />
+    <parameter name="random_seed" type="number" default="1" />
+    <input name="INPUT" shape="@rows,@input_size" />
+    <input name="LABELS" shape="@rows" optional="yes" />
+    <output name="OUTPUT" shape="@rows,@categories" />
+    <output name="UNITS" shape="@rows,@categories*@units_per_category" />
+    <state name="WEIGHTS" size="@input_size,@categories*@units_per_category" type="matrix" persistent="true" />
+    <state name="BIAS" size="@categories*@units_per_category" type="matrix" persistent="true" />
+    <state name="FIRST_MOMENT" size="@input_size,@categories*@units_per_category" type="matrix" persistent="true" />
+    <state name="SECOND_MOMENT" size="@input_size,@categories*@units_per_category" type="matrix" persistent="true" />
+    <state name="BIAS_FIRST" size="@categories*@units_per_category" type="matrix" persistent="true" />
+    <state name="BIAS_SECOND" size="@categories*@units_per_category" type="matrix" persistent="true" />
+    <state name="STEP" size="1" type="matrix" persistent="true" />
+</class>

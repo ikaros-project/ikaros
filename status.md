@@ -1494,7 +1494,7 @@ None.
 | # | Task | Status | Verification | Commit |
 |---:|---|---|---|---|
 | 1 | Add reusable patch coding, patch reconstruction, field extraction and shared batched projection modules. | Completed | Full build and synthetic extraction, softmax, learning, overlap and native-state checks passed. | Added reusable native patch and projection modules |
-| 2 | Add category evidence, competition, reference selection, category prediction and content integration modules. | Pending | Pending | Pending |
+| 2 | Add category evidence, competition, reference selection, category prediction and content integration modules. | Completed | Full build and synthetic grouped learning, competition, selection, mixture and reset checks passed. | Added composable native category and feedback modules |
 | 3 | Add spatial binding, competition, sensory mismatch, gain, pooling and feedback alignment modules. | Pending | Pending | Pending |
 | 4 | Assemble private recurrent networks and validate module scheduling and numerical agreement. | Pending | Pending | Pending |
 

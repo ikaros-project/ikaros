@@ -1,0 +1,12 @@
+<class name="ReferenceSelection" description="Nearest stored reference per category with explicit reselection control">
+    <parameter name="rows" type="number" default="1" />
+    <parameter name="categories" type="number" default="2" />
+    <parameter name="references" type="number" default="2" />
+    <parameter name="latent_size" type="number" default="4" />
+    <input name="INPUT" shape="@rows,@latent_size" />
+    <input name="UPDATE" shape="1" optional="yes" />
+    <output name="OUTPUT" shape="@rows,@categories,@latent_size" />
+    <output persistent="true" name="SLOTS" shape="@rows,@categories" />
+    <state name="BANK" size="@categories,@references,@latent_size" type="matrix" persistent="true" />
+    <state name="INITIALIZED" size="1" type="matrix" persistent="true" />
+</class>

@@ -1,0 +1,8 @@
+<class name="CategoryPrediction" description="Category-weighted mixture of decoded reference predictions">
+    <parameter name="rows" type="number" default="1" />
+    <parameter name="categories" type="number" default="2" />
+    <parameter name="features" type="number" default="4" />
+    <input name="INPUT" shape="@rows,@categories,@features" />
+    <input name="ACTIVITY" shape="@rows,@categories" />
+    <output name="OUTPUT" shape="@rows,@features" />
+</class>
