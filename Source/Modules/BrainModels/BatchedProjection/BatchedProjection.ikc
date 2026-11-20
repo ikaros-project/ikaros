@@ -1,0 +1,10 @@
+<class name="BatchedProjection" description="Shared affine projection of a batch with optional channel-wise categorical decoding">
+    <parameter name="rows" type="number" default="1" />
+    <parameter name="input_size" type="number" default="4" />
+    <parameter name="output_size" type="number" default="4" />
+    <parameter name="softmax_channels" type="number" default="1" />
+    <input name="INPUT" shape="@rows,@input_size" />
+    <output name="OUTPUT" shape="@rows,@output_size" />
+    <state name="WEIGHTS" size="@input_size,@output_size" type="matrix" persistent="true" />
+    <state name="BIAS" size="@output_size" type="matrix" persistent="true" />
+</class>

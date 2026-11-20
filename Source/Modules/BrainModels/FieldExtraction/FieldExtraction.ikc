@@ -1,0 +1,8 @@
+<class name="FieldExtraction" description="Extracts every horizontal field with explicit zero extension">
+    <parameter name="height" type="number" default="8" />
+    <parameter name="width" type="number" default="24" />
+    <parameter name="field_width" type="number" default="8" />
+    <parameter name="padding" type="number" default="0" />
+    <input name="INPUT" shape="@height,@width" />
+    <output name="OUTPUT" shape="@width+2*@padding-@field_width+1,@height,@field_width" />
+</class>

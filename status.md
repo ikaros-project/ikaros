@@ -1488,3 +1488,14 @@ functionality must be evaluated before adding any new data structure or numerica
 ### Outstanding issues and questions
 
 None.
+
+## Composable native object and spatial processing
+
+| # | Task | Status | Verification | Commit |
+|---:|---|---|---|---|
+| 1 | Add reusable patch coding, patch reconstruction, field extraction and shared batched projection modules. | Completed | Full build and synthetic extraction, softmax, learning, overlap and native-state checks passed. | Added reusable native patch and projection modules |
+| 2 | Add category evidence, competition, reference selection, category prediction and content integration modules. | Pending | Pending | Pending |
+| 3 | Add spatial binding, competition, sensory mismatch, gain, pooling and feedback alignment modules. | Pending | Pending | Pending |
+| 4 | Assemble private recurrent networks and validate module scheduling and numerical agreement. | Pending | Pending | Pending |
+
+Public fixtures use synthetic data only. Research configurations and learned artifacts remain outside this repository. No kernel changes or new external dependencies are planned.
