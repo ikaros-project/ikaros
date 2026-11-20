@@ -57,6 +57,7 @@ class FeedbackAlignment: public Module
     void
     Tick()
     {
+        float *out = output.contiguous_data();
         const float *a=attention.contiguous_data(), *v=category.contiguous_data(), *s=slots.contiguous_data();
         double mass=0,cmass=0; for(int i=0;i<n;++i) mass+=a[i]; for(int j=0;j<c;++j) cmass+=v[j];
         output=0; gate=0;
@@ -79,7 +80,7 @@ class FeedbackAlignment: public Module
             }
         }
         for(int i=0;i<n;++i) for(int ch=0;ch<k;++ch) for(int y=0;y<h;++y) for(int x=0;x<w;++x)
-            output(i,ch,y,x)=global[(ch*h+y)*g+i+x]+std::max(0.0,1-coverage[i+x])*empty[(ch*h+y)*w+x];
+            out[((i*k+ch)*h+y)*w+x]=global[(ch*h+y)*g+i+x]+std::max(0.0,1-coverage[i+x])*empty[(ch*h+y)*w+x];
     }
 };
 

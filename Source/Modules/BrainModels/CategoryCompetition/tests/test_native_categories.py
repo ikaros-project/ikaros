@@ -13,5 +13,7 @@ def main():
     a,_=run_case('CategoryPrediction',dict(rows=1,categories=2,features=2),{'INPUT':[[[1,0],[0,1]]],'ACTIVITY':[[1,3]]});close(a[-1],[.25,.75])
     a,_=run_case('ContentIntegration',dict(rows=1,features=2,alpha=.5,fraction=.5),{'INPUT':[[1,0]],'PREDICTION':[[0,1]]},ticks=2);close(a[0],[.25,.25]);close(a[1],[.375,.375])
     a,_=run_case('ContentIntegration',dict(rows=1,features=2,alpha=.5,fraction=1),{'INPUT':[[1,0]],'PREDICTION':[[0,1]],'RESET':[1]});close(a[-1],[1,0])
+    a,s=run_case('CategoryCompetition',dict(rows=1,categories=2),{'INPUT':[[1,0]],'HOLD':[1],'RESET':[1]},output_states={'OUTPUT':[[.2,.4]]},ticks=2);close(a[-1],[.2,.4])
+    a,_=run_case('ContentIntegration',dict(rows=1,features=2),{'INPUT':[[1,0]],'PREDICTION':[[0,1]],'HOLD':[1],'RESET':[1]},output_states={'OUTPUT':[[.3,.7]]},ticks=2);close(a[-1],[.3,.7])
     print('PASS: grouped evidence, local learning, synchronous competition, references, category prediction and integration/reset.')
 if __name__=='__main__':main()

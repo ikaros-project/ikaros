@@ -12,6 +12,7 @@
     <input name="SUPPORT" shape="@fields" />
     <input name="MISMATCH" shape="@fields" />
     <input name="CATEGORY" shape="@categories" />
+    <input name="HOLD" shape="1" optional="yes" description="Positive holds recurrent state unchanged, taking precedence over RESET." />
     <input name="RESET" shape="1" optional="yes" />
     <output persistent="true" name="OUTPUT" shape="@fields,@categories" />
 </class>

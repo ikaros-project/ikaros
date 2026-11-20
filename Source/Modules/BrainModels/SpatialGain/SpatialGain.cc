@@ -23,6 +23,7 @@ class SpatialGain: public Module
     matrix input;
     matrix attention;
     matrix reset;
+    matrix hold;
     matrix output;
     matrix gain;
     int h,w,n;
@@ -42,6 +43,8 @@ class SpatialGain: public Module
         Bind(input, "INPUT");
         Bind(attention, "ATTENTION");
         Bind(reset, "RESET");
+        Bind(hold, "HOLD");
+        population_math::size(hold, 1, true);
         Bind(output, "OUTPUT");
         Bind(gain, "GAIN");
         h=population_math::dimension(height); w=population_math::dimension(width); n=population_math::dimension(fields);
@@ -54,6 +57,8 @@ class SpatialGain: public Module
     void
     Tick()
     {
+        if(!hold.empty() && hold(0) > 0)
+            return;
         const float *a=attention.contiguous_data(), *x=input.contiguous_data();
         population_math::range(alpha.as_double(),0,1); population_math::range(excitation.as_double(),0,1e6); population_math::range(inhibition.as_double(),0,1e6);
         double mass=0; for(int b=0;b<n;++b) mass+=a[b];

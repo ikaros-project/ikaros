@@ -17,6 +17,7 @@ class SensoryMismatch: public Module
     matrix input;
     matrix prediction;
     matrix reset;
+    matrix hold;
     matrix output;
     matrix positive;
     matrix negative;
@@ -30,6 +31,8 @@ class SensoryMismatch: public Module
         Bind(input, "INPUT");
         Bind(prediction, "PREDICTION");
         Bind(reset, "RESET");
+        Bind(hold, "HOLD");
+        population_math::size(hold, 1, true);
         Bind(output, "OUTPUT");
         Bind(positive, "POSITIVE");
         Bind(negative, "NEGATIVE");
@@ -41,6 +44,8 @@ class SensoryMismatch: public Module
     void
     Tick()
     {
+        if(!hold.empty() && hold(0) > 0)
+            return;
         const float *x=input.contiguous_data(), *y=prediction.contiguous_data(); const double a=alpha.as_double(); population_math::range(a,0,1);
         if(!reset.empty() && reset(0)>0) { output=0; positive=0; negative=0; }
         for(int b=0;b<n;++b)

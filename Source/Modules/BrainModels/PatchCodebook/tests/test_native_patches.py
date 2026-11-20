@@ -3,7 +3,7 @@ from pathlib import Path
 import csv,json,math,os,subprocess,tempfile,xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[5]
 def shape(a):return [len(a)]+shape(a[0]) if isinstance(a,list) else []
-def run_case(cls,parameters,inputs,states=None,ticks=1):
+def run_case(cls,parameters,inputs,states=None,ticks=1,output_states=None):
     with tempfile.TemporaryDirectory() as tmp:
         tmp=Path(tmp);g=ET.Element('group',name='Synthetic',agent='native-component-verification',tick_duration='1')
         ET.SubElement(g,'module',{'class':cls,'name':'Model','_x':'300','_y':'80',**{k:str(v) for k,v in parameters.items()}})
@@ -14,8 +14,10 @@ def run_case(cls,parameters,inputs,states=None,ticks=1):
         ET.SubElement(g,'connection',source='Model.OUTPUT',target='Record.INPUT',delay='0',label='value')
         ET.ElementTree(g).write(tmp/'model.ikg')
         cmd=[str(ROOT/'Bin/ikaros'),'-b','-s',str(ticks),'-u',str(tmp),'-W',str(tmp/'saved.json')]
-        if states:
+        if states or output_states:
+            states = states or {}
             items={'Synthetic.Model.'+k:dict(kind='state',type='matrix',shape=shape(v),value=v) for k,v in states.items()}
+            items.update({'Synthetic.Model.'+k:dict(kind='output',type='matrix',shape=shape(v),value=v) for k,v in (output_states or {}).items()})
             (tmp/'state.json').write_text(json.dumps(dict(format='ikaros-state-v1',scope='',items=items)))
             cmd+=['-L',str(tmp/'state.json')]
         cmd.append(str(tmp/'model.ikg'))

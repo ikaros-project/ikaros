@@ -1496,6 +1496,14 @@ None.
 | 1 | Add reusable patch coding, patch reconstruction, field extraction and shared batched projection modules. | Completed | Full build and synthetic extraction, softmax, learning, overlap and native-state checks passed. | Added reusable native patch and projection modules |
 | 2 | Add category evidence, competition, reference selection, category prediction and content integration modules. | Completed | Full build and synthetic grouped learning, competition, selection, mixture and reset checks passed. | Added composable native category and feedback modules |
 | 3 | Add spatial binding, competition, sensory mismatch, gain, pooling and feedback alignment modules. | Completed | Full build and synthetic support, binding, competition, pooling, spotlight, alignment and rendering checks passed. | Added composable native spatial processing modules |
-| 4 | Assemble private recurrent networks and validate module scheduling and numerical agreement. | Pending | Pending | Pending |
+| 4 | Assemble private recurrent networks and validate module scheduling and numerical agreement. | Completed | Full build, all synthetic suites, explicit loaded-state recurrence, and private focal/spatial trajectory comparisons passed. Local WebUI graph loading inspected. | Added explicit recurrent initialization and verified native inference |
 
 Public fixtures use synthetic data only. Research configurations and learned artifacts remain outside this repository. No kernel changes or new external dependencies are planned.
+
+### Outstanding issues and questions for native object/spatial modules
+
+- The delivered networks implement frozen-model recurrent inference. Complete training orchestration, categorical VAE training, decoder fitting and reference-bank construction still need migration and verification.
+- Stimulus-specific initial states and fixed reference selections are currently prepared by the private exporter. Standalone initialization for arbitrary new inputs remains follow-up work.
+- Numerical parity covers selected fixed-model trajectories, not every research experiment or training realization.
+- The private graphs load in the WebUI, but the spatial graph still needs a polished navigable layout and a dedicated dashboard. No browser console errors were observed in the inspected views.
+- A proposed framework documentation issue about delayed-buffer initialization was recorded privately. No issue was submitted and no kernel code was changed.

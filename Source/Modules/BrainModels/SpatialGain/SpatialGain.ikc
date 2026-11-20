@@ -10,6 +10,7 @@
     <parameter name="alpha" type="number" default="0.2" />
     <input name="INPUT" shape="@height,@width" />
     <input name="ATTENTION" shape="@fields" />
+    <input name="HOLD" shape="1" optional="yes" description="Positive holds recurrent state unchanged, taking precedence over RESET." />
     <input name="RESET" shape="1" optional="yes" />
     <output persistent="true" name="OUTPUT" shape="@height,@width" />
     <output name="GAIN" shape="@width" />

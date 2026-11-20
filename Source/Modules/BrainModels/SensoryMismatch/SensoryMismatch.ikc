@@ -4,6 +4,7 @@
     <parameter name="alpha" type="number" default="0.2" />
     <input name="INPUT" shape="@fields,@pixels" />
     <input name="PREDICTION" shape="@fields,@pixels" />
+    <input name="HOLD" shape="1" optional="yes" description="Positive holds recurrent state unchanged, taking precedence over RESET." />
     <input name="RESET" shape="1" optional="yes" />
     <output persistent="true" name="OUTPUT" shape="@fields" />
     <output persistent="true" name="POSITIVE" shape="@fields" />

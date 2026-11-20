@@ -8,6 +8,7 @@
     <input name="INPUT" shape="@fields,@categories" />
     <input name="CATEGORY" shape="@categories" />
     <input name="CUE" shape="@fields" optional="yes" />
+    <input name="HOLD" shape="1" optional="yes" description="Positive holds recurrent state unchanged, taking precedence over RESET." />
     <input name="RESET" shape="1" optional="yes" />
     <output persistent="true" name="OUTPUT" shape="@fields" />
 </class>

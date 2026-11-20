@@ -27,6 +27,8 @@ class PatchCodebook: public Module
     int n,h,w,k,c,ph,pw;
     std::vector<double> distances, sums;
     std::vector<int> counts;
+    matrix patches, transposed, scores;
+    std::vector<float> norms, prototypeNorms;
     void
     Init()
     {
@@ -48,6 +50,8 @@ class PatchCodebook: public Module
         if(ph<1 || pw<1) throw std::invalid_argument("PatchCodebook: kernel exceeds input.");
         population_math::range(temperature.as_double(),0,1e6); population_math::range(learningRate.as_double(),0,1);
         population_math::size(input,n*h*w); population_math::size(output,n*c*ph*pw);
+        patches.realloc(n*ph*pw,k*k); transposed.realloc(k*k,c); scores.realloc(n*ph*pw,c);
+        norms.resize(n*ph*pw); prototypeNorms.resize(c);
         distances.resize(c); sums.resize(c*k*k); counts.resize(c);
         std::mt19937 rng(randomSeed.as_int()); std::uniform_real_distribution<float> uniform(0,1);
         for(int i=0;i<c;++i) for(int j=0;j<k*k;++j) prototypes(i,j)=uniform(rng);
@@ -57,6 +61,53 @@ class PatchCodebook: public Module
 
     void
     Tick()
+    {
+        if(train.as_bool())
+        {
+            CompetitiveTick();
+            return;
+        }
+        population_math::range(temperature.as_double(),0,1e6);
+        const float *x=input.contiguous_data();
+        float *out=output.contiguous_data(), *patch=patches.contiguous_data(), *score=scores.contiguous_data();
+        for(int b=0;b<n;++b) for(int y=0;y<ph;++y) for(int col=0;col<pw;++col)
+        {
+            const int row=(b*ph+y)*pw+col; float norm=0;
+            for(int dy=0;dy<k;++dy) for(int dx=0;dx<k;++dx)
+            {
+                const float v=x[(b*h+y+dy)*w+col+dx]; patch[row*k*k+dy*k+dx]=v; norm+=v*v;
+            }
+            norms[row]=norm;
+        }
+        for(int j=0;j<c;++j)
+        {
+            float norm=0;
+            for(int d=0;d<k*k;++d) { const float v=prototypes(j,d); transposed(d,j)=v; norm+=v*v; }
+            prototypeNorms[j]=norm;
+        }
+        scores.matmul(patches,transposed);
+        for(int row=0;row<n*ph*pw;++row)
+        {
+            int winner=0;
+            for(int j=0;j<c;++j)
+            {
+                score[row*c+j]=norms[row]+prototypeNorms[j]-2*score[row*c+j];
+                if(score[row*c+j]<score[row*c+winner]) winner=j;
+            }
+            const float minimum=score[row*c+winner]; double total=0;
+            const int b=row/(ph*pw),y=(row/pw)%ph,col=row%pw;
+            for(int j=0;j<c;++j)
+            {
+                const float v=temperature.as_double()>0 ? std::exp(-(score[row*c+j]-minimum)/(k*k*temperature.as_double())) : (j==winner ? 1.0f : 0.0f);
+                out[((b*c+j)*ph+y)*pw+col]=v; total+=v;
+            }
+            for(int j=0;j<c;++j) out[((b*c+j)*ph+y)*pw+col]/=total;
+        }
+    }
+
+
+    void
+    CompetitiveTick()
     {
         population_math::range(temperature.as_double(),0,1e6); population_math::range(learningRate.as_double(),0,1);
         for(int b=0;b<n;++b)

@@ -44,14 +44,16 @@ class BatchedProjection: public Module
     {
         std::copy(input.contiguous_data(),input.contiguous_data()+n*d,values.contiguous_data());
         output.matmul(values,weights);
-        for(int i=0;i<n;++i) for(int j=0;j<q;++j) output(i,j)+=bias(j);
+        float *out = output.contiguous_data();
+        const float *offset = bias.contiguous_data();
+        for(int i=0;i<n;++i) for(int j=0;j<q;++j) out[i*q+j]+=offset[j];
         if(c>1) for(int i=0;i<n;++i) for(int s=0;s<q/c;++s)
         {
             float maximum=-std::numeric_limits<float>::infinity();
-            for(int j=0;j<c;++j) maximum=std::max(maximum,output(i,j*(q/c)+s));
+            for(int j=0;j<c;++j) maximum=std::max(maximum,out[i*q+j*(q/c)+s]);
             double total=0;
-            for(int j=0;j<c;++j) { const int k=j*(q/c)+s; output(i,k)=std::exp(output(i,k)-maximum); total+=output(i,k); }
-            for(int j=0;j<c;++j) output(i,j*(q/c)+s)/=total;
+            for(int j=0;j<c;++j) { const int k=j*(q/c)+s; out[i*q+k]=std::exp(out[i*q+k]-maximum); total+=out[i*q+k]; }
+            for(int j=0;j<c;++j) out[i*q+j*(q/c)+s]/=total;
         }
     }
 };

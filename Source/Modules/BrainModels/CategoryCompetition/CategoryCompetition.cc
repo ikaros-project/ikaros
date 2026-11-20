@@ -20,6 +20,7 @@ class CategoryCompetition: public Module
     matrix input;
     matrix cue;
     matrix reset;
+    matrix hold;
     matrix output;
     matrix weights;
     int n,c;
@@ -35,6 +36,8 @@ class CategoryCompetition: public Module
         Bind(input, "INPUT");
         Bind(cue, "CUE");
         Bind(reset, "RESET");
+        Bind(hold, "HOLD");
+        population_math::size(hold, 1, true);
         Bind(output, "OUTPUT");
         Bind(weights, "WEIGHTS");
         n=population_math::dimension(rows); c=population_math::dimension(categories);
@@ -47,7 +50,8 @@ class CategoryCompetition: public Module
     Tick()
     {
         population_math::range(alpha.as_double(),0,1); population_math::range(inhibition.as_double(),0,1e6);
-        if(!reset.empty() && reset(0)>0) output=0;
+        const bool holding = !hold.empty() && hold(0) > 0;
+        if(!holding && !reset.empty() && reset(0)>0) output=0;
         const float *v=input.contiguous_data(); const float *drive=cue.empty() ? nullptr : cue.contiguous_data();
         for(int b=0;b<n;++b)
         {
@@ -58,7 +62,8 @@ class CategoryCompetition: public Module
             {
                 const double evidence=normalizeInput.as_bool() ? v[b*c+j]/maxEvidence : v[b*c+j];
                 const double target=std::clamp(evidence+(drive ? drive[b*c+j] : 0)-inhibition.as_double()*(sum-output(b,j)),0.0,maximum.as_double());
-                output(b,j)=(1-alpha.as_double())*output(b,j)+alpha.as_double()*target; mass+=output(b,j);
+                if(!holding) output(b,j)=(1-alpha.as_double())*output(b,j)+alpha.as_double()*target;
+                mass+=output(b,j);
             }
             for(int j=0;j<c;++j) weights(b,j)=mass>0 ? output(b,j)/mass : 0;
         }

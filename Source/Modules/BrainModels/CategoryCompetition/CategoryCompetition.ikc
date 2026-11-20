@@ -7,6 +7,7 @@
     <parameter name="maximum" type="number" default="1000000.0" />
     <input name="INPUT" shape="@rows,@categories" />
     <input name="CUE" shape="@rows,@categories" optional="yes" />
+    <input name="HOLD" shape="1" optional="yes" description="Positive holds recurrent state unchanged, taking precedence over RESET." />
     <input name="RESET" shape="1" optional="yes" />
     <output persistent="true" name="OUTPUT" shape="@rows,@categories" />
     <output name="WEIGHTS" shape="@rows,@categories" />
