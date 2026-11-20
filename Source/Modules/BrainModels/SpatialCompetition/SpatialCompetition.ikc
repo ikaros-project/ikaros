@@ -1,0 +1,13 @@
+<class name="SpatialCompetition" description="Spatial competition with category-weighted binding and an external spatial cue">
+    <parameter name="fields" type="number" default="3" />
+    <parameter name="categories" type="number" default="2" />
+    <parameter name="alpha" type="number" default="0.2" />
+    <parameter name="inhibition" type="number" default="1" />
+    <parameter name="category_gain" type="number" default="1" />
+    <parameter name="drive_gain" type="number" default="1" />
+    <input name="INPUT" shape="@fields,@categories" />
+    <input name="CATEGORY" shape="@categories" />
+    <input name="CUE" shape="@fields" optional="yes" />
+    <input name="RESET" shape="1" optional="yes" />
+    <output persistent="true" name="OUTPUT" shape="@fields" />
+</class>

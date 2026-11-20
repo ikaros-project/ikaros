@@ -1,0 +1,17 @@
+<class name="FeedbackAlignment" description="Population-weighted alignment of reference codes on shared patch coordinates">
+    <parameter name="fields" type="number" default="3" />
+    <parameter name="categories" type="number" default="2" />
+    <parameter name="references" type="number" default="2" />
+    <parameter name="channels" type="number" default="2" />
+    <parameter name="patch_rows" type="number" default="2" />
+    <parameter name="patch_columns" type="number" default="2" />
+    <parameter name="sigma" type="number" default="2" />
+    <parameter name="mass_threshold" type="number" default="1e-07" />
+    <input name="SLOTS" shape="@fields,@categories" />
+    <input name="ATTENTION" shape="@fields" />
+    <input name="CATEGORY" shape="@categories" />
+    <output name="OUTPUT" shape="@fields,@channels,@patch_rows,@patch_columns" />
+    <output name="GATE" shape="@fields" />
+    <state name="BANK" size="@categories,@references,@channels,@patch_rows,@patch_columns" type="matrix" persistent="true" />
+    <state name="BLANK" size="@channels,@patch_rows,@patch_columns" type="matrix" persistent="true" />
+</class>

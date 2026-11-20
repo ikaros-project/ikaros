@@ -1,0 +1,11 @@
+<class name="SensoryMismatch" description="Filtered positive and negative sensory mismatch with lagged sensory support">
+    <parameter name="fields" type="number" default="3" />
+    <parameter name="pixels" type="number" default="4" />
+    <parameter name="alpha" type="number" default="0.2" />
+    <input name="INPUT" shape="@fields,@pixels" />
+    <input name="PREDICTION" shape="@fields,@pixels" />
+    <input name="RESET" shape="1" optional="yes" />
+    <output persistent="true" name="OUTPUT" shape="@fields" />
+    <output persistent="true" name="POSITIVE" shape="@fields" />
+    <output persistent="true" name="NEGATIVE" shape="@fields" />
+</class>

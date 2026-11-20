@@ -1,0 +1,16 @@
+<class name="SpatialGain" description="Gaussian spatial spotlight with divisive normalization and sensory relaxation">
+    <parameter name="height" type="number" default="8" />
+    <parameter name="width" type="number" default="24" />
+    <parameter name="fields" type="number" default="17" />
+    <parameter name="field_width" type="number" default="8" />
+    <parameter name="origin" type="number" default="0" />
+    <parameter name="sigma" type="number" default="4" />
+    <parameter name="excitation" type="number" default="1" />
+    <parameter name="inhibition" type="number" default="1" />
+    <parameter name="alpha" type="number" default="0.2" />
+    <input name="INPUT" shape="@height,@width" />
+    <input name="ATTENTION" shape="@fields" />
+    <input name="RESET" shape="1" optional="yes" />
+    <output persistent="true" name="OUTPUT" shape="@height,@width" />
+    <output name="GAIN" shape="@width" />
+</class>

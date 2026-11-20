@@ -1,0 +1,8 @@
+<class name="FieldReconstruction" description="Uniform reconstruction of the visible display from overlapping fields">
+    <parameter name="height" type="number" default="8" />
+    <parameter name="width" type="number" default="24" />
+    <parameter name="field_width" type="number" default="8" />
+    <parameter name="padding" type="number" default="0" />
+    <input name="INPUT" shape="@width+2*@padding-@field_width+1,@height,@field_width" />
+    <output name="OUTPUT" shape="@height,@width" />
+</class>

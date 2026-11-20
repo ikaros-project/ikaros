@@ -1,0 +1,17 @@
+<class name="CategoryLocationBinding" description="Local category binding driven by support, mismatch and global category bias">
+    <parameter name="fields" type="number" default="3" />
+    <parameter name="categories" type="number" default="2" />
+    <parameter name="alpha" type="number" default="0.2" />
+    <parameter name="inhibition" type="number" default="1" />
+    <parameter name="support_gain" type="number" default="1" />
+    <parameter name="mismatch_gain" type="number" default="1" />
+    <parameter name="category_gain" type="number" default="0.25" />
+    <parameter name="threshold" type="number" default="0" />
+    <parameter name="normalize_evidence" type="bool" default="true" />
+    <input name="INPUT" shape="@fields,@categories" />
+    <input name="SUPPORT" shape="@fields" />
+    <input name="MISMATCH" shape="@fields" />
+    <input name="CATEGORY" shape="@categories" />
+    <input name="RESET" shape="1" optional="yes" />
+    <output persistent="true" name="OUTPUT" shape="@fields,@categories" />
+</class>

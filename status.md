@@ -1495,7 +1495,7 @@ None.
 |---:|---|---|---|---|
 | 1 | Add reusable patch coding, patch reconstruction, field extraction and shared batched projection modules. | Completed | Full build and synthetic extraction, softmax, learning, overlap and native-state checks passed. | Added reusable native patch and projection modules |
 | 2 | Add category evidence, competition, reference selection, category prediction and content integration modules. | Completed | Full build and synthetic grouped learning, competition, selection, mixture and reset checks passed. | Added composable native category and feedback modules |
-| 3 | Add spatial binding, competition, sensory mismatch, gain, pooling and feedback alignment modules. | Pending | Pending | Pending |
+| 3 | Add spatial binding, competition, sensory mismatch, gain, pooling and feedback alignment modules. | Completed | Full build and synthetic support, binding, competition, pooling, spotlight, alignment and rendering checks passed. | Added composable native spatial processing modules |
 | 4 | Assemble private recurrent networks and validate module scheduling and numerical agreement. | Pending | Pending | Pending |
 
 Public fixtures use synthetic data only. Research configurations and learned artifacts remain outside this repository. No kernel changes or new external dependencies are planned.
